@@ -1,26 +1,22 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import Test from 'features/test';
+import { PRIMARY_COLOR } from 'shared/shared-colors';
+import styled from 'styled-components';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const AppStyled = styled.div`
+    width: 100vw;
+    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: #111;
+    color: ${PRIMARY_COLOR};
+`;
+const App = () => {
+    return (
+        <AppStyled>
+            BD Game
+            <Test />
+        </AppStyled>
+    );
+};
 
 export default App;
