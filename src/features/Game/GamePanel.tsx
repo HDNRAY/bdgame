@@ -4,8 +4,13 @@ import { System } from 'application/System'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import styled from 'styled-components'
+import CharacterPanel from './CharacterPanel'
 
-const GameWrapper = styled.div``
+const GameWrapper = styled.div`
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+`
 
 const GamePanel = () => {
     const { id } = useParams()
@@ -44,7 +49,11 @@ const GamePanel = () => {
         )
     }
 
-    return <GameWrapper>{game?.mainCharacter?.name}</GameWrapper>
+    return (
+        <GameWrapper>
+            <CharacterPanel character={game?.mainCharacter.info} />
+        </GameWrapper>
+    )
 }
 
 export default GamePanel
