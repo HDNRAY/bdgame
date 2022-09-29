@@ -1,4 +1,4 @@
-import Skill, { Cost, Effect } from './Skill'
+import { Skill, Cost, Effect } from './Skill'
 
 export interface Targetable {
     onTarget(): void

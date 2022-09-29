@@ -1,9 +1,7 @@
 import Button from 'components/button/Button'
-import { useCallback } from 'react'
 import { FlexCenterWrapper } from 'shared/simple-styled-components'
 import styled from 'styled-components'
 import { useNavigate } from 'react-router-dom'
-import { Application } from 'application/Application'
 
 const IndexGameTitle = styled.div`
     position: absolute;
@@ -24,21 +22,13 @@ const Index = () => {
     const menus = [
         {
             name: '新的冒险',
-            path: 'new',
+            path: 'create',
         },
         {
             name: '旧的回忆',
             path: 'load',
         },
     ]
-    const onMenuClick = useCallback(
-        (path: string) => {
-            if (path !== 'new') {
-                navigate(path)
-            }
-        },
-        [navigate]
-    )
     return (
         <FlexCenterWrapper>
             <IndexGameTitle>BD GAME</IndexGameTitle>
@@ -46,7 +36,7 @@ const Index = () => {
                 {menus.map((menu) => {
                     const { name, path } = menu
                     return (
-                        <Button key={name} onClick={() => onMenuClick(path)}>
+                        <Button key={name} onClick={() => navigate(path)}>
                             {name}
                         </Button>
                     )

@@ -1,4 +1,4 @@
-import Game, { GameInterface } from './Game'
+import Game, { GameInfo } from './Game'
 
 export class Application {
     private static _instance?: Application
@@ -12,7 +12,7 @@ export class Application {
 
     game?: Game
 
-    createGame(params: GameInterface) {
+    initGame(params: GameInfo) {
         if (this.game) {
             throw new Error('Please end current game before create a new one')
         }

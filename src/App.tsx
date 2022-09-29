@@ -5,6 +5,7 @@ import { Routes, Route } from 'react-router-dom'
 import Game from 'features/Game/Game'
 import Index from 'features/Index/Index'
 import Load from 'features/Index/Load'
+import CharacterCreation from 'features/Index/CharacterCreation'
 
 const AppStyled = styled.div`
     width: 100vw;
@@ -18,9 +19,10 @@ const App = () => {
     return (
         <AppStyled>
             <Routes>
-                <Route index element={<Index></Index>}></Route>
-                <Route path="load" element={<Load></Load>}></Route>
-                <Route path="game/:id" element={<Game></Game>}></Route>
+                <Route index element={<Index />}></Route>
+                <Route path="load" element={<Load />}></Route>
+                <Route path="create" element={<CharacterCreation />}></Route>
+                <Route path="game/:id" element={<Game />}></Route>
             </Routes>
             <Test />
         </AppStyled>

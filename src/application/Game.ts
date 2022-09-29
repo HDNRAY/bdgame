@@ -1,4 +1,5 @@
-import Character from './models/Character'
+import { CharacterFactory } from './factories/CharacterFactory'
+import Character, { CharacterInfo } from './models/Character'
 import BattleScene from './scenes/BattleScene'
 
 export default class Game {
@@ -6,8 +7,8 @@ export default class Game {
     mainCharacter: Character
     skills: Array<any>
 
-    constructor(params: GameInterface) {
-        this.mainCharacter = params.mainCharacter
+    constructor(params: GameInfo) {
+        this.mainCharacter = CharacterFactory.buildCharacterFromInfo(params.mainCharacter)
         this.skills = params.skills
     }
 
@@ -25,7 +26,7 @@ export default class Game {
     }
 }
 
-export interface GameInterface {
-    mainCharacter: Character
+export interface GameInfo {
+    mainCharacter: CharacterInfo
     skills: Array<any>
 }

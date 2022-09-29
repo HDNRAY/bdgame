@@ -1,5 +1,5 @@
 import { Castable, Targetable } from './interfaces'
-import Skill from './Skill'
+import { Skill } from './Skill'
 
 export default class SkillObject {
     source: Castable

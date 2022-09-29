@@ -1,5 +1,5 @@
 import { Castable, Targetable } from 'application/models/interfaces'
-import Skill from 'application/models/Skill'
+import { Skill } from 'application/models/Skill'
 
 export default class BattleScene {
     castASkill(source: Castable, target: Targetable, skill: Skill): void {

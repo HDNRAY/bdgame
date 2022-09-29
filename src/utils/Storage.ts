@@ -1,6 +1,9 @@
 export namespace Storage {
     export function getItem(key: string) {
-        const item = localStorage.getItem(key) || '{}'
+        const item = localStorage.getItem(key)
+
+        if (!item) return undefined
+
         let result
         try {
             result = JSON.parse(item)

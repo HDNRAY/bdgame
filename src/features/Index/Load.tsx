@@ -34,8 +34,9 @@ const Load = () => {
             <BackArrow onClick={() => navigate(-1)}>&lt;</BackArrow>
             {items?.map((item) => {
                 const { name, id } = item
+                const gameId = id.replace('record-', '')
                 return (
-                    <Button key={name} onClick={() => onMenuClick(id)}>
+                    <Button key={name} onClick={() => onMenuClick(gameId)}>
                         {name}
                     </Button>
                 )
