@@ -1,12 +1,6 @@
 import { Skill } from 'application/models/Skill'
+import { TARGET_TYPE } from './constant'
 import { BattleCharacter } from './interfaces'
-
-export enum TARGET_TYPE {
-    SELF = 0,
-    ALLY = 1,
-    OPPONENT = 2,
-    ALL = 3,
-}
 
 const SkillEffecterMap: {
     [key: string]: (params: Array<any>, skill: Skill, source: BattleCharacter, target: BattleCharacter) => any
