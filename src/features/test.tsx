@@ -71,7 +71,7 @@ const Test = () => {
             <SwitchButton isOn={on} onClick={onSwitchClick}>
                 Switch
             </SwitchButton>
-            <Button onClick={onClick}>随机技能</Button>
+            <Button onClick={onClick}>战斗</Button>
             {/* {JSON.stringify(skill)} */}
         </TestWrapper>
     )
