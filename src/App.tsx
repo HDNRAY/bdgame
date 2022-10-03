@@ -6,6 +6,8 @@ import Game from 'features/Game/GamePanel'
 import Index from 'features/Index/Index'
 import Load from 'features/Index/Load'
 import CharacterCreation from 'features/Index/CharacterCreation'
+import { useEffect, useState } from 'react'
+import { Application } from 'application/Application'
 
 const AppStyled = styled.div`
     width: 100vw;
@@ -16,6 +18,22 @@ const AppStyled = styled.div`
     color: ${PRIMARY_COLOR};
 `
 const App = () => {
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        fetch('/data/skills.json')
+            .then((res) => res.json())
+            .then((res) => {
+                Application.Instance.skills = res.skills
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false))
+    })
+
+    if (loading) {
+        return <div>Loading...</div>
+    }
+
     return (
         <AppStyled>
             <Routes>

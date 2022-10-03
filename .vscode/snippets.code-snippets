@@ -17,5 +17,10 @@
         "prefix": "ims",
         "body": "import styled from 'styled-components'",
         "description": "import styled"
+    },
+    "immer import": {
+        "prefix": "imm",
+        "body": "import produce from 'immer'",
+        "description": "import immer"
     }
 }

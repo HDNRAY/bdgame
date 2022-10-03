@@ -1,0 +1,19 @@
+{
+    "version": "0.1",
+    "skills": [
+        {
+            "id": "1",
+            "name": "挥拳",
+            "costs": [],
+            "cooldown": 1500,
+            "effects": [
+                {
+                    "method": "strength-damage",
+                    "params": [1],
+                    "targetCount": 1,
+                    "targetType": 2
+                }
+            ]
+        }
+    ]
+}

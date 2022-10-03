@@ -1,3 +1,6 @@
+import { Application } from 'application/Application'
+import Battle from 'application/battle/battle'
+import { BattleUnit } from 'application/battle/interfaces'
 import Button from 'components/button/Button'
 import ProgressButton from 'components/button/ProgressButton'
 import SwitchButton from 'components/button/SwitchButton'
@@ -22,7 +25,42 @@ const Test = () => {
 
     // const [skill, setSkill] = useState<Skill>()
 
-    const onClick = useCallback(() => {}, [])
+    const onClick = useCallback(() => {
+        const characters: Array<BattleUnit> = [
+            {
+                name: 'Ray',
+                team: 0,
+                type: 'character',
+                staticAttributes: {
+                    volumne: {
+                        health: 100,
+                        mana: 100,
+                    },
+                    base: {
+                        strength: 10,
+                    },
+                },
+                skill: Application.Instance.skillsMap['1'],
+            },
+            {
+                name: '61f',
+                type: 'character',
+                team: 1,
+                staticAttributes: {
+                    volumne: {
+                        health: 80,
+                        mana: 100,
+                    },
+                    base: {
+                        strength: 15,
+                    },
+                },
+                skill: Application.Instance.skillsMap['1'],
+            },
+        ]
+        const state = Battle.create(characters)
+        Battle.compute(state)
+    }, [])
 
     return (
         <TestWrapper>

@@ -1,9 +1,31 @@
+import { Effect } from 'application/battle/skillEffect'
+import { Cost } from 'application/common/interface'
 import { Castable } from './interfaces'
-import { Skill, Cost, Effect } from './Skill'
+import { Skill } from './Skill'
 
 export interface CharacterInfo {
     id: string
     name: string
+}
+
+export interface CharacterAttribute {
+    volumne: {
+        health: number
+        mana: number
+    }
+    base: {
+        strength: number
+        // agility: number
+        // intellligence: number
+        // willPower: number
+        // stamina: number
+    }
+    // defense: {
+    //     physical: number
+    // }
+    // attack: {
+    //     physical: number
+    // }
 }
 
 export default class Character implements Castable {

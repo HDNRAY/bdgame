@@ -1,4 +1,5 @@
-import { Skill } from 'application/models/Skill'
+// import { Skill } from 'application/models/Skill'
+// import { nanoid } from 'nanoid'
 
 export interface BuildRandomSkillParams {
     name: string
@@ -6,15 +7,16 @@ export interface BuildRandomSkillParams {
 
 class SkillFactory {
     // constructor() {}
-
-    static buildRandomSkill = (params: BuildRandomSkillParams): Skill => {
-        const { name } = params
-        return {
-            name,
-            costs: [],
-            effects: [],
-        }
-    }
+    // static buildRandomSkill = (params: BuildRandomSkillParams): Skill => {
+    //     const { name } = params
+    //     const id = nanoid()
+    //     return {
+    //         id,
+    //         name,
+    //         costs: [],
+    //         effects: [],
+    //     }
+    // }
 }
 
 export default SkillFactory

@@ -1,4 +1,6 @@
-import { Skill, Cost, Effect } from './Skill'
+import { Effect } from 'application/battle/skillEffect'
+import { Cost } from 'application/common/interface'
+import { Skill } from './Skill'
 
 export interface Targetable {
     onTarget(): void

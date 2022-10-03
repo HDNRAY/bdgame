@@ -1,5 +1,10 @@
+import { EffectRule } from 'application/battle/skillEffect'
+import { CostRule } from 'application/common/interface'
+
 export interface Skill {
+    id: string
     name: string
+    cooldown: number
     costs: Array<CostRule>
     effects: Array<EffectRule>
 
@@ -9,14 +14,6 @@ export interface Skill {
     //     this.effects = params.effects || []
     // }
 }
-
-export interface CostRule {}
-
-export interface EffectRule {}
-
-export interface Cost {}
-
-export interface Effect {}
 
 // export interface SkillContructorInterface {
 //     name: string
