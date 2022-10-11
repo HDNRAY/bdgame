@@ -14,7 +14,7 @@ const AppStyled = styled.div`
     height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
-    background-color: #111;
+    background-color: #282828;
     color: ${PRIMARY_COLOR};
 `
 const App = () => {
