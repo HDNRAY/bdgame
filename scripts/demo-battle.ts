@@ -33,18 +33,14 @@ const result = { winner, log: engine.state.log }
 
 // 用解析器转成可读文本
 const parsed = parseBattleLog(engine.state.log)
-console.log(parsed.flatMap(e => [e.summary, ...e.details]).join('\n'))
+// 原战日志（对话区格式）
+console.log(parsed.flatMap(e => [`${e.icon} ${e.summary}`, ...e.details]).join('\n'))
 console.log(`\n─── ${winner} 胜利 ───`)
 console.log(`   玩家剩余 HP: ${player.hp}/${player.maxHp}`)
 console.log(`   对手剩余 HP: ${opponent.hp}/${opponent.maxHp}`)
 
-// 右栏格式
-console.log('\n─── 日志摘要（右栏格式） ───\n')
-for (const entry of parsed) {
-    console.log(`${entry.icon} ${entry.summary}`)
-    if (entry.details.length > 0) {
-        for (const d of entry.details) {
-            console.log(`    ${d}`)
-        }
-    }
+// 右栏摘要格式
+console.log('\n─── 日志摘要（右栏） ───\n')
+for (const e of parsed) {
+    console.log(`${e.icon} ${e.summary}`)
 }

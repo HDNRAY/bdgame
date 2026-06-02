@@ -20,7 +20,7 @@ export function parseBattleLog(log: BattleLog): ParsedLogEntry[] {
             id: `f_${result.length}`,
             icon: '⚔',
             summary: combatLines[0],
-            details: [...combatLines],
+            details: combatLines.slice(1),  // 不包含 summary 行
         })
         combatLines = []
     }
