@@ -17,7 +17,7 @@ export class Character {
     constructor(id: string, name: string, attrs?: Partial<Record<string, number>>) {
         this.id = id
         this.name = name
-        this.attrs = new AttributeSet(attrs as any)
+        this.attrs = new AttributeSet(attrs)
         this.maxAp = 10
         this.ap = this.maxAp
         this.hp = calcMaxHp(this.attrs.get('vitality'))
