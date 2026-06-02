@@ -1,0 +1,9 @@
+node_modules/
+dist/
+dev-dist/
+*.local
+.env
+.env.local
+.DS_Store
+*.tsbuildinfo
+.reasonix/truncated-results/
