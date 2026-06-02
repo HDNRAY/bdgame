@@ -47,10 +47,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         bestDistance: 2,
         tags: ['interrupt'],
-        effects: [
-            { type: 'damage', scaling: { technique: 0.4 } },
-            { type: 'interrupt' },
-        ],
+        effects: [{ type: 'damage', scaling: { technique: 0.4 } }, { type: 'interrupt' }],
     },
 
     // ── 刀剑系 ──
@@ -70,10 +67,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 7,
         bestDistance: 2,
         tags: ['first_strike'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.8, technique: 0.6 } },
-            { type: 'first_strike' },
-        ],
+        effects: [{ type: 'damage', scaling: { strength: 0.8, technique: 0.6 } }, { type: 'first_strike' }],
     },
     {
         id: 'swallow_return',
@@ -200,10 +194,10 @@ export const MVP_ACTIONS: ActionDefinition[] = [
 
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {
-    return MVP_ACTIONS.find(a => a.id === id)
+    return MVP_ACTIONS.find((a) => a.id === id)
 }
 
 /** 按武器类型过滤 */
 export function getActionsByWeapon(weapon: string): ActionDefinition[] {
-    return MVP_ACTIONS.filter(a => a.weaponType === weapon)
+    return MVP_ACTIONS.filter((a) => a.weaponType === weapon)
 }

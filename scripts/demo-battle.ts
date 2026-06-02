@@ -2,7 +2,7 @@
 // 使用: npx tsx scripts/demo-battle.ts
 
 import { Character } from '../src/engine/entities/character'
-import { simulateFistFight } from '../src/engine/combat/simulate'
+import { simulateFight } from '../src/engine/combat/simulate'
 import { parseBattleLog } from '../src/engine/combat/log-parser'
 
 const player = new Character('p1', '玩家', {
@@ -28,13 +28,13 @@ console.log(`   玩家: STR ${player.attrs.get('strength')} VIT ${player.attrs.g
 console.log(`   对手: STR ${opponent.attrs.get('strength')} VIT ${opponent.attrs.get('vitality')} HP ${opponent.hp}\n`)
 console.log('─── 战斗开始 ───\n')
 
-const { winner, engine } = simulateFistFight(player, opponent)
+const { winner, engine } = simulateFight(player, opponent, 'iron_charge')
 const result = { winner, log: engine.state.log }
 
 // 用解析器转成可读文本
-const parsed = parseBattleLog(result.log)
-console.log(parsed.flatMap((e) => [e.summary, ...e.details]).join('\n'))
-console.log(`\n─── ${result.winner} 胜利 ───`)
+const parsed = parseBattleLog(engine.state.log)
+console.log(parsed.flatMap(e => [e.summary, ...e.details]).join('\n'))
+console.log(`\n─── ${winner} 胜利 ───`)
 console.log(`   玩家剩余 HP: ${player.hp}/${player.maxHp}`)
 console.log(`   对手剩余 HP: ${opponent.hp}/${opponent.maxHp}`)
 
