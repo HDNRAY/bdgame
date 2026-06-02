@@ -3,22 +3,12 @@ import type { WeaponType } from '../calc/damage'
 /** 结构化战斗事件 —— 纯数据，无描述文字 */
 export type BattleEvent =
     | { type: 'battle_start'; actor: string; opponent: string }
-    | { type: 'move'; actor: string; delta: number; newDistance: number }
-    | { type: 'attack_start'; actor: string; target: string; weapon: WeaponType }
+    | { type: 'move'; actor: string; delta: number; newDistance: number; apCost: number; apRemaining: number }
+    | { type: 'attack_start'; actor: string; target: string; weapon: WeaponType; actionName?: string; apCost: number; apRemaining: number }
     | { type: 'check_hit'; actor: string; target: string; hitChance: number; roll: number; result: boolean }
     | { type: 'dodge'; actor: string; evader: string }
     | { type: 'parry'; actor: string; parrier: string }
-    | {
-          type: 'damage'
-          actor: string
-          target: string
-          base: number
-          distanceMult: number
-          isCrit: boolean
-          isParried: boolean
-          final: number
-          blocked: number
-      }
+    | { type: 'damage'; actor: string; target: string; base: number; distanceMult: number; isCrit: boolean; isParried: boolean; final: number; blocked: number }
     | { type: 'defeat'; loser: string; winner: string }
     | { type: 'system'; message: string }
 
@@ -46,12 +36,12 @@ export class BattleLog {
         this.push({ type: 'battle_start', actor, opponent })
     }
 
-    logMove(actor: string, delta: number, newDistance: number): void {
-        this.push({ type: 'move', actor, delta, newDistance })
+    logMove(actor: string, delta: number, newDistance: number, apCost: number, apRemaining: number): void {
+        this.push({ type: 'move', actor, delta, newDistance, apCost, apRemaining })
     }
 
-    logAttack(actor: string, target: string, weapon: WeaponType): void {
-        this.push({ type: 'attack_start', actor, target, weapon })
+    logAttack(actor: string, target: string, weapon: WeaponType, apCost: number, apRemaining: number, actionName?: string): void {
+        this.push({ type: 'attack_start', actor, target, weapon, apCost, apRemaining, actionName })
     }
 
     logHitCheck(actor: string, target: string, hitChance: number, roll: number, result: boolean): void {

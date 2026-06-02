@@ -4,8 +4,14 @@ import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
 import type { WeaponType } from '../calc/damage'
 import {
-    WEAPONS, calcBaseDamage, calcDistanceMultiplier, calcCritChance,
-    calcFinalDamage, calcHitChance, calcParryChance, calcDodgeChance,
+    WEAPONS,
+    calcBaseDamage,
+    calcDistanceMultiplier,
+    calcCritChance,
+    calcFinalDamage,
+    calcHitChance,
+    calcParryChance,
+    calcDodgeChance,
 } from '../calc/damage'
 
 export interface ActionCommand {
@@ -87,7 +93,7 @@ export class BattleEngine {
                 const delta = cmd.bestDistance ?? 0
                 const actual = distance.move(delta)
                 result.distanceDelta = actual
-                log.logMove(self.name, actual, distance.current)
+                log.logMove(self.name, actual, distance.current, 0, self.ap)
                 break
             }
 
@@ -102,7 +108,7 @@ export class BattleEngine {
                     break
                 }
 
-                log.logAttack(self.name, enemy.name, weapon)
+                log.logAttack(self.name, enemy.name, weapon, 0, self.ap)
 
                 // 命中判定
                 const hitChance = calcHitChance(self.attrs.get('technique'), enemy.attrs.get('dexterity'))

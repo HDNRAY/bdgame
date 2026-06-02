@@ -4,10 +4,7 @@ import type { WeaponType } from '../calc/damage'
 import { WEAPONS } from '../calc/damage'
 
 /** 简单 AI 模拟战斗（双方都用拳头互殴） */
-export function simulateFistFight(
-    player: Character,
-    opponent: Character,
-): { winner: string; engine: BattleEngine } {
+export function simulateFistFight(player: Character, opponent: Character): { winner: string; engine: BattleEngine } {
     const engine = new BattleEngine(player, opponent)
     const { state } = engine
 
