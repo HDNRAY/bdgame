@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { TurnManager } from '../systems/turn-manager'
+import { TurnManager } from '../combat/turn'
 import { Character } from '../entities/character'
 
 describe('TurnManager', () => {
@@ -34,7 +34,7 @@ describe('TurnManager', () => {
         tm.addCharacter(a, 100)
         tm.addCharacter(b, 200)
 
-        tm.modifyTime('a', 300)  // a 被眩晕 +300ms
+        tm.modifyTime('a', 300) // a 被眩晕 +300ms
         expect(tm.peek()?.characterId).toBe('b')
     })
 })

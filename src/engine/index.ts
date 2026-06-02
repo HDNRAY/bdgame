@@ -3,3 +3,10 @@
 
 export * from './entities/attributes'
 export * from './entities/character'
+export * from './combat/distance'
+export * from './combat/turn'
+export * from './combat/battle-log'
+export * from './combat/log-parser'
+export * from './combat/engine'
+export * from './combat/simulate'
+export * from './calc/damage'

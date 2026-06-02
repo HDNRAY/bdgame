@@ -2,7 +2,7 @@ import type { Character } from '../entities/character'
 
 interface TurnEntry {
     characterId: string
-    nextActionAt: number  // 时间轴上的绝对时间 ms
+    nextActionAt: number // 时间轴上的绝对时间 ms
 }
 
 /** 回合管理器（时间轴） */
@@ -33,7 +33,7 @@ export class TurnManager {
 
     /** 行动后重新入队（插入硬直） */
     scheduleNext(charId: string, delay: number): void {
-        const entry = this.queue.find(e => e.characterId === charId)
+        const entry = this.queue.find((e) => e.characterId === charId)
         if (entry) {
             // 已经在队列中 -> 更新
             entry.nextActionAt = this.time + delay

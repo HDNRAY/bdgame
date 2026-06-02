@@ -13,7 +13,7 @@ export class DistanceSystem {
     move(delta: number): number {
         const prev = this.current
         this.current = Math.max(DISTANCE_MIN, Math.min(DISTANCE_MAX, this.current + delta))
-        return this.current - prev  // 实际移动量
+        return this.current - prev // 实际移动量
     }
 
     /** 目标是否在 [min, max] 范围内 */

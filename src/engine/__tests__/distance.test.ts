@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DistanceSystem, DISTANCE_MIN, DISTANCE_MAX } from '../systems/distance'
+import { DistanceSystem, DISTANCE_MIN, DISTANCE_MAX } from '../combat/distance'
 
 describe('DistanceSystem', () => {
     it('should initialize at default distance 4', () => {

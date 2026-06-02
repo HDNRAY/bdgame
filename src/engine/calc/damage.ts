@@ -4,27 +4,42 @@ export type WeaponType = 'fist' | 'sword' | 'spear' | 'thrown' | 'control' | 'na
 
 export interface WeaponStats {
     attrScaling: Partial<Record<AttrName, number>>
-    preDelay: number     // 前摇 ms
-    stunTime: number     // 硬直 ms
+    preDelay: number // 前摇 ms
+    stunTime: number // 硬直 ms
     range: [number, number] // [min, max]
-    parryRate?: number   // 招架率加成
+    parryRate?: number // 招架率加成
 }
 
 export const WEAPONS: Record<WeaponType, WeaponStats> = {
-    fist:   { attrScaling: { strength: 0.8 },            preDelay: 250, stunTime: 300, range: [0, 2], parryRate: 0.05 },
-    sword:  { attrScaling: { strength: 0.6, technique: 0.4 }, preDelay: 350, stunTime: 400, range: [1, 3], parryRate: 0.08 },
-    spear:  { attrScaling: { strength: 1.0 },            preDelay: 450, stunTime: 500, range: [2, 4], parryRate: 0.03 },
-    thrown: { attrScaling: { technique: 0.8 },           preDelay: 200, stunTime: 200, range: [2, 5], parryRate: 0 },
-    control:{ attrScaling: { wisdom: 1.0 },              preDelay: 400, stunTime: 350, range: [3, 6], parryRate: 0.02 },
-    nanoblade: { attrScaling: { technique: 1.0, dexterity: 0.3 }, preDelay: 300, stunTime: 350, range: [1, 3], parryRate: 0.06 },
-    katana: { attrScaling: { strength: 0.7, technique: 0.5 }, preDelay: 380, stunTime: 450, range: [1, 3], parryRate: 0.07 },
+    fist: { attrScaling: { strength: 0.8 }, preDelay: 250, stunTime: 300, range: [0, 2], parryRate: 0.05 },
+    sword: {
+        attrScaling: { strength: 0.6, technique: 0.4 },
+        preDelay: 350,
+        stunTime: 400,
+        range: [1, 3],
+        parryRate: 0.08,
+    },
+    spear: { attrScaling: { strength: 1.0 }, preDelay: 450, stunTime: 500, range: [2, 4], parryRate: 0.03 },
+    thrown: { attrScaling: { technique: 0.8 }, preDelay: 200, stunTime: 200, range: [2, 5], parryRate: 0 },
+    control: { attrScaling: { wisdom: 1.0 }, preDelay: 400, stunTime: 350, range: [3, 6], parryRate: 0.02 },
+    nanoblade: {
+        attrScaling: { technique: 1.0, dexterity: 0.3 },
+        preDelay: 300,
+        stunTime: 350,
+        range: [1, 3],
+        parryRate: 0.06,
+    },
+    katana: {
+        attrScaling: { strength: 0.7, technique: 0.5 },
+        preDelay: 380,
+        stunTime: 450,
+        range: [1, 3],
+        parryRate: 0.07,
+    },
 }
 
 /** 计算基础伤害: Σ(attrScaling[attr] × attrs[attr]) */
-export function calcBaseDamage(
-    scaling: Partial<Record<AttrName, number>>,
-    attrs: Record<AttrName, number>,
-): number {
+export function calcBaseDamage(scaling: Partial<Record<AttrName, number>>, attrs: Record<AttrName, number>): number {
     let damage = 0
     for (const [attr, scale] of Object.entries(scaling)) {
         damage += (scale ?? 0) * attrs[attr as AttrName]
@@ -44,14 +59,10 @@ export function calcCritChance(technique: number): number {
 }
 
 /** 最终伤害: base × distanceMult × (暴击? 1.5 : 1) */
-export function calcFinalDamage(
-    baseDamage: number,
-    distanceMult: number,
-    isCrit: boolean,
-): number {
+export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit: boolean): number {
     let damage = Math.round(baseDamage * distanceMult)
     if (isCrit) damage = Math.round(damage * 1.5)
-    return Math.max(1, damage)  // 至少 1 点
+    return Math.max(1, damage) // 至少 1 点
 }
 
 /** 命中判定: base 80% + (technique - 对方 dexterity) / 50 */

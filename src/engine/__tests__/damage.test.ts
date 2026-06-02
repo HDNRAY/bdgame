@@ -1,21 +1,27 @@
 import { describe, it, expect } from 'vitest'
 import {
-    calcBaseDamage, calcDistanceMultiplier, calcCritChance,
-    calcFinalDamage, calcHitChance, calcParryChance, calcDodgeChance,
-    calcMoveApCost, WEAPONS,
-} from '../systems/damage'
+    calcBaseDamage,
+    calcDistanceMultiplier,
+    calcCritChance,
+    calcFinalDamage,
+    calcHitChance,
+    calcParryChance,
+    calcDodgeChance,
+    calcMoveApCost,
+    WEAPONS,
+} from '../calc/damage'
 
 describe('calcBaseDamage', () => {
     it('should calculate fist damage', () => {
         const s = WEAPONS.fist.attrScaling
         const d = calcBaseDamage(s, { strength: 14, vitality: 10, dexterity: 8, technique: 8, insight: 6, wisdom: 5 })
-        expect(d).toBe(11)  // 0.8 × 14 = 11.2 → 11
+        expect(d).toBe(11) // 0.8 × 14 = 11.2 → 11
     })
 
     it('should calculate spear damage', () => {
         const s = WEAPONS.spear.attrScaling
         const d = calcBaseDamage(s, { strength: 18, vitality: 12, dexterity: 6, technique: 6, insight: 5, wisdom: 4 })
-        expect(d).toBe(18)  // 1.0 × 18 = 18
+        expect(d).toBe(18) // 1.0 × 18 = 18
     })
 })
 
@@ -25,12 +31,12 @@ describe('calcDistanceMultiplier', () => {
     })
 
     it('should decrease by 0.15 per distance off', () => {
-        expect(calcDistanceMultiplier(5, 3)).toBe(0.7)   // 1 - 2×0.15
+        expect(calcDistanceMultiplier(5, 3)).toBe(0.7) // 1 - 2×0.15
         expect(calcDistanceMultiplier(1, 3)).toBe(0.7)
     })
 
     it('should floor at 0.25', () => {
-        expect(calcDistanceMultiplier(0, 4)).toBe(0.4)  // 1 - 4×0.15 = 0.4 → Math.max(0.25, 0.4) = 0.4
+        expect(calcDistanceMultiplier(0, 4)).toBe(0.4) // 1 - 4×0.15 = 0.4 → Math.max(0.25, 0.4) = 0.4
     })
 })
 
@@ -64,7 +70,7 @@ describe('calcHitChance', () => {
 
 describe('calcParryChance', () => {
     it('should include weapon bonus', () => {
-        expect(calcParryChance(14, 0.05)).toBe(0.19)  // 0.05 + 0.14
+        expect(calcParryChance(14, 0.05)).toBe(0.19) // 0.05 + 0.14
     })
 })
 
@@ -81,6 +87,6 @@ describe('calcMoveApCost', () => {
     })
 
     it('should cost more at low dex', () => {
-        expect(calcMoveApCost(1, 10)).toBe(2)  // ceil(1/0.5)
+        expect(calcMoveApCost(1, 10)).toBe(2) // ceil(1/0.5)
     })
 })
