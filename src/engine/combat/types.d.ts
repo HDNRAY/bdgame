@@ -30,7 +30,6 @@ export interface BattleState {
     eventActorId: string | null
     triggerUses: Map<string, number>
     pendingBuffs: Map<string, { restoreValue: number; stat: string }>
-    _snapVer: number
 }
 
 export type EventPlan = (self: Character, enemy: Character, state: BattleState) => ActionCommand[]
@@ -102,7 +101,10 @@ export type BattleEvent =
     | { type: 'system'; message: string; actor?: string; snapshot: BattleSnapshot }
 
 // ── Turn types ──
+export type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'paralyze_end' | 'stun_reset'
+
 export interface TurnEntry {
     characterId: string
     nextActionAt: number
+    systemEventType?: SystemEventType
 }

@@ -26,6 +26,14 @@ export class DistanceSystem {
         return Math.max(0.5, dexterity / 20)
     }
 
+    /** 计算移动：从 bestDistance（期望AP）算出实际消耗和位移量 */
+    static calcMovement(bestDistance: number, dexterity: number): { ap: number; delta: number } {
+        const ap = Math.abs(bestDistance)
+        const dir = Math.sign(bestDistance)
+        const perAp = this.apToRange(dexterity)
+        return { ap, delta: dir * perAp * ap }
+    }
+
     clone(): DistanceSystem {
         const d = new DistanceSystem(this.current)
         return d

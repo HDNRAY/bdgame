@@ -1,5 +1,5 @@
 import type { Character } from '../entities/character'
-import type { TurnEntry } from './types'
+import type { TurnEntry, SystemEventType } from './types'
 
 export const SYS_PREFIX = '__sys__'
 
@@ -18,19 +18,21 @@ export class TurnManager {
     }
 
     /** 调度一个系统事件 */
-    scheduleSystemEvent(id: string, delayMs: number): void {
+    scheduleSystemEvent(id: string, delayMs: number, type: SystemEventType): void {
         this.queue.push({
             characterId: `${SYS_PREFIX}${id}`,
             nextActionAt: this.time + delayMs,
+            systemEventType: type,
         })
         this.sort()
     }
 
     /** 在指定绝对时间调度系统事件 */
-    scheduleSystemEventAt(id: string, targetTime: number): void {
+    scheduleSystemEventAt(id: string, targetTime: number, type: SystemEventType): void {
         this.queue.push({
             characterId: `${SYS_PREFIX}${id}`,
             nextActionAt: targetTime,
+            systemEventType: type,
         })
         this.sort()
     }
