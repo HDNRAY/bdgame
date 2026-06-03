@@ -1,79 +1,64 @@
 import type { ActionDefinition } from '../entities/action'
 import type { Character } from '../entities/character'
-import { WEAPONS, calcBaseDamage, calcDistanceMultiplier, calcFinalDamage } from './damage'
+import { calcBaseDamage, calcDistanceMultiplier, calcCrippleBonus, calcSelfDamage, WEAPONS } from './damage'
 
 export interface ResolvedDamage {
     base: number
     distanceMult: number
     isCrit: boolean
     final: number
-    selfDamage: number
-    crippleBonus: number
-    ignoredParry: boolean
-    knockbackDistance: number
-    firstStrike: boolean
     isFixedDamage: boolean
 }
 
-/** 解析一个招式的所有效果，返回计算结果 */
-export function resolveAction(
+/** 解析招式的基础伤害（damage / fixed_damage） */
+export function resolveAction(action: ActionDefinition, attacker: Character, currentDistance: number): ResolvedDamage {
+    let base = 0
+    let isFixedDamage = false
+
+    for (const effect of action.effects ?? []) {
+        if (effect.type === 'damage') {
+            base += calcBaseDamage(effect.scaling, attacker.attrs.getAll())
+        } else if (effect.type === 'fixed_damage') {
+            base = effect.value
+            isFixedDamage = true
+        }
+    }
+
+    const distanceMult = isFixedDamage ? 1 : calcDistanceMultiplier(currentDistance, action.bestDistance)
+    return {
+        base,
+        distanceMult,
+        isCrit: false,
+        final: 0, // filled later with crit
+        isFixedDamage,
+    }
+}
+
+/** 从招式 effects 中提取非伤害效果数据 */
+export function extractActionEffects(
     action: ActionDefinition,
     attacker: Character,
     defender: Character,
-    currentDistance: number,
-): ResolvedDamage {
-    let base = 0
-    let isFixedDamage = false
+): { crippleBonus: number; selfDamage: number; knockbackDistance: number } {
     let crippleBonus = 0
     let selfDamage = 0
     let knockbackDistance = 0
-    let firstStrike = false
-    let ignoredParry = false
 
     for (const effect of action.effects ?? []) {
         switch (effect.type) {
-            case 'damage':
-                base += calcBaseDamage(effect.scaling, attacker.attrs.getAll())
-                break
-            case 'fixed_damage':
-                base = effect.value
-                isFixedDamage = true
-                break
             case 'cripple':
-                // 崩劲：基于目标已损 HP
-                crippleBonus = Math.round((defender.maxHp - defender.hp) * effect.ratio)
+                crippleBonus = calcCrippleBonus(defender.maxHp - defender.hp, effect.ratio)
                 break
             case 'self_damage':
-                selfDamage = Math.round(attacker.maxHp * effect.ratio)
+                selfDamage = calcSelfDamage(attacker.maxHp, effect.ratio)
                 break
             case 'knockback':
                 knockbackDistance = effect.distance
                 break
-            case 'first_strike':
-                firstStrike = true
-                break
-            case 'ignore_parry':
-                ignoredParry = true
-                break
-            // status/interrupt/aoe 等由 engine 处理，这里只算伤害
         }
     }
 
-    const distMult = isFixedDamage ? 1 : calcDistanceMultiplier(currentDistance, action.bestDistance)
-    const final = calcFinalDamage(base + crippleBonus, distMult, false)
-
-    return {
-        base,
-        distanceMult: distMult,
-        isCrit: false,
-        final,
-        selfDamage,
-        crippleBonus,
-        ignoredParry,
-        knockbackDistance,
-        firstStrike,
-        isFixedDamage,
-    }
+    return { crippleBonus, selfDamage, knockbackDistance }
 }
 
 /** 检查招式是否满足释放条件 */

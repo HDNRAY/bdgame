@@ -100,6 +100,16 @@ export function calcParriedDamage(finalDamage: number, ratio = 0.4): number {
     return Math.round(finalDamage * ratio)
 }
 
+/** 崩劲：基于目标已损 HP 的额外伤害 */
+export function calcCrippleBonus(missingHp: number, ratio: number): number {
+    return Math.round(missingHp * ratio)
+}
+
+/** 自伤：基于自身最大 HP 的伤害 */
+export function calcSelfDamage(maxHp: number, ratio: number): number {
+    return Math.round(maxHp * ratio)
+}
+
 /** 考虑麻痹层数后的等效身法（用于闪避判定） */
 export function calcDodgeChanceWithParalyze(dexterity: number, paralyzeStacks: number): number {
     const penalty = paralyzeStacks * 0.05
@@ -125,4 +135,20 @@ export function calcBuffDuration(baseAttr: number, multiplier: number): number {
 /** 毒间隔：基础 2000ms，每层 -200ms，最低 500ms */
 export function calcPoisonTickInterval(stacks: number): number {
     return Math.max(500, 2000 - stacks * 200)
+}
+
+/** 掷骰：返回 roll 结果和是否成功 */
+export function calcRoll(chance: number): { roll: number; success: boolean } {
+    const roll = Math.random()
+    return { roll, success: roll < chance }
+}
+
+/** 眩晕时长：每叠加一次减半（2000→1000→500→...） */
+export function calcStunDuration(consecutive: number, baseDuration = 2000): number {
+    return Math.round(baseDuration / Math.pow(2, consecutive - 1))
+}
+
+/** 麻痹施加时的属性惩罚 */
+export function calcParalyzeAttrPenalty(stacks: number): { dexterity: number; insight: number } {
+    return { dexterity: -stacks * 2, insight: -stacks * 1 }
 }

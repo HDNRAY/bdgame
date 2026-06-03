@@ -51,37 +51,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'damage', scaling: { technique: 0.4 } }, { type: 'interrupt' }],
     },
 
-    // ── 刀剑系 ──
-    {
-        id: 'horizontal_slash',
-        name: '横斩',
-        weaponType: 'sword',
-        apCost: 4,
-        bestDistance: 2,
-        tags: [],
-        effects: [{ type: 'damage', scaling: { strength: 0.6, technique: 0.4 } }],
-    },
-    {
-        id: 'iaijutsu',
-        name: '居合',
-        weaponType: 'sword',
-        apCost: 7,
-        bestDistance: 2,
-        tags: ['first_strike'],
-        effects: [{ type: 'damage', scaling: { strength: 0.8, technique: 0.6 } }, { type: 'first_strike' }],
-    },
-    {
-        id: 'swallow_return',
-        name: '燕返',
-        weaponType: 'sword',
-        apCost: 5,
-        bestDistance: 2,
-        tags: ['counter'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.6, technique: 0.4 } },
-            { type: 'counter_on_dodge', damageRatio: 0.8 },
-        ],
-    },
+    // ── 暗器系 ──
 
     // ── 长枪系 ──
     {
@@ -159,40 +129,6 @@ export const MVP_ACTIONS: ActionDefinition[] = [
             { type: 'status', status: 'poison', stacks: 1, chance: 0.3 },
             { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
             { type: 'status', status: 'bleed', stacks: 1, chance: 0.3 },
-        ],
-        maxUses: 2,
-    },
-
-    // ── 御物系 ──
-    {
-        id: 'spirit_sword',
-        name: '御剑',
-        weaponType: 'control',
-        apCost: 5,
-        bestDistance: 4,
-        tags: [],
-        effects: [{ type: 'damage', scaling: { wisdom: 1.0 } }],
-    },
-    {
-        id: 'spirit_shield',
-        name: '御剑防御',
-        weaponType: 'control',
-        apCost: 0,
-        bestDistance: 3,
-        tags: [],
-        effects: [{ type: 'damage', scaling: { wisdom: 0 } }],
-        bonus: true,
-    },
-    {
-        id: 'spirit_impact',
-        name: '御器冲击',
-        weaponType: 'control',
-        apCost: 7,
-        bestDistance: 4,
-        tags: ['knockback'],
-        effects: [
-            { type: 'damage', scaling: { wisdom: 1.2 } },
-            { type: 'knockback', distance: 2 },
         ],
         maxUses: 2,
     },

@@ -196,7 +196,15 @@ export class BattleEngine {
 
     #executeMove(cmd: ActionCommand): ActionResult {
         const { distance, log } = this.state
-        const r: ActionResult = { damage: 0, hit: false, parried: false, dodged: false, crit: false, distanceDelta: 0 }
+        const r: ActionResult = {
+            damage: 0,
+            hit: false,
+            parried: false,
+            dodged: false,
+            crit: false,
+            distanceDelta: 0,
+            knockbackDistance: 0,
+        }
         const { ap, delta } = DistanceSystem.calcMovement(cmd.bestDistance ?? 0, this.#self.attrs.get('dexterity'))
         if (!this.#self.spendAp(ap)) {
             log.logSystem(`${this.#self.name} AP不足 无法移动`, this.#tMs, this.getSnapshot())
@@ -210,7 +218,15 @@ export class BattleEngine {
     }
 
     #executeAttack(cmd: ActionCommand): ActionResult {
-        const r: ActionResult = { damage: 0, hit: false, parried: false, dodged: false, crit: false, distanceDelta: 0 }
+        const r: ActionResult = {
+            damage: 0,
+            hit: false,
+            parried: false,
+            dodged: false,
+            crit: false,
+            distanceDelta: 0,
+            knockbackDistance: 0,
+        }
         const action = this.#validateAttack(cmd)
         if (!action) return r
         this.#processSelfBleed()
@@ -290,6 +306,9 @@ export class BattleEngine {
                 processActionEffect(eff, self, enemy, this, tMs)
             }
         }
+        if (r.knockbackDistance > 0) {
+            processActionEffect({ type: 'knockback', distance: r.knockbackDistance }, self, enemy, this, tMs)
+        }
         if (!enemy.isAlive()) {
             log.logDefeat(enemy.name, self.name, tMs, this.getSnapshot())
             this.state.phase = 'finished'
@@ -298,12 +317,28 @@ export class BattleEngine {
 
     #executeDefend(): ActionResult {
         this.#log.logSystem(`${this.#self.name} 防御`, this.#tMs, this.getSnapshot())
-        return { damage: 0, hit: false, parried: false, dodged: false, crit: false, distanceDelta: 0 }
+        return {
+            damage: 0,
+            hit: false,
+            parried: false,
+            dodged: false,
+            crit: false,
+            distanceDelta: 0,
+            knockbackDistance: 0,
+        }
     }
 
     #executeBonus(cmd: ActionCommand): ActionResult {
         const self = this.#self
-        const r = { damage: 0, hit: false, parried: false, dodged: false, crit: false, distanceDelta: 0 }
+        const r = {
+            damage: 0,
+            hit: false,
+            parried: false,
+            dodged: false,
+            crit: false,
+            distanceDelta: 0,
+            knockbackDistance: 0,
+        }
         if (!cmd.actionId) return r
         const inst = self.moves.find((a) => a.id === cmd.actionId)
         if (!inst || !inst.def.bonus || !inst.canUse()) return r
@@ -315,7 +350,15 @@ export class BattleEngine {
 
     #executeWait(): ActionResult {
         this.#log.logSystem(`${this.#self.name} 结束`, this.#tMs, this.getSnapshot())
-        return { damage: 0, hit: false, parried: false, dodged: false, crit: false, distanceDelta: 0 }
+        return {
+            damage: 0,
+            hit: false,
+            parried: false,
+            dodged: false,
+            crit: false,
+            distanceDelta: 0,
+            knockbackDistance: 0,
+        }
     }
 
     /** 处理系统事件（buff 到期、status tick 等） */

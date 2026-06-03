@@ -54,7 +54,7 @@ export type BonusTriggerEffect =
 export type ActionEffect =
     | { type: 'damage'; scaling: Partial<Record<AttrName, number>> }
     | { type: 'fixed_damage'; value: number }
-    | { type: 'status'; status: EffectTag; stacks: number; chance?: number }
+    | { type: 'status'; status: EffectTag; stacks: number; chance: number }
     | { type: 'cripple'; ratio: number } // 崩劲：目标已损HP × ratio
     | { type: 'self_damage'; ratio: number } // 自伤：自身HP × ratio
     | { type: 'first_strike' } // 先制

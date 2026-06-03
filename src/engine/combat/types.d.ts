@@ -17,6 +17,7 @@ export interface ActionResult {
     dodged: boolean
     crit: boolean
     distanceDelta: number
+    knockbackDistance: number
 }
 
 export type BattlePhase = 'idle' | 'fighting' | 'finished'
