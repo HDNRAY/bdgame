@@ -1,5 +1,6 @@
 import type { AttrName } from './attributes'
 import type { WeaponType } from '../calc/damage'
+import type { Condition } from './trigger'
 
 /** 效果类型 */
 export type EffectTag =
@@ -31,10 +32,8 @@ export interface ActionDefinition {
     maxUses?: number
     /** 辅招？不占主招名额 */
     bonus?: boolean
-    /** 辅招触发时机（仅 bonus=true 时有效） */
-    bonusTiming?: BonusTiming
     /** 辅招触发条件（仅 bonus=true 时有效） */
-    bonusCondition?: BonusCondition
+    bonusTiming?: Condition
     /** 辅招效果描述（如 "力量翻倍1回合"），支持数组以一次触发多个效果 */
     triggerEffect?: BonusTriggerEffect | BonusTriggerEffect[]
 }
@@ -73,30 +72,4 @@ export type ActionEffect =
 export interface ActionQueueEntry {
     actionId: string
     priority: number // 越低越优先检测
-}
-
-/** 辅招触发时机 */
-export type BonusTiming =
-    | 'before_main'
-    | 'after_main'
-    | 'before_turn_end'
-    | 'on_hit'
-    | 'on_take_damage'
-    | 'on_dodge'
-    | 'on_parry'
-    | 'turn_start'
-
-/** 辅招触发条件 */
-export interface BonusCondition {
-    hpBelow?: number
-    enemyDistance?: number
-    hasStatus?: string
-    apRemaining?: number
-}
-
-/** 辅招定义 */
-export interface BonusActionDefinition {
-    actionId: string
-    timing: BonusTiming
-    condition?: BonusCondition
 }

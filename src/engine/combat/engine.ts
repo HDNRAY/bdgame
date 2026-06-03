@@ -14,12 +14,11 @@ import {
 } from '../calc/damage'
 import { resolveAction, canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
-import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
-import { getTriggerByEvent } from '../data/triggers'
-import { processTriggers } from './trigger-system'
+import type { TriggerEvent } from '../entities/trigger'
+import { matchCondition } from './trigger-system'
 import { processActionEffect, processStatusTick } from './effect-processor'
 import { triggerBleed } from '../entities/status'
-import type { BonusTiming, BonusTriggerEffect } from '../entities/action'
+import type { BonusTriggerEffect } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
 
 export interface ActionCommand {
@@ -138,24 +137,17 @@ export class BattleEngine {
     /** 触发检测 */
     emit(event: TriggerEvent, self: Character, enemy: Character, tMs: number) {
         const { log, triggerUses, distance } = this.state
-        const pairs: { trigger: TriggerDefinition; actionId: string }[] = []
         for (const slot of self.triggerSlots) {
-            if (slot.event !== event) continue
-            const t = getTriggerByEvent(slot.event)
-            if (!t) continue
-            pairs.push({ trigger: t, actionId: slot.actionId })
-        }
-        const results = processTriggers(
-            { event, actor: self, target: enemy, distance: distance.current },
-            pairs.map((p) => p.trigger),
-            triggerUses,
-        )
-        for (const r of results) {
-            const pair = pairs.find((p) => p.trigger.id === r.triggered.id)
-            if (!pair) continue
-            log.logSystem(`[${r.triggered.name}] ${r.log}`, tMs)
-            const action = getAction(pair.actionId)
+            if (slot.condition.type !== event) continue
+            if (!matchCondition(slot.condition, { actor: self, distance: distance.current })) continue
+
+            const action = getAction(slot.actionId)
             if (!action) continue
+            const used = triggerUses.get(slot.actionId) ?? 0
+            if (action.maxUses !== undefined && used >= action.maxUses) continue
+            triggerUses.set(slot.actionId, used + 1)
+
+            log.logSystem(`[${action.name}] ${action.name}`, tMs)
             for (const eff of action.effects ?? []) {
                 processActionEffect(eff, self, enemy, this, tMs)
             }
@@ -410,10 +402,10 @@ export class BattleEngine {
     }
 
     /** 辅招触发 */
-    #tryBonus(self: Character, timing: BonusTiming, mainAp = 0): boolean {
+    #tryBonus(self: Character, timing: TriggerEvent, mainAp = 0): boolean {
         let fired = false
         for (const inst of self.actionInstances) {
-            if (!inst.def.bonus || inst.def.bonusTiming !== timing) continue
+            if (!inst.def.bonus || inst.def.bonusTiming?.type !== timing) continue
             if (!inst.canUse()) continue
             if (self.ap < inst.apCost + mainAp) continue
             self.spendAp(inst.apCost)

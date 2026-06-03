@@ -12,30 +12,32 @@ export type TriggerEvent =
     | 'turn_start'
     | 'turn_end'
     | 'hp_below'
+    | 'before_main'
+    | 'after_main'
+    | 'before_turn_end'
 
 export type TriggerTag = 'defensive' | 'offensive' | 'mobility' | 'utility' | 'counter' | 'recovery' | 'control'
 
-/** 触发器槽：一个触发时机 + 一个触发的招式 */
-export interface TriggerSlot {
-    event: TriggerEvent
-    actionId: string
+/** 触发条件（原始数据） */
+export interface Condition {
+    type: TriggerEvent
+    value: number
 }
 
-/** 触发器定义（只定义时机和条件，不绑定具体招式） */
-export interface TriggerDefinition {
+/** 可供玩家选择的触发条件 */
+export interface TriggerCondition extends Condition {
     id: string
     name: string
     description: string
-    event: TriggerEvent
-    condition?: {
-        hpBelow?: number
-        enemyDistance?: number
-        hasStatus?: string
-    }
-    slotCost: number
     apCost?: number
     maxUses?: number
     tags: TriggerTag[]
+}
+
+/** 玩家装备的触发器槽：选定条件 → 触发招式 */
+export interface TriggerSlot {
+    condition: Condition
+    actionId: string
 }
 
 /** 计算触发槽数: max(1, floor(wisdom/4)) */

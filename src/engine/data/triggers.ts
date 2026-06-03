@@ -1,75 +1,54 @@
-import type { TriggerDefinition } from '../entities/trigger'
+import type { TriggerCondition } from '../entities/trigger'
 
-export const MVP_TRIGGERS: TriggerDefinition[] = [
+/** 玩家可选的所有触发条件 */
+export const TRIGGER_CONDITIONS: TriggerCondition[] = [
     {
-        id: 'counter',
-        name: '反击',
-        description: '招架后立即反击',
-        event: 'on_parry',
-        slotCost: 1,
-        apCost: 1,
-        tags: ['counter', 'defensive'],
+        id: 'on_parry',
+        name: '招架时',
+        description: '招架对手攻击时触发',
+        type: 'on_parry',
+        value: 0,
+        tags: ['defensive'],
     },
     {
-        id: 'insight',
-        name: '洞察',
-        description: '对手未命中时下回合AP+2',
-        event: 'on_dodged',
-        condition: { enemyDistance: 3 },
-        slotCost: 1,
-        tags: ['utility', 'mobility'],
+        id: 'on_dodged',
+        name: '被闪避时',
+        description: '攻击被对手闪避时触发',
+        type: 'on_dodged',
+        value: 0,
+        tags: ['utility'],
     },
     {
-        id: 'burn_feedback',
-        name: '灼烧反馈',
-        description: '每次造成灼烧伤害时回复3HP',
-        event: 'on_hit',
-        slotCost: 1,
-        tags: ['recovery'],
+        id: 'on_hit',
+        name: '命中时',
+        description: '攻击命中时触发',
+        type: 'on_hit',
+        value: 0,
+        tags: ['offensive'],
     },
     {
-        id: 'last_stand',
-        name: '背水一战',
-        description: 'HP首次低于30%时力道+4整场',
-        event: 'hp_below',
-        condition: { hpBelow: 30 },
-        slotCost: 1,
+        id: 'hp_below_30',
+        name: '残血',
+        description: 'HP 低于 30% 时触发',
+        type: 'hp_below',
+        value: 30,
         maxUses: 1,
-        tags: ['offensive', 'utility'],
+        tags: ['offensive'],
     },
     {
-        id: 'nimble',
-        name: '灵巧身形',
-        description: '闪避后下回合间隔-200ms',
-        event: 'on_dodge',
-        slotCost: 1,
+        id: 'on_dodge',
+        name: '闪避时',
+        description: '闪避对手攻击时触发',
+        type: 'on_dodge',
+        value: 0,
         tags: ['mobility'],
     },
     {
-        id: 'iron_bone',
-        name: '钢筋铁骨',
-        description: '被眩晕/减速时立即解除',
-        event: 'turn_start',
-        condition: { hasStatus: 'stun' },
-        slotCost: 1,
-        apCost: 1,
-        maxUses: 1,
-        tags: ['defensive', 'control'],
-    },
-    {
-        id: 'precise_strike',
-        name: '精准打击',
-        description: '攻击未命中时下次命中率+15%',
-        event: 'on_dodged',
-        slotCost: 1,
-        tags: ['offensive', 'utility'],
+        id: 'turn_start',
+        name: '回合开始',
+        description: '每回合开始时触发',
+        type: 'turn_start',
+        value: 0,
+        tags: ['utility'],
     },
 ]
-
-export function getTrigger(id: string): TriggerDefinition | undefined {
-    return MVP_TRIGGERS.find((t) => t.id === id)
-}
-
-export function getTriggerByEvent(event: string): TriggerDefinition | undefined {
-    return MVP_TRIGGERS.find((t) => t.event === event)
-}

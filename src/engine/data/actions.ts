@@ -201,86 +201,8 @@ export const MVP_ACTIONS: ActionDefinition[] = [
 /** 辅招 */
 export const BONUS_ACTIONS: ActionDefinition[] = []
 
-/** 触发器招式 —— 由触发器按时机自动执行 */
-export const TRIGGER_ACTIONS: ActionDefinition[] = [
-    {
-        id: 'trigger_counter',
-        name: '反击',
-        weaponType: 'fist',
-        apCost: 0,
-        bestDistance: 1,
-        tags: ['counter'],
-        effects: [{ type: 'counter_damage', ratio: 0.5 }],
-        bonus: true,
-    },
-    {
-        id: 'trigger_insight',
-        name: '洞察',
-        weaponType: 'fist',
-        apCost: 0,
-        bestDistance: 1,
-        tags: [],
-        effects: [],
-        bonus: true,
-        triggerEffect: { type: 'stat_buff', attrs: { wisdom: 0 }, duration: { attr: 'wisdom', multiplier: 1000 } }, // dummy, real effect in engine
-    },
-    {
-        id: 'trigger_burn_feedback',
-        name: '灼烧反馈',
-        weaponType: 'fist',
-        apCost: 0,
-        bestDistance: 1,
-        tags: [],
-        effects: [],
-        bonus: true,
-        triggerEffect: { type: 'heal', value: 3 },
-    },
-    {
-        id: 'trigger_last_stand',
-        name: '背水一战',
-        weaponType: 'fist',
-        apCost: 0,
-        bestDistance: 1,
-        tags: [],
-        effects: [],
-        bonus: true,
-        triggerEffect: { type: 'stat_buff', attrs: { strength: 4 }, duration: { attr: 'wisdom', multiplier: 1000 } },
-    },
-    {
-        id: 'trigger_nimble',
-        name: '灵巧身形',
-        weaponType: 'fist',
-        apCost: 0,
-        bestDistance: 1,
-        tags: [],
-        effects: [{ type: 'modify_turn', deltaMs: -200 }],
-        bonus: true,
-    },
-    {
-        id: 'trigger_iron_bone',
-        name: '钢筋铁骨',
-        weaponType: 'fist',
-        apCost: 0,
-        bestDistance: 1,
-        tags: [],
-        effects: [{ type: 'cleanse' }],
-        bonus: true,
-    },
-    {
-        id: 'trigger_precise_strike',
-        name: '精准打击',
-        weaponType: 'fist',
-        apCost: 0,
-        bestDistance: 1,
-        tags: [],
-        effects: [],
-        bonus: true,
-        triggerEffect: { type: 'stat_buff', attrs: { insight: 1 }, duration: { attr: 'wisdom', multiplier: 1000 } }, // dummy
-    },
-]
-
-/** 合并所有招式（含辅招、炁技、触发器招式） */
-const ALL_ACTIONS = [...MVP_ACTIONS, ...BONUS_ACTIONS, ...QI_SKILLS, ...TRIGGER_ACTIONS]
+/** 合并所有招式（含辅招、炁技） */
+const ALL_ACTIONS = [...MVP_ACTIONS, ...BONUS_ACTIONS, ...QI_SKILLS]
 
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {

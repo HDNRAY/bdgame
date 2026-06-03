@@ -16,7 +16,7 @@ function show(c: Character, label: string) {
     if (c.skills.length) console.log(`  功法: ${c.skills.join(', ')}`)
     if (c.actionInstances.length) console.log(`  招式: ${c.actionInstances.map((i) => i.name).join(', ')}`)
     if (c.triggerSlots.length)
-        console.log(`  触发: ${c.triggerSlots.map((s) => `${s.event}→${s.actionId}`).join(', ')}`)
+        console.log(`  触发: ${c.triggerSlots.map((s) => `${s.condition.type}→${s.actionId}`).join(', ')}`)
 }
 
 const p = new Character('p1', '玩家·拳', {
@@ -27,7 +27,6 @@ const p = new Character('p1', '玩家·拳', {
     insight: 8,
     wisdom: 6,
 })
-// 锻体在战斗准备阶段直接加属性，不经过 engine
 const forgingBuffs = getForgingBuffs(4)
 for (const b of forgingBuffs) p.attrs.modify(b.stat as AttrName, b.value)
 ;['iron_charge', 'straight_punch', 'crushing_blow', 'qi_focus', 'qi_gather'].forEach((id) => {
@@ -36,8 +35,8 @@ for (const b of forgingBuffs) p.attrs.modify(b.stat as AttrName, b.value)
 })
 p.skills = ['铁布衫']
 p.triggerSlots = [
-    { event: 'on_parry', actionId: 'trigger_counter' },
-    { event: 'on_dodged', actionId: 'trigger_insight' },
+    { condition: { type: 'on_parry', value: 0 }, actionId: 'straight_punch' },
+    { condition: { type: 'on_dodged', value: 0 }, actionId: 'flick' },
 ]
 
 const o = new Character('o1', '铁枪·张烈', {

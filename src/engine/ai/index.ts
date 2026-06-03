@@ -35,7 +35,7 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
     for (const inst of self.actionInstances) {
         if (!inst.def.bonus) continue
         if (!inst.canUse()) continue
-        if (inst.def.bonusTiming !== 'before_main') continue
+        if (inst.def.bonusTiming?.type !== 'before_main') continue
         // 检查移动后 AP 够走完所有已选辅招 + 当前辅招 + 主招
         if (apAfterMove < bonusAp + inst.apCost + mainDef.apCost) continue
         cmds.push({ type: 'bonus', actionId: inst.id })
