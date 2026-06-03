@@ -9,45 +9,46 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
 
     // 1. 决定主招
     const mainId = preferredMainId ?? pickMainAction(self, state)
-    if (!mainId) return cmds // 没招可用
+    if (!mainId) return cmds
     const mainDef = self.actionInstances.find((a) => a.id === mainId)?.def
     if (!mainDef) return cmds
     const stats = WEAPONS[mainDef.weaponType]
 
-    // 2. 辅招（凝炁/聚炁等）— 选 AP 够的放
+    // 2. 计算移动需要多少 AP
+    const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
+    let moveAp = 0
+    let virtualDist = state.distance.current
+    if (virtualDist > stats.range[1]) {
+        const need = virtualDist - stats.range[1]
+        moveAp = Math.ceil(need / perAp)
+        virtualDist -= perAp * moveAp
+    } else if (virtualDist < stats.range[0]) {
+        const need = stats.range[0] - virtualDist
+        moveAp = Math.ceil(need / perAp)
+        virtualDist += perAp * moveAp
+    }
+
+    const apAfterMove = self.ap - moveAp
+
+    // 3. 辅招（凝炁/聚炁）— 只有移动后 AP 够主招+辅招才放
+    let bonusAp = 0
     for (const inst of self.actionInstances) {
         if (!inst.def.bonus) continue
         if (!inst.canUse()) continue
         if (inst.def.bonusTiming !== 'before_main') continue
-        if (self.ap < inst.apCost + mainDef.apCost) continue
+        // 检查移动后 AP 够走完所有已选辅招 + 当前辅招 + 主招
+        if (apAfterMove < bonusAp + inst.apCost + mainDef.apCost) continue
         cmds.push({ type: 'bonus', actionId: inst.id })
+        bonusAp += inst.apCost
     }
 
-    // 3. 移动：如果不在武器范围内，走到范围边缘（同时虚拟更新距离供攻击检查）
-    let virtualDist = state.distance.current
-    let movedAp = 0
-    if (virtualDist > stats.range[1]) {
-        const need = virtualDist - stats.range[1]
-        const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
-        const apNeeded = Math.ceil(need / perAp)
-        if (self.ap >= apNeeded) {
-            cmds.push({ type: 'move', bestDistance: -apNeeded })
-            movedAp = apNeeded
-            virtualDist -= perAp * apNeeded
-        }
-    } else if (virtualDist < stats.range[0]) {
-        const need = stats.range[0] - virtualDist
-        const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
-        const apNeeded = Math.ceil(need / perAp)
-        if (self.ap >= apNeeded) {
-            cmds.push({ type: 'move', bestDistance: apNeeded })
-            movedAp = apNeeded
-            virtualDist += perAp * apNeeded
-        }
+    // 4. 移动
+    if (moveAp > 0) {
+        cmds.push({ type: 'move', bestDistance: state.distance.current > stats.range[1] ? -moveAp : moveAp })
     }
 
-    // 4. 攻击（用虚拟距离检查）
-    if (self.ap - movedAp >= mainDef.apCost && virtualDist >= stats.range[0] && virtualDist <= stats.range[1]) {
+    // 5. 攻击
+    if (apAfterMove - bonusAp >= mainDef.apCost && virtualDist >= stats.range[0] && virtualDist <= stats.range[1]) {
         cmds.push({ type: 'attack', actionId: mainId, weaponType: mainDef.weaponType })
     }
 
