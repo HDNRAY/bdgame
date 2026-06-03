@@ -7,7 +7,9 @@ export const MVP_TRIGGERS: TriggerDefinition[] = [
         description: '招架后立即反击，造成 50% 伤害',
         event: 'on_parry',
         effects: [{ type: 'counter_attack', damageRatio: 0.5 }],
-        slotCost: 1, apCost: 1, tags: ['counter', 'defensive'],
+        slotCost: 1,
+        apCost: 1,
+        tags: ['counter', 'defensive'],
     },
     {
         id: 'insight',
@@ -16,7 +18,8 @@ export const MVP_TRIGGERS: TriggerDefinition[] = [
         event: 'on_dodged',
         condition: { enemyDistance: 3 },
         effects: [{ type: 'buff', stat: 'ap', value: 2, duration: 'turn' }],
-        slotCost: 1, tags: ['utility', 'mobility'],
+        slotCost: 1,
+        tags: ['utility', 'mobility'],
     },
     {
         id: 'burn_feedback',
@@ -24,7 +27,8 @@ export const MVP_TRIGGERS: TriggerDefinition[] = [
         description: '每次造成灼烧伤害时，回复 3 HP',
         event: 'on_hit',
         effects: [{ type: 'heal', value: 3 }],
-        slotCost: 1, tags: ['recovery'],
+        slotCost: 1,
+        tags: ['recovery'],
     },
     {
         id: 'last_stand',
@@ -33,7 +37,9 @@ export const MVP_TRIGGERS: TriggerDefinition[] = [
         event: 'hp_below',
         condition: { hpBelow: 30 },
         effects: [{ type: 'buff', stat: 'strength', value: 4, duration: 'battle' }],
-        slotCost: 1, maxUses: 1, tags: ['offensive', 'utility'],
+        slotCost: 1,
+        maxUses: 1,
+        tags: ['offensive', 'utility'],
     },
     {
         id: 'nimble',
@@ -41,7 +47,8 @@ export const MVP_TRIGGERS: TriggerDefinition[] = [
         description: '闪避后下回合间隔 -200ms',
         event: 'on_dodge',
         effects: [{ type: 'modify_turn', deltaMs: -200 }],
-        slotCost: 1, tags: ['mobility'],
+        slotCost: 1,
+        tags: ['mobility'],
     },
     {
         id: 'iron_bone',
@@ -50,15 +57,10 @@ export const MVP_TRIGGERS: TriggerDefinition[] = [
         event: 'turn_start',
         condition: { hasStatus: 'stun' },
         effects: [{ type: 'cleanse' }],
-        slotCost: 1, apCost: 1, maxUses: 1, tags: ['defensive', 'control'],
-    },
-    {
-        id: 'bloodthirst',
-        name: '嗜血',
-        description: '击败对手时回复 20% HP',
-        event: 'on_kill',
-        effects: [{ type: 'heal', value: 0, ratio: 0.2 }],
-        slotCost: 1, maxUses: 1, tags: ['recovery'],
+        slotCost: 1,
+        apCost: 1,
+        maxUses: 1,
+        tags: ['defensive', 'control'],
     },
     {
         id: 'precise_strike',
@@ -66,10 +68,11 @@ export const MVP_TRIGGERS: TriggerDefinition[] = [
         description: '攻击未命中时，下次命中率 +15%',
         event: 'on_dodged',
         effects: [{ type: 'buff', stat: 'hitRate', value: 15, duration: 'turn' }],
-        slotCost: 1, tags: ['offensive', 'utility'],
+        slotCost: 1,
+        tags: ['offensive', 'utility'],
     },
 ]
 
 export function getTrigger(id: string): TriggerDefinition | undefined {
-    return MVP_TRIGGERS.find(t => t.id === id)
+    return MVP_TRIGGERS.find((t) => t.id === id)
 }

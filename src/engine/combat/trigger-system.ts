@@ -4,8 +4,8 @@ import type { TriggerDefinition, TriggerEvent } from '../entities/trigger'
 /** 触发上下文 */
 export interface TriggerContext {
     event: TriggerEvent
-    actor: Character       // 触发者
-    target: Character      // 目标（对手）
+    actor: Character // 触发者
+    target: Character // 目标（对手）
     distance: number
 }
 
@@ -29,7 +29,7 @@ export function processTriggers(
 
         // 检查额外条件
         if (t.condition?.hpBelow !== undefined) {
-            const hpPct = ctx.actor.hp / ctx.actor.maxHp * 100
+            const hpPct = (ctx.actor.hp / ctx.actor.maxHp) * 100
             if (hpPct > t.condition.hpBelow) continue
         }
         if (t.condition?.enemyDistance !== undefined) {

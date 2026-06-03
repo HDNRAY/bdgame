@@ -1,6 +1,8 @@
 import { AttributeSet } from './attributes'
 
-export function calcMaxHp(vitality: number): number { return 20 + vitality * 10 }
+export function calcMaxHp(vitality: number): number {
+    return 20 + vitality * 10
+}
 
 export class Character {
     readonly id: string
@@ -25,11 +27,19 @@ export class Character {
         this.hp = calcMaxHp(this.attrs.get('vitality'))
     }
 
-    get maxHp(): number { return calcMaxHp(this.attrs.get('vitality')) }
+    get maxHp(): number {
+        return calcMaxHp(this.attrs.get('vitality'))
+    }
 
-    takeDamage(amount: number): void { this.hp = Math.max(0, this.hp - amount) }
-    heal(amount: number): void { this.hp = Math.min(this.maxHp, this.hp + amount) }
-    isAlive(): boolean { return this.hp > 0 }
+    takeDamage(amount: number): void {
+        this.hp = Math.max(0, this.hp - amount)
+    }
+    heal(amount: number): void {
+        this.hp = Math.min(this.maxHp, this.hp + amount)
+    }
+    isAlive(): boolean {
+        return this.hp > 0
+    }
 
     resetAp(): void {
         this.ap = Math.max(0, this.maxAp - this.nextTurnApDebt)
