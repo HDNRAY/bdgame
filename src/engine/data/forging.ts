@@ -1,6 +1,4 @@
-import type { ActionDefinition, BonusTiming } from '../entities/action'
-
-const ALL_ATTR_STATS = ['strength', 'vitality', 'dexterity', 'technique', 'insight', 'wisdom']
+import type { ActionDefinition } from '../entities/action'
 
 /** 炁技 —— 锻体解锁的辅招 */
 export const QI_SKILLS: ActionDefinition[] = [
@@ -16,8 +14,8 @@ export const QI_SKILLS: ActionDefinition[] = [
         bonusTiming: 'before_main',
         maxUses: 1,
         triggerEffect: {
-            type: 'stat_buff_all' as const,
-            buffs: ALL_ATTR_STATS.map((stat) => ({ stat, value: 1 })),
+            type: 'stat_buff' as const,
+            attrs: { strength: 1, vitality: 1, dexterity: 1, technique: 1, insight: 1, wisdom: 1 },
             duration: 'battle' as const,
         },
     },
@@ -81,19 +79,4 @@ export function getForgingBuffs(level: number): { stat: string; value: number }[
     return buffs
 }
 
-/** 锻体 → 一组功法被动 ActionDefinition（battle_start 时触发） */
-export function getForgingActions(level: number): ActionDefinition[] {
-    const buffs = getForgingBuffs(level)
-    return buffs.map((b) => ({
-        id: `forging_${b.stat}`,
-        name: `锻体-${b.stat}`,
-        weaponType: 'fist' as const,
-        apCost: 0,
-        bestDistance: 1,
-        tags: [],
-        effects: [],
-        bonus: true,
-        bonusTiming: 'battle_start' as BonusTiming,
-        triggerEffect: { type: 'stat_buff' as const, stat: b.stat, value: b.value, duration: 'battle' as const },
-    }))
-}
+

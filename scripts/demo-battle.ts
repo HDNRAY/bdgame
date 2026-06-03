@@ -3,7 +3,8 @@ import { Character } from '../src/engine/entities/character'
 import { simulateFight } from '../src/engine/combat/simulate'
 import { formatBattleLog } from '../src/engine/combat/log-parser'
 import { getAction } from '../src/engine/data/actions'
-import { getForgingActions } from '../src/engine/data/forging'
+import { getForgingBuffs } from '../src/engine/data/forging'
+import type { AttrName } from '../src/engine/entities/attributes'
 
 function show(c: Character, label: string) {
     const a = c.attrs
@@ -25,8 +26,9 @@ const p = new Character('p1', '玩家·拳', {
     insight: 8,
     wisdom: 6,
 })
-const forgingDefs = getForgingActions(4)
-for (const def of forgingDefs) p.equipAction(def)
+// 锻体在战斗准备阶段直接加属性，不经过 engine
+const forgingBuffs = getForgingBuffs(4)
+for (const b of forgingBuffs) p.attrs.modify(b.stat as AttrName, b.value)
 ;['iron_charge', 'straight_punch', 'crushing_blow', 'qi_focus', 'qi_gather'].forEach((id) => {
     const a = getAction(id)
     if (a) p.equipAction(a)

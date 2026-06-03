@@ -69,9 +69,6 @@ export class BattleEngine {
             triggerUses: new Map(),
             pendingBuffs: new Map(),
         }
-        // 触发双方 battle_start 被动（锻体等）
-        tryBonus(this, p, 'battle_start')
-        tryBonus(this, o, 'battle_start')
     }
 
     /** 触发检测 */
@@ -318,17 +315,14 @@ export function applyTriggerEffect(
             break
         }
         case 'stat_buff': {
-            const attr = e.stat as AttrName
-            const old = self.attrs.get(attr)
-            self.attrs.modify(attr, e.value)
-            // 永久被动（锻体）不显示在 log 中
-            if (e.duration !== 'battle') {
-                engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${self.attrs.get(attr)}`, tMs, actorName)
-            }
+            const entries = Object.entries(e.attrs) as [AttrName, number][]
+            const desc = entries.map(([s, v]) => `${s}+${v}`).join(' ')
+            for (const [attr, value] of entries) self.attrs.modify(attr, value)
+            engine.state.log.logSystem(`[${tag}] ${self.name} ${desc}`, tMs, actorName)
             break
         }
         case 'stat_buff_all': {
-            const desc = e.buffs.map(b => `${b.stat}+${b.value}`).join(' ')
+            const desc = e.buffs.map((b) => `${b.stat}+${b.value}`).join(' ')
             for (const b of e.buffs) {
                 const attr = b.stat as AttrName
                 self.attrs.modify(attr, b.value)

@@ -41,8 +41,7 @@ export interface ActionDefinition {
 
 export type BonusTriggerEffect =
     | { type: 'stat_multiply'; stat: string; multiplier: number; duration: 'turn' | 'battle'; restoreValue?: number }
-    | { type: 'stat_buff'; stat: string; value: number; duration: 'turn' | 'battle' }
-    | { type: 'stat_buff_all'; buffs: { stat: string; value: number }[]; duration: 'turn' | 'battle' }
+    | { type: 'stat_buff'; attrs: Record<string, number>; duration: 'turn' | 'battle' }
     | { type: 'stat_restore'; stat: string; value: number } // 用于 buff 消失时恢复
     | { type: 'buff_end'; buffId: string } // 标记 buff 到期事件
     | { type: 'heal'; value: number; ratio?: number }
@@ -72,7 +71,6 @@ export interface ActionQueueEntry {
 
 /** 辅招触发时机 */
 export type BonusTiming =
-    | 'battle_start'
     | 'before_main'
     | 'after_main'
     | 'before_turn_end'
