@@ -3,7 +3,7 @@ import type { BattleEngine } from './engine'
 import type { ActionEffect } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
 import type { StatusInstance, StatusType } from '../entities/status'
-import { calcBaseDamage } from '../calc/damage'
+import { calcBaseDamage, calcPoisonTickInterval } from '../calc/damage'
 import { createBleed, createBurn, createPoison } from '../entities/status'
 
 // ── Context 类型 ──
@@ -63,7 +63,7 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
             return
         }
         enemy.statuses.push(createPoison(stacks, name))
-        const interval = Math.max(500, 2000 - stacks * 200)
+        const interval = calcPoisonTickInterval(stacks)
         engine.state.turn.scheduleSystemEventAt(`tick_poison_${enemy.id}`, tMs + interval)
     },
     burn({ eff: { stacks }, self: { name }, enemy, engine, tMs, existing }: StatusCtx) {
@@ -177,7 +177,7 @@ export function processStatusTick(
     if (s.type === 'poison') {
         const dmg = s.stacks * 2
         char.takeDamage(dmg)
-        const nextInterval = Math.max(500, 2000 - s.stacks * 200)
+        const nextInterval = calcPoisonTickInterval(s.stacks)
         log.logSystem(
             `[中毒] ${char.name} 受到 ${dmg} 毒伤害（下次${(nextInterval / 1000).toFixed(1)}s后）`,
             tMs,

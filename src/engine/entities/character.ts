@@ -4,6 +4,7 @@ import type { CharacterBuild } from './character-build'
 import type { Passive } from './passive'
 import type { Artifact } from './artifact'
 import { getAction } from '../data/actions'
+import type { StatusInstance, StatusType } from './status'
 
 export function calcMaxHp(vitality: number): number {
     return 20 + vitality * 10
@@ -84,6 +85,16 @@ export class Character {
     }
     isAlive(): boolean {
         return this.hp > 0
+    }
+
+    /** 获取指定类型的 status 实例 */
+    getStatus(type: StatusType): StatusInstance | undefined {
+        return this.statuses.find((s) => s.type === type)
+    }
+
+    /** 是否有指定类型的 status */
+    hasStatus(type: StatusType): boolean {
+        return this.statuses.some((s) => s.type === type)
     }
 
     resetAp(): void {

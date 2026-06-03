@@ -94,3 +94,35 @@ export function calcTurnInterval(dexterity: number, preDelay: number, stunTime: 
     const est = Math.round(stunTime * dexFactor)
     return Math.round(base + epd + est)
 }
+
+/** 招架后伤害减免，默认减免至 40% */
+export function calcParriedDamage(finalDamage: number, ratio = 0.4): number {
+    return Math.round(finalDamage * ratio)
+}
+
+/** 考虑麻痹层数后的等效身法（用于闪避判定） */
+export function calcDodgeChanceWithParalyze(dexterity: number, paralyzeStacks: number): number {
+    const penalty = paralyzeStacks * 0.05
+    const effectiveDex = dexterity - Math.floor(penalty * 10)
+    return calcDodgeChance(Math.max(0, effectiveDex))
+}
+
+/** 麻痹到期时属性恢复量 */
+export function calcParalyzeAttrRestore(stacks: number): { dexterity: number; insight: number } {
+    return { dexterity: stacks * 2, insight: stacks * 1 }
+}
+
+/** 回复量：固定值 + 最大HP百分比 */
+export function calcHealAmount(baseValue: number, maxHp: number, ratio?: number): number {
+    return baseValue + (ratio ? Math.round(maxHp * ratio) : 0)
+}
+
+/** buff 时长：基于属性 × 系数 */
+export function calcBuffDuration(baseAttr: number, multiplier: number): number {
+    return Math.round(baseAttr * multiplier)
+}
+
+/** 毒间隔：基础 2000ms，每层 -200ms，最低 500ms */
+export function calcPoisonTickInterval(stacks: number): number {
+    return Math.max(500, 2000 - stacks * 200)
+}

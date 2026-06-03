@@ -6,11 +6,16 @@ import {
     WEAPONS,
     calcHitChance,
     calcParryChance,
-    calcDodgeChance,
     calcTurnInterval,
     calcCritChance,
     calcFinalDamage,
+    calcParriedDamage,
+    calcDodgeChanceWithParalyze,
+    calcParalyzeAttrRestore,
+    calcHealAmount,
+    calcBuffDuration,
 } from '../calc/damage'
+import { encodeBuffKey, decodeBuffKey } from '../util/buff-utils'
 import { resolveAction, canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import type { ActionDefinition } from '../entities/action'
@@ -231,16 +236,7 @@ export class BattleEngine {
         this.#markDirty()
         r.distanceDelta = a
         log.logMove(self.name, a, distance.current, ap, self.ap, tMs, this.getSnapshot())
-        for (const s of self.statuses) {
-            if (s.type === 'bleed') {
-                const dmg = triggerBleed(s)
-                if (dmg > 0) {
-                    self.takeDamage(dmg)
-                    this.#markDirty()
-                    log.logSystem(`[流血] ${self.name} 受到 ${dmg} 流血伤害`, tMs, this.getSnapshot())
-                }
-            }
-        }
+        this.#applyBleedDamage(self, tMs)
         return r
     }
 
@@ -295,19 +291,7 @@ export class BattleEngine {
 
     /** 自身流血伤害处理 */
     #processSelfBleed(): void {
-        const log = this.state.log
-        const self = this.#self
-        const tMs = this.#tMs
-        for (const s of self.statuses) {
-            if (s.type === 'bleed') {
-                const dmg = triggerBleed(s)
-                if (dmg > 0) {
-                    self.takeDamage(dmg)
-                    this.#markDirty()
-                    log.logSystem(`[流血] ${self.name} 受到 ${dmg} 流血伤害`, tMs, this.getSnapshot())
-                }
-            }
-        }
+        this.#applyBleedDamage(this.#self, this.#tMs)
     }
 
     /** 命中/闪避/招架判定，返回 false 则攻击终止 */
@@ -328,9 +312,8 @@ export class BattleEngine {
             return false
         }
 
-        const paraPenalty = (enemy.statuses.find((s) => s.type === 'paralyze')?.stacks ?? 0) * 0.05
-        const effectiveDex = enemy.attrs.get('dexterity') - Math.floor(paraPenalty * 10)
-        r.dodged = Math.random() < calcDodgeChance(Math.max(0, effectiveDex))
+        const paraStacks = enemy.getStatus('paralyze')?.stacks ?? 0
+        r.dodged = Math.random() < calcDodgeChanceWithParalyze(enemy.attrs.get('dexterity'), paraStacks)
         if (r.dodged) {
             log.logDodge(self.name, enemy.name, tMs, this.getSnapshot())
             this.emit('on_dodge', enemy, self, tMs)
@@ -360,7 +343,7 @@ export class BattleEngine {
         resolved.isCrit = isCrit
         resolved.final = calcFinalDamage(resolved.base + resolved.crippleBonus, resolved.distanceMult, isCrit)
 
-        const finalDmg = r.parried ? Math.round(resolved.final * 0.4) : resolved.final
+        const finalDmg = r.parried ? calcParriedDamage(resolved.final) : resolved.final
         enemy.takeDamage(finalDmg)
         this.#markDirty()
         r.damage = finalDmg
@@ -399,16 +382,7 @@ export class BattleEngine {
         this.#tryBonus(self, 'on_hit')
         this.#tryBonus(enemy, 'on_take_damage')
 
-        for (const s of enemy.statuses) {
-            if (s.type === 'bleed') {
-                const d = triggerBleed(s)
-                if (d > 0) {
-                    enemy.takeDamage(d)
-                    this.#markDirty()
-                    log.logSystem(`[流血] ${enemy.name} 受到 ${d} 流血伤害`, tMs, this.getSnapshot())
-                }
-            }
-        }
+        this.#applyBleedDamage(enemy, tMs)
         for (const eff of action.effects ?? []) {
             if (eff.type === 'status' && r.hit && !r.dodged) {
                 processActionEffect(eff, self, enemy, this, tMs)
@@ -419,6 +393,20 @@ export class BattleEngine {
             log.logDefeat(enemy.name, self.name, tMs, this.getSnapshot())
             this.state.phase = 'finished'
             this.#markDirty()
+        }
+    }
+
+    /** 对目标执行流血伤害 */
+    #applyBleedDamage(owner: Character, tMs: number): void {
+        for (const s of owner.statuses) {
+            if (s.type === 'bleed') {
+                const dmg = triggerBleed(s)
+                if (dmg > 0) {
+                    owner.takeDamage(dmg)
+                    this.#markDirty()
+                    this.#log.logSystem(`[流血] ${owner.name} 受到 ${dmg} 流血伤害`, tMs, this.getSnapshot())
+                }
+            }
         }
     }
 
@@ -464,18 +452,15 @@ export class BattleEngine {
 
     /** buff 到期恢复 */
     #handleBuffEnd(eventId: string): void {
-        const prefix = 'buff_end_'
-        const buffKey = eventId.slice(prefix.length)
+        const buffKey = eventId.slice('buff_end_'.length)
         const data = this.#buffs.get(buffKey)
         if (!data) return
-        const sepIdx = buffKey.lastIndexOf('::')
-        if (sepIdx === -1) return
-        const charId = buffKey.slice(sepIdx + 2)
-        const char = this.#getCharacter(charId)
+        const decoded = decodeBuffKey(buffKey)
+        if (!decoded) return
+        const char = this.#getCharacter(decoded.characterId)
         if (!char) return
-        const actionId = buffKey.slice(0, sepIdx)
-        const action = getAction(actionId)
-        const buffName = action?.name ?? (actionId.startsWith('paralyze') ? '麻痹' : actionId)
+        const action = getAction(decoded.actionId)
+        const buffName = action?.name ?? (decoded.actionId.startsWith('paralyze') ? '麻痹' : decoded.actionId)
         this.#applyTriggerEffect({ type: 'stat_restore', stat: data.stat, value: data.restoreValue }, char, buffName)
         this.#buffs.delete(buffKey)
         this.#markDirty()
@@ -489,7 +474,7 @@ export class BattleEngine {
             const charId = eventId.slice('tick_poison_'.length)
             const char = this.#getCharacter(charId)
             if (!char) return
-            const poison = char.statuses.find((s) => s.type === 'poison')
+            const poison = char.getStatus('poison')
             if (!poison) return
             const { nextInterval } = processStatusTick(poison, char, this, tMs)
             if (nextInterval > 0) {
@@ -500,7 +485,7 @@ export class BattleEngine {
             const charId = eventId.slice('tick_burn_'.length)
             const char = this.#getCharacter(charId)
             if (!char) return
-            const burn = char.statuses.find((s) => s.type === 'burn')
+            const burn = char.getStatus('burn')
             if (!burn) return
             processStatusTick(burn, char, this, tMs)
             this.#markDirty()
@@ -520,11 +505,12 @@ export class BattleEngine {
 
         const chars = this.state.characters
         for (const char of chars) {
-            const entry = char.statuses.find((s) => s.type === 'paralyze')
+            const entry = char.getStatus('paralyze')
             if (!entry) continue
+            const restore = calcParalyzeAttrRestore(stacks)
             entry.stacks -= stacks
-            char.attrs.modify('dexterity', stacks * 2)
-            char.attrs.modify('insight', stacks * 1)
+            char.attrs.modify('dexterity', restore.dexterity)
+            char.attrs.modify('insight', restore.insight)
             this.#markDirty()
             this.#log.logSystem(`[麻痹] ${char.name} 恢复${stacks}层`, this.#currentTime, this.getSnapshot())
             if (entry.stacks <= 0) {
@@ -568,7 +554,7 @@ export class BattleEngine {
         const actorName = self.name
         switch (e.type) {
             case 'stat_multiply': {
-                const buffKey = `${actionId ?? 'buff'}::${self.id}`
+                const buffKey = encodeBuffKey(actionId ?? 'buff', self.id)
                 if (this.#buffs.has(buffKey)) break
                 const attr = e.stat as AttrName
                 const old = self.attrs.get(attr)
@@ -582,7 +568,7 @@ export class BattleEngine {
                 )
                 {
                     const attrVal = self.attrs.get(e.duration.attr)
-                    const buffDuration = Math.round(attrVal * e.duration.multiplier)
+                    const buffDuration = calcBuffDuration(attrVal, e.duration.multiplier)
                     this.#buffs.set(buffKey, { restoreValue: old, stat: e.stat })
                     this.#markDirty()
                     this.state.turn.scheduleSystemEventAt(`buff_end_${buffKey}`, this.#currentTime + buffDuration)
@@ -613,7 +599,7 @@ export class BattleEngine {
                 break
             }
             case 'heal': {
-                const amount = e.value + (e.ratio ? Math.round(self.maxHp * e.ratio) : 0)
+                const amount = calcHealAmount(e.value, self.maxHp, e.ratio)
                 self.heal(amount)
                 this.#markDirty()
                 this.#log.logSystem(`[${tag}] ${self.name} 回复 ${amount} HP`, tMs, this.getSnapshot(), actorName)
