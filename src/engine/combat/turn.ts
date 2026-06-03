@@ -1,6 +1,8 @@
 import type { Character } from '../entities/character'
 
-interface TurnEntry {
+export const SYS_PREFIX = '__sys__'
+
+export interface TurnEntry {
     characterId: string
     nextActionAt: number // 时间轴上的绝对时间 ms
 }
@@ -15,6 +17,15 @@ export class TurnManager {
         this.queue.push({
             characterId: char.id,
             nextActionAt: this.time + delay,
+        })
+        this.sort()
+    }
+
+    /** 调度一个系统事件 */
+    scheduleSystemEvent(id: string, delayMs: number): void {
+        this.queue.push({
+            characterId: `${SYS_PREFIX}${id}`,
+            nextActionAt: this.time + delayMs,
         })
         this.sort()
     }

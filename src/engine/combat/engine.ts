@@ -1,6 +1,6 @@
 import { Character } from '../entities/character'
 import { DistanceSystem } from './distance'
-import { TurnManager } from './turn'
+import { TurnManager, SYS_PREFIX } from './turn'
 import { BattleLog } from './battle-log'
 import type { WeaponType } from '../calc/damage'
 import { WEAPONS, calcHitChance, calcParryChance, calcDodgeChance, calcTurnInterval } from '../calc/damage'
@@ -10,7 +10,6 @@ import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
 import { getTrigger } from '../data/triggers'
 import { processTriggers } from './trigger-system'
 import { createBleed, triggerBleed } from '../entities/status'
-import type { ActionInstance } from '../entities/action-instance'
 import type { BonusTiming, BonusTriggerEffect } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
 
@@ -39,6 +38,8 @@ export interface BattleState {
     log: BattleLog
     eventActorId: string | null
     triggerUses: Map<string, number>
+    /** 待恢复的 buff（key 如 "qi_gather_p1"） */
+    pendingBuffs: Map<string, { restoreValue: number }>
 }
 
 export class BattleEngine {
@@ -66,6 +67,7 @@ export class BattleEngine {
             log,
             eventActorId: null,
             triggerUses: new Map(),
+            pendingBuffs: new Map(),
         }
         // 触发双方 battle_start 被动（锻体等）
         tryBonus(this, p, 'battle_start')
@@ -90,6 +92,8 @@ export class BattleEngine {
         const e = this.state.turn.peek()
         if (!e) return false
         this.state.eventActorId = e.characterId
+        // 系统事件不重置 AP
+        if (e.characterId.startsWith(SYS_PREFIX)) return true
         const self = e.characterId === this.state.player.id ? this.state.player : this.state.opponent
         self.resetAp()
         this.state.opponent.resetAp()
@@ -284,24 +288,64 @@ export class BattleEngine {
 
 // ── 时机驱动的辅招系统 ──
 
-/** 应用一个 triggerEffect 到角色身上 */
-export function applyTriggerEffect(e: BonusTriggerEffect | undefined, self: Character, engine: BattleEngine): void {
+/** 应用一个 triggerEffect（或数组）到角色身上 */
+export function applyTriggerEffect(
+    e: BonusTriggerEffect | BonusTriggerEffect[] | undefined,
+    self: Character,
+    engine: BattleEngine,
+    actionName?: string,
+): void {
     if (!e) return
+    if (Array.isArray(e)) {
+        for (const eff of e) applyTriggerEffect(eff, self, engine, actionName)
+        return
+    }
+    const tag = actionName ?? '功法'
     const tMs = engine.state.turn.peek()?.nextActionAt ?? 0
     switch (e.type) {
         case 'stat_multiply': {
             const attr = e.stat as AttrName
             const old = self.attrs.get(attr)
             self.attrs.set(attr, old * e.multiplier)
-            engine.state.log.logSystem(`[蓄力] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`, tMs)
+            engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`, tMs)
+            // 持续一回合 → 调度 buff 消失事件
+            if (e.duration === 'turn') {
+                const buffKey = `qi_gather_${self.id}`
+                engine.state.pendingBuffs.set(buffKey, { restoreValue: old })
+                engine.state.turn.scheduleSystemEvent(`buff_end_${buffKey}`, 50)
+            }
             break
         }
         case 'stat_buff': {
             const attr = e.stat as AttrName
             const old = self.attrs.get(attr)
             self.attrs.modify(attr, e.value)
-            engine.state.log.logSystem(`[锻体] ${self.name} ${e.stat} ${old}→${self.attrs.get(attr)}`, tMs)
+            engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${self.attrs.get(attr)}`, tMs)
             break
+        }
+        case 'stat_restore': {
+            const attr = e.stat as AttrName
+            const old = self.attrs.get(attr)
+            self.attrs.set(attr, e.value)
+            engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→恢复${e.value}`, tMs)
+            break
+        }
+    }
+}
+
+/** 处理系统事件（buff 到期等） */
+export function handleSystemEvent(engine: BattleEngine, eventId: string): void {
+    const { log, turn, pendingBuffs } = engine.state
+    const tMs = turn.peek()?.nextActionAt ?? 0
+    // buff_end_qi_gather_p1
+    if (eventId.startsWith('buff_end_qi_gather_')) {
+        const charId = eventId.replace('buff_end_qi_gather_', '')
+        const char = charId === engine.state.player.id ? engine.state.player : engine.state.opponent
+        const buffKey = `qi_gather_${charId}`
+        const data = pendingBuffs.get(buffKey)
+        if (data) {
+            applyTriggerEffect({ type: 'stat_restore', stat: 'strength', value: data.restoreValue }, char, engine)
+            pendingBuffs.delete(buffKey)
         }
     }
 }
@@ -315,7 +359,7 @@ export function tryBonus(engine: BattleEngine, self: Character, timing: BonusTim
         if (self.ap < inst.apCost + mainAp) continue
         self.spendAp(inst.apCost)
         inst.use()
-        applyTriggerEffect(inst.def.triggerEffect, self, engine)
+        applyTriggerEffect(inst.def.triggerEffect, self, engine, inst.name)
         fired = true
     }
     return fired

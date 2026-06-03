@@ -6,24 +6,46 @@ import { getAction } from '../src/engine/data/actions'
 import { getForgingActions } from '../src/engine/data/forging'
 
 function show(c: Character, label: string) {
-  const a = c.attrs
-  console.log(`\n${label}`)
-  console.log(`  STR ${a.get('strength')}  VIT ${a.get('vitality')}  DEX ${a.get('dexterity')}  TEC ${a.get('technique')}  INS ${a.get('insight')}  WIS ${a.get('wisdom')}`)
-  console.log(`  HP ${c.maxHp}  AP ${c.maxAp}`)
-  if (c.skills.length) console.log(`  功法: ${c.skills.join(', ')}`)
-  if (c.actionInstances.length) console.log(`  招式: ${c.actionInstances.map(i => i.name).join(', ')}`)
-  if (c.triggers.length) console.log(`  触发: ${c.triggers.join(', ')}`)
+    const a = c.attrs
+    console.log(`\n${label}`)
+    console.log(
+        `  STR ${a.get('strength')}  VIT ${a.get('vitality')}  DEX ${a.get('dexterity')}  TEC ${a.get('technique')}  INS ${a.get('insight')}  WIS ${a.get('wisdom')}`,
+    )
+    console.log(`  HP ${c.maxHp}  AP ${c.maxAp}`)
+    if (c.skills.length) console.log(`  功法: ${c.skills.join(', ')}`)
+    if (c.actionInstances.length) console.log(`  招式: ${c.actionInstances.map((i) => i.name).join(', ')}`)
+    if (c.triggers.length) console.log(`  触发: ${c.triggers.join(', ')}`)
 }
 
-const p = new Character('p1', '玩家·拳', { strength: 14, vitality: 12, dexterity: 10, technique: 10, insight: 8, wisdom: 6 })
+const p = new Character('p1', '玩家·拳', {
+    strength: 14,
+    vitality: 12,
+    dexterity: 10,
+    technique: 10,
+    insight: 8,
+    wisdom: 6,
+})
 const forgingDefs = getForgingActions(4)
 for (const def of forgingDefs) p.equipAction(def)
-;['iron_charge','straight_punch','crushing_blow','power_double'].forEach(id => { const a = getAction(id); if (a) p.equipAction(a) })
+;['iron_charge', 'straight_punch', 'crushing_blow', 'qi_focus', 'qi_gather'].forEach((id) => {
+    const a = getAction(id)
+    if (a) p.equipAction(a)
+})
 p.skills = ['铁布衫']
 p.triggers = ['counter', 'insight']
 
-const o = new Character('o1', '铁枪·张烈', { strength: 16, vitality: 14, dexterity: 8, technique: 8, insight: 5, wisdom: 4 })
-;['thrust','sweep','fissure'].forEach(id => { const a = getAction(id); if (a) o.equipAction(a) })
+const o = new Character('o1', '铁枪·张烈', {
+    strength: 16,
+    vitality: 14,
+    dexterity: 8,
+    technique: 8,
+    insight: 5,
+    wisdom: 4,
+})
+;['thrust', 'sweep', 'fissure'].forEach((id) => {
+    const a = getAction(id)
+    if (a) o.equipAction(a)
+})
 o.skills = ['钢筋铁骨']
 
 show(p, '⚔️ 玩家·拳')

@@ -1,4 +1,5 @@
 import type { ActionDefinition } from '../entities/action'
+import { QI_SKILLS } from './forging'
 
 /**
  * MVP 招式清单
@@ -211,8 +212,8 @@ export const BONUS_ACTIONS: ActionDefinition[] = [
     },
 ]
 
-/** 合并所有招式（含辅招） */
-const ALL_ACTIONS = [...MVP_ACTIONS, ...BONUS_ACTIONS]
+/** 合并所有招式（含辅招、炁技） */
+const ALL_ACTIONS = [...MVP_ACTIONS, ...BONUS_ACTIONS, ...QI_SKILLS]
 
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {

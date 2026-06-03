@@ -56,10 +56,12 @@ export class Character {
 
     /** 装备招式（从 ActionDefinition 创建实例） */
     equipAction(def: import('./action').ActionDefinition): void {
-        if (!this.actionInstances.find(a => a.id === def.id)) {
+        if (!this.actionInstances.find((a) => a.id === def.id)) {
             this.actionInstances.push(new ActionInstance(def))
         }
     }
 
-    get actionIds(): string[] { return this.actionInstances.map(a => a.id) }
+    get actionIds(): string[] {
+        return this.actionInstances.map((a) => a.id)
+    }
 }

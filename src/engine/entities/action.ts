@@ -35,13 +35,15 @@ export interface ActionDefinition {
     bonusTiming?: BonusTiming
     /** 辅招触发条件（仅 bonus=true 时有效） */
     bonusCondition?: BonusCondition
-    /** 辅招效果描述（如 "力量翻倍1回合"） */
-    triggerEffect?: BonusTriggerEffect
+    /** 辅招效果描述（如 "力量翻倍1回合"），支持数组以一次触发多个效果 */
+    triggerEffect?: BonusTriggerEffect | BonusTriggerEffect[]
 }
 
 export type BonusTriggerEffect =
-    | { type: 'stat_multiply'; stat: string; multiplier: number; duration: 'turn' | 'battle' }
+    | { type: 'stat_multiply'; stat: string; multiplier: number; duration: 'turn' | 'battle'; restoreValue?: number }
     | { type: 'stat_buff'; stat: string; value: number; duration: 'turn' | 'battle' }
+    | { type: 'stat_restore'; stat: string; value: number } // 用于 buff 消失时恢复
+    | { type: 'buff_end'; buffId: string } // 标记 buff 到期事件
     | { type: 'heal'; value: number; ratio?: number }
     | { type: 'guarantee_hit' }
     | { type: 'guarantee_crit' }
