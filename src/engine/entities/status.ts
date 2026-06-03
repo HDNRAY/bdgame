@@ -1,12 +1,18 @@
 /** 状态效果类型 */
-export type StatusType = 'burn' | 'poison' | 'bleed' | 'stun' | 'paralyze' | 'stagger'
-// TODO: stagger（踉跄）效果待设计 — 可考虑：每层降低命中/闪避，或叠满触发眩晕
+export type StatusType = 'burn' | 'poison' | 'bleed' | 'stun' | 'paralyze'
+// 麻痹: 降低身法和洞察，影响前后摇/移速
+// 眩晕: 停止走表
 
 /** 状态效果实例 */
 export interface StatusInstance {
     type: StatusType
     stacks: number
     source: string // 施加者名称
+
+    /** 标志：此状态是否跳过行动（如眩晕停止走表） */
+    skipTurn?: boolean
+    /** 跳过行动后的重调度延迟(ms)，0=正常走时间轴 */
+    rescheduleDelay?: number
 
     // 灼烧: 初始伤害快照
     burnBaseDamage?: number

@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import {
     calcBaseDamage,
     calcDistanceMultiplier,
-    calcCritChance,
     calcFinalDamage,
     calcHitChance,
     calcParryChance,

@@ -17,7 +17,7 @@ import { getAction } from '../data/actions'
 import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
 import { getTriggerByEvent } from '../data/triggers'
 import { processTriggers } from './trigger-system'
-import { processActionEffect } from './effect-processor'
+import { processActionEffect, processStatusTick } from './effect-processor'
 import { triggerBleed } from '../entities/status'
 import type { BonusTiming, BonusTriggerEffect } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
@@ -46,7 +46,7 @@ export interface BattleState {
     log: BattleLog
     eventActorId: string | null
     triggerUses: Map<string, number>
-    pendingBuffs: Map<string, { restoreValue: number }>
+    pendingBuffs: Map<string, { restoreValue: number; stat: string }>
 }
 
 export type EventPlan = (self: Character, enemy: Character, state: BattleState) => ActionCommand[]
@@ -99,6 +99,20 @@ export class BattleEngine {
         const enemy = chars.find((c) => c.id !== e.characterId)!
         self.resetAp()
         enemy.resetAp()
+
+        // 跳过行动检查（如眩晕停止走表）
+        const skipStatus = self.statuses.find((s) => s.skipTurn)
+        if (skipStatus) {
+            const reason = skipStatus.type === 'stun' ? '眩晕' : skipStatus.type
+            this.state.log.logSystem(`${self.name} 被${reason}，停止走表`, e.nextActionAt)
+            self.statuses = self.statuses.filter((s) => s !== skipStatus)
+            const delay = skipStatus.rescheduleDelay ?? 2000
+            this.state.turn.next()
+            this.state.turn.scheduleNext(self.id, delay)
+            this.state.eventActorId = null
+            return true
+        }
+
         this.emit('turn_start', self, enemy, e.nextActionAt)
         this.#tryBonus(self, 'turn_start')
 
@@ -122,7 +136,7 @@ export class BattleEngine {
     }
 
     /** 触发检测 */
-    private emit(event: TriggerEvent, self: Character, enemy: Character, tMs: number) {
+    emit(event: TriggerEvent, self: Character, enemy: Character, tMs: number) {
         const { log, triggerUses, distance } = this.state
         const pairs: { trigger: TriggerDefinition; actionId: string }[] = []
         for (const slot of self.triggerSlots) {
@@ -229,7 +243,10 @@ export class BattleEngine {
                     break
                 }
 
-                r.dodged = Math.random() < calcDodgeChance(enemy.attrs.get('dexterity'))
+                // 麻痹降低闪避
+                const paraPenalty = (enemy.statuses.find((s) => s.type === 'paralyze')?.stacks ?? 0) * 0.05
+                const effectiveDex = enemy.attrs.get('dexterity') - Math.floor(paraPenalty * 10)
+                r.dodged = Math.random() < calcDodgeChance(Math.max(0, effectiveDex))
                 if (r.dodged) {
                     log.logDodge(self.name, enemy.name, tMs)
                     this.emit('on_dodge', enemy, self, tMs)
@@ -332,29 +349,63 @@ export class BattleEngine {
         return r
     }
 
-    /** 处理系统事件（buff 到期等） */
+    /** 处理系统事件（buff 到期、status tick 等） */
     #handleSystemEvent(): void {
         const eventId = this.state.eventActorId!.slice(SYS_PREFIX.length)
+
+        if (eventId.startsWith('buff_end_')) {
+            this.#handleBuffEnd(eventId)
+        } else if (eventId.startsWith('tick_poison_') || eventId.startsWith('tick_burn_')) {
+            this.#handleStatusTick(eventId)
+        }
+    }
+
+    /** buff 到期恢复 */
+    #handleBuffEnd(eventId: string): void {
         const prefix = 'buff_end_'
-        if (!eventId.startsWith(prefix)) return
         const buffKey = eventId.slice(prefix.length)
         const data = this.state.pendingBuffs.get(buffKey)
-        if (data) {
-            // buffKey = `${actionId}::${charId}`
-            const sepIdx = buffKey.lastIndexOf('::')
-            if (sepIdx === -1) return
-            const charId = buffKey.slice(sepIdx + 2)
-            const chars = this.state.characters
-            const char = chars.find((c) => c.id === charId)
+        if (!data) return
+        const sepIdx = buffKey.lastIndexOf('::')
+        if (sepIdx === -1) return
+        const charId = buffKey.slice(sepIdx + 2)
+        const chars = this.state.characters
+        const char = chars.find((c) => c.id === charId)
+        if (!char) return
+        const actionId = buffKey.slice(0, sepIdx)
+        const action = getAction(actionId)
+        this.#applyTriggerEffect(
+            { type: 'stat_restore', stat: data.stat, value: data.restoreValue },
+            char,
+            action?.name ?? actionId,
+        )
+        this.state.pendingBuffs.delete(buffKey)
+    }
+
+    /** status tick（毒/灼烧） */
+    #handleStatusTick(eventId: string): void {
+        const { turn } = this.state
+        const tMs = turn.currentTime
+        if (eventId.startsWith('tick_poison_')) {
+            const charId = eventId.slice('tick_poison_'.length)
+            const char = this.state.characters.find((c) => c.id === charId)
             if (!char) return
-            const actionId = buffKey.slice(0, sepIdx)
-            const action = getAction(actionId)
-            this.#applyTriggerEffect(
-                { type: 'stat_restore', stat: 'strength', value: data.restoreValue },
-                char,
-                action?.name ?? actionId,
-            )
-            this.state.pendingBuffs.delete(buffKey)
+            const poison = char.statuses.find((s) => s.type === 'poison')
+            if (!poison) return
+            const { nextInterval } = processStatusTick(poison, char, this, tMs)
+            if (nextInterval > 0) {
+                turn.scheduleSystemEventAt(eventId, tMs + nextInterval)
+            }
+        } else if (eventId.startsWith('tick_burn_')) {
+            const charId = eventId.slice('tick_burn_'.length)
+            const char = this.state.characters.find((c) => c.id === charId)
+            if (!char) return
+            const burn = char.statuses.find((s) => s.type === 'burn')
+            if (!burn) return
+            processStatusTick(burn, char, this, tMs)
+            if (burn.remainingTicks && burn.remainingTicks > 0) {
+                turn.scheduleSystemEventAt(eventId, tMs + 1000)
+            }
         }
     }
 
@@ -403,7 +454,7 @@ export class BattleEngine {
                 {
                     const attrVal = self.attrs.get(e.duration.attr)
                     const buffDuration = Math.round(attrVal * e.duration.multiplier)
-                    this.state.pendingBuffs.set(buffKey, { restoreValue: old })
+                    this.state.pendingBuffs.set(buffKey, { restoreValue: old, stat: e.stat })
                     this.state.turn.scheduleSystemEventAt(
                         `buff_end_${buffKey}`,
                         this.state.turn.currentTime + buffDuration,
