@@ -39,7 +39,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         apCost: 2,
         bestDistance: 1,
         tags: [],
-        effects: [{ type: 'self_damage', ratio: -0.25 }],  // 回复 25%
+        effects: [{ type: 'self_damage', ratio: -0.25 }], // 回复 25%
         bonus: true,
     },
     {
@@ -79,7 +79,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         apCost: 3,
         bestDistance: 4,
         tags: ['fixed_damage'],
-        effects: [{ type: 'fixed_damage', value: 0 }],  // wisdom×1.2, runtime computed
-        bonus: false,  // 主招
+        effects: [{ type: 'fixed_damage', value: 0 }], // wisdom×1.2, runtime computed
+        bonus: false, // 主招
     },
 ]
