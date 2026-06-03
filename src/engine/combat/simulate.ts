@@ -3,7 +3,11 @@ import { BattleEngine } from './engine'
 import { WEAPONS } from '../calc/damage'
 import { getAction } from '../data/actions'
 
-export function simulateFight(player: Character, opponent: Character, actionId = 'straight_punch'): { winner: string; engine: BattleEngine } {
+export function simulateFight(
+    player: Character,
+    opponent: Character,
+    actionId = 'straight_punch',
+): { winner: string; engine: BattleEngine } {
     const engine = new BattleEngine(player, opponent)
     const { state } = engine
     const action = getAction(actionId)

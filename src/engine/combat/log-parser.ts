@@ -8,7 +8,9 @@ export function formatBattleLog(log: BattleLog): string[] {
     let lastTime = -1
     let lastActor = ''
 
-    function t(ms: number) { return `t=${(ms / 1000).toFixed(2)}` }
+    function t(ms: number) {
+        return `t=${(ms / 1000).toFixed(2)}`
+    }
 
     function eventHeader(ms: number, actor: string, ap: number) {
         return `── Event ${t(ms)} [${actor}] AP${ap} ──`
@@ -73,11 +75,16 @@ export function formatBattleLog(log: BattleLog): string[] {
             case 'damage': {
                 if (!pending) break
                 const t = pending.text
-                if (t.includes('闪避') || t.includes('未命中')) { flushPending(); break }
+                if (t.includes('闪避') || t.includes('未命中')) {
+                    flushPending()
+                    break
+                }
                 if (t.includes('招架')) {
                     pending.text += e.isCrit ? ` ${e.final}伤害 暴击!*` : ` ${e.final}伤害*`
                 } else {
-                    pending.text += e.isCrit ? ` → *${e.target} ${e.final}伤害 暴击!*` : ` → *${e.target} ${e.final}伤害*`
+                    pending.text += e.isCrit
+                        ? ` → *${e.target} ${e.final}伤害 暴击!*`
+                        : ` → *${e.target} ${e.final}伤害*`
                 }
                 flushPending()
                 break

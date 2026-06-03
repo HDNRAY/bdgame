@@ -85,3 +85,8 @@ export function calcMoveApCost(distance: number, dexterity: number): number {
     const perAp = Math.max(0.5, dexterity / 20)
     return Math.ceil(distance / perAp)
 }
+
+/** 回合间隔: 600 + 60000/(100 + dex×5) + 武器前摇 + 武器硬直 */
+export function calcTurnInterval(dexterity: number, preDelay: number, stunTime: number): number {
+    return Math.round(600 + 60000 / (100 + dexterity * 5) + preDelay + stunTime)
+}
