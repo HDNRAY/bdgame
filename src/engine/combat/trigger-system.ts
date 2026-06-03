@@ -1,18 +1,6 @@
-import type { Condition } from '../entities/trigger'
-import type { Character } from '../entities/character'
+import type { Condition, ConditionContext } from '../entities/trigger'
 
-/** 条件匹配上下文 */
-export interface MatchContext {
-    actor: Character
-    distance: number
-}
-
-/** 通用条件匹配：engine 不碰任何具体条件判断 */
-export function matchCondition(cond: Condition, ctx: MatchContext): boolean {
-    switch (cond.type) {
-        case 'hp_below':
-            return (ctx.actor.hp / ctx.actor.maxHp) * 100 < cond.value
-        default:
-            return true
-    }
+/** 通用条件匹配 */
+export function matchCondition(cond: Condition, ctx: ConditionContext): boolean {
+    return cond.check ? cond.check(ctx) : true
 }

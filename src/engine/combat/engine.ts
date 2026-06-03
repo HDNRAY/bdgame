@@ -76,6 +76,8 @@ export class BattleEngine {
             triggerUses: new Map(),
             pendingBuffs: new Map(),
         }
+        this.emit('battle_start', p, o, 0)
+        this.emit('battle_start', o, p, 0)
     }
 
     /** 公开入口：执行一个行动（角色行动或系统事件） */
@@ -137,7 +139,7 @@ export class BattleEngine {
     /** 触发检测 */
     emit(event: TriggerEvent, self: Character, enemy: Character, tMs: number) {
         const { log, triggerUses, distance } = this.state
-        for (const slot of self.triggerSlots) {
+        for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (!matchCondition(slot.condition, { actor: self, distance: distance.current })) continue
 
@@ -327,7 +329,7 @@ export class BattleEngine {
                 break
             case 'bonus': {
                 if (!cmd.actionId) break
-                const inst = self.actionInstances.find((a) => a.id === cmd.actionId)
+                const inst = self.moves.find((a) => a.id === cmd.actionId)
                 if (!inst || !inst.def.bonus || !inst.canUse()) break
                 if (!self.spendAp(inst.apCost)) break
                 inst.use()
@@ -404,7 +406,7 @@ export class BattleEngine {
     /** 辅招触发 */
     #tryBonus(self: Character, timing: TriggerEvent, mainAp = 0): boolean {
         let fired = false
-        for (const inst of self.actionInstances) {
+        for (const inst of self.moves) {
             if (!inst.def.bonus || inst.def.bonusTiming?.type !== timing) continue
             if (!inst.canUse()) continue
             if (self.ap < inst.apCost + mainAp) continue

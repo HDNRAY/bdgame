@@ -10,7 +10,7 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
     // 1. 决定主招
     const mainId = preferredMainId ?? pickMainAction(self, state)
     if (!mainId) return cmds
-    const mainDef = self.actionInstances.find((a) => a.id === mainId)?.def
+    const mainDef = self.moves.find((a) => a.id === mainId)?.def
     if (!mainDef) return cmds
     const stats = WEAPONS[mainDef.weaponType]
 
@@ -32,7 +32,7 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
 
     // 3. 辅招（凝炁/聚炁）— 只有移动后 AP 够主招+辅招才放
     let bonusAp = 0
-    for (const inst of self.actionInstances) {
+    for (const inst of self.moves) {
         if (!inst.def.bonus) continue
         if (!inst.canUse()) continue
         if (inst.def.bonusTiming?.type !== 'before_main') continue
@@ -57,7 +57,7 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
 
 /** 选第一个能放的主招 */
 function pickMainAction(self: Character, state: BattleState): string | null {
-    for (const inst of self.actionInstances) {
+    for (const inst of self.moves) {
         if (inst.def.bonus) continue
         if (!inst.canUse()) continue
         if (self.ap < inst.apCost) continue

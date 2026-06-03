@@ -3,7 +3,10 @@
 
 export * from './entities/attributes'
 export * from './entities/character'
+export * from './entities/character-build'
 export * from './entities/action'
+export * from './entities/passive'
+export * from './entities/artifact'
 export * from './data/actions'
 export * from './combat/distance'
 export * from './combat/turn'

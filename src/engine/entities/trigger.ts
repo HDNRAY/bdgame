@@ -15,13 +15,20 @@ export type TriggerEvent =
     | 'before_main'
     | 'after_main'
     | 'before_turn_end'
+    | 'battle_start'
 
 export type TriggerTag = 'defensive' | 'offensive' | 'mobility' | 'utility' | 'counter' | 'recovery' | 'control'
 
-/** 触发条件（原始数据） */
+/** 条件匹配上下文 */
+export interface ConditionContext {
+    actor: import('./character').Character
+    distance: number
+}
+
+/** 触发条件 */
 export interface Condition {
     type: TriggerEvent
-    value: number
+    check?: (ctx: ConditionContext) => boolean
 }
 
 /** 可供玩家选择的触发条件 */
@@ -34,7 +41,7 @@ export interface TriggerCondition extends Condition {
     tags: TriggerTag[]
 }
 
-/** 玩家装备的触发器槽：选定条件 → 触发招式 */
+/** 玩家装备的触发器槽 */
 export interface TriggerSlot {
     condition: Condition
     actionId: string

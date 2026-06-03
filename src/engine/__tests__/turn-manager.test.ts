@@ -2,11 +2,15 @@ import { describe, it, expect } from 'vitest'
 import { TurnManager } from '../combat/turn'
 import { Character } from '../entities/character'
 
+function mc(id: string, name: string, attrs: Record<string, number> = {}): Character {
+    return new Character({ id, name, baseAttrs: attrs, moves: [], triggers: [], passives: [], artifacts: [] })
+}
+
 describe('TurnManager', () => {
     it('should order characters by action time', () => {
         const tm = new TurnManager()
-        const fast = new Character('fast', '快', { dexterity: 20 })
-        const slow = new Character('slow', '慢', { dexterity: 5 })
+        const fast = mc('fast', '快', { dexterity: 20 })
+        const slow = mc('slow', '慢', { dexterity: 5 })
 
         tm.addCharacter(fast, 100)
         tm.addCharacter(slow, 300)
@@ -18,7 +22,7 @@ describe('TurnManager', () => {
 
     it('should reschedule after action', () => {
         const tm = new TurnManager()
-        const c = new Character('c1', '武者')
+        const c = mc('c1', '武者')
         tm.addCharacter(c, 100)
         tm.next()
 
@@ -29,8 +33,8 @@ describe('TurnManager', () => {
 
     it('should handle stun (add time)', () => {
         const tm = new TurnManager()
-        const a = new Character('a', 'A')
-        const b = new Character('b', 'B')
+        const a = mc('a', 'A')
+        const b = mc('b', 'B')
         tm.addCharacter(a, 100)
         tm.addCharacter(b, 200)
 

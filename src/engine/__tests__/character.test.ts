@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { Character, calcMaxHp } from '../entities/character'
 
+function mc(id: string, name: string, attrs: Record<string, number> = {}): Character {
+    return new Character({ id, name, baseAttrs: attrs, moves: [], triggers: [], passives: [], artifacts: [] })
+}
+
 describe('calcMaxHp', () => {
     it('should calculate HP correctly', () => {
         expect(calcMaxHp(10)).toBe(120)
@@ -11,7 +15,7 @@ describe('calcMaxHp', () => {
 
 describe('Character', () => {
     it('should create with default attributes', () => {
-        const c = new Character('test_1', '测试角色')
+        const c = mc('test_1', '测试角色')
         expect(c.name).toBe('测试角色')
         expect(c.attrs.total()).toBe(18)
         expect(c.hp).toBe(calcMaxHp(3))
@@ -19,13 +23,13 @@ describe('Character', () => {
     })
 
     it('should create with custom attributes', () => {
-        const c = new Character('test_2', '武者', { strength: 14, vitality: 12 })
+        const c = mc('test_2', '武者', { strength: 14, vitality: 12 })
         expect(c.attrs.get('strength')).toBe(14)
         expect(c.hp).toBe(calcMaxHp(12))
     })
 
     it('should handle damage and healing', () => {
-        const c = new Character('test_3', '坦克', { vitality: 20 })
+        const c = mc('test_3', '坦克', { vitality: 20 })
         const fullHp = c.hp
 
         c.takeDamage(50)
@@ -40,7 +44,7 @@ describe('Character', () => {
     })
 
     it('should handle AP spending', () => {
-        const c = new Character('test_4', '武者')
+        const c = mc('test_4', '武者')
         expect(c.spendAp(3)).toBe(true)
         expect(c.ap).toBe(7)
         expect(c.spendAp(8)).toBe(false)
