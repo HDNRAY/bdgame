@@ -31,7 +31,21 @@ export interface ActionDefinition {
     maxUses?: number
     /** 辅招？不占主招名额 */
     bonus?: boolean
+    /** 辅招触发时机（仅 bonus=true 时有效） */
+    bonusTiming?: BonusTiming
+    /** 辅招触发条件（仅 bonus=true 时有效） */
+    bonusCondition?: BonusCondition
+    /** 辅招效果描述（如 "力量翻倍1回合"） */
+    triggerEffect?: BonusTriggerEffect
 }
+
+export type BonusTriggerEffect =
+    | { type: 'stat_multiply'; stat: string; multiplier: number; duration: 'turn' | 'battle' }
+    | { type: 'stat_buff'; stat: string; value: number; duration: 'turn' | 'battle' }
+    | { type: 'heal'; value: number; ratio?: number }
+    | { type: 'guarantee_hit' }
+    | { type: 'guarantee_crit' }
+    | { type: 'ignore_parry_next' }
 
 export type ActionEffect =
     | { type: 'damage'; scaling: Partial<Record<AttrName, number>> }

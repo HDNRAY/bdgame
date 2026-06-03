@@ -3,18 +3,33 @@ import { BattleEngine } from './engine'
 import { WEAPONS } from '../calc/damage'
 import { getAction } from '../data/actions'
 import type { ActionDefinition } from '../entities/action'
+import type { AttrName } from '../entities/attributes'
 
-/** 检查并执行辅招 */
+/** 通用辅招检查：遍历角色所有辅招，满足条件则执行 */
 function tryBonus(engine: BattleEngine, self: Character, mainAp: number): boolean {
-  if (!self.actions.includes('power_double')) return false
-  if (self.ap < 2 + mainAp) return false
-  // 只触发一次（从列表移除）
-  self.actions = self.actions.filter(a => a !== 'power_double')
-  self.spendAp(2)
-  const original = self.attrs.get('strength')
-  self.attrs.set('strength', original * 2)
-  engine.state.log.logSystem(`[蓄力] ${self.name} 力量 ${original}→${original * 2}!`, engine.state.turn.peek()?.nextActionAt ?? 0)
-  return true
+  let fired = false
+  const toRemove: string[] = []
+  for (const aid of self.actions) {
+    const bonus = getAction(aid)
+    if (!bonus?.bonus) continue
+    if (bonus.bonusTiming !== 'before_main') continue
+    // 条件：剩余 AP 够同时支付辅招和主招
+    if (self.ap < bonus.apCost + mainAp) continue
+    // 执行
+    self.spendAp(bonus.apCost)
+    toRemove.push(aid)
+    const effect = bonus.triggerEffect
+    if (effect?.type === 'stat_multiply') {
+      const attr = effect.stat as AttrName
+      const old = self.attrs.get(attr)
+      self.attrs.set(attr, old * effect.multiplier)
+      engine.state.log.logSystem(`[${bonus.name}] ${self.name} ${effect.stat} ${old}→${old * effect.multiplier}!`, engine.state.turn.peek()?.nextActionAt ?? 0)
+    }
+    fired = true
+  }
+  // 已触发的辅招从列表移除（一局一次）
+  self.actions = self.actions.filter(a => !toRemove.includes(a))
+  return fired
 }
 
 /** 简单 AI：移动→辅招→主招 */

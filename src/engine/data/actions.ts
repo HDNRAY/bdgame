@@ -206,6 +206,8 @@ export const BONUS_ACTIONS: ActionDefinition[] = [
         tags: [],
         effects: [],
         bonus: true,
+        bonusTiming: 'before_main',
+        triggerEffect: { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: 'turn' },
     },
 ]
 
