@@ -3,69 +3,53 @@ import { BattleLog } from './battle-log'
 export function formatBattleLog(log: BattleLog): string[] {
     const all = log.getAll()
     const lines: string[] = []
+    let lastTime = -1, lastActor = ''
 
-    // 追踪当前 event
-    let lastTime = -1
-    let lastActor = ''
+    function t(ms: number) { return `t=${(ms / 1000).toFixed(2)}` }
 
-    function t(ms: number) {
-        return `t=${(ms / 1000).toFixed(2)}`
-    }
-
-    function eventHeader(ms: number, actor: string, ap: number) {
-        return `── Event ${t(ms)} [${actor}] AP${ap} ──`
-    }
-
-    /** 检测是否进入新 event，是则输出 header */
     function checkNewEvent(ms: number, actor: string, ap: number) {
         if (ms !== lastTime || actor !== lastActor) {
-            lastTime = ms
-            lastActor = actor
-            lines.push(eventHeader(ms, actor, ap))
+            if (lastTime >= 0) lines.push('')  // event 间空行
+            lastTime = ms; lastActor = actor
+            lines.push(`── Event ${t(ms)} [${actor}] AP${ap} ──`)
         }
     }
 
-    // 缓存攻击行，等待补充结果
-    let pending: { indent: string; text: string } | null = null
+    let pending: { time: number; actor: string; text: string; ap?: string; startAp: number } | null = null
 
-    function flushPending() {
+    function flush() {
         if (!pending) return
-        lines.push(pending.text)
+        checkNewEvent(pending.time, pending.actor, pending.startAp)
+        lines.push(`  ${pending.text}${pending.ap ? ` ${pending.ap}` : ''}`)
         pending = null
     }
 
     for (const { timelineMs: ms, event: e } of all) {
         switch (e.type) {
             case 'battle_start':
-                lines.push(`── ⚔️ ${e.actor} VS ${e.opponent} ──`)
-                lastTime = -1
-                lastActor = ''
+                lines.push(`── ⚔️ ${e.actor} VS ${e.opponent} ──\n`)
                 break
 
             case 'move':
-                flushPending()
+                flush()
                 checkNewEvent(ms, e.actor, e.apRemaining + e.apCost)
                 lines.push(`  #移动→${e.newDistance}m [AP${e.apRemaining}]`)
                 break
 
             case 'attack_start':
-                flushPending()
-                checkNewEvent(ms, e.actor, e.apRemaining + (e.apCost ?? 0))
-                pending = { indent: '  ', text: `  #${e.actionName ?? e.weapon}（${e.apCost}AP）[AP${e.apRemaining}]` }
+                flush()
+                pending = { time: ms, actor: e.actor, text: `#${e.actionName ?? e.weapon}（${e.apCost}AP）`, ap: `[AP${e.apRemaining}]`, startAp: e.apRemaining + e.apCost }
                 break
 
             case 'check_hit':
-                if (!e.result && pending) {
-                    pending.text += ` → *未命中*`
-                    flushPending()
+                if (pending) {
+                    pending.text += ` [命${(e.hitChance * 100).toFixed(0)}% 骰${(e.roll * 100).toFixed(0)}%]`
+                    if (!e.result) { pending.text += ' → *未命中*'; flush() }
                 }
                 break
 
             case 'dodge':
-                if (pending) {
-                    pending.text += ` → *${e.evader} 闪避*`
-                    flushPending()
-                }
+                if (pending) { pending.text += ` → *${e.evader} 闪避*`; flush() }
                 break
 
             case 'parry':
@@ -75,32 +59,27 @@ export function formatBattleLog(log: BattleLog): string[] {
             case 'damage': {
                 if (!pending) break
                 const t = pending.text
-                if (t.includes('闪避') || t.includes('未命中')) {
-                    flushPending()
-                    break
-                }
+                if (t.includes('闪避') || t.includes('未命中')) { flush(); break }
                 if (t.includes('招架')) {
-                    pending.text += e.isCrit ? ` ${e.final}伤害 暴击!*` : ` ${e.final}伤害*`
+                    pending.text += e.isCrit ? ` ${e.final}暴!*` : ` ${e.final}*`
                 } else {
-                    pending.text += e.isCrit
-                        ? ` → *${e.target} ${e.final}伤害 暴击!*`
-                        : ` → *${e.target} ${e.final}伤害*`
+                    pending.text += e.isCrit ? ` → *${e.target} ${e.final}暴!*` : ` → *${e.target} ${e.final}伤害*`
                 }
-                flushPending()
+                flush()
                 break
             }
 
             case 'defeat':
-                flushPending()
-                lines.push(`🏆 ${e.loser} 败 — ${e.winner} 胜`)
+                flush()
+                lines.push(`🏆 ${e.loser} 败 — ${e.winner} 胜\n`)
                 break
 
             case 'system':
-                flushPending()
+                flush()
                 lines.push(`  ${e.message}`)
                 break
         }
     }
-    flushPending()
+    flush()
     return lines
 }

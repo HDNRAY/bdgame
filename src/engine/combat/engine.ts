@@ -141,8 +141,9 @@ export class BattleEngine {
                 this.emit('on_attack', self, enemy, tMs)
 
                 const hc = calcHitChance(self.attrs.get('technique'), enemy.attrs.get('dexterity'))
-                r.hit = Math.random() < hc
-                log.logHitCheck(self.name, enemy.name, hc, Math.random(), r.hit, tMs)
+                const hitRoll = Math.random()
+                r.hit = hitRoll < hc
+                log.logHitCheck(self.name, enemy.name, hc, hitRoll, r.hit, tMs)
                 if (!r.hit) {
                     this.emit('on_dodged', self, enemy, tMs)
                     break
