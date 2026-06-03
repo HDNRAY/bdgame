@@ -168,6 +168,17 @@ export class BattleEngine {
                 }
                 log.logAttack(self.name, enemy.name, weapon, action?.apCost ?? 0, self.ap, tMs, an)
 
+                // 自身流血：每次行动触发
+                for (const s of self.statuses) {
+                    if (s.type === 'bleed') {
+                        const dmg = triggerBleed(s)
+                        if (dmg > 0) {
+                            self.takeDamage(dmg)
+                            log.logSystem(`[流血] ${self.name} 受到 ${dmg} 流血伤害`, tMs)
+                        }
+                    }
+                }
+
                 this.emit('on_attack', self, enemy, tMs)
 
                 const hc = calcHitChance(self.attrs.get('technique'), enemy.attrs.get('dexterity'))

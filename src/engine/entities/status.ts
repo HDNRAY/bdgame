@@ -1,5 +1,6 @@
 /** 状态效果类型 */
 export type StatusType = 'burn' | 'poison' | 'bleed' | 'stun' | 'paralyze' | 'stagger'
+// TODO: stagger（踉跄）效果待设计 — 可考虑：每层降低命中/闪避，或叠满触发眩晕
 
 /** 状态效果实例 */
 export interface StatusInstance {

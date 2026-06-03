@@ -153,10 +153,12 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         weaponType: 'thrown',
         apCost: 8,
         bestDistance: 4,
-        tags: ['fixed_damage'],
+        tags: ['fixed_damage', 'poison', 'paralyze', 'bleed'],
         effects: [
             { type: 'fixed_damage', value: 15 },
+            { type: 'status', status: 'poison', stacks: 1, chance: 0.3 },
             { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
+            { type: 'status', status: 'bleed', stacks: 1, chance: 0.3 },
         ],
         maxUses: 2,
     },
