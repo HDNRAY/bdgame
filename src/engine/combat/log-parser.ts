@@ -42,7 +42,7 @@ export function formatBattleLog(log: BattleLog): string[] {
 
             case 'move':
                 flushPending()
-                checkNewEvent(ms, e.actor, e.apRemaining + 0)
+                checkNewEvent(ms, e.actor, e.apRemaining + e.apCost)
                 lines.push(`  #移动→${e.newDistance}m [AP${e.apRemaining}]`)
                 break
 

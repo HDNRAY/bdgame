@@ -63,9 +63,11 @@ export class BattleEngine {
         switch (cmd.type) {
             case 'move': {
                 const delta = cmd.bestDistance ?? 0
+                const apCost = Math.abs(delta)  // 1 AP per range
+                if (!self.spendAp(apCost)) { log.logSystem(`${self.name} AP不足 无法移动`, tMs); break }
                 const actual = distance.move(delta)
                 r.distanceDelta = actual
-                log.logMove(self.name, actual, distance.current, 0, self.ap, tMs)
+                log.logMove(self.name, actual, distance.current, apCost, self.ap, tMs)
                 break
             }
             case 'attack': {
