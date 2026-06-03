@@ -39,9 +39,12 @@ export interface ActionDefinition {
     triggerEffect?: BonusTriggerEffect | BonusTriggerEffect[]
 }
 
+/** buff 持续时间：'battle'=永久，或 { attr: '属性名', multiplier: 系数 } = 属性×系数 ms */
+export type BuffDuration = 'battle' | { attr: AttrName; multiplier: number }
+
 export type BonusTriggerEffect =
-    | { type: 'stat_multiply'; stat: string; multiplier: number; duration: 'turn' | 'battle'; restoreValue?: number }
-    | { type: 'stat_buff'; attrs: Record<string, number>; duration: 'turn' | 'battle' }
+    | { type: 'stat_multiply'; stat: string; multiplier: number; duration: BuffDuration; restoreValue?: number }
+    | { type: 'stat_buff'; attrs: Record<string, number>; duration: BuffDuration }
     | { type: 'stat_restore'; stat: string; value: number } // 用于 buff 消失时恢复
     | { type: 'buff_end'; buffId: string } // 标记 buff 到期事件
     | { type: 'heal'; value: number; ratio?: number }

@@ -18,7 +18,7 @@ import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
 import { getTrigger } from '../data/triggers'
 import { processTriggers } from './trigger-system'
 import { createBleed, createPoison, triggerBleed } from '../entities/status'
-import type { BonusTiming, BonusTriggerEffect } from '../entities/action'
+import type { BonusTiming, BonusTriggerEffect, BuffDuration } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
 
 export interface ActionCommand {
@@ -354,16 +354,13 @@ export function applyTriggerEffect(
             const old = self.attrs.get(attr)
             self.attrs.set(attr, old * e.multiplier)
             engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`, tMs, actorName)
-            // 持续悟性×150 ms：悟性高则buff久，身法高则行动快可多打
-            if (e.duration === 'turn') {
-                const wis = self.attrs.get('wisdom')
-                const buffDuration = Math.round(wis * 150)
+            // buff 持续：'battle'=永久，{ attr, multiplier }=属性×系数 ms
+            if (e.duration !== 'battle') {
+                const attrVal = self.attrs.get(e.duration.attr)
+                const buffDuration = Math.round(attrVal * e.duration.multiplier)
                 const buffKey = `qi_gather_${self.id}`
                 engine.state.pendingBuffs.set(buffKey, { restoreValue: old })
-                engine.state.turn.scheduleSystemEventAt(
-                    `buff_end_${buffKey}`,
-                    engine.state.turn.currentTime + buffDuration,
-                )
+                engine.state.turn.scheduleSystemEventAt(`buff_end_${buffKey}`, engine.state.turn.currentTime + buffDuration)
             }
             break
         }

@@ -30,7 +30,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         bonus: true,
         bonusTiming: 'before_main',
         maxUses: 1,
-        triggerEffect: { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: 'turn' },
+        triggerEffect: { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: { attr: 'wisdom', multiplier: 150 } },
     },
     // TODO: 愈炁 — 回血，触发器类
     // TODO: 炁弹 — 远程固定伤害
