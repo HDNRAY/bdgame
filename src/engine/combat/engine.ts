@@ -67,7 +67,9 @@ export class BattleEngine {
     /** 触发检测 */
     private emit(event: TriggerEvent, self: Character, enemy: Character, tMs: number) {
         const { log, triggerUses, distance } = this.state
-        const equipped: TriggerDefinition[] = self.triggers.map(id => getTrigger(id)).filter((t): t is TriggerDefinition => t != null)
+        const equipped: TriggerDefinition[] = self.triggers
+            .map((id) => getTrigger(id))
+            .filter((t): t is TriggerDefinition => t != null)
         const results = processTriggers(
             { event, actor: self, target: enemy, distance: distance.current },
             equipped,
@@ -200,7 +202,10 @@ export class BattleEngine {
                 this.emit('on_hit', self, enemy, tMs)
                 this.emit('on_take_damage', enemy, self, tMs)
 
-                if (!enemy.isAlive()) { log.logDefeat(enemy.name, self.name, tMs); this.state.phase = 'finished' }
+                if (!enemy.isAlive()) {
+                    log.logDefeat(enemy.name, self.name, tMs)
+                    this.state.phase = 'finished'
+                }
                 break
             }
             case 'defend':
