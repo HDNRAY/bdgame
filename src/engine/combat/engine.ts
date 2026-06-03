@@ -50,7 +50,15 @@ export class BattleEngine {
         const tm = new TurnManager()
         tm.addCharacter(player, 0)
         tm.addCharacter(opponent, 0)
-        this.state = { phase: 'fighting', player, opponent, distance: new DistanceSystem(startDistance), turn: tm, log, round: 1 }
+        this.state = {
+            phase: 'fighting',
+            player,
+            opponent,
+            distance: new DistanceSystem(startDistance),
+            turn: tm,
+            log,
+            round: 1,
+        }
     }
 
     execute(cmd: ActionCommand): ActionResult {
@@ -60,7 +68,14 @@ export class BattleEngine {
         const self = isPlayer ? player : opponent
         const enemy = isPlayer ? opponent : player
 
-        const result: ActionResult = { damage: 0, hit: false, parried: false, dodged: false, crit: false, distanceDelta: 0 }
+        const result: ActionResult = {
+            damage: 0,
+            hit: false,
+            parried: false,
+            dodged: false,
+            crit: false,
+            distanceDelta: 0,
+        }
 
         switch (cmd.type) {
             case 'move': {
@@ -108,7 +123,10 @@ export class BattleEngine {
 
                 // 闪避
                 result.dodged = Math.random() < calcDodgeChance(enemy.attrs.get('dexterity'))
-                if (result.dodged) { log.logDodge(self.name, enemy.name); break }
+                if (result.dodged) {
+                    log.logDodge(self.name, enemy.name)
+                    break
+                }
 
                 // 招架
                 const parryChance = calcParryChance(enemy.attrs.get('strength'), stats.parryRate ?? 0)
@@ -118,7 +136,20 @@ export class BattleEngine {
                 // 伤害计算
                 const resolved = action
                     ? resolveAction(action, self, enemy, distance.current)
-                    : resolveAction({ id: 'basic', name: weapon, weaponType: weapon, apCost: 0, bestDistance: 1, tags: [], effects: [{ type: 'damage', scaling: stats.attrScaling }] }, self, enemy, distance.current)
+                    : resolveAction(
+                          {
+                              id: 'basic',
+                              name: weapon,
+                              weaponType: weapon,
+                              apCost: 0,
+                              bestDistance: 1,
+                              tags: [],
+                              effects: [{ type: 'damage', scaling: stats.attrScaling }],
+                          },
+                          self,
+                          enemy,
+                          distance.current,
+                      )
 
                 const finalDamage = result.parried ? Math.round(resolved.final * 0.4) : resolved.final
                 const blocked = resolved.final - finalDamage
@@ -131,7 +162,16 @@ export class BattleEngine {
                     self.takeDamage(resolved.selfDamage)
                 }
 
-                log.logDamage(self.name, enemy.name, resolved.base, resolved.distanceMult, resolved.isCrit, result.parried, finalDamage, blocked)
+                log.logDamage(
+                    self.name,
+                    enemy.name,
+                    resolved.base,
+                    resolved.distanceMult,
+                    resolved.isCrit,
+                    result.parried,
+                    finalDamage,
+                    blocked,
+                )
 
                 // 击退
                 if (resolved.knockbackDistance > 0) {

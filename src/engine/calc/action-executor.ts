@@ -65,7 +65,18 @@ export function resolveAction(
     const isCrit = Math.random() < critChance
     const final = calcFinalDamage(base + crippleBonus, distMult, isCrit)
 
-    return { base, distanceMult: distMult, isCrit, final, selfDamage, crippleBonus, ignoredParry, knockbackDistance, firstStrike, isFixedDamage }
+    return {
+        base,
+        distanceMult: distMult,
+        isCrit,
+        final,
+        selfDamage,
+        crippleBonus,
+        ignoredParry,
+        knockbackDistance,
+        firstStrike,
+        isFixedDamage,
+    }
 }
 
 /** 检查招式是否满足释放条件 */
