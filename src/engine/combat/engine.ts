@@ -6,7 +6,7 @@ import type { WeaponType } from '../calc/damage'
 import { WEAPONS, calcHitChance, calcParryChance, calcDodgeChance, calcTurnInterval } from '../calc/damage'
 import { resolveAction, canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
-import type { TriggerEvent } from '../entities/trigger'
+import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
 import { getTrigger } from '../data/triggers'
 import { processTriggers } from './trigger-system'
 
@@ -67,7 +67,7 @@ export class BattleEngine {
     /** 触发检测 */
     private emit(event: TriggerEvent, self: Character, enemy: Character, tMs: number) {
         const { log, triggerUses, distance } = this.state
-        const equipped = self.triggers.map((id) => getTrigger(id)).filter(Boolean) as any[]
+        const equipped: TriggerDefinition[] = self.triggers.map(id => getTrigger(id)).filter((t): t is TriggerDefinition => t != null)
         const results = processTriggers(
             { event, actor: self, target: enemy, distance: distance.current },
             equipped,
@@ -214,7 +214,7 @@ export class BattleEngine {
     }
 
     endEvent(): void {
-        const { turn, player, opponent, log } = this.state
+        const { turn, player, opponent } = this.state
         const id = this.state.eventActorId
         if (!id) return
         const actor = id === player.id ? player : opponent
