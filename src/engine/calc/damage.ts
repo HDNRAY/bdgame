@@ -86,10 +86,11 @@ export function calcMoveApCost(distance: number, dexterity: number): number {
     return Math.ceil(distance / perAp)
 }
 
-/** 回合间隔: 基础 + 武器前摇/硬直受身法影响(高dex减少前后摇) */
+/** 回合间隔: 基础 + 武器前摇/硬直受身法影响(高dex大幅减少前后摇) */
 export function calcTurnInterval(dexterity: number, preDelay: number, stunTime: number): number {
-    const dexFactor = Math.max(0.05, 1 - dexterity * 0.04)
+    const base = 300 + 60000 / (100 + dexterity * 10)
+    const dexFactor = Math.max(0, 1 - dexterity * 0.06)
     const epd = Math.round(preDelay * dexFactor)
     const est = Math.round(stunTime * dexFactor)
-    return Math.round(600 + 60000 / (100 + dexterity * 5) + epd + est)
+    return Math.round(base + epd + est)
 }
