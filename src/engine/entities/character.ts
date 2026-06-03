@@ -12,6 +12,7 @@ export class Character {
     ap: number
     maxAp: number
     nextTurnApDebt = 0
+    forgingLevel = 0
     skills: string[] = []
     actions: string[] = []
     triggers: string[] = []

@@ -1,0 +1,85 @@
+import type { ActionDefinition } from './action'
+
+/** 炁技 —— 锻体解锁的辅招 */
+export const QI_SKILLS: ActionDefinition[] = [
+    {
+        id: 'qi_focus',
+        name: '凝炁',
+        weaponType: 'fist',
+        apCost: 1,
+        bestDistance: 1,
+        tags: [],
+        effects: [],
+        bonus: true,
+    },
+    {
+        id: 'qi_gather',
+        name: '聚炁',
+        weaponType: 'fist',
+        apCost: 1,
+        bestDistance: 1,
+        tags: [],
+        effects: [],
+        bonus: true,
+    },
+    {
+        id: 'qi_break',
+        name: '破炁',
+        weaponType: 'fist',
+        apCost: 1,
+        bestDistance: 1,
+        tags: ['ignore_parry'],
+        effects: [],
+        bonus: true,
+    },
+    {
+        id: 'qi_heal',
+        name: '愈炁',
+        weaponType: 'fist',
+        apCost: 2,
+        bestDistance: 1,
+        tags: [],
+        effects: [{ type: 'self_damage', ratio: -0.25 }],  // 回复 25%
+        bonus: true,
+    },
+    {
+        id: 'qi_shadow',
+        name: '影炁',
+        weaponType: 'fist',
+        apCost: 1,
+        bestDistance: 1,
+        tags: [],
+        effects: [],
+        bonus: true,
+    },
+    {
+        id: 'qi_devour',
+        name: '噬炁',
+        weaponType: 'fist',
+        apCost: 1,
+        bestDistance: 1,
+        tags: [],
+        effects: [],
+        bonus: true,
+    },
+    {
+        id: 'qi_speed',
+        name: '速炁',
+        weaponType: 'fist',
+        apCost: 1,
+        bestDistance: 1,
+        tags: [],
+        effects: [],
+        bonus: true,
+    },
+    {
+        id: 'qi_blast',
+        name: '炁弹',
+        weaponType: 'fist',
+        apCost: 3,
+        bestDistance: 4,
+        tags: ['fixed_damage'],
+        effects: [{ type: 'fixed_damage', value: 0 }],  // wisdom×1.2, runtime computed
+        bonus: false,  // 主招
+    },
+]
