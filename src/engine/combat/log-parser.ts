@@ -3,14 +3,18 @@ import { BattleLog } from './battle-log'
 export function formatBattleLog(log: BattleLog): string[] {
     const all = log.getAll()
     const lines: string[] = []
-    let lastTime = -1, lastActor = ''
+    let lastTime = -1,
+        lastActor = ''
 
-    function t(ms: number) { return `t=${(ms / 1000).toFixed(2)}` }
+    function t(ms: number) {
+        return `t=${(ms / 1000).toFixed(2)}`
+    }
 
     function checkNewEvent(ms: number, actor: string, ap: number) {
         if (ms !== lastTime || actor !== lastActor) {
-            if (lastTime >= 0) lines.push('')  // event 间空行
-            lastTime = ms; lastActor = actor
+            if (lastTime >= 0) lines.push('') // event 间空行
+            lastTime = ms
+            lastActor = actor
             lines.push(`── Event ${t(ms)} [${actor}] AP${ap} ──`)
         }
     }
@@ -38,18 +42,30 @@ export function formatBattleLog(log: BattleLog): string[] {
 
             case 'attack_start':
                 flush()
-                pending = { time: ms, actor: e.actor, text: `#${e.actionName ?? e.weapon}（${e.apCost}AP）`, ap: `[AP${e.apRemaining}]`, startAp: e.apRemaining + e.apCost }
+                pending = {
+                    time: ms,
+                    actor: e.actor,
+                    text: `#${e.actionName ?? e.weapon}（${e.apCost}AP）`,
+                    ap: `[AP${e.apRemaining}]`,
+                    startAp: e.apRemaining + e.apCost,
+                }
                 break
 
             case 'check_hit':
                 if (pending) {
                     pending.text += ` [命${(e.hitChance * 100).toFixed(0)}% 骰${(e.roll * 100).toFixed(0)}%]`
-                    if (!e.result) { pending.text += ' → *未命中*'; flush() }
+                    if (!e.result) {
+                        pending.text += ' → *未命中*'
+                        flush()
+                    }
                 }
                 break
 
             case 'dodge':
-                if (pending) { pending.text += ` → *${e.evader} 闪避*`; flush() }
+                if (pending) {
+                    pending.text += ` → *${e.evader} 闪避*`
+                    flush()
+                }
                 break
 
             case 'parry':
@@ -59,7 +75,10 @@ export function formatBattleLog(log: BattleLog): string[] {
             case 'damage': {
                 if (!pending) break
                 const t = pending.text
-                if (t.includes('闪避') || t.includes('未命中')) { flush(); break }
+                if (t.includes('闪避') || t.includes('未命中')) {
+                    flush()
+                    break
+                }
                 if (t.includes('招架')) {
                     pending.text += e.isCrit ? ` ${e.final}暴!*` : ` ${e.final}*`
                 } else {

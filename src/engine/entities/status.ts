@@ -5,7 +5,7 @@ export type StatusType = 'burn' | 'poison' | 'bleed' | 'stun' | 'paralyze' | 'st
 export interface StatusInstance {
     type: StatusType
     stacks: number
-    source: string         // 施加者名称
+    source: string // 施加者名称
 
     // 灼烧: 初始伤害快照
     burnBaseDamage?: number

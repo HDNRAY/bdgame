@@ -53,6 +53,13 @@ export class BattleEngine {
         tm.addCharacter(p, 0)
         tm.addCharacter(o, 0)
         log.logBattleStart(p.name, o.name, 0)
+        // 锻体 buff
+        if (p.forgingLevel > 0) {
+            for (const a of ['strength', 'vitality', 'dexterity', 'technique', 'insight', 'wisdom'] as const) {
+                p.attrs.modify(a, 1)
+            }
+            log.logSystem(`[锻体] ${p.name} 锻体Lv.${p.forgingLevel} 全属性+1`, 0)
+        }
         this.state = {
             phase: 'fighting',
             player: p,
@@ -114,13 +121,17 @@ export class BattleEngine {
                 }
                 const a = distance.move(cmd.bestDistance ?? 0)
                 r.distanceDelta = a
-                log.logMove(self.name, a, distance.current, ap, self.ap, tMs)                // 移动触发流血
+                log.logMove(self.name, a, distance.current, ap, self.ap, tMs) // 移动触发流血
                 for (const s of self.statuses) {
                     if (s.type === 'bleed') {
                         const dmg = triggerBleed(s)
-                        if (dmg > 0) { self.takeDamage(dmg); log.logSystem(`[流血] ${self.name} 受到 ${dmg} 流血伤害`, tMs) }
+                        if (dmg > 0) {
+                            self.takeDamage(dmg)
+                            log.logSystem(`[流血] ${self.name} 受到 ${dmg} 流血伤害`, tMs)
+                        }
                     }
-                }                break
+                }
+                break
             }
             case 'attack': {
                 const action = cmd.actionId ? getAction(cmd.actionId) : undefined
@@ -211,16 +222,27 @@ export class BattleEngine {
 
                 // 受击触发流血
                 for (const s of enemy.statuses) {
-                    if (s.type === 'bleed') { const d = triggerBleed(s); if (d > 0) { enemy.takeDamage(d); log.logSystem(`[流血] ${enemy.name} 受到 ${d} 流血伤害`, tMs) } }
+                    if (s.type === 'bleed') {
+                        const d = triggerBleed(s)
+                        if (d > 0) {
+                            enemy.takeDamage(d)
+                            log.logSystem(`[流血] ${enemy.name} 受到 ${d} 流血伤害`, tMs)
+                        }
+                    }
                 }
 
                 // 招式附加状态（如刺击→流血）
                 if (action) {
                     for (const eff of action.effects ?? []) {
                         if (eff.type === 'status' && r.hit && !r.dodged) {
-                            const existing = enemy.statuses.find(s => s.type === eff.status)
-                            if (existing) { existing.stacks += eff.stacks; log.logSystem(`[${eff.status}] ${enemy.name} 叠${existing.stacks}层`, tMs) }
-                            else if (eff.status === 'bleed') { enemy.statuses.push(createBleed(eff.stacks, 3, self.name)); log.logSystem(`[bleed] ${enemy.name} 流血${eff.stacks}层`, tMs) }
+                            const existing = enemy.statuses.find((s) => s.type === eff.status)
+                            if (existing) {
+                                existing.stacks += eff.stacks
+                                log.logSystem(`[${eff.status}] ${enemy.name} 叠${existing.stacks}层`, tMs)
+                            } else if (eff.status === 'bleed') {
+                                enemy.statuses.push(createBleed(eff.stacks, 3, self.name))
+                                log.logSystem(`[bleed] ${enemy.name} 流血${eff.stacks}层`, tMs)
+                            }
                         }
                     }
                 }

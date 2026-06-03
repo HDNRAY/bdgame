@@ -69,6 +69,7 @@ export interface ActionQueueEntry {
 
 /** 辅招触发时机 */
 export type BonusTiming =
+    | 'before_main'
     | 'after_main'
     | 'before_turn_end'
     | 'on_hit'

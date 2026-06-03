@@ -216,10 +216,10 @@ const ALL_ACTIONS = [...MVP_ACTIONS, ...BONUS_ACTIONS]
 
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {
-    return ALL_ACTIONS.find(a => a.id === id)
+    return ALL_ACTIONS.find((a) => a.id === id)
 }
 
 /** 按武器类型过滤 */
 export function getActionsByWeapon(weapon: string): ActionDefinition[] {
-    return ALL_ACTIONS.filter(a => a.weaponType === weapon)
+    return ALL_ACTIONS.filter((a) => a.weaponType === weapon)
 }

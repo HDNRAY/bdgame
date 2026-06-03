@@ -10,13 +10,27 @@ export class ActionInstance {
         this.remainingUses = def.maxUses ?? Infinity
     }
 
-    get id() { return this.def.id }
-    get name() { return this.def.name }
-    get apCost() { return this.def.apCost }
-    get weaponType() { return this.def.weaponType }
-    get bestDistance() { return this.def.bestDistance }
-    get bonus() { return this.def.bonus ?? false }
-    get effects() { return this.def.effects }
+    get id() {
+        return this.def.id
+    }
+    get name() {
+        return this.def.name
+    }
+    get apCost() {
+        return this.def.apCost
+    }
+    get weaponType() {
+        return this.def.weaponType
+    }
+    get bestDistance() {
+        return this.def.bestDistance
+    }
+    get bonus() {
+        return this.def.bonus ?? false
+    }
+    get effects() {
+        return this.def.effects
+    }
 
     canUse(): boolean {
         return this.remainingUses > 0
