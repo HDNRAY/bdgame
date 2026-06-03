@@ -22,7 +22,7 @@ import type { BonusTiming, BonusTriggerEffect, BuffDuration } from '../entities/
 import type { AttrName } from '../entities/attributes'
 
 export interface ActionCommand {
-    type: 'attack' | 'move' | 'defend' | 'wait'
+    type: 'attack' | 'move' | 'bonus' | 'defend' | 'wait'
     actionId?: string
     weaponType?: WeaponType
     bestDistance?: number
@@ -308,6 +308,15 @@ export class BattleEngine {
             case 'defend':
                 log.logSystem(`${self.name} 防御`, tMs)
                 break
+            case 'bonus': {
+                if (!cmd.actionId) break
+                const inst = self.actionInstances.find((a) => a.id === cmd.actionId)
+                if (!inst || !inst.def.bonus || !inst.canUse()) break
+                if (!self.spendAp(inst.apCost)) break
+                inst.use()
+                applyTriggerEffect(inst.def.triggerEffect, self, this, inst.name, inst.id)
+                break
+            }
             case 'wait':
                 log.logSystem(`${self.name} 结束`, tMs)
                 break
