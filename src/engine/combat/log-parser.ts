@@ -25,12 +25,19 @@ export function formatBattleLog(log: BattleLog): string[] {
 
             case 'move':
                 flushPending()
-                lines.push(`${t(timelineMs)} [${e.actor}] #移动（${e.apCost}AP） → ${e.newDistance}m [AP${e.apRemaining}]`)
+                lines.push(
+                    `${t(timelineMs)} [${e.actor}] #移动（${e.apCost}AP） → ${e.newDistance}m [AP${e.apRemaining}]`,
+                )
                 break
 
             case 'attack_start':
                 flushPending()
-                pending = { time: timelineMs, actor: e.actor, action: `#${e.actionName ?? e.weapon}（${e.apCost}AP）`, ap: `[AP${e.apRemaining}]` }
+                pending = {
+                    time: timelineMs,
+                    actor: e.actor,
+                    action: `#${e.actionName ?? e.weapon}（${e.apCost}AP）`,
+                    ap: `[AP${e.apRemaining}]`,
+                }
                 break
 
             case 'check_hit':
@@ -61,7 +68,9 @@ export function formatBattleLog(log: BattleLog): string[] {
                     cur.action += suffix
                     flushPending()
                 } else {
-                    const suffix = e.isCrit ? ` → *${e.target} ${e.final}伤害 暴击!*` : ` → *${e.target} ${e.final}伤害*`
+                    const suffix = e.isCrit
+                        ? ` → *${e.target} ${e.final}伤害 暴击!*`
+                        : ` → *${e.target} ${e.final}伤害*`
                     cur.action += suffix
                     flushPending()
                 }
