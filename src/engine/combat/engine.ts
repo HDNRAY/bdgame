@@ -20,6 +20,7 @@ import { processActionEffect, processStatusTick } from './effect-processor'
 import { triggerBleed } from '../entities/status'
 import type { BonusTriggerEffect } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
+import type { BattleSnapshot } from './battle-log'
 
 export interface ActionCommand {
     type: 'attack' | 'move' | 'bonus' | 'defend' | 'wait'
@@ -65,7 +66,6 @@ export class BattleEngine {
         const tm = new TurnManager()
         tm.addCharacter(p, 0)
         tm.addCharacter(o, 0)
-        log.logBattleStart(p.name, o.name, 0)
         this.state = {
             phase: 'fighting',
             characters: [p, o],
@@ -76,8 +76,36 @@ export class BattleEngine {
             triggerUses: new Map(),
             pendingBuffs: new Map(),
         }
+        log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o, 0)
         this.emit('battle_start', o, p, 0)
+    }
+
+    /** 构建当前战斗快照 */
+    getSnapshot(): BattleSnapshot {
+        const { characters, distance, turn, triggerUses, pendingBuffs, phase } = this.state
+        return {
+            time: turn.currentTime,
+            phase,
+            distance: distance.current,
+            characters: [
+                {
+                    hp: characters[0].hp,
+                    maxHp: characters[0].maxHp,
+                    ap: characters[0].ap,
+                    statuses: characters[0].statuses,
+                },
+                {
+                    hp: characters[1].hp,
+                    maxHp: characters[1].maxHp,
+                    ap: characters[1].ap,
+                    statuses: characters[1].statuses,
+                },
+            ],
+            turn: { time: turn.currentTime, queue: [...turn.entries] },
+            triggerUses: [...triggerUses.entries()],
+            pendingBuffs: [...pendingBuffs.entries()],
+        }
     }
 
     /** 公开入口：执行一个行动（角色行动或系统事件） */
@@ -105,7 +133,7 @@ export class BattleEngine {
         const skipStatus = self.statuses.find((s) => s.skipTurn)
         if (skipStatus) {
             const reason = skipStatus.type === 'stun' ? '眩晕' : skipStatus.type
-            this.state.log.logSystem(`${self.name} 被${reason}，停止走表`, e.nextActionAt)
+            this.state.log.logSystem(`${self.name} 被${reason}，停止走表`, e.nextActionAt, this.getSnapshot())
             self.statuses = self.statuses.filter((s) => s !== skipStatus)
             const delay = skipStatus.rescheduleDelay ?? 2000
             this.state.turn.next()
@@ -149,7 +177,7 @@ export class BattleEngine {
             if (action.maxUses !== undefined && used >= action.maxUses) continue
             triggerUses.set(slot.actionId, used + 1)
 
-            log.logSystem(`[${action.name}] ${action.name}`, tMs)
+            log.logSystem(`[${action.name}] ${action.name}`, tMs, this.getSnapshot())
             for (const eff of action.effects ?? []) {
                 processActionEffect(eff, self, enemy, this, tMs)
             }
@@ -174,19 +202,19 @@ export class BattleEngine {
                 const dir = Math.sign(cmd.bestDistance ?? -1)
                 const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
                 if (!self.spendAp(ap)) {
-                    log.logSystem(`${self.name} AP不足 无法移动`, tMs)
+                    log.logSystem(`${self.name} AP不足 无法移动`, tMs, this.getSnapshot())
                     break
                 }
                 const moved = dir * perAp * ap
                 const a = distance.move(moved)
                 r.distanceDelta = a
-                log.logMove(self.name, a, distance.current, ap, self.ap, tMs) // 移动触发流血
+                log.logMove(self.name, a, distance.current, ap, self.ap, tMs, this.getSnapshot())
                 for (const s of self.statuses) {
                     if (s.type === 'bleed') {
                         const dmg = triggerBleed(s)
                         if (dmg > 0) {
                             self.takeDamage(dmg)
-                            log.logSystem(`[流血] ${self.name} 受到 ${dmg} 流血伤害`, tMs)
+                            log.logSystem(`[流血] ${self.name} 受到 ${dmg} 流血伤害`, tMs, this.getSnapshot())
                         }
                     }
                 }
@@ -195,25 +223,34 @@ export class BattleEngine {
             case 'attack': {
                 const action = cmd.actionId ? getAction(cmd.actionId) : undefined
                 if (!action) {
-                    log.logSystem(`${self.name} 没有可用招式`, tMs)
+                    log.logSystem(`${self.name} 没有可用招式`, tMs, this.getSnapshot())
                     break
                 }
                 const weapon = action.weaponType
                 const stats = WEAPONS[weapon]
                 const c = canExecuteAction(action, self, distance.current)
                 if (!c.ok) {
-                    log.logSystem(`${self.name} ${c.reason}`, tMs)
+                    log.logSystem(`${self.name} ${c.reason}`, tMs, this.getSnapshot())
                     break
                 }
                 if (!self.spendAp(action.apCost)) {
-                    log.logSystem(`${self.name} AP不足`, tMs)
+                    log.logSystem(`${self.name} AP不足`, tMs, this.getSnapshot())
                     break
                 }
                 if (!distance.inRange(stats.range[0], stats.range[1])) {
-                    log.logSystem(`${self.name} 距离不合适`, tMs)
+                    log.logSystem(`${self.name} 距离不合适`, tMs, this.getSnapshot())
                     break
                 }
-                log.logAttack(self.name, enemy.name, weapon, action.apCost, self.ap, tMs, action.name)
+                log.logAttack(
+                    self.name,
+                    enemy.name,
+                    weapon,
+                    action.apCost,
+                    self.ap,
+                    tMs,
+                    this.getSnapshot(),
+                    action.name,
+                )
 
                 // 自身流血：每次行动触发
                 for (const s of self.statuses) {
@@ -221,7 +258,7 @@ export class BattleEngine {
                         const dmg = triggerBleed(s)
                         if (dmg > 0) {
                             self.takeDamage(dmg)
-                            log.logSystem(`[流血] ${self.name} 受到 ${dmg} 流血伤害`, tMs)
+                            log.logSystem(`[流血] ${self.name} 受到 ${dmg} 流血伤害`, tMs, this.getSnapshot())
                         }
                     }
                 }
@@ -231,7 +268,7 @@ export class BattleEngine {
                 const hc = calcHitChance(self.attrs.get('technique'), enemy.attrs.get('dexterity'))
                 const hitRoll = Math.random()
                 r.hit = hitRoll < hc
-                log.logHitCheck(self.name, enemy.name, hc, hitRoll, r.hit, tMs)
+                log.logHitCheck(self.name, enemy.name, hc, hitRoll, r.hit, tMs, this.getSnapshot())
                 if (!r.hit) {
                     this.emit('on_dodged', self, enemy, tMs)
                     break
@@ -242,7 +279,7 @@ export class BattleEngine {
                 const effectiveDex = enemy.attrs.get('dexterity') - Math.floor(paraPenalty * 10)
                 r.dodged = Math.random() < calcDodgeChance(Math.max(0, effectiveDex))
                 if (r.dodged) {
-                    log.logDodge(self.name, enemy.name, tMs)
+                    log.logDodge(self.name, enemy.name, tMs, this.getSnapshot())
                     this.emit('on_dodge', enemy, self, tMs)
                     break
                 }
@@ -251,7 +288,7 @@ export class BattleEngine {
                 const parryRoll = Math.random()
                 r.parried = parryRoll < pc
                 if (r.parried) {
-                    log.logParry(self.name, enemy.name, tMs, pc, parryRoll)
+                    log.logParry(self.name, enemy.name, tMs, this.getSnapshot(), pc, parryRoll)
                     this.emit('on_parry', enemy, self, tMs)
                 } else {
                     this.emit('on_parried', self, enemy, tMs)
@@ -263,7 +300,7 @@ export class BattleEngine {
                 const critChance = calcCritChance(self.attrs.get('technique'))
                 const critRoll = Math.random()
                 const isCrit = critRoll < critChance
-                log.logCritCheck(self.name, critChance, critRoll, isCrit, tMs)
+                log.logCritCheck(self.name, critChance, critRoll, isCrit, tMs, this.getSnapshot())
                 resolved.isCrit = isCrit
                 resolved.final = calcFinalDamage(resolved.base + resolved.crippleBonus, resolved.distanceMult, isCrit)
 
@@ -282,6 +319,7 @@ export class BattleEngine {
                     finalDmg,
                     resolved.final - finalDmg,
                     tMs,
+                    this.getSnapshot(),
                 )
                 if (resolved.knockbackDistance > 0) {
                     processActionEffect(
@@ -304,7 +342,7 @@ export class BattleEngine {
                         const d = triggerBleed(s)
                         if (d > 0) {
                             enemy.takeDamage(d)
-                            log.logSystem(`[流血] ${enemy.name} 受到 ${d} 流血伤害`, tMs)
+                            log.logSystem(`[流血] ${enemy.name} 受到 ${d} 流血伤害`, tMs, this.getSnapshot())
                         }
                     }
                 }
@@ -319,13 +357,13 @@ export class BattleEngine {
                 }
 
                 if (!enemy.isAlive()) {
-                    log.logDefeat(enemy.name, self.name, tMs)
+                    log.logDefeat(enemy.name, self.name, tMs, this.getSnapshot())
                     this.state.phase = 'finished'
                 }
                 break
             }
             case 'defend':
-                log.logSystem(`${self.name} 防御`, tMs)
+                log.logSystem(`${self.name} 防御`, tMs, this.getSnapshot())
                 break
             case 'bonus': {
                 if (!cmd.actionId) break
@@ -337,7 +375,7 @@ export class BattleEngine {
                 break
             }
             case 'wait':
-                log.logSystem(`${self.name} 结束`, tMs)
+                log.logSystem(`${self.name} 结束`, tMs, this.getSnapshot())
                 break
         }
         return r
@@ -443,6 +481,7 @@ export class BattleEngine {
                 this.state.log.logSystem(
                     `[${tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`,
                     tMs,
+                    this.getSnapshot(),
                     actorName,
                 )
                 {
@@ -460,20 +499,25 @@ export class BattleEngine {
                 const entries = Object.entries(e.attrs) as [AttrName, number][]
                 const desc = entries.map(([s, v]) => `${s}+${v}`).join(' ')
                 for (const [attr, value] of entries) self.attrs.modify(attr, value)
-                this.state.log.logSystem(`[${tag}] ${self.name} ${desc}`, tMs, actorName)
+                this.state.log.logSystem(`[${tag}] ${self.name} ${desc}`, tMs, this.getSnapshot(), actorName)
                 break
             }
             case 'stat_restore': {
                 const attr = e.stat as AttrName
                 const old = self.attrs.get(attr)
                 self.attrs.set(attr, e.value)
-                this.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→恢复${e.value}`, tMs, actorName)
+                this.state.log.logSystem(
+                    `[${tag}] ${self.name} ${e.stat} ${old}→恢复${e.value}`,
+                    tMs,
+                    this.getSnapshot(),
+                    actorName,
+                )
                 break
             }
             case 'heal': {
                 const amount = e.value + (e.ratio ? Math.round(self.maxHp * e.ratio) : 0)
                 self.heal(amount)
-                this.state.log.logSystem(`[${tag}] ${self.name} 回复 ${amount} HP`, tMs, actorName)
+                this.state.log.logSystem(`[${tag}] ${self.name} 回复 ${amount} HP`, tMs, this.getSnapshot(), actorName)
                 break
             }
         }

@@ -3,8 +3,8 @@ import { BattleEngine } from './combat/engine'
 import type { EventPlan } from './combat/engine'
 import { planEvent } from './ai'
 
-/** 一场行动序列的完整模拟 */
-export function simulateFight(
+/** 运行一场完整战斗 */
+export function runBattle(
     charA: Character,
     charB: Character,
     actionIdA?: string,
@@ -20,6 +20,6 @@ export function simulateFight(
         }
         if (!engine.runEvent(planFn)) break
     }
-    const survivor = state.characters.find((c) => c.isAlive())!
-    return { winner: survivor.name, engine }
+    const survivor = state.characters.find((c) => c.isAlive())
+    return { winner: survivor?.name ?? '平局', engine }
 }

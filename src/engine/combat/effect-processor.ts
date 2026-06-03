@@ -33,7 +33,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         const base = calcBaseDamage(scaling, self.attrs.getAll())
         const dmg = Math.round(base * ratio)
         enemy.takeDamage(dmg)
-        engine.state.log.logSystem(`[反击] ${self.name} 反击 ${enemy.name} ${dmg} 伤害`, tMs)
+        engine.state.log.logSystem(`[反击] ${self.name} 反击 ${enemy.name} ${dmg} 伤害`, tMs, engine.getSnapshot())
     },
     modify_turn({ eff, enemy, engine }: Ctx) {
         const { deltaMs } = eff as Extract<ActionEffect, { type: 'modify_turn' }>
@@ -88,7 +88,7 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
         const duration = 3000
         engine.state.turn.scheduleSystemEventAt(`buff_end_paralyze_dex::${enemy.id}`, tMs + duration)
         engine.state.turn.scheduleSystemEventAt(`buff_end_paralyze_ins::${enemy.id}`, tMs + duration)
-        engine.state.log.logSystem(`[麻痹] ${enemy.name} 身法-${dexDebuff} 洞察-${insDebuff}`, tMs)
+        engine.state.log.logSystem(`[麻痹] ${enemy.name} 身法-${dexDebuff} 洞察-${insDebuff}`, tMs, engine.getSnapshot())
     },
     stun({ eff: { stacks }, self: { name }, enemy, existing }: StatusCtx) {
         if (!existing) {
@@ -109,10 +109,10 @@ function handleStatusEffect(ctx: Omit<StatusCtx, 'existing' | 'st'>): void {
     const sc = eff.chance ?? 0.5
     const roll = Math.random()
     if (!(roll < sc)) {
-        log.logSystem(`[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 未命中`, tMs)
+        log.logSystem(`[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 未命中`, tMs, engine.getSnapshot())
         return
     }
-    log.logSystem(`[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 命中`, tMs)
+    log.logSystem(`[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 命中`, tMs, engine.getSnapshot())
 
     const st = eff.status as StatusType
     const existing = enemy.statuses.find((s) => s.type === st)
@@ -126,7 +126,7 @@ function handleStatusEffect(ctx: Omit<StatusCtx, 'existing' | 'st'>): void {
     }
 
     const target = enemy.statuses.find((s) => s.type === st)
-    log.logSystem(`[${eff.status}] ${enemy.name} ${target ? target.stacks : eff.stacks}层`, tMs)
+    log.logSystem(`[${eff.status}] ${enemy.name} ${target ? target.stacks : eff.stacks}层`, tMs, engine.getSnapshot())
 }
 
 /** 处理一个 ActionEffect */
@@ -153,7 +153,7 @@ export function processStatusTick(
         const dmg = s.stacks * 2
         char.takeDamage(dmg)
         s.poisonInterval = Math.max(500, (s.poisonInterval ?? 2000) - 150)
-        log.logSystem(`[中毒] ${char.name} 受到 ${dmg} 毒伤害（下次${(s.poisonInterval / 1000).toFixed(1)}s后）`, tMs)
+        log.logSystem(`[中毒] ${char.name} 受到 ${dmg} 毒伤害（下次${(s.poisonInterval / 1000).toFixed(1)}s后）`, tMs, engine.getSnapshot())
         if (dmg > 0) {
             engine.emit('on_hit', char, char, tMs)
         }
@@ -165,7 +165,7 @@ export function processStatusTick(
         s.remainingTicks--
         s.stacks = Math.max(0, s.stacks - 1)
         char.takeDamage(dmg)
-        log.logSystem(`[灼烧] ${char.name} 受到 ${dmg} 灼烧伤害（剩余${s.remainingTicks}次）`, tMs)
+        log.logSystem(`[灼烧] ${char.name} 受到 ${dmg} 灼烧伤害（剩余${s.remainingTicks}次）`, tMs, engine.getSnapshot())
         if (dmg > 0) {
             engine.emit('on_hit', char, char, tMs)
         }

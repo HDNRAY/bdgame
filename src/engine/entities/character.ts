@@ -96,4 +96,32 @@ export class Character {
         this.ap -= cost
         return true
     }
+
+    toJSON() {
+        return {
+            build: this.build,
+            hp: this.hp,
+            ap: this.ap,
+            nextTurnApDebt: this.nextTurnApDebt,
+            statuses: this.statuses,
+        }
+    }
+
+    static fromJSON(data: ReturnType<Character['toJSON']>): Character {
+        const c = new Character(data.build)
+        c.hp = data.hp
+        c.ap = data.ap
+        c.nextTurnApDebt = data.nextTurnApDebt
+        c.statuses = data.statuses
+        return c
+    }
+
+    get snapshot() {
+        return {
+            hp: this.hp,
+            maxHp: this.maxHp,
+            ap: this.ap,
+            statuses: this.statuses,
+        }
+    }
 }

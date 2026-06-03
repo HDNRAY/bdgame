@@ -1,7 +1,7 @@
 // npx tsx scripts/demo-battle.ts
 import { Character } from '../src/engine/entities/character'
 import type { CharacterBuild } from '../src/engine/entities/character-build'
-import { simulateFight } from '../src/engine/simulate'
+import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
 
 function show(c: Character, label: string) {
@@ -48,6 +48,6 @@ show(p, '⚔️ 玩家·拳')
 show(o, '👊 铁枪·张烈')
 console.log('')
 
-const { winner, engine } = simulateFight(p, o, 'iron_charge', 'thrust')
+const { winner, engine } = runBattle(p, o, 'iron_charge', 'thrust')
 for (const line of formatBattleLog(engine.state.log)) console.log(line)
 console.log(`\n🏆 ${winner} 胜  玩家 HP${p.hp}/${p.maxHp} 对手 HP${o.hp}/${o.maxHp}`)

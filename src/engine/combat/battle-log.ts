@@ -1,8 +1,37 @@
 import type { WeaponType } from '../calc/damage'
+import type { BattlePhase } from './engine'
+import type { StatusInstance } from '../entities/status'
 
+// ── BattleSnapshot ──
+export interface CharacterSnapshot {
+    hp: number
+    maxHp: number
+    ap: number
+    statuses: StatusInstance[]
+}
+
+export interface BattleSnapshot {
+    time: number
+    phase: BattlePhase
+    distance: number
+    characters: [CharacterSnapshot, CharacterSnapshot]
+    turn: { time: number; queue: Array<{ characterId: string; nextActionAt: number }> }
+    triggerUses: [string, number][]
+    pendingBuffs: [string, { restoreValue: number; stat: string }][]
+}
+
+// ── BattleEvent ──
 export type BattleEvent =
-    | { type: 'battle_start'; actor: string; opponent: string }
-    | { type: 'move'; actor: string; delta: number; newDistance: number; apCost: number; apRemaining: number }
+    | { type: 'battle_start'; actor: string; opponent: string; snapshot: BattleSnapshot }
+    | {
+          type: 'move'
+          actor: string
+          delta: number
+          newDistance: number
+          apCost: number
+          apRemaining: number
+          snapshot: BattleSnapshot
+      }
     | {
           type: 'attack_start'
           actor: string
@@ -11,11 +40,20 @@ export type BattleEvent =
           actionName?: string
           apCost: number
           apRemaining: number
+          snapshot: BattleSnapshot
       }
-    | { type: 'check_hit'; actor: string; target: string; hitChance: number; roll: number; result: boolean }
-    | { type: 'dodge'; actor: string; evader: string }
-    | { type: 'parry'; actor: string; parrier: string; parryChance?: number; roll?: number }
-    | { type: 'check_crit'; actor: string; critChance: number; roll: number; result: boolean }
+    | {
+          type: 'check_hit'
+          actor: string
+          target: string
+          hitChance: number
+          roll: number
+          result: boolean
+          snapshot: BattleSnapshot
+      }
+    | { type: 'dodge'; actor: string; evader: string; snapshot: BattleSnapshot }
+    | { type: 'parry'; actor: string; parrier: string; parryChance?: number; roll?: number; snapshot: BattleSnapshot }
+    | { type: 'check_crit'; actor: string; critChance: number; roll: number; result: boolean; snapshot: BattleSnapshot }
     | {
           type: 'damage'
           actor: string
@@ -26,9 +64,10 @@ export type BattleEvent =
           isParried: boolean
           final: number
           blocked: number
+          snapshot: BattleSnapshot
       }
-    | { type: 'defeat'; loser: string; winner: string }
-    | { type: 'system'; message: string; actor?: string }
+    | { type: 'defeat'; loser: string; winner: string; snapshot: BattleSnapshot }
+    | { type: 'system'; message: string; actor?: string; snapshot: BattleSnapshot }
 
 interface LogEntry {
     id: number
@@ -44,8 +83,8 @@ export class BattleLog {
         this.entries.push({ id: this.nextId++, timelineMs, event })
     }
 
-    logBattleStart(actor: string, opponent: string, timelineMs: number): void {
-        this.push({ type: 'battle_start', actor, opponent }, timelineMs)
+    logBattleStart(actor: string, opponent: string, timelineMs: number, snapshot: BattleSnapshot): void {
+        this.push({ type: 'battle_start', actor, opponent, snapshot }, timelineMs)
     }
 
     logMove(
@@ -55,8 +94,9 @@ export class BattleLog {
         apCost: number,
         apRemaining: number,
         timelineMs: number,
+        snapshot: BattleSnapshot,
     ): void {
-        this.push({ type: 'move', actor, delta, newDistance, apCost, apRemaining }, timelineMs)
+        this.push({ type: 'move', actor, delta, newDistance, apCost, apRemaining, snapshot }, timelineMs)
     }
 
     logAttack(
@@ -66,9 +106,13 @@ export class BattleLog {
         apCost: number,
         apRemaining: number,
         timelineMs: number,
+        snapshot: BattleSnapshot,
         actionName?: string,
     ): void {
-        this.push({ type: 'attack_start', actor, target, weapon, apCost, apRemaining, actionName }, timelineMs)
+        this.push(
+            { type: 'attack_start', actor, target, weapon, apCost, apRemaining, actionName, snapshot },
+            timelineMs,
+        )
     }
 
     logHitCheck(
@@ -78,20 +122,35 @@ export class BattleLog {
         roll: number,
         result: boolean,
         timelineMs: number,
+        snapshot: BattleSnapshot,
     ): void {
-        this.push({ type: 'check_hit', actor, target, hitChance, roll, result }, timelineMs)
+        this.push({ type: 'check_hit', actor, target, hitChance, roll, result, snapshot }, timelineMs)
     }
 
-    logDodge(actor: string, evader: string, timelineMs: number): void {
-        this.push({ type: 'dodge', actor, evader }, timelineMs)
+    logDodge(actor: string, evader: string, timelineMs: number, snapshot: BattleSnapshot): void {
+        this.push({ type: 'dodge', actor, evader, snapshot }, timelineMs)
     }
 
-    logParry(actor: string, parrier: string, timelineMs: number, parryChance?: number, roll?: number): void {
-        this.push({ type: 'parry', actor, parrier, parryChance, roll }, timelineMs)
+    logParry(
+        actor: string,
+        parrier: string,
+        timelineMs: number,
+        snapshot: BattleSnapshot,
+        parryChance?: number,
+        roll?: number,
+    ): void {
+        this.push({ type: 'parry', actor, parrier, parryChance, roll, snapshot }, timelineMs)
     }
 
-    logCritCheck(actor: string, critChance: number, roll: number, result: boolean, timelineMs: number): void {
-        this.push({ type: 'check_crit', actor, critChance, roll, result }, timelineMs)
+    logCritCheck(
+        actor: string,
+        critChance: number,
+        roll: number,
+        result: boolean,
+        timelineMs: number,
+        snapshot: BattleSnapshot,
+    ): void {
+        this.push({ type: 'check_crit', actor, critChance, roll, result, snapshot }, timelineMs)
     }
 
     logDamage(
@@ -104,16 +163,20 @@ export class BattleLog {
         final: number,
         blocked: number,
         timelineMs: number,
+        snapshot: BattleSnapshot,
     ): void {
-        this.push({ type: 'damage', actor, target, base, distanceMult, isCrit, isParried, final, blocked }, timelineMs)
+        this.push(
+            { type: 'damage', actor, target, base, distanceMult, isCrit, isParried, final, blocked, snapshot },
+            timelineMs,
+        )
     }
 
-    logDefeat(loser: string, winner: string, timelineMs: number): void {
-        this.push({ type: 'defeat', loser, winner }, timelineMs)
+    logDefeat(loser: string, winner: string, timelineMs: number, snapshot: BattleSnapshot): void {
+        this.push({ type: 'defeat', loser, winner, snapshot }, timelineMs)
     }
 
-    logSystem(message: string, timelineMs: number, actor?: string): void {
-        this.push({ type: 'system', message, actor }, timelineMs)
+    logSystem(message: string, timelineMs: number, snapshot: BattleSnapshot, actor?: string): void {
+        this.push({ type: 'system', message, actor, snapshot }, timelineMs)
     }
 
     getAll(): LogEntry[] {

@@ -10,24 +10,34 @@ export function formatBattleLog(log: BattleLog): string[] {
         return `t=${(ms / 1000).toFixed(2)}`
     }
 
-    function checkNewEvent(ms: number, actor: string, ap: number) {
+    function checkNewEvent(ms: number, actor: string, ap: number, hpInfo?: string, dist?: number) {
         if (ms !== lastTime || actor !== lastActor) {
-            if (lastTime >= 0) lines.push('') // event 间空行
+            if (lastTime >= 0) lines.push('')
             lastTime = ms
             lastActor = actor
+            const hp = hpInfo ? ` ${hpInfo}` : ''
+            const d = dist !== undefined ? ` [${dist.toFixed(1)}m]` : ''
             if (ap > 0) {
-                lines.push(`── 行动 ${t(ms)} [${actor}] AP${ap} ──`)
+                lines.push(`── 行动 ${t(ms)} [${actor}] AP${ap}${hp}${d} ──`)
             } else {
-                lines.push(`── 行动 ${t(ms)} [${actor}] ──`)
+                lines.push(`── 行动 ${t(ms)} [${actor}]${hp}${d} ──`)
             }
         }
     }
 
-    let pending: { time: number; actor: string; text: string; ap?: string; startAp: number } | null = null
+    let pending: {
+        time: number
+        actor: string
+        text: string
+        ap?: string
+        startAp: number
+        hpInfo?: string
+        distance?: number
+    } | null = null
 
     function flush() {
         if (!pending) return
-        checkNewEvent(pending.time, pending.actor, pending.startAp)
+        checkNewEvent(pending.time, pending.actor, pending.startAp, pending.hpInfo, pending.distance)
         lines.push(`  ${pending.text}${pending.ap ? ` ${pending.ap}` : ''}`)
         pending = null
     }
@@ -35,14 +45,23 @@ export function formatBattleLog(log: BattleLog): string[] {
     for (const { timelineMs: ms, event: e } of all) {
         switch (e.type) {
             case 'battle_start':
-                lines.push(`── ⚔️ ${e.actor} VS ${e.opponent} ──\n`)
+                lines.push(`── ${e.actor} VS ${e.opponent} ──\n`)
                 break
 
-            case 'move':
+            case 'move': {
                 flush()
-                checkNewEvent(ms, e.actor, e.apRemaining + e.apCost)
-                lines.push(`  #移动→${e.newDistance.toFixed(1)}m [AP${e.apRemaining}]`)
+                const oldDist = e.newDistance - e.delta
+                const s = e.snapshot
+                checkNewEvent(
+                    ms,
+                    e.actor,
+                    e.apRemaining + e.apCost,
+                    `HP${s.characters[0].hp}/${s.characters[0].maxHp} VS HP${s.characters[1].hp}/${s.characters[1].maxHp}`,
+                    e.newDistance,
+                )
+                lines.push(`  #移动 ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m [AP${e.apRemaining}]`)
                 break
+            }
 
             case 'attack_start':
                 flush()
@@ -52,6 +71,8 @@ export function formatBattleLog(log: BattleLog): string[] {
                     text: `#${e.actionName ?? e.weapon}（${e.apCost}AP）`,
                     ap: `[AP${e.apRemaining}]`,
                     startAp: e.apRemaining + e.apCost,
+                    hpInfo: `HP${e.snapshot.characters[0].hp}/${e.snapshot.characters[0].maxHp} VS HP${e.snapshot.characters[1].hp}/${e.snapshot.characters[1].maxHp}`,
+                    distance: e.snapshot.distance,
                 }
                 break
 
@@ -107,7 +128,7 @@ export function formatBattleLog(log: BattleLog): string[] {
 
             case 'defeat':
                 flush()
-                lines.push(`🏆 ${e.loser} 败 — ${e.winner} 胜\n`)
+                lines.push(`[败] ${e.loser} 败 — ${e.winner} 胜\n`)
                 break
 
             case 'system':

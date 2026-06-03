@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { BattleEngine } from '../combat/engine'
 import type { EventPlan } from '../combat/engine'
-import { simulateFight } from '../simulate'
+import { runBattle } from '../battle-runner'
 import { Character } from '../entities/character'
 
 function makeChar(id: string, name: string, attrs: Record<string, number>, moveIds: string[] = []): Character {
@@ -22,7 +22,7 @@ describe('BattleEngine', () => {
             { strength: 8, vitality: 8, dexterity: 6, technique: 6, insight: 4, wisdom: 3 },
             ['straight_punch'],
         )
-        const { winner, engine } = simulateFight(p, o, 'straight_punch')
+        const { winner, engine } = runBattle(p, o, 'straight_punch')
         expect(winner).toBe('玩家')
         const types = engine.state.log.getAll().map((e) => e.event.type)
         expect(types).toContain('battle_start')
@@ -56,7 +56,7 @@ describe('BattleEngine', () => {
         const w = makeChar(
             'w',
             '弱者',
-            { strength: 18, vitality: 20, dexterity: 10, technique: 14, insight: 8, wisdom: 6 },
+            { strength: 14, vitality: 10, dexterity: 10, technique: 10, insight: 6, wisdom: 5 },
             ['fissure'],
         )
         const s = makeChar(
@@ -65,7 +65,8 @@ describe('BattleEngine', () => {
             { strength: 18, vitality: 20, dexterity: 10, technique: 14, insight: 8, wisdom: 6 },
             ['fissure'],
         )
-        expect(simulateFight(w, s, 'fissure').winner).toBe('强者')
+        const { winner } = runBattle(w, s, 'fissure')
+        expect(winner).toBe('强者')
     })
 
     it('should log with action names', () => {
