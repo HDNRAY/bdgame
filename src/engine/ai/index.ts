@@ -1,5 +1,5 @@
 import type { Character } from '../entities/character'
-import type { BattleState, ActionCommand } from '../combat/engine'
+import type { BattleState, ActionCommand } from '../combat/types'
 import { WEAPONS } from '../calc/damage'
 import { DistanceSystem } from '../combat/distance'
 

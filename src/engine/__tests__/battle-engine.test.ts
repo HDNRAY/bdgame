@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { BattleEngine } from '../combat/engine'
-import type { EventPlan } from '../combat/engine'
+import type { EventPlan } from '../combat/types'
 import { runBattle } from '../battle-runner'
 import { Character } from '../entities/character'
 

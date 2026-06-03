@@ -1,6 +1,6 @@
 import { Character } from './entities/character'
 import { BattleEngine } from './combat/engine'
-import type { EventPlan } from './combat/engine'
+import type { EventPlan } from './combat/types'
 import { planEvent } from './ai'
 
 /** 运行一场完整战斗 */

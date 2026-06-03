@@ -1,11 +1,7 @@
 import type { Character } from '../entities/character'
+import type { TurnEntry } from './types'
 
 export const SYS_PREFIX = '__sys__'
-
-export interface TurnEntry {
-    characterId: string
-    nextActionAt: number // 时间轴上的绝对时间 ms
-}
 
 /** 行动管理器（时间轴） */
 export class TurnManager {
