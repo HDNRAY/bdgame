@@ -14,7 +14,7 @@ export type BattleEvent =
       }
     | { type: 'check_hit'; actor: string; target: string; hitChance: number; roll: number; result: boolean }
     | { type: 'dodge'; actor: string; evader: string }
-    | { type: 'parry'; actor: string; parrier: string }
+    | { type: 'parry'; actor: string; parrier: string; parryChance?: number; roll?: number }
     | { type: 'check_crit'; actor: string; critChance: number; roll: number; result: boolean }
     | {
           type: 'damage'
@@ -86,8 +86,8 @@ export class BattleLog {
         this.push({ type: 'dodge', actor, evader }, timelineMs)
     }
 
-    logParry(actor: string, parrier: string, timelineMs: number): void {
-        this.push({ type: 'parry', actor, parrier }, timelineMs)
+    logParry(actor: string, parrier: string, timelineMs: number, parryChance?: number, roll?: number): void {
+        this.push({ type: 'parry', actor, parrier, parryChance, roll }, timelineMs)
     }
 
     logCritCheck(actor: string, critChance: number, roll: number, result: boolean, timelineMs: number): void {

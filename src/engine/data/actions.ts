@@ -37,7 +37,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: ['stagger', 'self_damage'],
         effects: [
             { type: 'damage', scaling: { strength: 1.2 } },
-            { type: 'status', status: 'stagger', stacks: 2 },
+            { type: 'status', status: 'stagger', stacks: 2, chance: 0.6 },
             { type: 'self_damage', ratio: 0.03 },
         ],
     },
@@ -93,7 +93,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: ['bleed'],
         effects: [
             { type: 'damage', scaling: { strength: 1.0 } },
-            { type: 'status', status: 'bleed', stacks: 1 },
+            { type: 'status', status: 'bleed', stacks: 1, chance: 0.5 },
         ],
     },
     {
@@ -117,7 +117,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: ['stagger', 'ignore_parry'],
         effects: [
             { type: 'damage', scaling: { strength: 1.2 } },
-            { type: 'status', status: 'stagger', stacks: 2 },
+            { type: 'status', status: 'stagger', stacks: 2, chance: 0.6 },
             { type: 'ignore_parry' },
         ],
     },
@@ -132,7 +132,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: ['paralyze'],
         effects: [
             { type: 'damage', scaling: { technique: 0.5 } },
-            { type: 'status', status: 'paralyze', stacks: 1 },
+            { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
         ],
     },
     {
@@ -144,7 +144,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: ['poison'],
         effects: [
             { type: 'damage', scaling: { technique: 0.6 } },
-            { type: 'status', status: 'poison', stacks: 1 },
+            { type: 'status', status: 'poison', stacks: 1, chance: 0.4 },
         ],
     },
     {
@@ -156,7 +156,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: ['fixed_damage'],
         effects: [
             { type: 'fixed_damage', value: 15 },
-            { type: 'status', status: 'paralyze', stacks: 1 },
+            { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
         ],
         maxUses: 2,
     },

@@ -1,5 +1,6 @@
 import { Character } from '../entities/character'
 import { BattleEngine, tryBonus, handleSystemEvent } from './engine'
+import { DistanceSystem } from './distance'
 import { SYS_PREFIX } from './turn'
 import { WEAPONS } from '../calc/damage'
 import type { ActionInstance } from '../entities/action-instance'
@@ -21,13 +22,19 @@ function doEvent(engine: BattleEngine, self: Character, action: ActionInstance) 
         }
         const dist = state.distance.current
         if (dist > stats.range[1]) {
-            if (self.ap <= 0) break
-            engine.execute({ type: 'move', weaponType: action.def.weaponType, bestDistance: -1 })
+            const need = dist - stats.range[1]
+            const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
+            const apNeeded = Math.ceil(need / perAp)
+            if (self.ap < apNeeded) break
+            engine.execute({ type: 'move', weaponType: action.def.weaponType, bestDistance: -apNeeded })
             continue
         }
         if (dist < stats.range[0]) {
-            if (self.ap <= 0) break
-            engine.execute({ type: 'move', weaponType: action.def.weaponType, bestDistance: 1 })
+            const need = stats.range[0] - dist
+            const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
+            const apNeeded = Math.ceil(need / perAp)
+            if (self.ap < apNeeded) break
+            engine.execute({ type: 'move', weaponType: action.def.weaponType, bestDistance: apNeeded })
             continue
         }
         break

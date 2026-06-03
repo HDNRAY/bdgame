@@ -73,7 +73,13 @@ export function formatBattleLog(log: BattleLog): string[] {
                 break
 
             case 'parry':
-                if (pending) pending.text += ' → *招架'
+                if (pending) {
+                    const parryInfo =
+                        e.parryChance != null
+                            ? ` [招${(e.parryChance * 100).toFixed(0)}% 骰${((e.roll ?? 0) * 100).toFixed(0)}%]`
+                            : ''
+                    pending.text += ` → *招架${parryInfo}`
+                }
                 break
 
             case 'check_crit':

@@ -3,13 +3,21 @@ import { DistanceSystem } from './distance'
 import { TurnManager, SYS_PREFIX } from './turn'
 import { BattleLog } from './battle-log'
 import type { WeaponType } from '../calc/damage'
-import { WEAPONS, calcHitChance, calcParryChance, calcDodgeChance, calcTurnInterval, calcCritChance, calcFinalDamage } from '../calc/damage'
+import {
+    WEAPONS,
+    calcHitChance,
+    calcParryChance,
+    calcDodgeChance,
+    calcTurnInterval,
+    calcCritChance,
+    calcFinalDamage,
+} from '../calc/damage'
 import { resolveAction, canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
 import { getTrigger } from '../data/triggers'
 import { processTriggers } from './trigger-system'
-import { createBleed, triggerBleed } from '../entities/status'
+import { createBleed, createPoison, triggerBleed } from '../entities/status'
 import type { BonusTiming, BonusTriggerEffect } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
 
@@ -116,14 +124,14 @@ export class BattleEngine {
 
         switch (cmd.type) {
             case 'move': {
+                const ap = Math.abs(cmd.bestDistance ?? 0)
                 const dir = Math.sign(cmd.bestDistance ?? -1)
                 const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
-                const ap = 1
                 if (!self.spendAp(ap)) {
                     log.logSystem(`${self.name} AP不足 无法移动`, tMs)
                     break
                 }
-                const moved = dir * perAp
+                const moved = dir * perAp * ap
                 const a = distance.move(moved)
                 r.distanceDelta = a
                 log.logMove(self.name, a, distance.current, ap, self.ap, tMs) // 移动触发流血
@@ -179,9 +187,10 @@ export class BattleEngine {
                 }
 
                 const pc = calcParryChance(enemy.attrs.get('strength'), stats.parryRate ?? 0)
-                r.parried = Math.random() < pc
+                const parryRoll = Math.random()
+                r.parried = parryRoll < pc
                 if (r.parried) {
-                    log.logParry(self.name, enemy.name, tMs)
+                    log.logParry(self.name, enemy.name, tMs, pc, parryRoll)
                     this.emit('on_parry', enemy, self, tMs)
                 } else {
                     this.emit('on_parried', self, enemy, tMs)
@@ -250,14 +259,25 @@ export class BattleEngine {
                 if (action) {
                     for (const eff of action.effects ?? []) {
                         if (eff.type === 'status' && r.hit && !r.dodged) {
+                            const sc = eff.chance ?? 0.5
+                            const roll = Math.random()
+                            if (!(roll < sc)) {
+                                log.logSystem(`[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 未命中`, tMs)
+                                continue
+                            }
+                            log.logSystem(`[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 命中`, tMs)
                             const existing = enemy.statuses.find((s) => s.type === eff.status)
                             if (existing) {
                                 existing.stacks += eff.stacks
-                                log.logSystem(`[${eff.status}] ${enemy.name} 叠${existing.stacks}层`, tMs)
                             } else if (eff.status === 'bleed') {
-                                enemy.statuses.push(createBleed(eff.stacks, 3, self.name))
-                                log.logSystem(`[bleed] ${enemy.name} 流血${eff.stacks}层`, tMs)
+                                enemy.statuses.push(createBleed(eff.stacks, 1, self.name))
+                            } else if (eff.status === 'poison') {
+                                enemy.statuses.push(createPoison(eff.stacks, self.name))
+                            } else {
+                                enemy.statuses.push({ type: eff.status, stacks: eff.stacks, source: self.name } as any)
                             }
+                            const target = enemy.statuses.find((s) => s.type === eff.status)
+                            log.logSystem(`[${eff.status}] ${enemy.name} ${target ? target.stacks : eff.stacks}层`, tMs)
                         }
                     }
                 }
@@ -352,7 +372,12 @@ export function handleSystemEvent(engine: BattleEngine, eventId: string): void {
         const buffKey = `qi_gather_${charId}`
         const data = pendingBuffs.get(buffKey)
         if (data) {
-            applyTriggerEffect({ type: 'stat_restore', stat: 'strength', value: data.restoreValue }, char, engine, '聚炁')
+            applyTriggerEffect(
+                { type: 'stat_restore', stat: 'strength', value: data.restoreValue },
+                char,
+                engine,
+                '聚炁',
+            )
             pendingBuffs.delete(buffKey)
         }
     }
