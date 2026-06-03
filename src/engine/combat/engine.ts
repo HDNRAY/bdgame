@@ -339,10 +339,11 @@ export function applyTriggerEffect(
     self: Character,
     engine: BattleEngine,
     actionName?: string,
+    actionId?: string,
 ): void {
     if (!e) return
     if (Array.isArray(e)) {
-        for (const eff of e) applyTriggerEffect(eff, self, engine, actionName)
+        for (const eff of e) applyTriggerEffect(eff, self, engine, actionName, actionId)
         return
     }
     const tag = actionName ?? '功法'
@@ -350,7 +351,7 @@ export function applyTriggerEffect(
     const actorName = self.name
     switch (e.type) {
         case 'stat_multiply': {
-            const buffKey = `qi_gather_${self.id}`
+            const buffKey = `${actionId ?? 'buff'}_${self.id}`
             // 已有该 buff 则跳过（防止叠加）
             if (engine.state.pendingBuffs.has(buffKey)) { break }
             const attr = e.stat as AttrName
@@ -362,7 +363,10 @@ export function applyTriggerEffect(
                 const attrVal = self.attrs.get(e.duration.attr)
                 const buffDuration = Math.round(attrVal * e.duration.multiplier)
                 engine.state.pendingBuffs.set(buffKey, { restoreValue: old })
-                engine.state.turn.scheduleSystemEventAt(`buff_end_${buffKey}`, engine.state.turn.currentTime + buffDuration)
+                engine.state.turn.scheduleSystemEventAt(
+                    `buff_end_${buffKey}`,
+                    engine.state.turn.currentTime + buffDuration,
+                )
             }
             break
         }
@@ -387,21 +391,26 @@ export function applyTriggerEffect(
 /** 处理系统事件（buff 到期等） */
 export function handleSystemEvent(engine: BattleEngine, eventId: string): void {
     const { log, turn, pendingBuffs } = engine.state
-    // buff_end_qi_gather_p1
-    if (eventId.startsWith('buff_end_qi_gather_')) {
-        const charId = eventId.replace('buff_end_qi_gather_', '')
-        const char = charId === engine.state.player.id ? engine.state.player : engine.state.opponent
-        const buffKey = `qi_gather_${charId}`
-        const data = pendingBuffs.get(buffKey)
-        if (data) {
-            applyTriggerEffect(
-                { type: 'stat_restore', stat: 'strength', value: data.restoreValue },
-                char,
-                engine,
-                '聚炁',
-            )
-            pendingBuffs.delete(buffKey)
-        }
+    // eventId 格式: buff_end_{actionId}_{charId}
+    const prefix = 'buff_end_'
+    if (!eventId.startsWith(prefix)) return
+    const remainder = eventId.slice(prefix.length) // "{actionId}_{charId}"
+    const underscoreIdx = remainder.indexOf('_')
+    if (underscoreIdx === -1) return
+    const actionId = remainder.slice(0, underscoreIdx)
+    const charId = remainder.slice(underscoreIdx + 1)
+    const buffKey = `${actionId}_${charId}`
+    const data = pendingBuffs.get(buffKey)
+    if (data) {
+        // 从 actionId 反查名称用于 log
+        const action = getAction(actionId)
+        applyTriggerEffect(
+            { type: 'stat_restore', stat: 'strength', value: data.restoreValue },
+            charId === engine.state.player.id ? engine.state.player : engine.state.opponent,
+            engine,
+            action?.name ?? actionId,
+        )
+        pendingBuffs.delete(buffKey)
     }
 }
 
@@ -414,7 +423,7 @@ export function tryBonus(engine: BattleEngine, self: Character, timing: BonusTim
         if (self.ap < inst.apCost + mainAp) continue
         self.spendAp(inst.apCost)
         inst.use()
-        applyTriggerEffect(inst.def.triggerEffect, self, engine, inst.name)
+        applyTriggerEffect(inst.def.triggerEffect, self, engine, inst.name, inst.id)
         fired = true
     }
     return fired

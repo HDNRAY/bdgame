@@ -65,9 +65,7 @@ export function simulateFight(
         }
         const isPlayer = state.eventActorId === player.id
         const self = isPlayer ? player : opponent
-        const aid = isPlayer
-            ? playerActionId
-            : (opponentActionId ?? pickAction(self, state).actionId)
+        const aid = isPlayer ? playerActionId : (opponentActionId ?? pickAction(self, state).actionId)
         const inst = self.actionInstances.find((a) => a.id === aid)
         if (!inst || !inst.canUse()) break
         doEvent(engine, self, inst)
