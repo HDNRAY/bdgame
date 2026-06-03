@@ -18,7 +18,6 @@ import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
 import { getTrigger } from '../data/triggers'
 import { processTriggers } from './trigger-system'
 import { createBleed, createPoison, triggerBleed } from '../entities/status'
-import type { StatusType } from '../entities/status'
 import type { BonusTiming, BonusTriggerEffect } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
 
@@ -277,8 +276,8 @@ export class BattleEngine {
                                 enemy.statuses.push(createBleed(eff.stacks, 1, self.name))
                             } else if (eff.status === 'poison') {
                                 enemy.statuses.push(createPoison(eff.stacks, self.name))
-                            } else {
-                                enemy.statuses.push({ type: eff.status as StatusType, stacks: eff.stacks, source: self.name })
+                            } else if (eff.status === 'stagger' || eff.status === 'paralyze') {
+                                enemy.statuses.push({ type: eff.status, stacks: eff.stacks, source: self.name })
                             }
                             const target = enemy.statuses.find((s) => s.type === eff.status)
                             log.logSystem(`[${eff.status}] ${enemy.name} ${target ? target.stacks : eff.stacks}层`, tMs)
