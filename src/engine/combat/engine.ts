@@ -148,25 +148,23 @@ export class BattleEngine {
             }
             case 'attack': {
                 const action = cmd.actionId ? getAction(cmd.actionId) : undefined
-                const weapon = cmd.weaponType ?? 'fist'
-                const an = action?.name ?? weapon
-                if (action) {
-                    const c = canExecuteAction(action, self, distance.current)
-                    if (!c.ok) {
-                        log.logSystem(`${self.name} ${c.reason}`, tMs)
-                        break
-                    }
+                if (!action) { log.logSystem(`${self.name} 没有可用招式`, tMs); break }
+                const weapon = action.weaponType
+                const stats = WEAPONS[weapon]
+                const c = canExecuteAction(action, self, distance.current)
+                if (!c.ok) {
+                    log.logSystem(`${self.name} ${c.reason}`, tMs)
+                    break
                 }
-                if (!self.spendAp(action?.apCost ?? 0)) {
+                if (!self.spendAp(action.apCost)) {
                     log.logSystem(`${self.name} AP不足`, tMs)
                     break
                 }
-                const stats = WEAPONS[weapon]
                 if (!distance.inRange(stats.range[0], stats.range[1])) {
                     log.logSystem(`${self.name} 距离不合适`, tMs)
                     break
                 }
-                log.logAttack(self.name, enemy.name, weapon, action?.apCost ?? 0, self.ap, tMs, an)
+                log.logAttack(self.name, enemy.name, weapon, action.apCost, self.ap, tMs, action.name)
 
                 // 自身流血：每次行动触发
                 for (const s of self.statuses) {
@@ -207,22 +205,7 @@ export class BattleEngine {
                     this.emit('on_parried', self, enemy, tMs)
                 }
 
-                const resolved = action
-                    ? resolveAction(action, self, enemy, distance.current)
-                    : resolveAction(
-                          {
-                              id: 'basic',
-                              name: weapon,
-                              weaponType: weapon,
-                              apCost: 0,
-                              bestDistance: 1,
-                              tags: [],
-                              effects: [{ type: 'damage', scaling: stats.attrScaling }],
-                          },
-                          self,
-                          enemy,
-                          distance.current,
-                      )
+                const resolved = resolveAction(action, self, enemy, distance.current)
 
                 // 记录暴击掷骰
                 const critChance = calcCritChance(self.attrs.get('technique'))
