@@ -18,7 +18,8 @@ import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
 import { getTrigger } from '../data/triggers'
 import { processTriggers } from './trigger-system'
 import { createBleed, createPoison, triggerBleed } from '../entities/status'
-import type { BonusTiming, BonusTriggerEffect, BuffDuration } from '../entities/action'
+import type { StatusType } from '../entities/status'
+import type { BonusTiming, BonusTriggerEffect } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
 
 export interface ActionCommand {
@@ -148,7 +149,10 @@ export class BattleEngine {
             }
             case 'attack': {
                 const action = cmd.actionId ? getAction(cmd.actionId) : undefined
-                if (!action) { log.logSystem(`${self.name} 没有可用招式`, tMs); break }
+                if (!action) {
+                    log.logSystem(`${self.name} 没有可用招式`, tMs)
+                    break
+                }
                 const weapon = action.weaponType
                 const stats = WEAPONS[weapon]
                 const c = canExecuteAction(action, self, distance.current)
@@ -274,7 +278,7 @@ export class BattleEngine {
                             } else if (eff.status === 'poison') {
                                 enemy.statuses.push(createPoison(eff.stacks, self.name))
                             } else {
-                                enemy.statuses.push({ type: eff.status, stacks: eff.stacks, source: self.name } as any)
+                                enemy.statuses.push({ type: eff.status as StatusType, stacks: eff.stacks, source: self.name })
                             }
                             const target = enemy.statuses.find((s) => s.type === eff.status)
                             log.logSystem(`[${eff.status}] ${enemy.name} ${target ? target.stacks : eff.stacks}层`, tMs)
@@ -345,7 +349,9 @@ export function applyTriggerEffect(
         case 'stat_multiply': {
             const buffKey = `${actionId ?? 'buff'}_${self.id}`
             // 已有该 buff 则跳过（防止叠加）
-            if (engine.state.pendingBuffs.has(buffKey)) { break }
+            if (engine.state.pendingBuffs.has(buffKey)) {
+                break
+            }
             const attr = e.stat as AttrName
             const old = self.attrs.get(attr)
             self.attrs.set(attr, old * e.multiplier)

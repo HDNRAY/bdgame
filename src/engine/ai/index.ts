@@ -9,8 +9,8 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
 
     // 1. 决定主招
     const mainId = preferredMainId ?? pickMainAction(self, state)
-    if (!mainId) return cmds  // 没招可用
-    const mainDef = self.actionInstances.find(a => a.id === mainId)?.def
+    if (!mainId) return cmds // 没招可用
+    const mainDef = self.actionInstances.find((a) => a.id === mainId)?.def
     if (!mainDef) return cmds
     const stats = WEAPONS[mainDef.weaponType]
 
@@ -61,4 +61,3 @@ function pickMainAction(self: Character, state: BattleState): string | null {
     }
     return null
 }
-
