@@ -3,6 +3,7 @@ import { BattleEngine, tryBonus, handleSystemEvent } from './engine'
 import { DistanceSystem } from './distance'
 import { SYS_PREFIX } from './turn'
 import { WEAPONS } from '../calc/damage'
+import { pickAction } from '../ai'
 import type { ActionInstance } from '../entities/action-instance'
 
 function doEvent(engine: BattleEngine, self: Character, action: ActionInstance) {
@@ -64,7 +65,9 @@ export function simulateFight(
         }
         const isPlayer = state.eventActorId === player.id
         const self = isPlayer ? player : opponent
-        const aid = isPlayer ? playerActionId : (opponentActionId ?? playerActionId)
+        const aid = isPlayer
+            ? playerActionId
+            : (opponentActionId ?? pickAction(self, state).actionId)
         const inst = self.actionInstances.find((a) => a.id === aid)
         if (!inst || !inst.canUse()) break
         doEvent(engine, self, inst)

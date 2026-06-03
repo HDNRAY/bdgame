@@ -350,6 +350,9 @@ export function applyTriggerEffect(
     const actorName = self.name
     switch (e.type) {
         case 'stat_multiply': {
+            const buffKey = `qi_gather_${self.id}`
+            // 已有该 buff 则跳过（防止叠加）
+            if (engine.state.pendingBuffs.has(buffKey)) { break }
             const attr = e.stat as AttrName
             const old = self.attrs.get(attr)
             self.attrs.set(attr, old * e.multiplier)
@@ -358,7 +361,6 @@ export function applyTriggerEffect(
             {
                 const attrVal = self.attrs.get(e.duration.attr)
                 const buffDuration = Math.round(attrVal * e.duration.multiplier)
-                const buffKey = `qi_gather_${self.id}`
                 engine.state.pendingBuffs.set(buffKey, { restoreValue: old })
                 engine.state.turn.scheduleSystemEventAt(`buff_end_${buffKey}`, engine.state.turn.currentTime + buffDuration)
             }
