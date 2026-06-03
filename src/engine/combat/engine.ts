@@ -302,12 +302,13 @@ export function applyTriggerEffect(
     }
     const tag = actionName ?? '功法'
     const tMs = engine.state.turn.peek()?.nextActionAt ?? 0
+    const actorName = self.name
     switch (e.type) {
         case 'stat_multiply': {
             const attr = e.stat as AttrName
             const old = self.attrs.get(attr)
             self.attrs.set(attr, old * e.multiplier)
-            engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`, tMs)
+            engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`, tMs, actorName)
             // 持续一回合 → 调度 buff 消失事件
             if (e.duration === 'turn') {
                 const buffKey = `qi_gather_${self.id}`
@@ -320,14 +321,26 @@ export function applyTriggerEffect(
             const attr = e.stat as AttrName
             const old = self.attrs.get(attr)
             self.attrs.modify(attr, e.value)
-            engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${self.attrs.get(attr)}`, tMs)
+            // 永久被动（锻体）不显示在 log 中
+            if (e.duration !== 'battle') {
+                engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${self.attrs.get(attr)}`, tMs, actorName)
+            }
+            break
+        }
+        case 'stat_buff_all': {
+            const desc = e.buffs.map(b => `${b.stat}+${b.value}`).join(' ')
+            for (const b of e.buffs) {
+                const attr = b.stat as AttrName
+                self.attrs.modify(attr, b.value)
+            }
+            engine.state.log.logSystem(`[${tag}] ${self.name} 全属性 ${desc}`, tMs, actorName)
             break
         }
         case 'stat_restore': {
             const attr = e.stat as AttrName
             const old = self.attrs.get(attr)
             self.attrs.set(attr, e.value)
-            engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→恢复${e.value}`, tMs)
+            engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→恢复${e.value}`, tMs, actorName)
             break
         }
     }
@@ -336,7 +349,6 @@ export function applyTriggerEffect(
 /** 处理系统事件（buff 到期等） */
 export function handleSystemEvent(engine: BattleEngine, eventId: string): void {
     const { log, turn, pendingBuffs } = engine.state
-    const tMs = turn.peek()?.nextActionAt ?? 0
     // buff_end_qi_gather_p1
     if (eventId.startsWith('buff_end_qi_gather_')) {
         const charId = eventId.replace('buff_end_qi_gather_', '')

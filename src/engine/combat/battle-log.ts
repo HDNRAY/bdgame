@@ -27,7 +27,7 @@ export type BattleEvent =
           blocked: number
       }
     | { type: 'defeat'; loser: string; winner: string }
-    | { type: 'system'; message: string }
+    | { type: 'system'; message: string; actor?: string }
 
 interface LogEntry {
     id: number
@@ -107,8 +107,8 @@ export class BattleLog {
         this.push({ type: 'defeat', loser, winner }, timelineMs)
     }
 
-    logSystem(message: string, timelineMs: number): void {
-        this.push({ type: 'system', message }, timelineMs)
+    logSystem(message: string, timelineMs: number, actor?: string): void {
+        this.push({ type: 'system', message, actor }, timelineMs)
     }
 
     getAll(): LogEntry[] {

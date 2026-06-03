@@ -15,7 +15,11 @@ export function formatBattleLog(log: BattleLog): string[] {
             if (lastTime >= 0) lines.push('') // event 间空行
             lastTime = ms
             lastActor = actor
-            lines.push(`── Event ${t(ms)} [${actor}] AP${ap} ──`)
+            if (ap > 0) {
+                lines.push(`── Event ${t(ms)} [${actor}] AP${ap} ──`)
+            } else {
+                lines.push(`── Event ${t(ms)} [${actor}] ──`)
+            }
         }
     }
 
@@ -95,6 +99,10 @@ export function formatBattleLog(log: BattleLog): string[] {
 
             case 'system':
                 flush()
+                // 携带 actor 的系统消息 → 作为独立事件分组
+                if (e.actor) {
+                    checkNewEvent(ms, e.actor, 0)
+                }
                 lines.push(`  ${e.message}`)
                 break
         }

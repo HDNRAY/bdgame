@@ -15,12 +15,11 @@ export const QI_SKILLS: ActionDefinition[] = [
         bonus: true,
         bonusTiming: 'before_main',
         maxUses: 1,
-        triggerEffect: ALL_ATTR_STATS.map((stat) => ({
-            type: 'stat_buff' as const,
-            stat,
-            value: 1,
+        triggerEffect: {
+            type: 'stat_buff_all' as const,
+            buffs: ALL_ATTR_STATS.map((stat) => ({ stat, value: 1 })),
             duration: 'battle' as const,
-        })),
+        },
     },
     {
         id: 'qi_gather',
