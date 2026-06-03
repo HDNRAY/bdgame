@@ -1,7 +1,7 @@
 // npx tsx scripts/demo-battle.ts
 import { Character } from '../src/engine/entities/character'
-import { simulateFight } from '../src/engine/combat/simulate'
-import { formatBattleLog } from '../src/engine/combat/log-parser'
+import { simulateFight } from '../src/engine/simulate'
+import { formatBattleLog } from '../src/engine/format-log'
 import { getAction } from '../src/engine/data/actions'
 import { getForgingBuffs } from '../src/engine/data/forging'
 import type { AttrName } from '../src/engine/entities/attributes'

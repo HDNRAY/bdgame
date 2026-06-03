@@ -1,6 +1,6 @@
+import type { ActionDefinition } from '../entities/action'
 import type { Character } from '../entities/character'
-import type { ActionDefinition, ActionEffect } from '../entities/action'
-import { WEAPONS, calcBaseDamage, calcDistanceMultiplier, calcCritChance, calcFinalDamage } from './damage'
+import { WEAPONS, calcBaseDamage, calcDistanceMultiplier, calcFinalDamage } from './damage'
 
 export interface ResolvedDamage {
     base: number
@@ -22,7 +22,6 @@ export function resolveAction(
     defender: Character,
     currentDistance: number,
 ): ResolvedDamage {
-    const weapon = WEAPONS[action.weaponType]
     let base = 0
     let isFixedDamage = false
     let crippleBonus = 0

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { BattleEngine } from '../combat/engine'
-import { simulateFight } from '../combat/simulate'
+import type { EventPlan } from '../combat/engine'
+import { simulateFight } from '../simulate'
 import { Character } from '../entities/character'
 import { getAction } from '../data/actions'
 
@@ -54,8 +55,14 @@ describe('BattleEngine', () => {
             wisdom: 3,
         })
         const e = new BattleEngine(p, o, 5)
-        const r = e.execute({ type: 'attack', actionId: 'needle' })
-        expect(r.hit).toBeDefined()
+        // 准备 needle 作为角色行动
+        equip(p, 'needle')
+        const plan: EventPlan = () => [{ type: 'attack', actionId: 'needle' }]
+        e.runEvent(plan)
+        // 检查 log 中是否有 attack_start
+        const logs = e.state.log.getAll()
+        const attacks = logs.filter((l) => l.event.type === 'attack_start')
+        expect(attacks.length).toBeGreaterThan(0)
     })
 
     it('should end when a character dies', () => {
@@ -97,8 +104,9 @@ describe('BattleEngine', () => {
             insight: 6,
             wisdom: 5,
         })
-        const engine = new BattleEngine(a, b, 1) // 起手距离 1，在拳范围内
-        engine.execute({ type: 'attack', actionId: 'straight_punch' })
+        const engine = new BattleEngine(a, b, 1)
+        const plan: EventPlan = () => [{ type: 'attack', actionId: 'straight_punch' }]
+        engine.runEvent(plan)
         const logs = engine.state.log.getAll()
         const attacks = logs.filter((l) => l.event.type === 'attack_start')
         expect(attacks.length).toBeGreaterThan(0)

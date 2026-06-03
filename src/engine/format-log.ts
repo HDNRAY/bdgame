@@ -1,4 +1,4 @@
-import { BattleLog } from './battle-log'
+import { BattleLog } from './combat/battle-log'
 
 export function formatBattleLog(log: BattleLog): string[] {
     const all = log.getAll()
