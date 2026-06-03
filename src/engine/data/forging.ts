@@ -83,3 +83,18 @@ export const QI_SKILLS: ActionDefinition[] = [
         bonus: false, // 主招
     },
 ]
+
+/** 锻体 buff 表：等级 → 属性加成 */
+export function getForgingBuffs(level: number): { stat: string; value: number }[] {
+  const table: Record<number, { stat: string; value: number }[]> = {
+    1: [{ stat: 'strength', value: 1 }],
+    2: [{ stat: 'strength', value: 1 }, { stat: 'vitality', value: 1 }],
+    3: [{ stat: 'strength', value: 1 }, { stat: 'vitality', value: 1 }, { stat: 'dexterity', value: 1 }],
+    4: [{ stat: 'strength', value: 1 }, { stat: 'vitality', value: 1 }, { stat: 'dexterity', value: 1 }, { stat: 'technique', value: 1 }],
+    5: [{ stat: 'strength', value: 1 }, { stat: 'vitality', value: 1 }, { stat: 'dexterity', value: 1 }, { stat: 'technique', value: 1 }, { stat: 'insight', value: 1 }],
+    6: [{ stat: 'strength', value: 1 }, { stat: 'vitality', value: 1 }, { stat: 'dexterity', value: 1 }, { stat: 'technique', value: 1 }, { stat: 'insight', value: 1 }, { stat: 'wisdom', value: 1 }],
+  }
+  const buffs: { stat: string; value: number }[] = []
+  for (let i = 1; i <= level; i++) { const b = table[i]; if (b) for (const x of b) if (!buffs.find(y => y.stat === x.stat)) buffs.push(x) }
+  return buffs
+}

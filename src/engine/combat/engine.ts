@@ -10,6 +10,7 @@ import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
 import { getTrigger } from '../data/triggers'
 import { processTriggers } from './trigger-system'
 import { createBleed, triggerBleed } from '../entities/status'
+import { getForgingBuffs } from '../data/forging'
 
 export interface ActionCommand {
     type: 'attack' | 'move' | 'defend' | 'wait'
@@ -53,12 +54,11 @@ export class BattleEngine {
         tm.addCharacter(p, 0)
         tm.addCharacter(o, 0)
         log.logBattleStart(p.name, o.name, 0)
-        // 锻体 buff
+        // 锻体 buff（数据驱动）
         if (p.forgingLevel > 0) {
-            for (const a of ['strength', 'vitality', 'dexterity', 'technique', 'insight', 'wisdom'] as const) {
-                p.attrs.modify(a, 1)
-            }
-            log.logSystem(`[锻体] ${p.name} 锻体Lv.${p.forgingLevel} 全属性+1`, 0)
+            const buffs = getForgingBuffs(p.forgingLevel)
+            for (const b of buffs) { (p.attrs as any).modify(b.stat, b.value) }
+            log.logSystem(`[锻体] ${p.name} Lv.${p.forgingLevel}: ${buffs.map(b => `${b.stat}+${b.value}`).join(' ')}`, 0)
         }
         this.state = {
             phase: 'fighting',

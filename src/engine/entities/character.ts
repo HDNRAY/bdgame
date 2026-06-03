@@ -1,4 +1,5 @@
 import { AttributeSet } from './attributes'
+import { ActionInstance } from './action-instance'
 
 export function calcMaxHp(vitality: number): number {
     return 20 + vitality * 10
@@ -14,7 +15,7 @@ export class Character {
     nextTurnApDebt = 0
     forgingLevel = 0
     skills: string[] = []
-    actions: string[] = []
+    actionInstances: ActionInstance[] = []
     triggers: string[] = []
     implants: string[] = []
     lifebound?: string
@@ -53,4 +54,13 @@ export class Character {
         this.ap -= cost
         return true
     }
+
+    /** 装备招式（从 ActionDefinition 创建实例） */
+    equipAction(def: import('./action').ActionDefinition): void {
+        if (!this.actionInstances.find(a => a.id === def.id)) {
+            this.actionInstances.push(new ActionInstance(def))
+        }
+    }
+
+    get actionIds(): string[] { return this.actionInstances.map(a => a.id) }
 }
