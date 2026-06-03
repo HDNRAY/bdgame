@@ -354,13 +354,16 @@ export function applyTriggerEffect(
             const old = self.attrs.get(attr)
             self.attrs.set(attr, old * e.multiplier)
             engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`, tMs, actorName)
-            // 持续2次行动：基于身法的间隔×2
+            // 持续悟性×150 ms：悟性高则buff久，身法高则行动快可多打
             if (e.duration === 'turn') {
-                const dex = self.attrs.get('dexterity')
-                const interval = Math.round(300 + 60000 / (100 + dex * 10))
+                const wis = self.attrs.get('wisdom')
+                const buffDuration = Math.round(wis * 150)
                 const buffKey = `qi_gather_${self.id}`
                 engine.state.pendingBuffs.set(buffKey, { restoreValue: old })
-                engine.state.turn.scheduleSystemEventAt(`buff_end_${buffKey}`, engine.state.turn.currentTime + interval * 2)
+                engine.state.turn.scheduleSystemEventAt(
+                    `buff_end_${buffKey}`,
+                    engine.state.turn.currentTime + buffDuration,
+                )
             }
             break
         }
