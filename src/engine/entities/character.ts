@@ -13,6 +13,11 @@ export class Character {
     hp: number
     ap: number
     maxAp: number
+    skills: string[] = []       // 功法 ID
+    actions: string[] = []      // 已学招式 ID
+    triggers: string[] = []     // 触发器 ID
+    implants: string[] = []     // 义体 ID
+    lifebound?: string          // 本命物 ID
 
     constructor(id: string, name: string, attrs?: Partial<Record<string, number>>) {
         this.id = id
