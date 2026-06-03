@@ -9,6 +9,7 @@ export type TriggerEvent =
     | 'on_parried'
     | 'on_buff'
     | 'on_debuff'
+    | 'on_move'
     | 'turn_start'
     | 'turn_end'
     | 'hp_below'

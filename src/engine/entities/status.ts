@@ -22,6 +22,8 @@ export interface StatusInstance {
 
     // 流血: 每次行动触发伤害（非 tick）
     bleedDamagePerStack?: number
+    /** 流血触发计数，每 3 次减 1 层 */
+    bleedTriggerCount?: number
 
     // 通用
     remainingTicks?: number

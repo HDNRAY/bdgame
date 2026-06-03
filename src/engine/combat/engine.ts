@@ -44,6 +44,7 @@ export class BattleEngine {
             eventActorId: null,
             triggerUses: new Map(),
             pendingBuffs: new Map(),
+            actionCount: 0,
         }
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o, 0)
@@ -74,6 +75,7 @@ export class BattleEngine {
             turn: { time: turn.currentTime, queue: [...turn.entries] },
             triggerUses: [...triggerUses.entries()],
             pendingBuffs: [...pendingBuffs.entries()],
+            actionCount: this.state.actionCount,
         }
     }
 
@@ -97,6 +99,21 @@ export class BattleEngine {
         const enemy = chars.find((c) => c.id !== e.characterId)!
         self.resetAp()
         enemy.resetAp()
+        this.state.actionCount++
+
+        // 跳过死亡角色
+        if (!self.isAlive()) {
+            this.state.turn.next()
+            this.state.eventActorId = null
+            if (enemy.isAlive()) {
+                this.state.log.logDefeat(self.name, enemy.name, this.state.turn.currentTime, this.getSnapshot())
+                this.state.phase = 'finished'
+                this.state.lastWinner = enemy.name
+            } else if (!this.state.lastWinner) {
+                this.state.phase = 'finished'
+            }
+            return true
+        }
 
         // 跳过行动检查（如眩晕停止走表）
         const skipStatus = self.statuses.find((s) => s.skipTurn)
@@ -128,6 +145,8 @@ export class BattleEngine {
         this.state.turn.scheduleNext(
             self.id,
             calcTurnInterval(self.attrs.get('dexterity'), stats.preDelay, stats.stunTime),
+            stats.preDelay,
+            stats.stunTime,
         )
         this.state.eventActorId = null
         return true
@@ -214,6 +233,8 @@ export class BattleEngine {
         r.distanceDelta = a
         log.logMove(this.#self.name, a, distance.current, ap, this.#self.ap, this.#tMs, this.getSnapshot())
         processBleedDamage(this.#self, this.#tMs, this)
+        this.emit('on_move', this.#self, this.#enemy, this.#tMs)
+        this.emit('on_move', this.#enemy, this.#self, this.#tMs)
         return r
     }
 
@@ -312,6 +333,7 @@ export class BattleEngine {
         if (!enemy.isAlive()) {
             log.logDefeat(enemy.name, self.name, tMs, this.getSnapshot())
             this.state.phase = 'finished'
+            this.state.lastWinner = self.name
         }
     }
 

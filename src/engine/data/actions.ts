@@ -14,7 +14,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         bestDistance: 1,
         tags: [],
-        effects: [{ type: 'damage', scaling: { strength: 0.8 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
     },
     {
         id: 'crushing_blow',
@@ -24,7 +24,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         bestDistance: 1,
         tags: ['cripple'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.8 } },
+            { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'cripple', ratio: 0.1 },
         ],
     },
@@ -36,7 +36,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         bestDistance: 0,
         tags: ['paralyze', 'self_damage'],
         effects: [
-            { type: 'damage', scaling: { strength: 1.2 } },
+            { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'status', status: 'paralyze', stacks: 2, chance: 0.6 },
             { type: 'self_damage', ratio: 0.03 },
         ],
@@ -48,7 +48,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         bestDistance: 2,
         tags: ['interrupt'],
-        effects: [{ type: 'damage', scaling: { technique: 0.4 } }, { type: 'interrupt' }],
+        effects: [{ type: 'damage', scaling: { technique: 0.2 } }, { type: 'interrupt' }],
     },
 
     // ── 暗器系 ──
@@ -62,8 +62,8 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         bestDistance: 3,
         tags: ['bleed'],
         effects: [
-            { type: 'damage', scaling: { strength: 1.0 } },
-            { type: 'status', status: 'bleed', stacks: 1, chance: 0.5 },
+            { type: 'damage', scaling: { strength: 0.5 } },
+            { type: 'status', status: 'bleed', stacks: 1, chance: 0.4 },
         ],
     },
     {
@@ -74,7 +74,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         bestDistance: 3,
         tags: ['aoe'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.8 } },
+            { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'aoe_range', range: 1 },
         ],
     },
@@ -86,7 +86,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         bestDistance: 2,
         tags: ['paralyze', 'ignore_parry'],
         effects: [
-            { type: 'damage', scaling: { strength: 1.2 } },
+            { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'status', status: 'paralyze', stacks: 2, chance: 0.6 },
             { type: 'ignore_parry' },
         ],
@@ -101,7 +101,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         bestDistance: 4,
         tags: ['paralyze'],
         effects: [
-            { type: 'damage', scaling: { technique: 0.5 } },
+            { type: 'damage', scaling: { technique: 0.25 } },
             { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
         ],
     },
@@ -113,7 +113,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         bestDistance: 4,
         tags: ['poison'],
         effects: [
-            { type: 'damage', scaling: { technique: 0.6 } },
+            { type: 'damage', scaling: { technique: 0.3 } },
             { type: 'status', status: 'poison', stacks: 1, chance: 0.4 },
         ],
     },
@@ -125,12 +125,58 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         bestDistance: 4,
         tags: ['fixed_damage', 'poison', 'paralyze', 'bleed'],
         effects: [
-            { type: 'fixed_damage', value: 15 },
+            { type: 'fixed_damage', value: 8 },
             { type: 'status', status: 'poison', stacks: 1, chance: 0.3 },
             { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
             { type: 'status', status: 'bleed', stacks: 1, chance: 0.3 },
         ],
         maxUses: 2,
+    },
+
+    // ── 新增招式 ──
+    {
+        id: 'tremor_stomp',
+        name: '震脚',
+        weaponType: 'fist',
+        apCost: 5,
+        bestDistance: 1,
+        tags: ['stun'],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.3 } },
+            { type: 'status', status: 'stun', stacks: 1, chance: 1.0 },
+        ],
+    },
+    {
+        id: 'break_formation',
+        name: '破军',
+        weaponType: 'spear',
+        apCost: 3,
+        bestDistance: 3,
+        tags: ['cleanse'],
+        effects: [{ type: 'cleanse' }],
+        maxUses: 1,
+    },
+    {
+        id: 'pursuit_thrust',
+        name: '追刺',
+        weaponType: 'spear',
+        apCost: 3,
+        bestDistance: 3,
+        tags: ['bleed'],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.3 } },
+            { type: 'status', status: 'bleed', stacks: 1, chance: 0.6 },
+        ],
+    },
+    {
+        id: 'qi_bolt',
+        name: '炁弹',
+        weaponType: 'fist',
+        apCost: 0,
+        bestDistance: 4,
+        tags: [],
+        effects: [{ type: 'fixed_damage', value: 4 }],
+        maxUses: 3,
     },
 ]
 

@@ -31,6 +31,8 @@ export interface BattleState {
     eventActorId: string | null
     triggerUses: Map<string, number>
     pendingBuffs: Map<string, { restoreValue: number; stat: string }>
+    lastWinner?: string
+    actionCount: number
 }
 
 export type EventPlan = (self: Character, enemy: Character, state: BattleState) => ActionCommand[]
@@ -51,6 +53,7 @@ export interface BattleSnapshot {
     turn: { time: number; queue: Array<{ characterId: string; nextActionAt: number }> }
     triggerUses: [string, number][]
     pendingBuffs: [string, { restoreValue: number; stat: string }][]
+    actionCount: number
 }
 
 export type BattleEvent =
@@ -108,4 +111,6 @@ export interface TurnEntry {
     characterId: string
     nextActionAt: number
     systemEventType?: SystemEventType
+    preDelay?: number
+    stunTime?: number
 }

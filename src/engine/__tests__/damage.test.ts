@@ -7,20 +7,19 @@ import {
     calcParryChance,
     calcDodgeChance,
     calcMoveApCost,
-    WEAPONS,
 } from '../calc/damage'
 
 describe('calcBaseDamage', () => {
-    it('should calculate fist damage', () => {
-        const s = WEAPONS.fist.attrScaling
+    it('should calculate damage from scaling and attrs', () => {
+        const s = { strength: 0.8 }
         const d = calcBaseDamage(s, { strength: 14, vitality: 10, dexterity: 8, technique: 8, insight: 6, wisdom: 5 })
-        expect(d).toBe(11) // 0.8 × 14 = 11.2 → 11
+        expect(d).toBe(11.2) // 0.8 × 14 = 11.2
     })
 
-    it('should calculate spear damage', () => {
-        const s = WEAPONS.spear.attrScaling
-        const d = calcBaseDamage(s, { strength: 18, vitality: 12, dexterity: 6, technique: 6, insight: 5, wisdom: 4 })
-        expect(d).toBe(18) // 1.0 × 18 = 18
+    it('should handle multiple attribute scaling', () => {
+        const s = { strength: 0.6, technique: 0.4 }
+        const d = calcBaseDamage(s, { strength: 18, vitality: 12, dexterity: 6, technique: 10, insight: 5, wisdom: 4 })
+        expect(d).toBe(14.8) // 0.6×18 + 0.4×10 = 10.8 + 4 = 14.8
     })
 })
 
@@ -49,11 +48,11 @@ describe('calcFinalDamage', () => {
     })
 
     it('should multiply distance and crit together', () => {
-        expect(calcFinalDamage(18, 0.7, true)).toBe(20) // round(18*0.7)=13, round(13*1.5)=20
+        expect(calcFinalDamage(18, 0.7, true)).toBe(18.9) // 18*0.7=12.6, 12.6*1.5=18.9
     })
 
     it('should min at 1', () => {
-        expect(calcFinalDamage(2, 0.25, false)).toBe(1) // Math.round(0.5) → max(1)
+        expect(calcFinalDamage(2, 0.25, false)).toBe(1)
     })
 })
 
@@ -69,13 +68,13 @@ describe('calcHitChance', () => {
 
 describe('calcParryChance', () => {
     it('should include weapon bonus', () => {
-        expect(calcParryChance(14, 0.05)).toBe(0.19) // 0.05 + 0.14
+        expect(calcParryChance(14, 0.05)).toBeCloseTo(0.225) // 0.05 + 14/80
     })
 })
 
 describe('calcDodgeChance', () => {
     it('should scale with dexterity', () => {
-        expect(calcDodgeChance(20)).toBe(0.2)
+        expect(calcDodgeChance(20)).toBe(0.25)
         expect(calcDodgeChance(50)).toBe(0.4) // capped
     })
 })

@@ -34,20 +34,22 @@ interface FightStyle {
     description: string
     primary: AttrName
     secondary?: AttrName
-    weaponType: WeaponType
+    /** 推荐武器 ID（对应 WEAPON_DB） */
+    recommendedWeapon: string
     tags: string[]
 }
-
-type WeaponType = 'fist' | 'sword' | 'spear' | 'thrown' | 'control' | 'nanoblade' | 'phantom' | 'katana'
 ```
+
+> **注意：** 武器系统已从 `WeaponType` 枚举重构为个体物品系统，见 `src/engine/data/weapons.ts`。
+> 流派不再绑定武器类别，而是推荐一把具体武器。招式通过标签（劈砍/钝击/戳刺）匹配武器。
 
 ### 7.2.2 示例流派
 
-| ID              | 名称     | 主属性    | 次属性    | 武器      | 标签           |
-| --------------- | -------- | --------- | --------- | --------- | -------------- |
-| `nanoblade`     | 纳米剑术 | technique | dexterity | nanoblade | 近战·精准·流血 |
-| `phantom`       | 幻象术   | wisdom    | insight   | control   | 远程·诡术·欺诈 |
-| `broken_katana` | 残心居合 | strength  | technique | katana    | 近战·爆发·忍耐 |
+| ID              | 名称     | 主属性    | 次属性    | 推荐武器 | 标签           |
+| --------------- | -------- | --------- | --------- | -------- | -------------- |
+| `nanoblade`     | 纳米剑术 | technique | dexterity | 待定     | 近战·精准·流血 |
+| `phantom`       | 幻象术   | wisdom    | insight   | 待定     | 远程·诡术·欺诈 |
+| `broken_katana` | 残心居合 | strength  | technique | 待定     | 近战·爆发·忍耐 |
 
 ---
 
@@ -63,7 +65,7 @@ interface OpponentData {
     style: string // 引用 FightStyle.id
 
     baseAttrs: Record<AttrName, number>
-    weapon: WeaponType
+    weapon: string // 武器 ID，对应 WEAPON_DB
     signatureMove: string
     extraActions?: string[]
     skills?: string[]

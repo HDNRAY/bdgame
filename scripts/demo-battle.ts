@@ -21,10 +21,11 @@ const pBuild: CharacterBuild = {
     id: 'p1',
     name: '玩家·拳',
     baseAttrs: { strength: 14, vitality: 10, dexterity: 14, technique: 10, insight: 8, wisdom: 6 },
-    moves: ['iron_charge', 'straight_punch', 'crushing_blow', 'qi_focus', 'qi_gather'],
+    moves: ['iron_charge', 'straight_punch', 'crushing_blow', 'tremor_stomp', 'qi_focus', 'qi_gather'],
     triggers: [
         { condition: { type: 'on_parry' }, actionId: 'straight_punch' },
         { condition: { type: 'on_dodged' }, actionId: 'flick' },
+        { condition: { type: 'on_move' }, actionId: 'qi_bolt' },
     ],
     passives: [
         { id: 'forge_4', name: '锻体·四级', statMods: { strength: 1, vitality: 1, dexterity: 1, technique: 1 } },
@@ -36,9 +37,9 @@ const p = new Character(pBuild)
 const oBuild: CharacterBuild = {
     id: 'o1',
     name: '铁枪·张烈',
-    baseAttrs: { strength: 16, vitality: 14, dexterity: 8, technique: 8, insight: 5, wisdom: 4 },
-    moves: ['thrust', 'sweep', 'fissure'],
-    triggers: [],
+    baseAttrs: { strength: 16, vitality: 14, dexterity: 8, technique: 8, insight: 8, wisdom: 8 },
+    moves: ['thrust', 'sweep', 'fissure', 'break_formation', 'pursuit_thrust'],
+    triggers: [{ condition: { type: 'on_debuff' }, actionId: 'pursuit_thrust' }],
     passives: [{ id: 'iron_bone', name: '钢筋铁骨' }],
     artifacts: [],
 }
@@ -50,4 +51,4 @@ console.log('')
 
 const { winner, engine } = runBattle(p, o, 'iron_charge', 'thrust')
 for (const line of formatBattleLog(engine.state.log)) console.log(line)
-console.log(`\n🏆 ${winner} 胜  玩家 HP${p.hp}/${p.maxHp} 对手 HP${o.hp}/${o.maxHp}`)
+console.log(`\n🏆 ${winner} 胜  玩家 HP${Math.round(p.hp*10)/10}/${p.maxHp} 对手 HP${Math.round(o.hp*10)/10}/${o.maxHp}`)

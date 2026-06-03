@@ -1,5 +1,6 @@
 import type { Character } from '../entities/character'
 import type { TurnEntry, SystemEventType } from './types'
+import { calcTurnInterval } from '../calc/damage'
 
 export const SYS_PREFIX = '__sys__'
 
@@ -50,17 +51,30 @@ export class TurnManager {
     }
 
     /** 行动后重新入队（插入硬直） */
-    scheduleNext(charId: string, delay: number): void {
+    scheduleNext(charId: string, delay: number, preDelay?: number, stunTime?: number): void {
         const entry = this.queue.find((e) => e.characterId === charId)
         if (entry) {
             // 已经在队列中 -> 更新
             entry.nextActionAt = this.time + delay
+            if (preDelay !== undefined) entry.preDelay = preDelay
+            if (stunTime !== undefined) entry.stunTime = stunTime
         } else {
             this.queue.push({
                 characterId: charId,
                 nextActionAt: this.time + delay,
+                preDelay,
+                stunTime,
             })
         }
+        this.sort()
+    }
+
+    /** 身法变化时重新计算回合间隔 */
+    recalcInterval(charId: string, dexterity: number): void {
+        const entry = this.queue.find((e) => e.characterId === charId)
+        if (!entry || entry.preDelay === undefined) return
+        const delay = calcTurnInterval(dexterity, entry.preDelay, entry.stunTime ?? 0)
+        entry.nextActionAt = this.time + delay
         this.sort()
     }
 

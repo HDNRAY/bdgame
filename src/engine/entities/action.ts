@@ -1,6 +1,7 @@
 import type { AttrName } from './attributes'
 import type { WeaponType } from '../calc/damage'
 import type { Condition } from './trigger'
+import type { StatusType } from './status'
 
 /** 效果类型 */
 export type EffectTag =
@@ -8,6 +9,8 @@ export type EffectTag =
     | 'paralyze'
     | 'poison'
     | 'interrupt'
+    | 'stun'
+    | 'cleanse'
     | 'bleed'
     | 'first_strike'
     | 'counter'
@@ -65,7 +68,7 @@ export type ActionEffect =
     | { type: 'knockback'; distance: number }
     | { type: 'limit_uses'; max: number }
     | { type: 'modify_turn'; deltaMs: number } // 加速/减速
-    | { type: 'cleanse' } // 驱散
+    | { type: 'cleanse'; statuses?: StatusType[] } // 驱散
     | { type: 'counter_damage'; ratio: number } // 反击：基于所收伤害比例
 
 /** 主招队列配置 —— 玩家可配置顺序 */

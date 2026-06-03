@@ -60,6 +60,12 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         const { deltaMs } = eff as Extract<ActionEffect, { type: 'modify_turn' }>
         engine.state.turn.modifyTime(enemy.id, deltaMs)
     },
+    cleanse({ eff, self, engine, tMs }: Ctx) {
+        const { statuses } = eff as Extract<ActionEffect, { type: 'cleanse' }>
+        const targets = statuses ?? (['paralyze', 'poison'] as StatusType[])
+        self.statuses = self.statuses.filter((s) => !targets.includes(s.type as StatusType))
+        engine.state.log.logSystem(`[净化] ${self.name} 清除了负面效果`, tMs, engine.getSnapshot())
+    },
     knockback({ eff, engine }: Ctx) {
         const { distance } = eff as Extract<ActionEffect, { type: 'knockback' }>
         if (distance > 0) engine.state.distance.move(distance)
@@ -71,8 +77,10 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
 
 // ── Status 子分发表 ──
 const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
-    bleed({ eff: { stacks }, self: { name }, enemy }: StatusCtx) {
+    bleed({ eff: { stacks }, self, enemy, engine }: StatusCtx) {
+        const { name } = self
         enemy.statuses.push(createBleed(stacks, 1, name))
+        engine.emit('on_debuff', self, enemy, engine.state.turn.peek()?.nextActionAt ?? 0)
     },
     poison({ eff: { stacks }, self: { name }, enemy, engine, tMs }: StatusCtx) {
         enemy.statuses.push(createPoison(stacks, name))
@@ -96,6 +104,7 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
         const penalty = calcParalyzeAttrPenalty(stacks)
         enemy.attrs.modify('dexterity', penalty.dexterity)
         enemy.attrs.modify('insight', penalty.insight)
+        engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('dexterity'))
 
         engine.state.pendingBuffs.set(`para_${appId}`, { restoreValue: stacks, stat: 'paralyze' })
         engine.state.turn.scheduleSystemEventAt(`paralyze_end_${appId}`, tMs + duration, 'paralyze_end')
@@ -106,7 +115,7 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
     stun({ eff: { stacks }, self: { name }, enemy, engine, tMs }: StatusCtx) {
         const { log } = engine.state
         const STUN_BASE_DURATION = 2000
-        const STUN_RESET_WINDOW = 30000
+        const STUN_RESET_WINDOW = 5000
 
         const trackKey = `stun_track_${enemy.id}`
         const lastData = engine.state.pendingBuffs.get(trackKey)
@@ -296,6 +305,11 @@ export function processBleedDamage(owner: Character, tMs: number, engine: Battle
             const dmg = triggerBleed(s)
             if (dmg > 0) {
                 owner.takeDamage(dmg)
+                s.bleedTriggerCount = (s.bleedTriggerCount ?? 0) + 1
+                if (s.bleedTriggerCount >= 3) {
+                    s.bleedTriggerCount = 0
+                    s.stacks = Math.max(0, s.stacks - 1)
+                }
                 log.logSystem(`[流血] ${owner.name} 受到 ${dmg} 流血伤害`, tMs, engine.getSnapshot())
             }
         }
@@ -387,6 +401,7 @@ export function processParalyzeEnd(appId: string, engine: BattleEngine): void {
         entry.stacks -= stacks
         char.attrs.modify('dexterity', restore.dexterity)
         char.attrs.modify('insight', restore.insight)
+        engine.state.turn.recalcInterval(char.id, char.attrs.get('dexterity'))
         log.logSystem(`[麻痹] ${char.name} 恢复${stacks}层`, engine.state.turn.currentTime, engine.getSnapshot())
         if (entry.stacks <= 0) {
             char.statuses = char.statuses.filter((s) => s !== entry)

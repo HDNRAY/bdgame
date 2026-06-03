@@ -10,17 +10,25 @@ export function formatBattleLog(log: BattleLog): string[] {
         return `t=${(ms / 1000).toFixed(2)}`
     }
 
-    function checkNewEvent(ms: number, actor: string, ap: number, hpInfo?: string, dist?: number) {
+    function checkNewEvent(
+        ms: number,
+        actor: string,
+        ap: number,
+        hpInfo?: string,
+        dist?: number,
+        actionCount?: number,
+    ) {
         if (ms !== lastTime || actor !== lastActor) {
             if (lastTime >= 0) lines.push('')
             lastTime = ms
             lastActor = actor
             const hp = hpInfo ? ` ${hpInfo}` : ''
             const d = dist !== undefined ? ` [${dist.toFixed(1)}m]` : ''
+            const ac = actionCount ? ` #${actionCount}` : ''
             if (ap > 0) {
-                lines.push(`── 行动 ${t(ms)} [${actor}] AP${ap}${hp}${d} ──`)
+                lines.push(`── 行动 ${t(ms)}${ac} [${actor}] AP${ap}${hp}${d} ──`)
             } else {
-                lines.push(`── 行动 ${t(ms)} [${actor}]${hp}${d} ──`)
+                lines.push(`── 行动 ${t(ms)}${ac} [${actor}]${hp}${d} ──`)
             }
         }
     }
@@ -33,11 +41,19 @@ export function formatBattleLog(log: BattleLog): string[] {
         startAp: number
         hpInfo?: string
         distance?: number
+        actionCount?: number
     } | null = null
 
     function flush() {
         if (!pending) return
-        checkNewEvent(pending.time, pending.actor, pending.startAp, pending.hpInfo, pending.distance)
+        checkNewEvent(
+            pending.time,
+            pending.actor,
+            pending.startAp,
+            pending.hpInfo,
+            pending.distance,
+            pending.actionCount,
+        )
         lines.push(`  ${pending.text}${pending.ap ? ` ${pending.ap}` : ''}`)
         pending = null
     }
@@ -52,12 +68,15 @@ export function formatBattleLog(log: BattleLog): string[] {
                 flush()
                 const oldDist = e.newDistance - e.delta
                 const s = e.snapshot
+                const h0 = Math.round(s.characters[0].hp * 10) / 10
+                const h1 = Math.round(s.characters[1].hp * 10) / 10
                 checkNewEvent(
                     ms,
                     e.actor,
                     e.apRemaining + e.apCost,
-                    `HP${s.characters[0].hp}/${s.characters[0].maxHp} VS HP${s.characters[1].hp}/${s.characters[1].maxHp}`,
+                    `HP${h0}/${s.characters[0].maxHp} VS HP${h1}/${s.characters[1].maxHp}`,
                     e.newDistance,
+                    s.actionCount,
                 )
                 lines.push(`  #移动 ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m [AP${e.apRemaining}]`)
                 break
@@ -71,8 +90,9 @@ export function formatBattleLog(log: BattleLog): string[] {
                     text: `#${e.actionName ?? e.weapon}（${e.apCost}AP）`,
                     ap: `[AP${e.apRemaining}]`,
                     startAp: e.apRemaining + e.apCost,
-                    hpInfo: `HP${e.snapshot.characters[0].hp}/${e.snapshot.characters[0].maxHp} VS HP${e.snapshot.characters[1].hp}/${e.snapshot.characters[1].maxHp}`,
+                    hpInfo: `HP${Math.round(e.snapshot.characters[0].hp * 10) / 10}/${e.snapshot.characters[0].maxHp} VS HP${Math.round(e.snapshot.characters[1].hp * 10) / 10}/${e.snapshot.characters[1].maxHp}`,
                     distance: e.snapshot.distance,
+                    actionCount: e.snapshot.actionCount,
                 }
                 break
 
@@ -135,7 +155,7 @@ export function formatBattleLog(log: BattleLog): string[] {
                 flush()
                 // 携带 actor 的系统消息 → 作为独立事件分组
                 if (e.actor) {
-                    checkNewEvent(ms, e.actor, 0)
+                    checkNewEvent(ms, e.actor, 0, undefined, undefined, e.snapshot?.actionCount)
                 }
                 lines.push(`  ${e.message}`)
                 break

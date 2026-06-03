@@ -201,15 +201,35 @@ interface BattleLog {
 
 **依赖：** Phase 1
 
-### 8.4.1 武器数据表
+### 8.4.1 武器系统
+
+**武器系统已于 Phase 1 中期重构为个体物品系统。**
+
+武器不再是类别（WeaponType），而是个体物品，每把武器有独立属性：
 
 ```ts
-const WEAPONS: Record<WeaponType, WeaponStats> = {
-    fist: { attrScaling: { strength: 0.8 }, preDelay: 250, stunTime: 300, range: [0, 2] },
-    sword: { attrScaling: { strength: 0.6, technique: 0.4 }, preDelay: 350, stunTime: 400, range: [1, 3] },
-    // ...
+// src/engine/data/weapons.ts
+export type WeaponTag = '劈砍' | '钝击' | '戳刺'
+
+export interface WeaponDef {
+    id: string
+    name: string
+    tags: WeaponTag[] // 招式通过标签匹配武器
+    bound?: boolean // true = 不可更换（御物/开局绑定）
+    attrMods: Partial<Record<AttrName, number>> // 直接修正人物属性
+    parryRate: number
+    range: [number, number]
 }
 ```
+
+**关键改动：**
+
+- 前后摇从武器剥离 → 统一 `BASE_PRE_DELAY=300` / `BASE_STUN_TIME=350`，受身法影响
+- 招式使用 `requiredTags: WeaponTag[]`（空数组 = 无限制）代替 `weaponType`
+- 部分招式有 `extraPreDelay` / `extraStunTime`（如炁弹 +100ms 前摇）
+- 招式绑定标签：正拳→钝击、刺击→戳刺、横扫→劈砍、弹指/震脚→无限制
+- 无背包，一人一把，更换时旧武器永久丢失
+- `bound: true` 的武器不可更换
 
 ### 8.4.2 招式系统
 
