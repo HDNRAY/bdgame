@@ -65,6 +65,9 @@ export type ActionEffect =
     | { type: 'interrupt' }
     | { type: 'knockback'; distance: number }
     | { type: 'limit_uses'; max: number }
+    | { type: 'modify_turn'; deltaMs: number } // 加速/减速
+    | { type: 'cleanse' } // 驱散
+    | { type: 'counter_damage'; ratio: number } // 反击：基于所收伤害比例
 
 /** 主招队列配置 —— 玩家可配置顺序 */
 export interface ActionQueueEntry {

@@ -1,49 +1,42 @@
 /** 触发时机（EventBus 事件） */
 export type TriggerEvent =
-    | 'on_attack' // 自己发起攻击时
-    | 'on_hit' // 自己命中对手时
-    | 'on_take_damage' // 自己受伤时
-    | 'on_dodge' // 自己闪避时
-    | 'on_parry' // 自己招架时
-    | 'on_dodged' // 自己被闪避时
-    | 'on_parried' // 自己被招架时
-    | 'on_buff' // 自己获得 buff 时
-    | 'on_debuff' // 自己获得 debuff 时
-    | 'turn_start' // 自己 event 开始时
-    | 'turn_end' // 自己 event 结束时
-    | 'hp_below' // 血量低于阈值
+    | 'on_attack'
+    | 'on_hit'
+    | 'on_take_damage'
+    | 'on_dodge'
+    | 'on_parry'
+    | 'on_dodged'
+    | 'on_parried'
+    | 'on_buff'
+    | 'on_debuff'
+    | 'turn_start'
+    | 'turn_end'
+    | 'hp_below'
 
 export type TriggerTag = 'defensive' | 'offensive' | 'mobility' | 'utility' | 'counter' | 'recovery' | 'control'
 
-/** 触发器定义 */
+/** 触发器槽：一个触发时机 + 一个触发的招式 */
+export interface TriggerSlot {
+    triggerId: string
+    actionId: string
+}
+
+/** 触发器定义（只定义时机和条件，不绑定具体招式） */
 export interface TriggerDefinition {
     id: string
     name: string
     description: string
     event: TriggerEvent
-    /** 额外条件（如血量阈值、距离等） */
     condition?: {
-        hpBelow?: number // 仅 hp_below 时有效
-        enemyDistance?: number // 对手在特定距离
-        hasStatus?: string // 自身有某状态
+        hpBelow?: number
+        enemyDistance?: number
+        hasStatus?: string
     }
-    /** 效果参数 */
-    effects: TriggerEffect[]
-    slotCost: number // 默认 1
-    apCost?: number // 从下回合 AP 扣
-    maxUses?: number // 整场限次
+    slotCost: number
+    apCost?: number
+    maxUses?: number
     tags: TriggerTag[]
 }
-
-export type TriggerEffect =
-    | { type: 'damage'; value: number; scaling?: Partial<Record<string, number>> }
-    | { type: 'heal'; value: number; ratio?: number } // value 固定值, ratio HP比例
-    | { type: 'status'; status: string; stacks: number }
-    | { type: 'buff'; stat: string; value: number; duration: 'turn' | 'battle' }
-    | { type: 'debuff'; stat: string; value: number; duration: 'turn' | 'battle' }
-    | { type: 'modify_turn'; deltaMs: number } // 加速/减速
-    | { type: 'counter_attack'; damageRatio: number } // 反击（伤害比例）
-    | { type: 'cleanse' } // 驱散负面状态
 
 /** 计算触发槽数: max(1, floor(wisdom/4)) */
 export function calcTriggerSlots(wisdom: number): number {

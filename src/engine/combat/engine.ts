@@ -11,6 +11,7 @@ import {
     calcTurnInterval,
     calcCritChance,
     calcFinalDamage,
+    calcBaseDamage,
 } from '../calc/damage'
 import { resolveAction, canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
@@ -81,16 +82,51 @@ export class BattleEngine {
 
     /** 触发检测 */
     private emit(event: TriggerEvent, self: Character, enemy: Character, tMs: number) {
-        const { log, triggerUses, distance } = this.state
-        const equipped: TriggerDefinition[] = self.triggers
-            .map((id) => getTrigger(id))
-            .filter((t): t is TriggerDefinition => t != null)
+        const { log, triggerUses, distance, turn } = this.state
+        // 从槽中收集匹配的 (trigger, actionId) 对
+        const pairs: { trigger: TriggerDefinition; actionId: string }[] = []
+        for (const slot of self.triggerSlots) {
+            const t = getTrigger(slot.triggerId)
+            if (!t) continue
+            if (t.event !== event) continue
+            pairs.push({ trigger: t, actionId: slot.actionId })
+        }
         const results = processTriggers(
             { event, actor: self, target: enemy, distance: distance.current },
-            equipped,
+            pairs.map((p) => p.trigger),
             triggerUses,
         )
-        for (const r of results) log.logSystem(`[${r.triggered.name}] ${r.log}`, tMs)
+        // 执行配对的动作
+        for (const r of results) {
+            const pair = pairs.find((p) => p.trigger.id === r.triggered.id)
+            if (!pair) continue
+            log.logSystem(`[${r.triggered.name}] ${r.log}`, tMs)
+            const action = getAction(pair.actionId)
+            if (!action) continue
+            // 处理 action effects
+            for (const eff of action.effects ?? []) {
+                switch (eff.type) {
+                    case 'counter_damage': {
+                        const scaling: Partial<Record<AttrName, number>> = { strength: 1.0 }
+                        const base = calcBaseDamage(scaling, self.attrs.getAll())
+                        const dmg = Math.round(base * eff.ratio)
+                        enemy.takeDamage(dmg)
+                        log.logSystem(`[反击] ${self.name} 反击 ${enemy.name} ${dmg} 伤害`, tMs)
+                        break
+                    }
+                    case 'modify_turn':
+                        turn.modifyTime(enemy.id, eff.deltaMs)
+                        break
+                    case 'cleanse':
+                        self.statuses = self.statuses.filter((s) => s.type !== 'stun' && s.type !== 'paralyze')
+                        break
+                }
+            }
+            // 处理 triggerEffect（buff/治愈等）
+            if (action.triggerEffect) {
+                applyTriggerEffect(action.triggerEffect, self, this, action.name, action.id)
+            }
+        }
     }
 
     startEvent(): boolean {

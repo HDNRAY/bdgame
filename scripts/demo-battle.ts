@@ -15,7 +15,7 @@ function show(c: Character, label: string) {
     console.log(`  HP ${c.maxHp}  AP ${c.maxAp}`)
     if (c.skills.length) console.log(`  功法: ${c.skills.join(', ')}`)
     if (c.actionInstances.length) console.log(`  招式: ${c.actionInstances.map((i) => i.name).join(', ')}`)
-    if (c.triggers.length) console.log(`  触发: ${c.triggers.join(', ')}`)
+    if (c.triggerSlots.length) console.log(`  触发: ${c.triggerSlots.map(s => `${s.triggerId}→${s.actionId}`).join(', ')}`)
 }
 
 const p = new Character('p1', '玩家·拳', {
@@ -34,7 +34,10 @@ for (const b of forgingBuffs) p.attrs.modify(b.stat as AttrName, b.value)
     if (a) p.equipAction(a)
 })
 p.skills = ['铁布衫']
-p.triggers = ['counter', 'insight']
+p.triggerSlots = [
+    { triggerId: 'counter', actionId: 'trigger_counter' },
+    { triggerId: 'insight', actionId: 'trigger_insight' },
+]
 
 const o = new Character('o1', '铁枪·张烈', {
     strength: 16,

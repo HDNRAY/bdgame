@@ -1,5 +1,6 @@
 import { AttributeSet } from './attributes'
 import { ActionInstance } from './action-instance'
+import type { TriggerSlot } from './trigger'
 
 export function calcMaxHp(vitality: number): number {
     return 20 + vitality * 10
@@ -15,7 +16,8 @@ export class Character {
     nextTurnApDebt = 0
     skills: string[] = []
     actionInstances: ActionInstance[] = []
-    triggers: string[] = []
+    /** 触发器槽：{ triggerId, actionId } 任意配对 */
+    triggerSlots: TriggerSlot[] = []
     implants: string[] = []
     lifebound?: string
     statuses: import('./status').StatusInstance[] = []
