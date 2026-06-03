@@ -208,6 +208,7 @@ export class BattleEngine {
         const next = turn.peek()
         if (next && next.characterId === player.id) {
             this.state.round++
+            this.state.log.logRoundStart(this.state.round)
             this.state.player.resetAp()
             this.state.opponent.resetAp()
         }

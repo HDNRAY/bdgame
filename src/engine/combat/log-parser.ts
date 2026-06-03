@@ -1,84 +1,77 @@
 import { BattleLog } from './battle-log'
 
-export interface ParsedLogEntry {
-    id: string
-    icon: string
-    summary: string
-    details: string[]
-}
-
-/** 将结构化战斗事件解析为可读文本 */
-export function parseBattleLog(log: BattleLog): ParsedLogEntry[] {
+/** 将结构化战斗事件格式化为可读日志行 */
+export function formatBattleLog(log: BattleLog): string[] {
     const all = log.getAll()
-    const result: ParsedLogEntry[] = []
-    let lines: string[] = []
-
-    function flush() {
-        if (lines.length === 0) return
-        result.push({ id: `f${result.length}`, icon: '⚔', summary: lines[0], details: lines.slice(1) })
-        lines = []
-    }
+    const lines: string[] = []
 
     for (const { event: e } of all) {
         switch (e.type) {
+            case 'battle_start':
+                lines.push(`── ⚔️ ${e.actor} VS ${e.opponent} ──`)
+                break
+
+            case 'round_start':
+                lines.push(`\n── 回合 ${e.round} ──`)
+                break
+
             case 'move':
-                lines.push(`${e.actor} [移动] ${Math.abs(e.delta)}档 →${e.newDistance} [AP${e.apRemaining}]`)
+                lines.push(`[${e.actor}] #移动（${e.apCost}AP） → ${e.newDistance}m [AP${e.apRemaining}]`)
                 break
 
-            case 'attack_start': {
-                const name = e.actionName ? `[${e.actionName}]` : `[${e.weapon}]`
-                lines.push(`${e.actor} ${name}→${e.target} [AP${e.apRemaining}]`)
+            case 'attack_start':
+                // 暂存此行，等待补充命中/伤害信息
+                lines.push(`[${e.actor}] #${e.actionName ?? e.weapon}（${e.apCost}AP） [AP${e.apRemaining}]`)
                 break
-            }
-
-            case 'dodge':
-                // 替换上一行的 → 为闪避符号
-                if (lines.length > 0) {
-                    lines[lines.length - 1] = lines[lines.length - 1].replace(/→.+/, '↭')
-                }
-                break
-
-            case 'parry':
-                // 标记上一行被招架
-                if (lines.length > 0) {
-                    lines[lines.length - 1] += ' ⛨'
-                }
-                break
-
-            case 'damage': {
-                // 追加到上一行
-                const dmg = e.isCrit ? `${e.final}💥` : `${e.final}`
-                if (lines.length > 0) {
-                    const line = lines[lines.length - 1]
-                    if (line.includes('↭') || line.includes('✗')) {
-                        // 被闪避或未命中，不显示伤害
-                    } else if (line.includes('⛨')) {
-                        lines[lines.length - 1] = line.replace(' ⛨', ` ⛨${dmg}`)
-                    } else {
-                        lines[lines.length - 1] = line.replace(/\[AP\d+\]$/, `${dmg} $&`)
-                    }
-                }
-                break
-            }
 
             case 'check_hit':
-                if (!e.result && lines.length > 0) {
-                    lines[lines.length - 1] = lines[lines.length - 1].replace(/\[AP\d+\]$/, '✗ $&')
+                if (!e.result) {
+                    // 替换上一行：追加未命中
+                    const last = lines.pop() ?? ''
+                    lines.push(`${last} → *${e.target} 未命中*`)
                 }
                 break
 
-            case 'defeat': {
-                flush()
-                result.push({ id: `e`, icon: '◆', summary: `🏆 ${e.loser} 败`, details: [] })
+            case 'dodge': {
+                const last = lines.pop() ?? ''
+                lines.push(`${last} → *${e.evader} 闪避*`)
                 break
             }
 
+            case 'parry': {
+                // 标记招架，等 damage 事件补伤害
+                const last = lines.pop() ?? ''
+                lines.push(`${last} → *${e.parrier} 招架`)
+                break
+            }
+
+            case 'damage': {
+                const last = lines.pop() ?? ''
+                if (last.includes('闪避')) {
+                    lines.push(last)  // 闪避了，不追加伤害
+                } else if (last.includes('招架')) {
+                    // 关闭招架行
+                    const suffix = e.isCrit ? ` ${e.final}伤害 暴击!*` : ` ${e.final}伤害*`
+                    lines.push(`${last}${suffix}`)
+                } else if (last.includes('未命中')) {
+                    lines.push(last)  // 未命中，不追加伤害
+                } else {
+                    // 正常命中
+                    const suffix = e.isCrit ? ` → *${e.target} ${e.final}伤害 暴击!*` : ` → *${e.target} ${e.final}伤害*`
+                    lines.push(`${last}${suffix}`)
+                }
+                break
+            }
+
+            case 'defeat':
+                lines.push(`\n🏆 ${e.loser} 败 — ${e.winner} 胜`)
+                break
+
             case 'system':
-                lines.push(e.message)
+                lines.push(`  ${e.message}`)
                 break
         }
     }
 
-    flush()
-    return result
+    return lines
 }

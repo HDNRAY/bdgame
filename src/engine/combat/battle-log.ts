@@ -3,30 +3,13 @@ import type { WeaponType } from '../calc/damage'
 /** 结构化战斗事件 —— 纯数据，无描述文字 */
 export type BattleEvent =
     | { type: 'battle_start'; actor: string; opponent: string }
+    | { type: 'round_start'; round: number }
     | { type: 'move'; actor: string; delta: number; newDistance: number; apCost: number; apRemaining: number }
-    | {
-          type: 'attack_start'
-          actor: string
-          target: string
-          weapon: WeaponType
-          actionName?: string
-          apCost: number
-          apRemaining: number
-      }
+    | { type: 'attack_start'; actor: string; target: string; weapon: WeaponType; actionName?: string; apCost: number; apRemaining: number }
     | { type: 'check_hit'; actor: string; target: string; hitChance: number; roll: number; result: boolean }
     | { type: 'dodge'; actor: string; evader: string }
     | { type: 'parry'; actor: string; parrier: string }
-    | {
-          type: 'damage'
-          actor: string
-          target: string
-          base: number
-          distanceMult: number
-          isCrit: boolean
-          isParried: boolean
-          final: number
-          blocked: number
-      }
+    | { type: 'damage'; actor: string; target: string; base: number; distanceMult: number; isCrit: boolean; isParried: boolean; final: number; blocked: number }
     | { type: 'defeat'; loser: string; winner: string }
     | { type: 'system'; message: string }
 
@@ -52,6 +35,10 @@ export class BattleLog {
     /** 便捷方法 */
     logBattleStart(actor: string, opponent: string): void {
         this.push({ type: 'battle_start', actor, opponent })
+    }
+
+    logRoundStart(round: number): void {
+        this.push({ type: 'round_start', round })
     }
 
     logMove(actor: string, delta: number, newDistance: number, apCost: number, apRemaining: number): void {
