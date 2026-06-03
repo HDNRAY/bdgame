@@ -41,7 +41,7 @@ export function formatBattleLog(log: BattleLog): string[] {
             case 'move':
                 flush()
                 checkNewEvent(ms, e.actor, e.apRemaining + e.apCost)
-                lines.push(`  #移动→${e.newDistance}m [AP${e.apRemaining}]`)
+                lines.push(`  #移动→${e.newDistance.toFixed(1)}m [AP${e.apRemaining}]`)
                 break
 
             case 'attack_start':
@@ -84,9 +84,9 @@ export function formatBattleLog(log: BattleLog): string[] {
                     break
                 }
                 if (t.includes('招架')) {
-                    pending.text += e.isCrit ? ` ${e.final}暴!*` : ` ${e.final}*`
+                    pending.text += e.isCrit ? ` ${e.final}暴*` : ` ${e.final}*`
                 } else {
-                    pending.text += e.isCrit ? ` → *${e.target} ${e.final}暴!*` : ` → *${e.target} ${e.final}伤害*`
+                    pending.text += e.isCrit ? ` → *${e.target} ${e.final}暴*` : ` → *${e.target} ${e.final}伤害*`
                 }
                 flush()
                 break

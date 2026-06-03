@@ -197,20 +197,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
 ]
 
 /** 辅招 */
-export const BONUS_ACTIONS: ActionDefinition[] = [
-    {
-        id: 'power_double',
-        name: '蓄力',
-        weaponType: 'fist',
-        apCost: 2,
-        bestDistance: 1,
-        tags: [],
-        effects: [],
-        bonus: true,
-        bonusTiming: 'before_main',
-        triggerEffect: { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: 'turn' },
-    },
-]
+export const BONUS_ACTIONS: ActionDefinition[] = []
 
 /** 合并所有招式（含辅招、炁技） */
 const ALL_ACTIONS = [...MVP_ACTIONS, ...BONUS_ACTIONS, ...QI_SKILLS]

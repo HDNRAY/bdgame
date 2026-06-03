@@ -7,12 +7,12 @@ import type { ActionInstance } from '../entities/action-instance'
 function doEvent(engine: BattleEngine, self: Character, action: ActionInstance) {
     const { state } = engine
     const stats = WEAPONS[action.def.weaponType]
+    // 辅招（凝炁/聚炁）在移动前释放
+    tryBonus(engine, self, 'before_main', action.apCost)
     let usedMain = false
 
     while (state.phase === 'fighting') {
         if (!usedMain && state.distance.inRange(stats.range[0], stats.range[1])) {
-            if (self.ap < action.apCost) break
-            tryBonus(engine, self, 'before_main', action.apCost)
             if (self.ap < action.apCost) break
             engine.execute({ type: 'attack', actionId: action.id, weaponType: action.def.weaponType })
             usedMain = true

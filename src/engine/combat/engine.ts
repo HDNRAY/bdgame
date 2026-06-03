@@ -116,12 +116,15 @@ export class BattleEngine {
 
         switch (cmd.type) {
             case 'move': {
-                const ap = Math.abs(cmd.bestDistance ?? 0)
+                const dir = Math.sign(cmd.bestDistance ?? -1)
+                const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
+                const ap = 1
                 if (!self.spendAp(ap)) {
                     log.logSystem(`${self.name} AP不足 无法移动`, tMs)
                     break
                 }
-                const a = distance.move(cmd.bestDistance ?? 0)
+                const moved = dir * perAp
+                const a = distance.move(moved)
                 r.distanceDelta = a
                 log.logMove(self.name, a, distance.current, ap, self.ap, tMs) // 移动触发流血
                 for (const s of self.statuses) {
@@ -319,15 +322,6 @@ export function applyTriggerEffect(
             const desc = entries.map(([s, v]) => `${s}+${v}`).join(' ')
             for (const [attr, value] of entries) self.attrs.modify(attr, value)
             engine.state.log.logSystem(`[${tag}] ${self.name} ${desc}`, tMs, actorName)
-            break
-        }
-        case 'stat_buff_all': {
-            const desc = e.buffs.map((b) => `${b.stat}+${b.value}`).join(' ')
-            for (const b of e.buffs) {
-                const attr = b.stat as AttrName
-                self.attrs.modify(attr, b.value)
-            }
-            engine.state.log.logSystem(`[${tag}] ${self.name} 全属性 ${desc}`, tMs, actorName)
             break
         }
         case 'stat_restore': {
