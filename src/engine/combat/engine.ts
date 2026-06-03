@@ -273,10 +273,16 @@ export class BattleEngine {
                             const sc = eff.chance ?? 0.5
                             const roll = Math.random()
                             if (!(roll < sc)) {
-                                log.logSystem(`[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 未命中`, tMs)
+                                log.logSystem(
+                                    `[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 未命中`,
+                                    tMs,
+                                )
                                 continue
                             }
-                            log.logSystem(`[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 命中`, tMs)
+                            log.logSystem(
+                                `[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 命中`,
+                                tMs,
+                            )
                             const existing = enemy.statuses.find((s) => s.type === eff.status)
                             if (existing) {
                                 existing.stacks += eff.stacks

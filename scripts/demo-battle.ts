@@ -21,7 +21,7 @@ function show(c: Character, label: string) {
 const p = new Character('p1', '玩家·拳', {
     strength: 14,
     vitality: 12,
-    dexterity: 10,
+    dexterity: 16,
     technique: 10,
     insight: 8,
     wisdom: 6,
