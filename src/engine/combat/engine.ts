@@ -15,12 +15,7 @@ export interface ActionCommand {
 }
 
 export interface ActionResult {
-    damage: number
-    hit: boolean
-    parried: boolean
-    dodged: boolean
-    crit: boolean
-    distanceDelta: number
+    damage: number; hit: boolean; parried: boolean; dodged: boolean; crit: boolean; distanceDelta: number
 }
 
 export type BattlePhase = 'idle' | 'fighting' | 'finished'
@@ -32,8 +27,9 @@ export interface BattleState {
     distance: DistanceSystem
     turn: TurnManager
     log: BattleLog
-    round: number
 }
+
+const t = (e: { turn: TurnManager }) => e.turn.currentTime
 
 export class BattleEngine {
     state!: BattleState
@@ -46,19 +42,11 @@ export class BattleEngine {
         player.resetAp()
         opponent.resetAp()
         const log = new BattleLog()
-        log.logBattleStart(player.name, opponent.name)
         const tm = new TurnManager()
         tm.addCharacter(player, 0)
         tm.addCharacter(opponent, 0)
-        this.state = {
-            phase: 'fighting',
-            player,
-            opponent,
-            distance: new DistanceSystem(startDistance),
-            turn: tm,
-            log,
-            round: 1,
-        }
+        log.logBattleStart(player.name, opponent.name, 0)
+        this.state = { phase: 'fighting', player, opponent, distance: new DistanceSystem(startDistance), turn: tm, log }
     }
 
     execute(cmd: ActionCommand): ActionResult {
@@ -68,88 +56,50 @@ export class BattleEngine {
         const self = isPlayer ? player : opponent
         const enemy = isPlayer ? opponent : player
 
-        const result: ActionResult = {
-            damage: 0,
-            hit: false,
-            parried: false,
-            dodged: false,
-            crit: false,
-            distanceDelta: 0,
-        }
+        const result: ActionResult = { damage: 0, hit: false, parried: false, dodged: false, crit: false, distanceDelta: 0 }
 
         switch (cmd.type) {
             case 'move': {
                 const delta = cmd.bestDistance ?? 0
                 const actual = distance.move(delta)
                 result.distanceDelta = actual
-                log.logMove(self.name, actual, distance.current, 0, self.ap)
+                log.logMove(self.name, actual, distance.current, 0, self.ap, turn.currentTime)
                 break
             }
 
             case 'attack': {
-                // 查找招式定义
                 const action = cmd.actionId ? getAction(cmd.actionId) : undefined
                 const weapon = cmd.weaponType ?? 'fist'
                 const actionName = action?.name ?? weapon
 
-                // 条件检测
                 if (action) {
                     const check = canExecuteAction(action, self, distance.current)
-                    if (!check.ok) {
-                        log.logSystem(`${self.name} [${actionName}] ${check.reason}`)
-                        break
-                    }
+                    if (!check.ok) { log.logSystem(`${self.name} ${check.reason}`, turn.currentTime); break }
                 }
+                if (!self.spendAp(action?.apCost ?? 0)) { log.logSystem(`${self.name} AP不足`, turn.currentTime); break }
 
-                if (!self.spendAp(action?.apCost ?? 0)) {
-                    log.logSystem(`${self.name} AP不足`)
-                    break
-                }
-
-                // 距离检测（武器范围）
                 const stats = WEAPONS[weapon]
                 if (!distance.inRange(stats.range[0], stats.range[1])) {
-                    log.logSystem(`${self.name} 距离不合适`)
-                    break
+                    log.logSystem(`${self.name} 距离不合适`, turn.currentTime); break
                 }
 
-                log.logAttack(self.name, enemy.name, weapon, action?.apCost ?? 0, self.ap, actionName)
+                log.logAttack(self.name, enemy.name, weapon, action?.apCost ?? 0, self.ap, turn.currentTime, actionName)
 
-                // 命中判定
                 const hitChance = calcHitChance(self.attrs.get('technique'), enemy.attrs.get('dexterity'))
                 result.hit = Math.random() < hitChance
-                log.logHitCheck(self.name, enemy.name, hitChance, Math.random(), result.hit)
+                log.logHitCheck(self.name, enemy.name, hitChance, Math.random(), result.hit, turn.currentTime)
                 if (!result.hit) break
 
-                // 闪避
                 result.dodged = Math.random() < calcDodgeChance(enemy.attrs.get('dexterity'))
-                if (result.dodged) {
-                    log.logDodge(self.name, enemy.name)
-                    break
-                }
+                if (result.dodged) { log.logDodge(self.name, enemy.name, turn.currentTime); break }
 
-                // 招架
                 const parryChance = calcParryChance(enemy.attrs.get('strength'), stats.parryRate ?? 0)
                 result.parried = Math.random() < parryChance
-                if (result.parried) log.logParry(self.name, enemy.name)
+                if (result.parried) log.logParry(self.name, enemy.name, turn.currentTime)
 
-                // 伤害计算
                 const resolved = action
                     ? resolveAction(action, self, enemy, distance.current)
-                    : resolveAction(
-                          {
-                              id: 'basic',
-                              name: weapon,
-                              weaponType: weapon,
-                              apCost: 0,
-                              bestDistance: 1,
-                              tags: [],
-                              effects: [{ type: 'damage', scaling: stats.attrScaling }],
-                          },
-                          self,
-                          enemy,
-                          distance.current,
-                      )
+                    : resolveAction({ id: 'basic', name: weapon, weaponType: weapon, apCost: 0, bestDistance: 1, tags: [], effects: [{ type: 'damage', scaling: stats.attrScaling }] }, self, enemy, distance.current)
 
                 const finalDamage = result.parried ? Math.round(resolved.final * 0.4) : resolved.final
                 const blocked = resolved.final - finalDamage
@@ -157,41 +107,19 @@ export class BattleEngine {
                 result.damage = finalDamage
                 result.crit = resolved.isCrit
 
-                // 自伤
-                if (resolved.selfDamage > 0) {
-                    self.takeDamage(resolved.selfDamage)
-                }
-
-                log.logDamage(
-                    self.name,
-                    enemy.name,
-                    resolved.base,
-                    resolved.distanceMult,
-                    resolved.isCrit,
-                    result.parried,
-                    finalDamage,
-                    blocked,
-                )
-
-                // 击退
-                if (resolved.knockbackDistance > 0) {
-                    distance.move(resolved.knockbackDistance)
-                }
+                if (resolved.selfDamage > 0) self.takeDamage(resolved.selfDamage)
+                log.logDamage(self.name, enemy.name, resolved.base, resolved.distanceMult, resolved.isCrit, result.parried, finalDamage, blocked, turn.currentTime)
+                if (resolved.knockbackDistance > 0) distance.move(resolved.knockbackDistance)
 
                 if (!enemy.isAlive()) {
-                    log.logDefeat(enemy.name, self.name)
+                    log.logDefeat(enemy.name, self.name, turn.currentTime)
                     this.state.phase = 'finished'
                 }
                 break
             }
 
-            case 'defend':
-                log.logSystem(`${self.name} 防御`)
-                break
-
-            case 'wait':
-                log.logSystem(`${self.name} 等待`)
-                break
+            case 'defend': log.logSystem(`${self.name} 防御`, turn.currentTime); break
+            case 'wait':   log.logSystem(`${self.name} 等待`, turn.currentTime); break
         }
 
         this.advanceTurn(self, cmd.weaponType)
@@ -199,16 +127,17 @@ export class BattleEngine {
     }
 
     private advanceTurn(actor: Character, weaponType: WeaponType = 'fist'): void {
-        const { turn, player } = this.state
+        const { turn, player, log } = this.state
         const stats = WEAPONS[weaponType]
+        // 行动间隔 = 身法基础间隔 + 武器前摇硬直
+        // 基础 1000ms，每点身法 -30ms，最低 200ms
+        const dexInterval = Math.max(200, 1000 - actor.attrs.get('dexterity') * 30)
+        const totalDelay = dexInterval + stats.preDelay + stats.stunTime
         turn.next()
-        turn.scheduleNext(actor.id, stats.stunTime + stats.preDelay)
-
-        // 当下一行动者是玩家时，重置双方 AP（新的一轮）
+        turn.scheduleNext(actor.id, totalDelay)
         const next = turn.peek()
         if (next && next.characterId === player.id) {
-            this.state.round++
-            this.state.log.logRoundStart(this.state.round)
+            log.logSystem(`── 新轮 ──`, turn.currentTime)
             this.state.player.resetAp()
             this.state.opponent.resetAp()
         }

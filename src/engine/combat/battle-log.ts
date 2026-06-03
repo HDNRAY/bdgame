@@ -1,9 +1,7 @@
 import type { WeaponType } from '../calc/damage'
 
-/** 结构化战斗事件 —— 纯数据，无描述文字 */
 export type BattleEvent =
     | { type: 'battle_start'; actor: string; opponent: string }
-    | { type: 'round_start'; round: number }
     | { type: 'move'; actor: string; delta: number; newDistance: number; apCost: number; apRemaining: number }
     | { type: 'attack_start'; actor: string; target: string; weapon: WeaponType; actionName?: string; apCost: number; apRemaining: number }
     | { type: 'check_hit'; actor: string; target: string; hitChance: number; roll: number; result: boolean }
@@ -15,78 +13,52 @@ export type BattleEvent =
 
 interface LogEntry {
     id: number
-    timestamp: number
+    timelineMs: number
     event: BattleEvent
 }
 
-/** 战斗日志 —— 只存结构化数据 */
 export class BattleLog {
     private entries: LogEntry[] = []
     private nextId = 0
 
-    push(event: BattleEvent): void {
-        this.entries.push({
-            id: this.nextId++,
-            timestamp: Date.now(),
-            event,
-        })
+    push(event: BattleEvent, timelineMs: number): void {
+        this.entries.push({ id: this.nextId++, timelineMs, event })
     }
 
-    /** 便捷方法 */
-    logBattleStart(actor: string, opponent: string): void {
-        this.push({ type: 'battle_start', actor, opponent })
+    logBattleStart(actor: string, opponent: string, timelineMs: number): void {
+        this.push({ type: 'battle_start', actor, opponent }, timelineMs)
     }
 
-    logRoundStart(round: number): void {
-        this.push({ type: 'round_start', round })
+    logMove(actor: string, delta: number, newDistance: number, apCost: number, apRemaining: number, timelineMs: number): void {
+        this.push({ type: 'move', actor, delta, newDistance, apCost, apRemaining }, timelineMs)
     }
 
-    logMove(actor: string, delta: number, newDistance: number, apCost: number, apRemaining: number): void {
-        this.push({ type: 'move', actor, delta, newDistance, apCost, apRemaining })
+    logAttack(actor: string, target: string, weapon: WeaponType, apCost: number, apRemaining: number, timelineMs: number, actionName?: string): void {
+        this.push({ type: 'attack_start', actor, target, weapon, apCost, apRemaining, actionName }, timelineMs)
     }
 
-    logAttack(
-        actor: string,
-        target: string,
-        weapon: WeaponType,
-        apCost: number,
-        apRemaining: number,
-        actionName?: string,
-    ): void {
-        this.push({ type: 'attack_start', actor, target, weapon, apCost, apRemaining, actionName })
+    logHitCheck(actor: string, target: string, hitChance: number, roll: number, result: boolean, timelineMs: number): void {
+        this.push({ type: 'check_hit', actor, target, hitChance, roll, result }, timelineMs)
     }
 
-    logHitCheck(actor: string, target: string, hitChance: number, roll: number, result: boolean): void {
-        this.push({ type: 'check_hit', actor, target, hitChance, roll, result })
+    logDodge(actor: string, evader: string, timelineMs: number): void {
+        this.push({ type: 'dodge', actor, evader }, timelineMs)
     }
 
-    logDodge(actor: string, evader: string): void {
-        this.push({ type: 'dodge', actor, evader })
+    logParry(actor: string, parrier: string, timelineMs: number): void {
+        this.push({ type: 'parry', actor, parrier }, timelineMs)
     }
 
-    logParry(actor: string, parrier: string): void {
-        this.push({ type: 'parry', actor, parrier })
+    logDamage(actor: string, target: string, base: number, distanceMult: number, isCrit: boolean, isParried: boolean, final: number, blocked: number, timelineMs: number): void {
+        this.push({ type: 'damage', actor, target, base, distanceMult, isCrit, isParried, final, blocked }, timelineMs)
     }
 
-    logDamage(
-        actor: string,
-        target: string,
-        base: number,
-        distanceMult: number,
-        isCrit: boolean,
-        isParried: boolean,
-        final: number,
-        blocked: number,
-    ): void {
-        this.push({ type: 'damage', actor, target, base, distanceMult, isCrit, isParried, final, blocked })
+    logDefeat(loser: string, winner: string, timelineMs: number): void {
+        this.push({ type: 'defeat', loser, winner }, timelineMs)
     }
 
-    logDefeat(loser: string, winner: string): void {
-        this.push({ type: 'defeat', loser, winner })
-    }
-
-    logSystem(message: string): void {
-        this.push({ type: 'system', message })
+    logSystem(message: string, timelineMs: number): void {
+        this.push({ type: 'system', message }, timelineMs)
     }
 
     getAll(): LogEntry[] {
