@@ -23,26 +23,31 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
         cmds.push({ type: 'bonus', actionId: inst.id })
     }
 
-    // 3. 移动：如果不在武器范围内，走到范围边缘
-    const dist = state.distance.current
-    if (dist > stats.range[1]) {
-        const need = dist - stats.range[1]
+    // 3. 移动：如果不在武器范围内，走到范围边缘（同时虚拟更新距离供攻击检查）
+    let virtualDist = state.distance.current
+    let movedAp = 0
+    if (virtualDist > stats.range[1]) {
+        const need = virtualDist - stats.range[1]
         const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
         const apNeeded = Math.ceil(need / perAp)
         if (self.ap >= apNeeded) {
             cmds.push({ type: 'move', bestDistance: -apNeeded })
+            movedAp = apNeeded
+            virtualDist -= perAp * apNeeded
         }
-    } else if (dist < stats.range[0]) {
-        const need = stats.range[0] - dist
+    } else if (virtualDist < stats.range[0]) {
+        const need = stats.range[0] - virtualDist
         const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
         const apNeeded = Math.ceil(need / perAp)
         if (self.ap >= apNeeded) {
             cmds.push({ type: 'move', bestDistance: apNeeded })
+            movedAp = apNeeded
+            virtualDist += perAp * apNeeded
         }
     }
 
-    // 4. 攻击
-    if (self.ap >= mainDef.apCost && state.distance.inRange(stats.range[0], stats.range[1])) {
+    // 4. 攻击（用虚拟距离检查）
+    if (self.ap - movedAp >= mainDef.apCost && virtualDist >= stats.range[0] && virtualDist <= stats.range[1]) {
         cmds.push({ type: 'attack', actionId: mainId, weaponType: mainDef.weaponType })
     }
 
