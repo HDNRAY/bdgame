@@ -61,14 +61,12 @@ export function resolveAction(
     }
 
     const distMult = isFixedDamage ? 1 : calcDistanceMultiplier(currentDistance, action.bestDistance)
-    const critChance = isFixedDamage ? 0 : calcCritChance(attacker.attrs.get('technique'))
-    const isCrit = Math.random() < critChance
-    const final = calcFinalDamage(base + crippleBonus, distMult, isCrit)
+    const final = calcFinalDamage(base + crippleBonus, distMult, false)
 
     return {
         base,
         distanceMult: distMult,
-        isCrit,
+        isCrit: false,
         final,
         selfDamage,
         crippleBonus,

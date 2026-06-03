@@ -78,5 +78,3 @@ export function getForgingBuffs(level: number): { stat: string; value: number }[
     }
     return buffs
 }
-
-

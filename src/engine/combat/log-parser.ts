@@ -76,6 +76,12 @@ export function formatBattleLog(log: BattleLog): string[] {
                 if (pending) pending.text += ' → *招架'
                 break
 
+            case 'check_crit':
+                if (pending) {
+                    pending.text += ` [暴${(e.critChance * 100).toFixed(0)}% 骰${(e.roll * 100).toFixed(0)}%]`
+                }
+                break
+
             case 'damage': {
                 if (!pending) break
                 const t = pending.text
@@ -83,10 +89,11 @@ export function formatBattleLog(log: BattleLog): string[] {
                     flush()
                     break
                 }
+                const critTag = e.isCrit ? ' [暴]' : ''
                 if (t.includes('招架')) {
-                    pending.text += e.isCrit ? ` ${e.final}暴*` : ` ${e.final}*`
+                    pending.text += `${critTag} ${e.final}*`
                 } else {
-                    pending.text += e.isCrit ? ` → *${e.target} ${e.final}暴*` : ` → *${e.target} ${e.final}伤害*`
+                    pending.text += ` → *${e.target} ${e.final}${critTag}*`
                 }
                 flush()
                 break

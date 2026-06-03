@@ -3,7 +3,7 @@ import { DistanceSystem } from './distance'
 import { TurnManager, SYS_PREFIX } from './turn'
 import { BattleLog } from './battle-log'
 import type { WeaponType } from '../calc/damage'
-import { WEAPONS, calcHitChance, calcParryChance, calcDodgeChance, calcTurnInterval } from '../calc/damage'
+import { WEAPONS, calcHitChance, calcParryChance, calcDodgeChance, calcTurnInterval, calcCritChance, calcFinalDamage } from '../calc/damage'
 import { resolveAction, canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
@@ -204,6 +204,14 @@ export class BattleEngine {
                           distance.current,
                       )
 
+                // 记录暴击掷骰
+                const critChance = calcCritChance(self.attrs.get('technique'))
+                const critRoll = Math.random()
+                const isCrit = critRoll < critChance
+                log.logCritCheck(self.name, critChance, critRoll, isCrit, tMs)
+                resolved.isCrit = isCrit
+                resolved.final = calcFinalDamage(resolved.base + resolved.crippleBonus, resolved.distanceMult, isCrit)
+
                 const finalDmg = r.parried ? Math.round(resolved.final * 0.4) : resolved.final
                 enemy.takeDamage(finalDmg)
                 r.damage = finalDmg
@@ -344,7 +352,7 @@ export function handleSystemEvent(engine: BattleEngine, eventId: string): void {
         const buffKey = `qi_gather_${charId}`
         const data = pendingBuffs.get(buffKey)
         if (data) {
-            applyTriggerEffect({ type: 'stat_restore', stat: 'strength', value: data.restoreValue }, char, engine)
+            applyTriggerEffect({ type: 'stat_restore', stat: 'strength', value: data.restoreValue }, char, engine, '聚炁')
             pendingBuffs.delete(buffKey)
         }
     }
