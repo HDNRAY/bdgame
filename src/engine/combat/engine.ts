@@ -9,6 +9,7 @@ import { getAction } from '../data/actions'
 import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
 import { getTrigger } from '../data/triggers'
 import { processTriggers } from './trigger-system'
+import { createBleed, triggerBleed } from '../entities/status'
 
 export interface ActionCommand {
     type: 'attack' | 'move' | 'defend' | 'wait'
@@ -113,8 +114,13 @@ export class BattleEngine {
                 }
                 const a = distance.move(cmd.bestDistance ?? 0)
                 r.distanceDelta = a
-                log.logMove(self.name, a, distance.current, ap, self.ap, tMs)
-                break
+                log.logMove(self.name, a, distance.current, ap, self.ap, tMs)                // 移动触发流血
+                for (const s of self.statuses) {
+                    if (s.type === 'bleed') {
+                        const dmg = triggerBleed(s)
+                        if (dmg > 0) { self.takeDamage(dmg); log.logSystem(`[流血] ${self.name} 受到 ${dmg} 流血伤害`, tMs) }
+                    }
+                }                break
             }
             case 'attack': {
                 const action = cmd.actionId ? getAction(cmd.actionId) : undefined
@@ -202,6 +208,22 @@ export class BattleEngine {
 
                 this.emit('on_hit', self, enemy, tMs)
                 this.emit('on_take_damage', enemy, self, tMs)
+
+                // 受击触发流血
+                for (const s of enemy.statuses) {
+                    if (s.type === 'bleed') { const d = triggerBleed(s); if (d > 0) { enemy.takeDamage(d); log.logSystem(`[流血] ${enemy.name} 受到 ${d} 流血伤害`, tMs) } }
+                }
+
+                // 招式附加状态（如刺击→流血）
+                if (action) {
+                    for (const eff of action.effects ?? []) {
+                        if (eff.type === 'status' && r.hit && !r.dodged) {
+                            const existing = enemy.statuses.find(s => s.type === eff.status)
+                            if (existing) { existing.stacks += eff.stacks; log.logSystem(`[${eff.status}] ${enemy.name} 叠${existing.stacks}层`, tMs) }
+                            else if (eff.status === 'bleed') { enemy.statuses.push(createBleed(eff.stacks, 3, self.name)); log.logSystem(`[bleed] ${enemy.name} 流血${eff.stacks}层`, tMs) }
+                        }
+                    }
+                }
 
                 if (!enemy.isAlive()) {
                     log.logDefeat(enemy.name, self.name, tMs)

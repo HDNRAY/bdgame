@@ -89,8 +89,11 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         weaponType: 'spear',
         apCost: 4,
         bestDistance: 3,
-        tags: [],
-        effects: [{ type: 'damage', scaling: { strength: 1.0 } }],
+        tags: ['bleed'],
+        effects: [
+            { type: 'damage', scaling: { strength: 1.0 } },
+            { type: 'status', status: 'bleed', stacks: 1 },
+        ],
     },
     {
         id: 'sweep',
@@ -192,12 +195,29 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     },
 ]
 
+/** 辅招 */
+export const BONUS_ACTIONS: ActionDefinition[] = [
+    {
+        id: 'power_double',
+        name: '蓄力',
+        weaponType: 'fist',
+        apCost: 2,
+        bestDistance: 1,
+        tags: [],
+        effects: [],
+        bonus: true,
+    },
+]
+
+/** 合并所有招式（含辅招） */
+const ALL_ACTIONS = [...MVP_ACTIONS, ...BONUS_ACTIONS]
+
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {
-    return MVP_ACTIONS.find((a) => a.id === id)
+    return ALL_ACTIONS.find(a => a.id === id)
 }
 
 /** 按武器类型过滤 */
 export function getActionsByWeapon(weapon: string): ActionDefinition[] {
-    return MVP_ACTIONS.filter((a) => a.weaponType === weapon)
+    return ALL_ACTIONS.filter(a => a.weaponType === weapon)
 }

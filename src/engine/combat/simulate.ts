@@ -4,7 +4,20 @@ import { WEAPONS } from '../calc/damage'
 import { getAction } from '../data/actions'
 import type { ActionDefinition } from '../entities/action'
 
-/** 简单 AI：根据武器距离决定行动 */
+/** 检查并执行辅招 */
+function tryBonus(engine: BattleEngine, self: Character, mainAp: number): boolean {
+  if (!self.actions.includes('power_double')) return false
+  if (self.ap < 2 + mainAp) return false
+  // 只触发一次（从列表移除）
+  self.actions = self.actions.filter(a => a !== 'power_double')
+  self.spendAp(2)
+  const original = self.attrs.get('strength')
+  self.attrs.set('strength', original * 2)
+  engine.state.log.logSystem(`[蓄力] ${self.name} 力量 ${original}→${original * 2}!`, engine.state.turn.peek()?.nextActionAt ?? 0)
+  return true
+}
+
+/** 简单 AI：移动→辅招→主招 */
 function doEvent(engine: BattleEngine, self: Character, action: ActionDefinition) {
     const { state } = engine
     const stats = WEAPONS[action.weaponType]
@@ -13,8 +26,10 @@ function doEvent(engine: BattleEngine, self: Character, action: ActionDefinition
     while (state.phase === 'fighting') {
         const dist = state.distance.current
 
-        // 在范围内且没打过 → 攻击
-        if (!usedMain && state.distance.inRange(stats.range[0], stats.range[1])) {
+// 在范围内且没打过 → 先试辅招，再主招
+    if (!usedMain && state.distance.inRange(stats.range[0], stats.range[1])) {
+      if (self.ap < action.apCost) break
+      tryBonus(engine, self, action.apCost)
             if (self.ap < action.apCost) break
             engine.execute({ type: 'attack', actionId: action.id, weaponType: action.weaponType })
             usedMain = true

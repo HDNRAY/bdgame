@@ -18,6 +18,7 @@ export class Character {
     triggers: string[] = []
     implants: string[] = []
     lifebound?: string
+    statuses: import('./status').StatusInstance[] = []
 
     constructor(id: string, name: string, attrs?: Partial<Record<string, number>>) {
         this.id = id
