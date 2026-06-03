@@ -8,7 +8,7 @@ import type { ActionInstance } from '../entities/action-instance'
 function doEvent(engine: BattleEngine, self: Character, action: ActionInstance) {
     const { state } = engine
     const stats = WEAPONS[action.def.weaponType]
-    // 辅招（凝炁/聚炁）在移动前释放
+    // 辅招（凝炁/聚炁）在行动前释放
     tryBonus(engine, self, 'before_main', action.apCost)
     let usedMain = false
 
@@ -41,6 +41,7 @@ function doEvent(engine: BattleEngine, self: Character, action: ActionInstance) 
     }
 }
 
+/** 一场行动序列的完整模拟 */
 export function simulateFight(
     player: Character,
     opponent: Character,

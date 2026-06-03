@@ -7,7 +7,7 @@ export interface TurnEntry {
     nextActionAt: number // 时间轴上的绝对时间 ms
 }
 
-/** 回合管理器（时间轴） */
+/** 行动管理器（时间轴） */
 export class TurnManager {
     private time = 0
     private queue: TurnEntry[] = []
@@ -26,6 +26,15 @@ export class TurnManager {
         this.queue.push({
             characterId: `${SYS_PREFIX}${id}`,
             nextActionAt: this.time + delayMs,
+        })
+        this.sort()
+    }
+
+    /** 在指定绝对时间调度系统事件 */
+    scheduleSystemEventAt(id: string, targetTime: number): void {
+        this.queue.push({
+            characterId: `${SYS_PREFIX}${id}`,
+            nextActionAt: targetTime,
         })
         this.sort()
     }

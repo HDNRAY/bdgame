@@ -57,7 +57,7 @@ export class BattleEngine {
         this.init(p, o, d)
     }
 
-    /** 战斗开始：触发所有 battle_start 被动（锻体等） */
+    /** 战斗开始 */
     init(p: Character, o: Character, d = 4): void {
         p.resetAp()
         o.resetAp()
@@ -354,11 +354,13 @@ export function applyTriggerEffect(
             const old = self.attrs.get(attr)
             self.attrs.set(attr, old * e.multiplier)
             engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`, tMs, actorName)
-            // 持续一回合 → 调度 buff 消失事件
+            // 持续2次行动：基于身法的间隔×2
             if (e.duration === 'turn') {
+                const dex = self.attrs.get('dexterity')
+                const interval = Math.round(300 + 60000 / (100 + dex * 10))
                 const buffKey = `qi_gather_${self.id}`
                 engine.state.pendingBuffs.set(buffKey, { restoreValue: old })
-                engine.state.turn.scheduleSystemEvent(`buff_end_${buffKey}`, 50)
+                engine.state.turn.scheduleSystemEventAt(`buff_end_${buffKey}`, engine.state.turn.currentTime + interval * 2)
             }
             break
         }

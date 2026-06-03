@@ -16,9 +16,9 @@ export function formatBattleLog(log: BattleLog): string[] {
             lastTime = ms
             lastActor = actor
             if (ap > 0) {
-                lines.push(`── Event ${t(ms)} [${actor}] AP${ap} ──`)
+                lines.push(`── 行动 ${t(ms)} [${actor}] AP${ap} ──`)
             } else {
-                lines.push(`── Event ${t(ms)} [${actor}] ──`)
+                lines.push(`── 行动 ${t(ms)} [${actor}] ──`)
             }
         }
     }
