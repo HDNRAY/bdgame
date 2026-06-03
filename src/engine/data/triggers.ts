@@ -69,3 +69,7 @@ export const MVP_TRIGGERS: TriggerDefinition[] = [
 export function getTrigger(id: string): TriggerDefinition | undefined {
     return MVP_TRIGGERS.find((t) => t.id === id)
 }
+
+export function getTriggerByEvent(event: string): TriggerDefinition | undefined {
+    return MVP_TRIGGERS.find((t) => t.event === event)
+}

@@ -16,7 +16,7 @@ export class Character {
     nextTurnApDebt = 0
     skills: string[] = []
     actionInstances: ActionInstance[] = []
-    /** 触发器槽：{ triggerId, actionId } 任意配对 */
+    /** 触发器槽：{ event, actionId } 任意配对 */
     triggerSlots: TriggerSlot[] = []
     implants: string[] = []
     lifebound?: string

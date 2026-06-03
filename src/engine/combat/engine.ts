@@ -16,7 +16,7 @@ import {
 import { resolveAction, canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
-import { getTrigger } from '../data/triggers'
+import { getTrigger, getTriggerByEvent } from '../data/triggers'
 import { processTriggers } from './trigger-system'
 import { createBleed, createPoison, triggerBleed } from '../entities/status'
 import type { BonusTiming, BonusTriggerEffect } from '../entities/action'
@@ -86,9 +86,9 @@ export class BattleEngine {
         // 从槽中收集匹配的 (trigger, actionId) 对
         const pairs: { trigger: TriggerDefinition; actionId: string }[] = []
         for (const slot of self.triggerSlots) {
-            const t = getTrigger(slot.triggerId)
+            if (slot.event !== event) continue
+            const t = getTriggerByEvent(slot.event)
             if (!t) continue
-            if (t.event !== event) continue
             pairs.push({ trigger: t, actionId: slot.actionId })
         }
         const results = processTriggers(

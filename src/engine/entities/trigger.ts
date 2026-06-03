@@ -17,7 +17,7 @@ export type TriggerTag = 'defensive' | 'offensive' | 'mobility' | 'utility' | 'c
 
 /** 触发器槽：一个触发时机 + 一个触发的招式 */
 export interface TriggerSlot {
-    triggerId: string
+    event: TriggerEvent
     actionId: string
 }
 
