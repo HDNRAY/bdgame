@@ -25,6 +25,9 @@ export interface StatusInstance {
 
     // 通用
     remainingTicks?: number
+
+    /** 每层独立计时用的应用ID（如麻痹独立层） */
+    _appId?: string
 }
 
 /** 创建灼烧 */

@@ -389,6 +389,11 @@ export class BattleEngine {
             this.#handleBuffEnd(eventId)
         } else if (eventId.startsWith('tick_poison_') || eventId.startsWith('tick_burn_')) {
             this.#handleStatusTick(eventId)
+        } else if (eventId.startsWith('paralyze_end_')) {
+            this.#handleParalyzeEnd(eventId)
+        } else if (eventId.startsWith('stun_reset_')) {
+            const charId = eventId.slice('stun_reset_'.length)
+            this.state.pendingBuffs.delete(`stun_track_${charId}`)
         }
     }
 
@@ -406,11 +411,8 @@ export class BattleEngine {
         if (!char) return
         const actionId = buffKey.slice(0, sepIdx)
         const action = getAction(actionId)
-        this.#applyTriggerEffect(
-            { type: 'stat_restore', stat: data.stat, value: data.restoreValue },
-            char,
-            action?.name ?? actionId,
-        )
+        const buffName = action?.name ?? (actionId.startsWith('paralyze') ? '麻痹' : actionId)
+        this.#applyTriggerEffect({ type: 'stat_restore', stat: data.stat, value: data.restoreValue }, char, buffName)
         this.state.pendingBuffs.delete(buffKey)
     }
 
@@ -438,6 +440,33 @@ export class BattleEngine {
             if (burn.remainingTicks && burn.remainingTicks > 0) {
                 turn.scheduleSystemEventAt(eventId, tMs + 1000)
             }
+        }
+    }
+
+    /** 麻痹单层到期 */
+    #handleParalyzeEnd(eventId: string): void {
+        const appId = eventId.slice('paralyze_end_'.length)
+        const data = this.state.pendingBuffs.get(`para_${appId}`)
+        if (!data || data.stat !== 'paralyze') return
+        const stacks = data.restoreValue
+        this.state.pendingBuffs.delete(`para_${appId}`)
+
+        const chars = this.state.characters
+        for (const char of chars) {
+            const entry = char.statuses.find((s) => s.type === 'paralyze')
+            if (!entry) continue
+            entry.stacks -= stacks
+            char.attrs.modify('dexterity', stacks * 2)
+            char.attrs.modify('insight', stacks * 1)
+            this.state.log.logSystem(
+                `[麻痹] ${char.name} 恢复${stacks}层`,
+                this.state.turn.currentTime,
+                this.getSnapshot(),
+            )
+            if (entry.stacks <= 0) {
+                char.statuses = char.statuses.filter((s) => s !== entry)
+            }
+            return
         }
     }
 

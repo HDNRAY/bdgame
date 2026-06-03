@@ -51,55 +51,83 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
 // ── Status 子分发表 ──
 const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
     bleed({ eff: { stacks }, self: { name }, enemy, existing }: StatusCtx) {
-        if (!existing) enemy.statuses.push(createBleed(stacks, 1, name))
+        if (existing) {
+            existing.stacks += stacks
+            return
+        }
+        enemy.statuses.push(createBleed(stacks, 1, name))
     },
     poison({ eff: { stacks }, self: { name }, enemy, engine, tMs, existing }: StatusCtx) {
-        if (!existing) {
-            enemy.statuses.push(createPoison(stacks, name))
-            engine.state.turn.scheduleSystemEventAt(`tick_poison_${enemy.id}`, tMs + 2000)
+        if (existing) {
+            existing.stacks += stacks
+            return
         }
+        enemy.statuses.push(createPoison(stacks, name))
+        const interval = Math.max(500, 2000 - stacks * 200)
+        engine.state.turn.scheduleSystemEventAt(`tick_poison_${enemy.id}`, tMs + interval)
     },
     burn({ eff: { stacks }, self: { name }, enemy, engine, tMs, existing }: StatusCtx) {
-        if (!existing) {
-            enemy.statuses.push(createBurn(stacks, 5, name))
-            engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, tMs + 1000)
+        if (existing) {
+            existing.stacks += stacks
+            return
         }
+        enemy.statuses.push(createBurn(stacks, 5, name))
+        engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, tMs + 1000)
     },
     paralyze({ eff: { stacks }, self: { name }, enemy, engine, tMs, existing }: StatusCtx) {
-        const totalStacks = (existing?.stacks ?? 0) + stacks
-        const dexDebuff = totalStacks * 3
-        const insDebuff = totalStacks * 2
-        if (!existing) {
-            const oldDex = enemy.attrs.get('dexterity')
-            const oldIns = enemy.attrs.get('insight')
-            enemy.attrs.set('dexterity', oldDex - dexDebuff)
-            enemy.attrs.set('insight', oldIns - insDebuff)
-            engine.state.pendingBuffs.set(`paralyze_dex::${enemy.id}`, { restoreValue: oldDex, stat: 'dexterity' })
-            engine.state.pendingBuffs.set(`paralyze_ins::${enemy.id}`, { restoreValue: oldIns, stat: 'insight' })
-            enemy.statuses.push({ type: 'paralyze', stacks, source: name })
+        const duration = 1800
+        const appId = `p${tMs}_${Math.random().toString(36).slice(2, 6)}`
+
+        if (existing) {
+            existing.stacks += stacks
         } else {
-            const origDex =
-                engine.state.pendingBuffs.get(`paralyze_dex::${enemy.id}`)?.restoreValue ?? enemy.attrs.get('dexterity')
-            const origIns =
-                engine.state.pendingBuffs.get(`paralyze_ins::${enemy.id}`)?.restoreValue ?? enemy.attrs.get('insight')
-            enemy.attrs.set('dexterity', origDex - dexDebuff)
-            enemy.attrs.set('insight', origIns - insDebuff)
+            enemy.statuses.push({ type: 'paralyze', stacks, source: name })
         }
-        const duration = 3000
-        engine.state.turn.scheduleSystemEventAt(`buff_end_paralyze_dex::${enemy.id}`, tMs + duration)
-        engine.state.turn.scheduleSystemEventAt(`buff_end_paralyze_ins::${enemy.id}`, tMs + duration)
-        engine.state.log.logSystem(`[麻痹] ${enemy.name} 身法-${dexDebuff} 洞察-${insDebuff}`, tMs, engine.getSnapshot())
+        enemy.attrs.modify('dexterity', -stacks * 2)
+        enemy.attrs.modify('insight', -stacks * 1)
+
+        // 存该层贡献的层数，到期时扣除
+        engine.state.pendingBuffs.set(`para_${appId}`, { restoreValue: stacks, stat: 'paralyze' })
+        engine.state.turn.scheduleSystemEventAt(`paralyze_end_${appId}`, tMs + duration)
+
+        const total = existing?.stacks ?? stacks
+        engine.state.log.logSystem(
+            `[麻痹] ${enemy.name} 身法-${total * 2} 洞察-${total * 1}`,
+            tMs,
+            engine.getSnapshot(),
+        )
     },
-    stun({ eff: { stacks }, self: { name }, enemy, existing }: StatusCtx) {
-        if (!existing) {
-            enemy.statuses.push({
-                type: 'stun',
-                stacks,
-                source: name,
-                skipTurn: true,
-                rescheduleDelay: 2000,
-            })
+    stun({ eff: { stacks }, self: { name }, enemy, engine, tMs }: StatusCtx) {
+        const baseDuration = 2000
+        const window = 30000
+
+        // 眩晕衰减追踪
+        const trackKey = `stun_track_${enemy.id}`
+        const lastData = engine.state.pendingBuffs.get(trackKey)
+        const now = engine.state.turn.currentTime
+        let consecutive = 0
+        if (lastData && now - lastData.restoreValue < window) {
+            // 上次追踪还在窗口内
+            consecutive = lastData.stat ? parseInt(lastData.stat) : 0
         }
+        consecutive++
+        engine.state.pendingBuffs.set(trackKey, { restoreValue: now, stat: String(consecutive) })
+        // 窗口到期后清除追踪
+        engine.state.turn.scheduleSystemEventAt(`stun_reset_${enemy.id}`, now + window)
+
+        const duration = Math.round(baseDuration / Math.pow(2, consecutive - 1))
+        enemy.statuses.push({
+            type: 'stun',
+            stacks,
+            source: name,
+            skipTurn: true,
+            rescheduleDelay: duration,
+        })
+        engine.state.log.logSystem(
+            `[眩晕] ${enemy.name} ${duration}ms（第${consecutive}次）`,
+            tMs,
+            engine.getSnapshot(),
+        )
     },
 }
 
@@ -108,25 +136,22 @@ function handleStatusEffect(ctx: Omit<StatusCtx, 'existing' | 'st'>): void {
     const { log } = engine.state
     const sc = eff.chance ?? 0.5
     const roll = Math.random()
-    if (!(roll < sc)) {
-        log.logSystem(`[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 未命中`, tMs, engine.getSnapshot())
-        return
-    }
-    log.logSystem(`[${eff.status}] 概率${(sc * 100).toFixed(0)}% 骰${(roll * 100).toFixed(0)}% 命中`, tMs, engine.getSnapshot())
+    if (!(roll < sc)) return
 
     const st = eff.status as StatusType
     const existing = enemy.statuses.find((s) => s.type === st)
-    if (existing) existing.stacks += eff.stacks
 
     const handler = statusHandlers[eff.status]
     if (handler) {
         handler({ eff, self, enemy, engine, tMs, existing, st })
-    } else if (!existing) {
-        enemy.statuses.push({ type: st, stacks: eff.stacks, source: self.name })
+    } else {
+        if (existing) {
+            existing.stacks += eff.stacks
+        } else {
+            enemy.statuses.push({ type: st, stacks: eff.stacks, source: self.name })
+            log.logSystem(`[状态] ${enemy.name} ${st} ${eff.stacks}层`, tMs, engine.getSnapshot())
+        }
     }
-
-    const target = enemy.statuses.find((s) => s.type === st)
-    log.logSystem(`[${eff.status}] ${enemy.name} ${target ? target.stacks : eff.stacks}层`, tMs, engine.getSnapshot())
 }
 
 /** 处理一个 ActionEffect */
@@ -152,12 +177,16 @@ export function processStatusTick(
     if (s.type === 'poison') {
         const dmg = s.stacks * 2
         char.takeDamage(dmg)
-        s.poisonInterval = Math.max(500, (s.poisonInterval ?? 2000) - 150)
-        log.logSystem(`[中毒] ${char.name} 受到 ${dmg} 毒伤害（下次${(s.poisonInterval / 1000).toFixed(1)}s后）`, tMs, engine.getSnapshot())
+        const nextInterval = Math.max(500, 2000 - s.stacks * 200)
+        log.logSystem(
+            `[中毒] ${char.name} 受到 ${dmg} 毒伤害（下次${(nextInterval / 1000).toFixed(1)}s后）`,
+            tMs,
+            engine.getSnapshot(),
+        )
         if (dmg > 0) {
             engine.emit('on_hit', char, char, tMs)
         }
-        return { damage: dmg, nextInterval: s.poisonInterval }
+        return { damage: dmg, nextInterval }
     }
     if (s.type === 'burn') {
         if (!s.burnBaseDamage || !s.remainingTicks) return { damage: 0, nextInterval: 0 }
@@ -165,7 +194,11 @@ export function processStatusTick(
         s.remainingTicks--
         s.stacks = Math.max(0, s.stacks - 1)
         char.takeDamage(dmg)
-        log.logSystem(`[灼烧] ${char.name} 受到 ${dmg} 灼烧伤害（剩余${s.remainingTicks}次）`, tMs, engine.getSnapshot())
+        log.logSystem(
+            `[灼烧] ${char.name} 受到 ${dmg} 灼烧伤害（剩余${s.remainingTicks}次）`,
+            tMs,
+            engine.getSnapshot(),
+        )
         if (dmg > 0) {
             engine.emit('on_hit', char, char, tMs)
         }
