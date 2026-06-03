@@ -1,4 +1,4 @@
-import type { ActionDefinition } from './action'
+import type { ActionDefinition, BonusTiming } from './action'
 
 /** 炁技 —— 锻体解锁的辅招 */
 export const QI_SKILLS: ActionDefinition[] = [
@@ -97,4 +97,21 @@ export function getForgingBuffs(level: number): { stat: string; value: number }[
   const buffs: { stat: string; value: number }[] = []
   for (let i = 1; i <= level; i++) { const b = table[i]; if (b) for (const x of b) if (!buffs.find(y => y.stat === x.stat)) buffs.push(x) }
   return buffs
+}
+
+/** 锻体 → 一组功法被动 ActionDefinition（battle_start 时触发） */
+export function getForgingActions(level: number): ActionDefinition[] {
+  const buffs = getForgingBuffs(level)
+  return buffs.map((b) => ({
+    id: `forging_${b.stat}`,
+    name: `锻体-${b.stat}`,
+    weaponType: 'fist' as const,
+    apCost: 0,
+    bestDistance: 1,
+    tags: [],
+    effects: [],
+    bonus: true,
+    bonusTiming: 'battle_start' as BonusTiming,
+    triggerEffect: { type: 'stat_buff' as const, stat: b.stat, value: b.value, duration: 'battle' as const },
+  }))
 }

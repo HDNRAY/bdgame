@@ -1,28 +1,7 @@
 import { Character } from '../entities/character'
-import { BattleEngine } from './engine'
+import { BattleEngine, tryBonus } from './engine'
 import { WEAPONS } from '../calc/damage'
 import type { ActionInstance } from '../entities/action-instance'
-import type { AttrName } from '../entities/attributes'
-
-/** 处理主招前的辅招：遍历 actionInstances，找 bonus+timing 匹配的 */
-function tryBonus(engine: BattleEngine, self: Character, mainAp: number): boolean {
-  let fired = false
-  for (const inst of self.actionInstances) {
-    if (!inst.def.bonus || inst.def.bonusTiming !== 'before_main') continue
-    if (!inst.canUse() || self.ap < inst.apCost + mainAp) continue
-    self.spendAp(inst.apCost)
-    inst.use()
-    const e = inst.def.triggerEffect
-    if (e?.type === 'stat_multiply') {
-      const attr = e.stat as AttrName
-      const old = self.attrs.get(attr)
-      self.attrs.set(attr, old * e.multiplier)
-      engine.state.log.logSystem(`[${inst.name}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`, engine.state.turn.peek()?.nextActionAt ?? 0)
-    }
-    fired = true
-  }
-  return fired
-}
 
 function doEvent(engine: BattleEngine, self: Character, action: ActionInstance) {
   const { state } = engine
@@ -32,10 +11,11 @@ function doEvent(engine: BattleEngine, self: Character, action: ActionInstance) 
   while (state.phase === 'fighting') {
     if (!usedMain && state.distance.inRange(stats.range[0], stats.range[1])) {
       if (self.ap < action.apCost) break
-      tryBonus(engine, self, action.apCost)
+      tryBonus(engine, self, 'before_main', action.apCost)
       if (self.ap < action.apCost) break
       engine.execute({ type: 'attack', actionId: action.id, weaponType: action.def.weaponType })
       usedMain = true
+      tryBonus(engine, self, 'after_main')
       continue
     }
     const dist = state.distance.current

@@ -10,7 +10,9 @@ import type { TriggerEvent, TriggerDefinition } from '../entities/trigger'
 import { getTrigger } from '../data/triggers'
 import { processTriggers } from './trigger-system'
 import { createBleed, triggerBleed } from '../entities/status'
-import { getForgingBuffs } from '../data/forging'
+import type { ActionInstance } from '../entities/action-instance'
+import type { BonusTiming, BonusTriggerEffect } from '../entities/action'
+import type { AttrName } from '../entities/attributes'
 
 export interface ActionCommand {
     type: 'attack' | 'move' | 'defend' | 'wait'
@@ -46,6 +48,7 @@ export class BattleEngine {
         this.init(p, o, d)
     }
 
+    /** 战斗开始：触发所有 battle_start 被动（锻体等） */
     init(p: Character, o: Character, d = 4): void {
         p.resetAp()
         o.resetAp()
@@ -54,12 +57,6 @@ export class BattleEngine {
         tm.addCharacter(p, 0)
         tm.addCharacter(o, 0)
         log.logBattleStart(p.name, o.name, 0)
-        // 锻体 buff（数据驱动）
-        if (p.forgingLevel > 0) {
-            const buffs = getForgingBuffs(p.forgingLevel)
-            for (const b of buffs) { (p.attrs as any).modify(b.stat, b.value) }
-            log.logSystem(`[锻体] ${p.name} Lv.${p.forgingLevel}: ${buffs.map(b => `${b.stat}+${b.value}`).join(' ')}`, 0)
-        }
         this.state = {
             phase: 'fighting',
             player: p,
@@ -70,6 +67,9 @@ export class BattleEngine {
             eventActorId: null,
             triggerUses: new Map(),
         }
+        // 触发双方 battle_start 被动（锻体等）
+        tryBonus(this, p, 'battle_start')
+        tryBonus(this, o, 'battle_start')
     }
 
     /** 触发检测 */
@@ -99,6 +99,7 @@ export class BattleEngine {
             this.state.player.id === e.characterId ? this.state.opponent : this.state.player,
             e.nextActionAt,
         )
+        tryBonus(this, self, 'turn_start')
         return true
     }
 
@@ -219,6 +220,8 @@ export class BattleEngine {
 
                 this.emit('on_hit', self, enemy, tMs)
                 this.emit('on_take_damage', enemy, self, tMs)
+                tryBonus(this, self, 'on_hit')
+                tryBonus(this, enemy, 'on_take_damage')
 
                 // 受击触发流血
                 for (const s of enemy.statuses) {
@@ -271,9 +274,49 @@ export class BattleEngine {
         const enemy = id === player.id ? opponent : player
         const stats = WEAPONS.fist
         const tMs = turn.peek()?.nextActionAt ?? 0
+        tryBonus(this, actor, 'before_turn_end')
         this.emit('turn_end', actor, enemy, tMs)
         turn.next()
         turn.scheduleNext(actor.id, calcTurnInterval(actor.attrs.get('dexterity'), stats.preDelay, stats.stunTime))
         this.state.eventActorId = null
     }
+}
+
+// ── 时机驱动的辅招系统 ──
+
+/** 应用一个 triggerEffect 到角色身上 */
+export function applyTriggerEffect(e: BonusTriggerEffect | undefined, self: Character, engine: BattleEngine): void {
+    if (!e) return
+    const tMs = engine.state.turn.peek()?.nextActionAt ?? 0
+    switch (e.type) {
+        case 'stat_multiply': {
+            const attr = e.stat as AttrName
+            const old = self.attrs.get(attr)
+            self.attrs.set(attr, old * e.multiplier)
+            engine.state.log.logSystem(`[蓄力] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`, tMs)
+            break
+        }
+        case 'stat_buff': {
+            const attr = e.stat as AttrName
+            const old = self.attrs.get(attr)
+            self.attrs.modify(attr, e.value)
+            engine.state.log.logSystem(`[锻体] ${self.name} ${e.stat} ${old}→${self.attrs.get(attr)}`, tMs)
+            break
+        }
+    }
+}
+
+/** 在指定时机遍历角色所有 actionInstances，触发匹配的辅招被动 */
+export function tryBonus(engine: BattleEngine, self: Character, timing: BonusTiming, mainAp = 0): boolean {
+    let fired = false
+    for (const inst of self.actionInstances) {
+        if (!inst.def.bonus || inst.def.bonusTiming !== timing) continue
+        if (!inst.canUse()) continue
+        if (self.ap < inst.apCost + mainAp) continue
+        self.spendAp(inst.apCost)
+        inst.use()
+        applyTriggerEffect(inst.def.triggerEffect, self, engine)
+        fired = true
+    }
+    return fired
 }
