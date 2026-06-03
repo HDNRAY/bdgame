@@ -39,8 +39,8 @@ export interface ActionDefinition {
     triggerEffect?: BonusTriggerEffect | BonusTriggerEffect[]
 }
 
-/** buff 持续时间：'battle'=永久，或 { attr: '属性名', multiplier: 系数 } = 属性×系数 ms */
-export type BuffDuration = 'battle' | { attr: AttrName; multiplier: number }
+/** buff 持续时间：{ attr: '属性名', multiplier: 系数 } = 属性×系数 ms，系数大≈永久 */
+export type BuffDuration = { attr: AttrName; multiplier: number }
 
 export type BonusTriggerEffect =
     | { type: 'stat_multiply'; stat: string; multiplier: number; duration: BuffDuration; restoreValue?: number }

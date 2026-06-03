@@ -354,8 +354,8 @@ export function applyTriggerEffect(
             const old = self.attrs.get(attr)
             self.attrs.set(attr, old * e.multiplier)
             engine.state.log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`, tMs, actorName)
-            // buff 持续：'battle'=永久，{ attr, multiplier }=属性×系数 ms
-            if (e.duration !== 'battle') {
+            // 调度 buff 消失事件
+            {
                 const attrVal = self.attrs.get(e.duration.attr)
                 const buffDuration = Math.round(attrVal * e.duration.multiplier)
                 const buffKey = `qi_gather_${self.id}`
@@ -369,6 +369,7 @@ export function applyTriggerEffect(
             const desc = entries.map(([s, v]) => `${s}+${v}`).join(' ')
             for (const [attr, value] of entries) self.attrs.modify(attr, value)
             engine.state.log.logSystem(`[${tag}] ${self.name} ${desc}`, tMs, actorName)
+            // 非 stat_multiply 类型的 buff 不需要调度恢复事件
             break
         }
         case 'stat_restore': {
