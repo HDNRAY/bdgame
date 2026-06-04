@@ -1,4 +1,5 @@
 import type { ActionDefinition } from '../entities/action'
+import type { WeaponTag } from './weapons'
 import { QI_SKILLS } from './forging'
 
 /**
@@ -231,7 +232,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 0,
         tags: [],
-        chance: 0.7,
+        chance: 0.3,
         effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 2000 }],
         maxUses: 999,
     },
@@ -249,7 +250,7 @@ export function getAction(id: string): ActionDefinition | undefined {
 }
 
 /** 按武器标签过滤（空数组招式 = 任意武器可用） */
-export function getActionsByWeapon(weaponTags: import('../data/weapons').WeaponTag[]): ActionDefinition[] {
+export function getActionsByWeapon(weaponTags: WeaponTag[]): ActionDefinition[] {
     return ALL_ACTIONS.filter((a) => {
         if (a.requiredTags.length === 0) return true
         return a.requiredTags.some((tag) => weaponTags.includes(tag))

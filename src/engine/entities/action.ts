@@ -30,7 +30,7 @@ export type EffectDef =
     // 战斗效果（需要命中判定）
     | { type: 'damage'; scaling: Partial<Record<AttrName, number>> }
     | { type: 'fixed_damage'; value: number }
-    | { type: 'status'; status: EffectTag; stacks: number; chance: number }
+    | { type: 'status'; status: EffectTag; stacks: number; chance: number; attrMods?: Record<string, number> }
     | { type: 'cripple'; ratio: number }
     | { type: 'self_damage'; ratio: number }
     | { type: 'first_strike' }

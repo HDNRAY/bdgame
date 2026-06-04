@@ -3,11 +3,10 @@ import type { BattleEngine } from './engine'
 import type { EffectDef, ActionDefinition } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
 import { ATTR_CN } from '../entities/attributes'
-import type { StatusInstance, StatusType } from '../entities/status'
+import type { StatusType } from '../entities/status'
 import {
     calcBaseDamage,
     calcPoisonTickInterval,
-    calcParalyzeAttrRestore,
     calcBuffDuration,
     calcHealAmount,
     calcParriedDamage,
@@ -15,14 +14,14 @@ import {
     calcParryChance,
     calcRoll,
     calcStunDuration,
-    calcParalyzeAttrPenalty,
 } from '../calc/damage'
 import { getWeapon } from '../data/weapons'
 import { encodeBuffKey, decodeBuffKey, genAppId } from '../util/buff-utils'
-import { createBleed, createBurn, createPoison, triggerBleed } from '../entities/status'
+import { triggerBleed } from '../entities/status'
 import { getAction } from '../data/actions'
+import { STATUS_ATTR_MODS } from '../data/effects'
 import type { BattleLog } from './battle-log'
-import type { ActionResult } from './types'
+import type { ActionResult, BuffLayer } from './types'
 
 // ── Context 类型 ──
 interface Ctx {
@@ -34,17 +33,6 @@ interface Ctx {
     log: BattleLog
     tag?: string
     actionId?: string
-}
-
-interface StatusCtx {
-    eff: EffectDef & { type: 'status' }
-    self: Character
-    enemy: Character
-    engine: BattleEngine
-    tMs: number
-    log: BattleLog
-    existing: StatusInstance | undefined
-    st: StatusType
 }
 
 // ── 效果分发表 ──
@@ -97,7 +85,12 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     cleanse({ eff, self, engine, tMs, log }: Ctx) {
         const { statuses } = eff as Extract<EffectDef, { type: 'cleanse' }>
         const targets = statuses ?? (['paralyze', 'poison'] as StatusType[])
-        self.statuses = self.statuses.filter((s) => !targets.includes(s.type as StatusType))
+        for (const [k] of engine.state.pendingBuffs) {
+            const [prefix] = k.split('::')
+            if (targets.includes(prefix as StatusType)) {
+                engine.state.pendingBuffs.delete(k)
+            }
+        }
         log.logSystem(`[净化] ${self.name} 清除了负面效果`, tMs, engine.getSnapshot())
     },
     heal({ eff, self, engine, tMs, log }: Ctx) {
@@ -199,14 +192,22 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         const e = eff as Extract<EffectDef, { type: 'stat_transfer' }>
         const attr = e.stat as AttrName
         const appId = genAppId(tMs)
-        const buffKey = encodeBuffKey(`transfer_${e.stat}`, self.id) + `_${appId}`
+        const layerKey = `stat_transfer::${self.id}::${appId}`
 
         self.attrs.modify(attr, e.value)
         enemy.attrs.modify(attr, -e.value)
-        engine.state.pendingBuffs.set(buffKey, { restoreValue: e.value, stat: `transfer_${e.stat}` })
-        engine.state.pendingBuffs.set(`transfer_meta_${buffKey}`, { restoreValue: 0, stat: enemy.id })
+        if (e.stat === 'agility') {
+            engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+            engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+        }
+        engine.state.pendingBuffs.set(layerKey, {
+            buffId: 'stat_transfer',
+            restoreValue: e.value,
+            stat: e.stat,
+            targetId: enemy.id,
+        })
         engine.state.turn.scheduleSystemEventAt(
-            `buff_end_${buffKey}`,
+            `buff_end_${layerKey}`,
             engine.state.turn.currentTime + e.duration,
             'buff_end',
         )
@@ -214,11 +215,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         // 计算当前累计吸取量
         let total = 0
         for (const [k, v] of engine.state.pendingBuffs) {
-            if (
-                k.startsWith(`transfer_${e.stat}::${self.id}`) &&
-                typeof v.stat === 'string' &&
-                v.stat.startsWith('transfer_')
-            ) {
+            if (k.startsWith(`stat_transfer::${self.id}`) && v.buffId === 'stat_transfer' && v.stat === e.stat) {
                 total += v.restoreValue
             }
         }
@@ -227,47 +224,97 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
 }
 
 // ── Status 子分发表 ──
-const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
-    bleed({ eff: { stacks }, self, enemy, engine }: StatusCtx) {
-        const { name } = self
-        enemy.statuses.push(createBleed(stacks, 1, name))
+const statusHandlers: Record<string, (ctx: Ctx) => void> = {
+    bleed({ eff, self, enemy, engine }: Ctx) {
+        const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
+        const key = `bleed::${enemy.id}`
+        const existing = engine.state.pendingBuffs.get(key) as BuffLayer | undefined
+        if (existing) {
+            existing.restoreValue += stacks
+        } else {
+            engine.state.pendingBuffs.set(key, {
+                restoreValue: stacks,
+                stat: 'bleed',
+                extra: { bleedTriggerCount: 0, source: self.name },
+            })
+        }
         engine.emit('on_debuff', self, enemy)
     },
-    poison({ eff: { stacks }, self: { name }, enemy, engine, tMs }: StatusCtx) {
-        enemy.statuses.push(createPoison(stacks, name))
+    poison({ eff, self, enemy, engine, tMs }: Ctx) {
+        const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
+        const key = `poison::${enemy.id}`
+        const existing = engine.state.pendingBuffs.get(key) as BuffLayer | undefined
+        if (existing) {
+            existing.restoreValue += stacks
+        } else {
+            engine.state.pendingBuffs.set(key, {
+                restoreValue: stacks,
+                stat: 'poison',
+                extra: { source: self.name },
+            })
+        }
         const interval = calcPoisonTickInterval(stacks)
         engine.state.turn.scheduleSystemEventAt(`tick_poison_${enemy.id}`, tMs + interval, 'tick_poison')
     },
-    burn({ eff: { stacks }, self: { name }, enemy, engine, tMs }: StatusCtx) {
-        enemy.statuses.push(createBurn(stacks, 5, name))
+    burn({ eff, self, enemy, engine, tMs }: Ctx) {
+        const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
+        const key = `burn::${enemy.id}`
+        const existing = engine.state.pendingBuffs.get(key) as BuffLayer | undefined
+        if (existing) {
+            existing.restoreValue += stacks
+        } else {
+            engine.state.pendingBuffs.set(key, {
+                restoreValue: stacks,
+                stat: 'burn',
+                extra: { source: self.name, burnBaseDamage: 5, remainingTicks: stacks },
+            })
+        }
         engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, tMs + 1000, 'tick_burn')
     },
-    paralyze({ eff: { stacks }, self: { name }, enemy, engine, tMs, existing, log }: StatusCtx) {
+    paralyze({ eff, enemy, engine, tMs, log }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'status' }>
+        const { stacks } = e
+        const attrMods = STATUS_ATTR_MODS.paralyze
         const duration = 1800
         const appId = genAppId(tMs)
-
-        const prevStacks = existing?.stacks ?? 0
-        if (existing) {
-            existing.stacks += stacks
-        } else {
-            enemy.statuses.push({ type: 'paralyze', stacks, source: name })
+        const layerKey = `paralyze::${enemy.id}::${appId}`
+        const mods: Record<string, number> = {}
+        for (const [attr, rate] of Object.entries(attrMods)) {
+            const delta = -Math.floor(Math.abs(rate) * stacks)
+            enemy.attrs.modify(attr as AttrName, delta)
+            mods[attr] = delta
         }
-        const total = prevStacks + stacks
-        const penalty = calcParalyzeAttrPenalty(stacks)
-        enemy.attrs.modify('agility', penalty.agility)
-        enemy.attrs.modify('insight', penalty.insight)
         engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
 
-        engine.state.pendingBuffs.set(`para_${appId}`, { restoreValue: stacks, stat: 'paralyze' })
-        engine.state.turn.scheduleSystemEventAt(`paralyze_end_${appId}`, tMs + duration, 'paralyze_end')
+        engine.state.pendingBuffs.set(layerKey, {
+            buffId: 'paralyze',
+            restoreValue: stacks,
+            stat: Object.keys(attrMods).join(','),
+            mods,
+        })
+        engine.state.turn.scheduleSystemEventAt(
+            `buff_end_${layerKey}`,
+            engine.state.turn.currentTime + duration,
+            'buff_end',
+        )
 
+        // 计算总层数
+        let totalStacks = 0
+        for (const [k, v] of engine.state.pendingBuffs) {
+            if (k.startsWith(`paralyze::${enemy.id}`) && v.buffId === 'paralyze') {
+                totalStacks += v.restoreValue
+            }
+        }
         log.logSystem(
-            `[麻痹] ${enemy.name} 麻痹x${total} (+${stacks}层 ${ATTR_CN.agility}${penalty.agility} ${ATTR_CN.insight}${penalty.insight})`,
+            `[麻痹] ${enemy.name} 麻痹x${totalStacks} (+${stacks}层 ${Object.entries(mods)
+                .map(([a, v]) => `${ATTR_CN[a] ?? a}${v}`)
+                .join(' ')})`,
             tMs,
             engine.getSnapshot(),
         )
     },
-    stun({ eff: { stacks }, self: { name }, enemy, engine, tMs, log }: StatusCtx) {
+    stun({ eff, self: { name }, enemy, engine, tMs, log }: Ctx) {
+        const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
         const STUN_BASE_DURATION = 2000
         const STUN_RESET_WINDOW = 5000
 
@@ -283,29 +330,34 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
         engine.state.turn.scheduleSystemEventAt(`stun_reset_${enemy.id}`, now + STUN_RESET_WINDOW, 'stun_reset')
 
         const duration = calcStunDuration(consecutive, STUN_BASE_DURATION)
-        enemy.statuses.push({ type: 'stun', stacks, source: name, skipTurn: true, rescheduleDelay: duration })
+        engine.state.pendingBuffs.set(`stun::${enemy.id}`, {
+            restoreValue: stacks,
+            stat: 'stun',
+            extra: { skipTurn: true, rescheduleDelay: duration, source: name },
+        })
         log.logSystem(`[眩晕] ${enemy.name} ${duration}ms（第${consecutive}次）`, tMs, engine.getSnapshot())
     },
 }
 
-function handleStatusEffect(ctx: Omit<StatusCtx, 'existing' | 'st'>): void {
+function handleStatusEffect(ctx: Omit<Ctx, 'tag' | 'actionId'> & { eff: EffectDef & { type: 'status' } }): void {
     const { eff, self, enemy, engine, tMs } = ctx
     const { success } = calcRoll(eff.chance)
     if (!success) return
 
-    const st = eff.status as StatusType
-    const existing = enemy.statuses.find((s) => s.type === st)
+    const st = eff.status
+    const key = `${st}::${enemy.id}`
+    const existing = engine.state.pendingBuffs.get(key) as BuffLayer | undefined
 
     // Stackable statuses: only stack, no trigger
     const STACKABLE_STATUSES: StatusType[] = ['bleed', 'poison', 'burn']
-    if (existing && STACKABLE_STATUSES.includes(st)) {
-        existing.stacks += eff.stacks
+    if (existing && STACKABLE_STATUSES.includes(st as StatusType)) {
+        existing.restoreValue += eff.stacks
         return
     }
 
     const handler = statusHandlers[eff.status]
     if (handler) {
-        handler({ eff, self, enemy, engine, tMs, existing, st, log: engine.state.log })
+        handler({ eff, self, enemy, engine, tMs, log: engine.state.log })
     } else {
         console.warn(`[effect-processor] 未注册的 status 类型: ${eff.status}`)
     }
@@ -325,18 +377,24 @@ export function processActionEffect(
     if (handler) handler({ eff, self, enemy, engine, tMs, log: engine.state.log, tag, actionId })
 }
 
-/** 处理 status tick（毒/灼烧），返回 damage 和下次间隔 */
+/** 处理 status tick（毒/灼烧），从 pendingBuffs 读取层数，返回 damage 和下次间隔 */
 export function processStatusTick(
-    s: StatusInstance,
+    charId: string,
     char: Character,
     engine: BattleEngine,
     tMs: number,
+    type: 'poison' | 'burn',
 ): { damage: number; nextInterval: number } {
     const { log } = engine.state
-    if (s.type === 'poison') {
-        const dmg = s.stacks * 2
+    const key = `${type}::${charId}`
+    const entry = engine.state.pendingBuffs.get(key)
+    if (!entry) return { damage: 0, nextInterval: 0 }
+
+    if (type === 'poison') {
+        const stacks = entry.restoreValue
+        const dmg = stacks * 2
         char.takeDamage(dmg)
-        const nextInterval = calcPoisonTickInterval(s.stacks)
+        const nextInterval = calcPoisonTickInterval(stacks)
         log.logSystem(
             `[中毒] ${char.name} 受到 ${dmg} 毒伤害（下次${(nextInterval / 1000).toFixed(1)}s后）`,
             tMs,
@@ -347,22 +405,27 @@ export function processStatusTick(
         }
         return { damage: dmg, nextInterval }
     }
-    if (s.type === 'burn') {
-        if (!s.burnBaseDamage || !s.remainingTicks) return { damage: 0, nextInterval: 0 }
-        const dmg = Math.round(s.burnBaseDamage * (s.stacks / (s.stacks + s.remainingTicks)))
-        s.remainingTicks--
-        s.stacks = Math.max(0, s.stacks - 1)
+
+    if (type === 'burn') {
+        const stacks = entry.restoreValue
+        const burnBaseDamage = (entry.extra?.burnBaseDamage as number) ?? 0
+        const remainingTicks = (entry.extra?.remainingTicks as number) ?? 0
+        if (!burnBaseDamage || !remainingTicks) return { damage: 0, nextInterval: 0 }
+        const dmg = Math.round(burnBaseDamage * (stacks / (stacks + remainingTicks)))
+        entry.extra = { ...entry.extra, remainingTicks: remainingTicks - 1 }
+        entry.restoreValue = Math.max(0, stacks - 1)
         char.takeDamage(dmg)
         log.logSystem(
-            `[灼烧] ${char.name} 受到 ${dmg} 灼烧伤害（剩余${s.remainingTicks}次）`,
+            `[灼烧] ${char.name} 受到 ${dmg} 灼烧伤害（剩余${remainingTicks - 1}次）`,
             tMs,
             engine.getSnapshot(),
         )
         if (dmg > 0) {
             engine.emit('on_hit', char, char)
         }
-        return { damage: dmg, nextInterval: s.remainingTicks && s.remainingTicks > 0 ? 1000 : 0 }
+        return { damage: dmg, nextInterval: remainingTicks - 1 > 0 ? 1000 : 0 }
     }
+
     return { damage: 0, nextInterval: 0 }
 }
 
@@ -405,51 +468,20 @@ export function processCombatRolls(
 /** 对目标执行流血伤害 */
 export function processBleedDamage(owner: Character, tMs: number, engine: BattleEngine): void {
     const { log } = engine.state
-    for (const s of owner.statuses) {
-        if (s.type === 'bleed') {
-            const dmg = triggerBleed(s)
-            if (dmg > 0) {
-                owner.takeDamage(dmg)
-                s.bleedTriggerCount = (s.bleedTriggerCount ?? 0) + 1
-                if (s.bleedTriggerCount >= 5) {
-                    s.bleedTriggerCount = 0
-                    s.stacks = Math.max(0, s.stacks - 1)
-                }
-                log.logSystem(`[流血] ${owner.name} 受到 ${dmg} 流血伤害`, tMs, engine.getSnapshot())
-            }
+    const key = `bleed::${owner.id}`
+    const entry = engine.state.pendingBuffs.get(key)
+    if (!entry) return
+    const stacks = entry.restoreValue
+    const dmg = triggerBleed(stacks)
+    if (dmg > 0) {
+        owner.takeDamage(dmg)
+        const bt = ((entry.extra?.bleedTriggerCount as number) ?? 0) + 1
+        entry.extra = { ...entry.extra, bleedTriggerCount: bt }
+        if (bt >= 5) {
+            entry.extra = { ...entry.extra, bleedTriggerCount: 0 }
+            entry.restoreValue = Math.max(0, stacks - 1)
         }
-    }
-}
-
-// ── Paralyze end ──
-
-/** 麻痹单层到期：恢复属性 + 移除 status */
-export function processParalyzeEnd(appId: string, engine: BattleEngine): void {
-    const { log } = engine.state
-    const buffs = engine.state.pendingBuffs
-    const data = buffs.get(`para_${appId}`)
-    if (!data || data.stat !== 'paralyze') return
-    const stacks = data.restoreValue
-    buffs.delete(`para_${appId}`)
-
-    for (const char of engine.state.characters) {
-        const entry = char.getStatus('paralyze')
-        if (!entry) continue
-        const restore = calcParalyzeAttrRestore(stacks)
-        entry.stacks -= stacks
-        char.attrs.modify('agility', restore.agility)
-        char.attrs.modify('insight', restore.insight)
-        engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
-        log.logSystem(
-            `[麻痹] ${char.name} 麻痹x${entry.stacks} (-${stacks}层 ${ATTR_CN.agility}+${restore.agility} ${ATTR_CN.insight}+${restore.insight})`,
-            engine.state.turn.currentTime,
-            engine.getSnapshot(),
-            char.name,
-        )
-        if (entry.stacks <= 0) {
-            char.statuses = char.statuses.filter((s) => s !== entry)
-        }
-        return
+        log.logSystem(`[流血] ${owner.name} 受到 ${dmg} 流血伤害`, tMs, engine.getSnapshot())
     }
 }
 
@@ -457,30 +489,84 @@ export function processParalyzeEnd(appId: string, engine: BattleEngine): void {
 
 /** buff 到期恢复 */
 export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
-    const data = engine.state.pendingBuffs.get(buffKey)
-    if (!data) return
+    const layer = engine.state.pendingBuffs.get(buffKey)
+    if (!layer) return
+    const parts = buffKey.split('::')
+
+    // 统一层格式：buffId::charId::appId
+    if (parts.length === 3) {
+        const buffId = parts[0]
+        const charId = parts[1]
+
+        if (buffId === 'stat_transfer') {
+            const attr = layer.stat as AttrName
+            const { log } = engine.state
+            const self = engine.getCharacter(charId)
+            const enemy = engine.getCharacter(layer.targetId!)
+            if (self) {
+                self.attrs.modify(attr, -layer.restoreValue)
+                if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+            }
+            if (enemy) {
+                enemy.attrs.modify(attr, layer.restoreValue)
+                if (attr === 'agility') engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+            }
+            log.logSystem(
+                `[汲取] ${self?.name ?? '?'} ${ATTR_CN[attr] ?? attr}-${layer.restoreValue} → ${enemy?.name ?? '?'} ${ATTR_CN[attr] ?? attr}+${layer.restoreValue}（结束）`,
+                engine.state.turn.currentTime,
+                engine.getSnapshot(),
+            )
+            engine.state.pendingBuffs.delete(buffKey)
+            return
+        }
+
+        if (buffId === 'paralyze') {
+            const { log } = engine.state
+            const char = engine.getCharacter(charId)
+            if (!char) {
+                engine.state.pendingBuffs.delete(buffKey)
+                return
+            }
+            const stacks = layer.restoreValue
+
+            // 恢复属性
+            if (layer.mods) {
+                for (const [attr, delta] of Object.entries(layer.mods)) {
+                    char.attrs.modify(attr as AttrName, -delta)
+                    if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
+                }
+            }
+
+            // 计算剩余总层数
+            let remainingStacks = 0
+            for (const [k, v] of engine.state.pendingBuffs) {
+                if (k.startsWith(`paralyze::${charId}`) && k !== buffKey && v.buffId === 'paralyze') {
+                    remainingStacks += v.restoreValue
+                }
+            }
+            log.logSystem(
+                `[麻痹] ${char.name} 麻痹x${remainingStacks} (-${stacks}层 ${Object.entries(layer.mods ?? {})
+                    .map(([a, v]) => `${ATTR_CN[a] ?? a}+${Math.abs(v)}`)
+                    .join(' ')})`,
+                engine.state.turn.currentTime,
+                engine.getSnapshot(),
+                char.name,
+            )
+            engine.state.pendingBuffs.delete(buffKey)
+            return
+        }
+    }
+
+    // 旧格式：actionId::charId
     const decoded = decodeBuffKey(buffKey)
     if (!decoded) return
 
-    if (typeof data.stat === 'string' && data.stat.startsWith('transfer_')) {
-        const attr = data.stat.slice('transfer_'.length) as AttrName
-        const self = engine.state.characters.find((c) => c.id === decoded.characterId)
-        const metaKey = `transfer_meta_${buffKey}`
-        const meta = engine.state.pendingBuffs.get(metaKey)
-        const enemy = engine.state.characters.find((c) => c.id === meta?.stat)
-        if (self) self.attrs.modify(attr, -data.restoreValue)
-        if (enemy) enemy.attrs.modify(attr, data.restoreValue)
-        engine.state.pendingBuffs.delete(metaKey)
-        engine.state.pendingBuffs.delete(buffKey)
-        return
-    }
-
-    const char = engine.state.characters.find((c) => c.id === decoded.characterId)
+    const char = engine.getCharacter(decoded.characterId)
     if (!char) return
     const action = getAction(decoded.actionId)
-    const buffName = action?.name ?? (decoded.actionId.startsWith('paralyze') ? '麻痹' : decoded.actionId)
+    const buffName = action?.name ?? decoded.actionId
     processActionEffect(
-        { type: 'stat_restore', stat: data.stat, value: data.restoreValue },
+        { type: 'stat_restore', stat: layer.stat, value: layer.restoreValue },
         char,
         char,
         engine,

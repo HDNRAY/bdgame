@@ -1,5 +1,7 @@
-import type { StatusInstance } from '../entities/status'
 import type { Character } from '../entities/character'
+import type { DistanceSystem } from './distance'
+import type { TurnManager } from './turn'
+import type { BattleLog } from './battle-log'
 
 // ── Engine types ──
 export interface ActionCommand {
@@ -20,15 +22,24 @@ export interface ActionResult {
 
 export type BattlePhase = 'idle' | 'fighting' | 'finished'
 
+export interface BuffLayer {
+    buffId?: string
+    restoreValue: number
+    stat: string
+    targetId?: string
+    mods?: Record<string, number>
+    extra?: Record<string, number | string | boolean>
+}
+
 export interface BattleState {
     phase: BattlePhase
     characters: [Character, Character]
-    distance: import('./distance').DistanceSystem
-    turn: import('./turn').TurnManager
-    log: import('./battle-log').BattleLog
+    distance: DistanceSystem
+    turn: TurnManager
+    log: BattleLog
     eventActorId: string | null
     triggerUses: Map<string, number>
-    pendingBuffs: Map<string, { restoreValue: number; stat: string }>
+    pendingBuffs: Map<string, BuffLayer>
     lastWinner?: string
     actionCount: number
     /** 当前执行的招式额外前摇，回合结束时加到下回合间隔 */
@@ -44,7 +55,6 @@ export interface CharacterSnapshot {
     hp: number
     maxHp: number
     ap: number
-    statuses: StatusInstance[]
 }
 
 export interface BattleSnapshot {
@@ -54,7 +64,7 @@ export interface BattleSnapshot {
     characters: [CharacterSnapshot, CharacterSnapshot]
     turn: { time: number; queue: Array<{ type: TurnEntryType; id: string; nextActionAt: number; ownerId?: string }> }
     triggerUses: [string, number][]
-    pendingBuffs: [string, { restoreValue: number; stat: string }][]
+    pendingBuffs: [string, BuffLayer][]
     actionCount: number
 }
 
@@ -108,7 +118,7 @@ export type BattleEvent =
     | { type: 'system'; message: string; actor?: string; indent?: number; snapshot: BattleSnapshot }
 
 // ── Turn types ──
-export type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'paralyze_end' | 'stun_reset'
+export type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'stun_reset'
 
 export type TurnEntryType = 'character' | 'system' | 'summon'
 

@@ -14,7 +14,6 @@ import {
     processStatusTick,
     processCombatRolls,
     processBleedDamage,
-    processParalyzeEnd,
     processBuffEnd,
 } from './effect-processor'
 import type { ActionCommand, ActionResult, BattleState, EventPlan, BattleSnapshot, TurnEntry } from './types'
@@ -91,13 +90,11 @@ export class BattleEngine {
                     hp: characters[0].hp,
                     maxHp: characters[0].maxHp,
                     ap: characters[0].ap,
-                    statuses: characters[0].statuses,
                 },
                 {
                     hp: characters[1].hp,
                     maxHp: characters[1].maxHp,
                     ap: characters[1].ap,
-                    statuses: characters[1].statuses,
                 },
             ],
             turn: { time: turn.currentTime, queue: [...turn.entries] },
@@ -149,12 +146,11 @@ export class BattleEngine {
         }
 
         // 跳过行动检查（如眩晕停止走表）
-        const skipStatus = self.statuses.find((s) => s.skipTurn)
-        if (skipStatus) {
-            const reason = skipStatus.type === 'stun' ? '眩晕' : skipStatus.type
-            this.#log.logSystem(`${self.name} 被${reason}，停止走表`, e.nextActionAt, this.getSnapshot())
-            self.statuses = self.statuses.filter((s) => s !== skipStatus)
-            const delay = skipStatus.rescheduleDelay ?? 2000
+        const stunEntry = this.state.pendingBuffs.get(`stun::${self.id}`)
+        if (stunEntry?.extra?.skipTurn) {
+            this.#log.logSystem(`${self.name} 被眩晕，停止走表`, e.nextActionAt, this.getSnapshot())
+            this.state.pendingBuffs.delete(`stun::${self.id}`)
+            const delay = (stunEntry.extra.rescheduleDelay as number) ?? 2000
             this.state.turn.next()
             this.state.turn.scheduleNext({ type: 'character', id: self.id }, delay)
             this.state.eventActorId = null
@@ -245,11 +241,11 @@ export class BattleEngine {
         return this.state.log
     }
 
-    #getCharacter(id: string): Character | undefined {
+    getCharacter(id: string): Character | undefined {
         return this.state.characters.find((c) => c.id === id)
     }
 
-    #getOpponent(id: string): Character | undefined {
+    getOpponent(id: string): Character | undefined {
         return this.state.characters.find((c) => c.id !== id)
     }
 
@@ -285,7 +281,7 @@ export class BattleEngine {
         r.distanceDelta = a
         log.logMove(self.name, a, distance.current, ap, self.ap, this.#tMs, this.getSnapshot())
         processBleedDamage(self, this.#tMs, this)
-        const enemy = this.#getOpponent(self.id)!
+        const enemy = this.getOpponent(self.id)!
         this.emit('on_move', self, enemy)
         this.emit('on_move', enemy, self)
         return r
@@ -440,8 +436,8 @@ export class BattleEngine {
         const inst = this.#summons.get(e.id)
         if (!inst) return false
 
-        const owner = this.#getCharacter(e.ownerId)
-        const enemy = this.#getOpponent(e.ownerId)
+        const owner = this.getCharacter(e.ownerId)
+        const enemy = this.getOpponent(e.ownerId)
         if (!owner || !enemy) return false
 
         const action = getAction(inst.actionId)
@@ -472,9 +468,6 @@ export class BattleEngine {
             case 'tick_burn':
                 this.#handleStatusTick(eventId, e.systemEventType)
                 break
-            case 'paralyze_end':
-                this.#handleParalyzeEnd(eventId)
-                break
             case 'stun_reset': {
                 const charId = eventId.slice('stun_reset_'.length)
                 this.#buffs.delete(`stun_track_${charId}`)
@@ -492,32 +485,16 @@ export class BattleEngine {
     #handleStatusTick(eventId: string, type: 'tick_poison' | 'tick_burn'): void {
         const { turn } = this.state
         const tMs = this.#currentTime
-        if (type === 'tick_poison') {
-            const charId = eventId.slice('tick_poison_'.length)
-            const char = this.#getCharacter(charId)
-            if (!char) return
-            const poison = char.getStatus('poison')
-            if (!poison) return
-            const { nextInterval } = processStatusTick(poison, char, this, tMs)
-            if (nextInterval > 0) {
-                turn.scheduleSystemEventAt(eventId, tMs + nextInterval, 'tick_poison')
-            }
-        } else {
-            const charId = eventId.slice('tick_burn_'.length)
-            const char = this.#getCharacter(charId)
-            if (!char) return
-            const burn = char.getStatus('burn')
-            if (!burn) return
-            processStatusTick(burn, char, this, tMs)
-            if (burn.remainingTicks && burn.remainingTicks > 0) {
-                turn.scheduleSystemEventAt(eventId, tMs + 1000, 'tick_burn')
-            }
+        const statusType = type === 'tick_poison' ? 'poison' : 'burn'
+        const charId = eventId.slice(`tick_${statusType}_`.length)
+        const char = this.getCharacter(charId)
+        if (!char) return
+        const entry = this.state.pendingBuffs.get(`${statusType}::${charId}`)
+        if (!entry) return
+        const { nextInterval } = processStatusTick(charId, char, this, tMs, statusType)
+        if (nextInterval > 0) {
+            turn.scheduleSystemEventAt(eventId, tMs + nextInterval, type)
         }
-    }
-
-    /** 麻痹单层到期 */
-    #handleParalyzeEnd(eventId: string): void {
-        processParalyzeEnd(eventId.slice('paralyze_end_'.length), this)
     }
 
     /** 辅招触发 */

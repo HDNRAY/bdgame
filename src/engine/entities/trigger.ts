@@ -1,3 +1,5 @@
+import type { Character } from './character'
+
 /** 触发时机（EventBus 事件） */
 export type TriggerEvent =
     | 'on_attack'
@@ -17,13 +19,6 @@ export type TriggerEvent =
     | 'after_main'
     | 'before_turn_end'
     | 'battle_start'
-
-export type TriggerTag = 'defensive' | 'offensive' | 'mobility' | 'utility' | 'counter' | 'recovery' | 'control'
-
-/** 条件匹配上下文 */
-export interface ConditionContext {
-    actor: import('./character').Character
-    distance: number
 }
 
 /** 触发条件 */

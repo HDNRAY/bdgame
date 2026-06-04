@@ -70,14 +70,17 @@ const mBuild: CharacterBuild = {
 }
 const m = new Character(mBuild)
 
-// show(p, '⚔️ 玩家·拳')
+show(p, '⚔️ 玩家·拳')
 show(o, '👊 铁枪·张烈')
 show(m, '🔮 御物·玄机')
 console.log('')
 
+const left = m
+const right = p
+
 // ── 御物·玄机 VS 铁枪·张烈 ──
-const { winner, engine } = runBattle(m, o)
+const { winner, engine } = runBattle(left, right)
 for (const line of formatBattleLog(engine.state.log)) console.log(line)
 console.log(
-    `\n🏆 ${winner} 胜  御物 HP${Math.round(m.hp * 10) / 10}/${m.maxHp} 对手 HP${Math.round(o.hp * 10) / 10}/${o.maxHp}`,
+    `\n🏆 ${winner} 胜  御物 HP${Math.round(left.hp * 10) / 10}/${left.maxHp} 对手 HP${Math.round(right.hp * 10) / 10}/${right.maxHp}`,
 )

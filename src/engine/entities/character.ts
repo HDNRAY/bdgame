@@ -1,11 +1,11 @@
-import { AttributeSet } from './attributes'
+import { AttributeSet, type AttrName } from './attributes'
 import { ActionInstance } from './action-instance'
 import type { CharacterBuild } from './character-build'
 import type { Passive } from './passive'
 import type { Artifact } from './artifact'
+import type { TriggerSlot } from './trigger'
 import { getAction } from '../data/actions'
 import { getWeapon } from '../data/weapons'
-import type { StatusInstance, StatusType } from './status'
 
 export function calcMaxHp(vitality: number): number {
     return 20 + vitality * 10
@@ -20,7 +20,6 @@ export class Character {
     ap: number
     maxAp: number
     nextTurnApDebt = 0
-    statuses: import('./status').StatusInstance[] = []
 
     constructor(build: CharacterBuild) {
         this.build = build
@@ -32,14 +31,14 @@ export class Character {
         for (const p of build.passives) {
             if (p.statMods) {
                 for (const [k, v] of Object.entries(p.statMods)) {
-                    this.attrs.modify(k as import('./attributes').AttrName, v)
+                    this.attrs.modify(k as AttrName, v)
                 }
             }
         }
         for (const a of build.artifacts) {
             if (a.statMods) {
                 for (const [k, v] of Object.entries(a.statMods)) {
-                    this.attrs.modify(k as import('./attributes').AttrName, v)
+                    this.attrs.modify(k as AttrName, v)
                 }
             }
         }
@@ -47,7 +46,7 @@ export class Character {
         // 应用武器的常驻属性修正
         const weapon = getWeapon(build.weapon)
         for (const [k, v] of Object.entries(weapon.attrMods)) {
-            this.attrs.modify(k as import('./attributes').AttrName, v)
+            this.attrs.modify(k as AttrName, v)
         }
 
         this.maxAp = 10
@@ -59,7 +58,7 @@ export class Character {
         return calcMaxHp(this.attrs.get('vitality'))
     }
 
-    get triggers(): import('./trigger').TriggerSlot[] {
+    get triggers(): TriggerSlot[] {
         return this.build.triggers
     }
 
@@ -94,16 +93,6 @@ export class Character {
         return this.hp > 0
     }
 
-    /** 获取指定类型的 status 实例 */
-    getStatus(type: StatusType): StatusInstance | undefined {
-        return this.statuses.find((s) => s.type === type)
-    }
-
-    /** 是否有指定类型的 status */
-    hasStatus(type: StatusType): boolean {
-        return this.statuses.some((s) => s.type === type)
-    }
-
     resetAp(): void {
         this.ap = Math.max(0, this.maxAp - this.nextTurnApDebt)
         this.nextTurnApDebt = 0
@@ -121,7 +110,6 @@ export class Character {
             hp: this.hp,
             ap: this.ap,
             nextTurnApDebt: this.nextTurnApDebt,
-            statuses: this.statuses,
         }
     }
 
@@ -130,7 +118,6 @@ export class Character {
         c.hp = data.hp
         c.ap = data.ap
         c.nextTurnApDebt = data.nextTurnApDebt
-        c.statuses = data.statuses
         return c
     }
 
@@ -139,7 +126,6 @@ export class Character {
             hp: this.hp,
             maxHp: this.maxHp,
             ap: this.ap,
-            statuses: this.statuses,
         }
     }
 }
