@@ -2,6 +2,7 @@ import type { Character } from '../entities/character'
 import type { BattleEngine } from './engine'
 import type { EffectDef, ActionDefinition } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
+import { ATTR_CN } from '../entities/attributes'
 import type { StatusInstance, StatusType } from '../entities/status'
 import {
     calcBaseDamage,
@@ -17,7 +18,7 @@ import {
     calcParalyzeAttrPenalty,
 } from '../calc/damage'
 import { getWeapon } from '../data/weapons'
-import { encodeBuffKey, decodeBuffKey } from '../util/buff-utils'
+import { encodeBuffKey, decodeBuffKey, genAppId } from '../util/buff-utils'
 import { createBleed, createBurn, createPoison, triggerBleed } from '../entities/status'
 import { getAction } from '../data/actions'
 import type { BattleLog } from './battle-log'
@@ -59,18 +60,25 @@ function applyDamage(
 ): void {
     const weapon = getWeapon(target.build.weapon)
     let parried = false
+    let parryInfo = ''
     if (weapon.tags.includes('parry')) {
         const pc = calcParryChance(
             target.attrs.get('agility'),
             target.attrs.get('dexterity'),
             target.attrs.get('insight'),
         )
-        parried = calcRoll(pc).success
+        const result = calcRoll(pc)
+        parried = result.success
+        const chPct = (pc * 100).toFixed(0)
+        const rollPct = (result.roll * 100).toFixed(0)
+        parryInfo = ` [招架${chPct}% 骰${rollPct}%]`
         if (parried) engine.emit('on_parry', target, attacker)
     }
     const final = parried ? calcParriedDamage(raw, target.attrs.get('strength')) : raw
+    const blocked = raw - final
     target.takeDamage(final)
-    log.logSystem(`→ ${target.name} 受到 ${final} 点伤害${parried ? ' [挡]' : ''}`, tMs, engine.getSnapshot())
+    const parryLabel = parried ? parryInfo.replace(']', ` -${blocked.toFixed(1)}]`) : parryInfo
+    log.logSystem(`→ ${target.name} 受到 ${final} 点伤害${parryLabel}`, tMs, engine.getSnapshot())
 }
 
 const effectHandlers: Record<string, (ctx: Ctx) => void> = {
@@ -160,9 +168,10 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     stat_buff({ eff, self, engine, tMs, log }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
         const entries = Object.entries(e.attrs) as [AttrName, number][]
-        const desc = entries.map(([s, v]) => `${s}+${v}`).join(' ')
-        for (const [attr, value] of entries) self.attrs.modify(attr, value)
-        log.logSystem(`[buff] ${self.name} ${desc}`, tMs, engine.getSnapshot(), self.name)
+        for (const [attr, value] of entries) {
+            self.attrs.modify(attr, value)
+            log.logAttrChange(self.name, attr, value, 'buff', tMs, engine.getSnapshot())
+        }
     },
     stat_restore({ eff, self, engine, tMs, log, tag }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_restore' }>
@@ -189,18 +198,31 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     stat_transfer({ eff, self, enemy, engine, tMs, log }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_transfer' }>
         const attr = e.stat as AttrName
-        const buffKey = encodeBuffKey(`transfer_${e.stat}`, self.id)
-        if (engine.state.pendingBuffs.has(buffKey)) return
-        engine.state.pendingBuffs.set(buffKey, { restoreValue: e.value, stat: `transfer_${e.stat}` })
-        engine.state.pendingBuffs.set(`transfer_meta_${buffKey}`, { restoreValue: 0, stat: enemy.id })
+        const appId = genAppId(tMs)
+        const buffKey = encodeBuffKey(`transfer_${e.stat}`, self.id) + `_${appId}`
+
         self.attrs.modify(attr, e.value)
         enemy.attrs.modify(attr, -e.value)
+        engine.state.pendingBuffs.set(buffKey, { restoreValue: e.value, stat: `transfer_${e.stat}` })
+        engine.state.pendingBuffs.set(`transfer_meta_${buffKey}`, { restoreValue: 0, stat: enemy.id })
         engine.state.turn.scheduleSystemEventAt(
             `buff_end_${buffKey}`,
             engine.state.turn.currentTime + e.duration,
             'buff_end',
         )
-        log.logSystem(`[汲取] ${enemy.name} ${e.stat}-${e.value}`, tMs, engine.getSnapshot(), self.name)
+
+        // 计算当前累计吸取量
+        let total = 0
+        for (const [k, v] of engine.state.pendingBuffs) {
+            if (
+                k.startsWith(`transfer_${e.stat}::${self.id}`) &&
+                typeof v.stat === 'string' &&
+                v.stat.startsWith('transfer_')
+            ) {
+                total += v.restoreValue
+            }
+        }
+        log.logAttrChange(enemy.name, e.stat, -e.value, '汲取', tMs, engine.getSnapshot(), `累计${total}`)
     },
 }
 
@@ -222,7 +244,7 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
     },
     paralyze({ eff: { stacks }, self: { name }, enemy, engine, tMs, existing, log }: StatusCtx) {
         const duration = 1800
-        const appId = `p${tMs}_${Math.random().toString(36).slice(2, 6)}`
+        const appId = genAppId(tMs)
 
         const prevStacks = existing?.stacks ?? 0
         if (existing) {
@@ -240,7 +262,7 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
         engine.state.turn.scheduleSystemEventAt(`paralyze_end_${appId}`, tMs + duration, 'paralyze_end')
 
         log.logSystem(
-            `[麻痹] ${enemy.name} 麻痹x${total} (+${stacks}层 身法${penalty.agility} 洞察${penalty.insight})`,
+            `[麻痹] ${enemy.name} 麻痹x${total} (+${stacks}层 ${ATTR_CN.agility}${penalty.agility} ${ATTR_CN.insight}${penalty.insight})`,
             tMs,
             engine.getSnapshot(),
         )
@@ -419,7 +441,7 @@ export function processParalyzeEnd(appId: string, engine: BattleEngine): void {
         char.attrs.modify('insight', restore.insight)
         engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
         log.logSystem(
-            `[麻痹] ${char.name} 麻痹x${entry.stacks} (-${stacks}层 身法+${restore.agility} 洞察+${restore.insight})`,
+            `[麻痹] ${char.name} 麻痹x${entry.stacks} (-${stacks}层 ${ATTR_CN.agility}+${restore.agility} ${ATTR_CN.insight}+${restore.insight})`,
             engine.state.turn.currentTime,
             engine.getSnapshot(),
             char.name,

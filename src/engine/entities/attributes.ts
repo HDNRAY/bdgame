@@ -3,6 +3,15 @@ export type AttrName = 'strength' | 'vitality' | 'agility' | 'dexterity' | 'insi
 
 export const ALL_ATTRS: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
 
+export const ATTR_CN: Record<string, string> = {
+    strength: '力道',
+    vitality: '体质',
+    agility: '身法',
+    dexterity: '灵巧',
+    insight: '洞察',
+    wisdom: '悟性',
+}
+
 export const ATTR_MIN = 1
 export const ATTR_NORMAL_MAX = 20
 export const ATTR_ABSOLUTE_MAX = 30

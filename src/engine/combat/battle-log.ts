@@ -1,4 +1,5 @@
 import type { BattleSnapshot, BattleEvent } from './types'
+import { ATTR_CN } from '../entities/attributes'
 
 interface LogEntry {
     id: number
@@ -111,6 +112,24 @@ export class BattleLog {
 
     logSystem(message: string, timelineMs: number, snapshot: BattleSnapshot, actor?: string): void {
         this.push({ type: 'system', message, actor, indent: this.indentDepth, snapshot }, timelineMs)
+    }
+
+    /** 属性变化日志，自动映射中文属性名 */
+    logAttrChange(
+        actor: string,
+        attr: string,
+        delta: number,
+        tag: string,
+        timelineMs: number,
+        snapshot: BattleSnapshot,
+        extras?: string,
+    ): void {
+        const cn = ATTR_CN[attr] ?? attr
+        const sign = delta >= 0 ? '+' : ''
+        const msg = extras
+            ? `[${tag}] ${actor} ${cn}${sign}${delta}（${extras}）`
+            : `[${tag}] ${actor} ${cn}${sign}${delta}`
+        this.push({ type: 'system', message: msg, indent: this.indentDepth, snapshot }, timelineMs)
     }
 
     getAll(): LogEntry[] {
