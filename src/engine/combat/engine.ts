@@ -3,7 +3,15 @@ import { DistanceSystem } from './distance'
 import { TurnManager, SYS_PREFIX } from './turn'
 import { BattleLog } from './battle-log'
 import { getWeapon } from '../data/weapons'
-import { BASE_PRE_DELAY, BASE_STUN_TIME, calcTurnInterval } from '../calc/damage'
+import {
+    BASE_PRE_DELAY,
+    BASE_STUN_TIME,
+    calcTurnInterval,
+    calcBaseDamage,
+    calcParriedDamage,
+    calcHitChance,
+    calcRoll,
+} from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import type { ActionDefinition } from '../entities/action'
@@ -13,7 +21,6 @@ import {
     processActionEffect,
     processStatusTick,
     processCombatRolls,
-    processDamageApplication,
     processBleedDamage,
     processTriggerEffect,
     processParalyzeEnd,
@@ -170,13 +177,21 @@ export class BattleEngine {
             if (action.maxUses !== undefined && used >= action.maxUses) continue
             triggerUses.set(slot.actionId, used + 1)
 
+            log.indentDepth++
             log.logSystem(`[${action.name}] ${action.name}`, tMs, this.getSnapshot())
-            for (const eff of action.effects ?? []) {
-                processActionEffect(eff, self, enemy, this, tMs)
+            const hc = calcHitChance(self.attrs.get('technique'), enemy.attrs.get('dexterity'))
+            const hitResult = calcRoll(hc)
+            if (hitResult.success) {
+                for (const eff of action.effects ?? []) {
+                    processActionEffect(eff, self, enemy, this, tMs)
+                }
+                for (const eff of action.triggerEffect ?? []) {
+                    processTriggerEffect(eff, self, this, action.name, action.id)
+                }
+            } else {
+                log.logSystem(`→ 未命中`, tMs, this.getSnapshot())
             }
-            if (action.triggerEffect) {
-                processTriggerEffect(action.triggerEffect, self, this, action.name, action.id)
-            }
+            log.indentDepth--
         }
     }
 
@@ -258,7 +273,6 @@ export class BattleEngine {
         this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
         this.#processSelfBleed()
         if (!this.#resolveCombatRolls(action, r)) return r
-        this.#resolveAndApplyDamage(action, r)
         this.#finalizeAttack(action, r)
         return r
     }
@@ -310,11 +324,6 @@ export class BattleEngine {
         return processCombatRolls(action, r, this.#self, this.#enemy, this.#tMs, this)
     }
 
-    /** 伤害结算与应用 */
-    #resolveAndApplyDamage(action: ActionDefinition, r: ActionResult): void {
-        processDamageApplication(action, r, this.#self, this.#enemy, this.#tMs, this)
-    }
-
     /** 命中后效：触发/流血/状态/击败 */
     #finalizeAttack(action: ActionDefinition, r: ActionResult): void {
         const log = this.state.log
@@ -328,11 +337,32 @@ export class BattleEngine {
         this.#tryBonus(enemy, 'on_take_damage')
 
         processBleedDamage(enemy, tMs, this)
+        this.state.log.indentDepth++
         for (const eff of action.effects ?? []) {
-            if (eff.type === 'status' && r.hit && !r.dodged) {
+            if (eff.type === 'damage') {
+                const base = calcBaseDamage(eff.scaling, self.attrs.getAll())
+                const final = r.parried ? calcParriedDamage(base) : base
+                enemy.takeDamage(final)
+                log.logSystem(
+                    `→ ${enemy.name} 受到 ${final} 点伤害${r.parried ? ' [挡]' : ''}`,
+                    tMs,
+                    this.getSnapshot(),
+                )
+            } else if (eff.type === 'fixed_damage') {
+                const final = r.parried ? calcParriedDamage(eff.value) : eff.value
+                enemy.takeDamage(final)
+                log.logSystem(
+                    `→ ${enemy.name} 受到 ${final} 点伤害${r.parried ? ' [挡]' : ''}`,
+                    tMs,
+                    this.getSnapshot(),
+                )
+            } else if (eff.type === 'status' && r.hit && !r.dodged) {
+                processActionEffect(eff, self, enemy, this, tMs)
+            } else if (r.hit && !r.dodged) {
                 processActionEffect(eff, self, enemy, this, tMs)
             }
         }
+        this.state.log.indentDepth--
         if (r.knockbackDistance > 0) {
             processActionEffect({ type: 'knockback', distance: r.knockbackDistance }, self, enemy, this, tMs)
         }
@@ -342,7 +372,6 @@ export class BattleEngine {
             if (self.isAlive()) {
                 this.state.lastWinner = self.name
             }
-            // 双方都死则 lastWinner 保持 undefined → runBattle 判平局
         }
     }
 
@@ -375,7 +404,9 @@ export class BattleEngine {
         if (!inst || !inst.def.bonus || !inst.canUse()) return r
         if (!self.spendAp(inst.apCost)) return r
         inst.use()
-        processTriggerEffect(inst.def.triggerEffect, self, this, inst.name, inst.id)
+        for (const eff of inst.def.triggerEffect ?? []) {
+            processTriggerEffect(eff, self, this, inst.name, inst.id)
+        }
         return r
     }
 
@@ -463,7 +494,9 @@ export class BattleEngine {
             if (self.ap < inst.apCost + mainAp) continue
             self.spendAp(inst.apCost)
             inst.use()
-            processTriggerEffect(inst.def.triggerEffect, self, this, inst.name, inst.id)
+            for (const eff of inst.def.triggerEffect ?? []) {
+                processTriggerEffect(eff, self, this, inst.name, inst.id)
+            }
             fired = true
         }
         return fired

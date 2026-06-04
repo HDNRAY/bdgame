@@ -39,8 +39,8 @@ export interface ActionDefinition extends GameEntity {
     bonus?: boolean
     /** 辅招触发条件（仅 bonus=true 时有效） */
     bonusTiming?: Condition
-    /** 辅招效果描述（如 "力量翻倍1回合"），支持数组以一次触发多个效果 */
-    triggerEffect?: BonusTriggerEffect | BonusTriggerEffect[]
+    /** 辅招效果描述（如 "力量翻倍1回合"），支持多个同时触发 */
+    triggerEffect?: BonusTriggerEffect[]
     /** 招式额外前摇 */
     extraPreDelay?: number
     /** 招式额外硬直 */

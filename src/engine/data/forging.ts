@@ -13,11 +13,13 @@ export const QI_SKILLS: ActionDefinition[] = [
         bonus: true,
         bonusTiming: { type: 'before_main' },
         maxUses: 1,
-        triggerEffect: {
-            type: 'stat_buff' as const,
-            attrs: { strength: 1, vitality: 1, dexterity: 1, technique: 1, insight: 1, wisdom: 1 },
-            duration: { attr: 'wisdom' as const, multiplier: 1000 },
-        },
+        triggerEffect: [
+            {
+                type: 'stat_buff' as const,
+                attrs: { strength: 1, vitality: 1, dexterity: 1, technique: 1, insight: 1, wisdom: 1 },
+                duration: { attr: 'wisdom' as const, multiplier: 1000 },
+            },
+        ],
     },
     {
         id: 'qi_gather',
@@ -30,12 +32,14 @@ export const QI_SKILLS: ActionDefinition[] = [
         bonus: true,
         bonusTiming: { type: 'before_main' },
         maxUses: 1,
-        triggerEffect: {
-            type: 'stat_multiply',
-            stat: 'strength',
-            multiplier: 2,
-            duration: { attr: 'wisdom', multiplier: 150 },
-        },
+        triggerEffect: [
+            {
+                type: 'stat_multiply',
+                stat: 'strength',
+                multiplier: 2,
+                duration: { attr: 'wisdom', multiplier: 150 },
+            },
+        ],
     },
     // TODO: 愈炁 — 回血，触发器类
     // TODO: 炁弹 — 远程固定伤害

@@ -157,7 +157,8 @@ export function formatBattleLog(log: BattleLog): string[] {
                 if (e.actor) {
                     checkNewEvent(ms, e.actor, 0, undefined, undefined, e.snapshot?.actionCount)
                 }
-                lines.push(`  ${e.message}`)
+                const indent = '  ' + '  '.repeat(e.indent ?? 0)
+                lines.push(`${indent}${e.message}`)
                 break
         }
     }

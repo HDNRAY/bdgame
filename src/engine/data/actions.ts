@@ -44,11 +44,14 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'flick',
         name: '弹指',
-        description: '弹指间打断对手出招。',
+        description: '弹指间弹出气劲，带麻痹效果。',
         requiredTags: [],
         apCost: 2,
-        tags: ['interrupt'],
-        effects: [{ type: 'damage', scaling: { technique: 0.2 } }, { type: 'interrupt' }],
+        tags: ['paralyze'],
+        effects: [
+            { type: 'fixed_damage', value: 1 },
+            { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
+        ],
     },
 
     // ── 暗器系 ──

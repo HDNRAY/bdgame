@@ -9,6 +9,8 @@ interface LogEntry {
 export class BattleLog {
     private entries: LogEntry[] = []
     private nextId = 0
+    /** 当前缩进层级（由触发链控制） */
+    indentDepth = 0
 
     push(event: BattleEvent, timelineMs: number): void {
         this.entries.push({ id: this.nextId++, timelineMs, event })
@@ -107,7 +109,7 @@ export class BattleLog {
     }
 
     logSystem(message: string, timelineMs: number, snapshot: BattleSnapshot, actor?: string): void {
-        this.push({ type: 'system', message, actor, snapshot }, timelineMs)
+        this.push({ type: 'system', message, actor, indent: this.indentDepth, snapshot }, timelineMs)
     }
 
     getAll(): LogEntry[] {

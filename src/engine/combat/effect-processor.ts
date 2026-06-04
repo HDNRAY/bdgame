@@ -9,21 +9,18 @@ import {
     calcParalyzeAttrRestore,
     calcBuffDuration,
     calcHealAmount,
-    calcParriedDamage,
     calcDodgeChanceWithParalyze,
     calcHitChance,
     calcParryChance,
-    calcCritChance,
-    calcFinalDamage,
     calcRoll,
     calcStunDuration,
     calcParalyzeAttrPenalty,
 } from '../calc/damage'
 import { getWeapon } from '../data/weapons'
 import { encodeBuffKey, decodeBuffKey } from '../util/buff-utils'
-import { resolveAction, extractActionEffects } from '../calc/action-executor'
 import { createBleed, createBurn, createPoison, triggerBleed } from '../entities/status'
 import { getAction } from '../data/actions'
+import type { BattleLog } from './battle-log'
 import type { ActionResult } from './types'
 
 // ── Context 类型 ──
@@ -33,6 +30,7 @@ interface Ctx {
     enemy: Character
     engine: BattleEngine
     tMs: number
+    log: BattleLog
 }
 
 interface StatusCtx {
@@ -41,14 +39,14 @@ interface StatusCtx {
     enemy: Character
     engine: BattleEngine
     tMs: number
+    log: BattleLog
     existing: StatusInstance | undefined
     st: StatusType
 }
 
 // ── 效果分发表 ──
 const effectHandlers: Record<string, (ctx: Ctx) => void> = {
-    counter_damage({ eff, self, enemy, engine, tMs }: Ctx) {
-        const { log } = engine.state
+    counter_damage({ eff, self, enemy, engine, tMs, log }: Ctx) {
         const { ratio } = eff as Extract<ActionEffect, { type: 'counter_damage' }>
         const scaling: Partial<Record<AttrName, number>> = { strength: 1.0 }
         const base = calcBaseDamage(scaling, self.attrs.getAll())
@@ -60,24 +58,56 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         const { deltaMs } = eff as Extract<ActionEffect, { type: 'modify_turn' }>
         engine.state.turn.modifyTime(enemy.id, deltaMs)
     },
-    cleanse({ eff, self, engine, tMs }: Ctx) {
+    cleanse({ eff, self, engine, tMs, log }: Ctx) {
         const { statuses } = eff as Extract<ActionEffect, { type: 'cleanse' }>
         const targets = statuses ?? (['paralyze', 'poison'] as StatusType[])
         self.statuses = self.statuses.filter((s) => !targets.includes(s.type as StatusType))
-        engine.state.log.logSystem(`[净化] ${self.name} 清除了负面效果`, tMs, engine.getSnapshot())
+        log.logSystem(`[净化] ${self.name} 清除了负面效果`, tMs, engine.getSnapshot())
     },
-    heal({ eff, self, engine, tMs }: Ctx) {
+    heal({ eff, self, engine, tMs, log }: Ctx) {
         const { value, ratio } = eff as Extract<ActionEffect, { type: 'heal' }>
         const amount = calcHealAmount(value, self.maxHp, ratio)
         self.hp = Math.min(self.maxHp, self.hp + amount)
-        engine.state.log.logSystem(`[回复] ${self.name} 恢复了 ${amount} HP`, tMs, engine.getSnapshot())
+        log.logSystem(`[回复] ${self.name} 恢复了 ${amount} HP`, tMs, engine.getSnapshot())
+    },
+    interrupt({ enemy, engine, tMs, log }: Ctx) {
+        const INTERRUPT_DELAY = 1000
+        engine.state.turn.modifyTime(enemy.id, INTERRUPT_DELAY)
+        log.logSystem(`[打断] ${enemy.name} 被中断，延后 ${INTERRUPT_DELAY}ms`, tMs, engine.getSnapshot())
     },
     knockback({ eff, engine }: Ctx) {
         const { distance } = eff as Extract<ActionEffect, { type: 'knockback' }>
         if (distance > 0) engine.state.distance.move(distance)
     },
-    status({ eff, self, enemy, engine, tMs }: Ctx) {
-        handleStatusEffect({ eff: eff as Extract<ActionEffect, { type: 'status' }>, self, enemy, engine, tMs })
+    fixed_damage({ eff, enemy, engine, tMs, log }: Ctx) {
+        const { value } = eff as Extract<ActionEffect, { type: 'fixed_damage' }>
+        enemy.takeDamage(value)
+        log.logSystem(`→ ${enemy.name} 受到 ${value} 点伤害`, tMs, engine.getSnapshot())
+    },
+    damage({ eff, self, enemy, engine, tMs, log }: Ctx) {
+        const { scaling } = eff as Extract<ActionEffect, { type: 'damage' }>
+        const base = calcBaseDamage(scaling, self.attrs.getAll())
+        if (base > 0) {
+            enemy.takeDamage(base)
+            log.logSystem(`→ ${enemy.name} 受到 ${base} 点伤害`, tMs, engine.getSnapshot())
+        }
+    },
+    self_damage({ eff, self, engine, tMs, log }: Ctx) {
+        const { ratio } = eff as Extract<ActionEffect, { type: 'self_damage' }>
+        const dmg = Math.round(self.maxHp * ratio)
+        self.takeDamage(dmg)
+        log.logSystem(`[自伤] ${self.name} 受到 ${dmg} 自伤`, tMs, engine.getSnapshot())
+    },
+    cripple({ eff, enemy, engine, tMs, log }: Ctx) {
+        const { ratio } = eff as Extract<ActionEffect, { type: 'cripple' }>
+        const dmg = Math.round((enemy.maxHp - enemy.hp) * ratio)
+        if (dmg > 0) {
+            enemy.takeDamage(dmg)
+            log.logSystem(`[崩劲] ${enemy.name} 受到 ${dmg} 崩劲伤害`, tMs, engine.getSnapshot())
+        }
+    },
+    status({ eff, self, enemy, engine, tMs, log }: Ctx) {
+        handleStatusEffect({ eff: eff as Extract<ActionEffect, { type: 'status' }>, self, enemy, engine, tMs, log })
     },
 }
 
@@ -97,8 +127,7 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
         enemy.statuses.push(createBurn(stacks, 5, name))
         engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, tMs + 1000, 'tick_burn')
     },
-    paralyze({ eff: { stacks }, self: { name }, enemy, engine, tMs, existing }: StatusCtx) {
-        const { log } = engine.state
+    paralyze({ eff: { stacks }, self: { name }, enemy, engine, tMs, existing, log }: StatusCtx) {
         const duration = 1800
         const appId = `p${tMs}_${Math.random().toString(36).slice(2, 6)}`
 
@@ -123,8 +152,7 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
             engine.getSnapshot(),
         )
     },
-    stun({ eff: { stacks }, self: { name }, enemy, engine, tMs }: StatusCtx) {
-        const { log } = engine.state
+    stun({ eff: { stacks }, self: { name }, enemy, engine, tMs, log }: StatusCtx) {
         const STUN_BASE_DURATION = 2000
         const STUN_RESET_WINDOW = 5000
 
@@ -162,7 +190,7 @@ function handleStatusEffect(ctx: Omit<StatusCtx, 'existing' | 'st'>): void {
 
     const handler = statusHandlers[eff.status]
     if (handler) {
-        handler({ eff, self, enemy, engine, tMs, existing, st })
+        handler({ eff, self, enemy, engine, tMs, existing, st, log: engine.state.log })
     } else {
         console.warn(`[effect-processor] 未注册的 status 类型: ${eff.status}`)
     }
@@ -177,7 +205,7 @@ export function processActionEffect(
     tMs: number,
 ): void {
     const handler = effectHandlers[eff.type]
-    if (handler) handler({ eff, self, enemy, engine, tMs })
+    if (handler) handler({ eff, self, enemy, engine, tMs, log: engine.state.log })
 }
 
 /** 处理 status tick（毒/灼烧），返回 damage 和下次间隔 */
@@ -266,51 +294,6 @@ export function processCombatRolls(
     return true
 }
 
-// ── Damage application ──
-
-/** 伤害结算与应用（含暴击、招架减免、自伤、击退） */
-export function processDamageApplication(
-    action: ActionDefinition,
-    r: ActionResult,
-    self: Character,
-    enemy: Character,
-    tMs: number,
-    engine: BattleEngine,
-): void {
-    const { log } = engine.state
-
-    const resolved = resolveAction(action, self)
-    const extras = extractActionEffects(action, self, enemy)
-    const critChance = calcCritChance(self.attrs.get('technique'))
-    const critResult = calcRoll(critChance)
-    const isCrit = critResult.success
-    log.logCritCheck(self.name, critChance, critResult.roll, isCrit, tMs, engine.getSnapshot())
-    resolved.isCrit = isCrit
-    resolved.final = calcFinalDamage(resolved.base + extras.crippleBonus, resolved.distanceMult, isCrit)
-
-    const finalDmg = r.parried ? calcParriedDamage(resolved.final) : resolved.final
-    enemy.takeDamage(finalDmg)
-    r.damage = finalDmg
-    r.crit = resolved.isCrit
-    r.knockbackDistance = extras.knockbackDistance
-    if (extras.selfDamage > 0) {
-        self.takeDamage(extras.selfDamage)
-        log.logSystem(`[自伤] ${self.name} 受到 ${extras.selfDamage} 自伤`, tMs, engine.getSnapshot())
-    }
-    log.logDamage(
-        self.name,
-        enemy.name,
-        resolved.base,
-        resolved.distanceMult,
-        resolved.isCrit,
-        r.parried,
-        finalDmg,
-        resolved.final - finalDmg,
-        tMs,
-        engine.getSnapshot(),
-    )
-}
-
 // ── Bleed ──
 
 /** 对目标执行流血伤害 */
@@ -334,20 +317,14 @@ export function processBleedDamage(owner: Character, tMs: number, engine: Battle
 
 // ── Trigger effects ──
 
-/** 应用 triggerEffect（stat_multiply / stat_buff / stat_restore / heal） */
+/** 应用单个 BonusTriggerEffect */
 export function processTriggerEffect(
-    e: BonusTriggerEffect | BonusTriggerEffect[] | undefined,
+    e: BonusTriggerEffect,
     self: Character,
     engine: BattleEngine,
-    actionName?: string,
+    tag: string,
     actionId?: string,
 ): void {
-    if (!e) return
-    if (Array.isArray(e)) {
-        for (const eff of e) processTriggerEffect(eff, self, engine, actionName, actionId)
-        return
-    }
-    const tag = actionName ?? '功法'
     const tMs = engine.state.turn.peek()?.nextActionAt ?? 0
     const { log } = engine.state
     const actorName = self.name
@@ -422,6 +399,7 @@ export function processParalyzeEnd(appId: string, engine: BattleEngine): void {
             `[麻痹] ${char.name} 麻痹x${entry.stacks} (-${stacks}层 身法+${restore.dexterity} 洞察+${restore.insight})`,
             engine.state.turn.currentTime,
             engine.getSnapshot(),
+            char.name,
         )
         if (entry.stacks <= 0) {
             char.statuses = char.statuses.filter((s) => s !== entry)

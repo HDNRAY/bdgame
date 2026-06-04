@@ -102,7 +102,7 @@ export type BattleEvent =
           snapshot: BattleSnapshot
       }
     | { type: 'defeat'; loser: string; winner: string; snapshot: BattleSnapshot }
-    | { type: 'system'; message: string; actor?: string; snapshot: BattleSnapshot }
+    | { type: 'system'; message: string; actor?: string; indent?: number; snapshot: BattleSnapshot }
 
 // ── Turn types ──
 export type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'paralyze_end' | 'stun_reset'
