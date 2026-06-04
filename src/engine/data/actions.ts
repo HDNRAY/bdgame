@@ -21,7 +21,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         name: '崩拳',
         description: '蓄力一击，造成崩劲伤害。',
         requiredTags: ['钝击'],
-        apCost: 6,
+        apCost: 5,
         tags: ['cripple'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
@@ -38,7 +38,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'status', status: 'paralyze', stacks: 2, chance: 0.6 },
-            { type: 'self_damage', ratio: 0.03 },
+            { type: 'self_damage', ratio: 0.04 },
         ],
     },
     {
@@ -66,7 +66,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: ['bleed'],
         effects: [
             { type: 'damage', scaling: { strength: 0.5 } },
-            { type: 'status', status: 'bleed', stacks: 1, chance: 0.4 },
+            { type: 'status', status: 'bleed', stacks: 1, chance: 0.5 },
         ],
     },
     {
@@ -104,7 +104,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         tags: ['paralyze'],
         effects: [
-            { type: 'damage', scaling: { technique: 0.25 } },
+            { type: 'damage', scaling: { dexterity: 0.25 } },
             { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
         ],
     },
@@ -116,7 +116,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         tags: ['poison'],
         effects: [
-            { type: 'damage', scaling: { technique: 0.3 } },
+            { type: 'damage', scaling: { dexterity: 0.3 } },
             { type: 'status', status: 'poison', stacks: 1, chance: 0.4 },
         ],
     },
@@ -164,7 +164,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         name: '追刺',
         description: '趁虚而入，追击刺击。',
         requiredTags: ['戳刺'],
-        apCost: 3,
+        apCost: 2,
         tags: ['bleed'],
         effects: [
             { type: 'damage', scaling: { strength: 0.3 } },
@@ -181,6 +181,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'fixed_damage', value: 4 }],
         maxUses: 3,
         extraPreDelay: 100,
+        range: [0, 5],
     },
     {
         id: 'jab',

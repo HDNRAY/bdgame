@@ -74,7 +74,7 @@ src/
 
 ```ts
 // src/engine/entities/attributes.ts
-type AttrName = 'strength' | 'vitality' | 'dexterity' | 'technique' | 'insight' | 'wisdom'
+type AttrName = 'strength' | 'vitality' | 'agility' | 'dexterity' | 'insight' | 'wisdom'
 
 interface AttributeSet {
     get(attr: AttrName): number
@@ -156,9 +156,9 @@ interface BattleEngine {
 
 | 任务         | 测试点                     |
 | ------------ | -------------------------- |
-| 命中判定     | `technique` vs `dexterity` |
+| 命中判定     | `dexterity` vs `agility` |
 | 招架判定     | `strength` + 武器招架率    |
-| 闪避判定     | `dexterity` 修正           |
+| 闪避判定     | `agility` 修正           |
 | 伤害计算     | 属性缩放 × 距离系数 × 暴击 |
 | 基础攻击循环 | 双方轮流动手，HP 归零结束  |
 

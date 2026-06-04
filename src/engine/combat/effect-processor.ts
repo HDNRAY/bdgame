@@ -9,6 +9,7 @@ import {
     calcParalyzeAttrRestore,
     calcBuffDuration,
     calcHealAmount,
+    calcParriedDamage,
     calcDodgeChanceWithParalyze,
     calcHitChance,
     calcParryChance,
@@ -45,6 +46,24 @@ interface StatusCtx {
 }
 
 // ── 效果分发表 ──
+
+/** 应用伤害（含招架判定） */
+function applyDamage(raw: number, target: Character, engine: BattleEngine, tMs: number, log: BattleLog): void {
+    const weapon = getWeapon(target.build.weapon)
+    let parried = false
+    if (weapon.tags.includes('招架')) {
+        const pc = calcParryChance(
+            target.attrs.get('agility'),
+            target.attrs.get('dexterity'),
+            target.attrs.get('insight'),
+        )
+        parried = calcRoll(pc).success
+    }
+    const final = parried ? calcParriedDamage(raw, target.attrs.get('strength')) : raw
+    target.takeDamage(final)
+    log.logSystem(`→ ${target.name} 受到 ${final} 点伤害${parried ? ' [挡]' : ''}`, tMs, engine.getSnapshot())
+}
+
 const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     counter_damage({ eff, self, enemy, engine, tMs, log }: Ctx) {
         const { ratio } = eff as Extract<ActionEffect, { type: 'counter_damage' }>
@@ -81,16 +100,12 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     },
     fixed_damage({ eff, enemy, engine, tMs, log }: Ctx) {
         const { value } = eff as Extract<ActionEffect, { type: 'fixed_damage' }>
-        enemy.takeDamage(value)
-        log.logSystem(`→ ${enemy.name} 受到 ${value} 点伤害`, tMs, engine.getSnapshot())
+        applyDamage(value, enemy, engine, tMs, log)
     },
     damage({ eff, self, enemy, engine, tMs, log }: Ctx) {
         const { scaling } = eff as Extract<ActionEffect, { type: 'damage' }>
         const base = calcBaseDamage(scaling, self.attrs.getAll())
-        if (base > 0) {
-            enemy.takeDamage(base)
-            log.logSystem(`→ ${enemy.name} 受到 ${base} 点伤害`, tMs, engine.getSnapshot())
-        }
+        if (base > 0) applyDamage(base, enemy, engine, tMs, log)
     },
     self_damage({ eff, self, engine, tMs, log }: Ctx) {
         const { ratio } = eff as Extract<ActionEffect, { type: 'self_damage' }>
@@ -116,7 +131,7 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
     bleed({ eff: { stacks }, self, enemy, engine }: StatusCtx) {
         const { name } = self
         enemy.statuses.push(createBleed(stacks, 1, name))
-        engine.emit('on_debuff', self, enemy, engine.state.turn.peek()?.nextActionAt ?? 0)
+        engine.emit('on_debuff', self, enemy)
     },
     poison({ eff: { stacks }, self: { name }, enemy, engine, tMs }: StatusCtx) {
         enemy.statuses.push(createPoison(stacks, name))
@@ -139,15 +154,15 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
         }
         const total = prevStacks + stacks
         const penalty = calcParalyzeAttrPenalty(stacks)
-        enemy.attrs.modify('dexterity', penalty.dexterity)
+        enemy.attrs.modify('agility', penalty.agility)
         enemy.attrs.modify('insight', penalty.insight)
-        engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('dexterity'))
+        engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
 
         engine.state.pendingBuffs.set(`para_${appId}`, { restoreValue: stacks, stat: 'paralyze' })
         engine.state.turn.scheduleSystemEventAt(`paralyze_end_${appId}`, tMs + duration, 'paralyze_end')
 
         log.logSystem(
-            `[麻痹] ${enemy.name} 麻痹x${total} (+${stacks}层 身法${penalty.dexterity} 洞察${penalty.insight})`,
+            `[麻痹] ${enemy.name} 麻痹x${total} (+${stacks}层 身法${penalty.agility} 洞察${penalty.insight})`,
             tMs,
             engine.getSnapshot(),
         )
@@ -181,7 +196,7 @@ function handleStatusEffect(ctx: Omit<StatusCtx, 'existing' | 'st'>): void {
     const st = eff.status as StatusType
     const existing = enemy.statuses.find((s) => s.type === st)
 
-    // Stackable statuses: early return if already exists
+    // Stackable statuses: only stack, no trigger
     const STACKABLE_STATUSES: StatusType[] = ['bleed', 'poison', 'burn']
     if (existing && STACKABLE_STATUSES.includes(st)) {
         existing.stacks += eff.stacks
@@ -226,7 +241,7 @@ export function processStatusTick(
             engine.getSnapshot(),
         )
         if (dmg > 0) {
-            engine.emit('on_hit', char, char, tMs)
+            engine.emit('on_hit', char, char)
         }
         return { damage: dmg, nextInterval }
     }
@@ -242,7 +257,7 @@ export function processStatusTick(
             engine.getSnapshot(),
         )
         if (dmg > 0) {
-            engine.emit('on_hit', char, char, tMs)
+            engine.emit('on_hit', char, char)
         }
         return { damage: dmg, nextInterval: s.remainingTicks && s.remainingTicks > 0 ? 1000 : 0 }
     }
@@ -261,36 +276,27 @@ export function processCombatRolls(
     engine: BattleEngine,
 ): boolean {
     const { log } = engine.state
-    const weapon = getWeapon(self.build.weapon)
 
-    engine.emit('on_attack', self, enemy, tMs)
-    const hc = calcHitChance(self.attrs.get('technique'), enemy.attrs.get('dexterity'))
+    engine.emit('on_attack', self, enemy)
+    const hc = calcHitChance(self.attrs.get('dexterity'), enemy.attrs.get('agility'))
     const hitResult = calcRoll(hc)
     r.hit = hitResult.success
     log.logHitCheck(self.name, enemy.name, hc, hitResult.roll, r.hit, tMs, engine.getSnapshot())
     if (!r.hit) {
-        engine.emit('on_dodged', self, enemy, tMs)
+        engine.emit('on_dodged', self, enemy)
         return false
     }
 
     const paraStacks = enemy.getStatus('paralyze')?.stacks ?? 0
-    const dodgeChance = calcDodgeChanceWithParalyze(enemy.attrs.get('dexterity'), paraStacks)
+    const dodgeChance = calcDodgeChanceWithParalyze(enemy.attrs.get('agility'), paraStacks)
     const dodgeResult = calcRoll(dodgeChance)
     r.dodged = dodgeResult.success
     if (r.dodged) {
         log.logDodge(self.name, enemy.name, tMs, engine.getSnapshot())
-        engine.emit('on_dodge', enemy, self, tMs)
+        engine.emit('on_dodge', enemy, self)
         return false
     }
 
-    const canParry = weapon.tags.includes('招架')
-    if (canParry) {
-        const pc = calcParryChance(enemy.attrs.get('strength'))
-        const parryResult = calcRoll(pc)
-        r.parried = parryResult.success
-        if (r.parried) log.logParry(self.name, enemy.name, tMs, engine.getSnapshot(), pc, parryResult.roll)
-        else engine.emit('on_parried', self, enemy, tMs)
-    }
     return true
 }
 
@@ -305,7 +311,7 @@ export function processBleedDamage(owner: Character, tMs: number, engine: Battle
             if (dmg > 0) {
                 owner.takeDamage(dmg)
                 s.bleedTriggerCount = (s.bleedTriggerCount ?? 0) + 1
-                if (s.bleedTriggerCount >= 3) {
+                if (s.bleedTriggerCount >= 5) {
                     s.bleedTriggerCount = 0
                     s.stacks = Math.max(0, s.stacks - 1)
                 }
@@ -392,11 +398,11 @@ export function processParalyzeEnd(appId: string, engine: BattleEngine): void {
         if (!entry) continue
         const restore = calcParalyzeAttrRestore(stacks)
         entry.stacks -= stacks
-        char.attrs.modify('dexterity', restore.dexterity)
+        char.attrs.modify('agility', restore.agility)
         char.attrs.modify('insight', restore.insight)
-        engine.state.turn.recalcInterval(char.id, char.attrs.get('dexterity'))
+        engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
         log.logSystem(
-            `[麻痹] ${char.name} 麻痹x${entry.stacks} (-${stacks}层 身法+${restore.dexterity} 洞察+${restore.insight})`,
+            `[麻痹] ${char.name} 麻痹x${entry.stacks} (-${stacks}层 身法+${restore.agility} 洞察+${restore.insight})`,
             engine.state.turn.currentTime,
             engine.getSnapshot(),
             char.name,

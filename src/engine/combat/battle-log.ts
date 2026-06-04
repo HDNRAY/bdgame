@@ -41,9 +41,10 @@ export class BattleLog {
         timelineMs: number,
         snapshot: BattleSnapshot,
         actionName?: string,
+        indent = 0,
     ): void {
         this.push(
-            { type: 'attack_start', actor, target, weapon, apCost, apRemaining, actionName, snapshot },
+            { type: 'attack_start', actor, target, weapon, apCost, apRemaining, actionName, snapshot, indent },
             timelineMs,
         )
     }

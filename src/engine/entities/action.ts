@@ -45,6 +45,8 @@ export interface ActionDefinition extends GameEntity {
     extraPreDelay?: number
     /** 招式额外硬直 */
     extraStunTime?: number
+    /** 招式自带的距离范围（不设则用武器距离） */
+    range?: [number, number]
 }
 
 /** buff 持续时间：{ attr: '属性名', multiplier: 系数 } = 属性×系数 ms，系数大≈永久 */

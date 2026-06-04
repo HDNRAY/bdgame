@@ -18,8 +18,8 @@ function mc(id: string, name: string, attrs: Record<string, number> = {}): Chara
 describe('TurnManager', () => {
     it('should order characters by action time', () => {
         const tm = new TurnManager()
-        const fast = mc('fast', '快', { dexterity: 20 })
-        const slow = mc('slow', '慢', { dexterity: 5 })
+        const fast = mc('fast', '快', { agility: 20 })
+        const slow = mc('slow', '慢', { agility: 5 })
 
         tm.addCharacter(fast, 100)
         tm.addCharacter(slow, 300)

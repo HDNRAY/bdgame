@@ -33,6 +33,8 @@ export interface BattleState {
     actionCount: number
     /** 当前执行的招式额外前摇，回合结束时加到下回合间隔 */
     lastActionExtraDelay: number
+    /** 防止触发递归 */
+    isEmitting: boolean
 }
 
 export type EventPlan = (self: Character, enemy: Character, state: BattleState) => ActionCommand[]
@@ -76,6 +78,7 @@ export type BattleEvent =
           apCost: number
           apRemaining: number
           snapshot: BattleSnapshot
+          indent?: number
       }
     | {
           type: 'check_hit'

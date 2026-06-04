@@ -36,7 +36,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '丈二铁枪，势大力沉。',
         tags: ['戳刺', '招架'],
         bound: false,
-        attrMods: { dexterity: -2, strength: 2 },
+        attrMods: { agility: -2, strength: 2 },
         range: [2, 4],
     },
     {
@@ -45,7 +45,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '三柄柳叶飞刀，例无虚发。',
         tags: ['劈砍', '戳刺'],
         bound: false,
-        attrMods: { dexterity: 1 },
+        attrMods: { agility: 1 },
         range: [2, 5],
     },
 ]

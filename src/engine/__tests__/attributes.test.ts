@@ -13,7 +13,7 @@ describe('AttributeSet', () => {
         const attrs = new AttributeSet({ strength: 10, vitality: 14 })
         expect(attrs.get('strength')).toBe(10)
         expect(attrs.get('vitality')).toBe(14)
-        expect(attrs.get('dexterity')).toBe(3)
+        expect(attrs.get('agility')).toBe(3)
     })
 
     it('should modify attribute by delta', () => {

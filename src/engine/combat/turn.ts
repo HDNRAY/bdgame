@@ -70,10 +70,10 @@ export class TurnManager {
     }
 
     /** 身法变化时重新计算回合间隔 */
-    recalcInterval(charId: string, dexterity: number): void {
+    recalcInterval(charId: string, agility: number): void {
         const entry = this.queue.find((e) => e.characterId === charId)
         if (!entry || entry.preDelay === undefined) return
-        const delay = calcTurnInterval(dexterity, entry.preDelay, entry.stunTime ?? 0)
+        const delay = calcTurnInterval(agility, entry.preDelay, entry.stunTime ?? 0)
         entry.nextActionAt = this.time + delay
         this.sort()
     }

@@ -126,7 +126,7 @@ character.triggers = {
 
 **IMBA 风险：**
 
-- `蓄势待发` 叠满 3 层 +15% 暴击，高 technique 容易溢出 → 考虑加叠加上限
+- `蓄势待发` 叠满 3 层 +15% 暴击，高 dexterity 容易溢出 → 考虑加叠加上限
 - `钢筋铁骨` 免费解控 → 改为 apCost: 1，必须为解控牺牲下回合 AP
 
 **弱触发器：**
@@ -144,7 +144,7 @@ character.triggers = {
 | 浴血     | HP 首次低于 30%            | 增伤 30%，持续 3 回合            |     —     | maxUses: 1 | offensive |
 | 蓄势待发 | 自己回合开始               | 暴击率 +5%（可叠加 3 层）        |     —     |     —      | offensive |
 | 借力打力 | 自己招架成功后             | 招架减免的伤害反弹给对方         |     —     |     —      | counter   |
-| 看破     | 对方进入前摇时             | 概率 (technique/60) 打断对方动作 | apCost: 1 |     —      | control   |
+| 看破     | 对方进入前摇时             | 概率 (dexterity/60) 打断对方动作 | apCost: 1 |     —      | control   |
 | 涅槃     | 自己 HP 降至 0 时          | 回复至 30% HP，本场仅一次        |     —     | maxUses: 1 | recovery  |
 
 ---
@@ -220,7 +220,7 @@ interface Implant {
 二、缺能（energy drain）
     来源：眼、核心、腰部部位的义体，每件 +1 层
     效果：每层 -1 最大 AP（下回合总 AP 从 10 开始递减）
-    减轻：每 2 technique + dexterity 减少 1 层
+    减轻：每 2 dexterity + agility 减少 1 层
     上限：最多 5 层（至少剩 5 AP）
 
 三、失心（mind decay）
@@ -256,13 +256,13 @@ interface Implant {
 | 义体       |  部位  | 属性加成                   |  惩罚   | 特殊效果       |
 | ---------- | :----: | -------------------------- | :-----: | -------------- |
 | 钛合金臂   |  arm   | strength +3                | 失衡 +1 | 招架率 +5%     |
-| 液压腿     |  leg   | dexterity +3               | 失衡 +1 | 移动效率 +20%  |
-| 液压臂     |  arm   | strength +2, dexterity +2  | 失衡 +1 | —              |
-| 光学镜     |  eye   | insight +3, technique +1   | 缺能 +1 | 命中 +8%       |
+| 液压腿     |  leg   | agility +3               | 失衡 +1 | 移动效率 +20%  |
+| 液压臂     |  arm   | strength +2, agility +2  | 失衡 +1 | —              |
+| 光学镜     |  eye   | insight +3, dexterity +1   | 缺能 +1 | 命中 +8%       |
 | 能源核心   |  core  | vitality +4                | 缺能 +1 | —              |
 | 稳定腰带   | waist  | vitality +2                | 缺能 +1 | 抗击退 -1 档   |
-| 神经加速器 | neural | dexterity +3, technique +1 | 失心 +1 | 回合间隔 -80ms |
-| 战斗芯片   | neural | technique +3, insight +2   | 失心 +2 | 触发槽 +1      |
+| 神经加速器 | neural | agility +3, dexterity +1 | 失心 +1 | 回合间隔 -80ms |
+| 战斗芯片   | neural | dexterity +3, insight +2   | 失心 +2 | 触发槽 +1      |
 
 ### 4.2.8 四者关系
 
@@ -315,7 +315,7 @@ interface Implant {
 
 interface 锻体Buff {
 type: 'stat_boost'
-stats: { strength: 2; vitality: 2; dexterity: 2; technique: 2; insight: 2; wisdom: 2 } // 基础 +2
+stats: { strength: 2; vitality: 2; agility: 2; dexterity: 2; insight: 2; wisdom: 2 } // 基础 +2
 duration: 'battle' // 持续整场
 }
 

@@ -3,7 +3,9 @@ import {
     calcBaseDamage,
     calcFinalDamage,
     calcHitChance,
+    calcCritChance,
     calcParryChance,
+    calcParriedDamage,
     calcDodgeChance,
     calcMoveApCost,
 } from '../calc/damage'
@@ -11,13 +13,13 @@ import {
 describe('calcBaseDamage', () => {
     it('should calculate damage from scaling and attrs', () => {
         const s = { strength: 0.8 }
-        const d = calcBaseDamage(s, { strength: 14, vitality: 10, dexterity: 8, technique: 8, insight: 6, wisdom: 5 })
+        const d = calcBaseDamage(s, { strength: 14, vitality: 10, agility: 8, dexterity: 8, insight: 6, wisdom: 5 })
         expect(d).toBe(11.2) // 0.8 × 14 = 11.2
     })
 
     it('should handle multiple attribute scaling', () => {
-        const s = { strength: 0.6, technique: 0.4 }
-        const d = calcBaseDamage(s, { strength: 18, vitality: 12, dexterity: 6, technique: 10, insight: 5, wisdom: 4 })
+        const s = { strength: 0.6, dexterity: 0.4 }
+        const d = calcBaseDamage(s, { strength: 18, vitality: 12, agility: 6, dexterity: 10, insight: 5, wisdom: 4 })
         expect(d).toBe(14.8) // 0.6×18 + 0.4×10 = 10.8 + 4 = 14.8
     })
 })
@@ -45,20 +47,46 @@ describe('calcHitChance', () => {
         expect(calcHitChance(10, 10)).toBe(0.8)
     })
 
-    it('should increase with higher technique', () => {
+    it('should increase with higher dexterity', () => {
         expect(calcHitChance(18, 8)).toBe(0.95) // 0.8 + 10/50 = 1.0, capped at 0.95
     })
 })
 
+describe('calcCritChance', () => {
+    it('should scale with dexterity and insight', () => {
+        // 5% + (10+10)/200 = 5% + 10% = 15%
+        expect(calcCritChance(10, 10)).toBeCloseTo(0.15)
+        // 5% + (18+6)/200 = 5% + 12% = 17%
+        expect(calcCritChance(18, 6)).toBeCloseTo(0.17)
+        // base only
+        expect(calcCritChance(0, 0)).toBeCloseTo(0.05)
+    })
+})
+
 describe('calcParryChance', () => {
-    it('should scale with strength', () => {
-        expect(calcParryChance(14)).toBeCloseTo(0.175) // 14/80
-        expect(calcParryChance(40)).toBeCloseTo(0.5) // capped
+    it('should scale with agility, dexterity and insight', () => {
+        // (14 + 10 + 6) / 120 = 30/120 = 0.25
+        expect(calcParryChance(14, 10, 6)).toBeCloseTo(0.25)
+        // capped at 0.5
+        expect(calcParryChance(40, 40, 40)).toBeCloseTo(0.5)
+        // (10 + 10 + 10) / 120 = 30/120 = 0.25
+        expect(calcParryChance(10, 10, 10)).toBeCloseTo(0.25)
+    })
+})
+
+describe('calcParriedDamage', () => {
+    it('should reduce damage based on strength', () => {
+        // strength 30 → reduction 30/60 = 50%, damage * 0.5
+        expect(calcParriedDamage(100, 30)).toBeCloseTo(50)
+        // strength 10 → reduction 10/60 ≈ 16.7%, clamped to 20%, damage * 0.8
+        expect(calcParriedDamage(100, 10)).toBeCloseTo(80)
+        // strength 50 → reduction 50/60 ≈ 83.3%, clamped to 60%, damage * 0.4
+        expect(calcParriedDamage(100, 50)).toBeCloseTo(40)
     })
 })
 
 describe('calcDodgeChance', () => {
-    it('should scale with dexterity', () => {
+    it('should scale with agility', () => {
         expect(calcDodgeChance(20)).toBe(0.25)
         expect(calcDodgeChance(50)).toBe(0.4) // capped
     })

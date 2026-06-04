@@ -14,7 +14,8 @@ export function canExecuteAction(
     }
 
     const weapon = getWeapon(attacker.build.weapon)
-    if (currentDistance < weapon.range[0] || currentDistance > weapon.range[1]) {
+    const range = action.range ?? weapon.range
+    if (currentDistance < range[0] || currentDistance > range[1]) {
         return { ok: false, reason: `距离不合适 (${currentDistance})` }
     }
 

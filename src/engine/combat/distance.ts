@@ -22,15 +22,15 @@ export class DistanceSystem {
     }
 
     /** 根据身法计算每点 AP 能移动的档位: dex / 20 */
-    static apToRange(dexterity: number): number {
-        return Math.max(0.5, dexterity / 20)
+    static apToRange(agility: number): number {
+        return Math.max(0.5, agility / 20)
     }
 
     /** 计算移动：从 bestDistance（期望AP）算出实际消耗和位移量 */
-    static calcMovement(bestDistance: number, dexterity: number): { ap: number; delta: number } {
+    static calcMovement(bestDistance: number, agility: number): { ap: number; delta: number } {
         const ap = Math.abs(bestDistance)
         const dir = Math.sign(bestDistance)
-        const perAp = this.apToRange(dexterity)
+        const perAp = this.apToRange(agility)
         return { ap, delta: dir * perAp * ap }
     }
 

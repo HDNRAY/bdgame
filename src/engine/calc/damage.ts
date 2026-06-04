@@ -14,9 +14,9 @@ export function calcBaseDamage(scaling: Partial<Record<AttrName, number>>, attrs
     return Math.round(damage * 10) / 10
 }
 
-/** 暴击判定: 基础 5% + technique / 200 */
-export function calcCritChance(technique: number): number {
-    return 0.05 + technique / 200
+/** 暴击判定: 基础 5% + (dexterity + insight) / 200 */
+export function calcCritChance(dexterity: number, insight: number): number {
+    return 0.05 + (dexterity + insight) / 200
 }
 
 /** 最终伤害: base × distanceMult × (暴击? 1.5 : 1)，保留 1 位小数 */
@@ -26,39 +26,41 @@ export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit
     return Math.max(1, damage) // 至少 1 点
 }
 
-/** 命中判定: base 80% + (technique - 对方 dexterity) / 50 */
-export function calcHitChance(myTechnique: number, enemyDexterity: number): number {
-    return Math.max(0.1, Math.min(0.95, 0.8 + (myTechnique - enemyDexterity) / 50))
+/** 命中判定: base 80% + (dexterity - 对方 agility) / 50 */
+export function calcHitChance(myDexterity: number, enemyAgility: number): number {
+    return Math.max(0.1, Math.min(0.95, 0.8 + (myDexterity - enemyAgility) / 50))
 }
 
-/** 招架判定: 有招架标签的武器才能招架，纯 strength / 80 */
-export function calcParryChance(strength: number): number {
-    return Math.min(0.5, strength / 80)
+/** 招架判定: (身法 + 灵巧 + 洞察) / 120，上限 50% */
+export function calcParryChance(agility: number, dexterity: number, insight: number): number {
+    return Math.min(0.5, (agility + dexterity + insight) / 120)
 }
 
-/** 闪避判定: dexterity / 80 */
-export function calcDodgeChance(dexterity: number): number {
-    return Math.min(0.4, dexterity / 80)
+/** 闪避判定: agility / 80 */
+export function calcDodgeChance(agility: number): number {
+    return Math.min(0.4, agility / 80)
 }
 
 /** 移动消耗: 移动 1 档需要 AP = 1 / apToRange */
-export function calcMoveApCost(distance: number, dexterity: number): number {
-    const perAp = Math.max(0.5, dexterity / 20)
+export function calcMoveApCost(distance: number, agility: number): number {
+    const perAp = Math.max(0.5, agility / 20)
     return Math.ceil(distance / perAp)
 }
 
-/** 回合间隔: 基础 + 前后摇受身法影响(高dex大幅减少前后摇) */
-export function calcTurnInterval(dexterity: number, extraPreDelay = 0, extraStunTime = 0): number {
-    const base = 300 + 60000 / (100 + dexterity * 10)
-    const dexFactor = Math.max(0, 1 - dexterity * 0.06)
-    const epd = Math.round((BASE_PRE_DELAY + extraPreDelay) * dexFactor)
-    const est = Math.round((BASE_STUN_TIME + extraStunTime) * dexFactor)
+/** 回合间隔: 基础 + 前后摇受身法影响(高agi大幅减少前后摇) */
+export function calcTurnInterval(agility: number, extraPreDelay = 0, extraStunTime = 0): number {
+    const base = 300 + 60000 / (100 + agility * 10)
+    const agiFactor = Math.max(0, 1 - agility * 0.06)
+    const epd = Math.round((BASE_PRE_DELAY + extraPreDelay) * agiFactor)
+    const est = Math.round((BASE_STUN_TIME + extraStunTime) * agiFactor)
     return Math.round(base + epd + est)
 }
 
 /** 招架后伤害减免，默认减免至 40% */
-export function calcParriedDamage(finalDamage: number, ratio = 0.4): number {
-    return Math.round(finalDamage * ratio)
+/** 招架减免: 力道决定减免比例 (减免 20%-60%) */
+export function calcParriedDamage(finalDamage: number, strength: number): number {
+    const reduction = Math.min(0.6, Math.max(0.2, strength / 60))
+    return Math.round(finalDamage * (1 - reduction) * 10) / 10
 }
 
 /** 崩劲：基于目标已损 HP 的额外伤害 */
@@ -72,15 +74,15 @@ export function calcSelfDamage(maxHp: number, ratio: number): number {
 }
 
 /** 考虑麻痹层数后的等效身法（用于闪避判定） */
-export function calcDodgeChanceWithParalyze(dexterity: number, paralyzeStacks: number): number {
+export function calcDodgeChanceWithParalyze(agility: number, paralyzeStacks: number): number {
     const penalty = paralyzeStacks * 0.05
-    const effectiveDex = dexterity - Math.floor(penalty * 10)
-    return calcDodgeChance(Math.max(0, effectiveDex))
+    const effectiveAgi = agility - Math.floor(penalty * 10)
+    return calcDodgeChance(Math.max(0, effectiveAgi))
 }
 
-/** 麻痹到期时属性恢复量 */
-export function calcParalyzeAttrRestore(stacks: number): { dexterity: number; insight: number } {
-    return { dexterity: stacks * 2, insight: stacks * 1 }
+/** 麻痹到期时恢复的身法/洞察 */
+export function calcParalyzeAttrRestore(stacks: number): { agility: number; insight: number } {
+    return { agility: stacks * 2, insight: stacks * 1 }
 }
 
 /** 回复量：固定值 + 最大HP百分比 */
@@ -110,6 +112,6 @@ export function calcStunDuration(consecutive: number, baseDuration = 2000): numb
 }
 
 /** 麻痹施加时的属性惩罚 */
-export function calcParalyzeAttrPenalty(stacks: number): { dexterity: number; insight: number } {
-    return { dexterity: -stacks * 2, insight: -stacks * 1 }
+export function calcParalyzeAttrPenalty(stacks: number): { agility: number; insight: number } {
+    return { agility: -stacks * 2, insight: -stacks * 1 }
 }

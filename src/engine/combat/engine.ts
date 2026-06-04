@@ -3,15 +3,7 @@ import { DistanceSystem } from './distance'
 import { TurnManager, SYS_PREFIX } from './turn'
 import { BattleLog } from './battle-log'
 import { getWeapon } from '../data/weapons'
-import {
-    BASE_PRE_DELAY,
-    BASE_STUN_TIME,
-    calcTurnInterval,
-    calcBaseDamage,
-    calcParriedDamage,
-    calcHitChance,
-    calcRoll,
-} from '../calc/damage'
+import { BASE_PRE_DELAY, BASE_STUN_TIME, calcTurnInterval } from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import type { ActionDefinition } from '../entities/action'
@@ -54,10 +46,11 @@ export class BattleEngine {
             pendingBuffs: new Map(),
             actionCount: 0,
             lastActionExtraDelay: 0,
+            isEmitting: false,
         }
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
-        this.emit('battle_start', p, o, 0)
-        this.emit('battle_start', o, p, 0)
+        this.emit('battle_start', p, o)
+        this.emit('battle_start', o, p)
     }
 
     /** 构建当前战斗快照 */
@@ -137,25 +130,25 @@ export class BattleEngine {
             return true
         }
 
-        this.emit('turn_start', self, enemy, e.nextActionAt)
+        this.emit('turn_start', self, enemy)
         this.#tryBonus(self, 'turn_start')
 
         const cmds = planFn(self, enemy, this.state)
         for (const cmd of cmds) {
             if (self.ap <= 0 && cmd.type !== 'bonus') break
-            this.execute(cmd)
+            this.execute(cmd, self, enemy)
         }
 
         // endEvent
         this.#tryBonus(self, 'before_turn_end')
-        this.emit('turn_end', self, enemy, this.state.turn.peek()?.nextActionAt ?? 0)
+        this.emit('turn_end', self, enemy)
         this.state.turn.next()
         const lastAction = this.state.lastActionExtraDelay ?? 0
         const preDelay = BASE_PRE_DELAY + lastAction
         const stunTime = BASE_STUN_TIME
         this.state.turn.scheduleNext(
             self.id,
-            calcTurnInterval(self.attrs.get('dexterity'), lastAction),
+            calcTurnInterval(self.attrs.get('agility'), lastAction),
             preDelay,
             stunTime,
         )
@@ -165,8 +158,10 @@ export class BattleEngine {
     }
 
     /** 触发检测 */
-    emit(event: TriggerEvent, self: Character, enemy: Character, tMs: number) {
+    emit(event: TriggerEvent, self: Character, enemy: Character) {
         const { log, triggerUses, distance } = this.state
+        if (this.state.isEmitting) return // 防止递归触发
+        this.state.isEmitting = true
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (!matchCondition(slot.condition, { actor: self, distance: distance.current })) continue
@@ -178,45 +173,31 @@ export class BattleEngine {
             triggerUses.set(slot.actionId, used + 1)
 
             log.indentDepth++
-            log.logSystem(`[${action.name}] ${action.name}`, tMs, this.getSnapshot())
-            const hc = calcHitChance(self.attrs.get('technique'), enemy.attrs.get('dexterity'))
-            const hitResult = calcRoll(hc)
-            if (hitResult.success) {
-                for (const eff of action.effects ?? []) {
-                    processActionEffect(eff, self, enemy, this, tMs)
-                }
-                for (const eff of action.triggerEffect ?? []) {
-                    processTriggerEffect(eff, self, this, action.name, action.id)
-                }
-            } else {
-                log.logSystem(`→ 未命中`, tMs, this.getSnapshot())
+            this.#executeAction(action, self, enemy, true)
+            for (const eff of action.triggerEffect ?? []) {
+                processTriggerEffect(eff, self, this, action.name, action.id)
             }
             log.indentDepth--
         }
+        this.state.isEmitting = false
     }
 
-    private execute(cmd: ActionCommand): ActionResult {
+    private execute(cmd: ActionCommand, self: Character, enemy: Character): ActionResult {
         switch (cmd.type) {
             case 'move':
-                return this.#executeMove(cmd)
+                return this.#executeMove(cmd, self)
             case 'attack':
-                return this.#executeAttack(cmd)
+                return this.#executeAttack(cmd, self, enemy)
             case 'defend':
-                return this.#executeDefend()
+                return this.#executeDefend(self)
             case 'bonus':
-                return this.#executeBonus(cmd)
+                return this.#executeBonus(cmd, self)
             case 'wait':
-                return this.#executeWait()
+                return this.#executeWait(self)
         }
     }
 
     /** 快捷访问 */
-    get #self(): Character {
-        return this.state.characters.find((c) => c.id === this.state.eventActorId)!
-    }
-    get #enemy(): Character {
-        return this.state.characters.find((c) => c.id !== this.state.eventActorId)!
-    }
     get #tMs(): number {
         return this.state.turn.peek()?.nextActionAt ?? 0
     }
@@ -233,7 +214,19 @@ export class BattleEngine {
         return this.state.characters.find((c) => c.id === id)
     }
 
-    #executeMove(cmd: ActionCommand): ActionResult {
+    #emptyResult(): ActionResult {
+        return {
+            damage: 0,
+            hit: false,
+            parried: false,
+            dodged: false,
+            crit: false,
+            distanceDelta: 0,
+            knockbackDistance: 0,
+        }
+    }
+
+    #executeMove(cmd: ActionCommand, self: Character): ActionResult {
         const { distance, log } = this.state
         const r: ActionResult = {
             damage: 0,
@@ -244,21 +237,32 @@ export class BattleEngine {
             distanceDelta: 0,
             knockbackDistance: 0,
         }
-        const { ap, delta } = DistanceSystem.calcMovement(cmd.bestDistance ?? 0, this.#self.attrs.get('dexterity'))
-        if (!this.#self.spendAp(ap)) {
-            log.logSystem(`${this.#self.name} AP不足 无法移动`, this.#tMs, this.getSnapshot())
+        const { ap, delta } = DistanceSystem.calcMovement(cmd.bestDistance ?? 0, self.attrs.get('agility'))
+        if (!self.spendAp(ap)) {
+            log.logSystem(`${self.name} AP不足 无法移动`, this.#tMs, this.getSnapshot())
             return r
         }
         const a = distance.move(delta)
         r.distanceDelta = a
-        log.logMove(this.#self.name, a, distance.current, ap, this.#self.ap, this.#tMs, this.getSnapshot())
-        processBleedDamage(this.#self, this.#tMs, this)
-        this.emit('on_move', this.#self, this.#enemy, this.#tMs)
-        this.emit('on_move', this.#enemy, this.#self, this.#tMs)
+        log.logMove(self.name, a, distance.current, ap, self.ap, this.#tMs, this.getSnapshot())
+        processBleedDamage(self, this.#tMs, this)
+        const enemy = this.state.characters.find((c) => c.id !== self.id)!
+        this.emit('on_move', self, enemy)
+        this.emit('on_move', enemy, self)
         return r
     }
 
-    #executeAttack(cmd: ActionCommand): ActionResult {
+    #executeAttack(cmd: ActionCommand, self: Character, enemy: Character): ActionResult {
+        const action = cmd.actionId ? getAction(cmd.actionId) : undefined
+        if (!action) {
+            this.#log.logSystem(`${self.name} 没有可用招式`, this.#tMs, this.getSnapshot())
+            return this.#emptyResult()
+        }
+        return this.#executeAction(action, self, enemy)
+    }
+
+    /** 统一招式执行 */
+    #executeAction(action: ActionDefinition, self: Character, enemy: Character, triggered = false): ActionResult {
         const r: ActionResult = {
             damage: 0,
             hit: false,
@@ -268,101 +272,54 @@ export class BattleEngine {
             distanceDelta: 0,
             knockbackDistance: 0,
         }
-        const action = this.#validateAttack(cmd)
-        if (!action) return r
-        this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
-        this.#processSelfBleed()
-        if (!this.#resolveCombatRolls(action, r)) return r
-        this.#finalizeAttack(action, r)
-        return r
-    }
-
-    /** 验证攻击条件：招式存在性/消耗/距离 */
-    #validateAttack(cmd: ActionCommand): ActionDefinition | null {
-        const { distance, log } = this.state
-        const self = this.#self
-        const tMs = this.#tMs
-        const action = cmd.actionId ? getAction(cmd.actionId) : undefined
-        if (!action) {
-            log.logSystem(`${self.name} 没有可用招式`, tMs, this.getSnapshot())
-            return null
-        }
-        const c = canExecuteAction(action, self, distance.current)
-        if (!c.ok) {
-            log.logSystem(`${self.name} ${c.reason}`, tMs, this.getSnapshot())
-            return null
-        }
+        // 验证
+        const c = canExecuteAction(action, self, this.state.distance.current)
+        if (!c.ok) return r
         if (!self.spendAp(action.apCost)) {
-            log.logSystem(`${self.name} AP不足`, tMs, this.getSnapshot())
-            return null
+            return r
         }
         const weapon = getWeapon(self.build.weapon)
-        if (!distance.inRange(weapon.range[0], weapon.range[1])) {
-            log.logSystem(`${self.name} 距离不合适`, tMs, this.getSnapshot())
-            return null
-        }
-        log.logAttack(
+        this.state.log.logAttack(
             self.name,
-            this.#enemy.name,
+            enemy.name,
             weapon.name,
             action.apCost,
             self.ap,
-            tMs,
+            this.#tMs,
             this.getSnapshot(),
-            action.name,
+            triggered ? `[触发]${action.name}` : action.name,
+            this.state.log.indentDepth,
         )
-        return action
-    }
-
-    /** 自身流血伤害处理 */
-    #processSelfBleed(): void {
-        processBleedDamage(this.#self, this.#tMs, this)
-    }
-
-    /** 命中/闪避/招架判定，返回 false 则攻击终止 */
-    #resolveCombatRolls(action: ActionDefinition, r: ActionResult): boolean {
-        return processCombatRolls(action, r, this.#self, this.#enemy, this.#tMs, this)
+        this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
+        // 攻击者自身流血
+        processBleedDamage(self, this.#tMs, this)
+        // 战斗判定
+        if (!processCombatRolls(action, r, self, enemy, this.#tMs, this)) return r
+        // 效果应用
+        this.#finalizeAttack(action, r, self, enemy)
+        return r
     }
 
     /** 命中后效：触发/流血/状态/击败 */
-    #finalizeAttack(action: ActionDefinition, r: ActionResult): void {
+    #finalizeAttack(action: ActionDefinition, r: ActionResult, self: Character, enemy: Character): void {
         const log = this.state.log
-        const self = this.#self
-        const enemy = this.#enemy
         const tMs = this.#tMs
 
-        this.emit('on_hit', self, enemy, tMs)
-        this.emit('on_take_damage', enemy, self, tMs)
+        this.emit('on_hit', self, enemy)
+        this.emit('on_take_damage', enemy, self)
         this.#tryBonus(self, 'on_hit')
         this.#tryBonus(enemy, 'on_take_damage')
 
-        processBleedDamage(enemy, tMs, this)
         this.state.log.indentDepth++
         for (const eff of action.effects ?? []) {
-            if (eff.type === 'damage') {
-                const base = calcBaseDamage(eff.scaling, self.attrs.getAll())
-                const final = r.parried ? calcParriedDamage(base) : base
-                enemy.takeDamage(final)
-                log.logSystem(
-                    `→ ${enemy.name} 受到 ${final} 点伤害${r.parried ? ' [挡]' : ''}`,
-                    tMs,
-                    this.getSnapshot(),
-                )
-            } else if (eff.type === 'fixed_damage') {
-                const final = r.parried ? calcParriedDamage(eff.value) : eff.value
-                enemy.takeDamage(final)
-                log.logSystem(
-                    `→ ${enemy.name} 受到 ${final} 点伤害${r.parried ? ' [挡]' : ''}`,
-                    tMs,
-                    this.getSnapshot(),
-                )
-            } else if (eff.type === 'status' && r.hit && !r.dodged) {
+            if ((eff.type === 'status' || eff.type === 'damage' || eff.type === 'fixed_damage') && r.hit && !r.dodged) {
                 processActionEffect(eff, self, enemy, this, tMs)
             } else if (r.hit && !r.dodged) {
                 processActionEffect(eff, self, enemy, this, tMs)
             }
         }
         this.state.log.indentDepth--
+        processBleedDamage(enemy, tMs, this)
         if (r.knockbackDistance > 0) {
             processActionEffect({ type: 'knockback', distance: r.knockbackDistance }, self, enemy, this, tMs)
         }
@@ -375,8 +332,8 @@ export class BattleEngine {
         }
     }
 
-    #executeDefend(): ActionResult {
-        this.#log.logSystem(`${this.#self.name} 防御`, this.#tMs, this.getSnapshot())
+    #executeDefend(self: Character): ActionResult {
+        this.#log.logSystem(`${self.name} 防御`, this.#tMs, this.getSnapshot())
         return {
             damage: 0,
             hit: false,
@@ -388,8 +345,7 @@ export class BattleEngine {
         }
     }
 
-    #executeBonus(cmd: ActionCommand): ActionResult {
-        const self = this.#self
+    #executeBonus(cmd: ActionCommand, self: Character): ActionResult {
         const r = {
             damage: 0,
             hit: false,
@@ -410,8 +366,8 @@ export class BattleEngine {
         return r
     }
 
-    #executeWait(): ActionResult {
-        this.#log.logSystem(`${this.#self.name} 结束`, this.#tMs, this.getSnapshot())
+    #executeWait(self: Character): ActionResult {
+        this.#log.logSystem(`${self.name} 结束`, this.#tMs, this.getSnapshot())
         return {
             damage: 0,
             hit: false,

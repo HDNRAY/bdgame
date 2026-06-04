@@ -87,7 +87,7 @@ export function formatBattleLog(log: BattleLog): string[] {
                 pending = {
                     time: ms,
                     actor: e.actor,
-                    text: `#${e.actionName ?? e.weapon}（${e.apCost}AP）`,
+                    text: `${'  '.repeat(e.indent ?? 0)}#${e.actionName ?? e.weapon}（${e.apCost}AP）`,
                     ap: `[AP${e.apRemaining}]`,
                     startAp: e.apRemaining + e.apCost,
                     hpInfo: `HP${Math.round(e.snapshot.characters[0].hp * 10) / 10}/${e.snapshot.characters[0].maxHp} VS HP${Math.round(e.snapshot.characters[1].hp * 10) / 10}/${e.snapshot.characters[1].maxHp}`,
@@ -148,7 +148,6 @@ export function formatBattleLog(log: BattleLog): string[] {
 
             case 'defeat':
                 flush()
-                lines.push(`[败] ${e.loser} 败 — ${e.winner} 胜\n`)
                 break
 
             case 'system':

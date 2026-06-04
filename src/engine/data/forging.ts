@@ -16,7 +16,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         triggerEffect: [
             {
                 type: 'stat_buff' as const,
-                attrs: { strength: 1, vitality: 1, dexterity: 1, technique: 1, insight: 1, wisdom: 1 },
+                attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1, wisdom: 1 },
                 duration: { attr: 'wisdom' as const, multiplier: 1000 },
             },
         ],

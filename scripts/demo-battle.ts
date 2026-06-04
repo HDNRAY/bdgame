@@ -10,7 +10,7 @@ function show(c: Character, label: string) {
     const weapon = getWeapon(c.build.weapon)
     console.log(`\n${label}`)
     console.log(
-        `  STR ${a.get('strength')}  VIT ${a.get('vitality')}  DEX ${a.get('dexterity')}  TEC ${a.get('technique')}  INS ${a.get('insight')}  WIS ${a.get('wisdom')}`,
+        `  STR ${a.get('strength')}  VIT ${a.get('vitality')}  AGI ${a.get('agility')}  DEX ${a.get('dexterity')}  INS ${a.get('insight')}  WIS ${a.get('wisdom')}`,
     )
     console.log(`  HP ${c.maxHp}  AP ${c.maxAp}  武器: ${weapon.name}`)
     if (c.passives.length) console.log(`  功法: ${c.passives.map((p) => p.name).join(', ')}`)
@@ -23,8 +23,8 @@ const pBuild: CharacterBuild = {
     id: 'p1',
     name: '玩家·拳',
     weapon: 'bare_hands',
-    baseAttrs: { strength: 14, vitality: 10, dexterity: 14, technique: 10, insight: 8, wisdom: 6 },
-    moves: ['iron_charge', 'straight_punch', 'crushing_blow', 'tremor_stomp', 'jab', 'qi_focus', 'qi_gather'],
+    baseAttrs: { strength: 12, vitality: 10, agility: 14, dexterity: 10, insight: 8, wisdom: 12 },
+    moves: ['iron_charge', 'straight_punch', 'crushing_blow', 'tremor_stomp', 'qi_focus', 'qi_gather'],
     triggers: [
         { condition: { type: 'on_parry' }, actionId: 'straight_punch' },
         { condition: { type: 'on_dodged' }, actionId: 'flick' },
@@ -35,7 +35,7 @@ const pBuild: CharacterBuild = {
             id: 'forge_4',
             name: '锻体·四级',
             description: '基础锻体，全属性+1。',
-            statMods: { strength: 1, vitality: 1, dexterity: 1, technique: 1 },
+            statMods: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 },
         },
     ],
     artifacts: [],
@@ -46,8 +46,8 @@ const oBuild: CharacterBuild = {
     id: 'o1',
     name: '铁枪·张烈',
     weapon: 'iron_spear',
-    baseAttrs: { strength: 16, vitality: 14, dexterity: 8, technique: 8, insight: 8, wisdom: 8 },
-    moves: ['thrust', 'sweep', 'fissure', 'break_formation', 'pursuit_thrust'],
+    baseAttrs: { strength: 16, vitality: 14, agility: 10, dexterity: 12, insight: 10, wisdom: 8 },
+    moves: ['thrust', 'break_formation', 'pursuit_thrust'],
     triggers: [{ condition: { type: 'on_debuff' }, actionId: 'pursuit_thrust' }],
     passives: [{ id: 'iron_bone', name: '钢筋铁骨', description: '铜皮铁骨。' }],
     artifacts: [],

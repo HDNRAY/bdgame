@@ -28,13 +28,13 @@ describe('BattleEngine', () => {
         const p = makeChar(
             'p1',
             '玩家',
-            { strength: 14, vitality: 12, dexterity: 10, technique: 10, insight: 8, wisdom: 6 },
+            { strength: 14, vitality: 12, agility: 10, dexterity: 10, insight: 8, wisdom: 6 },
             ['straight_punch'],
         )
         const o = makeChar(
             'o1',
             '野怪',
-            { strength: 8, vitality: 8, dexterity: 6, technique: 6, insight: 4, wisdom: 3 },
+            { strength: 8, vitality: 8, agility: 6, dexterity: 6, insight: 4, wisdom: 3 },
             ['straight_punch'],
         )
         const { winner, engine } = runBattle(p, o, 'straight_punch')
@@ -48,15 +48,15 @@ describe('BattleEngine', () => {
         const p = makeChar(
             'p1',
             '远程',
-            { technique: 12, dexterity: 14, strength: 6, vitality: 8, insight: 6, wisdom: 10 },
+            { dexterity: 12, agility: 14, strength: 6, vitality: 8, insight: 6, wisdom: 10 },
             ['needle'],
             'throwing_dagger',
         )
         const o = makeChar('o1', '近战', {
             strength: 14,
             vitality: 10,
-            dexterity: 8,
-            technique: 6,
+            agility: 8,
+            dexterity: 6,
             insight: 4,
             wisdom: 3,
         })
@@ -72,13 +72,13 @@ describe('BattleEngine', () => {
         const w = makeChar(
             'w',
             '弱者',
-            { strength: 14, vitality: 10, dexterity: 10, technique: 10, insight: 6, wisdom: 5 },
+            { strength: 14, vitality: 10, agility: 10, dexterity: 10, insight: 6, wisdom: 5 },
             ['fissure'],
         )
         const s = makeChar(
             's',
             '强者',
-            { strength: 18, vitality: 20, dexterity: 10, technique: 14, insight: 8, wisdom: 6 },
+            { strength: 18, vitality: 20, agility: 10, dexterity: 14, insight: 8, wisdom: 6 },
             ['fissure'],
         )
         const { winner } = runBattle(w, s, 'fissure')
@@ -89,16 +89,16 @@ describe('BattleEngine', () => {
         const a = makeChar('a', 'A', {
             strength: 10,
             vitality: 10,
+            agility: 10,
             dexterity: 10,
-            technique: 10,
             insight: 6,
             wisdom: 5,
         })
         const b = makeChar('b', 'B', {
             strength: 10,
             vitality: 10,
+            agility: 10,
             dexterity: 10,
-            technique: 10,
             insight: 6,
             wisdom: 5,
         })

@@ -16,7 +16,7 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
     if (!mainDef) return cmds
 
     // 2. 计算移动需要多少 AP
-    const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
+    const perAp = DistanceSystem.apToRange(self.attrs.get('agility'))
     let moveAp = 0
     let virtualDist = state.distance.current
     if (virtualDist > weapon.range[1]) {

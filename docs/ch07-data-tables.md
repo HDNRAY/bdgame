@@ -50,9 +50,9 @@ interface FightStyle {
 
 | ID              | 名称     | 主属性    | 次属性    | 推荐武器 | 标签           |
 | --------------- | -------- | --------- | --------- | -------- | -------------- |
-| `nanoblade`     | 纳米剑术 | technique | dexterity | 待定     | 近战·精准·流血 |
+| `nanoblade`     | 纳米剑术 | dexterity | agility | 待定     | 近战·精准·流血 |
 | `phantom`       | 幻象术   | wisdom    | insight   | 待定     | 远程·诡术·欺诈 |
-| `broken_katana` | 残心居合 | strength  | technique | 待定     | 近战·爆发·忍耐 |
+| `broken_katana` | 残心居合 | strength  | dexterity | 待定     | 近战·爆发·忍耐 |
 
 ---
 
@@ -99,7 +99,7 @@ interface OpponentData {
     title: '剑庐',
     style: 'nanoblade',
 
-    baseAttrs: { strength: 4, vitality: 5, dexterity: 10, technique: 12, insight: 8, wisdom: 6 },
+    baseAttrs: { strength: 4, vitality: 5, agility: 10, dexterity: 12, insight: 8, wisdom: 6 },
     weapon: 'nanoblade',
     signatureMove: '一剑万里',
     extraActions: ['横斩', '燕返'],
@@ -128,7 +128,7 @@ interface OpponentData {
     title: '蜃楼',
     style: 'phantom',
 
-    baseAttrs: { strength: 3, vitality: 4, dexterity: 7, technique: 9, insight: 11, wisdom: 13 },
+    baseAttrs: { strength: 3, vitality: 4, agility: 7, dexterity: 9, insight: 11, wisdom: 13 },
     weapon: 'control',
     signatureMove: '海市蜃楼',
     extraActions: ['飞针', '弹指'],
@@ -158,7 +158,7 @@ interface OpponentData {
     title: '不灭',
     style: 'broken_katana',
 
-    baseAttrs: { strength: 12, vitality: 9, dexterity: 8, technique: 10, insight: 7, wisdom: 4 },
+    baseAttrs: { strength: 12, vitality: 9, agility: 8, dexterity: 10, insight: 7, wisdom: 4 },
     weapon: 'katana',
     signatureMove: '断钢',
     extraActions: ['正拳', '崩拳'],

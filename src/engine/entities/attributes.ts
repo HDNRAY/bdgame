@@ -1,7 +1,7 @@
 /** 六大属性 */
-export type AttrName = 'strength' | 'vitality' | 'dexterity' | 'technique' | 'insight' | 'wisdom'
+export type AttrName = 'strength' | 'vitality' | 'agility' | 'dexterity' | 'insight' | 'wisdom'
 
-export const ALL_ATTRS: AttrName[] = ['strength', 'vitality', 'dexterity', 'technique', 'insight', 'wisdom']
+export const ALL_ATTRS: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
 
 export const ATTR_MIN = 1
 export const ATTR_NORMAL_MAX = 20
@@ -15,8 +15,8 @@ export class AttributeSet {
         this.values = {
             strength: 3,
             vitality: 3,
+            agility: 3,
             dexterity: 3,
-            technique: 3,
             insight: 3,
             wisdom: 3,
             ...values,
