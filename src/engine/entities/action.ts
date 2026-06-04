@@ -51,9 +51,10 @@ export type EffectDef =
     | { type: 'buff_end'; buffId: string }
     | { type: 'restore_ap'; value: number }
     | { type: 'summon_speed'; value: number }
-    | { type: 'guarantee_hit' }
-    | { type: 'guarantee_crit' }
-    | { type: 'ignore_parry_next' }
+    | { type: 'stat_transfer'; stat: string; value: number; duration: number }
+// | { type: 'guarantee_hit' }
+// | { type: 'guarantee_crit' }
+// | { type: 'ignore_parry_next' }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {
@@ -64,6 +65,9 @@ export interface ActionDefinition extends GameEntity {
     apCost: number
     tags: EffectTag[]
     effects?: EffectDef[]
+    target?: 'self' | 'enemy'
+    /** 招式固定命中率（不设则用属性公式计算） */
+    chance?: number
     maxUses?: number
     bonus?: boolean
     bonusTiming?: Condition

@@ -11,6 +11,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         tags: [],
         bonus: true,
         bonusTiming: { type: 'before_main' },
+        target: 'self',
         maxUses: 1,
         effects: [
             {
@@ -29,6 +30,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         tags: [],
         bonus: true,
         bonusTiming: { type: 'before_main' },
+        target: 'self',
         maxUses: 1,
         effects: [
             { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: { attr: 'wisdom', multiplier: 150 } },

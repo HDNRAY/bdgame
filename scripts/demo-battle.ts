@@ -63,6 +63,7 @@ const mBuild: CharacterBuild = {
     triggers: [
         { condition: { type: 'on_parry' }, actionId: 'restore_ap' },
         { condition: { type: 'on_dodge' }, actionId: 'summon_haste' },
+        { condition: { type: 'on_hit' }, actionId: 'agility_steal' },
     ],
     passives: [],
     artifacts: [],

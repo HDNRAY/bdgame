@@ -186,6 +186,27 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         engine.speedUpSummons(self.id, e.value)
         log.logSystem(`[${tag ?? 'buff'}] ${self.name} 召唤物加速 ${e.value}ms`, tMs, engine.getSnapshot(), self.name)
     },
+    stat_transfer({ eff, self, enemy, engine, tMs, log, tag }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'stat_transfer' }>
+        const attr = e.stat as AttrName
+        const buffKey = encodeBuffKey(`transfer_${e.stat}`, self.id)
+        if (engine.state.pendingBuffs.has(buffKey)) return
+        engine.state.pendingBuffs.set(buffKey, { restoreValue: e.value, stat: `transfer_${e.stat}` })
+        engine.state.pendingBuffs.set(`transfer_meta_${buffKey}`, { restoreValue: 0, stat: enemy.id })
+        self.attrs.modify(attr, e.value)
+        enemy.attrs.modify(attr, -e.value)
+        engine.state.turn.scheduleSystemEventAt(
+            `buff_end_${buffKey}`,
+            engine.state.turn.currentTime + e.duration,
+            'buff_end',
+        )
+        log.logSystem(
+            `[${tag ?? 'buff'}] ${self.name} 吸取 ${enemy.name} ${e.stat}+${e.value}`,
+            tMs,
+            engine.getSnapshot(),
+            self.name,
+        )
+    },
 }
 
 // ── Status 子分发表 ──
@@ -342,7 +363,7 @@ export function processCombatRolls(
     const { log } = engine.state
 
     engine.emit('on_attack', self, enemy)
-    const hc = calcHitChance({
+    const hc = _action.chance ?? calcHitChance({
         attackerDexterity: self.attrs.get('dexterity'),
         attackerInsight: self.attrs.get('insight'),
         defenderAgility: enemy.attrs.get('agility'),
@@ -353,6 +374,7 @@ export function processCombatRolls(
     log.logHitCheck(self.name, enemy.name, hc, hitResult.roll, r.hit, tMs, engine.getSnapshot())
     if (!r.hit) {
         engine.emit('on_dodged', self, enemy)
+        engine.emit('on_dodge', enemy, self)
         return false
     }
 
@@ -420,6 +442,19 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     if (!data) return
     const decoded = decodeBuffKey(buffKey)
     if (!decoded) return
+
+    if (typeof data.stat === 'string' && data.stat.startsWith('transfer_')) {
+        const attr = data.stat.slice('transfer_'.length) as AttrName
+        const self = engine.state.characters.find((c) => c.id === decoded.characterId)
+        const metaKey = `transfer_meta_${buffKey}`
+        const meta = engine.state.pendingBuffs.get(metaKey)
+        const enemy = engine.state.characters.find((c) => c.id === meta?.stat)
+        if (self) self.attrs.modify(attr, -data.restoreValue)
+        if (enemy) enemy.attrs.modify(attr, data.restoreValue)
+        engine.state.pendingBuffs.delete(metaKey)
+        engine.state.pendingBuffs.delete(buffKey)
+        return
+    }
 
     const char = engine.state.characters.find((c) => c.id === decoded.characterId)
     if (!char) return

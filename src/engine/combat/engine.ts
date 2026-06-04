@@ -204,9 +204,12 @@ export class BattleEngine {
             triggerUses.set(slot.actionId, used + 1)
 
             log.indentDepth++
-            this.#executeAction(action, self, enemy, true)
-            for (const eff of action.effects ?? []) {
-                processActionEffect(eff, self, enemy, this, this.#tMs, action.name, action.id)
+            if (action.target === 'self') {
+                for (const eff of action.effects ?? []) {
+                    processActionEffect(eff, self, enemy, this, this.#tMs, action.name, action.id)
+                }
+            } else {
+                this.#executeAction(action, self, enemy, true)
             }
             log.indentDepth--
         }
@@ -349,15 +352,15 @@ export class BattleEngine {
         this.state.log.indentDepth++
         for (const eff of action.effects ?? []) {
             if ((eff.type === 'status' || eff.type === 'damage' || eff.type === 'fixed_damage') && r.hit && !r.dodged) {
-                processActionEffect(eff, self, enemy, this, tMs)
+                processActionEffect(eff, self, enemy, this, tMs, action.name, action.id)
             } else if (r.hit && !r.dodged) {
-                processActionEffect(eff, self, enemy, this, tMs)
+                processActionEffect(eff, self, enemy, this, tMs, action.name, action.id)
             }
         }
         this.state.log.indentDepth--
         processBleedDamage(enemy, tMs, this)
         if (r.knockbackDistance > 0) {
-            processActionEffect({ type: 'knockback', distance: r.knockbackDistance }, self, enemy, this, tMs)
+            processActionEffect({ type: 'knockback', distance: r.knockbackDistance }, self, enemy, this, tMs, action.name, action.id)
         }
         if (!enemy.isAlive()) {
             log.logDefeat(enemy.name, self.name, tMs, this.getSnapshot())
