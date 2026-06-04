@@ -55,7 +55,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'tri_orb',
         name: '三相珠',
         description: '三颗由炁劲驱动的法珠，环绕主人旋转。',
-        tags: ['imperial'],
+        tags: ['imperial', 'parry'],
         attrMods: {},
         range: [1, 5],
         summon: {

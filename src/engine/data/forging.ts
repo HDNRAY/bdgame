@@ -9,15 +9,14 @@ export const QI_SKILLS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: [],
-        effects: [],
         bonus: true,
         bonusTiming: { type: 'before_main' },
         maxUses: 1,
-        triggerEffect: [
+        effects: [
             {
-                type: 'stat_buff' as const,
+                type: 'stat_buff',
                 attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1, wisdom: 1 },
-                duration: { attr: 'wisdom' as const, multiplier: 1000 },
+                duration: { attr: 'wisdom', multiplier: 1000 },
             },
         ],
     },
@@ -28,17 +27,11 @@ export const QI_SKILLS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: [],
-        effects: [],
         bonus: true,
         bonusTiming: { type: 'before_main' },
         maxUses: 1,
-        triggerEffect: [
-            {
-                type: 'stat_multiply',
-                stat: 'strength',
-                multiplier: 2,
-                duration: { attr: 'wisdom', multiplier: 150 },
-            },
+        effects: [
+            { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: { attr: 'wisdom', multiplier: 150 } },
         ],
     },
     // TODO: 愈炁 — 回血，触发器类

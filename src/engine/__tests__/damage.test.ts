@@ -6,7 +6,6 @@ import {
     calcCritChance,
     calcParryChance,
     calcParriedDamage,
-    calcDodgeChance,
     calcMoveApCost,
 } from '../calc/damage'
 
@@ -44,11 +43,14 @@ describe('calcFinalDamage', () => {
 
 describe('calcHitChance', () => {
     it('should be base 80% when equal', () => {
-        expect(calcHitChance(10, 10)).toBe(0.8)
+        expect(
+            calcHitChance({ attackerDexterity: 10, attackerInsight: 10, defenderAgility: 10, defenderInsight: 10 }),
+        ).toBe(0.8)
     })
 
-    it('should increase with higher dexterity', () => {
-        expect(calcHitChance(18, 8)).toBe(0.95) // 0.8 + 10/50 = 1.0, capped at 0.95
+    it('should increase with higher dexterity and insight', () => {
+        const hc = calcHitChance({ attackerDexterity: 18, attackerInsight: 14, defenderAgility: 8, defenderInsight: 6 })
+        expect(hc).toBe(0.95) // capped
     })
 })
 
@@ -82,13 +84,6 @@ describe('calcParriedDamage', () => {
         expect(calcParriedDamage(100, 10)).toBeCloseTo(80)
         // strength 50 → reduction 50/60 ≈ 83.3%, clamped to 60%, damage * 0.4
         expect(calcParriedDamage(100, 50)).toBeCloseTo(40)
-    })
-})
-
-describe('calcDodgeChance', () => {
-    it('should scale with agility', () => {
-        expect(calcDodgeChance(20)).toBe(0.25)
-        expect(calcDodgeChance(50)).toBeCloseTo(0.625)
     })
 })
 

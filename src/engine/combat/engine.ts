@@ -14,7 +14,6 @@ import {
     processStatusTick,
     processCombatRolls,
     processBleedDamage,
-    processTriggerEffect,
     processParalyzeEnd,
     processBuffEnd,
 } from './effect-processor'
@@ -206,8 +205,8 @@ export class BattleEngine {
 
             log.indentDepth++
             this.#executeAction(action, self, enemy, true)
-            for (const eff of action.triggerEffect ?? []) {
-                processTriggerEffect(eff, self, this, action.name, action.id)
+            for (const eff of action.effects ?? []) {
+                processActionEffect(eff, self, enemy, this, this.#tMs, action.name, action.id)
             }
             log.indentDepth--
         }
@@ -397,8 +396,8 @@ export class BattleEngine {
         if (!inst || !inst.def.bonus || !inst.canUse()) return r
         if (!self.spendAp(inst.apCost)) return r
         inst.use()
-        for (const eff of inst.def.triggerEffect ?? []) {
-            processTriggerEffect(eff, self, this, inst.name, inst.id)
+        for (const eff of inst.def.effects ?? []) {
+            processActionEffect(eff, self, self, this, this.#tMs, inst.name, inst.id)
         }
         return r
     }
@@ -413,6 +412,15 @@ export class BattleEngine {
             crit: false,
             distanceDelta: 0,
             knockbackDistance: 0,
+        }
+    }
+
+    /** 加速角色所有召唤物（直接修改下次行动时间） */
+    speedUpSummons(ownerId: string, deltaMs: number): void {
+        for (const [id, inst] of this.#summons) {
+            if (inst.ownerId === ownerId) {
+                this.state.turn.modifyTime(id, -deltaMs)
+            }
         }
     }
 
@@ -510,8 +518,8 @@ export class BattleEngine {
             if (self.ap < inst.apCost + mainAp) continue
             self.spendAp(inst.apCost)
             inst.use()
-            for (const eff of inst.def.triggerEffect ?? []) {
-                processTriggerEffect(eff, self, this, inst.name, inst.id)
+            for (const eff of inst.def.effects ?? []) {
+                processActionEffect(eff, self, self, this, this.#tMs, inst.name, inst.id)
             }
             fired = true
         }

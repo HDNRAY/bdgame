@@ -28,19 +28,16 @@ export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit
     return Math.max(1, damage) // 至少 1 点
 }
 
-/** 命中判定: base 80% + (dexterity - 对方 agility) / 50 */
-export function calcHitChance(myDexterity: number, enemyAgility: number): number {
-    return Math.max(0.1, Math.min(0.95, 0.8 + (myDexterity - enemyAgility) / 50))
+/** 命中判定: base 80%，受双方灵巧和洞察影响 */
+export function calcHitChance(opts: Record<string, number>): number {
+    const atk = (opts.attackerDexterity ?? 0) / 50 + (opts.attackerInsight ?? 0) / 60
+    const def = (opts.defenderAgility ?? 0) / 50 + (opts.defenderInsight ?? 0) / 60
+    return Math.max(0.05, Math.min(0.95, 0.8 + atk - def))
 }
 
 /** 招架判定: (身法 + 灵巧 + 洞察) / 120，上限 50% */
 export function calcParryChance(agility: number, dexterity: number, insight: number): number {
     return Math.min(0.9, (agility + dexterity + insight) / 120)
-}
-
-/** 闪避判定: agility / 80 */
-export function calcDodgeChance(agility: number): number {
-    return Math.min(0.9, agility / 80)
 }
 
 /** 移动消耗: 移动 1 档需要 AP = 1 / apToRange */
@@ -82,13 +79,6 @@ export function calcCrippleBonus(missingHp: number, ratio: number): number {
 /** 自伤：基于自身最大 HP 的伤害 */
 export function calcSelfDamage(maxHp: number, ratio: number): number {
     return Math.round(maxHp * ratio)
-}
-
-/** 考虑麻痹层数后的等效身法（用于闪避判定） */
-export function calcDodgeChanceWithParalyze(agility: number, paralyzeStacks: number): number {
-    const penalty = paralyzeStacks * 0.05
-    const effectiveAgi = agility - Math.floor(penalty * 10)
-    return calcDodgeChance(Math.max(0, effectiveAgi))
 }
 
 /** 麻痹到期时恢复的身法/洞察 */

@@ -59,8 +59,11 @@ const mBuild: CharacterBuild = {
     name: '御物·玄机',
     weapon: 'tri_orb',
     baseAttrs: { strength: 6, vitality: 10, agility: 10, dexterity: 10, insight: 14, wisdom: 18 },
-    moves: [],
-    triggers: [],
+    moves: ['qi_bolt'],
+    triggers: [
+        { condition: { type: 'on_parry' }, actionId: 'restore_ap' },
+        { condition: { type: 'on_dodge' }, actionId: 'summon_haste' },
+    ],
     passives: [],
     artifacts: [],
 }

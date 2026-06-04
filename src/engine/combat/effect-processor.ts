@@ -1,6 +1,6 @@
 import type { Character } from '../entities/character'
 import type { BattleEngine } from './engine'
-import type { ActionEffect, ActionDefinition, BonusTriggerEffect } from '../entities/action'
+import type { EffectDef, ActionDefinition } from '../entities/action'
 import type { AttrName } from '../entities/attributes'
 import type { StatusInstance, StatusType } from '../entities/status'
 import {
@@ -10,7 +10,6 @@ import {
     calcBuffDuration,
     calcHealAmount,
     calcParriedDamage,
-    calcDodgeChanceWithParalyze,
     calcHitChance,
     calcParryChance,
     calcRoll,
@@ -26,16 +25,18 @@ import type { ActionResult } from './types'
 
 // ── Context 类型 ──
 interface Ctx {
-    eff: ActionEffect
+    eff: EffectDef
     self: Character
     enemy: Character
     engine: BattleEngine
     tMs: number
     log: BattleLog
+    tag?: string
+    actionId?: string
 }
 
 interface StatusCtx {
-    eff: ActionEffect & { type: 'status' }
+    eff: EffectDef & { type: 'status' }
     self: Character
     enemy: Character
     engine: BattleEngine
@@ -48,7 +49,14 @@ interface StatusCtx {
 // ── 效果分发表 ──
 
 /** 应用伤害（含招架判定） */
-function applyDamage(raw: number, target: Character, engine: BattleEngine, tMs: number, log: BattleLog): void {
+function applyDamage(
+    raw: number,
+    target: Character,
+    attacker: Character,
+    engine: BattleEngine,
+    tMs: number,
+    log: BattleLog,
+): void {
     const weapon = getWeapon(target.build.weapon)
     let parried = false
     if (weapon.tags.includes('parry')) {
@@ -58,6 +66,7 @@ function applyDamage(raw: number, target: Character, engine: BattleEngine, tMs: 
             target.attrs.get('insight'),
         )
         parried = calcRoll(pc).success
+        if (parried) engine.emit('on_parry', target, attacker)
     }
     const final = parried ? calcParriedDamage(raw, target.attrs.get('strength')) : raw
     target.takeDamage(final)
@@ -66,7 +75,7 @@ function applyDamage(raw: number, target: Character, engine: BattleEngine, tMs: 
 
 const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     counter_damage({ eff, self, enemy, engine, tMs, log }: Ctx) {
-        const { ratio } = eff as Extract<ActionEffect, { type: 'counter_damage' }>
+        const { ratio } = eff as Extract<EffectDef, { type: 'counter_damage' }>
         const scaling: Partial<Record<AttrName, number>> = { strength: 1.0 }
         const base = calcBaseDamage(scaling, self.attrs.getAll())
         const dmg = Math.round(base * ratio)
@@ -74,17 +83,17 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         log.logSystem(`[反击] ${self.name} 反击 ${enemy.name} ${dmg} 伤害`, tMs, engine.getSnapshot())
     },
     modify_turn({ eff, enemy, engine }: Ctx) {
-        const { deltaMs } = eff as Extract<ActionEffect, { type: 'modify_turn' }>
+        const { deltaMs } = eff as Extract<EffectDef, { type: 'modify_turn' }>
         engine.state.turn.modifyTime(enemy.id, deltaMs)
     },
     cleanse({ eff, self, engine, tMs, log }: Ctx) {
-        const { statuses } = eff as Extract<ActionEffect, { type: 'cleanse' }>
+        const { statuses } = eff as Extract<EffectDef, { type: 'cleanse' }>
         const targets = statuses ?? (['paralyze', 'poison'] as StatusType[])
         self.statuses = self.statuses.filter((s) => !targets.includes(s.type as StatusType))
         log.logSystem(`[净化] ${self.name} 清除了负面效果`, tMs, engine.getSnapshot())
     },
     heal({ eff, self, engine, tMs, log }: Ctx) {
-        const { value, ratio } = eff as Extract<ActionEffect, { type: 'heal' }>
+        const { value, ratio } = eff as Extract<EffectDef, { type: 'heal' }>
         const amount = calcHealAmount(value, self.maxHp, ratio)
         self.hp = Math.min(self.maxHp, self.hp + amount)
         log.logSystem(`[回复] ${self.name} 恢复了 ${amount} HP`, tMs, engine.getSnapshot())
@@ -95,26 +104,26 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         log.logSystem(`[打断] ${enemy.name} 被中断，延后 ${INTERRUPT_DELAY}ms`, tMs, engine.getSnapshot())
     },
     knockback({ eff, engine }: Ctx) {
-        const { distance } = eff as Extract<ActionEffect, { type: 'knockback' }>
+        const { distance } = eff as Extract<EffectDef, { type: 'knockback' }>
         if (distance > 0) engine.state.distance.move(distance)
     },
-    fixed_damage({ eff, enemy, engine, tMs, log }: Ctx) {
-        const { value } = eff as Extract<ActionEffect, { type: 'fixed_damage' }>
-        applyDamage(value, enemy, engine, tMs, log)
+    fixed_damage({ eff, self, enemy, engine, tMs, log }: Ctx) {
+        const { value } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
+        applyDamage(value, enemy, self, engine, tMs, log)
     },
     damage({ eff, self, enemy, engine, tMs, log }: Ctx) {
-        const { scaling } = eff as Extract<ActionEffect, { type: 'damage' }>
+        const { scaling } = eff as Extract<EffectDef, { type: 'damage' }>
         const base = calcBaseDamage(scaling, self.attrs.getAll())
-        if (base > 0) applyDamage(base, enemy, engine, tMs, log)
+        if (base > 0) applyDamage(base, enemy, self, engine, tMs, log)
     },
     self_damage({ eff, self, engine, tMs, log }: Ctx) {
-        const { ratio } = eff as Extract<ActionEffect, { type: 'self_damage' }>
+        const { ratio } = eff as Extract<EffectDef, { type: 'self_damage' }>
         const dmg = Math.round(self.maxHp * ratio)
         self.takeDamage(dmg)
         log.logSystem(`[自伤] ${self.name} 受到 ${dmg} 自伤`, tMs, engine.getSnapshot())
     },
     cripple({ eff, enemy, engine, tMs, log }: Ctx) {
-        const { ratio } = eff as Extract<ActionEffect, { type: 'cripple' }>
+        const { ratio } = eff as Extract<EffectDef, { type: 'cripple' }>
         const dmg = Math.round((enemy.maxHp - enemy.hp) * ratio)
         if (dmg > 0) {
             enemy.takeDamage(dmg)
@@ -122,7 +131,60 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         }
     },
     status({ eff, self, enemy, engine, tMs, log }: Ctx) {
-        handleStatusEffect({ eff: eff as Extract<ActionEffect, { type: 'status' }>, self, enemy, engine, tMs, log })
+        handleStatusEffect({ eff: eff as Extract<EffectDef, { type: 'status' }>, self, enemy, engine, tMs, log })
+    },
+
+    // ── 自效果（无需命中判定） ──
+    stat_multiply({ eff, self, engine, tMs, log, tag, actionId }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'stat_multiply' }>
+        const buffKey = encodeBuffKey(actionId ?? 'buff', self.id)
+        if (engine.state.pendingBuffs.has(buffKey)) return
+        const attr = e.stat as AttrName
+        const old = self.attrs.get(attr)
+        self.attrs.set(attr, old * e.multiplier)
+        log.logSystem(
+            `[${tag ?? 'buff'}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`,
+            tMs,
+            engine.getSnapshot(),
+            self.name,
+        )
+        const attrVal = self.attrs.get(e.duration.attr)
+        const buffDuration = calcBuffDuration(attrVal, e.duration.multiplier)
+        engine.state.pendingBuffs.set(buffKey, { restoreValue: old, stat: e.stat })
+        engine.state.turn.scheduleSystemEventAt(
+            `buff_end_${buffKey}`,
+            engine.state.turn.currentTime + buffDuration,
+            'buff_end',
+        )
+    },
+    stat_buff({ eff, self, engine, tMs, log, tag }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
+        const entries = Object.entries(e.attrs) as [AttrName, number][]
+        const desc = entries.map(([s, v]) => `${s}+${v}`).join(' ')
+        for (const [attr, value] of entries) self.attrs.modify(attr, value)
+        log.logSystem(`[${tag ?? 'buff'}] ${self.name} ${desc}`, tMs, engine.getSnapshot(), self.name)
+    },
+    stat_restore({ eff, self, engine, tMs, log, tag }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'stat_restore' }>
+        const attr = e.stat as AttrName
+        const old = self.attrs.get(attr)
+        self.attrs.set(attr, e.value)
+        log.logSystem(
+            `[${tag ?? 'buff'}] ${self.name} ${e.stat} ${old}→恢复${e.value}`,
+            tMs,
+            engine.getSnapshot(),
+            self.name,
+        )
+    },
+    restore_ap({ eff, self, engine, tMs, log, tag }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'restore_ap' }>
+        self.ap = Math.min(self.maxAp, self.ap + e.value)
+        log.logSystem(`[${tag ?? 'buff'}] ${self.name} 恢复 ${e.value} AP`, tMs, engine.getSnapshot(), self.name)
+    },
+    summon_speed({ eff, self, engine, tMs, log, tag }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'summon_speed' }>
+        engine.speedUpSummons(self.id, e.value)
+        log.logSystem(`[${tag ?? 'buff'}] ${self.name} 召唤物加速 ${e.value}ms`, tMs, engine.getSnapshot(), self.name)
     },
 }
 
@@ -211,16 +273,18 @@ function handleStatusEffect(ctx: Omit<StatusCtx, 'existing' | 'st'>): void {
     }
 }
 
-/** 处理一个 ActionEffect */
+/** 处理一个效果（统一入口） */
 export function processActionEffect(
-    eff: ActionEffect,
+    eff: EffectDef,
     self: Character,
     enemy: Character,
     engine: BattleEngine,
     tMs: number,
+    tag?: string,
+    actionId?: string,
 ): void {
     const handler = effectHandlers[eff.type]
-    if (handler) handler({ eff, self, enemy, engine, tMs, log: engine.state.log })
+    if (handler) handler({ eff, self, enemy, engine, tMs, log: engine.state.log, tag, actionId })
 }
 
 /** 处理 status tick（毒/灼烧），返回 damage 和下次间隔 */
@@ -278,22 +342,17 @@ export function processCombatRolls(
     const { log } = engine.state
 
     engine.emit('on_attack', self, enemy)
-    const hc = calcHitChance(self.attrs.get('dexterity'), enemy.attrs.get('agility'))
+    const hc = calcHitChance({
+        attackerDexterity: self.attrs.get('dexterity'),
+        attackerInsight: self.attrs.get('insight'),
+        defenderAgility: enemy.attrs.get('agility'),
+        defenderInsight: enemy.attrs.get('insight'),
+    })
     const hitResult = calcRoll(hc)
     r.hit = hitResult.success
     log.logHitCheck(self.name, enemy.name, hc, hitResult.roll, r.hit, tMs, engine.getSnapshot())
     if (!r.hit) {
         engine.emit('on_dodged', self, enemy)
-        return false
-    }
-
-    const paraStacks = enemy.getStatus('paralyze')?.stacks ?? 0
-    const dodgeChance = calcDodgeChanceWithParalyze(enemy.attrs.get('agility'), paraStacks)
-    const dodgeResult = calcRoll(dodgeChance)
-    r.dodged = dodgeResult.success
-    if (r.dodged) {
-        log.logDodge(self.name, enemy.name, tMs, engine.getSnapshot())
-        engine.emit('on_dodge', enemy, self)
         return false
     }
 
@@ -317,67 +376,6 @@ export function processBleedDamage(owner: Character, tMs: number, engine: Battle
                 }
                 log.logSystem(`[流血] ${owner.name} 受到 ${dmg} 流血伤害`, tMs, engine.getSnapshot())
             }
-        }
-    }
-}
-
-// ── Trigger effects ──
-
-/** 应用单个 BonusTriggerEffect */
-export function processTriggerEffect(
-    e: BonusTriggerEffect,
-    self: Character,
-    engine: BattleEngine,
-    tag: string,
-    actionId?: string,
-): void {
-    const tMs = engine.state.turn.peek()?.nextActionAt ?? 0
-    const { log } = engine.state
-    const actorName = self.name
-    switch (e.type) {
-        case 'stat_multiply': {
-            const buffKey = encodeBuffKey(actionId ?? 'buff', self.id)
-            if (engine.state.pendingBuffs.has(buffKey)) break
-            const attr = e.stat as AttrName
-            const old = self.attrs.get(attr)
-            self.attrs.set(attr, old * e.multiplier)
-            log.logSystem(
-                `[${tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`,
-                tMs,
-                engine.getSnapshot(),
-                actorName,
-            )
-            {
-                const attrVal = self.attrs.get(e.duration.attr)
-                const buffDuration = calcBuffDuration(attrVal, e.duration.multiplier)
-                engine.state.pendingBuffs.set(buffKey, { restoreValue: old, stat: e.stat })
-                engine.state.turn.scheduleSystemEventAt(
-                    `buff_end_${buffKey}`,
-                    engine.state.turn.currentTime + buffDuration,
-                    'buff_end',
-                )
-            }
-            break
-        }
-        case 'stat_buff': {
-            const entries = Object.entries(e.attrs) as [AttrName, number][]
-            const desc = entries.map(([s, v]) => `${s}+${v}`).join(' ')
-            for (const [attr, value] of entries) self.attrs.modify(attr, value)
-            log.logSystem(`[${tag}] ${self.name} ${desc}`, tMs, engine.getSnapshot(), actorName)
-            break
-        }
-        case 'stat_restore': {
-            const attr = e.stat as AttrName
-            const old = self.attrs.get(attr)
-            self.attrs.set(attr, e.value)
-            log.logSystem(`[${tag}] ${self.name} ${e.stat} ${old}→恢复${e.value}`, tMs, engine.getSnapshot(), actorName)
-            break
-        }
-        case 'heal': {
-            const amount = calcHealAmount(e.value, self.maxHp, e.ratio)
-            self.heal(amount)
-            log.logSystem(`[${tag}] ${self.name} 回复 ${amount} HP`, tMs, engine.getSnapshot(), actorName)
-            break
         }
     }
 }
@@ -422,10 +420,18 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     if (!data) return
     const decoded = decodeBuffKey(buffKey)
     if (!decoded) return
+
     const char = engine.state.characters.find((c) => c.id === decoded.characterId)
     if (!char) return
     const action = getAction(decoded.actionId)
     const buffName = action?.name ?? (decoded.actionId.startsWith('paralyze') ? '麻痹' : decoded.actionId)
-    processTriggerEffect({ type: 'stat_restore', stat: data.stat, value: data.restoreValue }, char, engine, buffName)
+    processActionEffect(
+        { type: 'stat_restore', stat: data.stat, value: data.restoreValue },
+        char,
+        char,
+        engine,
+        engine.state.turn.currentTime,
+        buffName,
+    )
     engine.state.pendingBuffs.delete(buffKey)
 }
