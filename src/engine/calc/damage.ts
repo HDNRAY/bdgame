@@ -1,9 +1,11 @@
 import type { AttrName } from '../entities/attributes'
 
 /** 基础前摇（所有角色统一） */
-export const BASE_PRE_DELAY = 300
+export const BASE_PRE_DELAY = 600
 /** 基础硬直（所有角色统一） */
-export const BASE_STUN_TIME = 350
+export const BASE_STUN_TIME = 700
+/** 基础回合间隔（所有角色统一） */
+export const BASE_TURN_INTERVAL = 1200
 
 /** 计算基础伤害: Σ(attrScaling[attr] × attrs[attr]) */
 export function calcBaseDamage(scaling: Partial<Record<AttrName, number>>, attrs: Record<AttrName, number>): number {
@@ -33,12 +35,12 @@ export function calcHitChance(myDexterity: number, enemyAgility: number): number
 
 /** 招架判定: (身法 + 灵巧 + 洞察) / 120，上限 50% */
 export function calcParryChance(agility: number, dexterity: number, insight: number): number {
-    return Math.min(0.5, (agility + dexterity + insight) / 120)
+    return Math.min(0.9, (agility + dexterity + insight) / 120)
 }
 
 /** 闪避判定: agility / 80 */
 export function calcDodgeChance(agility: number): number {
-    return Math.min(0.4, agility / 80)
+    return Math.min(0.9, agility / 80)
 }
 
 /** 移动消耗: 移动 1 档需要 AP = 1 / apToRange */
@@ -49,11 +51,11 @@ export function calcMoveApCost(distance: number, agility: number): number {
 
 /** 回合间隔: 基础 + 前后摇受身法影响(高agi大幅减少前后摇) */
 export function calcTurnInterval(agility: number, extraPreDelay = 0, extraStunTime = 0): number {
-    const base = 300 + 60000 / (100 + agility * 10)
-    const agiFactor = Math.max(0, 1 - agility * 0.06)
-    const epd = Math.round((BASE_PRE_DELAY + extraPreDelay) * agiFactor)
-    const est = Math.round((BASE_STUN_TIME + extraStunTime) * agiFactor)
-    return Math.round(base + epd + est)
+    const agiFactor = 0.4 + Math.max(0, 0.6 - agility * 0.02) // 每点身法减少0.2%，最高100%
+    const base = BASE_TURN_INTERVAL
+    const epd = Math.round(BASE_PRE_DELAY + extraPreDelay)
+    const est = Math.round(BASE_STUN_TIME + extraStunTime)
+    return Math.round((base + epd + est) * agiFactor)
 }
 
 /** 招架后伤害减免，默认减免至 40% */
