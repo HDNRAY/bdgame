@@ -46,9 +46,9 @@ export function calcMoveApCost(distance: number, agility: number): number {
     return Math.ceil(distance / perAp)
 }
 
-/** 回合间隔: 基础 + 前后摇受身法影响(高agi大幅减少前后摇) */
+/** 回合间隔: 基础 + 前后摇受身法影响（高身法大幅减少间隔） */
 export function calcTurnInterval(agility: number, extraPreDelay = 0, extraStunTime = 0): number {
-    const agiFactor = 0.4 + Math.max(0, 0.6 - agility * 0.02)
+    const agiFactor = 2.8 / (1 + agility * 0.25)
     const base = BASE_TURN_INTERVAL
     const epd = Math.round(BASE_PRE_DELAY + extraPreDelay)
     const est = Math.round(BASE_STUN_TIME + extraStunTime)
@@ -107,12 +107,17 @@ export function calcRoll(chance: number): { roll: number; success: boolean } {
     return { roll, success: roll < chance }
 }
 
-/** 眩晕时长：每叠加一次减半（2000→1000→500→...） */
-export function calcStunDuration(consecutive: number, baseDuration = 2000): number {
-    return Math.round(baseDuration / Math.pow(2, consecutive - 1))
-}
-
 /** 麻痹施加时的属性惩罚 */
 export function calcParalyzeAttrPenalty(stacks: number): { agility: number; insight: number } {
     return { agility: -stacks * 2, insight: -stacks * 1 }
+}
+
+/** 眩晕属性保留比例：连续次数越高效果越弱 */
+export function calcStunAttrRatio(consecutive: number): number {
+    return 1 - 0.9 / Math.pow(2, consecutive - 1)
+}
+
+/** 眩晕属性差值：floor(原值×比例) 保底 1 */
+export function calcStunAttrDelta(attrValue: number, ratio: number): number {
+    return Math.max(1, Math.floor(attrValue * ratio)) - attrValue
 }

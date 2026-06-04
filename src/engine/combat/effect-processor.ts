@@ -13,13 +13,13 @@ import {
     calcHitChance,
     calcParryChance,
     calcRoll,
-    calcStunDuration,
+    calcStunAttrRatio,
+    calcStunAttrDelta,
 } from '../calc/damage'
 import { getWeapon } from '../data/weapons'
-import { encodeBuffKey, decodeBuffKey, genAppId } from '../util/buff-utils'
+import { genAppId } from '../util/buff-utils'
 import { triggerBleed } from '../entities/status'
-import { getAction } from '../data/actions'
-import { STATUS_ATTR_MODS } from '../data/effects'
+import { EFFECT_META } from '../data/effects'
 import type { BattleLog } from './battle-log'
 import type { ActionResult, BuffLayer } from './types'
 
@@ -136,24 +136,28 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     },
 
     // ── 自效果（无需命中判定） ──
-    stat_multiply({ eff, self, engine, tMs, log, tag, actionId }: Ctx) {
+    stat_multiply({ eff, self, engine, tMs, log }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_multiply' }>
-        const buffKey = encodeBuffKey(actionId ?? 'buff', self.id)
-        if (engine.state.pendingBuffs.has(buffKey)) return
+        const appId = genAppId(tMs)
+        const layerKey = `stat_multiply::${self.id}::${appId}`
         const attr = e.stat as AttrName
         const old = self.attrs.get(attr)
         self.attrs.set(attr, old * e.multiplier)
         log.logSystem(
-            `[${tag ?? 'buff'}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`,
+            `[${EFFECT_META.stat_multiply.tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`,
             tMs,
             engine.getSnapshot(),
             self.name,
         )
         const attrVal = self.attrs.get(e.duration.attr)
         const buffDuration = calcBuffDuration(attrVal, e.duration.multiplier)
-        engine.state.pendingBuffs.set(buffKey, { restoreValue: old, stat: e.stat })
+        engine.state.pendingBuffs.set(layerKey, {
+            buffId: 'stat_multiply',
+            restoreValue: old,
+            mods: { [e.stat]: old },
+        })
         engine.state.turn.scheduleSystemEventAt(
-            `buff_end_${buffKey}`,
+            `buff_end_${layerKey}`,
             engine.state.turn.currentTime + buffDuration,
             'buff_end',
         )
@@ -203,8 +207,8 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'stat_transfer',
             restoreValue: e.value,
-            stat: e.stat,
             targetId: enemy.id,
+            mods: { [e.stat]: e.value },
         })
         engine.state.turn.scheduleSystemEventAt(
             `buff_end_${layerKey}`,
@@ -215,7 +219,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         // 计算当前累计吸取量
         let total = 0
         for (const [k, v] of engine.state.pendingBuffs) {
-            if (k.startsWith(`stat_transfer::${self.id}`) && v.buffId === 'stat_transfer' && v.stat === e.stat) {
+            if (k.startsWith(`stat_transfer::${self.id}`) && v.buffId === 'stat_transfer') {
                 total += v.restoreValue
             }
         }
@@ -234,7 +238,6 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         } else {
             engine.state.pendingBuffs.set(key, {
                 restoreValue: stacks,
-                stat: 'bleed',
                 extra: { bleedTriggerCount: 0, source: self.name },
             })
         }
@@ -249,7 +252,6 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         } else {
             engine.state.pendingBuffs.set(key, {
                 restoreValue: stacks,
-                stat: 'poison',
                 extra: { source: self.name },
             })
         }
@@ -265,7 +267,6 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         } else {
             engine.state.pendingBuffs.set(key, {
                 restoreValue: stacks,
-                stat: 'burn',
                 extra: { source: self.name, burnBaseDamage: 5, remainingTicks: stacks },
             })
         }
@@ -274,7 +275,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
     paralyze({ eff, enemy, engine, tMs, log }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'status' }>
         const { stacks } = e
-        const attrMods = STATUS_ATTR_MODS.paralyze
+        const attrMods = EFFECT_META.paralyze.attrMods!
         const duration = 1800
         const appId = genAppId(tMs)
         const layerKey = `paralyze::${enemy.id}::${appId}`
@@ -289,7 +290,6 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'paralyze',
             restoreValue: stacks,
-            stat: Object.keys(attrMods).join(','),
             mods,
         })
         engine.state.turn.scheduleSystemEventAt(
@@ -306,36 +306,67 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
             }
         }
         log.logSystem(
-            `[麻痹] ${enemy.name} 麻痹x${totalStacks} (+${stacks}层 ${Object.entries(mods)
+            `[麻痹] ${enemy.name} ${Object.entries(mods)
                 .map(([a, v]) => `${ATTR_CN[a] ?? a}${v}`)
-                .join(' ')})`,
+                .join(' ')}（累计${totalStacks}）`,
             tMs,
             engine.getSnapshot(),
         )
     },
-    stun({ eff, self: { name }, enemy, engine, tMs, log }: Ctx) {
+    stun({ eff, enemy, engine, tMs, log }: Ctx) {
         const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
-        const STUN_BASE_DURATION = 2000
+        const STUN_DURATION = 2000
         const STUN_RESET_WINDOW = 5000
 
+        // 连续递减追踪
         const trackKey = `stun_track_${enemy.id}`
         const lastData = engine.state.pendingBuffs.get(trackKey)
         const now = engine.state.turn.currentTime
         let consecutive = 0
         if (lastData && now - lastData.restoreValue < STUN_RESET_WINDOW) {
-            consecutive = lastData.stat ? parseInt(lastData.stat) : 0
+            consecutive = (lastData.extra?.consecutive as number) ?? 0
         }
         consecutive++
-        engine.state.pendingBuffs.set(trackKey, { restoreValue: now, stat: String(consecutive) })
+        engine.state.pendingBuffs.set(trackKey, { restoreValue: now, extra: { consecutive } })
         engine.state.turn.scheduleSystemEventAt(`stun_reset_${enemy.id}`, now + STUN_RESET_WINDOW, 'stun_reset')
 
-        const duration = calcStunDuration(consecutive, STUN_BASE_DURATION)
-        engine.state.pendingBuffs.set(`stun::${enemy.id}`, {
+        // 数值递减
+        const ratio = calcStunAttrRatio(consecutive)
+        const agility = enemy.attrs.get('agility')
+        const insight = enemy.attrs.get('insight')
+        const agiDelta = calcStunAttrDelta(agility, ratio)
+        const insDelta = calcStunAttrDelta(insight, ratio)
+        const mods: Record<string, number> = {}
+        if (agiDelta !== 0) {
+            enemy.attrs.modify('agility', agiDelta)
+            mods.agility = agiDelta
+        }
+        if (insDelta !== 0) {
+            enemy.attrs.modify('insight', insDelta)
+            mods.insight = insDelta
+        }
+        engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+
+        const appId = genAppId(tMs)
+        const layerKey = `stun::${enemy.id}::${appId}`
+        engine.state.pendingBuffs.set(layerKey, {
+            buffId: 'stun',
             restoreValue: stacks,
-            stat: 'stun',
-            extra: { skipTurn: true, rescheduleDelay: duration, source: name },
+            mods,
         })
-        log.logSystem(`[眩晕] ${enemy.name} ${duration}ms（第${consecutive}次）`, tMs, engine.getSnapshot())
+        engine.state.turn.scheduleSystemEventAt(
+            `buff_end_${layerKey}`,
+            engine.state.turn.currentTime + STUN_DURATION,
+            'buff_end',
+        )
+
+        log.logSystem(
+            `[眩晕] ${enemy.name} ${Object.entries(mods)
+                .map(([a, v]) => `${ATTR_CN[a] ?? a}${v}`)
+                .join(' ')}（第${consecutive}次）`,
+            tMs,
+            engine.getSnapshot(),
+        )
     },
 }
 
@@ -492,86 +523,55 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     const layer = engine.state.pendingBuffs.get(buffKey)
     if (!layer) return
     const parts = buffKey.split('::')
+    if (parts.length !== 3) return
 
-    // 统一层格式：buffId::charId::appId
-    if (parts.length === 3) {
-        const buffId = parts[0]
-        const charId = parts[1]
+    const buffId = parts[0]
+    const charId = parts[1]
+    const { log } = engine.state
+    const tag = EFFECT_META[buffId]?.tag ?? buffId
 
-        if (buffId === 'stat_transfer') {
-            const attr = layer.stat as AttrName
-            const { log } = engine.state
-            const self = engine.getCharacter(charId)
-            const enemy = engine.getCharacter(layer.targetId!)
-            if (self) {
-                self.attrs.modify(attr, -layer.restoreValue)
-                if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
-            }
-            if (enemy) {
-                enemy.attrs.modify(attr, layer.restoreValue)
-                if (attr === 'agility') engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
-            }
-            log.logSystem(
-                `[汲取] ${self?.name ?? '?'} ${ATTR_CN[attr] ?? attr}-${layer.restoreValue} → ${enemy?.name ?? '?'} ${ATTR_CN[attr] ?? attr}+${layer.restoreValue}（结束）`,
-                engine.state.turn.currentTime,
-                engine.getSnapshot(),
-            )
-            engine.state.pendingBuffs.delete(buffKey)
-            return
-        }
-
-        if (buffId === 'paralyze') {
-            const { log } = engine.state
-            const char = engine.getCharacter(charId)
-            if (!char) {
-                engine.state.pendingBuffs.delete(buffKey)
-                return
-            }
-            const stacks = layer.restoreValue
-
-            // 恢复属性
-            if (layer.mods) {
-                for (const [attr, delta] of Object.entries(layer.mods)) {
-                    char.attrs.modify(attr as AttrName, -delta)
-                    if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
-                }
-            }
-
-            // 计算剩余总层数
-            let remainingStacks = 0
-            for (const [k, v] of engine.state.pendingBuffs) {
-                if (k.startsWith(`paralyze::${charId}`) && k !== buffKey && v.buffId === 'paralyze') {
-                    remainingStacks += v.restoreValue
-                }
-            }
-            log.logSystem(
-                `[麻痹] ${char.name} 麻痹x${remainingStacks} (-${stacks}层 ${Object.entries(layer.mods ?? {})
-                    .map(([a, v]) => `${ATTR_CN[a] ?? a}+${Math.abs(v)}`)
-                    .join(' ')})`,
-                engine.state.turn.currentTime,
-                engine.getSnapshot(),
-                char.name,
-            )
-            engine.state.pendingBuffs.delete(buffKey)
-            return
+    // 通用：反转属性变化
+    const char = engine.getCharacter(charId)
+    if (char && layer.mods) {
+        for (const [attr, delta] of Object.entries(layer.mods)) {
+            char.attrs.modify(attr as AttrName, -delta)
+            if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
         }
     }
 
-    // 旧格式：actionId::charId
-    const decoded = decodeBuffKey(buffKey)
-    if (!decoded) return
+    // stat_transfer：正向恢复目标
+    if (buffId === 'stat_transfer' && layer.targetId) {
+        const target = engine.getCharacter(layer.targetId)
+        if (target && layer.mods) {
+            for (const [attr, delta] of Object.entries(layer.mods)) {
+                target.attrs.modify(attr as AttrName, delta)
+                if (attr === 'agility') engine.state.turn.recalcInterval(target.id, target.attrs.get('agility'))
+            }
+        }
+    }
 
-    const char = engine.getCharacter(decoded.characterId)
-    if (!char) return
-    const action = getAction(decoded.actionId)
-    const buffName = action?.name ?? decoded.actionId
-    processActionEffect(
-        { type: 'stat_restore', stat: layer.stat, value: layer.restoreValue },
-        char,
-        char,
-        engine,
-        engine.state.turn.currentTime,
-        buffName,
-    )
+    // 计算剩余总层数
+    let remaining = 0
+    for (const [k, v] of engine.state.pendingBuffs) {
+        if (k.startsWith(`${buffId}::${charId}`) && k !== buffKey && v.buffId === buffId) {
+            remaining += v.restoreValue
+        }
+    }
+
+    // Log
+    if (char && layer.mods) {
+        log.logSystem(
+            `[${tag}] ${char.name} ${Object.entries(layer.mods)
+                .map(([a, v]) => {
+                    const actual = -(v as number)
+                    return `${ATTR_CN[a] ?? a}${actual >= 0 ? '+' : ''}${actual}`
+                })
+                .join(' ')}（结束·剩余${remaining}）`,
+            engine.state.turn.currentTime,
+            engine.getSnapshot(),
+            char.name,
+        )
+    }
+
     engine.state.pendingBuffs.delete(buffKey)
 }

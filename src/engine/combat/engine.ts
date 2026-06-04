@@ -16,7 +16,7 @@ import {
     processBleedDamage,
     processBuffEnd,
 } from './effect-processor'
-import type { ActionCommand, ActionResult, BattleState, EventPlan, BattleSnapshot, TurnEntry } from './types'
+import type { ActionCommand, ActionResult, BattleState, EventPlan, BattleSnapshot, TurnEntry, BuffLayer } from './types'
 import type { SummonInstance } from '../entities/summon'
 
 export class BattleEngine {
@@ -145,18 +145,6 @@ export class BattleEngine {
             return true
         }
 
-        // 跳过行动检查（如眩晕停止走表）
-        const stunEntry = this.state.pendingBuffs.get(`stun::${self.id}`)
-        if (stunEntry?.extra?.skipTurn) {
-            this.#log.logSystem(`${self.name} 被眩晕，停止走表`, e.nextActionAt, this.getSnapshot())
-            this.state.pendingBuffs.delete(`stun::${self.id}`)
-            const delay = (stunEntry.extra.rescheduleDelay as number) ?? 2000
-            this.state.turn.next()
-            this.state.turn.scheduleNext({ type: 'character', id: self.id }, delay)
-            this.state.eventActorId = null
-            return true
-        }
-
         this.emit('turn_start', self, enemy)
         this.#tryBonus(self, 'turn_start')
         // 重建召唤物（法球等每回合重新入队）
@@ -205,6 +193,7 @@ export class BattleEngine {
                     processActionEffect(eff, self, enemy, this, this.#tMs, action.name, action.id)
                 }
             } else {
+                processBleedDamage(self, this.#tMs, this)
                 this.#executeAction(action, self, enemy, true)
             }
             log.indentDepth--
@@ -234,7 +223,7 @@ export class BattleEngine {
     get #currentTime(): number {
         return this.state.turn.currentTime
     }
-    get #buffs(): Map<string, { restoreValue: number; stat: string }> {
+    get #buffs(): Map<string, BuffLayer> {
         return this.state.pendingBuffs
     }
     get #log(): BattleLog {
@@ -293,6 +282,7 @@ export class BattleEngine {
             this.#log.logSystem(`${self.name} 没有可用招式`, this.#tMs, this.getSnapshot())
             return this.#emptyResult()
         }
+        processBleedDamage(self, this.#tMs, this)
         return this.#executeAction(action, self, enemy)
     }
 
@@ -326,8 +316,6 @@ export class BattleEngine {
             this.state.log.indentDepth,
         )
         this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
-        // 攻击者自身流血
-        processBleedDamage(self, this.#tMs, this)
         // 战斗判定
         if (!processCombatRolls(action, r, self, enemy, this.#tMs, this)) return r
         // 效果应用

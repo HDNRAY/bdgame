@@ -25,7 +25,6 @@ export type BattlePhase = 'idle' | 'fighting' | 'finished'
 export interface BuffLayer {
     buffId?: string
     restoreValue: number
-    stat: string
     targetId?: string
     mods?: Record<string, number>
     extra?: Record<string, number | string | boolean>
