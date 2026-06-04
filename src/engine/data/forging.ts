@@ -5,9 +5,9 @@ export const QI_SKILLS: ActionDefinition[] = [
     {
         id: 'qi_focus',
         name: '凝炁',
-        weaponType: 'fist',
+        description: '凝聚体内炁劲，全属性小幅提升。',
+        requiredTags: [],
         apCost: 1,
-        bestDistance: 1,
         tags: [],
         effects: [],
         bonus: true,
@@ -22,9 +22,9 @@ export const QI_SKILLS: ActionDefinition[] = [
     {
         id: 'qi_gather',
         name: '聚炁',
-        weaponType: 'fist',
+        description: '集中炁劲，力量翻倍。',
+        requiredTags: [],
         apCost: 1,
-        bestDistance: 1,
         tags: [],
         effects: [],
         bonus: true,

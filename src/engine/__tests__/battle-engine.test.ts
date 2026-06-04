@@ -4,8 +4,23 @@ import type { EventPlan } from '../combat/types'
 import { runBattle } from '../battle-runner'
 import { Character } from '../entities/character'
 
-function makeChar(id: string, name: string, attrs: Record<string, number>, moveIds: string[] = []): Character {
-    return new Character({ id, name, baseAttrs: attrs, moves: moveIds, triggers: [], passives: [], artifacts: [] })
+function makeChar(
+    id: string,
+    name: string,
+    attrs: Record<string, number>,
+    moveIds: string[] = [],
+    weapon = 'bare_hands',
+): Character {
+    return new Character({
+        id,
+        name,
+        baseAttrs: attrs,
+        moves: moveIds,
+        triggers: [],
+        passives: [],
+        artifacts: [],
+        weapon,
+    })
 }
 
 describe('BattleEngine', () => {
@@ -35,6 +50,7 @@ describe('BattleEngine', () => {
             '远程',
             { technique: 12, dexterity: 14, strength: 6, vitality: 8, insight: 6, wisdom: 10 },
             ['needle'],
+            'throwing_dagger',
         )
         const o = makeChar('o1', '近战', {
             strength: 14,

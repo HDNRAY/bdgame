@@ -4,6 +4,7 @@ import type { CharacterBuild } from './character-build'
 import type { Passive } from './passive'
 import type { Artifact } from './artifact'
 import { getAction } from '../data/actions'
+import { getWeapon } from '../data/weapons'
 import type { StatusInstance, StatusType } from './status'
 
 export function calcMaxHp(vitality: number): number {
@@ -41,6 +42,12 @@ export class Character {
                     this.attrs.modify(k as import('./attributes').AttrName, v)
                 }
             }
+        }
+
+        // 应用武器的常驻属性修正
+        const weapon = getWeapon(build.weapon)
+        for (const [k, v] of Object.entries(weapon.attrMods)) {
+            this.attrs.modify(k as import('./attributes').AttrName, v)
         }
 
         this.maxAp = 10

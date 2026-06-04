@@ -19,12 +19,6 @@ export class ActionInstance {
     get apCost() {
         return this.def.apCost
     }
-    get weaponType() {
-        return this.def.weaponType
-    }
-    get bestDistance() {
-        return this.def.bestDistance
-    }
     get bonus() {
         return this.def.bonus ?? false
     }

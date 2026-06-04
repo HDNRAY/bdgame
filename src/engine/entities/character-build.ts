@@ -6,6 +6,8 @@ import type { Artifact } from './artifact'
 export interface CharacterBuild {
     id: string
     name: string
+    /** 武器 ID，对应 WEAPON_DB */
+    weapon: string
     baseAttrs: Partial<Record<string, number>>
     moves: string[]
     triggers: TriggerSlot[]

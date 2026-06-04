@@ -2,7 +2,16 @@ import { describe, it, expect } from 'vitest'
 import { Character, calcMaxHp } from '../entities/character'
 
 function mc(id: string, name: string, attrs: Record<string, number> = {}): Character {
-    return new Character({ id, name, baseAttrs: attrs, moves: [], triggers: [], passives: [], artifacts: [] })
+    return new Character({
+        id,
+        name,
+        baseAttrs: attrs,
+        moves: [],
+        triggers: [],
+        passives: [],
+        artifacts: [],
+        weapon: 'bare_hands',
+    })
 }
 
 describe('calcMaxHp', () => {

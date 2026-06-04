@@ -1,38 +1,9 @@
 import type { AttrName } from '../entities/attributes'
 
-export type WeaponType = 'fist' | 'sword' | 'spear' | 'thrown' | 'control' | 'nanoblade' | 'katana'
-
-export interface WeaponStats {
-    preDelay: number // 前摇 ms
-    stunTime: number // 硬直 ms
-    range: [number, number] // [min, max]
-    parryRate?: number // 招架率加成
-}
-
-export const WEAPONS: Record<WeaponType, WeaponStats> = {
-    fist: { preDelay: 250, stunTime: 300, range: [0, 2], parryRate: 0.05 },
-    sword: {
-        preDelay: 350,
-        stunTime: 400,
-        range: [1, 3],
-        parryRate: 0.08,
-    },
-    spear: { preDelay: 450, stunTime: 500, range: [2, 4], parryRate: 0.03 },
-    thrown: { preDelay: 200, stunTime: 200, range: [2, 5], parryRate: 0 },
-    control: { preDelay: 400, stunTime: 350, range: [3, 6], parryRate: 0.02 },
-    nanoblade: {
-        preDelay: 300,
-        stunTime: 350,
-        range: [1, 3],
-        parryRate: 0.06,
-    },
-    katana: {
-        preDelay: 380,
-        stunTime: 450,
-        range: [1, 3],
-        parryRate: 0.07,
-    },
-}
+/** 基础前摇（所有角色统一） */
+export const BASE_PRE_DELAY = 300
+/** 基础硬直（所有角色统一） */
+export const BASE_STUN_TIME = 350
 
 /** 计算基础伤害: Σ(attrScaling[attr] × attrs[attr]) */
 export function calcBaseDamage(scaling: Partial<Record<AttrName, number>>, attrs: Record<AttrName, number>): number {
@@ -41,12 +12,6 @@ export function calcBaseDamage(scaling: Partial<Record<AttrName, number>>, attrs
         damage += (scale ?? 0) * attrs[attr as AttrName]
     }
     return Math.round(damage * 10) / 10
-}
-
-/** 距离衰减系数: 在最佳距离为 1.0，每偏离 1 档 -15% */
-export function calcDistanceMultiplier(currentDist: number, bestDist: number): number {
-    const diff = Math.abs(currentDist - bestDist)
-    return Math.max(0.25, 1 - diff * 0.15)
 }
 
 /** 暴击判定: 基础 5% + technique / 200 */
@@ -66,9 +31,9 @@ export function calcHitChance(myTechnique: number, enemyDexterity: number): numb
     return Math.max(0.1, Math.min(0.95, 0.8 + (myTechnique - enemyDexterity) / 50))
 }
 
-/** 招架判定: 武器招架率 + strength / 80 */
-export function calcParryChance(strength: number, weaponParryRate: number): number {
-    return Math.min(0.5, weaponParryRate + strength / 80)
+/** 招架判定: 有招架标签的武器才能招架，纯 strength / 80 */
+export function calcParryChance(strength: number): number {
+    return Math.min(0.5, strength / 80)
 }
 
 /** 闪避判定: dexterity / 80 */
@@ -82,12 +47,12 @@ export function calcMoveApCost(distance: number, dexterity: number): number {
     return Math.ceil(distance / perAp)
 }
 
-/** 回合间隔: 基础 + 武器前摇/硬直受身法影响(高dex大幅减少前后摇) */
-export function calcTurnInterval(dexterity: number, preDelay: number, stunTime: number): number {
+/** 回合间隔: 基础 + 前后摇受身法影响(高dex大幅减少前后摇) */
+export function calcTurnInterval(dexterity: number, extraPreDelay = 0, extraStunTime = 0): number {
     const base = 300 + 60000 / (100 + dexterity * 10)
     const dexFactor = Math.max(0, 1 - dexterity * 0.06)
-    const epd = Math.round(preDelay * dexFactor)
-    const est = Math.round(stunTime * dexFactor)
+    const epd = Math.round((BASE_PRE_DELAY + extraPreDelay) * dexFactor)
+    const est = Math.round((BASE_STUN_TIME + extraStunTime) * dexFactor)
     return Math.round(base + epd + est)
 }
 

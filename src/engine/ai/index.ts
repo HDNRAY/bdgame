@@ -1,29 +1,30 @@
 import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
-import { WEAPONS } from '../calc/damage'
+import { getWeapon } from '../data/weapons'
 import { DistanceSystem } from '../combat/distance'
+import { calcSelfDamage } from '../calc/damage'
 
 /** AI 决策：返回本行动中要执行的一串指令 */
 export function planEvent(self: Character, state: BattleState, preferredMainId?: string): ActionCommand[] {
     const cmds: ActionCommand[] = []
+    const weapon = getWeapon(self.build.weapon)
 
     // 1. 决定主招
     const mainId = preferredMainId ?? pickMainAction(self, state)
     if (!mainId) return cmds
     const mainDef = self.moves.find((a) => a.id === mainId)?.def
     if (!mainDef) return cmds
-    const stats = WEAPONS[mainDef.weaponType]
 
     // 2. 计算移动需要多少 AP
     const perAp = DistanceSystem.apToRange(self.attrs.get('dexterity'))
     let moveAp = 0
     let virtualDist = state.distance.current
-    if (virtualDist > stats.range[1]) {
-        const need = virtualDist - stats.range[1]
+    if (virtualDist > weapon.range[1]) {
+        const need = virtualDist - weapon.range[1]
         moveAp = Math.ceil(need / perAp)
         virtualDist -= perAp * moveAp
-    } else if (virtualDist < stats.range[0]) {
-        const need = stats.range[0] - virtualDist
+    } else if (virtualDist < weapon.range[0]) {
+        const need = weapon.range[0] - virtualDist
         moveAp = Math.ceil(need / perAp)
         virtualDist += perAp * moveAp
     }
@@ -44,12 +45,12 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
 
     // 4. 移动
     if (moveAp > 0) {
-        cmds.push({ type: 'move', bestDistance: state.distance.current > stats.range[1] ? -moveAp : moveAp })
+        cmds.push({ type: 'move', bestDistance: state.distance.current > weapon.range[1] ? -moveAp : moveAp })
     }
 
     // 5. 攻击
-    if (apAfterMove - bonusAp >= mainDef.apCost && virtualDist >= stats.range[0] && virtualDist <= stats.range[1]) {
-        cmds.push({ type: 'attack', actionId: mainId, weaponType: mainDef.weaponType })
+    if (apAfterMove - bonusAp >= mainDef.apCost && virtualDist >= weapon.range[0] && virtualDist <= weapon.range[1]) {
+        cmds.push({ type: 'attack', actionId: mainId })
     }
 
     return cmds
@@ -57,12 +58,18 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
 
 /** 选第一个能放的主招 */
 function pickMainAction(self: Character, state: BattleState): string | null {
+    const weapon = getWeapon(self.build.weapon)
     for (const inst of self.moves) {
         if (inst.def.bonus) continue
         if (!inst.canUse()) continue
         if (self.ap < inst.apCost) continue
-        const stats = WEAPONS[inst.def.weaponType]
-        if (!state.distance.inRange(stats.range[0], stats.range[1]) && self.ap <= inst.apCost) continue
+        if (!state.distance.inRange(weapon.range[0], weapon.range[1]) && self.ap <= inst.apCost) continue
+        // 自伤招式：HP 不够则跳过
+        const selfDmgEff = inst.def.effects?.find((e) => e.type === 'self_damage')
+        if (selfDmgEff && selfDmgEff.type === 'self_damage') {
+            const dmg = calcSelfDamage(self.maxHp, selfDmgEff.ratio)
+            if (self.hp <= dmg) continue
+        }
         return inst.id
     }
     return null

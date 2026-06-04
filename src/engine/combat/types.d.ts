@@ -1,4 +1,3 @@
-import type { WeaponType } from '../calc/damage'
 import type { StatusInstance } from '../entities/status'
 import type { Character } from '../entities/character'
 
@@ -6,7 +5,6 @@ import type { Character } from '../entities/character'
 export interface ActionCommand {
     type: 'attack' | 'move' | 'bonus' | 'defend' | 'wait'
     actionId?: string
-    weaponType?: WeaponType
     bestDistance?: number
 }
 
@@ -33,6 +31,8 @@ export interface BattleState {
     pendingBuffs: Map<string, { restoreValue: number; stat: string }>
     lastWinner?: string
     actionCount: number
+    /** 当前执行的招式额外前摇，回合结束时加到下回合间隔 */
+    lastActionExtraDelay: number
 }
 
 export type EventPlan = (self: Character, enemy: Character, state: BattleState) => ActionCommand[]
@@ -71,7 +71,7 @@ export type BattleEvent =
           type: 'attack_start'
           actor: string
           target: string
-          weapon: WeaponType
+          weapon: string
           actionName?: string
           apCost: number
           apRemaining: number

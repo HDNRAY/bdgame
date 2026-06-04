@@ -1,6 +1,7 @@
 import type { ActionDefinition } from '../entities/action'
 import type { Character } from '../entities/character'
-import { calcBaseDamage, calcDistanceMultiplier, calcCrippleBonus, calcSelfDamage, WEAPONS } from './damage'
+import { calcBaseDamage, calcCrippleBonus, calcSelfDamage } from './damage'
+import { getWeapon } from '../data/weapons'
 
 export interface ResolvedDamage {
     base: number
@@ -11,7 +12,7 @@ export interface ResolvedDamage {
 }
 
 /** 解析招式的基础伤害（damage / fixed_damage） */
-export function resolveAction(action: ActionDefinition, attacker: Character, currentDistance: number): ResolvedDamage {
+export function resolveAction(action: ActionDefinition, attacker: Character): ResolvedDamage {
     let base = 0
     let isFixedDamage = false
 
@@ -24,7 +25,7 @@ export function resolveAction(action: ActionDefinition, attacker: Character, cur
         }
     }
 
-    const distanceMult = isFixedDamage ? 1 : calcDistanceMultiplier(currentDistance, action.bestDistance)
+    const distanceMult = 1
     return {
         base,
         distanceMult,
@@ -72,9 +73,17 @@ export function canExecuteAction(
         return { ok: false, reason: `AP不足 (需${action.apCost} 有${attacker.ap})` }
     }
 
-    const weapon = WEAPONS[action.weaponType]
+    const weapon = getWeapon(attacker.build.weapon)
     if (currentDistance < weapon.range[0] || currentDistance > weapon.range[1]) {
         return { ok: false, reason: `距离不合适 (${currentDistance})` }
+    }
+
+    // 检查招式标签与武器标签是否匹配
+    if (action.requiredTags.length > 0) {
+        const hasTag = action.requiredTags.some((tag) => weapon.tags.includes(tag))
+        if (!hasTag) {
+            return { ok: false, reason: `招式 ${action.name} 需要 ${action.requiredTags.join('/')} 标签的武器` }
+        }
     }
 
     if (remainingUses !== undefined && remainingUses <= 0) {

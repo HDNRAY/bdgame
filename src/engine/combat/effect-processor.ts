@@ -18,8 +18,8 @@ import {
     calcRoll,
     calcStunDuration,
     calcParalyzeAttrPenalty,
-    WEAPONS,
 } from '../calc/damage'
+import { getWeapon } from '../data/weapons'
 import { encodeBuffKey, decodeBuffKey } from '../util/buff-utils'
 import { resolveAction, extractActionEffects } from '../calc/action-executor'
 import { createBleed, createBurn, createPoison, triggerBleed } from '../entities/status'
@@ -66,6 +66,12 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         self.statuses = self.statuses.filter((s) => !targets.includes(s.type as StatusType))
         engine.state.log.logSystem(`[净化] ${self.name} 清除了负面效果`, tMs, engine.getSnapshot())
     },
+    heal({ eff, self, engine, tMs }: Ctx) {
+        const { value, ratio } = eff as Extract<ActionEffect, { type: 'heal' }>
+        const amount = calcHealAmount(value, self.maxHp, ratio)
+        self.hp = Math.min(self.maxHp, self.hp + amount)
+        engine.state.log.logSystem(`[回复] ${self.name} 恢复了 ${amount} HP`, tMs, engine.getSnapshot())
+    },
     knockback({ eff, engine }: Ctx) {
         const { distance } = eff as Extract<ActionEffect, { type: 'knockback' }>
         if (distance > 0) engine.state.distance.move(distance)
@@ -96,11 +102,13 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
         const duration = 1800
         const appId = `p${tMs}_${Math.random().toString(36).slice(2, 6)}`
 
+        const prevStacks = existing?.stacks ?? 0
         if (existing) {
             existing.stacks += stacks
         } else {
             enemy.statuses.push({ type: 'paralyze', stacks, source: name })
         }
+        const total = prevStacks + stacks
         const penalty = calcParalyzeAttrPenalty(stacks)
         enemy.attrs.modify('dexterity', penalty.dexterity)
         enemy.attrs.modify('insight', penalty.insight)
@@ -109,8 +117,11 @@ const statusHandlers: Record<string, (ctx: StatusCtx) => void> = {
         engine.state.pendingBuffs.set(`para_${appId}`, { restoreValue: stacks, stat: 'paralyze' })
         engine.state.turn.scheduleSystemEventAt(`paralyze_end_${appId}`, tMs + duration, 'paralyze_end')
 
-        const total = existing?.stacks ?? stacks
-        log.logSystem(`[麻痹] ${enemy.name} 身法-${total * 2} 洞察-${total * 1}`, tMs, engine.getSnapshot())
+        log.logSystem(
+            `[麻痹] ${enemy.name} 麻痹x${total} (+${stacks}层 身法${penalty.dexterity} 洞察${penalty.insight})`,
+            tMs,
+            engine.getSnapshot(),
+        )
     },
     stun({ eff: { stacks }, self: { name }, enemy, engine, tMs }: StatusCtx) {
         const { log } = engine.state
@@ -214,7 +225,7 @@ export function processStatusTick(
 
 /** 命中/闪避/招架判定，返回 false 则攻击终止 */
 export function processCombatRolls(
-    action: ActionDefinition,
+    _action: ActionDefinition,
     r: ActionResult,
     self: Character,
     enemy: Character,
@@ -222,7 +233,7 @@ export function processCombatRolls(
     engine: BattleEngine,
 ): boolean {
     const { log } = engine.state
-    const stats = WEAPONS[action.weaponType]
+    const weapon = getWeapon(self.build.weapon)
 
     engine.emit('on_attack', self, enemy, tMs)
     const hc = calcHitChance(self.attrs.get('technique'), enemy.attrs.get('dexterity'))
@@ -244,11 +255,14 @@ export function processCombatRolls(
         return false
     }
 
-    const pc = calcParryChance(enemy.attrs.get('strength'), stats.parryRate ?? 0)
-    const parryResult = calcRoll(pc)
-    r.parried = parryResult.success
-    if (r.parried) log.logParry(self.name, enemy.name, tMs, engine.getSnapshot(), pc, parryResult.roll)
-    else engine.emit('on_parried', self, enemy, tMs)
+    const canParry = weapon.tags.includes('招架')
+    if (canParry) {
+        const pc = calcParryChance(enemy.attrs.get('strength'))
+        const parryResult = calcRoll(pc)
+        r.parried = parryResult.success
+        if (r.parried) log.logParry(self.name, enemy.name, tMs, engine.getSnapshot(), pc, parryResult.roll)
+        else engine.emit('on_parried', self, enemy, tMs)
+    }
     return true
 }
 
@@ -262,11 +276,10 @@ export function processDamageApplication(
     enemy: Character,
     tMs: number,
     engine: BattleEngine,
-    currentDistance: number,
 ): void {
     const { log } = engine.state
 
-    const resolved = resolveAction(action, self, currentDistance)
+    const resolved = resolveAction(action, self)
     const extras = extractActionEffects(action, self, enemy)
     const critChance = calcCritChance(self.attrs.get('technique'))
     const critResult = calcRoll(critChance)
@@ -280,7 +293,10 @@ export function processDamageApplication(
     r.damage = finalDmg
     r.crit = resolved.isCrit
     r.knockbackDistance = extras.knockbackDistance
-    if (extras.selfDamage > 0) self.takeDamage(extras.selfDamage)
+    if (extras.selfDamage > 0) {
+        self.takeDamage(extras.selfDamage)
+        log.logSystem(`[自伤] ${self.name} 受到 ${extras.selfDamage} 自伤`, tMs, engine.getSnapshot())
+    }
     log.logDamage(
         self.name,
         enemy.name,
@@ -402,7 +418,11 @@ export function processParalyzeEnd(appId: string, engine: BattleEngine): void {
         char.attrs.modify('dexterity', restore.dexterity)
         char.attrs.modify('insight', restore.insight)
         engine.state.turn.recalcInterval(char.id, char.attrs.get('dexterity'))
-        log.logSystem(`[麻痹] ${char.name} 恢复${stacks}层`, engine.state.turn.currentTime, engine.getSnapshot())
+        log.logSystem(
+            `[麻痹] ${char.name} 麻痹x${entry.stacks} (-${stacks}层 身法+${restore.dexterity} 洞察+${restore.insight})`,
+            engine.state.turn.currentTime,
+            engine.getSnapshot(),
+        )
         if (entry.stacks <= 0) {
             char.statuses = char.statuses.filter((s) => s !== entry)
         }

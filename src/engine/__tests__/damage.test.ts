@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
     calcBaseDamage,
-    calcDistanceMultiplier,
     calcFinalDamage,
     calcHitChance,
     calcParryChance,
@@ -20,21 +19,6 @@ describe('calcBaseDamage', () => {
         const s = { strength: 0.6, technique: 0.4 }
         const d = calcBaseDamage(s, { strength: 18, vitality: 12, dexterity: 6, technique: 10, insight: 5, wisdom: 4 })
         expect(d).toBe(14.8) // 0.6×18 + 0.4×10 = 10.8 + 4 = 14.8
-    })
-})
-
-describe('calcDistanceMultiplier', () => {
-    it('should be 1.0 at best distance', () => {
-        expect(calcDistanceMultiplier(3, 3)).toBe(1)
-    })
-
-    it('should decrease by 0.15 per distance off', () => {
-        expect(calcDistanceMultiplier(5, 3)).toBe(0.7) // 1 - 2×0.15
-        expect(calcDistanceMultiplier(1, 3)).toBe(0.7)
-    })
-
-    it('should floor at 0.25', () => {
-        expect(calcDistanceMultiplier(0, 4)).toBe(0.4) // 1 - 4×0.15 = 0.4 → Math.max(0.25, 0.4) = 0.4
     })
 })
 
@@ -67,8 +51,9 @@ describe('calcHitChance', () => {
 })
 
 describe('calcParryChance', () => {
-    it('should include weapon bonus', () => {
-        expect(calcParryChance(14, 0.05)).toBeCloseTo(0.225) // 0.05 + 14/80
+    it('should scale with strength', () => {
+        expect(calcParryChance(14)).toBeCloseTo(0.175) // 14/80
+        expect(calcParryChance(40)).toBeCloseTo(0.5) // capped
     })
 })
 

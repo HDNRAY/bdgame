@@ -1,7 +1,8 @@
 import type { AttrName } from './attributes'
-import type { WeaponType } from '../calc/damage'
+import type { WeaponTag } from '../data/weapons'
 import type { Condition } from './trigger'
 import type { StatusType } from './status'
+import type { GameEntity } from './base'
 
 /** 效果类型 */
 export type EffectTag =
@@ -22,12 +23,13 @@ export type EffectTag =
     | 'cripple'
 
 /** 招式定义 —— 纯数据 */
-export interface ActionDefinition {
+export interface ActionDefinition extends GameEntity {
     id: string
     name: string
-    weaponType: WeaponType
+    description: string
+    /** 需要的武器标签，空数组 = 不限制 */
+    requiredTags: WeaponTag[]
     apCost: number
-    bestDistance: number
     tags: EffectTag[]
     /** 特殊效果参数 */
     effects?: ActionEffect[]
@@ -39,6 +41,10 @@ export interface ActionDefinition {
     bonusTiming?: Condition
     /** 辅招效果描述（如 "力量翻倍1回合"），支持数组以一次触发多个效果 */
     triggerEffect?: BonusTriggerEffect | BonusTriggerEffect[]
+    /** 招式额外前摇 */
+    extraPreDelay?: number
+    /** 招式额外硬直 */
+    extraStunTime?: number
 }
 
 /** buff 持续时间：{ attr: '属性名', multiplier: 系数 } = 属性×系数 ms，系数大≈永久 */
@@ -70,6 +76,7 @@ export type ActionEffect =
     | { type: 'modify_turn'; deltaMs: number } // 加速/减速
     | { type: 'cleanse'; statuses?: StatusType[] } // 驱散
     | { type: 'counter_damage'; ratio: number } // 反击：基于所收伤害比例
+    | { type: 'heal'; value: number; ratio?: number } // 回复：固定值 + 最大HP%
 
 /** 主招队列配置 —— 玩家可配置顺序 */
 export interface ActionQueueEntry {

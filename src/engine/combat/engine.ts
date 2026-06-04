@@ -2,7 +2,8 @@ import { Character } from '../entities/character'
 import { DistanceSystem } from './distance'
 import { TurnManager, SYS_PREFIX } from './turn'
 import { BattleLog } from './battle-log'
-import { WEAPONS, calcTurnInterval } from '../calc/damage'
+import { getWeapon } from '../data/weapons'
+import { BASE_PRE_DELAY, BASE_STUN_TIME, calcTurnInterval } from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import type { ActionDefinition } from '../entities/action'
@@ -45,6 +46,7 @@ export class BattleEngine {
             triggerUses: new Map(),
             pendingBuffs: new Map(),
             actionCount: 0,
+            lastActionExtraDelay: 0,
         }
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o, 0)
@@ -141,13 +143,16 @@ export class BattleEngine {
         this.#tryBonus(self, 'before_turn_end')
         this.emit('turn_end', self, enemy, this.state.turn.peek()?.nextActionAt ?? 0)
         this.state.turn.next()
-        const stats = WEAPONS.fist
+        const lastAction = this.state.lastActionExtraDelay ?? 0
+        const preDelay = BASE_PRE_DELAY + lastAction
+        const stunTime = BASE_STUN_TIME
         this.state.turn.scheduleNext(
             self.id,
-            calcTurnInterval(self.attrs.get('dexterity'), stats.preDelay, stats.stunTime),
-            stats.preDelay,
-            stats.stunTime,
+            calcTurnInterval(self.attrs.get('dexterity'), lastAction),
+            preDelay,
+            stunTime,
         )
+        this.state.lastActionExtraDelay = 0
         this.state.eventActorId = null
         return true
     }
@@ -250,6 +255,7 @@ export class BattleEngine {
         }
         const action = this.#validateAttack(cmd)
         if (!action) return r
+        this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
         this.#processSelfBleed()
         if (!this.#resolveCombatRolls(action, r)) return r
         this.#resolveAndApplyDamage(action, r)
@@ -276,15 +282,15 @@ export class BattleEngine {
             log.logSystem(`${self.name} AP不足`, tMs, this.getSnapshot())
             return null
         }
-        const stats = WEAPONS[action.weaponType]
-        if (!distance.inRange(stats.range[0], stats.range[1])) {
+        const weapon = getWeapon(self.build.weapon)
+        if (!distance.inRange(weapon.range[0], weapon.range[1])) {
             log.logSystem(`${self.name} 距离不合适`, tMs, this.getSnapshot())
             return null
         }
         log.logAttack(
             self.name,
             this.#enemy.name,
-            action.weaponType,
+            weapon.name,
             action.apCost,
             self.ap,
             tMs,
@@ -306,7 +312,7 @@ export class BattleEngine {
 
     /** 伤害结算与应用 */
     #resolveAndApplyDamage(action: ActionDefinition, r: ActionResult): void {
-        processDamageApplication(action, r, this.#self, this.#enemy, this.#tMs, this, this.state.distance.current)
+        processDamageApplication(action, r, this.#self, this.#enemy, this.#tMs, this)
     }
 
     /** 命中后效：触发/流血/状态/击败 */
@@ -333,7 +339,10 @@ export class BattleEngine {
         if (!enemy.isAlive()) {
             log.logDefeat(enemy.name, self.name, tMs, this.getSnapshot())
             this.state.phase = 'finished'
-            this.state.lastWinner = self.name
+            if (self.isAlive()) {
+                this.state.lastWinner = self.name
+            }
+            // 双方都死则 lastWinner 保持 undefined → runBattle 判平局
         }
     }
 

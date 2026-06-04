@@ -1,4 +1,3 @@
-import type { WeaponType } from '../calc/damage'
 import type { BattleSnapshot, BattleEvent } from './types'
 
 interface LogEntry {
@@ -34,7 +33,7 @@ export class BattleLog {
     logAttack(
         actor: string,
         target: string,
-        weapon: WeaponType,
+        weapon: string,
         apCost: number,
         apRemaining: number,
         timelineMs: number,

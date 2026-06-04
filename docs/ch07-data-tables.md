@@ -27,6 +27,9 @@
 
 ### 7.2.1 数据结构
 
+> **注意：** 所有可收集/可装备物品共享 `GameEntity` 基类（`id` + `name` + `description`），
+> 见 `src/engine/entities/base.ts`。
+
 ```ts
 interface FightStyle {
     id: string

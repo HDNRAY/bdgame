@@ -205,22 +205,51 @@ interface BattleLog {
 
 **武器系统已于 Phase 1 中期重构为个体物品系统。**
 
-武器不再是类别（WeaponType），而是个体物品，每把武器有独立属性：
+武器不再是类别（WeaponType），而是个体物品，每把武器有独立属性。
+
+所有可收集/可装备物品共享基类：
+
+```ts
+// src/engine/entities/base.ts
+interface GameEntity {
+    id: string
+    name: string
+    description: string
+}
+```
+
+`WeaponDef`、`ActionDefinition`、`Passive`、`Artifact` 全部继承 `GameEntity`。
+`ActionDefinition` 和 `Passive` 将新增 `description` 字段。
 
 ```ts
 // src/engine/data/weapons.ts
 export type WeaponTag = '劈砍' | '钝击' | '戳刺'
 
-export interface WeaponDef {
-    id: string
-    name: string
-    tags: WeaponTag[] // 招式通过标签匹配武器
-    bound?: boolean // true = 不可更换（御物/开局绑定）
-    attrMods: Partial<Record<AttrName, number>> // 直接修正人物属性
+export interface WeaponDef extends GameEntity {
+    tags: WeaponTag[]
+    bound?: boolean
+    attrMods: Partial<Record<AttrName, number>>
     parryRate: number
     range: [number, number]
 }
 ```
+
+**默认武器「赤手空拳」：**
+
+```ts
+{
+    id: 'bare_hands',
+    name: '赤手空拳',
+    description: '什么都没有，但什么都有可能。',
+    tags: ['钝击'],
+    bound: true,
+    attrMods: {},
+    parryRate: 0,
+    range: [0, 2],
+}
+```
+
+无任何加成惩罚，开局默认装备，`bound: true`（不可替换）。
 
 **关键改动：**
 
@@ -234,12 +263,16 @@ export interface WeaponDef {
 ### 8.4.2 招式系统
 
 ```ts
-interface ActionDefinition {
+interface ActionDefinition extends GameEntity {
     id: string
     name: string
+    description: string
     actionCost: number
     bestDistance: number
+    requiredTags: WeaponTag[] // 空数组 = 无限制
     effects: Effect[]
+    extraPreDelay?: number
+    extraStunTime?: number
     maxUses?: number
     bonus?: boolean
 }

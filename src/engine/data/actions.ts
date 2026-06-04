@@ -10,18 +10,18 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'straight_punch',
         name: '正拳',
-        weaponType: 'fist',
+        description: '一记标准正拳，直取中门。',
+        requiredTags: ['钝击'],
         apCost: 3,
-        bestDistance: 1,
         tags: [],
         effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
     },
     {
         id: 'crushing_blow',
         name: '崩拳',
-        weaponType: 'fist',
+        description: '蓄力一击，造成崩劲伤害。',
+        requiredTags: ['钝击'],
         apCost: 6,
-        bestDistance: 1,
         tags: ['cripple'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
@@ -31,9 +31,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'iron_charge',
         name: '铁山靠',
-        weaponType: 'fist',
+        description: '近距离冲撞，附带麻痹效果。',
+        requiredTags: ['钝击'],
         apCost: 7,
-        bestDistance: 0,
         tags: ['paralyze', 'self_damage'],
         effects: [
             { type: 'damage', scaling: { strength: 0.6 } },
@@ -44,9 +44,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'flick',
         name: '弹指',
-        weaponType: 'fist',
+        description: '弹指间打断对手出招。',
+        requiredTags: [],
         apCost: 2,
-        bestDistance: 2,
         tags: ['interrupt'],
         effects: [{ type: 'damage', scaling: { technique: 0.2 } }, { type: 'interrupt' }],
     },
@@ -57,9 +57,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'thrust',
         name: '刺击',
-        weaponType: 'spear',
+        description: '一往无前的直刺。',
+        requiredTags: ['戳刺'],
         apCost: 4,
-        bestDistance: 3,
         tags: ['bleed'],
         effects: [
             { type: 'damage', scaling: { strength: 0.5 } },
@@ -69,9 +69,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'sweep',
         name: '横扫千军',
-        weaponType: 'spear',
+        description: '横挥武器，攻击范围内所有敌人。',
+        requiredTags: ['劈砍'],
         apCost: 6,
-        bestDistance: 3,
         tags: ['aoe'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
@@ -81,9 +81,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'fissure',
         name: '裂地击',
-        weaponType: 'spear',
+        description: '猛砸地面，造成冲击波。',
+        requiredTags: ['钝击'],
         apCost: 8,
-        bestDistance: 2,
         tags: ['paralyze', 'ignore_parry'],
         effects: [
             { type: 'damage', scaling: { strength: 0.6 } },
@@ -96,9 +96,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'needle',
         name: '飞针',
-        weaponType: 'thrown',
+        description: '三枚飞针破空而去。',
+        requiredTags: ['戳刺'],
         apCost: 3,
-        bestDistance: 4,
         tags: ['paralyze'],
         effects: [
             { type: 'damage', scaling: { technique: 0.25 } },
@@ -108,9 +108,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'poison_dart',
         name: '毒镖',
-        weaponType: 'thrown',
+        description: '淬毒飞镖，见血封喉。',
+        requiredTags: ['戳刺'],
         apCost: 5,
-        bestDistance: 4,
         tags: ['poison'],
         effects: [
             { type: 'damage', scaling: { technique: 0.3 } },
@@ -120,9 +120,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'tempest',
         name: '暴雨梨花',
-        weaponType: 'thrown',
+        description: '一瞬间射出数十枚暗器。',
+        requiredTags: ['戳刺'],
         apCost: 8,
-        bestDistance: 4,
         tags: ['fixed_damage', 'poison', 'paralyze', 'bleed'],
         effects: [
             { type: 'fixed_damage', value: 8 },
@@ -137,9 +137,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'tremor_stomp',
         name: '震脚',
-        weaponType: 'fist',
+        description: '猛踏地面，震晕对手。',
+        requiredTags: [],
         apCost: 5,
-        bestDistance: 1,
         tags: ['stun'],
         effects: [
             { type: 'damage', scaling: { strength: 0.3 } },
@@ -149,9 +149,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'break_formation',
         name: '破军',
-        weaponType: 'spear',
+        description: '一往无前，破除一切负面效果。',
+        requiredTags: [],
         apCost: 3,
-        bestDistance: 3,
         tags: ['cleanse'],
         effects: [{ type: 'cleanse' }],
         maxUses: 1,
@@ -159,9 +159,9 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'pursuit_thrust',
         name: '追刺',
-        weaponType: 'spear',
+        description: '趁虚而入，追击刺击。',
+        requiredTags: ['戳刺'],
         apCost: 3,
-        bestDistance: 3,
         tags: ['bleed'],
         effects: [
             { type: 'damage', scaling: { strength: 0.3 } },
@@ -171,12 +171,22 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'qi_bolt',
         name: '炁弹',
-        weaponType: 'fist',
+        description: '凝聚炁劲远程攻击。',
+        requiredTags: [],
         apCost: 0,
-        bestDistance: 4,
         tags: [],
         effects: [{ type: 'fixed_damage', value: 4 }],
         maxUses: 3,
+        extraPreDelay: 100,
+    },
+    {
+        id: 'jab',
+        name: '刺拳',
+        description: '一记快速刺拳，消耗极低。',
+        requiredTags: ['钝击'],
+        apCost: 1,
+        tags: [],
+        effects: [{ type: 'damage', scaling: { strength: 0.2 } }],
     },
 ]
 
@@ -191,7 +201,10 @@ export function getAction(id: string): ActionDefinition | undefined {
     return ALL_ACTIONS.find((a) => a.id === id)
 }
 
-/** 按武器类型过滤 */
-export function getActionsByWeapon(weapon: string): ActionDefinition[] {
-    return ALL_ACTIONS.filter((a) => a.weaponType === weapon)
+/** 按武器标签过滤（空数组招式 = 任意武器可用） */
+export function getActionsByWeapon(weaponTags: import('../data/weapons').WeaponTag[]): ActionDefinition[] {
+    return ALL_ACTIONS.filter((a) => {
+        if (a.requiredTags.length === 0) return true
+        return a.requiredTags.some((tag) => weaponTags.includes(tag))
+    })
 }
