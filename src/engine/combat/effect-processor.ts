@@ -157,12 +157,12 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             'buff_end',
         )
     },
-    stat_buff({ eff, self, engine, tMs, log, tag }: Ctx) {
+    stat_buff({ eff, self, engine, tMs, log }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
         const entries = Object.entries(e.attrs) as [AttrName, number][]
         const desc = entries.map(([s, v]) => `${s}+${v}`).join(' ')
         for (const [attr, value] of entries) self.attrs.modify(attr, value)
-        log.logSystem(`[${tag ?? 'buff'}] ${self.name} ${desc}`, tMs, engine.getSnapshot(), self.name)
+        log.logSystem(`[buff] ${self.name} ${desc}`, tMs, engine.getSnapshot(), self.name)
     },
     stat_restore({ eff, self, engine, tMs, log, tag }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_restore' }>
@@ -176,17 +176,17 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             self.name,
         )
     },
-    restore_ap({ eff, self, engine, tMs, log, tag }: Ctx) {
+    restore_ap({ eff, self, engine, tMs, log }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'restore_ap' }>
         self.ap = Math.min(self.maxAp, self.ap + e.value)
-        log.logSystem(`[${tag ?? 'buff'}] ${self.name} 恢复 ${e.value} AP`, tMs, engine.getSnapshot(), self.name)
+        log.logSystem(`[回气] ${self.name} AP+${e.value}`, tMs, engine.getSnapshot(), self.name)
     },
-    summon_speed({ eff, self, engine, tMs, log, tag }: Ctx) {
+    summon_speed({ eff, self, engine, tMs, log }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'summon_speed' }>
         engine.speedUpSummons(self.id, e.value)
-        log.logSystem(`[${tag ?? 'buff'}] ${self.name} 召唤物加速 ${e.value}ms`, tMs, engine.getSnapshot(), self.name)
+        log.logSystem(`[加速] ${self.name} 召唤物+${e.value}ms`, tMs, engine.getSnapshot(), self.name)
     },
-    stat_transfer({ eff, self, enemy, engine, tMs, log, tag }: Ctx) {
+    stat_transfer({ eff, self, enemy, engine, tMs, log }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_transfer' }>
         const attr = e.stat as AttrName
         const buffKey = encodeBuffKey(`transfer_${e.stat}`, self.id)
@@ -200,12 +200,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             engine.state.turn.currentTime + e.duration,
             'buff_end',
         )
-        log.logSystem(
-            `[${tag ?? 'buff'}] ${self.name} 吸取 ${enemy.name} ${e.stat}+${e.value}`,
-            tMs,
-            engine.getSnapshot(),
-            self.name,
-        )
+        log.logSystem(`[汲取] ${enemy.name} ${e.stat}-${e.value}`, tMs, engine.getSnapshot(), self.name)
     },
 }
 
@@ -363,12 +358,14 @@ export function processCombatRolls(
     const { log } = engine.state
 
     engine.emit('on_attack', self, enemy)
-    const hc = _action.chance ?? calcHitChance({
-        attackerDexterity: self.attrs.get('dexterity'),
-        attackerInsight: self.attrs.get('insight'),
-        defenderAgility: enemy.attrs.get('agility'),
-        defenderInsight: enemy.attrs.get('insight'),
-    })
+    const hc =
+        _action.chance ??
+        calcHitChance({
+            attackerDexterity: self.attrs.get('dexterity'),
+            attackerInsight: self.attrs.get('insight'),
+            defenderAgility: enemy.attrs.get('agility'),
+            defenderInsight: enemy.attrs.get('insight'),
+        })
     const hitResult = calcRoll(hc)
     r.hit = hitResult.success
     log.logHitCheck(self.name, enemy.name, hc, hitResult.roll, r.hit, tMs, engine.getSnapshot())

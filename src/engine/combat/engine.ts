@@ -360,7 +360,15 @@ export class BattleEngine {
         this.state.log.indentDepth--
         processBleedDamage(enemy, tMs, this)
         if (r.knockbackDistance > 0) {
-            processActionEffect({ type: 'knockback', distance: r.knockbackDistance }, self, enemy, this, tMs, action.name, action.id)
+            processActionEffect(
+                { type: 'knockback', distance: r.knockbackDistance },
+                self,
+                enemy,
+                this,
+                tMs,
+                action.name,
+                action.id,
+            )
         }
         if (!enemy.isAlive()) {
             log.logDefeat(enemy.name, self.name, tMs, this.getSnapshot())
