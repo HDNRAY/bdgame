@@ -197,9 +197,10 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         name: '法珠',
         description: '',
         requiredTags: [],
-        apCost: 0,
+        apCost: 2,
         tags: [],
         effects: [{ type: 'fixed_damage', value: 6 }],
+        extraPreDelay: 300,
         extraStunTime: 800,
     },
 ]

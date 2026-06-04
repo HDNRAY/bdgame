@@ -67,10 +67,12 @@ export class TurnManager {
         const entry = this.queue.find((e) => e.id === template.id)
         if (entry) {
             entry.nextActionAt = this.time + delay
-            if ('preDelay' in template && template.preDelay !== undefined) entry.preDelay = template.preDelay
-            if ('stunTime' in template && template.stunTime !== undefined) entry.stunTime = template.stunTime
+            if (template.type === 'character' && entry.type === 'character') {
+                if (template.preDelay !== undefined) entry.preDelay = template.preDelay
+                if (template.stunTime !== undefined) entry.stunTime = template.stunTime
+            }
         } else {
-            this.queue.push({ ...template, nextActionAt: this.time + delay })
+            this.queue.push({ ...template, nextActionAt: this.time + delay } satisfies TurnEntry)
         }
         this.sort()
     }
@@ -78,7 +80,7 @@ export class TurnManager {
     /** 身法变化时重新计算回合间隔 */
     recalcInterval(id: string, agility: number): void {
         const entry = this.queue.find((e) => e.id === id)
-        if (!entry || entry.preDelay === undefined) return
+        if (!entry || entry.type !== 'character' || entry.preDelay === undefined) return
         const delay = calcTurnInterval(agility, entry.preDelay, entry.stunTime ?? 0)
         entry.nextActionAt = this.time + delay
         this.sort()

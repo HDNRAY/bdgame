@@ -19,9 +19,11 @@ import {
     processBuffEnd,
 } from './effect-processor'
 import type { ActionCommand, ActionResult, BattleState, EventPlan, BattleSnapshot, TurnEntry } from './types'
+import type { SummonInstance } from '../entities/summon'
 
 export class BattleEngine {
     state!: BattleState
+    #summons = new Map<string, SummonInstance>()
 
     constructor(p: Character, o: Character, d = 4) {
         this.init(p, o, d)
@@ -61,11 +63,19 @@ export class BattleEngine {
     #initSummons(self: Character): void {
         const weapon = getWeapon(self.build.weapon)
         if (!weapon.summon) return
-        const action = getAction(weapon.summon.actionId)
+        const sd = weapon.summon
+        const action = getAction(sd.actionId)
         const preDelay = action?.extraPreDelay ?? 0
-        for (let i = 0; i < weapon.summon.maxCount; i++) {
-            const sid = `${weapon.summon.id}_${self.id}_${i}`
+        for (let i = 0; i < sd.maxCount; i++) {
+            const sid = `${sd.id}_${self.id}_${i}`
             if (this.state.turn.entries.some((e) => e.id === sid)) continue
+            const inst: SummonInstance = {
+                id: sid,
+                ownerId: self.id,
+                actionId: sd.actionId,
+                index: i,
+            }
+            this.#summons.set(sid, inst)
             this.state.turn.addSummon(sid, self.id, i * preDelay)
         }
     }
@@ -232,8 +242,13 @@ export class BattleEngine {
     get #log(): BattleLog {
         return this.state.log
     }
+
     #getCharacter(id: string): Character | undefined {
         return this.state.characters.find((c) => c.id === id)
+    }
+
+    #getOpponent(id: string): Character | undefined {
+        return this.state.characters.find((c) => c.id !== id)
     }
 
     #emptyResult(): ActionResult {
@@ -268,7 +283,7 @@ export class BattleEngine {
         r.distanceDelta = a
         log.logMove(self.name, a, distance.current, ap, self.ap, this.#tMs, this.getSnapshot())
         processBleedDamage(self, this.#tMs, this)
-        const enemy = this.state.characters.find((c) => c.id !== self.id)!
+        const enemy = this.#getOpponent(self.id)!
         this.emit('on_move', self, enemy)
         this.emit('on_move', enemy, self)
         return r
@@ -403,29 +418,24 @@ export class BattleEngine {
 
     /** 处理召唤物回合 */
     #handleSummonTurn(e: TurnEntry & { type: 'summon' }): boolean {
-        const { turn } = this.state
-        const owner = this.state.characters.find((c) => c.id === e.ownerId)
-        const enemy = this.state.characters.find((c) => c.id !== e.ownerId)
+        const inst = this.#summons.get(e.id)
+        if (!inst) return false
+
+        const owner = this.#getCharacter(e.ownerId)
+        const enemy = this.#getOpponent(e.ownerId)
         if (!owner || !enemy) return false
 
-        const weapon = getWeapon(owner.build.weapon)
-        const sd = weapon.summon
-        if (!sd) return false
+        const action = getAction(inst.actionId)
+        if (!action) return false
 
-        // 扣主人 AP（不够则跳过，等角色回合重建）
-        if (!owner.spendAp(sd.apCost)) return true
-
-        const action = getAction(sd.actionId)
-        if (action) {
-            // 借用 executeAction，标记为触发
-            this.#executeAction(action, owner, enemy, true)
-        }
+        this.#executeAction(action, owner, enemy)
+        this.state.turn.next()
         const interval = calcSummonInterval(
             owner.attrs.get('wisdom'),
-            action?.extraPreDelay ?? 0,
-            action?.extraStunTime ?? 0,
+            action.extraPreDelay ?? 0,
+            action.extraStunTime ?? 0,
         )
-        turn.scheduleNext({ type: 'summon', id: e.id, ownerId: e.ownerId }, interval)
+        this.state.turn.scheduleNext({ type: 'summon', id: e.id, ownerId: e.ownerId }, interval)
         return true
     }
 

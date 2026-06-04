@@ -62,7 +62,6 @@ export const WEAPON_DB: WeaponDef[] = [
             id: 'orb',
             name: '法珠',
             maxCount: 3,
-            apCost: 2,
             actionId: 'orb_shot',
         },
     },

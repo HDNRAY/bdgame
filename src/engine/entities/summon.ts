@@ -3,7 +3,6 @@ export interface SummonDef {
     id: string
     name: string
     maxCount: number
-    apCost: number
     /** 召唤物使用的招式 ID */
     actionId: string
 }
@@ -12,6 +11,7 @@ export interface SummonDef {
 export interface SummonInstance {
     id: string
     ownerId: string
-    defId: string
+    /** 召唤物使用的招式 ID */
+    actionId: string
     index: number
 }
