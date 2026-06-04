@@ -51,7 +51,7 @@ interface StatusCtx {
 function applyDamage(raw: number, target: Character, engine: BattleEngine, tMs: number, log: BattleLog): void {
     const weapon = getWeapon(target.build.weapon)
     let parried = false
-    if (weapon.tags.includes('招架')) {
+    if (weapon.tags.includes('parry')) {
         const pc = calcParryChance(
             target.attrs.get('agility'),
             target.attrs.get('dexterity'),

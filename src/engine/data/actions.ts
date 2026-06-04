@@ -11,7 +11,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'straight_punch',
         name: '正拳',
         description: '一记标准正拳，直取中门。',
-        requiredTags: ['钝击'],
+        requiredTags: ['blunt'],
         apCost: 3,
         tags: [],
         effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
@@ -20,7 +20,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'crushing_blow',
         name: '崩拳',
         description: '蓄力一击，造成崩劲伤害。',
-        requiredTags: ['钝击'],
+        requiredTags: ['blunt'],
         apCost: 5,
         tags: ['cripple'],
         effects: [
@@ -32,7 +32,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'iron_charge',
         name: '铁山靠',
         description: '近距离冲撞，附带麻痹效果。',
-        requiredTags: ['钝击'],
+        requiredTags: ['blunt'],
         apCost: 7,
         tags: ['paralyze', 'self_damage'],
         effects: [
@@ -61,7 +61,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'thrust',
         name: '刺击',
         description: '一往无前的直刺。',
-        requiredTags: ['戳刺'],
+        requiredTags: ['pierce'],
         apCost: 4,
         tags: ['bleed'],
         effects: [
@@ -73,7 +73,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'sweep',
         name: '横扫千军',
         description: '横挥武器，攻击范围内所有敌人。',
-        requiredTags: ['劈砍'],
+        requiredTags: ['slash'],
         apCost: 6,
         tags: ['aoe'],
         effects: [
@@ -85,7 +85,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'fissure',
         name: '裂地击',
         description: '猛砸地面，造成冲击波。',
-        requiredTags: ['钝击'],
+        requiredTags: ['blunt'],
         apCost: 8,
         tags: ['paralyze', 'ignore_parry'],
         effects: [
@@ -100,7 +100,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'needle',
         name: '飞针',
         description: '三枚飞针破空而去。',
-        requiredTags: ['戳刺'],
+        requiredTags: ['pierce'],
         apCost: 3,
         tags: ['paralyze'],
         effects: [
@@ -112,7 +112,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'poison_dart',
         name: '毒镖',
         description: '淬毒飞镖，见血封喉。',
-        requiredTags: ['戳刺'],
+        requiredTags: ['pierce'],
         apCost: 5,
         tags: ['poison'],
         effects: [
@@ -124,7 +124,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'tempest',
         name: '暴雨梨花',
         description: '一瞬间射出数十枚暗器。',
-        requiredTags: ['戳刺'],
+        requiredTags: ['pierce'],
         apCost: 8,
         tags: ['fixed_damage', 'poison', 'paralyze', 'bleed'],
         effects: [
@@ -163,7 +163,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'pursuit_thrust',
         name: '追刺',
         description: '趁虚而入，追击刺击。',
-        requiredTags: ['戳刺'],
+        requiredTags: ['pierce'],
         apCost: 2,
         tags: ['bleed'],
         effects: [
@@ -187,7 +187,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'jab',
         name: '刺拳',
         description: '一记快速刺拳，消耗极低。',
-        requiredTags: ['钝击'],
+        requiredTags: ['blunt'],
         apCost: 1,
         tags: [],
         effects: [{ type: 'damage', scaling: { strength: 0.2 } }],
