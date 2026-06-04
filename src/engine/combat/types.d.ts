@@ -52,7 +52,7 @@ export interface BattleSnapshot {
     phase: BattlePhase
     distance: number
     characters: [CharacterSnapshot, CharacterSnapshot]
-    turn: { time: number; queue: Array<{ characterId: string; nextActionAt: number }> }
+    turn: { time: number; queue: Array<{ type: TurnEntryType; id: string; nextActionAt: number; ownerId?: string }> }
     triggerUses: [string, number][]
     pendingBuffs: [string, { restoreValue: number; stat: string }][]
     actionCount: number
@@ -110,10 +110,20 @@ export type BattleEvent =
 // ── Turn types ──
 export type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'paralyze_end' | 'stun_reset'
 
-export interface TurnEntry {
-    characterId: string
+export type TurnEntryType = 'character' | 'system' | 'summon'
+
+interface TurnEntryBase {
+    id: string
     nextActionAt: number
-    systemEventType?: SystemEventType
-    preDelay?: number
-    stunTime?: number
 }
+
+export type TurnEntry =
+    | (TurnEntryBase & { type: 'character'; preDelay?: number; stunTime?: number })
+    | (TurnEntryBase & { type: 'system'; systemEventType: SystemEventType })
+    | (TurnEntryBase & { type: 'summon'; ownerId: string })
+
+/** 不含 nextActionAt 的 TurnEntry（用于 scheduleNext） */
+export type TurnEntryTemplate =
+    | { type: 'character'; id: string; preDelay?: number; stunTime?: number }
+    | { type: 'system'; id: string; systemEventType: SystemEventType }
+    | { type: 'summon'; id: string; ownerId: string }

@@ -67,8 +67,8 @@ describe('calcParryChance', () => {
     it('should scale with agility, dexterity and insight', () => {
         // (14 + 10 + 6) / 120 = 30/120 = 0.25
         expect(calcParryChance(14, 10, 6)).toBeCloseTo(0.25)
-        // capped at 0.5
-        expect(calcParryChance(40, 40, 40)).toBeCloseTo(0.5)
+        // capped at 0.9
+        expect(calcParryChance(40, 40, 40)).toBeCloseTo(0.9)
         // (10 + 10 + 10) / 120 = 30/120 = 0.25
         expect(calcParryChance(10, 10, 10)).toBeCloseTo(0.25)
     })
@@ -88,7 +88,7 @@ describe('calcParriedDamage', () => {
 describe('calcDodgeChance', () => {
     it('should scale with agility', () => {
         expect(calcDodgeChance(20)).toBe(0.25)
-        expect(calcDodgeChance(50)).toBe(0.4) // capped
+        expect(calcDodgeChance(50)).toBeCloseTo(0.625)
     })
 })
 

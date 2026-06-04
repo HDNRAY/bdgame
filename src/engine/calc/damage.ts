@@ -51,11 +51,20 @@ export function calcMoveApCost(distance: number, agility: number): number {
 
 /** 回合间隔: 基础 + 前后摇受身法影响(高agi大幅减少前后摇) */
 export function calcTurnInterval(agility: number, extraPreDelay = 0, extraStunTime = 0): number {
-    const agiFactor = 0.4 + Math.max(0, 0.6 - agility * 0.02) // 每点身法减少0.2%，最高100%
+    const agiFactor = 0.4 + Math.max(0, 0.6 - agility * 0.02)
     const base = BASE_TURN_INTERVAL
     const epd = Math.round(BASE_PRE_DELAY + extraPreDelay)
     const est = Math.round(BASE_STUN_TIME + extraStunTime)
     return Math.round((base + epd + est) * agiFactor)
+}
+
+/** 召唤物回合间隔: 同人物逻辑，但用悟性代替身法，衰减更平缓 */
+export function calcSummonInterval(wisdom: number, extraPreDelay = 0, extraStunTime = 0): number {
+    const wisFactor = 0.6 + Math.max(0, 0.4 - wisdom * 0.01)
+    const base = BASE_TURN_INTERVAL
+    const epd = Math.round(BASE_PRE_DELAY + extraPreDelay)
+    const est = Math.round(BASE_STUN_TIME + extraStunTime)
+    return Math.round((base + epd + est) * wisFactor)
 }
 
 /** 招架后伤害减免，默认减免至 40% */

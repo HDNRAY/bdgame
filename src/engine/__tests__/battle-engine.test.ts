@@ -37,7 +37,7 @@ describe('BattleEngine', () => {
             { strength: 8, vitality: 8, agility: 6, dexterity: 6, insight: 4, wisdom: 3 },
             ['straight_punch'],
         )
-        const { winner, engine } = runBattle(p, o, 'straight_punch')
+        const { winner, engine } = runBattle(p, o)
         expect(winner).toBe('玩家')
         const types = engine.state.log.getAll().map((e) => e.event.type)
         expect(types).toContain('battle_start')
@@ -81,7 +81,7 @@ describe('BattleEngine', () => {
             { strength: 18, vitality: 20, agility: 10, dexterity: 14, insight: 8, wisdom: 6 },
             ['fissure'],
         )
-        const { winner } = runBattle(w, s, 'fissure')
+        const { winner } = runBattle(w, s)
         expect(winner).toBe('强者')
     })
 

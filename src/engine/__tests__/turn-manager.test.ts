@@ -24,9 +24,9 @@ describe('TurnManager', () => {
         tm.addCharacter(fast, 100)
         tm.addCharacter(slow, 300)
 
-        expect(tm.peek()?.characterId).toBe('fast')
+        expect(tm.peek()?.id).toBe('fast')
         tm.next()
-        expect(tm.peek()?.characterId).toBe('slow')
+        expect(tm.peek()?.id).toBe('slow')
     })
 
     it('should reschedule after action', () => {
@@ -35,8 +35,8 @@ describe('TurnManager', () => {
         tm.addCharacter(c, 100)
         tm.next()
 
-        tm.scheduleNext('c1', 250)
-        expect(tm.peek()?.characterId).toBe('c1')
+        tm.scheduleNext({ type: 'character', id: 'c1' }, 250)
+        expect(tm.peek()?.id).toBe('c1')
         expect(tm.peek()?.nextActionAt).toBe(100 + 250)
     })
 
@@ -48,6 +48,6 @@ describe('TurnManager', () => {
         tm.addCharacter(b, 200)
 
         tm.modifyTime('a', 300) // a 被眩晕 +300ms
-        expect(tm.peek()?.characterId).toBe('b')
+        expect(tm.peek()?.id).toBe('b')
     })
 })

@@ -192,6 +192,16 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: [],
         effects: [{ type: 'damage', scaling: { strength: 0.2 } }],
     },
+    {
+        id: 'orb_shot',
+        name: '法珠',
+        description: '',
+        requiredTags: [],
+        apCost: 0,
+        tags: [],
+        effects: [{ type: 'fixed_damage', value: 6 }],
+        extraStunTime: 800,
+    },
 ]
 
 /** 辅招 */

@@ -1,8 +1,6 @@
 import type { Character } from '../entities/character'
-import type { TurnEntry, SystemEventType } from './types'
+import type { TurnEntry, TurnEntryTemplate, SystemEventType } from './types'
 import { calcTurnInterval } from '../calc/damage'
-
-export const SYS_PREFIX = '__sys__'
 
 /** 行动管理器（时间轴） */
 export class TurnManager {
@@ -12,7 +10,8 @@ export class TurnManager {
     /** 将角色加入时间轴 */
     addCharacter(char: Character, delay = 0): void {
         this.queue.push({
-            characterId: char.id,
+            type: 'character',
+            id: char.id,
             nextActionAt: this.time + delay,
         })
         this.sort()
@@ -21,7 +20,8 @@ export class TurnManager {
     /** 调度一个系统事件 */
     scheduleSystemEvent(id: string, delayMs: number, type: SystemEventType): void {
         this.queue.push({
-            characterId: `${SYS_PREFIX}${id}`,
+            type: 'system',
+            id,
             nextActionAt: this.time + delayMs,
             systemEventType: type,
         })
@@ -31,9 +31,21 @@ export class TurnManager {
     /** 在指定绝对时间调度系统事件 */
     scheduleSystemEventAt(id: string, targetTime: number, type: SystemEventType): void {
         this.queue.push({
-            characterId: `${SYS_PREFIX}${id}`,
+            type: 'system',
+            id,
             nextActionAt: targetTime,
             systemEventType: type,
+        })
+        this.sort()
+    }
+
+    /** 添加召唤物到时间轴 */
+    addSummon(id: string, ownerId: string, delay = 0): void {
+        this.queue.push({
+            type: 'summon',
+            id,
+            ownerId,
+            nextActionAt: this.time + delay,
         })
         this.sort()
     }
@@ -51,27 +63,21 @@ export class TurnManager {
     }
 
     /** 行动后重新入队（插入硬直） */
-    scheduleNext(charId: string, delay: number, preDelay?: number, stunTime?: number): void {
-        const entry = this.queue.find((e) => e.characterId === charId)
+    scheduleNext(template: TurnEntryTemplate, delay: number): void {
+        const entry = this.queue.find((e) => e.id === template.id)
         if (entry) {
-            // 已经在队列中 -> 更新
             entry.nextActionAt = this.time + delay
-            if (preDelay !== undefined) entry.preDelay = preDelay
-            if (stunTime !== undefined) entry.stunTime = stunTime
+            if ('preDelay' in template && template.preDelay !== undefined) entry.preDelay = template.preDelay
+            if ('stunTime' in template && template.stunTime !== undefined) entry.stunTime = template.stunTime
         } else {
-            this.queue.push({
-                characterId: charId,
-                nextActionAt: this.time + delay,
-                preDelay,
-                stunTime,
-            })
+            this.queue.push({ ...template, nextActionAt: this.time + delay })
         }
         this.sort()
     }
 
     /** 身法变化时重新计算回合间隔 */
-    recalcInterval(charId: string, agility: number): void {
-        const entry = this.queue.find((e) => e.characterId === charId)
+    recalcInterval(id: string, agility: number): void {
+        const entry = this.queue.find((e) => e.id === id)
         if (!entry || entry.preDelay === undefined) return
         const delay = calcTurnInterval(agility, entry.preDelay, entry.stunTime ?? 0)
         entry.nextActionAt = this.time + delay
@@ -79,9 +85,9 @@ export class TurnManager {
     }
 
     /** 修改角色的时间轴（stun=+ms, haste=-ms） */
-    modifyTime(charId: string, deltaMs: number): void {
+    modifyTime(id: string, deltaMs: number): void {
         for (const entry of this.queue) {
-            if (entry.characterId === charId) {
+            if (entry.id === id) {
                 entry.nextActionAt = Math.max(this.time, entry.nextActionAt + deltaMs)
             }
         }

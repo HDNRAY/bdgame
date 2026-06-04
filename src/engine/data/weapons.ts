@@ -1,13 +1,16 @@
 import type { AttrName } from '../entities/attributes'
 import type { GameEntity } from '../entities/base'
+import type { SummonDef } from '../entities/summon'
 
-export type WeaponTag = 'slash' | 'blunt' | 'pierce' | 'parry'
+export type WeaponTag = 'slash' | 'blunt' | 'pierce' | 'parry' | 'imperial'
 
 export interface WeaponDef extends GameEntity {
     tags: WeaponTag[]
     bound?: boolean
     attrMods: Partial<Record<AttrName, number>>
     range: [number, number]
+    /** 召唤物定义（御物武器使用） */
+    summon?: SummonDef
 }
 
 /** 武器数据（数组，可在初始化时构建为 Map） */
@@ -47,6 +50,21 @@ export const WEAPON_DB: WeaponDef[] = [
         bound: false,
         attrMods: { agility: 1 },
         range: [2, 5],
+    },
+    {
+        id: 'tri_orb',
+        name: '三相珠',
+        description: '三颗由炁劲驱动的法珠，环绕主人旋转。',
+        tags: ['imperial'],
+        attrMods: {},
+        range: [1, 5],
+        summon: {
+            id: 'orb',
+            name: '法珠',
+            maxCount: 3,
+            apCost: 2,
+            actionId: 'orb_shot',
+        },
     },
 ]
 

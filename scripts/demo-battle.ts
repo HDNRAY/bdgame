@@ -54,12 +54,26 @@ const oBuild: CharacterBuild = {
 }
 const o = new Character(oBuild)
 
-show(p, '⚔️ 玩家·拳')
+const mBuild: CharacterBuild = {
+    id: 'm1',
+    name: '御物·玄机',
+    weapon: 'tri_orb',
+    baseAttrs: { strength: 6, vitality: 10, agility: 10, dexterity: 10, insight: 14, wisdom: 18 },
+    moves: [],
+    triggers: [],
+    passives: [],
+    artifacts: [],
+}
+const m = new Character(mBuild)
+
+// show(p, '⚔️ 玩家·拳')
 show(o, '👊 铁枪·张烈')
+show(m, '🔮 御物·玄机')
 console.log('')
 
-const { winner, engine } = runBattle(p, o, 'iron_charge', 'thrust')
+// ── 御物·玄机 VS 铁枪·张烈 ──
+const { winner, engine } = runBattle(m, o)
 for (const line of formatBattleLog(engine.state.log)) console.log(line)
 console.log(
-    `\n🏆 ${winner} 胜  玩家 HP${Math.round(p.hp * 10) / 10}/${p.maxHp} 对手 HP${Math.round(o.hp * 10) / 10}/${o.maxHp}`,
+    `\n🏆 ${winner} 胜  御物 HP${Math.round(m.hp * 10) / 10}/${m.maxHp} 对手 HP${Math.round(o.hp * 10) / 10}/${o.maxHp}`,
 )

@@ -1,9 +1,9 @@
 import { Character } from '../entities/character'
 import { DistanceSystem } from './distance'
-import { TurnManager, SYS_PREFIX } from './turn'
+import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
 import { getWeapon } from '../data/weapons'
-import { BASE_PRE_DELAY, BASE_STUN_TIME, calcTurnInterval } from '../calc/damage'
+import { BASE_PRE_DELAY, BASE_STUN_TIME, calcTurnInterval, calcSummonInterval } from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import type { ActionDefinition } from '../entities/action'
@@ -18,7 +18,7 @@ import {
     processParalyzeEnd,
     processBuffEnd,
 } from './effect-processor'
-import type { ActionCommand, ActionResult, BattleState, EventPlan, BattleSnapshot } from './types'
+import type { ActionCommand, ActionResult, BattleState, EventPlan, BattleSnapshot, TurnEntry } from './types'
 
 export class BattleEngine {
     state!: BattleState
@@ -51,6 +51,23 @@ export class BattleEngine {
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o)
         this.emit('battle_start', o, p)
+
+        // 创建召唤物
+        this.#initSummons(p)
+        this.#initSummons(o)
+    }
+
+    /** 为角色创建召唤物（已存在则跳过） */
+    #initSummons(self: Character): void {
+        const weapon = getWeapon(self.build.weapon)
+        if (!weapon.summon) return
+        const action = getAction(weapon.summon.actionId)
+        const preDelay = action?.extraPreDelay ?? 0
+        for (let i = 0; i < weapon.summon.maxCount; i++) {
+            const sid = `${weapon.summon.id}_${self.id}_${i}`
+            if (this.state.turn.entries.some((e) => e.id === sid)) continue
+            this.state.turn.addSummon(sid, self.id, i * preDelay)
+        }
     }
 
     /** 构建当前战斗快照 */
@@ -85,20 +102,25 @@ export class BattleEngine {
     runEvent(planFn: EventPlan): boolean {
         const e = this.state.turn.peek()
         if (!e) return false
-        this.state.eventActorId = e.characterId
+        this.state.eventActorId = e.type === 'character' ? e.id : null
 
         // 系统事件
-        if (e.characterId.startsWith(SYS_PREFIX)) {
+        if (e.type === 'system') {
             this.#handleSystemEvent()
             this.state.turn.next()
             this.state.eventActorId = null
             return true
         }
 
+        // 召唤物行动
+        if (e.type === 'summon') {
+            return this.#handleSummonTurn(e)
+        }
+
         // 角色事件
         const chars = this.state.characters
-        const self = chars.find((c) => c.id === e.characterId)!
-        const enemy = chars.find((c) => c.id !== e.characterId)!
+        const self = chars.find((c) => c.id === e.id)!
+        const enemy = chars.find((c) => c.id !== e.id)!
         self.resetAp()
         enemy.resetAp()
         this.state.actionCount++
@@ -125,13 +147,15 @@ export class BattleEngine {
             self.statuses = self.statuses.filter((s) => s !== skipStatus)
             const delay = skipStatus.rescheduleDelay ?? 2000
             this.state.turn.next()
-            this.state.turn.scheduleNext(self.id, delay)
+            this.state.turn.scheduleNext({ type: 'character', id: self.id }, delay)
             this.state.eventActorId = null
             return true
         }
 
         this.emit('turn_start', self, enemy)
         this.#tryBonus(self, 'turn_start')
+        // 重建召唤物（法球等每回合重新入队）
+        this.#initSummons(self)
 
         const cmds = planFn(self, enemy, this.state)
         for (const cmd of cmds) {
@@ -147,10 +171,8 @@ export class BattleEngine {
         const preDelay = BASE_PRE_DELAY + lastAction
         const stunTime = BASE_STUN_TIME
         this.state.turn.scheduleNext(
-            self.id,
+            { type: 'character', id: self.id, preDelay, stunTime },
             calcTurnInterval(self.attrs.get('agility'), lastAction),
-            preDelay,
-            stunTime,
         )
         this.state.lastActionExtraDelay = 0
         this.state.eventActorId = null
@@ -379,11 +401,39 @@ export class BattleEngine {
         }
     }
 
+    /** 处理召唤物回合 */
+    #handleSummonTurn(e: TurnEntry & { type: 'summon' }): boolean {
+        const { turn } = this.state
+        const owner = this.state.characters.find((c) => c.id === e.ownerId)
+        const enemy = this.state.characters.find((c) => c.id !== e.ownerId)
+        if (!owner || !enemy) return false
+
+        const weapon = getWeapon(owner.build.weapon)
+        const sd = weapon.summon
+        if (!sd) return false
+
+        // 扣主人 AP（不够则跳过，等角色回合重建）
+        if (!owner.spendAp(sd.apCost)) return true
+
+        const action = getAction(sd.actionId)
+        if (action) {
+            // 借用 executeAction，标记为触发
+            this.#executeAction(action, owner, enemy, true)
+        }
+        const interval = calcSummonInterval(
+            owner.attrs.get('wisdom'),
+            action?.extraPreDelay ?? 0,
+            action?.extraStunTime ?? 0,
+        )
+        turn.scheduleNext({ type: 'summon', id: e.id, ownerId: e.ownerId }, interval)
+        return true
+    }
+
     /** 处理系统事件（buff 到期、status tick 等） */
     #handleSystemEvent(): void {
-        const e = this.state.turn.peek()!
+        const e = this.state.turn.peek()! as TurnEntry & { type: 'system' }
         if (!e.systemEventType) return
-        const eventId = e.characterId.slice(SYS_PREFIX.length)
+        const eventId = e.id
 
         switch (e.systemEventType) {
             case 'buff_end':

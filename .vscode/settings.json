@@ -1,6 +1,7 @@
 {
     "chat.tools.terminal.autoApprove": {
         "npx tsx": true,
-        "rtk": true
+        "rtk": true,
+        "npx vitest": true
     }
 }
