@@ -167,8 +167,13 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         const entries = Object.entries(e.attrs) as [AttrName, number][]
         for (const [attr, value] of entries) {
             self.attrs.modify(attr, value)
-            log.logAttrChange(self.name, attr, value, 'buff', tMs, engine.getSnapshot())
         }
+        const parts = entries.map(([attr, value]) => {
+            const cn = ATTR_CN[attr] ?? attr
+            const sign = value >= 0 ? '+' : ''
+            return `${cn}${sign}${value}`
+        })
+        log.logSystem(`[buff] ${self.name} ${parts.join(' ')}`, tMs, engine.getSnapshot(), self.name)
     },
     stat_restore({ eff, self, engine, tMs, log, tag }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_restore' }>

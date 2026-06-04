@@ -16,7 +16,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         effects: [
             {
                 type: 'stat_buff',
-                attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1, wisdom: 1 },
+                attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2, insight: 1, wisdom: 1 },
                 duration: { attr: 'wisdom', multiplier: 1000 },
             },
         ],
