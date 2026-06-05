@@ -1,5 +1,5 @@
 import type { ActionDefinition } from '../entities/action'
-import type { Tag } from '../entities/action'
+import type { Tag } from '../entities/tag'
 import { QI_SKILLS } from './forging'
 
 /**

@@ -39,15 +39,6 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [2, 4],
     },
     {
-        id: 'throwing_dagger',
-        name: '飞刀·影',
-        description: '三柄柳叶飞刀，例无虚发。',
-        tags: ['slash', 'pierce'],
-        bound: false,
-        effects: [{ type: 'stat_buff', attrs: { agility: 1 } }],
-        range: [2, 5],
-    },
-    {
         id: 'tri_orb',
         name: '三相珠',
         description: '三颗由炁劲驱动的法珠，环绕主人旋转。',

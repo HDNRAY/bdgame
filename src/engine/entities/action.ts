@@ -2,31 +2,7 @@ import type { AttrName } from './attributes'
 import type { Condition } from './trigger'
 import type { StatusType } from './status'
 import type { GameEntity } from './base'
-
-/** 效果类型（含武器标签） */
-export type Tag =
-    | 'qi'
-    | 'slash'
-    | 'blunt'
-    | 'pierce'
-    | 'parry'
-    | 'imperial'
-    | 'stagger'
-    | 'paralyze'
-    | 'poison'
-    | 'interrupt'
-    | 'stun'
-    | 'cleanse'
-    | 'bleed'
-    | 'counter'
-    | 'ignore_parry'
-    | 'fixed_damage'
-    | 'self_damage'
-    | 'knockback'
-    | 'cripple'
-    | 'implant'
-    | 'heal'
-    | 'buff'
+import type { Tag } from './tag'
 
 /** buff 持续时间：{ attr: '属性名', multiplier: 系数 } = 属性×系数 ms，系数大≈永久 */
 export type BuffDuration = { attr: AttrName; multiplier: number }

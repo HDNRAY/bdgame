@@ -1,5 +1,6 @@
 import type { GameEntity } from './base'
-import type { Tag, EffectDef } from './action'
+import type { Tag } from './tag'
+import type { EffectDef } from './action'
 
 /** 奇物 */
 export interface Artifact extends GameEntity {

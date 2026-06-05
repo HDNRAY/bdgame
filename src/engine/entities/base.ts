@@ -1,4 +1,4 @@
-import type { Tag } from './action'
+import type { Tag } from './tag'
 
 /** 所有可收集/可装备物品的基类 */
 export interface GameEntity {

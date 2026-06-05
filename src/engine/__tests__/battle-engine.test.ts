@@ -44,13 +44,13 @@ describe('BattleEngine', () => {
         expect(types).toContain('defeat')
     })
 
-    it('should handle distance management with thrown weapon', () => {
+    it('should handle distance management with spear', () => {
         const p = makeChar(
             'p1',
             '远程',
             { dexterity: 12, agility: 14, strength: 6, vitality: 8, insight: 6, wisdom: 10 },
             ['needle'],
-            'throwing_dagger',
+            'iron_spear',
         )
         const o = makeChar('o1', '近战', {
             strength: 14,
@@ -60,7 +60,7 @@ describe('BattleEngine', () => {
             insight: 4,
             wisdom: 3,
         })
-        const e = new BattleEngine(p, o, 5)
+        const e = new BattleEngine(p, o, 4)
         const plan: EventPlan = () => [{ type: 'attack', actionId: 'needle' }]
         e.runEvent(plan)
         const logs = e.state.log.getAll()

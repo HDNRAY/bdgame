@@ -6,6 +6,7 @@
     "scripts": {
         "dev": "vite",
         "demo": "tsx scripts/demo-battle.ts",
+        "node-demo": "tsx scripts/node-demo.ts",
         "build": "tsc -b && vite build",
         "lint": "eslint .",
         "preview": "vite preview",
