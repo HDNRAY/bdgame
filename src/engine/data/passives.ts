@@ -14,10 +14,10 @@ export const PASSIVES: Passive[] = [
         description: '铜皮铁骨。',
     },
     {
-        id: 'lingbo_weibu',
+        id: 'ling_bo_wei_bu',
         name: '凌波微步',
         description: '绝世轻功，身法达到一定境界后自然领悟。步法精妙，难以捉摸。',
-        tags: ['first_strike'],
+        tags: [],
         requireAttrs: { agility: 18 },
         effects: [],
         triggers: [{ condition: { type: 'on_dodge' }, actionId: '_lingbo_insight_step' }],

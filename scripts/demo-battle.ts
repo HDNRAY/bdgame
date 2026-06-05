@@ -35,7 +35,7 @@ const pBuild: CharacterBuild = {
         { condition: { type: 'on_dodged' }, actionId: 'flick' },
         { condition: { type: 'on_move' }, actionId: 'qi_bolt' },
     ],
-    passives: ['forge_4', 'lingbo_weibu'],
+    passives: ['forge_4', 'ling_bo_wei_bu'],
     artifacts: [],
 }
 

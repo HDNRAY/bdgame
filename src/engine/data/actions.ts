@@ -71,18 +71,6 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         ],
     },
     {
-        id: 'sweep',
-        name: '横扫千军',
-        description: '横挥武器，攻击范围内所有敌人。',
-        requiredTags: ['slash'],
-        apCost: 6,
-        tags: ['aoe'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.4 } },
-            { type: 'aoe_range', range: 1 },
-        ],
-    },
-    {
         id: 'fissure',
         name: '裂地击',
         description: '猛砸地面，造成冲击波。',

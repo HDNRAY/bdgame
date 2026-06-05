@@ -13,9 +13,7 @@ export type EffectTag =
     | 'stun'
     | 'cleanse'
     | 'bleed'
-    | 'first_strike'
     | 'counter'
-    | 'aoe'
     | 'ignore_parry'
     | 'fixed_damage'
     | 'self_damage'
@@ -33,9 +31,6 @@ export type EffectDef =
     | { type: 'status'; status: EffectTag; stacks: number; chance: number; attrMods?: Record<string, number> }
     | { type: 'cripple'; ratio: number }
     | { type: 'self_damage'; ratio: number }
-    | { type: 'first_strike' }
-    | { type: 'counter_on_dodge'; damageRatio: number }
-    | { type: 'aoe_range'; range: number }
     | { type: 'ignore_parry' }
     | { type: 'interrupt' }
     | { type: 'knockback'; distance: number }
@@ -52,9 +47,6 @@ export type EffectDef =
     | { type: 'restore_ap'; value: number }
     | { type: 'summon_speed'; value: number }
     | { type: 'stat_transfer'; stat: string; value: number; duration: number }
-// | { type: 'guarantee_hit' }
-// | { type: 'guarantee_crit' }
-// | { type: 'ignore_parry_next' }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {
@@ -86,11 +78,21 @@ export class Action {
         this.remainingUses = def.maxUses ?? Infinity
     }
 
-    get id() { return this.def.id }
-    get name() { return this.def.name }
-    get apCost() { return this.def.apCost }
-    get bonus() { return this.def.bonus ?? false }
-    get effects() { return this.def.effects }
+    get id() {
+        return this.def.id
+    }
+    get name() {
+        return this.def.name
+    }
+    get apCost() {
+        return this.def.apCost
+    }
+    get bonus() {
+        return this.def.bonus ?? false
+    }
+    get effects() {
+        return this.def.effects
+    }
 
     canUse(): boolean {
         return this.remainingUses > 0
