@@ -160,17 +160,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
             { type: 'status', status: 'bleed', stacks: 1, chance: 0.6 },
         ],
     },
-    {
-        id: 'qi_bolt',
-        name: '炁弹',
-        description: '凝聚炁劲远程攻击。',
-        requiredTags: [],
-        apCost: 1,
-        tags: [],
-        effects: [{ type: 'fixed_damage', value: 4 }],
-        extraPreDelay: 100,
-        range: [0, 5],
-    },
+
     {
         id: 'jab',
         name: '刺拳',
@@ -180,6 +170,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: [],
         effects: [{ type: 'damage', scaling: { strength: 0.2 } }],
     },
+
     {
         id: 'orb_shot',
         name: '法珠',
@@ -190,17 +181,6 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'fixed_damage', value: 3 }],
         extraPreDelay: 300,
         extraStunTime: 800,
-    },
-    {
-        id: 'restore_ap',
-        name: '回炁',
-        description: '恢复 1 AP。',
-        requiredTags: [],
-        apCost: 0,
-        tags: [],
-        target: 'self',
-        effects: [{ type: 'restore_ap', value: 1 }],
-        maxUses: 999,
     },
     {
         id: 'summon_haste',
@@ -240,8 +220,26 @@ export const MVP_ACTIONS: ActionDefinition[] = [
 /** 辅招 */
 export const BONUS_ACTIONS: ActionDefinition[] = []
 
+/** 触发器招式（被动/天赋专用，不直接装备） */
+export const TRIGGER_ACTIONS: ActionDefinition[] = [
+    {
+        id: '_sangui_heal',
+        name: '三分归元',
+        description: '',
+        requiredTags: [],
+        apCost: 0,
+        tags: [],
+        target: 'self',
+        maxUses: 1,
+        effects: [
+            { type: 'heal', value: 3, ratio: 0.33 },
+            { type: 'stat_buff', attrs: { strength: -2, vitality: -2, agility: -2, dexterity: -2 } },
+        ],
+    },
+]
+
 /** 合并所有招式（含辅招、炁技） */
-const ALL_ACTIONS = [...MVP_ACTIONS, ...BONUS_ACTIONS, ...QI_SKILLS]
+const ALL_ACTIONS = [...MVP_ACTIONS, ...BONUS_ACTIONS, ...QI_SKILLS, ...TRIGGER_ACTIONS]
 
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {

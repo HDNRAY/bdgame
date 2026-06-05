@@ -299,7 +299,9 @@ export class BattleEngine {
             return this.#emptyResult()
         }
         processBleedDamage(self, this.#tMs, this)
-        return this.#executeAction(action, self, enemy)
+        const r = this.#executeAction(action, self, enemy)
+        this.#tryBonus(self, 'after_main')
+        return r
     }
 
     /** 统一招式执行 */
@@ -375,6 +377,9 @@ export class BattleEngine {
                 action.id,
             )
         }
+        // HP 阈值触发检测
+        this.emit('hp_below', self, enemy)
+        this.emit('hp_below', enemy, self)
         if (!enemy.isAlive()) {
             log.logDefeat(enemy.name, self.name, tMs, this.getSnapshot())
             this.state.phase = 'finished'

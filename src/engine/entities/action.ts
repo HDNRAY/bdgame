@@ -5,6 +5,7 @@ import type { GameEntity } from './base'
 
 /** 效果类型（含武器标签） */
 export type Tag =
+    | 'qi'
     | 'slash'
     | 'blunt'
     | 'pierce'
@@ -24,6 +25,8 @@ export type Tag =
     | 'knockback'
     | 'cripple'
     | 'implant'
+    | 'heal'
+    | 'buff'
 
 /** buff 持续时间：{ attr: '属性名', multiplier: 系数 } = 属性×系数 ms，系数大≈永久 */
 export type BuffDuration = { attr: AttrName; multiplier: number }

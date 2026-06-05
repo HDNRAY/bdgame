@@ -4,10 +4,19 @@ import type { Passive, Talent } from '../entities/passive'
 export const PASSIVES: Passive[] = [
     {
         id: 'forge',
-        name: '锻体',
-        description: '基础锻体，全属性+1。',
-        tags: [],
+        name: '三分归元气',
+        description: '全属性提升。濒危时触发「三分归元」，消耗元气大幅回血。',
+        tags: ['qi'],
         effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2 } }],
+        triggers: [
+            {
+                condition: {
+                    type: 'hp_below',
+                    check: (ctx) => ctx.actor.hp / ctx.actor.maxHp < 0.3,
+                },
+                actionId: '_sangui_heal',
+            },
+        ],
     },
     {
         id: 'iron_bone',

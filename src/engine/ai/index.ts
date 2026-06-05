@@ -1,5 +1,6 @@
 import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
+import type { ActionDefinition } from '../entities/action'
 import { getWeapon } from '../data/weapons'
 import { DistanceSystem } from '../combat/distance'
 import { calcSelfDamage } from '../calc/damage'
@@ -37,6 +38,8 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
         if (!inst.def.bonus) continue
         if (!inst.canUse()) continue
         if (inst.def.bonusTiming?.type !== 'before_main') continue
+        // buff 辅招：已有则跳过
+        if (inst.def.tags.includes('buff') && hasActiveBuffByAction(self, state, inst.def)) continue
         // 检查移动后 AP 够走完所有已选辅招 + 当前辅招 + 主招
         if (apAfterMove < bonusAp + inst.apCost + mainDef.apCost) continue
         cmds.push({ type: 'bonus', actionId: inst.id })
@@ -73,4 +76,16 @@ function pickMainAction(self: Character, state: BattleState): string | null {
         return inst.id
     }
     return null
+}
+
+/** 判断某个招式对应的 buff 效果是否已激活 */
+function hasActiveBuffByAction(self: Character, state: BattleState, def: ActionDefinition): boolean {
+    for (const eff of def.effects ?? []) {
+        if (eff.type === 'stat_buff' || eff.type === 'stat_multiply') {
+            for (const [k] of state.pendingBuffs) {
+                if (k.startsWith(`${eff.type}::${self.id}`)) return true
+            }
+        }
+    }
+    return false
 }

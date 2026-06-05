@@ -29,7 +29,7 @@ const pBuild: CharacterBuild = {
     name: '空拳·玩家',
     weapon: 'bare_hands',
     baseAttrs: { strength: 12, vitality: 10, agility: 18, dexterity: 10, insight: 8, wisdom: 12 },
-    actions: ['iron_charge', 'straight_punch', 'crushing_blow', 'tremor_stomp', 'qi_focus', 'qi_gather'],
+    actions: ['qi_focus', 'qi_gather', 'straight_punch', 'crushing_blow', 'iron_charge', 'tremor_stomp'],
     triggers: [
         { condition: { type: 'on_parry' }, actionId: 'straight_punch' },
         { condition: { type: 'on_dodged' }, actionId: 'flick' },
