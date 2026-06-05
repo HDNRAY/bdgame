@@ -4,12 +4,12 @@ export type AttrName = 'strength' | 'vitality' | 'agility' | 'dexterity' | 'insi
 export const ALL_ATTRS: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
 
 export const ATTR_CN: Record<string, string> = {
-    strength: '力道',
-    vitality: '体质',
-    agility: '身法',
-    dexterity: '灵巧',
-    insight: '洞察',
-    wisdom: '悟性',
+    strength: '力道', // 伤害缩放、招架减伤
+    vitality: '体质', // HP = 20 + vit×10
+    agility: '身法', // 闪避(防御方)、移动效率(agi/20 档/AP)、回合间隔(2.8/(1+agi×0.25))
+    dexterity: '灵巧', // 命中(攻击方)、暴击率(与洞察叠加)
+    insight: '洞察', // 命中(攻防双方)、暴击率(与灵巧叠加)、招架率
+    wisdom: '悟性', // 触发槽数(max(1, floor(wis/4)))、炁效果
 }
 
 export const ATTR_MIN = 1

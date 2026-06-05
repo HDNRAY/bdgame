@@ -1,381 +1,237 @@
-# 第 4 章：触发器、义体与炼炁
+# 第 4 章：触发器、事件与被动流程
 
 ---
 
 ## 4.1 触发器系统
 
-### 4.1.1 设计原则
+### 4.1.1 原理
 
-触发器是战斗的"被动反应层"。它们**不消耗 AP**、**不占用行动**，而是监听 EventBus 上的事件，条件匹配时自动响应。
+触发器监听 EventBus 事件，条件匹配时自动执行一个招式（不消耗 AP，不占用行动）。
 
 ```
-EventBus 事件 → TriggerSystem 扫描 → 条件匹配 → 插入效果链
+引擎事件 → emit(event, self, enemy) → 遍历角色触发器
+  ├─ 条件类型匹配 → matchCondition → 执行对应招式的 effects
+  └─ 不匹配 → 跳过
 ```
 
-### 4.1.2 触发槽（核心限制）
-
-触发槽是触发器系统的资源约束：
+### 4.1.2 触发事件（TriggerEvent）
 
 ```ts
-triggerSlots = Math.max(1, Math.floor(attrs.wisdom / 4))
-
-// wisdom  6  → 1 槽
-// wisdom 12  → 3 槽
-// wisdom 16  → 4 槽
-// wisdom 20  → 5 槽
-// wisdom 30  → 7 槽
+type TriggerEvent =
+    | 'on_attack' // 攻击时
+    | 'on_hit' // 命中时
+    | 'on_take_damage' // 受伤时
+    | 'on_dodge' // 闪避时
+    | 'on_parry' // 招架时
+    | 'on_dodged' // 攻击被闪避时
+    | 'on_parried' // 攻击被招架时
+    | 'on_buff' // 获得 buff 时
+    | 'on_debuff' // 获得 debuff 时
+    | 'on_move' // 移动时
+    | 'turn_start' // 回合开始
+    | 'turn_end' // 回合结束
+    | 'hp_below' // HP 低于阈值（通过 check 函数判定）
+    | 'before_main' // 主招前
+    | 'after_main' // 主招后
+    | 'before_turn_end' // 回合结束前
+    | 'battle_start' // 战斗开始
 ```
 
-每个触发器占用 1 个槽。槽数有限 → 必须选择带哪些。**特殊事件可获得额外槽**（比如义体改造增加脑容量）。
-
-### 4.1.3 触发器数据结构
+### 4.1.3 数据结构
 
 ```ts
-interface TriggerDefinition {
+interface Condition {
+    type: TriggerEvent
+    check?: (ctx: ConditionContext) => boolean // 额外条件判定
+}
+
+interface TriggerSlot {
+    condition: Condition
+    actionId: string
+}
+
+interface TriggerCondition extends Condition {
     id: string
     name: string
     description: string
-
-    // 触发条件
-    condition: {
-        event: EventBusEvent // 监听的事件
-        customCheck?: (ctx: BattleContext) => boolean // 额外条件
-    }
-
-    // 触发效果
-    effects: Effect[]
-
-    // 资源
-    slotCost: number // 默认 1
-    apCost?: number // AP 消耗（从下次回合总 AP 中扣除）
-    maxUses?: number // 可用次数上限（如 1 = 整场一次）
+    apCost?: number
+    maxUses?: number
 }
 ```
 
-**AP 扣费机制（替代传统冷却）：**
+### 4.1.4 触发器来源
 
-```
-触发器触发时，如有 apCost，则从角色"下次回合"的 AP 中扣除。
-不影响当前回合的 AP 分配。
+触发器通过两种方式获得：
 
-例：钢筋铁骨（apCost: 1）在本回合被控时触发解控
-  本回合剩余 AP 不变
-  下回合总 AP = 10 - 1 = 9
-```
+1. **角色配置**：`CharacterBuild.triggers[]` — 直接配置的触发器槽
+2. **被动注入**：Passive 的 `triggers` 字段 → `passiveTriggers`（不污染 build）
 
-**限制次数（maxUses）：**
-
-部分触发器整场战斗只触发有限次，不设冷却、不扣 AP。适合"复活"、"首次低血爆种"等剧情式效果。无需设计触发频率限制。
-
-// 标签
-tags: TriggerTag[]
-}
-
-type TriggerTag = 'defensive' | 'offensive' | 'mobility' | 'utility'
-| 'counter' | 'recovery' | 'control' | 'special'
-
-````
-
-### 4.1.4 触发器类型总览
-
-| 类型 | 典型事件 | 示例 | 标签 | 设计说明 |
-|------|---------|------|------|---------|
-| **受击反应** | `after_damage` | 受伤回复 25% | recovery | 通用，任何战斗都有用 |
-| **回合内置** | `own_turn_start` | 每回合 +5% 暴击 | offensive | 稳定触发，收益可控 |
-| **低血爆种** | `on_hp_threshold` | HP<30% 增伤 | offensive | 单场一次，翻盘用 |
-| **距离警戒** | `own_turn_start` | 敌方贴脸瞬移 | mobility | 内置条件判定 |
-| **闪避反击** | `on_enemy_dodge` | 被闪后必中反击 | counter | 敌方高闪避时价值高 |
-| **被控解控** | `on_debuff_applied` | 被控自动解控 | defensive | 针对控场型敌人 |
-| **招架反馈** | `on_parry` | 反弹招架伤害 | counter | 高招架 build 专属 |
-| **前摇打断** | `on_enemy_preDelay` | 概率打断对方动作 | control | 单次判定，看属性差 |
-
-**关于 `on_kill`** — 单挑游戏，击杀即战斗结束，触发无意义。已移除。
-
-**关于 `on_dot_applied`** — 对手不用dot则完全无用。已移除，效果并入更通用的受击反应类。
-
-**关于 `before_enemy_action`** — 过于宽泛，每回合都触发。缩窄为 `on_enemy_preDelay`，仅在对方进入前摇时判定一次，且成功率受属性差影响。
-
-### 4.1.5 触发器获取方式
-
-触发器不是开局全解锁的。通过以下方式获得**使用权**：
-
-| 方式 | 说明 |
-|------|------|
-| **事件节点奖励** | 特定节点的故事选项获得触发器 |
-| **偷学** | 洞察绝学 + 偷天换日组合被动 |
-
-得到触发器后，它进入你的**已知触发器池**。你可以随时更换已装备的触发器（在节点间的休息/准备阶段），只要不超过触发槽上限。
+最终触发器列表：
 
 ```ts
-// 角色状态
-character.triggers = {
-  known:   TriggerDefinition[]  // 已学会的
-  equipped: TriggerDefinition[] // 当前装备的（≤ slotCount）
-}
-````
-
-### 4.1.6 平衡性约束
-
-| 约束           | 说明                                                |
-| -------------- | --------------------------------------------------- |
-| **触发槽上限** | 只能装备 slotCost 之和 ≤ 槽数的触发器（硬性限制）   |
-| **AP 代价**    | 强力触发器消耗下回合 AP（apCost），影响下回合行动力 |
-| **单次限制**   | 部分触发器 `maxUses: 1`，如复活、浴血               |
-| **条件互斥**   | 某些触发器互斥设计，如同时候 解控 和 复活 占两个槽  |
-| **属性门槛**   | 高效的触发器需要属性达标才能发挥最大价值            |
-
-**IMBA 风险：**
-
-- `蓄势待发` 叠满 3 层 +15% 暴击，高 dexterity 容易溢出 → 考虑加叠加上限
-- `钢筋铁骨` 免费解控 → 改为 apCost: 1，必须为解控牺牲下回合 AP
-
-**弱触发器：**
-
-- 随玩家自然淘汰，不用刻意加强
-
-### 4.1.7 MVP 触发器清单
-
-| 触发器   | 条件                       | 效果                             |   成本    |    限制    | 标签      |
-| -------- | -------------------------- | -------------------------------- | :-------: | :--------: | --------- |
-| 以血还血 | 受伤后                     | 回复所受伤害 25% HP              |     —     |     —      | recovery  |
-| 钢筋铁骨 | 被眩晕/减速/麻痹时         | 解除这些控制                     | apCost: 1 |     —      | defensive |
-| 燕返     | 自己攻击被对方闪避后       | 追加一次必中反击（80% 伤害）     |     —     |     —      | counter   |
-| 缩地成寸 | 自己回合开始，敌方距离 ≤ 1 | 瞬移到距离 4                     | apCost: 1 |     —      | mobility  |
-| 浴血     | HP 首次低于 30%            | 增伤 30%，持续 3 回合            |     —     | maxUses: 1 | offensive |
-| 蓄势待发 | 自己回合开始               | 暴击率 +5%（可叠加 3 层）        |     —     |     —      | offensive |
-| 借力打力 | 自己招架成功后             | 招架减免的伤害反弹给对方         |     —     |     —      | counter   |
-| 看破     | 对方进入前摇时             | 概率 (dexterity/60) 打断对方动作 | apCost: 1 |     —      | control   |
-| 涅槃     | 自己 HP 降至 0 时          | 回复至 30% HP，本场仅一次        |     —     | maxUses: 1 | recovery  |
-
----
-
-## 4.2 义体与装备系统
-
-### 4.2.1 装备分类
-
-义体是装备的一种——带副作用的强化部件。其他装备（武器、防具、饰品）后续设计。
-
-```
-装备类型:
-  武器     → 决定招式池、基础缩放
-  防具     → 减伤、抗性（后续设计）
-  义体     → 属性大幅提升 + 部位惩罚
-  饰品     → 特殊效果（后续设计）
-```
-
-### 4.2.2 义体部位与惩罚类型
-
-每个义体占用一个部位。**惩罚不按等级累加**，而是按部位累加同类惩罚：
-
-| 部位          | 惩罚类型 | 义体示例             |
-| ------------- | -------- | -------------------- |
-| 手 (arm)      | **失衡** | 钛合金臂、液压臂     |
-| 腿 (leg)      | **失衡** | 液压腿、推进器       |
-| 眼 (eye)      | **缺能** | 光学镜、热成像       |
-| 核心 (core)   | **缺能** | 能源核心、代谢加速器 |
-| 腰部 (waist)  | **缺能** | 稳定腰带、储能带     |
-| 神经 (neural) | **失心** | 神经加速器、战斗芯片 |
-
-```ts
-// 惩罚累加按部位类型：
-penalty = {
-    imbalance: Σ(arm.tier) + Σ(leg.tier), // 失衡
-    energy: Σ(eye.tier) + Σ(core.tier) + Σ(waist.tier), // 缺能
-    mind: Σ(neural.tier), // 失心
+get triggers(): TriggerSlot[] {
+    return [...this.build.triggers, ...this.passiveTriggers]
 }
 ```
 
-### 4.2.3 义体数据结构
-
-```ts
-interface Implant {
-    id: string
-    name: string
-    description: string
-
-    // 属性加成
-    attrsBonus: Partial<Record<AttrName, number>>
-
-    // 特殊效果
-    effects: Effect[]
-
-    // 部位与强度
-    slot: 'arm' | 'leg' | 'eye' | 'core' | 'waist' | 'neural'
-    tier: number // 1-3
-
-    // 基础装备属性（所有装备都有）
-    weight?: number // 重量（重武器也有，影响失衡）
-}
-```
-
-### 4.2.4 三阶段惩罚效果
+### 4.1.5 触发流程
 
 ```
-一、失衡（imbalance）
-    来源：手、腿部位的义体，每件 +1 层
-    效果：每层 -5% 命中、-5% 闪避、-3% 暴击
-    减轻：每 2 strength + vitality 减少 1 层
-    上限：最多 5 层
-
-二、缺能（energy drain）
-    来源：眼、核心、腰部部位的义体，每件 +1 层
-    效果：每层 -1 最大 AP（下回合总 AP 从 10 开始递减）
-    减轻：每 2 dexterity + agility 减少 1 层
-    上限：最多 5 层（至少剩 5 AP）
-
-三、失心（mind decay）
-    来源：神经部位义体，每件 +1 层
-    效果：每层 10% 概率跳过此回合的触发器触发
-    减轻：每 2 insight + wisdom 减少 1 层
-    上限：最多 3 层
-```
-
-### 4.2.5 四者关系
-
-```
-练功（学会功法/招式） ← 所有 build 都需要
-义体（快速属性+特殊效果，但有惩罚）
-炼炁（无损成长，但速度慢）
-
-三者不互斥。真正的限制是 30 个节点——如何分配精力决定了最终 build。
-```
-
-### 4.2.6 义体获取
-
-义体在特定节点**花钱购买**，不需要战斗。功法和奇物则需要击败 Boss 或完成高难度挑战。
-
-```
-价格参考：
-  普通义体: 500-800 金（如钛合金臂、光学镜）
-  高级义体: 1200-2000 金（如能源核心、神经加速器）
-  顶级义体: 3000+ 金（如战斗芯片）
-```
-
-### 4.2.7 义体示例
-
-| 义体       |  部位  | 属性加成                   |  惩罚   | 特殊效果       |
-| ---------- | :----: | -------------------------- | :-----: | -------------- |
-| 钛合金臂   |  arm   | strength +3                | 失衡 +1 | 招架率 +5%     |
-| 液压腿     |  leg   | agility +3               | 失衡 +1 | 移动效率 +20%  |
-| 液压臂     |  arm   | strength +2, agility +2  | 失衡 +1 | —              |
-| 光学镜     |  eye   | insight +3, dexterity +1   | 缺能 +1 | 命中 +8%       |
-| 能源核心   |  core  | vitality +4                | 缺能 +1 | —              |
-| 稳定腰带   | waist  | vitality +2                | 缺能 +1 | 抗击退 -1 档   |
-| 神经加速器 | neural | agility +3, dexterity +1 | 失心 +1 | 回合间隔 -80ms |
-| 战斗芯片   | neural | dexterity +3, insight +2   | 失心 +2 | 触发槽 +1      |
-
-### 4.2.8 四者关系
-
-```
-义体路线：快速属性提升，代价是部位惩罚
-炼炁路线：慢速但无损，上限更高
-
-两者不互斥，但义体惩罚会影响相关属性 → 影响炼炁效率
-失心 debuff 不会降低 wisdom，但会随机跳过触发器和乱选招，间接影响战斗质量
-```
-
----
-
-## 4.3 炼炁系统
-
-### 4.3.1 解锁条件
-
-```ts
-// wisdom ≥ 12 时解锁
-// 特殊事件节点开启修炼路线
-```
-
-### 4.3.2 两条路线
-
-```
-炼炁
-  ├── 锻体（战斗中辅招爆发）
-  │    效果：修炼炁技，每场战斗可用辅招激活强力临时效果
-  │    每升一级解锁一个新炁技，都是辅招（bonus），不占主招名额
+emit(event, self, enemy)
   │
-  └── 御物（远程操控）
-       修炼：每节点消耗修炼点，提升御物等级
-       效果：御物等级 1-10，随时间自动成长（见下文），影响御物系招式效果
+  ├─ 防止递归 (isEmitting flag)
+  ├─ 遍历 self.triggers
+  │    ├─ condition.type !== event → 跳过
+  │    ├─ matchCondition 失败 → 跳过
+  │    ├─ action.maxUses 耗尽 → 跳过
+  │    └─ 执行招式：
+  │         ├─ target === 'self' → 直接执行 effects
+  │         └─ 其他 → executeAction（含战斗判定）
+  └─ 解除递归锁
 ```
 
-### 4.3.3 锻体路线——炁技列表
+### 4.1.6 hp_below 特殊处理
 
-| 炁技     | AP  |  解锁  | 效果                                              |
-| -------- | :-: | :----: | ------------------------------------------------- |
-| **凝炁** |  1  | 锻体 1 | 本招必爆（下次主招暴击率强制 100%）               |
-| **聚炁** |  1  | 锻体 2 | 本招必中（下次主招无视闪避）                      |
-| **破炁** |  1  | 锻体 3 | 本招破甲（下次主招无视招架减伤）                  |
-| **愈炁** |  2  | 锻体 4 | 回复 25% HP                                       |
-| **影炁** |  1  | 锻体 5 | 本回合闪避率 +40%（持续到回合结束）               |
-| **噬炁** |  1  | 锻体 6 | 下次主招伤害的 30% 转化为 HP                      |
-| **速炁** |  1  | 锻体 7 | 下次主招前摇减半                                  |
-| **炁弹** |  3  | 锻体 8 | 主招：发出高速炁弹，伤害 wisdom×1.2，无视距离惩罚 |
+`hp_below` 在 `#finalizeAttack` 末尾主动 emit，用于被动触发器的血量阈值检测。常见用法：
 
-// 使用锻体后，本场战斗获得"炁体充盈"buff
+- 三分归元气：HP < 30% 时触发「三分归元」，回血 30+30% 后失去属性加成
 
-interface 锻体Buff {
-type: 'stat_boost'
-stats: { strength: 2; vitality: 2; agility: 2; dexterity: 2; insight: 2; wisdom: 2 } // 基础 +2
-duration: 'battle' // 持续整场
-}
+### 4.1.7 辅招 vs 触发器
 
-// 使用时机：自己回合，消耗 AP，辅招不占主招名额
-// 例：凝炁 1AP（辅招）+ 居合 7AP（主招）+ 前移动 2AP = 10AP ✅
+辅招（Bonus）和触发器（Trigger）的区别：
 
-// 炁技上限 = 当前锻体等级（由 wisdom 决定锻体等级上限）
-// wisdom 14 → 锻体上限 7 级 → 可学 7 个炁技
+|         | 辅招                          | 触发器                           |
+| ------- | ----------------------------- | -------------------------------- |
+| AP 消耗 | 消耗 AP                       | 不消耗 AP                        |
+| 源      | build.actions 中的 bonus 招式 | build.triggers + passiveTriggers |
+| 时机    | 固定 timing（before_main 等） | EventBus 事件                    |
+| 执行    | `#executeBonus`               | `emit` → 直接执行 effects        |
+| 条件    | `bonusTiming.type` 匹配       | `condition.type` + `check` 函数  |
 
-### 4.3.4 御物路线——本命物
+---
 
-#### 设计理念
+## 4.2 事件流
 
-御物不是"学会技能"，而是**选择一件本命物，用炁长期蕴养**。等级随节点推移自然增长。
+### 完整战斗事件顺序
 
 ```
-蕴养：可以蕴养很多件，但战斗中同时控制的数量有限。
-同时控制数 = 御物等级（御物 1 = 控 1 件，御物 5 = 控 5 件...）
+battle_start
+  └─ 各角色 battle_start 事件
+
+角色回合：
+  turn_start → #tryBonus('turn_start')
+  └─ AI 决策命令循环
+       ├─ 移动 → on_move (双方)
+       ├─ 攻击 → on_attack
+       │    ├─ 失心判定
+       │    ├─ 命中判定 → on_dodged / on_dodge
+       │    ├─ 招架判定 → on_parried / on_parry
+       │    └─ 命中 → on_hit
+       │         ├─ #tryBonus('on_hit')
+       │         ├─ #tryBonus('on_take_damage')
+       │         ├─ 效果应用
+       │         ├─ bleeding
+       │         ├─ hp_below (双方)
+       │         └─ 击杀检测
+       └─ after_main → #tryBonus('after_main')
+  before_turn_end → #tryBonus('before_turn_end')
+  turn_end
+  └─ 安排下次行动时间
 ```
 
-第 1 次炼炁事件 → 通过问答+随机 从 N 件古物中选一件本命物。后续事件可获得更多。
+### 系统事件
 
-#### 本命物选择
+```
+系统事件独立于角色回合，在 TurnManager 中插队执行：
 
-| 本命物               | 特性                         |        伤害缩放        | 特殊                                                                                                                 |
-| -------------------- | ---------------------------- | :--------------------: | -------------------------------------------------------------------------------------------------------------------- |
-| **炁剑**             | 均衡型，攻防一体             |       wisdom×1.0       | 御剑防御招架率 +5%                                                                                                   |
-| **匕首**             | 一对，双持高频               |     wisdom×0.6/把      | 暴击率 +8%（两把叠加），主招 4AP；双刀独立命中判定                                                                   |
-| **法珠**             | 多线防御型，随等级解锁控制数 |     wisdom×0.4/珠      | 最多同时控 3 珠（御物 3/5/7 解锁）；每珠独立招架判定；可同时攻+防（需 7 级）                                         |
-| **针**               | 群攻独立型，随等级解锁蕴养数 |     wisdom×0.2/针      | 可蕴养很多，同时控制数 = 御物等级 + 1；每针在 EventQueue 有独立攻击事件（每 800ms 一次），不耗 AP；集火指令 2AP 辅招 |
-| **帝国五剑（奇物）** | 成长型，随御物等级解锁飞剑   | wisdom×0.8 + 每剑×0.15 | 御物 1-2:1剑 / 3-4:2剑 / 5-6:3剑 / 7-8:4剑 / 9-10:5剑；每剑独立命中判定；出身事件获取                                |
-
-#### 御物等级（随时间自动成长）
-
-```ts
-// 不消耗修炼点
-// 每经过 2-3 个节点，御物等级自动 +1
-
-// 影响：
-level 1-3:  基础御剑/御剑防御
-level 4-6:  御剑伤害 + 每级 5%；御剑防御可同时招架近战+远程
-level 7-8:  可同时攻击+防御（法珠 7 级解锁，剑/匕首/针 8 级解锁）
-level 9-10: 解锁御剑飞行（辅招 1AP：本回合移动效率 ×3）
-
-// 等级上限 = Math.min(10, Math.floor(wisdom / 2))
-// wisdom 12 → 上限 6
-// wisdom 18 → 上限 9
-// wisdom 20 → 上限 10
+buff_end → 反转 buff 属性修正
+tick_poison → 中毒伤害 + 重新调度
+tick_burn → 灼烧伤害 + 重新调度
+stun_reset → 清除眩晕追踪
+permanent_burn → 过热伤害 + 重新调度
 ```
 
-#### 御物招式
+---
 
-| 名称     | 类型        | 需求     | 效果                                        | 限制           |
-| -------- | ----------- | -------- | ------------------------------------------- | -------------- |
-| 御剑     | 主动主招    | 御物 ≥ 1 | 操控本命物攻击（AP 视武器：匕首 4、其余 5） | —              |
-| 御剑防御 | 被动        | 御物 ≥ 1 | 本命物自动招架                              | —              |
-| 御剑飞行 | 辅招（1AP） | 御物 ≥ 9 | 本回合移动效率 ×3                           | **仅炁剑可用** |
+## 4.3 伤害类型流程
 
-### 4.3.5 锻体等级提升
+### 中毒（Poison）
 
-锻体等级通过事件节点提升（跟随师傅、闭关、寻找机缘等），每获取一次锻体事件，锻体等级 +1 并获得回血。
+```
+status(poison) 命中
+  └─ pendingBuffs 记录层数
+  └─ 调度 tick_poison 事件
 
-> 炁技（凝炁、聚炁、破炁等）见 4.3.3 锻体路线。
+tick_poison
+  └─ 伤害 = 层数 × 2
+  └─ 下次间隔 = calcPoisonTickInterval(层数)
+```
+
+### 灼烧（Burn）
+
+```
+status(burn) 命中
+  └─ pendingBuffs 记录层数 + 剩余 tick 数
+  └─ 调度 tick_burn 事件
+
+tick_burn
+  └─ 伤害递减（随时间衰减）
+```
+
+### 流血（Bleed）
+
+```
+status(bleed) 命中
+  └─ pendingBuffs 记录层数
+
+攻击/移动时（processBleedDamage）
+  └─ 伤害 = triggerBleed(层数)
+  └─ 每 5 次触发减 1 层
+```
+
+### 麻痹（Paralyze）
+
+```
+status(paralyze) 命中
+  └─ 降低 AGI/INS（按有效层数 × 系数）
+  └─ 固定时长 1800ms 后恢复
+```
+
+### 眩晕（Stun）
+
+```
+status(stun) 命中
+  └─ 降低 AGI/INS（连续递减）
+  └─ 连续 5 秒内再次眩晕 → 效果减半
+  └─ 固定时长 2000ms 后恢复
+```
+
+---
+
+## 4.4 被动触发示例
+
+### 三分归元气
+
+```
+构造期：
+  1. passiveEffectHandlers.stat_buff → STR/VIT/AGI/DEX +2
+  2. triggers 注入 hp_below 条件 → _sangui_heal
+
+战斗中 HP < 30%：
+  1. #finalizeAttack 末尾 emit('hp_below')
+  2. hp_below 触发 → 执行 _sangui_heal
+  3. heal 效果 → 回血 30 + 30% maxHP
+  4. stat_buff 效果 → STR/VIT/AGI/DEX -2（抵消被动加成）
+```
+
+### 凌波微步
+
+```
+构造期：
+  1. triggers 注入 on_dodge 条件
+  2. modifiers 注入 'minMoveCost'
+
+战斗中闪避时：
+  1. emit('on_dodge', self, enemy)
+  2. 触发 _lingbo_insight_step → INS +1（3秒）
+```
