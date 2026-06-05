@@ -8,7 +8,7 @@ export interface CharacterBuild {
     /** 武器 ID，对应 WEAPON_DB */
     weapon: string
     baseAttrs: Partial<Record<AttrName, number>>
-    moves: string[]
+    actions: string[]
     triggers: TriggerSlot[]
     passives: string[]
     artifacts: string[]

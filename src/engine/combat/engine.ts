@@ -408,7 +408,7 @@ export class BattleEngine {
             knockbackDistance: 0,
         }
         if (!cmd.actionId) return r
-        const inst = self.moves.find((a) => a.id === cmd.actionId)
+        const inst = self.actions.find((a) => a.id === cmd.actionId)
         if (!inst || !inst.def.bonus || !inst.canUse()) return r
         if (!self.spendAp(inst.apCost)) return r
         inst.use()
@@ -525,7 +525,7 @@ export class BattleEngine {
     /** 辅招触发 */
     #tryBonus(self: Character, timing: TriggerEvent, mainAp = 0): boolean {
         let fired = false
-        for (const inst of self.moves) {
+        for (const inst of self.actions) {
             if (!inst.def.bonus || inst.def.bonusTiming?.type !== timing) continue
             if (!inst.canUse()) continue
             if (self.ap < inst.apCost + mainAp) continue

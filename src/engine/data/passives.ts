@@ -3,11 +3,11 @@ import type { Passive, Talent } from '../entities/passive'
 /** 功法注册表 */
 export const PASSIVES: Passive[] = [
     {
-        id: 'forge_4',
-        name: '锻体·四级',
+        id: 'forge',
+        name: '锻体',
         description: '基础锻体，全属性+1。',
         tags: [],
-        effects: [{ type: 'stat_buff', attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 } }],
+        effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2 } }],
     },
     {
         id: 'iron_bone',

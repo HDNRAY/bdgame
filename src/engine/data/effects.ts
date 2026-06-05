@@ -22,5 +22,5 @@ export const EFFECT_META: Record<string, EffectMeta> = {
     max_ap_mod: { label: '失能', desc: '最大AP变化' },
     max_hp_mod: { label: '失血', desc: '最大HP变化' },
     fumble_chance: { label: '失心', desc: '动作失败率' },
-    permanent_burn: { label: '过热', desc: '持续灼烧伤害', tickInterval: 2000, damage: 1 },
+    permanent_burn: { label: '过热', desc: '持续灼烧伤害', tickInterval: 3000, damage: 1 },
 }

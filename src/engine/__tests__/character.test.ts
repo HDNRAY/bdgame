@@ -6,7 +6,7 @@ function mc(id: string, name: string, attrs: Record<string, number> = {}): Chara
         id,
         name,
         baseAttrs: attrs,
-        moves: [],
+        actions: [],
         triggers: [],
         passives: [],
         artifacts: [],

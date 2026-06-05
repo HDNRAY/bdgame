@@ -113,9 +113,9 @@ export class Character {
     }
 
     #moveCache: Action[] | null = null
-    get moves(): Action[] {
+    get actions(): Action[] {
         if (!this.#moveCache) {
-            this.#moveCache = this.build.moves
+            this.#moveCache = this.build.actions
                 .map((id) => {
                     const def = getActionDef(id)
                     return def ? new Action(def) : null

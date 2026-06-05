@@ -15,7 +15,7 @@ function makeChar(
         id,
         name,
         baseAttrs: attrs,
-        moves: moveIds,
+        actions: moveIds,
         triggers: [],
         passives: [],
         artifacts: [],
