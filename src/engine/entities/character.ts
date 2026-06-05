@@ -1,7 +1,7 @@
 import { AttributeSet, type AttrName } from './attributes'
 import { Action, type ActionDefinition, type EffectDef } from './action'
 import type { CharacterBuild } from './character-build'
-import type { Passive } from './passive'
+import type { Passive, Talent } from './passive'
 import type { Artifact } from './artifact'
 import type { TriggerSlot } from './trigger'
 import { getAction as getActionDef } from '../data/actions'
@@ -43,16 +43,18 @@ export class Character {
         for (const p of this.passiveDefs) {
             this.#applyPassive(p)
         }
+        // 处理奇物效果
         for (const a of build.artifacts) {
-            if (a.statMods) {
-                for (const [k, v] of Object.entries(a.statMods)) {
-                    this.attrs.modify(k as AttrName, v)
-                }
+            for (const eff of a.effects ?? []) {
+                const handler = passiveEffectHandlers[eff.type]
+                if (handler) handler(this, eff)
             }
         }
+        // 处理武器效果
         const weapon = getWeapon(build.weapon)
-        for (const [k, v] of Object.entries(weapon.attrMods)) {
-            this.attrs.modify(k as AttrName, v)
+        for (const eff of weapon.effects ?? []) {
+            const handler = passiveEffectHandlers[eff.type]
+            if (handler) handler(this, eff)
         }
 
         this.maxAp = 10
@@ -66,25 +68,19 @@ export class Character {
 
     /** 应用被动：达标检测 → effects + triggers + modifiers */
     #applyPassive(p: Passive): void {
-        // requireAttrs 条件检测
-        if (p.requireAttrs) {
-            const qualified = Object.entries(p.requireAttrs).every(
-                ([attr, req]) => this.attrs.get(attr as AttrName) >= req,
-            )
-            if (!qualified) return
-        }
         // effects
         for (const eff of p.effects ?? []) {
             const handler = passiveEffectHandlers[eff.type]
             if (handler) handler(this, eff)
         }
         // triggers
-        for (const slot of p.triggers ?? []) {
-            this.passiveTriggers.push(slot)
-        }
+        for (const slot of p.triggers ?? []) this.passiveTriggers.push(slot)
         // modifiers
-        for (const mod of p.modifiers ?? []) {
-            this.modifiers.add(mod)
+        for (const mod of p.modifiers ?? []) this.modifiers.add(mod)
+        // Talent-only: 条件检测
+        if ('requireAttrs' in p) {
+            const t = p as unknown as Talent
+            if (!Object.entries(t.requireAttrs).every(([attr, req]) => this.attrs.get(attr as AttrName) >= req)) return
         }
     }
 

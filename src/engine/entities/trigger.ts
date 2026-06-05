@@ -19,6 +19,11 @@ export type TriggerEvent =
     | 'after_main'
     | 'before_turn_end'
     | 'battle_start'
+
+/** 触发条件上下文 */
+export interface ConditionContext {
+    actor: Character
+    distance: number
 }
 
 /** 触发条件 */
@@ -34,7 +39,6 @@ export interface TriggerCondition extends Condition {
     description: string
     apCost?: number
     maxUses?: number
-    tags: TriggerTag[]
 }
 
 /** 玩家装备的触发器槽 */

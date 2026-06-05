@@ -1,8 +1,18 @@
-/** 效果元数据：标签 + 每层属性修正 */
-export const EFFECT_META: Record<string, { tag: string; attrMods?: Record<string, number> }> = {
-    stat_transfer: { tag: '汲取' },
-    paralyze: { tag: '麻痹', attrMods: { agility: -2, insight: -1 } },
-    stat_multiply: { tag: 'buff' },
-    stun: { tag: '眩晕' },
-    stat_buff: { tag: '内劲' },
+/** 效果元数据 */
+export interface EffectMeta {
+    /** 日志显示标签 */
+    label: string
+    /** 效果说明 */
+    desc?: string
+    /** 每层属性修正（status 效果用） */
+    attrMods?: Record<string, number>
+}
+
+/** 效果元数据注册表 */
+export const EFFECT_META: Partial<Record<string, EffectMeta>> = {
+    stat_transfer: { label: '汲取', desc: '吸取目标属性到自身' },
+    paralyze: { label: '麻痹', desc: '降低身法和洞察', attrMods: { agility: -2, insight: -1 } },
+    stat_multiply: { label: 'buff', desc: '属性翻倍' },
+    stun: { label: '眩晕', desc: '大幅降低身法和洞察' },
+    stat_buff: { label: '内劲', desc: '属性变化' },
 }

@@ -1,5 +1,5 @@
 import type { ActionDefinition } from '../entities/action'
-import type { WeaponTag } from './weapons'
+import type { Tag } from '../entities/action'
 import { QI_SKILLS } from './forging'
 
 /**
@@ -249,7 +249,7 @@ export function getAction(id: string): ActionDefinition | undefined {
 }
 
 /** 按武器标签过滤（空数组招式 = 任意武器可用） */
-export function getActionsByWeapon(weaponTags: WeaponTag[]): ActionDefinition[] {
+export function getActionsByWeapon(weaponTags: Tag[]): ActionDefinition[] {
     return ALL_ACTIONS.filter((a) => {
         if (a.requiredTags.length === 0) return true
         return a.requiredTags.some((tag) => weaponTags.includes(tag))

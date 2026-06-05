@@ -1,4 +1,4 @@
-import type { EffectTag } from './action'
+import type { Tag } from './action'
 
 /** 所有可收集/可装备物品的基类 */
 export interface GameEntity {
@@ -6,5 +6,5 @@ export interface GameEntity {
     name: string
     description: string
     /** 标签（用于分类/条件过滤） */
-    tags?: EffectTag[]
+    tags: Tag[]
 }

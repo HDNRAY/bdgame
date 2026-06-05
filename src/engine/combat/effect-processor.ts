@@ -187,25 +187,13 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
                 'buff_end',
             )
         }
-        const tagLabel = tag ?? EFFECT_META.stat_buff?.tag ?? 'buff'
+        const tagLabel = tag ?? EFFECT_META.stat_buff?.label ?? 'buff'
         const parts = entries.map(([attr, value]) => {
             const cn = ATTR_CN[attr] ?? attr
             const sign = value >= 0 ? '+' : ''
             return `${cn}${sign}${value}`
         })
         log.logSystem(`[${tagLabel}] ${self.name} ${parts.join(' ')}`, tMs, engine.getSnapshot(), self.name)
-    },
-    stat_restore({ eff, self, engine, tMs, log, tag }: Ctx) {
-        const e = eff as Extract<EffectDef, { type: 'stat_restore' }>
-        const attr = e.stat as AttrName
-        const old = self.attrs.get(attr)
-        self.attrs.set(attr, e.value)
-        log.logSystem(
-            `[${tag ?? 'buff'}] ${self.name} ${e.stat} ${old}→恢复${e.value}`,
-            tMs,
-            engine.getSnapshot(),
-            self.name,
-        )
     },
     restore_ap({ eff, self, engine, tMs, log }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'restore_ap' }>
@@ -553,7 +541,7 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     const buffId = parts[0]
     const charId = parts[1]
     const { log } = engine.state
-    const tag = EFFECT_META[buffId]?.tag ?? buffId
+    const tag = EFFECT_META[buffId]?.label ?? buffId
 
     // 通用：反转属性变化
     const char = engine.getCharacter(charId)

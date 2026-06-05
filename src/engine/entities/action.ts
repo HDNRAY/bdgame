@@ -1,11 +1,15 @@
 import type { AttrName } from './attributes'
-import type { WeaponTag } from '../data/weapons'
 import type { Condition } from './trigger'
 import type { StatusType } from './status'
 import type { GameEntity } from './base'
 
-/** 效果类型 */
-export type EffectTag =
+/** 效果类型（含武器标签） */
+export type Tag =
+    | 'slash'
+    | 'blunt'
+    | 'pierce'
+    | 'parry'
+    | 'imperial'
     | 'stagger'
     | 'paralyze'
     | 'poison'
@@ -28,7 +32,7 @@ export type EffectDef =
     // 战斗效果（需要命中判定）
     | { type: 'damage'; scaling: Partial<Record<AttrName, number>> }
     | { type: 'fixed_damage'; value: number }
-    | { type: 'status'; status: EffectTag; stacks: number; chance: number; attrMods?: Record<string, number> }
+    | { type: 'status'; status: Tag; stacks: number; chance: number; attrMods?: Record<string, number> }
     | { type: 'cripple'; ratio: number }
     | { type: 'self_damage'; ratio: number }
     | { type: 'ignore_parry' }
@@ -42,8 +46,6 @@ export type EffectDef =
     | { type: 'heal'; value: number; ratio?: number }
     | { type: 'stat_multiply'; stat: string; multiplier: number; duration: BuffDuration }
     | { type: 'stat_buff'; attrs: Record<string, number>; duration?: BuffDuration; durationMs?: number }
-    | { type: 'stat_restore'; stat: string; value: number }
-    | { type: 'buff_end'; buffId: string }
     | { type: 'restore_ap'; value: number }
     | { type: 'summon_speed'; value: number }
     | { type: 'summon_damage_bonus'; value: number }
@@ -51,12 +53,8 @@ export type EffectDef =
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {
-    id: string
-    name: string
-    description: string
-    requiredTags: WeaponTag[]
+    requiredTags: Tag[]
     apCost: number
-    tags: EffectTag[]
     effects?: EffectDef[]
     target?: 'self' | 'enemy'
     /** 招式固定命中率（不设则用属性公式计算） */
