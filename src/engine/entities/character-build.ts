@@ -1,5 +1,5 @@
+import type { AttrName } from './attributes'
 import type { TriggerSlot } from './trigger'
-import type { Artifact } from './artifact'
 
 /** 战前角色配置（可序列化） */
 export interface CharacterBuild {
@@ -7,9 +7,9 @@ export interface CharacterBuild {
     name: string
     /** 武器 ID，对应 WEAPON_DB */
     weapon: string
-    baseAttrs: Partial<Record<string, number>>
+    baseAttrs: Partial<Record<AttrName, number>>
     moves: string[]
     triggers: TriggerSlot[]
     passives: string[]
-    artifacts: Artifact[]
+    artifacts: string[]
 }

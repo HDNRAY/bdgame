@@ -144,7 +144,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         const old = self.attrs.get(attr)
         self.attrs.set(attr, old * e.multiplier)
         log.logSystem(
-            `[${EFFECT_META.stat_multiply.tag}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`,
+            `[${EFFECT_META.stat_multiply.label}] ${self.name} ${e.stat} ${old}→${old * e.multiplier}!`,
             tMs,
             engine.getSnapshot(),
             self.name,
@@ -205,6 +205,9 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         engine.speedUpSummons(self.id, e.value)
         log.logSystem(`[加速] ${self.name} 召唤物+${e.value}ms`, tMs, engine.getSnapshot(), self.name)
     },
+    // permanent_burn({ eff, self, engine, tMs, log }: Ctx) {
+    //     // 运行时由 engine 系统事件处理
+    // },
     stat_transfer({ eff, self, enemy, engine, tMs, log }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_transfer' }>
         const attr = e.stat as AttrName

@@ -6,6 +6,7 @@ import { getWeapon } from '../data/weapons'
 import { BASE_PRE_DELAY, BASE_STUN_TIME, calcTurnInterval, calcSummonInterval } from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
+import { EFFECT_META } from '../data/effects'
 import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
@@ -52,6 +53,17 @@ export class BattleEngine {
         this.emit('battle_start', p, o)
         this.emit('battle_start', o, p)
 
+        // 注册永久灼烧
+        for (const char of [p, o]) {
+            if (char.modifiers.has('permanentBurn')) {
+                this.state.turn.scheduleSystemEventAt(
+                    `permanent_burn_${char.id}`,
+                    this.state.turn.currentTime + (EFFECT_META.permanent_burn?.tickInterval ?? 2000),
+                    'permanent_burn',
+                )
+            }
+        }
+
         // 创建召唤物
         this.#initSummons(p)
         this.#initSummons(o)
@@ -59,10 +71,10 @@ export class BattleEngine {
 
     /** 为角色创建召唤物（已存在则跳过） */
     #initSummons(self: Character): void {
-        const weapon = getWeapon(self.build.weapon)
+        const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
         if (!weapon.summon) return
         const sd = weapon.summon
-        const action = self.summonActionDef ?? getAction(sd.actionId)
+        const action = sd.action ?? getAction(sd.actionId)
         const preDelay = action?.extraPreDelay ?? 0
         for (let i = 0; i < sd.maxCount; i++) {
             const sid = `${sd.id}_${self.id}_${i}`
@@ -70,7 +82,6 @@ export class BattleEngine {
             const inst: SummonInstance = {
                 id: sid,
                 ownerId: self.id,
-                actionId: sd.actionId,
                 index: i,
             }
             this.#summons.set(sid, inst)
@@ -264,6 +275,7 @@ export class BattleEngine {
         const { ap, delta } = DistanceSystem.calcMovement(
             cmd.bestDistance ?? 0,
             self.attrs.get('agility'),
+            1 + self.moveEfficiency,
             self.modifiers.has('minMoveCost'),
         )
         if (!self.spendAp(ap)) {
@@ -300,6 +312,11 @@ export class BattleEngine {
             crit: false,
             distanceDelta: 0,
             knockbackDistance: 0,
+        }
+        // 失心检查
+        if (self.fumbleChance > 0 && Math.random() < self.fumbleChance) {
+            this.state.log.logSystem(`[晃神] ${self.name} 突然失神`, this.#tMs, this.getSnapshot())
+            return r
         }
         // 验证
         const c = canExecuteAction(action, self, this.state.distance.current)
@@ -432,15 +449,16 @@ export class BattleEngine {
         const enemy = this.getOpponent(e.ownerId)
         if (!owner || !enemy) return false
 
-        const action = owner.summonActionDef ?? getAction(inst.actionId)
-        if (!action) return false
+        const weapon = owner.weaponDef ?? getWeapon(owner.build.weapon)
+        const summonAction = weapon.summon?.action ?? (weapon.summon ? getAction(weapon.summon.actionId) : undefined)
+        if (!summonAction) return false
 
-        this.#executeAction(action, owner, enemy)
+        this.#executeAction(summonAction, owner, enemy)
         this.state.turn.next()
         const interval = calcSummonInterval(
             owner.attrs.get('wisdom'),
-            action.extraPreDelay ?? 0,
-            action.extraStunTime ?? 0,
+            summonAction.extraPreDelay ?? 0,
+            summonAction.extraStunTime ?? 0,
         )
         this.state.turn.scheduleNext({ type: 'summon', id: e.id, ownerId: e.ownerId }, interval)
         return true
@@ -463,6 +481,21 @@ export class BattleEngine {
             case 'stun_reset': {
                 const charId = eventId.slice('stun_reset_'.length)
                 this.#buffs.delete(`stun_track_${charId}`)
+                break
+            }
+            case 'permanent_burn': {
+                const charId = eventId.slice('permanent_burn_'.length)
+                const char = this.getCharacter(charId)
+                if (!char) break
+                const dmg = EFFECT_META.permanent_burn?.damage ?? 1
+                char.takeDamage(dmg)
+                this.state.log.logSystem(
+                    `[过热] ${char.name} 受到 ${dmg} 点过热伤害`,
+                    this.#currentTime,
+                    this.getSnapshot(),
+                )
+                const bi = EFFECT_META.permanent_burn?.tickInterval ?? 2000
+                this.state.turn.scheduleSystemEventAt(eventId, this.#currentTime + bi, 'permanent_burn')
                 break
             }
         }

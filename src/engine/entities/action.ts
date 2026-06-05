@@ -23,6 +23,7 @@ export type Tag =
     | 'self_damage'
     | 'knockback'
     | 'cripple'
+    | 'implant'
 
 /** buff 持续时间：{ attr: '属性名', multiplier: 系数 } = 属性×系数 ms，系数大≈永久 */
 export type BuffDuration = { attr: AttrName; multiplier: number }
@@ -50,6 +51,12 @@ export type EffectDef =
     | { type: 'summon_speed'; value: number }
     | { type: 'summon_damage_bonus'; value: number }
     | { type: 'stat_transfer'; stat: string; value: number; duration: number }
+    // 义体效果
+    | { type: 'max_ap_mod'; value: number }
+    | { type: 'max_hp_mod'; value: number }
+    | { type: 'move_efficiency'; value: number }
+    | { type: 'permanent_burn'; value: number }
+    | { type: 'fumble_chance'; value: number }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {

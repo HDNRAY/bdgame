@@ -117,7 +117,7 @@ export type BattleEvent =
     | { type: 'system'; message: string; actor?: string; indent?: number; snapshot: BattleSnapshot }
 
 // ── Turn types ──
-export type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'stun_reset'
+export type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'stun_reset' | 'permanent_burn'
 
 export type TurnEntryType = 'character' | 'system' | 'summon'
 

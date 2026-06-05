@@ -9,10 +9,10 @@ console.clear()
 
 const N = Math.max(1, parseInt(process.argv[2] ?? '1', 10))
 
-function show(c: Character, label: string) {
+function show(c: Character) {
     const a = c.attrs
     const weapon = getWeapon(c.build.weapon)
-    console.log(`\n${label}`)
+    console.log(`\n${c.name}`)
     console.log(
         `  STR ${a.get('strength')}  VIT ${a.get('vitality')}  AGI ${a.get('agility')}  DEX ${a.get('dexterity')}  INS ${a.get('insight')}  WIS ${a.get('wisdom')}`,
     )
@@ -47,7 +47,8 @@ const oBuild: CharacterBuild = {
     moves: ['thrust', 'break_formation', 'pursuit_thrust'],
     triggers: [{ condition: { type: 'on_debuff' }, actionId: 'pursuit_thrust' }],
     passives: ['iron_bone'],
-    artifacts: [],
+    // artifacts: [],
+    artifacts: ['titanium_arm', 'combat_chip', 'power_furnace'],
 }
 
 const mBuild: CharacterBuild = {
@@ -65,24 +66,19 @@ const mBuild: CharacterBuild = {
     artifacts: [],
 }
 
-const leftBase = new Character(mBuild)
+const leftBase = new Character(oBuild)
 const rightBase = new Character(pBuild)
 
-const leftName = mBuild.name
-const rightName = pBuild.name
+const leftName = leftBase.name
+const rightName = rightBase.name
 
 // 单场模式：打印角色信息和战斗日志
 if (N === 1) {
-    const p = new Character(pBuild)
-    const o = new Character(oBuild)
-    const m = new Character(mBuild)
-
-    show(p, '⚔️ 玩家·拳')
-    show(o, '👊 铁枪·张烈')
-    show(m, '🔮 御物·玄机')
+    show(rightBase)
+    show(leftBase)
     console.log('')
 
-    const { winner, engine } = runBattle(m, p)
+    const { winner, engine } = runBattle(leftBase, rightBase)
     const [cloneL, cloneR] = engine.state.characters
     for (const line of formatBattleLog(engine.state.log)) console.log(line)
     console.log(
