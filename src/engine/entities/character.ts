@@ -1,10 +1,10 @@
 import { AttributeSet, type AttrName } from './attributes'
-import { ActionInstance } from './action-instance'
+import { Action } from './action'
 import type { CharacterBuild } from './character-build'
 import type { Passive } from './passive'
 import type { Artifact } from './artifact'
 import type { TriggerSlot } from './trigger'
-import { getAction } from '../data/actions'
+import { getAction as getActionDef } from '../data/actions'
 import { getWeapon } from '../data/weapons'
 import { getPassive } from '../data/passives'
 
@@ -23,8 +23,10 @@ export class Character {
     nextTurnApDebt = 0
     /** 被动/天赋提供的持久修饰器 */
     modifiers: Set<string> = new Set()
-    /** 已解析的被动对象列表（public 避免 getter transpile 问题） */
+    /** 已解析的被动对象列表 */
     passiveDefs: Passive[] = []
+    /** 被动注入的额外 trigger（不污染 build.triggers） */
+    passiveTriggers: TriggerSlot[] = []
 
     constructor(build: CharacterBuild) {
         this.build = build
@@ -79,7 +81,7 @@ export class Character {
         }
         // triggers
         for (const slot of p.triggers ?? []) {
-            this.build.triggers.push(slot)
+            this.passiveTriggers.push(slot)
         }
         // modifiers
         for (const mod of p.modifiers ?? []) {
@@ -92,26 +94,22 @@ export class Character {
     }
 
     get triggers(): TriggerSlot[] {
-        return this.build.triggers
-    }
-
-    get passives(): Passive[] {
-        return this.build.passives
+        return [...this.build.triggers, ...this.passiveTriggers]
     }
 
     get artifacts(): Artifact[] {
         return this.build.artifacts
     }
 
-    #moveCache: ActionInstance[] | null = null
-    get moves(): ActionInstance[] {
+    #moveCache: Action[] | null = null
+    get moves(): Action[] {
         if (!this.#moveCache) {
             this.#moveCache = this.build.moves
                 .map((id) => {
-                    const def = getAction(id)
-                    return def ? new ActionInstance(def) : null
+                    const def = getActionDef(id)
+                    return def ? new Action(def) : null
                 })
-                .filter((a): a is ActionInstance => a !== null)
+                .filter((a): a is Action => a !== null)
         }
         return this.#moveCache
     }

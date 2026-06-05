@@ -1,9 +1,13 @@
-// npx tsx scripts/demo-battle.ts
+// npx tsx scripts/demo-battle.ts [n]
 import { Character } from '../src/engine/entities/character'
 import type { CharacterBuild } from '../src/engine/entities/character-build'
 import { getWeapon } from '../src/engine/data/weapons'
 import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
+
+console.clear()
+
+const N = Math.max(1, parseInt(process.argv[2] ?? '1', 10))
 
 function show(c: Character, label: string) {
     const a = c.attrs
@@ -19,9 +23,10 @@ function show(c: Character, label: string) {
         console.log(`  触发: ${c.triggers.map((s) => `${s.condition.type}→${s.actionId}`).join(', ')}`)
 }
 
+// ── 角色构建 ──
 const pBuild: CharacterBuild = {
     id: 'p1',
-    name: '玩家·拳',
+    name: '空拳·玩家',
     weapon: 'bare_hands',
     baseAttrs: { strength: 12, vitality: 10, agility: 18, dexterity: 10, insight: 8, wisdom: 12 },
     moves: ['iron_charge', 'straight_punch', 'crushing_blow', 'tremor_stomp', 'qi_focus', 'qi_gather'],
@@ -33,7 +38,6 @@ const pBuild: CharacterBuild = {
     passives: ['forge_4', 'lingbo_weibu'],
     artifacts: [],
 }
-const p = new Character(pBuild)
 
 const oBuild: CharacterBuild = {
     id: 'o1',
@@ -45,13 +49,12 @@ const oBuild: CharacterBuild = {
     passives: ['iron_bone'],
     artifacts: [],
 }
-const o = new Character(oBuild)
 
 const mBuild: CharacterBuild = {
     id: 'm1',
     name: '御物·玄机',
     weapon: 'tri_orb',
-    baseAttrs: { strength: 6, vitality: 10, agility: 10, dexterity: 10, insight: 14, wisdom: 18 },
+    baseAttrs: { strength: 6, vitality: 10, agility: 10, dexterity: 14, insight: 14, wisdom: 18 },
     moves: ['qi_bolt'],
     triggers: [
         { condition: { type: 'on_parry' }, actionId: 'restore_ap' },
@@ -61,19 +64,41 @@ const mBuild: CharacterBuild = {
     passives: [],
     artifacts: [],
 }
-const m = new Character(mBuild)
 
-show(p, '⚔️ 玩家·拳')
-show(o, '👊 铁枪·张烈')
-show(m, '🔮 御物·玄机')
-console.log('')
+const leftName = mBuild.name
+const rightName = pBuild.name
 
-const left = m
-const right = p
+// 单场模式：打印角色信息和战斗日志
+if (N === 1) {
+    const p = new Character(pBuild)
+    const o = new Character(oBuild)
+    const m = new Character(mBuild)
 
-// ── 御物·玄机 VS 铁枪·张烈 ──
-const { winner, engine } = runBattle(left, right)
-for (const line of formatBattleLog(engine.state.log)) console.log(line)
-console.log(
-    `\n🏆 ${winner} 胜  御物 HP${Math.round(left.hp * 10) / 10}/${left.maxHp} 对手 HP${Math.round(right.hp * 10) / 10}/${right.maxHp}`,
-)
+    show(p, '⚔️ 玩家·拳')
+    show(o, '👊 铁枪·张烈')
+    show(m, '🔮 御物·玄机')
+    console.log('')
+
+    const { winner, engine } = runBattle(m, p)
+    for (const line of formatBattleLog(engine.state.log)) console.log(line)
+    console.log(
+        `\n🏆 ${winner} 胜  御物 HP${Math.round(m.hp * 10) / 10}/${m.maxHp} 对手 HP${Math.round(p.hp * 10) / 10}/${p.maxHp}`,
+    )
+} else {
+    // 多场模式：仅统计胜率
+    let leftWins = 0
+    let rightWins = 0
+    for (let i = 0; i < N; i++) {
+        const left = new Character(mBuild)
+        const right = new Character(pBuild)
+        const { winner } = runBattle(left, right)
+        if (winner === leftName) leftWins++
+        else if (winner === rightName) rightWins++
+    }
+    const leftRate = ((leftWins / N) * 100).toFixed(1)
+    const rightRate = ((rightWins / N) * 100).toFixed(1)
+    console.log(`\n📊 ${N} 场统计`)
+    console.log(`  ${leftName}: ${leftWins} 胜 (${leftRate}%)`)
+    console.log(`  ${rightName}: ${rightWins} 胜 (${rightRate}%)`)
+    console.log(`  平局: ${N - leftWins - rightWins}`)
+}
