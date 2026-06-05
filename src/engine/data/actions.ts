@@ -226,6 +226,17 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         maxUses: 999,
     },
     {
+        id: '_lingbo_insight_step',
+        name: '凌波微步',
+        description: '',
+        requiredTags: [],
+        apCost: 0,
+        tags: [],
+        target: 'self',
+        maxUses: 999,
+        effects: [{ type: 'stat_buff', attrs: { insight: 1 }, durationMs: 3000 }],
+    },
+    {
         id: 'agility_steal',
         name: '汲灵',
         description: '命中时 30% 吸取身法 1 点，持续 2 秒。',

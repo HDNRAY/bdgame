@@ -6,6 +6,7 @@ import type { Artifact } from './artifact'
 import type { TriggerSlot } from './trigger'
 import { getAction } from '../data/actions'
 import { getWeapon } from '../data/weapons'
+import { getPassive } from '../data/passives'
 
 export function calcMaxHp(vitality: number): number {
     return 20 + vitality * 10
@@ -20,6 +21,10 @@ export class Character {
     ap: number
     maxAp: number
     nextTurnApDebt = 0
+    /** 被动/天赋提供的持久修饰器 */
+    modifiers: Set<string> = new Set()
+    /** 已解析的被动对象列表（public 避免 getter transpile 问题） */
+    passiveDefs: Passive[] = []
 
     constructor(build: CharacterBuild) {
         this.build = build
@@ -27,13 +32,12 @@ export class Character {
         this.name = build.name
         this.attrs = new AttributeSet(build.baseAttrs)
 
-        // 应用功法/奇物的常驻属性修正
-        for (const p of build.passives) {
-            if (p.statMods) {
-                for (const [k, v] of Object.entries(p.statMods)) {
-                    this.attrs.modify(k as AttrName, v)
-                }
-            }
+        // 解析被动 ID → 定义
+        this.passiveDefs = build.passives.map((id) => getPassive(id)).filter((p): p is Passive => p !== undefined)
+
+        // 应用被动/奇物/武器
+        for (const p of this.passiveDefs) {
+            this.#applyPassive(p)
         }
         for (const a of build.artifacts) {
             if (a.statMods) {
@@ -42,8 +46,6 @@ export class Character {
                 }
             }
         }
-
-        // 应用武器的常驻属性修正
         const weapon = getWeapon(build.weapon)
         for (const [k, v] of Object.entries(weapon.attrMods)) {
             this.attrs.modify(k as AttrName, v)
@@ -52,6 +54,37 @@ export class Character {
         this.maxAp = 10
         this.ap = this.maxAp
         this.hp = calcMaxHp(this.attrs.get('vitality'))
+    }
+
+    get passives(): Passive[] {
+        return this.passiveDefs
+    }
+
+    /** 应用被动：达标检测 → effects + triggers + modifiers */
+    #applyPassive(p: Passive): void {
+        // requireAttrs 条件检测
+        if (p.requireAttrs) {
+            const qualified = Object.entries(p.requireAttrs).every(
+                ([attr, req]) => this.attrs.get(attr as AttrName) >= req,
+            )
+            if (!qualified) return
+        }
+        // effects
+        for (const eff of p.effects ?? []) {
+            if (eff.type === 'stat_buff') {
+                for (const [attr, value] of Object.entries(eff.attrs)) {
+                    this.attrs.modify(attr as AttrName, value)
+                }
+            }
+        }
+        // triggers
+        for (const slot of p.triggers ?? []) {
+            this.build.triggers.push(slot)
+        }
+        // modifiers
+        for (const mod of p.modifiers ?? []) {
+            this.modifiers.add(mod)
+        }
     }
 
     get maxHp(): number {

@@ -1,5 +1,4 @@
 import type { TriggerSlot } from './trigger'
-import type { Passive } from './passive'
 import type { Artifact } from './artifact'
 
 /** 战前角色配置（可序列化） */
@@ -11,6 +10,6 @@ export interface CharacterBuild {
     baseAttrs: Partial<Record<string, number>>
     moves: string[]
     triggers: TriggerSlot[]
-    passives: Passive[]
+    passives: string[]
     artifacts: Artifact[]
 }

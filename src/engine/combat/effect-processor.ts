@@ -162,18 +162,38 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             'buff_end',
         )
     },
-    stat_buff({ eff, self, engine, tMs, log }: Ctx) {
+    stat_buff({ eff, self, engine, tMs, log, tag }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
         const entries = Object.entries(e.attrs) as [AttrName, number][]
         for (const [attr, value] of entries) {
             self.attrs.modify(attr, value)
         }
+        // Duration support: 创建独立 buff 层用于定时恢复
+        if (e.durationMs) {
+            const appId = genAppId(tMs)
+            const mods: Record<string, number> = {}
+            for (const [attr, value] of entries) {
+                mods[attr] = value
+            }
+            const layerKey = `stat_buff::${self.id}::${appId}`
+            engine.state.pendingBuffs.set(layerKey, {
+                buffId: 'stat_buff',
+                restoreValue: 1,
+                mods,
+            })
+            engine.state.turn.scheduleSystemEventAt(
+                `buff_end_${layerKey}`,
+                engine.state.turn.currentTime + e.durationMs,
+                'buff_end',
+            )
+        }
+        const tagLabel = tag ?? EFFECT_META.stat_buff?.tag ?? 'buff'
         const parts = entries.map(([attr, value]) => {
             const cn = ATTR_CN[attr] ?? attr
             const sign = value >= 0 ? '+' : ''
             return `${cn}${sign}${value}`
         })
-        log.logSystem(`[buff] ${self.name} ${parts.join(' ')}`, tMs, engine.getSnapshot(), self.name)
+        log.logSystem(`[${tagLabel}] ${self.name} ${parts.join(' ')}`, tMs, engine.getSnapshot(), self.name)
     },
     stat_restore({ eff, self, engine, tMs, log, tag }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_restore' }>

@@ -27,10 +27,10 @@ export class DistanceSystem {
     }
 
     /** 计算移动：从 bestDistance（期望AP）算出实际消耗和位移量 */
-    static calcMovement(bestDistance: number, agility: number): { ap: number; delta: number } {
+    static calcMovement(bestDistance: number, agility: number, minMoveCost = false): { ap: number; delta: number } {
         const ap = Math.abs(bestDistance)
         const dir = Math.sign(bestDistance)
-        const perAp = this.apToRange(agility)
+        const perAp = minMoveCost ? 2 : this.apToRange(agility)
         return { ap, delta: dir * perAp * ap }
     }
 

@@ -261,7 +261,11 @@ export class BattleEngine {
             distanceDelta: 0,
             knockbackDistance: 0,
         }
-        const { ap, delta } = DistanceSystem.calcMovement(cmd.bestDistance ?? 0, self.attrs.get('agility'))
+        const { ap, delta } = DistanceSystem.calcMovement(
+            cmd.bestDistance ?? 0,
+            self.attrs.get('agility'),
+            self.modifiers.has('minMoveCost'),
+        )
         if (!self.spendAp(ap)) {
             log.logSystem(`${self.name} AP不足 无法移动`, this.#tMs, this.getSnapshot())
             return r

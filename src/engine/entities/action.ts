@@ -46,7 +46,7 @@ export type EffectDef =
     // 自效果（无需命中判定，总是生效）
     | { type: 'heal'; value: number; ratio?: number }
     | { type: 'stat_multiply'; stat: string; multiplier: number; duration: BuffDuration }
-    | { type: 'stat_buff'; attrs: Record<string, number>; duration?: BuffDuration }
+    | { type: 'stat_buff'; attrs: Record<string, number>; duration?: BuffDuration; durationMs?: number }
     | { type: 'stat_restore'; stat: string; value: number }
     | { type: 'buff_end'; buffId: string }
     | { type: 'restore_ap'; value: number }
