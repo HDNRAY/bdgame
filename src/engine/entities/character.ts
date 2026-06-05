@@ -1,5 +1,5 @@
 import { AttributeSet, type AttrName } from './attributes'
-import { Action } from './action'
+import { Action, type ActionDefinition, type EffectDef } from './action'
 import type { CharacterBuild } from './character-build'
 import type { Passive } from './passive'
 import type { Artifact } from './artifact'
@@ -27,6 +27,8 @@ export class Character {
     passiveDefs: Passive[] = []
     /** 被动注入的额外 trigger（不污染 build.triggers） */
     passiveTriggers: TriggerSlot[] = []
+    /** 被动修改后的召唤物动作（clone，不污染原始数据） */
+    summonActionDef?: ActionDefinition
 
     constructor(build: CharacterBuild) {
         this.build = build
@@ -73,11 +75,8 @@ export class Character {
         }
         // effects
         for (const eff of p.effects ?? []) {
-            if (eff.type === 'stat_buff') {
-                for (const [attr, value] of Object.entries(eff.attrs)) {
-                    this.attrs.modify(attr as AttrName, value)
-                }
-            }
+            const handler = passiveEffectHandlers[eff.type]
+            if (handler) handler(this, eff)
         }
         // triggers
         for (const slot of p.triggers ?? []) {
@@ -152,6 +151,15 @@ export class Character {
         return c
     }
 
+    /** 创建战斗用副本（所有数据独立，不污染原始） */
+    cloneForBattle(): Character {
+        const c = new Character(this.build)
+        c.hp = this.hp
+        c.ap = this.maxAp // 战斗开始满 AP
+        c.nextTurnApDebt = 0
+        return c
+    }
+
     get snapshot() {
         return {
             hp: this.hp,
@@ -159,4 +167,30 @@ export class Character {
             ap: this.ap,
         }
     }
+}
+
+// ── 被动效果分发表（构造期执行，无战斗上下文） ──
+
+const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) => void> = {
+    stat_buff(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
+        for (const [attr, value] of Object.entries(e.attrs)) {
+            char.attrs.modify(attr as AttrName, value)
+        }
+    },
+    summon_damage_bonus(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'summon_damage_bonus' }>
+        const weapon = getWeapon(char.build.weapon)
+        if (weapon.summon) {
+            const orig = getActionDef(weapon.summon.actionId)
+            if (orig) {
+                char.summonActionDef = {
+                    ...orig,
+                    effects: orig.effects?.map((ef) =>
+                        ef.type === 'fixed_damage' ? { ...ef, value: ef.value + e.value } : ef,
+                    ),
+                }
+            }
+        }
+    },
 }

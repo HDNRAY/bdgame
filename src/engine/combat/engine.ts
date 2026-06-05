@@ -62,7 +62,7 @@ export class BattleEngine {
         const weapon = getWeapon(self.build.weapon)
         if (!weapon.summon) return
         const sd = weapon.summon
-        const action = getAction(sd.actionId)
+        const action = self.summonActionDef ?? getAction(sd.actionId)
         const preDelay = action?.extraPreDelay ?? 0
         for (let i = 0; i < sd.maxCount; i++) {
             const sid = `${sd.id}_${self.id}_${i}`
@@ -432,7 +432,7 @@ export class BattleEngine {
         const enemy = this.getOpponent(e.ownerId)
         if (!owner || !enemy) return false
 
-        const action = getAction(inst.actionId)
+        const action = owner.summonActionDef ?? getAction(inst.actionId)
         if (!action) return false
 
         this.#executeAction(action, owner, enemy)

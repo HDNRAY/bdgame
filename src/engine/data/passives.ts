@@ -14,6 +14,15 @@ export const PASSIVES: Passive[] = [
         description: '铜皮铁骨。',
     },
     {
+        id: 'spirit_resonance',
+        name: '灵器共鸣',
+        description: '将自身力道转化为召唤物的攻击力。',
+        effects: [
+            { type: 'stat_buff', attrs: { strength: -5 } },
+            { type: 'summon_damage_bonus', value: 2 },
+        ],
+    },
+    {
         id: 'ling_bo_wei_bu',
         name: '凌波微步',
         description: '绝世轻功，身法达到一定境界后自然领悟。步法精妙，难以捉摸。',

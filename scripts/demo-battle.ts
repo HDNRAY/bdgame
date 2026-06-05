@@ -61,9 +61,12 @@ const mBuild: CharacterBuild = {
         { condition: { type: 'on_dodge' }, actionId: 'summon_haste' },
         { condition: { type: 'on_hit' }, actionId: 'agility_steal' },
     ],
-    passives: [],
+    passives: ['spirit_resonance'],
     artifacts: [],
 }
+
+const leftBase = new Character(mBuild)
+const rightBase = new Character(pBuild)
 
 const leftName = mBuild.name
 const rightName = pBuild.name
@@ -80,18 +83,17 @@ if (N === 1) {
     console.log('')
 
     const { winner, engine } = runBattle(m, p)
+    const [cloneL, cloneR] = engine.state.characters
     for (const line of formatBattleLog(engine.state.log)) console.log(line)
     console.log(
-        `\n🏆 ${winner} 胜  御物 HP${Math.round(m.hp * 10) / 10}/${m.maxHp} 对手 HP${Math.round(p.hp * 10) / 10}/${p.maxHp}`,
+        `\n🏆 ${winner} 胜  御物 HP${Math.round(cloneL.hp * 10) / 10}/${cloneL.maxHp} 对手 HP${Math.round(cloneR.hp * 10) / 10}/${cloneR.maxHp}`,
     )
 } else {
-    // 多场模式：仅统计胜率
+    // 多场模式：仅统计胜率（从 base clone，效率高）
     let leftWins = 0
     let rightWins = 0
     for (let i = 0; i < N; i++) {
-        const left = new Character(mBuild)
-        const right = new Character(pBuild)
-        const { winner } = runBattle(left, right)
+        const { winner } = runBattle(leftBase, rightBase)
         if (winner === leftName) leftWins++
         else if (winner === rightName) rightWins++
     }

@@ -46,6 +46,7 @@ export type EffectDef =
     | { type: 'buff_end'; buffId: string }
     | { type: 'restore_ap'; value: number }
     | { type: 'summon_speed'; value: number }
+    | { type: 'summon_damage_bonus'; value: number }
     | { type: 'stat_transfer'; stat: string; value: number; duration: number }
 
 /** 招式定义 —— 纯数据 */

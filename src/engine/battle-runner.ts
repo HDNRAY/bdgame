@@ -6,9 +6,11 @@ import { planEvent } from './ai'
 /** 最大行动数限制，防止死循环 */
 const MAX_ACTIONS = 300
 
-/** 运行一场完整战斗 */
+/** 运行一场完整战斗（自动 clone 角色，不污染原始数据） */
 export function runBattle(charA: Character, charB: Character): { winner: string; engine: BattleEngine } {
-    const engine = new BattleEngine(charA, charB)
+    const a = charA.cloneForBattle()
+    const b = charB.cloneForBattle()
+    const engine = new BattleEngine(a, b)
     const { state } = engine
     let actionCount = 0
 
