@@ -21,6 +21,7 @@ export type TriggerEvent =
     | 'before_turn_end'
     | 'battle_start'
     | 'on_crit'
+    | 'on_pre_action'
 
 /** 触发条件上下文 */
 export interface ConditionContext {

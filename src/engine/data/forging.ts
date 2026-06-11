@@ -43,7 +43,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: ['qi'],
-        effects: [{ type: 'fixed_damage', value: 4 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 } }],
         extraPreDelay: 200,
         range: [0, 6],
     },

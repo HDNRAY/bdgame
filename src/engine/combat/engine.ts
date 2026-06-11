@@ -387,6 +387,9 @@ export class BattleEngine {
             return this.#emptyResult()
         }
         processBleedDamage(self, this.#tMs, this)
+        // 本体招式发出前事件（供对手反制，御物/触发招式不触发）
+        this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
+        this.emit('on_pre_action', enemy, self)
         const r = this.#executeAction(action, self, enemy)
         this.#tryBonus(self, 'after_main')
         return r

@@ -39,20 +39,22 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'status', status: 'paralyze', stacks: 2, chance: 0.6 },
-            { type: 'self_damage', ratio: 0.05 },
+            { type: 'self_damage', ratio: 0.02 },
         ],
     },
     {
         id: 'flick',
         name: '弹指',
-        description: '弹指间弹出气劲，带麻痹效果。',
+        description: '弹指间弹出气劲，短暂眩晕。',
         requiredTags: [],
         apCost: 1,
-        tags: ['paralyze', 'blunt'],
+        tags: ['blunt', 'stun'],
         effects: [
-            { type: 'fixed_damage', value: 1 },
-            { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
+            { type: 'damage', scaling: { strength: 0.1 } },
+            { type: 'status', status: 'stun', stacks: 1, chance: 0.5 },
         ],
+        range: [0, 6],
+        canUse: (_attacker, state) => state.lastActionExtraDelay >= 200,
     },
 
     // ── 暗器系 ──
