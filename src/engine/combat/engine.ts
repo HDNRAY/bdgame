@@ -6,7 +6,7 @@ import { getWeapon } from '../data/weapons'
 import { BASE_PRE_DELAY, BASE_STUN_TIME, calcTurnInterval, calcSummonInterval } from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
-import { EFFECT_META } from '../data/effects'
+import { getBuff } from '../data/buffs'
 import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
@@ -17,7 +17,16 @@ import {
     processBleedDamage,
     processBuffEnd,
 } from './effect-processor'
-import type { ActionCommand, ActionResult, BattleState, EventPlan, BattleSnapshot, TurnEntry, BuffLayer } from './types'
+import type {
+    ActionCommand,
+    ActionResult,
+    BattleState,
+    EventPlan,
+    BattleSnapshot,
+    TurnEntry,
+    BuffLayer,
+    ActiveBuffSnapshot,
+} from './types'
 import type { SummonInstance } from '../entities/summon'
 import type { LogEvent } from './log-events'
 
@@ -63,7 +72,7 @@ export class BattleEngine {
             if (char.modifiers.has('permanentBurn')) {
                 this.state.turn.scheduleSystemEventAt(
                     `permanent_burn_${char.id}`,
-                    this.state.turn.currentTime + (EFFECT_META.permanent_burn?.tickInterval ?? 2000),
+                    this.state.turn.currentTime + (getBuff('permanent_burn')?.tickInterval ?? 3000),
                     'permanent_burn',
                 )
             }
@@ -94,6 +103,39 @@ export class BattleEngine {
         }
     }
 
+    /** 获取角色当前活跃 buff 列表 */
+    getBuffs(charId: string): ActiveBuffSnapshot[] {
+        const result: ActiveBuffSnapshot[] = []
+        const byBuffId = new Map<string, number>()
+        for (const [key, layer] of this.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== charId) continue
+            const buffId = parts[0]
+            const def = getBuff(buffId)
+            const name = def?.name ?? buffId
+            if (buffId === 'stun_track') {
+                const consecutive = (layer.extra?.consecutive as number) ?? 0
+                result.push({ buffId, name, stacks: consecutive })
+                continue
+            }
+            if (!byBuffId.has(buffId)) {
+                byBuffId.set(buffId, 0)
+            }
+            // additive: restoreValue = total stacks; independent: each layer = +1
+            const stacking = def?.stacking?.type
+            if (stacking === 'additive') {
+                byBuffId.set(buffId, (byBuffId.get(buffId) ?? 0) + layer.restoreValue)
+            } else {
+                // none / independent: count layers
+                byBuffId.set(buffId, (byBuffId.get(buffId) ?? 0) + 1)
+            }
+        }
+        for (const [buffId, stacks] of byBuffId) {
+            result.push({ buffId, name: getBuff(buffId)?.name ?? buffId, stacks })
+        }
+        return result
+    }
+
     /** 构建当前战斗快照 */
     getSnapshot(): BattleSnapshot {
         const { characters, distance, turn, triggerUses, pendingBuffs, phase } = this.state
@@ -108,6 +150,7 @@ export class BattleEngine {
                     hp: characters[0].hp,
                     maxHp: characters[0].maxHp,
                     ap: characters[0].ap,
+                    buffs: this.getBuffs(characters[0].id),
                 },
                 {
                     id: characters[1].id,
@@ -115,6 +158,7 @@ export class BattleEngine {
                     hp: characters[1].hp,
                     maxHp: characters[1].maxHp,
                     ap: characters[1].ap,
+                    buffs: this.getBuffs(characters[1].id),
                 },
             ],
             turn: { time: turn.currentTime, queue: [...turn.entries] },
@@ -138,6 +182,8 @@ export class BattleEngine {
             return true
         }
 
+        this.state.actionCount++
+
         // 召唤物行动
         if (e.type === 'summon') {
             return this.#handleSummonTurn(e)
@@ -149,7 +195,6 @@ export class BattleEngine {
         const enemy = chars.find((c) => c.id !== e.id)!
         self.resetAp()
         enemy.resetAp()
-        this.state.actionCount++
 
         // 跳过死亡角色
         if (!self.isAlive()) {
@@ -519,21 +564,21 @@ export class BattleEngine {
                 break
             case 'stun_reset': {
                 const charId = eventId.slice('stun_reset_'.length)
-                this.#buffs.delete(`stun_track_${charId}`)
+                this.#buffs.delete(`stun_track::${charId}`)
                 break
             }
             case 'permanent_burn': {
                 const charId = eventId.slice('permanent_burn_'.length)
                 const char = this.getCharacter(charId)
                 if (!char) break
-                const dmg = EFFECT_META.permanent_burn?.damage ?? 1
+                const dmg = getBuff('permanent_burn')?.dotDamage ?? 1
                 char.takeDamage(dmg)
                 this.state.log.logSystem(
                     `[过热] ${char.name} 受到 ${dmg} 点过热伤害`,
                     this.#currentTime,
                     this.getSnapshot(),
                 )
-                const bi = EFFECT_META.permanent_burn?.tickInterval ?? 2000
+                const bi = getBuff('permanent_burn')?.tickInterval ?? 3000
                 this.state.turn.scheduleSystemEventAt(eventId, this.#currentTime + bi, 'permanent_burn')
                 break
             }
@@ -570,8 +615,26 @@ export class BattleEngine {
             if (self.ap < inst.apCost + mainAp) continue
             self.spendAp(inst.apCost)
             inst.use()
+            if (timing === 'after_main' || timing === 'before_main') {
+                this.state.log.indentDepth++
+            }
+            this.emitLog({
+                type: 'attack_start',
+                actionId: inst.id,
+                actionName: inst.name,
+                weapon: getWeapon(self.build.weapon).name,
+                sourceId: self.id,
+                targetId: self.id,
+                apCost: inst.apCost,
+                apRemaining: self.ap,
+                triggered: true,
+                indent: this.state.log.indentDepth,
+            })
             for (const eff of inst.def.effects ?? []) {
                 processActionEffect(eff, self, self, this, this.#tMs, inst.name, inst.id)
+            }
+            if (timing === 'after_main' || timing === 'before_main') {
+                this.state.log.indentDepth--
             }
             fired = true
         }

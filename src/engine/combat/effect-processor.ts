@@ -21,7 +21,6 @@ import { getWeapon } from '../data/weapons'
 import { getBuff } from '../data/buffs'
 import { genAppId } from '../util/buff-utils'
 import { triggerBleed } from '../entities/status'
-import { EFFECT_META } from '../data/effects'
 import type { BattleLog } from './battle-log'
 import type { ActionResult, BuffLayer } from './types'
 
@@ -226,7 +225,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             targetId: self.id,
             attr: e.stat,
             delta: old * e.multiplier - old,
-            label: EFFECT_META.stat_multiply?.label ?? '超越',
+            label: getBuff('stat_multiply')?.name ?? '超越',
         })
         const attrVal = self.attrs.get(e.duration.attr)
         const buffDuration = calcBuffDuration(attrVal, e.duration.multiplier)
@@ -251,7 +250,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
                 targetId: self.id,
                 attr,
                 delta: value,
-                label: tag ?? EFFECT_META.stat_buff?.label ?? '内劲',
+                label: tag ?? getBuff('stat_buff')?.name ?? '内劲',
             })
         }
         // Duration support: 创建独立 buff 层用于定时恢复
@@ -413,7 +412,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
     paralyze({ eff, enemy, engine, tMs }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'status' }>
         const { stacks } = e
-        const attrMods = EFFECT_META.paralyze.attrMods!
+        const attrMods = getBuff('paralyze')!.attrMods!
         const duration = 1800
         const appId = genAppId(tMs)
         const layerKey = `paralyze::${enemy.id}::${appId}`
@@ -443,7 +442,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         const STUN_RESET_WINDOW = 5000
 
         // 连续递减追踪
-        const trackKey = `stun_track_${enemy.id}`
+        const trackKey = `stun_track::${enemy.id}`
         const lastData = engine.state.pendingBuffs.get(trackKey)
         const now = engine.state.turn.currentTime
         let consecutive = 0
@@ -655,7 +654,7 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
 
     const buffId = parts[0]
     const charId = parts[1]
-    const tag = EFFECT_META[buffId]?.label ?? buffId
+    const tag = getBuff(buffId)?.name ?? buffId
 
     // 通用：反转属性变化
     const char = engine.getCharacter(charId)

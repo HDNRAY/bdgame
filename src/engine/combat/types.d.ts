@@ -50,12 +50,21 @@ export interface BattleState {
 export type EventPlan = (self: Character, enemy: Character, state: BattleState) => ActionCommand[]
 
 // ── Log types ──
+
+/** 快照中的 buff 信息 */
+export interface ActiveBuffSnapshot {
+    buffId: string
+    name: string
+    stacks: number
+}
+
 export interface CharacterSnapshot {
     id: string
     name: string
     hp: number
     maxHp: number
     ap: number
+    buffs: ActiveBuffSnapshot[]
 }
 
 export interface BattleSnapshot {

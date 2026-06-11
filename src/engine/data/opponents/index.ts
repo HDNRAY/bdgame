@@ -1,21 +1,21 @@
 export type { OpponentDef } from './base'
 export { passive, implant, action } from './base'
 export { ZHANGLIE } from './zhanglie'
-export { PLAYER } from './player'
+export { LAIFENG } from './laifeng'
 export { XUANJI } from './xuanji'
 export { LAYUE } from './layue'
 export { YIDAO } from './yidao'
 
 import type { CharacterBuild } from '../../entities/character-build'
 import { ZHANGLIE } from './zhanglie'
-import { PLAYER } from './player'
+import { LAIFENG } from './laifeng'
 import { XUANJI } from './xuanji'
 import { LAYUE } from './layue'
 import { YIDAO } from './yidao'
 import type { OpponentDef } from './base'
 
 /** 所有对手 */
-export const OPPONENTS: OpponentDef[] = [ZHANGLIE, PLAYER, XUANJI, LAYUE, YIDAO]
+export const OPPONENTS: OpponentDef[] = [ZHANGLIE, LAIFENG, XUANJI, LAYUE, YIDAO]
 
 /** 按 ID 查找对手 def */
 export function getOpponentDef(id: string): OpponentDef | undefined {

@@ -65,7 +65,6 @@ export const YIDAO: OpponentDef = {
         }
 
         // 触发
-        const hasResheath = rewards.some((r) => r.id === 'resheath')
         const hasSlash = rewards.some((r) => r.id === 'slash')
 
         const triggers: TriggerSlot[] = []
