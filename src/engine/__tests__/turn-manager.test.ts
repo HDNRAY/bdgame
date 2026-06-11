@@ -6,12 +6,11 @@ function mc(id: string, name: string, attrs: Record<string, number> = {}): Chara
     return new Character({
         id,
         name,
-        baseAttrs: attrs,
-        actions: [],
-        triggers: [],
-        passives: [],
-        artifacts: [],
+        background: 'balanced',
         weapon: 'bare_hands',
+        baseAttrs: attrs,
+        rewards: [],
+        triggers: [],
     })
 }
 

@@ -2,6 +2,8 @@ import { BACKGROUNDS } from '../data/backgrounds'
 import type { CharacterBuild } from '../entities/character-build'
 import { REWARD_POOL, STAT_NAMES, STARTING_WEAPONS } from '../data/rewards'
 import type { Reward } from '../data/rewards'
+import type { AttrName } from '../entities/attributes'
+import { spendCultPoints } from './cultivation'
 
 /** 节点探索结果 */
 export interface NodeRunResult {
@@ -19,25 +21,16 @@ export function shuffle<T>(arr: T[]): T[] {
     return a
 }
 
-/** 从奖励池取 n 个不同奖励 */
-export function pickRewards(n: number, forceStat: boolean, pool: Reward[], poolIdx: { current: number }): Reward[] {
+/** 从奖励池取 n 个不同非属性奖励 */
+export function pickNonStatRewards(n: number, pool: Reward[], poolIdx: { current: number }): Reward[] {
     const choices: Reward[] = []
     const seen = new Set<string>()
     while (choices.length < n && poolIdx.current < pool.length * 10) {
         const r = pool[poolIdx.current % pool.length]
         poolIdx.current++
-        if (!seen.has(r.id) && (!forceStat || choices.length > 0 || r.type === 'stat')) {
+        if (r.type !== 'stat' && !seen.has(r.id)) {
             seen.add(r.id)
             choices.push(r)
-        }
-    }
-    if (forceStat && !choices.some((c) => c.type === 'stat')) {
-        choices[choices.length - 1] = {
-            type: 'stat',
-            id: STAT_NAMES[poolIdx.current % 6],
-            name: `${STAT_NAMES[poolIdx.current % 6]} +2`,
-            description: `${STAT_NAMES[poolIdx.current % 6]} +2`,
-            tags: [],
         }
     }
     return choices
@@ -50,66 +43,39 @@ export function runNodeExploration(bgIndex: number, weaponIndex: number, n: numb
     logs.push(`背景: ${bg.name}`)
 
     const weaponId = STARTING_WEAPONS[weaponIndex]
-    logs.push(`武器: ${weaponId}`)
+    const bgAttrs: Record<string, number> = { ...bg.attrs }
+    for (const a of STAT_NAMES) bgAttrs[a] ??= 3
 
-    const attrs: Record<string, number> = { ...bg.attrs }
-    const gainedActions: string[] = []
-    const gainedPassives: string[] = []
-    const gainedArtifacts: string[] = []
+    // 培养点自动分配：每节点 2 点，按 stat 名称循环做优先级（模拟玩家手动选）
+    // 实际手动模式会让玩家自由分配，这里用 round-robin 模拟
+    const priority: AttrName[] = [...STAT_NAMES]
+    const totalPoints = n * 2
+    const finalAttrs = spendCultPoints(bgAttrs, totalPoints, priority)
 
-    const shuffledPool = shuffle(REWARD_POOL)
+    // 每节点 1 个非属性奖励
+    const rewards: Reward[] = []
+    const shuffledPool = shuffle(REWARD_POOL.filter((r) => r.type !== 'stat'))
     const poolIdx = { current: 0 }
-    const picked = new Set<string>() // 去重
+    const picked = new Set<string>()
 
     for (let round = 0; round < n; round++) {
-        const forceStat = round % 2 === 0
-        const choices = pickRewards(3, forceStat, shuffledPool, poolIdx)
-
-        // auto-pick: stat > passive > implant > action，且不重复
-        const pick =
-            choices
-                .filter((c) => c.type === 'stat' || !picked.has(c.id))
-                .sort((a, b) => {
-                    const rank = { stat: 0, passive: 1, implant: 2, action: 3 }
-                    return rank[a.type] - rank[b.type]
-                })[0] ?? choices[0]
-
-        picked.add(pick.id)
-
-        if (pick.type === 'stat') {
-            attrs[pick.id] = (attrs[pick.id] ?? 3) + 2
-            logs.push(`节点 ${round + 1}: ${pick.name}`)
-        } else if (pick.type === 'passive') {
-            gainedPassives.push(pick.id)
-            logs.push(`节点 ${round + 1}: 功法「${pick.name}」`)
-        } else if (pick.type === 'implant') {
-            gainedArtifacts.push(pick.id)
-            logs.push(`节点 ${round + 1}: 义体「${pick.name}」`)
-        } else if (pick.type === 'action') {
-            gainedActions.push(pick.id)
-            logs.push(`节点 ${round + 1}: 招式「${pick.name}」`)
+        const choices = pickNonStatRewards(3, shuffledPool, poolIdx)
+        const pick = choices.find((c) => !picked.has(c.id)) ?? choices[0]
+        if (pick) {
+            picked.add(pick.id)
+            rewards.push(pick)
+            logs.push(`节点 ${round + 1}: ${pick.type}「${pick.name}」`)
         }
     }
-
-    // 没拿到任何招式时给个默认的
-    const finalActions = gainedActions.length > 0 ? gainedActions : ['jab']
-
-    attrs.strength ??= 3
-    attrs.vitality ??= 3
-    attrs.agility ??= 3
-    attrs.dexterity ??= 3
-    attrs.insight ??= 3
-    attrs.wisdom ??= 3
 
     const build: CharacterBuild = {
         id: 'player',
         name: '挑战者',
+        background: bg.id,
         weapon: weaponId,
-        baseAttrs: attrs,
-        actions: finalActions,
+        baseAttrs: finalAttrs,
+        rewards,
         triggers: [],
-        passives: gainedPassives,
-        artifacts: gainedArtifacts,
     }
 
     return { build, logs }

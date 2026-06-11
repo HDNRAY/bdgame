@@ -18,8 +18,8 @@ export const REWARD_POOL: Reward[] = [
     ...STAT_NAMES.map((s) => ({
         type: 'stat' as const,
         id: s,
-        name: `${s} +2`,
-        description: `${s} +2`,
+        name: `${s} +1`,
+        description: `${s} +1`,
         tags: [] as Tag[],
     })),
     // 功法

@@ -7,6 +7,7 @@ import { getWeapon } from '../src/engine/data/weapons'
 import { runNodeExploration } from '../src/engine/systems/node-gen'
 import { generateOpponent } from '../src/engine/systems/opponent-gen'
 import { runBattle } from '../src/engine/battle-runner'
+import { ALL_ATTRS } from '../src/engine/entities/attributes'
 
 const N = Math.max(0, parseInt(process.argv[2] ?? '5', 10))
 const BG_IDX = parseInt(process.argv[3] ?? '0', 10)
@@ -69,4 +70,6 @@ console.log(`\n📊 ${100} 场统计 (n=${N})`)
 console.log(`  ${pBuild.name}: ${pWin} 胜 (${pWin.toFixed(1)}%)`)
 console.log(`  ${oBuild.name}: ${oWin} 胜 (${oWin.toFixed(1)}%)`)
 console.log(`  平局: ${100 - pWin - oWin}`)
-console.log(`参考：张烈 ≈ n=13（含植入物/武器修正）`)
+const totalAttrs = ALL_ATTRS.reduce((s, a) => s + oChar.attrs.get(a), 0)
+console.log(`对手: ${oBuild.name} | 总属性 ${totalAttrs} | HP ${oChar.maxHp} | 奖励 ${oBuild.rewards.length} 个`)
+console.log(`参考：满配 ≈ 33 节点 × 2 培养点/节点`)

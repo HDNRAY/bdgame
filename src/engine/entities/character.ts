@@ -45,30 +45,45 @@ export class Character {
         this.build = build
         this.id = build.id
         this.name = build.name
+
+        // 1. 直接使用最终属性值
         this.attrs = new AttributeSet(build.baseAttrs)
 
-        // 解析被动 ID → 定义
-        this.passiveDefs = build.passives.map((id) => getPassive(id)).filter((p): p is Passive => p !== undefined)
-        // 解析奇物/义体 ID → 定义
-        this.artifactDefs = build.artifacts.map((id) => getArtifact(id)).filter((a): a is Artifact => a !== undefined)
-
-        // 应用被动/奇物/武器
-        for (const p of this.passiveDefs) {
-            this.#applyPassive(p)
+        // 2. 编译非属性奖励 → 分类收集
+        const gainedPassives: string[] = []
+        const gainedArtifacts: string[] = []
+        const gainedActions: string[] = []
+        for (const r of build.rewards) {
+            if (r.type === 'passive') gainedPassives.push(r.id)
+            else if (r.type === 'implant') gainedArtifacts.push(r.id)
+            else if (r.type === 'action') gainedActions.push(r.id)
         }
-        // 处理奇物效果
+
+        // 3. 解析被动/奇物 ID → 定义
+        this.passiveDefs = gainedPassives.map((id) => getPassive(id)).filter((p): p is Passive => p !== undefined)
+        this.artifactDefs = gainedArtifacts.map((id) => getArtifact(id)).filter((a): a is Artifact => a !== undefined)
+
+        // 4. 应用被动/奇物/武器效果
+        for (const p of this.passiveDefs) this.#applyPassive(p)
         for (const a of this.artifactDefs) {
             for (const eff of a.effects ?? []) {
                 const handler = passiveEffectHandlers[eff.type]
                 if (handler) handler(this, eff)
             }
         }
-        // 处理武器效果
         const weapon = getWeapon(build.weapon)
         for (const eff of weapon.effects ?? []) {
             const handler = passiveEffectHandlers[eff.type]
             if (handler) handler(this, eff)
         }
+
+        // 5. 缓存招式
+        this.#moveCache = gainedActions
+            .map((id) => {
+                const def = getActionDef(id)
+                return def ? new Action(def) : null
+            })
+            .filter((a): a is Action => a !== null)
 
         this.ap = this.maxAp
         this.hp = calcMaxHp(this.attrs.get('vitality')) + this.maxHpMod
@@ -112,16 +127,8 @@ export class Character {
         return this.artifactDefs
     }
 
-    #moveCache: Action[] | null = null
+    #moveCache: Action[] = []
     get actions(): Action[] {
-        if (!this.#moveCache) {
-            this.#moveCache = this.build.actions
-                .map((id) => {
-                    const def = getActionDef(id)
-                    return def ? new Action(def) : null
-                })
-                .filter((a): a is Action => a !== null)
-        }
         return this.#moveCache
     }
 

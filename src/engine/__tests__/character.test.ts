@@ -5,12 +5,11 @@ function mc(id: string, name: string, attrs: Record<string, number> = {}): Chara
     return new Character({
         id,
         name,
-        baseAttrs: attrs,
-        actions: [],
-        triggers: [],
-        passives: [],
-        artifacts: [],
+        background: 'balanced',
         weapon: 'bare_hands',
+        baseAttrs: attrs,
+        rewards: [],
+        triggers: [],
     })
 }
 
@@ -26,7 +25,7 @@ describe('Character', () => {
     it('should create with default attributes', () => {
         const c = mc('test_1', '测试角色')
         expect(c.name).toBe('测试角色')
-        expect(c.attrs.total()).toBe(18)
+        expect(c.attrs.total()).toBe(18) // AttributeSet defaults: 3×6
         expect(c.hp).toBe(calcMaxHp(3))
         expect(c.ap).toBe(10)
     })

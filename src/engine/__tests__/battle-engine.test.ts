@@ -11,15 +11,21 @@ function makeChar(
     moveIds: string[] = [],
     weapon = 'bare_hands',
 ): Character {
+    const rewards = moveIds.map((id) => ({
+        type: 'action' as const,
+        id,
+        name: id,
+        description: '',
+        tags: [] as never[],
+    }))
     return new Character({
         id,
         name,
-        baseAttrs: attrs,
-        actions: moveIds,
-        triggers: [],
-        passives: [],
-        artifacts: [],
+        background: 'balanced',
         weapon,
+        baseAttrs: attrs,
+        rewards,
+        triggers: [],
     })
 }
 
