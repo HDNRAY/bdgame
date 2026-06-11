@@ -1,6 +1,6 @@
-/** 距离系统：0-6 档 */
+/** 距离系统：0-10 档 */
 export const DISTANCE_MIN = 0
-export const DISTANCE_MAX = 6
+export const DISTANCE_MAX = 10
 
 export class DistanceSystem {
     current: number

@@ -82,6 +82,13 @@ export const IMPLANTS: Artifact[] = [
             { type: 'permanent_burn', value: 1 },
         ],
     },
+    {
+        id: 'blood_thorn_ring',
+        name: '血棘戒',
+        description: '暴击时在伤口注入血气，引发持续流血。',
+        tags: ['implant'],
+        triggers: [{ condition: { type: 'on_crit' }, actionId: '_blood_thorn_bleed' }],
+    },
 ]
 
 /** 按 ID 查找义体 */

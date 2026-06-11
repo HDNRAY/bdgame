@@ -34,6 +34,21 @@ export const PASSIVES: Passive[] = [
             { type: 'summon_damage_bonus', value: 2 },
         ],
     },
+    {
+        id: 'sword_dominion',
+        name: '御剑诀',
+        description: '以炁御剑，剑随意动，攻击距离延长。',
+        tags: ['imperial'],
+        effects: [{ type: 'weapon_range_bonus', value: 1 }],
+    },
+    {
+        id: 'nine_deaths',
+        name: '九死剑诀',
+        description: '虽九死而不悔，伤势越重，剑意越强。',
+        tags: [],
+        effects: [{ type: 'last_stand', ratio: 0.5 }],
+        modifiers: ['last_stand'],
+    },
 ]
 
 /** 天赋（绝学）注册表 */

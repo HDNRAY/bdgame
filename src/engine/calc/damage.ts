@@ -16,16 +16,16 @@ export function calcBaseDamage(scaling: Partial<Record<AttrName, number>>, attrs
     return Math.round(damage * 10) / 10
 }
 
-/** 暴击判定: 基础 5% + (dexterity + insight) / 200 */
-export function calcCritChance(dexterity: number, insight: number): number {
-    return 0.05 + (dexterity + insight) / 200
+/** 暴击判定: 基础 5% + (dexterity + insight) / 200 + critChanceMod */
+export function calcCritChance(dexterity: number, insight: number, critChanceMod = 0): number {
+    return Math.max(0.05, Math.min(0.95, 0.05 + (dexterity + insight) / 200 + critChanceMod))
 }
 
-/** 最终伤害: base × distanceMult × (暴击? 1.5 : 1)，保留 1 位小数 */
-export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit: boolean): number {
+/** 最终伤害: base × distanceMult × (暴击? (1.5 + critDamageMod) : 1) */
+export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit: boolean, critDamageMod = 0): number {
     let damage = Math.round(baseDamage * distanceMult * 10) / 10
-    if (isCrit) damage = Math.round(damage * 1.5 * 10) / 10
-    return Math.max(1, damage) // 至少 1 点
+    if (isCrit) damage = Math.round(damage * (1.5 + critDamageMod) * 10) / 10
+    return Math.max(1, damage)
 }
 
 /** 命中判定: base 80%，受双方灵巧和洞察影响 */

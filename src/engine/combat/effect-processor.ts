@@ -5,6 +5,8 @@ import type { AttrName } from '../entities/attributes'
 import type { StatusType } from '../entities/status'
 import {
     calcBaseDamage,
+    calcCritChance,
+    calcFinalDamage,
     calcPoisonTickInterval,
     calcBuffDuration,
     calcHealAmount,
@@ -59,8 +61,28 @@ function applyDamage(
         parried = result.success
         if (parried) engine.emit('on_parry', target, attacker)
     }
-    const final = parried ? calcParriedDamage(raw, target.attrs.get('strength')) : raw
+    let final = parried ? calcParriedDamage(raw, target.attrs.get('strength')) : raw
     const blocked = raw - final
+
+    // 暴击判定
+    const critChance = calcCritChance(
+        attacker.attrs.get('dexterity'),
+        attacker.attrs.get('insight'),
+        attacker.critChance,
+    )
+    const critRoll = calcRoll(critChance)
+    const isCrit = critRoll.success
+
+    // 九死剑诀：损失血量加成
+    let lastStandMult = 1
+    if (attacker.lastStandRatio > 0 && attacker.hp < attacker.maxHp) {
+        const missingRatio = 1 - attacker.hp / attacker.maxHp
+        lastStandMult = 1 + missingRatio * attacker.lastStandRatio
+    }
+
+    final = calcFinalDamage(final, 1, isCrit, attacker.critDamageMod)
+    final = Math.round(final * lastStandMult * 10) / 10
+
     target.takeDamage(final)
 
     engine.emitLog({
@@ -72,10 +94,11 @@ function applyDamage(
         base: raw,
         final,
         blocked,
-        isCrit: false,
+        isCrit,
         isParried: parried,
         tags: [],
     })
+    if (isCrit) engine.emit('on_crit', attacker, target)
 }
 
 const effectHandlers: Record<string, (ctx: Ctx) => void> = {
@@ -283,6 +306,30 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             self.capAp()
             enemy.capAp()
         }
+    },
+    crit_chance({ eff, self, engine }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'crit_chance' }>
+        if (e.reset) {
+            self.critChance = 0
+        } else {
+            self.critChance += e.value
+        }
+        engine.emitLog({
+            type: 'system',
+            message: e.reset
+                ? `[弗思] ${self.name} 蓄势消散`
+                : `[弗思] ${self.name} 蓄势+${Math.round(e.value * 100)}%`,
+            actorId: self.id,
+        })
+    },
+    crit_damage({ eff, self, engine }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'crit_damage' }>
+        self.critDamageMod += e.value
+        engine.emitLog({
+            type: 'system',
+            message: `[不二] ${self.name} 暴伤+${e.value}`,
+            actorId: self.id,
+        })
     },
 }
 

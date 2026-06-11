@@ -31,7 +31,7 @@ describe('DistanceSystem', () => {
     })
 
     it('should clamp to max', () => {
-        const d = new DistanceSystem(5)
+        const d = new DistanceSystem(9)
         d.move(3)
         expect(d.current).toBe(DISTANCE_MAX)
     })

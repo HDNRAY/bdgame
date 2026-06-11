@@ -1,10 +1,12 @@
 import type { GameEntity } from '../entities/base'
 import type { EffectDef } from '../entities/action'
 import type { SummonDef } from '../entities/summon'
+import type { TriggerSlot } from '../entities/trigger'
 
 export interface WeaponDef extends GameEntity {
     bound?: boolean
     effects?: EffectDef[]
+    triggers?: TriggerSlot[]
     range: [number, number]
     /** 召唤物定义（御物武器使用） */
     summon?: SummonDef
@@ -50,6 +52,17 @@ export const WEAPON_DB: WeaponDef[] = [
             maxCount: 3,
             actionId: 'orb_shot',
         },
+    },
+    {
+        id: 'twin_swords',
+        name: '青山双剑',
+        description: '最快的不二剑和最快的弗思剑',
+        tags: ['pierce', 'imperial', 'parry'],
+        range: [1, 3],
+        triggers: [
+            { condition: { type: 'battle_start' }, actionId: '_buer_init' },
+            { condition: { type: 'on_dodge' }, actionId: '_fusi_crit_stack' },
+        ],
     },
 ]
 

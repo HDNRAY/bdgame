@@ -36,6 +36,11 @@ export type EffectDef =
     | { type: 'move_efficiency'; value: number }
     | { type: 'permanent_burn'; value: number }
     | { type: 'fumble_chance'; value: number }
+    // 功法/奇物效果
+    | { type: 'crit_chance'; value: number; reset?: boolean }
+    | { type: 'crit_damage'; value: number }
+    | { type: 'last_stand'; ratio: number }
+    | { type: 'weapon_range_bonus'; value: number }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {

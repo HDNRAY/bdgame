@@ -43,6 +43,12 @@ export class Character {
     fumbleChance = 0
     /** 移动效率倍率（0.2 = +20% 每AP移动距离） */
     moveEfficiency = 0
+    /** 额外暴击率（闪避弗思剑叠层） */
+    critChance = 0
+    /** 额外暴击伤害倍率（不二剑起始buff） */
+    critDamageMod = 0
+    /** 九死剑诀：损失血量伤害加成比例 */
+    lastStandRatio = 0
 
     constructor(build: CharacterBuild) {
         this.build = build
@@ -73,12 +79,15 @@ export class Character {
                 const handler = passiveEffectHandlers[eff.type]
                 if (handler) handler(this, eff)
             }
+            for (const t of a.triggers ?? []) this.passiveTriggers.push(t)
         }
         const weapon = getWeapon(build.weapon)
         for (const eff of weapon.effects ?? []) {
             const handler = passiveEffectHandlers[eff.type]
             if (handler) handler(this, eff)
         }
+        // 武器 triggers 注入 passiveTriggers（同被动触发）
+        for (const t of weapon.triggers ?? []) this.passiveTriggers.push(t)
 
         // 5. 缓存招式
         this.#moveCache = gainedActions
@@ -242,5 +251,29 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     permanent_burn(char) {
         // 运行时由 engine 处理
         char.modifiers.add('permanentBurn')
+    },
+    crit_chance(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'crit_chance' }>
+        if (e.reset) {
+            char.critChance = 0
+        } else {
+            char.critChance += e.value
+        }
+    },
+    crit_damage(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'crit_damage' }>
+        char.critDamageMod += e.value
+    },
+    last_stand(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'last_stand' }>
+        char.lastStandRatio = e.ratio
+    },
+    weapon_range_bonus(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'weapon_range_bonus' }>
+        const weapon = getWeapon(char.build.weapon)
+        char.weaponDef = {
+            ...weapon,
+            range: [weapon.range[0], Math.min(10, weapon.range[1] + e.value)] as [number, number],
+        }
     },
 }
