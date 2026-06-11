@@ -100,10 +100,11 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
     return cmds
 }
 
-/** 选第一个能放的主招 */
+/** 选最优主招（AP 消耗大的优先，避免全程小招） */
 function pickMainAction(self: Character, state: BattleState): string | null {
     const weapon = getWeapon(self.build.weapon)
-    for (const inst of self.actions) {
+    const sorted = [...self.actions].sort((a, b) => b.apCost - a.apCost)
+    for (const inst of sorted) {
         if (inst.def.bonus) continue
         if (!inst.canUse()) continue
         if (self.ap < inst.apCost) continue

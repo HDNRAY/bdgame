@@ -57,7 +57,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'twin_swords',
         name: '青山双剑',
         description: '最快的不二剑和最快的弗思剑',
-        tags: ['pierce', 'imperial', 'parry'],
+        tags: ['pierce', 'slash', 'imperial', 'parry', 'trigger'],
         range: [1, 3],
         triggers: [
             { condition: { type: 'battle_start' }, actionId: '_buer_init' },

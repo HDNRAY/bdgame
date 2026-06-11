@@ -178,10 +178,12 @@ export class BattleEngine {
 
         // endEvent
         this.#tryBonus(self, 'before_turn_end')
-        // 不二剑暴伤衰减
+        // 不二剑衰减
         if (self.critDamageMod > 0) {
             self.critDamageMod = Math.max(0, Math.round((self.critDamageMod - 0.05) * 100) / 100)
         }
+        self.critChance = Math.max(0, Math.round((self.critChance - 0.05) * 100) / 100)
+        self.dodgeMod = Math.min(0.2, Math.round((self.dodgeMod + 0.04) * 100) / 100)
         this.emit('turn_end', self, enemy)
         this.state.turn.next()
         const lastAction = this.state.lastActionExtraDelay ?? 0

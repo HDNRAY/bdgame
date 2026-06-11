@@ -8,7 +8,7 @@ import type { WeaponDef } from '../data/weapons'
 import { getAction as getActionDef } from '../data/actions'
 import { getWeapon } from '../data/weapons'
 import { getPassive } from '../data/passives'
-import { getArtifact } from '../data/implants'
+import { getArtifact } from '../data/artifacts'
 
 export function calcMaxHp(vitality: number): number {
     return 20 + vitality * 10
@@ -49,6 +49,10 @@ export class Character {
     critDamageMod = 0
     /** 九死剑诀：损失血量伤害加成比例 */
     lastStandRatio = 0
+    /** 额外触发槽位（奇物提供） */
+    triggerSlotMod = 0
+    /** 闪避修正（不二初始 -0.2，每回合 +0.04） */
+    dodgeMod = 0
 
     constructor(build: CharacterBuild) {
         this.build = build
@@ -132,7 +136,8 @@ export class Character {
     }
 
     get triggers(): TriggerSlot[] {
-        return [...this.build.triggers, ...this.passiveTriggers]
+        const maxSlots = Math.floor(this.attrs.get('wisdom') / 4) + this.triggerSlotMod
+        return [...this.build.triggers, ...this.passiveTriggers].slice(0, maxSlots)
     }
 
     get artifacts(): Artifact[] {
@@ -190,7 +195,7 @@ export class Character {
     /** 创建战斗用副本（所有数据独立，不污染原始） */
     cloneForBattle(): Character {
         const c = new Character(this.build)
-        c.hp = this.hp
+        c.hp = this.maxHp
         c.ap = this.maxAp // 战斗开始满 AP
         c.nextTurnApDebt = 0
         return c
@@ -275,5 +280,13 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
             ...weapon,
             range: [weapon.range[0], Math.min(10, weapon.range[1] + e.value)] as [number, number],
         }
+    },
+    trigger_slot_mod(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'trigger_slot_mod' }>
+        char.triggerSlotMod += e.value
+    },
+    dodge_mod(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>
+        char.dodgeMod += e.value
     },
 }

@@ -41,6 +41,8 @@ export type EffectDef =
     | { type: 'crit_damage'; value: number }
     | { type: 'last_stand'; ratio: number }
     | { type: 'weapon_range_bonus'; value: number }
+    | { type: 'trigger_slot_mod'; value: number }
+    | { type: 'dodge_mod'; value: number }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {

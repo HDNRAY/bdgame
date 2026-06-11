@@ -22,3 +22,4 @@ export type Tag =
     | 'implant' // 义体
     | 'heal' // 回复
     | 'buff' // 增益
+    | 'trigger' // 触发

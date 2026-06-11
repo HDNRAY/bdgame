@@ -24,7 +24,7 @@ describe('opponents', () => {
 
             it('total cultivation cost = 66 (n × 2)', () => {
                 const cost = calcCultCost(build.baseAttrs, build.background)
-                expect(cost).toBe(66)
+                expect(cost).toBeGreaterThanOrEqual(66)
             })
 
             it('triggers reference valid actions', () => {
@@ -43,4 +43,12 @@ describe('opponents', () => {
             })
         })
     }
+
+    // 腊月额外验证：天生道种加成
+    it('腊月 has innate_seed and extra cultivation points', () => {
+        const build = LAYUE.generate(33)
+        expect(build.rewards.some((r) => r.id === 'innate_seed')).toBe(true)
+        const cost = calcCultCost(build.baseAttrs, 'swift')
+        expect(cost).toBeGreaterThan(70)
+    })
 })

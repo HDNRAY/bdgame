@@ -1,6 +1,6 @@
 // npx tsx scripts/demo-battle.ts [n]
 import { Character } from '../src/engine/entities/character'
-import { ZHANGLIE, PLAYER, XUANJI } from '../src/engine/data/opponents/index'
+import { ZHANGLIE, PLAYER, XUANJI, LAYUE } from '../src/engine/data/opponents/index'
 import { getWeapon } from '../src/engine/data/weapons'
 import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
@@ -28,14 +28,11 @@ function show(c: Character) {
 
 // ── 满配对手（n=33） ──
 const pBuild = PLAYER.generate(33)
-const oBuild = XUANJI.generate(33)
-
-const leftBase = new Character(oBuild)
-const rightBase = new Character(pBuild)
-const leftName = leftBase.name
-const rightName = rightBase.name
+const oBuild = LAYUE.generate(33)
 
 if (N === 1) {
+    const leftBase = new Character(oBuild)
+    const rightBase = new Character(pBuild)
     show(rightBase)
     show(leftBase)
     console.log('')
@@ -55,8 +52,12 @@ if (N === 1) {
     let leftHp = 0,
         rightHp = 0
     const stats = new StatsTracker()
+    const leftId = oBuild.id,
+        rightId = pBuild.id
+    const leftName = '腊月',
+        rightName = '空拳·玩家'
     for (let i = 0; i < N; i++) {
-        const { winner, engine } = runBattle(leftBase, rightBase, (e) => stats.handle(e))
+        const { winner, engine } = runBattle(new Character(oBuild), new Character(pBuild), (e) => stats.handle(e))
         if (winner === leftName) leftWins++
         else if (winner === rightName) rightWins++
         const [l, r] = engine.state.characters
@@ -69,7 +70,7 @@ if (N === 1) {
     console.log(`  ${leftName}: ${leftWins} 胜 (${lr}%)  平均残血 ${((leftHp / N) * 100).toFixed(1)}%`)
     console.log(`  ${rightName}: ${rightWins} 胜 (${rr}%)  平均残血 ${((rightHp / N) * 100).toFixed(1)}%`)
     console.log(`  平局: ${N - leftWins - rightWins}`)
-    const charNames = { [leftBase.id]: leftBase.name, [rightBase.id]: rightBase.name }
+    const charNames = { [leftId]: leftName, [rightId]: rightName }
     console.log('\n── 伤害占比 ──')
     for (const line of stats.format(charNames)) console.log(line)
 }

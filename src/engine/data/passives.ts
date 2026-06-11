@@ -6,7 +6,7 @@ export const PASSIVES: Passive[] = [
         id: 'forge',
         name: '三分归元气',
         description: '全属性提升。濒危时触发「三分归元」，消耗元气大幅回血。',
-        tags: ['qi'],
+        tags: ['qi', 'heal', 'buff'],
         effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2 } }],
         triggers: [
             {
@@ -20,9 +20,9 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'iron_bone',
-        name: '钢筋铁骨',
-        description: '铜皮铁骨。',
-        tags: [],
+        name: '铁布衫',
+        description: '铁布衫，吸收伤害。',
+        tags: ['qi', 'buff'],
     },
     {
         id: 'spirit_resonance',
@@ -38,14 +38,14 @@ export const PASSIVES: Passive[] = [
         id: 'sword_dominion',
         name: '御剑诀',
         description: '以炁御剑，剑随意动，攻击距离延长。',
-        tags: ['imperial'],
+        tags: ['imperial', 'qi'],
         effects: [{ type: 'weapon_range_bonus', value: 1 }],
     },
     {
         id: 'nine_deaths',
         name: '九死剑诀',
         description: '虽九死而不悔，伤势越重，剑意越强。',
-        tags: [],
+        tags: ['qi'],
         effects: [{ type: 'last_stand', ratio: 0.5 }],
         modifiers: ['last_stand'],
     },

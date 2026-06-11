@@ -569,6 +569,7 @@ export function processCombatRolls(
             attackerInsight: self.attrs.get('insight'),
             defenderAgility: enemy.attrs.get('agility'),
             defenderInsight: enemy.attrs.get('insight'),
+            defenderDodgeMod: enemy.dodgeMod,
         })
     const hitResult = calcRoll(hc)
     r.hit = hitResult.success

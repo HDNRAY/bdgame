@@ -1,7 +1,8 @@
 import type { Artifact } from '../entities/artifact'
 
-/** 义体注册表 */
-export const IMPLANTS: Artifact[] = [
+/** 所有可获取物品：义体（带副作用） + 奇物（特殊效果） */
+export const ARTIFACTS: Artifact[] = [
+    // ── 义体（tag: implant） ──
     {
         id: 'titanium_arm',
         name: '钛合金臂',
@@ -82,16 +83,32 @@ export const IMPLANTS: Artifact[] = [
             { type: 'permanent_burn', value: 1 },
         ],
     },
+
+    // ── 奇物（tag 待定） ──
     {
         id: 'blood_thorn_ring',
         name: '血棘戒',
         description: '暴击时在伤口注入血气，引发持续流血。',
-        tags: ['implant'],
+        tags: ['trigger'],
         triggers: [{ condition: { type: 'on_crit' }, actionId: '_blood_thorn_bleed' }],
+    },
+    {
+        id: 'wisdom_talisman',
+        name: '通明符',
+        description: '开悟通明，额外承载一道触发。',
+        tags: ['trigger'],
+        effects: [{ type: 'trigger_slot_mod', value: 1 }],
+    },
+    {
+        id: 'innate_seed',
+        name: '天生道种',
+        description: '先天道种，扎根武道。',
+        tags: ['trigger'],
+        triggers: [{ condition: { type: 'battle_start' }, actionId: '_innate_seed_start' }],
     },
 ]
 
-/** 按 ID 查找义体 */
+/** 按 ID 查找物品 */
 export function getArtifact(id: string): Artifact | undefined {
-    return IMPLANTS.find((i) => i.id === id)
+    return ARTIFACTS.find((a) => a.id === id)
 }

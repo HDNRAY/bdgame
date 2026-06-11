@@ -28,11 +28,12 @@ export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit
     return Math.max(1, damage)
 }
 
-/** 命中判定: base 80%，受双方灵巧和洞察影响 */
+/** 命中判定: base 80%，受双方灵巧/洞察/闪避修正影响 */
 export function calcHitChance(opts: Record<string, number>): number {
     const atk = (opts.attackerDexterity ?? 0) / 50 + (opts.attackerInsight ?? 0) / 60
     const def = (opts.defenderAgility ?? 0) / 50 + (opts.defenderInsight ?? 0) / 60
-    return Math.max(0.05, Math.min(0.95, 0.8 + atk - def))
+    const dodgeMod = opts.defenderDodgeMod ?? 0
+    return Math.max(0.05, Math.min(0.95, 0.8 + atk - def - dodgeMod))
 }
 
 /** 招架判定: (身法 + 灵巧 + 洞察) / 120，上限 50% */
