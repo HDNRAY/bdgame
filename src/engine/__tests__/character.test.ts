@@ -27,7 +27,7 @@ describe('Character', () => {
         expect(c.name).toBe('测试角色')
         expect(c.attrs.total()).toBe(18) // AttributeSet defaults: 3×6
         expect(c.hp).toBe(calcMaxHp(3))
-        expect(c.ap).toBe(10)
+        expect(c.ap).toBe(5) // 3 + 3×0.5 = 4.5 → 5
     })
 
     it('should create with custom attributes', () => {
@@ -52,10 +52,11 @@ describe('Character', () => {
     })
 
     it('should handle AP spending', () => {
-        const c = mc('test_4', '武者')
+        const c = mc('test_4', '武者', { vitality: 14 })
+        expect(c.maxAp).toBe(10) // 3 + 14×0.5 = 10
         expect(c.spendAp(3)).toBe(true)
         expect(c.ap).toBe(7)
-        expect(c.spendAp(8)).toBe(false)
+        expect(c.spendAp(10)).toBe(false)
         expect(c.ap).toBe(7)
 
         c.resetAp()

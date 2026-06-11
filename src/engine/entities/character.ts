@@ -14,7 +14,10 @@ export function calcMaxHp(vitality: number): number {
     return 20 + vitality * 10
 }
 
-export const BASE_MAX_AP = 10
+/** 根据体质计算最大 AP */
+export function calcMaxAp(vitality: number, mod = 0): number {
+    return Math.round(3 + vitality * 0.5) + mod
+}
 
 export class Character {
     readonly build: CharacterBuild
@@ -116,7 +119,7 @@ export class Character {
     }
 
     get maxAp(): number {
-        return BASE_MAX_AP + this.maxApMod
+        return calcMaxAp(this.attrs.get('vitality'), this.maxApMod)
     }
 
     get triggers(): TriggerSlot[] {
@@ -151,6 +154,11 @@ export class Character {
         if (this.ap < cost) return false
         this.ap -= cost
         return true
+    }
+
+    /** 封顶当前 AP 不超过 maxAp（属性变动后调用） */
+    capAp(): void {
+        if (this.ap > this.maxAp) this.ap = this.maxAp
     }
 
     toJSON() {

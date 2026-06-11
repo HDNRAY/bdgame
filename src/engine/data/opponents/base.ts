@@ -1,12 +1,11 @@
 import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
-import type { AttrName } from '../../entities/attributes'
 import type { Reward } from '../rewards'
 import type { TriggerSlot } from '../../entities/trigger'
 import { getBackground } from '../backgrounds'
 import { STAT_NAMES } from '../rewards'
-import { spendCultPoints } from '../../systems/cultivation'
+import { cultCost } from '../../systems/cultivation'
 
 /** 对手定义 */
 export interface OpponentDef {
@@ -23,7 +22,7 @@ export const passive = (id: string): Reward => ({ type: 'passive', id, name: id,
 export const implant = (id: string): Reward => ({ type: 'implant', id, name: id, description: '', tags: [] })
 export const action = (id: string): Reward => ({ type: 'action', id, name: id, description: '', tags: [] })
 
-/** 通用生成器：cultivate 加点 + 按比例抽奖励 */
+/** 通用生成器：按目标值精确分配 cultivation points */
 export function simpleGenerate(
     id: string,
     name: string,
@@ -33,15 +32,32 @@ export function simpleGenerate(
     rewards: Reward[],
     triggers: TriggerSlot[],
     n: number,
-    priority?: AttrName[],
 ): CharacterBuild {
     const bg = getBackground(background)
     const bgAttrs: Record<string, number> = {}
     for (const a of STAT_NAMES) bgAttrs[a] = bg?.attrs[a] ?? 3
 
-    const prio = priority ?? [...STAT_NAMES].sort((a, b) => (targetAttrs[b] ?? 0) - (targetAttrs[a] ?? 0))
-    const cultPoints = n * 2
-    const finalAttrs = spendCultPoints(bgAttrs, cultPoints, prio)
+    const cultPoints = n * 2 // 每轮 2 点，33 轮 = 66 点
+    const prio = [...STAT_NAMES].sort((a, b) => (targetAttrs[b] ?? 0) - (targetAttrs[a] ?? 0))
+
+    // 按优先级加点至目标值
+    const result = { ...bgAttrs }
+    let remaining = cultPoints
+    while (remaining > 0) {
+        let improved = false
+        for (const attr of prio) {
+            const target = targetAttrs[attr] ?? 30
+            if (result[attr] >= target) continue
+            const cost = cultCost(result[attr])
+            if (remaining >= cost) {
+                result[attr]++
+                remaining -= cost
+                improved = true
+                break
+            }
+        }
+        if (!improved) break
+    }
 
     const ratio = Math.min(1, n / 33)
     const rewardCount = Math.round(rewards.length * ratio)
@@ -53,7 +69,7 @@ export function simpleGenerate(
         name,
         background,
         weapon,
-        baseAttrs: finalAttrs,
+        baseAttrs: result,
         rewards: picked,
         triggers,
     }

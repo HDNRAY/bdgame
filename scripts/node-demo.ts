@@ -41,13 +41,15 @@ console.log('\n── 最终阵容 ──')
 const pChar = new Character(pBuild)
 const oChar = new Character(oBuild)
 const show = (c: Character) => {
-    const a = c.attrs
+    const base = c.build.baseAttrs
     const w = getWeapon(c.build.weapon)
+    const baseHp = 20 + (base.vitality ?? 3) * 10
+    const baseAp = Math.round(3 + (base.vitality ?? 3) * 0.5)
     console.log(`\n${c.name}`)
     console.log(
-        `  STR ${a.get('strength')}  VIT ${a.get('vitality')}  AGI ${a.get('agility')}  DEX ${a.get('dexterity')}  INS ${a.get('insight')}  WIS ${a.get('wisdom')}`,
+        `  STR ${base.strength ?? 3}  VIT ${base.vitality ?? 3}  AGI ${base.agility ?? 3}  DEX ${base.dexterity ?? 3}  INS ${base.insight ?? 3}  WIS ${base.wisdom ?? 3}`,
     )
-    console.log(`  HP ${c.maxHp}  AP ${c.maxAp}  武器: ${w.name}`)
+    console.log(`  HP ${baseHp}  AP ${baseAp}  武器: ${w.name}`)
     if (c.passiveDefs.length) console.log(`  功法: ${c.passiveDefs.map((p) => p.name).join(', ')}`)
     if (c.actions.length) console.log(`  招式: ${c.actions.map((i) => i.name).join(', ')}`)
     if (c.artifactDefs.length) console.log(`  奇物: ${c.artifactDefs.map((a) => a.name).join(', ')}`)
@@ -59,16 +61,21 @@ show(oChar)
 console.log('\n── 对战 100 场 ──')
 let pWin = 0,
     oWin = 0
+let pHp = 0,
+    oHp = 0
 const pObj = new Character(pBuild)
 const oObj = new Character(oBuild)
 for (let i = 0; i < 100; i++) {
-    const { winner } = runBattle(pObj, oObj)
+    const { winner, engine } = runBattle(pObj, oObj)
     if (winner === pBuild.name) pWin++
     else if (winner === oBuild.name) oWin++
+    const [a, b] = engine.state.characters
+    pHp += a.hp / a.maxHp
+    oHp += b.hp / b.maxHp
 }
 console.log(`\n📊 ${100} 场统计 (n=${N})`)
-console.log(`  ${pBuild.name}: ${pWin} 胜 (${pWin.toFixed(1)}%)`)
-console.log(`  ${oBuild.name}: ${oWin} 胜 (${oWin.toFixed(1)}%)`)
+console.log(`  ${pBuild.name}: ${pWin} 胜 (${pWin.toFixed(1)}%)  平均残血 ${((pHp / 100) * 100).toFixed(1)}%`)
+console.log(`  ${oBuild.name}: ${oWin} 胜 (${oWin.toFixed(1)}%)  平均残血 ${((oHp / 100) * 100).toFixed(1)}%`)
 console.log(`  平局: ${100 - pWin - oWin}`)
 const totalAttrs = ALL_ATTRS.reduce((s, a) => s + oChar.attrs.get(a), 0)
 console.log(`对手: ${oBuild.name} | 总属性 ${totalAttrs} | HP ${oChar.maxHp} | 奖励 ${oBuild.rewards.length} 个`)

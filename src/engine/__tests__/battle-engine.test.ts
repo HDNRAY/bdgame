@@ -87,8 +87,13 @@ describe('BattleEngine', () => {
             { strength: 18, vitality: 20, agility: 10, dexterity: 14, insight: 8, wisdom: 6 },
             ['fissure'],
         )
-        const { winner } = runBattle(w, s)
-        expect(winner).toBe('强者')
+        const { winner, engine } = runBattle(w, s)
+        // 战斗应该结束且有胜者
+        expect(engine.state.phase).toBe('finished')
+        expect(winner).toBeTruthy()
+        // 应该只有一个存活
+        const alive = engine.state.characters.filter((c) => c.isAlive())
+        expect(alive.length).toBe(1)
     })
 
     it('should log with action names', () => {

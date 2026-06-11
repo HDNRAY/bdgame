@@ -1,4 +1,4 @@
-import { OpponentDef, simpleGenerate, passive, action } from './base'
+import { type OpponentDef, simpleGenerate, passive, action } from './base'
 
 export const XUANJI: OpponentDef = {
     id: 'm1',
@@ -9,7 +9,7 @@ export const XUANJI: OpponentDef = {
             '御物·玄机',
             'wise',
             'tri_orb',
-            { strength: 6, vitality: 10, agility: 10, dexterity: 14, insight: 14, wisdom: 18 },
+            { strength: 6, vitality: 10, agility: 12, dexterity: 15, insight: 15, wisdom: 19 },
             [passive('spirit_resonance'), action('qi_bolt')],
             [
                 { condition: { type: 'on_parry' }, actionId: 'restore_ap' },
@@ -17,6 +17,5 @@ export const XUANJI: OpponentDef = {
                 { condition: { type: 'on_hit' }, actionId: 'agility_steal' },
             ],
             n,
-            ['wisdom', 'dexterity', 'insight', 'vitality', 'agility', 'strength'],
         ),
 }

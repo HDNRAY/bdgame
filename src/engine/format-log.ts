@@ -1,10 +1,33 @@
 import { BattleLog } from './combat/battle-log'
+import type { BattleSnapshot } from './combat/types'
+
+/** 从快照构建 id→name 映射 */
+function buildNameMap(snapshot: BattleSnapshot): Map<string, string> {
+    const map = new Map<string, string>()
+    for (const c of snapshot.characters) {
+        map.set(c.id, c.name)
+    }
+    return map
+}
 
 export function formatBattleLog(log: BattleLog): string[] {
     const all = log.getAll()
     const lines: string[] = []
     let lastTime = -1,
         lastActor = ''
+    // 从第一个事件快照构建名字映射
+    const nameMap = all.length > 0 ? buildNameMap(all[0].event.snapshot) : new Map<string, string>()
+    const nameOf = (id: string): string => nameMap.get(id) ?? id
+
+    /** 根据 actor 的 id 在快照中定位，返回有序 HP 信息 */
+    function hpInfo(actorId: string, s: BattleSnapshot): string {
+        const c0 = s.characters[0]
+        const c1 = s.characters[1]
+        const [first, second] = c0.id === actorId ? [c0, c1] : [c1, c0]
+        const h0 = Math.round(first.hp * 10) / 10
+        const h1 = Math.round(second.hp * 10) / 10
+        return `HP${h0}/${first.maxHp} VS HP${h1}/${second.maxHp}`
+    }
 
     function t(ms: number) {
         return `t=${(ms / 1000).toFixed(2)}`
@@ -67,16 +90,13 @@ export function formatBattleLog(log: BattleLog): string[] {
             case 'move': {
                 flush()
                 const oldDist = e.newDistance - e.delta
-                const s = e.snapshot
-                const h0 = Math.round(s.characters[0].hp * 10) / 10
-                const h1 = Math.round(s.characters[1].hp * 10) / 10
                 checkNewEvent(
                     ms,
-                    e.actor,
+                    nameOf(e.actor),
                     e.apRemaining + e.apCost,
-                    `HP${h0}/${s.characters[0].maxHp} VS HP${h1}/${s.characters[1].maxHp}`,
+                    hpInfo(e.actor, e.snapshot),
                     e.newDistance,
-                    s.actionCount,
+                    e.snapshot.actionCount,
                 )
                 lines.push(`  #移动 ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m [AP${e.apRemaining}]`)
                 break
@@ -86,11 +106,11 @@ export function formatBattleLog(log: BattleLog): string[] {
                 flush()
                 pending = {
                     time: ms,
-                    actor: e.actor,
+                    actor: nameOf(e.actor),
                     text: `${'  '.repeat(e.indent ?? 0)}#${e.actionName ?? e.weapon}（${e.apCost}AP）`,
                     ap: `[AP${e.apRemaining}]`,
                     startAp: e.apRemaining + e.apCost,
-                    hpInfo: `HP${Math.round(e.snapshot.characters[0].hp * 10) / 10}/${e.snapshot.characters[0].maxHp} VS HP${Math.round(e.snapshot.characters[1].hp * 10) / 10}/${e.snapshot.characters[1].maxHp}`,
+                    hpInfo: hpInfo(e.actor, e.snapshot),
                     distance: e.snapshot.distance,
                     actionCount: e.snapshot.actionCount,
                 }
@@ -108,7 +128,7 @@ export function formatBattleLog(log: BattleLog): string[] {
 
             case 'dodge':
                 if (pending) {
-                    pending.text += ` → *${e.evader} 闪避*`
+                    pending.text += ` → *${nameOf(e.evader)} 闪避*`
                     flush()
                 }
                 break
@@ -140,7 +160,7 @@ export function formatBattleLog(log: BattleLog): string[] {
                 if (t.includes('招架')) {
                     pending.text += `${critTag} ${e.final}*`
                 } else {
-                    pending.text += ` → *${e.target} ${e.final}${critTag}*`
+                    pending.text += ` → *${nameOf(e.target)} ${e.final}${critTag}*`
                 }
                 flush()
                 break
@@ -154,7 +174,7 @@ export function formatBattleLog(log: BattleLog): string[] {
                 flush()
                 // 携带 actor 的系统消息 → 作为独立事件分组
                 if (e.actor) {
-                    checkNewEvent(ms, e.actor, 0, undefined, undefined, e.snapshot?.actionCount)
+                    checkNewEvent(ms, nameOf(e.actor), 0, undefined, undefined, e.snapshot?.actionCount)
                 }
                 const indent = '  ' + '  '.repeat(e.indent ?? 0)
                 lines.push(`${indent}${e.message}`)

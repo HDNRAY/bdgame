@@ -1,24 +1,24 @@
 /** 统一标签类型（武器/效果/分类） */
 export type Tag =
-    | 'qi'
-    | 'slash'
-    | 'blunt'
-    | 'pierce'
-    | 'parry'
-    | 'imperial'
-    | 'stagger'
-    | 'paralyze'
-    | 'poison'
-    | 'interrupt'
-    | 'stun'
-    | 'cleanse'
-    | 'bleed'
-    | 'counter'
-    | 'ignore_parry'
-    | 'fixed_damage'
-    | 'self_damage'
-    | 'knockback'
-    | 'cripple'
-    | 'implant'
-    | 'heal'
-    | 'buff'
+    | 'qi' // 炁
+    | 'slash' // 劈砍
+    | 'blunt' // 钝击
+    | 'pierce' // 戳刺
+    | 'parry' // 可招架
+    | 'imperial' // 御物
+    | 'stagger' // 失衡
+    | 'paralyze' // 麻痹
+    | 'poison' // 中毒
+    | 'interrupt' // 打断
+    | 'stun' // 眩晕
+    | 'cleanse' // 净化
+    | 'bleed' // 流血
+    | 'counter' // 反击
+    | 'ignore_parry' // 无视招架
+    | 'fixed_damage' // 固定伤害
+    | 'self_damage' // 自伤
+    | 'knockback' // 击退
+    | 'cripple' // 崩劲
+    | 'implant' // 义体
+    | 'heal' // 回复
+    | 'buff' // 增益

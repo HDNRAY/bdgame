@@ -177,6 +177,22 @@ type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'stun_reset' |
 4. **移动**：推送 move 指令
 5. **攻击**：推送 attack 指令
 
+### AP 公式
+
+```ts
+maxAp = round(5 + vitality × 0.5) + 修正值
+```
+
+| 体质 | maxAP |
+| ---- | ----- |
+| 5    | 7     |
+| 10   | 10    |
+| 14   | 12    |
+| 18   | 14    |
+| 22   | 16    |
+
+体质不再仅影响 HP，也决定每回合可用 AP 上限。
+
 ### 距离移动计算
 
 ```

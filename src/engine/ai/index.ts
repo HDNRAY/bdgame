@@ -5,10 +5,34 @@ import { getWeapon } from '../data/weapons'
 import { DistanceSystem } from '../combat/distance'
 import { calcSelfDamage } from '../calc/damage'
 
+/** 找到对己方和对方武器都最有利的距离 */
+function findOptimalDistance(
+    selfWeapon: { range: [number, number] },
+    enemyWeapon: { range: [number, number] },
+    currentDist: number,
+): number {
+    const [myMin, myMax] = selfWeapon.range
+    const [enMin, enMax] = enemyWeapon.range
+    // 在自身攻击范围内，且不在对方攻击范围内的距离中，选离当前位置最近的
+    let best = currentDist
+    let bestDist = Infinity
+    for (let d = myMin; d <= myMax; d++) {
+        if (d < enMin || d > enMax) {
+            const dist = Math.abs(d - currentDist)
+            if (dist < bestDist) {
+                bestDist = dist
+                best = d
+            }
+        }
+    }
+    return best
+}
+
 /** AI 决策：返回本行动中要执行的一串指令 */
 export function planEvent(self: Character, state: BattleState, preferredMainId?: string): ActionCommand[] {
     const cmds: ActionCommand[] = []
     const weapon = getWeapon(self.build.weapon)
+    const enemy = state.characters.find((c) => c.id !== self.id)
 
     // 1. 决定主招
     const mainId = preferredMainId ?? pickMainAction(self, state)
@@ -46,14 +70,31 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
         bonusAp += inst.apCost
     }
 
-    // 4. 移动
+    // 4. 移动进入攻击范围
     if (moveAp > 0) {
         cmds.push({ type: 'move', bestDistance: state.distance.current > weapon.range[1] ? -moveAp : moveAp })
     }
 
+    const apAfterBonus = apAfterMove - bonusAp
+
     // 5. 攻击
-    if (apAfterMove - bonusAp >= mainDef.apCost && virtualDist >= weapon.range[0] && virtualDist <= weapon.range[1]) {
+    if (apAfterBonus >= mainDef.apCost && virtualDist >= weapon.range[0] && virtualDist <= weapon.range[1]) {
         cmds.push({ type: 'attack', actionId: mainId })
+    }
+
+    // 6. 行动后移动：有多余 AP 时根据双方武器距离调整位置
+    if (enemy) {
+        const enemyWeapon = getWeapon(enemy.build.weapon)
+        const optimal = findOptimalDistance(weapon, enemyWeapon, state.distance.current)
+        const delta = optimal - state.distance.current // + = 远离, - = 靠近
+        if (delta !== 0) {
+            const dist = Math.abs(delta)
+            const apNeeded = Math.ceil(dist / perAp)
+            const remainingAp = apAfterBonus - (apAfterBonus >= mainDef.apCost ? mainDef.apCost : 0)
+            if (remainingAp >= apNeeded) {
+                cmds.push({ type: 'move', bestDistance: delta > 0 ? apNeeded : -apNeeded })
+            }
+        }
     }
 
     return cmds

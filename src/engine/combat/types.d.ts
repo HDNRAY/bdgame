@@ -51,6 +51,8 @@ export type EventPlan = (self: Character, enemy: Character, state: BattleState) 
 
 // ── Log types ──
 export interface CharacterSnapshot {
+    id: string
+    name: string
     hp: number
     maxHp: number
     ap: number

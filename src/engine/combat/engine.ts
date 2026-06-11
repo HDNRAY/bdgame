@@ -19,10 +19,15 @@ import {
 } from './effect-processor'
 import type { ActionCommand, ActionResult, BattleState, EventPlan, BattleSnapshot, TurnEntry, BuffLayer } from './types'
 import type { SummonInstance } from '../entities/summon'
+import type { LogEvent } from './log-events'
+
+// ── LogEvent 监听器类型 ──
+type LogListener = (event: LogEvent) => void
 
 export class BattleEngine {
     state!: BattleState
     #summons = new Map<string, SummonInstance>()
+    #logListeners: LogListener[] = []
 
     constructor(p: Character, o: Character, d = 4) {
         this.init(p, o, d)
@@ -98,11 +103,15 @@ export class BattleEngine {
             distance: distance.current,
             characters: [
                 {
+                    id: characters[0].id,
+                    name: characters[0].name,
                     hp: characters[0].hp,
                     maxHp: characters[0].maxHp,
                     ap: characters[0].ap,
                 },
                 {
+                    id: characters[1].id,
+                    name: characters[1].name,
                     hp: characters[1].hp,
                     maxHp: characters[1].maxHp,
                     ap: characters[1].ap,
@@ -237,8 +246,19 @@ export class BattleEngine {
     get #buffs(): Map<string, BuffLayer> {
         return this.state.pendingBuffs
     }
-    get #log(): BattleLog {
-        return this.state.log
+
+    /** 注册日志监听器 */
+    onLog(listener: LogListener): void {
+        this.#logListeners.push(listener)
+    }
+
+    /** 发射日志事件（自动附加当前快照） */
+    emitLog(event: LogEvent): void {
+        const snap = this.getSnapshot()
+        const tMs = this.state.turn.currentTime
+        const enriched = { ...event, snapshot: snap } as LogEvent & { snapshot: BattleSnapshot }
+        this.state.log.handleLogEvent(enriched, snap, tMs)
+        for (const l of this.#logListeners) l(enriched)
     }
 
     getCharacter(id: string): Character | undefined {
@@ -262,7 +282,7 @@ export class BattleEngine {
     }
 
     #executeMove(cmd: ActionCommand, self: Character): ActionResult {
-        const { distance, log } = this.state
+        const { distance } = this.state
         const r: ActionResult = {
             damage: 0,
             hit: false,
@@ -279,12 +299,19 @@ export class BattleEngine {
             self.modifiers.has('minMoveCost'),
         )
         if (!self.spendAp(ap)) {
-            log.logSystem(`${self.name} AP不足 无法移动`, this.#tMs, this.getSnapshot())
+            this.emitLog({ type: 'system', message: `${self.name} AP不足 无法移动`, actorId: self.id })
             return r
         }
         const a = distance.move(delta)
         r.distanceDelta = a
-        log.logMove(self.name, a, distance.current, ap, self.ap, this.#tMs, this.getSnapshot())
+        this.emitLog({
+            type: 'move',
+            sourceId: self.id,
+            delta: a,
+            newDistance: distance.current,
+            apCost: ap,
+            apRemaining: self.ap,
+        })
         processBleedDamage(self, this.#tMs, this)
         const enemy = this.getOpponent(self.id)!
         this.emit('on_move', self, enemy)
@@ -295,7 +322,7 @@ export class BattleEngine {
     #executeAttack(cmd: ActionCommand, self: Character, enemy: Character): ActionResult {
         const action = cmd.actionId ? getAction(cmd.actionId) : undefined
         if (!action) {
-            this.#log.logSystem(`${self.name} 没有可用招式`, this.#tMs, this.getSnapshot())
+            this.emitLog({ type: 'system', message: `${self.name} 没有可用招式`, actorId: self.id })
             return this.#emptyResult()
         }
         processBleedDamage(self, this.#tMs, this)
@@ -317,7 +344,7 @@ export class BattleEngine {
         }
         // 失心检查
         if (self.fumbleChance > 0 && Math.random() < self.fumbleChance) {
-            this.state.log.logSystem(`[晃神] ${self.name} 突然失神`, this.#tMs, this.getSnapshot())
+            this.emitLog({ type: 'fumble', sourceId: self.id })
             return r
         }
         // 验证
@@ -327,17 +354,18 @@ export class BattleEngine {
             return r
         }
         const weapon = getWeapon(self.build.weapon)
-        this.state.log.logAttack(
-            self.name,
-            enemy.name,
-            weapon.name,
-            action.apCost,
-            self.ap,
-            this.#tMs,
-            this.getSnapshot(),
-            triggered ? `[触发]${action.name}` : action.name,
-            this.state.log.indentDepth,
-        )
+        this.emitLog({
+            type: 'attack_start',
+            actionId: action.id,
+            actionName: action.name,
+            weapon: weapon.name,
+            sourceId: self.id,
+            targetId: enemy.id,
+            apCost: action.apCost,
+            apRemaining: self.ap,
+            triggered,
+            indent: this.state.log.indentDepth,
+        })
         this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
         // 战斗判定
         if (!processCombatRolls(action, r, self, enemy, this.#tMs, this)) return r
@@ -348,7 +376,6 @@ export class BattleEngine {
 
     /** 命中后效：触发/流血/状态/击败 */
     #finalizeAttack(action: ActionDefinition, r: ActionResult, self: Character, enemy: Character): void {
-        const log = this.state.log
         const tMs = this.#tMs
 
         this.emit('on_hit', self, enemy)
@@ -381,7 +408,7 @@ export class BattleEngine {
         this.emit('hp_below', self, enemy)
         this.emit('hp_below', enemy, self)
         if (!enemy.isAlive()) {
-            log.logDefeat(enemy.name, self.name, tMs, this.getSnapshot())
+            this.emitLog({ type: 'defeat', loserId: enemy.name, winnerId: self.name })
             this.state.phase = 'finished'
             if (self.isAlive()) {
                 this.state.lastWinner = self.name
@@ -390,7 +417,7 @@ export class BattleEngine {
     }
 
     #executeDefend(self: Character): ActionResult {
-        this.#log.logSystem(`${self.name} 防御`, this.#tMs, this.getSnapshot())
+        this.emitLog({ type: 'system', message: `${self.name} 防御`, actorId: self.id })
         return {
             damage: 0,
             hit: false,
@@ -424,7 +451,7 @@ export class BattleEngine {
     }
 
     #executeWait(self: Character): ActionResult {
-        this.#log.logSystem(`${self.name} 结束`, this.#tMs, this.getSnapshot())
+        this.emitLog({ type: 'system', message: `${self.name} 结束`, actorId: self.id })
         return {
             damage: 0,
             hit: false,

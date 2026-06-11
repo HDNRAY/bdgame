@@ -1,8 +1,10 @@
 import type { AttrName } from '../entities/attributes'
 
-/** 培养点成本：≤13 = 1, 14+ = 2 */
+/** 培养点成本：≤13 = 1, 14~19 = 2, 20+ = 3 */
 export function cultCost(value: number): number {
-    return value < 14 ? 1 : 2
+    if (value >= 20) return 3
+    if (value >= 14) return 2
+    return 1
 }
 
 /** 用 cultivation points 加点，按优先级顺序 */

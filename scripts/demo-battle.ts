@@ -4,19 +4,22 @@ import { ZHANGLIE, PLAYER, XUANJI } from '../src/engine/data/opponents/index'
 import { getWeapon } from '../src/engine/data/weapons'
 import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
+import { StatsTracker } from '../src/engine/combat/stats-tracker'
 
 console.clear()
 
 const N = Math.max(1, parseInt(process.argv[2] ?? '1', 10))
 
 function show(c: Character) {
-    const a = c.attrs
+    const base = c.build.baseAttrs
     const weapon = getWeapon(c.build.weapon)
+    const baseHp = 20 + (base.vitality ?? 3) * 10
+    const baseAp = Math.round(3 + (base.vitality ?? 3) * 0.5)
     console.log(`\n${c.name}`)
     console.log(
-        `  STR ${a.get('strength')}  VIT ${a.get('vitality')}  AGI ${a.get('agility')}  DEX ${a.get('dexterity')}  INS ${a.get('insight')}  WIS ${a.get('wisdom')}`,
+        `  STR ${base.strength ?? 3}  VIT ${base.vitality ?? 3}  AGI ${base.agility ?? 3}  DEX ${base.dexterity ?? 3}  INS ${base.insight ?? 3}  WIS ${base.wisdom ?? 3}`,
     )
-    console.log(`  HP ${c.maxHp}  AP ${c.maxAp}  武器: ${weapon.name}`)
+    console.log(`  HP ${baseHp}  AP ${baseAp}  武器: ${weapon.name}`)
     if (c.passiveDefs.length) console.log(`  功法: ${c.passiveDefs.map((p) => p.name).join(', ')}`)
     if (c.actions.length) console.log(`  招式: ${c.actions.map((i) => i.name).join(', ')}`)
     if (c.triggers.length)
@@ -25,8 +28,7 @@ function show(c: Character) {
 
 // ── 满配对手（n=33） ──
 const pBuild = PLAYER.generate(33)
-const oBuild = ZHANGLIE.generate(33)
-const mBuild = XUANJI.generate(33)
+const oBuild = XUANJI.generate(33)
 
 const leftBase = new Character(oBuild)
 const rightBase = new Character(pBuild)
@@ -37,21 +39,37 @@ if (N === 1) {
     show(rightBase)
     show(leftBase)
     console.log('')
-    const { winner, engine } = runBattle(leftBase, rightBase)
+    const stats = new StatsTracker()
+    const { winner, engine } = runBattle(leftBase, rightBase, (e) => stats.handle(e))
     const [cloneL, cloneR] = engine.state.characters
     for (const line of formatBattleLog(engine.state.log)) console.log(line)
     console.log(
         `\n🏆 ${winner} 胜  ${cloneL.name} HP${Math.round(cloneL.hp * 10) / 10}/${cloneL.maxHp} vs ${cloneR.name} HP${Math.round(cloneR.hp * 10) / 10}/${cloneR.maxHp}`,
     )
+    const charNames = { [leftBase.id]: leftBase.name, [rightBase.id]: rightBase.name }
+    console.log('\n── 伤害占比 ──')
+    for (const line of stats.format(charNames)) console.log(line)
 } else {
-    let leftWins = 0, rightWins = 0
+    let leftWins = 0,
+        rightWins = 0
+    let leftHp = 0,
+        rightHp = 0
+    const stats = new StatsTracker()
     for (let i = 0; i < N; i++) {
-        const { winner } = runBattle(leftBase, rightBase)
+        const { winner, engine } = runBattle(leftBase, rightBase, (e) => stats.handle(e))
         if (winner === leftName) leftWins++
         else if (winner === rightName) rightWins++
+        const [l, r] = engine.state.characters
+        leftHp += l.hp / l.maxHp
+        rightHp += r.hp / r.maxHp
     }
+    const lr = ((leftWins / N) * 100).toFixed(1)
+    const rr = ((rightWins / N) * 100).toFixed(1)
     console.log(`\n📊 ${N} 场统计`)
-    console.log(`  ${leftName}: ${leftWins} 胜 (${((leftWins / N) * 100).toFixed(1)}%)`)
-    console.log(`  ${rightName}: ${rightWins} 胜 (${((rightWins / N) * 100).toFixed(1)}%)`)
+    console.log(`  ${leftName}: ${leftWins} 胜 (${lr}%)  平均残血 ${((leftHp / N) * 100).toFixed(1)}%`)
+    console.log(`  ${rightName}: ${rightWins} 胜 (${rr}%)  平均残血 ${((rightHp / N) * 100).toFixed(1)}%`)
     console.log(`  平局: ${N - leftWins - rightWins}`)
+    const charNames = { [leftBase.id]: leftBase.name, [rightBase.id]: rightBase.name }
+    console.log('\n── 伤害占比 ──')
+    for (const line of stats.format(charNames)) console.log(line)
 }
