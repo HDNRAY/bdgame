@@ -45,7 +45,7 @@ export type EffectDef =
     | { type: 'weapon_range_bonus'; value: number }
     | { type: 'trigger_slot_mod'; value: number }
     | { type: 'dodge_mod'; value: number }
-    | { type: 'add_buff'; buffId: string }
+    | { type: 'add_buff'; buffId: string; stacks?: number }
     | { type: 'remove_buff'; buffId: string }
 
 /** 招式定义 —— 纯数据 */

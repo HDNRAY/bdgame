@@ -46,8 +46,9 @@ export const PASSIVES: Passive[] = [
         name: '九死剑诀',
         description: '虽九死而不悔，伤势越重，剑意越强。',
         tags: ['qi'],
-        effects: [{ type: 'last_stand', ratio: 0.5 }],
-        modifiers: ['last_stand'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'last_stand', stacks: 0.5 }] },
+        ],
     },
     {
         id: 'iaijutsu_mastery',

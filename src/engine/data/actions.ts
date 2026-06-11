@@ -14,7 +14,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '一记标准正拳，直取中门。',
         requiredTags: ['blunt'],
         apCost: 2,
-        tags: [],
+        tags: ['blunt'],
         effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
     },
     {
@@ -23,7 +23,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '蓄力一击，造成崩劲伤害。',
         requiredTags: ['blunt'],
         apCost: 3,
-        tags: ['cripple'],
+        tags: ['cripple', 'blunt'],
         effects: [
             { type: 'damage', scaling: { strength: 0.5 } },
             { type: 'cripple', ratio: 0.1 },
@@ -35,7 +35,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '近距离冲撞，附带麻痹效果。',
         requiredTags: ['blunt'],
         apCost: 4,
-        tags: ['paralyze', 'self_damage'],
+        tags: ['paralyze', 'self_damage', 'blunt'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'status', status: 'paralyze', stacks: 2, chance: 0.6 },
@@ -48,7 +48,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '弹指间弹出气劲，带麻痹效果。',
         requiredTags: [],
         apCost: 1,
-        tags: ['paralyze'],
+        tags: ['paralyze', 'blunt'],
         effects: [
             { type: 'fixed_damage', value: 1 },
             { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
@@ -64,7 +64,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '一往无前的直刺。',
         requiredTags: ['pierce'],
         apCost: 3,
-        tags: ['bleed'],
+        tags: ['bleed', 'pierce'],
         effects: [
             { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'status', status: 'bleed', stacks: 1, chance: 0.5 },
@@ -76,7 +76,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '猛砸地面，造成冲击波。',
         requiredTags: ['blunt'],
         apCost: 5,
-        tags: ['paralyze', 'ignore_parry'],
+        tags: ['paralyze', 'ignore_parry', 'blunt'],
         effects: [
             { type: 'damage', scaling: { strength: 0.8 } },
             { type: 'status', status: 'paralyze', stacks: 2, chance: 0.6 },
@@ -91,7 +91,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '三枚飞针破空而去。',
         requiredTags: ['pierce'],
         apCost: 2,
-        tags: ['paralyze'],
+        tags: ['paralyze', 'pierce'],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.25 } },
             { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
@@ -103,7 +103,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '淬毒飞镖，见血封喉。',
         requiredTags: ['pierce'],
         apCost: 3,
-        tags: ['poison'],
+        tags: ['poison', 'pierce'],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.3 } },
             { type: 'status', status: 'poison', stacks: 1, chance: 0.4 },
@@ -115,7 +115,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '一瞬间射出数十枚暗器。',
         requiredTags: ['pierce'],
         apCost: 5,
-        tags: ['fixed_damage', 'poison', 'paralyze', 'bleed'],
+        tags: ['fixed_damage', 'poison', 'paralyze', 'bleed', 'pierce'],
         effects: [
             { type: 'fixed_damage', value: 8 },
             { type: 'status', status: 'poison', stacks: 1, chance: 0.3 },
@@ -142,7 +142,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '趁虚而入，追击刺击。',
         requiredTags: ['pierce'],
         apCost: 1,
-        tags: ['bleed'],
+        tags: ['bleed', 'pierce'],
         effects: [
             { type: 'damage', scaling: { strength: 0.3 } },
             { type: 'status', status: 'bleed', stacks: 1, chance: 0.6 },

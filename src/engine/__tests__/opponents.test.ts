@@ -30,6 +30,7 @@ describe('opponents', () => {
             it('triggers reference valid actions', () => {
                 for (const t of build.triggers) {
                     // _ 前缀 = 内置触发，否则需要在全局 action 注册表中有定义
+                    if (!t.actionId) continue
                     if (t.actionId.startsWith('_')) continue
                     expect(getAction(t.actionId)).toBeDefined()
                 }

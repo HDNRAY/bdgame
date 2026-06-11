@@ -83,15 +83,11 @@ function applyDamage(
     const critRoll = calcRoll(critChance)
     const isCrit = critRoll.success
 
-    // 九死剑诀：损失血量加成
-    let lastStandMult = 1
-    if (attacker.lastStandRatio > 0 && attacker.hp < attacker.maxHp) {
-        const missingRatio = 1 - attacker.hp / attacker.maxHp
-        lastStandMult = 1 + missingRatio * attacker.lastStandRatio
-    }
-
     final = calcFinalDamage(final, 1, isCrit, attacker.critDamageMod)
-    final = Math.round(final * lastStandMult * 10) / 10
+    final = Math.round(final * 10) / 10
+
+    // 通用伤害修正钩子（遍历双方 buff 的 onDamage）
+    final = applyDamageModifiers(final, target, attacker, engine, actionId)
 
     target.takeDamage(final)
 
@@ -344,7 +340,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     add_buff({ eff, self, engine }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'add_buff' }>
         const key = `${e.buffId}::${self.id}`
-        engine.state.pendingBuffs.set(key, { restoreValue: 1 })
+        engine.state.pendingBuffs.set(key, { restoreValue: e.stacks ?? 1 })
         engine.emitLog({
             type: 'system',
             message: `[${getBuff(e.buffId)?.name ?? e.buffId}] ${self.name} 获得状态`,
@@ -641,6 +637,27 @@ export function processBleedDamage(owner: Character, _tMs: number, engine: Battl
             amount: dmg,
         })
     }
+}
+
+// ── 通用伤害修正 ──
+
+/** 遍历双方 buff 的 onDamage 钩子，自动修正伤害 */
+function applyDamageModifiers(
+    final: number,
+    target: Character,
+    attacker: Character,
+    engine: BattleEngine,
+    actionId?: string,
+): number {
+    for (const [key, layer] of engine.state.pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2) continue
+        if (parts[1] !== target.id && parts[1] !== attacker.id) continue
+        const def = getBuff(parts[0])
+        if (!def?.onDamage) continue
+        final = def.onDamage(final, { final, target, attacker, engine, actionId, layer })
+    }
+    return final
 }
 
 // ── Buff end ──

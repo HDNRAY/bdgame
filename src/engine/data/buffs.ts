@@ -1,5 +1,20 @@
 import type { GameEntity } from '../entities/base'
 import type { AttrName } from '../entities/attributes'
+import type { Character } from '../entities/character'
+import type { BattleEngine } from '../combat/engine'
+import type { BuffLayer } from '../combat/types'
+import { getAction } from './actions'
+import type { Tag } from '../entities/tag'
+
+/** 伤害修正钩子上下文 */
+export interface DamageModContext {
+    final: number
+    target: Character
+    attacker: Character
+    engine: BattleEngine
+    actionId?: string
+    layer: BuffLayer
+}
 
 /** 消耗方式 */
 export type BuffExpiry =
@@ -28,6 +43,8 @@ export interface BuffDef extends GameEntity {
     tickInterval?: number
     /** tick 伤害基数 */
     dotDamage?: number
+    /** 伤害修正钩子（applyDamage 中自动调用） */
+    onDamage?: (final: number, ctx: DamageModContext) => number
 }
 
 export const BUFF_DB: BuffDef[] = [
@@ -122,6 +139,53 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'trigger', event: 'action', maxTriggers: 5 },
         stacking: { type: 'additive' },
+    },
+
+    // ── 伤害修正 buff ──
+    {
+        id: 'qi_shield',
+        name: '炁盾',
+        description: '吸收qi招式伤害，每次2点。',
+        tags: [],
+        onDamage: (f, { target, engine, actionId, layer }) => {
+            const act = actionId ? getAction(actionId) : undefined
+            if (!act?.tags?.includes('qi') || f <= 0 || layer.restoreValue <= 0) return f
+            const absorb = Math.min(2, f)
+            layer.restoreValue--
+            engine.emitLog({
+                type: 'system',
+                message: `[炁盾] ${target.name} 吸收${absorb}点（剩${layer.restoreValue}次）`,
+                actorId: target.id,
+            })
+            if (layer.restoreValue <= 0) engine.state.pendingBuffs.delete(`qi_shield::${target.id}`)
+            return Math.max(0, Math.round((f - absorb) * 10) / 10)
+        },
+    },
+    {
+        id: 'dmg_reduce',
+        name: '乌铠',
+        description: '消耗AP减免斩/刺/钝伤害。',
+        tags: [],
+        onDamage: (f, { target, actionId, engine }) => {
+            if (target.ap < 1 || f <= 5) return f
+            const act = actionId ? getAction(actionId) : undefined
+            if (!act?.requiredTags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'blunt')) return f
+            target.spendAp(1)
+            engine.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免3点`, actorId: target.id })
+            return Math.max(0, Math.round((f - 3) * 10) / 10)
+        },
+    },
+    {
+        id: 'last_stand',
+        name: '九死剑诀',
+        description: '损失血量增伤。',
+        tags: [],
+        onDamage: (f, { attacker, layer }) => {
+            const ratio = layer.restoreValue
+            if (ratio <= 0 || attacker.hp >= attacker.maxHp) return f
+            const missingRatio = 1 - attacker.hp / attacker.maxHp
+            return Math.round(f * (1 + missingRatio * ratio) * 10) / 10
+        },
     },
 
     // ── 内部追踪 ──

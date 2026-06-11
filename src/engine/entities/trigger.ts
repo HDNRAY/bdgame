@@ -1,4 +1,5 @@
 import type { Character } from './character'
+import type { EffectDef } from './action'
 
 /** 触发时机（EventBus 事件） */
 export type TriggerEvent =
@@ -47,7 +48,9 @@ export interface TriggerCondition extends Condition {
 /** 玩家装备的触发器槽 */
 export interface TriggerSlot {
     condition: Condition
-    actionId: string
+    actionId?: string
+    /** 内联效果（优先于 actionId） */
+    effects?: EffectDef[]
 }
 
 /** 计算触发槽数: max(1, floor(wisdom/4)) */

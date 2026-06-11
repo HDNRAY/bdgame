@@ -47,8 +47,6 @@ export class Character {
     critChance = 0
     /** 额外暴击伤害倍率（不二剑起始buff） */
     critDamageMod = 0
-    /** 九死剑诀：损失血量伤害加成比例 */
-    lastStandRatio = 0
     /** 额外触发槽位（奇物提供） */
     triggerSlotMod = 0
     /** 闪避修正（不二初始 -0.2，每回合 +0.04） */
@@ -269,9 +267,9 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
         const e = eff as Extract<EffectDef, { type: 'crit_damage' }>
         char.critDamageMod += e.value
     },
-    last_stand(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'last_stand' }>
-        char.lastStandRatio = e.ratio
+    dodge_mod(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>
+        char.dodgeMod += e.value
     },
     weapon_range_bonus(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'weapon_range_bonus' }>
@@ -284,9 +282,5 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     trigger_slot_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'trigger_slot_mod' }>
         char.triggerSlotMod += e.value
-    },
-    dodge_mod(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>
-        char.dodgeMod += e.value
     },
 }

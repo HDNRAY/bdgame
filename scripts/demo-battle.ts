@@ -23,12 +23,14 @@ function show(c: Character) {
     if (c.passiveDefs.length) console.log(`  功法: ${c.passiveDefs.map((p) => p.name).join(', ')}`)
     if (c.actions.length) console.log(`  招式: ${c.actions.map((i) => i.name).join(', ')}`)
     if (c.triggers.length)
-        console.log(`  触发: ${c.triggers.map((s) => `${s.condition.type}→${s.actionId}`).join(', ')}`)
+        console.log(
+            `  触发: ${c.triggers.map((s) => `${s.condition.type}→${s.actionId ?? s.effects?.map((e) => e.type).join(',') ?? '?'}`).join(', ')}`,
+        )
 }
 
 // ── 满配对手（n=33） ──
 const pBuild = LAIFENG.generate(33)
-const oBuild = YIDAO.generate(33)
+const oBuild = XUANJI.generate(33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

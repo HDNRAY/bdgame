@@ -253,6 +253,15 @@ export class BattleEngine {
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
             if (!matchCondition(slot.condition, { actor: self, distance: distance.current })) continue
 
+            if (slot.effects) {
+                log.indentDepth++
+                for (const eff of slot.effects) {
+                    processActionEffect(eff, self, enemy, this, this.#tMs, '', '')
+                }
+                log.indentDepth--
+                continue
+            }
+            if (!slot.actionId) continue
             const action = getAction(slot.actionId)
             if (!action) continue
             const used = triggerUses.get(slot.actionId) ?? 0

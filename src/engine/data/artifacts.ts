@@ -113,6 +113,29 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['trigger'],
         triggers: [{ condition: { type: 'on_buff', buffId: 'iaijutsu' }, actionId: '_tiger_eye_foresight' }],
     },
+    {
+        id: 'qi_guard',
+        name: '吞炁囊',
+        description: '开局凝聚炁盾，吸收qi招式伤害2点，共10次。',
+        tags: ['trigger'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 20 }] },
+        ],
+    },
+    {
+        id: 'iron_will',
+        name: '乌铠',
+        description: '受到超过5点的斩/刺/钝伤害时，消耗1AP减少3点。',
+        tags: ['trigger'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dmg_reduce' }] }],
+    },
+    {
+        id: 'ap_boost',
+        name: '气海丹',
+        description: '拓展气海，AP上限+2。',
+        tags: [],
+        effects: [{ type: 'max_ap_mod', value: 2 }],
+    },
 ]
 
 /** 按 ID 查找物品 */
