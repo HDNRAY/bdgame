@@ -44,7 +44,7 @@ describe('BattleEngine', () => {
             ['straight_punch'],
         )
         const { winner, engine } = runBattle(p, o)
-        expect(winner).toBe('玩家')
+        expect(winner).toBe('p1')
         const types = engine.state.log.getAll().map((e) => e.event.type)
         expect(types).toContain('battle_start')
         expect(types).toContain('defeat')

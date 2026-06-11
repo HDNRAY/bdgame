@@ -51,7 +51,6 @@ export const REWARD_POOL: Reward[] = [
     { type: 'action', id: 'needle', name: '飞针', description: '3AP 远程麻痹', tags: [] },
     { type: 'action', id: 'poison_dart', name: '毒镖', description: '5AP 中毒', tags: [] },
     { type: 'action', id: 'tempest', name: '暴雨梨花', description: '8AP 群伤，限2次', tags: [] },
-    { type: 'action', id: 'tremor_stomp', name: '震脚', description: '5AP 眩晕', tags: [] },
     { type: 'action', id: 'break_formation', name: '破军', description: '3AP 净化', tags: [] },
     { type: 'action', id: 'pursuit_thrust', name: '追刺', description: '2AP 追击流血', tags: [] },
     { type: 'action', id: 'jab', name: '刺拳', description: '1AP 快速攻击', tags: [] },

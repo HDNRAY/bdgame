@@ -199,12 +199,13 @@ export class BattleEngine {
     }
 
     /** 触发检测 */
-    emit(event: TriggerEvent, self: Character, enemy: Character) {
+    emit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
         const { log, triggerUses, distance } = this.state
         if (this.state.isEmitting) return // 防止递归触发
         this.state.isEmitting = true
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
+            if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
             if (!matchCondition(slot.condition, { actor: self, distance: distance.current })) continue
 
             const action = getAction(slot.actionId)
@@ -354,7 +355,7 @@ export class BattleEngine {
             return r
         }
         // 验证
-        const c = canExecuteAction(action, self, this.state.distance.current)
+        const c = canExecuteAction(action, self, this.state)
         if (!c.ok) return r
         if (!self.spendAp(action.apCost)) {
             return r

@@ -44,8 +44,8 @@ export const QI_SKILLS: ActionDefinition[] = [
         apCost: 1,
         tags: ['qi'],
         effects: [{ type: 'fixed_damage', value: 4 }],
-        extraPreDelay: 100,
-        range: [0, 5],
+        extraPreDelay: 200,
+        range: [0, 6],
     },
     {
         id: 'restore_ap',

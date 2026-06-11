@@ -106,6 +106,13 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['trigger'],
         triggers: [{ condition: { type: 'battle_start' }, actionId: '_innate_seed_start' }],
     },
+    {
+        id: 'tiger_eye',
+        name: '虎彻之眼',
+        description: '进入居合时双目如虎，洞察先机。',
+        tags: ['trigger'],
+        triggers: [{ condition: { type: 'on_buff', buffId: 'iaijutsu' }, actionId: '_tiger_eye_foresight' }],
+    },
 ]
 
 /** 按 ID 查找物品 */

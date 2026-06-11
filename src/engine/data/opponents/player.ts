@@ -18,7 +18,6 @@ export const PLAYER: OpponentDef = {
                 action('straight_punch'),
                 // action('crushing_blow'),
                 action('iron_charge'),
-                // action('tremor_stomp'),
             ],
             [
                 // { condition: { type: 'on_parry' }, actionId: 'straight_punch' },

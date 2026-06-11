@@ -29,6 +29,6 @@ export function runBattle(
         if (!engine.runEvent(planFn)) break
     }
     const survivor = state.characters.find((c) => c.isAlive())
-    const winner = survivor?.name ?? state.lastWinner ?? '平局'
+    const winner = survivor?.id ?? state.lastWinner ?? '平局'
     return { winner, engine }
 }

@@ -18,6 +18,7 @@ import {
     calcStunAttrDelta,
 } from '../calc/damage'
 import { getWeapon } from '../data/weapons'
+import { getBuff } from '../data/buffs'
 import { genAppId } from '../util/buff-utils'
 import { triggerBleed } from '../entities/status'
 import { EFFECT_META } from '../data/effects'
@@ -52,23 +53,33 @@ function applyDamage(
     const weapon = getWeapon(target.build.weapon)
     let parried = false
     if (weapon.tags.includes('parry')) {
-        const pc = calcParryChance(
+        let pc = calcParryChance(
             target.attrs.get('agility'),
             target.attrs.get('dexterity'),
             target.attrs.get('insight'),
         )
+        // 看破 buff：招架率+0.5，成功后消耗
+        const foresightKey = `foresight::${target.id}`
+        if (engine.state.pendingBuffs.has(foresightKey)) {
+            pc = Math.min(0.95, pc + 0.5)
+        }
         const result = calcRoll(pc)
         parried = result.success
-        if (parried) engine.emit('on_parry', target, attacker)
+        if (parried) {
+            engine.state.pendingBuffs.delete(foresightKey)
+            engine.emit('on_parry', target, attacker)
+        }
     }
     let final = parried ? calcParriedDamage(raw, target.attrs.get('strength')) : raw
     const blocked = raw - final
 
     // 暴击判定
+    const mindEyeKey = `mind_eye::${attacker.id}`
+    const mindEyeBonus = engine.state.pendingBuffs.has(mindEyeKey) ? 0.25 : 0
     const critChance = calcCritChance(
         attacker.attrs.get('dexterity'),
         attacker.attrs.get('insight'),
-        attacker.critChance,
+        attacker.critChance + mindEyeBonus,
     )
     const critRoll = calcRoll(critChance)
     const isCrit = critRoll.success
@@ -328,6 +339,27 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         engine.emitLog({
             type: 'system',
             message: `[不二] ${self.name} 暴伤+${e.value}`,
+            actorId: self.id,
+        })
+    },
+    add_buff({ eff, self, engine }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'add_buff' }>
+        const key = `${e.buffId}::${self.id}`
+        engine.state.pendingBuffs.set(key, { restoreValue: 1 })
+        engine.emitLog({
+            type: 'system',
+            message: `[${getBuff(e.buffId)?.name ?? e.buffId}] ${self.name} 获得状态`,
+            actorId: self.id,
+        })
+        engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
+    },
+    remove_buff({ eff, self, engine }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'remove_buff' }>
+        const key = `${e.buffId}::${self.id}`
+        engine.state.pendingBuffs.delete(key)
+        engine.emitLog({
+            type: 'system',
+            message: `[${getBuff(e.buffId)?.name ?? e.buffId}] ${self.name} 状态消失`,
             actorId: self.id,
         })
     },

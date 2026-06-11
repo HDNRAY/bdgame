@@ -64,6 +64,14 @@ export const WEAPON_DB: WeaponDef[] = [
             { condition: { type: 'on_dodge' }, actionId: '_fusi_crit_stack' },
         ],
     },
+    {
+        id: 'zantetsu',
+        name: '斩铁',
+        description: '一刀两断，无物不斩。',
+        tags: ['slash', 'parry'],
+        range: [1, 3],
+        triggers: [{ condition: { type: 'on_buff' }, actionId: '_zantetsu_mind_eye' }],
+    },
 ]
 
 // ── 运行时武器查找表 ──

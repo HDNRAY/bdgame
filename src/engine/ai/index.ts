@@ -102,13 +102,13 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
 
 /** 选最优主招（AP 消耗大的优先，避免全程小招） */
 function pickMainAction(self: Character, state: BattleState): string | null {
-    const weapon = getWeapon(self.build.weapon)
     const sorted = [...self.actions].sort((a, b) => b.apCost - a.apCost)
     for (const inst of sorted) {
         if (inst.def.bonus) continue
         if (!inst.canUse()) continue
         if (self.ap < inst.apCost) continue
-        if (!state.distance.inRange(weapon.range[0], weapon.range[1]) && self.ap <= inst.apCost) continue
+        // 自定义释放条件
+        if (inst.def.canUse && !inst.def.canUse(self, state)) continue
         // 自伤招式：HP 不够则跳过
         const selfDmgEff = inst.def.effects?.find((e) => e.type === 'self_damage')
         if (selfDmgEff && selfDmgEff.type === 'self_damage') {

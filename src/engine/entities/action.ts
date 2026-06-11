@@ -1,8 +1,10 @@
 import type { AttrName } from './attributes'
+import type { Character } from './character'
 import type { Condition } from './trigger'
 import type { StatusType } from './status'
 import type { GameEntity } from './base'
 import type { Tag } from './tag'
+import type { BattleState } from '../combat/types'
 
 /** buff 持续时间：{ attr: '属性名', multiplier: 系数 } = 属性×系数 ms，系数大≈永久 */
 export type BuffDuration = { attr: AttrName; multiplier: number }
@@ -43,6 +45,8 @@ export type EffectDef =
     | { type: 'weapon_range_bonus'; value: number }
     | { type: 'trigger_slot_mod'; value: number }
     | { type: 'dodge_mod'; value: number }
+    | { type: 'add_buff'; buffId: string }
+    | { type: 'remove_buff'; buffId: string }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {
@@ -54,6 +58,8 @@ export interface ActionDefinition extends GameEntity {
     chance?: number
     maxUses?: number
     bonus?: boolean
+    /** 自定义释放条件（返回 false 则不可使用） */
+    canUse?: (attacker: Character, state: BattleState) => boolean
     bonusTiming?: Condition
     extraPreDelay?: number
     extraStunTime?: number

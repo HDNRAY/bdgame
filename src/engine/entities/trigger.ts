@@ -30,6 +30,8 @@ export interface ConditionContext {
 /** 触发条件 */
 export interface Condition {
     type: TriggerEvent
+    /** 仅当触发事件匹配此 buffId 时生效（on_buff 专用） */
+    buffId?: string
     check?: (ctx: ConditionContext) => boolean
 }
 

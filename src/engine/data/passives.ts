@@ -49,6 +49,20 @@ export const PASSIVES: Passive[] = [
         effects: [{ type: 'last_stand', ratio: 0.5 }],
         modifiers: ['last_stand'],
     },
+    {
+        id: 'iaijutsu_mastery',
+        name: '居合极意',
+        description: '居合拔刀术的极致境界。',
+        tags: ['qi'],
+        triggers: [{ condition: { type: 'battle_start' }, actionId: '_iaijutsu_ready' }],
+    },
+    {
+        id: 'empty_hand',
+        name: '无刀取',
+        description: '空手入白刃，非居合状态招架后反击。',
+        tags: [],
+        triggers: [{ condition: { type: 'on_parry' }, actionId: '_iaijutsu_counter' }],
+    },
 ]
 
 /** 天赋（绝学）注册表 */

@@ -4,16 +4,18 @@ export { ZHANGLIE } from './zhanglie'
 export { PLAYER } from './player'
 export { XUANJI } from './xuanji'
 export { LAYUE } from './layue'
+export { YIDAO } from './yidao'
 
 import type { CharacterBuild } from '../../entities/character-build'
 import { ZHANGLIE } from './zhanglie'
 import { PLAYER } from './player'
 import { XUANJI } from './xuanji'
 import { LAYUE } from './layue'
+import { YIDAO } from './yidao'
 import type { OpponentDef } from './base'
 
 /** 所有对手 */
-export const OPPONENTS: OpponentDef[] = [ZHANGLIE, PLAYER, XUANJI, LAYUE]
+export const OPPONENTS: OpponentDef[] = [ZHANGLIE, PLAYER, XUANJI, LAYUE, YIDAO]
 
 /** 按 ID 查找对手 def */
 export function getOpponentDef(id: string): OpponentDef | undefined {
