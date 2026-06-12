@@ -302,6 +302,11 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
         const e = eff as Extract<EffectDef, { type: 'parry_mod' }>
         char.parryMod += e.value
     },
+    stat_parry_dodge(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'stat_parry_dodge' }>
+        if (e.parryScale) char.parryMod += Math.round(char.attrs.get('dexterity') * e.parryScale * 100) / 100
+        if (e.dodgeScale) char.dodgeMod += Math.round(char.attrs.get('agility') * e.dodgeScale * 100) / 100
+    },
     weapon_range_bonus(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'weapon_range_bonus' }>
         const weapon = getWeapon(char.build.weapon)

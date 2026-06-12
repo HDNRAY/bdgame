@@ -45,7 +45,7 @@ export class BattleLog {
                     event.apRemaining,
                     tMs,
                     snapshot,
-                    event.triggered ? `[触发]${event.actionName}` : event.actionName,
+                    event.bonus ? `[辅招]${event.actionName}` : event.triggered ? `[触发]${event.actionName}` : event.actionName,
                     event.indent,
                 )
                 break
@@ -94,6 +94,14 @@ export class BattleLog {
             case 'dodged':
                 this.logDodge(event.sourceId, event.targetId, tMs, snapshot)
                 break
+            case 'damage_over_time':
+                this.logSystem(
+                    `[${event.status ?? event.actionName ?? 'DOT'}] ${this.resolveName(event.targetId, snapshot)} 受到 ${event.amount} 点伤害`,
+                    tMs,
+                    snapshot,
+                    event.targetId,
+                )
+                break
             case 'fumble':
                 this.logSystem(
                     `[晃神] ${this.resolveName(event.sourceId, snapshot)} 突然失神`,
@@ -128,14 +136,6 @@ export class BattleLog {
                 this.push({ type: 'system', message: msg, indent: this.indentDepth, snapshot }, tMs)
                 break
             }
-            case 'damage_over_time':
-                this.logSystem(
-                    `[${event.status}] ${event.sourceId ? this.resolveName(event.sourceId, snapshot) : '?'} → ${this.resolveName(event.targetId, snapshot)} ${event.amount} 伤害`,
-                    tMs,
-                    snapshot,
-                    event.sourceId ?? event.targetId,
-                )
-                break
             case 'interrupt':
                 this.logSystem(
                     `[打断] ${this.resolveName(event.targetId, snapshot)} 被中断`,
@@ -252,7 +252,7 @@ export class BattleLog {
     }
 
     logSystem(message: string, timelineMs: number, snapshot: BattleSnapshot, actor?: string): void {
-        this.push({ type: 'system', message, actor, indent: this.indentDepth, snapshot }, timelineMs)
+        this.push({ type: 'system', message, actor, indent: 0, snapshot }, timelineMs)
     }
 
     /** 属性变化日志，自动映射中文属性名 */

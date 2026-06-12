@@ -17,7 +17,12 @@ export function formatBattleLog(log: BattleLog): string[] {
         lastActor = ''
     // 从第一个事件快照构建名字映射
     const nameMap = all.length > 0 ? buildNameMap(all[0].event.snapshot) : new Map<string, string>()
-    const nameOf = (id: string): string => nameMap.get(id) ?? id
+    const nameOf = (id: string, snap?: BattleSnapshot): string => {
+        if (snap) {
+            for (const c of snap.characters) if (c.id === id) return c.name
+        }
+        return nameMap.get(id) ?? id
+    }
 
     /** 根据 actor 的 id 在快照中定位，返回有序 HP 信息 */
     function hpInfo(actorId: string, s: BattleSnapshot): string {
@@ -40,7 +45,9 @@ export function formatBattleLog(log: BattleLog): string[] {
         hpInfo?: string,
         dist?: number,
         actionCount?: number,
+        indent?: number,
     ) {
+        if (indent && indent > 0) return // 触发招式不建新 header
         if (ms !== lastTime || actor !== lastActor) {
             if (lastTime >= 0) lines.push('')
             lastTime = ms
@@ -65,6 +72,7 @@ export function formatBattleLog(log: BattleLog): string[] {
         hpInfo?: string
         distance?: number
         actionCount?: number
+        indent?: number
     } | null = null
 
     function flush() {
@@ -76,6 +84,7 @@ export function formatBattleLog(log: BattleLog): string[] {
             pending.hpInfo,
             pending.distance,
             pending.actionCount,
+            pending.indent,
         )
         lines.push(`  ${pending.text}${pending.ap ? ` ${pending.ap}` : ''}`)
         pending = null
@@ -107,12 +116,13 @@ export function formatBattleLog(log: BattleLog): string[] {
                 pending = {
                     time: ms,
                     actor: nameOf(e.actor),
-                    text: `${'  '.repeat(e.indent ?? 0)}#${e.actionName ?? e.weapon}（${e.apCost}AP）`,
+                    text: `${'  '.repeat(e.indent ?? 0)}#${e.actionName ?? e.weapon}（${e.apCost}AP）→ ${nameOf(e.target, e.snapshot)}`,
                     ap: `[AP${e.apRemaining}]`,
                     startAp: e.apRemaining + e.apCost,
                     hpInfo: hpInfo(e.actor, e.snapshot),
                     distance: e.snapshot.distance,
                     actionCount: e.snapshot.actionCount,
+                    indent: e.indent ?? 0,
                 }
                 break
 
@@ -176,7 +186,7 @@ export function formatBattleLog(log: BattleLog): string[] {
                 if (e.actor) {
                     checkNewEvent(ms, nameOf(e.actor), 0, undefined, undefined, e.snapshot?.actionCount)
                 }
-                const indent = '  ' + '  '.repeat(e.indent ?? 0)
+                const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
                 lines.push(`${indent}${e.message}`)
                 break
         }

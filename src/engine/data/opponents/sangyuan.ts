@@ -4,11 +4,11 @@ import type { ActionCommand } from '../../combat/types'
 
 export const SANGYUAN: OpponentDef = {
     id: 's1',
-    name: '断刃·桑原',
+    name: '灵剑·桑原',
     generate: (n) =>
         simpleGenerate(
             's1',
-            '断刃·桑原',
+            '灵剑·桑原',
             'strong',
             'bare_hands',
             { strength: 15, vitality: 18, agility: 8, dexterity: 18, insight: 12, wisdom: 5 },

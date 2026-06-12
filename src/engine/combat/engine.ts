@@ -37,6 +37,7 @@ export class BattleEngine {
     state!: BattleState
     #summons = new Map<string, SummonInstance>()
     #logListeners: LogListener[] = []
+    #deferredEmits: { event: TriggerEvent; self: Character; enemy: Character; buffId?: string; indent: number }[] = []
 
     constructor(p: Character, o: Character, d = 4) {
         this.init(p, o, d)
@@ -65,6 +66,7 @@ export class BattleEngine {
             lastActionExtraStun: 0,
             isEmitting: false,
             moveDelta: 0,
+            triggeredThisChain: null,
         }
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o)
@@ -237,22 +239,43 @@ export class BattleEngine {
         return true
     }
 
-    /** 触发检测 */
+    /** 触发检测：同一事件链每人每事件最多触发一次，indent 作为参数传递 */
     emit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
-        const { log, triggerUses, distance, moveDelta } = this.state
-        if (this.state.isEmitting) return // 防止递归触发
+        if (!this.state.triggeredThisChain) this.state.triggeredThisChain = new Set()
+        const key = `${self.id}:${event}`
+        if (this.state.triggeredThisChain.has(key)) return
+        if (this.state.isEmitting) {
+            this.#deferredEmits.push({ event, self, enemy, buffId, indent: this.state.log.indentDepth })
+            return
+        }
         this.state.isEmitting = true
+        this.state.triggeredThisChain.add(key)
+        this.state.log.indentDepth = 0
+        this.#processEmit(event, self, enemy, buffId)
+        this.state.isEmitting = false
+
+        while (this.#deferredEmits.length > 0) {
+            const d = this.#deferredEmits.shift()!
+            this.state.log.indentDepth = d.indent
+            this.state.isEmitting = true
+            this.#processEmit(d.event, d.self, d.enemy, d.buffId)
+            this.state.isEmitting = false
+        }
+        this.state.triggeredThisChain = null
+        this.state.log.indentDepth = 0
+    }
+
+    #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
+        const { triggerUses, distance, moveDelta } = this.state
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
             if (!matchCondition(slot.condition, { actor: self, distance: distance.current, moveDelta })) continue
 
             if (slot.effects) {
-                log.indentDepth++
                 for (const eff of slot.effects) {
                     processActionEffect(eff, self, enemy, this, this.#tMs, '', '')
                 }
-                log.indentDepth--
                 continue
             }
             if (!slot.actionId) continue
@@ -262,18 +285,15 @@ export class BattleEngine {
             if (action.maxUses !== undefined && used >= action.maxUses) continue
             triggerUses.set(slot.actionId, used + 1)
 
-            log.indentDepth++
             if (action.target === 'self') {
                 for (const eff of action.effects ?? []) {
                     processActionEffect(eff, self, enemy, this, this.#tMs, action.name, action.id)
                 }
             } else {
-                processBleedDamage(self, this.#tMs, this)
                 this.#executeAction(action, self, enemy, true)
+                processBleedDamage(self, this.#tMs, this)
             }
-            log.indentDepth--
         }
-        this.state.isEmitting = false
     }
 
     private execute(cmd: ActionCommand, self: Character, enemy: Character): ActionResult {
@@ -363,12 +383,12 @@ export class BattleEngine {
             apCost: ap,
             apRemaining: self.ap,
         })
-        processBleedDamage(self, this.#tMs, this)
         const enemy = this.getOpponent(self.id)!
         this.emit('on_move', self, enemy)
         this.state.moveDelta = a
         this.emit('on_opponent_move', enemy, self)
         this.state.moveDelta = 0
+        processBleedDamage(self, this.#tMs, this)
         return r
     }
 
@@ -378,12 +398,12 @@ export class BattleEngine {
             this.emitLog({ type: 'system', message: `${self.name} 没有可用招式`, actorId: self.id })
             return this.#emptyResult()
         }
-        processBleedDamage(self, this.#tMs, this)
         // 本体招式发出前事件（供对手反制，御物/触发招式不触发）
         this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
         this.state.lastActionExtraStun = action.extraStunTime ?? 0
         this.emit('on_pre_action', enemy, self)
         const r = this.#executeAction(action, self, enemy)
+        processBleedDamage(self, this.#tMs, this)
         this.#tryBonus(self, 'after_main')
         return r
     }
@@ -442,9 +462,9 @@ export class BattleEngine {
         const tMs = this.#tMs
 
         this.emit('on_hit', self, enemy)
-        this.emit('on_take_damage', enemy, self)
+        this.emit('on_was_hit', enemy, self)
         this.#tryBonus(self, 'on_hit')
-        this.#tryBonus(enemy, 'on_take_damage')
+        this.#tryBonus(enemy, 'on_was_hit')
 
         this.state.log.indentDepth++
         for (const eff of action.effects ?? []) {
@@ -643,6 +663,7 @@ export class BattleEngine {
                 apCost: inst.apCost,
                 apRemaining: self.ap,
                 triggered: true,
+                bonus: true,
                 indent: this.state.log.indentDepth,
             })
             for (const eff of inst.def.effects ?? []) {

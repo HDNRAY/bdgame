@@ -23,6 +23,13 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [0, 2],
     },
     {
+        id: 'military_dagger',
+        name: '军用匕首',
+        description: '短小锋利的制式匕首，专攻要害。',
+        tags: ['slash', 'pierce'],
+        range: [0, 2],
+    },
+    {
         id: 'iron_spear',
         name: '铁枪·破军',
         description: '丈二铁枪，势大力沉。',

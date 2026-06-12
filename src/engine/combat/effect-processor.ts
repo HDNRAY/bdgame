@@ -106,6 +106,11 @@ function applyDamage(
 
     target.takeDamage(final)
 
+    if (final > 0) {
+        engine.emit('on_dealt_damage', attacker, target)
+        engine.emit('on_took_damage', target, attacker)
+    }
+
     engine.emitLog({
         type: 'damage',
         actionId: actionId ?? 'unknown',
@@ -433,6 +438,29 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         }
         engine.emit('on_debuff', self, enemy)
     },
+    sand_blind({ enemy, engine }: Ctx) {
+        const key = `sand_blind::${enemy.id}`
+        if (engine.state.pendingBuffs.has(key)) return
+        const buffDef = getBuff('sand_blind')
+        const delta = buffDef?.attrMods?.insight ?? -4
+        enemy.attrs.modify('insight', delta)
+        engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr: 'insight', delta, label: '迷眼' })
+        const duration = calcDebuffDuration(2000, enemy.attrs.get('vitality'))
+        engine.state.pendingBuffs.set(key, { restoreValue: 1, mods: { insight: delta } })
+        engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, engine.state.turn.currentTime + duration, 'buff_end')
+    },
+    knockdown({ enemy, engine, tMs }: Ctx) {
+        const buffDef = getBuff('knockdown')
+        const agiDelta = buffDef?.attrMods?.agility ?? -4
+        enemy.attrs.modify('agility', agiDelta)
+        engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr: 'agility', delta: agiDelta, label: '倒地' })
+        engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+        const appId = genAppId(tMs)
+        const key = `knockdown::${enemy.id}::${appId}`
+        const duration = calcDebuffDuration(2000, enemy.attrs.get('vitality'))
+        engine.state.pendingBuffs.set(key, { restoreValue: 1, mods: { agility: agiDelta } })
+        engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, engine.state.turn.currentTime + duration, 'buff_end')
+    },
     poison({ eff, self, enemy, engine, tMs }: Ctx) {
         const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
         const key = `poison::${enemy.id}`
@@ -445,7 +473,15 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
                 extra: { source: self.name, sourceId: self.id },
             })
         }
-        const interval = calcPoisonTickInterval(stacks)
+        const total = existing ? existing.restoreValue : stacks
+        const dmg = total * 2
+        enemy.takeDamage(dmg)
+        engine.emitLog({ type: 'system', message: `[中毒] ${enemy.name} ${total}层×2=${dmg}伤害`, actorId: enemy.id })
+        engine.emit('on_poison', self, enemy)
+        engine.emit('on_debuff', self, enemy)
+        // 移除旧 tick 事件，防双重触发
+        engine.state.turn.removeEvents(`tick_poison_${enemy.id}`)
+        const interval = calcPoisonTickInterval(total)
         engine.state.turn.scheduleSystemEventAt(`tick_poison_${enemy.id}`, tMs + interval, 'tick_poison')
     },
     burn({ eff, self, enemy, engine, tMs }: Ctx) {
@@ -591,8 +627,11 @@ function handleStatusEffect(ctx: Omit<Ctx, 'tag' | 'actionId'> & { eff: EffectDe
     if (!success) return
 
     const st = eff.status
-    // ── 免疫检查（冰心诀 buff） ──
-    if (engine.state.pendingBuffs.has(`elemental_immunity::${enemy.id}`)) {
+    // ── 免疫检查（冰心诀：仅灼烧/冰霜/麻痹） ──
+    if (
+        engine.state.pendingBuffs.has(`elemental_immunity::${enemy.id}`) &&
+        (st === 'burn' || st === 'frost' || st === 'paralyze')
+    ) {
         engine.emitLog({ type: 'system', message: `[冰心] ${enemy.name} 免疫 ${st}`, actorId: enemy.id })
         return
     }
@@ -645,13 +684,14 @@ export function processStatusTick(
         const dmg = stacks * 2
         char.takeDamage(dmg)
         const nextInterval = calcPoisonTickInterval(stacks)
+        const buffName = getBuff('poison')?.name ?? '中毒'
         engine.emitLog({
             type: 'damage_over_time',
             actionId: 'poison',
-            actionName: '中毒',
+            actionName: buffName,
             sourceId: (entry.extra?.sourceId as string) ?? '?',
             targetId: char.id,
-            status: 'poison',
+            status: buffName,
             amount: dmg,
         })
         if (dmg > 0) {
@@ -669,13 +709,14 @@ export function processStatusTick(
         entry.extra = { ...entry.extra, remainingTicks: remainingTicks - 1 }
         entry.restoreValue = Math.max(0, stacks - 1)
         char.takeDamage(dmg)
+        const buffName = getBuff('burn')?.name ?? '灼烧'
         engine.emitLog({
             type: 'damage_over_time',
             actionId: 'burn',
-            actionName: '灼烧',
+            actionName: buffName,
             sourceId: (entry.extra?.sourceId as string) ?? '?',
             targetId: char.id,
-            status: 'burn',
+            status: buffName,
             amount: dmg,
         })
         if (dmg > 0) {
@@ -749,13 +790,14 @@ export function processBleedDamage(owner: Character, _tMs: number, engine: Battl
             entry.extra = { ...entry.extra, bleedTriggerCount: 0 }
             entry.restoreValue = Math.max(0, stacks - 1)
         }
+        const buffName = getBuff('bleed')?.name ?? '流血'
         engine.emitLog({
             type: 'damage_over_time',
             actionId: 'bleed',
-            actionName: '流血',
+            actionName: buffName,
             sourceId: (entry.extra?.sourceId as string) ?? '?',
             targetId: owner.id,
-            status: 'bleed',
+            status: buffName,
             amount: dmg,
         })
     }

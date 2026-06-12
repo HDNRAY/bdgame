@@ -7,6 +7,7 @@ export { LAYUE } from './layue'
 export { YIDAO } from './yidao'
 export { SANGYUAN } from './sangyuan'
 export { BAIHU } from './baihu'
+export { LUEYING } from './lueying'
 
 import type { CharacterBuild } from '../../entities/character-build'
 import { ZHANGLIE } from './zhanglie'
@@ -16,10 +17,11 @@ import { LAYUE } from './layue'
 import { YIDAO } from './yidao'
 import { SANGYUAN } from './sangyuan'
 import { BAIHU } from './baihu'
+import { LUEYING } from './lueying'
 import type { OpponentDef } from './base'
 
 /** 所有对手 */
-export const OPPONENTS: OpponentDef[] = [ZHANGLIE, LAIFENG, XUANJI, LAYUE, YIDAO, SANGYUAN, BAIHU]
+export const OPPONENTS: OpponentDef[] = [ZHANGLIE, LAIFENG, XUANJI, LAYUE, YIDAO, SANGYUAN, BAIHU, LUEYING]
 
 /** 按 ID 查找对手 def */
 export function getOpponentDef(id: string): OpponentDef | undefined {

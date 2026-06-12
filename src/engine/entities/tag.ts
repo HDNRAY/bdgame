@@ -8,6 +8,7 @@ export type Tag =
     | 'imperial' // 御物
     | 'stagger' // 失衡
     | 'paralyze' // 麻痹
+    | 'burn' // 灼烧
     | 'poison' // 中毒
     | 'interrupt' // 打断
     | 'stun' // 眩晕
@@ -26,3 +27,5 @@ export type Tag =
     | 'talent' // 天赋
     | 'passive' // 功法
     | 'frost' // 霜冻
+    | 'sand_blind' // 迷眼
+    | 'knockdown' // 倒地

@@ -107,6 +107,11 @@ export class TurnManager {
         this.sort()
     }
 
+    /** 移除队列中指定 ID 的所有事件（用于重置 poison tick 等） */
+    removeEvents(id: string): void {
+        this.queue = this.queue.filter((e) => e.id !== id)
+    }
+
     get currentTime(): number {
         return this.time
     }

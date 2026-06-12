@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN } from '../data/opponents/index'
+import { LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN, LUEYING, YIDAO } from '../data/opponents/index'
 import { STAT_NAMES } from '../data/rewards'
 import { cultCost } from '../systems/cultivation'
 import { getBackground } from '../data/backgrounds'
@@ -18,13 +18,13 @@ function calcCultCost(attrs: Record<string, number>, bgId: string): number {
 }
 
 describe('opponents', () => {
-    for (const def of [LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN]) {
+    for (const def of [LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN, LUEYING, YIDAO]) {
         describe(def.name, () => {
             const build = def.generate(33)
 
-            it('total cultivation cost = 66 (n × 2)', () => {
+            it('total cultivation cost = 64 (n × 2 − 2)', () => {
                 const cost = calcCultCost(build.baseAttrs, build.background)
-                expect(cost).toBeGreaterThanOrEqual(66)
+                expect(cost).toBeGreaterThanOrEqual(64)
             })
 
             it('triggers reference valid actions', () => {

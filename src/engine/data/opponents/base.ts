@@ -37,7 +37,7 @@ export function simpleGenerate(
     const bgAttrs: Record<string, number> = {}
     for (const a of STAT_NAMES) bgAttrs[a] = bg?.attrs[a] ?? 3
 
-    const cultPoints = n * 2 // 每轮 2 点，33 轮 = 66 点
+    const cultPoints = n * 2 - 2 // 每轮 2 点，33 轮 = 64 点（最后一轮不打）
     const prio = [...STAT_NAMES].sort((a, b) => (targetAttrs[b] ?? 0) - (targetAttrs[a] ?? 0))
 
     // 按优先级加点至目标值

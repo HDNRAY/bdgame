@@ -48,6 +48,7 @@ export type EffectDef =
     | { type: 'trigger_slot_mod'; value: number }
     | { type: 'dodge_mod'; value: number }
     | { type: 'parry_mod'; value: number }
+    | { type: 'stat_parry_dodge'; parryScale?: number; dodgeScale?: number }
     | { type: 'haste'; value: number }
     | { type: 'attr_floor'; attrs: Partial<Record<AttrName, number>> }
     | { type: 'add_buff'; buffId: string; stacks?: number }

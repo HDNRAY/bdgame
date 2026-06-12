@@ -159,6 +159,30 @@ export const ARTIFACTS: Artifact[] = [
             { condition: { type: 'on_parry' }, effects: [{ type: 'status', status: 'frost', stacks: 1, chance: 1 }] },
         ],
     },
+    {
+        id: 'poison_coating',
+        name: '淬毒工具',
+        description: '刃上淬毒，割裂或刺击时概率令其中毒。',
+        tags: [],
+        triggers: [
+            {
+                condition: { type: 'on_dealt_damage' },
+                effects: [{ type: 'status', status: 'poison', stacks: 1, chance: 0.3 }],
+            },
+        ],
+    },
+    {
+        id: 'western_poison',
+        name: '西域奇毒',
+        description: '剧毒入体，麻痹神经。每次中毒时叠加一层麻痹。',
+        tags: [],
+        triggers: [
+            {
+                condition: { type: 'on_poison' },
+                effects: [{ type: 'status', status: 'paralyze', stacks: 1, chance: 1 }],
+            },
+        ],
+    },
 ]
 
 /** 按 ID 查找物品 */

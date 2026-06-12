@@ -89,6 +89,13 @@ export const PASSIVES: Passive[] = [
         tags: ['qi'],
         triggers: [{ condition: { type: 'battle_start' }, actionId: '_ciyuan_init' }],
     },
+    {
+        id: 'ordinary_training',
+        name: '平平无奇的锻炼',
+        description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
+        tags: ['passive'],
+        effects: [{ type: 'stat_parry_dodge', parryScale: 0.005, dodgeScale: 0.005 }],
+    },
 ]
 
 /** 天赋（绝学）注册表 */
