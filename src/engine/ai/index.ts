@@ -82,6 +82,17 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
         cmds.push({ type: 'attack', actionId: mainId })
     }
 
+    // 5.5 左右互搏：有 buff 时剩余 AP 再打一次
+    if (state.pendingBuffs.has(`zuoyou_hubo::${self.id}`)) {
+        const remainingAp = apAfterBonus - (apAfterBonus >= mainDef.apCost ? mainDef.apCost : 0)
+        if (remainingAp >= 2) {
+            const second = pickBestAttack(self, state, remainingAp)
+            if (second) {
+                cmds.push({ type: 'attack', actionId: second })
+            }
+        }
+    }
+
     // 6. 行动后移动：有多余 AP 时根据双方武器距离调整位置
     if (enemy) {
         const enemyWeapon = getWeapon(enemy.build.weapon)
@@ -102,11 +113,16 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
 
 /** 选最优主招（AP 消耗大的优先，避免全程小招） */
 function pickMainAction(self: Character, state: BattleState): string | null {
+    return pickBestAttack(self, state, self.ap)
+}
+
+/** 选[剩余AP]下最优的攻击招式 */
+function pickBestAttack(self: Character, state: BattleState, apRemaining: number): string | null {
     const sorted = [...self.actions].sort((a, b) => b.apCost - a.apCost)
     for (const inst of sorted) {
         if (inst.def.bonus) continue
         if (!inst.canUse()) continue
-        if (self.ap < inst.apCost) continue
+        if (apRemaining < inst.apCost) continue
         // 自定义释放条件
         if (inst.def.canUse && !inst.def.canUse(self, state)) continue
         // 自伤招式：HP 不够则跳过

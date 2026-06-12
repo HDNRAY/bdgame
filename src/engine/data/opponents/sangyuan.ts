@@ -1,4 +1,4 @@
-import { type OpponentDef, simpleGenerate, passive, action } from './base'
+import { type OpponentDef, simpleGenerate, passive, action, implant } from './base'
 import { DistanceSystem } from '../../combat/distance'
 import type { ActionCommand } from '../../combat/types'
 
@@ -16,6 +16,7 @@ export const SANGYUAN: OpponentDef = {
                 passive('ciyuan_ren'),
                 passive('zuoyou_hubo'),
                 passive('vitality_regen'),
+                implant('qi_amplifier'),
                 action('slash'),
                 action('heavy_slash'),
                 action('big_leap'),
@@ -26,20 +27,12 @@ export const SANGYUAN: OpponentDef = {
     planEvent: (self, state) => {
         const perAp = DistanceSystem.apToRange(self.attrs.get('agility'))
         const dist = state.distance.current
-        const hasHubo = state.pendingBuffs.has('zuoyou_hubo::' + self.id)
         const cmds: ActionCommand[] = []
 
         const slashDef = self.actions.find((a) => a.id === 'slash')?.def
         const heavyDef = self.actions.find((a) => a.id === 'heavy_slash')?.def
         const leapDef = self.actions.find((a) => a.id === 'big_leap')?.def
-        const canDouble = hasHubo && !!slashDef
 
-        const tryDoubleSlash = () => {
-            if (!canDouble || !slashDef || self.ap < slashDef.apCost * 2) return false
-            cmds.push({ type: 'attack', actionId: 'slash' })
-            cmds.push({ type: 'attack', actionId: 'slash' })
-            return true
-        }
         const tryHeavy = () => {
             if (!heavyDef || self.ap < heavyDef.apCost) return false
             cmds.push({ type: 'attack', actionId: 'heavy_slash' })
@@ -52,30 +45,44 @@ export const SANGYUAN: OpponentDef = {
         }
 
         if (dist > 8) {
-            // 太远：走 + 大跳，剩余AP再放技能
             const walkClose = Math.ceil((dist - 8) / perAp)
             const leapCost = leapDef?.apCost ?? 3
             if (self.ap >= walkClose + leapCost) {
                 cmds.push({ type: 'move', bestDistance: -(dist - 8) })
                 cmds.push({ type: 'attack', actionId: 'big_leap' })
-                if (!tryDoubleSlash() && !tryHeavy()) trySlash()
+                if (!tryHeavy()) trySlash()
             } else if (self.ap >= walkClose + 2) {
                 cmds.push({ type: 'move', bestDistance: -(dist - 3) })
                 trySlash()
             }
         } else if (dist >= 4 && leapDef && self.ap >= leapDef.apCost) {
-            // 大跳
             cmds.push({ type: 'attack', actionId: 'big_leap' })
-            if (!tryDoubleSlash() && !tryHeavy()) trySlash()
+            if (!tryHeavy()) trySlash()
         } else if (dist > 3) {
-            // 走过去
             const walkAP = Math.ceil((dist - 3) / perAp)
             if (self.ap < walkAP + 2) return cmds
             cmds.push({ type: 'move', bestDistance: -(dist - 3) })
-            if (!tryDoubleSlash() && !tryHeavy()) trySlash()
+            if (!tryHeavy()) trySlash()
         } else {
-            // 已进入范围
-            if (!tryDoubleSlash() && !tryHeavy()) trySlash()
+            if (!tryHeavy()) trySlash()
+        }
+        // 左右互搏：剩余 AP 再打一次
+        if (state.pendingBuffs.has(`zuoyou_hubo::${self.id}`)) {
+            const apUsed = cmds.reduce((sum, c) => {
+                if (c.type === 'attack') {
+                    const def = self.actions.find((a) => a.id === c.actionId)?.def
+                    return sum + (def?.apCost ?? 0)
+                }
+                return sum
+            }, 0)
+            const remaining = self.ap - apUsed
+            if (remaining >= 2) {
+                if (heavyDef && remaining >= heavyDef.apCost) {
+                    cmds.push({ type: 'attack', actionId: 'heavy_slash' })
+                } else if (slashDef && remaining >= slashDef.apCost) {
+                    cmds.push({ type: 'attack', actionId: 'slash' })
+                }
+            }
         }
         return cmds
     },

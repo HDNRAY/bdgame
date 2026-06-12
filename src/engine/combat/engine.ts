@@ -228,8 +228,8 @@ export class BattleEngine {
         const stunTime = BASE_STUN_TIME + (this.state.lastActionExtraStun ?? 0)
         this.state.lastActionExtraStun = 0
         this.state.turn.scheduleNext(
-            { type: 'character', id: self.id, preDelay, stunTime },
-            calcTurnInterval(self.attrs.get('agility'), lastAction),
+            { type: 'character', id: self.id, preDelay, stunTime, haste: self.haste },
+            calcTurnInterval(self.attrs.get('agility'), lastAction) - self.haste,
         )
         this.state.lastActionExtraDelay = 0
         this.state.eventActorId = null

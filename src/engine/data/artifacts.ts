@@ -104,7 +104,6 @@ export const ARTIFACTS: Artifact[] = [
         name: '天生道种',
         description: '先天道种，扎根武道。',
         tags: ['trigger'],
-        triggers: [{ condition: { type: 'battle_start' }, actionId: '_innate_seed_start' }],
     },
     {
         id: 'tiger_eye',
@@ -135,6 +134,13 @@ export const ARTIFACTS: Artifact[] = [
         description: '拓展气海，AP上限+2。',
         tags: [],
         effects: [{ type: 'max_ap_mod', value: 2 }],
+    },
+    {
+        id: 'qi_amplifier',
+        name: '凝炁玉',
+        description: '凝聚天地灵炁，增幅炁系武器的锋芒。',
+        tags: ['trigger'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_amplify' }] }],
     },
 ]
 

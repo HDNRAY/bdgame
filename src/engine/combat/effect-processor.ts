@@ -184,13 +184,13 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     },
     ciyuan_init({ self, engine }: Ctx) {
         const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
-        if (weapon.id === 'bare_hands' || weapon.id === 'iron_ring') {
+        if (weapon.id === 'bare_hands') {
             self.weaponDef = { ...getWeapon('ciyuan_blade') }
             engine.emitLog({ type: 'system', message: `[次元刃] ${self.name} 凝炁为刃`, actorId: self.id })
         } else {
             self.weaponDef = {
                 ...weapon,
-                tags: [...new Set([...weapon.tags, 'ignore_parry' as Tag])],
+                tags: [...new Set([...weapon.tags, 'ignore_parry' as Tag, 'qi' as Tag])],
             }
             engine.emitLog({ type: 'system', message: `[次元刃] ${self.name} 附刃成功`, actorId: self.id })
         }

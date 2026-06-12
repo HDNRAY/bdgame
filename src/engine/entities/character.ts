@@ -43,6 +43,8 @@ export class Character {
     fumbleChance = 0
     /** 移动效率倍率（0.2 = +20% 每AP移动距离） */
     moveEfficiency = 0
+    /** 身法相关独立加速（凌波微步等） */
+    haste = 0
     /** 额外暴击率（闪避弗思剑叠层） */
     critChance = 0
     /** 额外暴击伤害倍率（不二剑起始buff） */
@@ -224,6 +226,10 @@ export class Character {
 // ── 被动效果分发表（构造期执行，无战斗上下文） ──
 
 const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) => void> = {
+    haste(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'haste' }>
+        char.haste += e.value
+    },
     attr_floor(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'attr_floor' }>
         for (const [attr, value] of Object.entries(e.attrs)) {
@@ -284,7 +290,11 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     },
     crit_damage(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'crit_damage' }>
-        char.critDamageMod += e.value
+        if (e.reset) {
+            char.critDamageMod = 0
+        } else {
+            char.critDamageMod += e.value
+        }
     },
     dodge_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>

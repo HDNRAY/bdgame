@@ -152,12 +152,12 @@ interface TurnEntryBase {
 }
 
 export type TurnEntry =
-    | (TurnEntryBase & { type: 'character'; preDelay?: number; stunTime?: number })
+    | (TurnEntryBase & { type: 'character'; preDelay?: number; stunTime?: number; haste?: number })
     | (TurnEntryBase & { type: 'system'; systemEventType: SystemEventType })
     | (TurnEntryBase & { type: 'summon'; ownerId: string })
 
 /** 不含 nextActionAt 的 TurnEntry（用于 scheduleNext） */
 export type TurnEntryTemplate =
-    | { type: 'character'; id: string; preDelay?: number; stunTime?: number }
+    | { type: 'character'; id: string; preDelay?: number; stunTime?: number; haste?: number }
     | { type: 'system'; id: string; systemEventType: SystemEventType }
     | { type: 'summon'; id: string; ownerId: string }

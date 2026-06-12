@@ -75,6 +75,7 @@ export class TurnManager {
             if (template.type === 'character' && entry.type === 'character') {
                 if (template.preDelay !== undefined) entry.preDelay = template.preDelay
                 if (template.stunTime !== undefined) entry.stunTime = template.stunTime
+                if (template.haste !== undefined) entry.haste = template.haste
             }
         } else {
             this.queue.push({
@@ -91,7 +92,7 @@ export class TurnManager {
         const entry = this.queue.find((e) => e.id === id)
         if (!entry || entry.type !== 'character' || entry.preDelay === undefined) return
         const oldDelay = entry.nextActionAt - entry.scheduledAt
-        const newDelay = calcTurnInterval(agility, entry.preDelay, entry.stunTime ?? 0)
+        const newDelay = calcTurnInterval(agility, entry.preDelay, entry.stunTime ?? 0) - (entry.haste ?? 0)
         entry.nextActionAt = entry.nextActionAt + (newDelay - oldDelay)
         this.sort()
     }

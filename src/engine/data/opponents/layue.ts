@@ -24,7 +24,7 @@ export const LAYUE: OpponentDef = {
 
         // 修炼点 = n×2 + 天生道种加成 floor((n-1)/3)
         const cultPoints = n * 2 + Math.max(0, Math.floor((n - 1) / 3))
-        const target = { strength: 7, vitality: 7, agility: 20, dexterity: 18, insight: 16, wisdom: 4 }
+        const target = { strength: 12, vitality: 6, agility: 16, dexterity: 16, insight: 16, wisdom: 6 }
         const prio = [...STAT_NAMES].sort((a, b) => (target[b] ?? 0) - (target[a] ?? 0))
 
         // Phase 1: 到 target
@@ -50,7 +50,7 @@ export const LAYUE: OpponentDef = {
         while (remaining > 0) {
             let improved = false
             for (const attr of overflowPrio) {
-                if (result[attr] >= 30) continue
+                if (result[attr] >= 24) continue
                 const cost = cultCost(result[attr])
                 if (remaining >= cost) {
                     result[attr]++
@@ -66,6 +66,7 @@ export const LAYUE: OpponentDef = {
         const rewards: Reward[] = []
         if (n >= 1) rewards.push({ type: 'implant', id: 'innate_seed', name: '天生道种', description: '', tags: [] })
         if (n >= 3) {
+            rewards.push({ type: 'passive', id: 'ling_bo_wei_bu', name: '凌波微步', description: '', tags: [] })
             const ratio = Math.min(1, (n - 2) / 31)
             const count = Math.round(POOL.length * ratio)
             const shuffled = [...POOL].sort(() => Math.random() - 0.5)

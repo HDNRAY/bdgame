@@ -23,15 +23,6 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [0, 2],
     },
     {
-        id: 'iron_ring',
-        name: '铁指环',
-        description: '一对老旧的铁指环，拳拳到肉。',
-        tags: ['blunt'],
-        bound: false,
-        effects: [{ type: 'stat_buff', attrs: { strength: 1 } }],
-        range: [0, 2],
-    },
-    {
         id: 'iron_spear',
         name: '铁枪·破军',
         description: '丈二铁枪，势大力沉。',
@@ -76,7 +67,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'ciyuan_blade',
         name: '次元刃',
         description: '以炁凝成的无形之刃，无视招架。',
-        tags: ['slash', 'parry', 'ignore_parry'],
+        tags: ['slash', 'parry', 'ignore_parry', 'qi'],
         range: [1, 3],
     },
 ]

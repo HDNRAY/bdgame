@@ -149,9 +149,10 @@ export const BUFF_DB: BuffDef[] = [
         name: '炁盾',
         description: '吸收qi招式伤害，每次2点。',
         tags: [],
-        onDamage: (f, { target, engine, actionId, layer }) => {
+        onDamage: (f, { target, attacker, engine, actionId, layer }) => {
             const act = actionId ? getAction(actionId) : undefined
-            if (!act?.tags?.includes('qi') || f <= 0 || layer.restoreValue <= 0) return f
+            const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
+            if (!isQi || f <= 0 || layer.restoreValue <= 0) return f
             const absorb = Math.min(2, f)
             layer.restoreValue--
             engine.emitLog({
@@ -226,6 +227,19 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         tickInterval: 3000,
         tickHeal: 1,
+    },
+    {
+        id: 'qi_amplify',
+        name: '炁意',
+        description: '凝炁玉增幅，炁系招式伤害+15%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDamage: (f, { attacker, actionId }) => {
+            const act = actionId ? getAction(actionId) : undefined
+            const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
+            if (!isQi) return f
+            return Math.round(f * 1.1 * 10) / 10
+        },
     },
 ]
 

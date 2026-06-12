@@ -23,3 +23,5 @@ export type Tag =
     | 'heal' // 回复
     | 'buff' // 增益
     | 'trigger' // 触发
+    | 'talent' // 天赋
+    | 'passive' // 功法

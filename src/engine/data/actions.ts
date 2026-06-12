@@ -1,6 +1,5 @@
 import type { ActionDefinition } from '../entities/action'
 import type { Tag } from '../entities/tag'
-import { QI_SKILLS } from './forging'
 
 /**
  * MVP 招式清单
@@ -158,7 +157,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '一记快速刺拳，消耗极低。',
         requiredTags: ['blunt'],
         apCost: 1,
-        tags: [],
+        tags: ['blunt'],
         effects: [{ type: 'damage', scaling: { strength: 0.2 } }],
     },
 
@@ -168,7 +167,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '一寸剑芒，顺势反击。',
         requiredTags: ['pierce'],
         apCost: 1,
-        tags: ['counter'],
+        tags: ['counter', 'pierce'],
         effects: [{ type: 'damage', scaling: { agility: 0.15 } }],
     },
 
@@ -176,10 +175,10 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'nine_deaths_strike',
         name: '九死不悔',
         description: '虽九死而不悔，以身为剑，不避锋芒。',
-        requiredTags: ['pierce', 'imperial'],
+        requiredTags: ['pierce'],
         apCost: 4,
-        tags: ['counter'],
-        effects: [{ type: 'damage', scaling: { strength: 0.4, agility: 0.4 } }],
+        tags: ['pierce', 'imperial', 'slash'],
+        effects: [{ type: 'damage', scaling: { strength: 0.5, agility: 0.5 } }],
     },
     {
         id: 'iaijutsu_strike',
@@ -187,7 +186,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '拔刀一瞬，电光石火。',
         requiredTags: ['slash'],
         apCost: 4,
-        tags: ['counter'],
+        tags: ['slash'],
         effects: [
             { type: 'damage', scaling: { strength: 1.2 } },
             { type: 'remove_buff', buffId: 'iaijutsu' },
@@ -199,7 +198,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '普普通通的一刀。',
         requiredTags: ['slash'],
         apCost: 2,
-        tags: [],
+        tags: ['slash'],
         effects: [{ type: 'damage', scaling: { strength: 0.5 } }],
     },
     {
@@ -208,14 +207,14 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '蓄力一击，势大力沉。',
         requiredTags: ['slash'],
         apCost: 6,
-        tags: [],
+        tags: ['slash'],
         effects: [{ type: 'damage', scaling: { strength: 1.2 } }],
     },
     {
         id: 'big_leap',
         name: '虎跃',
         description: '猛虎跃涧，瞬间近身。范围4~8m。',
-        requiredTags: ['slash'],
+        requiredTags: [],
         apCost: 3,
         tags: [],
         range: [0, 10],
@@ -225,7 +224,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         id: 'foresight',
         name: '看破',
         description: '凝神静气，洞察先机。',
-        requiredTags: ['slash'],
+        requiredTags: [],
         apCost: 1,
         tags: ['buff'],
         target: 'self',
@@ -315,14 +314,14 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
     {
         id: '_buer_init',
         name: '不二',
-        description: '青山双剑起手式，暴击率大增但身法略滞。',
+        description: '青山双剑起手式，暴击伤害大增但身法略滞。',
         requiredTags: ['imperial'],
         apCost: 0,
         tags: ['buff', 'trigger'],
         target: 'self',
         maxUses: 1,
         effects: [
-            { type: 'crit_chance', value: 0.5 },
+            { type: 'crit_damage', value: 0.5 },
             { type: 'dodge_mod', value: -0.2 },
         ],
     },
@@ -334,7 +333,7 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['buff', 'trigger'],
         target: 'self',
-        effects: [{ type: 'crit_chance', value: 0.08 }],
+        effects: [{ type: 'crit_chance', value: 0.05 }],
     },
     {
         id: '_fusi_reset',
@@ -355,16 +354,6 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
         tags: ['trigger'],
         target: 'enemy',
         effects: [{ type: 'status', status: 'bleed', stacks: 1, chance: 1 }],
-    },
-    {
-        id: '_innate_seed_start',
-        name: '道种萌发',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger'],
-        target: 'self',
-        maxUses: 1,
     },
     {
         id: '_iaijutsu_ready',
@@ -419,6 +408,66 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
         target: 'self',
         maxUses: 1,
         effects: [{ type: 'ciyuan_init' }, { type: 'add_buff', buffId: 'zuoyou_hubo' }],
+    },
+]
+
+/** 炁技 —— 锻体解锁的辅招 */
+const QI_SKILLS: ActionDefinition[] = [
+    {
+        id: 'qi_focus',
+        name: '凝炁',
+        description: '凝聚体内炁劲，全属性小幅提升。',
+        requiredTags: [],
+        apCost: 1,
+        tags: ['buff'],
+        bonus: true,
+        bonusTiming: { type: 'before_main' },
+        target: 'self',
+        maxUses: 1,
+        effects: [
+            {
+                type: 'stat_buff',
+                attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2, insight: 1, wisdom: 1 },
+                duration: { attr: 'wisdom', multiplier: 1000 },
+            },
+        ],
+    },
+    {
+        id: 'qi_gather',
+        name: '聚炁',
+        description: '集中炁劲，力量翻倍。',
+        requiredTags: [],
+        apCost: 1,
+        tags: ['buff'],
+        bonus: true,
+        bonusTiming: { type: 'before_main' },
+        target: 'self',
+        maxUses: 1,
+        effects: [
+            { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: { attr: 'wisdom', multiplier: 150 } },
+        ],
+    },
+    {
+        id: 'qi_bolt',
+        name: '炁弹',
+        description: '凝聚炁劲远程攻击。',
+        requiredTags: [],
+        apCost: 1,
+        tags: ['qi'],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 } }],
+        extraPreDelay: 200,
+        range: [0, 6],
+    },
+    {
+        id: 'restore_ap',
+        name: '回炁',
+        description: '恢复 1 AP。',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['qi'],
+        target: 'self',
+        effects: [{ type: 'restore_ap', value: 1 }],
+        maxUses: 999,
     },
 ]
 

@@ -41,11 +41,12 @@ export type EffectDef =
     | { type: 'fumble_chance'; value: number }
     // 功法/奇物效果
     | { type: 'crit_chance'; value: number; reset?: boolean }
-    | { type: 'crit_damage'; value: number }
+    | { type: 'crit_damage'; value: number; reset?: boolean }
     | { type: 'last_stand'; ratio: number }
     | { type: 'weapon_range_bonus'; value: number }
     | { type: 'trigger_slot_mod'; value: number }
     | { type: 'dodge_mod'; value: number }
+    | { type: 'haste'; value: number }
     | { type: 'attr_floor'; attrs: Partial<Record<AttrName, number>> }
     | { type: 'add_buff'; buffId: string; stacks?: number }
     | { type: 'remove_buff'; buffId: string }
