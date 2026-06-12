@@ -45,12 +45,12 @@ describe('calcHitChance', () => {
     it('should be base 80% when equal', () => {
         expect(
             calcHitChance({ attackerDexterity: 10, attackerInsight: 10, defenderAgility: 10, defenderInsight: 10 }),
-        ).toBe(0.8)
+        ).toBeCloseTo(0.8)
     })
 
     it('should increase with higher dexterity and insight', () => {
         const hc = calcHitChance({ attackerDexterity: 18, attackerInsight: 14, defenderAgility: 8, defenderInsight: 6 })
-        expect(hc).toBe(0.95) // capped
+        expect(hc).toBeCloseTo(0.951)
     })
 })
 
@@ -66,9 +66,9 @@ describe('calcCritChance', () => {
 })
 
 describe('calcParryChance', () => {
-    it('should scale with agility, dexterity and insight', () => {
-        // (14 + 10 + 6) / 120 = 30/120 = 0.25
-        expect(calcParryChance(14, 10, 6)).toBeCloseTo(0.25)
+    it('should scale with dexterity and insight', () => {
+        // (10 + 6) / 80 = 16/80 = 0.2
+        expect(calcParryChance(0, 10, 6)).toBeCloseTo(0.2)
         // capped at 0.9
         expect(calcParryChance(40, 40, 40)).toBeCloseTo(0.9)
         // (10 + 10 + 10) / 120 = 30/120 = 0.25

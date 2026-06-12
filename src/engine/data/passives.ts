@@ -64,6 +64,13 @@ export const PASSIVES: Passive[] = [
         tags: [],
         triggers: [{ condition: { type: 'on_parry' }, actionId: '_iaijutsu_counter' }],
     },
+    {
+        id: 'ciyuan_ren',
+        name: '次元刃',
+        description: '凝炁为刃，无视招架。',
+        tags: ['qi'],
+        triggers: [{ condition: { type: 'battle_start' }, actionId: '_ciyuan_init' }],
+    },
 ]
 
 /** 天赋（绝学）注册表 */
@@ -71,12 +78,28 @@ export const TALENTS: Talent[] = [
     {
         id: 'ling_bo_wei_bu',
         name: '凌波微步',
-        description: '绝世轻功，身法达到一定境界后自然领悟。步法精妙，难以捉摸。',
+        description: '绝世轻功，身法达到一定境界后自然领悟。步法精妙，身法不低于15。',
         tags: [],
-        requireAttrs: { agility: 18 },
-        effects: [],
-        triggers: [{ condition: { type: 'on_dodge' }, actionId: '_lingbo_insight_step' }],
+        requireAttrsMin: { agility: 18 },
+        effects: [{ type: 'attr_floor', attrs: { agility: 15 } }],
+        triggers: [],
         modifiers: ['minMoveCost'],
+    },
+    {
+        id: 'zuoyou_hubo',
+        name: '左右互搏',
+        description: '双手各自为战，灵巧过人者可一心二用。',
+        tags: [],
+        requireAttrsMin: { dexterity: 16 },
+        requireAttrsMax: { wisdom: 5 },
+    },
+    {
+        id: 'vitality_regen',
+        name: '生生不息',
+        description: '根骨强健，每 3 秒回复 1% 生命。',
+        tags: ['heal'],
+        requireAttrsMin: { vitality: 18 },
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'vitality_regen' }] }],
     },
 ]
 

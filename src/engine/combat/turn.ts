@@ -13,6 +13,7 @@ export class TurnManager {
             type: 'character',
             id: char.id,
             nextActionAt: this.time + delay,
+            scheduledAt: this.time,
         })
         this.sort()
     }
@@ -23,6 +24,7 @@ export class TurnManager {
             type: 'system',
             id,
             nextActionAt: this.time + delayMs,
+            scheduledAt: this.time,
             systemEventType: type,
         })
         this.sort()
@@ -34,6 +36,7 @@ export class TurnManager {
             type: 'system',
             id,
             nextActionAt: targetTime,
+            scheduledAt: this.time,
             systemEventType: type,
         })
         this.sort()
@@ -46,6 +49,7 @@ export class TurnManager {
             id,
             ownerId,
             nextActionAt: this.time + delay,
+            scheduledAt: this.time,
         })
         this.sort()
     }
@@ -67,22 +71,28 @@ export class TurnManager {
         const entry = this.queue.find((e) => e.id === template.id)
         if (entry) {
             entry.nextActionAt = this.time + delay
+            entry.scheduledAt = this.time
             if (template.type === 'character' && entry.type === 'character') {
                 if (template.preDelay !== undefined) entry.preDelay = template.preDelay
                 if (template.stunTime !== undefined) entry.stunTime = template.stunTime
             }
         } else {
-            this.queue.push({ ...template, nextActionAt: this.time + delay } satisfies TurnEntry)
+            this.queue.push({
+                ...template,
+                nextActionAt: this.time + delay,
+                scheduledAt: this.time,
+            } satisfies TurnEntry)
         }
         this.sort()
     }
 
-    /** 身法变化时重新计算回合间隔 */
+    /** 身法变化时按差值调整回合间隔（不重置绝对时间） */
     recalcInterval(id: string, agility: number): void {
         const entry = this.queue.find((e) => e.id === id)
         if (!entry || entry.type !== 'character' || entry.preDelay === undefined) return
-        const delay = calcTurnInterval(agility, entry.preDelay, entry.stunTime ?? 0)
-        entry.nextActionAt = this.time + delay
+        const oldDelay = entry.nextActionAt - entry.scheduledAt
+        const newDelay = calcTurnInterval(agility, entry.preDelay, entry.stunTime ?? 0)
+        entry.nextActionAt = entry.nextActionAt + (newDelay - oldDelay)
         this.sort()
     }
 

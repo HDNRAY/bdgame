@@ -57,26 +57,17 @@ export class BattleEngine {
             turn: tm,
             log,
             eventActorId: null,
+            eventTime: 0,
             triggerUses: new Map(),
             pendingBuffs: new Map(),
             actionCount: 0,
             lastActionExtraDelay: 0,
+            lastActionExtraStun: 0,
             isEmitting: false,
         }
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o)
         this.emit('battle_start', o, p)
-
-        // 注册永久灼烧
-        for (const char of [p, o]) {
-            if (char.modifiers.has('permanentBurn')) {
-                this.state.turn.scheduleSystemEventAt(
-                    `permanent_burn_${char.id}`,
-                    this.state.turn.currentTime + (getBuff('permanent_burn')?.tickInterval ?? 3000),
-                    'permanent_burn',
-                )
-            }
-        }
 
         // 创建召唤物
         this.#initSummons(p)
@@ -173,6 +164,7 @@ export class BattleEngine {
         const e = this.state.turn.peek()
         if (!e) return false
         this.state.eventActorId = e.type === 'character' ? e.id : null
+        this.state.eventTime = e.nextActionAt
 
         // 系统事件
         if (e.type === 'system') {
@@ -233,7 +225,8 @@ export class BattleEngine {
         this.state.turn.next()
         const lastAction = this.state.lastActionExtraDelay ?? 0
         const preDelay = BASE_PRE_DELAY + lastAction
-        const stunTime = BASE_STUN_TIME
+        const stunTime = BASE_STUN_TIME + (this.state.lastActionExtraStun ?? 0)
+        this.state.lastActionExtraStun = 0
         this.state.turn.scheduleNext(
             { type: 'character', id: self.id, preDelay, stunTime },
             calcTurnInterval(self.attrs.get('agility'), lastAction),
@@ -316,7 +309,7 @@ export class BattleEngine {
     /** 发射日志事件（自动附加当前快照） */
     emitLog(event: LogEvent): void {
         const snap = this.getSnapshot()
-        const tMs = this.state.turn.currentTime
+        const tMs = this.state.eventTime
         const enriched = { ...event, snapshot: snap } as LogEvent & { snapshot: BattleSnapshot }
         this.state.log.handleLogEvent(enriched, snap, tMs)
         for (const l of this.#logListeners) l(enriched)
@@ -389,6 +382,7 @@ export class BattleEngine {
         processBleedDamage(self, this.#tMs, this)
         // 本体招式发出前事件（供对手反制，御物/触发招式不触发）
         this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
+        this.state.lastActionExtraStun = action.extraStunTime ?? 0
         this.emit('on_pre_action', enemy, self)
         const r = this.#executeAction(action, self, enemy)
         this.#tryBonus(self, 'after_main')
@@ -431,6 +425,12 @@ export class BattleEngine {
             indent: this.state.log.indentDepth,
         })
         this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
+        // 移动/跳跃类效果先执行（不受战斗判定影响）
+        for (const eff of action.effects ?? []) {
+            if (eff.type === 'leap' || eff.type === 'knockback') {
+                processActionEffect(eff, self, enemy, this, this.#tMs, action.name, action.id)
+            }
+        }
         // 战斗判定
         if (!processCombatRolls(action, r, self, enemy, this.#tMs, this)) return r
         // 效果应用
@@ -451,7 +451,7 @@ export class BattleEngine {
         for (const eff of action.effects ?? []) {
             if ((eff.type === 'status' || eff.type === 'damage' || eff.type === 'fixed_damage') && r.hit && !r.dodged) {
                 processActionEffect(eff, self, enemy, this, tMs, action.name, action.id)
-            } else if (r.hit && !r.dodged) {
+            } else if (r.hit && !r.dodged && eff.type !== 'leap' && eff.type !== 'knockback') {
                 processActionEffect(eff, self, enemy, this, tMs, action.name, action.id)
             }
         }
@@ -592,6 +592,36 @@ export class BattleEngine {
                 )
                 const bi = getBuff('permanent_burn')?.tickInterval ?? 3000
                 this.state.turn.scheduleSystemEventAt(eventId, this.#currentTime + bi, 'permanent_burn')
+                break
+            }
+            case 'tick_buff': {
+                const key = eventId.slice('tick_buff_'.length)
+                const [buffId, charId] = key.split('::')
+                const buffDef = getBuff(buffId)
+                const char = this.getCharacter(charId)
+                if (!char || !char.isAlive() || !buffDef) break
+                if (buffDef.dotDamage) {
+                    char.takeDamage(buffDef.dotDamage)
+                    this.emitLog({
+                        type: 'damage_over_time',
+                        sourceId: charId,
+                        targetId: charId,
+                        amount: buffDef.dotDamage,
+                        status: buffDef.name,
+                    })
+                }
+                if (buffDef.tickHeal) {
+                    const amt = buffDef.tickHeal === 1 ? Math.round(char.maxHp * 0.01) : buffDef.tickHeal
+                    char.heal(amt)
+                    this.emitLog({ type: 'heal', sourceId: char.id, targetId: char.id, amount: amt })
+                }
+                if (this.state.pendingBuffs.has(`${buffId}::${charId}`)) {
+                    this.state.turn.scheduleSystemEventAt(
+                        eventId,
+                        this.#currentTime + (buffDef.tickInterval ?? 1000),
+                        'tick_buff',
+                    )
+                }
                 break
             }
         }

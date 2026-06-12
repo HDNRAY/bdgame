@@ -7,6 +7,13 @@ export const BASE_STUN_TIME = 700
 /** 基础回合间隔（所有角色统一） */
 export const BASE_TURN_INTERVAL = 1200
 
+/** VIT 缩短 debuff 持续时长：≤8 不减，20 点减 60% */
+export function calcDebuffDuration(baseMs: number, vit: number): number {
+    if (vit <= 8) return baseMs
+    const ratio = Math.max(0.2, 1.4 - 0.05 * vit)
+    return Math.round(baseMs * ratio)
+}
+
 /** 计算基础伤害: Σ(attrScaling[attr] × attrs[attr]) */
 export function calcBaseDamage(scaling: Partial<Record<AttrName, number>>, attrs: Record<AttrName, number>): number {
     let damage = 0
@@ -28,17 +35,20 @@ export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit
     return Math.max(1, damage)
 }
 
-/** 命中判定: base 80%，受双方灵巧/洞察/闪避修正影响 */
+/** 命中判定: 逻辑斯蒂曲线，自然收敛至 [0,1]，无需 clamp */
 export function calcHitChance(opts: Record<string, number>): number {
-    const atk = (opts.attackerDexterity ?? 0) / 50 + (opts.attackerInsight ?? 0) / 60
-    const def = (opts.defenderAgility ?? 0) / 50 + (opts.defenderInsight ?? 0) / 60
+    const atk = (opts.attackerDexterity ?? 0) / 80 + (opts.attackerInsight ?? 0) / 80
+    const def = (opts.defenderAgility ?? 0) / 80 + (opts.defenderInsight ?? 0) / 80
     const dodgeMod = opts.defenderDodgeMod ?? 0
-    return Math.max(0.05, Math.min(0.95, 0.8 + atk - def - dodgeMod))
+    const net = atk - def - dodgeMod
+    // 逻辑斯蒂: net=0 → 80%, 陡度 k=7, 收敛
+    const k = 7
+    return 1 / (1 + Math.exp(-k * net - 1.386))
 }
 
-/** 招架判定: (身法 + 灵巧 + 洞察) / 120，上限 50% */
-export function calcParryChance(agility: number, dexterity: number, insight: number): number {
-    return Math.min(0.9, (agility + dexterity + insight) / 120)
+/** 招架判定: (灵巧 + 洞察) / 80，上限 90% */
+export function calcParryChance(_agility: number, dexterity: number, insight: number): number {
+    return Math.min(0.9, (dexterity + insight) / 80)
 }
 
 /** 移动消耗: 移动 1 档需要 AP = 1 / apToRange */
@@ -47,9 +57,10 @@ export function calcMoveApCost(distance: number, agility: number): number {
     return Math.ceil(distance / perAp)
 }
 
-/** 回合间隔: 基础 + 前后摇受身法影响（高身法大幅减少间隔） */
+/** 回合间隔: 基础 + 前后摇受身法影响（逻辑斯蒂曲线收敛，低身法不超过 3s） */
 export function calcTurnInterval(agility: number, extraPreDelay = 0, extraStunTime = 0): number {
-    const agiFactor = 2.8 / (1 + agility * 0.25)
+    // 逻辑斯蒂: 收敛至 [0.4, 1.28]，AGI=8→~2s, AGI=20→~1.14s（与原值一致）
+    const agiFactor = 0.4 + 1.2 / (1 + Math.exp(agility * 0.2 - 1))
     const base = BASE_TURN_INTERVAL
     const epd = Math.round(BASE_PRE_DELAY + extraPreDelay)
     const est = Math.round(BASE_STUN_TIME + extraStunTime)
@@ -82,9 +93,9 @@ export function calcSelfDamage(maxHp: number, ratio: number): number {
     return Math.round(maxHp * ratio)
 }
 
-/** 麻痹到期时恢复的身法/洞察 */
-export function calcParalyzeAttrRestore(stacks: number): { agility: number; insight: number } {
-    return { agility: stacks * 2, insight: stacks * 1 }
+/** 麻痹到期时恢复的身法/灵巧 */
+export function calcParalyzeAttrRestore(stacks: number): { agility: number; dexterity: number } {
+    return { agility: stacks * 1, dexterity: stacks * 1 }
 }
 
 /** 回复量：固定值 + 最大HP百分比 */
@@ -109,8 +120,8 @@ export function calcRoll(chance: number): { roll: number; success: boolean } {
 }
 
 /** 麻痹施加时的属性惩罚 */
-export function calcParalyzeAttrPenalty(stacks: number): { agility: number; insight: number } {
-    return { agility: -stacks * 2, insight: -stacks * 1 }
+export function calcParalyzeAttrPenalty(stacks: number): { agility: number; dexterity: number } {
+    return { agility: -stacks * 1, dexterity: -stacks * 1 }
 }
 
 /** 眩晕属性保留比例：连续次数越高效果越弱 */

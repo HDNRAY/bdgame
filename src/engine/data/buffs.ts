@@ -39,10 +39,12 @@ export interface BuffDef extends GameEntity {
     attrMods?: Record<string, number>
     /** 连续眩晕递减 */
     consecutiveDiminish?: boolean
-    /** DOT tick 间隔（ms） */
+    /** DOT/tick 间隔（ms） */
     tickInterval?: number
     /** tick 伤害基数 */
     dotDamage?: number
+    /** tick 回复基数（1 = 1% maxHP） */
+    tickHeal?: number
     /** 伤害修正钩子（applyDamage 中自动调用） */
     onDamage?: (final: number, ctx: DamageModContext) => number
 }
@@ -100,11 +102,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'paralyze',
         name: '麻痹',
-        description: '身法、洞察降低。',
+        description: '身法、灵巧降低。',
         tags: [],
-        expiry: { type: 'duration', ms: 1800 },
+        expiry: { type: 'duration', ms: 1500 },
         stacking: { type: 'independent' },
-        attrMods: { agility: -2, insight: -1 },
+        attrMods: { agility: -1, dexterity: -1 },
     },
     {
         id: 'stun',
@@ -176,6 +178,18 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
+        id: 'dimensional_blade',
+        name: '次元刃',
+        description: '凝炁为刃，无视招架。',
+        tags: [],
+    },
+    {
+        id: 'zuoyou_hubo',
+        name: '左右互搏',
+        description: '一次行动可使用两次主招式。',
+        tags: [],
+    },
+    {
         id: 'last_stand',
         name: '九死剑诀',
         description: '损失血量增伤。',
@@ -203,6 +217,15 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         tickInterval: 3000,
         dotDamage: 1,
+    },
+    {
+        id: 'vitality_regen',
+        name: '生生不息',
+        description: '每 3 秒回复 1% 生命。',
+        tags: ['heal'],
+        expiry: { type: 'permanent' },
+        tickInterval: 3000,
+        tickHeal: 1,
     },
 ]
 

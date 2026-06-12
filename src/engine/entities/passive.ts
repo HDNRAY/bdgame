@@ -15,6 +15,8 @@ export interface Passive extends GameEntity {
 
 /** 天赋（绝学）—— 属性达标解锁的内在力量 */
 export interface Talent extends Passive {
-    /** 解锁条件 */
-    requireAttrs: Partial<Record<AttrName, number>>
+    /** 解锁条件（>=） */
+    requireAttrsMin: Partial<Record<AttrName, number>>
+    /** 解锁条件（<=） */
+    requireAttrsMax?: Partial<Record<AttrName, number>>
 }

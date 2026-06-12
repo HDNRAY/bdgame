@@ -37,12 +37,14 @@ export interface BattleState {
     turn: TurnManager
     log: BattleLog
     eventActorId: string | null
+    eventTime: number
     triggerUses: Map<string, number>
     pendingBuffs: Map<string, BuffLayer>
     lastWinner?: string
     actionCount: number
     /** 当前执行的招式额外前摇，回合结束时加到下回合间隔 */
     lastActionExtraDelay: number
+    lastActionExtraStun: number
     /** 防止触发递归 */
     isEmitting: boolean
 }
@@ -72,7 +74,18 @@ export interface BattleSnapshot {
     phase: BattlePhase
     distance: number
     characters: [CharacterSnapshot, CharacterSnapshot]
-    turn: { time: number; queue: Array<{ type: TurnEntryType; id: string; nextActionAt: number; ownerId?: string }> }
+    turn: {
+        time: number
+        queue: Array<{
+            type: TurnEntryType
+            id: string
+            nextActionAt: number
+            scheduledAt: number
+            ownerId?: string
+            preDelay?: number
+            stunTime?: number
+        }>
+    }
     triggerUses: [string, number][]
     pendingBuffs: [string, BuffLayer][]
     actionCount: number
@@ -128,13 +141,14 @@ export type BattleEvent =
     | { type: 'system'; message: string; actor?: string; indent?: number; snapshot: BattleSnapshot }
 
 // ── Turn types ──
-export type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'stun_reset' | 'permanent_burn'
+export type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'tick_buff' | 'stun_reset' | 'permanent_burn'
 
 export type TurnEntryType = 'character' | 'system' | 'summon'
 
 interface TurnEntryBase {
     id: string
     nextActionAt: number
+    scheduledAt: number
 }
 
 export type TurnEntry =

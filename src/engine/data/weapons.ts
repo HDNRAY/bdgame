@@ -72,6 +72,13 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [1, 3],
         triggers: [{ condition: { type: 'on_buff' }, actionId: '_zantetsu_mind_eye' }],
     },
+    {
+        id: 'ciyuan_blade',
+        name: '次元刃',
+        description: '以炁凝成的无形之刃，无视招架。',
+        tags: ['slash', 'parry', 'ignore_parry'],
+        range: [1, 3],
+    },
 ]
 
 // ── 运行时武器查找表 ──

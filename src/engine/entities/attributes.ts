@@ -19,6 +19,8 @@ export const ATTR_ABSOLUTE_MAX = 30
 /** 属性容器 */
 export class AttributeSet {
     private values: Record<AttrName, number>
+    /** 各属性下限（被动/天赋设置），空 = 不限制 */
+    minValues: Partial<Record<AttrName, number>> = {}
 
     constructor(values?: Partial<Record<AttrName, number>>) {
         this.values = {
@@ -37,7 +39,10 @@ export class AttributeSet {
     }
 
     set(attr: AttrName, value: number): void {
-        this.values[attr] = Math.max(ATTR_MIN, Math.min(ATTR_ABSOLUTE_MAX, value))
+        let clamped = Math.max(ATTR_MIN, Math.min(ATTR_ABSOLUTE_MAX, value))
+        const floor = this.minValues[attr]
+        if (floor !== undefined) clamped = Math.max(clamped, floor)
+        this.values[attr] = clamped
     }
 
     modify(attr: AttrName, delta: number): void {

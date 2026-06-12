@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { LAIFENG, ZHANGLIE, XUANJI, LAYUE } from '../data/opponents/index'
+import { LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN } from '../data/opponents/index'
 import { STAT_NAMES } from '../data/rewards'
 import { cultCost } from '../systems/cultivation'
 import { getBackground } from '../data/backgrounds'
@@ -18,7 +18,7 @@ function calcCultCost(attrs: Record<string, number>, bgId: string): number {
 }
 
 describe('opponents', () => {
-    for (const def of [LAIFENG, ZHANGLIE, XUANJI, LAYUE]) {
+    for (const def of [LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN]) {
         describe(def.name, () => {
             const build = def.generate(33)
 

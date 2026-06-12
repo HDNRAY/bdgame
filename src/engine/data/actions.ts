@@ -35,6 +35,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '近距离冲撞，附带麻痹效果。',
         requiredTags: ['blunt'],
         apCost: 4,
+        extraStunTime: 400,
         tags: ['paralyze', 'self_damage', 'blunt'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
@@ -202,6 +203,25 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'damage', scaling: { strength: 0.5 } }],
     },
     {
+        id: 'heavy_slash',
+        name: '蓄力斩',
+        description: '蓄力一击，势大力沉。',
+        requiredTags: ['slash'],
+        apCost: 6,
+        tags: [],
+        effects: [{ type: 'damage', scaling: { strength: 1.2 } }],
+    },
+    {
+        id: 'big_leap',
+        name: '虎跃',
+        description: '猛虎跃涧，瞬间近身。范围4~8m。',
+        requiredTags: ['slash'],
+        apCost: 3,
+        tags: [],
+        range: [0, 10],
+        effects: [{ type: 'leap' }],
+    },
+    {
         id: 'foresight',
         name: '看破',
         description: '凝神静气，洞察先机。',
@@ -258,7 +278,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: ['trigger', 'buff'],
         target: 'self',
         maxUses: 999,
-        effects: [{ type: 'stat_buff', attrs: { insight: 1 }, durationMs: 3000 }],
+        effects: [{ type: 'stat_buff', attrs: { dodgeChance: 0.02 }, durationMs: 3000 }],
     },
     {
         id: 'agility_steal',
@@ -388,6 +408,17 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
         tags: ['trigger'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'foresight' }],
+    },
+    {
+        id: '_ciyuan_init',
+        name: '次元刃',
+        description: '',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['trigger'],
+        target: 'self',
+        maxUses: 1,
+        effects: [{ type: 'ciyuan_init' }, { type: 'add_buff', buffId: 'zuoyou_hubo' }],
     },
 ]
 

@@ -119,9 +119,15 @@ export class Character {
         // modifiers
         for (const mod of p.modifiers ?? []) this.modifiers.add(mod)
         // Talent-only: 条件检测
-        if ('requireAttrs' in p) {
+        if ('requireAttrsMin' in p) {
             const t = p as unknown as Talent
-            if (!Object.entries(t.requireAttrs).every(([attr, req]) => this.attrs.get(attr as AttrName) >= req)) return
+            const minOk = Object.entries(t.requireAttrsMin).every(
+                ([attr, req]) => this.attrs.get(attr as AttrName) >= req,
+            )
+            const maxOk =
+                !t.requireAttrsMax ||
+                Object.entries(t.requireAttrsMax).every(([attr, req]) => this.attrs.get(attr as AttrName) <= req)
+            if (!minOk || !maxOk) return
         }
     }
 
@@ -135,7 +141,14 @@ export class Character {
 
     get triggers(): TriggerSlot[] {
         const maxSlots = Math.floor(this.attrs.get('wisdom') / 4) + this.triggerSlotMod
-        return [...this.build.triggers, ...this.passiveTriggers].slice(0, maxSlots)
+        const buildSlots = this.build.triggers.slice(0, maxSlots)
+        if (buildSlots.length < this.build.triggers.length) {
+            console.warn(
+                `[${this.name}] WIS=${this.attrs.get('wisdom')} 仅 ${maxSlots} 个触发槽，`,
+                `丢弃 ${this.build.triggers.length - maxSlots} 个招式触发`,
+            )
+        }
+        return [...buildSlots, ...this.passiveTriggers]
     }
 
     get artifacts(): Artifact[] {
@@ -211,6 +224,12 @@ export class Character {
 // ── 被动效果分发表（构造期执行，无战斗上下文） ──
 
 const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) => void> = {
+    attr_floor(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'attr_floor' }>
+        for (const [attr, value] of Object.entries(e.attrs)) {
+            char.attrs.minValues[attr as AttrName] = value
+        }
+    },
     stat_buff(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
         for (const [attr, value] of Object.entries(e.attrs)) {

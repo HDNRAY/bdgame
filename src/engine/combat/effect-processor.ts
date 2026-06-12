@@ -16,11 +16,13 @@ import {
     calcRoll,
     calcStunAttrRatio,
     calcStunAttrDelta,
+    calcDebuffDuration,
 } from '../calc/damage'
 import { getWeapon } from '../data/weapons'
 import { getBuff } from '../data/buffs'
 import { genAppId } from '../util/buff-utils'
 import { triggerBleed } from '../entities/status'
+import type { Tag } from '../entities/tag'
 import type { BattleLog } from './battle-log'
 import type { ActionResult, BuffLayer } from './types'
 
@@ -49,14 +51,10 @@ function applyDamage(
     actionName?: string,
     actionId?: string,
 ): void {
-    const weapon = getWeapon(target.build.weapon)
+    const weapon = target.weaponDef ?? getWeapon(target.build.weapon)
     let parried = false
-    if (weapon.tags.includes('parry')) {
-        let pc = calcParryChance(
-            target.attrs.get('agility'),
-            target.attrs.get('dexterity'),
-            target.attrs.get('insight'),
-        )
+    if (weapon.tags.includes('parry') && !engine.state.pendingBuffs.has(`dimensional_blade::${attacker.id}`)) {
+        let pc = calcParryChance(0, target.attrs.get('dexterity'), target.attrs.get('insight'))
         // 看破 buff：招架率+0.5，成功后消耗
         const foresightKey = `foresight::${target.id}`
         if (engine.state.pendingBuffs.has(foresightKey)) {
@@ -64,6 +62,14 @@ function applyDamage(
         }
         const result = calcRoll(pc)
         parried = result.success
+        engine.emitLog({
+            type: 'check_parry',
+            sourceId: attacker.id,
+            targetId: target.id,
+            parryChance: pc,
+            roll: result.roll,
+            result: result.success,
+        })
         if (parried) {
             engine.state.pendingBuffs.delete(foresightKey)
             engine.emit('on_parry', target, attacker)
@@ -82,6 +88,7 @@ function applyDamage(
     )
     const critRoll = calcRoll(critChance)
     const isCrit = critRoll.success
+    engine.emitLog({ type: 'check_crit', sourceId: attacker.id, critChance, roll: critRoll.roll, result: isCrit })
 
     final = calcFinalDamage(final, 1, isCrit, attacker.critDamageMod)
     final = Math.round(final * 10) / 10
@@ -156,6 +163,38 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     knockback({ eff, engine }: Ctx) {
         const { distance } = eff as Extract<EffectDef, { type: 'knockback' }>
         if (distance > 0) engine.state.distance.move(distance)
+    },
+    leap({ self, engine }: Ctx) {
+        const dist = engine.state.distance.current
+        if (dist < 4 || dist > 8) {
+            engine.emitLog({ type: 'system', message: `${self.name} 距离不合适，无法跳跃`, actorId: self.id })
+            return
+        }
+        const target = 1
+        const delta = dist - target
+        engine.state.distance.move(-delta)
+        engine.emitLog({
+            type: 'move',
+            sourceId: self.id,
+            delta: -delta,
+            newDistance: engine.state.distance.current,
+            apCost: 0,
+            apRemaining: self.ap,
+        })
+    },
+    ciyuan_init({ self, engine }: Ctx) {
+        const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
+        if (weapon.id === 'bare_hands' || weapon.id === 'iron_ring') {
+            self.weaponDef = { ...getWeapon('ciyuan_blade') }
+            engine.emitLog({ type: 'system', message: `[次元刃] ${self.name} 凝炁为刃`, actorId: self.id })
+        } else {
+            self.weaponDef = {
+                ...weapon,
+                tags: [...new Set([...weapon.tags, 'ignore_parry' as Tag])],
+            }
+            engine.emitLog({ type: 'system', message: `[次元刃] ${self.name} 附刃成功`, actorId: self.id })
+        }
+        engine.state.pendingBuffs.set(`dimensional_blade::${self.id}`, { restoreValue: 1 })
     },
     fixed_damage({ eff, self, enemy, engine, tMs, log, tag, actionId }: Ctx) {
         const { value } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
@@ -347,6 +386,15 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             actorId: self.id,
         })
         engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
+        // 自动调度 tick（buff 有 tickInterval 时）
+        const def = getBuff(e.buffId)
+        if (def?.tickInterval) {
+            engine.state.turn.scheduleSystemEventAt(
+                `tick_buff_${key}`,
+                engine.state.turn.currentTime + def.tickInterval,
+                'tick_buff',
+            )
+        }
     },
     remove_buff({ eff, self, engine }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'remove_buff' }>
@@ -409,7 +457,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         const e = eff as Extract<EffectDef, { type: 'status' }>
         const { stacks } = e
         const attrMods = getBuff('paralyze')!.attrMods!
-        const duration = 1800
+        const duration = calcDebuffDuration(1800, enemy.attrs.get('vitality'))
         const appId = genAppId(tMs)
         const layerKey = `paralyze::${enemy.id}::${appId}`
         const mods: Record<string, number> = {}
@@ -434,7 +482,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
     },
     stun({ eff, enemy, engine, tMs }: Ctx) {
         const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
-        const STUN_DURATION = 2000
+        const STUN_DURATION = calcDebuffDuration(2000, enemy.attrs.get('vitality'))
         const STUN_RESET_WINDOW = 5000
 
         // 连续递减追踪
@@ -600,6 +648,14 @@ export function processCombatRolls(
         })
     const hitResult = calcRoll(hc)
     r.hit = hitResult.success
+    engine.emitLog({
+        type: 'check_hit',
+        sourceId: self.id,
+        targetId: enemy.id,
+        hitChance: hc,
+        roll: hitResult.roll,
+        result: hitResult.success,
+    })
     if (!r.hit) {
         engine.emitLog({ type: 'dodged', sourceId: self.id, targetId: enemy.id })
         engine.emit('on_dodged', self, enemy)

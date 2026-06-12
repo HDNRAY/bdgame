@@ -20,6 +20,7 @@ export type EffectDef =
     | { type: 'ignore_parry' }
     | { type: 'interrupt' }
     | { type: 'knockback'; distance: number }
+    | { type: 'leap' }
     | { type: 'limit_uses'; max: number }
     | { type: 'modify_turn'; deltaMs: number }
     | { type: 'cleanse'; statuses?: StatusType[] }
@@ -45,8 +46,10 @@ export type EffectDef =
     | { type: 'weapon_range_bonus'; value: number }
     | { type: 'trigger_slot_mod'; value: number }
     | { type: 'dodge_mod'; value: number }
+    | { type: 'attr_floor'; attrs: Partial<Record<AttrName, number>> }
     | { type: 'add_buff'; buffId: string; stacks?: number }
     | { type: 'remove_buff'; buffId: string }
+    | { type: 'ciyuan_init' }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {

@@ -10,7 +10,7 @@ export function canExecuteAction(
     state: BattleState,
 ): { ok: boolean; reason?: string } {
     if (attacker.ap < action.apCost) return { ok: false, reason: 'AP不足' }
-    const weapon = getWeapon(attacker.build.weapon)
+    const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)
     const range = action.range ?? weapon.range
     const dist = state.distance.current
     if (dist < range[0] || dist > range[1]) return { ok: false, reason: '距离不合适' }
