@@ -14,6 +14,8 @@ export interface DamageModContext {
     engine: BattleEngine
     actionId?: string
     layer: BuffLayer
+    /** 该 buff 所属角色 ID */
+    buffOwnerId?: string
 }
 
 /** 消耗方式 */
@@ -107,6 +109,15 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'duration', ms: 1500 },
         stacking: { type: 'independent' },
         attrMods: { agility: -1, dexterity: -1 },
+    },
+    {
+        id: 'frost',
+        name: '霜冻',
+        description: '身法降低，移动缓慢。',
+        tags: [],
+        expiry: { type: 'duration', ms: 3000 },
+        stacking: { type: 'independent' },
+        attrMods: { agility: -0.4 },
     },
     {
         id: 'stun',
@@ -205,6 +216,49 @@ export const BUFF_DB: BuffDef[] = [
 
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
+
+    // ── 战斗状态 ──
+    {
+        id: 'guard_up',
+        name: '守势',
+        description: '凝神防守，招架率大幅提升。',
+        tags: [],
+        expiry: { type: 'duration', ms: 3000 },
+        stacking: { type: 'none' },
+    },
+    {
+        id: 'frost_dex_bonus',
+        name: '春雷',
+        description: '春雷灵巧加成，灵巧增伤。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDamage: (f, { attacker, buffOwnerId }) => {
+            if (attacker.id !== buffOwnerId) return f
+            const bonus = Math.round(attacker.attrs.get('dexterity') * 0.5 * 10) / 10
+            return Math.round((f + bonus) * 10) / 10
+        },
+    },
+    {
+        id: 'ranged_dodge',
+        name: '斗笠掩踪',
+        description: '距离≥5m时闪避+15%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+    },
+    {
+        id: 'elemental_immunity',
+        name: '冰心',
+        description: '免疫灼烧、冰霜、麻痹。',
+        tags: [],
+        expiry: { type: 'permanent' },
+    },
+    {
+        id: 'min_move_cost',
+        name: '凌波微步',
+        description: '步法精妙，移动消耗最低。',
+        tags: [],
+        expiry: { type: 'permanent' },
+    },
 
     // ── 永久修饰（构造期执行） ──
     { id: 'max_ap_mod', name: '失能', description: '最大AP变化。', tags: [], expiry: { type: 'permanent' } },

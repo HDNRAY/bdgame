@@ -15,8 +15,12 @@ export function calcDebuffDuration(baseMs: number, vit: number): number {
 }
 
 /** 计算基础伤害: Σ(attrScaling[attr] × attrs[attr]) */
-export function calcBaseDamage(scaling: Partial<Record<AttrName, number>>, attrs: Record<AttrName, number>): number {
-    let damage = 0
+export function calcBaseDamage(
+    scaling: Partial<Record<AttrName, number>>,
+    attrs: Record<AttrName, number>,
+    base = 0,
+): number {
+    let damage = base
     for (const [attr, scale] of Object.entries(scaling)) {
         damage += (scale ?? 0) * attrs[attr as AttrName]
     }

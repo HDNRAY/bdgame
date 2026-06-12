@@ -1,4 +1,4 @@
-import { type OpponentDef, simpleGenerate, passive, action, implant } from './base'
+import { type OpponentDef, simpleGenerate, passive, action, artifact } from './base'
 import { DistanceSystem } from '../../combat/distance'
 import type { ActionCommand } from '../../combat/types'
 
@@ -16,7 +16,7 @@ export const SANGYUAN: OpponentDef = {
                 passive('ciyuan_ren'),
                 passive('zuoyou_hubo'),
                 passive('vitality_regen'),
-                implant('qi_amplifier'),
+                artifact('qi_amplifier'),
                 action('slash'),
                 action('heavy_slash'),
                 action('big_leap'),

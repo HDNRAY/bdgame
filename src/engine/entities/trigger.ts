@@ -13,6 +13,7 @@ export type TriggerEvent =
     | 'on_buff'
     | 'on_debuff'
     | 'on_move'
+    | 'on_opponent_move'
     | 'turn_start'
     | 'turn_end'
     | 'hp_below'
@@ -27,6 +28,8 @@ export type TriggerEvent =
 export interface ConditionContext {
     actor: Character
     distance: number
+    /** 移动事件的位移量（负=靠近，正=远离） */
+    moveDelta?: number
 }
 
 /** 触发条件 */

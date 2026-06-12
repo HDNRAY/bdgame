@@ -8,9 +8,9 @@ import { cultCost } from '../../systems/cultivation'
 const POOL = ['nine_deaths_strike', 'cun_mang', 'sword_dominion', 'nine_deaths', 'wisdom_talisman']
 
 /** 按 id 查询物品类型 */
-function rewardType(id: string): 'passive' | 'implant' | 'action' {
+function rewardType(id: string): 'passive' | 'artifact' | 'action' {
     if (id === 'sword_dominion' || id === 'nine_deaths') return 'passive'
-    if (id === 'wisdom_talisman' || id === 'innate_seed') return 'implant'
+    if (id === 'wisdom_talisman' || id === 'innate_seed') return 'artifact'
     return 'action'
 }
 
@@ -64,7 +64,7 @@ export const LAYUE: OpponentDef = {
 
         // 奖励
         const rewards: Reward[] = []
-        if (n >= 1) rewards.push({ type: 'implant', id: 'innate_seed', name: '天生道种', description: '', tags: [] })
+        if (n >= 1) rewards.push({ type: 'artifact', id: 'innate_seed', name: '天生道种', description: '', tags: [] })
         if (n >= 3) {
             rewards.push({ type: 'passive', id: 'ling_bo_wei_bu', name: '凌波微步', description: '', tags: [] })
             const ratio = Math.min(1, (n - 2) / 31)

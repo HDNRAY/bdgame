@@ -60,6 +60,14 @@ function applyDamage(
         if (engine.state.pendingBuffs.has(foresightKey)) {
             pc = Math.min(0.95, pc + 0.5)
         }
+        // 守势
+        if (engine.state.pendingBuffs.has(`guard_up::${target.id}`)) {
+            pc = Math.min(0.95, pc + 0.35)
+        }
+        // 奇物/被动招架修正
+        if (target.parryMod) {
+            pc = Math.min(0.95, pc + target.parryMod)
+        }
         const result = calcRoll(pc)
         parried = result.success
         engine.emitLog({
@@ -202,8 +210,9 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     },
     damage({ eff, self, enemy, engine, tMs, log, tag, actionId }: Ctx) {
         const { scaling } = eff as Extract<EffectDef, { type: 'damage' }>
-        const base = calcBaseDamage(scaling, self.attrs.getAll())
-        if (base > 0) applyDamage(base, enemy, self, engine, tMs, log, tag, actionId)
+        const base = (eff as Extract<EffectDef, { type: 'damage' }>).base ?? 0
+        const raw = calcBaseDamage(scaling, self.attrs.getAll(), base)
+        if (raw > 0) applyDamage(raw, enemy, self, engine, tMs, log, tag, actionId)
     },
     self_damage({ eff, self, engine }: Ctx) {
         const { ratio } = eff as Extract<EffectDef, { type: 'self_damage' }>
@@ -480,6 +489,54 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
             'buff_end',
         )
     },
+    frost({ eff, enemy, engine, tMs }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'status' }>
+        const { stacks } = e
+        const buffDef = getBuff('frost')
+        const agiPerStack = buffDef?.attrMods?.agility ?? -0.2
+        const delta = -Math.round(stacks * Math.abs(agiPerStack) * 10) / 10
+        if (delta === 0) return
+        const duration = calcDebuffDuration(3000, enemy.attrs.get('vitality'))
+        const appId = genAppId(tMs)
+        const layerKey = `frost::${enemy.id}::${appId}`
+        enemy.attrs.modify('agility', delta)
+        engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr: 'agility', delta, label: '霜冻' })
+        engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+        engine.state.pendingBuffs.set(layerKey, {
+            restoreValue: stacks,
+            mods: { agility: delta },
+        })
+        engine.state.turn.scheduleSystemEventAt(
+            `buff_end_${layerKey}`,
+            engine.state.turn.currentTime + duration,
+            'buff_end',
+        )
+    },
+    frost_step({ self, engine }: Ctx) {
+        const dist = engine.state.distance.current
+        if (dist < 2 || dist > 12) {
+            engine.emitLog({ type: 'system', message: `${self.name} 距离不合适`, actorId: self.id })
+            return
+        }
+        const perAp = Math.max(0.5, self.attrs.get('agility') / 20)
+        const targetDist = 1
+        const moveDist = dist - targetDist
+        const apCost = Math.ceil(moveDist / perAp)
+        if (self.ap < apCost) {
+            engine.emitLog({ type: 'system', message: `${self.name} AP不足 无法踏雪`, actorId: self.id })
+            return
+        }
+        self.spendAp(apCost)
+        engine.state.distance.move(-moveDist)
+        engine.emitLog({
+            type: 'move',
+            sourceId: self.id,
+            delta: -moveDist,
+            newDistance: engine.state.distance.current,
+            apCost,
+            apRemaining: self.ap,
+        })
+    },
     stun({ eff, enemy, engine, tMs }: Ctx) {
         const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
         const STUN_DURATION = calcDebuffDuration(2000, enemy.attrs.get('vitality'))
@@ -534,6 +591,11 @@ function handleStatusEffect(ctx: Omit<Ctx, 'tag' | 'actionId'> & { eff: EffectDe
     if (!success) return
 
     const st = eff.status
+    // ── 免疫检查（冰心诀 buff） ──
+    if (engine.state.pendingBuffs.has(`elemental_immunity::${enemy.id}`)) {
+        engine.emitLog({ type: 'system', message: `[冰心] ${enemy.name} 免疫 ${st}`, actorId: enemy.id })
+        return
+    }
     const key = `${st}::${enemy.id}`
     const existing = engine.state.pendingBuffs.get(key) as BuffLayer | undefined
 
@@ -644,7 +706,11 @@ export function processCombatRolls(
             attackerInsight: self.attrs.get('insight'),
             defenderAgility: enemy.attrs.get('agility'),
             defenderInsight: enemy.attrs.get('insight'),
-            defenderDodgeMod: enemy.dodgeMod,
+            defenderDodgeMod:
+                enemy.dodgeMod +
+                (engine.state.pendingBuffs.has(`ranged_dodge::${enemy.id}`) && engine.state.distance.current >= 5
+                    ? 0.15
+                    : 0),
         })
     const hitResult = calcRoll(hc)
     r.hit = hitResult.success
@@ -711,7 +777,7 @@ function applyDamageModifiers(
         if (parts[1] !== target.id && parts[1] !== attacker.id) continue
         const def = getBuff(parts[0])
         if (!def?.onDamage) continue
-        final = def.onDamage(final, { final, target, attacker, engine, actionId, layer })
+        final = def.onDamage(final, { final, target, attacker, engine, actionId, layer, buffOwnerId: parts[1] })
     }
     return final
 }

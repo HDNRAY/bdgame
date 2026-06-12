@@ -1,4 +1,4 @@
-import { type OpponentDef, simpleGenerate, passive, action, implant } from './base'
+import { type OpponentDef, simpleGenerate, passive, action, artifact } from './base'
 import { getWeapon } from '../weapons'
 import { DistanceSystem } from '../../combat/distance'
 import type { ActionCommand } from '../../combat/types'
@@ -16,9 +16,9 @@ export const XUANJI: OpponentDef = {
             [
                 passive('spirit_resonance'),
                 action('qi_bolt'),
-                implant('qi_guard'),
-                implant('iron_will'),
-                implant('ap_boost'),
+                artifact('qi_guard'),
+                artifact('iron_will'),
+                artifact('ap_boost'),
             ],
             [
                 { condition: { type: 'on_parry' }, actionId: 'restore_ap' },

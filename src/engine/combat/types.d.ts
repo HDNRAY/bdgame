@@ -5,7 +5,7 @@ import type { BattleLog } from './battle-log'
 
 // ── Engine types ──
 export interface ActionCommand {
-    type: 'attack' | 'move' | 'bonus' | 'defend' | 'wait'
+    type: 'attack' | 'move' | 'bonus'
     actionId?: string
     bestDistance?: number
 }
@@ -47,6 +47,8 @@ export interface BattleState {
     lastActionExtraStun: number
     /** 防止触发递归 */
     isEmitting: boolean
+    /** 最近一次移动的位移量（on_opponent_move 用） */
+    moveDelta: number
 }
 
 export type EventPlan = (self: Character, enemy: Character, state: BattleState) => ActionCommand[]

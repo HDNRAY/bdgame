@@ -7,9 +7,9 @@ import { cultCost } from '../../systems/cultivation'
 
 const POOL = ['iaijutsu_strike', 'slash', 'foresight', 'resheath', 'empty_hand', 'tiger_eye']
 
-function rewardType(id: string): 'passive' | 'implant' | 'action' {
+function rewardType(id: string): 'passive' | 'artifact' | 'action' {
     if (id === 'iaijutsu_mastery' || id === 'empty_hand') return 'passive'
-    if (id === 'tiger_eye') return 'implant'
+    if (id === 'tiger_eye') return 'artifact'
     return 'action'
 }
 

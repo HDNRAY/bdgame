@@ -7,6 +7,27 @@ import type { Tag } from '../entities/tag'
  */
 export const MVP_ACTIONS: ActionDefinition[] = [
     // ── 拳掌系 ──
+
+    {
+        id: 'frost_step',
+        name: '踏雪',
+        description: '踏雪无痕，根据距离消耗 1~4 AP。',
+        requiredTags: [],
+        apCost: 0,
+        tags: [],
+        range: [0, 12],
+        effects: [{ type: 'frost_step' }],
+    },
+    {
+        id: 'guard',
+        name: '守势',
+        description: '凝神防守，提升招架率。',
+        requiredTags: ['parry'],
+        apCost: 2,
+        tags: ['buff'],
+        target: 'self',
+        effects: [{ type: 'add_buff', buffId: 'guard_up' }],
+    },
     {
         id: 'straight_punch',
         name: '正拳',
@@ -213,11 +234,12 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'big_leap',
         name: '虎跃',
-        description: '猛虎跃涧，瞬间近身。范围4~8m。',
+        description: '猛虎跃涧，瞬间近身。范围4~8m。需力道≥10。',
         requiredTags: [],
         apCost: 3,
         tags: [],
         range: [0, 10],
+        canUse: (attacker) => attacker.attrs.get('strength') >= 10,
         effects: [{ type: 'leap' }],
     },
     {
@@ -427,7 +449,7 @@ const QI_SKILLS: ActionDefinition[] = [
         effects: [
             {
                 type: 'stat_buff',
-                attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2, insight: 1, wisdom: 1 },
+                attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 },
                 duration: { attr: 'wisdom', multiplier: 1000 },
             },
         ],
@@ -454,7 +476,7 @@ const QI_SKILLS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: ['qi'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.2 } }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.1 }, base: 2.4 }],
         extraPreDelay: 200,
         range: [0, 6],
     },

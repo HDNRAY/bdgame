@@ -70,6 +70,15 @@ export const WEAPON_DB: WeaponDef[] = [
         tags: ['slash', 'parry', 'ignore_parry', 'qi'],
         range: [1, 3],
     },
+    {
+        id: 'frost_twin_blades',
+        name: '绣冬·春雷',
+        description: '绣冬长三尺二寸，势沉力猛；春雷轻灵迅捷，见血封喉。',
+        tags: ['slash', 'parry', 'frost'],
+        range: [1, 3],
+        effects: [{ type: 'stat_buff', attrs: { strength: 4, agility: -2 } }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'frost_dex_bonus' }] }],
+    },
 ]
 
 // ── 运行时武器查找表 ──

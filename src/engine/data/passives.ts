@@ -65,6 +65,24 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'on_parry' }, actionId: '_iaijutsu_counter' }],
     },
     {
+        id: 'ice_heart',
+        name: '冰心诀',
+        description: '寒冰之心，万邪不侵。免疫灼烧、冰霜、麻痹。',
+        tags: ['passive'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'elemental_immunity' }] },
+        ],
+    },
+    {
+        id: 'frost_mastery',
+        name: '冰霜诀',
+        description: '春雷疾掠，寒气侵骨。劈砍击中80%概率叠加寒冰。',
+        tags: ['passive'],
+        triggers: [
+            { condition: { type: 'on_hit' }, effects: [{ type: 'status', status: 'frost', stacks: 1, chance: 0.8 }] },
+        ],
+    },
+    {
         id: 'ciyuan_ren',
         name: '次元刃',
         description: '凝炁为刃，无视招架。',
@@ -85,8 +103,7 @@ export const TALENTS: Talent[] = [
             { type: 'attr_floor', attrs: { agility: 15 } },
             { type: 'haste', value: 200 },
         ],
-        triggers: [],
-        modifiers: ['minMoveCost'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'min_move_cost' }] }],
     },
     {
         id: 'zuoyou_hubo',

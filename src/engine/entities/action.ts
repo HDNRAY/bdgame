@@ -12,7 +12,7 @@ export type BuffDuration = { attr: AttrName; multiplier: number }
 /** 统一效果类型 */
 export type EffectDef =
     // 战斗效果（需要命中判定）
-    | { type: 'damage'; scaling: Partial<Record<AttrName, number>> }
+    | { type: 'damage'; scaling: Partial<Record<AttrName, number>>; base?: number }
     | { type: 'fixed_damage'; value: number }
     | { type: 'status'; status: Tag; stacks: number; chance: number; attrMods?: Record<string, number> }
     | { type: 'cripple'; ratio: number }
@@ -21,6 +21,7 @@ export type EffectDef =
     | { type: 'interrupt' }
     | { type: 'knockback'; distance: number }
     | { type: 'leap' }
+    | { type: 'frost_step' }
     | { type: 'limit_uses'; max: number }
     | { type: 'modify_turn'; deltaMs: number }
     | { type: 'cleanse'; statuses?: StatusType[] }
@@ -46,6 +47,7 @@ export type EffectDef =
     | { type: 'weapon_range_bonus'; value: number }
     | { type: 'trigger_slot_mod'; value: number }
     | { type: 'dodge_mod'; value: number }
+    | { type: 'parry_mod'; value: number }
     | { type: 'haste'; value: number }
     | { type: 'attr_floor'; attrs: Partial<Record<AttrName, number>> }
     | { type: 'add_buff'; buffId: string; stacks?: number }

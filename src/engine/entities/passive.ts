@@ -9,8 +9,6 @@ export interface Passive extends GameEntity {
     effects?: EffectDef[]
     /** 带来的额外 trigger slot */
     triggers?: TriggerSlot[]
-    /** 提供的修饰器名 */
-    modifiers?: string[]
 }
 
 /** 天赋（绝学）—— 属性达标解锁的内在力量 */

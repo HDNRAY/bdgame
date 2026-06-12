@@ -20,7 +20,10 @@ export const LAIFENG: OpponentDef = {
                 action('iron_charge'),
             ],
             [
-                { condition: { type: 'on_move' }, actionId: 'qi_bolt' },
+                {
+                    condition: { type: 'on_opponent_move', check: (ctx) => (ctx.moveDelta ?? 0) > 0 },
+                    actionId: 'qi_bolt',
+                },
                 { condition: { type: 'on_pre_action' }, actionId: 'flick' },
             ],
             n,

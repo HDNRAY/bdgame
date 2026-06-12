@@ -4,7 +4,7 @@ import type { GameEntity } from '../entities/base'
 import { WEAPON_DB } from './weapons'
 
 /** 节点奖励类型 */
-export type RewardType = 'stat' | 'passive' | 'implant' | 'action'
+export type RewardType = 'stat' | 'passive' | 'artifact' | 'action'
 
 export interface Reward extends GameEntity {
     type: RewardType
@@ -33,14 +33,14 @@ export const REWARD_POOL: Reward[] = [
         tags: [],
     },
     // 义体
-    { type: 'implant', id: 'titanium_arm', name: '钛合金臂', description: 'STR/DEX+4，AGI-2', tags: [] },
-    { type: 'implant', id: 'hydraulic_leg', name: '液压腿', description: '移动效率+20%，AGI-1', tags: [] },
-    { type: 'implant', id: 'mechanical_eye', name: '机械眼球', description: 'INS+2，maxAP-1', tags: [] },
-    { type: 'implant', id: 'muscle_boost', name: '肌肉强化针', description: 'STR/VIT+2，maxHP-20', tags: [] },
-    { type: 'implant', id: 'heart_pump', name: '心肺泵', description: '全属性+1，maxAP-2', tags: [] },
-    { type: 'implant', id: 'neural_net', name: '人造神经网络', description: 'AGI/DEX/INS+1，失心5%', tags: [] },
-    { type: 'implant', id: 'combat_chip', name: '战斗芯片', description: 'WIS+4，失心5%', tags: [] },
-    { type: 'implant', id: 'power_furnace', name: '便携式动力炉', description: 'maxAP+4，永久灼烧', tags: [] },
+    { type: 'artifact', id: 'titanium_arm', name: '钛合金臂', description: 'STR/DEX+4，AGI-2', tags: [] },
+    { type: 'artifact', id: 'hydraulic_leg', name: '液压腿', description: '移动效率+20%，AGI-1', tags: [] },
+    { type: 'artifact', id: 'mechanical_eye', name: '机械眼球', description: 'INS+2，maxAP-1', tags: [] },
+    { type: 'artifact', id: 'muscle_boost', name: '肌肉强化针', description: 'STR/VIT+2，maxHP-20', tags: [] },
+    { type: 'artifact', id: 'heart_pump', name: '心肺泵', description: '全属性+1，maxAP-2', tags: [] },
+    { type: 'artifact', id: 'neural_net', name: '人造神经网络', description: 'AGI/DEX/INS+1，失心5%', tags: [] },
+    { type: 'artifact', id: 'combat_chip', name: '战斗芯片', description: 'WIS+4，失心5%', tags: [] },
+    { type: 'artifact', id: 'power_furnace', name: '便携式动力炉', description: 'maxAP+4，永久灼烧', tags: [] },
     // 招式主招
     { type: 'action', id: 'straight_punch', name: '正拳', description: '3AP 基础拳击', tags: [] },
     { type: 'action', id: 'crushing_blow', name: '崩拳', description: '5AP 崩劲伤害', tags: [] },

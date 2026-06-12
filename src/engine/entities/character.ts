@@ -27,8 +27,7 @@ export class Character {
     hp: number
     ap: number
     nextTurnApDebt = 0
-    /** 被动/天赋提供的持久修饰器 */
-    modifiers: Set<string> = new Set()
+
     /** 已解析的被动对象列表 */
     passiveDefs: Passive[] = []
     /** 被动注入的额外 trigger（不污染 build.triggers） */
@@ -53,6 +52,8 @@ export class Character {
     triggerSlotMod = 0
     /** 闪避修正（不二初始 -0.2，每回合 +0.04） */
     dodgeMod = 0
+    /** 招架修正（奇物/义体提供） */
+    parryMod = 0
 
     constructor(build: CharacterBuild) {
         this.build = build
@@ -68,7 +69,7 @@ export class Character {
         const gainedActions: string[] = []
         for (const r of build.rewards) {
             if (r.type === 'passive') gainedPassives.push(r.id)
-            else if (r.type === 'implant') gainedArtifacts.push(r.id)
+            else if (r.type === 'artifact') gainedArtifacts.push(r.id)
             else if (r.type === 'action') gainedActions.push(r.id)
         }
 
@@ -109,7 +110,7 @@ export class Character {
         return this.passiveDefs
     }
 
-    /** 应用被动：达标检测 → effects + triggers + modifiers */
+    /** 应用被动：达标检测 → effects + triggers */
     #applyPassive(p: Passive): void {
         // effects
         for (const eff of p.effects ?? []) {
@@ -118,8 +119,6 @@ export class Character {
         }
         // triggers
         for (const slot of p.triggers ?? []) this.passiveTriggers.push(slot)
-        // modifiers
-        for (const mod of p.modifiers ?? []) this.modifiers.add(mod)
         // Talent-only: 条件检测
         if ('requireAttrsMin' in p) {
             const t = p as unknown as Talent
@@ -276,9 +275,8 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
         const e = eff as Extract<EffectDef, { type: 'fumble_chance' }>
         char.fumbleChance += e.value
     },
-    permanent_burn(char) {
+    permanent_burn() {
         // 运行时由 engine 处理
-        char.modifiers.add('permanentBurn')
     },
     crit_chance(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'crit_chance' }>
@@ -299,6 +297,10 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     dodge_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>
         char.dodgeMod += e.value
+    },
+    parry_mod(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'parry_mod' }>
+        char.parryMod += e.value
     },
     weapon_range_bonus(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'weapon_range_bonus' }>

@@ -64,6 +64,7 @@ export class BattleEngine {
             lastActionExtraDelay: 0,
             lastActionExtraStun: 0,
             isEmitting: false,
+            moveDelta: 0,
         }
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o)
@@ -238,13 +239,13 @@ export class BattleEngine {
 
     /** 触发检测 */
     emit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
-        const { log, triggerUses, distance } = this.state
+        const { log, triggerUses, distance, moveDelta } = this.state
         if (this.state.isEmitting) return // 防止递归触发
         this.state.isEmitting = true
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
-            if (!matchCondition(slot.condition, { actor: self, distance: distance.current })) continue
+            if (!matchCondition(slot.condition, { actor: self, distance: distance.current, moveDelta })) continue
 
             if (slot.effects) {
                 log.indentDepth++
@@ -281,12 +282,8 @@ export class BattleEngine {
                 return this.#executeMove(cmd, self)
             case 'attack':
                 return this.#executeAttack(cmd, self, enemy)
-            case 'defend':
-                return this.#executeDefend(self)
             case 'bonus':
                 return this.#executeBonus(cmd, self)
-            case 'wait':
-                return this.#executeWait(self)
         }
     }
 
@@ -350,7 +347,7 @@ export class BattleEngine {
             cmd.bestDistance ?? 0,
             self.attrs.get('agility'),
             1 + self.moveEfficiency,
-            self.modifiers.has('minMoveCost'),
+            this.state.pendingBuffs.has(`min_move_cost::${self.id}`),
         )
         if (!self.spendAp(ap)) {
             this.emitLog({ type: 'system', message: `${self.name} AP不足 无法移动`, actorId: self.id })
@@ -369,7 +366,9 @@ export class BattleEngine {
         processBleedDamage(self, this.#tMs, this)
         const enemy = this.getOpponent(self.id)!
         this.emit('on_move', self, enemy)
-        this.emit('on_move', enemy, self)
+        this.state.moveDelta = a
+        this.emit('on_opponent_move', enemy, self)
+        this.state.moveDelta = 0
         return r
     }
 
@@ -480,19 +479,6 @@ export class BattleEngine {
         }
     }
 
-    #executeDefend(self: Character): ActionResult {
-        this.emitLog({ type: 'system', message: `${self.name} 防御`, actorId: self.id })
-        return {
-            damage: 0,
-            hit: false,
-            parried: false,
-            dodged: false,
-            crit: false,
-            distanceDelta: 0,
-            knockbackDistance: 0,
-        }
-    }
-
     #executeBonus(cmd: ActionCommand, self: Character): ActionResult {
         const r = {
             damage: 0,
@@ -512,19 +498,6 @@ export class BattleEngine {
             processActionEffect(eff, self, self, this, this.#tMs, inst.name, inst.id)
         }
         return r
-    }
-
-    #executeWait(self: Character): ActionResult {
-        this.emitLog({ type: 'system', message: `${self.name} 结束`, actorId: self.id })
-        return {
-            damage: 0,
-            hit: false,
-            parried: false,
-            dodged: false,
-            crit: false,
-            distanceDelta: 0,
-            knockbackDistance: 0,
-        }
     }
 
     /** 加速角色所有召唤物（直接修改下次行动时间） */
@@ -582,7 +555,7 @@ export class BattleEngine {
             case 'permanent_burn': {
                 const charId = eventId.slice('permanent_burn_'.length)
                 const char = this.getCharacter(charId)
-                if (!char) break
+                if (!char || this.state.pendingBuffs.has(`elemental_immunity::${char.id}`)) break
                 const dmg = getBuff('permanent_burn')?.dotDamage ?? 1
                 char.takeDamage(dmg)
                 this.state.log.logSystem(

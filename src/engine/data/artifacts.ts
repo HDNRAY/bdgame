@@ -142,6 +142,23 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['trigger'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_amplify' }] }],
     },
+    {
+        id: 'bamboo_hat',
+        name: '青竹斗笠',
+        description: '遮面掩踪，远程攻击（距离≥5）额外 +15% 闪避。',
+        tags: [],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ranged_dodge' }] }],
+    },
+    {
+        id: 'frost_silk_robe',
+        name: '冰蚕衣',
+        description: '冰蚕丝织就的软甲，遇寒愈坚。招架率+15%；招架后以寒气反噬对手。',
+        tags: [],
+        effects: [{ type: 'parry_mod', value: 0.15 }],
+        triggers: [
+            { condition: { type: 'on_parry' }, effects: [{ type: 'status', status: 'frost', stacks: 1, chance: 1 }] },
+        ],
+    },
 ]
 
 /** 按 ID 查找物品 */

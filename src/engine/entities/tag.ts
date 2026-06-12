@@ -25,3 +25,4 @@ export type Tag =
     | 'trigger' // 触发
     | 'talent' // 天赋
     | 'passive' // 功法
+    | 'frost' // 霜冻

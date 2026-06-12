@@ -19,7 +19,7 @@ export interface OpponentDef {
 
 /** 奖励快捷函数 */
 export const passive = (id: string): Reward => ({ type: 'passive', id, name: id, description: '', tags: [] })
-export const implant = (id: string): Reward => ({ type: 'implant', id, name: id, description: '', tags: [] })
+export const artifact = (id: string): Reward => ({ type: 'artifact', id, name: id, description: '', tags: [] })
 export const action = (id: string): Reward => ({ type: 'action', id, name: id, description: '', tags: [] })
 
 /** 通用生成器：按目标值精确分配 cultivation points */
