@@ -65,6 +65,18 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'on_parry' }, actionId: '_iaijutsu_counter' }],
     },
     {
+        id: 'human_radar',
+        name: '人体雷达',
+        description: '获得居合时锁定目标，下次近距离攻击命中+0.5。',
+        tags: [],
+        triggers: [
+            {
+                condition: { type: 'on_buff', buffId: 'iaijutsu' },
+                effects: [{ type: 'add_buff', buffId: 'circle' }],
+            },
+        ],
+    },
+    {
         id: 'ice_heart',
         name: '冰心诀',
         description: '寒冰之心，万邪不侵。免疫灼烧、冰霜、麻痹。',

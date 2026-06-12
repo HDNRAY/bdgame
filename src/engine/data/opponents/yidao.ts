@@ -5,17 +5,17 @@ import { getBackground } from '../backgrounds'
 import { STAT_NAMES } from '../rewards'
 import { cultCost } from '../../systems/cultivation'
 
-const POOL = ['iaijutsu_strike', 'slash', 'foresight', 'resheath', 'empty_hand', 'tiger_eye']
+const POOL = ['iaijutsu_strike', 'slash', 'human_radar', 'resheath', 'empty_hand', 'tiger_eye']
 
 function rewardType(id: string): 'passive' | 'artifact' | 'action' {
-    if (id === 'iaijutsu_mastery' || id === 'empty_hand') return 'passive'
+    if (id === 'iaijutsu_mastery' || id === 'empty_hand' || id === 'human_radar') return 'passive'
     if (id === 'tiger_eye') return 'artifact'
     return 'action'
 }
 
 export const YIDAO: OpponentDef = {
     id: 'y1',
-    name: '一刀',
+    name: '居合·一刀',
     generate: (n) => {
         const bg = getBackground('swift')!
         const bgAttrs: Record<string, number> = {}
@@ -54,7 +54,7 @@ export const YIDAO: OpponentDef = {
             const names: Record<string, string> = {
                 iaijutsu_strike: '居合斩',
                 slash: '斩击',
-                foresight: '看破',
+                human_radar: '人体雷达',
                 resheath: '纳刀',
                 empty_hand: '无刀取',
                 tiger_eye: '虎彻之眼',
@@ -72,7 +72,7 @@ export const YIDAO: OpponentDef = {
 
         return {
             id: 'y1',
-            name: '一刀',
+            name: '居合·一刀',
             background: 'swift',
             weapon: 'zantetsu',
             baseAttrs: result,

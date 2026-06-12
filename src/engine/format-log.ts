@@ -1,6 +1,12 @@
 import { BattleLog } from './combat/battle-log'
 import type { BattleSnapshot } from './combat/types'
 
+/** 符号体系:
+ *  「」 人名    # 主动行动    ↳ 触发招式    + 辅招
+ *  ()  AP消耗   → 方向/目标   » 判定结果    · 率·骰分隔
+ *  []  状态名   |  信息分隔
+ */
+
 /** 从快照构建 id→name 映射 */
 function buildNameMap(snapshot: BattleSnapshot): Map<string, string> {
     const map = new Map<string, string>()
@@ -13,18 +19,22 @@ function buildNameMap(snapshot: BattleSnapshot): Map<string, string> {
 export function formatBattleLog(log: BattleLog): string[] {
     const all = log.getAll()
     const lines: string[] = []
-    let lastTime = -1,
-        lastActor = ''
-    // 从第一个事件快照构建名字映射
+    let lastActionKey = ''
     const nameMap = all.length > 0 ? buildNameMap(all[0].event.snapshot) : new Map<string, string>()
-    const nameOf = (id: string, snap?: BattleSnapshot): string => {
+    const fmtName = (id: string, snap?: BattleSnapshot): string => {
+        let name = id
         if (snap) {
-            for (const c of snap.characters) if (c.id === id) return c.name
+            for (const c of snap.characters)
+                if (c.id === id) {
+                    name = c.name
+                    break
+                }
+        } else {
+            name = nameMap.get(id) ?? id
         }
-        return nameMap.get(id) ?? id
+        return `「${name}」`
     }
 
-    /** 根据 actor 的 id 在快照中定位，返回有序 HP 信息 */
     function hpInfo(actorId: string, s: BattleSnapshot): string {
         const c0 = s.characters[0]
         const c1 = s.characters[1]
@@ -38,27 +48,33 @@ export function formatBattleLog(log: BattleLog): string[] {
         return `t=${(ms / 1000).toFixed(2)}`
     }
 
+    /** 率·骰 统一格式 */
+    function roll(kind: string, rate: number, rollVal: number): string {
+        return `${kind}${(rate * 100).toFixed(0)}%·${(rollVal * 100).toFixed(0)}%`
+    }
+
     function checkNewEvent(
         ms: number,
         actor: string,
         ap: number,
-        hpInfo?: string,
+        hpStr?: string,
         dist?: number,
         actionCount?: number,
         indent?: number,
     ) {
-        if (indent && indent > 0) return // 触发招式不建新 header
-        if (ms !== lastTime || actor !== lastActor) {
-            if (lastTime >= 0) lines.push('')
-            lastTime = ms
-            lastActor = actor
-            const hp = hpInfo ? ` ${hpInfo}` : ''
-            const d = dist !== undefined ? ` [${dist.toFixed(1)}m]` : ''
-            const ac = actionCount ? ` #${actionCount}` : ''
+        if (indent && indent > 0) return
+        const ac = actionCount ?? 0
+        const key = ac > 0 ? `#${ac}` : actor
+        if (key !== lastActionKey) {
+            if (lastActionKey !== '') lines.push('')
+            lastActionKey = key
+            const hp = hpStr ? ` ${hpStr}` : ''
+            const d = dist !== undefined ? ` ${dist.toFixed(1)}m` : ''
+            const num = ac > 0 ? ` #${ac}` : ''
             if (ap > 0) {
-                lines.push(`── 行动 ${t(ms)}${ac} [${actor}] AP${ap}${hp}${d} ──`)
+                lines.push(`── 回合 ${t(ms)}${num} ${actor} AP${ap}${hp}${d} ──`)
             } else {
-                lines.push(`── 行动 ${t(ms)}${ac} [${actor}]${hp}${d} ──`)
+                lines.push(`── 回合 ${t(ms)}${num} ${actor}${hp}${d} ──`)
             }
         }
     }
@@ -73,6 +89,8 @@ export function formatBattleLog(log: BattleLog): string[] {
         distance?: number
         actionCount?: number
         indent?: number
+        /** 累积的判定文本（命中后追加） */
+        extra?: string
     } | null = null
 
     function flush() {
@@ -86,51 +104,61 @@ export function formatBattleLog(log: BattleLog): string[] {
             pending.actionCount,
             pending.indent,
         )
-        lines.push(`  ${pending.text}${pending.ap ? ` ${pending.ap}` : ''}`)
+        let line = `  ${pending.text}`
+        if (pending.extra) line += pending.extra
+        if (pending.ap) line += `  | ${pending.ap}`
+        lines.push(line)
         pending = null
     }
 
     for (const { timelineMs: ms, event: e } of all) {
         switch (e.type) {
             case 'battle_start':
-                lines.push(`── ${e.actor} VS ${e.opponent} ──\n`)
+                lines.push(`── ${fmtName(e.actor)} VS ${fmtName(e.opponent)} ──\n`)
                 break
 
             case 'move': {
                 flush()
                 const oldDist = e.newDistance - e.delta
+                const actorName = fmtName(e.actor, e.snapshot)
                 checkNewEvent(
                     ms,
-                    nameOf(e.actor),
+                    actorName,
                     e.apRemaining + e.apCost,
                     hpInfo(e.actor, e.snapshot),
                     e.newDistance,
                     e.snapshot.actionCount,
                 )
-                lines.push(`  #移动 ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m [AP${e.apRemaining}]`)
+                lines.push(`  # 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m  | AP${e.apRemaining}`)
                 break
             }
 
-            case 'attack_start':
+            case 'attack_start': {
                 flush()
+                const actorName = fmtName(e.actor, e.snapshot)
+                const targetName = fmtName(e.target, e.snapshot)
+                const apCost = e.apCost
+                const prefix = e.isBonus ? '+' : e.isTriggered ? '↳' : '#'
+                const indent = '  '.repeat(e.indent ?? 0)
                 pending = {
                     time: ms,
-                    actor: nameOf(e.actor),
-                    text: `${'  '.repeat(e.indent ?? 0)}#${e.actionName ?? e.weapon}（${e.apCost}AP）→ ${nameOf(e.target, e.snapshot)}`,
-                    ap: `[AP${e.apRemaining}]`,
-                    startAp: e.apRemaining + e.apCost,
+                    actor: actorName,
+                    text: `${indent}${prefix} ${e.actionName ?? e.weapon}(${apCost}AP) → ${targetName}`,
+                    ap: `AP${e.apRemaining}`,
+                    startAp: e.apRemaining + apCost,
                     hpInfo: hpInfo(e.actor, e.snapshot),
                     distance: e.snapshot.distance,
                     actionCount: e.snapshot.actionCount,
                     indent: e.indent ?? 0,
                 }
                 break
+            }
 
             case 'check_hit':
                 if (pending) {
-                    pending.text += ` [命${(e.hitChance * 100).toFixed(0)}% 骰${(e.roll * 100).toFixed(0)}%]`
+                    pending.extra = `  ${roll('命中', e.hitChance, e.roll)}`
                     if (!e.result) {
-                        pending.text += ' → *未命中*'
+                        pending.extra += '  » 未命中'
                         flush()
                     }
                 }
@@ -138,40 +166,38 @@ export function formatBattleLog(log: BattleLog): string[] {
 
             case 'dodge':
                 if (pending) {
-                    pending.text += ` → *${nameOf(e.evader)} 闪避*`
+                    pending.extra = (pending.extra ?? '') + `  » ${fmtName(e.evader)} 闪避`
                     flush()
                 }
                 break
 
             case 'parry':
-                if (pending) {
-                    const parryInfo =
-                        e.parryChance != null
-                            ? ` [招${(e.parryChance * 100).toFixed(0)}% 骰${((e.roll ?? 0) * 100).toFixed(0)}%]`
-                            : ''
-                    pending.text += ` → *招架${parryInfo}`
+                if (pending && e.parryChance != null && e.roll != null) {
+                    pending.extra = (pending.extra ?? '') + `  ${roll('招架', e.parryChance, e.roll)}`
                 }
                 break
 
             case 'check_crit':
                 if (pending) {
-                    pending.text += ` [暴${(e.critChance * 100).toFixed(0)}% 骰${(e.roll * 100).toFixed(0)}%]`
+                    pending.extra = (pending.extra ?? '') + `  ${roll('暴击', e.critChance, e.roll)}`
                 }
                 break
 
             case 'damage': {
                 if (!pending) break
-                const t = pending.text
-                if (t.includes('闪避') || t.includes('未命中')) {
+                if (
+                    (pending.text + (pending.extra ?? '')).includes('未命中') ||
+                    (pending.text + (pending.extra ?? '')).includes('闪避')
+                ) {
                     flush()
                     break
                 }
-                const critTag = e.isCrit ? ' [暴]' : ''
-                if (t.includes('招架')) {
-                    pending.text += `${critTag} ${e.final}*`
-                } else {
-                    pending.text += ` → *${nameOf(e.target)} ${e.final}${critTag}*`
+                let result = ''
+                if (e.isParried && e.blocked > 0) {
+                    result += `格挡${e.blocked.toFixed(1)}  `
                 }
+                result += `造成${e.final.toFixed(1)}`
+                pending.extra = (pending.extra ?? '') + `  » ${result}`
                 flush()
                 break
             }
@@ -182,9 +208,16 @@ export function formatBattleLog(log: BattleLog): string[] {
 
             case 'system':
                 flush()
-                // 携带 actor 的系统消息 → 作为独立事件分组
                 if (e.actor) {
-                    checkNewEvent(ms, nameOf(e.actor), 0, undefined, undefined, e.snapshot?.actionCount)
+                    checkNewEvent(
+                        ms,
+                        fmtName(e.actor, e.snapshot),
+                        0,
+                        undefined,
+                        undefined,
+                        e.snapshot?.actionCount,
+                        e.indent,
+                    )
                 }
                 const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
                 lines.push(`${indent}${e.message}`)

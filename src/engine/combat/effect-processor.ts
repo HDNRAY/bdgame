@@ -23,7 +23,7 @@ import { getBuff } from '../data/buffs'
 import { genAppId } from '../util/buff-utils'
 import { triggerBleed } from '../entities/status'
 import type { Tag } from '../entities/tag'
-import type { BattleLog } from './battle-log'
+import { BattleLog } from './battle-log'
 import type { ActionResult, BuffLayer } from './types'
 
 // ── Context 类型 ──
@@ -136,7 +136,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         enemy.takeDamage(dmg)
         engine.emitLog({
             type: 'system',
-            message: `[反击] ${self.name} 反击 ${enemy.name} ${dmg} 伤害`,
+            message: BattleLog.counterDmg(self.name, enemy.name, dmg),
             actorId: self.id,
         })
     },
@@ -180,7 +180,11 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     leap({ self, engine }: Ctx) {
         const dist = engine.state.distance.current
         if (dist < 4 || dist > 8) {
-            engine.emitLog({ type: 'system', message: `${self.name} 距离不合适，无法跳跃`, actorId: self.id })
+            engine.emitLog({
+                type: 'system',
+                message: BattleLog.plain(self.name, '距离不合适，无法跳跃'),
+                actorId: self.id,
+            })
             return
         }
         const target = 1
@@ -199,13 +203,21 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
         if (weapon.id === 'bare_hands') {
             self.weaponDef = { ...getWeapon('ciyuan_blade') }
-            engine.emitLog({ type: 'system', message: `[次元刃] ${self.name} 凝炁为刃`, actorId: self.id })
+            engine.emitLog({
+                type: 'system',
+                message: BattleLog.msg('次元刃', self.name, '凝炁为刃'),
+                actorId: self.id,
+            })
         } else {
             self.weaponDef = {
                 ...weapon,
                 tags: [...new Set([...weapon.tags, 'ignore_parry' as Tag, 'qi' as Tag])],
             }
-            engine.emitLog({ type: 'system', message: `[次元刃] ${self.name} 附刃成功`, actorId: self.id })
+            engine.emitLog({
+                type: 'system',
+                message: BattleLog.msg('次元刃', self.name, '附刃成功'),
+                actorId: self.id,
+            })
         }
         engine.state.pendingBuffs.set(`dimensional_blade::${self.id}`, { restoreValue: 1 })
     },
@@ -325,12 +337,16 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     restore_ap({ eff, self, engine }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'restore_ap' }>
         self.ap = Math.min(self.maxAp, self.ap + e.value)
-        engine.emitLog({ type: 'system', message: `[回气] ${self.name} AP+${e.value}`, actorId: self.id })
+        engine.emitLog({ type: 'system', message: BattleLog.msg('回气', self.name, `AP+${e.value}`), actorId: self.id })
     },
     summon_speed({ eff, self, engine }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'summon_speed' }>
         engine.speedUpSummons(self.id, e.value)
-        engine.emitLog({ type: 'system', message: `[加速] ${self.name} 召唤物+${e.value}ms`, actorId: self.id })
+        engine.emitLog({
+            type: 'system',
+            message: BattleLog.msg('加速', self.name, `召唤物+${e.value}ms`),
+            actorId: self.id,
+        })
     },
     // permanent_burn({ eff, self, engine, tMs, log }: Ctx) {
     //     // 运行时由 engine 系统事件处理
@@ -376,8 +392,8 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         engine.emitLog({
             type: 'system',
             message: e.reset
-                ? `[弗思] ${self.name} 蓄势消散`
-                : `[弗思] ${self.name} 蓄势+${Math.round(e.value * 100)}%`,
+                ? BattleLog.msg('弗思', self.name, '蓄势消散')
+                : BattleLog.msg('弗思', self.name, `蓄势+${Math.round(e.value * 100)}%`),
             actorId: self.id,
         })
     },
@@ -386,7 +402,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         self.critDamageMod += e.value
         engine.emitLog({
             type: 'system',
-            message: `[不二] ${self.name} 暴伤+${e.value}`,
+            message: BattleLog.msg('不二', self.name, `暴伤+${e.value}`),
             actorId: self.id,
         })
     },
@@ -396,7 +412,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         engine.state.pendingBuffs.set(key, { restoreValue: e.stacks ?? 1 })
         engine.emitLog({
             type: 'system',
-            message: `[${getBuff(e.buffId)?.name ?? e.buffId}] ${self.name} 获得状态`,
+            message: BattleLog.buffApply(getBuff(e.buffId)?.name ?? e.buffId, self.name),
             actorId: self.id,
         })
         engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
@@ -416,7 +432,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         engine.state.pendingBuffs.delete(key)
         engine.emitLog({
             type: 'system',
-            message: `[${getBuff(e.buffId)?.name ?? e.buffId}] ${self.name} 状态消失`,
+            message: BattleLog.buffRemove(getBuff(e.buffId)?.name ?? e.buffId, self.name),
             actorId: self.id,
         })
     },
@@ -476,7 +492,11 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         const total = existing ? existing.restoreValue : stacks
         const dmg = total * 2
         enemy.takeDamage(dmg)
-        engine.emitLog({ type: 'system', message: `[中毒] ${enemy.name} ${total}层×2=${dmg}伤害`, actorId: enemy.id })
+        engine.emitLog({
+            type: 'system',
+            message: BattleLog.msg('中毒', enemy.name, `${total}层×2=${dmg}伤害`),
+            actorId: enemy.id,
+        })
         engine.emit('on_poison', self, enemy)
         engine.emit('on_debuff', self, enemy)
         // 移除旧 tick 事件，防双重触发
@@ -551,7 +571,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
     frost_step({ self, engine }: Ctx) {
         const dist = engine.state.distance.current
         if (dist < 2 || dist > 12) {
-            engine.emitLog({ type: 'system', message: `${self.name} 距离不合适`, actorId: self.id })
+            engine.emitLog({ type: 'system', message: BattleLog.plain(self.name, '距离不合适'), actorId: self.id })
             return
         }
         const perAp = Math.max(0.5, self.attrs.get('agility') / 20)
@@ -740,7 +760,7 @@ export function processCombatRolls(
     engine: BattleEngine,
 ): boolean {
     engine.emit('on_attack', self, enemy)
-    const hc =
+    let hc =
         _action.chance ??
         calcHitChance({
             attackerDexterity: self.attrs.get('dexterity'),
@@ -753,6 +773,12 @@ export function processCombatRolls(
                     ? 0.15
                     : 0),
         })
+    // 圆 buff：下次攻击距离≤4时命中+0.5，消耗
+    const circleKey = `circle::${self.id}`
+    if (engine.state.pendingBuffs.has(circleKey) && engine.state.distance.current <= 4) {
+        hc = Math.min(0.95, hc + 0.5)
+        engine.state.pendingBuffs.delete(circleKey)
+    }
     const hitResult = calcRoll(hc)
     r.hit = hitResult.success
     engine.emitLog({

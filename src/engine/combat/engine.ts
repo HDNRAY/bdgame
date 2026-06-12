@@ -239,7 +239,7 @@ export class BattleEngine {
         return true
     }
 
-    /** 触发检测：同一事件链每人每事件最多触发一次，indent 作为参数传递 */
+    /** 触发检测：同一事件链每人每事件最多触发一次，indentDepth 不受 emit 重置 */
     emit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
         if (!this.state.triggeredThisChain) this.state.triggeredThisChain = new Set()
         const key = `${self.id}:${event}`
@@ -248,9 +248,9 @@ export class BattleEngine {
             this.#deferredEmits.push({ event, self, enemy, buffId, indent: this.state.log.indentDepth })
             return
         }
+        const savedIndent = this.state.log.indentDepth
         this.state.isEmitting = true
         this.state.triggeredThisChain.add(key)
-        this.state.log.indentDepth = 0
         this.#processEmit(event, self, enemy, buffId)
         this.state.isEmitting = false
 
@@ -262,7 +262,7 @@ export class BattleEngine {
             this.state.isEmitting = false
         }
         this.state.triggeredThisChain = null
-        this.state.log.indentDepth = 0
+        this.state.log.indentDepth = savedIndent
     }
 
     #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
@@ -290,7 +290,9 @@ export class BattleEngine {
                     processActionEffect(eff, self, enemy, this, this.#tMs, action.name, action.id)
                 }
             } else {
+                this.state.log.indentDepth++
                 this.#executeAction(action, self, enemy, true)
+                this.state.log.indentDepth--
                 processBleedDamage(self, this.#tMs, this)
             }
         }
@@ -370,7 +372,7 @@ export class BattleEngine {
             this.state.pendingBuffs.has(`min_move_cost::${self.id}`),
         )
         if (!self.spendAp(ap)) {
-            this.emitLog({ type: 'system', message: `${self.name} AP不足 无法移动`, actorId: self.id })
+            this.emitLog({ type: 'system', message: BattleLog.plain(self.name, 'AP不足 无法移动'), actorId: self.id })
             return r
         }
         const a = distance.move(delta)
@@ -395,7 +397,7 @@ export class BattleEngine {
     #executeAttack(cmd: ActionCommand, self: Character, enemy: Character): ActionResult {
         const action = cmd.actionId ? getAction(cmd.actionId) : undefined
         if (!action) {
-            this.emitLog({ type: 'system', message: `${self.name} 没有可用招式`, actorId: self.id })
+            this.emitLog({ type: 'system', message: BattleLog.plain(self.name, '没有可用招式'), actorId: self.id })
             return this.#emptyResult()
         }
         // 本体招式发出前事件（供对手反制，御物/触发招式不触发）
@@ -403,8 +405,8 @@ export class BattleEngine {
         this.state.lastActionExtraStun = action.extraStunTime ?? 0
         this.emit('on_pre_action', enemy, self)
         const r = this.#executeAction(action, self, enemy)
-        processBleedDamage(self, this.#tMs, this)
         this.#tryBonus(self, 'after_main')
+        processBleedDamage(self, this.#tMs, this)
         return r
     }
 
@@ -579,7 +581,7 @@ export class BattleEngine {
                 const dmg = getBuff('permanent_burn')?.dotDamage ?? 1
                 char.takeDamage(dmg)
                 this.state.log.logSystem(
-                    `[过热] ${char.name} 受到 ${dmg} 点过热伤害`,
+                    BattleLog.msg('过热', char.name, `受到 ${dmg.toFixed(1)} 点过热伤害`),
                     this.#currentTime,
                     this.getSnapshot(),
                 )

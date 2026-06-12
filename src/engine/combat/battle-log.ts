@@ -9,6 +9,38 @@ interface LogEntry {
 }
 
 export class BattleLog {
+    /** 用 「」 包裹显示名 */
+    static name(name: string): string {
+        return `「${name}」`
+    }
+
+    // ── 消息构建器 ──
+
+    /** 「名字」 消息体（无标签） */
+    static plain(name: string, body: string): string {
+        return `${BattleLog.name(name)} ${body}`
+    }
+
+    /** [标签] 「名字」 消息体 */
+    static msg(label: string, name: string, body: string): string {
+        return `[${label}] ${BattleLog.name(name)} ${body}`
+    }
+
+    /** [buff名] 「名字」 获得状态 */
+    static buffApply(label: string, name: string): string {
+        return `${BattleLog.msg(label, name, '获得状态')}`
+    }
+
+    /** [buff名] 「名字」 状态消失 */
+    static buffRemove(label: string, name: string): string {
+        return `${BattleLog.msg(label, name, '状态消失')}`
+    }
+
+    /** [反击] 「A」 反击 「B」 X 伤害 */
+    static counterDmg(source: string, target: string, dmg: number): string {
+        return `[反击] ${BattleLog.name(source)} 反击 ${BattleLog.name(target)} ${dmg.toFixed(1)} 伤害`
+    }
+
     private entries: LogEntry[] = []
     private nextId = 0
     /** 当前缩进层级（由触发链控制） */
@@ -17,9 +49,9 @@ export class BattleLog {
     /** 从快照解析 id → 名字 */
     private resolveName(id: string, snapshot: BattleSnapshot): string {
         for (const c of snapshot.characters) {
-            if (c.id === id) return c.name
+            if (c.id === id) return `「${c.name}」`
         }
-        return id
+        return `「${id}」`
     }
 
     push(event: BattleEvent, timelineMs: number): void {
@@ -45,8 +77,10 @@ export class BattleLog {
                     event.apRemaining,
                     tMs,
                     snapshot,
-                    event.bonus ? `[辅招]${event.actionName}` : event.triggered ? `[触发]${event.actionName}` : event.actionName,
+                    event.actionName,
                     event.indent,
+                    event.triggered,
+                    event.bonus,
                 )
                 break
             case 'check_hit':
@@ -96,7 +130,7 @@ export class BattleLog {
                 break
             case 'damage_over_time':
                 this.logSystem(
-                    `[${event.status ?? event.actionName ?? 'DOT'}] ${this.resolveName(event.targetId, snapshot)} 受到 ${event.amount} 点伤害`,
+                    `[${event.status ?? event.actionName ?? 'DOT'}] ${this.resolveName(event.targetId, snapshot)} 受到 ${event.amount.toFixed(1)} 点伤害`,
                     tMs,
                     snapshot,
                     event.targetId,
@@ -112,7 +146,7 @@ export class BattleLog {
                 break
             case 'overheat':
                 this.logSystem(
-                    `[过热] ${this.resolveName(event.targetId, snapshot)} 受到 ${event.damage} 点过热伤害`,
+                    `[过热] ${this.resolveName(event.targetId, snapshot)} 受到 ${event.damage.toFixed(1)} 点过热伤害`,
                     tMs,
                     snapshot,
                     event.targetId,
@@ -131,8 +165,8 @@ export class BattleLog {
             case 'heal': {
                 const src = event.sourceId ? this.resolveName(event.sourceId, snapshot) : undefined
                 const msg = src
-                    ? `[回复] ${src} → ${this.resolveName(event.targetId, snapshot)} +${event.amount}HP`
-                    : `[回复] ${this.resolveName(event.targetId, snapshot)} +${event.amount}HP`
+                    ? `[回复] ${src} → ${this.resolveName(event.targetId, snapshot)} +${event.amount.toFixed(1)}HP`
+                    : `[回复] ${this.resolveName(event.targetId, snapshot)} +${event.amount.toFixed(1)}HP`
                 this.push({ type: 'system', message: msg, indent: this.indentDepth, snapshot }, tMs)
                 break
             }
@@ -184,9 +218,23 @@ export class BattleLog {
         snapshot: BattleSnapshot,
         actionName?: string,
         indent = 0,
+        isTriggered = false,
+        isBonus = false,
     ): void {
         this.push(
-            { type: 'attack_start', actor, target, weapon, apCost, apRemaining, actionName, snapshot, indent },
+            {
+                type: 'attack_start',
+                actor,
+                target,
+                weapon,
+                apCost,
+                apRemaining,
+                actionName,
+                snapshot,
+                indent,
+                isTriggered,
+                isBonus,
+            },
             timelineMs,
         )
     }
@@ -252,7 +300,7 @@ export class BattleLog {
     }
 
     logSystem(message: string, timelineMs: number, snapshot: BattleSnapshot, actor?: string): void {
-        this.push({ type: 'system', message, actor, indent: 0, snapshot }, timelineMs)
+        this.push({ type: 'system', message, actor, indent: this.indentDepth, snapshot }, timelineMs)
     }
 
     /** 属性变化日志，自动映射中文属性名 */

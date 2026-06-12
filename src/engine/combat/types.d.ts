@@ -49,6 +49,8 @@ export interface BattleState {
     isEmitting: boolean
     /** 最近一次移动的位移量（on_opponent_move 用） */
     moveDelta: number
+    /** 触发去重：每条事件链每人每事件最多触发一次 */
+    triggeredThisChain: Set<string> | null
 }
 
 export type EventPlan = (self: Character, enemy: Character, state: BattleState) => ActionCommand[]
@@ -114,6 +116,8 @@ export type BattleEvent =
           apRemaining: number
           snapshot: BattleSnapshot
           indent?: number
+          isTriggered?: boolean
+          isBonus?: boolean
       }
     | {
           type: 'check_hit'
