@@ -212,7 +212,6 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 1.2 } },
             { type: 'remove_buff', buffId: 'iaijutsu' },
-            { type: 'remove_buff', buffId: 'circle' },
         ],
     },
     {
