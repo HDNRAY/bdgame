@@ -23,7 +23,6 @@ export type EffectDef =
     | { type: 'leap' }
     | { type: 'frost_step' }
     | { type: 'limit_uses'; max: number }
-    | { type: 'modify_turn'; deltaMs: number }
     | { type: 'cleanse'; statuses?: StatusType[] }
     | { type: 'counter_damage'; ratio: number }
     // 自效果（无需命中判定，总是生效）
@@ -43,6 +42,7 @@ export type EffectDef =
     // 功法/奇物效果
     | { type: 'crit_chance'; value: number; reset?: boolean }
     | { type: 'crit_damage'; value: number; reset?: boolean }
+    | { type: 'hit_chance'; value: number }
     | { type: 'last_stand'; ratio: number }
     | { type: 'weapon_range_bonus'; value: number }
     | { type: 'trigger_slot_mod'; value: number }
@@ -52,8 +52,10 @@ export type EffectDef =
     | { type: 'haste'; value: number }
     | { type: 'attr_floor'; attrs: Partial<Record<AttrName, number>> }
     | { type: 'add_buff'; buffId: string; stacks?: number }
-    | { type: 'remove_buff'; buffId: string }
+    | { type: 'remove_buff'; buffId: string; stacks?: number }
     | { type: 'ciyuan_init' }
+    | { type: 'switch_weapon'; weaponId: string }
+    | { type: 'short_dash'; maxDistance?: number }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {

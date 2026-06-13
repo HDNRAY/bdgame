@@ -12,7 +12,7 @@ export const BAIHU: OpponentDef = {
             '白狐儿脸',
             'swift',
             'frost_twin_blades',
-            { strength: 14, vitality: 10, agility: 16, dexterity: 16, insight: 14, wisdom: 6 },
+            { strength: 16, vitality: 10, agility: 16, dexterity: 16, insight: 14, wisdom: 6 },
             [
                 passive('ice_heart'),
                 passive('frost_mastery'),
@@ -34,7 +34,6 @@ export const BAIHU: OpponentDef = {
         const perAp = Math.max(0.5, self.attrs.get('agility') / 20)
         const slash = self.actions.find((a) => a.id === 'slash')
         const heavySlash = self.actions.find((a) => a.id === 'heavy_slash')
-        const frostStep = self.actions.find((a) => a.id === 'frost_step')
         const guardAction = self.actions.find((a) => a.id === 'guard')
 
         /** 选当前AP下最优的主攻招式 */
@@ -46,26 +45,13 @@ export const BAIHU: OpponentDef = {
 
         // ── 距离太远 ──
         if (dist > WEAPON_RANGE) {
-            if (frostStep) {
-                const stepAp = Math.ceil((dist - 1) / perAp)
-                const attackId = pickAttack(self.ap - stepAp)
-                if (attackId) {
-                    cmds.push({ type: 'attack', actionId: 'frost_step' })
-                    cmds.push({ type: 'attack', actionId: attackId })
-                    return cmds
-                }
-            }
-
-            // AP不足踏雪+攻击 → 先靠近到攻击范围
-            const moveAp = Math.ceil((dist - WEAPON_RANGE) / perAp)
-            if (self.ap >= moveAp) {
-                cmds.push({ type: 'move', bestDistance: -moveAp })
-                const afterMove = self.ap - moveAp
-                if (afterMove >= 2 && guardAction?.canUse()) {
-                    cmds.push({ type: 'attack', actionId: 'guard' })
-                } else if (pickAttack(afterMove)) {
-                    cmds.push({ type: 'attack', actionId: pickAttack(afterMove)! })
-                }
+            const moveAp = Math.min(self.ap, Math.ceil((dist - WEAPON_RANGE) / perAp))
+            cmds.push({ type: 'move', bestDistance: -moveAp })
+            const afterMove = self.ap - moveAp
+            if (pickAttack(afterMove)) {
+                cmds.push({ type: 'attack', actionId: pickAttack(afterMove)! })
+            } else if (afterMove >= 2 && guardAction?.canUse()) {
+                cmds.push({ type: 'attack', actionId: 'guard' })
             }
             return cmds
         }
@@ -79,8 +65,12 @@ export const BAIHU: OpponentDef = {
                 const remain = self.ap - backAp
                 const atk = pickAttack(remain)
                 if (atk) cmds.push({ type: 'attack', actionId: atk })
+            } else if (backAp <= self.ap) {
+                cmds.push({ type: 'move', bestDistance: backAp })
             } else if (guardAction?.canUse()) {
                 cmds.push({ type: 'attack', actionId: 'guard' })
+            } else {
+                cmds.push({ type: 'attack', actionId: 'slash' })
             }
             return cmds
         }

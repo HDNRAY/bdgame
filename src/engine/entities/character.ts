@@ -44,16 +44,18 @@ export class Character {
     moveEfficiency = 0
     /** 身法相关独立加速（凌波微步等） */
     haste = 0
-    /** 额外暴击率（闪避弗思剑叠层） */
+    /** 额外暴击率 */
     critChance = 0
-    /** 额外暴击伤害倍率（不二剑起始buff） */
+    /** 额外暴击伤害倍率 */
     critDamageMod = 0
     /** 额外触发槽位（奇物提供） */
     triggerSlotMod = 0
-    /** 闪避修正（不二初始 -0.2，每回合 +0.04） */
+    /** 闪避修正 */
     dodgeMod = 0
-    /** 招架修正（奇物/义体提供） */
+    /** 招架修正 */
     parryMod = 0
+    /** 命中修正 */
+    hitChanceMod = 0
 
     constructor(build: CharacterBuild) {
         this.build = build
@@ -293,6 +295,10 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
         } else {
             char.critDamageMod += e.value
         }
+    },
+    hit_chance(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'hit_chance' }>
+        char.hitChanceMod += e.value
     },
     dodge_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>

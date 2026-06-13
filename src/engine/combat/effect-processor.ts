@@ -140,10 +140,6 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             actorId: self.id,
         })
     },
-    modify_turn({ eff, enemy, engine }: Ctx) {
-        const { deltaMs } = eff as Extract<EffectDef, { type: 'modify_turn' }>
-        engine.state.turn.modifyTime(enemy.id, deltaMs)
-    },
     cleanse({ eff, self, engine }: Ctx) {
         const { statuses } = eff as Extract<EffectDef, { type: 'cleanse' }>
         const targets = statuses ?? (['paralyze', 'poison'] as StatusType[])
@@ -382,8 +378,9 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             enemy.capAp()
         }
     },
-    crit_chance({ eff, self, engine }: Ctx) {
+    crit_chance({ eff, self, engine, tag }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'crit_chance' }>
+        const label = tag || '暴击率'
         if (e.reset) {
             self.critChance = 0
         } else {
@@ -392,36 +389,79 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         engine.emitLog({
             type: 'system',
             message: e.reset
-                ? BattleLog.msg('弗思', self.name, '蓄势消散')
-                : BattleLog.msg('弗思', self.name, `蓄势+${Math.round(e.value * 100)}%`),
+                ? BattleLog.msg(label, self.name, '蓄势消散')
+                : BattleLog.msg(label, self.name, `蓄势+${Math.round(e.value * 100)}%`),
             actorId: self.id,
         })
     },
-    crit_damage({ eff, self, engine }: Ctx) {
+    crit_damage({ eff, self, engine, tag }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'crit_damage' }>
+        const label = tag || '暴击伤害'
         self.critDamageMod += e.value
         engine.emitLog({
             type: 'system',
-            message: BattleLog.msg('不二', self.name, `暴伤+${e.value}`),
+            message: BattleLog.msg(label, self.name, `暴伤+${e.value}`),
             actorId: self.id,
         })
+    },
+    hit_chance({ eff, self }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'hit_chance' }>
+        self.hitChanceMod += e.value
     },
     add_buff({ eff, self, engine }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'add_buff' }>
         const key = `${e.buffId}::${self.id}`
-        engine.state.pendingBuffs.set(key, { restoreValue: e.stacks ?? 1 })
+        const buff = getBuff(e.buffId)
+
+        // 叠层处理
+        const existing = engine.state.pendingBuffs.get(key)
+        if (existing && buff?.stacking?.type === 'additive') {
+            const max = buff.stacking.max ?? Infinity
+            const newStacks = Math.min(max, existing.restoreValue + (e.stacks ?? 1))
+            const delta = newStacks - existing.restoreValue
+            existing.restoreValue = newStacks
+            // 同步命中修正（刀势每层+0.05）
+            if (e.buffId === 'momentum') self.hitChanceMod += delta * 0.05
+            engine.emitLog({
+                type: 'system',
+                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} Lv.${newStacks}`,
+                actorId: self.id,
+            })
+            engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
+            return
+        }
+
+        const mods: Record<string, number> = {}
+        if (buff?.attrMods) {
+            for (const [attr, value] of Object.entries(buff.attrMods)) {
+                self.attrs.modify(attr as AttrName, value)
+                mods[attr] = value
+            }
+        }
+        if (buff?.parryMod) {
+            self.parryMod += buff.parryMod
+            mods['_parryMod'] = buff.parryMod
+        }
+        engine.state.pendingBuffs.set(key, { restoreValue: e.stacks ?? 1, mods })
+        if (buff?.attrMods?.agility) engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
         engine.emitLog({
             type: 'system',
-            message: BattleLog.buffApply(getBuff(e.buffId)?.name ?? e.buffId, self.name),
+            message: BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description),
             actorId: self.id,
         })
         engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
-        // 自动调度 tick（buff 有 tickInterval 时）
-        const def = getBuff(e.buffId)
-        if (def?.tickInterval) {
+        // 调度过期事件
+        if (buff?.expiry?.type === 'duration') {
+            engine.state.turn.scheduleSystemEventAt(
+                `buff_end_${key}`,
+                engine.state.turn.currentTime + buff.expiry.ms,
+                'buff_end',
+            )
+        }
+        if (buff?.tickInterval) {
             engine.state.turn.scheduleSystemEventAt(
                 `tick_buff_${key}`,
-                engine.state.turn.currentTime + def.tickInterval,
+                engine.state.turn.currentTime + buff.tickInterval,
                 'tick_buff',
             )
         }
@@ -429,10 +469,143 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     remove_buff({ eff, self, engine }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'remove_buff' }>
         const key = `${e.buffId}::${self.id}`
+        const layer = engine.state.pendingBuffs.get(key)
+        if (!layer) return
+
+        // 部分移除（减层数）
+        if (e.stacks != null && layer.restoreValue > e.stacks) {
+            let delta = -e.stacks
+            const buff = getBuff(e.buffId)
+            if (buff?.onBeforeModify) {
+                delta = buff.onBeforeModify(delta, { character: self, engine })
+            }
+            if (delta < 0) {
+                layer.restoreValue += delta // delta 为负
+                if (e.buffId === 'momentum') self.hitChanceMod += delta * 0.05
+                engine.emitLog({
+                    type: 'system',
+                    message: `${getBuff(e.buffId)?.name ?? e.buffId} ${self.name} ${Math.abs(delta)}层→${layer.restoreValue}层`,
+                    actorId: self.id,
+                })
+            }
+            return
+        }
+
+        // 全量移除
+        const oldStacks = layer.restoreValue
+        if (layer.mods) {
+            for (const [attr, delta] of Object.entries(layer.mods)) {
+                if (attr === '_parryMod') {
+                    self.parryMod -= delta
+                    continue
+                }
+                self.attrs.modify(attr as AttrName, -delta)
+                if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+            }
+        }
+        if (e.buffId === 'momentum') self.hitChanceMod -= oldStacks * 0.05
         engine.state.pendingBuffs.delete(key)
+        const buffName = getBuff(e.buffId)?.name ?? e.buffId
         engine.emitLog({
             type: 'system',
-            message: BattleLog.buffRemove(getBuff(e.buffId)?.name ?? e.buffId, self.name),
+            message:
+                oldStacks > 1
+                    ? `[${buffName}] ${BattleLog.name(self.name)} 状态消失（${oldStacks}层）`
+                    : BattleLog.buffRemove(buffName, self.name),
+            actorId: self.id,
+        })
+    },
+    short_dash({ eff, self, engine }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'short_dash' }>
+        const dist = engine.state.distance.current
+        const maxDash = e.maxDistance ?? 2
+        const targetDist = Math.max(0, dist - maxDash)
+        const delta = dist - targetDist
+        engine.state.distance.move(-delta)
+        engine.emitLog({
+            type: 'move',
+            sourceId: self.id,
+            delta: -delta,
+            newDistance: engine.state.distance.current,
+            apCost: 0,
+            apRemaining: self.ap,
+        })
+    },
+    frost_step({ self, engine }: Ctx) {
+        const dist = engine.state.distance.current
+        if (dist < 2 || dist > 12) {
+            engine.emitLog({ type: 'system', message: BattleLog.plain(self.name, '距离不合适'), actorId: self.id })
+            return
+        }
+        const perAp = Math.max(0.5, self.attrs.get('agility') / 20)
+        const targetDist = 1
+        const moveDist = dist - targetDist
+        const apCost = Math.ceil(moveDist / perAp)
+        if (self.ap < apCost) {
+            engine.emitLog({ type: 'system', message: `${self.name} AP不足 无法踏雪`, actorId: self.id })
+            return
+        }
+        self.spendAp(apCost)
+        engine.state.distance.move(-moveDist)
+        engine.emitLog({
+            type: 'move',
+            sourceId: self.id,
+            delta: -moveDist,
+            newDistance: engine.state.distance.current,
+            apCost,
+            apRemaining: self.ap,
+        })
+    },
+    switch_weapon({ eff, self, engine }: Ctx) {
+        const e = eff as Extract<EffectDef, { type: 'switch_weapon' }>
+
+        // 反转旧武器效果（御物除外）
+        const oldWeapon = self.weaponDef
+        if (oldWeapon && !oldWeapon.tags.includes('imperial')) {
+            for (const eff of oldWeapon.effects ?? []) {
+                if (eff.type === 'stat_buff') {
+                    for (const [attr, value] of Object.entries(eff.attrs)) {
+                        self.attrs.modify(attr as AttrName, -value)
+                        if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+                    }
+                }
+            }
+        }
+
+        // 清除旧武器的 buff（所有 mods 不为空的 buff）
+        for (const [k, layer] of engine.state.pendingBuffs) {
+            const parts = k.split('::')
+            if (parts.length < 2 || parts[1] !== self.id) continue
+            if (!layer.mods || Object.keys(layer.mods).length === 0) continue
+            if (layer.mods._parryMod) {
+                self.parryMod -= layer.mods._parryMod as number
+            }
+            for (const [attr, delta] of Object.entries(layer.mods)) {
+                if (attr === '_parryMod') continue
+                self.attrs.modify(attr as AttrName, -(delta as number))
+                if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+            }
+            engine.state.pendingBuffs.delete(k)
+        }
+
+        const weapon = getWeapon(e.weaponId)
+        self.weaponDef = { ...weapon }
+
+        // 应用新武器效果（御物除外）
+        if (!weapon.tags.includes('imperial')) {
+            for (const eff of weapon.effects ?? []) {
+                if (eff.type === 'stat_buff') {
+                    for (const [attr, value] of Object.entries(eff.attrs)) {
+                        self.attrs.modify(attr as AttrName, value)
+                        if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+                    }
+                }
+            }
+        }
+
+        engine.emitLog({
+            type: 'system',
+            message: `[换武] ${self.name} 切换为 ${weapon.name}`,
             actorId: self.id,
         })
     },
@@ -452,6 +625,12 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
                 extra: { bleedTriggerCount: 0, source: self.name, sourceId: self.id },
             })
         }
+        const total = existing ? existing.restoreValue : stacks
+        engine.emitLog({
+            type: 'system',
+            message: `[流血] ${BattleLog.name(enemy.name)} ${existing ? '叠层' : '获得'}→${total}层`,
+            actorId: enemy.id,
+        })
         engine.emit('on_debuff', self, enemy)
     },
     sand_blind({ enemy, engine }: Ctx) {
@@ -464,6 +643,11 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         const duration = calcDebuffDuration(2000, enemy.attrs.get('vitality'))
         engine.state.pendingBuffs.set(key, { restoreValue: 1, mods: { insight: delta } })
         engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, engine.state.turn.currentTime + duration, 'buff_end')
+        engine.emitLog({
+            type: 'system',
+            message: `[迷眼] ${BattleLog.name(enemy.name)} 1层`,
+            actorId: enemy.id,
+        })
     },
     knockdown({ enemy, engine, tMs }: Ctx) {
         const buffDef = getBuff('knockdown')
@@ -476,6 +660,11 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         const duration = calcDebuffDuration(2000, enemy.attrs.get('vitality'))
         engine.state.pendingBuffs.set(key, { restoreValue: 1, mods: { agility: agiDelta } })
         engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, engine.state.turn.currentTime + duration, 'buff_end')
+        engine.emitLog({
+            type: 'system',
+            message: `[倒地] ${BattleLog.name(enemy.name)} 1层`,
+            actorId: enemy.id,
+        })
     },
     poison({ eff, self, enemy, engine, tMs }: Ctx) {
         const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
@@ -516,6 +705,12 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
                 extra: { source: self.name, burnBaseDamage: 5, remainingTicks: stacks, sourceId: self.id },
             })
         }
+        const total = existing ? existing.restoreValue : stacks
+        engine.emitLog({
+            type: 'system',
+            message: `[灼烧] ${BattleLog.name(enemy.name)} ${existing ? '叠层' : '获得'}→${total}层`,
+            actorId: enemy.id,
+        })
         engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, tMs + 1000, 'tick_burn')
     },
     paralyze({ eff, enemy, engine, tMs }: Ctx) {
@@ -530,7 +725,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
             const delta = -Math.floor(Math.abs(rate) * stacks)
             enemy.attrs.modify(attr as AttrName, delta)
             mods[attr] = delta
-            engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr, delta, label: '麻痹' })
+            engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr, delta, label: `麻痹(${stacks}层)` })
         }
         engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
 
@@ -567,31 +762,6 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
             engine.state.turn.currentTime + duration,
             'buff_end',
         )
-    },
-    frost_step({ self, engine }: Ctx) {
-        const dist = engine.state.distance.current
-        if (dist < 2 || dist > 12) {
-            engine.emitLog({ type: 'system', message: BattleLog.plain(self.name, '距离不合适'), actorId: self.id })
-            return
-        }
-        const perAp = Math.max(0.5, self.attrs.get('agility') / 20)
-        const targetDist = 1
-        const moveDist = dist - targetDist
-        const apCost = Math.ceil(moveDist / perAp)
-        if (self.ap < apCost) {
-            engine.emitLog({ type: 'system', message: `${self.name} AP不足 无法踏雪`, actorId: self.id })
-            return
-        }
-        self.spendAp(apCost)
-        engine.state.distance.move(-moveDist)
-        engine.emitLog({
-            type: 'move',
-            sourceId: self.id,
-            delta: -moveDist,
-            newDistance: engine.state.distance.current,
-            apCost,
-            apRemaining: self.ap,
-        })
     },
     stun({ eff, enemy, engine, tMs }: Ctx) {
         const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
@@ -638,6 +808,11 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
             engine.state.turn.currentTime + STUN_DURATION,
             'buff_end',
         )
+        engine.emitLog({
+            type: 'system',
+            message: `[眩晕] ${BattleLog.name(enemy.name)} ${stacks}层`,
+            actorId: enemy.id,
+        })
     },
 }
 
@@ -662,6 +837,12 @@ function handleStatusEffect(ctx: Omit<Ctx, 'tag' | 'actionId'> & { eff: EffectDe
     const STACKABLE_STATUSES: StatusType[] = ['bleed', 'poison', 'burn']
     if (existing && STACKABLE_STATUSES.includes(st as StatusType)) {
         existing.restoreValue += eff.stacks
+        const buffName = getBuff(st)?.name ?? st
+        engine.emitLog({
+            type: 'system',
+            message: `[${buffName}] ${BattleLog.name(enemy.name)} 叠层→${existing.restoreValue}层`,
+            actorId: enemy.id,
+        })
         return
     }
 
@@ -708,7 +889,7 @@ export function processStatusTick(
         engine.emitLog({
             type: 'damage_over_time',
             actionId: 'poison',
-            actionName: buffName,
+            actionName: `${buffName}(${stacks}层)`,
             sourceId: (entry.extra?.sourceId as string) ?? '?',
             targetId: char.id,
             status: buffName,
@@ -733,7 +914,7 @@ export function processStatusTick(
         engine.emitLog({
             type: 'damage_over_time',
             actionId: 'burn',
-            actionName: buffName,
+            actionName: `${buffName}(${stacks}层)`,
             sourceId: (entry.extra?.sourceId as string) ?? '?',
             targetId: char.id,
             status: buffName,
@@ -750,6 +931,7 @@ export function processStatusTick(
 
 // ── Combat rolls ──
 
+/** 调整刀势层数 */
 /** 命中/闪避/招架判定，返回 false 则攻击终止 */
 export function processCombatRolls(
     _action: ActionDefinition,
@@ -773,6 +955,10 @@ export function processCombatRolls(
                     ? 0.15
                     : 0),
         })
+    // 通用命中修正（hit_chance 效果 + 刀势每层+0.05）
+    if (self.hitChanceMod) {
+        hc = Math.min(0.95, hc + self.hitChanceMod)
+    }
     // 圆 buff：下次攻击距离≤4时命中+0.5，消耗
     const circleKey = `circle::${self.id}`
     if (engine.state.pendingBuffs.has(circleKey) && engine.state.distance.current <= 4) {
@@ -820,7 +1006,7 @@ export function processBleedDamage(owner: Character, _tMs: number, engine: Battl
         engine.emitLog({
             type: 'damage_over_time',
             actionId: 'bleed',
-            actionName: buffName,
+            actionName: `${buffName}(${stacks}层)`,
             sourceId: (entry.extra?.sourceId as string) ?? '?',
             targetId: owner.id,
             status: buffName,
@@ -857,10 +1043,54 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     const layer = engine.state.pendingBuffs.get(buffKey)
     if (!layer) return
     const parts = buffKey.split('::')
-    if (parts.length !== 3) return
+    if (parts.length < 2) return
 
     const buffId = parts[0]
     const charId = parts[1]
+
+    // 2-part keys: 直接删
+    if (parts.length === 2) {
+        const char = engine.getCharacter(charId)
+        if (char && layer.mods) {
+            for (const [attr, delta] of Object.entries(layer.mods)) {
+                if (attr === '_parryMod') {
+                    char.parryMod -= delta
+                    continue
+                }
+                char.attrs.modify(attr as AttrName, -delta)
+                if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
+            }
+        }
+        engine.state.pendingBuffs.delete(buffKey)
+        // blade_thrown 过期 → 自动拾刀
+        if (buffId === 'blade_thrown' && char?.isAlive()) {
+            engine.emitLog({
+                type: 'system',
+                message: `[飞刃] ${BattleLog.name(char.name)} 刀刃已归位`,
+                actorId: char.id,
+            })
+            processActionEffect(
+                { type: 'switch_weapon', weaponId: 'overlord_blade' },
+                char,
+                char,
+                engine,
+                engine.state.turn.currentTime,
+                '',
+                '',
+            )
+            processActionEffect(
+                { type: 'add_buff', buffId: 'overlord_blade' },
+                char,
+                char,
+                engine,
+                engine.state.turn.currentTime,
+                '',
+                '',
+            )
+        }
+        return
+    }
+
     const tag = getBuff(buffId)?.name ?? buffId
 
     // 通用：反转属性变化
@@ -885,7 +1115,16 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
 
     if (char && layer.mods) {
         for (const [attr, delta] of Object.entries(layer.mods)) {
-            engine.emitLog({ type: 'stat_change', targetId: char.id, attr, delta: -(delta as number), label: tag })
+            const expireLabel = ['frost', 'paralyze', 'knockdown', 'sand_blind', 'stun'].includes(buffId)
+                ? `${tag}消失`
+                : tag
+            engine.emitLog({
+                type: 'stat_change',
+                targetId: char.id,
+                attr,
+                delta: -(delta as number),
+                label: expireLabel,
+            })
         }
     }
 

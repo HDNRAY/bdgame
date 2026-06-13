@@ -26,9 +26,10 @@ export class BattleLog {
         return `[${label}] ${BattleLog.name(name)} ${body}`
     }
 
-    /** [buff名] 「名字」 获得状态 */
-    static buffApply(label: string, name: string): string {
-        return `${BattleLog.msg(label, name, '获得状态')}`
+    /** [buff名] 「名字」 获得状态 — 描述 */
+    static buffApply(label: string, name: string, description?: string): string {
+        const desc = description ? ` — ${description}` : ''
+        return `${BattleLog.msg(label, name, '获得状态')}${desc}`
     }
 
     /** [buff名] 「名字」 状态消失 */

@@ -473,6 +473,9 @@ export class BattleEngine {
         for (const eff of action.effects ?? []) {
             if ((eff.type === 'status' || eff.type === 'damage' || eff.type === 'fixed_damage') && r.hit && !r.dodged) {
                 processActionEffect(eff, self, enemy, this, tMs, action.name, action.id)
+            } else if (eff.type === 'remove_buff' || eff.type === 'add_buff' || eff.type === 'switch_weapon') {
+                // 这些效果不受命中影响（丢刀、换武、清势等）
+                processActionEffect(eff, self, enemy, this, tMs, action.name, action.id)
             } else if (r.hit && !r.dodged && eff.type !== 'leap' && eff.type !== 'knockback') {
                 processActionEffect(eff, self, enemy, this, tMs, action.name, action.id)
             }
@@ -650,6 +653,10 @@ export class BattleEngine {
         for (const inst of self.actions) {
             if (!inst.def.bonus || inst.def.bonusTiming?.type !== timing) continue
             if (!inst.canUse()) continue
+            if (inst.def.canUse && !inst.def.canUse(self, this.state)) continue
+            if (self.ap < inst.apCost + mainAp) continue
+            if (!inst.canUse()) continue
+            if (inst.def.canUse && !inst.def.canUse(self, this.state)) continue
             if (self.ap < inst.apCost + mainAp) continue
             self.spendAp(inst.apCost)
             inst.use()

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN, LUEYING, YIDAO } from '../data/opponents/index'
+import { LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN, LUEYING, YIDAO, BAIHU, LIUXIGUA } from '../data/opponents/index'
 import { STAT_NAMES } from '../data/rewards'
 import { cultCost } from '../systems/cultivation'
 import { getBackground } from '../data/backgrounds'
@@ -18,13 +18,15 @@ function calcCultCost(attrs: Record<string, number>, bgId: string): number {
 }
 
 describe('opponents', () => {
-    for (const def of [LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN, LUEYING, YIDAO]) {
+    for (const def of [LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN, LUEYING, YIDAO, BAIHU, LIUXIGUA]) {
         describe(def.name, () => {
             const build = def.generate(33)
 
-            it('total cultivation cost = 64 (n × 2 − 2)', () => {
+            it('total cultivation cost matches points (n × 2)', () => {
                 const cost = calcCultCost(build.baseAttrs, build.background)
-                expect(cost).toBeGreaterThanOrEqual(64)
+                // 腊月有 innate_seed（额外修炼点数），白狐儿脸目标值较低只用 62
+                const expected = def.id === 'l1' ? 76 : 66
+                expect(cost).toBe(expected)
             })
 
             it('triggers reference valid actions', () => {

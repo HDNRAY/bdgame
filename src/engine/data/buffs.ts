@@ -39,6 +39,8 @@ export interface BuffDef extends GameEntity {
     stacking?: BuffStacking
     /** 每层属性修正 */
     attrMods?: Record<string, number>
+    /** 招架修正 */
+    parryMod?: number
     /** 连续眩晕递减 */
     consecutiveDiminish?: boolean
     /** DOT/tick 间隔（ms） */
@@ -49,6 +51,8 @@ export interface BuffDef extends GameEntity {
     tickHeal?: number
     /** 伤害修正钩子（applyDamage 中自动调用） */
     onDamage?: (final: number, ctx: DamageModContext) => number
+    /** 层数变更前回调（返回实际 delta，0=拦截变更） */
+    onBeforeModify?: (delta: number, ctx: { character: Character; engine: BattleEngine }) => number
 }
 
 export const BUFF_DB: BuffDef[] = [
@@ -87,6 +91,44 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         value: 0.4,
         expiry: { type: 'consumed' },
+        stacking: { type: 'none' },
+    },
+    {
+        id: 'momentum',
+        name: '刀势',
+        description: '越战越勇，每层斩击伤害+10%, 命中率+5%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 6 },
+        onDamage: (f, { attacker, layer, buffOwnerId }) => {
+            if (buffOwnerId === attacker.id) {
+                return f + f * 0.1 * layer.restoreValue
+            }
+            return f
+        },
+        onBeforeModify: (delta, { character, engine }) => {
+            if (delta < 0 && engine.state.pendingBuffs.has(`overlord_blade::${character.id}`)) {
+                return 0 // 霸刀护体，刀势不降
+            }
+            return delta
+        },
+    },
+    {
+        id: 'overlord_blade',
+        name: '霸刀',
+        description: '霸刀在手，身法受限但势不可挡。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        attrMods: { agility: -10 },
+        parryMod: 0.15,
+    },
+    {
+        id: 'blade_thrown',
+        name: '飞刃',
+        description: '霸刀已脱手，短时间内无法拾取。',
+        tags: [],
+        expiry: { type: 'duration', ms: 1200 },
         stacking: { type: 'none' },
     },
 

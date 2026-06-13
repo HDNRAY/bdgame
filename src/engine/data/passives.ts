@@ -108,6 +108,20 @@ export const PASSIVES: Passive[] = [
         tags: ['passive'],
         effects: [{ type: 'stat_parry_dodge', parryScale: 0.005, dodgeScale: 0.005 }],
     },
+    {
+        id: 'momentum_mastery',
+        name: '刀势',
+        description: '越战越强，每次击中积攒刀势，未命中则丢失。每层刀势提升斩击伤害10%，命中+5%。',
+        tags: ['passive'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'momentum', stacks: 1 }] },
+            {
+                condition: { type: 'on_hit', check: (ctx) => ctx.actor.weaponDef?.tags.includes('slash') ?? false },
+                effects: [{ type: 'add_buff', buffId: 'momentum', stacks: 1 }],
+            },
+            { condition: { type: 'on_dodged' }, effects: [{ type: 'remove_buff', buffId: 'momentum', stacks: 1 }] },
+        ],
+    },
 ]
 
 /** 天赋（绝学）注册表 */

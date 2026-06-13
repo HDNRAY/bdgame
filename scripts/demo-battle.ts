@@ -1,6 +1,16 @@
 // npx tsx scripts/demo-battle.ts [n]
 import { Character } from '../src/engine/entities/character'
-import { ZHANGLIE, LAIFENG, XUANJI, LAYUE, YIDAO, SANGYUAN, BAIHU, LUEYING } from '../src/engine/data/opponents/index'
+import {
+    ZHANGLIE,
+    LAIFENG,
+    XUANJI,
+    LAYUE,
+    YIDAO,
+    SANGYUAN,
+    BAIHU,
+    LUEYING,
+    LIUXIGUA,
+} from '../src/engine/data/opponents/index'
 import { getWeapon } from '../src/engine/data/weapons'
 import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
@@ -29,8 +39,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = YIDAO.generate(33)
-const oBuild = LAYUE.generate(33)
+const pBuild = LIUXIGUA.generate(33)
+const oBuild = BAIHU.generate(33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

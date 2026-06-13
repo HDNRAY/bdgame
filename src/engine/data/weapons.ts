@@ -86,6 +86,24 @@ export const WEAPON_DB: WeaponDef[] = [
         effects: [{ type: 'stat_buff', attrs: { strength: 4, agility: -2 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'frost_dex_bonus' }] }],
     },
+    {
+        id: 'overlord_blade',
+        name: '霸刀',
+        description: '与身同高的巨刃，离心力驱动，势不可挡。',
+        tags: ['slash', 'blunt', 'parry'],
+        effects: [{ type: 'stat_buff', attrs: { strength: 4 } }],
+        range: [1, 3],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'overlord_blade' }],
+            },
+            {
+                condition: { type: 'on_parry' },
+                effects: [{ type: 'add_buff', buffId: 'momentum', stacks: 1 }],
+            },
+        ],
+    },
 ]
 
 // ── 运行时武器查找表 ──
