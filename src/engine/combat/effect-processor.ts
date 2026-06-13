@@ -128,18 +128,6 @@ function applyDamage(
 }
 
 const effectHandlers: Record<string, (ctx: Ctx) => void> = {
-    counter_damage({ eff, self, enemy, engine }: Ctx) {
-        const { ratio } = eff as Extract<EffectDef, { type: 'counter_damage' }>
-        const scaling: Partial<Record<AttrName, number>> = { strength: 1.0 }
-        const base = calcBaseDamage(scaling, self.attrs.getAll())
-        const dmg = Math.round(base * ratio)
-        enemy.takeDamage(dmg)
-        engine.emitLog({
-            type: 'system',
-            message: BattleLog.counterDmg(self.name, enemy.name, dmg),
-            actorId: self.id,
-        })
-    },
     cleanse({ eff, self, engine }: Ctx) {
         const { statuses } = eff as Extract<EffectDef, { type: 'cleanse' }>
         const targets = statuses ?? (['paralyze', 'poison'] as StatusType[])

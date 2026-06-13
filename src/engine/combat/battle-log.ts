@@ -37,11 +37,6 @@ export class BattleLog {
         return `${BattleLog.msg(label, name, '状态消失')}`
     }
 
-    /** [反击] 「A」 反击 「B」 X 伤害 */
-    static counterDmg(source: string, target: string, dmg: number): string {
-        return `[反击] ${BattleLog.name(source)} 反击 ${BattleLog.name(target)} ${dmg.toFixed(1)} 伤害`
-    }
-
     private entries: LogEntry[] = []
     private nextId = 0
     /** 当前缩进层级（由触发链控制） */

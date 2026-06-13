@@ -24,7 +24,6 @@ export type EffectDef =
     | { type: 'frost_step' }
     | { type: 'limit_uses'; max: number }
     | { type: 'cleanse'; statuses?: StatusType[] }
-    | { type: 'counter_damage'; ratio: number }
     // 自效果（无需命中判定，总是生效）
     | { type: 'heal'; value: number; ratio?: number }
     | { type: 'stat_multiply'; stat: string; multiplier: number; duration: BuffDuration }
