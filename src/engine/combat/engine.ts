@@ -49,8 +49,10 @@ export class BattleEngine {
         o.resetAp()
         const log = new BattleLog()
         const tm = new TurnManager()
-        tm.addCharacter(p, 0)
-        tm.addCharacter(o, 0)
+        // 身法高的先手
+        const [faster, slower] = [p, o].sort((a, b) => b.attrs.get('agility') - a.attrs.get('agility'))
+        tm.addCharacter(faster, 0)
+        tm.addCharacter(slower, 0)
         this.state = {
             phase: 'fighting',
             characters: [p, o],

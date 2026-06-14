@@ -3,11 +3,11 @@ import { DistanceSystem } from '../../combat/distance'
 import type { ActionCommand } from '../../combat/types'
 
 export const SANGYUAN: OpponentDef = {
-    id: 's1',
+    id: 'sangyuan',
     name: '灵剑·桑原',
     generate: (n) =>
         simpleGenerate(
-            's1',
+            'sangyuan',
             '灵剑·桑原',
             'strong',
             'bare_hands',
@@ -64,6 +64,22 @@ export const SANGYUAN: OpponentDef = {
             if (self.ap < walkAP + 2) return cmds
             cmds.push({ type: 'move', bestDistance: -walkAP })
             if (!tryHeavy()) trySlash()
+        } else if (dist < 1) {
+            // 太近（被贴脸）：后退到武器范围再打
+            const backAp = Math.ceil((1 - dist) / perAp)
+            if (self.ap >= backAp + 2) {
+                cmds.push({ type: 'move', bestDistance: backAp })
+                const remain = self.ap - backAp
+                if (heavyDef && remain >= heavyDef.apCost) {
+                    cmds.push({ type: 'attack', actionId: 'heavy_slash' })
+                } else if (remain >= (slashDef?.apCost ?? 2)) {
+                    cmds.push({ type: 'attack', actionId: 'slash' })
+                }
+            } else if (self.ap >= backAp) {
+                cmds.push({ type: 'move', bestDistance: backAp })
+            } else if (self.ap >= 1) {
+                cmds.push({ type: 'move', bestDistance: 1 })
+            }
         } else {
             if (!tryHeavy()) trySlash()
         }

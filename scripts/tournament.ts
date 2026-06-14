@@ -1,11 +1,13 @@
 // npx tsx scripts/tournament.ts [N=1000]
 import { Character } from '../src/engine/entities/character'
-import { OPPONENTS } from '../src/engine/data/opponents/index'
+import { OPPONENTS as o } from '../src/engine/data/opponents/index'
 import { runBattle } from '../src/engine/battle-runner'
 
 const N = Math.max(1, parseInt(process.argv[2] ?? '1000', 10))
 
 type Result = { name: string; wins: number; total: number; hpPct: number }
+
+const OPPONENTS = o.filter((o) => ['laifeng', 'sangyuan'].includes(o.id)) // 张烈数据不完整，暂不参与统计
 
 const results: Record<string, Result> = {}
 for (const def of OPPONENTS) {

@@ -32,7 +32,7 @@ function makeChar(
 describe('BattleEngine', () => {
     it('should simulate a fight with action data', () => {
         const p = makeChar(
-            'p1',
+            'laifeng',
             '玩家',
             { strength: 14, vitality: 12, agility: 10, dexterity: 10, insight: 8, wisdom: 6 },
             ['straight_punch'],
@@ -44,7 +44,7 @@ describe('BattleEngine', () => {
             ['straight_punch'],
         )
         const { winner, engine } = runBattle(p, o)
-        expect(winner).toBe('p1')
+        expect(winner).toBe('laifeng')
         const types = engine.state.log.getAll().map((e) => e.event.type)
         expect(types).toContain('battle_start')
         expect(types).toContain('defeat')
@@ -52,7 +52,7 @@ describe('BattleEngine', () => {
 
     it('should handle distance management with spear', () => {
         const p = makeChar(
-            'p1',
+            'laifeng',
             '远程',
             { dexterity: 12, agility: 14, strength: 6, vitality: 8, insight: 6, wisdom: 10 },
             ['needle'],

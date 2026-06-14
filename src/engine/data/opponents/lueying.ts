@@ -5,11 +5,11 @@ import type { ActionCommand } from '../../combat/types'
 const WEAPON_RANGE = 2
 
 export const LUEYING: OpponentDef = {
-    id: 'd1',
+    id: 'lueying',
     name: '掠影·无名',
     generate: (n) =>
         simpleGenerate(
-            'd1',
+            'lueying',
             '掠影·无名',
             'swift',
             'military_dagger',

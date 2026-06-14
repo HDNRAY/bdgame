@@ -1,11 +1,11 @@
 import { type OpponentDef, simpleGenerate, passive, action } from './base'
 
 export const LAIFENG: OpponentDef = {
-    id: 'p1',
+    id: 'laifeng',
     name: '空拳·来风',
     generate: (n) =>
         simpleGenerate(
-            'p1',
+            'laifeng',
             '空拳·来风',
             'balanced',
             'bare_hands',
