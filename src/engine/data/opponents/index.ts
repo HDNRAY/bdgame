@@ -1,5 +1,3 @@
-export type { OpponentDef } from './base'
-export { passive, artifact, action } from './base'
 export { ZHANGLIE } from './zhanglie'
 export { LAIFENG } from './laifeng'
 export { XUANJI } from './xuanji'
@@ -12,6 +10,9 @@ export { LIUXIGUA } from './liuxigua'
 export { LUHONGTI } from './luhongti'
 
 import type { CharacterBuild } from '../../entities/character-build'
+import type { BattleState, ActionCommand } from '../../combat/types'
+import type { Character } from '../../entities/character'
+import type { Reward } from '../rewards'
 import { ZHANGLIE } from './zhanglie'
 import { LAIFENG } from './laifeng'
 import { XUANJI } from './xuanji'
@@ -22,7 +23,21 @@ import { BAIHU } from './baihu'
 import { LUEYING } from './lueying'
 import { LIUXIGUA } from './liuxigua'
 import { LUHONGTI } from './luhongti'
-import type { OpponentDef } from './base'
+
+/** 对手定义 */
+export interface OpponentDef {
+    id: string
+    name: string
+    /** 根据 n 返回对应强度的 build */
+    generate: (n: number) => CharacterBuild
+    /** 自定义 AI（返回 null = 用默认） */
+    planEvent?: (self: Character, state: BattleState) => ActionCommand[] | null
+}
+
+/** 奖励快捷函数 */
+export const passive = (id: string): Reward => ({ type: 'passive', id, name: id, description: '', tags: [] })
+export const artifact = (id: string): Reward => ({ type: 'artifact', id, name: id, description: '', tags: [] })
+export const action = (id: string): Reward => ({ type: 'action', id, name: id, description: '', tags: [] })
 
 /** 所有对手 */
 export const OPPONENTS: OpponentDef[] = [

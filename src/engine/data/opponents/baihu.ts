@@ -1,14 +1,15 @@
-import { type OpponentDef, simpleGenerate, passive, action, artifact } from './base'
+import { simpleGenerate } from '../../systems/character-gen'
+import { type OpponentDef, passive, action, artifact } from '.'
 import type { ActionCommand } from '../../combat/types'
 
 const WEAPON_RANGE = 3
 
 export const BAIHU: OpponentDef = {
-    id: 'b1',
+    id: 'baihu',
     name: '白狐儿脸',
     generate: (n) =>
         simpleGenerate(
-            'b1',
+            'baihu',
             '白狐儿脸',
             'swift',
             'frost_twin_blades',

@@ -1,14 +1,15 @@
-import { type OpponentDef, simpleGenerate, passive, action, artifact } from './base'
+import { simpleGenerate } from '../../systems/character-gen'
+import { type OpponentDef, passive, action, artifact } from '.'
 import { getWeapon } from '../weapons'
 import { DistanceSystem } from '../../combat/distance'
 import type { ActionCommand } from '../../combat/types'
 
 export const XUANJI: OpponentDef = {
-    id: 'm1',
+    id: 'xuanji',
     name: '御物·玄机',
     generate: (n) =>
         simpleGenerate(
-            'm1',
+            'xuanji',
             '御物·玄机',
             'wise',
             'tri_orb',

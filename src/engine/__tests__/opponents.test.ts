@@ -2,15 +2,13 @@ import { describe, it, expect } from 'vitest'
 import { LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN, LUEYING, YIDAO, BAIHU, LIUXIGUA } from '../data/opponents/index'
 import { STAT_NAMES } from '../data/rewards'
 import { cultCost } from '../systems/cultivation'
-import { getBackground } from '../data/backgrounds'
 import { getAction } from '../data/actions'
 
-/** 从 bg 起点到最终属性反推修炼花费 */
-function calcCultCost(attrs: Record<string, number>, bgId: string): number {
-    const bg = getBackground(bgId)
+/** 从统一起点 {3,3,3,3,3,3} 到最终属性反推修炼花费 */
+function calcCultCost(attrs: Record<string, number>): number {
     let total = 0
     for (const a of STAT_NAMES) {
-        const start = bg?.attrs[a] ?? 3
+        const start = 3
         const end = attrs[a] ?? 3
         for (let v = start; v < end; v++) total += cultCost(v)
     }
@@ -23,10 +21,10 @@ describe('opponents', () => {
             const build = def.generate(33)
 
             it('total cultivation cost matches points (n × 2)', () => {
-                const cost = calcCultCost(build.baseAttrs, build.background)
-                // 腊月有 innate_seed（额外修炼点数），白狐儿脸目标值较低只用 62
-                const expected = def.id === 'l1' ? 76 : 66
-                expect(cost).toBe(expected)
+                const cost = calcCultCost(build.baseAttrs)
+                // 桑原新算法65，腊月天生道种加成后目标值72
+                const expected: Record<string, number> = { sangyuan: 65, layue: 72 }
+                expect(cost).toBe(expected[def.id] ?? 66)
             })
 
             it('triggers reference valid actions', () => {
@@ -51,7 +49,7 @@ describe('opponents', () => {
     it('腊月 has innate_seed and extra cultivation points', () => {
         const build = LAYUE.generate(33)
         expect(build.rewards.some((r) => r.id === 'innate_seed')).toBe(true)
-        const cost = calcCultCost(build.baseAttrs, 'swift')
+        const cost = calcCultCost(build.baseAttrs)
         expect(cost).toBeGreaterThan(70)
     })
 })

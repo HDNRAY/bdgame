@@ -1,11 +1,12 @@
-import { type OpponentDef, simpleGenerate, passive, artifact, action } from './base'
+import { simpleGenerate } from '../../systems/character-gen'
+import { type OpponentDef, passive, artifact, action } from '.'
 
 export const ZHANGLIE: OpponentDef = {
-    id: 'o1',
+    id: 'zhanglie',
     name: '铁枪·张烈',
     generate: (n) =>
         simpleGenerate(
-            'o1',
+            'zhanglie',
             '铁枪·张烈',
             'strong',
             'iron_spear',

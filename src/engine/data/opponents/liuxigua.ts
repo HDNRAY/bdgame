@@ -1,68 +1,30 @@
-import { type OpponentDef, passive, action } from './base'
-import type { CharacterBuild } from '../../entities/character-build'
-import { getBackground } from '../backgrounds'
-import { cultCost } from '../../systems/cultivation'
-import { STAT_NAMES } from '../rewards'
+import { simpleGenerate } from '../../systems/character-gen'
+import { type OpponentDef, passive, action } from '.'
 import type { ActionCommand } from '../../combat/types'
 import { DistanceSystem } from '../../combat/distance'
 
 export const LIUXIGUA: OpponentDef = {
-    id: 'd2',
+    id: 'liuxigua',
     name: '霸刀·西瓜',
-    generate: (n) => {
-        const bg = getBackground('strong')!
-        const bgAttrs: Record<string, number> = {}
-        for (const a of STAT_NAMES) bgAttrs[a] = bg.attrs[a] ?? 3
-
-        const cultPoints = n * 2
-        const target: Record<string, number> = {
-            strength: 14,
-            vitality: 10,
-            agility: 20,
-            dexterity: 18,
-            insight: 16,
-            wisdom: 4,
-        }
-        // 强制优先级（DEX 优先于 INS，保证命中够）
-        const prio: string[] = ['agility', 'strength', 'dexterity', 'vitality', 'insight', 'wisdom']
-
-        const result = { ...bgAttrs }
-        let remaining = cultPoints
-        while (remaining > 0) {
-            let improved = false
-            for (const attr of prio) {
-                if (result[attr] >= (target[attr] ?? 99)) continue
-                const cost = cultCost(result[attr])
-                if (remaining >= cost) {
-                    result[attr]++
-                    remaining -= cost
-                    improved = true
-                    break
-                }
-            }
-            if (!improved) break
-        }
-
-        const build: CharacterBuild = {
-            id: 'd2',
-            name: '霸刀·西瓜',
-            background: 'strong',
-            weapon: 'overlord_blade',
-            baseAttrs: result,
-            rewards: [
+    generate: (n) =>
+        simpleGenerate(
+            'liuxigua',
+            '霸刀·西瓜',
+            'strong',
+            'overlord_blade',
+            { strength: 14, vitality: 10, agility: 20, dexterity: 18, insight: 16, wisdom: 4 },
+            [
                 passive('momentum_mastery'),
-                passive('ling_bo_wei_bu'),
                 action('spinning_slash'),
                 action('cyclone_slash'),
-                action('sky_burner'),
                 action('little_fist'),
-                action('shadow_kick'),
+                action('sky_burner'),
                 action('retrieve_blade'),
+                action('shadow_kick'),
             ],
-            triggers: [],
-        }
-        return build
-    },
+            [],
+            n,
+        ),
     planEvent: (self, state) => {
         const cmds: ActionCommand[] = []
         const dist = state.distance.current

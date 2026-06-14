@@ -1,4 +1,5 @@
-import { type OpponentDef, simpleGenerate, passive, action } from './base'
+import { simpleGenerate } from '../../systems/character-gen'
+import { type OpponentDef, passive, action } from '.'
 
 export const LAIFENG: OpponentDef = {
     id: 'laifeng',
@@ -12,7 +13,6 @@ export const LAIFENG: OpponentDef = {
             { strength: 14, vitality: 8, agility: 20, dexterity: 12, insight: 12, wisdom: 12 },
             [
                 passive('forge'),
-                passive('ling_bo_wei_bu'),
                 action('qi_focus'),
                 action('qi_gather'),
                 action('straight_punch'),

@@ -1,4 +1,5 @@
-import { type OpponentDef, simpleGenerate, passive, artifact, action } from './base'
+import { simpleGenerate } from '../../systems/character-gen'
+import { type OpponentDef, passive, artifact, action } from '.'
 import { DistanceSystem } from '../../combat/distance'
 import type { ActionCommand } from '../../combat/types'
 

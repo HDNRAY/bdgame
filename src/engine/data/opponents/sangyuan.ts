@@ -1,4 +1,5 @@
-import { type OpponentDef, simpleGenerate, passive, action, artifact } from './base'
+import { simpleGenerate } from '../../systems/character-gen'
+import { type OpponentDef, action, artifact } from '.'
 import { DistanceSystem } from '../../combat/distance'
 import type { ActionCommand } from '../../combat/types'
 
@@ -13,8 +14,6 @@ export const SANGYUAN: OpponentDef = {
             'bare_hands',
             { strength: 15, vitality: 18, agility: 8, dexterity: 18, insight: 12, wisdom: 5 },
             [
-                passive('zuoyou_hubo'),
-                passive('vitality_regen'),
                 artifact('qi_amplifier'),
                 action('slash'),
                 action('heavy_slash'),
