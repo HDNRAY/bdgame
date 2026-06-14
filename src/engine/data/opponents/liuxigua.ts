@@ -68,60 +68,111 @@ export const LIUXIGUA: OpponentDef = {
         const dist = state.distance.current
         const hasBlade = state.pendingBuffs.has('overlord_blade::' + self.id)
         const momentum = state.pendingBuffs.get('momentum::' + self.id)?.restoreValue ?? 0
-        const perAp = DistanceSystem.apToRange(self.attrs.get('agility'))
+        // 实际每 AP 位移距离（与引擎 calcMovement 一致）
+        const basePerAp = DistanceSystem.apToRange(self.attrs.get('agility'))
+        const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
+        const effectivePerAp = minMoveCost ? 2 : basePerAp * (1 + (self.moveEfficiency ?? 0))
+        const W_RANGE: [number, number] = [1, 3] // 霸刀武器范围
 
         const slash = self.actions.find((a) => a.id === 'spinning_slash')
         const cyclone = self.actions.find((a) => a.id === 'cyclone_slash')
         const sky = self.actions.find((a) => a.id === 'sky_burner')
         const fist = self.actions.find((a) => a.id === 'little_fist')
         const kick = self.actions.find((a) => a.id === 'shadow_kick')
+        const retrieve = self.actions.find((a) => a.id === 'retrieve_blade')
+
+        /** 选一个费用不超过 remainAP 的最佳技能 */
+        function pickBestAttack(remainAP: number): string | null {
+            if (cyclone && remainAP >= cyclone.apCost && dist <= 5) return 'cyclone_slash'
+            if (slash && remainAP >= slash.apCost) return 'spinning_slash'
+            return null
+        }
 
         if (hasBlade) {
-            // 燎天势：敌人超出武器范围（3）+ 2m 以上才扔，否则继续近战
+            // 燎天势：远距离脱手
             if (momentum >= 3 && sky && self.ap >= sky.apCost && dist > 5) {
                 cmds.push({ type: 'attack', actionId: 'sky_burner' })
                 return cmds
             }
 
-            // 旋风斩（范围 1~5）
-            if (cyclone && self.ap >= cyclone.apCost && dist <= 5) {
-                cmds.push({ type: 'attack', actionId: 'cyclone_slash' })
+            // 在武器范围内：直接攻击
+            if (dist >= W_RANGE[0] && dist <= W_RANGE[1]) {
+                const atk = pickBestAttack(self.ap)
+                if (atk) cmds.push({ type: 'attack', actionId: atk })
                 return cmds
             }
 
-            // 旋斩（范围 1~4）
-            if (slash && self.ap >= slash.apCost && dist <= 4) {
-                cmds.push({ type: 'attack', actionId: 'spinning_slash' })
+            // 太远：走位进范围 → 攻击
+            if (dist > W_RANGE[1]) {
+                const ideal = W_RANGE[1] - 0.5 // 走到 2.5，给 short_dash 留空间
+                const needUnits = dist - ideal
+                const moveAp = Math.ceil(needUnits / effectivePerAp)
+                if (self.ap >= moveAp + 2) {
+                    cmds.push({ type: 'move', bestDistance: -moveAp })
+                    const remain = self.ap - moveAp
+                    const atk = pickBestAttack(remain)
+                    if (atk) cmds.push({ type: 'attack', actionId: atk })
+                } else if (self.ap >= moveAp) {
+                    cmds.push({ type: 'move', bestDistance: -moveAp })
+                } else if (self.ap >= 1) {
+                    const partialAp = Math.floor(self.ap)
+                    cmds.push({ type: 'move', bestDistance: -partialAp })
+                }
                 return cmds
             }
 
-            // 太近或太远：走位到攻击范围
-            const ideal = Math.max(1, Math.min(3, dist))
-            if (Math.abs(dist - ideal) > 0.5 && self.ap >= 1) {
-                const moveAp = Math.ceil(Math.abs(dist - ideal) / perAp)
-                cmds.push({ type: 'move', bestDistance: dist > ideal ? -moveAp : moveAp })
-                return cmds
-            }
-        } else {
-            // 空手态：技能全在冷却或缴械未过期时等待即可（过期自动归还武器）
-            // 无影脚突进
-            if (kick && self.ap >= kick.apCost && dist > 1) {
-                cmds.push({ type: 'attack', actionId: 'shadow_kick' })
+            // 太近（<1）：后退拉开
+            if (dist < W_RANGE[0]) {
+                const backUnits = W_RANGE[0] - dist
+                const backAp = Math.ceil(backUnits / effectivePerAp)
+                if (self.ap >= backAp + 2) {
+                    cmds.push({ type: 'move', bestDistance: backAp })
+                    const atk = pickBestAttack(self.ap - backAp)
+                    if (atk) cmds.push({ type: 'attack', actionId: atk })
+                } else if (self.ap >= backAp) {
+                    cmds.push({ type: 'move', bestDistance: backAp })
+                } else if (self.ap >= 1) {
+                    cmds.push({ type: 'move', bestDistance: 1 })
+                }
                 return cmds
             }
 
-            // 小拳拳（赤手空拳范围 0~2）
-            if (fist && self.ap >= fist.apCost && dist <= 2) {
+            return cmds
+        }
+
+        // ── 空手态（无霸刀） ──
+        // 先取回霸刀
+        if (retrieve && self.ap >= retrieve.apCost) {
+            cmds.push({ type: 'attack', actionId: 'retrieve_blade' })
+            return cmds
+        }
+
+        // 无影脚突进
+        if (kick && self.ap >= kick.apCost && dist > 1 && dist <= 6) {
+            cmds.push({ type: 'attack', actionId: 'shadow_kick' })
+            return cmds
+        }
+
+        // 在拳范围 [0,2] 内
+        if (dist <= 2) {
+            if (fist && self.ap >= fist.apCost) {
                 cmds.push({ type: 'attack', actionId: 'little_fist' })
                 return cmds
             }
+        }
 
-            // 太远（>2）且没 kick → 往前走
-            if (dist > 2 && self.ap >= 1) {
-                const moveAp = Math.min(self.ap, Math.ceil((dist - 1) / perAp))
+        // 太远 → 走位进范围
+        if (dist > 2) {
+            const moveAp = Math.ceil((dist - 1) / effectivePerAp)
+            if (self.ap >= moveAp + 1) {
                 cmds.push({ type: 'move', bestDistance: -moveAp })
-                return cmds
+                if (fist && self.ap - moveAp >= fist.apCost) {
+                    cmds.push({ type: 'attack', actionId: 'little_fist' })
+                }
+            } else if (self.ap >= 1) {
+                cmds.push({ type: 'move', bestDistance: -Math.floor(self.ap) })
             }
+            return cmds
         }
 
         return cmds

@@ -54,7 +54,10 @@ export interface BuffDef extends GameEntity {
     /** 招架率修正钩子（applyDamage 招架判定前自动调用，返回加算值） */
     onParryChance?: (ctx: { target: Character; attacker: Character; engine: BattleEngine }) => number
     /** 招架减伤修正钩子（applyDamage 招架成功后自动调用） */
-    onParryReduction?: (final: number, ctx: { target: Character; attacker: Character; engine: BattleEngine }) => number
+    onParryReduction?: (
+        final: number,
+        ctx: { target: Character; attacker: Character; engine: BattleEngine; raw: number },
+    ) => number
 }
 
 export const BUFF_DB: BuffDef[] = [
@@ -272,8 +275,13 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'dimensional_blade',
         name: '次元刃',
-        description: '凝炁为刃，无视招架。',
+        description: '凝炁为刃，削弱招架减伤效果。',
         tags: [],
+        onParryReduction: (f, { raw }) => {
+            const blocked = raw - f
+            const halfBlock = Math.round(blocked * 0.5 * 10) / 10
+            return raw - halfBlock
+        },
     },
     {
         id: 'zuoyou_hubo',

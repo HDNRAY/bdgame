@@ -54,7 +54,7 @@ function applyDamage(
     const weapon = target.weaponDef ?? getWeapon(target.build.weapon)
     let parried = false
     const canParry = weapon.tags.includes('parry') || engine.state.pendingBuffs.has(`tai_chi::${target.id}`)
-    if (canParry && !engine.state.pendingBuffs.has(`dimensional_blade::${attacker.id}`)) {
+    if (canParry) {
         let pc = calcParryChance(0, target.attrs.get('dexterity'), target.attrs.get('insight'))
         // 看破 buff：招架率+0.5，成功后消耗
         const foresightKey = `foresight::${target.id}`
@@ -93,14 +93,14 @@ function applyDamage(
         }
     }
     let final = parried ? calcParriedDamage(raw, target.attrs.get('strength')) : raw
-    // 招架减伤钩子（太极：灵巧增益减伤）
+    // 招架减伤钩子（太极/次元刃等）
     if (parried) {
         for (const [key] of engine.state.pendingBuffs) {
             const parts = key.split('::')
             if (parts.length < 2 || parts[1] !== target.id) continue
             const def = getBuff(parts[0])
             if (!def?.onParryReduction) continue
-            final = def.onParryReduction(final, { target, attacker, engine })
+            final = def.onParryReduction(final, { target, attacker, engine, raw })
         }
         final = Math.round(final * 10) / 10
     }

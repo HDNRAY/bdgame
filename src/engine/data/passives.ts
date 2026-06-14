@@ -94,12 +94,7 @@ export const PASSIVES: Passive[] = [
             { condition: { type: 'on_hit' }, effects: [{ type: 'status', status: 'frost', stacks: 1, chance: 0.8 }] },
         ],
     },
-    {
-        id: 'ciyuan_ren',
-        name: '次元刃',
-        description: '凝炁为刃，无视招架。本回合 bonus 可凝炁为刃。',
-        tags: ['qi'],
-    },
+
     {
         id: 'ordinary_training',
         name: '平平无奇的锻炼',

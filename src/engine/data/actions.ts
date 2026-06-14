@@ -300,6 +300,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['slash'],
         effects: [
+            { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_buff', buffId: 'momentum', stacks: 1 },
         ],
@@ -312,6 +313,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['slash'],
         effects: [
+            { type: 'short_dash', maxDistance: 2 },
             { type: 'damage', scaling: { strength: 0.6 }, base: 2 },
             { type: 'add_buff', buffId: 'momentum', stacks: 1 },
         ],
@@ -584,7 +586,7 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'add_buff', buffId: 'foresight' }],
     },
     {
-        id: '_ciyuan_init',
+        id: 'ciyuan_blade',
         name: '次元刃',
         description: '凝炁为刃，可附加无视招架效果。被缴械时可重新凝刃。',
         requiredTags: [],
