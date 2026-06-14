@@ -49,10 +49,9 @@ export class BattleEngine {
         o.resetAp()
         const log = new BattleLog()
         const tm = new TurnManager()
-        // 身法高的先手
-        const [faster, slower] = [p, o].sort((a, b) => b.attrs.get('agility') - a.attrs.get('agility'))
-        tm.addCharacter(faster, 0)
-        tm.addCharacter(slower, 0)
+        // 初始起手延迟由身法决定：身法越高，起手越快
+        tm.addCharacter(p, Math.round(calcTurnInterval(p.attrs.get('agility')) * 0.4))
+        tm.addCharacter(o, Math.round(calcTurnInterval(o.attrs.get('agility')) * 0.4))
         this.state = {
             phase: 'fighting',
             characters: [p, o],
