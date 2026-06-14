@@ -12,7 +12,7 @@ export const LIUXIGUA: OpponentDef = {
             '霸刀·西瓜',
             'strong',
             'overlord_blade',
-            { strength: 14, vitality: 10, agility: 20, dexterity: 18, insight: 16, wisdom: 4 },
+            { strength: 14, vitality: 10, agility: 20, dexterity: 16, insight: 12, wisdom: 4 },
             [
                 passive('momentum_mastery'),
                 action('spinning_slash'),

@@ -24,6 +24,7 @@ import { genAppId } from '../util/buff-utils'
 import { triggerBleed } from '../entities/status'
 import type { Tag } from '../entities/tag'
 import { BattleLog } from './battle-log'
+import { scheduleBuffExpiry, revertBuffMods, revertWeaponStatBuffs, clearWeaponBuffLayers, executeMove } from './utils'
 import type { ActionResult, BuffLayer } from './types'
 
 // ── Context 类型 ──
@@ -177,9 +178,9 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         engine.state.turn.modifyTime(enemy.id, INTERRUPT_DELAY)
         engine.emitLog({ type: 'interrupt', sourceId: '', targetId: enemy.id })
     },
-    knockback({ eff, engine }: Ctx) {
+    knockback({ eff, self, engine }: Ctx) {
         const { distance } = eff as Extract<EffectDef, { type: 'knockback' }>
-        if (distance > 0) engine.state.distance.move(distance)
+        if (distance > 0) executeMove(self, engine, distance)
     },
     leap({ self, engine }: Ctx) {
         const dist = engine.state.distance.current
@@ -191,17 +192,8 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             })
             return
         }
-        const target = 1
-        const delta = dist - target
-        engine.state.distance.move(-delta)
-        engine.emitLog({
-            type: 'move',
-            sourceId: self.id,
-            delta: -delta,
-            newDistance: engine.state.distance.current,
-            apCost: 0,
-            apRemaining: self.ap,
-        })
+        const delta = dist - 1
+        executeMove(self, engine, -delta)
     },
     ciyuan_init({ self, engine }: Ctx) {
         const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
@@ -300,11 +292,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             restoreValue: old,
             mods: { [e.stat]: old },
         })
-        engine.state.turn.scheduleSystemEventAt(
-            `buff_end_${layerKey}`,
-            engine.state.turn.currentTime + buffDuration,
-            'buff_end',
-        )
+        scheduleBuffExpiry(engine, layerKey, buffDuration)
     },
     stat_buff({ eff, self, engine, tMs, tag }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
@@ -332,11 +320,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
                 restoreValue: 1,
                 mods,
             })
-            engine.state.turn.scheduleSystemEventAt(
-                `buff_end_${layerKey}`,
-                engine.state.turn.currentTime + e.durationMs,
-                'buff_end',
-            )
+            scheduleBuffExpiry(engine, layerKey, e.durationMs)
         }
     },
     restore_ap({ eff, self, engine }: Ctx) {
@@ -375,11 +359,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             targetId: enemy.id,
             mods: { [e.stat]: e.value },
         })
-        engine.state.turn.scheduleSystemEventAt(
-            `buff_end_${layerKey}`,
-            engine.state.turn.currentTime + e.duration,
-            'buff_end',
-        )
+        scheduleBuffExpiry(engine, layerKey, e.duration)
 
         // AP 封顶
         if (e.stat === 'vitality') {
@@ -505,12 +485,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
 
         // 全量移除
         const oldStacks = layer.restoreValue
-        if (layer.mods) {
-            for (const [attr, delta] of Object.entries(layer.mods)) {
-                self.attrs.modify(attr as AttrName, -delta)
-                if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
-            }
-        }
+        revertBuffMods(layer, self, engine)
         if (e.buffId === 'momentum') self.hitChanceMod -= oldStacks * 0.05
         engine.state.pendingBuffs.delete(key)
         const buffName = getBuff(e.buffId)?.name ?? e.buffId
@@ -529,15 +504,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         const maxDash = e.maxDistance ?? 2
         const targetDist = Math.max(0, dist - maxDash)
         const delta = dist - targetDist
-        engine.state.distance.move(-delta)
-        engine.emitLog({
-            type: 'move',
-            sourceId: self.id,
-            delta: -delta,
-            newDistance: engine.state.distance.current,
-            apCost: 0,
-            apRemaining: self.ap,
-        })
+        executeMove(self, engine, -delta)
     },
     frost_step({ self, engine }: Ctx) {
         const dist = engine.state.distance.current
@@ -569,28 +536,15 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         if (oldWeapon.id === 'bare_hands') return
         const key = `disarmed::${enemy.id}`
         if (engine.state.pendingBuffs.has(key)) return
-        const weaponId = oldWeapon.id
-        if (!oldWeapon.tags.includes('imperial')) {
-            for (const eff of oldWeapon.effects ?? []) {
-                if (eff.type === 'stat_buff') {
-                    for (const [attr, value] of Object.entries(eff.attrs)) {
-                        enemy.attrs.modify(attr as AttrName, -value)
-                    }
-                }
-            }
-        }
+        revertWeaponStatBuffs(oldWeapon, enemy, engine)
         enemy.weaponDef = { ...getWeapon('bare_hands') }
         // 清除次元刃状态
         engine.state.pendingBuffs.delete(`ciyuan_blade::${enemy.id}`)
         // 缴械 buff（含原始武器信息，过期自动归还）
-        engine.state.pendingBuffs.set(key, { restoreValue: 1, extra: { originalWeapon: weaponId } })
+        engine.state.pendingBuffs.set(key, { restoreValue: 1, extra: { originalWeapon: oldWeapon.id } })
         const buffDef = getBuff('disarmed')
         if (buffDef?.expiry?.type === 'duration') {
-            engine.state.turn.scheduleSystemEventAt(
-                `buff_end_${key}`,
-                engine.state.turn.currentTime + buffDef.expiry.ms,
-                'buff_end',
-            )
+            scheduleBuffExpiry(engine, key, buffDef.expiry.ms)
         }
         engine.emitLog({
             type: 'system',
@@ -601,30 +555,8 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     switch_weapon({ eff, self, engine }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'switch_weapon' }>
 
-        // 反转旧武器效果（御物除外）
-        const oldWeapon = self.weaponDef
-        if (oldWeapon && !oldWeapon.tags.includes('imperial')) {
-            for (const eff of oldWeapon.effects ?? []) {
-                if (eff.type === 'stat_buff') {
-                    for (const [attr, value] of Object.entries(eff.attrs)) {
-                        self.attrs.modify(attr as AttrName, -value)
-                        if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
-                    }
-                }
-            }
-        }
-
-        // 清除旧武器的 buff（所有 mods 不为空的 buff）
-        for (const [k, layer] of engine.state.pendingBuffs) {
-            const parts = k.split('::')
-            if (parts.length < 2 || parts[1] !== self.id) continue
-            if (!layer.mods || Object.keys(layer.mods).length === 0) continue
-            for (const [attr, delta] of Object.entries(layer.mods)) {
-                self.attrs.modify(attr as AttrName, -(delta as number))
-                if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
-            }
-            engine.state.pendingBuffs.delete(k)
-        }
+        revertWeaponStatBuffs(self.weaponDef, self, engine)
+        clearWeaponBuffLayers(self.id, engine)
 
         const weapon = getWeapon(e.weaponId)
         self.weaponDef = { ...weapon }
@@ -1089,12 +1021,7 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     // 2-part keys: 直接删
     if (parts.length === 2) {
         const char = engine.getCharacter(charId)
-        if (char && layer.mods) {
-            for (const [attr, delta] of Object.entries(layer.mods)) {
-                char.attrs.modify(attr as AttrName, -delta)
-                if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
-            }
-        }
+        if (char) revertBuffMods(layer, char, engine)
         engine.state.pendingBuffs.delete(buffKey)
         // 过期自动归还武器
         if (buffId === 'disarmed' && char?.isAlive()) {
@@ -1124,12 +1051,7 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
 
     // 通用：反转属性变化
     const char = engine.getCharacter(charId)
-    if (char && layer.mods) {
-        for (const [attr, delta] of Object.entries(layer.mods)) {
-            char.attrs.modify(attr as AttrName, -delta)
-            if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
-        }
-    }
+    if (char) revertBuffMods(layer, char, engine)
 
     // stat_transfer：正向恢复目标
     if (buffId === 'stat_transfer' && layer.targetId) {
