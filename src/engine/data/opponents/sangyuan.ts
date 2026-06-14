@@ -19,6 +19,7 @@ export const SANGYUAN: OpponentDef = {
                 artifact('qi_amplifier'),
                 action('slash'),
                 action('heavy_slash'),
+                action('_ciyuan_init'),
                 action('big_leap'),
             ],
             [],
@@ -48,11 +49,12 @@ export const SANGYUAN: OpponentDef = {
             const walkClose = Math.ceil((dist - 8) / perAp)
             const leapCost = leapDef?.apCost ?? 3
             if (self.ap >= walkClose + leapCost) {
-                cmds.push({ type: 'move', bestDistance: -(dist - 8) })
+                cmds.push({ type: 'move', bestDistance: -walkClose })
                 cmds.push({ type: 'attack', actionId: 'big_leap' })
                 if (!tryHeavy()) trySlash()
             } else if (self.ap >= walkClose + 2) {
-                cmds.push({ type: 'move', bestDistance: -(dist - 3) })
+                const walkMid = Math.ceil((dist - 3) / perAp)
+                cmds.push({ type: 'move', bestDistance: -walkMid })
                 trySlash()
             }
         } else if (dist >= 4 && leapDef && self.ap >= leapDef.apCost) {
@@ -61,7 +63,7 @@ export const SANGYUAN: OpponentDef = {
         } else if (dist > 3) {
             const walkAP = Math.ceil((dist - 3) / perAp)
             if (self.ap < walkAP + 2) return cmds
-            cmds.push({ type: 'move', bestDistance: -(dist - 3) })
+            cmds.push({ type: 'move', bestDistance: -walkAP })
             if (!tryHeavy()) trySlash()
         } else {
             if (!tryHeavy()) trySlash()

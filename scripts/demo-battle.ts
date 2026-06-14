@@ -10,6 +10,7 @@ import {
     BAIHU,
     LUEYING,
     LIUXIGUA,
+    LUHONGTI,
 } from '../src/engine/data/opponents/index'
 import { getWeapon } from '../src/engine/data/weapons'
 import { runBattle } from '../src/engine/battle-runner'
@@ -21,13 +22,13 @@ console.clear()
 const N = Math.max(1, parseInt(process.argv[2] ?? '1', 10))
 
 function show(c: Character) {
-    const base = c.build.baseAttrs
     const weapon = getWeapon(c.build.weapon)
-    const baseHp = 20 + (base.vitality ?? 3) * 10
-    const baseAp = Math.round(3 + (base.vitality ?? 3) * 0.5)
+    const a = c.attrs
+    const baseHp = 20 + a.get('vitality') * 10
+    const baseAp = Math.round(3 + a.get('vitality') * 0.5)
     console.log(`\n${c.name}`)
     console.log(
-        `  STR ${base.strength ?? 3}  VIT ${base.vitality ?? 3}  AGI ${base.agility ?? 3}  DEX ${base.dexterity ?? 3}  INS ${base.insight ?? 3}  WIS ${base.wisdom ?? 3}`,
+        `  STR ${a.get('strength')}  VIT ${a.get('vitality')}  AGI ${a.get('agility')}  DEX ${a.get('dexterity')}  INS ${a.get('insight')}  WIS ${a.get('wisdom')}`,
     )
     console.log(`  HP ${baseHp}  AP ${baseAp}  武器: ${weapon.name}`)
     if (c.passiveDefs.length) console.log(`  功法: ${c.passiveDefs.map((p) => p.name).join(', ')}`)
@@ -39,8 +40,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = LIUXIGUA.generate(33)
-const oBuild = LAYUE.generate(33)
+const pBuild = SANGYUAN.generate(33)
+const oBuild = LUHONGTI.generate(33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

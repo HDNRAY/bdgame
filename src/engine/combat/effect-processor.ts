@@ -53,7 +53,8 @@ function applyDamage(
 ): void {
     const weapon = target.weaponDef ?? getWeapon(target.build.weapon)
     let parried = false
-    if (weapon.tags.includes('parry') && !engine.state.pendingBuffs.has(`dimensional_blade::${attacker.id}`)) {
+    const canParry = weapon.tags.includes('parry') || engine.state.pendingBuffs.has(`tai_chi::${target.id}`)
+    if (canParry && !engine.state.pendingBuffs.has(`dimensional_blade::${attacker.id}`)) {
         let pc = calcParryChance(0, target.attrs.get('dexterity'), target.attrs.get('insight'))
         // 看破 buff：招架率+0.5，成功后消耗
         const foresightKey = `foresight::${target.id}`
@@ -64,9 +65,17 @@ function applyDamage(
         if (engine.state.pendingBuffs.has(`guard_up::${target.id}`)) {
             pc = Math.min(0.95, pc + 0.35)
         }
-        // 奇物/被动招架修正
+        // 奇物/被动招架修正（构造期永久效果）
         if (target.parryMod) {
             pc = Math.min(0.95, pc + target.parryMod)
+        }
+        // buff 招架率钩子
+        for (const [key] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== target.id) continue
+            const def = getBuff(parts[0])
+            if (!def?.onParryChance) continue
+            pc = Math.min(0.95, pc + def.onParryChance({ target, attacker, engine }))
         }
         const result = calcRoll(pc)
         parried = result.success
@@ -84,6 +93,17 @@ function applyDamage(
         }
     }
     let final = parried ? calcParriedDamage(raw, target.attrs.get('strength')) : raw
+    // 招架减伤钩子（太极：灵巧增益减伤）
+    if (parried) {
+        for (const [key] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== target.id) continue
+            const def = getBuff(parts[0])
+            if (!def?.onParryReduction) continue
+            final = def.onParryReduction(final, { target, attacker, engine })
+        }
+        final = Math.round(final * 10) / 10
+    }
     const blocked = raw - final
 
     // 暴击判定
@@ -204,6 +224,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             })
         }
         engine.state.pendingBuffs.set(`dimensional_blade::${self.id}`, { restoreValue: 1 })
+        engine.state.pendingBuffs.set(`ciyuan_blade::${self.id}`, { restoreValue: 1 })
     },
     fixed_damage({ eff, self, enemy, engine, tMs, log, tag, actionId }: Ctx) {
         const { value } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
@@ -426,11 +447,14 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
                 mods[attr] = value
             }
         }
-        if (buff?.parryMod) {
-            self.parryMod += buff.parryMod
-            mods['_parryMod'] = buff.parryMod
-        }
         engine.state.pendingBuffs.set(key, { restoreValue: e.stacks ?? 1, mods })
+        // 缴械时自动记录当前武器
+        if (e.buffId === 'disarmed') {
+            const layer = engine.state.pendingBuffs.get(key)
+            if (layer && !layer.extra?.originalWeapon) {
+                layer.extra = { ...layer.extra, originalWeapon: self.weaponDef?.id ?? getWeapon(self.build.weapon).id }
+            }
+        }
         if (buff?.attrMods?.agility) engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
         engine.emitLog({
             type: 'system',
@@ -483,10 +507,6 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         const oldStacks = layer.restoreValue
         if (layer.mods) {
             for (const [attr, delta] of Object.entries(layer.mods)) {
-                if (attr === '_parryMod') {
-                    self.parryMod -= delta
-                    continue
-                }
                 self.attrs.modify(attr as AttrName, -delta)
                 if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
             }
@@ -544,6 +564,40 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             apRemaining: self.ap,
         })
     },
+    disarm({ enemy, engine }: Ctx) {
+        const oldWeapon = enemy.weaponDef ?? getWeapon(enemy.build.weapon)
+        if (oldWeapon.id === 'bare_hands') return
+        const key = `disarmed::${enemy.id}`
+        if (engine.state.pendingBuffs.has(key)) return
+        const weaponId = oldWeapon.id
+        if (!oldWeapon.tags.includes('imperial')) {
+            for (const eff of oldWeapon.effects ?? []) {
+                if (eff.type === 'stat_buff') {
+                    for (const [attr, value] of Object.entries(eff.attrs)) {
+                        enemy.attrs.modify(attr as AttrName, -value)
+                    }
+                }
+            }
+        }
+        enemy.weaponDef = { ...getWeapon('bare_hands') }
+        // 清除次元刃状态
+        engine.state.pendingBuffs.delete(`ciyuan_blade::${enemy.id}`)
+        // 缴械 buff（含原始武器信息，过期自动归还）
+        engine.state.pendingBuffs.set(key, { restoreValue: 1, extra: { originalWeapon: weaponId } })
+        const buffDef = getBuff('disarmed')
+        if (buffDef?.expiry?.type === 'duration') {
+            engine.state.turn.scheduleSystemEventAt(
+                `buff_end_${key}`,
+                engine.state.turn.currentTime + buffDef.expiry.ms,
+                'buff_end',
+            )
+        }
+        engine.emitLog({
+            type: 'system',
+            message: `[点腕] ${BattleLog.name(enemy.name)} 兵器脱手！`,
+            actorId: enemy.id,
+        })
+    },
     switch_weapon({ eff, self, engine }: Ctx) {
         const e = eff as Extract<EffectDef, { type: 'switch_weapon' }>
 
@@ -565,11 +619,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             const parts = k.split('::')
             if (parts.length < 2 || parts[1] !== self.id) continue
             if (!layer.mods || Object.keys(layer.mods).length === 0) continue
-            if (layer.mods._parryMod) {
-                self.parryMod -= layer.mods._parryMod as number
-            }
             for (const [attr, delta] of Object.entries(layer.mods)) {
-                if (attr === '_parryMod') continue
                 self.attrs.modify(attr as AttrName, -(delta as number))
                 if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
             }
@@ -1041,41 +1091,32 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
         const char = engine.getCharacter(charId)
         if (char && layer.mods) {
             for (const [attr, delta] of Object.entries(layer.mods)) {
-                if (attr === '_parryMod') {
-                    char.parryMod -= delta
-                    continue
-                }
                 char.attrs.modify(attr as AttrName, -delta)
                 if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
             }
         }
         engine.state.pendingBuffs.delete(buffKey)
-        // blade_thrown 过期 → 自动拾刀
-        if (buffId === 'blade_thrown' && char?.isAlive()) {
-            engine.emitLog({
-                type: 'system',
-                message: `[飞刃] ${BattleLog.name(char.name)} 刀刃已归位`,
-                actorId: char.id,
-            })
-            processActionEffect(
-                { type: 'switch_weapon', weaponId: 'overlord_blade' },
-                char,
-                char,
-                engine,
-                engine.state.turn.currentTime,
-                '',
-                '',
-            )
-            processActionEffect(
-                { type: 'add_buff', buffId: 'overlord_blade' },
-                char,
-                char,
-                engine,
-                engine.state.turn.currentTime,
-                '',
-                '',
-            )
+        // 过期自动归还武器
+        if (buffId === 'disarmed' && char?.isAlive()) {
+            const originalWeapon = layer.extra?.originalWeapon as string | undefined
+            if (originalWeapon) {
+                engine.emitLog({
+                    type: 'system',
+                    message: `[缴械] ${BattleLog.name(char.name)} 重握兵器！`,
+                    actorId: char.id,
+                })
+                processActionEffect(
+                    { type: 'switch_weapon', weaponId: originalWeapon },
+                    char,
+                    char,
+                    engine,
+                    engine.state.turn.currentTime,
+                    '',
+                    '',
+                )
+            }
         }
+
         return
     }
 

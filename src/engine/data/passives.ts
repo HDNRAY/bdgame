@@ -97,9 +97,8 @@ export const PASSIVES: Passive[] = [
     {
         id: 'ciyuan_ren',
         name: '次元刃',
-        description: '凝炁为刃，无视招架。',
+        description: '凝炁为刃，无视招架。本回合 bonus 可凝炁为刃。',
         tags: ['qi'],
-        triggers: [{ condition: { type: 'battle_start' }, actionId: '_ciyuan_init' }],
     },
     {
         id: 'ordinary_training',
@@ -120,6 +119,24 @@ export const PASSIVES: Passive[] = [
                 effects: [{ type: 'add_buff', buffId: 'momentum', stacks: 1 }],
             },
             { condition: { type: 'on_dodged' }, effects: [{ type: 'remove_buff', buffId: 'momentum', stacks: 1 }] },
+        ],
+    },
+    {
+        id: 'inner_power',
+        name: '归元劲',
+        description: '内力深厚，悟性反哺四维。每点悟性提升全属性。',
+        tags: ['passive'],
+        effects: [{ type: 'wisdom_stat_buff', ratio: 0.25, attrs: ['strength', 'vitality', 'agility', 'dexterity'] }],
+    },
+
+    {
+        id: 'tai_chi_mastery',
+        name: '太极',
+        description: '太极圆满，以柔克刚。空手可招架，灵巧增益招架减伤。招架后可顺势推掌。',
+        tags: ['passive'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tai_chi' }] },
+            { condition: { type: 'on_parry' }, actionId: 'push_palm' },
         ],
     },
 ]
@@ -145,6 +162,7 @@ export const TALENTS: Talent[] = [
         tags: ['talent'],
         requireAttrsMin: { dexterity: 16 },
         requireAttrsMax: { wisdom: 5 },
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'zuoyou_hubo' }] }],
     },
     {
         id: 'vitality_regen',

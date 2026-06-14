@@ -277,6 +277,14 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
         const e = eff as Extract<EffectDef, { type: 'fumble_chance' }>
         char.fumbleChance += e.value
     },
+    wisdom_stat_buff(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'wisdom_stat_buff' }>
+        const wis = char.attrs.get('wisdom')
+        for (const attr of e.attrs) {
+            const delta = Math.round(wis * e.ratio)
+            char.attrs.modify(attr as AttrName, delta)
+        }
+    },
     permanent_burn() {
         // 运行时由 engine 处理
     },

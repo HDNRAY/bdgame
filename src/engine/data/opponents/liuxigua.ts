@@ -98,11 +98,12 @@ export const LIUXIGUA: OpponentDef = {
             // 太近或太远：走位到攻击范围
             const ideal = Math.max(1, Math.min(3, dist))
             if (Math.abs(dist - ideal) > 0.5 && self.ap >= 1) {
-                cmds.push({ type: 'move', bestDistance: ideal < dist ? -(dist - ideal) : ideal - dist })
+                const moveAp = Math.ceil(Math.abs(dist - ideal) / perAp)
+                cmds.push({ type: 'move', bestDistance: dist > ideal ? -moveAp : moveAp })
                 return cmds
             }
         } else {
-            // 空手态：技能全在冷却或 blade_thrown 未过期时等待即可（bonus 或过期自动拾刀）
+            // 空手态：技能全在冷却或缴械未过期时等待即可（过期自动归还武器）
             // 无影脚突进
             if (kick && self.ap >= kick.apCost && dist > 1) {
                 cmds.push({ type: 'attack', actionId: 'shadow_kick' })

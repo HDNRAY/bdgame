@@ -20,6 +20,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '什么都没有，但什么都有可能。',
         tags: ['blunt'],
         bound: false,
+        effects: [{ type: 'stat_buff', attrs: { agility: 2 } }],
         range: [0, 2],
     },
     {
@@ -103,6 +104,13 @@ export const WEAPON_DB: WeaponDef[] = [
                 effects: [{ type: 'add_buff', buffId: 'momentum', stacks: 1 }],
             },
         ],
+    },
+    {
+        id: 'heshan_sword',
+        name: '河山铁剑',
+        description: '一把普通的两用钢铸军剑，可同时使用拳掌功法。',
+        tags: ['slash', 'pierce', 'blunt', 'parry'],
+        range: [1, 3],
     },
 ]
 

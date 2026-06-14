@@ -183,6 +183,13 @@ export const ARTIFACTS: Artifact[] = [
             },
         ],
     },
+    {
+        id: 'other_mountain',
+        name: '他山之石',
+        description: '博采众长，洞察入微。宁毅所赠的现代搏击笔记。',
+        tags: [],
+        effects: [{ type: 'stat_buff', attrs: { insight: 4, dexterity: 2 } }],
+    },
 ]
 
 /** 按 ID 查找物品 */

@@ -55,6 +55,9 @@ export type EffectDef =
     | { type: 'ciyuan_init' }
     | { type: 'switch_weapon'; weaponId: string }
     | { type: 'short_dash'; maxDistance?: number }
+    | { type: 'disarm' }
+    | { type: 'ignore_parry' }
+    | { type: 'wisdom_stat_buff'; ratio: number; attrs: AttrName[] }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {

@@ -209,6 +209,7 @@ export class BattleEngine {
         this.#tryBonus(self, 'turn_start')
         // 重建召唤物（法球等每回合重新入队）
         this.#initSummons(self)
+        this.#tryBonus(self, 'before_main')
 
         const cmds = planFn(self, enemy, this.state)
         for (const cmd of cmds) {

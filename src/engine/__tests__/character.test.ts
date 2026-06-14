@@ -25,7 +25,7 @@ describe('Character', () => {
     it('should create with default attributes', () => {
         const c = mc('test_1', '测试角色')
         expect(c.name).toBe('测试角色')
-        expect(c.attrs.total()).toBe(18) // AttributeSet defaults: 3×6
+        expect(c.attrs.total()).toBe(20) // 18 base + 2 from bare_hands AGI buff
         expect(c.hp).toBe(calcMaxHp(3))
         expect(c.ap).toBe(5) // 3 + 3×0.5 = 4.5 → 5
     })

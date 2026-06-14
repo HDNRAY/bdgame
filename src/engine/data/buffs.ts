@@ -39,8 +39,6 @@ export interface BuffDef extends GameEntity {
     stacking?: BuffStacking
     /** 每层属性修正 */
     attrMods?: Record<string, number>
-    /** 招架修正 */
-    parryMod?: number
     /** 连续眩晕递减 */
     consecutiveDiminish?: boolean
     /** DOT/tick 间隔（ms） */
@@ -53,6 +51,10 @@ export interface BuffDef extends GameEntity {
     onDamage?: (final: number, ctx: DamageModContext) => number
     /** 层数变更前回调（返回实际 delta，0=拦截变更） */
     onBeforeModify?: (delta: number, ctx: { character: Character; engine: BattleEngine }) => number
+    /** 招架率修正钩子（applyDamage 招架判定前自动调用，返回加算值） */
+    onParryChance?: (ctx: { target: Character; attacker: Character; engine: BattleEngine }) => number
+    /** 招架减伤修正钩子（applyDamage 招架成功后自动调用） */
+    onParryReduction?: (final: number, ctx: { target: Character; attacker: Character; engine: BattleEngine }) => number
 }
 
 export const BUFF_DB: BuffDef[] = [
@@ -121,14 +123,23 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { agility: -10 },
-        parryMod: 0.15,
+        onParryChance: () => 0.15,
+    },
+
+    {
+        id: 'disarmed',
+        name: '缴械',
+        description: '兵器脱手，无法使用武器招式。',
+        tags: [],
+        expiry: { type: 'duration', ms: 1500 },
+        stacking: { type: 'none' },
     },
     {
-        id: 'blade_thrown',
-        name: '飞刃',
-        description: '霸刀已脱手，短时间内无法拾取。',
+        id: 'ciyuan_blade',
+        name: '次元刃',
+        description: '凝炁为刃，或凝炁与刃',
         tags: [],
-        expiry: { type: 'duration', ms: 1200 },
+        expiry: { type: 'permanent' },
         stacking: { type: 'none' },
     },
 
@@ -327,6 +338,17 @@ export const BUFF_DB: BuffDef[] = [
         description: '步法精妙，移动消耗最低。',
         tags: [],
         expiry: { type: 'permanent' },
+    },
+    {
+        id: 'tai_chi',
+        name: '太极',
+        description: '以柔克刚，四两拨千斤。空手可招架，灵巧增益招架减伤。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onParryReduction: (f, { target }) => {
+            const dexBonus = target.attrs.get('dexterity') * 0.01
+            return Math.round(f * (1 - dexBonus) * 10) / 10
+        },
     },
 
     // ── 永久修饰（构造期执行） ──

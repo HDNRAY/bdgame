@@ -328,8 +328,8 @@ export const MVP_ACTIONS: ActionDefinition[] = [
             { type: 'damage', scaling: { strength: 0.8 }, base: 4 },
             { type: 'remove_buff', buffId: 'momentum' },
             { type: 'remove_buff', buffId: 'overlord_blade' },
+            { type: 'add_buff', buffId: 'disarmed' },
             { type: 'switch_weapon', weaponId: 'bare_hands' },
-            { type: 'add_buff', buffId: 'blade_thrown' },
         ],
     },
     {
@@ -355,6 +355,39 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         ],
     },
     {
+        id: 'sword_thrust',
+        name: '刺击',
+        description: '短兵直刺，兼具力道与灵巧。',
+        requiredTags: ['pierce'],
+        apCost: 2,
+        tags: ['pierce'],
+        extraPreDelay: -200,
+        effects: [{ type: 'damage', scaling: { strength: 0.3, agility: 0.3 } }],
+    },
+    {
+        id: 'push_palm',
+        name: '推掌',
+        description: '太极推手，借力打力。',
+        requiredTags: ['blunt'],
+        apCost: 1,
+        tags: ['blunt', 'stun'],
+        range: [0, 2],
+        effects: [
+            { type: 'damage', scaling: { agility: 0.15 } },
+            { type: 'status', status: 'stun', stacks: 1, chance: 0.5 },
+        ],
+    },
+    {
+        id: 'wrist_strike',
+        name: '点腕',
+        description: '精准击中对方手腕，打落兵器。',
+        requiredTags: ['blunt'],
+        apCost: 1,
+        tags: ['blunt'],
+        range: [0, 2],
+        effects: [{ type: 'damage', scaling: { dexterity: 0.1 } }, { type: 'disarm' }],
+    },
+    {
         id: 'retrieve_blade',
         name: '拾刀',
         description: '重握霸刀，恢复刀态。',
@@ -366,7 +399,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         bonusTiming: { type: 'turn_start' },
         canUse: (attacker, state) =>
             !state.pendingBuffs.has('overlord_blade::' + attacker.id) &&
-            !state.pendingBuffs.has('blade_thrown::' + attacker.id),
+            !state.pendingBuffs.has('disarmed::' + attacker.id),
         effects: [
             { type: 'switch_weapon', weaponId: 'overlord_blade' },
             { type: 'add_buff', buffId: 'overlord_blade' },
@@ -553,13 +586,15 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
     {
         id: '_ciyuan_init',
         name: '次元刃',
-        description: '',
+        description: '凝炁为刃，可附加无视招架效果。被缴械时可重新凝刃。',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger'],
+        tags: ['buff'],
         target: 'self',
-        maxUses: 1,
-        effects: [{ type: 'ciyuan_init' }, { type: 'add_buff', buffId: 'zuoyou_hubo' }],
+        bonus: true,
+        bonusTiming: { type: 'before_main' },
+        canUse: (_attacker, state) => !state.pendingBuffs.has('ciyuan_blade::' + _attacker.id),
+        effects: [{ type: 'ciyuan_init' }, { type: 'add_buff', buffId: 'ciyuan_blade' }],
     },
 ]
 
@@ -608,7 +643,7 @@ const QI_SKILLS: ActionDefinition[] = [
         tags: ['qi'],
         effects: [{ type: 'damage', scaling: { wisdom: 0.1 }, base: 2.4 }],
         extraPreDelay: 200,
-        range: [0, 6],
+        range: [3, 8],
     },
     {
         id: 'restore_ap',
