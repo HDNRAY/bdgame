@@ -5,6 +5,7 @@ import type { BattleEngine } from '../combat/engine'
 import type { BuffLayer } from '../combat/types'
 import type { ActionDefinition } from '../entities/action'
 import type { Tag } from '../entities/tag'
+import type { TriggerEvent } from '../entities/trigger'
 
 /** Buff 钩子上下文 */
 export interface BuffHookCtx {
@@ -26,7 +27,7 @@ export type BuffExpiry =
     | { type: 'duration_by_attr'; attr: AttrName; multiplier: number }
     | { type: 'tick'; interval: number }
     | { type: 'trigger'; event: string }
-    | { type: 'consumed' }
+    | { type: 'consumed'; trigger: TriggerEvent }
     | { type: 'permanent' }
 
 /** 叠层行为 */
@@ -55,7 +56,7 @@ export interface BuffDef extends GameEntity {
     onParryChance?: (ctx: BuffHookCtx) => number
     /** 招架减伤修正钩子（applyDamage 招架成功后自动调用） */
     onParryReduction?: (ctx: BuffHookCtx) => number
-    /** 命中率修正钩子（processCombatRolls 中自动调用，返回加算值） */
+    /** 命中率修正钩子（processHitCheck 中自动调用，返回加算值） */
     onHitChance?: (ctx: BuffHookCtx) => number
     /** 允许自行选择可招架（返回 true 则允许招架） */
     onCanParry?: (ctx: { self: Character; engine: BattleEngine }) => boolean
@@ -80,7 +81,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '洞察先机，招架率+40%。',
         tags: [],
         value: 0.4,
-        expiry: { type: 'consumed' },
+        expiry: { type: 'consumed', trigger: 'on_parry' },
         stacking: { type: 'none' },
         onParryChance: () => 0.4,
     },
@@ -90,7 +91,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '心眼已开，暴击率+0.25。',
         tags: [],
         value: 0.25,
-        expiry: { type: 'consumed' },
+        expiry: { type: 'consumed', trigger: 'on_crit' },
         stacking: { type: 'none' },
         onCritChance: () => 0.25,
     },
@@ -100,8 +101,9 @@ export const BUFF_DB: BuffDef[] = [
         description: '下次攻击距离≤4时，命中+40%。',
         tags: [],
         value: 0.4,
-        expiry: { type: 'consumed' },
+        expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },
+        onHitChance: ({ engine }) => (engine.state.distance.current <= 4 ? 0.4 : 0),
     },
     {
         id: 'momentum',

@@ -210,7 +210,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '拔刀一瞬，电光石火。',
         requiredTags: ['slash'],
         apCost: 4,
-        extraStunTime: 1500,
+        extraStunTime: 1000,
         tags: ['slash'],
         effects: [
             { type: 'damage', scaling: { strength: 1.2 } },

@@ -1,5 +1,5 @@
 import { simpleGenerate } from '../../systems/character-gen'
-import { type OpponentDef, passive, artifact } from '.'
+import { type OpponentDef, passive } from '.'
 import type { Reward } from '../rewards'
 import type { TriggerSlot } from '../../entities/trigger'
 
@@ -28,7 +28,7 @@ export const YIDAO: OpponentDef = {
             '居合·一刀',
             'swift',
             'zantetsu',
-            { strength: 20, vitality: 11, agility: 14, dexterity: 13, insight: 13, wisdom: 7 },
+            { strength: 20, vitality: 11, agility: 14, dexterity: 14, insight: 13, wisdom: 6 },
             rewards,
             triggers,
             n,

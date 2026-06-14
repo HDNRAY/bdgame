@@ -935,29 +935,25 @@ export function processStatusTick(
 
 // ── Combat rolls ──
 
-/** 调整刀势层数 */
-/** 命中/闪避/招架判定，返回 false 则攻击终止 */
-export function processCombatRolls(
-    _action: ActionDefinition,
+/** 命中判定，返回 false 则攻击终止 */
+export function processHitCheck(
+    action: ActionDefinition,
     r: ActionResult,
     self: Character,
     enemy: Character,
-    _tMs: number,
     engine: BattleEngine,
 ): boolean {
     engine.emit('on_attack', self, enemy)
+    const rangeDodgeMod =
+        engine.state.pendingBuffs.has(`ranged_dodge::${enemy.id}`) && engine.state.distance.current >= 5 ? 0.15 : 0
     let hc =
-        _action.chance ??
+        action.chance ??
         calcHitChance({
             attackerDexterity: self.attrs.get('dexterity'),
             attackerInsight: self.attrs.get('insight'),
             defenderAgility: enemy.attrs.get('agility'),
             defenderInsight: enemy.attrs.get('insight'),
-            defenderDodgeMod:
-                enemy.dodgeMod +
-                (engine.state.pendingBuffs.has(`ranged_dodge::${enemy.id}`) && engine.state.distance.current >= 5
-                    ? 0.15
-                    : 0),
+            defenderDodgeMod: enemy.dodgeMod + rangeDodgeMod,
         })
     // 通用命中修正（hit_chance 效果 + 刀势每层+0.05）
     if (self.hitChanceMod) {
@@ -975,20 +971,17 @@ export function processCombatRolls(
         if (parts.length < 2 || parts[1] !== self.id) continue
         const def = getBuff(parts[0])
         if (!def?.onHitChance) continue
-        hc = Math.min(
-            0.95,
-            hc +
-                def.onHitChance({
-                    final: 0,
-                    raw: 0,
-                    attacker: self,
-                    target: enemy,
-                    action: _action,
-                    engine,
-                    buffOwnerId: parts[1],
-                    layer,
-                }),
-        )
+        const hcMod = def.onHitChance({
+            final: 0,
+            raw: 0,
+            attacker: self,
+            target: enemy,
+            action,
+            engine,
+            buffOwnerId: parts[1],
+            layer,
+        })
+        hc = hc + hcMod
     }
     const hitResult = calcRoll(hc)
     r.hit = hitResult.success

@@ -10,13 +10,7 @@ import { getBuff } from '../data/buffs'
 import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
-import {
-    processActionEffect,
-    processStatusTick,
-    processCombatRolls,
-    processBleedDamage,
-    processBuffEnd,
-} from './effect-processor'
+import { processActionEffect, processStatusTick, processHitCheck, processBleedDamage, processBuffEnd } from './effects'
 import type {
     ActionCommand,
     ActionResult,
@@ -453,7 +447,7 @@ export class BattleEngine {
             }
         }
         // 战斗判定
-        if (!processCombatRolls(action, r, self, enemy, this.#tMs, this)) return r
+        if (!processHitCheck(action, r, self, enemy, this)) return r
         // 效果应用
         this.#finalizeAttack(action, r, self, enemy)
         return r
