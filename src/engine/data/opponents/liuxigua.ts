@@ -15,6 +15,7 @@ export const LIUXIGUA: OpponentDef = {
             { strength: 14, vitality: 10, agility: 20, dexterity: 16, insight: 12, wisdom: 4 },
             [
                 passive('momentum_mastery'),
+                passive('overlord_art'),
                 action('spinning_slash'),
                 action('cyclone_slash'),
                 action('little_fist'),

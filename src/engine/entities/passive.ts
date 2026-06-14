@@ -1,7 +1,9 @@
 import type { AttrName } from './attributes'
 import type { GameEntity } from './base'
-import type { EffectDef } from './action'
+import type { ActionDefinition, EffectDef } from './action'
 import type { TriggerSlot } from './trigger'
+
+export type ActionEnhancer = (def: ActionDefinition) => ActionDefinition
 
 /** 功法 / 被动技能 */
 export interface Passive extends GameEntity {
@@ -9,6 +11,8 @@ export interface Passive extends GameEntity {
     effects?: EffectDef[]
     /** 带来的额外 trigger slot */
     triggers?: TriggerSlot[]
+    /** 招式强化钩子（构造期执行） */
+    actionEnhancer?: ActionEnhancer
 }
 
 /** 天赋（绝学）—— 属性达标解锁的内在力量 */

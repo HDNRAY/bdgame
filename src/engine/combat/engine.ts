@@ -277,7 +277,7 @@ export class BattleEngine {
 
             if (slot.effects) {
                 for (const eff of slot.effects) {
-                    processActionEffect(eff, self, enemy, this, this.#tMs, '', '')
+                    processActionEffect(eff, self, enemy, this, this.#tMs)
                 }
                 continue
             }
@@ -290,7 +290,7 @@ export class BattleEngine {
 
             if (action.target === 'self') {
                 for (const eff of action.effects ?? []) {
-                    processActionEffect(eff, self, enemy, this, this.#tMs, action.name, action.id)
+                    processActionEffect(eff, self, enemy, this, this.#tMs, action)
                 }
             } else {
                 this.state.log.indentDepth++
@@ -353,7 +353,6 @@ export class BattleEngine {
             dodged: false,
             crit: false,
             distanceDelta: 0,
-            knockbackDistance: 0,
         }
     }
 
@@ -366,7 +365,6 @@ export class BattleEngine {
             dodged: false,
             crit: false,
             distanceDelta: 0,
-            knockbackDistance: 0,
         }
         const { ap, delta } = DistanceSystem.calcMovement(
             cmd.bestDistance ?? 0,
@@ -422,7 +420,6 @@ export class BattleEngine {
             dodged: false,
             crit: false,
             distanceDelta: 0,
-            knockbackDistance: 0,
         }
         // 失心检查
         if (self.fumbleChance > 0 && Math.random() < self.fumbleChance) {
@@ -451,8 +448,8 @@ export class BattleEngine {
         this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
         // 移动/跳跃类效果先执行（不受战斗判定影响）
         for (const eff of action.effects ?? []) {
-            if (eff.type === 'leap' || eff.type === 'knockback') {
-                processActionEffect(eff, self, enemy, this, this.#tMs, action.name, action.id)
+            if (eff.type === 'dash' || eff.type === 'knockback') {
+                processActionEffect(eff, self, enemy, this, this.#tMs, action)
             }
         }
         // 战斗判定
@@ -474,27 +471,16 @@ export class BattleEngine {
         this.state.log.indentDepth++
         for (const eff of action.effects ?? []) {
             if ((eff.type === 'status' || eff.type === 'damage' || eff.type === 'fixed_damage') && r.hit && !r.dodged) {
-                processActionEffect(eff, self, enemy, this, tMs, action.name, action.id)
+                processActionEffect(eff, self, enemy, this, tMs, action)
             } else if (eff.type === 'remove_buff' || eff.type === 'add_buff' || eff.type === 'switch_weapon') {
                 // 这些效果不受命中影响（丢刀、换武、清势等）
-                processActionEffect(eff, self, enemy, this, tMs, action.name, action.id)
-            } else if (r.hit && !r.dodged && eff.type !== 'leap' && eff.type !== 'knockback') {
-                processActionEffect(eff, self, enemy, this, tMs, action.name, action.id)
+                processActionEffect(eff, self, enemy, this, tMs, action)
+            } else if (r.hit && !r.dodged && eff.type !== 'dash' && eff.type !== 'knockback') {
+                processActionEffect(eff, self, enemy, this, tMs, action)
             }
         }
         this.state.log.indentDepth--
         processBleedDamage(enemy, tMs, this)
-        if (r.knockbackDistance > 0) {
-            processActionEffect(
-                { type: 'knockback', distance: r.knockbackDistance },
-                self,
-                enemy,
-                this,
-                tMs,
-                action.name,
-                action.id,
-            )
-        }
         // HP 阈值触发检测
         this.emit('hp_below', self, enemy)
         this.emit('hp_below', enemy, self)
@@ -523,7 +509,7 @@ export class BattleEngine {
         if (!self.spendAp(inst.apCost)) return r
         inst.use()
         for (const eff of inst.def.effects ?? []) {
-            processActionEffect(eff, self, self, this, this.#tMs, inst.name, inst.id)
+            processActionEffect(eff, self, self, this, this.#tMs, inst.def)
         }
         return r
     }
@@ -679,7 +665,7 @@ export class BattleEngine {
                 indent: this.state.log.indentDepth,
             })
             for (const eff of inst.def.effects ?? []) {
-                processActionEffect(eff, self, self, this, this.#tMs, inst.name, inst.id)
+                processActionEffect(eff, self, self, this, this.#tMs, inst.def)
             }
             if (timing === 'after_main' || timing === 'before_main') {
                 this.state.log.indentDepth--

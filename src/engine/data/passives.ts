@@ -39,7 +39,7 @@ export const PASSIVES: Passive[] = [
         name: '御剑诀',
         description: '以炁御剑，剑随意动，攻击距离延长。',
         tags: ['imperial', 'qi'],
-        effects: [{ type: 'weapon_range_bonus', value: 1 }],
+        effects: [{ type: 'weapon_range_bonus', value: 2 }],
     },
     {
         id: 'nine_deaths',
@@ -115,6 +115,17 @@ export const PASSIVES: Passive[] = [
             },
             { condition: { type: 'on_dodged' }, effects: [{ type: 'remove_buff', buffId: 'momentum', stacks: 1 }] },
         ],
+    },
+    {
+        id: 'overlord_art',
+        name: '霸刀刀法',
+        description: '霸刀巨刃配合离心力，每一刀都顺势回旋突进。',
+        tags: ['passive'],
+        effects: [],
+        actionEnhancer: (def) => {
+            if (!def.tags.includes('slash')) return def
+            return { ...def, effects: [{ type: 'short_dash', maxDistance: 2 }, ...(def.effects ?? [])] }
+        },
     },
     {
         id: 'inner_power',

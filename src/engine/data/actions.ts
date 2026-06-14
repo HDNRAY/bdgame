@@ -19,7 +19,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         bonusTiming: { type: 'turn_start' },
         canUse: (_attacker, state) => state.distance.current > 3,
         range: [0, 12],
-        effects: [{ type: 'frost_step' }],
+        effects: [{ type: 'dash', minRange: 0, maxRange: 12, targetDist: 1, useAp: true }],
     },
     {
         id: 'guard',
@@ -49,7 +49,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: ['cripple', 'blunt'],
         effects: [
             { type: 'damage', scaling: { strength: 0.5 } },
-            { type: 'cripple', ratio: 0.1 },
+            { type: 'missing_hp_damage', ratio: 0.1 },
         ],
     },
     {
@@ -244,7 +244,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         tags: [],
         range: [0, 10],
         canUse: (attacker) => attacker.attrs.get('strength') >= 10,
-        effects: [{ type: 'leap' }],
+        effects: [{ type: 'dash', minRange: 4, maxRange: 8, targetDist: 1 }],
     },
     // ── 匕首系 ──
     {
@@ -300,7 +300,6 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['slash'],
         effects: [
-            { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_buff', buffId: 'momentum', stacks: 1 },
         ],
@@ -313,7 +312,6 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['slash'],
         effects: [
-            { type: 'short_dash', maxDistance: 2 },
             { type: 'damage', scaling: { strength: 0.6 }, base: 2 },
             { type: 'add_buff', buffId: 'momentum', stacks: 1 },
         ],
@@ -595,7 +593,7 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
         target: 'self',
         bonus: true,
         bonusTiming: { type: 'before_main' },
-        canUse: (_attacker, state) => !state.pendingBuffs.has('ciyuan_blade::' + _attacker.id),
+        canUse: (_attacker, state) => !state.pendingBuffs.has('dimensional_blade::' + _attacker.id),
         effects: [{ type: 'ciyuan_init' }, { type: 'add_buff', buffId: 'ciyuan_blade' }],
     },
 ]

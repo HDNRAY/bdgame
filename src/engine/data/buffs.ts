@@ -3,19 +3,21 @@ import type { AttrName } from '../entities/attributes'
 import type { Character } from '../entities/character'
 import type { BattleEngine } from '../combat/engine'
 import type { BuffLayer } from '../combat/types'
-import { getAction } from './actions'
+import type { ActionDefinition } from '../entities/action'
 import type { Tag } from '../entities/tag'
 
-/** 伤害修正钩子上下文 */
-export interface DamageModContext {
+/** Buff 钩子上下文 */
+export interface BuffHookCtx {
     final: number
+    raw: number
     target: Character
     attacker: Character
     engine: BattleEngine
-    actionId?: string
     layer: BuffLayer
     /** 该 buff 所属角色 ID */
-    buffOwnerId?: string
+    buffOwnerId: string
+    /** 当前执行的招式 */
+    action: ActionDefinition
 }
 
 /** 消耗方式 */
@@ -23,7 +25,7 @@ export type BuffExpiry =
     | { type: 'duration'; ms: number }
     | { type: 'duration_by_attr'; attr: AttrName; multiplier: number }
     | { type: 'tick'; interval: number }
-    | { type: 'trigger'; event: string; maxTriggers: number }
+    | { type: 'trigger'; event: string }
     | { type: 'consumed' }
     | { type: 'permanent' }
 
@@ -39,8 +41,6 @@ export interface BuffDef extends GameEntity {
     stacking?: BuffStacking
     /** 每层属性修正 */
     attrMods?: Record<string, number>
-    /** 连续眩晕递减 */
-    consecutiveDiminish?: boolean
     /** DOT/tick 间隔（ms） */
     tickInterval?: number
     /** tick 伤害基数 */
@@ -48,16 +48,19 @@ export interface BuffDef extends GameEntity {
     /** tick 回复基数（1 = 1% maxHP） */
     tickHeal?: number
     /** 伤害修正钩子（applyDamage 中自动调用） */
-    onDamage?: (final: number, ctx: DamageModContext) => number
+    onDamage?: (ctx: BuffHookCtx) => number
     /** 层数变更前回调（返回实际 delta，0=拦截变更） */
     onBeforeModify?: (delta: number, ctx: { character: Character; engine: BattleEngine }) => number
     /** 招架率修正钩子（applyDamage 招架判定前自动调用，返回加算值） */
-    onParryChance?: (ctx: { target: Character; attacker: Character; engine: BattleEngine }) => number
+    onParryChance?: (ctx: BuffHookCtx) => number
     /** 招架减伤修正钩子（applyDamage 招架成功后自动调用） */
-    onParryReduction?: (
-        final: number,
-        ctx: { target: Character; attacker: Character; engine: BattleEngine; raw: number },
-    ) => number
+    onParryReduction?: (ctx: BuffHookCtx) => number
+    /** 命中率修正钩子（processCombatRolls 中自动调用，返回加算值） */
+    onHitChance?: (ctx: BuffHookCtx) => number
+    /** 允许自行选择可招架（返回 true 则允许招架） */
+    onCanParry?: (ctx: { self: Character; engine: BattleEngine }) => boolean
+    /** 暴击率修正钩子（applyDamage 暴击判定前自动调用，返回加算值） */
+    onCritChance?: (ctx: BuffHookCtx) => number
 }
 
 export const BUFF_DB: BuffDef[] = [
@@ -79,6 +82,7 @@ export const BUFF_DB: BuffDef[] = [
         value: 0.4,
         expiry: { type: 'consumed' },
         stacking: { type: 'none' },
+        onParryChance: () => 0.4,
     },
     {
         id: 'mind_eye',
@@ -88,6 +92,7 @@ export const BUFF_DB: BuffDef[] = [
         value: 0.25,
         expiry: { type: 'consumed' },
         stacking: { type: 'none' },
+        onCritChance: () => 0.25,
     },
     {
         id: 'circle',
@@ -105,11 +110,11 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 6 },
-        onDamage: (f, { attacker, layer, buffOwnerId }) => {
+        onDamage: ({ final, attacker, layer, buffOwnerId }) => {
             if (buffOwnerId === attacker.id) {
-                return f + f * 0.1 * layer.restoreValue
+                return final + final * 0.1 * layer.restoreValue
             }
-            return f
+            return final
         },
         onBeforeModify: (delta, { character, engine }) => {
             if (delta < 0 && engine.state.pendingBuffs.has(`overlord_blade::${character.id}`)) {
@@ -125,8 +130,9 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        attrMods: { agility: -10 },
+        attrMods: { agility: -10, strength: 4 },
         onParryChance: () => 0.15,
+        onHitChance: ({ action }) => (action?.tags.includes('slash') ? 0.1 : 0),
     },
 
     {
@@ -191,7 +197,6 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'duration', ms: 2000 },
         stacking: { type: 'independent' },
-        consecutiveDiminish: true,
     },
     {
         id: 'sand_blind',
@@ -233,7 +238,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '流血',
         description: '行动触发额外伤害。',
         tags: [],
-        expiry: { type: 'trigger', event: 'action', maxTriggers: 5 },
+        expiry: { type: 'trigger', event: 'action' },
         stacking: { type: 'additive' },
     },
 
@@ -243,11 +248,11 @@ export const BUFF_DB: BuffDef[] = [
         name: '炁盾',
         description: '吸收qi招式伤害，每次2点。',
         tags: [],
-        onDamage: (f, { target, attacker, engine, actionId, layer }) => {
-            const act = actionId ? getAction(actionId) : undefined
+        onDamage: ({ final, target, attacker, engine, action, layer }) => {
+            const act = action
             const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
-            if (!isQi || f <= 0 || layer.restoreValue <= 0) return f
-            const absorb = Math.min(2, f)
+            if (!isQi || final <= 0 || layer.restoreValue <= 0) return final
+            const absorb = Math.min(2, final)
             layer.restoreValue--
             engine.emitLog({
                 type: 'system',
@@ -255,7 +260,7 @@ export const BUFF_DB: BuffDef[] = [
                 actorId: target.id,
             })
             if (layer.restoreValue <= 0) engine.state.pendingBuffs.delete(`qi_shield::${target.id}`)
-            return Math.max(0, Math.round((f - absorb) * 10) / 10)
+            return Math.max(0, Math.round((final - absorb) * 10) / 10)
         },
     },
     {
@@ -263,13 +268,13 @@ export const BUFF_DB: BuffDef[] = [
         name: '乌铠',
         description: '消耗AP减免斩/刺/钝伤害。',
         tags: [],
-        onDamage: (f, { target, actionId, engine }) => {
-            if (target.ap < 1 || f <= 5) return f
-            const act = actionId ? getAction(actionId) : undefined
-            if (!act?.requiredTags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'blunt')) return f
+        onDamage: ({ final, target, action, engine }) => {
+            if (target.ap < 1 || final <= 5) return final
+            const act = action
+            if (!act?.requiredTags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'blunt')) return final
             target.spendAp(1)
             engine.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免3点`, actorId: target.id })
-            return Math.max(0, Math.round((f - 3) * 10) / 10)
+            return Math.max(0, Math.round((final - 3) * 10) / 10)
         },
     },
     {
@@ -277,8 +282,8 @@ export const BUFF_DB: BuffDef[] = [
         name: '次元刃',
         description: '凝炁为刃，削弱招架减伤效果。',
         tags: [],
-        onParryReduction: (f, { raw }) => {
-            const blocked = raw - f
+        onParryReduction: ({ final, raw }) => {
+            const blocked = raw - final
             const halfBlock = Math.round(blocked * 0.5 * 10) / 10
             return raw - halfBlock
         },
@@ -294,11 +299,11 @@ export const BUFF_DB: BuffDef[] = [
         name: '九死剑诀',
         description: '损失血量增伤。',
         tags: [],
-        onDamage: (f, { attacker, layer }) => {
+        onDamage: ({ final, attacker, layer }) => {
             const ratio = layer.restoreValue
-            if (ratio <= 0 || attacker.hp >= attacker.maxHp) return f
+            if (ratio <= 0 || attacker.hp >= attacker.maxHp) return final
             const missingRatio = 1 - attacker.hp / attacker.maxHp
-            return Math.round(f * (1 + missingRatio * ratio) * 10) / 10
+            return Math.round(final * (1 + missingRatio * ratio) * 10) / 10
         },
     },
 
@@ -311,8 +316,10 @@ export const BUFF_DB: BuffDef[] = [
         name: '守势',
         description: '凝神防守，招架率大幅提升。',
         tags: [],
+        value: 0.35,
         expiry: { type: 'duration', ms: 3000 },
         stacking: { type: 'none' },
+        onParryChance: () => 0.35,
     },
     {
         id: 'frost_dex_bonus',
@@ -320,10 +327,10 @@ export const BUFF_DB: BuffDef[] = [
         description: '春雷灵巧加成，灵巧增伤。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDamage: (f, { attacker, buffOwnerId }) => {
-            if (attacker.id !== buffOwnerId) return f
+        onDamage: ({ final, attacker, buffOwnerId }) => {
+            if (attacker.id !== buffOwnerId) return final
             const bonus = Math.round(attacker.attrs.get('dexterity') * 0.5 * 10) / 10
-            return Math.round((f + bonus) * 10) / 10
+            return Math.round((final + bonus) * 10) / 10
         },
     },
     {
@@ -353,10 +360,11 @@ export const BUFF_DB: BuffDef[] = [
         description: '以柔克刚，四两拨千斤。空手可招架，灵巧增益招架减伤。',
         tags: [],
         expiry: { type: 'permanent' },
-        onParryReduction: (f, { target }) => {
+        onParryReduction: ({ final, target }) => {
             const dexBonus = target.attrs.get('dexterity') * 0.01
-            return Math.round(f * (1 - dexBonus) * 10) / 10
+            return Math.round(final * (1 - dexBonus) * 10) / 10
         },
+        onCanParry: ({ self }) => self.weaponDef?.id === 'bare_hands',
     },
 
     // ── 永久修饰（构造期执行） ──
@@ -387,11 +395,11 @@ export const BUFF_DB: BuffDef[] = [
         description: '凝炁玉增幅，炁系招式伤害+15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDamage: (f, { attacker, actionId }) => {
-            const act = actionId ? getAction(actionId) : undefined
+        onDamage: ({ final, attacker, action }) => {
+            const act = action
             const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
-            if (!isQi) return f
-            return Math.round(f * 1.1 * 10) / 10
+            if (!isQi) return final
+            return Math.round(final * 1.1 * 10) / 10
         },
     },
 ]

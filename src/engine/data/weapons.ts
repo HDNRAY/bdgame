@@ -74,8 +74,8 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'ciyuan_blade',
         name: '次元刃',
-        description: '以炁凝成的无形之刃，无视招架。',
-        tags: ['slash', 'parry', 'ignore_parry', 'qi'],
+        description: '以炁凝成的无形之刃。',
+        tags: ['slash', 'parry', 'qi'],
         range: [1, 3],
     },
     {
@@ -92,7 +92,7 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '霸刀',
         description: '与身同高的巨刃，离心力驱动，势不可挡。',
         tags: ['slash', 'blunt', 'parry'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 4 } }],
+        effects: [],
         range: [1, 3],
         triggers: [
             {

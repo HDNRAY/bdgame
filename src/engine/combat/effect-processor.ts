@@ -20,6 +20,7 @@ import {
 } from '../calc/damage'
 import { getWeapon } from '../data/weapons'
 import { getBuff } from '../data/buffs'
+import { getAction } from '../data/actions'
 import { genAppId } from '../util/buff-utils'
 import { triggerBleed } from '../entities/status'
 import type { Tag } from '../entities/tag'
@@ -28,15 +29,13 @@ import { scheduleBuffExpiry, revertBuffMods, revertWeaponStatBuffs, clearWeaponB
 import type { ActionResult, BuffLayer } from './types'
 
 // ── Context 类型 ──
-interface Ctx {
+interface EffectCtx {
     eff: EffectDef
     self: Character
     enemy: Character
     engine: BattleEngine
     tMs: number
-    log: BattleLog
-    tag?: string
-    actionId?: string
+    action?: ActionDefinition
 }
 
 // ── 效果分发表 ──
@@ -47,83 +46,13 @@ function applyDamage(
     target: Character,
     attacker: Character,
     engine: BattleEngine,
-    _tMs: number,
-    _log: BattleLog,
-    actionName?: string,
-    actionId?: string,
+    actionDef?: ActionDefinition,
 ): void {
-    const weapon = target.weaponDef ?? getWeapon(target.build.weapon)
-    let parried = false
-    const canParry = weapon.tags.includes('parry') || engine.state.pendingBuffs.has(`tai_chi::${target.id}`)
-    if (canParry) {
-        let pc = calcParryChance(0, target.attrs.get('dexterity'), target.attrs.get('insight'))
-        // 看破 buff：招架率+0.5，成功后消耗
-        const foresightKey = `foresight::${target.id}`
-        if (engine.state.pendingBuffs.has(foresightKey)) {
-            pc = Math.min(0.95, pc + 0.5)
-        }
-        // 守势
-        if (engine.state.pendingBuffs.has(`guard_up::${target.id}`)) {
-            pc = Math.min(0.95, pc + 0.35)
-        }
-        // 奇物/被动招架修正（构造期永久效果）
-        if (target.parryMod) {
-            pc = Math.min(0.95, pc + target.parryMod)
-        }
-        // buff 招架率钩子
-        for (const [key] of engine.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== target.id) continue
-            const def = getBuff(parts[0])
-            if (!def?.onParryChance) continue
-            pc = Math.min(0.95, pc + def.onParryChance({ target, attacker, engine }))
-        }
-        const result = calcRoll(pc)
-        parried = result.success
-        engine.emitLog({
-            type: 'check_parry',
-            sourceId: attacker.id,
-            targetId: target.id,
-            parryChance: pc,
-            roll: result.roll,
-            result: result.success,
-        })
-        if (parried) {
-            engine.state.pendingBuffs.delete(foresightKey)
-            engine.emit('on_parry', target, attacker)
-        }
-    }
-    let final = parried ? calcParriedDamage(raw, target.attrs.get('strength')) : raw
-    // 招架减伤钩子（太极/次元刃等）
-    if (parried) {
-        for (const [key] of engine.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== target.id) continue
-            const def = getBuff(parts[0])
-            if (!def?.onParryReduction) continue
-            final = def.onParryReduction(final, { target, attacker, engine, raw })
-        }
-        final = Math.round(final * 10) / 10
-    }
-    const blocked = raw - final
-
-    // 暴击判定
-    const mindEyeKey = `mind_eye::${attacker.id}`
-    const mindEyeBonus = engine.state.pendingBuffs.has(mindEyeKey) ? 0.25 : 0
-    const critChance = calcCritChance(
-        attacker.attrs.get('dexterity'),
-        attacker.attrs.get('insight'),
-        attacker.critChance + mindEyeBonus,
-    )
-    const critRoll = calcRoll(critChance)
-    const isCrit = critRoll.success
-    engine.emitLog({ type: 'check_crit', sourceId: attacker.id, critChance, roll: critRoll.roll, result: isCrit })
-
-    final = calcFinalDamage(final, 1, isCrit, attacker.critDamageMod)
-    final = Math.round(final * 10) / 10
-
-    // 通用伤害修正钩子（遍历双方 buff 的 onDamage）
-    final = applyDamageModifiers(final, target, attacker, engine, actionId)
+    const act = actionDef
+    const { parried, final: afterParry } = resolveParry(raw, target, attacker, engine, act)
+    const blocked = raw - afterParry
+    const { isCrit, final: afterCrit } = resolveCrit(afterParry, raw, target, attacker, engine, act)
+    const final = applyDamageModifiers(afterCrit, target, attacker, engine, raw, actionDef)
 
     target.takeDamage(final)
 
@@ -134,8 +63,8 @@ function applyDamage(
 
     engine.emitLog({
         type: 'damage',
-        actionId: actionId ?? 'unknown',
-        actionName: actionName ?? '未知',
+        actionId: actionDef?.id ?? 'unknown',
+        actionName: actionDef?.name ?? '未知',
         sourceId: attacker.id,
         targetId: target.id,
         base: raw,
@@ -148,8 +77,131 @@ function applyDamage(
     if (isCrit) engine.emit('on_crit', attacker, target)
 }
 
-const effectHandlers: Record<string, (ctx: Ctx) => void> = {
-    cleanse({ eff, self, engine }: Ctx) {
+/** 招架判定：是否招架 + 招架后伤害 */
+function resolveParry(
+    raw: number,
+    target: Character,
+    attacker: Character,
+    engine: BattleEngine,
+    act: ActionDefinition | undefined,
+): { parried: boolean; final: number } {
+    // ── 1. 能否招架 ──
+    const weapon = target.weaponDef ?? getWeapon(target.build.weapon)
+    const hasParryTag = weapon.tags.includes('parry')
+    const hasParryBuff = [...engine.state.pendingBuffs].some(([k]) => {
+        const parts = k.split('::')
+        if (parts.length < 2 || parts[1] !== target.id) return false
+        return getBuff(parts[0])?.onCanParry?.({ self: target, engine }) ?? false
+    })
+    if (!hasParryTag && !hasParryBuff) return { parried: false, final: raw }
+
+    // ── 2. 招架概率 ──
+    let pc = calcParryChance(0, target.attrs.get('dexterity'), target.attrs.get('insight'))
+    if (target.parryMod) {
+        pc = Math.min(0.95, pc + target.parryMod)
+    }
+    if (act) {
+        for (const [key, layer] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== target.id) continue
+            const def = getBuff(parts[0])
+            if (!def?.onParryChance) continue
+            const bonus = def.onParryChance({
+                final: raw,
+                raw,
+                target,
+                attacker,
+                engine,
+                buffOwnerId: parts[1],
+                layer,
+                action: act,
+            })
+            pc = Math.min(0.95, pc + bonus)
+        }
+    }
+
+    // ── 3. 摇奖 ──
+    const { success: parried, roll } = calcRoll(pc)
+    engine.emitLog({
+        type: 'check_parry',
+        sourceId: attacker.id,
+        targetId: target.id,
+        parryChance: pc,
+        roll,
+        result: parried,
+    })
+    if (!parried) return { parried: false, final: raw }
+
+    // ── 4. 消耗消费型 buff（看破等） ──
+    for (const [k] of engine.state.pendingBuffs) {
+        if (k.endsWith(`::${target.id}`)) {
+            const def = getBuff(k.split('::')[0])
+            if (def?.expiry?.type === 'consumed') engine.state.pendingBuffs.delete(k)
+        }
+    }
+    engine.emit('on_parry', target, attacker)
+
+    // ── 5. 伤害减免 ──
+    let final = calcParriedDamage(raw, target.attrs.get('strength'))
+    if (act) {
+        for (const [key, layer] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== target.id) continue
+            const def = getBuff(parts[0])
+            if (!def?.onParryReduction) continue
+            final = def.onParryReduction({
+                final,
+                raw,
+                target,
+                attacker,
+                engine,
+                buffOwnerId: parts[1],
+                layer,
+                action: act,
+            })
+        }
+    }
+    final = Math.round(final * 10) / 10
+    return { parried: true, final }
+}
+
+/** 暴击判定：是否暴击 + 暴击后伤害 */
+function resolveCrit(
+    damage: number,
+    raw: number,
+    target: Character,
+    attacker: Character,
+    engine: BattleEngine,
+    act: ActionDefinition | undefined,
+): { isCrit: boolean; final: number } {
+    let bonus = attacker.critChance
+    for (const [key, layer] of engine.state.pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2 || parts[1] !== attacker.id) continue
+        if (!act) break
+        const def = getBuff(parts[0])
+        if (def?.onCritChance)
+            bonus += def.onCritChance({
+                final: damage,
+                raw,
+                target,
+                attacker,
+                engine,
+                buffOwnerId: parts[1],
+                layer,
+                action: act,
+            })
+    }
+    const critChance = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), bonus)
+    const critRoll = calcRoll(critChance)
+    const isCrit = critRoll.success
+    engine.emitLog({ type: 'check_crit', sourceId: attacker.id, critChance, roll: critRoll.roll, result: isCrit })
+    const final = calcFinalDamage(damage, 1, isCrit, attacker.critDamageMod)
+    return { isCrit, final: Math.round(final * 10) / 10 }
+}
+
+const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
+    cleanse({ eff, self, engine }: EffectCtx) {
         const { statuses } = eff as Extract<EffectDef, { type: 'cleanse' }>
         const targets = statuses ?? (['paralyze', 'poison'] as StatusType[])
         for (const [k] of engine.state.pendingBuffs) {
@@ -160,7 +212,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         }
         engine.emitLog({ type: 'cleanse', sourceId: self.id, targetId: self.id, statuses: targets })
     },
-    heal({ eff, self, engine }: Ctx) {
+    heal({ eff, self, engine }: EffectCtx) {
         const { value, ratio } = eff as Extract<EffectDef, { type: 'heal' }>
         const amount = calcHealAmount(value, self.maxHp, ratio)
         self.hp = Math.min(self.maxHp, self.hp + amount)
@@ -173,29 +225,16 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             amount,
         })
     },
-    interrupt({ enemy, engine }: Ctx) {
+    interrupt({ enemy, engine }: EffectCtx) {
         const INTERRUPT_DELAY = 1000
         engine.state.turn.modifyTime(enemy.id, INTERRUPT_DELAY)
         engine.emitLog({ type: 'interrupt', sourceId: '', targetId: enemy.id })
     },
-    knockback({ eff, self, engine }: Ctx) {
+    knockback({ eff, self, engine }: EffectCtx) {
         const { distance } = eff as Extract<EffectDef, { type: 'knockback' }>
         if (distance > 0) executeMove(self, engine, distance)
     },
-    leap({ self, engine }: Ctx) {
-        const dist = engine.state.distance.current
-        if (dist < 4 || dist > 8) {
-            engine.emitLog({
-                type: 'system',
-                message: BattleLog.plain(self.name, '距离不合适，无法跳跃'),
-                actorId: self.id,
-            })
-            return
-        }
-        const delta = dist - 1
-        executeMove(self, engine, -delta)
-    },
-    ciyuan_init({ self, engine }: Ctx) {
+    ciyuan_init({ self, engine }: EffectCtx) {
         const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
         if (weapon.id === 'bare_hands') {
             self.weaponDef = { ...getWeapon('ciyuan_blade') }
@@ -216,19 +255,20 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             })
         }
         engine.state.pendingBuffs.set(`dimensional_blade::${self.id}`, { restoreValue: 1 })
-        engine.state.pendingBuffs.set(`ciyuan_blade::${self.id}`, { restoreValue: 1 })
     },
-    fixed_damage({ eff, self, enemy, engine, tMs, log, tag, actionId }: Ctx) {
+    fixed_damage({ eff, self, enemy, engine, action }: EffectCtx) {
         const { value } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
-        applyDamage(value, enemy, self, engine, tMs, log, tag, actionId)
+        applyDamage(value, enemy, self, engine, action)
     },
-    damage({ eff, self, enemy, engine, tMs, log, tag, actionId }: Ctx) {
+    damage({ eff, self, enemy, engine, action }: EffectCtx) {
         const { scaling } = eff as Extract<EffectDef, { type: 'damage' }>
         const base = (eff as Extract<EffectDef, { type: 'damage' }>).base ?? 0
         const raw = calcBaseDamage(scaling, self.attrs.getAll(), base)
-        if (raw > 0) applyDamage(raw, enemy, self, engine, tMs, log, tag, actionId)
+        if (raw > 0) {
+            applyDamage(raw, enemy, self, engine, action)
+        }
     },
-    self_damage({ eff, self, engine }: Ctx) {
+    self_damage({ eff, self, engine }: EffectCtx) {
         const { ratio } = eff as Extract<EffectDef, { type: 'self_damage' }>
         const dmg = Math.round(self.maxHp * ratio)
         self.takeDamage(dmg)
@@ -246,15 +286,15 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             tags: ['self_damage'],
         })
     },
-    cripple({ eff, self, enemy, engine, tag, actionId }: Ctx) {
-        const { ratio } = eff as Extract<EffectDef, { type: 'cripple' }>
+    missing_hp_damage({ eff, self, enemy, engine, action }: EffectCtx) {
+        const { ratio } = eff as Extract<EffectDef, { type: 'missing_hp_damage' }>
         const dmg = Math.round((enemy.maxHp - enemy.hp) * ratio)
         if (dmg > 0) {
             enemy.takeDamage(dmg)
             engine.emitLog({
                 type: 'damage',
-                actionId: actionId ?? 'cripple',
-                actionName: tag ?? '崩劲',
+                actionId: action?.id ?? 'missing_hp_damage',
+                actionName: action?.name ?? '崩劲',
                 sourceId: self.id,
                 targetId: enemy.id,
                 base: dmg,
@@ -266,12 +306,12 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             })
         }
     },
-    status({ eff, self, enemy, engine, tMs, log }: Ctx) {
-        handleStatusEffect({ eff: eff as Extract<EffectDef, { type: 'status' }>, self, enemy, engine, tMs, log })
+    status({ eff, self, enemy, engine, tMs }: EffectCtx) {
+        handleStatusEffect({ eff: eff as Extract<EffectDef, { type: 'status' }>, self, enemy, engine, tMs })
     },
 
     // ── 自效果（无需命中判定） ──
-    stat_multiply({ eff, self, engine, tMs }: Ctx) {
+    stat_multiply({ eff, self, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'stat_multiply' }>
         const appId = genAppId(tMs)
         const layerKey = `stat_multiply::${self.id}::${appId}`
@@ -294,7 +334,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         })
         scheduleBuffExpiry(engine, layerKey, buffDuration)
     },
-    stat_buff({ eff, self, engine, tMs, tag }: Ctx) {
+    stat_buff({ eff, self, engine, tMs, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
         const entries = Object.entries(e.attrs) as [AttrName, number][]
         for (const [attr, value] of entries) {
@@ -304,7 +344,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
                 targetId: self.id,
                 attr,
                 delta: value,
-                label: tag ?? getBuff('stat_buff')?.name ?? '内劲',
+                label: action?.name ?? getBuff('stat_buff')?.name ?? '内劲',
             })
         }
         // Duration support: 创建独立 buff 层用于定时恢复
@@ -323,12 +363,12 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             scheduleBuffExpiry(engine, layerKey, e.durationMs)
         }
     },
-    restore_ap({ eff, self, engine }: Ctx) {
+    restore_ap({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'restore_ap' }>
         self.ap = Math.min(self.maxAp, self.ap + e.value)
         engine.emitLog({ type: 'system', message: BattleLog.msg('回气', self.name, `AP+${e.value}`), actorId: self.id })
     },
-    summon_speed({ eff, self, engine }: Ctx) {
+    summon_speed({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'summon_speed' }>
         engine.speedUpSummons(self.id, e.value)
         engine.emitLog({
@@ -340,7 +380,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
     // permanent_burn({ eff, self, engine, tMs, log }: Ctx) {
     //     // 运行时由 engine 系统事件处理
     // },
-    stat_transfer({ eff, self, enemy, engine, tMs }: Ctx) {
+    stat_transfer({ eff, self, enemy, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'stat_transfer' }>
         const attr = e.stat as AttrName
         const appId = genAppId(tMs)
@@ -367,9 +407,9 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             enemy.capAp()
         }
     },
-    crit_chance({ eff, self, engine, tag }: Ctx) {
+    crit_chance({ eff, self, engine, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'crit_chance' }>
-        const label = tag || '暴击率'
+        const label = action?.name || '暴击率'
         if (e.reset) {
             self.critChance = 0
         } else {
@@ -383,9 +423,9 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             actorId: self.id,
         })
     },
-    crit_damage({ eff, self, engine, tag }: Ctx) {
+    crit_damage({ eff, self, engine, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'crit_damage' }>
-        const label = tag || '暴击伤害'
+        const label = action?.name || '暴击伤害'
         self.critDamageMod += e.value
         engine.emitLog({
             type: 'system',
@@ -393,11 +433,11 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             actorId: self.id,
         })
     },
-    hit_chance({ eff, self }: Ctx) {
+    hit_chance({ eff, self }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'hit_chance' }>
         self.hitChanceMod += e.value
     },
-    add_buff({ eff, self, engine }: Ctx) {
+    add_buff({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_buff' }>
         const key = `${e.buffId}::${self.id}`
         const buff = getBuff(e.buffId)
@@ -458,7 +498,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             )
         }
     },
-    remove_buff({ eff, self, engine }: Ctx) {
+    remove_buff({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'remove_buff' }>
         const key = `${e.buffId}::${self.id}`
         const layer = engine.state.pendingBuffs.get(key)
@@ -498,7 +538,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             actorId: self.id,
         })
     },
-    short_dash({ eff, self, engine }: Ctx) {
+    short_dash({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'short_dash' }>
         const dist = engine.state.distance.current
         const maxDash = e.maxDistance ?? 2
@@ -506,40 +546,48 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
         const delta = dist - targetDist
         executeMove(self, engine, -delta)
     },
-    frost_step({ self, engine }: Ctx) {
+    dash({ eff, self, engine }: EffectCtx) {
+        const e = eff as Extract<EffectDef, { type: 'dash' }>
+        const minRange = e.minRange ?? 0
+        const maxRange = e.maxRange ?? Infinity
         const dist = engine.state.distance.current
-        if (dist < 2 || dist > 12) {
+        if (dist < minRange || dist > maxRange) {
             engine.emitLog({ type: 'system', message: BattleLog.plain(self.name, '距离不合适'), actorId: self.id })
             return
         }
-        const perAp = Math.max(0.5, self.attrs.get('agility') / 20)
-        const targetDist = 1
-        const moveDist = dist - targetDist
-        const apCost = Math.ceil(moveDist / perAp)
-        if (self.ap < apCost) {
-            engine.emitLog({ type: 'system', message: `${self.name} AP不足 无法踏雪`, actorId: self.id })
-            return
+        const moveDist = dist - e.targetDist
+        if (e.useAp) {
+            const perAp = Math.max(0.5, self.attrs.get('agility') / 20)
+            const apCost = Math.ceil(Math.abs(moveDist) / perAp)
+            if (self.ap < apCost) {
+                engine.emitLog({ type: 'system', message: `${self.name} AP不足`, actorId: self.id })
+                return
+            }
+            self.spendAp(apCost)
+            engine.state.distance.move(-moveDist)
+            engine.emitLog({
+                type: 'move',
+                sourceId: self.id,
+                delta: -moveDist,
+                newDistance: engine.state.distance.current,
+                apCost,
+                apRemaining: self.ap,
+            })
+        } else {
+            if (moveDist !== 0) executeMove(self, engine, -moveDist)
         }
-        self.spendAp(apCost)
-        engine.state.distance.move(-moveDist)
-        engine.emitLog({
-            type: 'move',
-            sourceId: self.id,
-            delta: -moveDist,
-            newDistance: engine.state.distance.current,
-            apCost,
-            apRemaining: self.ap,
-        })
     },
-    disarm({ enemy, engine }: Ctx) {
+    disarm({ enemy, engine }: EffectCtx) {
         const oldWeapon = enemy.weaponDef ?? getWeapon(enemy.build.weapon)
         if (oldWeapon.id === 'bare_hands') return
         const key = `disarmed::${enemy.id}`
         if (engine.state.pendingBuffs.has(key)) return
         revertWeaponStatBuffs(oldWeapon, enemy, engine)
+        // 清除武器专属 buff（如霸刀）
+        clearWeaponBuffLayers(enemy.id, engine)
         enemy.weaponDef = { ...getWeapon('bare_hands') }
         // 清除次元刃状态
-        engine.state.pendingBuffs.delete(`ciyuan_blade::${enemy.id}`)
+        engine.state.pendingBuffs.delete(`dimensional_blade::${enemy.id}`)
         // 缴械 buff（含原始武器信息，过期自动归还）
         engine.state.pendingBuffs.set(key, { restoreValue: 1, extra: { originalWeapon: oldWeapon.id } })
         const buffDef = getBuff('disarmed')
@@ -552,7 +600,7 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
             actorId: enemy.id,
         })
     },
-    switch_weapon({ eff, self, engine }: Ctx) {
+    switch_weapon({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'switch_weapon' }>
 
         revertWeaponStatBuffs(self.weaponDef, self, engine)
@@ -582,8 +630,8 @@ const effectHandlers: Record<string, (ctx: Ctx) => void> = {
 }
 
 // ── Status 子分发表 ──
-const statusHandlers: Record<string, (ctx: Ctx) => void> = {
-    bleed({ eff, self, enemy, engine }: Ctx) {
+const statusHandlers: Record<string, (ctx: EffectCtx) => void> = {
+    bleed({ eff, self, enemy, engine }: EffectCtx) {
         const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
         const key = `bleed::${enemy.id}`
         const existing = engine.state.pendingBuffs.get(key) as BuffLayer | undefined
@@ -603,7 +651,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         })
         engine.emit('on_debuff', self, enemy)
     },
-    sand_blind({ enemy, engine }: Ctx) {
+    sand_blind({ enemy, engine }: EffectCtx) {
         const key = `sand_blind::${enemy.id}`
         if (engine.state.pendingBuffs.has(key)) return
         const buffDef = getBuff('sand_blind')
@@ -619,7 +667,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
             actorId: enemy.id,
         })
     },
-    knockdown({ enemy, engine, tMs }: Ctx) {
+    knockdown({ enemy, engine, tMs }: EffectCtx) {
         const buffDef = getBuff('knockdown')
         const agiDelta = buffDef?.attrMods?.agility ?? -4
         enemy.attrs.modify('agility', agiDelta)
@@ -636,7 +684,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
             actorId: enemy.id,
         })
     },
-    poison({ eff, self, enemy, engine, tMs }: Ctx) {
+    poison({ eff, self, enemy, engine, tMs }: EffectCtx) {
         const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
         const key = `poison::${enemy.id}`
         const existing = engine.state.pendingBuffs.get(key) as BuffLayer | undefined
@@ -663,7 +711,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         const interval = calcPoisonTickInterval(total)
         engine.state.turn.scheduleSystemEventAt(`tick_poison_${enemy.id}`, tMs + interval, 'tick_poison')
     },
-    burn({ eff, self, enemy, engine, tMs }: Ctx) {
+    burn({ eff, self, enemy, engine, tMs }: EffectCtx) {
         const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
         const key = `burn::${enemy.id}`
         const existing = engine.state.pendingBuffs.get(key) as BuffLayer | undefined
@@ -683,7 +731,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
         })
         engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, tMs + 1000, 'tick_burn')
     },
-    paralyze({ eff, enemy, engine, tMs }: Ctx) {
+    paralyze({ eff, enemy, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'status' }>
         const { stacks } = e
         const attrMods = getBuff('paralyze')!.attrMods!
@@ -710,7 +758,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
             'buff_end',
         )
     },
-    frost({ eff, enemy, engine, tMs }: Ctx) {
+    frost({ eff, enemy, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'status' }>
         const { stacks } = e
         const buffDef = getBuff('frost')
@@ -733,7 +781,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
             'buff_end',
         )
     },
-    stun({ eff, enemy, engine, tMs }: Ctx) {
+    stun({ eff, enemy, engine, tMs }: EffectCtx) {
         const { stacks } = eff as Extract<EffectDef, { type: 'status' }>
         const STUN_DURATION = calcDebuffDuration(2000, enemy.attrs.get('vitality'))
         const STUN_RESET_WINDOW = 5000
@@ -786,7 +834,7 @@ const statusHandlers: Record<string, (ctx: Ctx) => void> = {
     },
 }
 
-function handleStatusEffect(ctx: Omit<Ctx, 'tag' | 'actionId'> & { eff: EffectDef & { type: 'status' } }): void {
+function handleStatusEffect(ctx: EffectCtx & { eff: EffectDef & { type: 'status' } }): void {
     const { eff, self, enemy, engine, tMs } = ctx
     const { success } = calcRoll(eff.chance)
     if (!success) return
@@ -800,25 +848,12 @@ function handleStatusEffect(ctx: Omit<Ctx, 'tag' | 'actionId'> & { eff: EffectDe
         engine.emitLog({ type: 'system', message: `[冰心] ${enemy.name} 免疫 ${st}`, actorId: enemy.id })
         return
     }
-    const key = `${st}::${enemy.id}`
-    const existing = engine.state.pendingBuffs.get(key) as BuffLayer | undefined
-
-    // Stackable statuses: only stack, no trigger
-    const STACKABLE_STATUSES: StatusType[] = ['bleed', 'poison', 'burn']
-    if (existing && STACKABLE_STATUSES.includes(st as StatusType)) {
-        existing.restoreValue += eff.stacks
-        const buffName = getBuff(st)?.name ?? st
-        engine.emitLog({
-            type: 'system',
-            message: `[${buffName}] ${BattleLog.name(enemy.name)} 叠层→${existing.restoreValue}层`,
-            actorId: enemy.id,
-        })
-        return
-    }
+    // const key = `${st}::${enemy.id}`
+    // const existing = engine.state.pendingBuffs.get(key) as BuffLayer | undefined
 
     const handler = statusHandlers[eff.status]
     if (handler) {
-        handler({ eff, self, enemy, engine, tMs, log: engine.state.log } as Ctx)
+        handler({ eff, self, enemy, engine, tMs })
     } else {
         console.warn(`[effect-processor] 未注册的 status 类型: ${eff.status}`)
     }
@@ -830,12 +865,11 @@ export function processActionEffect(
     self: Character,
     enemy: Character,
     engine: BattleEngine,
-    _tMs: number,
-    tag?: string,
-    actionId?: string,
+    tMs: number,
+    action?: ActionDefinition,
 ): void {
     const handler = effectHandlers[eff.type]
-    if (handler) handler({ eff, self, enemy, engine, tMs: _tMs, log: engine.state.log, tag, actionId })
+    if (handler) handler({ eff, self, enemy, engine, tMs, action })
 }
 
 /** 处理 status tick（毒/灼烧），从 pendingBuffs 读取层数，返回 damage 和下次间隔 */
@@ -935,6 +969,27 @@ export function processCombatRolls(
         hc = Math.min(0.95, hc + 0.5)
         engine.state.pendingBuffs.delete(circleKey)
     }
+    // buff 命中率钩子
+    for (const [key, layer] of engine.state.pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2 || parts[1] !== self.id) continue
+        const def = getBuff(parts[0])
+        if (!def?.onHitChance) continue
+        hc = Math.min(
+            0.95,
+            hc +
+                def.onHitChance({
+                    final: 0,
+                    raw: 0,
+                    attacker: self,
+                    target: enemy,
+                    action: _action,
+                    engine,
+                    buffOwnerId: parts[1],
+                    layer,
+                }),
+        )
+    }
     const hitResult = calcRoll(hc)
     r.hit = hitResult.success
     engine.emitLog({
@@ -993,15 +1048,17 @@ function applyDamageModifiers(
     target: Character,
     attacker: Character,
     engine: BattleEngine,
-    actionId?: string,
+    raw: number,
+    actionDef?: ActionDefinition,
 ): number {
     for (const [key, layer] of engine.state.pendingBuffs) {
         const parts = key.split('::')
         if (parts.length < 2) continue
         if (parts[1] !== target.id && parts[1] !== attacker.id) continue
         const def = getBuff(parts[0])
-        if (!def?.onDamage) continue
-        final = def.onDamage(final, { final, target, attacker, engine, actionId, layer, buffOwnerId: parts[1] })
+        const act = actionDef ?? getAction('')
+        if (!act || !def?.onDamage) continue
+        final = def.onDamage({ final, raw, target, attacker, engine, layer, buffOwnerId: parts[1], action: act })
     }
     return final
 }
@@ -1038,8 +1095,6 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
                     char,
                     engine,
                     engine.state.turn.currentTime,
-                    '',
-                    '',
                 )
             }
         }

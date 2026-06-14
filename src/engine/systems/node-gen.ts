@@ -39,12 +39,17 @@ export function pickNonStatRewards(n: number, pool: Reward[], poolIdx: { current
 /** 运行完整节点探索，返回 build */
 export function runNodeExploration(bgIndex: number, weaponIndex: number, n: number): NodeRunResult {
     const logs: string[] = []
-    const bg = BACKGROUNDS[bgIndex]
-    logs.push(`背景: ${bg.name}`)
+    logs.push(`背景: ${BACKGROUNDS[bgIndex].name}`)
 
     const weaponId = STARTING_WEAPONS[weaponIndex]
-    const bgAttrs: Record<string, number> = { ...bg.attrs }
-    for (const a of STAT_NAMES) bgAttrs[a] ??= 3
+    const bgAttrs: Record<string, number> = {
+        strength: 3,
+        vitality: 3,
+        agility: 3,
+        dexterity: 3,
+        insight: 3,
+        wisdom: 3,
+    }
 
     // 培养点自动分配：每节点 2 点，按 stat 名称循环做优先级（模拟玩家手动选）
     // 实际手动模式会让玩家自由分配，这里用 round-robin 模拟
@@ -71,7 +76,7 @@ export function runNodeExploration(bgIndex: number, weaponIndex: number, n: numb
     const build: CharacterBuild = {
         id: 'player',
         name: '挑战者',
-        background: bg.id,
+        background: BACKGROUNDS[bgIndex].id,
         weapon: weaponId,
         baseAttrs: finalAttrs,
         rewards,

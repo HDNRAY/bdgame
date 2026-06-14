@@ -15,13 +15,12 @@ export type EffectDef =
     | { type: 'damage'; scaling: Partial<Record<AttrName, number>>; base?: number }
     | { type: 'fixed_damage'; value: number }
     | { type: 'status'; status: Tag; stacks: number; chance: number; attrMods?: Record<string, number> }
-    | { type: 'cripple'; ratio: number }
+    | { type: 'missing_hp_damage'; ratio: number }
     | { type: 'self_damage'; ratio: number }
     | { type: 'ignore_parry' }
     | { type: 'interrupt' }
     | { type: 'knockback'; distance: number }
-    | { type: 'leap' }
-    | { type: 'frost_step' }
+    | { type: 'dash'; minRange?: number; maxRange?: number; targetDist: number; useAp?: boolean }
     | { type: 'limit_uses'; max: number }
     | { type: 'cleanse'; statuses?: StatusType[] }
     // 自效果（无需命中判定，总是生效）

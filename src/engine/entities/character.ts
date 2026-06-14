@@ -97,12 +97,21 @@ export class Character {
         for (const t of weapon.triggers ?? []) this.passiveTriggers.push(t)
 
         // 5. 缓存招式
-        this.#moveCache = gainedActions
+        this.#actionCache = gainedActions
             .map((id) => {
                 const def = getActionDef(id)
                 return def ? new Action(def) : null
             })
             .filter((a): a is Action => a !== null)
+
+        // 通用招式强化：被动钩子
+        for (const p of this.passiveDefs) {
+            if (!p.actionEnhancer) continue
+            this.#actionCache = this.#actionCache.map((a) => {
+                const modified = p.actionEnhancer!(a.def)
+                return modified !== a.def ? new Action(modified) : a
+            })
+        }
 
         this.ap = this.maxAp
         this.hp = calcMaxHp(this.attrs.get('vitality')) + this.maxHpMod
@@ -158,9 +167,9 @@ export class Character {
         return this.artifactDefs
     }
 
-    #moveCache: Action[] = []
+    #actionCache: Action[] = []
     get actions(): Action[] {
-        return this.#moveCache
+        return this.#actionCache
     }
 
     takeDamage(amount: number): void {
