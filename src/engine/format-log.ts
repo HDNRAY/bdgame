@@ -193,15 +193,16 @@ export function formatBattleLog(log: BattleLog): string[] {
                 break
 
             case 'damage': {
-                // 如果 pending 不是本体招式（被触发招式覆盖了），单独显示伤害
+                // 如果 pending 不是本体招式（被触发招式覆盖了），暂存到 pendingSystemLines
                 if (!pending || !pending.text.includes(e.actionName)) {
                     let result = ''
                     if (e.isParried && e.blocked > 0) result += `格挡${e.blocked.toFixed(1)}  `
                     result += `造成${e.final.toFixed(1)}`
-                    lines.push(`    » ${result}`)
                     if (pending) {
-                        flush()
-                        pending = null
+                        const label = e.actionName !== '未知' ? `[${e.actionName}] ` : ''
+                        pendingSystemLines.push(`    ↳ ${label}${result}`)
+                    } else {
+                        lines.push(`    » ${result}`)
                     }
                     break
                 }

@@ -115,7 +115,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'qi_guard',
         name: '吞炁囊',
-        description: '开局凝聚炁盾，吸收qi招式伤害2点，共10次。',
+        description: '开局凝聚炁盾，吸收炁招式伤害2点，共10次。',
         tags: ['trigger'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 20 }] },
@@ -189,6 +189,13 @@ export const ARTIFACTS: Artifact[] = [
         description: '博采众长，洞察入微。宁毅所赠的现代搏击笔记。',
         tags: ['buff'],
         effects: [{ type: 'stat_buff', attrs: { insight: 4, dexterity: 2 } }],
+    },
+    {
+        id: 'cinnabar_mole',
+        name: '守宫砂',
+        description: '龙虎山秘传之印，每三击蓄满雷印，下一击爆发×1.5。',
+        tags: ['trigger', 'electric'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'cinnabar_mark' }] }],
     },
 ]
 

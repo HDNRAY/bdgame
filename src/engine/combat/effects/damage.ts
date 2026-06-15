@@ -18,10 +18,12 @@ export function applyDamage(
     actionDef?: ActionDefinition,
 ): void {
     const act = actionDef
-    const { parried, final: afterParry } = resolveParry(raw, target, attacker, engine, act)
-    const blocked = raw - afterParry
-    const { isCrit, final: afterCrit } = resolveCrit(afterParry, raw, target, attacker, engine, act)
-    const final = applyDamageModifiers(afterCrit, target, attacker, engine, raw, actionDef)
+    // 增伤效果在招架前计算
+    const buffed = applyDamageModifiers(raw, target, attacker, engine, raw, actionDef)
+    const { parried, final: afterParry } = resolveParry(buffed, target, attacker, engine, act)
+    const blocked = buffed - afterParry
+    const { isCrit, final: afterCrit } = resolveCrit(afterParry, buffed, target, attacker, engine, act)
+    const final = afterCrit
 
     target.takeDamage(final)
 

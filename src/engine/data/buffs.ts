@@ -251,7 +251,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'qi_shield',
         name: '炁盾',
-        description: '吸收qi招式伤害，每次2点。',
+        description: '吸收炁招式伤害，每次2点。',
         tags: [],
         onDamage: ({ final, target, attacker, engine, action, layer }) => {
             const act = action
@@ -397,7 +397,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'vitality_regen',
         name: '生生不息',
-        description: '每 3 秒回复 1% 生命。',
+        description: '每 2 秒回复 1% 生命。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
         tickInterval: 2000,
@@ -414,6 +414,54 @@ export const BUFF_DB: BuffDef[] = [
             const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (!isQi) return final
             return Math.round(final * 1.15 * 10) / 10
+        },
+    },
+    {
+        id: 'paralyze_immunity',
+        name: '雷体',
+        description: '免疫麻痹。',
+        tags: [],
+        expiry: { type: 'permanent' },
+    },
+    {
+        id: 'thunder_constitution',
+        name: '雷电锻体',
+        description: '雷系伤害减免80%，其他伤害减免20%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDamage: ({ final, action }) => {
+            if (action?.tags?.includes('electric')) {
+                return Math.round(final * 0.2 * 10) / 10
+            }
+            return Math.round(final * 0.8 * 10) / 10
+        },
+    },
+    {
+        id: 'thunder_bonus',
+        name: '雷法',
+        description: '攻击附加3点雷击伤害。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDamage: ({ final, buffOwnerId, attacker }) => {
+            if (buffOwnerId !== attacker.id) return final
+            return Math.round((final + 3) * 10) / 10
+        },
+    },
+    {
+        id: 'cinnabar_mark',
+        name: '守宫砂·印',
+        description: '每次攻击积攒一颗雷印，满三颗后下一击爆发。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDamage: ({ final, buffOwnerId, attacker, layer, engine }) => {
+            if (buffOwnerId !== attacker.id) return final
+            if (layer.restoreValue >= 2) {
+                layer.restoreValue = 0
+                engine.emitLog({ type: 'system', message: '[守宫砂] 雷印爆发！伤害×1.5', actorId: attacker.id })
+                return Math.round(final * 1.5 * 10) / 10
+            }
+            layer.restoreValue = (layer.restoreValue ?? 0) + 1
+            return final
         },
     },
 ]

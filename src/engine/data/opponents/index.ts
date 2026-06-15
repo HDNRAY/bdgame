@@ -8,6 +8,7 @@ export { BAIHU } from './baihu'
 export { LUEYING } from './lueying'
 export { LIUXIGUA } from './liuxigua'
 export { LUHONGTI } from './luhongti'
+export { QILAN } from './qilan'
 
 import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
@@ -25,6 +26,7 @@ import { BAIHU } from './baihu'
 import { LUEYING } from './lueying'
 import { LIUXIGUA } from './liuxigua'
 import { LUHONGTI } from './luhongti'
+import { QILAN } from './qilan'
 
 /** 对手定义 */
 export interface OpponentDef {
@@ -59,12 +61,13 @@ export const action = (id: string): Reward => ({ type: 'action', id, name: id, d
 
 /** 所有对手 */
 export const OPPONENTS: OpponentDef[] = [
+    QILAN,
+    SANGYUAN,
     ZHANGLIE,
     LAIFENG,
     XUANJI,
     LAYUE,
     YIDAO,
-    SANGYUAN,
     BAIHU,
     LUEYING,
     LIUXIGUA,

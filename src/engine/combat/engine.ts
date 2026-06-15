@@ -411,7 +411,8 @@ export class BattleEngine {
     }
 
     #executeAttack(cmd: ActionCommand, self: Character, enemy: Character): ActionResult {
-        const action = cmd.actionId ? getAction(cmd.actionId) : undefined
+        const inst = self.actions.find((a) => a.id === cmd.actionId)
+        const action = inst?.def ?? (cmd.actionId ? getAction(cmd.actionId) : undefined)
         if (!action) {
             this.emitLog({ type: 'system', message: BattleLog.plain(self.name, '没有可用招式'), actorId: self.id })
             return this.#emptyResult()

@@ -11,6 +11,7 @@ import {
     LUEYING,
     LIUXIGUA,
     LUHONGTI,
+    QILAN,
 } from '../src/engine/data/opponents/index'
 import { getWeapon } from '../src/engine/data/weapons'
 import { runBattle } from '../src/engine/battle-runner'
@@ -40,7 +41,7 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = XUANJI.generate(33)
+const pBuild = QILAN.generate(33)
 const oBuild = YIDAO.generate(33)
 
 if (N === 1) {

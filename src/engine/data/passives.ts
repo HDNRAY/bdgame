@@ -182,6 +182,61 @@ export const PASSIVES: Passive[] = [
             },
         ],
     },
+    {
+        id: 'godspeed',
+        name: '神速',
+        description: '以电刺激神经，身法灵巧大幅提升。',
+        tags: ['passive', 'buff', 'electric'],
+        effects: [{ type: 'stat_buff', attrs: { agility: 4, dexterity: 2 } }],
+        triggers: [
+            { condition: { type: 'on_dodge' }, effects: [{ type: 'damage', scaling: { insight: 0.3 }, base: 2 }] },
+        ],
+    },
+    {
+        id: 'thunder_art',
+        name: '雷法',
+        description: '雷电之力灌注全身，攻击附带雷击伤害，并概率麻痹对手。',
+        tags: ['passive', 'buff', 'electric'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'thunder_bonus' }] }],
+        actionEnhancer: (def) => {
+            if (!def.effects?.some((e) => e.type === 'damage')) return def
+            const chance = Math.min(0.8, def.apCost * 0.15)
+            return {
+                ...def,
+                effects: [...(def.effects ?? []), { type: 'status', status: 'paralyze', stacks: 1, chance }],
+            }
+        },
+    },
+    {
+        id: 'zoldyck_art',
+        name: '揍敌客秘法',
+        description: '揍敌客家族世代相传的暗杀术，雷电锻体，免疫麻痹并减免雷系伤害。',
+        tags: ['passive', 'buff', 'electric'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [
+                    { type: 'add_buff', buffId: 'paralyze_immunity' },
+                    { type: 'add_buff', buffId: 'thunder_constitution' },
+                ],
+            },
+        ],
+    },
+    {
+        id: 'qiti_source',
+        name: '炁体源流',
+        description: '八奇技之一，濒危时炁体护体吸收炁伤害，并将悟性转化为力量、身法和灵巧。',
+        tags: ['passive', 'buff', 'qi'],
+        triggers: [
+            {
+                condition: {
+                    type: 'hp_below',
+                    check: (ctx) => ctx.actor.hp / ctx.actor.maxHp < 0.25,
+                },
+                actionId: '_qiti_awaken',
+            },
+        ],
+    },
 ]
 
 /** 天赋（绝学）注册表 */

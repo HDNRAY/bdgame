@@ -23,6 +23,7 @@ export type Tag =
     | 'implant' // 义体
     | 'heal' // 回复
     | 'buff' // 增益
+    | 'electric' // 雷电
     | 'trigger' // 触发
     | 'talent' // 天赋
     | 'passive' // 功法
