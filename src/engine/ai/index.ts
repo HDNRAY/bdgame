@@ -25,6 +25,11 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         if (inst.def.tags.includes('support')) continue
         if (!inst.canUse()) continue
         if (inst.def.canUse && !inst.def.canUse(self, state)) continue
+        // 检查武器标签兼容性（缴械后 bare_hands 无法使用需要标签的招式）
+        if (inst.def.requiredTags.length > 0) {
+            const hasTag = inst.def.requiredTags.some((tag) => weapon.tags.includes(tag))
+            if (!hasTag) continue
+        }
         // 跳过纯位移招式（无伤害效果，如虎跃），近战时不应作为主招
         if (inst.id === 'big_leap') continue
         if (!inst.def.effects?.some((e) => e.type === 'damage' || e.type === 'fixed_damage')) continue
@@ -168,10 +173,16 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
 }
 
 function pickBestSecondary(self: Character, state: BattleState, apRemaining: number): string | null {
+    const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
     const sorted = [...self.actions]
         .filter((a) => {
             if (a.def.tags.includes('support')) return false
             if (!a.canUse()) return false
+            // 检查武器标签兼容性
+            if (a.def.requiredTags.length > 0) {
+                const hasTag = a.def.requiredTags.some((tag) => weapon.tags.includes(tag))
+                if (!hasTag) return false
+            }
             // 跳过纯位移招式
             if (a.id === 'big_leap') return false
             if (!a.def.effects?.some((e) => e.type === 'damage' || e.type === 'fixed_damage')) return false

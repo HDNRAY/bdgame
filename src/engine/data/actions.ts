@@ -90,6 +90,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         tags: ['bleed', 'pierce'],
         effects: [
+            { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'status', status: 'bleed', stacks: 1, chance: 0.5 },
         ],

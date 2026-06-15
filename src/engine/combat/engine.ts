@@ -429,7 +429,14 @@ export class BattleEngine {
         }
         // 验证
         const c = canExecuteAction(action, self, this.state)
-        if (!c.ok) return r
+        if (!c.ok) {
+            this.emitLog({
+                type: 'system',
+                message: `[招式检校] ${BattleLog.name(self.name)} ${action.name} ${c.reason}`,
+                actorId: self.id,
+            })
+            return r
+        }
         if (!self.spendAp(action.apCost)) {
             return r
         }

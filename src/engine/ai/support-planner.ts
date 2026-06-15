@@ -1,5 +1,6 @@
 import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
+import { getWeapon } from '../data/weapons'
 
 /** 选择辅助招式（support 标签），消耗剩余 AP */
 export function planSupportActions(
@@ -17,6 +18,12 @@ export function planSupportActions(
             if (!inst.def.tags.includes('support')) return false
             if (!inst.canUse()) return false
             if (blacklist?.includes(inst.id)) return false
+            // 检查武器标签兼容性
+            if (inst.def.requiredTags.length > 0) {
+                const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)
+                const hasTag = inst.def.requiredTags.some((tag) => weapon.tags.includes(tag))
+                if (!hasTag) return false
+            }
             // 跳过纯位移辅招（dash/short_dash 无 buff/回血效果）
             if (inst.def.effects?.every((e) => e.type === 'dash' || e.type === 'short_dash' || e.type === 'knockback'))
                 return false

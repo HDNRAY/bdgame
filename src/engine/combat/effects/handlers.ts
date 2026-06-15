@@ -342,6 +342,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     short_dash({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'short_dash' }>
         const dist = engine.state.distance.current
+        // 如果已在武器有效射程内，或比最小射程还近（太近了冲也没用），不冲刺
+        const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
+        if (weapon.range && dist <= weapon.range[1]) return
         const maxDash = e.maxDistance ?? 2
         const targetDist = Math.max(0, dist - maxDash)
         const delta = dist - targetDist
