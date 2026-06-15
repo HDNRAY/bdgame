@@ -26,7 +26,6 @@ export const LUHONGTI: OpponentDef = {
                 { condition: { type: 'on_debuff' }, actionId: 'break_formation' },
             ],
             n,
-            -2,
         ),
     aiOverrides: {
         actionPriority: () => ['crushing_blow', 'sword_thrust', 'push_palm'],

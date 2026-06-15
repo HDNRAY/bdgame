@@ -361,7 +361,10 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['pierce'],
         extraPreDelay: -200,
-        effects: [{ type: 'damage', scaling: { strength: 0.3, agility: 0.3 } }],
+        effects: [
+            { type: 'short_dash', maxDistance: 1 },
+            { type: 'damage', scaling: { strength: 0.3, agility: 0.3 } },
+        ],
     },
     {
         id: 'push_palm',
@@ -396,12 +399,11 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         target: 'self',
         bonus: true,
         bonusTiming: { type: 'turn_start' },
-        canUse: (attacker, state) =>
-            !state.pendingBuffs.has('overlord_blade::' + attacker.id) &&
-            !state.pendingBuffs.has('disarmed::' + attacker.id),
+        canUse: (attacker, state) => !state.pendingBuffs.has('overlord_blade::' + attacker.id),
         effects: [
             { type: 'switch_weapon', weaponId: 'overlord_blade' },
             { type: 'add_buff', buffId: 'overlord_blade' },
+            { type: 'remove_buff', buffId: 'disarmed' },
         ],
     },
     {

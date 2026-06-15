@@ -10,7 +10,7 @@ export const SANGYUAN: OpponentDef = {
             '灵剑·桑原',
             'strong',
             'bare_hands',
-            { strength: 13, vitality: 20, agility: 8, dexterity: 18, insight: 10, wisdom: 4 },
+            { strength: 12, vitality: 20, agility: 8, dexterity: 18, insight: 10, wisdom: 4 },
             [
                 artifact('qi_amplifier'),
                 action('light_slash'),

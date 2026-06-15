@@ -92,6 +92,8 @@ export function formatBattleLog(log: BattleLog): string[] {
         /** 累积的判定文本（命中后追加） */
         extra?: string
     } | null = null
+    /** 系统事件缓冲区：攻击判定期间的系统消息暂存到这里，与攻击行一同输出 */
+    let pendingSystemLines: string[] = []
 
     function flush() {
         if (!pending) return
@@ -107,7 +109,13 @@ export function formatBattleLog(log: BattleLog): string[] {
         let line = `  ${pending.text}`
         if (pending.extra) line += pending.extra
         if (pending.ap) line += `  | ${pending.ap}`
+        // 先输出攻击行
         lines.push(line)
+        // 再输出缓存的系统消息
+        if (pendingSystemLines.length > 0) {
+            for (const sl of pendingSystemLines) lines.push(sl)
+            pendingSystemLines = []
+        }
         pending = null
     }
 
@@ -218,6 +226,12 @@ export function formatBattleLog(log: BattleLog): string[] {
                 break
 
             case 'system': {
+                if (pending) {
+                    // 攻击判定期间：缓存系统消息，等攻击行 flush 时一并输出
+                    const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
+                    pendingSystemLines.push(`${indent}${e.message}`)
+                    break
+                }
                 flush()
                 if (e.actor) {
                     checkNewEvent(

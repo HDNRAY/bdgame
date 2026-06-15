@@ -66,6 +66,13 @@ export class TurnManager {
         this.time = current.nextActionAt
     }
 
+    /** 移除指定 entry（用于系统事件，避免 recalcInterval 打乱顺序后误删角色） */
+    removeEntry(id: string): void {
+        const idx = this.queue.findIndex((e) => e.id === id)
+        if (idx === -1) return
+        this.queue.splice(idx, 1)
+    }
+
     /** 行动后重新入队（插入硬直） */
     scheduleNext(template: TurnEntryTemplate, delay: number): void {
         const entry = this.queue.find((e) => e.id === template.id)

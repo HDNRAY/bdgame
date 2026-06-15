@@ -167,7 +167,7 @@ export class BattleEngine {
         // 系统事件
         if (e.type === 'system') {
             this.#handleSystemEvent()
-            this.state.turn.next()
+            this.state.turn.removeEntry(e.id)
             this.state.eventActorId = null
             return true
         }
@@ -449,7 +449,7 @@ export class BattleEngine {
         this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
         // 移动/跳跃类效果先执行（不受战斗判定影响）
         for (const eff of action.effects ?? []) {
-            if (eff.type === 'dash' || eff.type === 'knockback') {
+            if (eff.type === 'dash' || eff.type === 'short_dash' || eff.type === 'knockback') {
                 processActionEffect(eff, self, enemy, this, this.#tMs, action)
             }
         }
@@ -644,6 +644,7 @@ export class BattleEngine {
         if (!entry) return
         const { nextInterval } = processStatusTick(charId, char, this, tMs, statusType)
         if (nextInterval > 0) {
+            turn.removeEvents(eventId)
             turn.scheduleSystemEventAt(eventId, tMs + nextInterval, type)
         }
     }

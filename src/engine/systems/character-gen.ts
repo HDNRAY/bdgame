@@ -18,7 +18,8 @@ export function simpleGenerate(
     n: number,
     extraPoints = 0,
 ): CharacterBuild {
-    const total = n * 2 + extraPoints
+    // n 代表这是第几个节点，说明前面有 n - 1 个节点的奖励修炼点
+    const total = (n - 1) * 2 + extraPoints
     const result: Record<string, number> = {}
     for (const a of STAT_NAMES) result[a] = 3
 

@@ -23,8 +23,8 @@ describe('opponents', () => {
             it('total cultivation cost matches points (n × 2)', () => {
                 const cost = calcCultCost(build.baseAttrs)
                 // 桑原新算法65，腊月天生道种加成后目标值72
-                const expected: Record<string, number> = { sangyuan: 65, layue: 72 }
-                expect(cost).toBe(expected[def.id] ?? 66)
+                const expected: Record<string, number> = { layue: 72 }
+                expect(cost).toBe(expected[def.id] ?? 64)
             })
 
             it('triggers reference valid actions', () => {

@@ -900,7 +900,7 @@ export function processStatusTick(
             amount: dmg,
         })
         if (dmg > 0) {
-            engine.emit('on_hit', char, char)
+            engine.emit('on_took_damage', char, char)
         }
         return { damage: dmg, nextInterval }
     }
@@ -925,7 +925,7 @@ export function processStatusTick(
             amount: dmg,
         })
         if (dmg > 0) {
-            engine.emit('on_hit', char, char)
+            engine.emit('on_took_damage', char, char)
         }
         return { damage: dmg, nextInterval: remainingTicks - 1 > 0 ? 1000 : 0 }
     }
