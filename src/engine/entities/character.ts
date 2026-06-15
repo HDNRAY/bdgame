@@ -11,7 +11,7 @@ import { getPassive } from '../data/passives'
 import { getArtifact } from '../data/artifacts'
 
 export function calcMaxHp(vitality: number): number {
-    return 20 + vitality * 10
+    return 20 + vitality * 15
 }
 
 /** 根据体质计算最大 AP */

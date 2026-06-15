@@ -50,7 +50,7 @@ export const XUANJI: OpponentDef = {
 
         // bonus（before_main）
         for (const inst of self.actions) {
-            if (!inst.def.bonus || !inst.canUse()) continue
+            if (!inst.def.tags.includes('support') || !inst.canUse()) continue
             if (inst.def.bonusTiming?.type !== 'before_main') continue
             if (remain() >= inst.apCost + main.apCost) {
                 cmds.push({ type: 'bonus', actionId: inst.id })

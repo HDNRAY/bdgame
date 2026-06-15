@@ -59,7 +59,7 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
     // 3. 辅招（凝炁/聚炁）— 只有移动后 AP 够主招+辅招才放
     let bonusAp = 0
     for (const inst of self.actions) {
-        if (!inst.def.bonus) continue
+        if (!inst.def.tags.includes('support')) continue
         if (!inst.canUse()) continue
         if (inst.def.bonusTiming?.type !== 'before_main') continue
         // buff 辅招：已有则跳过
@@ -120,7 +120,7 @@ function pickMainAction(self: Character, state: BattleState): string | null {
 function pickBestAttack(self: Character, state: BattleState, apRemaining: number): string | null {
     const sorted = [...self.actions].sort((a, b) => b.apCost - a.apCost)
     for (const inst of sorted) {
-        if (inst.def.bonus) continue
+        if (inst.def.tags.includes('support')) continue
         if (!inst.canUse()) continue
         if (apRemaining < inst.apCost) continue
         // 自定义释放条件

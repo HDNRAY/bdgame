@@ -201,10 +201,8 @@ export class BattleEngine {
         }
 
         this.emit('turn_start', self, enemy)
-        this.#tryBonus(self, 'turn_start')
         // 重建召唤物（法球等每回合重新入队）
         this.#initSummons(self)
-        this.#tryBonus(self, 'before_main')
 
         const cmds = planFn(self, enemy, this.state)
         for (const cmd of cmds) {
@@ -213,7 +211,6 @@ export class BattleEngine {
         }
 
         // endEvent
-        this.#tryBonus(self, 'before_turn_end')
         // 不二剑衰减
         if (self.critDamageMod > 0) {
             self.critDamageMod = Math.max(0, Math.round((self.critDamageMod - 0.05) * 100) / 100)
@@ -460,8 +457,6 @@ export class BattleEngine {
 
         this.emit('on_hit', self, enemy)
         this.emit('on_was_hit', enemy, self)
-        this.#tryBonus(self, 'on_hit')
-        this.#tryBonus(enemy, 'on_was_hit')
 
         this.state.log.indentDepth++
         for (const eff of action.effects ?? []) {
@@ -500,7 +495,7 @@ export class BattleEngine {
         }
         if (!cmd.actionId) return r
         const inst = self.actions.find((a) => a.id === cmd.actionId)
-        if (!inst || !inst.def.bonus || !inst.canUse()) return r
+        if (!inst || !inst.def.tags.includes('support') || !inst.canUse()) return r
         if (!self.spendAp(inst.apCost)) return r
         inst.use()
         for (const eff of inst.def.effects ?? []) {
@@ -634,7 +629,7 @@ export class BattleEngine {
     #tryBonus(self: Character, timing: TriggerEvent, mainAp = 0): boolean {
         let fired = false
         for (const inst of self.actions) {
-            if (!inst.def.bonus || inst.def.bonusTiming?.type !== timing) continue
+            if (!inst.def.tags.includes('support') || inst.def.bonusTiming?.type !== timing) continue
             if (!inst.canUse()) continue
             if (inst.def.canUse && !inst.def.canUse(self, this.state)) continue
             if (self.ap < inst.apCost + mainAp) continue

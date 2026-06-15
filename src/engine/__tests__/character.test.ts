@@ -15,9 +15,9 @@ function mc(id: string, name: string, attrs: Record<string, number> = {}): Chara
 
 describe('calcMaxHp', () => {
     it('should calculate HP correctly', () => {
-        expect(calcMaxHp(10)).toBe(120)
-        expect(calcMaxHp(20)).toBe(220)
-        expect(calcMaxHp(30)).toBe(320)
+        expect(calcMaxHp(10)).toBe(170)
+        expect(calcMaxHp(20)).toBe(320)
+        expect(calcMaxHp(30)).toBe(470)
     })
 })
 
@@ -53,13 +53,13 @@ describe('Character', () => {
 
     it('should handle AP spending', () => {
         const c = mc('test_4', '武者', { vitality: 14 })
-        expect(c.maxAp).toBe(10) // 3 + 14×0.5 = 10
+        expect(c.maxAp).toBe(8) // 4 + 14×0.25 = 7.5 → 8
         expect(c.spendAp(3)).toBe(true)
-        expect(c.ap).toBe(7)
+        expect(c.ap).toBe(5)
         expect(c.spendAp(10)).toBe(false)
-        expect(c.ap).toBe(7)
+        expect(c.ap).toBe(5)
 
         c.resetAp()
-        expect(c.ap).toBe(10)
+        expect(c.ap).toBe(8)
     })
 })
