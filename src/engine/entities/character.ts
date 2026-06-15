@@ -16,7 +16,7 @@ export function calcMaxHp(vitality: number): number {
 
 /** 根据体质计算最大 AP */
 export function calcMaxAp(vitality: number, mod = 0): number {
-    return Math.round(3 + vitality * 0.5) + mod
+    return Math.round(4 + vitality * 0.25) + mod
 }
 
 export class Character {

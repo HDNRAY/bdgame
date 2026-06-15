@@ -28,4 +28,16 @@ export type Tag =
     | 'passive' // 功法
     | 'frost' // 霜冻
     | 'sand_blind' // 迷眼
-    | 'knockdown' // 倒地
+    | 'knockdown' // 倒地    | 'support' // 辅助（buff/回复，不攻击）
+    | 'move' // 位移
+    | 'range' // 远程
+    | 'counter' // 反击
+    | 'charge' // 冲锋
+    | 'defense' // 防御
+    | 'debuff' // 弱化
+    | 'dot' // 持续伤害
+    | 'melee' // 近战武器
+    | 'damage' // 伤害增强
+    | 'summon' // 召唤相关
+    | 'stance' // 架势/姿态
+    | 'support' // 辅助

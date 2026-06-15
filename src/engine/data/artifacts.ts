@@ -132,7 +132,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'ap_boost',
         name: '气海丹',
         description: '拓展气海，AP上限+2。',
-        tags: [],
+        tags: ['buff'],
         effects: [{ type: 'max_ap_mod', value: 2 }],
     },
     {
@@ -146,14 +146,14 @@ export const ARTIFACTS: Artifact[] = [
         id: 'bamboo_hat',
         name: '青竹斗笠',
         description: '遮面掩踪，远程攻击（距离≥5）额外 +15% 闪避。',
-        tags: [],
+        tags: ['defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ranged_dodge' }] }],
     },
     {
         id: 'frost_silk_robe',
         name: '冰蚕衣',
         description: '冰蚕丝织就的软甲，遇寒愈坚。招架率+15%；招架后以寒气反噬对手。',
-        tags: [],
+        tags: ['defense'],
         effects: [{ type: 'parry_mod', value: 0.15 }],
         triggers: [
             { condition: { type: 'on_parry' }, effects: [{ type: 'status', status: 'frost', stacks: 1, chance: 1 }] },
@@ -175,7 +175,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'western_poison',
         name: '西域奇毒',
         description: '剧毒入体，麻痹神经。每次中毒时叠加一层麻痹。',
-        tags: [],
+        tags: ['debuff'],
         triggers: [
             {
                 condition: { type: 'on_poison' },
@@ -187,7 +187,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'other_mountain',
         name: '他山之石',
         description: '博采众长，洞察入微。宁毅所赠的现代搏击笔记。',
-        tags: [],
+        tags: ['buff'],
         effects: [{ type: 'stat_buff', attrs: { insight: 4, dexterity: 2 } }],
     },
 ]
