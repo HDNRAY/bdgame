@@ -1,5 +1,6 @@
 import type { Character } from './character'
 import type { EffectDef } from './action'
+import type { BattleEngine } from '../combat/engine'
 
 /** 触发时机（EventBus 事件） */
 export type TriggerEvent =
@@ -33,6 +34,7 @@ export interface ConditionContext {
     distance: number
     /** 移动事件的位移量（负=靠近，正=远离） */
     moveDelta?: number
+    engine?: BattleEngine
 }
 
 /** 触发条件 */

@@ -267,7 +267,8 @@ export class BattleEngine {
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
-            if (!matchCondition(slot.condition, { actor: self, distance: distance.current, moveDelta })) continue
+            if (!matchCondition(slot.condition, { actor: self, distance: distance.current, moveDelta, engine: this }))
+                continue
 
             if (slot.effects) {
                 for (const eff of slot.effects) {

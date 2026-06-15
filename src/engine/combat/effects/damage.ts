@@ -168,8 +168,28 @@ function resolveCrit(
     const critChance = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), bonus)
     const critRoll = calcRoll(critChance)
     const isCrit = critRoll.success
+
+    let critDmgMod = attacker.critDamageMod
+    if (act) {
+        for (const [key, layer] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== attacker.id) continue
+            const def = getBuff(parts[0])
+            if (def?.onCritDamage)
+                critDmgMod += def.onCritDamage({
+                    final: damage,
+                    raw,
+                    target,
+                    attacker,
+                    engine,
+                    buffOwnerId: parts[1],
+                    layer,
+                    action: act,
+                })
+        }
+    }
     engine.emitLog({ type: 'check_crit', sourceId: attacker.id, critChance, roll: critRoll.roll, result: isCrit })
-    const final = calcFinalDamage(damage, 1, isCrit, attacker.critDamageMod)
+    const final = calcFinalDamage(damage, 1, isCrit, critDmgMod)
     return { isCrit, final: Math.round(final * 10) / 10 }
 }
 

@@ -62,6 +62,8 @@ export interface BuffDef extends GameEntity {
     onCanParry?: (ctx: { self: Character; engine: BattleEngine }) => boolean
     /** 暴击率修正钩子（applyDamage 暴击判定前自动调用，返回加算值） */
     onCritChance?: (ctx: BuffHookCtx) => number
+    /** 暴击伤害修正钩子（applyDamage 暴击判定时自动调用，返回加算值） */
+    onCritDamage?: (ctx: BuffHookCtx) => number
 }
 
 export const BUFF_DB: BuffDef[] = [
@@ -72,7 +74,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '拔刀之势，蓄势待发。',
         tags: [],
         value: 0,
-        expiry: { type: 'consumed' },
+        expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },
     },
     {
@@ -313,6 +315,15 @@ export const BUFF_DB: BuffDef[] = [
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
 
     // ── 战斗状态 ──
+    {
+        id: 'iaijutsu_focus',
+        name: '居合·势',
+        description: '招架或闪避后蓄势，每层暴击伤害+0.25。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 3 },
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.25,
+    },
     {
         id: 'guard_up',
         name: '守势',

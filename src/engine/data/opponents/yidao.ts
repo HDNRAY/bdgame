@@ -21,7 +21,7 @@ export const YIDAO: OpponentDef = {
         ]
 
         // n=33 时 slash 必选，触发确定
-        const triggers: TriggerSlot[] = [{ condition: { type: 'on_parry' }, actionId: 'slash' }]
+        const triggers: TriggerSlot[] = []
 
         return simpleGenerate(
             'yidao',

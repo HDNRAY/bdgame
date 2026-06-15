@@ -23,6 +23,11 @@ export function revertBuffMods(layer: BuffLayer | undefined, char: Character, en
     }
 }
 
+/** 检查某人是否有某 buff */
+export function hasBuff(engine: BattleEngine, charId: string, buffId: string): boolean {
+    return engine.state.pendingBuffs.has(`${buffId}::${charId}`)
+}
+
 /** 根据 trigger 消耗该角色的 consumed buff */
 export function consumeBuffsByTrigger(charId: string, engine: BattleEngine, trigger: TriggerEvent): void {
     for (const [k] of engine.state.pendingBuffs) {

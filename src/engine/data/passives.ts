@@ -1,4 +1,5 @@
 import type { Passive, Talent } from '../entities/passive'
+import { hasBuff } from '../combat/utils'
 
 /** 功法注册表 */
 export const PASSIVES: Passive[] = [
@@ -54,15 +55,39 @@ export const PASSIVES: Passive[] = [
         id: 'iaijutsu_mastery',
         name: '居合极意',
         description: '居合拔刀术的极致境界。',
-        tags: ['qi'],
-        triggers: [{ condition: { type: 'battle_start' }, actionId: '_iaijutsu_ready' }],
+        tags: [],
+        triggers: [
+            { condition: { type: 'battle_start' }, actionId: '_iaijutsu_ready' },
+            {
+                condition: {
+                    type: 'on_parry',
+                    check: (ctx) => hasBuff(ctx.engine!, ctx.actor.id, 'iaijutsu'),
+                },
+                effects: [{ type: 'add_buff', buffId: 'iaijutsu_focus', stacks: 1 }],
+            },
+            {
+                condition: {
+                    type: 'on_dodge',
+                    check: (ctx) => hasBuff(ctx.engine!, ctx.actor.id, 'iaijutsu'),
+                },
+                effects: [{ type: 'add_buff', buffId: 'iaijutsu_focus', stacks: 1 }],
+            },
+        ],
     },
     {
         id: 'empty_hand',
         name: '无刀取',
         description: '空手入白刃，非居合状态招架后反击。',
         tags: [],
-        triggers: [{ condition: { type: 'on_parry' }, actionId: '_iaijutsu_counter' }],
+        triggers: [
+            {
+                condition: {
+                    type: 'on_parry',
+                    check: (ctx) => !hasBuff(ctx.engine!, ctx.actor.id, 'iaijutsu'),
+                },
+                actionId: '_iaijutsu_counter',
+            },
+        ],
     },
     {
         id: 'human_radar',
