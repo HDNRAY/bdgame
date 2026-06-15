@@ -1,6 +1,5 @@
 import type { BattleEngine } from '../engine'
 import type { Character } from '../../entities/character'
-import { BattleLog } from '../battle-log'
 
 /** 执行位移并记录日志 */
 export function executeMove(char: Character, engine: BattleEngine, delta: number, apCost = 0): void {

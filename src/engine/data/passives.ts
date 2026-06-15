@@ -191,7 +191,7 @@ export const TALENTS: Talent[] = [
         name: '左右互搏',
         description: '双手各自为战，灵巧过人者可一心二用。',
         tags: ['talent', 'buff'],
-        requireAttrsMin: { dexterity: 16 },
+        requireAttrsMin: { dexterity: 18 },
         requireAttrsMax: { wisdom: 5 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'zuoyou_hubo' }] }],
     },
@@ -200,7 +200,7 @@ export const TALENTS: Talent[] = [
         name: '生生不息',
         description: '根骨强健，每 3 秒回复 1% 生命。',
         tags: ['heal', 'talent', 'buff'],
-        requireAttrsMin: { vitality: 18 },
+        requireAttrsMin: { vitality: 20 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'vitality_regen' }] }],
     },
 ]

@@ -1,109 +1,165 @@
 import type { Character } from '../entities/character'
+import type { EffectDef } from '../entities/action'
 import type { BattleState, ActionCommand } from '../combat/types'
-import type { ActionDefinition } from '../entities/action'
 import { getWeapon } from '../data/weapons'
 import { DistanceSystem } from '../combat/distance'
 import { calcSelfDamage } from '../calc/damage'
-
-/** 找到对己方和对方武器都最有利的距离 */
-function findOptimalDistance(
-    selfWeapon: { range: [number, number] },
-    enemyWeapon: { range: [number, number] },
-    currentDist: number,
-): number {
-    const [myMin, myMax] = selfWeapon.range
-    const [enMin, enMax] = enemyWeapon.range
-    // 在自身攻击范围内，且不在对方攻击范围内的距离中，选离当前位置最近的
-    let best = currentDist
-    let bestDist = Infinity
-    for (let d = myMin; d <= myMax; d++) {
-        if (d < enMin || d > enMax) {
-            const dist = Math.abs(d - currentDist)
-            if (dist < bestDist) {
-                bestDist = dist
-                best = d
-            }
-        }
-    }
-    return best
-}
+import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
+import { classifyAttackStyle, planMovement } from './move-planner'
+import { planSupportActions } from './support-planner'
+import type { AiOverrides } from '../data/opponents'
+import { getOpponentDef } from '../data/opponents'
 
 /** AI 决策：返回本行动中要执行的一串指令 */
-export function planEvent(self: Character, state: BattleState, preferredMainId?: string): ActionCommand[] {
-    const cmds: ActionCommand[] = []
-    const weapon = getWeapon(self.build.weapon)
+export function planEvent(self: Character, state: BattleState): ActionCommand[] {
     const enemy = state.characters.find((c) => c.id !== self.id)
+    if (!enemy) return []
 
-    // 1. 决定主招
-    const mainId = preferredMainId ?? pickMainAction(self, state)
-    if (!mainId) return cmds
-    const mainDef = self.actions.find((a) => a.id === mainId)?.def
-    if (!mainDef) return cmds
+    const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
+    const distance = state.distance.current
+    const overrides = getOverrides(self.id)
 
-    // 2. 计算移动需要多少 AP
-    const perAp = DistanceSystem.apToRange(self.attrs.get('agility'))
-    let moveAp = 0
-    let virtualDist = state.distance.current
-    if (virtualDist > weapon.range[1]) {
-        const need = virtualDist - weapon.range[1]
-        moveAp = Math.ceil(need / perAp)
-        virtualDist -= perAp * moveAp
-    } else if (virtualDist < weapon.range[0]) {
-        const need = weapon.range[0] - virtualDist
-        moveAp = Math.ceil(need / perAp)
-        virtualDist += perAp * moveAp
-    }
-
-    const apAfterMove = self.ap - moveAp
-
-    // 3. 辅招（凝炁/聚炁）— 只有移动后 AP 够主招+辅招才放
-    let bonusAp = 0
+    // ── 1. 候选主招（非 support） ──
+    let candidates: DamageEstimate[] = []
     for (const inst of self.actions) {
-        if (!inst.def.tags.includes('support')) continue
+        if (inst.def.tags.includes('support')) continue
         if (!inst.canUse()) continue
-        if (inst.def.bonusTiming?.type !== 'before_main') continue
-        // buff 辅招：已有则跳过
-        if (inst.def.tags.includes('buff') && hasActiveBuffByAction(self, state, inst.def)) continue
-        // 检查移动后 AP 够走完所有已选辅招 + 当前辅招 + 主招
-        if (apAfterMove < bonusAp + inst.apCost + mainDef.apCost) continue
-        cmds.push({ type: 'bonus', actionId: inst.id })
-        bonusAp += inst.apCost
+        if (inst.def.canUse && !inst.def.canUse(self, state)) continue
+        // 跳过纯位移招式（无伤害效果，如虎跃），近战时不应作为主招
+        if (inst.id === 'big_leap') continue
+        if (!inst.def.effects?.some((e) => e.type === 'damage' || e.type === 'fixed_damage')) continue
+        const selfDmgEff = inst.def.effects?.find(
+            (e): e is Extract<EffectDef, { type: 'self_damage' }> => e.type === 'self_damage',
+        )
+        if (selfDmgEff) {
+            const dmg = calcSelfDamage(self.maxHp, selfDmgEff.ratio)
+            if (self.hp <= dmg) continue
+        }
+        candidates.push(calcExpectedDamage(inst.def, self, enemy, weapon.range, distance))
     }
 
-    // 4. 移动进入攻击范围
-    if (moveAp > 0) {
-        cmds.push({ type: 'move', bestDistance: state.distance.current > weapon.range[1] ? -moveAp : moveAp })
+    // 2. 排序
+    if (overrides?.actionPriority) {
+        const ordered = overrides.actionPriority(candidates, self, state)
+        candidates.sort((a, b) => ordered.indexOf(a.actionId) - ordered.indexOf(b.actionId))
+    } else {
+        candidates.sort((a, b) => b.expectedDamage - a.expectedDamage)
     }
 
-    const apAfterBonus = apAfterMove - bonusAp
+    // ── 3. 遍历候选，找第一个可行的 ──
+    const apBudget = self.ap - (overrides?.reserveAp ?? 0)
+    let mainId: string | null = null
+    let moveDelta = 0
+    let moveAp = 0
+    let dashActionId: string | undefined
 
-    // 5. 攻击
-    if (apAfterBonus >= mainDef.apCost && virtualDist >= weapon.range[0] && virtualDist <= weapon.range[1]) {
-        cmds.push({ type: 'attack', actionId: mainId })
-    }
-
-    // 5.5 左右互搏：有 buff 时剩余 AP 再打一次
-    if (state.pendingBuffs.has(`zuoyou_hubo::${self.id}`)) {
-        const remainingAp = apAfterBonus - (apAfterBonus >= mainDef.apCost ? mainDef.apCost : 0)
-        if (remainingAp >= 2) {
-            const second = pickBestAttack(self, state, remainingAp)
-            if (second) {
-                cmds.push({ type: 'attack', actionId: second })
-            }
+    for (const est of candidates) {
+        if (apBudget < est.apCost) continue
+        if (est.canReach) {
+            mainId = est.actionId
+            break
+        }
+        const style =
+            overrides?.forceStyle ??
+            classifyAttackStyle(
+                weapon.range,
+                self.actions.map((a) => a.def),
+            )
+        const mainDef = self.actions.find((a) => a.id === est.actionId)?.def
+        if (!mainDef) continue
+        const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
+        const plan = planMovement(
+            self,
+            enemy,
+            distance,
+            style,
+            weapon.range,
+            mainDef,
+            apBudget,
+            minMoveCost,
+            self.moveEfficiency,
+        )
+        if (plan) {
+            mainId = est.actionId
+            moveDelta = plan.delta
+            moveAp = plan.apCost
+            dashActionId = plan.dashActionId
+            break
         }
     }
 
-    // 6. 行动后移动：有多余 AP 时根据双方武器距离调整位置
+    if (!mainId) {
+        const supportCmds = planSupportActions(self, state, apBudget, overrides?.supportBlacklist)
+        if (supportCmds.length > 0) return supportCmds
+        return []
+    }
+
+    const mainDef2 = self.actions.find((a) => a.id === mainId)!.def
+
+    // ── 4. 辅助招式 ──
+    const supportCmds = planSupportActions(
+        self,
+        state,
+        apBudget - moveAp - mainDef2.apCost,
+        overrides?.supportBlacklist,
+    )
+
+    // ── 5. 组装命令 ──
+    const cmds: ActionCommand[] = [...supportCmds]
+
+    if (dashActionId) {
+        // 用位移招式（虎跃）代替走路
+        cmds.push({ type: 'attack', actionId: dashActionId })
+    } else if (moveDelta !== 0) {
+        cmds.push({ type: 'move', bestDistance: moveDelta })
+    }
+    cmds.push({ type: 'attack', actionId: mainId })
+
+    // ── 6. 左右互搏 ──
+    if (state.pendingBuffs.has(`zuoyou_hubo::${self.id}`)) {
+        const spent =
+            moveAp +
+            mainDef2.apCost +
+            supportCmds.reduce((s, c) => {
+                const inst = self.actions.find((a) => a.id === c.actionId)
+                return s + (inst?.apCost ?? 0)
+            }, 0)
+        const remaining = apBudget - spent
+        if (remaining >= 2) {
+            const second = pickBestSecondary(self, state, remaining)
+            if (second) cmds.push({ type: 'attack', actionId: second })
+        }
+    }
+
+    // ── 7. 行动后移动 ──
     if (enemy) {
-        const enemyWeapon = getWeapon(enemy.build.weapon)
-        const optimal = findOptimalDistance(weapon, enemyWeapon, state.distance.current)
-        const delta = optimal - state.distance.current // + = 远离, - = 靠近
-        if (delta !== 0) {
-            const dist = Math.abs(delta)
-            const apNeeded = Math.ceil(dist / perAp)
-            const remainingAp = apAfterBonus - (apAfterBonus >= mainDef.apCost ? mainDef.apCost : 0)
-            if (remainingAp >= apNeeded) {
-                cmds.push({ type: 'move', bestDistance: delta > 0 ? apNeeded : -apNeeded })
+        const afterAp =
+            apBudget -
+            moveAp -
+            mainDef2.apCost -
+            supportCmds.reduce((s, c) => {
+                const inst = self.actions.find((a) => a.id === c.actionId)
+                return s + (inst?.apCost ?? 0)
+            }, 0)
+        if (afterAp > 0 && moveDelta === 0) {
+            const style =
+                overrides?.forceStyle ??
+                classifyAttackStyle(
+                    weapon.range,
+                    self.actions.map((a) => a.def),
+                )
+            const basePerAp = DistanceSystem.apToRange(self.attrs.get('agility'))
+            const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
+                ? 2
+                : basePerAp * (1 + (self.moveEfficiency ?? 0))
+            const idealDist = style === 'ranged' || style === 'mid' ? weapon.range[1] : Math.max(weapon.range[0], 2)
+            const postDelta = idealDist - state.distance.current
+            if (Math.abs(postDelta) >= 1) {
+                const dist = Math.abs(postDelta)
+                const apNeeded = Math.ceil(dist / perAp)
+                if (afterAp >= apNeeded) {
+                    cmds.push({ type: 'move', bestDistance: postDelta > 0 ? apNeeded : -apNeeded })
+                }
             }
         }
     }
@@ -111,39 +167,26 @@ export function planEvent(self: Character, state: BattleState, preferredMainId?:
     return cmds
 }
 
-/** 选最优主招（AP 消耗大的优先，避免全程小招） */
-function pickMainAction(self: Character, state: BattleState): string | null {
-    return pickBestAttack(self, state, self.ap)
-}
-
-/** 选[剩余AP]下最优的攻击招式 */
-function pickBestAttack(self: Character, state: BattleState, apRemaining: number): string | null {
-    const sorted = [...self.actions].sort((a, b) => b.apCost - a.apCost)
+function pickBestSecondary(self: Character, state: BattleState, apRemaining: number): string | null {
+    const sorted = [...self.actions]
+        .filter((a) => {
+            if (a.def.tags.includes('support')) return false
+            if (!a.canUse()) return false
+            // 跳过纯位移招式
+            if (a.id === 'big_leap') return false
+            if (!a.def.effects?.some((e) => e.type === 'damage' || e.type === 'fixed_damage')) return false
+            return true
+        })
+        .sort((a, b) => b.apCost - a.apCost)
     for (const inst of sorted) {
-        if (inst.def.tags.includes('support')) continue
-        if (!inst.canUse()) continue
-        if (apRemaining < inst.apCost) continue
-        // 自定义释放条件
+        if (inst.apCost > apRemaining) continue
         if (inst.def.canUse && !inst.def.canUse(self, state)) continue
-        // 自伤招式：HP 不够则跳过
-        const selfDmgEff = inst.def.effects?.find((e) => e.type === 'self_damage')
-        if (selfDmgEff && selfDmgEff.type === 'self_damage') {
-            const dmg = calcSelfDamage(self.maxHp, selfDmgEff.ratio)
-            if (self.hp <= dmg) continue
-        }
         return inst.id
     }
     return null
 }
 
-/** 判断某个招式对应的 buff 效果是否已激活 */
-function hasActiveBuffByAction(self: Character, state: BattleState, def: ActionDefinition): boolean {
-    for (const eff of def.effects ?? []) {
-        if (eff.type === 'stat_buff' || eff.type === 'stat_multiply') {
-            for (const [k] of state.pendingBuffs) {
-                if (k.startsWith(`${eff.type}::${self.id}`)) return true
-            }
-        }
-    }
-    return false
+function getOverrides(charId: string): AiOverrides | undefined {
+    const def = getOpponentDef(charId)
+    return def?.aiOverrides
 }

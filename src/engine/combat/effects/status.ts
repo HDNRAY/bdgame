@@ -10,7 +10,6 @@ import {
     calcStunAttrDelta,
 } from '../../calc/damage'
 import { getBuff } from '../../data/buffs'
-import { getWeapon } from '../../data/weapons'
 import { genAppId } from '../../util/buff-utils'
 import { triggerBleed } from '../../entities/status'
 import { BattleLog } from '../battle-log'

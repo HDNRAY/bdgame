@@ -13,6 +13,8 @@ import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
 import type { Reward } from '../rewards'
+import type { DamageEstimate } from '../../ai/expected-damage'
+import type { AttackStyle } from '../../ai/move-planner'
 import { ZHANGLIE } from './zhanglie'
 import { LAIFENG } from './laifeng'
 import { XUANJI } from './xuanji'
@@ -32,6 +34,22 @@ export interface OpponentDef {
     generate: (n: number) => CharacterBuild
     /** 自定义 AI（返回 null = 用默认） */
     planEvent?: (self: Character, state: BattleState) => ActionCommand[] | null
+    /** AI 覆盖配置 */
+    aiOverrides?: AiOverrides
+}
+
+/** AI 行为覆盖 */
+export interface AiOverrides {
+    /** 对候选招式排序（返回 actionId 优先顺序） */
+    actionPriority?: (candidates: DamageEstimate[], self: Character, state: BattleState) => string[]
+    /** 移动目标距离（null = 不移动） */
+    moveTarget?: (self: Character, enemy: Character, state: BattleState) => number | null
+    /** 强制攻击风格 */
+    forceStyle?: AttackStyle
+    /** 保留 AP（不放主招/移动） */
+    reserveAp?: number
+    /** 不使用的辅助招式（actionId 列表） */
+    supportBlacklist?: string[]
 }
 
 /** 奖励快捷函数 */

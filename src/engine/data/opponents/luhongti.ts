@@ -28,4 +28,7 @@ export const LUHONGTI: OpponentDef = {
             n,
             -2,
         ),
+    aiOverrides: {
+        actionPriority: () => ['crushing_blow', 'sword_thrust', 'push_palm'],
+    },
 }

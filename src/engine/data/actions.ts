@@ -216,7 +216,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         ],
     },
     {
-        id: 'slash',
+        id: 'light_slash',
         name: '斩击',
         description: '普普通通的一刀。',
         requiredTags: ['slash'],
@@ -236,13 +236,13 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'big_leap',
         name: '虎跃',
-        description: '猛虎跃涧，瞬间近身。范围4~8m。需力道≥10。',
+        description: '猛虎跃涧，瞬间近身。范围3~8m。需力道≥10。',
         requiredTags: [],
         apCost: 3,
-        tags: ['move', 'charge'],
-        range: [0, 10],
+        tags: ['move', 'support'],
+        range: [3, 10],
         canUse: (attacker) => attacker.attrs.get('strength') >= 10,
-        effects: [{ type: 'dash', minRange: 4, maxRange: 8, targetDist: 1 }],
+        effects: [{ type: 'dash', minRange: 3, maxRange: 8, targetDist: 1 }],
     },
     // ── 匕首系 ──
     {
@@ -322,6 +322,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         tags: ['slash', 'range'],
         range: [0, 8],
+        canUse: (attacker, state) => (state.pendingBuffs.get(`momentum::${attacker.id}`)?.restoreValue ?? 0) >= 3,
         effects: [
             { type: 'damage', scaling: { strength: 0.8 }, base: 4 },
             { type: 'remove_buff', buffId: 'momentum' },
@@ -436,6 +437,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: [],
+        range: [0, 10],
         effects: [{ type: 'fixed_damage', value: 3 }],
         extraPreDelay: 300,
         extraStunTime: 800,

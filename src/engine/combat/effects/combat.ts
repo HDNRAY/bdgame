@@ -3,7 +3,6 @@ import type { BattleEngine } from '../engine'
 import type { ActionDefinition } from '../../entities/action'
 import { calcHitChance, calcRoll } from '../../calc/damage'
 import { getBuff } from '../../data/buffs'
-import { BattleLog } from '../battle-log'
 import type { ActionResult } from '../types'
 import { consumeBuffsByTrigger } from '../utils'
 

@@ -100,6 +100,8 @@ export class BattleLog {
                 this.logDamage(
                     event.sourceId,
                     event.targetId,
+                    event.actionId,
+                    event.actionName,
                     event.base,
                     1,
                     event.isCrit,
@@ -276,6 +278,8 @@ export class BattleLog {
     logDamage(
         actor: string,
         target: string,
+        actionId: string,
+        actionName: string,
         base: number,
         distanceMult: number,
         isCrit: boolean,
@@ -286,7 +290,20 @@ export class BattleLog {
         snapshot: BattleSnapshot,
     ): void {
         this.push(
-            { type: 'damage', actor, target, base, distanceMult, isCrit, isParried, final, blocked, snapshot },
+            {
+                type: 'damage',
+                actor,
+                target,
+                actionId,
+                actionName,
+                base,
+                distanceMult,
+                isCrit,
+                isParried,
+                final,
+                blocked,
+                snapshot,
+            },
             timelineMs,
         )
     }

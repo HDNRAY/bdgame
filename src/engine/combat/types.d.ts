@@ -5,7 +5,7 @@ import type { BattleLog } from './battle-log'
 
 // ── Engine types ──
 export interface ActionCommand {
-    type: 'attack' | 'move' | 'bonus'
+    type: 'attack' | 'move' | 'support'
     actionId?: string
     bestDistance?: number
 }
@@ -134,6 +134,8 @@ export type BattleEvent =
           type: 'damage'
           actor: string
           target: string
+          actionId: string
+          actionName: string
           base: number
           distanceMult: number
           isCrit: boolean

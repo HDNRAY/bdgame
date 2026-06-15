@@ -1,15 +1,13 @@
-import type { Character } from '../../entities/character'
-import type { EffectDef, ActionDefinition } from '../../entities/action'
+import type { EffectDef } from '../../entities/action'
 import type { AttrName } from '../../entities/attributes'
 import type { StatusType } from '../../entities/status'
-import { calcBaseDamage, calcHealAmount, calcBuffDuration, calcDebuffDuration } from '../../calc/damage'
+import { calcBaseDamage, calcHealAmount, calcBuffDuration } from '../../calc/damage'
 import { getWeapon } from '../../data/weapons'
 import { getBuff } from '../../data/buffs'
 import { genAppId } from '../../util/buff-utils'
 import type { Tag } from '../../entities/tag'
-import { BattleLog } from '../battle-log'
 import { scheduleBuffExpiry, revertBuffMods, clearWeaponBuffLayers, executeMove, revertWeaponStatBuffs } from '../utils'
-import type { BuffLayer } from '../types'
+import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
 import { applyDamage } from './damage'
 import { handleStatusEffect } from './status'
@@ -383,6 +381,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     disarm({ enemy, engine }: EffectCtx) {
         const oldWeapon = enemy.weaponDef ?? getWeapon(enemy.build.weapon)
         if (oldWeapon.id === 'bare_hands') return
+        // 御物武器免疫缴械
+        if (oldWeapon.tags.includes('imperial')) return
         const key = `disarmed::${enemy.id}`
         if (engine.state.pendingBuffs.has(key)) return
         revertWeaponStatBuffs(oldWeapon, enemy, engine)

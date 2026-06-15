@@ -206,8 +206,11 @@ export class BattleEngine {
 
         const cmds = planFn(self, enemy, this.state)
         for (const cmd of cmds) {
-            if (self.ap <= 0 && cmd.type !== 'bonus') break
+            if (self.ap <= 0 && cmd.type !== 'support') break
             this.execute(cmd, self, enemy)
+        }
+        if (cmds.length === 0) {
+            this.emitLog({ type: 'system', message: BattleLog.plain(self.name, '没有行动'), actorId: self.id })
         }
 
         // endEvent
@@ -299,8 +302,15 @@ export class BattleEngine {
                 return this.#executeMove(cmd, self)
             case 'attack':
                 return this.#executeAttack(cmd, self, enemy)
-            case 'bonus':
-                return this.#executeBonus(cmd, self)
+            case 'support':
+                return this.#executeSupport(cmd, self)
+            default:
+                this.emitLog({
+                    type: 'system',
+                    message: BattleLog.plain(self.name, `未知指令: ${cmd.type}`),
+                    actorId: self.id,
+                })
+                return this.#emptyResult()
         }
     }
 
@@ -398,7 +408,6 @@ export class BattleEngine {
         this.state.lastActionExtraStun = action.extraStunTime ?? 0
         this.emit('on_pre_action', enemy, self)
         const r = this.#executeAction(action, self, enemy)
-        this.#tryBonus(self, 'after_main')
         processBleedDamage(self, this.#tMs, this)
         return r
     }
@@ -483,7 +492,7 @@ export class BattleEngine {
         }
     }
 
-    #executeBonus(cmd: ActionCommand, self: Character): ActionResult {
+    #executeSupport(cmd: ActionCommand, self: Character): ActionResult {
         const r = {
             damage: 0,
             hit: false,
@@ -498,6 +507,11 @@ export class BattleEngine {
         if (!inst || !inst.def.tags.includes('support') || !inst.canUse()) return r
         if (!self.spendAp(inst.apCost)) return r
         inst.use()
+        this.emitLog({
+            type: 'system',
+            message: BattleLog.msg(inst.name, self.name, ''),
+            actorId: self.id,
+        })
         for (const eff of inst.def.effects ?? []) {
             processActionEffect(eff, self, self, this, this.#tMs, inst.def)
         }
@@ -516,17 +530,26 @@ export class BattleEngine {
     /** 处理召唤物回合 */
     #handleSummonTurn(e: TurnEntry & { type: 'summon' }): boolean {
         const inst = this.#summons.get(e.id)
-        if (!inst) return false
+        if (!inst) return true
 
         const owner = this.getCharacter(e.ownerId)
         const enemy = this.getOpponent(e.ownerId)
-        if (!owner || !enemy) return false
+        if (!owner || !enemy) return true
 
         const weapon = owner.weaponDef ?? getWeapon(owner.build.weapon)
         const summonAction = weapon.summon?.action ?? (weapon.summon ? getAction(weapon.summon.actionId) : undefined)
-        if (!summonAction) return false
+        if (!summonAction) {
+            // 武器变更（被缴械等）导致召唤物失效，从队列移除
+            this.state.turn.removeEvents(e.id)
+            this.#summons.delete(e.id)
+            return true
+        }
 
+        // 召唤物不消耗主人 AP
+        const savedAp = owner.ap
+        owner.ap = Math.max(owner.ap, summonAction.apCost)
         this.#executeAction(summonAction, owner, enemy)
+        owner.ap = savedAp
         this.state.turn.next()
         const interval = calcSummonInterval(
             owner.attrs.get('wisdom'),
@@ -623,45 +646,5 @@ export class BattleEngine {
         if (nextInterval > 0) {
             turn.scheduleSystemEventAt(eventId, tMs + nextInterval, type)
         }
-    }
-
-    /** 辅招触发 */
-    #tryBonus(self: Character, timing: TriggerEvent, mainAp = 0): boolean {
-        let fired = false
-        for (const inst of self.actions) {
-            if (!inst.def.tags.includes('support') || inst.def.bonusTiming?.type !== timing) continue
-            if (!inst.canUse()) continue
-            if (inst.def.canUse && !inst.def.canUse(self, this.state)) continue
-            if (self.ap < inst.apCost + mainAp) continue
-            if (!inst.canUse()) continue
-            if (inst.def.canUse && !inst.def.canUse(self, this.state)) continue
-            if (self.ap < inst.apCost + mainAp) continue
-            self.spendAp(inst.apCost)
-            inst.use()
-            if (timing === 'after_main' || timing === 'before_main') {
-                this.state.log.indentDepth++
-            }
-            this.emitLog({
-                type: 'attack_start',
-                actionId: inst.id,
-                actionName: inst.name,
-                weapon: getWeapon(self.build.weapon).name,
-                sourceId: self.id,
-                targetId: self.id,
-                apCost: inst.apCost,
-                apRemaining: self.ap,
-                triggered: true,
-                bonus: true,
-                indent: this.state.log.indentDepth,
-            })
-            for (const eff of inst.def.effects ?? []) {
-                processActionEffect(eff, self, self, this, this.#tMs, inst.def)
-            }
-            if (timing === 'after_main' || timing === 'before_main') {
-                this.state.log.indentDepth--
-            }
-            fired = true
-        }
-        return fired
     }
 }

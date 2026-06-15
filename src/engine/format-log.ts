@@ -184,10 +184,21 @@ export function formatBattleLog(log: BattleLog): string[] {
                 break
 
             case 'damage': {
-                if (!pending) break
+                // 如果 pending 不是本体招式（被触发招式覆盖了），单独显示伤害
+                if (!pending || !pending.text.includes(e.actionName)) {
+                    let result = ''
+                    if (e.isParried && e.blocked > 0) result += `格挡${e.blocked.toFixed(1)}  `
+                    result += `造成${e.final.toFixed(1)}`
+                    lines.push(`    » ${result}`)
+                    if (pending) {
+                        flush()
+                        pending = null
+                    }
+                    break
+                }
                 if (
-                    (pending.text + (pending.extra ?? '')).includes('未命中') ||
-                    (pending.text + (pending.extra ?? '')).includes('闪避')
+                    (pending!.text + (pending!.extra ?? '')).includes('未命中') ||
+                    (pending!.text + (pending!.extra ?? '')).includes('闪避')
                 ) {
                     flush()
                     break
@@ -197,7 +208,7 @@ export function formatBattleLog(log: BattleLog): string[] {
                     result += `格挡${e.blocked.toFixed(1)}  `
                 }
                 result += `造成${e.final.toFixed(1)}`
-                pending.extra = (pending.extra ?? '') + `  » ${result}`
+                pending!.extra = (pending!.extra ?? '') + `  » ${result}`
                 flush()
                 break
             }
@@ -206,7 +217,7 @@ export function formatBattleLog(log: BattleLog): string[] {
                 flush()
                 break
 
-            case 'system':
+            case 'system': {
                 flush()
                 if (e.actor) {
                     checkNewEvent(
@@ -222,6 +233,7 @@ export function formatBattleLog(log: BattleLog): string[] {
                 const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
                 lines.push(`${indent}${e.message}`)
                 break
+            }
         }
     }
     flush()

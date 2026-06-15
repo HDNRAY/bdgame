@@ -1,12 +1,10 @@
 import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../engine'
 import type { ActionDefinition } from '../../entities/action'
-import type { AttrName } from '../../entities/attributes'
 import { calcCritChance, calcFinalDamage, calcParriedDamage, calcParryChance, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../data/weapons'
 import { getBuff } from '../../data/buffs'
 import { getAction } from '../../data/actions'
-import type { BuffLayer } from '../types'
 import { consumeBuffsByTrigger } from '../utils'
 
 // ── 伤害管道 ──

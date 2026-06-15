@@ -11,6 +11,7 @@ export class DistanceSystem {
 
     /** 移动 delta 档（正=远离，负=靠近） */
     move(delta: number): number {
+        if (!Number.isFinite(delta)) return 0
         const prev = this.current
         this.current = Math.max(DISTANCE_MIN, Math.min(DISTANCE_MAX, this.current + delta))
         return this.current - prev // 实际移动量
@@ -36,10 +37,12 @@ export class DistanceSystem {
         moveEff = 1,
         minMoveCost = false,
     ): { ap: number; delta: number } {
+        if (!Number.isFinite(bestDistance) || !Number.isFinite(agility)) return { ap: 0, delta: 0 }
         const ap = Math.abs(bestDistance)
         const dir = Math.sign(bestDistance)
         const basePerAp = this.apToRange(agility)
         const perAp = minMoveCost ? 2 : basePerAp * moveEff
+        if (!Number.isFinite(perAp)) return { ap: 0, delta: 0 }
         return { ap, delta: dir * perAp * ap }
     }
 

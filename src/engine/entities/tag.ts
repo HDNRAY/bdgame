@@ -32,7 +32,7 @@ export type Tag =
     | 'move' // 位移
     | 'range' // 远程
     | 'counter' // 反击
-    | 'charge' // 冲锋
+    // | 'charge' // 冲锋
     | 'defense' // 防御
     | 'debuff' // 弱化
     | 'dot' // 持续伤害

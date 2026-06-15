@@ -1,0 +1,70 @@
+import type { Character } from '../entities/character'
+import type { ActionDefinition } from '../entities/action'
+import { calcBaseDamage, calcCritChance, calcHitChance, calcParryChance } from '../calc/damage'
+
+export interface DamageEstimate {
+    actionId: string
+    rawDamage: number
+    expectedDamage: number
+    hitChance: number
+    canReach: boolean
+    apCost: number
+}
+
+/** 计算招式对目标的期望伤害（含命中/暴击/招架/闪避） */
+export function calcExpectedDamage(
+    action: ActionDefinition,
+    attacker: Character,
+    defender: Character,
+    weaponRange: [number, number],
+    distance: number,
+): DamageEstimate {
+    // 1. 可达性：action.range ?? weapon.range
+    const actionRange = action.range ?? weaponRange
+    const canReach = distance >= actionRange[0] && distance <= actionRange[1]
+
+    // 2. 基础伤害（取第一个 damage 效果）
+    let rawDamage = 0
+    for (const eff of action.effects ?? []) {
+        if (eff.type === 'damage' && 'scaling' in eff) {
+            const dmgEff = eff as Extract<NonNullable<ActionDefinition['effects']>[number], { type: 'damage' }>
+            rawDamage = calcBaseDamage(dmgEff.scaling, attacker.attrs.getAll(), dmgEff.base ?? 0)
+            break
+        }
+        if (eff.type === 'fixed_damage') {
+            rawDamage = eff.value ?? 0
+            break
+        }
+    }
+
+    // 3. 命中率
+    const hitChance = Math.min(
+        0.95,
+        action.chance ??
+            calcHitChance({
+                attackerDexterity: attacker.attrs.get('dexterity'),
+                attackerInsight: attacker.attrs.get('insight'),
+                defenderAgility: defender.attrs.get('agility'),
+                defenderInsight: defender.attrs.get('insight'),
+                defenderDodgeMod: defender.dodgeMod,
+            }),
+    )
+
+    // 4. 招架概率 + 暴击概率
+    const parryChance = Math.min(
+        0.9,
+        calcParryChance(0, defender.attrs.get('dexterity'), defender.attrs.get('insight')) + defender.parryMod,
+    )
+    const critChance = calcCritChance(
+        attacker.attrs.get('dexterity'),
+        attacker.attrs.get('insight'),
+        attacker.critChance,
+    )
+
+    // 5. 期望伤害
+    const parryMultiplier = 1 - parryChance * 0.5 // 招架后约减免 50%
+    const critMultiplier = 1 + critChance * (0.5 + attacker.critDamageMod) // 暴击额外 + (1.5 + critDmgMod - 1)
+    const expectedDamage = rawDamage * hitChance * parryMultiplier * critMultiplier
+
+    return { actionId: action.id, rawDamage, expectedDamage, hitChance, canReach, apCost: action.apCost }
+}

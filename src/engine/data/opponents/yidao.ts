@@ -3,7 +3,7 @@ import { type OpponentDef, passive } from '.'
 import type { Reward } from '../rewards'
 import type { TriggerSlot } from '../../entities/trigger'
 
-const POOL = ['iaijutsu_strike', 'slash', 'human_radar', 'resheath', 'empty_hand', 'tiger_eye']
+const POOL = ['iaijutsu_strike', 'light_slash', 'human_radar', 'resheath', 'empty_hand', 'tiger_eye']
 
 function rewardType(id: string): 'passive' | 'artifact' | 'action' {
     if (id === 'iaijutsu_mastery' || id === 'empty_hand' || id === 'human_radar') return 'passive'
@@ -20,7 +20,6 @@ export const YIDAO: OpponentDef = {
             ...POOL.map((id) => ({ type: rewardType(id), id, name: id, description: '', tags: [] }) as Reward),
         ]
 
-        // n=33 时 slash 必选，触发确定
         const triggers: TriggerSlot[] = []
 
         return simpleGenerate(
