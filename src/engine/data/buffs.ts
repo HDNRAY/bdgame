@@ -288,8 +288,8 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         onParryReduction: ({ final, raw }) => {
             const blocked = raw - final
-            const halfBlock = Math.round(blocked * 0.5 * 10) / 10
-            return raw - halfBlock
+            const reduced = Math.round(blocked * 0.2 * 10) / 10
+            return raw - reduced
         },
     },
     {
@@ -399,7 +399,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '每 3 秒回复 1% 生命。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
-        tickInterval: 3000,
+        tickInterval: 2000,
         tickHeal: 1,
     },
     {
@@ -412,7 +412,7 @@ export const BUFF_DB: BuffDef[] = [
             const act = action
             const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (!isQi) return final
-            return Math.round(final * 1.1 * 10) / 10
+            return Math.round(final * 1.15 * 10) / 10
         },
     },
 ]

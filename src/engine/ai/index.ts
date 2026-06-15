@@ -113,8 +113,16 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const cmds: ActionCommand[] = [...supportCmds]
 
     if (dashActionId) {
-        // 用位移招式（虎跃）代替走路
-        cmds.push({ type: 'attack', actionId: dashActionId })
+        // 位移招式有 support 标签的用 support 指令（跳过战斗判定）
+        const dashInst = self.actions.find((a) => a.id === dashActionId)
+        if (dashInst?.def.tags.includes('support')) {
+            cmds.push({ type: 'support', actionId: dashActionId })
+        } else {
+            cmds.push({ type: 'attack', actionId: dashActionId })
+        }
+        // dash 已处理位移，moveDelta 归零避免重复移动
+        moveDelta = 0
+        moveAp = 0
     } else if (moveDelta !== 0) {
         cmds.push({ type: 'move', bestDistance: moveDelta })
     }

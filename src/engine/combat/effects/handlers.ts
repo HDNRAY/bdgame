@@ -52,13 +52,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             self.weaponDef = { ...getWeapon('ciyuan_blade') }
             engine.emitLog({
                 type: 'system',
-                message: BattleLog.msg('次元刃', self.name, '凝炁为刃'),
+                message: BattleLog.msg('灵剑', self.name, '凝炁为刃'),
                 actorId: self.id,
             })
         } else {
             self.weaponDef = {
                 ...weapon,
-                tags: [...new Set([...weapon.tags, 'ignore_parry' as Tag, 'qi' as Tag])],
+                tags: [...new Set([...weapon.tags, 'qi' as Tag])],
             }
             engine.emitLog({
                 type: 'system',
@@ -226,7 +226,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             type: 'system',
             message: e.reset
                 ? BattleLog.msg(label, self.name, '蓄势消散')
-                : BattleLog.msg(label, self.name, `蓄势+${Math.round(e.value * 100)}%`),
+                : BattleLog.msg(label, self.name, `蓄势暴击率+${Math.round(e.value * 100)}%`),
             actorId: self.id,
         })
     },

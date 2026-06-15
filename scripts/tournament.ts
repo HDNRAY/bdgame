@@ -3,7 +3,7 @@ import { Character } from '../src/engine/entities/character'
 import { OPPONENTS } from '../src/engine/data/opponents/index'
 import { runBattle } from '../src/engine/battle-runner'
 
-const N = Math.max(1, parseInt(process.argv[2] ?? '1000', 10))
+const N = Math.max(1, parseInt(process.argv[2] ?? '100', 10))
 
 type Result = { name: string; wins: number; total: number; hpPct: number }
 

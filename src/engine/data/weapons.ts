@@ -75,8 +75,8 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'ciyuan_blade',
         name: '次元刃',
         description: '以炁凝成的无形之刃。',
-        tags: ['slash', 'parry', 'qi', 'melee'],
-        range: [1, 3],
+        tags: ['slash', 'pierce', 'parry', 'qi', 'melee'],
+        range: [1, 4],
     },
     {
         id: 'frost_twin_blades',

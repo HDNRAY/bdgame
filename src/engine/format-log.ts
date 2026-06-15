@@ -167,7 +167,8 @@ export function formatBattleLog(log: BattleLog): string[] {
                     pending.extra = `  ${roll('命中', e.hitChance, e.roll)}`
                     if (!e.result) {
                         pending.extra += '  » 未命中'
-                        flush()
+                        // 不 flush，让后续触发事件（弗思等）能缓存到 pendingSystemLines
+                        pending.ap = undefined
                     }
                 }
                 break
@@ -229,7 +230,8 @@ export function formatBattleLog(log: BattleLog): string[] {
                 if (pending) {
                     // 攻击判定期间：缓存系统消息，等攻击行 flush 时一并输出
                     const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
-                    pendingSystemLines.push(`${indent}${e.message}`)
+                    const prefix = (e.indent ?? 0) > 0 ? '↳ ' : ''
+                    pendingSystemLines.push(`${indent}${prefix}${e.message}`)
                     break
                 }
                 flush()
@@ -245,7 +247,8 @@ export function formatBattleLog(log: BattleLog): string[] {
                     )
                 }
                 const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
-                lines.push(`${indent}${e.message}`)
+                const prefix = (e.indent ?? 0) > 0 ? '↳ ' : ''
+                lines.push(`${indent}${prefix}${e.message}`)
                 break
             }
         }

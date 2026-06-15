@@ -48,7 +48,7 @@ export const PASSIVES: Passive[] = [
         description: '虽九死而不悔，伤势越重，剑意越强。',
         tags: ['qi', 'damage'],
         triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'last_stand', stacks: 0.5 }] },
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'last_stand', stacks: 0.3 }] },
         ],
     },
     {
@@ -170,6 +170,18 @@ export const PASSIVES: Passive[] = [
             { condition: { type: 'on_parry' }, actionId: 'push_palm' },
         ],
     },
+    {
+        id: 'dimensional_blade_mastery',
+        name: '次元刃',
+        description: '次元之力削弱招架，被招架时减伤效果大幅降低。',
+        tags: ['passive', 'debuff'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'dimensional_blade' }],
+            },
+        ],
+    },
 ]
 
 /** 天赋（绝学）注册表 */
@@ -198,7 +210,7 @@ export const TALENTS: Talent[] = [
     {
         id: 'vitality_regen',
         name: '生生不息',
-        description: '根骨强健，每 3 秒回复 1% 生命。',
+        description: '根骨强健，每 2 秒回复 1% 生命。',
         tags: ['heal', 'talent', 'buff'],
         requireAttrsMin: { vitality: 20 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'vitality_regen' }] }],

@@ -264,6 +264,7 @@ export class BattleEngine {
 
     #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
         const { triggerUses, distance, moveDelta } = this.state
+        const isInitPhase = event === 'battle_start' || event === 'turn_start'
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
@@ -271,9 +272,11 @@ export class BattleEngine {
                 continue
 
             if (slot.effects) {
+                if (!isInitPhase) this.state.log.indentDepth++
                 for (const eff of slot.effects) {
                     processActionEffect(eff, self, enemy, this, this.#tMs)
                 }
+                if (!isInitPhase) this.state.log.indentDepth--
                 continue
             }
             if (!slot.actionId) continue
@@ -284,9 +287,11 @@ export class BattleEngine {
             triggerUses.set(slot.actionId, used + 1)
 
             if (action.target === 'self') {
+                if (!isInitPhase) this.state.log.indentDepth++
                 for (const eff of action.effects ?? []) {
                     processActionEffect(eff, self, enemy, this, this.#tMs, action)
                 }
+                if (!isInitPhase) this.state.log.indentDepth--
             } else {
                 this.state.log.indentDepth++
                 this.#executeAction(action, self, enemy, true)
@@ -330,11 +335,11 @@ export class BattleEngine {
         this.#logListeners.push(listener)
     }
 
-    /** 发射日志事件（自动附加当前快照） */
+    /** 发射日志事件（自动附加当前快照和缩进） */
     emitLog(event: LogEvent): void {
         const snap = this.getSnapshot()
         const tMs = this.state.eventTime
-        const enriched = { ...event, snapshot: snap } as LogEvent & { snapshot: BattleSnapshot }
+        const enriched = { ...event, snapshot: snap, indent: this.state.log.indentDepth }
         this.state.log.handleLogEvent(enriched, snap, tMs)
         for (const l of this.#logListeners) l(enriched)
     }

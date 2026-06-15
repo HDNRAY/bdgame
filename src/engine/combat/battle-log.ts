@@ -185,7 +185,7 @@ export class BattleLog {
                 )
                 break
             case 'system':
-                this.logSystem(event.message, tMs, snapshot, event.actorId)
+                this.logSystem(event.message, tMs, snapshot, event.actorId, event.indent)
                 break
         }
     }
@@ -312,8 +312,8 @@ export class BattleLog {
         this.push({ type: 'defeat', loser, winner, snapshot }, timelineMs)
     }
 
-    logSystem(message: string, timelineMs: number, snapshot: BattleSnapshot, actor?: string): void {
-        this.push({ type: 'system', message, actor, indent: this.indentDepth, snapshot }, timelineMs)
+    logSystem(message: string, timelineMs: number, snapshot: BattleSnapshot, actor?: string, indent?: number): void {
+        this.push({ type: 'system', message, actor, indent: indent ?? this.indentDepth, snapshot }, timelineMs)
     }
 
     /** 属性变化日志，自动映射中文属性名 */

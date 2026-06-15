@@ -146,7 +146,7 @@ function resolveParry(
     if (act) {
         for (const [key, layer] of engine.state.pendingBuffs) {
             const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== target.id) continue
+            if (parts.length < 2 || (parts[1] !== target.id && parts[1] !== attacker.id)) continue
             const def = getBuff(parts[0])
             if (!def?.onParryReduction) continue
             final = def.onParryReduction({
@@ -246,7 +246,7 @@ const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         } else {
             self.weaponDef = {
                 ...weapon,
-                tags: [...new Set([...weapon.tags, 'ignore_parry' as Tag, 'qi' as Tag])],
+                tags: [...new Set([...weapon.tags, 'qi' as Tag])],
             }
             engine.emitLog({
                 type: 'system',

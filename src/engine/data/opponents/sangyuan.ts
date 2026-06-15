@@ -1,5 +1,5 @@
 import { simpleGenerate } from '../../systems/character-gen'
-import { type OpponentDef, action, artifact } from '.'
+import { type OpponentDef, passive, action, artifact } from '.'
 
 export const SANGYUAN: OpponentDef = {
     id: 'sangyuan',
@@ -12,13 +12,14 @@ export const SANGYUAN: OpponentDef = {
             'bare_hands',
             { strength: 12, vitality: 20, agility: 8, dexterity: 18, insight: 10, wisdom: 4 },
             [
+                passive('dimensional_blade_mastery'),
                 artifact('qi_amplifier'),
+                action('spirit_sword'),
                 action('light_slash'),
                 action('heavy_slash'),
-                action('ciyuan_blade'),
                 action('big_leap'),
             ],
-            [],
+            [{ condition: { type: 'on_dodged' }, actionId: 'light_slash' }],
             n,
         ),
     aiOverrides: {
