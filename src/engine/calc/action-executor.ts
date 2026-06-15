@@ -12,7 +12,7 @@ export function canExecuteAction(
     if (attacker.ap < action.apCost) return { ok: false, reason: 'AP不足' }
     const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)
     const range = action.range ?? weapon.range
-    const dist = state.distance.current
+    const dist = state.position.distance(attacker.id, state.characters.find((c) => c.id !== attacker.id)!.id)
     if (dist < range[0] || dist > range[1]) return { ok: false, reason: '距离不合适' }
     if (action.requiredTags.length > 0) {
         const hasTag = action.requiredTags.some((tag) => weapon.tags.includes(tag))

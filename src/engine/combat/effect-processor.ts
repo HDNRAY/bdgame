@@ -540,7 +540,8 @@ const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     },
     short_dash({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'short_dash' }>
-        const dist = engine.state.distance.current
+        const opponent = engine.getOpponent(self.id)!
+        const dist = engine.state.position.distance(self.id, opponent.id)
         const maxDash = e.maxDistance ?? 2
         const targetDist = Math.max(0, dist - maxDash)
         const delta = dist - targetDist
@@ -548,9 +549,10 @@ const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     },
     dash({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'dash' }>
+        const opponent = engine.getOpponent(self.id)!
         const minRange = e.minRange ?? 0
         const maxRange = e.maxRange ?? Infinity
-        const dist = engine.state.distance.current
+        const dist = engine.state.position.distance(self.id, opponent.id)
         if (dist < minRange || dist > maxRange) {
             engine.emitLog({ type: 'system', message: BattleLog.plain(self.name, '距离不合适'), actorId: self.id })
             return
@@ -564,12 +566,13 @@ const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 return
             }
             self.spendAp(apCost)
-            engine.state.distance.move(-moveDist)
+            const p = engine.state.position
+            const actualDelta = p.moveToward(self.id, opponent.id, -moveDist)
             engine.emitLog({
                 type: 'move',
                 sourceId: self.id,
-                delta: -moveDist,
-                newDistance: engine.state.distance.current,
+                delta: actualDelta,
+                newDistance: p.distance(self.id, opponent.id),
                 apCost,
                 apRemaining: self.ap,
             })
@@ -945,7 +948,10 @@ export function processHitCheck(
 ): boolean {
     engine.emit('on_attack', self, enemy)
     const rangeDodgeMod =
-        engine.state.pendingBuffs.has(`ranged_dodge::${enemy.id}`) && engine.state.distance.current >= 5 ? 0.15 : 0
+        engine.state.pendingBuffs.has(`ranged_dodge::${enemy.id}`) &&
+        engine.state.position.distance(self.id, enemy.id) >= 5
+            ? 0.15
+            : 0
     let hc =
         action.chance ??
         calcHitChance({
@@ -961,7 +967,7 @@ export function processHitCheck(
     }
     // 圆 buff：下次攻击距离≤4时命中+0.5，消耗
     const circleKey = `circle::${self.id}`
-    if (engine.state.pendingBuffs.has(circleKey) && engine.state.distance.current <= 4) {
+    if (engine.state.pendingBuffs.has(circleKey) && engine.state.position.distance(self.id, enemy.id) <= 4) {
         hc = Math.min(0.95, hc + 0.5)
         engine.state.pendingBuffs.delete(circleKey)
     }

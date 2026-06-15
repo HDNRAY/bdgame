@@ -1,51 +1,70 @@
 import { describe, it, expect } from 'vitest'
-import { DistanceSystem, DISTANCE_MIN, DISTANCE_MAX } from '../combat/distance'
+import { PositionSystem, POS_MIN, POS_MAX } from '../combat/position'
 
-describe('DistanceSystem', () => {
-    it('should initialize at default distance 4', () => {
-        const d = new DistanceSystem()
-        expect(d.current).toBe(4)
+describe('PositionSystem', () => {
+    it('should initialize positions at -2 and +2', () => {
+        const p = new PositionSystem('a', -2, 'b', 2)
+        expect(p.get('a')).toBe(-2)
+        expect(p.get('b')).toBe(2)
+        expect(p.distance('a', 'b')).toBe(4)
     })
 
-    it('should initialize at custom distance', () => {
-        const d = new DistanceSystem(2)
-        expect(d.current).toBe(2)
+    it('should calculate distance between characters', () => {
+        const p = new PositionSystem('a', -3, 'b', 3)
+        expect(p.distance('a', 'b')).toBe(6)
     })
 
-    it('should move towards opponent (negative delta)', () => {
-        const d = new DistanceSystem(4)
-        d.move(-2)
-        expect(d.current).toBe(2)
+    it('should move character toward opponent (negative delta)', () => {
+        const p = new PositionSystem('a', -2, 'b', 2)
+        // moveToward with delta < 0 = closer
+        p.moveToward('a', 'b', -2)
+        expect(p.get('a')).toBe(0)
+        expect(p.distance('a', 'b')).toBe(2)
     })
 
-    it('should move away (positive delta)', () => {
-        const d = new DistanceSystem(4)
-        d.move(1)
-        expect(d.current).toBe(5)
+    it('should move character away from opponent (positive delta)', () => {
+        const p = new PositionSystem('a', -2, 'b', 2)
+        // moveToward with delta > 0 = farther
+        p.moveToward('a', 'b', 1)
+        expect(p.get('a')).toBe(-3)
+        expect(p.distance('a', 'b')).toBe(5)
     })
 
     it('should clamp to min', () => {
-        const d = new DistanceSystem(1)
-        d.move(-3)
-        expect(d.current).toBe(DISTANCE_MIN)
+        const p = new PositionSystem('a', -2, 'b', 2)
+        p.move('a', -2000) // move way past boundary
+        expect(p.get('a')).toBe(POS_MIN)
+        expect(p.distance('a', 'b')).toBe(1002)
     })
 
     it('should clamp to max', () => {
-        const d = new DistanceSystem(9)
-        d.move(3)
-        expect(d.current).toBe(DISTANCE_MAX)
+        const p = new PositionSystem('a', -2, 'b', 2)
+        p.move('b', 2000) // move b way past boundary
+        expect(p.get('b')).toBe(POS_MAX)
+        expect(p.distance('a', 'b')).toBe(1002)
     })
 
     it('should detect range', () => {
-        const d = new DistanceSystem(3)
-        expect(d.inRange(2, 4)).toBe(true)
-        expect(d.inRange(4, 5)).toBe(false)
-        expect(d.inRange(0, 2)).toBe(false)
+        const p = new PositionSystem('a', -1, 'b', 2)
+        expect(p.inRange('a', 'b', 2, 4)).toBe(true)
+        expect(p.inRange('a', 'b', 4, 5)).toBe(false)
+        expect(p.inRange('a', 'b', 3, 4)).toBe(true)
     })
 
     it('should calculate movement per AP', () => {
-        expect(DistanceSystem.apToRange(10)).toBe(0.5)
-        expect(DistanceSystem.apToRange(20)).toBe(1)
-        expect(DistanceSystem.apToRange(40)).toBe(2)
+        expect(PositionSystem.apToRange(10)).toBe(0.5)
+        expect(PositionSystem.apToRange(20)).toBe(1)
+        expect(PositionSystem.apToRange(40)).toBe(2)
+    })
+
+    it('should clone correctly', () => {
+        const p = new PositionSystem('a', -2, 'b', 2)
+        const c = p.clone()
+        expect(c.get('a')).toBe(-2)
+        expect(c.get('b')).toBe(2)
+        // modifying clone should not affect original
+        c.move('a', 1)
+        expect(c.get('a')).toBe(-1)
+        expect(p.get('a')).toBe(-2)
     })
 })

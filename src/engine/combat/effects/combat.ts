@@ -16,7 +16,10 @@ export function processHitCheck(
 ): boolean {
     engine.emit('on_attack', self, enemy)
     const rangeDodgeMod =
-        engine.state.pendingBuffs.has(`ranged_dodge::${enemy.id}`) && engine.state.distance.current >= 5 ? 0.15 : 0
+        engine.state.pendingBuffs.has(`ranged_dodge::${enemy.id}`) &&
+        engine.state.position.distance(self.id, enemy.id) >= 5
+            ? 0.15
+            : 0
     let hc =
         action.chance ??
         calcHitChance({

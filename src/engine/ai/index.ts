@@ -2,7 +2,7 @@ import type { Character } from '../entities/character'
 import type { EffectDef } from '../entities/action'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../data/weapons'
-import { DistanceSystem } from '../combat/distance'
+import { PositionSystem } from '../combat/position'
 import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
 import { classifyAttackStyle, planMovement } from './move-planner'
@@ -16,7 +16,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     if (!enemy) return []
 
     const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
-    const distance = state.distance.current
+    const distance = state.position.distance(self.id, enemy.id)
     const overrides = getOverrides(self.id)
 
     // ── 1. 候选主招（非 support） ──
@@ -161,12 +161,12 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                     weapon.range,
                     self.actions.map((a) => a.def),
                 )
-            const basePerAp = DistanceSystem.apToRange(self.attrs.get('agility'))
+            const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
             const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
                 ? 2
                 : basePerAp * (1 + (self.moveEfficiency ?? 0))
             const idealDist = style === 'ranged' || style === 'mid' ? weapon.range[1] : Math.max(weapon.range[0], 2)
-            const postDelta = idealDist - state.distance.current
+            const postDelta = idealDist - state.position.distance(self.id, enemy.id)
             if (Math.abs(postDelta) >= 1) {
                 const dist = Math.abs(postDelta)
                 const apNeeded = Math.ceil(dist / perAp)

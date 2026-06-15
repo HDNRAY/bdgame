@@ -1,5 +1,5 @@
 import { Character } from '../entities/character'
-import { DistanceSystem } from './distance'
+import { PositionSystem } from './position'
 import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
 import { getWeapon } from '../data/weapons'
@@ -43,13 +43,14 @@ export class BattleEngine {
         o.resetAp()
         const log = new BattleLog()
         const tm = new TurnManager()
+        const halfDist = d / 2
         // 初始起手延迟由身法决定：身法越高，起手越快
         tm.addCharacter(p, Math.round(calcTurnInterval(p.attrs.get('agility')) * 0.4))
         tm.addCharacter(o, Math.round(calcTurnInterval(o.attrs.get('agility')) * 0.4))
         this.state = {
             phase: 'fighting',
             characters: [p, o],
-            distance: new DistanceSystem(d),
+            position: new PositionSystem(p.id, -halfDist, o.id, halfDist),
             turn: tm,
             log,
             eventActorId: null,
@@ -127,11 +128,11 @@ export class BattleEngine {
 
     /** 构建当前战斗快照 */
     getSnapshot(): BattleSnapshot {
-        const { characters, distance, turn, triggerUses, pendingBuffs, phase } = this.state
+        const { characters, turn, triggerUses, pendingBuffs, phase, position } = this.state
         return {
             time: turn.currentTime,
             phase,
-            distance: distance.current,
+            distance: position.distance(characters[0].id, characters[1].id),
             characters: [
                 {
                     id: characters[0].id,
@@ -263,12 +264,19 @@ export class BattleEngine {
     }
 
     #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
-        const { triggerUses, distance, moveDelta } = this.state
+        const { triggerUses, moveDelta, position } = this.state
         const isInitPhase = event === 'battle_start' || event === 'turn_start'
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
-            if (!matchCondition(slot.condition, { actor: self, distance: distance.current, moveDelta, engine: this }))
+            if (
+                !matchCondition(slot.condition, {
+                    actor: self,
+                    distance: position.distance(self.id, enemy.id),
+                    moveDelta,
+                    engine: this,
+                })
+            )
                 continue
 
             if (slot.effects) {
@@ -364,7 +372,8 @@ export class BattleEngine {
     }
 
     #executeMove(cmd: ActionCommand, self: Character): ActionResult {
-        const { distance } = this.state
+        const p = this.state.position
+        const enemy = this.getOpponent(self.id)!
         const r: ActionResult = {
             damage: 0,
             hit: false,
@@ -373,7 +382,7 @@ export class BattleEngine {
             crit: false,
             distanceDelta: 0,
         }
-        const { ap, delta } = DistanceSystem.calcMovement(
+        const { ap, delta } = PositionSystem.calcMovement(
             cmd.bestDistance ?? 0,
             self.attrs.get('agility'),
             1 + self.moveEfficiency,
@@ -383,19 +392,18 @@ export class BattleEngine {
             this.emitLog({ type: 'system', message: BattleLog.plain(self.name, 'AP不足 无法移动'), actorId: self.id })
             return r
         }
-        const a = distance.move(delta)
-        r.distanceDelta = a
+        const actualDelta = p.moveToward(self.id, enemy.id, delta)
+        r.distanceDelta = actualDelta
         this.emitLog({
             type: 'move',
             sourceId: self.id,
-            delta: a,
-            newDistance: distance.current,
+            delta: actualDelta,
+            newDistance: p.distance(self.id, enemy.id),
             apCost: ap,
             apRemaining: self.ap,
         })
-        const enemy = this.getOpponent(self.id)!
         this.emit('on_move', self, enemy)
-        this.state.moveDelta = a
+        this.state.moveDelta = actualDelta
         this.emit('on_opponent_move', enemy, self)
         this.state.moveDelta = 0
         processBleedDamage(self, this.#tMs, this)

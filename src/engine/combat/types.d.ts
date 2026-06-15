@@ -1,5 +1,5 @@
 import type { Character } from '../entities/character'
-import type { DistanceSystem } from './distance'
+import type { PositionSystem } from './position'
 import type { TurnManager } from './turn'
 import type { BattleLog } from './battle-log'
 
@@ -32,7 +32,7 @@ export interface BuffLayer {
 export interface BattleState {
     phase: BattlePhase
     characters: [Character, Character]
-    distance: DistanceSystem
+    position: PositionSystem
     turn: TurnManager
     log: BattleLog
     eventActorId: string | null

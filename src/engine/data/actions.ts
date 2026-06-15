@@ -15,7 +15,8 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 0,
         tags: ['move', 'support'],
-        canUse: (_attacker, state) => state.distance.current > 3,
+        canUse: (_attacker, state) =>
+            state.position.distance(_attacker.id, state.characters.find((c) => c.id !== _attacker.id)!.id) > 3,
         range: [0, 12],
         effects: [{ type: 'dash', minRange: 0, maxRange: 12, targetDist: 1, useAp: true }],
     },

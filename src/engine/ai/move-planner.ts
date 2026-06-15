@@ -1,6 +1,6 @@
 import type { Character } from '../entities/character'
 import type { ActionDefinition, EffectDef } from '../entities/action'
-import { DistanceSystem } from '../combat/distance'
+import { PositionSystem } from '../combat/position'
 
 export type AttackStyle = 'melee' | 'mid' | 'ranged'
 
@@ -35,7 +35,7 @@ export function planMovement(
     moveEfficiency = 0,
 ): MovePlan | null {
     const actionRange = chosenAction.range ?? weaponRange
-    const basePerAp = DistanceSystem.apToRange(attacker.attrs.get('agility'))
+    const basePerAp = PositionSystem.apToRange(attacker.attrs.get('agility'))
     const perAp = minMoveCost ? 2 : basePerAp * (1 + moveEfficiency)
 
     // 目标距离：风格决定

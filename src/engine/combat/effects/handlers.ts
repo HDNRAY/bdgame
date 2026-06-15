@@ -341,7 +341,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     },
     short_dash({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'short_dash' }>
-        const dist = engine.state.distance.current
+        const opponent = engine.getOpponent(self.id)!
+        const dist = engine.state.position.distance(self.id, opponent.id)
         // 如果已在武器有效射程内，或比最小射程还近（太近了冲也没用），不冲刺
         const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
         if (weapon.range && dist <= weapon.range[1]) return
@@ -352,9 +353,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     },
     dash({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'dash' }>
+        const opponent = engine.getOpponent(self.id)!
         const minRange = e.minRange ?? 0
         const maxRange = e.maxRange ?? Infinity
-        const dist = engine.state.distance.current
+        const dist = engine.state.position.distance(self.id, opponent.id)
         if (dist < minRange || dist > maxRange) {
             engine.emitLog({ type: 'system', message: BattleLog.plain(self.name, '距离不合适'), actorId: self.id })
             return
@@ -368,12 +370,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 return
             }
             self.spendAp(apCost)
-            engine.state.distance.move(-moveDist)
+            const p = engine.state.position
+            const actualDelta = p.moveToward(self.id, opponent.id, -moveDist)
             engine.emitLog({
                 type: 'move',
                 sourceId: self.id,
-                delta: -moveDist,
-                newDistance: engine.state.distance.current,
+                delta: actualDelta,
+                newDistance: p.distance(self.id, opponent.id),
                 apCost,
                 apRemaining: self.ap,
             })
