@@ -21,16 +21,14 @@ function App() {
         }
     }, [])
 
+    const charAInfo = useMemo(() => ({ id: chars.a.id, name: chars.a.name, color: '#4ecdc4' as const }), [chars.a])
+    const charBInfo = useMemo(() => ({ id: chars.b.id, name: chars.b.name, color: '#ff6b6b' as const }), [chars.b])
+
     return (
         <div className="app-root">
             <BuildPanel character={chars.a} />
             <div className="app-center">
-                <ReplayPanel
-                    entries={entries}
-                    charA={{ id: chars.a.id, name: chars.a.name, color: '#4ecdc4' }}
-                    charB={{ id: chars.b.id, name: chars.b.name, color: '#ff6b6b' }}
-                    logLines={log}
-                />
+                <ReplayPanel entries={entries} charA={charAInfo} charB={charBInfo} logLines={log} />
                 {snapshots.length > 0 && (
                     <BattlePanel
                         snapshot={snapshots[snapshots.length - 1]}

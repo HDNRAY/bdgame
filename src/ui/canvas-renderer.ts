@@ -50,6 +50,10 @@ export class CanvasRenderer {
             width: this.canvasWidth,
             height: this.canvasHeight,
         })
+
+        // 守卫：如果在 await 期间被 destroy() 调用，放弃后续操作
+        if (!this.initialized) return
+
         this.app.canvas.style.imageRendering = 'pixelated'
         this.app.canvas.style.width = '100%'
         this.app.canvas.style.height = '100%'

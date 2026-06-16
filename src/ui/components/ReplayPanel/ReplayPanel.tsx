@@ -27,9 +27,6 @@ export function ReplayPanel({ entries, charA, charB, logLines, compact }: Replay
         const el = canvasRef.current
         if (!el || entries.length === 0) return
 
-        // 核弹：清除 StrictMode 残留的 canvas
-        el.querySelectorAll('canvas').forEach((c) => c.remove())
-
         const replay = new ReplayEngine(entries)
         engineRef.current = replay
 
