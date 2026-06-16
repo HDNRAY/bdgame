@@ -142,6 +142,8 @@ export class BattleEngine {
                     ap: characters[0].ap,
                     maxAp: characters[0].maxAp,
                     pos: position.get(characters[0].id),
+                    weapon: characters[0].build.weapon,
+                    spriteId: characters[0].build.spriteId ?? 'default',
                     buffs: this.getBuffs(characters[0].id),
                 },
                 {
@@ -152,6 +154,8 @@ export class BattleEngine {
                     ap: characters[1].ap,
                     maxAp: characters[1].maxAp,
                     pos: position.get(characters[1].id),
+                    weapon: characters[1].build.weapon,
+                    spriteId: characters[1].build.spriteId ?? 'default',
                     buffs: this.getBuffs(characters[1].id),
                 },
             ],

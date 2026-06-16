@@ -56,6 +56,7 @@ export function simpleGenerate(
         name,
         background,
         weapon,
+        spriteId: id,
         baseAttrs: result,
         rewards: [...talentRewards, ...picked],
         triggers,

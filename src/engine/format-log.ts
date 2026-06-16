@@ -248,7 +248,7 @@ export function formatBattleLog(log: BattleLog): string[] {
                     )
                 }
                 const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
-                const prefix = (e.indent ?? 0) > 0 ? '↳ ' : ''
+                const prefix = (e.indent ?? 0) > 0 ? '↳ ' : e.message.startsWith('[') ? '· ' : ''
                 lines.push(`${indent}${prefix}${e.message}`)
                 break
             }

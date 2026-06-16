@@ -1,0 +1,79 @@
+.tooltip-wrapper {
+    display: inline;
+    cursor: pointer;
+}
+
+.tooltip-popup {
+    position: fixed;
+    z-index: 9999;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    padding: 10px 12px;
+    min-width: 200px;
+    max-width: 320px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #ddd;
+    line-height: 1.5;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transition: opacity 0.1s ease;
+
+    &.show {
+        opacity: 1;
+    }
+
+    .tt-name {
+        font-size: 14px;
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 4px;
+    }
+
+    .tt-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-bottom: 6px;
+    }
+
+    .tag-list {
+        margin-bottom: 6px;
+    }
+
+    .tt-desc {
+        color: #999;
+        font-size: 11px;
+        margin-bottom: 6px;
+    }
+
+    .tt-effects {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        li {
+            font-size: 11px;
+            color: #ccc;
+            padding: 1px 0;
+        }
+
+        li::before {
+            content: '•';
+            margin-right: 4px;
+            color: #666;
+        }
+    }
+
+    .tt-separator {
+        border: none;
+        border-top: 1px solid #444;
+        margin: 6px 0;
+    }
+
+    .tt-extra {
+        font-size: 11px;
+        color: #ccc;
+    }
+}

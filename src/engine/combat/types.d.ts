@@ -71,6 +71,8 @@ export interface CharacterSnapshot {
     ap: number
     maxAp: number
     pos: number
+    weapon: string
+    spriteId: string
     buffs: ActiveBuffSnapshot[]
 }
 

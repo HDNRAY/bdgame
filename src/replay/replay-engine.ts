@@ -19,11 +19,13 @@ export interface Frame {
 export interface FrameChar {
     id: string
     name: string
-    pos: number // 横轴位置（从 distance 换算）
+    pos: number // 横轴位置
     hp: number
     maxHp: number
     ap: number
     maxAp: number
+    weaponId: string
+    spriteId: string
     pose: 'idle' | 'attack' | 'hit' | 'move'
 }
 
@@ -78,16 +80,21 @@ export class ReplayEngine {
         const chars: FrameChar[] = snapshot.characters.map((c, i) => {
             const nextChar = nextSnapshot?.characters[i]
             const hpLerp = nextChar ? this.lerp(c.hp, nextChar.hp, ratio) : c.hp
-            const posLerp = nextChar ? this.lerp(c.pos, nextChar.pos, ratio) : c.pos
+            const apLerp = nextChar ? this.lerp(c.ap, nextChar.ap, ratio) : c.ap
+            // 位置用 ease-in-out 缓动，移动更自然
+            const eased = this.ease(ratio)
+            const posLerp = nextChar ? this.lerp(c.pos, nextChar.pos, eased) : c.pos
             return {
                 id: c.id,
                 name: c.name,
                 pos: posLerp,
                 hp: Math.round(hpLerp),
                 maxHp: c.maxHp,
-                ap: c.ap,
+                ap: apLerp,
                 maxAp: c.maxAp,
-                pose: this.resolvePose(cur?.event),
+                weaponId: c.weapon,
+                spriteId: c.spriteId,
+                pose: this.resolvePose(c.id, cur?.event, next?.event, ratio),
             }
         })
 
@@ -158,7 +165,9 @@ export class ReplayEngine {
     private tick = (): void => {
         if (!this.playing) return
         const now = performance.now()
-        const dt = (now - this.lastTick) * this.speed
+        // 限制每帧最大时间步长，防止帧延迟/高倍速时位置跳跃
+        const rawDt = (now - this.lastTick) * this.speed
+        const dt = Math.min(rawDt, 100) // 不超过 100ms
         this.lastTick = now
         this.currentTime = Math.min(this.currentTime + dt, this.duration)
         this.emitFrame()
@@ -185,18 +194,40 @@ export class ReplayEngine {
         return lo
     }
 
-    private resolvePose(event: BattleEvent | undefined): 'idle' | 'attack' | 'hit' | 'move' {
-        if (!event) return 'idle'
-        switch (event.type) {
+    /** 判断角色的姿势 —— 只在事件瞬间闪现，前后摇保持 idle */
+    private resolvePose(
+        charId: string,
+        cur?: BattleEvent,
+        _next?: BattleEvent,
+        ratio: number = 1,
+    ): 'idle' | 'attack' | 'hit' | 'move' {
+        if (!cur) return 'idle'
+
+        const isActor = 'actor' in cur && cur.actor === charId
+        const isTarget = 'target' in cur && cur.target === charId
+
+        switch (cur.type) {
             case 'attack_start':
-                return 'attack'
+                if (isActor && ratio < 0.15) return 'attack'
+                return 'idle'
+
             case 'damage':
-                return 'hit'
+                if (isTarget && ratio < 0.25) return 'hit'
+                if (isActor && ratio < 0.15) return 'attack'
+                return 'idle'
+
             case 'dodge':
+                if ('evader' in cur && cur.evader === charId && ratio < 0.25) return 'hit'
+                return 'idle'
+
             case 'parry':
-                return 'hit'
+                if ('parrier' in cur && cur.parrier === charId && ratio < 0.25) return 'hit'
+                return 'idle'
+
             case 'move':
-                return 'move'
+                if (isActor && ratio < 0.15) return 'move'
+                return 'idle'
+
             default:
                 return 'idle'
         }
@@ -204,6 +235,11 @@ export class ReplayEngine {
 
     private lerp(a: number, b: number, t: number): number {
         return a + (b - a) * t
+    }
+
+    /** smoothstep 缓动 — 起停缓慢，中间加速 */
+    private ease(t: number): number {
+        return t * t * (3 - 2 * t)
     }
 
     private emptyFrame(time: number): Frame {

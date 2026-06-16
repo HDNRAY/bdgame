@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { ReplayEngine, type LogEntry } from '../../../replay/replay-engine'
+import type { BattleSnapshot } from '../../../engine/combat/types'
 import { CanvasRenderer } from '../../canvas-renderer'
 import './ReplayPanel.scss'
 
@@ -8,20 +9,36 @@ interface ReplayPanelProps {
     charA: { id: string; name: string; color: string }
     charB: { id: string; name: string; color: string }
     logLines: string[]
+    snapshots?: BattleSnapshot[]
+    onFrame?: (snapshot: BattleSnapshot, logIndex: number) => void
+    onRefight?: () => void
+    onBack?: () => void
     compact?: boolean
 }
 
-export function ReplayPanel({ entries, charA, charB, logLines, compact }: ReplayPanelProps) {
+export function ReplayPanel({
+    entries,
+    charA,
+    charB,
+    logLines,
+    snapshots,
+    onFrame,
+    onRefight,
+    onBack,
+    compact,
+}: ReplayPanelProps) {
     const canvasRef = useRef<HTMLDivElement>(null)
     const engineRef = useRef<ReplayEngine | null>(null)
     const rendererRef = useRef<CanvasRenderer | null>(null)
     const logEndRef = useRef<HTMLDivElement>(null)
+    const logRef = useRef<HTMLDivElement>(null)
 
     const [playing, setPlaying] = useState(false)
     const [speed, setSpeed] = useState(1)
     const [progress, setProgress] = useState(0)
     const [currentLine, setCurrentLine] = useState(0)
     const [currentTime, setCurrentTime] = useState(0)
+    const [autoScroll, setAutoScroll] = useState(true)
 
     useEffect(() => {
         const el = canvasRef.current
@@ -42,8 +59,13 @@ export function ReplayPanel({ entries, charA, charB, logLines, compact }: Replay
             replay.onFrameCallback((f) => {
                 renderer.render(f)
                 setProgress(f.total > 0 ? f.time / f.total : 0)
-                setCurrentLine(Math.min(f.eventIndex, logLines.length - 1))
+                const lineIdx = Math.min(f.eventIndex, logLines.length - 1)
+                setCurrentLine(lineIdx)
                 setCurrentTime(f.time)
+                if (f.time >= f.total) setPlaying(false)
+                // 上报当前帧快照
+                const snap = snapshots?.[f.eventIndex]
+                if (snap) onFrame?.(snap, lineIdx)
             })
         })
 
@@ -60,8 +82,19 @@ export function ReplayPanel({ entries, charA, charB, logLines, compact }: Replay
     }, [speed])
 
     useEffect(() => {
-        logEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, [currentLine])
+        if (playing && autoScroll) {
+            const el = logRef.current
+            if (el) el.scrollTop = el.scrollHeight
+        }
+    }, [currentLine, playing, autoScroll])
+
+    // 检测用户手动滚动 → 暂停自动滚动；滚回底部 → 恢复
+    const handleLogScroll = useCallback(() => {
+        const el = logRef.current
+        if (!el) return
+        const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 20
+        setAutoScroll(nearBottom)
+    }, [])
 
     const togglePlay = useCallback(() => {
         const replay = engineRef.current
@@ -89,6 +122,22 @@ export function ReplayPanel({ entries, charA, charB, logLines, compact }: Replay
         setProgress(pct)
     }, [])
 
+    const handleReplay = useCallback(() => {
+        const replay = engineRef.current
+        if (!replay) return
+        replay.seek(0)
+        setPlaying(true)
+        replay.play(speed)
+    }, [speed])
+
+    const handleRefight = useCallback(() => {
+        onRefight?.()
+    }, [onRefight])
+
+    const handleBack = useCallback(() => {
+        onBack?.()
+    }, [onBack])
+
     return (
         <div className="replay-panel">
             <div ref={canvasRef} className={`canvas-wrap ${compact ? 'compact' : ''}`} />
@@ -110,11 +159,21 @@ export function ReplayPanel({ entries, charA, charB, logLines, compact }: Replay
                     <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
                 </div>
                 <span className="timestamp">{(currentTime / 1000).toFixed(1)}s</span>
+
+                <button className="ctrl-btn replay-btn" onClick={handleReplay} title="重播">
+                    ↺
+                </button>
+                <button className="ctrl-btn refight-btn" onClick={handleRefight} title="重打">
+                    ⚔
+                </button>
+                <button className="ctrl-btn back-btn" onClick={handleBack} title="返回选人">
+                    ←
+                </button>
             </div>
 
             {!compact && (
-                <div className="log">
-                    {logLines.map((line, i) => (
+                <div ref={logRef} className="log" onScroll={handleLogScroll}>
+                    {logLines.slice(0, currentLine + 1).map((line, i) => (
                         <div key={i} className={`log-line ${i === currentLine ? 'current' : 'past'}`}>
                             {line}
                         </div>
