@@ -1,0 +1,17 @@
+.app-root {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: #000;
+    min-height: 100vh;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.app-center {
+    flex: 1;
+    min-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}

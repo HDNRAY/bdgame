@@ -69,6 +69,8 @@ export interface CharacterSnapshot {
     hp: number
     maxHp: number
     ap: number
+    maxAp: number
+    pos: number
     buffs: ActiveBuffSnapshot[]
 }
 

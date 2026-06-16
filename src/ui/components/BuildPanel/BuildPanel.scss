@@ -1,0 +1,100 @@
+.build-panel {
+    background: #000;
+    border: 1px solid #333;
+    padding: 12px;
+    min-width: 200px;
+    max-width: 320px;
+    width: 100%;
+    font-family: monospace;
+    color: #fff;
+    font-size: 13px;
+    max-height: 80vh;
+    overflow-y: auto;
+
+    .name {
+        font-size: 15px;
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+
+    .weapon {
+        color: #888;
+        font-size: 11px;
+        margin-bottom: 8px;
+    }
+
+    .hp {
+        color: #4ecdc4;
+    }
+
+    .ap {
+        color: #ffe66d;
+    }
+
+    .hp-row {
+        margin-bottom: 6px;
+    }
+
+    .ap-row {
+        margin-bottom: 8px;
+    }
+
+    .section {
+        border-top: 1px solid #333;
+        padding-top: 8px;
+        margin-top: 8px;
+    }
+
+    .section-label {
+        color: #888;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-row {
+        color: #fff;
+        font-size: 13px;
+        line-height: 1.6;
+        font-family: monospace;
+    }
+
+    .stat-label {
+        color: #888;
+        width: 40px;
+        display: inline-block;
+    }
+
+    .stat-bar {
+        width: 120px;
+        height: 8px;
+        background: #222;
+        border: 1px solid #444;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 6px;
+    }
+
+    .stat-fill {
+        display: block;
+        height: 100%;
+        background: #4ecdc4;
+    }
+
+    .item {
+        color: #fff;
+        font-size: 13px;
+        line-height: 1.6;
+        font-family: monospace;
+        cursor: default;
+    }
+
+    .action-ap {
+        color: #ffe66d;
+    }
+
+    .action-uses {
+        color: #888;
+        font-size: 11px;
+    }
+}

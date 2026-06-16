@@ -140,6 +140,8 @@ export class BattleEngine {
                     hp: characters[0].hp,
                     maxHp: characters[0].maxHp,
                     ap: characters[0].ap,
+                    maxAp: characters[0].maxAp,
+                    pos: position.get(characters[0].id),
                     buffs: this.getBuffs(characters[0].id),
                 },
                 {
@@ -148,6 +150,8 @@ export class BattleEngine {
                     hp: characters[1].hp,
                     maxHp: characters[1].maxHp,
                     ap: characters[1].ap,
+                    maxAp: characters[1].maxAp,
+                    pos: position.get(characters[1].id),
                     buffs: this.getBuffs(characters[1].id),
                 },
             ],

@@ -26,7 +26,7 @@ export const QILAN: OpponentDef = {
             n,
         ),
     aiOverrides: {
-        actionPriority: (candidates, self, state) => {
+        actionPriority: (_candidates, self, state) => {
             const enemy = state.characters.find((c) => c.id !== self.id)
             const recentStun = enemy && state.pendingBuffs.has(`stun_track::${enemy.id}`)
             if (recentStun) return ['palm_strike', 'electric_yoyo', 'thunder_storm']
