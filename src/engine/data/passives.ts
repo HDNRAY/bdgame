@@ -157,7 +157,7 @@ export const PASSIVES: Passive[] = [
         name: '归元劲',
         description: '内力深厚，悟性反哺四维。每点悟性提升全属性。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'wisdom_stat_buff', ratio: 0.25, attrs: ['strength', 'vitality', 'agility', 'dexterity'] }],
+        effects: [{ type: 'wisdom_stat_buff', ratio: 0.1, attrs: ['strength', 'vitality', 'agility', 'dexterity'] }],
     },
 
     {
@@ -187,10 +187,8 @@ export const PASSIVES: Passive[] = [
         name: '神速',
         description: '以电刺激神经，身法灵巧大幅提升。',
         tags: ['passive', 'buff', 'electric'],
-        effects: [{ type: 'stat_buff', attrs: { agility: 4, dexterity: 2 } }],
-        triggers: [
-            { condition: { type: 'on_dodge' }, effects: [{ type: 'damage', scaling: { insight: 0.3 }, base: 2 }] },
-        ],
+        effects: [{ type: 'stat_buff', attrs: { insight: 2, dexterity: 2 } }],
+        triggers: [{ condition: { type: 'on_dodge' }, actionId: '_godspeed_counter' }],
     },
     {
         id: 'thunder_art',
@@ -200,6 +198,7 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'thunder_bonus' }] }],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
+            if (!def.tags.includes('blunt')) return def
             const chance = Math.min(0.8, def.apCost * 0.15)
             return {
                 ...def,
@@ -265,7 +264,7 @@ export const TALENTS: Talent[] = [
     {
         id: 'vitality_regen',
         name: '生生不息',
-        description: '根骨强健，每 2 秒回复 1% 生命。',
+        description: '根骨强健，每 1 秒回复 1% 生命。',
         tags: ['heal', 'talent', 'buff'],
         requireAttrsMin: { vitality: 20 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'vitality_regen' }] }],

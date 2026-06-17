@@ -1,9 +1,7 @@
 import type { BattleEngine } from '../engine'
 import type { AttrName } from '../../entities/attributes'
 import { getBuff } from '../../data/buffs'
-import { BattleLog } from '../battle-log'
 import { revertBuffMods } from '../utils'
-import { processActionEffect } from './action'
 
 /** buff 到期恢复 */
 export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
@@ -20,24 +18,6 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
         const char = engine.getCharacter(charId)
         if (char) revertBuffMods(layer, char, engine)
         engine.state.pendingBuffs.delete(buffKey)
-        // 过期自动归还武器
-        if (buffId === 'disarmed' && char?.isAlive()) {
-            const originalWeapon = layer.extra?.originalWeapon as string | undefined
-            if (originalWeapon) {
-                engine.emitLog({
-                    type: 'system',
-                    message: `[缴械] ${BattleLog.name(char.name)} 重握兵器！`,
-                    actorId: char.id,
-                })
-                processActionEffect(
-                    { type: 'switch_weapon', weaponId: originalWeapon },
-                    char,
-                    char,
-                    engine,
-                    engine.state.turn.currentTime,
-                )
-            }
-        }
         return
     }
 

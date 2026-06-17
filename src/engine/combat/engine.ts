@@ -3,7 +3,13 @@ import { PositionSystem } from './position'
 import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
 import { getWeapon } from '../data/weapons'
-import { BASE_PRE_DELAY, BASE_STUN_TIME, calcTurnInterval, calcSummonInterval } from '../calc/damage'
+import {
+    calcTurnInterval,
+    calcSummonInterval,
+    calcApRegen,
+    calcApRegenPerSec,
+    calcActionDurationMs,
+} from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import { getBuff } from '../data/buffs'
@@ -67,6 +73,9 @@ export class BattleEngine {
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o)
         this.emit('battle_start', o, p)
+        // 武器 on_equip 触发（初始装备）
+        this.emit('on_equip', p, p)
+        this.emit('on_equip', o, o)
 
         // 创建召唤物
         this.#initSummons(p)
@@ -192,8 +201,6 @@ export class BattleEngine {
         const chars = this.state.characters
         const self = chars.find((c) => c.id === e.id)!
         const enemy = chars.find((c) => c.id !== e.id)!
-        self.resetAp()
-        enemy.resetAp()
 
         // 跳过死亡角色
         if (!self.isAlive()) {
@@ -209,13 +216,47 @@ export class BattleEngine {
             return true
         }
 
+        // ── 1. AP 回复（距离上次行动经过的时间） ──
+        if (self.lastActionEndMs > 0) {
+            const elapsedMs = e.nextActionAt - self.lastActionEndMs
+            if (elapsedMs > 0) {
+                self.ap = Math.min(self.maxAp, self.ap + calcApRegen(elapsedMs, self.attrs.get('wisdom')))
+            }
+        }
+        self.capAp()
+
+        // ── 2. AP 未满 → 等回复满了再行动 ──
+        if (self.ap < self.maxAp) {
+            const deficit = self.maxAp - self.ap
+            const regenPerSec = calcApRegenPerSec(self.attrs.get('wisdom'))
+            const waitMs = Math.ceil((deficit / regenPerSec) * 1000)
+            this.state.turn.next()
+            this.state.turn.scheduleNext(
+                { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.haste },
+                waitMs,
+            )
+            this.state.eventActorId = null
+            return true
+        }
+
         this.emit('turn_start', self, enemy)
         // 重建召唤物（法球等每回合重新入队）
         this.#initSummons(self)
 
+        // ── 3. AI 决策 + 执行指令 ──
         const cmds = planFn(self, enemy, this.state)
+        let totalActionDurationMs = 0
         for (const cmd of cmds) {
             if (self.ap <= 0 && cmd.type !== 'support') break
+            // 用当前即时身法计算该指令耗时
+            const agility = self.attrs.get('agility')
+            const cost =
+                cmd.type === 'move'
+                    ? Math.abs(cmd.bestDistance ?? 0)
+                    : cmd.actionId
+                      ? (self.actions.find((a) => a.id === cmd.actionId)?.apCost ?? 0)
+                      : 0
+            totalActionDurationMs += Math.max(1, calcActionDurationMs(cost, agility))
             this.execute(cmd, self, enemy)
         }
         if (cmds.length === 0) {
@@ -231,16 +272,22 @@ export class BattleEngine {
         self.dodgeMod = Math.min(0.2, Math.round((self.dodgeMod + 0.04) * 100) / 100)
         this.emit('turn_end', self, enemy)
         this.state.turn.next()
-        const lastAction = this.state.lastActionExtraDelay ?? 0
-        const extraStun = this.state.lastActionExtraStun ?? 0
-        const preDelay = BASE_PRE_DELAY + lastAction
-        const stunTime = BASE_STUN_TIME + extraStun
-        this.state.lastActionExtraStun = 0
+
+        // ── 4. 计算下次行动的间隔 = 行动耗时 + AP 回复耗时 ──
+        const remainingAp = self.ap
+        const regenPerSec = calcApRegenPerSec(self.attrs.get('wisdom'))
+        const regenMs = Math.ceil(((self.maxAp - remainingAp) / regenPerSec) * 1000)
+        let totalDelay = totalActionDurationMs + regenMs
+        // 没有执行任何指令时最低等待一个完整回复周期（防止死循环）
+        if (totalActionDurationMs === 0) {
+            totalDelay = Math.max(totalDelay, Math.ceil((self.maxAp / regenPerSec) * 1000))
+        }
+
+        self.lastActionEndMs = this.state.turn.currentTime + totalActionDurationMs
         this.state.turn.scheduleNext(
-            { type: 'character', id: self.id, preDelay, stunTime, haste: self.haste },
-            calcTurnInterval(self.attrs.get('agility'), lastAction, extraStun) - self.haste,
+            { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.haste },
+            totalDelay,
         )
-        this.state.lastActionExtraDelay = 0
         this.state.eventActorId = null
         return true
     }
@@ -273,7 +320,7 @@ export class BattleEngine {
 
     #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
         const { triggerUses, moveDelta, position } = this.state
-        const isInitPhase = event === 'battle_start' || event === 'turn_start'
+        const isInitPhase = event === 'battle_start' || event === 'turn_start' || event === 'on_equip'
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
@@ -298,6 +345,8 @@ export class BattleEngine {
             if (!slot.actionId) continue
             const action = getAction(slot.actionId)
             if (!action) continue
+            // 触发器招式 AP 上限（防止高消耗大招白嫖）
+            if (action.apCost > 2) continue
             const used = triggerUses.get(slot.actionId) ?? 0
             if (action.maxUses !== undefined && used >= action.maxUses) continue
             triggerUses.set(slot.actionId, used + 1)
@@ -309,6 +358,15 @@ export class BattleEngine {
                 }
                 if (!isInitPhase) this.state.log.indentDepth--
             } else {
+                const check = canExecuteAction(action, self, this.state)
+                if (!check.ok) {
+                    this.emitLog({
+                        type: 'system',
+                        message: BattleLog.plain(self.name, `${action.name} ${check.reason!}`),
+                        actorId: self.id,
+                    })
+                    continue
+                }
                 this.state.log.indentDepth++
                 this.#executeAction(action, self, enemy, true)
                 this.state.log.indentDepth--
@@ -338,9 +396,6 @@ export class BattleEngine {
     /** 快捷访问 */
     get #tMs(): number {
         return this.state.turn.peek()?.nextActionAt ?? 0
-    }
-    get #currentTime(): number {
-        return this.state.turn.currentTime
     }
     get #buffs(): Map<string, BuffLayer> {
         return this.state.pendingBuffs
@@ -459,7 +514,7 @@ export class BattleEngine {
             })
             return r
         }
-        if (!self.spendAp(action.apCost)) {
+        if (!triggered && !self.spendAp(action.apCost)) {
             return r
         }
         const weapon = getWeapon(self.build.weapon)
@@ -500,7 +555,12 @@ export class BattleEngine {
         for (const eff of action.effects ?? []) {
             if ((eff.type === 'status' || eff.type === 'damage' || eff.type === 'fixed_damage') && r.hit && !r.dodged) {
                 processActionEffect(eff, self, enemy, this, tMs, action)
-            } else if (eff.type === 'remove_buff' || eff.type === 'add_buff' || eff.type === 'switch_weapon') {
+            } else if (
+                eff.type === 'remove_buff' ||
+                eff.type === 'add_buff' ||
+                eff.type === 'switch_weapon' ||
+                eff.type === 'retrieve_weapon'
+            ) {
                 // 这些效果不受命中影响（丢刀、换武、清势等）
                 processActionEffect(eff, self, enemy, this, tMs, action)
             } else if (r.hit && !r.dodged && eff.type !== 'dash' && eff.type !== 'knockback') {
@@ -601,26 +661,11 @@ export class BattleEngine {
                 break
             case 'tick_poison':
             case 'tick_burn':
-                this.#handleStatusTick(eventId, e.systemEventType)
+                this.#handleStatusTick(eventId, e.systemEventType, e.nextActionAt)
                 break
             case 'stun_reset': {
                 const charId = eventId.slice('stun_reset_'.length)
                 this.#buffs.delete(`stun_track::${charId}`)
-                break
-            }
-            case 'permanent_burn': {
-                const charId = eventId.slice('permanent_burn_'.length)
-                const char = this.getCharacter(charId)
-                if (!char || this.state.pendingBuffs.has(`elemental_immunity::${char.id}`)) break
-                const dmg = getBuff('permanent_burn')?.dotDamage ?? 1
-                char.takeDamage(dmg)
-                this.state.log.logSystem(
-                    BattleLog.msg('过热', char.name, `受到 ${dmg.toFixed(1)} 点过热伤害`),
-                    this.#currentTime,
-                    this.getSnapshot(),
-                )
-                const bi = getBuff('permanent_burn')?.tickInterval ?? 3000
-                this.state.turn.scheduleSystemEventAt(eventId, this.#currentTime + bi, 'permanent_burn')
                 break
             }
             case 'tick_buff': {
@@ -629,25 +674,50 @@ export class BattleEngine {
                 const buffDef = getBuff(buffId)
                 const char = this.getCharacter(charId)
                 if (!char || !char.isAlive() || !buffDef) break
-                if (buffDef.dotDamage) {
-                    char.takeDamage(buffDef.dotDamage)
-                    this.emitLog({
-                        type: 'damage_over_time',
-                        sourceId: charId,
-                        targetId: charId,
-                        amount: buffDef.dotDamage,
-                        status: buffDef.name,
+                if (buffDef.onTickDamage) {
+                    const layer = this.state.pendingBuffs.get(key)
+                    const dmg = buffDef.onTickDamage({
+                        final: 0,
+                        raw: 0,
+                        target: char,
+                        attacker: char,
+                        engine: this,
+                        layer: layer!,
+                        buffOwnerId: char.id,
+                        action: undefined!,
                     })
+                    if (dmg > 0) {
+                        char.takeDamage(dmg)
+                        this.emitLog({
+                            type: 'damage_over_time',
+                            sourceId: charId,
+                            targetId: charId,
+                            amount: dmg,
+                            status: buffDef.name,
+                        })
+                    }
                 }
-                if (buffDef.tickHeal) {
-                    const amt = buffDef.tickHeal === 1 ? Math.round(char.maxHp * 0.01) : buffDef.tickHeal
-                    char.heal(amt)
-                    this.emitLog({ type: 'heal', sourceId: char.id, targetId: char.id, amount: amt })
+                if (buffDef.onTickHeal) {
+                    const layer = this.state.pendingBuffs.get(key)
+                    const amt = buffDef.onTickHeal({
+                        final: 0,
+                        raw: 0,
+                        target: char,
+                        attacker: char,
+                        engine: this,
+                        layer: layer!,
+                        buffOwnerId: char.id,
+                        action: undefined!,
+                    })
+                    if (amt > 0) {
+                        char.heal(amt)
+                        this.emitLog({ type: 'heal', sourceId: char.id, targetId: char.id, amount: amt })
+                    }
                 }
                 if (this.state.pendingBuffs.has(`${buffId}::${charId}`)) {
                     this.state.turn.scheduleSystemEventAt(
                         eventId,
-                        this.#currentTime + (buffDef.tickInterval ?? 1000),
+                        e.nextActionAt + (buffDef.tickInterval ?? 1000),
                         'tick_buff',
                     )
                 }
@@ -662,19 +732,18 @@ export class BattleEngine {
     }
 
     /** status tick（毒/灼烧） */
-    #handleStatusTick(eventId: string, type: 'tick_poison' | 'tick_burn'): void {
+    #handleStatusTick(eventId: string, type: 'tick_poison' | 'tick_burn', eventTime: number): void {
         const { turn } = this.state
-        const tMs = this.#currentTime
         const statusType = type === 'tick_poison' ? 'poison' : 'burn'
         const charId = eventId.slice(`tick_${statusType}_`.length)
         const char = this.getCharacter(charId)
         if (!char) return
         const entry = this.state.pendingBuffs.get(`${statusType}::${charId}`)
         if (!entry) return
-        const { nextInterval } = processStatusTick(charId, char, this, tMs, statusType)
+        const { nextInterval } = processStatusTick(charId, char, this, eventTime, statusType)
         if (nextInterval > 0) {
             turn.removeEvents(eventId)
-            turn.scheduleSystemEventAt(eventId, tMs + nextInterval, type)
+            turn.scheduleSystemEventAt(eventId, eventTime + nextInterval, type)
         }
     }
 }

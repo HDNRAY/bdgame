@@ -198,11 +198,11 @@ export function formatBattleLog(log: BattleLog): string[] {
                     let result = ''
                     if (e.isParried && e.blocked > 0) result += `格挡${e.blocked.toFixed(1)}  `
                     result += `造成${e.final.toFixed(1)}`
+                    const label = e.actionName !== '未知' ? `[${e.actionName}] ` : ''
                     if (pending) {
-                        const label = e.actionName !== '未知' ? `[${e.actionName}] ` : ''
                         pendingSystemLines.push(`    ↳ ${label}${result}`)
                     } else {
-                        lines.push(`    » ${result}`)
+                        lines.push(`    ↳ ${label}${result}`)
                     }
                     break
                 }

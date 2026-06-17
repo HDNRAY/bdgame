@@ -4,11 +4,10 @@ import { PositionSystem } from '../combat/position'
 
 export type AttackStyle = 'melee' | 'mid' | 'ranged'
 
-/** 根据武器射程和招式判断攻击风格 */
-export function classifyAttackStyle(weaponRange: [number, number], actions: ActionDefinition[]): AttackStyle {
-    const hasRangedAction = actions.some((a) => a.tags.includes('range'))
+/** 根据武器射程判断战斗风格（纯武器判断，不考虑具体招式） */
+export function classifyAttackStyle(weaponRange: [number, number]): AttackStyle {
     const maxRange = weaponRange[1]
-    if (hasRangedAction || maxRange >= 6) return 'ranged'
+    if (maxRange >= 6) return 'ranged'
     if (maxRange >= 4) return 'mid'
     return 'melee'
 }
@@ -25,7 +24,7 @@ export interface MovePlan {
 /** 规划移动：进入目标招式的攻击范围 */
 export function planMovement(
     attacker: Character,
-    defender: Character,
+    _defender: Character,
     distance: number,
     style: AttackStyle,
     weaponRange: [number, number],
@@ -38,28 +37,11 @@ export function planMovement(
     const basePerAp = PositionSystem.apToRange(attacker.attrs.get('agility'))
     const perAp = minMoveCost ? 2 : basePerAp * (1 + moveEfficiency)
 
-    // 目标距离：风格决定
-    let targetDist: number
-    if (style === 'ranged') {
-        targetDist = actionRange[1] // 趋向最大射程
-    } else if (style === 'mid') {
-        targetDist = actionRange[1] // 也趋向最大射程
-    } else {
-        // melee：进入范围即可，不贴太近保留空间
-        targetDist = Math.max(actionRange[0], Math.min(actionRange[1], 2))
-    }
-
-    // 选择最佳距离（尽量不在敌人优势范围，优先靠近风格目标距离）
-    const enemyWeaponRange = defender.weaponDef?.range ?? [0, 2]
-    let bestFit = -1
-    for (let d = actionRange[0]; d <= actionRange[1]; d++) {
-        if (d < enemyWeaponRange[0] || d > enemyWeaponRange[1]) {
-            if (bestFit === -1 || Math.abs(d - targetDist) < Math.abs(bestFit - targetDist)) {
-                bestFit = d
-            }
-        }
-    }
-    if (bestFit !== -1) targetDist = bestFit
+    // 目标距离：由攻击风格和招式射程决定
+    const targetDist: number = (() => {
+        if (style === 'ranged' || style === 'mid') return actionRange[1]
+        return Math.max(actionRange[0], Math.min(actionRange[1], 2))
+    })()
 
     const delta = targetDist - distance
     if (Math.abs(delta) < 0.5) return null // 已在范围内

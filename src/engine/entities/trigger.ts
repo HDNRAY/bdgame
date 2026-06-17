@@ -25,6 +25,7 @@ export type TriggerEvent =
     | 'after_main'
     | 'before_turn_end'
     | 'battle_start'
+    | 'on_equip'
     | 'on_crit'
     | 'on_pre_action'
 

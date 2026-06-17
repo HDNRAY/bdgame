@@ -29,5 +29,6 @@ export function clearWeaponBuffLayers(charId: string, engine: BattleEngine): voi
             if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
         }
         engine.state.pendingBuffs.delete(k)
+        engine.state.turn.removeEvents('buff_end_' + k)
     }
 }

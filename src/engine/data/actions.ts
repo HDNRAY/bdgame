@@ -47,8 +47,8 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         tags: ['cripple', 'blunt'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.5 } },
-            { type: 'missing_hp_damage', ratio: 0.1 },
+            { type: 'damage', scaling: { strength: 0.1 } },
+            { type: 'missing_hp_damage', ratio: 0.08 },
         ],
     },
     {
@@ -319,16 +319,15 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     {
         id: 'sky_burner',
         name: '燎天势',
-        description: '离心之势已然极致，顺势脱手。刀如流星，中者糜溃。',
+        description: '离心之势已然极致，顺势脱手。刀如流星，刀势越强伤害越高。',
         requiredTags: ['slash'],
         apCost: 5,
         tags: ['slash', 'range'],
         range: [0, 8],
         canUse: (attacker, state) => (state.pendingBuffs.get(`momentum::${attacker.id}`)?.restoreValue ?? 0) >= 3,
         effects: [
-            { type: 'damage', scaling: { strength: 0.8 }, base: 4 },
+            { type: 'damage', scaling: { strength: 1.2 }, base: 6 },
             { type: 'remove_buff', buffId: 'momentum' },
-            { type: 'remove_buff', buffId: 'overlord_blade' },
             { type: 'add_buff', buffId: 'disarmed' },
             { type: 'switch_weapon', weaponId: 'bare_hands' },
         ],
@@ -388,8 +387,11 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         requiredTags: ['blunt'],
         apCost: 1,
         tags: ['blunt'],
-        range: [0, 2],
-        effects: [{ type: 'damage', scaling: { dexterity: 0.1 } }, { type: 'disarm' }],
+        range: [0, 1],
+        effects: [
+            { type: 'damage', scaling: { dexterity: 0.1 } },
+            { type: 'disarm', chance: 0.3 },
+        ],
     },
     {
         id: 'retrieve_blade',
@@ -397,16 +399,28 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         description: '重握霸刀，恢复刀态。',
         requiredTags: [],
         apCost: 0,
-        tags: ['buff', 'support'],
+        tags: ['support', 'retrieve_weapon'],
         target: 'self',
-        bonus: true,
-        bonusTiming: { type: 'turn_start' },
         canUse: (attacker, state) => !state.pendingBuffs.has('overlord_blade::' + attacker.id),
-        effects: [
-            { type: 'switch_weapon', weaponId: 'overlord_blade' },
-            { type: 'add_buff', buffId: 'overlord_blade' },
-            { type: 'remove_buff', buffId: 'disarmed' },
-        ],
+        effects: [{ type: 'short_dash', maxDistance: 2 }, { type: 'retrieve_weapon' }],
+    },
+    {
+        id: 'pickup_weapon',
+        name: '拾起兵器',
+        description: '捡回脱手的武器。',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['support'],
+        target: 'self',
+        canUse: (attacker, state) => {
+            const key = `disarmed::${attacker.id}`
+            const layer = state.pendingBuffs.get(key)
+            if (!layer) return false
+            const dropPos = layer.extra?.dropPosition as number | undefined
+            if (dropPos === undefined) return true
+            return Math.abs(state.position.get(attacker.id) - dropPos) <= 1
+        },
+        effects: [{ type: 'retrieve_weapon' }],
     },
     {
         id: 'foresight',
@@ -592,6 +606,16 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'damage', scaling: { strength: 0.5 } }],
     },
     {
+        id: '_godspeed_counter',
+        name: '神速·闪雷',
+        description: '',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['trigger', 'electric'],
+        target: 'enemy',
+        effects: [{ type: 'damage', scaling: { insight: 0.2 }, base: 2 }],
+    },
+    {
         id: '_tiger_eye_foresight',
         name: '虎彻·看破',
         description: '',
@@ -649,12 +673,12 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
         name: '雷暴',
         description: '引天雷入体，爆发万钧雷光。',
         requiredTags: [],
-        apCost: 6,
+        apCost: 7,
         tags: ['electric', 'stun'],
         range: [0, 3],
         effects: [
-            { type: 'damage', scaling: { wisdom: 0.6, strength: 0.4 } },
-            { type: 'status', status: 'stun', stacks: 1, chance: 0.8 },
+            { type: 'damage', scaling: { wisdom: 1 } },
+            { type: 'status', status: 'stun', stacks: 1, chance: 1 },
         ],
     },
 ]

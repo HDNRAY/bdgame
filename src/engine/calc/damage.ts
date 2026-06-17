@@ -97,6 +97,37 @@ export function calcSelfDamage(maxHp: number, ratio: number): number {
     return Math.round(maxHp * ratio)
 }
 
+// ── AP 回复 ──
+/** 每悟性每秒回复 AP 基数 */
+export const AP_REGEN_BASE = 0.15
+/** 最低回复速度 (AP/s) */
+export const AP_REGEN_MIN = 1.5
+
+/** 每秒 AP 回复量 */
+export function calcApRegenPerSec(wisdom: number): number {
+    return Math.max(AP_REGEN_MIN, wisdom * AP_REGEN_BASE)
+}
+
+/** 给定毫秒回复多少 AP */
+export function calcApRegen(ms: number, wisdom: number): number {
+    return (ms / 1000) * calcApRegenPerSec(wisdom)
+}
+
+// ── 招式耗时 ──
+/** 每点 AP 基础耗时 (秒) */
+export const ACTION_TIME_BASE = 0.4
+/** 最短耗时 (秒) */
+export const ACTION_TIME_MIN = 0.15
+/** 身法减免系数 */
+export const ACTION_TIME_AGI_FACTOR = 0.02
+
+/** 招式耗时 (毫秒) */
+export function calcActionDurationMs(apCost: number, agility: number): number {
+    const base = apCost * ACTION_TIME_BASE * 1000
+    const agilityMult = 1 / (1 + agility * ACTION_TIME_AGI_FACTOR)
+    return Math.round(Math.max(ACTION_TIME_MIN * 1000, base * agilityMult))
+}
+
 /** 麻痹到期时恢复的身法/灵巧 */
 export function calcParalyzeAttrRestore(stacks: number): { agility: number; dexterity: number } {
     return { agility: stacks * 1, dexterity: stacks * 1 }

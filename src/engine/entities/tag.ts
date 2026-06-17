@@ -42,3 +42,5 @@ export type Tag =
     | 'summon' // 召唤相关
     | 'stance' // 架势/姿态
     | 'support' // 辅助
+    | 'retrieve_weapon' // 收回武器
+    | 'bonus_damage' // 独立附加伤害

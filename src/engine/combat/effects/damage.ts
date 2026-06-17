@@ -7,6 +7,39 @@ import { getBuff } from '../../data/buffs'
 import { getAction } from '../../data/actions'
 import { consumeBuffsByTrigger } from '../utils'
 
+// ── 独立伤害管道 ──
+
+/**
+ * 独立追加伤害（跳过招架/暴击/命中，吃 onDealDamage/onTakeDamage 修正）
+ * 用于 buff 的 onAfterDealDamage 或 action effect 的独立伤害
+ */
+export function applyBonusDamage(
+    raw: number,
+    target: Character,
+    attacker: Character,
+    engine: BattleEngine,
+    actionDef: ActionDefinition | undefined,
+    label: string,
+    labelId: string,
+): void {
+    if (raw <= 0) return
+    const final = applyDamageModifiers(raw, target, attacker, engine, raw, actionDef, true)
+    target.takeDamage(final)
+    engine.emitLog({
+        type: 'damage',
+        actionId: labelId,
+        actionName: label,
+        sourceId: attacker.id,
+        targetId: target.id,
+        base: raw,
+        final,
+        blocked: 0,
+        isCrit: false,
+        isParried: false,
+        tags: ['bonus_damage'],
+    })
+}
+
 // ── 伤害管道 ──
 
 /** 应用伤害（含招架判定） */
@@ -48,6 +81,21 @@ export function applyDamage(
     if (isCrit) {
         consumeBuffsByTrigger(attacker.id, engine, 'on_crit')
         engine.emit('on_crit', attacker, target)
+    }
+
+    // ── buff 独立追加伤害（onAfterDealDamage） ──
+    for (const [key, layer] of engine.state.pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2 || parts[1] !== attacker.id) continue
+        const def = getBuff(parts[0])
+        if (!def?.onAfterDealDamage) continue
+        const act = actionDef ?? getAction('')
+        if (!act) continue
+        const ctx = { final, raw, target, attacker, engine, layer, buffOwnerId: parts[1], action: act }
+        const bonus = def.onAfterDealDamage(ctx)
+        if (bonus > 0) {
+            applyBonusDamage(bonus, target, attacker, engine, actionDef, def.name, def.id)
+        }
     }
 }
 
@@ -195,7 +243,7 @@ function resolveCrit(
 
 // ── 通用伤害修正 ──
 
-/** 遍历双方 buff 的 onDamage 钩子，自动修正伤害 */
+/** 遍历双方 buff 的伤害修正钩子，自动修正伤害 */
 function applyDamageModifiers(
     final: number,
     target: Character,
@@ -203,6 +251,7 @@ function applyDamageModifiers(
     engine: BattleEngine,
     raw: number,
     actionDef?: ActionDefinition,
+    bonus = false,
 ): number {
     for (const [key, layer] of engine.state.pendingBuffs) {
         const parts = key.split('::')
@@ -210,8 +259,15 @@ function applyDamageModifiers(
         if (parts[1] !== target.id && parts[1] !== attacker.id) continue
         const def = getBuff(parts[0])
         const act = actionDef ?? getAction('')
-        if (!act || !def?.onDamage) continue
-        final = def.onDamage({ final, raw, target, attacker, engine, layer, buffOwnerId: parts[1], action: act })
+        if (!act) continue
+        const ctx = { final, raw, target, attacker, engine, layer, buffOwnerId: parts[1], action: act }
+        // 独立追加伤害不触发攻击者的 onDealDamage（防止守宫砂等重复计数）
+        if (!bonus && parts[1] === attacker.id && def?.onDealDamage) {
+            final = def.onDealDamage(ctx)
+        }
+        if (parts[1] === target.id && def?.onTakeDamage) {
+            final = def.onTakeDamage(ctx)
+        }
     }
     return final
 }

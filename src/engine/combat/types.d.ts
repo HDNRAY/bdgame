@@ -163,7 +163,13 @@ interface TurnEntryBase {
 }
 
 export type TurnEntry =
-    | (TurnEntryBase & { type: 'character'; preDelay?: number; stunTime?: number; haste?: number })
+    | (TurnEntryBase & {
+          type: 'character'
+          preDelay?: number
+          stunTime?: number
+          haste?: number
+          lastAgility?: number
+      })
     | (TurnEntryBase & { type: 'system'; systemEventType: SystemEventType })
     | (TurnEntryBase & { type: 'summon'; ownerId: string })
 

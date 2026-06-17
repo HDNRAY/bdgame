@@ -44,12 +44,16 @@ export interface BuffDef extends GameEntity {
     attrMods?: Record<string, number>
     /** DOT/tick 间隔（ms） */
     tickInterval?: number
-    /** tick 伤害基数 */
-    dotDamage?: number
-    /** tick 回复基数（1 = 1% maxHP） */
-    tickHeal?: number
-    /** 伤害修正钩子（applyDamage 中自动调用） */
-    onDamage?: (ctx: BuffHookCtx) => number
+    /** tick 伤害回调 */
+    onTickDamage?: (ctx: BuffHookCtx) => number
+    /** tick 回复回调 */
+    onTickHeal?: (ctx: BuffHookCtx) => number
+    /** 攻击伤害修正（buff 持有者造成伤害时调用） */
+    onDealDamage?: (ctx: BuffHookCtx) => number
+    /** 造成伤害后追加独立伤害（返回 >0 则额外调 applyBonusDamage） */
+    onAfterDealDamage?: (ctx: BuffHookCtx) => number
+    /** 受击伤害修正（buff 持有者受到伤害时调用） */
+    onTakeDamage?: (ctx: BuffHookCtx) => number
     /** 层数变更前回调（返回实际 delta，0=拦截变更） */
     onBeforeModify?: (delta: number, ctx: { character: Character; engine: BattleEngine }) => number
     /** 招架率修正钩子（applyDamage 招架判定前自动调用，返回加算值） */
@@ -115,12 +119,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 6 },
-        onDamage: ({ final, attacker, layer, buffOwnerId }) => {
-            if (buffOwnerId === attacker.id) {
-                return final + final * 0.1 * layer.restoreValue
-            }
-            return final
-        },
+        onDealDamage: ({ final, layer }) => Math.round((final + final * 0.1 * layer.restoreValue) * 10) / 10,
         onBeforeModify: (delta, { character, engine }) => {
             if (delta < 0 && engine.state.pendingBuffs.has(`overlord_blade::${character.id}`)) {
                 return 0 // 霸刀护体，刀势不降
@@ -145,7 +144,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '缴械',
         description: '兵器脱手，无法使用武器招式。',
         tags: [],
-        expiry: { type: 'duration', ms: 1500 },
+        expiry: { type: 'permanent' },
         stacking: { type: 'none' },
     },
     {
@@ -228,7 +227,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'tick', interval: 1000 },
         stacking: { type: 'additive' },
-        dotDamage: 5,
+        onTickDamage: () => 5,
     },
     {
         id: 'poison',
@@ -253,7 +252,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '炁盾',
         description: '吸收炁招式伤害，每次2点。',
         tags: [],
-        onDamage: ({ final, target, attacker, engine, action, layer }) => {
+        onTakeDamage: ({ final, target, attacker, engine, action, layer }) => {
             const act = action
             const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (!isQi || final <= 0 || layer.restoreValue <= 0) return final
@@ -273,7 +272,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '乌铠',
         description: '消耗AP减免斩/刺/钝伤害。',
         tags: [],
-        onDamage: ({ final, target, action, engine }) => {
+        onTakeDamage: ({ final, target, action, engine }) => {
             if (target.ap < 1 || final <= 5) return final
             const act = action
             if (!act?.requiredTags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'blunt')) return final
@@ -304,7 +303,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '九死剑诀',
         description: '损失血量增伤。',
         tags: [],
-        onDamage: ({ final, attacker, layer }) => {
+        onDealDamage: ({ final, attacker, layer }) => {
             const ratio = layer.restoreValue
             if (ratio <= 0 || attacker.hp >= attacker.maxHp) return final
             const missingRatio = 1 - attacker.hp / attacker.maxHp
@@ -341,11 +340,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '春雷灵巧加成，灵巧增伤。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDamage: ({ final, attacker, buffOwnerId }) => {
-            if (attacker.id !== buffOwnerId) return final
-            const bonus = Math.round(attacker.attrs.get('dexterity') * 0.5 * 10) / 10
-            return Math.round((final + bonus) * 10) / 10
-        },
+        onDealDamage: ({ final, attacker }) =>
+            Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.5 * 10) / 10) * 10) / 10,
     },
     {
         id: 'ranged_dodge',
@@ -392,16 +388,16 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 3000,
-        dotDamage: 1,
+        onTickDamage: () => 1,
     },
     {
         id: 'vitality_regen',
         name: '生生不息',
-        description: '每 2 秒回复 1% 生命。',
+        description: '持续恢复生命，血越少恢复越多。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
-        tickInterval: 2000,
-        tickHeal: 1,
+        tickInterval: 1000,
+        onTickHeal: ({ target }) => Math.round(target.maxHp * 0.005 + (target.maxHp - target.hp) * 0.01),
     },
     {
         id: 'qi_amplify',
@@ -409,9 +405,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '凝炁玉增幅，炁系招式伤害+15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDamage: ({ final, attacker, action }) => {
-            const act = action
-            const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
+        onDealDamage: ({ final, attacker, action }) => {
+            const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (!isQi) return final
             return Math.round(final * 1.15 * 10) / 10
         },
@@ -429,7 +424,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '雷系伤害减免80%，其他伤害减免20%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDamage: ({ final, action }) => {
+        onTakeDamage: ({ final, action }) => {
             if (action?.tags?.includes('electric')) {
                 return Math.round(final * 0.2 * 10) / 10
             }
@@ -442,25 +437,26 @@ export const BUFF_DB: BuffDef[] = [
         description: '攻击附加3点雷击伤害。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDamage: ({ final, buffOwnerId, attacker }) => {
-            if (buffOwnerId !== attacker.id) return final
-            return Math.round((final + 3) * 10) / 10
-        },
+        onAfterDealDamage: () => 2,
     },
     {
         id: 'cinnabar_mark',
         name: '守宫砂·印',
-        description: '每次攻击积攒一颗雷印，满三颗后下一击爆发。',
+        description: '每次攻击积攒一颗雷印，满四颗后下一击爆发。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDamage: ({ final, buffOwnerId, attacker, layer, engine }) => {
-            if (buffOwnerId !== attacker.id) return final
-            if (layer.restoreValue >= 2) {
+        onDealDamage: ({ final, attacker, layer, engine }) => {
+            if (layer.restoreValue >= 4) {
                 layer.restoreValue = 0
                 engine.emitLog({ type: 'system', message: '[守宫砂] 雷印爆发！伤害×1.5', actorId: attacker.id })
                 return Math.round(final * 1.5 * 10) / 10
             }
             layer.restoreValue = (layer.restoreValue ?? 0) + 1
+            engine.emitLog({
+                type: 'system',
+                message: `[守宫砂] ${attacker.name} 雷印+1（${layer.restoreValue}/4）`,
+                actorId: attacker.id,
+            })
             return final
         },
     },

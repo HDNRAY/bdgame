@@ -8,6 +8,8 @@ import type { CharacterBuild } from './entities/character-build'
 
 /** 最大行动数限制，防止死循环 */
 const MAX_ACTIONS = 300
+/** 系统事件上限，防 bug 导致无限循环 */
+const MAX_SYSTEM_EVENTS = 10000
 
 /** 运行一场完整战斗（自动 clone 角色，不污染原始数据） */
 export function runBattle(
@@ -22,6 +24,7 @@ export function runBattle(
     if (onLog) engine.onLog(onLog)
     const { state } = engine
     let actionCount = 0
+    let systemCount = 0
 
     // 收集自定义 AI
     const customPlans = new Map<string, (self: Character, enemy: Character, s: typeof state) => ActionCommand[]>()
@@ -33,14 +36,25 @@ export function runBattle(
         }
     }
 
+    const planFn: EventPlan = (_self, _enemy, _state) => {
+        const custom = customPlans.get(_self.id)
+        return custom ? custom(_self, _enemy, _state) : planEvent(_self, _state)
+    }
+
     while (state.phase === 'fighting') {
+        // 系统事件（tick 回血等）不消耗行动计数，不参与 MAX_ACTIONS 限制
+        const nextEvent = state.turn.peek()
+        if (nextEvent?.type === 'system') {
+            if (++systemCount > MAX_SYSTEM_EVENTS) {
+                state.phase = 'finished'
+                break
+            }
+            if (!engine.runEvent(planFn)) break
+            continue
+        }
         if (++actionCount > MAX_ACTIONS) {
             state.phase = 'finished'
             break
-        }
-        const planFn: EventPlan = (_self, _enemy, _state) => {
-            const custom = customPlans.get(_self.id)
-            return custom ? custom(_self, _enemy, _state) : planEvent(_self, _state)
         }
         if (!engine.runEvent(planFn)) break
     }

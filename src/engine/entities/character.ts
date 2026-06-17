@@ -26,7 +26,8 @@ export class Character {
     attrs: AttributeSet
     hp: number
     ap: number
-    nextTurnApDebt = 0
+    /** 上次行动结束的绝对时间 (ms)，0=未行动过 */
+    lastActionEndMs = 0
 
     /** 已解析的被动对象列表 */
     passiveDefs: Passive[] = []
@@ -113,6 +114,15 @@ export class Character {
             })
         }
 
+        // 非空手角色自动获取捡武器招式
+        if (
+            weapon.id !== 'bare_hands' &&
+            !this.#actionCache.some((a) => a.id === 'pickup_weapon' || a.id === 'retrieve_blade')
+        ) {
+            const pw = getActionDef('pickup_weapon')
+            if (pw) this.#actionCache.push(new Action(pw))
+        }
+
         this.ap = this.maxAp
         this.hp = calcMaxHp(this.attrs.get('vitality')) + this.maxHpMod
     }
@@ -182,9 +192,9 @@ export class Character {
         return this.hp > 0
     }
 
+    /** 重置为满 AP（初始化用） */
     resetAp(): void {
-        this.ap = Math.max(0, this.maxAp - this.nextTurnApDebt)
-        this.nextTurnApDebt = 0
+        this.ap = this.maxAp
     }
 
     spendAp(cost: number): boolean {
@@ -203,7 +213,7 @@ export class Character {
             build: this.build,
             hp: this.hp,
             ap: this.ap,
-            nextTurnApDebt: this.nextTurnApDebt,
+            lastActionEndMs: this.lastActionEndMs,
         }
     }
 
@@ -211,7 +221,7 @@ export class Character {
         const c = new Character(data.build)
         c.hp = data.hp
         c.ap = data.ap
-        c.nextTurnApDebt = data.nextTurnApDebt
+        c.lastActionEndMs = data.lastActionEndMs
         return c
     }
 
@@ -220,7 +230,7 @@ export class Character {
         const c = new Character(this.build)
         c.hp = this.maxHp
         c.ap = this.maxAp // 战斗开始满 AP
-        c.nextTurnApDebt = 0
+        c.lastActionEndMs = 0
         return c
     }
 

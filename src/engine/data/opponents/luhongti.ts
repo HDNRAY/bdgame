@@ -3,11 +3,11 @@ import { type OpponentDef, passive, action, artifact } from '.'
 
 export const LUHONGTI: OpponentDef = {
     id: 'luhongti',
-    name: '河山铁剑·陆红提',
+    name: '铁剑·红提',
     generate: (n) =>
         simpleGenerate(
             'luhongti',
-            '河山铁剑·陆红提',
+            '铁剑·红提',
             'strong',
             'heshan_sword',
             { strength: 9, vitality: 8, agility: 9, dexterity: 9, insight: 16, wisdom: 20 },
@@ -27,7 +27,5 @@ export const LUHONGTI: OpponentDef = {
             ],
             n,
         ),
-    aiOverrides: {
-        actionPriority: () => ['crushing_blow', 'sword_thrust', 'push_palm'],
-    },
+    aiOverrides: {},
 }

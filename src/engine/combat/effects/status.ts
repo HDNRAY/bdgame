@@ -199,11 +199,14 @@ const statusHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
 
         const appId = genAppId(tMs)
+        const mods: Record<string, number> = {}
+        if (agiDelta !== 0) mods.agility = agiDelta
+        if (insDelta !== 0) mods.insight = insDelta
         const layerKey = `stun::${enemy.id}::${appId}`
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'stun',
             restoreValue: stacks,
-            mods: { agility: agiDelta, insight: insDelta },
+            mods,
         })
         engine.state.turn.scheduleSystemEventAt(
             `buff_end_${layerKey}`,

@@ -96,7 +96,7 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [1, 3],
         triggers: [
             {
-                condition: { type: 'battle_start' },
+                condition: { type: 'on_equip' },
                 effects: [{ type: 'add_buff', buffId: 'overlord_blade' }],
             },
             {

@@ -19,6 +19,38 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const distance = state.position.distance(self.id, enemy.id)
     const overrides = getOverrides(self.id)
 
+    // 时间优势估算：身法差异决定行动节奏
+    const timeAdvantage = self.attrs.get('agility') - enemy.attrs.get('agility')
+
+    // ── 0. 缴械优先：先捡武器再考虑攻击 ──
+    const disarmedKey = `disarmed::${self.id}`
+    const disarmedLayer = state.pendingBuffs.get(disarmedKey)
+    if (disarmedLayer) {
+        const apBudget = self.ap - (overrides?.reserveAp ?? 0)
+        const dropPos = disarmedLayer.extra?.dropPosition as number | undefined
+        if (dropPos !== undefined) {
+            const distToDrop = Math.abs(state.position.get(self.id) - dropPos)
+            const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
+            const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
+                ? 2
+                : basePerAp * (1 + (self.moveEfficiency ?? 0))
+            const moveToPickupAp = distToDrop > 1 ? Math.ceil((distToDrop - 1) / perAp) : 0
+            if (moveToPickupAp <= apBudget) {
+                const cmds: ActionCommand[] = []
+                if (moveToPickupAp > 0) {
+                    cmds.push({ type: 'move', bestDistance: -(distToDrop - 1) })
+                }
+                // 找角色的捡武器招式（retrieve_weapon tag）
+                const pickupAction = self.actions.find((a) => a.def.tags.includes('retrieve_weapon'))
+                if (pickupAction) {
+                    cmds.push({ type: 'support', actionId: pickupAction.id })
+                }
+                return cmds // 先去捡武器，下回合再攻击
+            }
+        }
+        // 无法捡武器（距离太远/AP不够），fall through 到正常 AI
+    }
+
     // ── 1. 候选主招（非 support） ──
     let candidates: DamageEstimate[] = []
     for (const inst of self.actions) {
@@ -43,12 +75,27 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         candidates.push(calcExpectedDamage(inst.def, self, enemy, weapon.range, distance))
     }
 
-    // 2. 排序
+    // 2. 排序：时间劣势时优先选低消耗招式
     if (overrides?.actionPriority) {
         const ordered = overrides.actionPriority(candidates, self, state)
-        candidates.sort((a, b) => ordered.indexOf(a.actionId) - ordered.indexOf(b.actionId))
+        candidates.sort((a, b) => {
+            const ia = ordered.indexOf(a.actionId)
+            const ib = ordered.indexOf(b.actionId)
+            // 不在列表中的排最后
+            if (ia === -1 && ib === -1) return 0
+            if (ia === -1) return 1
+            if (ib === -1) return -1
+            return ia - ib
+        })
     } else {
-        candidates.sort((a, b) => b.expectedDamage - a.expectedDamage)
+        candidates.sort((a, b) => {
+            if (timeAdvantage < -3) {
+                // 身法大幅落后：优先低消耗招式，确保能出手
+                const apDiff = a.apCost - b.apCost
+                if (Math.abs(apDiff) >= 2) return apDiff
+            }
+            return b.expectedDamage - a.expectedDamage
+        })
     }
 
     // ── 3. 遍历候选，找第一个可行的 ──
@@ -64,12 +111,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             mainId = est.actionId
             break
         }
-        const style =
-            overrides?.forceStyle ??
-            classifyAttackStyle(
-                weapon.range,
-                self.actions.map((a) => a.def),
-            )
+        const style = overrides?.forceStyle ?? classifyAttackStyle(weapon.range)
         const mainDef = self.actions.find((a) => a.id === est.actionId)?.def
         if (!mainDef) continue
         const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
@@ -99,7 +141,10 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         return []
     }
 
-    const mainDef2 = self.actions.find((a) => a.id === mainId)!.def
+    // 验证 mainId 对应招式存在（pickup_weapon 可能不在所有角色 action list 中）
+    const mainInst = self.actions.find((a) => a.id === mainId)
+    if (!mainInst) return []
+    const mainDef2 = mainInst.def
 
     // ── 4. 辅助招式 ──
     const supportCmds = planSupportActions(
@@ -144,35 +189,22 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         }
     }
 
-    // ── 7. 行动后移动 ──
-    if (enemy) {
-        const afterAp =
-            apBudget -
-            moveAp -
-            mainDef2.apCost -
-            supportCmds.reduce((s, c) => {
-                const inst = self.actions.find((a) => a.id === c.actionId)
-                return s + (inst?.apCost ?? 0)
-            }, 0)
-        if (afterAp > 0 && moveDelta === 0) {
-            const style =
-                overrides?.forceStyle ??
-                classifyAttackStyle(
-                    weapon.range,
-                    self.actions.map((a) => a.def),
-                )
-            const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
-            const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
-                ? 2
-                : basePerAp * (1 + (self.moveEfficiency ?? 0))
-            const idealDist = style === 'ranged' || style === 'mid' ? weapon.range[1] : Math.max(weapon.range[0], 2)
-            const postDelta = idealDist - state.position.distance(self.id, enemy.id)
-            if (Math.abs(postDelta) >= 1) {
-                const dist = Math.abs(postDelta)
-                const apNeeded = Math.ceil(dist / perAp)
-                if (afterAp >= apNeeded) {
-                    cmds.push({ type: 'move', bestDistance: postDelta > 0 ? apNeeded : -apNeeded })
-                }
+    // ── 7. 行动后走位（剩余 AP，但不走多余距离） ──
+    if (enemy && moveDelta === 0) {
+        const style = overrides?.forceStyle ?? classifyAttackStyle(weapon.range)
+        const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
+        const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
+            ? 2
+            : basePerAp * (1 + (self.moveEfficiency ?? 0))
+        // 理想距离：远程/中程保持在最大射程边缘，近战贴脸
+        const idealDist = style === 'ranged' || style === 'mid' ? weapon.range[1] : Math.max(weapon.range[0], 2)
+        const currentDist = state.position.distance(self.id, enemy.id)
+        const postDelta = idealDist - currentDist
+        if (Math.abs(postDelta) >= 1) {
+            const dist = Math.abs(postDelta)
+            const apUsed = Math.ceil(dist / perAp)
+            if (apUsed > 0) {
+                cmds.push({ type: 'move', bestDistance: postDelta > 0 ? apUsed : -apUsed })
             }
         }
     }

@@ -1,5 +1,5 @@
 import type { Character } from '../entities/character'
-import type { ActionDefinition } from '../entities/action'
+import type { ActionDefinition, EffectDef } from '../entities/action'
 import { calcBaseDamage, calcCritChance, calcHitChance, calcParryChance } from '../calc/damage'
 
 export interface DamageEstimate {
@@ -23,17 +23,23 @@ export function calcExpectedDamage(
     const actionRange = action.range ?? weaponRange
     const canReach = distance >= actionRange[0] && distance <= actionRange[1]
 
-    // 2. 基础伤害（取第一个 damage 效果）
+    // 2. 基础伤害（遍历所有伤害效果，含 missing_hp_damage）
     let rawDamage = 0
     for (const eff of action.effects ?? []) {
         if (eff.type === 'damage' && 'scaling' in eff) {
-            const dmgEff = eff as Extract<NonNullable<ActionDefinition['effects']>[number], { type: 'damage' }>
-            rawDamage = calcBaseDamage(dmgEff.scaling, attacker.attrs.getAll(), dmgEff.base ?? 0)
-            break
+            rawDamage += calcBaseDamage(
+                (eff as Extract<NonNullable<ActionDefinition['effects']>[number], { type: 'damage' }>).scaling,
+                attacker.attrs.getAll(),
+                (eff as Extract<NonNullable<ActionDefinition['effects']>[number], { type: 'damage' }>).base ?? 0,
+            )
         }
         if (eff.type === 'fixed_damage') {
-            rawDamage = eff.value ?? 0
-            break
+            rawDamage += eff.value ?? 0
+        }
+        if (eff.type === 'missing_hp_damage') {
+            rawDamage += Math.round(
+                (defender.maxHp - defender.hp) * (eff as Extract<EffectDef, { type: 'missing_hp_damage' }>).ratio,
+            )
         }
     }
 

@@ -1,4 +1,17 @@
 // npx tsx scripts/demo-battle.ts [n]
+import { writeFileSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const logPath = join(__dirname, 'battle-log.txt')
+const logLines: string[] = []
+const origLog = console.log
+console.log = (...args) => {
+    const line = args.map((a) => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))).join(' ')
+    logLines.push(line)
+    origLog(...args)
+}
+process.on('exit', () => writeFileSync(logPath, logLines.join('\n') + '\n', 'utf-8'))
 import { Character } from '../src/engine/entities/character'
 import {
     ZHANGLIE,
@@ -41,8 +54,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = QILAN.generate(33)
-const oBuild = YIDAO.generate(33)
+const pBuild = LUEYING.generate(33)
+const oBuild = LAIFENG.generate(33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

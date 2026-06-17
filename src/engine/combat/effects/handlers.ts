@@ -1,7 +1,7 @@
 import type { EffectDef } from '../../entities/action'
 import type { AttrName } from '../../entities/attributes'
 import type { StatusType } from '../../entities/status'
-import { calcBaseDamage, calcHealAmount, calcBuffDuration } from '../../calc/damage'
+import { calcBaseDamage, calcHealAmount, calcBuffDuration, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../data/weapons'
 import { getBuff } from '../../data/buffs'
 import { genAppId } from '../../util/buff-utils'
@@ -9,7 +9,8 @@ import type { Tag } from '../../entities/tag'
 import { scheduleBuffExpiry, revertBuffMods, clearWeaponBuffLayers, executeMove, revertWeaponStatBuffs } from '../utils'
 import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
-import { applyDamage } from './damage'
+import { applyDamage, applyBonusDamage } from './damage'
+import { processActionEffect } from './action'
 import { handleStatusEffect } from './status'
 
 export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
@@ -49,7 +50,14 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     ciyuan_init({ self, engine }: EffectCtx) {
         const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
         if (weapon.id === 'bare_hands') {
-            self.weaponDef = { ...getWeapon('ciyuan_blade') }
+            // 走 switch_weapon 流程以确保 passiveTriggers / on_equip 等正确
+            processActionEffect(
+                { type: 'switch_weapon', weaponId: 'ciyuan_blade' },
+                self,
+                self,
+                engine,
+                engine.state.turn.currentTime,
+            )
             engine.emitLog({
                 type: 'system',
                 message: BattleLog.msg('灵剑', self.name, '凝炁为刃'),
@@ -102,20 +110,15 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const { ratio } = eff as Extract<EffectDef, { type: 'missing_hp_damage' }>
         const dmg = Math.round((enemy.maxHp - enemy.hp) * ratio)
         if (dmg > 0) {
-            enemy.takeDamage(dmg)
-            engine.emitLog({
-                type: 'damage',
-                actionId: action?.id ?? 'missing_hp_damage',
-                actionName: action?.name ?? '崩劲',
-                sourceId: self.id,
-                targetId: enemy.id,
-                base: dmg,
-                final: dmg,
-                blocked: 0,
-                isCrit: false,
-                isParried: false,
-                tags: ['fixed_damage'],
-            })
+            applyBonusDamage(
+                dmg,
+                enemy,
+                self,
+                engine,
+                action,
+                action?.name ?? '崩劲',
+                action?.id ?? 'missing_hp_damage',
+            )
         }
     },
     status({ eff, self, enemy, engine, tMs }: EffectCtx) {
@@ -254,6 +257,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             const max = buff.stacking.max ?? Infinity
             const newStacks = Math.min(max, existing.restoreValue + (e.stacks ?? 1))
             const delta = newStacks - existing.restoreValue
+            if (delta <= 0) return // 已达上限，不显示 log
             existing.restoreValue = newStacks
             if (e.buffId === 'momentum') self.hitChanceMod += delta * 0.05
             engine.emitLog({
@@ -274,9 +278,15 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
         engine.state.pendingBuffs.set(key, { restoreValue: e.stacks ?? 1, mods })
         if (e.buffId === 'disarmed') {
+            // 清理旧 buff_end 事件，防止残留事件误触
+            engine.state.turn.removeEvents('buff_end_' + key)
             const layer = engine.state.pendingBuffs.get(key)
             if (layer && !layer.extra?.originalWeapon) {
-                layer.extra = { ...layer.extra, originalWeapon: self.weaponDef?.id ?? getWeapon(self.build.weapon).id }
+                layer.extra = {
+                    ...layer.extra,
+                    originalWeapon: self.weaponDef?.id ?? getWeapon(self.build.weapon).id,
+                    dropPosition: engine.state.position.get(self.id),
+                }
             }
         }
         if (buff?.attrMods?.agility) engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
@@ -329,6 +339,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         revertBuffMods(layer, self, engine)
         if (e.buffId === 'momentum') self.hitChanceMod -= oldStacks * 0.05
         engine.state.pendingBuffs.delete(key)
+        engine.state.turn.removeEvents('buff_end_' + key)
         const buffName = getBuff(e.buffId)?.name ?? e.buffId
         engine.emitLog({
             type: 'system',
@@ -384,22 +395,41 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             if (moveDist !== 0) executeMove(self, engine, -moveDist)
         }
     },
-    disarm({ enemy, engine }: EffectCtx) {
+    disarm({ eff, enemy, engine }: EffectCtx) {
+        const e = eff as Extract<EffectDef, { type: 'disarm' }>
+        if (e.chance !== undefined) {
+            const { success } = calcRoll(e.chance)
+            if (!success) return
+        }
         const oldWeapon = enemy.weaponDef ?? getWeapon(enemy.build.weapon)
         if (oldWeapon.id === 'bare_hands') return
         // 御物武器免疫缴械
         if (oldWeapon.tags.includes('imperial')) return
         const key = `disarmed::${enemy.id}`
         if (engine.state.pendingBuffs.has(key)) return
+
+        // 脱手清除刀势
+        const momentumKey = `momentum::${enemy.id}`
+        const momentumLayer = engine.state.pendingBuffs.get(momentumKey)
+        if (momentumLayer) {
+            const stacks = momentumLayer.restoreValue
+            enemy.hitChanceMod -= stacks * 0.05
+            engine.state.pendingBuffs.delete(momentumKey)
+            engine.state.turn.removeEvents('buff_end_' + momentumKey)
+            engine.emitLog({
+                type: 'system',
+                message: `[刀势] ${BattleLog.name(enemy.name)} 状态消失（${stacks}层）`,
+                actorId: enemy.id,
+            })
+        }
+
+        // 记录掉落位置
+        const dropPosition = engine.state.position.get(enemy.id)
         revertWeaponStatBuffs(oldWeapon, enemy, engine)
         clearWeaponBuffLayers(enemy.id, engine)
         enemy.weaponDef = { ...getWeapon('bare_hands') }
         engine.state.pendingBuffs.delete(`dimensional_blade::${enemy.id}`)
-        engine.state.pendingBuffs.set(key, { restoreValue: 1, extra: { originalWeapon: oldWeapon.id } })
-        const buffDef = getBuff('disarmed')
-        if (buffDef?.expiry?.type === 'duration') {
-            scheduleBuffExpiry(engine, key, buffDef.expiry.ms)
-        }
+        engine.state.pendingBuffs.set(key, { restoreValue: 1, extra: { originalWeapon: oldWeapon.id, dropPosition } })
         engine.emitLog({
             type: 'system',
             message: `[点腕] ${BattleLog.name(enemy.name)} 兵器脱手！`,
@@ -409,11 +439,22 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     switch_weapon({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'switch_weapon' }>
 
-        revertWeaponStatBuffs(self.weaponDef, self, engine)
+        const oldWeaponName = (self.weaponDef ?? getWeapon(self.build.weapon)).name
+        const oldWeapon = self.weaponDef ?? getWeapon(self.build.weapon)
+        revertWeaponStatBuffs(oldWeapon, self, engine)
         clearWeaponBuffLayers(self.id, engine)
+        // 移除旧武器的 passive triggers
+        for (const t of oldWeapon.triggers ?? []) {
+            const idx = self.passiveTriggers.indexOf(t)
+            if (idx !== -1) self.passiveTriggers.splice(idx, 1)
+        }
 
         const weapon = getWeapon(e.weaponId)
         self.weaponDef = { ...weapon }
+        // 加入新武器的 passive triggers
+        for (const t of weapon.triggers ?? []) {
+            self.passiveTriggers.push(t)
+        }
 
         if (!weapon.tags.includes('imperial')) {
             for (const eff of weapon.effects ?? []) {
@@ -428,8 +469,26 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         engine.emitLog({
             type: 'system',
-            message: `[换武] ${self.name} 切换为 ${weapon.name}`,
+            message: `[换武] ${self.name} ${oldWeaponName} → ${weapon.name}`,
             actorId: self.id,
         })
+        // 触发武器的 on_equip（新武器的装备效果，如霸刀buff）
+        engine.emit('on_equip', self, self)
+    },
+    retrieve_weapon({ self, engine }: EffectCtx) {
+        const key = `disarmed::${self.id}`
+        const layer = engine.state.pendingBuffs.get(key)
+        if (!layer?.extra?.originalWeapon) return
+        // 1. 切回原武器 → 触发 on_equip → 自动加武器 buff
+        processActionEffect(
+            { type: 'switch_weapon', weaponId: layer.extra.originalWeapon as string },
+            self,
+            self,
+            engine,
+            engine.state.turn.currentTime,
+        )
+        // 2. 移除缴械
+        const removeEff: EffectDef = { type: 'remove_buff', buffId: 'disarmed' }
+        processActionEffect(removeEff, self, self, engine, engine.state.turn.currentTime)
     },
 }

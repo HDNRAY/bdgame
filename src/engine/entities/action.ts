@@ -53,8 +53,9 @@ export type EffectDef =
     | { type: 'remove_buff'; buffId: string; stacks?: number }
     | { type: 'ciyuan_init' }
     | { type: 'switch_weapon'; weaponId: string }
+    | { type: 'retrieve_weapon' }
     | { type: 'short_dash'; maxDistance?: number }
-    | { type: 'disarm' }
+    | { type: 'disarm'; chance?: number }
     | { type: 'ignore_parry' }
     | { type: 'wisdom_stat_buff'; ratio: number; attrs: AttrName[] }
 
