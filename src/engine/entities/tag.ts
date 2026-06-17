@@ -44,3 +44,4 @@ export type Tag =
     | 'support' // 辅助
     | 'retrieve_weapon' // 收回武器
     | 'bonus_damage' // 独立附加伤害
+    | 'dual_wield' // 双持

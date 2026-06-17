@@ -14,7 +14,7 @@ function rewardType(id: string): 'passive' | 'artifact' | 'action' {
 
 export const LAYUE: OpponentDef = {
     id: 'layue',
-    name: '腊月',
+    name: '什么·腊月',
     generate: (n) => {
         const extra = Math.max(0, Math.floor((n - 1) / 3))
         const rewards: Reward[] = [
@@ -31,7 +31,7 @@ export const LAYUE: OpponentDef = {
 
         return simpleGenerate(
             'layue',
-            '腊月',
+            '什么·腊月',
             'swift',
             n >= 2 ? 'twin_swords' : 'bare_hands',
             { strength: 12, vitality: 8, agility: 20, dexterity: 16, insight: 16, wisdom: 8 },

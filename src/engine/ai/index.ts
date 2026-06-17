@@ -77,15 +77,12 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const huboKey = `zuoyou_hubo::${self.id}`
     const hasHubo = state.pendingBuffs.has(huboKey)
     if (overrides?.actionPriority) {
-        const ordered = overrides.actionPriority(candidates, self, state)
-        // actionPriority 内用 AP 效率二次排序（同级内效率高的排前）
-        const orderMap = new Map(ordered.map((id, i) => [id, i]))
+        const weights = overrides.actionPriority(candidates, self, state)
         candidates.sort((a, b) => {
-            const ia = orderMap.get(a.actionId) ?? Infinity
-            const ib = orderMap.get(b.actionId) ?? Infinity
-            if (ia !== ib) return ia - ib
-            // 同级内按 AP 效率排序
-            return calcActionScore(b, hasHubo, apBudget) - calcActionScore(a, hasHubo, apBudget)
+            const scoreA = calcActionScore(a, hasHubo, apBudget) + (weights[a.actionId] ?? 0)
+            const scoreB = calcActionScore(b, hasHubo, apBudget) + (weights[b.actionId] ?? 0)
+            if (scoreA !== scoreB) return scoreB - scoreA
+            return b.expectedDamage - a.expectedDamage
         })
     } else {
         candidates.sort((a, b) => {
@@ -175,7 +172,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     cmds.push({ type: 'attack', actionId: mainId })
 
     // ── 6. 左右互搏 ──
-    if (state.pendingBuffs.has(`zuoyou_hubo::${self.id}`)) {
+    if (state.pendingBuffs.has(`zuoyou_hubo::${self.id}`) && weapon.tags.includes('dual_wield')) {
         const spent =
             moveAp +
             mainDef2.apCost +

@@ -249,6 +249,18 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             if (delta <= 0) return // 已达上限，不显示 log
             existing.restoreValue = newStacks
             if (e.buffId === 'momentum') self.hitChanceMod += delta * 0.05
+            // 按层数累加 attrMods
+            if (buff?.attrMods && delta > 0) {
+                const scaledMods: Record<string, number> = {}
+                for (const [attr, val] of Object.entries(buff.attrMods)) {
+                    scaledMods[attr] = (val as number) * delta
+                }
+                const newMods = applyAttrMods(self, engine, scaledMods, buff.name)
+                if (!existing.mods) existing.mods = {}
+                for (const [attr, val] of Object.entries(newMods)) {
+                    existing.mods[attr] = (existing.mods[attr] ?? 0) + (val as number)
+                }
+            }
             engine.emitLog({
                 type: 'system',
                 message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} Lv.${newStacks}`,
@@ -308,6 +320,18 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             if (delta < 0) {
                 layer.restoreValue += delta
                 if (e.buffId === 'momentum') self.hitChanceMod += delta * 0.05
+                // 部分移除时按比例回退 attrMods
+                if (buff?.attrMods && layer.mods) {
+                    const ratio = Math.abs(delta) / (layer.restoreValue - delta)
+                    for (const [attr, val] of Object.entries(buff.attrMods)) {
+                        const revertVal = Math.round((val as number) * delta * ratio)
+                        if (revertVal !== 0) {
+                            self.attrs.modify(attr as AttrName, revertVal)
+                            layer.mods[attr] = (layer.mods[attr] ?? 0) + revertVal
+                            if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+                        }
+                    }
+                }
                 engine.emitLog({
                     type: 'system',
                     message: `${getBuff(e.buffId)?.name ?? e.buffId} ${self.name} ${Math.abs(delta)}层→${layer.restoreValue}层`,

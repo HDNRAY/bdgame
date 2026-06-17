@@ -41,7 +41,16 @@ export function formatBattleLog(log: BattleLog): string[] {
         const [first, second] = c0.id === actorId ? [c0, c1] : [c1, c0]
         const h0 = Math.round(first.hp * 10) / 10
         const h1 = Math.round(second.hp * 10) / 10
-        return `HP${h0}/${first.maxHp} VS HP${h1}/${second.maxHp}`
+        let info = `HP${h0}/${first.maxHp} VS HP${h1}/${second.maxHp}`
+        // 查 actor 的缠层数
+        for (const [k, layer] of s.pendingBuffs) {
+            const parts = k.split('::')
+            if (parts[0] === 'chan' && parts[1] === actorId) {
+                info += ` 缠${layer.restoreValue}`
+                break
+            }
+        }
+        return info
     }
 
     function t(ms: number) {

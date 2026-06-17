@@ -224,6 +224,10 @@ function handleStatusEffect(ctx: EffectCtx & { eff: EffectDef & { type: 'status'
         engine.emitLog({ type: 'system', message: `[冰心] ${enemy.name} 免疫 ${st}`, actorId: enemy.id })
         return
     }
+    if (engine.state.pendingBuffs.has(`dark_room_sense::${enemy.id}`) && st === 'sand_blind') {
+        engine.emitLog({ type: 'system', message: `[暗室抓雀功] ${enemy.name} 免疫迷眼`, actorId: enemy.id })
+        return
+    }
     if (engine.state.pendingBuffs.has(`paralyze_immunity::${enemy.id}`) && st === 'paralyze') {
         engine.emitLog({ type: 'system', message: `[雷体] ${enemy.name} 免疫麻痹`, actorId: enemy.id })
         return

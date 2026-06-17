@@ -354,6 +354,57 @@ export const MVP_ACTIONS: ActionDefinition[] = [
             { type: 'damage', scaling: { strength: 0.2, agility: 0.1 } },
         ],
     },
+    // ── 龙女 · 双剑 ──
+    {
+        id: 'quanzhen_sword',
+        name: '全真剑法',
+        description: '全真剑法，以力破巧。叠一层刚劲。',
+        requiredTags: ['pierce'],
+        apCost: 2,
+        tags: ['pierce'],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 },
+        ],
+    },
+    {
+        id: 'yunv_sword',
+        name: '玉女剑法',
+        description: '玉女剑法，灵动如烟。叠一层柔劲。',
+        requiredTags: ['pierce'],
+        apCost: 2,
+        tags: ['pierce'],
+        effects: [
+            { type: 'damage', scaling: { agility: 0.4 } },
+            { type: 'add_buff', buffId: 'gentle_stance', stacks: 1 },
+        ],
+    },
+    {
+        id: 'yufeng_needle',
+        name: '玉峰针',
+        description: '玉蜂针破空，附寒毒麻痹。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['range'],
+        range: [0, 5],
+        effects: [
+            { type: 'damage', scaling: { dexterity: 0.2 } },
+            { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
+        ],
+    },
+    {
+        id: 'yuxin_sword',
+        name: '玉女素心剑法',
+        description: '双剑合璧，刚柔并济。需要力道和身法均达到18才能施展，消耗10层缠。',
+        requiredTags: ['pierce'],
+        apCost: 6,
+        tags: ['pierce'],
+        canUse: (attacker) => attacker.attrs.get('strength') >= 18 && attacker.attrs.get('agility') >= 18,
+        effects: [
+            { type: 'damage', scaling: { strength: 1, agility: 1 } },
+            { type: 'remove_buff', buffId: 'chan', stacks: 15 },
+        ],
+    },
     {
         id: 'sword_thrust',
         name: '突刺',
@@ -682,6 +733,17 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
             { type: 'status', status: 'stun', stacks: 1, chance: 1 },
             { type: 'remove_buff', buffId: 'chan', stacks: 15 },
         ],
+    },
+    {
+        id: '_detox',
+        name: '解毒',
+        description: '',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['trigger'],
+        target: 'self',
+        maxUses: 999,
+        effects: [{ type: 'cleanse', statuses: ['poison'] }],
     },
 ]
 

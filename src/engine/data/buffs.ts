@@ -374,7 +374,15 @@ export const BUFF_DB: BuffDef[] = [
             const dexBonus = target.attrs.get('dexterity') * 0.01
             return Math.round(final * (1 - dexBonus) * 10) / 10
         },
-        onCanParry: ({ self }) => self.weaponDef?.id === 'bare_hands',
+        onCanParry: ({ self }) => !self.weaponDef?.tags.includes('parry'),
+    },
+    {
+        id: 'silk_guard',
+        name: '金丝护手',
+        description: '金丝手套护持，无刃亦可格挡兵刃。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onCanParry: ({ self }) => !self.weaponDef?.tags.includes('parry'),
     },
 
     // ── 永久修饰（构造期执行） ──
@@ -417,6 +425,55 @@ export const BUFF_DB: BuffDef[] = [
         description: '免疫麻痹。',
         tags: [],
         expiry: { type: 'permanent' },
+    },
+    {
+        id: 'vigor_stance',
+        name: '刚劲',
+        description: '剑势·刚，力道+4/层，身法-2/层。最多2层。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 2 },
+        attrMods: { strength: 4, agility: -2 },
+    },
+    {
+        id: 'gentle_stance',
+        name: '柔劲',
+        description: '剑势·柔，身法+4/层，力道-2/层。最多2层。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 2 },
+        attrMods: { agility: 4, strength: -2 },
+    },
+    {
+        id: 'dark_room_sense',
+        name: '暗室雀眼',
+        description: '暗室练就的敏锐感知，免疫迷眼。',
+        tags: [],
+        expiry: { type: 'permanent' },
+    },
+    {
+        id: 'herb_pouch',
+        name: '蜂草鱼囊',
+        description: '每 3 秒自动化解一层毒素。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        tickInterval: 3000,
+        onTickHeal: ({ target, engine }) => {
+            const poisonKey = `poison::${target.id}`
+            const poisonLayer = engine.state.pendingBuffs.get(poisonKey)
+            if (poisonLayer && poisonLayer.restoreValue > 0) {
+                poisonLayer.restoreValue -= 1
+                engine.emitLog({
+                    type: 'system',
+                    message: `[蜂草鱼囊] ${target.name} 解毒-1层`,
+                    actorId: target.id,
+                })
+                if (poisonLayer.restoreValue <= 0) {
+                    engine.state.pendingBuffs.delete(poisonKey)
+                }
+            }
+            return 0
+        },
     },
     {
         id: 'thunder_constitution',

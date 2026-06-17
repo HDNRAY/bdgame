@@ -9,6 +9,7 @@ export { LUEYING } from './lueying'
 export { LIUXIGUA } from './liuxigua'
 export { LUHONGTI } from './luhongti'
 export { QILAN } from './qilan'
+export { LONGNV } from './longnv'
 
 import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
@@ -27,6 +28,7 @@ import { LUEYING } from './lueying'
 import { LIUXIGUA } from './liuxigua'
 import { LUHONGTI } from './luhongti'
 import { QILAN } from './qilan'
+import { LONGNV } from './longnv'
 
 /** 对手定义 */
 export interface OpponentDef {
@@ -42,8 +44,8 @@ export interface OpponentDef {
 
 /** AI 行为覆盖 */
 export interface AiOverrides {
-    /** 对候选招式排序（返回 actionId 优先顺序） */
-    actionPriority?: (candidates: DamageEstimate[], self: Character, state: BattleState) => string[]
+    /** 对候选招式打分加权（返回 actionId → 额外分值） */
+    actionPriority?: (candidates: DamageEstimate[], self: Character, state: BattleState) => Record<string, number>
     /** 强制攻击风格 */
     forceStyle?: AttackStyle
     /** 保留 AP（不放主招/移动） */
@@ -70,6 +72,7 @@ export const OPPONENTS: OpponentDef[] = [
     LUEYING,
     LIUXIGUA,
     LUHONGTI,
+    LONGNV,
 ]
 
 /** 按 ID 查找对手 def */

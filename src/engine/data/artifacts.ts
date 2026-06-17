@@ -197,6 +197,21 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['trigger', 'electric'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'cinnabar_mark' }] }],
     },
+    {
+        id: 'golden_silk_gloves',
+        name: '金丝手套',
+        description: '冰蚕金丝织就，空手亦可格挡兵刃。招架率+15%，空手可招架。',
+        tags: ['defense'],
+        effects: [{ type: 'parry_mod', value: 0.15 }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'silk_guard' }] }],
+    },
+    {
+        id: 'herb_pouch',
+        name: '蜂草鱼囊',
+        description: '玉蜂浆、断肠草、寒潭白鱼所制，每 3 秒自动化解一层毒素。',
+        tags: ['trigger'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'herb_pouch' }] }],
+    },
 ]
 
 /** 按 ID 查找物品 */

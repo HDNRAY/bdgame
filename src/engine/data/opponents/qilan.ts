@@ -26,11 +26,11 @@ export const QILAN: OpponentDef = {
             n,
         ),
     aiOverrides: {
-        actionPriority: (_candidates, self, state) => {
+        actionPriority: (_candidates, self, state): Record<string, number> => {
             const enemy = state.characters.find((c) => c.id !== self.id)
             const recentStun = enemy && state.pendingBuffs.has(`stun_track::${enemy.id}`)
-            if (recentStun) return ['palm_strike', 'electric_yoyo', 'thunder_storm']
-            return ['thunder_storm', 'palm_strike', 'electric_yoyo']
+            if (recentStun) return { palm_strike: 20, electric_yoyo: 10 }
+            return { thunder_storm: 30, palm_strike: 15 }
         },
     },
 }

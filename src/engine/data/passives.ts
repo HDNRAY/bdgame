@@ -236,6 +236,14 @@ export const PASSIVES: Passive[] = [
             },
         ],
     },
+    {
+        id: 'dark_room_catch',
+        name: '暗室抓雀功',
+        description: '古墓中蒙眼抓雀练就的身法与感知。身法+2，灵巧+2，免疫迷眼。',
+        tags: ['passive', 'buff', 'defense'],
+        effects: [{ type: 'stat_buff', attrs: { agility: 2, dexterity: 2 } }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dark_room_sense' }] }],
+    },
 ]
 
 /** 天赋（绝学）注册表 */
