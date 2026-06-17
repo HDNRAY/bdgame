@@ -25,6 +25,14 @@ export function applyBonusDamage(
     if (raw <= 0) return
     const final = applyDamageModifiers(raw, target, attacker, engine, raw, actionDef, true)
     target.takeDamage(final)
+    // 缠积累（损失血量 × 0.3）
+    if (final > 0) {
+        const chanKey = `chan::${target.id}`
+        const existing = engine.state.pendingBuffs.get(chanKey)
+        const newValue = Math.min(30, (existing?.restoreValue ?? 0) + Math.round(final * 0.3))
+        engine.state.pendingBuffs.set(chanKey, { restoreValue: newValue })
+        engine.checkChanOverflow(target.id)
+    }
     engine.emitLog({
         type: 'damage',
         actionId: labelId,
@@ -59,6 +67,15 @@ export function applyDamage(
     const final = afterCrit
 
     target.takeDamage(final)
+
+    // 缠积累（损失血量 × 0.3）
+    if (final > 0) {
+        const chanKey = `chan::${target.id}`
+        const existing = engine.state.pendingBuffs.get(chanKey)
+        const newValue = Math.min(30, (existing?.restoreValue ?? 0) + Math.round(final * 0.3))
+        engine.state.pendingBuffs.set(chanKey, { restoreValue: newValue })
+        engine.checkChanOverflow(target.id)
+    }
 
     if (final > 0) {
         engine.emit('on_dealt_damage', attacker, target)

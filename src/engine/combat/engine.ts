@@ -16,6 +16,7 @@ import { getBuff } from '../data/buffs'
 import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
+import { revertBuffMods, applyAttrMods } from './utils/buff-layer'
 import { processActionEffect, processStatusTick, processHitCheck, processBleedDamage, processBuffEnd } from './effects'
 import type {
     ActionCommand,
@@ -298,6 +299,7 @@ export class BattleEngine {
         const key = `${self.id}:${event}`
         if (this.state.triggeredThisChain.has(key)) return
         if (this.state.isEmitting) {
+            this.state.triggeredThisChain.add(key)
             this.#deferredEmits.push({ event, self, enemy, buffId, indent: this.state.log.indentDepth })
             return
         }
@@ -359,14 +361,7 @@ export class BattleEngine {
                 if (!isInitPhase) this.state.log.indentDepth--
             } else {
                 const check = canExecuteAction(action, self, this.state)
-                if (!check.ok) {
-                    this.emitLog({
-                        type: 'system',
-                        message: BattleLog.plain(self.name, `${action.name} ${check.reason!}`),
-                        actorId: self.id,
-                    })
-                    continue
-                }
+                if (!check.ok) continue
                 this.state.log.indentDepth++
                 this.#executeAction(action, self, enemy, true)
                 this.state.log.indentDepth--
@@ -421,6 +416,34 @@ export class BattleEngine {
 
     getOpponent(id: string): Character | undefined {
         return this.state.characters.find((c) => c.id !== id)
+    }
+
+    /** 检查缠劲溢出，满30层加「周」buff，不满30层移除 */
+    checkChanOverflow(charId: string): void {
+        const chanKey = `chan::${charId}`
+        const layer = this.state.pendingBuffs.get(chanKey)
+        const curValue = layer?.restoreValue ?? 0
+        const zhouKey = `zhou::${charId}`
+        const hasZhou = this.state.pendingBuffs.has(zhouKey)
+
+        if (curValue >= 30 && !hasZhou) {
+            const buff = getBuff('zhou')
+            const char = this.getCharacter(charId)
+            if (buff?.attrMods && char) {
+                const mods = applyAttrMods(char, this, buff.attrMods, '周')
+                this.state.pendingBuffs.set(zhouKey, { restoreValue: 1, mods })
+            }
+        } else if (curValue < 30 && hasZhou) {
+            const zhouLayer = this.state.pendingBuffs.get(zhouKey)
+            const char = this.getCharacter(charId)
+            if (char) revertBuffMods(zhouLayer, char, this)
+            this.state.pendingBuffs.delete(zhouKey)
+            this.emitLog({
+                type: 'system',
+                message: `[周] ${BattleLog.name(char?.name ?? '')} 缠劲不足，周流消散`,
+                actorId: charId,
+            })
+        }
     }
 
     #emptyResult(): ActionResult {
@@ -516,6 +539,14 @@ export class BattleEngine {
         }
         if (!triggered && !self.spendAp(action.apCost)) {
             return r
+        }
+        // 缠积累（消耗AP × 1）
+        {
+            const chanKey = `chan::${self.id}`
+            const existing = this.state.pendingBuffs.get(chanKey)
+            const newValue = Math.min(30, (existing?.restoreValue ?? 0) + action.apCost)
+            this.state.pendingBuffs.set(chanKey, { restoreValue: newValue })
+            this.checkChanOverflow(self.id)
         }
         const weapon = getWeapon(self.build.weapon)
         this.emitLog({

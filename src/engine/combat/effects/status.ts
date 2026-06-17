@@ -1,7 +1,6 @@
 import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../engine'
 import type { EffectDef } from '../../entities/action'
-import type { AttrName } from '../../entities/attributes'
 import {
     calcRoll,
     calcPoisonTickInterval,
@@ -13,6 +12,7 @@ import { getBuff } from '../../data/buffs'
 import { genAppId } from '../../util/buff-utils'
 import { triggerBleed } from '../../entities/status'
 import { BattleLog } from '../battle-log'
+import { applyAttrMods } from '../utils/buff-layer'
 import type { BuffLayer } from '../types'
 import type { EffectCtx } from './types'
 
@@ -125,14 +125,11 @@ const statusHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const duration = calcDebuffDuration(1800, enemy.attrs.get('vitality'))
         const appId = genAppId(tMs)
         const layerKey = `paralyze::${enemy.id}::${appId}`
-        const mods: Record<string, number> = {}
+        const rawMods: Record<string, number> = {}
         for (const [attr, rate] of Object.entries(attrMods)) {
-            const delta = -Math.floor(Math.abs(rate) * stacks)
-            enemy.attrs.modify(attr as AttrName, delta)
-            mods[attr] = delta
-            engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr, delta, label: `麻痹(${stacks}层)` })
+            rawMods[attr] = -Math.floor(Math.abs(rate) * stacks)
         }
-        engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+        const mods = applyAttrMods(enemy, engine, rawMods, `麻痹(${stacks}层)`)
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'paralyze',
             restoreValue: stacks,
@@ -188,20 +185,11 @@ const statusHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const insight = enemy.attrs.get('insight')
         const agiDelta = calcStunAttrDelta(agility, ratio)
         const insDelta = calcStunAttrDelta(insight, ratio)
-        if (agiDelta !== 0) {
-            enemy.attrs.modify('agility', agiDelta)
-            engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr: 'agility', delta: agiDelta, label: '眩晕' })
-        }
-        if (insDelta !== 0) {
-            enemy.attrs.modify('insight', insDelta)
-            engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr: 'insight', delta: insDelta, label: '眩晕' })
-        }
-        engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
-
+        const stunMods: Record<string, number> = {}
+        if (agiDelta !== 0) stunMods.agility = agiDelta
+        if (insDelta !== 0) stunMods.insight = insDelta
+        const mods = Object.keys(stunMods).length > 0 ? applyAttrMods(enemy, engine, stunMods, '眩晕') : {}
         const appId = genAppId(tMs)
-        const mods: Record<string, number> = {}
-        if (agiDelta !== 0) mods.agility = agiDelta
-        if (insDelta !== 0) mods.insight = insDelta
         const layerKey = `stun::${enemy.id}::${appId}`
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'stun',

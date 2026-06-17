@@ -12,6 +12,7 @@ import type { EffectCtx } from './types'
 import { applyDamage, applyBonusDamage } from './damage'
 import { processActionEffect } from './action'
 import { handleStatusEffect } from './status'
+import { applyAttrMods } from '../utils/buff-layer'
 
 export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     cleanse({ eff, self, engine }: EffectCtx) {
@@ -151,23 +152,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     },
     stat_buff({ eff, self, engine, tMs, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
-        const entries = Object.entries(e.attrs) as [AttrName, number][]
-        for (const [attr, value] of entries) {
-            self.attrs.modify(attr, value)
-            engine.emitLog({
-                type: 'stat_change',
-                targetId: self.id,
-                attr,
-                delta: value,
-                label: action?.name ?? getBuff('stat_buff')?.name ?? '内劲',
-            })
-        }
+        const label = action?.name ?? getBuff('stat_buff')?.name ?? '内劲'
+        const mods = applyAttrMods(self, engine, e.attrs as Record<string, number>, label)
         if (e.durationMs) {
             const appId = genAppId(tMs)
-            const mods: Record<string, number> = {}
-            for (const [attr, value] of entries) {
-                mods[attr] = value
-            }
             const layerKey = `stat_buff::${self.id}::${appId}`
             engine.state.pendingBuffs.set(layerKey, {
                 buffId: 'stat_buff',
@@ -269,13 +257,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             return
         }
 
-        const mods: Record<string, number> = {}
-        if (buff?.attrMods) {
-            for (const [attr, value] of Object.entries(buff.attrMods)) {
-                self.attrs.modify(attr as AttrName, value)
-                mods[attr] = value
-            }
-        }
+        const mods = buff?.attrMods ? applyAttrMods(self, engine, buff.attrMods, buff.name) : {}
         engine.state.pendingBuffs.set(key, { restoreValue: e.stacks ?? 1, mods })
         if (e.buffId === 'disarmed') {
             // 清理旧 buff_end 事件，防止残留事件误触
@@ -289,7 +271,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 }
             }
         }
-        if (buff?.attrMods?.agility) engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
         engine.emitLog({
             type: 'system',
             message: BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description),
@@ -332,6 +313,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                     actorId: self.id,
                 })
             }
+            if (e.buffId === 'chan') engine.checkChanOverflow(self.id)
             return
         }
 
@@ -341,6 +323,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.state.pendingBuffs.delete(key)
         engine.state.turn.removeEvents('buff_end_' + key)
         const buffName = getBuff(e.buffId)?.name ?? e.buffId
+        if (e.buffId === 'chan') engine.checkChanOverflow(self.id)
         engine.emitLog({
             type: 'system',
             message:

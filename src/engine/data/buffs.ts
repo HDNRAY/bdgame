@@ -460,6 +460,25 @@ export const BUFF_DB: BuffDef[] = [
             return final
         },
     },
+
+    // ── 缠劲系统 ──
+    {
+        id: 'chan',
+        name: '缠',
+        description: '战斗积累的劲力，消耗AP和承受伤害都会增加缠劲。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 30 },
+    },
+    {
+        id: 'zhou',
+        name: '周',
+        description: '缠劲充盈，周身劲力流转。全属性+1。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        attrMods: { strength: 1, agility: 1, vitality: 1, wisdom: 1, dexterity: 1, insight: 1 },
+    },
 ]
 
 export function getBuff(id: string): BuffDef | undefined {

@@ -278,7 +278,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 1,
         tags: ['pierce', 'range'],
-        range: [0, 6],
+        range: [3, 6],
         effects: [{ type: 'damage', scaling: { dexterity: 0.15 } }],
     },
     {
@@ -288,7 +288,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: [],
-        range: [0, 6],
+        range: [1, 3],
         effects: [{ type: 'status', status: 'sand_blind', stacks: 1, chance: 1 }],
     },
     // ── 刘西瓜 · 霸刀 ──
@@ -671,14 +671,16 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
     {
         id: 'thunder_storm',
         name: '雷暴',
-        description: '引天雷入体，爆发万钧雷光。',
+        description: '引天雷入体，爆发万钧雷光。需要15层[缠]才可释放。',
         requiredTags: [],
         apCost: 7,
         tags: ['electric', 'stun'],
         range: [0, 3],
+        canUse: (attacker, state) => (state.pendingBuffs.get(`chan::${attacker.id}`)?.restoreValue ?? 0) >= 15,
         effects: [
             { type: 'damage', scaling: { wisdom: 1 } },
             { type: 'status', status: 'stun', stacks: 1, chance: 1 },
+            { type: 'remove_buff', buffId: 'chan', stacks: 15 },
         ],
     },
 ]
