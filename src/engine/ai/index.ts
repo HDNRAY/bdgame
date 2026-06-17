@@ -91,9 +91,12 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         candidates.sort((a, b) => {
             const scoreA = calcActionScore(a, hasHubo, apBudget)
             const scoreB = calcActionScore(b, hasHubo, apBudget)
-            if (Math.abs(scoreA - scoreB) > 0.5) return scoreB - scoreA
-            // 效率相近时，优先选总伤害高的
-            return b.expectedDamage - a.expectedDamage
+            // 主排序：总伤害（左右互搏时低消耗招式按双倍计）
+            if (scoreA !== scoreB) return scoreB - scoreA
+            // 平局决胜：AP 效率
+            const effA = a.apCost > 0 ? a.expectedDamage / a.apCost : 0
+            const effB = b.apCost > 0 ? b.expectedDamage / b.apCost : 0
+            return effB - effA
         })
     }
 
@@ -210,14 +213,14 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     return cmds
 }
 
-/** 计算招式的 AP 效率评分（考虑左右互搏） */
+/** 计算招式评分：总伤害为主，AP 效率为辅，左右互搏时低消耗招式按双倍总伤害比较 */
 function calcActionScore(est: DamageEstimate, hasHubo: boolean, apBudget: number): number {
-    if (est.apCost <= 0) return 0
-    const dmgPerAp = est.expectedDamage / est.apCost
-    if (!hasHubo) return dmgPerAp
-    // 左右互搏：能用两次的招式总价值更高
-    const maxUses = Math.min(2, Math.floor(apBudget / est.apCost))
-    return dmgPerAp * maxUses
+    let score = est.expectedDamage
+    // 左右互搏：能用两次的招式按双倍总伤害比较
+    if (hasHubo && est.apCost > 0 && est.apCost <= apBudget / 2) {
+        score *= 2
+    }
+    return score
 }
 
 function pickBestSecondary(self: Character, state: BattleState, apRemaining: number): string | null {

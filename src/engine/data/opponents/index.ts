@@ -44,8 +44,6 @@ export interface OpponentDef {
 export interface AiOverrides {
     /** 对候选招式排序（返回 actionId 优先顺序） */
     actionPriority?: (candidates: DamageEstimate[], self: Character, state: BattleState) => string[]
-    /** 移动目标距离（null = 不移动） */
-    moveTarget?: (self: Character, enemy: Character, state: BattleState) => number | null
     /** 强制攻击风格 */
     forceStyle?: AttackStyle
     /** 保留 AP（不放主招/移动） */

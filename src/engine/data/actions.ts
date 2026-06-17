@@ -356,7 +356,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'sword_thrust',
-        name: '刺击',
+        name: '突刺',
         description: '短兵直刺，兼具力道与灵巧。',
         requiredTags: ['pierce'],
         apCost: 2,
