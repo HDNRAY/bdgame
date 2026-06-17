@@ -16,7 +16,7 @@ import { getBuff } from '../data/buffs'
 import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
-import { revertBuffMods, applyAttrMods } from './utils/buff-layer'
+import { revertBuffMods, applyAttrMods, reduceBleedOnHeal } from './utils/buff-layer'
 import { processActionEffect, processStatusTick, processHitCheck, processBleedDamage, processBuffEnd } from './effects'
 import type {
     ActionCommand,
@@ -742,6 +742,7 @@ export class BattleEngine {
                     })
                     if (amt > 0) {
                         char.heal(amt)
+                        reduceBleedOnHeal(this, char.id, amt, 8)
                         this.emitLog({ type: 'heal', sourceId: char.id, targetId: char.id, amount: amt })
                     }
                 }

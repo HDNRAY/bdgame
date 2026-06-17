@@ -60,6 +60,23 @@ export function revertBuffMods(layer: BuffLayer | undefined, char: Character, en
     if (char.ap > char.maxAp) char.ap = char.maxAp
 }
 
+/** 治疗时减少流血层数：每 healPerStack 点治疗减少 1 层，溢出不累计 */
+export function reduceBleedOnHeal(engine: BattleEngine, charId: string, amount: number, healPerStack = 8): void {
+    if (amount < healPerStack) return
+    const bleedKey = `bleed::${charId}`
+    const bleedLayer = engine.state.pendingBuffs.get(bleedKey)
+    if (!bleedLayer || bleedLayer.restoreValue <= 0) return
+    const reduce = Math.min(bleedLayer.restoreValue, Math.floor(amount / healPerStack))
+    if (reduce <= 0) return
+    bleedLayer.restoreValue -= reduce
+    const char = engine.getCharacter(charId)
+    engine.emitLog({
+        type: 'system',
+        message: `[治疗] ${BattleLog.name(char?.name ?? '')} 流血-${reduce}层`,
+        actorId: charId,
+    })
+}
+
 /** 检查某人是否有某 buff */
 export function hasBuff(engine: BattleEngine, charId: string, buffId: string): boolean {
     return engine.state.pendingBuffs.has(`${buffId}::${charId}`)

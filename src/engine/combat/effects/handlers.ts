@@ -12,7 +12,7 @@ import type { EffectCtx } from './types'
 import { applyDamage, applyBonusDamage } from './damage'
 import { processActionEffect } from './action'
 import { handleStatusEffect } from './status'
-import { applyAttrMods } from '../utils/buff-layer'
+import { applyAttrMods, reduceBleedOnHeal } from '../utils/buff-layer'
 
 export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     cleanse({ eff, self, engine }: EffectCtx) {
@@ -29,7 +29,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     heal({ eff, self, engine }: EffectCtx) {
         const { value, ratio } = eff as Extract<EffectDef, { type: 'heal' }>
         const amount = calcHealAmount(value, self.maxHp, ratio)
-        self.hp = Math.min(self.maxHp, self.hp + amount)
+        self.heal(amount)
+        reduceBleedOnHeal(engine, self.id, amount)
         engine.emitLog({
             type: 'heal',
             actionId: '_heal',

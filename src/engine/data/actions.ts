@@ -324,7 +324,7 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         tags: ['slash', 'range'],
         range: [0, 8],
-        canUse: (attacker, state) => (state.pendingBuffs.get(`momentum::${attacker.id}`)?.restoreValue ?? 0) >= 3,
+        canUse: (attacker, state) => (state.pendingBuffs.get(`momentum::${attacker.id}`)?.restoreValue ?? 0) >= 4,
         effects: [
             { type: 'damage', scaling: { strength: 1.2 }, base: 6 },
             { type: 'remove_buff', buffId: 'momentum' },
