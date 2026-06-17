@@ -19,9 +19,6 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const distance = state.position.distance(self.id, enemy.id)
     const overrides = getOverrides(self.id)
 
-    // 时间优势估算：身法差异决定行动节奏
-    const timeAdvantage = self.attrs.get('agility') - enemy.attrs.get('agility')
-
     // ── 0. 缴械优先：先捡武器再考虑攻击 ──
     const disarmedKey = `disarmed::${self.id}`
     const disarmedLayer = state.pendingBuffs.get(disarmedKey)
@@ -52,7 +49,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     }
 
     // ── 1. 候选主招（非 support） ──
-    let candidates: DamageEstimate[] = []
+    const candidates: DamageEstimate[] = []
     for (const inst of self.actions) {
         if (inst.def.tags.includes('support')) continue
         if (!inst.canUse()) continue
@@ -75,31 +72,32 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         candidates.push(calcExpectedDamage(inst.def, self, enemy, weapon.range, distance))
     }
 
-    // 2. 排序：时间劣势时优先选低消耗招式
+    // 2. 排序：AP 效率优先，左右互搏时低消耗招式价值翻倍
+    const apBudget = self.ap - (overrides?.reserveAp ?? 0)
+    const huboKey = `zuoyou_hubo::${self.id}`
+    const hasHubo = state.pendingBuffs.has(huboKey)
     if (overrides?.actionPriority) {
         const ordered = overrides.actionPriority(candidates, self, state)
+        // actionPriority 内用 AP 效率二次排序（同级内效率高的排前）
+        const orderMap = new Map(ordered.map((id, i) => [id, i]))
         candidates.sort((a, b) => {
-            const ia = ordered.indexOf(a.actionId)
-            const ib = ordered.indexOf(b.actionId)
-            // 不在列表中的排最后
-            if (ia === -1 && ib === -1) return 0
-            if (ia === -1) return 1
-            if (ib === -1) return -1
-            return ia - ib
+            const ia = orderMap.get(a.actionId) ?? Infinity
+            const ib = orderMap.get(b.actionId) ?? Infinity
+            if (ia !== ib) return ia - ib
+            // 同级内按 AP 效率排序
+            return calcActionScore(b, hasHubo, apBudget) - calcActionScore(a, hasHubo, apBudget)
         })
     } else {
         candidates.sort((a, b) => {
-            if (timeAdvantage < -3) {
-                // 身法大幅落后：优先低消耗招式，确保能出手
-                const apDiff = a.apCost - b.apCost
-                if (Math.abs(apDiff) >= 2) return apDiff
-            }
+            const scoreA = calcActionScore(a, hasHubo, apBudget)
+            const scoreB = calcActionScore(b, hasHubo, apBudget)
+            if (Math.abs(scoreA - scoreB) > 0.5) return scoreB - scoreA
+            // 效率相近时，优先选总伤害高的
             return b.expectedDamage - a.expectedDamage
         })
     }
 
     // ── 3. 遍历候选，找第一个可行的 ──
-    const apBudget = self.ap - (overrides?.reserveAp ?? 0)
     let mainId: string | null = null
     let moveDelta = 0
     let moveAp = 0
@@ -212,25 +210,43 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     return cmds
 }
 
+/** 计算招式的 AP 效率评分（考虑左右互搏） */
+function calcActionScore(est: DamageEstimate, hasHubo: boolean, apBudget: number): number {
+    if (est.apCost <= 0) return 0
+    const dmgPerAp = est.expectedDamage / est.apCost
+    if (!hasHubo) return dmgPerAp
+    // 左右互搏：能用两次的招式总价值更高
+    const maxUses = Math.min(2, Math.floor(apBudget / est.apCost))
+    return dmgPerAp * maxUses
+}
+
 function pickBestSecondary(self: Character, state: BattleState, apRemaining: number): string | null {
     const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
-    const sorted = [...self.actions]
-        .filter((a) => {
-            if (a.def.tags.includes('support')) return false
-            if (!a.canUse()) return false
-            // 检查武器标签兼容性
-            if (a.def.requiredTags.length > 0) {
-                const hasTag = a.def.requiredTags.some((tag) => weapon.tags.includes(tag))
-                if (!hasTag) return false
-            }
-            // 跳过纯位移招式
-            if (a.id === 'big_leap') return false
-            if (!a.def.effects?.some((e) => e.type === 'damage' || e.type === 'fixed_damage')) return false
-            return true
-        })
-        .sort((a, b) => b.apCost - a.apCost)
-    for (const inst of sorted) {
-        if (inst.apCost > apRemaining) continue
+    const enemy = state.characters.find((c) => c.id !== self.id)
+    if (!enemy) return null
+    const distance = state.position.distance(self.id, enemy.id)
+    const sorted = [...self.actions].filter((a) => {
+        if (a.def.tags.includes('support')) return false
+        if (!a.canUse()) return false
+        if (a.id === 'big_leap') return false
+        if (!a.def.effects?.some((e) => e.type === 'damage' || e.type === 'fixed_damage')) return false
+        if (a.def.requiredTags.length > 0) {
+            const hasTag = a.def.requiredTags.some((tag) => weapon.tags.includes(tag))
+            if (!hasTag) return false
+        }
+        return true
+    })
+    // 按 AP 效率排序（伤害/AP），选性价比最高的
+    const scored = sorted.map((inst) => {
+        const est = calcExpectedDamage(inst.def, self, enemy, weapon.range, distance)
+        return { inst, score: est.apCost > 0 ? est.expectedDamage / est.apCost : 0, apCost: est.apCost }
+    })
+    scored.sort((a, b) => {
+        if (Math.abs(a.score - b.score) > 0.5) return b.score - a.score
+        return b.apCost - a.apCost // 效率相近选消耗高的
+    })
+    for (const { inst, apCost } of scored) {
+        if (apCost > apRemaining) continue
         if (inst.def.canUse && !inst.def.canUse(self, state)) continue
         return inst.id
     }

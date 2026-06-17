@@ -22,7 +22,5 @@ export const SANGYUAN: OpponentDef = {
             [{ condition: { type: 'on_dodged' }, actionId: 'light_slash' }],
             n,
         ),
-    aiOverrides: {
-        actionPriority: () => ['heavy_slash', 'light_slash'],
-    },
+    aiOverrides: {},
 }

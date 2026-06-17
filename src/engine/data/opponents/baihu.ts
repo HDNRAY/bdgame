@@ -3,11 +3,11 @@ import { type OpponentDef, passive, action, artifact } from '.'
 
 export const BAIHU: OpponentDef = {
     id: 'baihu',
-    name: '白狐儿脸',
+    name: '白狐·南宫',
     generate: (n) =>
         simpleGenerate(
             'baihu',
-            '白狐儿脸',
+            '白狐·南宫',
             'swift',
             'frost_twin_blades',
             { strength: 16, vitality: 10, agility: 16, dexterity: 16, insight: 14, wisdom: 6 },
@@ -23,7 +23,5 @@ export const BAIHU: OpponentDef = {
             [],
             n,
         ),
-    aiOverrides: {
-        actionPriority: () => ['heavy_slash', 'light_slash', 'frost_step', 'guard'],
-    },
+    aiOverrides: {},
 }
