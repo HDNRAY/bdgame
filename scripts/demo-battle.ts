@@ -48,6 +48,7 @@ function show(c: Character) {
     )
     console.log(`  HP ${baseHp}  AP ${baseAp}  武器: ${weapon.name}`)
     if (c.passiveDefs.length) console.log(`  功法: ${c.passiveDefs.map((p) => p.name).join(', ')}`)
+    if (c.artifactDefs.length) console.log(`  奇物: ${c.artifactDefs.map((a) => a.name).join(', ')}`)
     if (c.actions.length) console.log(`  招式: ${c.actions.map((i) => i.name).join(', ')}`)
     if (c.triggers.length)
         console.log(
@@ -56,7 +57,7 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = LAIFENG.generate(33)
+const pBuild = LUHONGTI.generate(33)
 const oBuild = ZHANGLIE.generate(33)
 
 if (N === 1) {

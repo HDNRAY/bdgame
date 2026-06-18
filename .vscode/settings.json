@@ -1,7 +1,9 @@
 {
+    "typescript.tsdk": "node_modules/typescript/lib",
     "chat.tools.terminal.autoApprove": {
         "npx tsx": true,
         "rtk": true,
         "npx vitest": true
-    }
+    },
+    "js/ts.tsdk.path": "node_modules/typescript/lib"
 }

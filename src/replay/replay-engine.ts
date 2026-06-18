@@ -29,7 +29,6 @@ export interface FrameChar {
     pose: 'idle' | 'attack' | 'hit' | 'move'
     waitProgress: number // 0~1，等待下次行动进度
     isActing: boolean // 当前正在主动行动
-    isTriggeredAction: boolean // 当前正在触发行动
 }
 
 // ── 事件条目 ──
@@ -214,7 +213,6 @@ export class ReplayEngine {
         const isTriggered = evt?.type === 'attack_start' && !!evt.isTriggered
         const actorId = evt && 'actor' in evt ? (evt as Extract<BattleEvent, { actor: string }>).actor : undefined
         const isActing = !!(nearEvent && !isTriggered && !!actorId && actorId === c.id)
-        const isTriggeredAction = !!(nearEvent && isTriggered && actorId === c.id)
 
         return {
             id: c.id,
@@ -226,7 +224,6 @@ export class ReplayEngine {
             maxAp: c.maxAp,
             waitProgress,
             isActing,
-            isTriggeredAction,
             weaponId: c.weapon,
             spriteId: c.spriteId,
             pose: this.resolvePose(c.id, cur?.event, next?.event, ratio),

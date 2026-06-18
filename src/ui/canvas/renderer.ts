@@ -16,8 +16,6 @@ import {
     GHOST_MIN_ALPHA,
     MAX_GHOSTS,
     GHOST_SPAWN_RATIO,
-    PULSE_FREQ_ACTING,
-    PULSE_FREQ_TRIGGER,
     MIN_VIEW_UNITS,
     FONT_SIZE_TICK,
 } from './constants'
@@ -255,19 +253,11 @@ export class CanvasRenderer {
 
         const barW = CHAR_SIZE
         const waitRatio = Math.min(1, Math.max(0, c.waitProgress ?? c.ap / c.maxAp))
-        g.rect(ox, groundY + 2, barW, 3).fill({ color: '#333' })
-        if (waitRatio > 0) {
-            if (c.isActing) {
-                const pulse = 0.5 + 0.5 * Math.sin(performance.now() * PULSE_FREQ_ACTING)
-                const v = Math.round(136 + 119 * pulse).toString(16)
-                g.rect(ox, groundY + 2, barW * waitRatio, 3).fill({ color: `#${v}${v}${v}` })
-            } else if (c.isTriggeredAction) {
-                const pulse = 0.5 + 0.5 * Math.sin(performance.now() * PULSE_FREQ_TRIGGER)
-                const gv = Math.round(136 + 119 * pulse).toString(16)
-                g.rect(ox, groundY + 2, barW * waitRatio, 3).fill({ color: `#44${gv}44` })
-            } else {
-                g.rect(ox, groundY + 2, barW * waitRatio, 3).fill({ color: '#888' })
-            }
+        // 等待条：黑色背景 + 灰色缩短条
+        g.rect(ox, groundY + 2, barW, 3).fill({ color: '#000' })
+        const barFill = barW * (1 - waitRatio)
+        if (barFill > 0) {
+            g.rect(ox, groundY + 2, barFill, 3).fill({ color: '#888' })
         }
     }
 

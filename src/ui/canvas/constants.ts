@@ -17,10 +17,6 @@ export const GHOST_MIN_ALPHA = 0.05
 export const MAX_GHOSTS = 20
 export const GHOST_SPAWN_RATIO = 0.5
 
-// ── 等待条脉冲 ──
-export const PULSE_FREQ_ACTING = 0.012
-export const PULSE_FREQ_TRIGGER = 0.018
-
 // ── 浮动文字 ──
 export const FLOAT_LIFE = 2000
 export const FLOAT_DT = 16

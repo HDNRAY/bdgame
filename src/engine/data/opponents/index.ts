@@ -61,18 +61,25 @@ export const action = (id: string): Reward => ({ type: 'action', id, name: id, d
 
 /** 所有对手 */
 export const OPPONENTS: OpponentDef[] = [
+    // 拳掌
     QILAN,
-    SANGYUAN,
-    ZHANGLIE,
     LAIFENG,
-    XUANJI,
-    LAYUE,
-    YIDAO,
-    BAIHU,
-    LUEYING,
-    LIUXIGUA,
+    // 单手刀剑
+    SANGYUAN,
     LUHONGTI,
+    // 双持刀剑
+    LAYUE,
+    BAIHU,
     LONGNV,
+    // 长柄
+    ZHANGLIE,
+    // 御物
+    XUANJI,
+    // 双手巨型武器
+    LIUXIGUA,
+    // 其他
+    YIDAO, // 太刀
+    LUEYING, // 匕首
 ]
 
 /** 按 ID 查找对手 def */
