@@ -15,9 +15,9 @@ function mc(id: string, name: string, attrs: Record<string, number> = {}): Chara
 
 describe('calcMaxHp', () => {
     it('should calculate HP correctly', () => {
-        expect(calcMaxHp(10)).toBe(170)
-        expect(calcMaxHp(20)).toBe(320)
-        expect(calcMaxHp(30)).toBe(470)
+        expect(calcMaxHp(10)).toBe(200)
+        expect(calcMaxHp(20)).toBe(380)
+        expect(calcMaxHp(30)).toBe(560)
     })
 })
 

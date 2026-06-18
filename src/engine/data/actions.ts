@@ -561,7 +561,7 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
         target: 'self',
         maxUses: 1,
         effects: [
-            { type: 'heal', value: 3, ratio: 0.33 },
+            { type: 'heal', value: 3, ratio: 0.28 },
             { type: 'stat_buff', attrs: { strength: -2, vitality: -2, agility: -2, dexterity: -2 } },
         ],
     },

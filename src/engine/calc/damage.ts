@@ -99,9 +99,9 @@ export function calcSelfDamage(maxHp: number, ratio: number): number {
 
 // ── AP 回复 ──
 /** 每悟性每秒回复 AP 基数 */
-export const AP_REGEN_BASE = 0.15
+export const AP_REGEN_BASE = 0.2
 /** 最低回复速度 (AP/s) */
-export const AP_REGEN_MIN = 1.5
+export const AP_REGEN_MIN = 2.0
 
 /** 每秒 AP 回复量 */
 export function calcApRegenPerSec(wisdom: number): number {
