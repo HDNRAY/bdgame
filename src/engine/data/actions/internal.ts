@@ -135,7 +135,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['buff', 'support'],
         target: 'self',
-        bonus: true,
         bonusTiming: { type: 'before_main' },
         canUse: (_attacker, state) => !state.pendingBuffs.has('ciyuan_blade::' + _attacker.id),
         effects: [{ type: 'ciyuan_init' }, { type: 'add_buff', buffId: 'ciyuan_blade' }],

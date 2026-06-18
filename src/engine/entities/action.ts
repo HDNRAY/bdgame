@@ -1,6 +1,5 @@
 import type { AttrName } from './attributes'
 import type { Character } from './character'
-import type { Condition } from './trigger'
 import type { StatusType } from './status'
 import type { GameEntity } from './base'
 import type { Tag } from './tag'
@@ -70,10 +69,8 @@ export interface ActionDefinition extends GameEntity {
     /** 招式固定命中率（不设则用属性公式计算） */
     chance?: number
     maxUses?: number
-    bonus?: boolean
     /** 自定义释放条件（返回 false 则不可使用） */
     canUse?: (attacker: Character, state: BattleState) => boolean
-    bonusTiming?: Condition
     extraPreDelay?: number
     extraStunTime?: number
     range?: [number, number]
@@ -97,9 +94,6 @@ export class Action {
     }
     get apCost() {
         return this.def.apCost
-    }
-    get bonus() {
-        return this.def.bonus ?? false
     }
     get effects() {
         return this.def.effects

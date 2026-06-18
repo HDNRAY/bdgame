@@ -251,7 +251,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '匕首划过，血流如注。',
         requiredTags: ['slash', 'pierce'],
         apCost: 2,
-        tags: ['bleed'],
+        tags: ['bleed', 'debuff'],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.2 } },
             { type: 'status', status: 'bleed', stacks: 1, chance: 0.5 },
@@ -263,7 +263,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '一记凶狠的蹬踏。',
         requiredTags: ['blunt'],
         apCost: 1,
-        tags: ['blunt'],
+        tags: ['blunt', 'debuff'],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.15 } },
             { type: 'status', status: 'knockdown', stacks: 1, chance: 1 },
@@ -285,7 +285,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '扬沙迷眼，中距离干扰。',
         requiredTags: [],
         apCost: 1,
-        tags: [],
+        tags: ['debuff'],
         range: [1, 3],
         effects: [{ type: 'status', status: 'sand_blind', stacks: 1, chance: 1 }],
     },
@@ -478,8 +478,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         tags: ['buff', 'support'],
         target: 'self',
-        bonus: true,
-        bonusTiming: { type: 'before_main' },
         effects: [{ type: 'add_buff', buffId: 'foresight' }],
     },
     {
@@ -490,8 +488,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['buff', 'support'],
         target: 'self',
-        bonus: true,
-        bonusTiming: { type: 'after_main' },
         canUse: (attacker, state) => !state.pendingBuffs.has('iaijutsu::' + attacker.id),
         effects: [{ type: 'add_buff', buffId: 'iaijutsu' }],
     },
@@ -549,7 +545,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '电力灌注的溜溜球，远近皆宜。',
         requiredTags: ['blunt'],
         apCost: 2,
-        tags: ['blunt', 'electric', 'range'],
+        tags: ['blunt', 'electric', 'range', 'debuff'],
         range: [1, 3],
         effects: [
             { type: 'damage', scaling: { wisdom: 0.2 } },
@@ -564,7 +560,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['blunt'],
         range: [0, 2],
-        effects: [{ type: 'damage', scaling: { strength: 0.3 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     {
         id: 'lightning_speed',

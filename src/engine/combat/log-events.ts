@@ -14,7 +14,6 @@ export type LogEvent =
           apCost: number
           apRemaining: number
           triggered: boolean
-          bonus?: boolean
           indent: number
       }
     | { type: 'check_hit'; sourceId: string; targetId: string; hitChance: number; roll: number; result: boolean }

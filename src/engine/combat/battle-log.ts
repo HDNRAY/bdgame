@@ -76,7 +76,6 @@ export class BattleLog {
                     event.actionName,
                     event.indent,
                     event.triggered,
-                    event.bonus,
                 )
                 break
             case 'check_hit':
@@ -217,7 +216,6 @@ export class BattleLog {
         actionName?: string,
         indent = 0,
         isTriggered = false,
-        isBonus = false,
     ): void {
         this.push(
             {
@@ -231,7 +229,6 @@ export class BattleLog {
                 snapshot,
                 indent,
                 isTriggered,
-                isBonus,
             },
             timelineMs,
         )

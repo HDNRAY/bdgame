@@ -411,13 +411,22 @@ export const BUFF_DB: BuffDef[] = [
         onTickHeal: ({ target }) => Math.round(target.maxHp * 0.005 + (target.maxHp - target.hp) * 0.01),
     },
     {
+        id: 'qi_state',
+        name: '凝炁状态',
+        description: '炁劲充盈全身，全属性+1，炁系效果可作用于所有招式。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        attrMods: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 },
+    },
+    {
         id: 'qi_amplify',
         name: '炁意',
         description: '凝炁玉增幅，炁系招式伤害+15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, action }) => {
-            const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
+        onDealDamage: ({ final, attacker, action, engine }) => {
+            const hasQiState = engine.state.pendingBuffs.has(`qi_state::${attacker.id}`)
+            const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi') || hasQiState
             if (!isQi) return final
             return Math.round(final * 1.15 * 10) / 10
         },

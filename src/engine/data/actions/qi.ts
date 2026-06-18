@@ -9,17 +9,9 @@ export const QI_SKILLS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: ['buff', 'support'],
-        bonus: true,
-        bonusTiming: { type: 'before_main' },
         target: 'self',
         maxUses: 1,
-        effects: [
-            {
-                type: 'stat_buff',
-                attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 },
-                duration: { attr: 'wisdom', multiplier: 1000 },
-            },
-        ],
+        effects: [{ type: 'add_buff', buffId: 'qi_state' }],
     },
     {
         id: 'qi_gather',
@@ -28,11 +20,10 @@ export const QI_SKILLS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 3,
         tags: ['buff', 'support'],
-        bonus: true,
-        bonusTiming: { type: 'before_main' },
         target: 'self',
         effects: [
             { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: { attr: 'wisdom', multiplier: 150 } },
+            { type: 'add_buff', buffId: 'qi_state' },
         ],
     },
     {
