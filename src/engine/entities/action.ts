@@ -57,6 +57,7 @@ export type EffectDef =
     | { type: 'disarm'; chance?: number }
     | { type: 'ignore_parry' }
     | { type: 'wisdom_stat_buff'; ratio: number; attrs: AttrName[] }
+    | { type: 'copy_best_passive' }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {

@@ -412,7 +412,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         extraPreDelay: -200,
         effects: [
             { type: 'short_dash', maxDistance: 1 },
-            { type: 'damage', scaling: { strength: 0.3, agility: 0.3 } },
+            { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
         ],
     },
     {
@@ -420,11 +420,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '推掌',
         description: '太极推手，借力打力。',
         requiredTags: ['blunt'],
-        apCost: 1,
+        apCost: 2,
         tags: ['blunt', 'stun'],
         range: [0, 2],
         effects: [
-            { type: 'damage', scaling: { agility: 0.15 } },
+            { type: 'damage', scaling: { strength: 0.3, agility: 0.1 } },
             { type: 'status', status: 'stun', stacks: 1, chance: 0.5 },
         ],
     },

@@ -83,7 +83,7 @@ export class Character {
         this.artifactDefs = gainedArtifacts.map((id) => getArtifact(id)).filter((a): a is Artifact => a !== undefined)
 
         // 4. 应用被动/奇物/武器效果
-        for (const p of this.passiveDefs) this.#applyPassive(p)
+        for (const p of this.passiveDefs) this.applyPassive(p)
         for (const a of this.artifactDefs) {
             for (const eff of a.effects ?? []) {
                 const handler = passiveEffectHandlers[eff.type]
@@ -134,7 +134,7 @@ export class Character {
     }
 
     /** 应用被动：达标检测 → effects + triggers */
-    #applyPassive(p: Passive): void {
+    applyPassive(p: Passive): void {
         // effects
         for (const eff of p.effects ?? []) {
             const handler = passiveEffectHandlers[eff.type]

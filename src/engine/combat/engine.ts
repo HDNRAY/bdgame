@@ -439,6 +439,8 @@ export class BattleEngine {
                 const mods = applyAttrMods(char, this, buff.attrMods, '周')
                 this.state.pendingBuffs.set(zhouKey, { restoreValue: 1, mods })
             }
+            const enemy = this.getOpponent(charId)
+            if (char && enemy) this.emit('chan_overflow', char, enemy)
         } else if (curValue < 30 && hasZhou) {
             const zhouLayer = this.state.pendingBuffs.get(zhouKey)
             const char = this.getCharacter(charId)
@@ -606,7 +608,7 @@ export class BattleEngine {
         this.emit('hp_below', self, enemy)
         this.emit('hp_below', enemy, self)
         if (!enemy.isAlive()) {
-            this.emitLog({ type: 'defeat', loserId: enemy.name, winnerId: self.name })
+            this.emitLog({ type: 'defeat', loserId: enemy.id, winnerId: self.id })
             this.state.phase = 'finished'
             if (self.isAlive()) {
                 this.state.lastWinner = self.name

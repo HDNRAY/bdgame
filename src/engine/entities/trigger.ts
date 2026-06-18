@@ -28,6 +28,7 @@ export type TriggerEvent =
     | 'on_equip'
     | 'on_crit'
     | 'on_pre_action'
+    | 'chan_overflow'
 
 /** 触发条件上下文 */
 export interface ConditionContext {

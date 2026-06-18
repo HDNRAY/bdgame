@@ -4,9 +4,11 @@ import type { StatusType } from '../../entities/status'
 import { calcBaseDamage, calcHealAmount, calcBuffDuration, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../data/weapons'
 import { getBuff } from '../../data/buffs'
+import { getPassive } from '../../data/passives'
 import { genAppId } from '../../util/buff-utils'
 import type { Tag } from '../../entities/tag'
 import { scheduleBuffExpiry, revertBuffMods, clearWeaponBuffLayers, executeMove, revertWeaponStatBuffs } from '../utils'
+import { pickBestPassives } from '../utils/tag-match'
 import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
 import { applyDamage, applyBonusDamage } from './damage'
@@ -500,5 +502,30 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 2. 移除缴械
         const removeEff: EffectDef = { type: 'remove_buff', buffId: 'disarmed' }
         processActionEffect(removeEff, self, self, engine, engine.state.turn.currentTime)
+    },
+    copy_best_passive({ self, engine }: EffectCtx) {
+        const enemy = engine.getOpponent(self.id)
+        if (!enemy) return
+        // 清空缠
+        self.chan = 0
+        engine.checkChanOverflow(self.id)
+        // 复制 2 个最匹配的功法
+        const copiedIds = pickBestPassives(self, enemy, 2)
+        for (const copiedId of copiedIds) {
+            const def = getPassive(copiedId)
+            if (!def) continue
+            self.passiveDefs.push(def)
+            self.applyPassive(def)
+            // 手动触发 battle_start 效果（战斗已开始，不会自动触发）
+            engine.emit('battle_start', self, enemy)
+        }
+        if (copiedIds.length > 0) {
+            const names = copiedIds.map((id) => getPassive(id)?.name ?? id).join('、')
+            engine.emitLog({
+                type: 'system',
+                message: `[小无相功] ${self.name} 窥破破绽，复制了「${names}」`,
+                actorId: self.id,
+            })
+        }
     },
 }

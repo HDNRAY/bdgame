@@ -288,6 +288,14 @@ export const TALENTS: Talent[] = [
         requireAttrsMin: { vitality: 20 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'vitality_regen' }] }],
     },
+    {
+        id: 'xiaowuxiang',
+        name: '小无相功',
+        description: '洞察入微，以彼之道还施彼身。缠劲满溢时窥破对手功法破绽，复制其最契合自身武道的功法。',
+        tags: ['talent', 'buff'],
+        requireAttrsMin: { insight: 20 },
+        triggers: [{ condition: { type: 'chan_overflow' }, actionId: '_xiaowuxiang_copy' }],
+    },
 ]
 
 /** 按 ID 查找（功法优先） */

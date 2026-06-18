@@ -149,4 +149,15 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         maxUses: 999,
         effects: [{ type: 'cleanse', statuses: ['poison'] }],
     },
+    {
+        id: '_xiaowuxiang_copy',
+        name: '小无相功',
+        description: '',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['trigger'],
+        target: 'self',
+        maxUses: 1,
+        effects: [{ type: 'copy_best_passive' }],
+    },
 ]
