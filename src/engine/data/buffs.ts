@@ -464,6 +464,15 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
     },
     {
+        id: 'yue_nv_buff',
+        name: '越女剑意',
+        description: '白猿授剑，灵巧化为剑势，附加灵巧×0.2伤害。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDealDamage: ({ final, attacker }) =>
+            Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.2 * 10) / 10) * 10) / 10,
+    },
+    {
         id: 'herb_pouch',
         name: '蜂草鱼囊',
         description: '每 3 秒自动化解一层毒素。',

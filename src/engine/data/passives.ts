@@ -1,5 +1,6 @@
 import type { Passive, Talent } from '../entities/passive'
 import { hasBuff } from '../combat/utils'
+import { Tag } from '../entities/tag'
 
 /** 功法注册表 */
 export const PASSIVES: Passive[] = [
@@ -254,6 +255,22 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff', 'defense'],
         effects: [{ type: 'stat_buff', attrs: { agility: 2, dexterity: 2 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dark_room_sense' }] }],
+    },
+    {
+        id: 'yue_nv_sword',
+        name: '越女剑法',
+        description: '白猿授剑，万兵为剑。刀枪棍棒在手亦是剑法，出剑极快，身随剑走，灵巧愈高剑势愈利。',
+        tags: ['buff', 'passive'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yue_nv_buff' }] }],
+        actionEnhancer: (def) => {
+            if (!def.effects?.some((e) => e.type === 'damage')) return def
+            return {
+                ...def,
+                tags: [...new Set<Tag>([...def.tags, 'pierce'])],
+                extraPreDelay: (def.extraPreDelay ?? 0) - 150,
+                effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])],
+            }
+        },
     },
 ]
 

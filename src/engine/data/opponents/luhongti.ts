@@ -15,6 +15,7 @@ export const LUHONGTI: OpponentDef = {
                 passive('inner_power'),
                 artifact('other_mountain'),
                 passive('tai_chi_mastery'),
+                passive('yue_nv_sword'),
                 action('push_palm'),
                 action('sword_thrust'),
                 action('crushing_blow'),
