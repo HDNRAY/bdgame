@@ -118,7 +118,7 @@ export class CanvasRenderer {
 
     /** 渲染一帧 */
     render(frame: Frame): void {
-        const { chars, currentAction, eventIndex } = frame
+        const { chars, eventIndex } = frame
         const groundY = GROUND_Y(this.canvasHeight)
 
         let pxPerUnit = 8

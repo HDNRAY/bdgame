@@ -1,10 +1,10 @@
-import type { TriggerEvent } from '../../../../engine/entities/trigger'
+import type { TriggerSlot } from '../../../../engine/entities/trigger'
 import { getAction } from '../../../../engine/data/actions'
 import { getTriggerName } from '../../../../engine/data/triggers'
 import { describeEffects } from '../../../../engine/data/effectDisplay'
 
 interface TriggerEffectsProps {
-    triggers: TriggerEvent[]
+    triggers: TriggerSlot[]
 }
 
 /** 将触发的条件和效果直接展示为文字（跳过内部招式名） */

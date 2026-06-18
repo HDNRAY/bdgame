@@ -1,5 +1,4 @@
 import type { WeaponDef } from '../../../engine/data/weapons'
-import { describeEffects } from '../../../engine/data/effectDisplay'
 import { TagList } from '../ui/TagList/TagList'
 import { TriggerEffects } from '../ui/TriggerEffects/TriggerEffects'
 

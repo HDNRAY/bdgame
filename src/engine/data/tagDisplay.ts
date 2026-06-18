@@ -42,6 +42,12 @@ export const TAG_CN: Record<Tag, string> = {
     damage: '伤害增强',
     summon: '召唤',
     stance: '架势',
+    polearm: '长柄',
+    heavy: '巨型双手',
+    retrieve_weapon: '收回武器',
+    bonus_damage: '附加伤害',
+    dual_wield: '双持',
+    range_up: '加射程',
 }
 
 /** Tag → 颜色 */
@@ -86,4 +92,10 @@ export const TAG_COLOR: Record<Tag, string> = {
     sand_blind: '#f39c12',
     knockdown: '#e67e22',
     damage: '#e74c3c',
+    polearm: '#795548',
+    heavy: '#455a64',
+    retrieve_weapon: '#607d8b',
+    bonus_damage: '#ff9800',
+    dual_wield: '#9c27b0',
+    range_up: '#4caf50',
 }
