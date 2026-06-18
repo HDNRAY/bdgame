@@ -518,15 +518,7 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
 
-    // ── 缠劲系统 ──
-    {
-        id: 'chan',
-        name: '缠',
-        description: '战斗积累的劲力，消耗AP和承受伤害都会增加缠劲。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 30 },
-    },
+    // ── 缠劲溢出奖励 ──
     {
         id: 'zhou',
         name: '周',

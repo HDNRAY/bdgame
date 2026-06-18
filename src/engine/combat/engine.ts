@@ -152,6 +152,7 @@ export class BattleEngine {
                     maxHp: characters[0].maxHp,
                     ap: characters[0].ap,
                     maxAp: characters[0].maxAp,
+                    chan: characters[0].chan,
                     pos: position.get(characters[0].id),
                     weapon: characters[0].build.weapon,
                     spriteId: characters[0].build.spriteId ?? 'default',
@@ -164,6 +165,7 @@ export class BattleEngine {
                     maxHp: characters[1].maxHp,
                     ap: characters[1].ap,
                     maxAp: characters[1].maxAp,
+                    chan: characters[1].chan,
                     pos: position.get(characters[1].id),
                     weapon: characters[1].build.weapon,
                     spriteId: characters[1].build.spriteId ?? 'default',
@@ -424,9 +426,9 @@ export class BattleEngine {
 
     /** 检查缠劲溢出，满30层加「周」buff，不满30层移除 */
     checkChanOverflow(charId: string): void {
-        const chanKey = `chan::${charId}`
-        const layer = this.state.pendingBuffs.get(chanKey)
-        const curValue = layer?.restoreValue ?? 0
+        const char = this.getCharacter(charId)
+        if (!char) return
+        const curValue = char.chan
         const zhouKey = `zhou::${charId}`
         const hasZhou = this.state.pendingBuffs.has(zhouKey)
 
@@ -544,14 +546,10 @@ export class BattleEngine {
         if (!triggered && !self.spendAp(action.apCost)) {
             return r
         }
-        // 缠积累（消耗AP × 1）
-        {
-            const chanKey = `chan::${self.id}`
-            const existing = this.state.pendingBuffs.get(chanKey)
-            const newValue = Math.min(30, (existing?.restoreValue ?? 0) + action.apCost)
-            this.state.pendingBuffs.set(chanKey, { restoreValue: newValue })
-            this.checkChanOverflow(self.id)
-        }
+        // 缠积累（消耗AP × 1）+ 缠消耗
+        self.chan = Math.min(30, self.chan + action.apCost)
+        if (action.chanCost) self.chan = Math.max(0, self.chan - action.chanCost)
+        this.checkChanOverflow(self.id)
         const weapon = getWeapon(self.build.weapon)
         this.emitLog({
             type: 'attack_start',

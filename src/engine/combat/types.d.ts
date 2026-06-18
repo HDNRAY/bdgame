@@ -72,6 +72,7 @@ export interface CharacterSnapshot {
     maxHp: number
     ap: number
     maxAp: number
+    chan: number
     pos: number
     weapon: string
     spriteId: string

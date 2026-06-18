@@ -27,10 +27,7 @@ export function applyBonusDamage(
     target.takeDamage(final)
     // 缠积累（损失血量 × 0.3）
     if (final > 0) {
-        const chanKey = `chan::${target.id}`
-        const existing = engine.state.pendingBuffs.get(chanKey)
-        const newValue = Math.min(30, (existing?.restoreValue ?? 0) + Math.round(final * 0.3))
-        engine.state.pendingBuffs.set(chanKey, { restoreValue: newValue })
+        target.chan = Math.min(30, target.chan + Math.round(final * 0.3))
         engine.checkChanOverflow(target.id)
     }
     engine.emitLog({
@@ -70,10 +67,7 @@ export function applyDamage(
 
     // 缠积累（损失血量 × 0.3）
     if (final > 0) {
-        const chanKey = `chan::${target.id}`
-        const existing = engine.state.pendingBuffs.get(chanKey)
-        const newValue = Math.min(30, (existing?.restoreValue ?? 0) + Math.round(final * 0.3))
-        engine.state.pendingBuffs.set(chanKey, { restoreValue: newValue })
+        target.chan = Math.min(30, target.chan + Math.round(final * 0.3))
         engine.checkChanOverflow(target.id)
     }
 

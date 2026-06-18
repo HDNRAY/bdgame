@@ -399,11 +399,10 @@ export const MVP_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 6,
         tags: ['pierce'],
-        canUse: (attacker) => attacker.attrs.get('strength') >= 18 && attacker.attrs.get('agility') >= 18,
-        effects: [
-            { type: 'damage', scaling: { strength: 1, agility: 1 } },
-            { type: 'remove_buff', buffId: 'chan', stacks: 15 },
-        ],
+        chanCost: 15,
+        canUse: (attacker) =>
+            attacker.attrs.get('strength') >= 18 && attacker.attrs.get('agility') >= 18 && attacker.chan >= 15,
+        effects: [{ type: 'damage', scaling: { strength: 1, agility: 1 } }],
     },
     {
         id: 'sword_thrust',
@@ -727,11 +726,11 @@ export const TRIGGER_ACTIONS: ActionDefinition[] = [
         apCost: 7,
         tags: ['electric', 'stun'],
         range: [0, 3],
-        canUse: (attacker, state) => (state.pendingBuffs.get(`chan::${attacker.id}`)?.restoreValue ?? 0) >= 15,
+        chanCost: 15,
+        canUse: (attacker) => attacker.chan >= 15,
         effects: [
             { type: 'damage', scaling: { wisdom: 1 } },
             { type: 'status', status: 'stun', stacks: 1, chance: 1 },
-            { type: 'remove_buff', buffId: 'chan', stacks: 15 },
         ],
     },
     {

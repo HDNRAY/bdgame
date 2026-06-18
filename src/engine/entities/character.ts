@@ -26,6 +26,8 @@ export class Character {
     attrs: AttributeSet
     hp: number
     ap: number
+    /** 缠劲层数 */
+    chan = 0
     /** 上次行动结束的绝对时间 (ms)，0=未行动过 */
     lastActionEndMs = 0
 

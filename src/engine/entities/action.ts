@@ -63,6 +63,8 @@ export type EffectDef =
 export interface ActionDefinition extends GameEntity {
     requiredTags: Tag[]
     apCost: number
+    /** 消耗的缠劲层数 */
+    chanCost?: number
     effects?: EffectDef[]
     target?: 'self' | 'enemy'
     /** 招式固定命中率（不设则用属性公式计算） */

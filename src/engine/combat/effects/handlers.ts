@@ -340,7 +340,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                     })
                 }
             }
-            if (e.buffId === 'chan') engine.checkChanOverflow(self.id)
             return
         }
 
@@ -350,7 +349,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.state.pendingBuffs.delete(key)
         engine.state.turn.removeEvents('buff_end_' + key)
         const buffName = getBuff(e.buffId)?.name ?? e.buffId
-        if (e.buffId === 'chan') engine.checkChanOverflow(self.id)
         if (e.buffId !== 'disarmed') {
             engine.emitLog({
                 type: 'system',

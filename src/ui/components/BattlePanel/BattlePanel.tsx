@@ -16,13 +16,6 @@ export function BattlePanel({ snapshot, charAName, charBName }: BattlePanelProps
     const winner = isFinished ? (a.hp > 0 ? charAName : charBName) : null
 
     /** 查角色的缠层数 */
-    const getChan = (charId: string): number => {
-        for (const [k, layer] of snapshot.pendingBuffs) {
-            if (k === `chan::${charId}`) return layer.restoreValue
-        }
-        return 0
-    }
-
     return (
         <div className="battle-panel">
             <div className="title">
@@ -60,35 +53,27 @@ export function BattlePanel({ snapshot, charAName, charBName }: BattlePanelProps
                                 <div className="bar-fill bar-ap" style={{ width: `${Math.min(100, apPct)}%` }} />
                             </div>
                             {/* 缠条 */}
-                            {(() => {
-                                const chanStacks = getChan(c.id)
-                                const chanPct = (chanStacks / 30) * 100
-                                return (
-                                    <>
-                                        <div className="hp-text">
-                                            <span className="chan-label">缠</span> {chanStacks}/30
-                                        </div>
-                                        <div className="bar-bg">
-                                            <div
-                                                className="bar-fill bar-chan"
-                                                style={{ width: `${Math.min(100, chanPct)}%` }}
-                                            />
-                                        </div>
-                                    </>
-                                )
-                            })()}
+                            <>
+                                <div className="hp-text">
+                                    <span className="chan-label">缠</span> {c.chan}/30
+                                </div>
+                                <div className="bar-bg">
+                                    <div
+                                        className="bar-fill bar-chan"
+                                        style={{ width: `${Math.min(100, (c.chan / 30) * 100)}%` }}
+                                    />
+                                </div>
+                            </>
                             <div className="buffs-grid">
-                                {c.buffs
-                                    .filter((b) => b.buffId !== 'chan' && b.buffId !== 'zhou')
-                                    .map((b) => {
-                                        const def = getBuff(b.buffId)
-                                        const label = b.stacks > 1 ? `${b.name}(${b.stacks})` : b.name
-                                        return (
-                                            <Tooltip key={b.buffId} content={def?.description ?? b.name}>
-                                                <span className="buff-tag">{label}</span>
-                                            </Tooltip>
-                                        )
-                                    })}
+                                {c.buffs.map((b) => {
+                                    const def = getBuff(b.buffId)
+                                    const label = b.stacks > 1 ? `${b.name}(${b.stacks})` : b.name
+                                    return (
+                                        <Tooltip key={b.buffId} content={def?.description ?? b.name}>
+                                            <span className="buff-tag">{label}</span>
+                                        </Tooltip>
+                                    )
+                                })}
                             </div>
                         </div>
                     )
