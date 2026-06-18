@@ -2,17 +2,7 @@
 import { writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const logPath = join(__dirname, 'battle-log.txt')
-const logLines: string[] = []
-const origLog = console.log
-console.log = (...args) => {
-    const line = args.map((a) => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))).join(' ')
-    logLines.push(line)
-    origLog(...args)
-}
-process.on('exit', () => writeFileSync(logPath, logLines.join('\n') + '\n', 'utf-8'))
-import { Character } from '../src/engine/entities/character'
+import { Character, calcMaxHp, calcMaxAp } from '../src/engine/entities/character'
 import {
     ZHANGLIE,
     LAIFENG,
@@ -32,6 +22,17 @@ import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
 import { StatsTracker } from '../src/engine/combat/stats-tracker'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const logPath = join(__dirname, 'battle-log.txt')
+const logLines: string[] = []
+const origLog = console.log
+console.log = (...args) => {
+    const line = args.map((a) => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))).join(' ')
+    logLines.push(line)
+    origLog(...args)
+}
+process.on('exit', () => writeFileSync(logPath, logLines.join('\n') + '\n', 'utf-8'))
+
 console.clear()
 
 const N = Math.max(1, parseInt(process.argv[2] ?? '1', 10))
@@ -39,8 +40,8 @@ const N = Math.max(1, parseInt(process.argv[2] ?? '1', 10))
 function show(c: Character) {
     const weapon = getWeapon(c.build.weapon)
     const a = c.attrs
-    const baseHp = 20 + a.get('vitality') * 10
-    const baseAp = Math.round(3 + a.get('vitality') * 0.5)
+    const baseHp = calcMaxHp(a.get('vitality'))
+    const baseAp = calcMaxAp(a.get('vitality'))
     console.log(`\n${c.name}`)
     console.log(
         `  STR ${a.get('strength')}  VIT ${a.get('vitality')}  AGI ${a.get('agility')}  DEX ${a.get('dexterity')}  INS ${a.get('insight')}  WIS ${a.get('wisdom')}`,
@@ -55,7 +56,7 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = LONGNV.generate(33)
+const pBuild = LAYUE.generate(33)
 const oBuild = SANGYUAN.generate(33)
 
 if (N === 1) {
@@ -67,7 +68,7 @@ if (N === 1) {
     const stats = new StatsTracker()
     const { winner, engine } = runBattle(leftBase, rightBase, (e) => stats.handle(e))
     const [cloneL, cloneR] = engine.state.characters
-    for (const line of formatBattleLog(engine.state.log)) console.log(line)
+    for (const line of formatBattleLog(engine.state.log).lines) console.log(line)
     console.log(
         `\n🏆 ${winner} 胜  ${cloneL.name} HP${Math.round(cloneL.hp * 10) / 10}/${cloneL.maxHp} vs ${cloneR.name} HP${Math.round(cloneR.hp * 10) / 10}/${cloneR.maxHp}`,
     )
