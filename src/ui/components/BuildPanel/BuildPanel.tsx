@@ -140,9 +140,7 @@ export function BuildPanel({ character, accentColor = '#888' }: BuildPanelProps)
                                 </span>
                                 {actionDef && (
                                     <Tooltip content={<ActionTooltip action={actionDef} />}>
-                                        <span className="entity-item-meta" style={{ color: '#888', cursor: 'pointer' }}>
-                                            → {actionDef.name}
-                                        </span>
+                                        <span className="entity-item-meta">→ {actionDef.name}</span>
                                     </Tooltip>
                                 )}
                             </div>
