@@ -28,6 +28,8 @@ export type Tag =
     | 'talent' // 天赋
     | 'passive' // 功法
     | 'frost' // 霜冻
+    | 'polearm' // 长柄
+    | 'heavy' // 巨型双手
     | 'sand_blind' // 迷眼
     | 'knockdown' // 倒地    | 'support' // 辅助（buff/回复，不攻击）
     | 'move' // 位移
@@ -45,3 +47,4 @@ export type Tag =
     | 'retrieve_weapon' // 收回武器
     | 'bonus_damage' // 独立附加伤害
     | 'dual_wield' // 双持
+    | 'range_up' // 增加攻击范围

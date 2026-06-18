@@ -1,11 +1,10 @@
-import type { ActionDefinition } from '../entities/action'
-import type { Tag } from '../entities/tag'
+import type { ActionDefinition } from '../../entities/action'
 
 /**
- * MVP 招式清单
+ * 公开招式（玩家可装备）
  * 每招机制唯一，不重复。
  */
-export const ACTIONS: ActionDefinition[] = [
+export const PLAYER_ACTIONS: ActionDefinition[] = [
     // ── 拳掌系 ──
 
     {
@@ -79,8 +78,6 @@ export const ACTIONS: ActionDefinition[] = [
         range: [0, 6],
         canUse: (_attacker, state) => state.lastActionExtraDelay >= 200,
     },
-
-    // ── 暗器系 ──
 
     // ── 长枪系 ──
     {
@@ -545,145 +542,6 @@ export const ACTIONS: ActionDefinition[] = [
         maxUses: 999,
     },
 
-    // ── 内部招式（被动/天赋触发专用，不直接装备） ──
-    {
-        id: '_sangui_heal',
-        name: '三分归元',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger', 'heal'],
-        target: 'self',
-        maxUses: 1,
-        effects: [
-            { type: 'heal', value: 3, ratio: 0.28 },
-            { type: 'stat_buff', attrs: { strength: -2, vitality: -2, agility: -2, dexterity: -2 } },
-        ],
-    },
-    {
-        id: '_buer_init',
-        name: '不二',
-        description: '青山双剑起手式，暴击伤害大增但身法略滞。',
-        requiredTags: ['imperial'],
-        apCost: 0,
-        tags: ['buff', 'trigger'],
-        target: 'self',
-        maxUses: 1,
-        effects: [
-            { type: 'crit_damage', value: 0.5 },
-            { type: 'dodge_mod', value: -0.2 },
-        ],
-    },
-    {
-        id: '_fusi_crit_stack',
-        name: '弗思',
-        description: '闪避后本能蓄势，提升暴击率。',
-        requiredTags: ['imperial'],
-        apCost: 0,
-        tags: ['buff', 'trigger'],
-        target: 'self',
-        effects: [{ type: 'crit_chance', value: 0.03 }],
-    },
-    {
-        id: '_qiti_awaken',
-        name: '炁体源流·觉醒',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger'],
-        target: 'self',
-        maxUses: 1,
-        effects: [
-            { type: 'add_buff', buffId: 'qi_shield', stacks: 5 },
-            { type: 'stat_buff', attrs: { wisdom: -15, strength: 5, agility: 5, dexterity: 5 } },
-        ],
-    },
-    {
-        id: '_fusi_reset',
-        name: '弗思·破',
-        description: '暴击后蓄势消散。',
-        requiredTags: ['imperial'],
-        apCost: 0,
-        tags: ['trigger'],
-        target: 'self',
-        effects: [{ type: 'crit_chance', value: 0, reset: true }],
-    },
-    {
-        id: '_blood_thorn_bleed',
-        name: '血棘',
-        description: '暴击引发流血。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger'],
-        target: 'enemy',
-        effects: [{ type: 'status', status: 'bleed', stacks: 1, chance: 1 }],
-    },
-    {
-        id: '_iaijutsu_ready',
-        name: '居合',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger'],
-        target: 'self',
-        maxUses: 1,
-        effects: [{ type: 'add_buff', buffId: 'iaijutsu' }],
-    },
-    {
-        id: '_zantetsu_mind_eye',
-        name: '斩铁·心眼',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger'],
-        target: 'self',
-        maxUses: 1,
-        effects: [{ type: 'add_buff', buffId: 'mind_eye' }],
-    },
-    {
-        id: '_iaijutsu_counter',
-        name: '无刀取',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger'],
-        target: 'self',
-        maxUses: 1,
-        effects: [{ type: 'damage', scaling: { strength: 0.5 } }],
-    },
-    {
-        id: '_godspeed_counter',
-        name: '神速·闪雷',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger', 'electric'],
-        target: 'enemy',
-        effects: [{ type: 'damage', scaling: { insight: 0.2 }, base: 2 }],
-    },
-    {
-        id: '_tiger_eye_foresight',
-        name: '虎彻·看破',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger'],
-        target: 'self',
-        effects: [{ type: 'add_buff', buffId: 'foresight' }],
-    },
-    {
-        id: 'spirit_sword',
-        name: '灵剑',
-        description: '凝炁为刃，剑气可化鞭化枪。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['buff', 'support'],
-        target: 'self',
-        bonus: true,
-        bonusTiming: { type: 'before_main' },
-        canUse: (_attacker, state) => !state.pendingBuffs.has('ciyuan_blade::' + _attacker.id),
-        effects: [{ type: 'ciyuan_init' }, { type: 'add_buff', buffId: 'ciyuan_blade' }],
-    },
     // ── 雷系 ──
     {
         id: 'electric_yoyo',
@@ -732,90 +590,4 @@ export const ACTIONS: ActionDefinition[] = [
             { type: 'status', status: 'stun', stacks: 1, chance: 1 },
         ],
     },
-    {
-        id: '_detox',
-        name: '解毒',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger'],
-        target: 'self',
-        maxUses: 999,
-        effects: [{ type: 'cleanse', statuses: ['poison'] }],
-    },
 ]
-
-/** 炁技 —— 锻体解锁的辅招 */
-const QI_SKILLS: ActionDefinition[] = [
-    {
-        id: 'qi_focus',
-        name: '凝炁',
-        description: '凝聚体内炁劲，全属性小幅提升。',
-        requiredTags: [],
-        apCost: 1,
-        tags: ['buff', 'support'],
-        bonus: true,
-        bonusTiming: { type: 'before_main' },
-        target: 'self',
-        maxUses: 1,
-        effects: [
-            {
-                type: 'stat_buff',
-                attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 },
-                duration: { attr: 'wisdom', multiplier: 1000 },
-            },
-        ],
-    },
-    {
-        id: 'qi_gather',
-        name: '聚炁',
-        description: '集中炁劲，力量翻倍。',
-        requiredTags: [],
-        apCost: 3,
-        tags: ['buff', 'support'],
-        bonus: true,
-        bonusTiming: { type: 'before_main' },
-        target: 'self',
-        effects: [
-            { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: { attr: 'wisdom', multiplier: 150 } },
-        ],
-    },
-    {
-        id: 'qi_bolt',
-        name: '炁弹',
-        description: '凝聚炁劲远程攻击。',
-        requiredTags: [],
-        apCost: 1,
-        tags: ['qi'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.1 }, base: 2.4 }],
-        extraPreDelay: 200,
-        range: [3, 8],
-    },
-    {
-        id: 'restore_ap',
-        name: '回炁',
-        description: '恢复 1 AP。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['qi'],
-        target: 'self',
-        effects: [{ type: 'restore_ap', value: 1 }],
-        maxUses: 999,
-    },
-]
-
-/** 合并所有招式（含辅招、炁技） */
-const ALL_ACTIONS = [...ACTIONS, ...QI_SKILLS]
-
-/** 按 ID 查找 */
-export function getAction(id: string): ActionDefinition | undefined {
-    return ALL_ACTIONS.find((a) => a.id === id)
-}
-
-/** 按武器标签过滤（空数组招式 = 任意武器可用） */
-export function getActionsByWeapon(weaponTags: Tag[]): ActionDefinition[] {
-    return ALL_ACTIONS.filter((a) => {
-        if (a.requiredTags.length === 0) return true
-        return a.requiredTags.some((tag) => weaponTags.includes(tag))
-    })
-}

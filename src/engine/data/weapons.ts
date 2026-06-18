@@ -34,7 +34,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'iron_spear',
         name: '铁枪·破军',
         description: '丈二铁枪，势大力沉。',
-        tags: ['pierce', 'parry', 'melee'],
+        tags: ['pierce', 'parry', 'polearm', 'melee'],
         bound: false,
         effects: [{ type: 'stat_buff', attrs: { agility: -2, strength: 2 } }],
         range: [2, 4],
@@ -98,7 +98,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'overlord_blade',
         name: '霸刀',
         description: '与身同高的巨刃，离心力驱动，势不可挡。',
-        tags: ['slash', 'blunt', 'parry', 'melee'],
+        tags: ['slash', 'blunt', 'parry', 'heavy', 'melee'],
         effects: [],
         range: [1, 3],
         triggers: [

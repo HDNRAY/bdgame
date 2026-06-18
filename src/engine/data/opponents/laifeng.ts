@@ -18,6 +18,7 @@ export const LAIFENG: OpponentDef = {
                 action('straight_punch'),
                 action('flick'),
                 action('iron_charge'),
+                action('qi_bolt'),
             ],
             [
                 {
