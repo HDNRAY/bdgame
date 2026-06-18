@@ -39,7 +39,7 @@ export const PASSIVES: Passive[] = [
         id: 'sword_dominion',
         name: '御剑诀',
         description: '以炁御剑，剑随意动，攻击距离延长。',
-        tags: ['imperial', 'qi', 'range'],
+        tags: ['imperial', 'qi', 'range', 'range_up'],
         effects: [{ type: 'weapon_range_bonus', value: 2 }],
     },
     {
@@ -200,6 +200,17 @@ export const PASSIVES: Passive[] = [
             if (!def.effects?.some((e) => e.type === 'damage')) return def
             if (!def.tags.includes('blunt')) return def
             const chance = Math.min(0.8, def.apCost * 0.15)
+            // 如果招式已有麻痹效果，合并概率（加法）
+            const idx = def.effects!.findIndex(
+                (e): e is Extract<typeof e, { type: 'status' }> => e.type === 'status' && e.status === 'paralyze',
+            )
+            if (idx >= 0) {
+                const merged = { ...(def.effects![idx] as Extract<(typeof def.effects)[number], { type: 'status' }>) }
+                merged.chance = merged.chance + chance
+                const newEffects = [...def.effects!]
+                newEffects[idx] = merged
+                return { ...def, effects: newEffects }
+            }
             return {
                 ...def,
                 effects: [...(def.effects ?? []), { type: 'status', status: 'paralyze', stacks: 1, chance }],

@@ -109,8 +109,11 @@ export const BUFF_DB: BuffDef[] = [
         value: 0.4,
         expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },
-        onHitChance: ({ engine }) =>
-            engine.state.position.distance(engine.state.characters[0].id, engine.state.characters[1].id) <= 4 ? 0.4 : 0,
+        onHitChance: ({ engine, attacker }) => {
+            const dist = engine.state.position.distance(engine.state.characters[0].id, engine.state.characters[1].id)
+            const maxRange = attacker.weaponDef?.range?.[1] ?? 4
+            return dist <= maxRange ? 0.4 : 0
+        },
     },
     {
         id: 'momentum',

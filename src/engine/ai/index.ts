@@ -167,7 +167,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         moveDelta = 0
         moveAp = 0
     } else if (moveDelta !== 0) {
-        cmds.push({ type: 'move', bestDistance: moveDelta })
+        cmds.push({ type: 'move', bestDistance: moveDelta > 0 ? moveAp : -moveAp })
     }
     cmds.push({ type: 'attack', actionId: mainId })
 
@@ -187,8 +187,8 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         }
     }
 
-    // ── 7. 行动后走位（剩余 AP，但不走多余距离） ──
-    if (enemy && moveDelta === 0) {
+    // ── 7. 行动后走位（剩余 AP） ──
+    if (enemy) {
         const style = overrides?.forceStyle ?? classifyAttackStyle(weapon.range)
         const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
         const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
@@ -196,9 +196,11 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             : basePerAp * (1 + (self.moveEfficiency ?? 0))
         // 理想距离：远程/中程保持在最大射程边缘，近战贴脸
         const idealDist = style === 'ranged' || style === 'mid' ? weapon.range[1] : Math.max(weapon.range[0], 2)
-        const currentDist = state.position.distance(self.id, enemy.id)
-        const postDelta = idealDist - currentDist
-        if (Math.abs(postDelta) >= 1) {
+        // 估算行动前走位后的实际距离
+        const preMoveDist = state.position.distance(self.id, enemy.id)
+        const postMoveDist = moveDelta !== 0 ? preMoveDist + perAp * moveAp * (moveDelta > 0 ? 1 : -1) : preMoveDist
+        const postDelta = idealDist - postMoveDist
+        if (Math.abs(postDelta) > 0) {
             const dist = Math.abs(postDelta)
             const apUsed = Math.ceil(dist / perAp)
             if (apUsed > 0) {

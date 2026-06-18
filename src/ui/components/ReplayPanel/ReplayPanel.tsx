@@ -44,7 +44,9 @@ export function ReplayPanel({
     const [logFontSize, setLogFontSize] = useState(13)
     const lastLogTime = useRef(0)
     const logTargetRef = useRef(0)
-    const LOG_INTERVAL = 300 // ms
+    const speedRef = useRef(speed)
+    speedRef.current = speed
+    const LOG_INTERVAL = 300 // ms 基准间隔（1×时）
 
     useEffect(() => {
         const el = canvasRef.current
@@ -69,7 +71,8 @@ export function ReplayPanel({
                 // log 行逐行出现，每行间隔 LOG_INTERVAL
                 const targetLine = eventToLine?.[f.eventIndex] ?? Math.min(f.eventIndex, logLines.length - 1)
                 logTargetRef.current = targetLine
-                if (performance.now() - lastLogTime.current >= LOG_INTERVAL) {
+                const effectiveInterval = LOG_INTERVAL / speedRef.current
+                if (performance.now() - lastLogTime.current >= effectiveInterval) {
                     setCurrentLine((prev) => {
                         const next = Math.min(prev + 1, logTargetRef.current)
                         if (next > prev) lastLogTime.current = performance.now()

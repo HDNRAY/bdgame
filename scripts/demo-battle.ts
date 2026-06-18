@@ -56,7 +56,7 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = LAYUE.generate(33)
+const pBuild = QILAN.generate(33)
 const oBuild = SANGYUAN.generate(33)
 
 if (N === 1) {
