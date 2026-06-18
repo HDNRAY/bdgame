@@ -16,9 +16,11 @@ function buildNameMap(snapshot: BattleSnapshot): Map<string, string> {
     return map
 }
 
-export function formatBattleLog(log: BattleLog): string[] {
+export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine: number[] } {
     const all = log.getAll()
     const lines: string[] = []
+    // eventToLine[i] = 事件 i 处理完后可见的最后一行索引（含）
+    const eventToLine: number[] = []
     let lastActionKey = ''
     const nameMap = all.length > 0 ? buildNameMap(all[0].event.snapshot) : new Map<string, string>()
     const fmtName = (id: string, snap?: BattleSnapshot): string => {
@@ -54,7 +56,7 @@ export function formatBattleLog(log: BattleLog): string[] {
     }
 
     function t(ms: number) {
-        return `t=${(ms / 1000).toFixed(2)}`
+        return `${(ms / 1000).toFixed(2)}s`
     }
 
     /** 率·骰 统一格式 */
@@ -72,19 +74,18 @@ export function formatBattleLog(log: BattleLog): string[] {
         indent?: number,
     ) {
         if (indent && indent > 0) return
-        const ac = actionCount ?? 0
-        const key = ac > 0 ? `#${ac}` : actor
-        if (key !== lastActionKey) {
-            if (lastActionKey !== '') lines.push('')
-            lastActionKey = key
-            const hp = hpStr ? ` ${hpStr}` : ''
-            const d = dist !== undefined ? ` ${dist.toFixed(1)}m` : ''
-            const num = ac > 0 ? ` #${ac}` : ''
-            if (ap > 0) {
-                lines.push(`── 回合 ${t(ms)}${num} ${actor} AP${ap}${hp}${d} ──`)
-            } else {
-                lines.push(`── 回合 ${t(ms)}${num} ${actor}${hp}${d} ──`)
-            }
+        // 每个招式输出独立标题行（不再按 actionCount 合并）
+        const key = `${ms}_${actor}`
+        if (key === lastActionKey) return
+        if (lastActionKey !== '') lines.push('')
+        lastActionKey = key
+        const hp = hpStr ? ` ${hpStr}` : ''
+        const d = dist !== undefined ? ` ${dist.toFixed(1)}m` : ''
+        const num = (actionCount ?? 0) > 0 ? ` #${actionCount}` : ''
+        if (ap > 0) {
+            lines.push(`── ${t(ms)}${num} ${actor} AP${ap}${hp}${d} ──`)
+        } else {
+            lines.push(`── ${t(ms)}${num} ${actor}${hp}${d} ──`)
         }
     }
 
@@ -128,7 +129,9 @@ export function formatBattleLog(log: BattleLog): string[] {
         pending = null
     }
 
-    for (const { timelineMs: ms, event: e } of all) {
+    for (let eventIdx = 0; eventIdx < all.length; eventIdx++) {
+        const { timelineMs: ms, event: e } = all[eventIdx]
+        const before = lines.length
         switch (e.type) {
             case 'battle_start':
                 lines.push(`── ${fmtName(e.actor)} VS ${fmtName(e.opponent)} ──\n`)
@@ -234,6 +237,9 @@ export function formatBattleLog(log: BattleLog): string[] {
 
             case 'defeat':
                 flush()
+                // 从快照找出赢家
+                const winnerName = e.snapshot?.characters.find((c) => c.id !== e.loser)?.name ?? e.winner
+                lines.push(`\n🏆 ${winnerName} 获胜！`)
                 break
 
             case 'system': {
@@ -262,7 +268,19 @@ export function formatBattleLog(log: BattleLog): string[] {
                 break
             }
         }
+        // 记录该事件处理完后可见的最后一行索引
+        if (lines.length > before) {
+            eventToLine[eventIdx] = lines.length - 1
+        }
+    }
+    // 填充事件本身没加行的情况（沿用上一事件的结尾）
+    for (let i = 0; i < all.length; i++) {
+        if (eventToLine[i] === undefined) {
+            eventToLine[i] = i > 0 ? eventToLine[i - 1] : -1
+        }
     }
     flush()
-    return lines
+    // 最后的 flush 可能加了行，更新最后一事件的映射
+    eventToLine[all.length - 1] = lines.length - 1
+    return { lines, eventToLine }
 }

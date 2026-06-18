@@ -1,4 +1,6 @@
 import type { BattleSnapshot } from '../../../engine/combat/types'
+import { getBuff } from '../../../engine/data/buffs'
+import { Tooltip } from '../ui/Tooltip/Tooltip'
 import './BattlePanel.scss'
 
 interface BattlePanelProps {
@@ -10,6 +12,16 @@ interface BattlePanelProps {
 export function BattlePanel({ snapshot, charAName, charBName }: BattlePanelProps) {
     const [a, b] = snapshot.characters
     const dist = snapshot.distance
+    const isFinished = snapshot.phase === 'finished'
+    const winner = isFinished ? (a.hp > 0 ? charAName : charBName) : null
+
+    /** 查角色的缠层数 */
+    const getChan = (charId: string): number => {
+        for (const [k, layer] of snapshot.pendingBuffs) {
+            if (k === `chan::${charId}`) return layer.restoreValue
+        }
+        return 0
+    }
 
     return (
         <div className="battle-panel">
@@ -20,6 +32,8 @@ export function BattlePanel({ snapshot, charAName, charBName }: BattlePanelProps
             <div className="distance">
                 {'─'.repeat(8)} {dist.toFixed(1)}m {'─'.repeat(8)}
             </div>
+
+            {winner && <div className="winner">🏆 {winner} 获胜！</div>}
 
             <div className="chars">
                 {[a, b].map((c, i) => {
@@ -40,21 +54,42 @@ export function BattlePanel({ snapshot, charAName, charBName }: BattlePanelProps
                                 />
                             </div>
                             <div className="hp-text">
-                                <span className="ap-label">AP</span> {c.ap}/{c.maxAp}
+                                <span className="ap-label">AP</span> {c.ap.toFixed(1)}/{c.maxAp}
                             </div>
                             <div className="bar-bg">
                                 <div className="bar-fill bar-ap" style={{ width: `${Math.min(100, apPct)}%` }} />
                             </div>
-                            {c.buffs.length > 0 && (
-                                <div>
-                                    <div className="label buffs-label">Buffs</div>
-                                    {c.buffs.map((b, j) => (
-                                        <div key={j} className="buff-item">
-                                            ☐ {b.name}
+                            {/* 缠条 */}
+                            {(() => {
+                                const chanStacks = getChan(c.id)
+                                const chanPct = (chanStacks / 30) * 100
+                                return (
+                                    <>
+                                        <div className="hp-text">
+                                            <span className="chan-label">缠</span> {chanStacks}/30
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                        <div className="bar-bg">
+                                            <div
+                                                className="bar-fill bar-chan"
+                                                style={{ width: `${Math.min(100, chanPct)}%` }}
+                                            />
+                                        </div>
+                                    </>
+                                )
+                            })()}
+                            <div className="buffs-grid">
+                                {c.buffs
+                                    .filter((b) => b.buffId !== 'chan' && b.buffId !== 'zhou')
+                                    .map((b) => {
+                                        const def = getBuff(b.buffId)
+                                        const label = b.stacks > 1 ? `${b.name}(${b.stacks})` : b.name
+                                        return (
+                                            <Tooltip key={b.buffId} content={def?.description ?? b.name}>
+                                                <span className="buff-tag">{label}</span>
+                                            </Tooltip>
+                                        )
+                                    })}
+                            </div>
                         </div>
                     )
                 })}

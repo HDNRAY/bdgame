@@ -71,11 +71,21 @@
         color: #888;
     }
 
+    .font-size-ctrl {
+        display: inline-flex;
+        gap: 2px;
+        margin-left: 6px;
+
+        .ctrl-btn {
+            font-size: 10px;
+            padding: 2px 6px;
+        }
+    }
+
     .log {
         max-height: 300px;
         overflow: auto;
         padding: 4px 8px 100px;
-        font-size: 11px;
         line-height: 1.5;
         text-align: left;
         white-space: pre-wrap;

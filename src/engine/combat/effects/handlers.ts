@@ -332,11 +332,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                         }
                     }
                 }
-                engine.emitLog({
-                    type: 'system',
-                    message: `${getBuff(e.buffId)?.name ?? e.buffId} ${self.name} ${Math.abs(delta)}层→${layer.restoreValue}层`,
-                    actorId: self.id,
-                })
+                if (e.buffId !== 'disarmed') {
+                    engine.emitLog({
+                        type: 'system',
+                        message: `${getBuff(e.buffId)?.name ?? e.buffId} ${self.name} ${Math.abs(delta)}层→${layer.restoreValue}层`,
+                        actorId: self.id,
+                    })
+                }
             }
             if (e.buffId === 'chan') engine.checkChanOverflow(self.id)
             return
@@ -349,14 +351,16 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.state.turn.removeEvents('buff_end_' + key)
         const buffName = getBuff(e.buffId)?.name ?? e.buffId
         if (e.buffId === 'chan') engine.checkChanOverflow(self.id)
-        engine.emitLog({
-            type: 'system',
-            message:
-                oldStacks > 1
-                    ? `[${buffName}] ${BattleLog.name(self.name)} 状态消失（${oldStacks}层）`
-                    : BattleLog.buffRemove(buffName, self.name),
-            actorId: self.id,
-        })
+        if (e.buffId !== 'disarmed') {
+            engine.emitLog({
+                type: 'system',
+                message:
+                    oldStacks > 1
+                        ? `[${buffName}] ${BattleLog.name(self.name)} 状态消失（${oldStacks}层）`
+                        : BattleLog.buffRemove(buffName, self.name),
+                actorId: self.id,
+            })
+        }
     },
     short_dash({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'short_dash' }>
@@ -385,7 +389,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             const perAp = Math.max(0.5, self.attrs.get('agility') / 20)
             const apCost = Math.ceil(Math.abs(moveDist) / perAp)
             if (self.ap < apCost) {
-                engine.emitLog({ type: 'system', message: `${self.name} AP不足`, actorId: self.id })
+                // engine.emitLog({ type: 'system', message: `${self.name} AP不足`, actorId: self.id })
                 return
             }
             self.spendAp(apCost)
@@ -447,7 +451,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     switch_weapon({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'switch_weapon' }>
 
-        const oldWeaponName = (self.weaponDef ?? getWeapon(self.build.weapon)).name
+        // const oldWeaponName = (self.weaponDef ?? getWeapon(self.build.weapon)).name
         const oldWeapon = self.weaponDef ?? getWeapon(self.build.weapon)
         revertWeaponStatBuffs(oldWeapon, self, engine)
         clearWeaponBuffLayers(self.id, engine)
@@ -475,11 +479,11 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             }
         }
 
-        engine.emitLog({
-            type: 'system',
-            message: `[换武] ${self.name} ${oldWeaponName} → ${weapon.name}`,
-            actorId: self.id,
-        })
+        // engine.emitLog({
+        //     type: 'system',
+        //     message: `[换武] ${self.name} ${oldWeaponName} → ${weapon.name}`,
+        //     actorId: self.id,
+        // })
         // 触发武器的 on_equip（新武器的装备效果，如霸刀buff）
         engine.emit('on_equip', self, self)
     },

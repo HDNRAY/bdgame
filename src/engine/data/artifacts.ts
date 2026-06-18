@@ -103,7 +103,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'innate_seed',
         name: '天生道种',
         description: '先天道种，扎根武道。',
-        tags: ['trigger'],
+        tags: [],
     },
     {
         id: 'tiger_eye',

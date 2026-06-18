@@ -3,7 +3,7 @@
  * 输入 BattleEvent[]，输出逐帧状态 Frame
  */
 
-import type { BattleEvent } from '../engine/combat/types'
+import type { BattleEvent, CharacterSnapshot, BattleSnapshot } from '../engine/combat/types'
 
 // ── 帧状态 ──
 export interface Frame {
@@ -27,6 +27,9 @@ export interface FrameChar {
     weaponId: string
     spriteId: string
     pose: 'idle' | 'attack' | 'hit' | 'move'
+    waitProgress: number // 0~1，等待下次行动进度
+    isActing: boolean // 当前正在主动行动
+    isTriggeredAction: boolean // 当前正在触发行动
 }
 
 // ── 事件条目 ──
@@ -77,26 +80,9 @@ export class ReplayEngine {
         // 在两个事件之间插值
         const ratio = next && cur ? (t - cur.timelineMs) / Math.max(1, next.timelineMs - cur.timelineMs) : 0
 
-        const chars: FrameChar[] = snapshot.characters.map((c, i) => {
-            const nextChar = nextSnapshot?.characters[i]
-            const hpLerp = nextChar ? this.lerp(c.hp, nextChar.hp, ratio) : c.hp
-            const apLerp = nextChar ? this.lerp(c.ap, nextChar.ap, ratio) : c.ap
-            // 位置用 ease-in-out 缓动，移动更自然
-            const eased = this.ease(ratio)
-            const posLerp = nextChar ? this.lerp(c.pos, nextChar.pos, eased) : c.pos
-            return {
-                id: c.id,
-                name: c.name,
-                pos: posLerp,
-                hp: Math.round(hpLerp),
-                maxHp: c.maxHp,
-                ap: apLerp,
-                maxAp: c.maxAp,
-                weaponId: c.weapon,
-                spriteId: c.spriteId,
-                pose: this.resolvePose(c.id, cur?.event, next?.event, ratio),
-            }
-        })
+        const chars: FrameChar[] = snapshot.characters.map((c, i) =>
+            this.buildFrameChar(c, i, snapshot, nextSnapshot, cur, next, t, ratio),
+        )
 
         const phase = snapshot.phase
 
@@ -165,9 +151,8 @@ export class ReplayEngine {
     private tick = (): void => {
         if (!this.playing) return
         const now = performance.now()
-        // 限制每帧最大时间步长，防止帧延迟/高倍速时位置跳跃
         const rawDt = (now - this.lastTick) * this.speed
-        const dt = Math.min(rawDt, 100) // 不超过 100ms
+        const dt = Math.min(rawDt, 200) // 限制最大步长防跳跃
         this.lastTick = now
         this.currentTime = Math.min(this.currentTime + dt, this.duration)
         this.emitFrame()
@@ -192,6 +177,60 @@ export class ReplayEngine {
             else hi = mid - 1
         }
         return lo
+    }
+
+    /** 构建单个角色的帧状态 */
+    private buildFrameChar(
+        c: CharacterSnapshot,
+        i: number,
+        snapshot: BattleSnapshot | undefined,
+        nextSnapshot: BattleSnapshot | undefined,
+        cur: LogEntry | undefined,
+        next: LogEntry | undefined,
+        t: number,
+        ratio: number,
+    ): FrameChar {
+        const nextChar = nextSnapshot?.characters[i]
+        const hpLerp = nextChar ? this.lerp(c.hp, nextChar.hp, ratio) : c.hp
+        const apLerp = nextChar ? this.lerp(c.ap, nextChar.ap, ratio) : c.ap
+        const eased = this.ease(ratio)
+        const posLerp = nextChar ? this.lerp(c.pos, nextChar.pos, eased) : c.pos
+
+        // 直接用最新快照的队列数据 + 当前播放时间 t 计算等待进度
+        const curEntry = snapshot?.turn.queue.find((q) => q.type === 'character' && q.id === c.id)
+        const nextEntry = nextSnapshot?.turn.queue.find((q) => q.type === 'character' && q.id === c.id)
+        const bestEntry = nextEntry ?? curEntry
+        let waitProgress: number
+        if (bestEntry) {
+            const span = bestEntry.nextActionAt - bestEntry.scheduledAt
+            waitProgress = span > 0 ? Math.min(1, Math.max(0, (t - bestEntry.scheduledAt) / span)) : 1
+        } else {
+            waitProgress = c.ap / Math.max(1, c.maxAp)
+        }
+
+        // 判断当前帧的行动状态
+        const nearEvent = cur && t - cur.timelineMs < 200
+        const evt = cur?.event
+        const isTriggered = evt?.type === 'attack_start' && !!evt.isTriggered
+        const actorId = evt && 'actor' in evt ? (evt as Extract<BattleEvent, { actor: string }>).actor : undefined
+        const isActing = !!(nearEvent && !isTriggered && !!actorId && actorId === c.id)
+        const isTriggeredAction = !!(nearEvent && isTriggered && actorId === c.id)
+
+        return {
+            id: c.id,
+            name: c.name,
+            pos: posLerp,
+            hp: Math.round(hpLerp),
+            maxHp: c.maxHp,
+            ap: apLerp,
+            maxAp: c.maxAp,
+            waitProgress,
+            isActing,
+            isTriggeredAction,
+            weaponId: c.weapon,
+            spriteId: c.spriteId,
+            pose: this.resolvePose(c.id, cur?.event, next?.event, ratio),
+        }
     }
 
     /** 判断角色的姿势 —— 只在事件瞬间闪现，前后摇保持 idle */

@@ -107,10 +107,32 @@ export function describeEffect(eff: EffectDef): string[] {
             const parts = Object.entries(eff.attrs).map(([k, v]) => `${ATTR_CN[k] ?? k}≥${v}`)
             return [`属性下限: ${parts.join(', ')}`]
         }
-        case 'add_buff':
-            return [`获取: ${getBuff(eff.buffId)?.name ?? eff.buffId}${eff.stacks ? ` ×${eff.stacks}` : ''}`]
+        case 'add_buff': {
+            const buff = getBuff(eff.buffId)
+            const name = buff?.name ?? eff.buffId
+            const stacks = eff.stacks ? ` ×${eff.stacks}` : ''
+            let extra = ''
+            if (buff?.attrMods) {
+                const parts = Object.entries(buff.attrMods).map(([k, v]) => {
+                    const cn = ATTR_CN[k] ?? k
+                    return `${cn}${v > 0 ? '+' : ''}${v}`
+                })
+                extra = ` (${parts.join(', ')})`
+            } else if (buff?.onCanParry) {
+                extra = ' (允许招架)'
+            } else if (buff?.tickInterval && buff.onTickHeal) {
+                extra = ` (每${buff.tickInterval / 1000}秒触发)`
+            } else if (buff?.onDealDamage || buff?.onTakeDamage || buff?.onTickDamage) {
+                extra = buff.description && buff.description !== name ? ` — ${buff.description}` : ''
+            } else if (buff?.description && buff.description !== name) {
+                extra = ` — ${buff.description}`
+            }
+            return [`获取: ${name}${stacks}${extra}`]
+        }
         case 'remove_buff':
             return [`移除: ${getBuff(eff.buffId)?.name ?? eff.buffId}`]
+        case 'retrieve_weapon':
+            return ['捡回脱手的武器']
         case 'switch_weapon':
             return [`切换武器: ${eff.weaponId}`]
         case 'summon_speed':

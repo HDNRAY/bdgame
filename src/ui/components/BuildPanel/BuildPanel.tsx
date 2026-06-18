@@ -85,13 +85,13 @@ export function BuildPanel({ character, accentColor = '#888' }: BuildPanelProps)
             <div className="section">
                 <div className="section-label">属性</div>
                 {ATTR_ORDER.map((attr) => {
-                    const val = a.get(attr)
-                    const pct = Math.min(100, Math.round((val / 30) * 100))
+                    const val = Math.round(a.get(attr))
+                    const pct = Math.min(100, (val / 30) * 100)
                     return (
                         <Tooltip key={attr} content={<StatTooltip attr={attr} value={val} />}>
                             <div className="stat-row">
                                 <span className="stat-label">{ATTR_CN[attr]}</span>
-                                {Math.round(val)}
+                                <span className="stat-val">{val}</span>
                                 <span className="stat-bar">
                                     <span className="stat-fill" style={{ width: `${pct}%` }} />
                                 </span>

@@ -17,6 +17,7 @@ function App() {
     const [battleKey, setBattleKey] = useState(0)
     const [battleData, setBattleData] = useState<{
         log: string[]
+        eventToLine: number[]
         chars: { a: Character; b: Character }
         entries: unknown[]
         snapshots: BattleSnapshot[]
@@ -29,11 +30,13 @@ function App() {
         const b = new Character(buildB)
         const { engine } = runBattle(a, b, undefined, 6)
         const snapshots = engine.state.log.getAll().map((e) => e.event.snapshot)
+        const { lines: log, eventToLine } = formatBattleLog(engine.state.log)
         setBattleData({
-            log: formatBattleLog(engine.state.log),
+            log,
             chars: { a: engine.state.characters[0], b: engine.state.characters[1] },
             entries: engine.state.log.getAll(),
             snapshots,
+            eventToLine,
         })
         setCurrentSnapshot(snapshots[0] ?? null)
         setBattleKey((k) => k + 1)
@@ -79,7 +82,7 @@ function App() {
 
     if (!battleData || !charAInfo || !charBInfo) return null
 
-    const { log, entries, snapshots } = battleData
+    const { log, eventToLine, entries, snapshots } = battleData
     const { a: charA, b: charB } = battleData.chars
     const snap = currentSnapshot ?? snapshots[0]
 
@@ -93,6 +96,7 @@ function App() {
                     charA={charAInfo}
                     charB={charBInfo}
                     logLines={log}
+                    eventToLine={eventToLine}
                     snapshots={snapshots}
                     onFrame={handleFrame}
                     onRefight={handleRefight}

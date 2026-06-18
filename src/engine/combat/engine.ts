@@ -67,6 +67,7 @@ export class BattleEngine {
             actionCount: 0,
             lastActionExtraDelay: 0,
             lastActionExtraStun: 0,
+            actionTimeOffset: 0,
             isEmitting: false,
             moveDelta: 0,
             triggeredThisChain: null,
@@ -182,6 +183,7 @@ export class BattleEngine {
         if (!e) return false
         this.state.eventActorId = e.type === 'character' ? e.id : null
         this.state.eventTime = e.nextActionAt
+        this.state.actionTimeOffset = 0
 
         // 系统事件
         if (e.type === 'system') {
@@ -257,8 +259,10 @@ export class BattleEngine {
                     : cmd.actionId
                       ? (self.actions.find((a) => a.id === cmd.actionId)?.apCost ?? 0)
                       : 0
-            totalActionDurationMs += Math.max(1, calcActionDurationMs(cost, agility))
+            const cmdDur = Math.max(1, calcActionDurationMs(cost, agility))
+            totalActionDurationMs += cmdDur
             this.execute(cmd, self, enemy)
+            this.state.actionTimeOffset += cmdDur
         }
         if (cmds.length === 0) {
             this.emitLog({ type: 'system', message: BattleLog.plain(self.name, '没有行动'), actorId: self.id })
@@ -401,10 +405,10 @@ export class BattleEngine {
         this.#logListeners.push(listener)
     }
 
-    /** 发射日志事件（自动附加当前快照和缩进） */
+    /** 发射日志事件（自动附加当前快照和缩进，已按行动耗时偏移时间戳） */
     emitLog(event: LogEvent): void {
         const snap = this.getSnapshot()
-        const tMs = this.state.eventTime
+        const tMs = this.state.eventTime + this.state.actionTimeOffset
         const enriched = { ...event, snapshot: snap, indent: this.state.log.indentDepth }
         this.state.log.handleLogEvent(enriched, snap, tMs)
         for (const l of this.#logListeners) l(enriched)
@@ -475,7 +479,7 @@ export class BattleEngine {
             this.state.pendingBuffs.has(`min_move_cost::${self.id}`),
         )
         if (!self.spendAp(ap)) {
-            this.emitLog({ type: 'system', message: BattleLog.plain(self.name, 'AP不足 无法移动'), actorId: self.id })
+            // this.emitLog({ type: 'system', message: BattleLog.plain(self.name, 'AP不足 无法移动'), actorId: self.id })
             return r
         }
         const actualDelta = p.moveToward(self.id, enemy.id, delta)
@@ -530,11 +534,11 @@ export class BattleEngine {
         // 验证
         const c = canExecuteAction(action, self, this.state)
         if (!c.ok) {
-            this.emitLog({
-                type: 'system',
-                message: `[招式检校] ${BattleLog.name(self.name)} ${action.name} ${c.reason}`,
-                actorId: self.id,
-            })
+            // this.emitLog({
+            //     type: 'system',
+            //     message: `[招式检校] ${BattleLog.name(self.name)} ${action.name} ${c.reason}`,
+            //     actorId: self.id,
+            // })
             return r
         }
         if (!triggered && !self.spendAp(action.apCost)) {

@@ -82,6 +82,7 @@
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 1px;
+        margin-bottom: 4px;
     }
 
     .stat-row {
@@ -89,6 +90,7 @@
         font-size: 13px;
         line-height: 1.6;
         font-family: monospace;
+        text-align: left;
     }
 
     .stat-label {
@@ -97,14 +99,19 @@
         display: inline-block;
     }
 
+    .stat-val {
+        display: inline-block;
+        width: 24px;
+        text-align: right;
+    }
+
     .stat-bar {
         width: 120px;
         height: 8px;
         background: #222;
-        border: 1px solid #444;
         display: inline-block;
-        vertical-align: middle;
-        margin-left: 6px;
+        margin-left: 24px;
+        margin-bottom: 1px;
     }
 
     .stat-fill {

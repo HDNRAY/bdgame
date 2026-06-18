@@ -1,8 +1,7 @@
 import type { Artifact } from '../../../engine/entities/artifact'
-import { getAction } from '../../../engine/data/actions'
-import { getTriggerName } from '../../../engine/data/triggers'
 import { describeEffects } from '../../../engine/data/effectDisplay'
 import { TagList } from '../ui/TagList/TagList'
+import { TriggerEffects } from '../ui/TriggerEffects/TriggerEffects'
 
 interface ArtifactTooltipProps {
     artifact: Artifact
@@ -20,24 +19,7 @@ export function ArtifactTooltip({ artifact }: ArtifactTooltipProps) {
                     {describeEffects(artifact.effects).join('；')}
                 </div>
             )}
-            {artifact.triggers && artifact.triggers.length > 0 && (
-                <>
-                    <hr className="tt-separator" />
-                    {artifact.triggers.map((t, i) => {
-                        const name = getTriggerName(t.condition.type)
-                        const actionName = t.actionId ? getAction(t.actionId)?.name : undefined
-                        return (
-                            <div key={i} className="tt-extra" style={{ fontSize: 10, lineHeight: 1.7 }}>
-                                <span style={{ color: '#888' }}>触发</span> {name}
-                                {actionName && <span style={{ color: '#aaa' }}> → {actionName}</span>}
-                                {!actionName && t.effects && t.effects.length > 0 && (
-                                    <span style={{ color: '#aaa' }}> → {describeEffects(t.effects).join('；')}</span>
-                                )}
-                            </div>
-                        )
-                    })}
-                </>
-            )}
+            {artifact.triggers && artifact.triggers.length > 0 && <TriggerEffects triggers={artifact.triggers} />}
         </div>
     )
 }

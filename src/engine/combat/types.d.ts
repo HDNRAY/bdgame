@@ -44,6 +44,8 @@ export interface BattleState {
     /** 当前执行的招式额外前摇，回合结束时加到下回合间隔 */
     lastActionExtraDelay: number
     lastActionExtraStun: number
+    /** 当前行动内累计耗时偏移（用于按耗时分散事件时间戳） */
+    actionTimeOffset: number
     /** 防止触发递归 */
     isEmitting: boolean
     /** 最近一次移动的位移量（on_opponent_move 用） */
