@@ -8,7 +8,7 @@ export const PASSIVES: Passive[] = [
         name: '三分归元气',
         description: '全属性提升。濒危时触发「三分归元」，消耗元气大幅回血。',
         tags: ['qi', 'heal', 'buff', 'defense'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2 } }],
+        effects: [{ type: 'stat_buff', attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1 } }],
         triggers: [
             {
                 condition: {

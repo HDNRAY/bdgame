@@ -428,7 +428,7 @@ export const BUFF_DB: BuffDef[] = [
             const hasQiState = engine.state.pendingBuffs.has(`qi_state::${attacker.id}`)
             const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi') || hasQiState
             if (!isQi) return final
-            return Math.round(final * 1.15 * 10) / 10
+            return Math.round(final * 1.1 * 10) / 10
         },
     },
     {

@@ -12,8 +12,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         target: 'self',
         maxUses: 1,
         effects: [
-            { type: 'heal', value: 3, ratio: 0.28 },
-            { type: 'stat_buff', attrs: { strength: -2, vitality: -2, agility: -2, dexterity: -2 } },
+            { type: 'heal', value: 3, ratio: 0.25 },
+            { type: 'stat_buff', attrs: { strength: -1, vitality: -1, agility: -1, dexterity: -1 } },
         ],
     },
     {
@@ -135,7 +135,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['buff', 'support'],
         target: 'self',
-        bonusTiming: { type: 'before_main' },
         canUse: (_attacker, state) => !state.pendingBuffs.has('ciyuan_blade::' + _attacker.id),
         effects: [{ type: 'ciyuan_init' }, { type: 'add_buff', buffId: 'ciyuan_blade' }],
     },
