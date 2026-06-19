@@ -17,7 +17,8 @@ import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
 import { revertBuffMods, applyAttrMods, reduceBleedOnHeal } from './utils/buff-layer'
-import { processActionEffect, processStatusTick, processHitCheck, processBleedDamage, processBuffEnd } from './effects'
+import { processActionEffect, processHitCheck, processBuffEnd } from './effects'
+import { tickEngine } from './tick-engine'
 import type {
     ActionCommand,
     ActionResult,
@@ -388,7 +389,7 @@ export class BattleEngine {
                 this.state.log.indentDepth++
                 this.#executeAction(action, self, enemy, true)
                 this.state.log.indentDepth--
-                processBleedDamage(self, this.#tMs, this)
+                tickEngine.onBleedTrigger(self, this)
             }
         }
     }
@@ -517,7 +518,7 @@ export class BattleEngine {
         this.state.moveDelta = actualDelta
         this.emit('on_opponent_move', enemy, self)
         this.state.moveDelta = 0
-        processBleedDamage(self, this.#tMs, this)
+        tickEngine.onBleedTrigger(self, this)
         return r
     }
 
@@ -533,7 +534,7 @@ export class BattleEngine {
         this.state.lastActionExtraStun = action.extraStunTime ?? 0
         this.emit('on_pre_action', enemy, self)
         const r = this.#executeAction(action, self, enemy)
-        processBleedDamage(self, this.#tMs, this)
+        tickEngine.onBleedTrigger(self, this)
         return r
     }
 
@@ -607,7 +608,11 @@ export class BattleEngine {
 
         this.state.log.indentDepth++
         for (const eff of action.effects ?? []) {
-            if ((eff.type === 'status' || eff.type === 'damage' || eff.type === 'fixed_damage') && r.hit && !r.dodged) {
+            if (
+                (eff.type === 'add_debuff' || eff.type === 'damage' || eff.type === 'fixed_damage') &&
+                r.hit &&
+                !r.dodged
+            ) {
                 processActionEffect(eff, self, enemy, this, tMs, action)
             } else if (
                 eff.type === 'remove_buff' ||
@@ -622,7 +627,7 @@ export class BattleEngine {
             }
         }
         this.state.log.indentDepth--
-        processBleedDamage(enemy, tMs, this)
+        tickEngine.onBleedTrigger(enemy, this)
         // HP 阈值触发检测
         this.emit('hp_below', self, enemy)
         this.emit('hp_below', enemy, self)
@@ -715,7 +720,7 @@ export class BattleEngine {
                 break
             case 'tick_poison':
             case 'tick_burn':
-                this.#handleStatusTick(eventId, e.systemEventType, e.nextActionAt)
+                this.#handleBuffTick(eventId, e.systemEventType, e.nextActionAt)
                 break
             case 'stun_reset': {
                 const charId = eventId.slice('stun_reset_'.length)
@@ -786,19 +791,25 @@ export class BattleEngine {
         processBuffEnd(eventId.slice('buff_end_'.length), this)
     }
 
-    /** status tick（毒/灼烧） */
-    #handleStatusTick(eventId: string, type: 'tick_poison' | 'tick_burn', eventTime: number): void {
+    /** buff tick（毒/灼烧） */
+    #handleBuffTick(eventId: string, type: 'tick_poison' | 'tick_burn', eventTime: number): void {
         const { turn } = this.state
-        const statusType = type === 'tick_poison' ? 'poison' : 'burn'
-        const charId = eventId.slice(`tick_${statusType}_`.length)
+        const charId = eventId.slice(type === 'tick_poison' ? 'tick_poison_'.length : 'tick_burn_'.length)
         const char = this.getCharacter(charId)
         if (!char) return
-        const entry = this.state.pendingBuffs.get(`${statusType}::${charId}`)
-        if (!entry) return
-        const { nextInterval } = processStatusTick(charId, char, this, eventTime, statusType)
-        if (nextInterval > 0) {
-            turn.removeEvents(eventId)
-            turn.scheduleSystemEventAt(eventId, eventTime + nextInterval, type)
+
+        if (type === 'tick_poison') {
+            const { nextInterval } = tickEngine.onPoisonTick(charId, this)
+            if (nextInterval > 0) {
+                turn.removeEvents(eventId)
+                turn.scheduleSystemEventAt(eventId, eventTime + nextInterval, 'tick_poison')
+            }
+        } else {
+            const { nextInterval } = tickEngine.onBurnTick(charId, this)
+            if (nextInterval > 0) {
+                turn.removeEvents(eventId)
+                turn.scheduleSystemEventAt(eventId, eventTime + nextInterval, 'tick_burn')
+            }
         }
     }
 }

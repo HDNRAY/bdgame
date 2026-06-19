@@ -162,7 +162,7 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['defense'],
         effects: [{ type: 'parry_mod', value: 0.15 }],
         triggers: [
-            { condition: { type: 'on_parry' }, effects: [{ type: 'status', status: 'frost', stacks: 1, chance: 1 }] },
+            { condition: { type: 'on_parry' }, effects: [{ type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 }] },
         ],
     },
     {
@@ -173,7 +173,7 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [
             {
                 condition: { type: 'on_dealt_damage' },
-                effects: [{ type: 'status', status: 'poison', stacks: 1, chance: 0.3 }],
+                effects: [{ type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.3 }],
             },
         ],
     },
@@ -185,7 +185,7 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [
             {
                 condition: { type: 'on_poison' },
-                effects: [{ type: 'status', status: 'paralyze', stacks: 1, chance: 1 }],
+                effects: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 }],
             },
         ],
     },

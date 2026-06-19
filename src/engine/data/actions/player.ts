@@ -60,7 +60,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['paralyze', 'self_damage', 'blunt'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
-            { type: 'status', status: 'paralyze', stacks: 2, chance: 0.6 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.6 },
             { type: 'self_damage', ratio: 0.02 },
         ],
     },
@@ -73,7 +73,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'stun'],
         effects: [
             { type: 'damage', scaling: { strength: 0.1 } },
-            { type: 'status', status: 'stun', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
         ],
         range: [0, 6],
         canUse: (_attacker, state) => state.lastActionExtraDelay >= 200,
@@ -90,7 +90,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.6 } },
-            { type: 'status', status: 'bleed', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.5 },
         ],
     },
     {
@@ -102,7 +102,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['paralyze', 'ignore_parry', 'blunt'],
         effects: [
             { type: 'damage', scaling: { strength: 0.8 } },
-            { type: 'status', status: 'paralyze', stacks: 2, chance: 0.6 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.6 },
             { type: 'ignore_parry' },
         ],
     },
@@ -117,7 +117,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['paralyze', 'pierce', 'range'],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.25 } },
-            { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.3 },
         ],
     },
     {
@@ -129,7 +129,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['poison', 'pierce', 'range'],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.3 } },
-            { type: 'status', status: 'poison', stacks: 1, chance: 0.4 },
+            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.4 },
         ],
     },
     {
@@ -141,9 +141,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['fixed_damage', 'poison', 'paralyze', 'bleed', 'pierce', 'range'],
         effects: [
             { type: 'fixed_damage', value: 8 },
-            { type: 'status', status: 'poison', stacks: 1, chance: 0.3 },
-            { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
-            { type: 'status', status: 'bleed', stacks: 1, chance: 0.3 },
+            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.3 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.3 },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.3 },
         ],
         maxUses: 2,
     },
@@ -168,7 +168,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['bleed', 'pierce'],
         effects: [
             { type: 'damage', scaling: { strength: 0.3 } },
-            { type: 'status', status: 'bleed', stacks: 1, chance: 0.6 },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.6 },
         ],
     },
 
@@ -254,7 +254,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['bleed', 'debuff'],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.2 } },
-            { type: 'status', status: 'bleed', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.5 },
         ],
     },
     {
@@ -266,7 +266,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'debuff'],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.15 } },
-            { type: 'status', status: 'knockdown', stacks: 1, chance: 1 },
+            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
         ],
     },
     {
@@ -287,7 +287,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['debuff'],
         range: [1, 3],
-        effects: [{ type: 'status', status: 'sand_blind', stacks: 1, chance: 1 }],
+        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 1 }],
     },
     // ── 刘西瓜 · 霸刀 ──
     {
@@ -387,7 +387,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         range: [0, 5],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.2 } },
-            { type: 'status', status: 'paralyze', stacks: 1, chance: 0.3 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.3 },
         ],
     },
     {
@@ -425,7 +425,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         range: [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.3, agility: 0.1 } },
-            { type: 'status', status: 'stun', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
         ],
     },
     // ── 杨过 ──
@@ -439,7 +439,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'self_missing_hp_damage', ratio: 0.1 },
-            { type: 'fumble_chance', value: 1 },
+            { type: 'add_debuff', buffId: 'fumble_chance', stacks: 1, chance: 1 },
         ],
     },
     {
@@ -563,7 +563,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         range: [1, 3],
         effects: [
             { type: 'damage', scaling: { wisdom: 0.2 } },
-            { type: 'status', status: 'paralyze', stacks: 1, chance: 0.2 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.2 },
         ],
     },
     {
@@ -597,7 +597,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         canUse: (attacker) => attacker.chan >= 15,
         effects: [
             { type: 'damage', scaling: { wisdom: 1 } },
-            { type: 'status', status: 'stun', stacks: 1, chance: 1 },
+            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
         ],
     },
 ]

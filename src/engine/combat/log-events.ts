@@ -64,5 +64,5 @@ export type LogEvent =
     | { type: 'dodged'; sourceId: string; targetId: string }
     | { type: 'parried'; sourceId: string; targetId: string }
     | { type: 'knockback'; sourceId: string; targetId: string; distance: number }
-    | { type: 'cleanse'; sourceId: string; targetId: string; statuses?: string[] }
+    | { type: 'cleanse'; sourceId: string; targetId: string; buffIds?: string[] }
     | { type: 'system'; message: string; actorId?: string; indent?: number }

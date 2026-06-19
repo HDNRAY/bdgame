@@ -1,6 +1,5 @@
 import type { AttrName } from './attributes'
 import type { Character } from './character'
-import type { StatusType } from './status'
 import type { GameEntity } from './base'
 import type { Tag } from './tag'
 import type { BattleState } from '../combat/types'
@@ -13,7 +12,7 @@ export type EffectDef =
     // 战斗效果（需要命中判定）
     | { type: 'damage'; scaling: Partial<Record<AttrName, number>>; base?: number }
     | { type: 'fixed_damage'; value: number }
-    | { type: 'status'; status: Tag; stacks: number; chance: number; attrMods?: Record<string, number> }
+    | { type: 'add_debuff'; buffId: string; stacks: number; chance: number }
     | { type: 'missing_hp_damage'; ratio: number }
     | { type: 'self_missing_hp_damage'; ratio: number }
     | { type: 'self_damage'; ratio: number }
@@ -22,7 +21,7 @@ export type EffectDef =
     | { type: 'knockback'; distance: number }
     | { type: 'dash'; minRange?: number; maxRange?: number; targetDist: number; useAp?: boolean }
     | { type: 'limit_uses'; max: number }
-    | { type: 'cleanse'; statuses?: StatusType[] }
+    | { type: 'cleanse'; buffIds?: string[] }
     // 自效果（无需命中判定，总是生效）
     | { type: 'heal'; value: number; ratio?: number }
     | { type: 'stat_multiply'; stat: string; multiplier: number; duration: BuffDuration }
@@ -37,7 +36,6 @@ export type EffectDef =
     | { type: 'move_efficiency'; value: number }
     | { type: 'halve_weapon_penalty' }
     | { type: 'permanent_burn'; value: number }
-    | { type: 'fumble_chance'; value: number }
     // 功法/奇物效果
     | { type: 'crit_chance'; value: number; reset?: boolean }
     | { type: 'crit_damage'; value: number; reset?: boolean }

@@ -1,7 +1,6 @@
 import type { EffectDef } from '../../entities/action'
-import type { AttrName } from '../../entities/attributes'
-import type { StatusType } from '../../entities/status'
-import { calcBaseDamage, calcHealAmount, calcBuffDuration, calcRoll } from '../../calc/damage'
+import { ATTR_CN, type AttrName } from '../../entities/attributes'
+import { calcBaseDamage, calcHealAmount, calcBuffDuration, calcRoll, calcDebuffDuration } from '../../calc/damage'
 import { getWeapon } from '../../data/weapons'
 import { getBuff } from '../../data/buffs'
 import { getPassive } from '../../data/passives'
@@ -14,20 +13,20 @@ import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
 import { applyDamage, applyBonusDamage } from './damage'
 import { processActionEffect } from './action'
-import { handleStatusEffect } from './status'
 import { applyAttrMods, reduceBleedOnHeal } from '../utils/buff-layer'
+import { tickEngine } from '../tick-engine'
 
 export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     cleanse({ eff, self, engine }: EffectCtx) {
-        const { statuses } = eff as Extract<EffectDef, { type: 'cleanse' }>
-        const targets = statuses ?? (['paralyze', 'poison'] as StatusType[])
+        const { buffIds } = eff as Extract<EffectDef, { type: 'cleanse' }>
+        const targets = buffIds ?? ['paralyze', 'poison']
         for (const [k] of engine.state.pendingBuffs) {
             const [prefix] = k.split('::')
-            if (targets.includes(prefix as StatusType)) {
+            if (targets.includes(prefix)) {
                 engine.state.pendingBuffs.delete(k)
             }
         }
-        engine.emitLog({ type: 'cleanse', sourceId: self.id, targetId: self.id, statuses: targets })
+        engine.emitLog({ type: 'cleanse', sourceId: self.id, targetId: self.id, buffIds: targets })
     },
     heal({ eff, self, engine }: EffectCtx) {
         const { value, ratio } = eff as Extract<EffectDef, { type: 'heal' }>
@@ -115,34 +114,15 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const { ratio } = eff as Extract<EffectDef, { type: 'missing_hp_damage' }>
         const dmg = Math.round((enemy.maxHp - enemy.hp) * ratio)
         if (dmg > 0) {
-            applyBonusDamage(
-                dmg,
-                enemy,
-                self,
-                engine,
-                action,
-                action?.name ?? '崩劲',
-                action?.id ?? 'missing_hp_damage',
-            )
+            applyBonusDamage(dmg, enemy, self, engine, action, '崩劲', 'missing_hp_damage')
         }
     },
     self_missing_hp_damage({ eff, self, enemy, engine, action }: EffectCtx) {
         const { ratio } = eff as Extract<EffectDef, { type: 'self_missing_hp_damage' }>
         const dmg = Math.round((self.maxHp - self.hp) * ratio)
         if (dmg > 0) {
-            applyBonusDamage(
-                dmg,
-                enemy,
-                self,
-                engine,
-                action,
-                action?.name ?? '黯然',
-                action?.id ?? 'self_missing_hp_damage',
-            )
+            applyBonusDamage(dmg, enemy, self, engine, action, '黯然', 'self_missing_hp_damage')
         }
-    },
-    status({ eff, self, enemy, engine, tMs }: EffectCtx) {
-        handleStatusEffect({ eff: eff as Extract<EffectDef, { type: 'status' }>, self, enemy, engine, tMs })
     },
 
     // ── 自效果（无需命中判定） ──
@@ -254,24 +234,175 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const e = eff as Extract<EffectDef, { type: 'hit_chance' }>
         self.hitChanceMod += e.value
     },
-    fumble_chance({ eff, enemy, engine }: EffectCtx) {
-        const e = eff as Extract<EffectDef, { type: 'fumble_chance' }>
-        const key = `fumble_chance::${enemy.id}`
-        const buff = getBuff('fumble_chance')
-        const existing = engine.state.pendingBuffs.get(key)
-        const stacks = e.value ?? 1
+    add_debuff({ eff, self, enemy, engine, tMs }: EffectCtx) {
+        const e = eff as Extract<EffectDef, { type: 'add_debuff' }>
+        const { success } = calcRoll(e.chance)
+        if (!success) return
+
+        const buff = getBuff(e.buffId)
+        if (!buff) return
+
+        const st = e.buffId
+        // 免疫检查
+        if (
+            engine.state.pendingBuffs.has(`elemental_immunity::${enemy.id}`) &&
+            (st === 'burn' || st === 'frost' || st === 'paralyze')
+        ) {
+            engine.emitLog({ type: 'system', message: `[冰心] ${enemy.name} 免疫 ${st}`, actorId: enemy.id })
+            return
+        }
+        if (engine.state.pendingBuffs.has(`dark_room_sense::${enemy.id}`) && st === 'sand_blind') {
+            engine.emitLog({ type: 'system', message: `[暗室抓雀功] ${enemy.name} 免疫迷眼`, actorId: enemy.id })
+            return
+        }
+        if (engine.state.pendingBuffs.has(`paralyze_immunity::${enemy.id}`) && st === 'paralyze') {
+            engine.emitLog({ type: 'system', message: `[雷体] ${enemy.name} 免疫麻痹`, actorId: enemy.id })
+            return
+        }
+
+        const keyBase = `${buff.id}::${enemy.id}`
+        const isIndependent = buff?.stacking?.type === 'independent'
+        // independent 叠层使用 appId 后缀，每次应用独立生效
+        const key = isIndependent ? `${keyBase}::${genAppId(tMs)}` : keyBase
+        const existing = !isIndependent ? engine.state.pendingBuffs.get(key) : undefined
+        const stacks = e.stacks ?? 1
+
+        /** 获取 debuff 专属 extra 数据 */
+        function makeExtra(): Record<string, number | string | boolean> | undefined {
+            if (st === 'burn')
+                return { source: self.name, burnBaseDamage: 5, remainingTicks: stacks, sourceId: self.id }
+            if (st === 'bleed') return { bleedTriggerCount: 0, source: self.name, sourceId: self.id }
+            if (st === 'poison') return { source: self.name, sourceId: self.id }
+            return undefined
+        }
+
         if (existing && buff?.stacking?.type === 'additive') {
             existing.restoreValue += stacks
-        } else {
-            engine.state.pendingBuffs.set(key, { restoreValue: stacks })
+            // 累加 attrMods
+            if (buff.attrMods) {
+                const scaledMods: Record<string, number> = {}
+                for (const [attr, val] of Object.entries(buff.attrMods)) {
+                    scaledMods[attr] = (val as number) * stacks
+                }
+                const newMods = applyAttrMods(enemy, engine, scaledMods, buff.name)
+                if (!existing.mods) existing.mods = {}
+                for (const [attr, val] of Object.entries(newMods)) {
+                    existing.mods[attr] = (existing.mods[attr] ?? 0) + (val as number)
+                }
+                if ('agility' in scaledMods) engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+            }
+            // 重新调度 expiry（叠层刷新持续时间）
+            if (buff.expiry?.type === 'duration') {
+                engine.state.turn.removeEvents(`buff_end_${key}`)
+                engine.state.turn.scheduleSystemEventAt(
+                    `buff_end_${key}`,
+                    engine.state.turn.currentTime + buff.expiry.ms,
+                    'buff_end',
+                )
+            } else if (buff.expiry?.type === 'duration_by_attr') {
+                engine.state.turn.removeEvents(`buff_end_${key}`)
+                const duration = calcDebuffDuration(buff.expiry.multiplier, enemy.attrs.get(buff.expiry.attr))
+                engine.state.turn.scheduleSystemEventAt(
+                    `buff_end_${key}`,
+                    engine.state.turn.currentTime + duration,
+                    'buff_end',
+                )
+            }
+            engine.emitLog({
+                type: 'system',
+                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)} Lv.${existing.restoreValue}`,
+                actorId: enemy.id,
+            })
+            engine.emit('on_debuff', self, enemy)
+            if (e.buffId === 'poison') {
+                engine.emit('on_poison', self, enemy)
+                // 叠层时也需执行即时伤害 + 重新调度 tick
+                tickEngine.afterApplyDebuff({
+                    enemy,
+                    engine,
+                    tMs,
+                    buffDef: buff,
+                    stacks,
+                    layerKey: key,
+                    layer: existing,
+                })
+            }
+            if (e.buffId === 'burn') {
+                // 叠层时重新调度 tick
+                engine.state.turn.removeEvents(`tick_burn_${enemy.id}`)
+                engine.state.turn.scheduleSystemEventAt(
+                    `tick_burn_${enemy.id}`,
+                    engine.state.turn.currentTime + 1000,
+                    'tick_burn',
+                )
+            }
+            return
         }
-        // 5s 后消失
-        scheduleBuffExpiry(engine, key, 5000)
-        const total = engine.state.pendingBuffs.get(key)?.restoreValue ?? 0
-        engine.emitLog({
-            type: 'system',
-            message: `[失心] ${enemy.name} 晃神率+${(total * 5).toFixed(0)}%`,
-            actorId: enemy.id,
+
+        // 'none' 叠层 — 已有则跳过（如 sand_blind 不可叠加）
+        if (existing && buff?.stacking?.type === 'none') {
+            engine.emitLog({ type: 'system', message: `[${buff.name}] ${enemy.name} 已存在`, actorId: enemy.id })
+            return
+        }
+
+        // 首次应用（independent/none/additive 首次均走此路径）
+        const extra = makeExtra()
+        const mods: Record<string, number> = {}
+        const modDetails: string[] = []
+        if (buff.attrMods) {
+            const scaledMods: Record<string, number> = {}
+            for (const [attr, val] of Object.entries(buff.attrMods)) {
+                scaledMods[attr] = (val as number) * stacks
+            }
+            for (const [attr, val] of Object.entries(scaledMods)) {
+                const v = val as number
+                modDetails.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
+                enemy.attrs.modify(attr as AttrName, v)
+                mods[attr] = v
+                if (attr === 'agility') engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+            }
+        }
+        // stun 的 attrMods 在 afterApplyDebuff 中由 applyAttrMods 输出属性日志，此处不重复
+        if (e.buffId !== 'stun') {
+            engine.emitLog({
+                type: 'system',
+                message: modDetails.length
+                    ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)} ${modDetails.join(', ')}`
+                    : BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description),
+                actorId: enemy.id,
+            })
+        }
+        engine.state.pendingBuffs.set(key, { restoreValue: stacks, mods, extra })
+
+        // 调度 expiry
+        if (buff.expiry?.type === 'duration') {
+            engine.state.turn.scheduleSystemEventAt(
+                `buff_end_${key}`,
+                engine.state.turn.currentTime + buff.expiry.ms,
+                'buff_end',
+            )
+        } else if (buff.expiry?.type === 'duration_by_attr') {
+            const duration = calcDebuffDuration(buff.expiry.multiplier, enemy.attrs.get(buff.expiry.attr))
+            engine.state.turn.scheduleSystemEventAt(
+                `buff_end_${key}`,
+                engine.state.turn.currentTime + duration,
+                'buff_end',
+            )
+        }
+
+        engine.emit('on_debuff', self, enemy)
+        if (e.buffId === 'poison') engine.emit('on_poison', self, enemy)
+
+        // 后处理（stun/poison/burn 额外逻辑）
+        // 传入 layer 引用，让 tick engine 可以直接修改 mods
+        tickEngine.afterApplyDebuff({
+            enemy,
+            engine,
+            tMs,
+            buffDef: buff,
+            stacks,
+            layerKey: key,
+            layer: engine.state.pendingBuffs.get(key)!,
         })
     },
     add_buff({ eff, self, engine }: EffectCtx) {
@@ -286,8 +417,14 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             const delta = newStacks - existing.restoreValue
             if (delta <= 0) return // 已达上限，不显示 log
             existing.restoreValue = newStacks
+            // 先输出叠层日志
+            engine.emitLog({
+                type: 'system',
+                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} Lv.${newStacks}`,
+                actorId: self.id,
+            })
             if (e.buffId === 'momentum') self.hitChanceMod += delta * 0.05
-            // 按层数累加 attrMods
+            // 再应用 attrMods
             if (buff?.attrMods && delta > 0) {
                 const scaledMods: Record<string, number> = {}
                 for (const [attr, val] of Object.entries(buff.attrMods)) {
@@ -299,16 +436,30 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                     existing.mods[attr] = (existing.mods[attr] ?? 0) + (val as number)
                 }
             }
-            engine.emitLog({
-                type: 'system',
-                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} Lv.${newStacks}`,
-                actorId: self.id,
-            })
             engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
             return
         }
 
-        const mods = buff?.attrMods ? applyAttrMods(self, engine, buff.attrMods, buff.name) : {}
+        // 先输出"获得状态"日志，再应用属性变化
+        // 合并"获得状态"和属性变化为一条日志
+        const modDetails: string[] = []
+        const mods: Record<string, number> = {}
+        if (buff?.attrMods) {
+            for (const [attr, val] of Object.entries(buff.attrMods)) {
+                const v = val as number
+                modDetails.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
+                self.attrs.modify(attr as AttrName, v)
+                mods[attr] = v
+                if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+            }
+        }
+        engine.emitLog({
+            type: 'system',
+            message: modDetails.length
+                ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${modDetails.join(', ')}`
+                : BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description),
+            actorId: self.id,
+        })
         engine.state.pendingBuffs.set(key, { restoreValue: e.stacks ?? 1, mods })
         if (e.buffId === 'disarmed') {
             // 清理旧 buff_end 事件，防止残留事件误触
@@ -322,11 +473,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 }
             }
         }
-        engine.emitLog({
-            type: 'system',
-            message: BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description),
-            actorId: self.id,
-        })
         engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
         if (buff?.expiry?.type === 'duration') {
             engine.state.turn.scheduleSystemEventAt(

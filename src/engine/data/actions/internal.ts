@@ -72,7 +72,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['trigger'],
         target: 'enemy',
-        effects: [{ type: 'status', status: 'bleed', stacks: 1, chance: 1 }],
+        effects: [{ type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 1 }],
     },
     {
         id: '_iaijutsu_ready',
@@ -147,7 +147,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['trigger'],
         target: 'self',
         maxUses: 999,
-        effects: [{ type: 'cleanse', statuses: ['poison'] }],
+        effects: [{ type: 'cleanse', buffIds: ['poison'] }],
     },
     {
         id: '_xiaowuxiang_copy',

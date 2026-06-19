@@ -33,7 +33,7 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`固定伤害: ${eff.value}`]
         case 'heal':
             return eff.ratio ? [`回复: ${eff.value} + 最大HP×${(eff.ratio * 100).toFixed(0)}%`] : [`回复: ${eff.value}`]
-        case 'status': {
+        case 'add_debuff': {
             const statusCN: Record<string, string> = {
                 burn: '灼烧',
                 poison: '中毒',
@@ -41,7 +41,7 @@ export function describeEffect(eff: EffectDef): string[] {
                 stun: '眩晕',
                 paralyze: '麻痹',
             }
-            const name = statusCN[eff.status] ?? eff.status
+            const name = statusCN[eff.buffId] ?? eff.buffId
             return [`附加 ${name} ×${eff.stacks} (${(eff.chance * 100).toFixed(0)}%概率)`]
         }
         case 'stat_buff': {
@@ -68,7 +68,7 @@ export function describeEffect(eff: EffectDef): string[] {
         case 'self_damage':
             return [`自伤: 当前HP×${eff.ratio}`]
         case 'cleanse':
-            return eff.statuses && eff.statuses.length > 0 ? [`净化: ${eff.statuses.join(', ')}`] : ['净化所有负面状态']
+            return eff.buffIds && eff.buffIds.length > 0 ? [`净化: ${eff.buffIds.join(', ')}`] : ['净化所有负面状态']
         case 'crit_chance':
             return [`暴击率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
         case 'crit_damage':
@@ -95,8 +95,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return ['无视招架']
         case 'move_efficiency':
             return [`移动效率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
-        case 'fumble_chance':
-            return [`失手率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
         case 'trigger_slot_mod':
             return [`触发槽 ${eff.value > 0 ? '+' : ''}${eff.value}`]
         case 'weapon_range_bonus':

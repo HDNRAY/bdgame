@@ -2,6 +2,8 @@ import type { BattleEngine } from '../engine'
 import type { AttrName } from '../../entities/attributes'
 import { getBuff } from '../../data/buffs'
 import { revertBuffMods } from '../utils'
+import { ATTR_CN } from '../../entities/attributes'
+import { BattleLog } from '../battle-log'
 
 /** buff 到期恢复 */
 export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
@@ -39,18 +41,17 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     }
 
     if (char && layer.mods) {
-        for (const [attr, delta] of Object.entries(layer.mods)) {
-            const expireLabel = ['frost', 'paralyze', 'knockdown', 'sand_blind', 'stun'].includes(buffId)
-                ? `${tag}消失`
-                : tag
-            engine.emitLog({
-                type: 'stat_change',
-                targetId: char.id,
-                attr,
-                delta: -(delta as number),
-                label: expireLabel,
-            })
-        }
+        const expireLabel = ['frost', 'paralyze', 'knockdown', 'sand_blind', 'stun'].includes(buffId)
+            ? `${tag}消失`
+            : tag
+        const details = Object.entries(layer.mods)
+            .map(([a, v]) => `${ATTR_CN[a] ?? a}${-(v as number) > 0 ? '+' : ''}${-(v as number)}`)
+            .join(', ')
+        engine.emitLog({
+            type: 'system',
+            message: `[${expireLabel}] ${BattleLog.name(char.name)} ${details}`,
+            actorId: char.id,
+        })
     }
 
     engine.state.pendingBuffs.delete(buffKey)

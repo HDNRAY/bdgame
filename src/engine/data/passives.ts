@@ -117,7 +117,10 @@ export const PASSIVES: Passive[] = [
         description: '春雷疾掠，寒气侵骨。劈砍击中80%概率叠加寒冰。',
         tags: ['passive', 'debuff'],
         triggers: [
-            { condition: { type: 'on_hit' }, effects: [{ type: 'status', status: 'frost', stacks: 1, chance: 0.8 }] },
+            {
+                condition: { type: 'on_hit' },
+                effects: [{ type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.8 }],
+            },
         ],
     },
 
@@ -203,10 +206,13 @@ export const PASSIVES: Passive[] = [
             const chance = Math.min(0.8, def.apCost * 0.15)
             // 如果招式已有麻痹效果，合并概率（加法）
             const idx = def.effects!.findIndex(
-                (e): e is Extract<typeof e, { type: 'status' }> => e.type === 'status' && e.status === 'paralyze',
+                (e): e is Extract<typeof e, { type: 'add_debuff' }> =>
+                    e.type === 'add_debuff' && e.buffId === 'paralyze',
             )
             if (idx >= 0) {
-                const merged = { ...(def.effects![idx] as Extract<(typeof def.effects)[number], { type: 'status' }>) }
+                const merged = {
+                    ...(def.effects![idx] as Extract<(typeof def.effects)[number], { type: 'add_debuff' }>),
+                }
                 merged.chance = merged.chance + chance
                 const newEffects = [...def.effects!]
                 newEffects[idx] = merged
@@ -214,7 +220,7 @@ export const PASSIVES: Passive[] = [
             }
             return {
                 ...def,
-                effects: [...(def.effects ?? []), { type: 'status', status: 'paralyze', stacks: 1, chance }],
+                effects: [...(def.effects ?? []), { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance }],
             }
         },
     },
