@@ -284,7 +284,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'one_arm',
         name: '独臂',
-        description: '断臂之人，无法双持。单臂运劲更凝练，招式消耗降低1AP（最低1）。',
+        description: '总有断臂之人不喜义体。无法双持。运劲更凝练，招式消耗降低1AP（最低1）。',
         tags: ['passive', 'debuff'],
         effects: [{ type: 'stat_buff', attrs: { agility: -2 } }],
         actionEnhancer: (def) => ({

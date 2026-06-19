@@ -77,8 +77,9 @@ export const OPPONENTS: OpponentDef[] = [
     ZHANGLIE,
     // 御物
     XUANJI,
-    // 双手巨型武器
+    // 重型武器
     LIUXIGUA,
+    YANGGUO,
     // 其他
     YIDAO, // 太刀
     LUEYING, // 匕首
