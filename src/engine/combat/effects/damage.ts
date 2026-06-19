@@ -174,9 +174,27 @@ function resolveParry(
     // ── 5. 伤害减免 ──
     let final = calcParriedDamage(raw, target.attrs.get('strength'))
     if (act) {
+        // 目标方 buff 修正招架减伤
         for (const [key, layer] of engine.state.pendingBuffs) {
             const parts = key.split('::')
             if (parts.length < 2 || parts[1] !== target.id) continue
+            const def = getBuff(parts[0])
+            if (!def?.onParryReduction) continue
+            final = def.onParryReduction({
+                final,
+                raw,
+                target,
+                attacker,
+                engine,
+                buffOwnerId: parts[1],
+                layer,
+                action: act,
+            })
+        }
+        // 攻击方 buff 也可修正招架减伤（如玄铁剑·重剑无锋）
+        for (const [key, layer] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== attacker.id) continue
             const def = getBuff(parts[0])
             if (!def?.onParryReduction) continue
             final = def.onParryReduction({

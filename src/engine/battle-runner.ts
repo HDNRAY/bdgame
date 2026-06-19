@@ -59,7 +59,22 @@ export function runBattle(
         if (!engine.runEvent(planFn)) break
     }
     const alive = state.characters.filter((c) => c.isAlive())
-    const winner = alive.length === 1 ? alive[0].id : (state.lastWinner ?? '平局')
+    let winner: string
+    if (alive.length === 1) {
+        winner = alive[0].id
+    } else {
+        // 按剩余 HP 百分比决胜（精确到小数点后1位）
+        const pcts = state.characters.map((c) => Math.round((c.hp / c.maxHp) * 1000) / 10)
+        if (pcts[0] > pcts[1]) {
+            winner = state.characters[0].id
+            engine.emitLog({ type: 'defeat', loserId: state.characters[1].id, winnerId: state.characters[0].id })
+        } else if (pcts[1] > pcts[0]) {
+            winner = state.characters[1].id
+            engine.emitLog({ type: 'defeat', loserId: state.characters[0].id, winnerId: state.characters[1].id })
+        } else {
+            winner = '平局'
+        }
+    }
     return { winner, engine }
 }
 

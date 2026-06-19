@@ -277,6 +277,23 @@ export class BattleEngine {
         }
         self.critChance = Math.max(0, Math.round((self.critChance - 0.05) * 100) / 100)
         self.dodgeMod = Math.min(0.2, Math.round((self.dodgeMod + 0.04) * 100) / 100)
+        // ── Buff onTurnEnd 钩子（不依赖命中） ──
+        for (const [key, layer] of this.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== self.id) continue
+            const def = getBuff(parts[0])
+            if (def?.onTurnEnd) {
+                def.onTurnEnd({
+                    final: 0,
+                    raw: 0,
+                    attacker: self,
+                    target: enemy,
+                    engine: this,
+                    layer,
+                    buffOwnerId: self.id,
+                })
+            }
+        }
         this.emit('turn_end', self, enemy)
         this.state.turn.next()
 
@@ -530,8 +547,10 @@ export class BattleEngine {
             crit: false,
             distanceDelta: 0,
         }
-        // 失心检查
-        if (self.fumbleChance > 0 && Math.random() < self.fumbleChance) {
+        // 失心检查（从 buff 读取）
+        const fcKey = `fumble_chance::${self.id}`
+        const fcLayer = this.state.pendingBuffs.get(fcKey)
+        if (fcLayer && Math.random() < fcLayer.restoreValue * 0.05) {
             this.emitLog({ type: 'fumble', sourceId: self.id })
             return r
         }

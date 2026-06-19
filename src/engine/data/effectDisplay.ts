@@ -63,6 +63,8 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`最大HP ${eff.value > 0 ? '+' : ''}${eff.value}`]
         case 'missing_hp_damage':
             return [`造成目标已损失HP×${eff.ratio} 的伤害`]
+        case 'self_missing_hp_damage':
+            return [`造成自身已损失HP×${eff.ratio} 的伤害`]
         case 'self_damage':
             return [`自伤: 当前HP×${eff.ratio}`]
         case 'cleanse':

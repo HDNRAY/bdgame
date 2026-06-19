@@ -15,6 +15,7 @@ export type EffectDef =
     | { type: 'fixed_damage'; value: number }
     | { type: 'status'; status: Tag; stacks: number; chance: number; attrMods?: Record<string, number> }
     | { type: 'missing_hp_damage'; ratio: number }
+    | { type: 'self_missing_hp_damage'; ratio: number }
     | { type: 'self_damage'; ratio: number }
     | { type: 'ignore_parry' }
     | { type: 'interrupt' }
@@ -34,6 +35,7 @@ export type EffectDef =
     | { type: 'max_ap_mod'; value: number }
     | { type: 'max_hp_mod'; value: number }
     | { type: 'move_efficiency'; value: number }
+    | { type: 'halve_weapon_penalty' }
     | { type: 'permanent_burn'; value: number }
     | { type: 'fumble_chance'; value: number }
     // 功法/奇物效果

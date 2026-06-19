@@ -41,6 +41,11 @@ export function calcExpectedDamage(
                 (defender.maxHp - defender.hp) * (eff as Extract<EffectDef, { type: 'missing_hp_damage' }>).ratio,
             )
         }
+        if (eff.type === 'self_missing_hp_damage') {
+            rawDamage += Math.round(
+                (attacker.maxHp - attacker.hp) * (eff as Extract<EffectDef, { type: 'self_missing_hp_damage' }>).ratio,
+            )
+        }
     }
 
     // 3. 命中率

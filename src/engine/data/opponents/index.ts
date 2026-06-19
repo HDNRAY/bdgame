@@ -10,6 +10,7 @@ export { LIUXIGUA } from './liuxigua'
 export { LUHONGTI } from './luhongti'
 export { QILAN } from './qilan'
 export { LONGNV } from './longnv'
+export { YANGGUO } from './yangguo'
 
 import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
@@ -29,6 +30,7 @@ import { LIUXIGUA } from './liuxigua'
 import { LUHONGTI } from './luhongti'
 import { QILAN } from './qilan'
 import { LONGNV } from './longnv'
+import { YANGGUO } from './yangguo'
 
 /** 对手定义 */
 export interface OpponentDef {
@@ -80,6 +82,8 @@ export const OPPONENTS: OpponentDef[] = [
     // 其他
     YIDAO, // 太刀
     LUEYING, // 匕首
+    // 玄铁
+    YANGGUO,
 ]
 
 /** 按 ID 查找对手 def */

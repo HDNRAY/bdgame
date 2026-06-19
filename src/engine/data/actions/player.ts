@@ -428,6 +428,20 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'status', status: 'stun', stacks: 1, chance: 0.5 },
         ],
     },
+    // ── 杨过 ──
+    {
+        id: 'desolate_palm',
+        name: '黯然销魂掌',
+        description: '黯然销魂者，唯别而已矣。心中悲愤越深，掌力越强。重掌蕴含黯然之意，令对手心神不宁。',
+        requiredTags: ['blunt'],
+        apCost: 5,
+        tags: ['blunt', 'damage'],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'self_missing_hp_damage', ratio: 0.1 },
+            { type: 'fumble_chance', value: 1 },
+        ],
+    },
     {
         id: 'wrist_strike',
         name: '点腕',

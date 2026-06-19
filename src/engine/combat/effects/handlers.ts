@@ -5,6 +5,7 @@ import { calcBaseDamage, calcHealAmount, calcBuffDuration, calcRoll } from '../.
 import { getWeapon } from '../../data/weapons'
 import { getBuff } from '../../data/buffs'
 import { getPassive } from '../../data/passives'
+import { getAction } from '../../data/actions'
 import { genAppId } from '../../util/buff-utils'
 import type { Tag } from '../../entities/tag'
 import { scheduleBuffExpiry, revertBuffMods, clearWeaponBuffLayers, executeMove, revertWeaponStatBuffs } from '../utils'
@@ -125,6 +126,21 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             )
         }
     },
+    self_missing_hp_damage({ eff, self, enemy, engine, action }: EffectCtx) {
+        const { ratio } = eff as Extract<EffectDef, { type: 'self_missing_hp_damage' }>
+        const dmg = Math.round((self.maxHp - self.hp) * ratio)
+        if (dmg > 0) {
+            applyBonusDamage(
+                dmg,
+                enemy,
+                self,
+                engine,
+                action,
+                action?.name ?? '黯然',
+                action?.id ?? 'self_missing_hp_damage',
+            )
+        }
+    },
     status({ eff, self, enemy, engine, tMs }: EffectCtx) {
         handleStatusEffect({ eff: eff as Extract<EffectDef, { type: 'status' }>, self, enemy, engine, tMs })
     },
@@ -237,6 +253,26 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     hit_chance({ eff, self }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'hit_chance' }>
         self.hitChanceMod += e.value
+    },
+    fumble_chance({ eff, enemy, engine }: EffectCtx) {
+        const e = eff as Extract<EffectDef, { type: 'fumble_chance' }>
+        const key = `fumble_chance::${enemy.id}`
+        const buff = getBuff('fumble_chance')
+        const existing = engine.state.pendingBuffs.get(key)
+        const stacks = e.value ?? 1
+        if (existing && buff?.stacking?.type === 'additive') {
+            existing.restoreValue += stacks
+        } else {
+            engine.state.pendingBuffs.set(key, { restoreValue: stacks })
+        }
+        // 5s 后消失
+        scheduleBuffExpiry(engine, key, 5000)
+        const total = engine.state.pendingBuffs.get(key)?.restoreValue ?? 0
+        engine.emitLog({
+            type: 'system',
+            message: `[失心] ${enemy.name} 晃神率+${(total * 5).toFixed(0)}%`,
+            actorId: enemy.id,
+        })
     },
     add_buff({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_buff' }>
@@ -516,8 +552,23 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             if (!def) continue
             self.passiveDefs.push(def)
             self.applyPassive(def)
-            // 手动触发 battle_start 效果（战斗已开始，不会自动触发）
-            engine.emit('battle_start', self, enemy)
+            // 只触发该被动的 battle_start 效果，不触发全局事件（避免重复 buff）
+            for (const slot of def.triggers ?? []) {
+                if (slot.condition.type !== 'battle_start') continue
+                if (slot.effects) {
+                    for (const eff of slot.effects) {
+                        processActionEffect(eff, self, enemy, engine, engine.state.turn.currentTime)
+                    }
+                }
+                if (slot.actionId) {
+                    const action = getAction(slot.actionId)
+                    if (action && action.apCost <= 2) {
+                        for (const eff of action.effects ?? []) {
+                            processActionEffect(eff, self, enemy, engine, engine.state.turn.currentTime, action)
+                        }
+                    }
+                }
+            }
         }
         if (copiedIds.length > 0) {
             const names = copiedIds.map((id) => getPassive(id)?.name ?? id).join('、')

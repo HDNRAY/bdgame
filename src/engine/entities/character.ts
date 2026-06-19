@@ -42,7 +42,7 @@ export class Character {
     /** 义体/效果修正 */
     maxApMod = 0
     maxHpMod = 0
-    fumbleChance = 0
+
     /** 移动效率倍率（0.2 = +20% 每AP移动距离） */
     moveEfficiency = 0
     /** 身法相关独立加速（凌波微步等） */
@@ -92,12 +92,18 @@ export class Character {
             for (const t of a.triggers ?? []) this.passiveTriggers.push(t)
         }
         const weapon = getWeapon(build.weapon)
-        for (const eff of weapon.effects ?? []) {
-            const handler = passiveEffectHandlers[eff.type]
-            if (handler) handler(this, eff)
+        // 武器属性要求检测
+        const weaponOk =
+            !weapon.requireAttrsMin ||
+            Object.entries(weapon.requireAttrsMin).every(([attr, req]) => this.attrs.get(attr as AttrName) >= req!)
+        if (weaponOk) {
+            const activeWeapon = this.weaponDef ?? weapon
+            for (const eff of activeWeapon.effects ?? []) {
+                const handler = passiveEffectHandlers[eff.type]
+                if (handler) handler(this, eff)
+            }
+            for (const t of activeWeapon.triggers ?? []) this.passiveTriggers.push(t)
         }
-        // 武器 triggers 注入 passiveTriggers（同被动触发）
-        for (const t of weapon.triggers ?? []) this.passiveTriggers.push(t)
 
         // 5. 缓存招式
         this.#actionCache = gainedActions
@@ -135,6 +141,19 @@ export class Character {
 
     /** 应用被动：达标检测 → effects + triggers */
     applyPassive(p: Passive): void {
+        // 属性要求检测（不达标则不生效）
+        if (p.requireAttrsMin) {
+            const ok = Object.entries(p.requireAttrsMin).every(([attr, req]) => this.attrs.get(attr as AttrName) >= req)
+            if (!ok) return
+        }
+        // Talent requireAttrsMax
+        if ('requireAttrsMax' in p) {
+            const t = p as unknown as Talent
+            const maxOk = Object.entries(t.requireAttrsMax!).every(
+                ([attr, req]) => this.attrs.get(attr as AttrName) <= req,
+            )
+            if (!maxOk) return
+        }
         // effects
         for (const eff of p.effects ?? []) {
             const handler = passiveEffectHandlers[eff.type]
@@ -142,17 +161,6 @@ export class Character {
         }
         // triggers
         for (const slot of p.triggers ?? []) this.passiveTriggers.push(slot)
-        // Talent-only: 条件检测
-        if ('requireAttrsMin' in p) {
-            const t = p as unknown as Talent
-            const minOk = Object.entries(t.requireAttrsMin).every(
-                ([attr, req]) => this.attrs.get(attr as AttrName) >= req,
-            )
-            const maxOk =
-                !t.requireAttrsMax ||
-                Object.entries(t.requireAttrsMax).every(([attr, req]) => this.attrs.get(attr as AttrName) <= req)
-            if (!minOk || !maxOk) return
-        }
     }
 
     get maxHp(): number {
@@ -164,11 +172,12 @@ export class Character {
     }
 
     get triggers(): TriggerSlot[] {
-        const maxSlots = Math.floor(this.attrs.get('wisdom') / 4) + this.triggerSlotMod
+        const wis = this.attrs.get('wisdom')
+        const maxSlots = Math.max(1, Math.floor(wis / 4)) + this.triggerSlotMod
         const buildSlots = this.build.triggers.slice(0, maxSlots)
         if (buildSlots.length < this.build.triggers.length) {
             console.warn(
-                `[${this.name}] WIS=${this.attrs.get('wisdom')} 仅 ${maxSlots} 个触发槽，`,
+                `[${this.name}] WIS=${wis} 仅 ${maxSlots} 个触发槽，`,
                 `丢弃 ${this.build.triggers.length - maxSlots} 个招式触发`,
             )
         }
@@ -294,9 +303,20 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
         const e = eff as Extract<EffectDef, { type: 'move_efficiency' }>
         char.moveEfficiency += e.value
     },
-    fumble_chance(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'fumble_chance' }>
-        char.fumbleChance += e.value
+
+    halve_weapon_penalty(char) {
+        const weapon = getWeapon(char.build.weapon)
+        const effects = weapon.effects?.map((eff) => {
+            if (eff.type === 'stat_buff') {
+                const attrs: Record<string, number> = {}
+                for (const [attr, value] of Object.entries(eff.attrs)) {
+                    attrs[attr] = value < 0 ? Math.round(value / 2) : value
+                }
+                return { ...eff, attrs }
+            }
+            return eff
+        })
+        char.weaponDef = { ...weapon, effects }
     },
     wisdom_stat_buff(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'wisdom_stat_buff' }>

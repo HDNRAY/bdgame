@@ -13,6 +13,8 @@ export interface Passive extends GameEntity {
     triggers?: TriggerSlot[]
     /** 招式强化钩子（构造期执行） */
     actionEnhancer?: ActionEnhancer
+    /** 属性要求（不达标则不生效） */
+    requireAttrsMin?: Partial<Record<AttrName, number>>
 }
 
 /** 天赋（绝学）—— 属性达标解锁的内在力量 */

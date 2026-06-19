@@ -1,4 +1,6 @@
 import type { Character } from '../../entities/character'
+import type { AttrName } from '../../entities/attributes'
+import type { Talent } from '../../entities/passive'
 
 /** 统计角色所有 tag 频率 */
 export function countTags(self: Character): Map<string, number> {
@@ -13,10 +15,20 @@ export function countTags(self: Character): Map<string, number> {
     return freq
 }
 
-/** 选对面最匹配的 N 个功法（按 tag 重叠度） */
+/** 选对面最匹配的 N 个功法（按 tag 重叠度），排除属性不达标的 */
 export function pickBestPassives(self: Character, enemy: Character, count: number): string[] {
     const selfTags = countTags(self)
-    const candidates = enemy.passiveDefs.filter((p) => !self.passiveDefs.some((sp) => sp.id === p.id))
+    const candidates = enemy.passiveDefs.filter((p) => {
+        if (self.passiveDefs.some((sp) => sp.id === p.id)) return false
+        // 天赋需要属性达标才能偷
+        if ('requireAttrsMin' in p) {
+            const t = p as unknown as Talent
+            const entries = Object.entries(t.requireAttrsMin) as [AttrName, number][]
+            const minOk = entries.every(([attr, req]) => self.attrs.get(attr) >= req)
+            if (!minOk) return false
+        }
+        return true
+    })
     if (candidates.length === 0) return []
     candidates.sort((a, b) => {
         const scoreA = a.tags.reduce((s, t) => s + (selfTags.get(t) ?? 0), 0)

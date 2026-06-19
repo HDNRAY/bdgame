@@ -17,8 +17,8 @@ export interface BuffHookCtx {
     layer: BuffLayer
     /** 该 buff 所属角色 ID */
     buffOwnerId: string
-    /** 当前执行的招式 */
-    action: ActionDefinition
+    /** 当前执行的招式（部分钩子如 onTurnEnd 无此值） */
+    action?: ActionDefinition
 }
 
 /** 消耗方式 */
@@ -68,6 +68,8 @@ export interface BuffDef extends GameEntity {
     onCritChance?: (ctx: BuffHookCtx) => number
     /** 暴击伤害修正钩子（applyDamage 暴击判定时自动调用，返回加算值） */
     onCritDamage?: (ctx: BuffHookCtx) => number
+    /** 回合结束回调（turn_end 时调用，不依赖命中） */
+    onTurnEnd?: (ctx: BuffHookCtx) => void
 }
 
 export const BUFF_DB: BuffDef[] = [
@@ -391,7 +393,14 @@ export const BUFF_DB: BuffDef[] = [
     // ── 永久修饰（构造期执行） ──
     { id: 'max_ap_mod', name: '失能', description: '最大AP变化。', tags: [], expiry: { type: 'permanent' } },
     { id: 'max_hp_mod', name: '失血', description: '最大HP变化。', tags: [], expiry: { type: 'permanent' } },
-    { id: 'fumble_chance', name: '失心', description: '动作失败率。', tags: [], expiry: { type: 'permanent' } },
+    {
+        id: 'fumble_chance',
+        name: '失心',
+        description: '动作失败率。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive' },
+    },
     {
         id: 'permanent_burn',
         name: '过热',
@@ -548,6 +557,52 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { strength: 1, agility: 1, vitality: 1, wisdom: 1, dexterity: 1, insight: 1 },
+    },
+
+    // ── 杨过 ──
+    {
+        id: 'poison_resist',
+        name: '蛇毒不侵',
+        description: '毒抗+70%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+    },
+    {
+        id: 'tide_power',
+        name: '潮汐内力',
+        description: '内力如潮汐涨落，每回合交替以力道或身法驱动。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDealDamage: ({ final, attacker, layer }) => {
+            const isStr = (layer.restoreValue ?? 0) === 0
+            const attr = isStr ? 'strength' : 'agility'
+            const bonus = Math.round(attacker.attrs.get(attr) * 0.1 * 10) / 10
+            return Math.round((final + bonus) * 10) / 10
+        },
+        onTurnEnd: ({ attacker, engine, layer }) => {
+            const isStr = (layer.restoreValue ?? 0) === 0
+            const nextLabel = isStr ? '身法' : '力道'
+            layer.restoreValue = isStr ? 1 : 0
+            engine.emitLog({
+                type: 'system',
+                message: `[潮汐内力] ${attacker.name} 转为${nextLabel}驱动`,
+                actorId: attacker.id,
+            })
+        },
+    },
+    {
+        id: 'heavy_training',
+        name: '玄铁剑法',
+        description: '以力驭剑，重型武器身法负担减半。',
+        tags: [],
+        expiry: { type: 'permanent' },
+    },
+    {
+        id: 'heavy_parry_ignore',
+        name: '玄铁剑意',
+        description: '重剑无锋，大巧不工。招架无法减免玄铁剑的伤害。',
+        tags: [],
+        expiry: { type: 'permanent' },
     },
 ]
 

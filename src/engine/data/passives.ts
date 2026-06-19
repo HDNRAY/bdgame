@@ -238,6 +238,7 @@ export const PASSIVES: Passive[] = [
         name: '炁体源流',
         description: '八奇技之一，濒危时炁体护体吸收炁伤害，并将悟性转化为力量、身法和灵巧。',
         tags: ['passive', 'buff', 'qi'],
+        requireAttrsMin: { wisdom: 16 },
         triggers: [
             {
                 condition: {
@@ -271,6 +272,37 @@ export const PASSIVES: Passive[] = [
                 effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])],
             }
         },
+    },
+
+    // ── 杨过 ──
+    {
+        id: 'one_arm',
+        name: '独臂',
+        description: '断臂之人，无法双持。单臂运劲更凝练，招式消耗降低1AP（最低1）。',
+        tags: ['passive', 'debuff'],
+        effects: [{ type: 'stat_buff', attrs: { agility: -2 } }],
+        actionEnhancer: (def) => ({
+            ...def,
+            apCost: Math.max(1, def.apCost - 1),
+        }),
+    },
+    {
+        id: 'dark_iron_sword_art',
+        name: '玄铁剑法',
+        description: '玄铁重剑无锋无刃，运劲之法迥异常理。以力驭剑，身法负担减半。',
+        tags: ['passive', 'buff', 'stance'],
+        effects: [{ type: 'halve_weapon_penalty' }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'heavy_training' }] }],
+    },
+    {
+        id: 'tide_inner_power',
+        name: '潮汐内力',
+        description: '内力如潮汐般涨落，每回合交替以力道或身法驱动招式。悟性+2。',
+        tags: ['passive', 'buff', 'qi'],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 2 } }],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tide_power', stacks: 0 }] },
+        ],
     },
 ]
 

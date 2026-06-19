@@ -259,7 +259,11 @@ export function processStatusTick(
 
     if (type === 'poison') {
         const stacks = entry.restoreValue
-        const dmg = stacks * 2
+        let dmg = stacks * 2
+        // 毒抗减免
+        if (engine.state.pendingBuffs.has(`poison_resist::${charId}`)) {
+            dmg = Math.round(dmg * 0.3 * 10) / 10
+        }
         char.takeDamage(dmg)
         const nextInterval = calcPoisonTickInterval(stacks)
         const buffName = getBuff('poison')?.name ?? '中毒'

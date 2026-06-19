@@ -2,6 +2,7 @@ import type { GameEntity } from '../entities/base'
 import type { EffectDef } from '../entities/action'
 import type { SummonDef } from '../entities/summon'
 import type { TriggerSlot } from '../entities/trigger'
+import { AttrName } from '../entities/attributes'
 
 export interface WeaponDef extends GameEntity {
     bound?: boolean
@@ -10,6 +11,8 @@ export interface WeaponDef extends GameEntity {
     range: [number, number]
     /** 召唤物定义（御物武器使用） */
     summon?: SummonDef
+    /** 装备属性要求（不达标则武器效果不生效） */
+    requireAttrsMin?: Partial<Record<AttrName, number>>
 }
 
 /** 武器数据（数组，可在初始化时构建为 Map） */
@@ -100,6 +103,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '与身同高的巨刃，离心力驱动，势不可挡。',
         tags: ['slash', 'blunt', 'parry', 'heavy', 'melee'],
         effects: [],
+        requireAttrsMin: { strength: 12, agility: 11 },
         range: [1, 3],
         triggers: [
             {
@@ -109,6 +113,21 @@ export const WEAPON_DB: WeaponDef[] = [
             {
                 condition: { type: 'on_parry' },
                 effects: [{ type: 'add_buff', buffId: 'momentum', stacks: 1 }],
+            },
+        ],
+    },
+    {
+        id: 'dark_iron_sword',
+        name: '玄铁剑',
+        description: '与身同高的玄铁巨剑，重六十四斤，无锋无刃。大巧不工，以力破万法。',
+        tags: ['heavy', 'blunt', 'slash', 'pierce', 'parry'],
+        effects: [{ type: 'stat_buff', attrs: { agility: -10, strength: 4 } }],
+        requireAttrsMin: { strength: 12, agility: 11 },
+        range: [1, 3],
+        triggers: [
+            {
+                condition: { type: 'on_equip' },
+                effects: [{ type: 'add_buff', buffId: 'heavy_parry_ignore' }],
             },
         ],
     },

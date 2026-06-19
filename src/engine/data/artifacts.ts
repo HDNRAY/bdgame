@@ -58,9 +58,12 @@ export const ARTIFACTS: Artifact[] = [
         name: '人造神经网络',
         description: '仿生神经增强网，反应速度提升。',
         tags: ['implant'],
-        effects: [
-            { type: 'stat_buff', attrs: { agility: 1, dexterity: 2, insight: 1 } },
-            { type: 'fumble_chance', value: 0.05 },
+        effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 2, insight: 1 } }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 1 }],
+            },
         ],
     },
     {
@@ -68,9 +71,12 @@ export const ARTIFACTS: Artifact[] = [
         name: '战斗芯片',
         description: '战术辅助芯片，大幅提升悟性。',
         tags: ['implant'],
-        effects: [
-            { type: 'stat_buff', attrs: { wisdom: 4 } },
-            { type: 'fumble_chance', value: 0.05 },
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 4 } }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 1 }],
+            },
         ],
     },
     {
@@ -211,6 +217,14 @@ export const ARTIFACTS: Artifact[] = [
         description: '玉蜂浆、断肠草、寒潭白鱼所制，每 3 秒自动化解一层毒素。',
         tags: ['trigger'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'herb_pouch' }] }],
+    },
+    {
+        id: 'snake_gall',
+        name: '蛇胆',
+        description: '普斯曲蛇的蛇胆，强筋健骨。力道+2，悟性+2，毒抗+70%。',
+        tags: ['buff'],
+        effects: [{ type: 'stat_buff', attrs: { strength: 2, wisdom: 2 } }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'poison_resist' }] }],
     },
 ]
 
