@@ -19,11 +19,16 @@ export const LAIFENG: OpponentDef = {
                 action('straight_punch'),
                 action('iron_charge'),
                 action('qi_bolt'),
+                action('eighteen_palms'),
             ],
             [
                 {
                     condition: { type: 'on_opponent_move' },
                     actionId: 'qi_bolt',
+                },
+                {
+                    condition: { type: 'on_dodge' },
+                    actionId: 'qinlong_gong',
                 },
             ],
             n,
