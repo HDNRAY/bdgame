@@ -507,14 +507,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'thunder_constitution',
         name: '雷电锻体',
-        description: '雷系伤害减免80%，其他伤害减免20%。',
+        description: '雷系伤害减免80%，其他伤害减免10%。',
         tags: [],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, action }) => {
             if (action?.tags?.includes('electric')) {
                 return Math.round(final * 0.2 * 10) / 10
             }
-            return Math.round(final * 0.8 * 10) / 10
+            return Math.round(final * 0.9 * 10) / 10
         },
     },
     {
@@ -602,6 +602,14 @@ export const BUFF_DB: BuffDef[] = [
         description: '重剑无锋，大巧不工。招架无法减免玄铁剑的伤害。',
         tags: [],
         expiry: { type: 'permanent' },
+    },
+    {
+        id: 'iron_defense',
+        name: '铁布衫',
+        description: '所受直伤-20%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTakeDamage: ({ final }) => Math.round(final * 0.8 * 10) / 10,
     },
 ]
 

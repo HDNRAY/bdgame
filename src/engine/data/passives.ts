@@ -23,8 +23,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'iron_bone',
         name: '铁布衫',
-        description: '铁布衫，吸收伤害。',
+        description: '铁布衫，所受直伤-20%。',
         tags: ['qi', 'buff', 'defense'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'iron_defense' }] }],
     },
     {
         id: 'spirit_resonance',
