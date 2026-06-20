@@ -58,12 +58,20 @@ function priority(tags: string[]): number {
 }
 
 /** 检查 buffer 类效果是否已激活 */
-function hasActiveBuff(attacker: Character, state: BattleState, def: { effects?: { type: string }[] }): boolean {
+function hasActiveBuff(
+    attacker: Character,
+    state: BattleState,
+    def: { effects?: { type: string; buffId?: string }[] },
+): boolean {
     for (const eff of def.effects ?? []) {
         if (eff.type === 'stat_buff' || eff.type === 'stat_multiply') {
             for (const [k] of state.pendingBuffs) {
                 if (k.startsWith(`${eff.type}::${attacker.id}`)) return true
             }
+        }
+        if (eff.type === 'add_buff' && eff.buffId) {
+            const key = `${eff.buffId}::${attacker.id}`
+            if (state.pendingBuffs.has(key)) return true
         }
     }
     return false

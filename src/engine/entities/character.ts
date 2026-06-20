@@ -47,6 +47,8 @@ export class Character {
     moveEfficiency = 0
     /** 身法相关独立加速（凌波微步等） */
     haste = 0
+    /** haste eval 回调列表（构造期收集，getHaste 时求值） */
+    hasteCallbacks: Array<(char: Character) => number> = []
     /** 额外暴击率 */
     critChance = 0
     /** 额外暴击伤害倍率 */
@@ -90,6 +92,8 @@ export class Character {
                 if (handler) handler(this, eff)
             }
             for (const t of a.triggers ?? []) this.passiveTriggers.push(t)
+            // 义体赋予的招式
+            if (a.grantsActions) gainedActions.push(...a.grantsActions)
         }
         const weapon = getWeapon(build.weapon)
         // 武器属性要求检测
@@ -119,6 +123,14 @@ export class Character {
             this.#actionCache = this.#actionCache.map((a) => {
                 const modified = p.actionEnhancer!(a.def)
                 return modified !== a.def ? new Action(modified) : a
+            })
+        }
+        // 通用招式强化：义体钩子
+        for (const a of this.artifactDefs) {
+            if (!a.actionEnhancer) continue
+            this.#actionCache = this.#actionCache.map((act) => {
+                const modified = a.actionEnhancer!(act.def)
+                return modified !== act.def ? new Action(modified) : act
             })
         }
 
@@ -182,6 +194,27 @@ export class Character {
             )
         }
         return [...buildSlots, ...this.passiveTriggers]
+    }
+
+    /** 实时计算 haste（固定值 + 所有 eval 回调求值） */
+    getHaste(): number {
+        return this.haste + this.hasteCallbacks.reduce((sum, cb) => sum + cb(this), 0)
+    }
+
+    /** 运行时添加功法（自爆后获得独臂等），返回是否成功添加 */
+    addPassive(id: string): boolean {
+        if (this.passiveDefs.some((p) => p.id === id)) return false
+        const def = getPassive(id) as Passive | undefined
+        if (!def) return false
+        this.passiveDefs.push(def)
+        this.applyPassive(def)
+        if (def.actionEnhancer) {
+            this.#actionCache = this.#actionCache.map((a) => {
+                const modified = def.actionEnhancer!(a.def)
+                return modified !== a.def ? new Action(modified) : a
+            })
+        }
+        return true
     }
 
     get artifacts(): Artifact[] {
@@ -259,7 +292,8 @@ export class Character {
 const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) => void> = {
     haste(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'haste' }>
-        char.haste += e.value
+        if (e.value) char.haste += e.value
+        if (e.eval) char.hasteCallbacks.push(e.eval)
     },
     attr_floor(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'attr_floor' }>
@@ -317,6 +351,11 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
             return eff
         })
         char.weaponDef = { ...weapon, effects }
+    },
+    dex_to_str(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'dex_to_str' }>
+        const bonus = Math.floor(char.attrs.get('dexterity') * e.ratio)
+        char.attrs.modify('strength', bonus)
     },
     wisdom_stat_buff(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'wisdom_stat_buff' }>

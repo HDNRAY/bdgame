@@ -23,8 +23,8 @@ export function ActionTooltip({ action, remainingUses }: ActionTooltipProps) {
                 {action.target === 'self' && '自身'}
                 {action.target === 'self' && action.chance !== undefined && ' · '}
                 {action.chance !== undefined && `命中率 ${(action.chance * 100).toFixed(0)}%`}
-                {action.range &&
-                    `${action.target !== undefined || action.chance !== undefined ? ' · ' : ''}范围 ${action.range[0]}~${action.range[1]}`}
+                {action.getRange &&
+                    `${action.target !== undefined || action.chance !== undefined ? ' · ' : ''}范围 依武器而定`}
                 {action.maxUses !== undefined && ` · 上限 ${action.maxUses}次`}
                 {remainingUses !== undefined && isFinite(remainingUses) && ` · 剩余 ${remainingUses}次`}
             </div>

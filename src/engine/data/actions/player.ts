@@ -16,7 +16,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['move', 'support'],
         canUse: (_attacker, state) =>
             state.position.distance(_attacker.id, state.characters.find((c) => c.id !== _attacker.id)!.id) > 3,
-        range: [0, 12],
+        getRange: () => [0, 12] as [number, number],
         effects: [{ type: 'dash', minRange: 0, maxRange: 12, targetDist: 1, useAp: true }],
     },
     {
@@ -75,7 +75,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'damage', scaling: { strength: 0.1 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
         ],
-        range: [0, 6],
+        getRange: () => [0, 6] as [number, number],
         canUse: (_attacker, state) => state.lastActionExtraDelay >= 200,
     },
 
@@ -85,12 +85,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '刺击',
         description: '一往无前的直刺。',
         requiredTags: ['pierce'],
-        apCost: 3,
+        apCost: 4,
         tags: ['bleed', 'pierce'],
         effects: [
             { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.6 } },
-            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.4 },
         ],
     },
     {
@@ -240,7 +240,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 3,
         tags: ['move', 'support'],
-        range: [3, 10],
+        getRange: () => [3, 10] as [number, number],
         canUse: (attacker) => attacker.attrs.get('strength') >= 10,
         effects: [{ type: 'dash', minRange: 3, maxRange: 8, targetDist: 1 }],
     },
@@ -276,7 +276,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 1,
         tags: ['pierce', 'range'],
-        range: [3, 6],
+        getRange: () => [3, 6] as [number, number],
         effects: [{ type: 'damage', scaling: { dexterity: 0.15 } }],
     },
     {
@@ -286,7 +286,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: ['debuff'],
-        range: [1, 3],
+        getRange: () => [1, 3] as [number, number],
         effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 1 }],
     },
     // ── 刘西瓜 · 霸刀 ──
@@ -321,7 +321,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 5,
         tags: ['slash', 'range'],
-        range: [0, 8],
+        getRange: () => [0, 8] as [number, number],
         canUse: (attacker, state) => (state.pendingBuffs.get(`momentum::${attacker.id}`)?.restoreValue ?? 0) >= 4,
         effects: [
             { type: 'damage', scaling: { strength: 1.2 }, base: 6 },
@@ -346,7 +346,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['blunt', 'move'],
-        range: [0, 6],
+        getRange: () => [0, 6] as [number, number],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
             { type: 'damage', scaling: { strength: 0.2, agility: 0.1 } },
@@ -384,7 +384,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['range'],
-        range: [0, 5],
+        getRange: () => [0, 5] as [number, number],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.2 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.3 },
@@ -422,7 +422,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['blunt'],
         apCost: 2,
         tags: ['blunt', 'stun'],
-        range: [0, 2],
+        getRange: () => [0, 2] as [number, number],
         effects: [
             { type: 'damage', scaling: { strength: 0.3, agility: 0.1 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
@@ -449,7 +449,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['blunt'],
         apCost: 1,
         tags: ['blunt'],
-        range: [0, 1],
+        getRange: () => [0, 1] as [number, number],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.1 } },
             { type: 'disarm', chance: 0.3 },
@@ -513,7 +513,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: [],
-        range: [0, 10],
+        getRange: () => [0, 10] as [number, number],
         effects: [{ type: 'fixed_damage', value: 3 }],
         extraPreDelay: 300,
         extraStunTime: 800,
@@ -560,7 +560,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['blunt'],
         apCost: 2,
         tags: ['blunt', 'electric', 'range', 'debuff'],
-        range: [1, 3],
+        getRange: () => [1, 3] as [number, number],
         effects: [
             { type: 'damage', scaling: { wisdom: 0.2 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.2 },
@@ -573,7 +573,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['blunt'],
         apCost: 2,
         tags: ['blunt'],
-        range: [0, 2],
+        getRange: () => [0, 2] as [number, number],
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     {
@@ -592,12 +592,25 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 7,
         tags: ['electric', 'stun'],
-        range: [0, 3],
+        getRange: () => [0, 3] as [number, number],
         chanCost: 15,
         canUse: (attacker) => attacker.chan >= 15,
         effects: [
             { type: 'damage', scaling: { wisdom: 1 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
+        ],
+    },
+    {
+        id: 'blaze_strike',
+        name: '烈火',
+        description: '以炁化焰，隔空斩击，距离比兵刃更远。',
+        requiredTags: ['slash'],
+        apCost: 4,
+        tags: ['slash', 'burn', 'damage'],
+        getRange: (wr) => [wr[0], wr[1] + 1],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.8 } },
+            { type: 'add_debuff', buffId: 'burn', stacks: 1, chance: 1 },
         ],
     },
 ]

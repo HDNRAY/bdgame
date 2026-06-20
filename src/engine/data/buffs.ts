@@ -363,7 +363,7 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'min_move_cost',
-        name: '凌波微步',
+        name: '跑得贼快',
         description: '步法精妙，移动消耗最低。',
         tags: [],
         expiry: { type: 'permanent' },

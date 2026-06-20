@@ -96,19 +96,21 @@ export class TurnManager {
     }
 
     /** 身法变化时按身法变化比例缩放剩余延迟 */
-    recalcInterval(id: string, agility: number): void {
+    recalcInterval(id: string, agility: number, haste?: number): void {
         const entry = this.queue.find((e) => e.id === id)
         if (!entry || entry.type !== 'character' || entry.preDelay === undefined) return
         if (entry === this.queue[0]) return
 
+        const currentHaste = haste ?? entry.haste ?? 0
         const oldDelay = entry.nextActionAt - entry.scheduledAt
         const oldAgi = entry.lastAgility ?? agility
-        const oldTi = calcTurnInterval(oldAgi, entry.preDelay, entry.stunTime ?? 0) - (entry.haste ?? 0)
-        const newTi = calcTurnInterval(agility, entry.preDelay, entry.stunTime ?? 0) - (entry.haste ?? 0)
+        const oldTi = calcTurnInterval(oldAgi, entry.preDelay, entry.stunTime ?? 0) - currentHaste
+        const newTi = calcTurnInterval(agility, entry.preDelay, entry.stunTime ?? 0) - currentHaste
         // 按比例缩放，保留 AP 回复耗时部分
         const scaledDelay = Math.max(100, Math.round(oldDelay * (newTi / oldTi)))
         entry.nextActionAt = entry.scheduledAt + scaledDelay
         entry.lastAgility = agility
+        entry.haste = currentHaste
         this.sort()
     }
 

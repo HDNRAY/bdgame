@@ -43,7 +43,7 @@ export function applyAttrMods(
     })
     // 身法变化 → 重新计算回合间隔
     if ('agility' in applied) {
-        engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
+        engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
     }
     return applied
 }
@@ -53,7 +53,7 @@ export function revertBuffMods(layer: BuffLayer | undefined, char: Character, en
     if (!layer?.mods) return
     for (const [attr, delta] of Object.entries(layer.mods)) {
         char.attrs.modify(attr as AttrName, -(delta as number))
-        if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
+        if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
     }
     // 属性下降后封顶 hp/ap
     if (char.hp > char.maxHp) char.hp = char.maxHp

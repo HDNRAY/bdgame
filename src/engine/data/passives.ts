@@ -285,7 +285,7 @@ export const PASSIVES: Passive[] = [
         id: 'one_arm',
         name: '独臂',
         description: '总有断臂之人不喜义体。无法双持。运劲更凝练，招式消耗降低1AP（最低1）。',
-        tags: ['passive', 'debuff'],
+        tags: ['passive', 'debuff', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { agility: -2 } }],
         actionEnhancer: (def) => ({
             ...def,
@@ -309,6 +309,24 @@ export const PASSIVES: Passive[] = [
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tide_power', stacks: 0 }] },
         ],
+    },
+    {
+        id: 'shenxing_baibian',
+        name: '神行百变',
+        description: '铁剑门绝学，身法灵动百变，极难捉摸。',
+        tags: ['passive', 'buff', 'defense'],
+        effects: [
+            { type: 'dodge_mod', value: 0.08 },
+            { type: 'haste', eval: (char) => char.attrs.get('agility') * 10 },
+        ],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'min_move_cost' }] }],
+    },
+    {
+        id: 'xuannv_sword',
+        name: '玄女剑法',
+        description: '独臂神尼所创上乘剑法，以巧借力、以奇制胜，灵巧化为力道。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'dex_to_str', ratio: 0.25 }],
     },
 ]
 

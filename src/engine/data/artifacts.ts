@@ -6,32 +6,38 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'titanium_arm',
         name: '钛合金臂',
-        description: '重型钛合金义肢，力大无穷。',
+        description: '重型钛合金义肢，力大无穷。可飞向对手自爆。',
         tags: ['implant'],
         effects: [
             { type: 'stat_buff', attrs: { strength: 3, dexterity: 3 } },
             { type: 'stat_buff', attrs: { agility: -2 } },
         ],
+        // 自爆由 hp_below 触发器触发，无需加入招式列表
     },
     {
         id: 'hydraulic_leg',
         name: '液压腿',
-        description: '液压驱动义腿，爆发力惊人。',
+        description: '液压驱动义腿，爆发力惊人。所有招式附带短距冲刺。',
         tags: ['implant'],
         effects: [
             { type: 'move_efficiency', value: 0.2 },
             { type: 'stat_buff', attrs: { agility: -1 } },
         ],
+        actionEnhancer: (def) => {
+            if (!def.effects?.some((e) => e.type === 'damage')) return def
+            return { ...def, effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])] }
+        },
     },
     {
         id: 'mechanical_eye',
         name: '机械眼球',
-        description: '精密光学义眼，洞察入微。',
+        description: '精密光学义眼，洞察入微，免疫迷眼。',
         tags: ['implant'],
         effects: [
             { type: 'stat_buff', attrs: { insight: 4 } },
             { type: 'max_ap_mod', value: -1 },
         ],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dark_room_sense' }] }],
     },
     {
         id: 'muscle_boost',
@@ -46,7 +52,7 @@ export const ARTIFACTS: Artifact[] = [
         description: '辅助循环系统，全面提升体能。',
         tags: ['implant'],
         effects: [
-            { type: 'stat_buff', attrs: { strength: 1, agility: 1, dexterity: 1, vitality: 1 } },
+            { type: 'stat_buff', attrs: { strength: 2, agility: 2, dexterity: 1 } },
             { type: 'max_ap_mod', value: -1 },
         ],
     },
@@ -59,7 +65,7 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 1 }],
+                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 2 }],
             },
         ],
     },

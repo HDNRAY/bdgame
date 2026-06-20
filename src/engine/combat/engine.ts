@@ -238,7 +238,7 @@ export class BattleEngine {
             const waitMs = Math.ceil((deficit / regenPerSec) * 1000)
             this.state.turn.next()
             this.state.turn.scheduleNext(
-                { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.haste },
+                { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.getHaste() },
                 waitMs,
             )
             this.state.eventActorId = null
@@ -310,7 +310,7 @@ export class BattleEngine {
 
         self.lastActionEndMs = this.state.turn.currentTime + totalActionDurationMs
         this.state.turn.scheduleNext(
-            { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.haste },
+            { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.getHaste() },
             totalDelay,
         )
         this.state.eventActorId = null

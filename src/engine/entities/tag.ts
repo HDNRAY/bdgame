@@ -48,3 +48,4 @@ export type Tag =
     | 'bonus_damage' // 独立附加伤害
     | 'dual_wield' // 双持
     | 'range_up' // 增加攻击范围
+    | 'inherent' // 固有（不可复制、不可禁用）

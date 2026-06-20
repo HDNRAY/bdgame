@@ -33,7 +33,7 @@ export function planMovement(
     minMoveCost = false,
     moveEfficiency = 0,
 ): MovePlan | null {
-    const actionRange = chosenAction.range ?? weaponRange
+    const actionRange = chosenAction.getRange?.(weaponRange, attacker) ?? weaponRange
     const basePerAp = PositionSystem.apToRange(attacker.attrs.get('agility'))
     const perAp = minMoveCost ? 2 : basePerAp * (1 + moveEfficiency)
 
@@ -65,6 +65,20 @@ export function planMovement(
             const walkingCost = moveAp + chosenAction.apCost
             if (totalAp <= apRemaining && totalAp <= walkingCost) {
                 return { delta, apCost: inst.apCost, dashActionId: inst.id }
+            }
+        }
+    }
+
+    // 检查 overshoot：实际位移 moveAp×perAp 可能超出目标距离
+    if (moveAp > 0) {
+        const postMoveDist = distance + (delta > 0 ? 1 : -1) * moveAp * perAp
+        if (postMoveDist < actionRange[0]) {
+            // 走太多会低于最小射程，试试少用几格 AP 能否落在范围内
+            for (let altAp = moveAp - 1; altAp >= 0; altAp--) {
+                const altPost = distance + (delta > 0 ? 1 : -1) * altAp * perAp
+                if (altPost >= actionRange[0] && altPost <= actionRange[1]) {
+                    return { delta: delta > 0 ? altAp : -altAp, apCost: altAp }
+                }
             }
         }
     }

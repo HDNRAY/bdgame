@@ -46,7 +46,7 @@ export type EffectDef =
     | { type: 'dodge_mod'; value: number }
     | { type: 'parry_mod'; value: number }
     | { type: 'stat_parry_dodge'; parryScale?: number; dodgeScale?: number }
-    | { type: 'haste'; value: number }
+    | { type: 'haste'; value?: number; eval?: (char: Character) => number }
     | { type: 'attr_floor'; attrs: Partial<Record<AttrName, number>> }
     | { type: 'add_buff'; buffId: string; stacks?: number }
     | { type: 'remove_buff'; buffId: string; stacks?: number }
@@ -58,6 +58,8 @@ export type EffectDef =
     | { type: 'ignore_parry' }
     | { type: 'wisdom_stat_buff'; ratio: number; attrs: AttrName[] }
     | { type: 'copy_best_passive' }
+    | { type: 'add_passive'; passiveId: string }
+    | { type: 'dex_to_str'; ratio: number }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {
@@ -74,7 +76,12 @@ export interface ActionDefinition extends GameEntity {
     canUse?: (attacker: Character, state: BattleState) => boolean
     extraPreDelay?: number
     extraStunTime?: number
-    range?: [number, number]
+    /**
+     * 自定义攻击范围回调（优先级高于 range），返回招式实际范围 [min, max]
+     * @param weaponRange 武器基础范围
+     * @param self 使用该招式的角色（运行时可获取 buff/被动等状态）
+     */
+    getRange?: (weaponRange: [number, number], self?: Character) => [number, number]
 }
 
 /** 招式运行时实例（追踪限次/冷却等状态） */

@@ -10,7 +10,8 @@ export function revertWeaponStatBuffs(weapon: WeaponDef | undefined, char: Chara
         if (eff.type === 'stat_buff') {
             for (const [attr, value] of Object.entries(eff.attrs)) {
                 char.attrs.modify(attr as AttrName, -value)
-                if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
+                if (attr === 'agility')
+                    engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
             }
         }
     }
@@ -26,7 +27,8 @@ export function clearWeaponBuffLayers(charId: string, engine: BattleEngine): voi
         if (!char) continue
         for (const [attr, delta] of Object.entries(layer.mods)) {
             char.attrs.modify(attr as AttrName, -(delta as number))
-            if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'))
+            if (attr === 'agility')
+                engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
         }
         engine.state.pendingBuffs.delete(k)
         engine.state.turn.removeEvents('buff_end_' + k)

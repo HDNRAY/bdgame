@@ -155,6 +155,10 @@ export function describeEffect(eff: EffectDef): string[] {
             if (eff.dodgeScale) parts.push(`闪避 ×${eff.dodgeScale}`)
             return [`属性替代: ${parts.join(', ')}`]
         }
+        case 'add_passive':
+            return [`获得功法: ${eff.passiveId}`]
+        case 'dex_to_str':
+            return [`以巧借力: 灵巧×${eff.ratio} → 力道`]
         default:
             return [`[未知效果: ${effType}]`]
     }

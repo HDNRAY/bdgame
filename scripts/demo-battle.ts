@@ -1,4 +1,5 @@
 // npx tsx scripts/demo-battle.ts [n]
+/// <reference types="node" />
 import { writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
@@ -22,6 +23,7 @@ import { getWeapon } from '../src/engine/data/weapons'
 import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
 import { StatsTracker } from '../src/engine/combat/stats-tracker'
+import { AJIU } from '../src/engine/data/opponents/ajiu'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const logPath = join(__dirname, 'battle-log.txt')
@@ -59,7 +61,7 @@ function show(c: Character) {
 
 // ── 满配对手（n=33） ──
 const pBuild = ZHANGLIE.generate(33)
-const oBuild = BAIHU.generate(33)
+const oBuild = AJIU.generate(33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)
@@ -68,12 +70,8 @@ if (N === 1) {
     show(leftBase)
     console.log('')
     const stats = new StatsTracker()
-    const { winner, engine } = runBattle(leftBase, rightBase, (e) => stats.handle(e))
-    const [cloneL, cloneR] = engine.state.characters
+    const { engine } = runBattle(leftBase, rightBase, (e) => stats.handle(e))
     for (const line of formatBattleLog(engine.state.log).lines) console.log(line)
-    console.log(
-        `\n🏆 ${winner} 胜  ${cloneL.name} HP${Math.round(cloneL.hp * 10) / 10}/${cloneL.maxHp} vs ${cloneR.name} HP${Math.round(cloneR.hp * 10) / 10}/${cloneR.maxHp}`,
-    )
     const charNames = { [leftBase.id]: leftBase.name, [rightBase.id]: rightBase.name }
     console.log('\n── 伤害占比 ──')
     for (const line of stats.format(charNames)) console.log(line)

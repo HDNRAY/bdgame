@@ -18,6 +18,13 @@ export interface WeaponDef extends GameEntity {
 /** 武器数据（数组，可在初始化时构建为 Map） */
 export const WEAPON_DB: WeaponDef[] = [
     {
+        id: 'broken_blade',
+        name: '断刀',
+        description: '一把残损的断刀。',
+        tags: ['slash', 'parry'],
+        range: [1, 2],
+    },
+    {
         id: 'bare_hands',
         name: '赤手空拳',
         description: '什么都没有，但什么都有可能。',

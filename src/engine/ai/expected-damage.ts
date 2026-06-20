@@ -19,8 +19,8 @@ export function calcExpectedDamage(
     weaponRange: [number, number],
     distance: number,
 ): DamageEstimate {
-    // 1. 可达性：action.range ?? weapon.range
-    const actionRange = action.range ?? weaponRange
+    // 1. 可达性：getRange > range > weaponRange
+    const actionRange = action.getRange?.(weaponRange, attacker) ?? weaponRange
     const canReach = distance >= actionRange[0] && distance <= actionRange[1]
 
     // 2. 基础伤害（遍历所有伤害效果，含 missing_hp_damage）
@@ -45,6 +45,13 @@ export function calcExpectedDamage(
             rawDamage += Math.round(
                 (attacker.maxHp - attacker.hp) * (eff as Extract<EffectDef, { type: 'self_missing_hp_damage' }>).ratio,
             )
+        }
+        // debuff 持续伤害估值（灼烧/中毒/流血 ≈ 每层3点）
+        if (eff.type === 'add_debuff') {
+            const dotBuffs = ['burn', 'poison', 'bleed']
+            if (dotBuffs.includes(eff.buffId)) {
+                rawDamage += eff.stacks * 3
+            }
         }
     }
 

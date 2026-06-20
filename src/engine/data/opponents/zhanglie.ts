@@ -13,7 +13,7 @@ export const ZHANGLIE: OpponentDef = {
             { strength: 16, vitality: 13, agility: 18, dexterity: 14, insight: 13, wisdom: 4 },
             [
                 passive('iron_bone'),
-                artifact('titanium_arm'),
+                artifact('hydraulic_leg'),
                 artifact('heart_pump'),
                 artifact('neural_net'),
                 action('thrust'),

@@ -160,4 +160,22 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         maxUses: 1,
         effects: [{ type: 'copy_best_passive' }],
     },
+    {
+        id: '_arm_explosion',
+        name: '自爆',
+        description: '将钛合金臂飞向对手并引爆。',
+        requiredTags: [],
+        apCost: 0,
+        chance: 1,
+        tags: ['trigger', 'damage', 'burn'],
+        target: 'enemy',
+        maxUses: 1,
+        getRange: () => [0, 4] as [number, number],
+        canUse: (attacker) => attacker.chan >= 30,
+        effects: [
+            { type: 'fixed_damage', value: 20 },
+            { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
+            { type: 'add_passive', passiveId: 'one_arm' },
+        ],
+    },
 ]

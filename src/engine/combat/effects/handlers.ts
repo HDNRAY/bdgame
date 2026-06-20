@@ -68,13 +68,15 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 actorId: self.id,
             })
         } else {
+            const newMax = Math.max(3, weapon.range[1])
             self.weaponDef = {
                 ...weapon,
                 tags: [...new Set([...weapon.tags, 'qi' as Tag])],
+                range: [weapon.range[0], newMax] as [number, number],
             }
             engine.emitLog({
                 type: 'system',
-                message: BattleLog.msg('次元刃', self.name, '附刃成功'),
+                message: BattleLog.msg('次元刃', self.name, `附刃成功，射程扩展至${newMax}`),
                 actorId: self.id,
             })
         }
@@ -188,8 +190,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         enemy.attrs.modify(attr, -e.value)
         engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr: e.stat, delta: -e.value, label: '汲取' })
         if (e.stat === 'agility') {
-            engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
-            engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+            engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
+            engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'), enemy.getHaste())
         }
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'stat_transfer',
@@ -289,7 +291,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 for (const [attr, val] of Object.entries(newMods)) {
                     existing.mods[attr] = (existing.mods[attr] ?? 0) + (val as number)
                 }
-                if ('agility' in scaledMods) engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+                if ('agility' in scaledMods)
+                    engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'), enemy.getHaste())
             }
             // 重新调度 expiry（叠层刷新持续时间）
             if (buff.expiry?.type === 'duration') {
@@ -359,7 +362,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 modDetails.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
                 enemy.attrs.modify(attr as AttrName, v)
                 mods[attr] = v
-                if (attr === 'agility') engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'))
+                if (attr === 'agility')
+                    engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'), enemy.getHaste())
             }
         }
         // stun 的 attrMods 在 afterApplyDebuff 中由 applyAttrMods 输出属性日志，此处不重复
@@ -450,7 +454,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 modDetails.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
                 self.attrs.modify(attr as AttrName, v)
                 mods[attr] = v
-                if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+                if (attr === 'agility')
+                    engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
             }
         }
         engine.emitLog({
@@ -512,7 +517,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                         if (revertVal !== 0) {
                             self.attrs.modify(attr as AttrName, revertVal)
                             layer.mods[attr] = (layer.mods[attr] ?? 0) + revertVal
-                            if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+                            if (attr === 'agility')
+                                engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
                         }
                     }
                 }
@@ -630,6 +636,26 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             actorId: enemy.id,
         })
     },
+    add_passive({ eff, self, engine }: EffectCtx) {
+        const e = eff as Extract<EffectDef, { type: 'add_passive' }>
+        self.addPassive(e.passiveId)
+        const def = getPassive(e.passiveId)
+        if (!def) return
+        const enemy = engine.getOpponent(self.id)
+        if (!enemy) return
+        for (const slot of def.triggers ?? []) {
+            if (slot.condition.type !== 'battle_start') continue
+            if (slot.effects)
+                for (const eff2 of slot.effects)
+                    processActionEffect(eff2, self, enemy, engine, engine.state.turn.currentTime)
+            if (slot.actionId) {
+                const action = getAction(slot.actionId)
+                if (action && action.apCost <= 2)
+                    for (const eff2 of action.effects ?? [])
+                        processActionEffect(eff2, self, enemy, engine, engine.state.turn.currentTime, action)
+            }
+        }
+    },
     switch_weapon({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'switch_weapon' }>
 
@@ -655,7 +681,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 if (eff.type === 'stat_buff') {
                     for (const [attr, value] of Object.entries(eff.attrs)) {
                         self.attrs.modify(attr as AttrName, value)
-                        if (attr === 'agility') engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'))
+                        if (attr === 'agility')
+                            engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
                     }
                 }
             }

@@ -35,7 +35,8 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
         if (target && layer.mods) {
             for (const [attr, delta] of Object.entries(layer.mods)) {
                 target.attrs.modify(attr as AttrName, delta)
-                if (attr === 'agility') engine.state.turn.recalcInterval(target.id, target.attrs.get('agility'))
+                if (attr === 'agility')
+                    engine.state.turn.recalcInterval(target.id, target.attrs.get('agility'), target.getHaste())
             }
         }
     }

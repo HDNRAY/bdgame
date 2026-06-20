@@ -3,6 +3,8 @@ import type { Tag } from './tag'
 import type { EffectDef } from './action'
 import type { TriggerSlot } from './trigger'
 
+import type { ActionEnhancer } from './passive'
+
 /** 奇物 */
 export interface Artifact extends GameEntity {
     tags: Tag[]
@@ -10,6 +12,10 @@ export interface Artifact extends GameEntity {
     effects?: EffectDef[]
     /** 奇物触发（运行时） */
     triggers?: TriggerSlot[]
+    /** 义体赋予角色的招式 */
+    grantsActions?: string[]
+    /** 招式强化钩子（构造期执行） */
+    actionEnhancer?: ActionEnhancer
 }
 
 // /** 义体 —— 带惩罚的强化部件 */
