@@ -321,7 +321,7 @@ export const TALENTS: Talent[] = [
         tags: ['talent', 'buff'],
         requireAttrsMin: { agility: 20 },
         effects: [
-            { type: 'attr_floor', attrs: { agility: 15 } },
+            { type: 'attr_floor', attrs: { agility: 16 } },
             { type: 'haste', value: 200 },
         ],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'min_move_cost' }] }],

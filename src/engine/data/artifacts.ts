@@ -9,7 +9,7 @@ export const ARTIFACTS: Artifact[] = [
         description: '重型钛合金义肢，力大无穷。',
         tags: ['implant'],
         effects: [
-            { type: 'stat_buff', attrs: { strength: 4, dexterity: 4 } },
+            { type: 'stat_buff', attrs: { strength: 3, dexterity: 3 } },
             { type: 'stat_buff', attrs: { agility: -2 } },
         ],
     },
@@ -29,7 +29,7 @@ export const ARTIFACTS: Artifact[] = [
         description: '精密光学义眼，洞察入微。',
         tags: ['implant'],
         effects: [
-            { type: 'stat_buff', attrs: { insight: 2 } },
+            { type: 'stat_buff', attrs: { insight: 4 } },
             { type: 'max_ap_mod', value: -1 },
         ],
     },
@@ -38,10 +38,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '肌肉强化针',
         description: '肌肉强化注射剂，代价是身体负担。',
         tags: ['implant'],
-        effects: [
-            { type: 'stat_buff', attrs: { strength: 2, vitality: 2 } },
-            { type: 'max_hp_mod', value: -20 },
-        ],
+        effects: [{ type: 'stat_buff', attrs: { strength: 4, vitality: -2, agility: 4, dexterity: -2 } }],
     },
     {
         id: 'heart_pump',
@@ -50,7 +47,7 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['implant'],
         effects: [
             { type: 'stat_buff', attrs: { strength: 1, agility: 1, dexterity: 1, vitality: 1 } },
-            { type: 'max_ap_mod', value: -2 },
+            { type: 'max_ap_mod', value: -1 },
         ],
     },
     {
@@ -58,7 +55,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '人造神经网络',
         description: '仿生神经增强网，反应速度提升。',
         tags: ['implant'],
-        effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 2, insight: 1 } }],
+        effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 4, insight: 1 } }],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -71,7 +68,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '战斗芯片',
         description: '战术辅助芯片，大幅提升悟性。',
         tags: ['implant'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 4 } }],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 6 } }],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -162,7 +159,10 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['defense'],
         effects: [{ type: 'parry_mod', value: 0.15 }],
         triggers: [
-            { condition: { type: 'on_parry' }, effects: [{ type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 }] },
+            {
+                condition: { type: 'on_parry' },
+                effects: [{ type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 }],
+            },
         ],
     },
     {

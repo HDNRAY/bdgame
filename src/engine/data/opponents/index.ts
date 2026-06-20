@@ -83,8 +83,6 @@ export const OPPONENTS: OpponentDef[] = [
     // 其他
     YIDAO, // 太刀
     LUEYING, // 匕首
-    // 玄铁
-    YANGGUO,
 ]
 
 /** 按 ID 查找对手 def */
