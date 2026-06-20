@@ -59,7 +59,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         extraStunTime: 400,
         tags: ['paralyze', 'self_damage', 'blunt'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'damage', scaling: { strength: 0.8 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.6 },
             { type: 'self_damage', ratio: 0.02 },
         ],
@@ -69,10 +69,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '弹指',
         description: '弹指间弹出气劲，短暂眩晕。',
         requiredTags: [],
-        apCost: 1,
+        apCost: 2,
         tags: ['blunt', 'stun'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
         ],
         getRange: () => [0, 6] as [number, number],

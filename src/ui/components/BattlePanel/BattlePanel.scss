@@ -94,9 +94,21 @@
 
     .buff-tag {
         display: inline-block;
-        background: #1a1a2e;
-        color: #aaa;
-        border: 1px solid #333;
+        background: #1a2e1a;
+        color: #8f8;
+        border: 1px solid #2a4a2a;
+        border-radius: 3px;
+        padding: 1px 5px;
+        font-size: 12px;
+        cursor: default;
+        white-space: nowrap;
+    }
+
+    .debuff-tag {
+        display: inline-block;
+        background: #2e1a1a;
+        color: #f88;
+        border: 1px solid #4a2a2a;
         border-radius: 3px;
         padding: 1px 5px;
         font-size: 12px;

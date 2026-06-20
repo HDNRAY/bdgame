@@ -17,16 +17,14 @@ export const LAIFENG: OpponentDef = {
                 action('qi_focus'),
                 action('qi_gather'),
                 action('straight_punch'),
-                action('flick'),
                 action('iron_charge'),
                 action('qi_bolt'),
             ],
             [
                 {
-                    condition: { type: 'on_opponent_move', check: (ctx) => (ctx.moveDelta ?? 0) > 0 },
+                    condition: { type: 'on_opponent_move' },
                     actionId: 'qi_bolt',
                 },
-                { condition: { type: 'on_pre_action' }, actionId: 'flick' },
             ],
             n,
         ),

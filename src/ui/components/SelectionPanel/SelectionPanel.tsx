@@ -70,9 +70,9 @@ export function SelectionPanel({ onStart }: SelectionPanelProps) {
                 <h1>选择对战双方</h1>
 
                 <div className="slots">
-                    <div className="slot-label">挑战者 A</div>
+                    <div className="slot-label">{selectedA?.name ?? '挑战者 A'}</div>
                     <span className="vs">VS</span>
-                    <div className="slot-label">挑战者 B</div>
+                    <div className="slot-label">{selectedB?.name ?? '挑战者 B'}</div>
                 </div>
 
                 {/* 胜率显示（预留空间防抖动） */}

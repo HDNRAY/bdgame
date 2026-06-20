@@ -22,7 +22,7 @@ export const YANGGUO: OpponentDef = {
                 action('yunv_sword'),
             ],
             [
-                { condition: { type: 'on_dodge' }, actionId: 'quanzhen_sword' },
+                { condition: { type: 'on_dodge' }, actionId: 'flick' },
                 { condition: { type: 'on_parry' }, actionId: 'yunv_sword' },
             ],
             n,

@@ -68,9 +68,10 @@ export function BattlePanel({ snapshot, charAName, charBName }: BattlePanelProps
                                 {c.buffs.map((b) => {
                                     const def = getBuff(b.buffId)
                                     const label = b.stacks > 1 ? `${b.name}(${b.stacks})` : b.name
+                                    const isDebuff = def?.tags.includes('debuff') ?? false
                                     return (
                                         <Tooltip key={b.buffId} content={def?.description ?? b.name}>
-                                            <span className="buff-tag">{label}</span>
+                                            <span className={isDebuff ? 'debuff-tag' : 'buff-tag'}>{label}</span>
                                         </Tooltip>
                                     )
                                 })}

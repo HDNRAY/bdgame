@@ -72,6 +72,7 @@ export interface BuffDef extends GameEntity {
     onTurnEnd?: (ctx: BuffHookCtx) => void
 }
 
+/** 增益状态 */
 export const BUFF_DB: BuffDef[] = [
     // ── 战斗状态 ──
     {
@@ -145,14 +146,6 @@ export const BUFF_DB: BuffDef[] = [
     },
 
     {
-        id: 'disarmed',
-        name: '缴械',
-        description: '兵器脱手，无法使用武器招式。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-    },
-    {
         id: 'ciyuan_blade',
         name: '次元刃',
         description: '凝炁为刃，或凝炁与刃',
@@ -179,13 +172,15 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'duration', ms: 2000 },
         stacking: { type: 'independent' },
     },
+]
 
-    // ── 负面状态 ──
+/** 减益状态 */
+export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'paralyze',
         name: '麻痹',
         description: '身法、灵巧降低。',
-        tags: [],
+        tags: ['debuff'],
         expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 1800 },
         stacking: { type: 'independent' },
         attrMods: { agility: -1, dexterity: -1 },
@@ -194,7 +189,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'frost',
         name: '霜冻',
         description: '身法降低，移动缓慢。',
-        tags: [],
+        tags: ['debuff'],
         expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 3000 },
         stacking: { type: 'independent' },
         attrMods: { agility: -0.4 },
@@ -203,7 +198,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'stun',
         name: '眩晕',
         description: '大幅降低身法、洞察（连续命中递减）。',
-        tags: [],
+        tags: ['debuff'],
         expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
         stacking: { type: 'independent' },
     },
@@ -211,7 +206,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'sand_blind',
         name: '迷眼',
         description: '沙尘入眼，洞察大幅降低。',
-        tags: [],
+        tags: ['debuff'],
         expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
         stacking: { type: 'none' },
         attrMods: { insight: -4 },
@@ -220,7 +215,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'knockdown',
         name: '倒地',
         description: '重心不稳，倒地不起，身法大幅降低。',
-        tags: [],
+        tags: ['debuff'],
         expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
         stacking: { type: 'independent' },
         attrMods: { agility: -4 },
@@ -229,7 +224,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'burn',
         name: '灼烧',
         description: '持续火焰伤害。',
-        tags: [],
+        tags: ['debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
     },
@@ -237,7 +232,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'poison',
         name: '中毒',
         description: '持续毒素伤害。',
-        tags: [],
+        tags: ['debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
     },
@@ -245,9 +240,34 @@ export const BUFF_DB: BuffDef[] = [
         id: 'bleed',
         name: '流血',
         description: '行动触发额外伤害。',
-        tags: [],
+        tags: ['debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
+    },
+    {
+        id: 'disarmed',
+        name: '缴械',
+        description: '兵器脱手，无法使用武器招式。',
+        tags: ['debuff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+    },
+    {
+        id: 'fumble_chance',
+        name: '失心',
+        description: '动作失败率。',
+        tags: ['debuff'],
+        expiry: { type: 'duration', ms: 5000 },
+        stacking: { type: 'additive' },
+    },
+    {
+        id: 'permanent_burn',
+        name: '过热',
+        description: '持续灼烧伤害。',
+        tags: ['debuff'],
+        expiry: { type: 'permanent' },
+        tickInterval: 3000,
+        onTickDamage: () => 1,
     },
 
     // ── 伤害修正 buff ──
@@ -392,23 +412,6 @@ export const BUFF_DB: BuffDef[] = [
     // ── 永久修饰（构造期执行） ──
     { id: 'max_ap_mod', name: '失能', description: '最大AP变化。', tags: [], expiry: { type: 'permanent' } },
     { id: 'max_hp_mod', name: '失血', description: '最大HP变化。', tags: [], expiry: { type: 'permanent' } },
-    {
-        id: 'fumble_chance',
-        name: '失心',
-        description: '动作失败率。',
-        tags: [],
-        expiry: { type: 'duration', ms: 5000 },
-        stacking: { type: 'additive' },
-    },
-    {
-        id: 'permanent_burn',
-        name: '过热',
-        description: '持续灼烧伤害。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        tickInterval: 3000,
-        onTickDamage: () => 1,
-    },
     {
         id: 'vitality_regen',
         name: '生生不息',
@@ -614,5 +617,5 @@ export const BUFF_DB: BuffDef[] = [
 ]
 
 export function getBuff(id: string): BuffDef | undefined {
-    return BUFF_DB.find((b) => b.id === id)
+    return BUFF_DB.find((b) => b.id === id) ?? DEBUFF_DB.find((b) => b.id === id)
 }
