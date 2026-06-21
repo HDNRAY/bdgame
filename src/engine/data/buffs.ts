@@ -6,6 +6,7 @@ import type { BuffLayer } from '../combat/types'
 import type { ActionDefinition } from '../entities/action'
 import type { Tag } from '../entities/tag'
 import type { TriggerEvent } from '../entities/trigger'
+import { revertBuffMods, applyAttrMods } from '../combat/utils/buff-layer'
 
 /** Buff 钩子上下文 */
 export interface BuffHookCtx {
@@ -140,7 +141,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        attrMods: { agility: -10, strength: 4 },
+        attrMods: { agility: -8, strength: 4 },
         onParryChance: () => 0.15,
         onHitChance: ({ action }) => (action?.tags.includes('slash') ? 0.1 : 0),
     },
@@ -600,11 +601,17 @@ export const DEBUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
     },
     {
-        id: 'heavy_parry_ignore',
+        id: 'dark_iron_weight',
         name: '玄铁剑意',
-        description: '重剑无锋，大巧不工。招架无法减免玄铁剑的伤害。',
+        description: '玄铁剑的沉重负担与无锋剑意。身法受限但力道大增，招架只能减免一半伤害。',
         tags: [],
         expiry: { type: 'permanent' },
+        attrMods: { agility: -10, strength: 4 },
+        onParryReduction: ({ final, raw }) => {
+            const blocked = raw - final
+            const half = Math.round(blocked * 0.5 * 10) / 10
+            return raw - half
+        },
     },
     {
         id: 'iron_defense',
@@ -613,6 +620,95 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final }) => Math.round(final * 0.8 * 10) / 10,
+    },
+    {
+        id: 'stone_skin',
+        name: '石肤',
+        description: '皮肤如岩石般坚硬，所受直伤-20%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTakeDamage: ({ final }) => Math.round(final * 0.8 * 10) / 10,
+    },
+    {
+        id: 'dinghai_pressure',
+        name: '定海',
+        description: '锭海神铁的压制力场，距离越近伤害越高。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        attrMods: { agility: -12 },
+        onDealDamage: ({ final, attacker, engine }) => {
+            const opponent = engine.getOpponent(attacker.id)
+            if (!opponent) return final
+            const dist = engine.state.position.distance(attacker.id, opponent.id)
+            // 定海：str × 0.66 × (6-dist)/5，贴脸 66%，6m 处 0%
+            const bonus = Math.round(((attacker.attrs.get('strength') * 0.66 * Math.max(0, 6 - dist)) / 5) * 10) / 10
+            return bonus > 0 ? Math.round((final + bonus) * 10) / 10 : final
+        },
+        onParryReduction: ({ final, raw }) => {
+            const blocked = raw - final
+            const reduced = Math.round(blocked * 0.4 * 10) / 10
+            return raw - reduced
+        },
+    },
+    {
+        id: 'santou_liubi',
+        name: '三头六臂',
+        description: '后续3个回合结束时AP回满。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTurnEnd: ({ attacker, engine, layer }) => {
+            if (attacker.ap < attacker.maxAp) {
+                attacker.ap = attacker.maxAp
+                engine.emitLog({
+                    type: 'system',
+                    message: `[三头六臂] ${attacker.name} AP回满（剩${layer.restoreValue - 1}次）`,
+                    actorId: attacker.id,
+                })
+            }
+            layer.restoreValue--
+            if (layer.restoreValue <= 0) {
+                const key = `santou_liubi::${attacker.id}`
+                engine.state.pendingBuffs.delete(key)
+                engine.state.turn.removeEvents('buff_end_' + key)
+            }
+        },
+    },
+    {
+        id: 'hua_gun_parry',
+        name: '花棍',
+        description: '灵巧转化为远程招架率。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onParryChance: ({ attacker, action }) => {
+            if (!action?.tags.includes('range')) return 0
+            return attacker.attrs.get('dexterity') * 0.02
+        },
+    },
+    {
+        id: 'qishier_bian',
+        name: '七十二变',
+        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧增加3点。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        attrMods: { strength: 3 },
+        tickInterval: 6000,
+        onTickHeal: ({ attacker: char, engine, layer }) => {
+            const cycle = ['strength', 'vitality', 'agility', 'dexterity']
+            const nextIdx = ((layer.restoreValue ?? 0) + 1) % 4
+            revertBuffMods(layer, char, engine)
+            const stat = cycle[nextIdx]
+            const newMods = applyAttrMods(char, engine, { [stat]: 3 }, '七十二变')
+            layer.mods = newMods
+            layer.restoreValue = nextIdx
+            return 0
+        },
+    },
+    {
+        id: 'yuanting_yuezhi',
+        name: '渊渟岳峙',
+        description: '免疫身法/灵巧减益、位移、缴械、打断。',
+        tags: [],
+        expiry: { type: 'permanent' },
     },
 ]
 

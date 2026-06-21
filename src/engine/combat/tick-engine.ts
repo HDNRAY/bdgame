@@ -137,6 +137,17 @@ export class TickEngine {
         const char = engine.getCharacter(charId)
         if (!char) return { nextInterval: 0 }
         char.takeDamage(dmg)
+        // 石肤：灼烧伤害减半
+        if (engine.state.pendingBuffs.has(`stone_skin::${charId}`)) {
+            const halved = Math.round(dmg * 0.5)
+            const diff = dmg - halved
+            char.hp = Math.min(char.maxHp, char.hp + diff)
+            engine.emitLog({
+                type: 'system',
+                message: `[石肤] ${char.name} 灼烧减半 ${halved}（减免${diff}）`,
+                actorId: charId,
+            })
+        }
         const buffName = getBuff('burn')?.name ?? '灼烧'
         engine.emitLog({
             type: 'damage_over_time',

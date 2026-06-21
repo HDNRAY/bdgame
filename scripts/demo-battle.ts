@@ -18,12 +18,13 @@ import {
     QILAN,
     LONGNV,
     YANGGUO,
+    AJIU,
+    WUKONG,
 } from '../src/engine/data/opponents/index'
 import { getWeapon } from '../src/engine/data/weapons'
 import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
 import { StatsTracker } from '../src/engine/combat/stats-tracker'
-import { AJIU } from '../src/engine/data/opponents/ajiu'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const logPath = join(__dirname, 'battle-log.txt')
@@ -60,8 +61,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = LAIFENG.generate(33)
-const oBuild = YIDAO.generate(33)
+const pBuild = WUKONG.generate(33)
+const oBuild = ZHANGLIE.generate(33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

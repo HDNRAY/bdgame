@@ -34,7 +34,6 @@ export type EffectDef =
     | { type: 'max_ap_mod'; value: number }
     | { type: 'max_hp_mod'; value: number }
     | { type: 'move_efficiency'; value: number }
-    | { type: 'halve_weapon_penalty' }
     | { type: 'permanent_burn'; value: number }
     // 功法/奇物效果
     | { type: 'crit_chance'; value: number; reset?: boolean }
@@ -60,6 +59,15 @@ export type EffectDef =
     | { type: 'copy_best_passive' }
     | { type: 'add_passive'; passiveId: string }
     | { type: 'dex_to_str'; ratio: number }
+    | {
+          type: 'stat_restriction'
+          check: (
+              char: Character,
+              attr: string,
+              current: number,
+              delta: number,
+          ) => { skip?: boolean; delta?: number } | null
+      }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {

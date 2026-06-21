@@ -11,6 +11,8 @@ export { LUHONGTI } from './luhongti'
 export { QILAN } from './qilan'
 export { LONGNV } from './longnv'
 export { YANGGUO } from './yangguo'
+export { AJIU } from './ajiu'
+export { WUKONG } from './wukong'
 import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
@@ -31,6 +33,7 @@ import { QILAN } from './qilan'
 import { LONGNV } from './longnv'
 import { YANGGUO } from './yangguo'
 import { AJIU } from './ajiu'
+import { WUKONG } from './wukong'
 
 /** 对手定义 */
 export interface OpponentDef {
@@ -70,6 +73,7 @@ export const OPPONENTS: OpponentDef[] = [
     SANGYUAN,
     LUHONGTI,
     AJIU,
+    WUKONG,
     // 双持刀剑
     LAYUE,
     BAIHU,

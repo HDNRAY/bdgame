@@ -232,6 +232,13 @@ export const ARTIFACTS: Artifact[] = [
         effects: [{ type: 'stat_buff', attrs: { strength: 2, wisdom: 2 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'poison_resist' }] }],
     },
+    {
+        id: 'fiery_eyes',
+        name: '火眼金睛',
+        description: '历经焚炼，目光如炬，洞察入微。洞察+4。',
+        tags: ['buff'],
+        effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
+    },
 ]
 
 /** 按 ID 查找物品 */

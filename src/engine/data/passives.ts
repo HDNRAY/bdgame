@@ -298,7 +298,15 @@ export const PASSIVES: Passive[] = [
         name: '玄铁剑法',
         description: '玄铁重剑无锋无刃，运劲之法迥异常理。以力驭剑，身法负担减半。',
         tags: ['passive', 'buff', 'stance'],
-        effects: [{ type: 'halve_weapon_penalty' }],
+        effects: [
+            {
+                type: 'stat_restriction',
+                check: (_char, attr, _cur, delta) => {
+                    if (attr === 'agility' && delta < 0) return { delta: Math.round(delta / 2) }
+                    return null
+                },
+            },
+        ],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'heavy_training' }] }],
     },
     {
@@ -328,6 +336,29 @@ export const PASSIVES: Passive[] = [
         description: '独臂神尼所创上乘剑法，以巧借力、以奇制胜，灵巧化为力道。',
         tags: ['passive', 'buff'],
         effects: [{ type: 'dex_to_str', ratio: 0.25 }],
+    },
+    {
+        id: 'stone_skin',
+        name: '石肤',
+        description: '肌肤如岩石般坚硬，所受直伤-20%。生命力也更顽强。',
+        tags: ['passive', 'defense', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'stone_skin' }] }],
+    },
+    {
+        id: 'qishier_bian',
+        name: '七十二变',
+        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧增加3点。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qishier_bian', stacks: 0 }] },
+        ],
+    },
+    {
+        id: 'hua_gun',
+        name: '花棍',
+        description: '以灵巧驾驭长兵，棍花如屏，可格挡远程攻击。灵巧越高招架远程越强。',
+        tags: ['passive', 'defense'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hua_gun_parry' }] }],
     },
 ]
 
@@ -369,6 +400,23 @@ export const TALENTS: Talent[] = [
         tags: ['talent', 'buff'],
         requireAttrsMin: { insight: 20 },
         triggers: [{ condition: { type: 'chan_overflow' }, actionId: '_xiaowuxiang_copy' }],
+    },
+    {
+        id: 'yuanting_yuezhi',
+        name: '渊渟岳峙',
+        description: '渊深如潭，岳峙如山。任何身法/灵巧减益、位移、缴械、打断均无效。装备减益也无效。',
+        tags: ['talent', 'buff', 'defense'],
+        requireAttrsMin: { strength: 20 },
+        effects: [
+            {
+                type: 'stat_restriction',
+                check: (_char, attr, _cur, delta) => {
+                    if ((attr === 'agility' || attr === 'dexterity') && delta < 0) return { skip: true }
+                    return null
+                },
+            },
+        ],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yuanting_yuezhi' }] }],
     },
 ]
 

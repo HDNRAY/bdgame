@@ -29,8 +29,20 @@ export function applyAttrMods(
     const applied: Record<string, number> = {}
     for (const [attr, value] of Object.entries(modsIn)) {
         if (value === 0) continue
-        char.attrs.modify(attr as AttrName, value)
-        applied[attr] = value
+        let delta = value
+        const cur = char.attrs.get(attr as AttrName)
+        for (const check of char.statRestrictionChecks ?? []) {
+            const result = check(char, attr, cur, delta)
+            if (!result) continue
+            if (result.skip) {
+                delta = 0
+                break
+            }
+            if (result.delta !== undefined) delta = result.delta
+        }
+        if (delta === 0) continue
+        char.attrs.modify(attr as AttrName, delta)
+        applied[attr] = delta
     }
     // 合并为一条日志
     const details = Object.entries(applied)
@@ -41,10 +53,19 @@ export function applyAttrMods(
         message: `[${label}] ${BattleLog.name(char.name)} ${details}`,
         actorId: char.id,
     })
+    // 根骨增加 → 按比例增加剩余血量（切走时不降）
+    if ('vitality' in applied && applied.vitality > 0) {
+        const oldMax = char.maxHp - applied.vitality * 18
+        const ratio = oldMax > 0 ? char.hp / oldMax : 1
+        char.hp = Math.round(char.maxHp * Math.min(ratio, 1))
+    }
     // 身法变化 → 重新计算回合间隔
     if ('agility' in applied) {
         engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
     }
+    // 属性变化后封顶 hp/ap
+    if (char.hp > char.maxHp) char.hp = char.maxHp
+    if (char.ap > char.maxAp) char.ap = char.maxAp
     return applied
 }
 

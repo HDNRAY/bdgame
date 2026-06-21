@@ -1,4 +1,4 @@
-import { AttributeSet, type AttrName } from './attributes'
+import { ATTR_MIN, AttributeSet, type AttrName } from './attributes'
 import { Action, type ActionDefinition, type EffectDef } from './action'
 import type { CharacterBuild } from './character-build'
 import type { Passive, Talent } from './passive'
@@ -55,6 +55,10 @@ export class Character {
     critDamageMod = 0
     /** 额外触发槽位（奇物提供） */
     triggerSlotMod = 0
+    /** stat_restriction 回调列表 */
+    statRestrictionChecks: Array<
+        (char: Character, attr: string, current: number, delta: number) => { skip?: boolean; delta?: number } | null
+    > = []
     /** 闪避修正 */
     dodgeMod = 0
     /** 招架修正 */
@@ -217,6 +221,11 @@ export class Character {
         return true
     }
 
+    /** 检查是否拥有指定天赋（基于 passiveDefs，构造期/运行时均可用） */
+    hasTalent(id: string): boolean {
+        return this.passiveDefs.some((p) => p.id === id)
+    }
+
     get artifacts(): Artifact[] {
         return this.artifactDefs
     }
@@ -304,8 +313,26 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     stat_buff(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
         for (const [attr, value] of Object.entries(e.attrs)) {
-            char.attrs.modify(attr as AttrName, value)
+            let delta = value as number
+            for (const check of char.statRestrictionChecks ?? []) {
+                const cur = char.attrs.get(attr as AttrName)
+                const result = check(char, attr, cur, delta)
+                if (!result) continue
+                if (result.skip) {
+                    delta = 0
+                    break
+                }
+                if (result.delta !== undefined) delta = result.delta
+            }
+            if (delta === 0) continue
+            const cur = char.attrs.get(attr as AttrName)
+            const next = Math.max(ATTR_MIN, cur + delta)
+            char.attrs.set(attr as AttrName, next)
         }
+    },
+    stat_restriction(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'stat_restriction' }>
+        char.statRestrictionChecks.push(e.check)
     },
     summon_damage_bonus(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'summon_damage_bonus' }>
@@ -336,21 +363,6 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     move_efficiency(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'move_efficiency' }>
         char.moveEfficiency += e.value
-    },
-
-    halve_weapon_penalty(char) {
-        const weapon = getWeapon(char.build.weapon)
-        const effects = weapon.effects?.map((eff) => {
-            if (eff.type === 'stat_buff') {
-                const attrs: Record<string, number> = {}
-                for (const [attr, value] of Object.entries(eff.attrs)) {
-                    attrs[attr] = value < 0 ? Math.round(value / 2) : value
-                }
-                return { ...eff, attrs }
-            }
-            return eff
-        })
-        char.weaponDef = { ...weapon, effects }
     },
     dex_to_str(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'dex_to_str' }>

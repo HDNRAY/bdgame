@@ -128,13 +128,12 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '玄铁剑',
         description: '与身同高的玄铁巨剑，重六十四斤，无锋无刃。大巧不工，以力破万法。',
         tags: ['heavy', 'blunt', 'slash', 'pierce', 'parry'],
-        effects: [{ type: 'stat_buff', attrs: { agility: -10, strength: 4 } }],
         requireAttrsMin: { strength: 12, agility: 11 },
         range: [1, 3],
         triggers: [
             {
                 condition: { type: 'on_equip' },
-                effects: [{ type: 'add_buff', buffId: 'heavy_parry_ignore' }],
+                effects: [{ type: 'add_buff', buffId: 'dark_iron_weight' }],
             },
         ],
     },
@@ -144,6 +143,14 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '一把普通的两用钢铸军剑，可同时使用拳掌功法。',
         tags: ['slash', 'pierce', 'blunt', 'parry'],
         range: [1, 3],
+    },
+    {
+        id: 'dinghai_shen_tie',
+        name: '锭海神铁',
+        description: '上古神铁所铸，可随心意伸缩，重逾千钧。',
+        tags: ['blunt', 'parry', 'polearm', 'heavy', 'melee'],
+        range: [1, 6],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dinghai_pressure' }] }],
     },
 ]
 

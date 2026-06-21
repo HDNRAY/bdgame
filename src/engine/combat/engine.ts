@@ -655,6 +655,10 @@ export class BattleEngine {
         if (!inst || !inst.def.tags.includes('support') || !inst.canUse()) return r
         if (!self.spendAp(inst.apCost)) return r
         inst.use()
+        // 缠积累（消耗AP × 1）+ 缠消耗
+        self.chan = Math.min(30, self.chan + inst.apCost)
+        if (inst.def.chanCost) self.chan = Math.max(0, self.chan - inst.def.chanCost)
+        this.checkChanOverflow(self.id)
         this.emitLog({
             type: 'system',
             message: BattleLog.msg(inst.name, self.name, ''),

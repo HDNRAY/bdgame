@@ -32,7 +32,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '凝聚炁劲远程攻击。',
         requiredTags: [],
         apCost: 2,
-        tags: ['qi'],
+        tags: ['qi', 'range'],
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 2.4 }],
         extraPreDelay: 200,
         getRange: () => [3, 8] as [number, number],

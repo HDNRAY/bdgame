@@ -40,11 +40,11 @@ export function planMovement(
     // 目标距离：由攻击风格和招式射程决定
     const targetDist: number = (() => {
         if (style === 'ranged' || style === 'mid') return actionRange[1]
-        return Math.max(actionRange[0], Math.min(actionRange[1], 2))
+        return Math.max(actionRange[0], Math.min(actionRange[1], 1))
     })()
 
     const delta = targetDist - distance
-    if (Math.abs(delta) < 0.5) return null // 已在范围内
+    if (Math.abs(delta) < 0.5) return { delta: 0, apCost: 0 } // 已在范围内
 
     const distAbs = Math.abs(delta)
     const moveAp = Math.ceil(distAbs / perAp)
