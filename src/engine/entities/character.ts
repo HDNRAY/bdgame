@@ -63,8 +63,6 @@ export class Character {
     dodgeMod = 0
     /** 招架修正 */
     parryMod = 0
-    /** 命中修正 */
-    hitChanceMod = 0
 
     constructor(build: CharacterBuild) {
         this.build = build
@@ -395,10 +393,6 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
         } else {
             char.critDamageMod += e.value
         }
-    },
-    hit_chance(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'hit_chance' }>
-        char.hitChanceMod += e.value
     },
     dodge_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>

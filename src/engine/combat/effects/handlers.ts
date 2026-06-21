@@ -246,10 +246,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             actorId: self.id,
         })
     },
-    hit_chance({ eff, self }: EffectCtx) {
-        const e = eff as Extract<EffectDef, { type: 'hit_chance' }>
-        self.hitChanceMod += e.value
-    },
     add_debuff({ eff, self, enemy, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_debuff' }>
         const { success } = calcRoll(e.chance)
@@ -435,18 +431,30 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         const existing = engine.state.pendingBuffs.get(key)
         if (existing && buff?.stacking?.type === 'additive') {
-            const max = buff.stacking.max ?? Infinity
+            // 遍历身上所有已有 buff，收集 onBuffApply 加成
+            let bonus = 0
+            for (const [bk] of engine.state.pendingBuffs) {
+                const parts = bk.split('::')
+                if (parts[1] !== self.id) continue
+                const bDef = getBuff(parts[0])
+                if (bDef?.onBuffApply) bonus += bDef.onBuffApply(self, engine)
+            }
+            const max = (buff.stacking.max ?? Infinity) + bonus
             const newStacks = Math.min(max, existing.restoreValue + (e.stacks ?? 1))
             const delta = newStacks - existing.restoreValue
-            if (delta <= 0) return // 已达上限，不显示 log
+            if (delta <= 0) {
+                // 已达上限，仍刷新持续时间
+                if (buff.expiry?.type === 'duration') {
+                    engine.state.turn.removeEvents(`buff_end_${key}`)
+                    engine.state.turn.scheduleSystemEventAt(
+                        `buff_end_${key}`,
+                        engine.state.turn.currentTime + buff.expiry.ms,
+                        'buff_end',
+                    )
+                }
+                return
+            }
             existing.restoreValue = newStacks
-            // 先输出叠层日志
-            engine.emitLog({
-                type: 'system',
-                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} Lv.${newStacks}`,
-                actorId: self.id,
-            })
-            if (e.buffId === 'momentum') self.hitChanceMod += delta * 0.05
             // 再应用 attrMods
             if (buff?.attrMods && delta > 0) {
                 const scaledMods: Record<string, number> = {}
@@ -527,7 +535,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             }
             if (delta < 0) {
                 layer.restoreValue += delta
-                if (e.buffId === 'momentum') self.hitChanceMod += delta * 0.05
                 // 部分移除时按比例回退 attrMods
                 if (buff?.attrMods && layer.mods) {
                     const ratio = Math.abs(delta) / (layer.restoreValue - delta)
@@ -554,7 +561,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         const oldStacks = layer.restoreValue
         revertBuffMods(layer, self, engine)
-        if (e.buffId === 'momentum') self.hitChanceMod -= oldStacks * 0.05
         engine.state.pendingBuffs.delete(key)
         engine.state.turn.removeEvents('buff_end_' + key)
         const buffName = getBuff(e.buffId)?.name ?? e.buffId
@@ -636,7 +642,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const momentumLayer = engine.state.pendingBuffs.get(momentumKey)
         if (momentumLayer) {
             const stacks = momentumLayer.restoreValue
-            enemy.hitChanceMod -= stacks * 0.05
             engine.state.pendingBuffs.delete(momentumKey)
             engine.state.turn.removeEvents('buff_end_' + momentumKey)
             engine.emitLog({

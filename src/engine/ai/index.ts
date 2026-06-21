@@ -93,7 +93,8 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             // 平局决胜：AP 效率
             const effA = a.apCost > 0 ? a.expectedDamage / a.apCost : 0
             const effB = b.apCost > 0 ? b.expectedDamage / b.apCost : 0
-            return effB - effA
+            if (effA !== effB) return effB - effA
+            return Math.random() - 0.5
         })
     }
 

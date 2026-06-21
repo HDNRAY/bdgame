@@ -29,10 +29,6 @@ export function processHitCheck(
             defenderInsight: enemy.attrs.get('insight'),
             defenderDodgeMod: enemy.dodgeMod + rangeDodgeMod,
         })
-    // 通用命中修正（hit_chance 效果 + 刀势每层+0.05）
-    if (self.hitChanceMod) {
-        hc = Math.min(0.95, hc + self.hitChanceMod)
-    }
     // buff 命中率钩子
     for (const [key, layer] of engine.state.pendingBuffs) {
         const parts = key.split('::')

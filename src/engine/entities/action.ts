@@ -38,7 +38,6 @@ export type EffectDef =
     // 功法/奇物效果
     | { type: 'crit_chance'; value: number; reset?: boolean }
     | { type: 'crit_damage'; value: number; reset?: boolean }
-    | { type: 'hit_chance'; value: number }
     | { type: 'last_stand'; ratio: number }
     | { type: 'weapon_range_bonus'; value: number }
     | { type: 'trigger_slot_mod'; value: number }

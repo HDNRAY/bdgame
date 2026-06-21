@@ -71,6 +71,8 @@ export interface BuffDef extends GameEntity {
     onCritDamage?: (ctx: BuffHookCtx) => number
     /** 回合结束回调（turn_end 时调用，不依赖命中） */
     onTurnEnd?: (ctx: BuffHookCtx) => void
+    /** 首次应用时回调 */
+    onBuffApply?: (char: Character, engine: BattleEngine) => number
 }
 
 /** 增益状态 */
@@ -127,6 +129,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 6 },
         onDealDamage: ({ final, layer }) => Math.round((final + final * 0.1 * layer.restoreValue) * 10) / 10,
+        onHitChance: ({ layer }) => layer.restoreValue * 0.05,
         onBeforeModify: (delta, { character, engine }) => {
             if (delta < 0 && engine.state.pendingBuffs.has(`overlord_blade::${character.id}`)) {
                 return 0 // 霸刀护体，刀势不降
@@ -455,7 +458,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '刚劲',
         description: '剑势·刚，力道+4/层，身法-2/层。最多2层。',
         tags: [],
-        expiry: { type: 'permanent' },
+        expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { strength: 4, agility: -2 },
     },
@@ -464,7 +467,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '柔劲',
         description: '剑势·柔，身法+4/层，力道-2/层。最多2层。',
         tags: [],
-        expiry: { type: 'permanent' },
+        expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { agility: 4, strength: -2 },
     },
@@ -709,6 +712,14 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '免疫身法/灵巧减益、位移、缴械、打断。',
         tags: [],
         expiry: { type: 'permanent' },
+    },
+    {
+        id: 'yuxin_sword_mastery',
+        name: '真假无用',
+        description: '双剑合璧，可叠层 buff 上限+2。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onBuffApply: () => 2,
     },
 ]
 

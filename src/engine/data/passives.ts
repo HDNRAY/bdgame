@@ -418,6 +418,16 @@ export const TALENTS: Talent[] = [
         ],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yuanting_yuezhi' }] }],
     },
+    {
+        id: 'yuxin_sword_mastery',
+        name: '真假无用剑法',
+        description: '双剑合璧，刚柔并济。所有可叠层 buff 上限+2。',
+        tags: ['qi', 'passive', 'buff'],
+        requireAttrsMin: {},
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yuxin_sword_mastery' }] },
+        ],
+    },
 ]
 
 /** 按 ID 查找（功法优先） */

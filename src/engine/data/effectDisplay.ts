@@ -73,8 +73,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`暴击率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
         case 'crit_damage':
             return [`暴击伤害 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
-        case 'hit_chance':
-            return [`命中率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
         case 'dodge_mod':
             return [`闪避率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
         case 'parry_mod':

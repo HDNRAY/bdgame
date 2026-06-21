@@ -355,26 +355,26 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     // ── 龙女 · 双剑 ──
     {
         id: 'quanzhen_sword',
-        name: '全真剑法',
-        description: '全真剑法，以力破巧。叠一层刚劲。',
+        name: '无假剑法',
+        description: '无假剑法，以力破巧。叠一层柔劲。',
         requiredTags: ['pierce'],
         apCost: 2,
         tags: ['pierce'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
-            { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 },
+            { type: 'add_buff', buffId: 'gentle_stance', stacks: 1 },
         ],
     },
     {
         id: 'yunv_sword',
-        name: '玉女剑法',
-        description: '玉女剑法，灵动如烟。叠一层柔劲。',
+        name: '用真剑法',
+        description: '用真剑法，灵动如烟。叠一层刚劲。',
         requiredTags: ['pierce'],
         apCost: 2,
         tags: ['pierce'],
         effects: [
             { type: 'damage', scaling: { agility: 0.4 } },
-            { type: 'add_buff', buffId: 'gentle_stance', stacks: 1 },
+            { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 },
         ],
     },
     {
@@ -389,18 +389,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'damage', scaling: { dexterity: 0.2 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.3 },
         ],
-    },
-    {
-        id: 'yuxin_sword',
-        name: '玉女素心剑法',
-        description: '双剑合璧，刚柔并济。需要力道和身法均达到18才能施展，消耗10层缠。',
-        requiredTags: ['pierce'],
-        apCost: 6,
-        tags: ['pierce'],
-        chanCost: 15,
-        canUse: (attacker) =>
-            attacker.attrs.get('strength') >= 18 && attacker.attrs.get('agility') >= 18 && attacker.chan >= 15,
-        effects: [{ type: 'damage', scaling: { strength: 1, agility: 1 } }],
     },
     {
         id: 'sword_thrust',
