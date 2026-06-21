@@ -351,7 +351,7 @@ export const TALENTS: Talent[] = [
         description: '双手各自为战，灵巧过人者可一心二用。',
         tags: ['talent', 'buff'],
         requireAttrsMin: { dexterity: 18 },
-        requireAttrsMax: { wisdom: 5 },
+        requireAttrsMax: { wisdom: 4 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'zuoyou_hubo' }] }],
     },
     {

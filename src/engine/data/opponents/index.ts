@@ -69,6 +69,7 @@ export const OPPONENTS: OpponentDef[] = [
     // 单手刀剑
     SANGYUAN,
     LUHONGTI,
+    AJIU,
     // 双持刀剑
     LAYUE,
     BAIHU,
@@ -83,8 +84,6 @@ export const OPPONENTS: OpponentDef[] = [
     // 其他
     YIDAO, // 太刀
     LUEYING, // 匕首
-    // 独臂
-    AJIU,
 ]
 
 /** 按 ID 查找对手 def */
