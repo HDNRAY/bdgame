@@ -61,8 +61,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = LONGNV.generate(33)
-const oBuild = ZHANGLIE.generate(33)
+const pBuild = YANGGUO.generate(33)
+const oBuild = LUHONGTI.generate(33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

@@ -105,8 +105,8 @@ export function planMovement(
             }
         }
         // 还是不够：能走多少走多少，下回合再打
-        if (delta < 0 && apRemaining > 0) {
-            return { delta: -apRemaining, apCost: apRemaining }
+        if (apRemaining > 0) {
+            return { delta: delta < 0 ? -apRemaining : apRemaining, apCost: apRemaining }
         }
         return null
     }

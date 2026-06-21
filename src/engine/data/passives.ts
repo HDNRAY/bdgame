@@ -275,7 +275,7 @@ export const PASSIVES: Passive[] = [
             return {
                 ...def,
                 tags: [...new Set<Tag>([...def.tags, 'pierce'])],
-                extraPreDelay: (def.extraPreDelay ?? 0) - 150,
+                extraPreDelay: (def.extraPreDelay ?? 0) - 100,
                 effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])],
             }
         },
@@ -301,8 +301,9 @@ export const PASSIVES: Passive[] = [
         effects: [
             {
                 type: 'stat_restriction',
-                check: (_char, attr, _cur, delta) => {
-                    if (attr === 'agility' && delta < 0) return { delta: Math.round(delta / 2) }
+                check: (_char, attr, _cur, delta, sourceTags) => {
+                    if (attr === 'agility' && delta < 0 && sourceTags?.includes('weapon'))
+                        return { delta: Math.round(delta / 2) }
                     return null
                 },
             },
@@ -340,7 +341,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'stone_skin',
         name: '石肤',
-        description: '肌肤如岩石般坚硬，所受直伤-20%。生命力也更顽强。',
+        description: '肌肤如岩石般坚硬，所受直伤-15%。免疫灼烧。',
         tags: ['passive', 'defense', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'stone_skin' }] }],
     },
@@ -359,6 +360,23 @@ export const PASSIVES: Passive[] = [
         description: '以灵巧驾驭长兵，棍花如屏，可格挡远程攻击。灵巧越高招架远程越强。',
         tags: ['passive', 'defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hua_gun_parry' }] }],
+    },
+    {
+        id: 'frost_step_mastery',
+        name: '踏雪',
+        description: '踏雪如履平地，身法轻灵，移动效率+50%。',
+        tags: ['passive', 'buff', 'defense'],
+        effects: [{ type: 'move_efficiency', value: 0.5 }],
+    },
+    {
+        id: 'yuxin_sword_mastery',
+        name: '真假无用剑法',
+        description: '双剑合璧，刚柔并济。所有可叠层 buff 上限+2。',
+        tags: ['qi', 'passive', 'buff'],
+        requireAttrsMin: {},
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yuxin_sword_mastery' }] },
+        ],
     },
 ]
 
@@ -417,16 +435,6 @@ export const TALENTS: Talent[] = [
             },
         ],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yuanting_yuezhi' }] }],
-    },
-    {
-        id: 'yuxin_sword_mastery',
-        name: '真假无用剑法',
-        description: '双剑合璧，刚柔并济。所有可叠层 buff 上限+2。',
-        tags: ['qi', 'passive', 'buff'],
-        requireAttrsMin: {},
-        triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yuxin_sword_mastery' }] },
-        ],
     },
 ]
 

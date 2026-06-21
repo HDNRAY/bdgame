@@ -27,7 +27,7 @@ export function applyBonusDamage(
     target.takeDamage(final)
     // 缠积累（损失血量 × 0.3）
     if (final > 0) {
-        target.chan = Math.min(30, target.chan + Math.round(final * 0.3))
+        target.addChan(Math.round(final * 0.3))
         engine.checkChanOverflow(target.id)
     }
     engine.emitLog({
@@ -67,7 +67,7 @@ export function applyDamage(
 
     // 缠积累（损失血量 × 0.3）
     if (final > 0) {
-        target.chan = Math.min(30, target.chan + Math.round(final * 0.3))
+        target.addChan(Math.round(final * 0.3))
         engine.checkChanOverflow(target.id)
     }
 

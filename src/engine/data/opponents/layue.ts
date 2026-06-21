@@ -3,6 +3,8 @@ import { type OpponentDef, artifact } from '.'
 import type { Reward } from '../rewards'
 import type { TriggerSlot } from '../../entities/trigger'
 
+const LAYUE_ATTRS = { strength: 12, vitality: 8, agility: 20, dexterity: 16, insight: 16, wisdom: 8 }
+
 const POOL = ['nine_deaths_strike', 'cun_mang', 'sword_dominion', 'nine_deaths', 'wisdom_talisman']
 
 /** 按 id 查询物品类型 */
@@ -15,6 +17,7 @@ function rewardType(id: string): 'passive' | 'artifact' | 'action' {
 export const LAYUE: OpponentDef = {
     id: 'layue',
     name: '什么·腊月',
+    targetAttrs: LAYUE_ATTRS,
     generate: (n) => {
         const extra = Math.max(0, Math.floor((n - 1) / 3))
         const rewards: Reward[] = [
@@ -34,7 +37,7 @@ export const LAYUE: OpponentDef = {
             '什么·腊月',
             'swift',
             n >= 2 ? 'twin_swords' : 'bare_hands',
-            { strength: 12, vitality: 8, agility: 20, dexterity: 16, insight: 16, wisdom: 8 },
+            LAYUE_ATTRS,
             rewards,
             triggers,
             n,

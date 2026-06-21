@@ -65,6 +65,7 @@ export type EffectDef =
               attr: string,
               current: number,
               delta: number,
+              sourceTags?: string[],
           ) => { skip?: boolean; delta?: number } | null
       }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN, LUEYING, YIDAO, BAIHU, LIUXIGUA } from '../data/opponents/index'
+import { LAYUE, OPPONENTS } from '../data/opponents/index'
 import { STAT_NAMES } from '../data/rewards'
 import { cultCost } from '../systems/cultivation'
 import { getAction } from '../data/actions'
@@ -16,13 +16,13 @@ function calcCultCost(attrs: Record<string, number>): number {
 }
 
 describe('opponents', () => {
-    for (const def of [LAIFENG, ZHANGLIE, XUANJI, LAYUE, SANGYUAN, LUEYING, YIDAO, BAIHU, LIUXIGUA]) {
+    for (const def of OPPONENTS) {
         describe(def.name, () => {
             const build = def.generate(33)
 
             it('total cultivation cost matches points (n × 2)', () => {
-                const cost = calcCultCost(build.baseAttrs)
-                // 桑原新算法65，腊月天生道种加成后目标值72
+                const cost = calcCultCost(def.targetAttrs)
+                // 腊月天生道种加成后目标值72（64 + 8）
                 const expected: Record<string, number> = { layue: 72 }
                 expect(cost).toBe(expected[def.id] ?? 64)
             })

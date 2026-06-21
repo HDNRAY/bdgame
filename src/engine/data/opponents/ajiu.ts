@@ -1,16 +1,19 @@
 import { simpleGenerate } from '../../systems/character-gen'
 import { type OpponentDef, passive, artifact, action } from '.'
 
+const AJIU_ATTRS = { strength: 12, vitality: 10, agility: 19, dexterity: 16, insight: 14, wisdom: 4 }
+
 export const AJIU: OpponentDef = {
     id: 'ajiu',
     name: '断刀·阿九',
+    targetAttrs: AJIU_ATTRS,
     generate: (n) =>
         simpleGenerate(
             'ajiu',
             '断刀·阿九',
             'balanced',
             'broken_blade',
-            { strength: 10, vitality: 9, agility: 19, dexterity: 16, insight: 14, wisdom: 4 },
+            AJIU_ATTRS,
             [
                 passive('dimensional_blade_mastery'),
                 passive('shenxing_baibian'),

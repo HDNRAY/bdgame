@@ -9,6 +9,7 @@ import { getAction as getActionDef } from '../data/actions'
 import { getWeapon } from '../data/weapons'
 import { getPassive } from '../data/passives'
 import { getArtifact } from '../data/artifacts'
+import { MAX_CHAN } from '../constants'
 
 export function calcMaxHp(vitality: number): number {
     return 20 + vitality * 18
@@ -57,7 +58,13 @@ export class Character {
     triggerSlotMod = 0
     /** stat_restriction 回调列表 */
     statRestrictionChecks: Array<
-        (char: Character, attr: string, current: number, delta: number) => { skip?: boolean; delta?: number } | null
+        (
+            char: Character,
+            attr: string,
+            current: number,
+            delta: number,
+            sourceTags?: string[],
+        ) => { skip?: boolean; delta?: number } | null
     > = []
     /** 闪避修正 */
     dodgeMod = 0
@@ -257,6 +264,16 @@ export class Character {
     /** 封顶当前 AP 不超过 maxAp（属性变动后调用） */
     capAp(): void {
         if (this.ap > this.maxAp) this.ap = this.maxAp
+    }
+
+    /** 增加缠劲（不超过上限） */
+    addChan(amount: number): void {
+        this.chan = Math.min(MAX_CHAN, this.chan + amount)
+    }
+
+    /** 消耗缠劲（不低于0） */
+    spendChan(cost: number): void {
+        this.chan = Math.max(0, this.chan - cost)
     }
 
     toJSON() {

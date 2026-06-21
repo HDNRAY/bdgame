@@ -2,6 +2,7 @@ import type { BattleEngine } from '../engine'
 import type { Character } from '../../entities/character'
 import type { AttrName } from '../../entities/attributes'
 import type { WeaponDef } from '../../data/weapons'
+import { getBuff } from '../../data/buffs'
 
 /** 反转旧武器的 stat_buff 效果（御物除外） */
 export function revertWeaponStatBuffs(weapon: WeaponDef | undefined, char: Character, engine: BattleEngine): void {
@@ -17,12 +18,14 @@ export function revertWeaponStatBuffs(weapon: WeaponDef | undefined, char: Chara
     }
 }
 
-/** 清除角色的所有 buff 层（含 mods 的） */
+/** 清除角色的武器 buff 层（仅清除带 weapon tag 的 buff） */
 export function clearWeaponBuffLayers(charId: string, engine: BattleEngine): void {
     for (const [k, layer] of engine.state.pendingBuffs) {
         const parts = k.split('::')
         if (parts.length < 2 || parts[1] !== charId) continue
         if (!layer.mods || Object.keys(layer.mods).length === 0) continue
+        const buffDef = getBuff(parts[0])
+        if (!buffDef?.tags?.includes('weapon')) continue
         const char = engine.getCharacter(charId)
         if (!char) continue
         for (const [attr, delta] of Object.entries(layer.mods)) {

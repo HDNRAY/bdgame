@@ -39,6 +39,8 @@ import { WUKONG } from './wukong'
 export interface OpponentDef {
     id: string
     name: string
+    /** 设计目标属性（用于测试验证 cultivation cost） */
+    targetAttrs: Record<string, number>
     /** 根据 n 返回对应强度的 build */
     generate: (n: number) => CharacterBuild
     /** 自定义 AI（返回 null = 用默认） */

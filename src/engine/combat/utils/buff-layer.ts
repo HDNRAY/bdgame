@@ -25,6 +25,7 @@ export function applyAttrMods(
     engine: BattleEngine,
     modsIn: Record<string, number>,
     label: string,
+    sourceTags?: string[],
 ): Record<string, number> {
     const applied: Record<string, number> = {}
     for (const [attr, value] of Object.entries(modsIn)) {
@@ -32,7 +33,7 @@ export function applyAttrMods(
         let delta = value
         const cur = char.attrs.get(attr as AttrName)
         for (const check of char.statRestrictionChecks ?? []) {
-            const result = check(char, attr, cur, delta)
+            const result = check(char, attr, cur, delta, sourceTags)
             if (!result) continue
             if (result.skip) {
                 delta = 0

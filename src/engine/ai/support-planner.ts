@@ -1,6 +1,7 @@
 import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../data/weapons'
+import { getBuff } from '../data/buffs'
 
 /** 选择辅助招式（support 标签），消耗剩余 AP */
 export function planSupportActions(
@@ -71,7 +72,14 @@ function hasActiveBuff(
         }
         if (eff.type === 'add_buff' && eff.buffId) {
             const key = `${eff.buffId}::${attacker.id}`
-            if (state.pendingBuffs.has(key)) return true
+            const layer = state.pendingBuffs.get(key)
+            if (!layer) continue
+            const buffDef = getBuff(eff.buffId)
+            if (buffDef?.stacking?.type === 'additive') {
+                const max = buffDef.stacking.max ?? Infinity
+                if (layer.restoreValue < max) continue
+            }
+            return true
         }
     }
     return false

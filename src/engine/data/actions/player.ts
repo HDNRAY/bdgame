@@ -1,4 +1,5 @@
 import type { ActionDefinition } from '../../entities/action'
+import { MAX_CHAN } from '../../constants'
 
 /**
  * 公开招式（玩家可装备）
@@ -8,20 +9,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     // ── 拳掌系 ──
 
     {
-        id: 'frost_step',
-        name: '踏雪',
-        description: '踏雪无痕，根据距离消耗 1~4 AP。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['move', 'support'],
-        canUse: (_attacker, state) =>
-            state.position.distance(_attacker.id, state.characters.find((c) => c.id !== _attacker.id)!.id) > 3,
-        getRange: () => [0, 12] as [number, number],
-        effects: [{ type: 'dash', minRange: 0, maxRange: 12, targetDist: 1, useAp: true }],
-    },
-    {
         id: 'guard',
-        name: '守势',
+        name: '听潮',
         description: '凝神防守，提升招架率。',
         requiredTags: ['parry'],
         apCost: 2,
@@ -75,7 +64,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
         ],
-        getRange: () => [0, 6] as [number, number],
+        getRange: () => [0, 6],
         canUse: (_attacker, state) => state.lastActionExtraDelay >= 200,
     },
 
@@ -91,6 +80,29 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.4 },
+        ],
+    },
+    // ── 新增招式 ──
+    {
+        id: 'break_formation',
+        name: '破军',
+        description: '一往无前，破除一切负面效果。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['cleanse', 'support'],
+        effects: [{ type: 'cleanse' }],
+        maxUses: 1,
+    },
+    {
+        id: 'pursuit_thrust',
+        name: '追刺',
+        description: '趁虚而入，追击刺击。',
+        requiredTags: ['pierce'],
+        apCost: 1,
+        tags: ['bleed', 'pierce'],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.3 } },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.6 },
         ],
     },
     {
@@ -147,31 +159,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         ],
         maxUses: 2,
     },
-
-    // ── 新增招式 ──
-    {
-        id: 'break_formation',
-        name: '破军',
-        description: '一往无前，破除一切负面效果。',
-        requiredTags: [],
-        apCost: 2,
-        tags: ['cleanse', 'support'],
-        effects: [{ type: 'cleanse' }],
-        maxUses: 1,
-    },
-    {
-        id: 'pursuit_thrust',
-        name: '追刺',
-        description: '趁虚而入，追击刺击。',
-        requiredTags: ['pierce'],
-        apCost: 1,
-        tags: ['bleed', 'pierce'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.3 } },
-            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.6 },
-        ],
-    },
-
     {
         id: 'jab',
         name: '刺拳',
@@ -199,7 +186,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 5,
         tags: ['pierce', 'imperial', 'slash'],
-        effects: [{ type: 'damage', scaling: { strength: 0.5, agility: 0.5 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.8, agility: 0.8 } }],
     },
     {
         id: 'iaijutsu_strike',
@@ -426,8 +413,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'damage'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
-            { type: 'self_missing_hp_damage', ratio: 0.1 },
-            { type: 'add_debuff', buffId: 'fumble_chance', stacks: 1, chance: 1 },
+            { type: 'self_missing_hp_damage', ratio: 0.15 },
+            { type: 'add_debuff', buffId: 'fumble_chance', stacks: 2, chance: 1 },
         ],
     },
     {
@@ -576,13 +563,13 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'thunder_storm',
         name: '雷暴',
-        description: '引天雷入体，爆发万钧雷光。需要15层[缠]才可释放。',
+        description: '引天雷入体，爆发万钧雷光。需要20层[缠]才可释放。',
         requiredTags: [],
         apCost: 7,
         tags: ['electric', 'stun'],
         getRange: () => [0, 3] as [number, number],
-        chanCost: 15,
-        canUse: (attacker) => attacker.chan >= 15,
+        chanCost: 20,
+        canUse: (attacker) => attacker.chan >= 20,
         effects: [
             { type: 'damage', scaling: { wisdom: 1 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
@@ -642,14 +629,14 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'santou_liubi',
         name: '三头六臂',
-        description: '消耗30层缠劲，进入三头六臂状态：后续3个回合结束时AP回满。',
+        description: `消耗${MAX_CHAN}层缠劲，进入三头六臂状态：后续3个回合结束时AP回满。`,
         requiredTags: ['blunt'],
         apCost: 3,
         tags: ['blunt', 'buff', 'support'],
         target: 'self',
-        chanCost: 30,
-        canUse: (attacker) => attacker.chan >= 30,
-        effects: [{ type: 'add_buff', buffId: 'santou_liubi', stacks: 3 }],
+        chanCost: MAX_CHAN,
+        canUse: (attacker) => attacker.chan >= MAX_CHAN,
+        effects: [{ type: 'add_buff', buffId: 'santou_liubi', stacks: 2 }],
     },
     {
         id: 'rod_thrust',
@@ -680,5 +667,21 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'damage', scaling: { strength: 0.5 } },
             { type: 'knockback', distance: 1 },
         ],
+    },
+    {
+        id: 'nineteen_stops',
+        name: '十九停',
+        description: '停一息，蓄势一分。每层命中+3%、暴击+2%、暴伤+1%，但层数越高越易失手。',
+        requiredTags: [],
+        apCost: 1,
+        tags: ['buff', 'support'],
+        effects: [{ type: 'add_buff', buffId: 'nineteen_stops', stacks: 1 }],
+        maxUses: 19,
+        canUse: (attacker, state) => {
+            const key = `nineteen_stops::${attacker.id}`
+            const layer = state.pendingBuffs.get(key)
+            const stacks = layer?.restoreValue ?? 0
+            return Math.random() >= (stacks / 19) ** 2 * 0.95
+        },
     },
 ]

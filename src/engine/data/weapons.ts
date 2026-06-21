@@ -20,8 +20,8 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'broken_blade',
         name: '断刀',
-        description: '一把残损的断刀。',
-        tags: ['slash', 'parry'],
+        description: '一把残损的断刀。加装锁链，免疫缴械。',
+        tags: ['slash', 'parry', 'imperial'],
         range: [1, 2],
     },
     {

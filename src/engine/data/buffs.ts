@@ -141,7 +141,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'overlord_blade',
         name: '霸刀',
         description: '霸刀在手，身法受限但势不可挡。',
-        tags: [],
+        tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { agility: -8, strength: 4 },
@@ -196,7 +196,7 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 3000 },
         stacking: { type: 'independent' },
-        attrMods: { agility: -0.4 },
+        attrMods: { agility: -0.5 },
     },
     {
         id: 'stun',
@@ -366,7 +366,7 @@ export const DEBUFF_DB: BuffDef[] = [
         id: 'frost_dex_bonus',
         name: '春雷',
         description: '春雷灵巧加成，灵巧增伤。',
-        tags: [],
+        tags: ['weapon'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker }) =>
             Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.5 * 10) / 10) * 10) / 10,
@@ -485,7 +485,7 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker }) =>
-            Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.2 * 10) / 10) * 10) / 10,
+            Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.1 * 10) / 10) * 10) / 10,
     },
     {
         id: 'herb_pouch',
@@ -576,24 +576,26 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'tide_power',
         name: '潮汐内力',
-        description: '内力如潮汐涨落，每回合交替以力道或身法驱动。',
+        description: '内力如潮汐涨落，力道和身法之间每2秒挪移1点。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, layer }) => {
-            const isStr = (layer.restoreValue ?? 0) === 0
-            const attr = isStr ? 'strength' : 'agility'
-            const bonus = Math.round(attacker.attrs.get(attr) * 0.1 * 10) / 10
-            return Math.round((final + bonus) * 10) / 10
-        },
-        onTurnEnd: ({ attacker, engine, layer }) => {
-            const isStr = (layer.restoreValue ?? 0) === 0
-            const nextLabel = isStr ? '身法' : '力道'
-            layer.restoreValue = isStr ? 1 : 0
+        attrMods: { strength: 5, agility: 0 },
+        tickInterval: 2000,
+        onTickHeal: ({ attacker: char, engine, layer }) => {
+            const current = layer.restoreValue ?? 0
+            const next = current >= 5 ? 0 : current + 1
+            revertBuffMods(layer, char, engine)
+            const str = 5 - next
+            const agi = next
+            const newMods = applyAttrMods(char, engine, { strength: str, agility: agi }, '潮汐内力')
+            layer.mods = newMods
+            layer.restoreValue = next
             engine.emitLog({
                 type: 'system',
-                message: `[潮汐内力] ${attacker.name} 转为${nextLabel}驱动`,
-                actorId: attacker.id,
+                message: `[潮汐内力] ${char.name} 力道${str} 身法${agi}`,
+                actorId: char.id,
             })
+            return 0
         },
     },
     {
@@ -607,7 +609,7 @@ export const DEBUFF_DB: BuffDef[] = [
         id: 'dark_iron_weight',
         name: '玄铁剑意',
         description: '玄铁剑的沉重负担与无锋剑意。身法受限但力道大增，招架只能减免一半伤害。',
-        tags: [],
+        tags: ['weapon'],
         expiry: { type: 'permanent' },
         attrMods: { agility: -10, strength: 4 },
         onParryReduction: ({ final, raw }) => {
@@ -627,16 +629,16 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'stone_skin',
         name: '石肤',
-        description: '皮肤如岩石般坚硬，所受直伤-20%。',
+        description: '肌肤如岩石般坚硬，所受直伤-15%。免疫灼烧。',
         tags: [],
         expiry: { type: 'permanent' },
-        onTakeDamage: ({ final }) => Math.round(final * 0.8 * 10) / 10,
+        onTakeDamage: ({ final }) => Math.round(final * 0.85 * 10) / 10,
     },
     {
         id: 'dinghai_pressure',
         name: '定海',
         description: '锭海神铁的压制力场，距离越近伤害越高。',
-        tags: [],
+        tags: ['weapon'],
         expiry: { type: 'permanent' },
         attrMods: { agility: -12 },
         onDealDamage: ({ final, attacker, engine }) => {
@@ -656,7 +658,7 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'santou_liubi',
         name: '三头六臂',
-        description: '后续3个回合结束时AP回满。',
+        description: '后续2个回合结束时AP回满。',
         tags: [],
         expiry: { type: 'permanent' },
         onTurnEnd: ({ attacker, engine, layer }) => {
@@ -720,6 +722,17 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         onBuffApply: () => 2,
+    },
+    {
+        id: 'nineteen_stops',
+        name: '十九停',
+        description: '每层命中+3%、暴击+2%、暴伤+1%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 19 },
+        onHitChance: ({ layer }) => layer.restoreValue * 0.03,
+        onCritChance: ({ layer }) => layer.restoreValue * 0.02,
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
     },
 ]
 

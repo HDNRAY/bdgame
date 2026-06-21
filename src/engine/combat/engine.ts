@@ -1,4 +1,5 @@
 import { Character } from '../entities/character'
+import { MAX_CHAN } from '../constants'
 import { PositionSystem } from './position'
 import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
@@ -450,7 +451,7 @@ export class BattleEngine {
         const zhouKey = `zhou::${charId}`
         const hasZhou = this.state.pendingBuffs.has(zhouKey)
 
-        if (curValue >= 30 && !hasZhou) {
+        if (curValue >= MAX_CHAN && !hasZhou) {
             const buff = getBuff('zhou')
             const char = this.getCharacter(charId)
             if (buff?.attrMods && char) {
@@ -459,7 +460,7 @@ export class BattleEngine {
             }
             const enemy = this.getOpponent(charId)
             if (char && enemy) this.emit('chan_overflow', char, enemy)
-        } else if (curValue < 30 && hasZhou) {
+        } else if (curValue < MAX_CHAN && hasZhou) {
             const zhouLayer = this.state.pendingBuffs.get(zhouKey)
             const char = this.getCharacter(charId)
             if (char) revertBuffMods(zhouLayer, char, this)
@@ -569,8 +570,8 @@ export class BattleEngine {
             return r
         }
         // 缠积累（消耗AP × 1）+ 缠消耗
-        self.chan = Math.min(30, self.chan + action.apCost)
-        if (action.chanCost) self.chan = Math.max(0, self.chan - action.chanCost)
+        self.addChan(action.apCost)
+        if (action.chanCost) self.spendChan(action.chanCost)
         this.checkChanOverflow(self.id)
         const weapon = getWeapon(self.build.weapon)
         this.emitLog({
@@ -656,8 +657,8 @@ export class BattleEngine {
         if (!self.spendAp(inst.apCost)) return r
         inst.use()
         // 缠积累（消耗AP × 1）+ 缠消耗
-        self.chan = Math.min(30, self.chan + inst.apCost)
-        if (inst.def.chanCost) self.chan = Math.max(0, self.chan - inst.def.chanCost)
+        self.addChan(inst.apCost)
+        if (inst.def.chanCost) self.spendChan(inst.def.chanCost)
         this.checkChanOverflow(self.id)
         this.emitLog({
             type: 'system',

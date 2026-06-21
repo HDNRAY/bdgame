@@ -1,9 +1,12 @@
 import { simpleGenerate } from '../../systems/character-gen'
 import { type OpponentDef, passive, artifact, action } from '.'
 
+const WUKONG_ATTRS = { strength: 20, vitality: 10, agility: 13, dexterity: 16, insight: 10, wisdom: 5 }
+
 export const WUKONG: OpponentDef = {
     id: 'wukong',
     name: '天命·悟空',
+    targetAttrs: WUKONG_ATTRS,
     aiOverrides: { forceStyle: 'melee' },
     generate: (n) =>
         simpleGenerate(
@@ -11,7 +14,7 @@ export const WUKONG: OpponentDef = {
             '天命·悟空',
             'balanced',
             'dinghai_shen_tie',
-            { strength: 20, vitality: 10, agility: 13, dexterity: 16, insight: 10, wisdom: 5 },
+            WUKONG_ATTRS,
             [
                 passive('stone_skin'),
                 passive('hua_gun'),

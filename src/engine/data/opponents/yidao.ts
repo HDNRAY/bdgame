@@ -3,6 +3,8 @@ import { type OpponentDef, passive } from '.'
 import type { Reward } from '../rewards'
 import type { TriggerSlot } from '../../entities/trigger'
 
+const YIDAO_ATTRS = { strength: 19, vitality: 11, agility: 14, dexterity: 14, insight: 13, wisdom: 6 }
+
 const POOL = ['iaijutsu_strike', 'light_slash', 'human_radar', 'resheath', 'empty_hand', 'tiger_eye']
 
 function rewardType(id: string): 'passive' | 'artifact' | 'action' {
@@ -14,6 +16,7 @@ function rewardType(id: string): 'passive' | 'artifact' | 'action' {
 export const YIDAO: OpponentDef = {
     id: 'yidao',
     name: '居合·一刀',
+    targetAttrs: YIDAO_ATTRS,
     generate: (n) => {
         const rewards: Reward[] = [
             passive('iaijutsu_mastery'),
@@ -22,15 +25,6 @@ export const YIDAO: OpponentDef = {
 
         const triggers: TriggerSlot[] = []
 
-        return simpleGenerate(
-            'yidao',
-            '居合·一刀',
-            'swift',
-            'zantetsu',
-            { strength: 20, vitality: 11, agility: 14, dexterity: 14, insight: 13, wisdom: 6 },
-            rewards,
-            triggers,
-            n,
-        )
+        return simpleGenerate('yidao', '居合·一刀', 'swift', 'zantetsu', YIDAO_ATTRS, rewards, triggers, n)
     },
 }

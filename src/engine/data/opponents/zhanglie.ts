@@ -1,16 +1,19 @@
 import { simpleGenerate } from '../../systems/character-gen'
 import { type OpponentDef, passive, artifact, action } from '.'
 
+const ZHANGLIE_ATTRS = { strength: 16, vitality: 13, agility: 17, dexterity: 14, insight: 13, wisdom: 4 }
+
 export const ZHANGLIE: OpponentDef = {
     id: 'zhanglie',
     name: '铁枪·张烈',
+    targetAttrs: ZHANGLIE_ATTRS,
     generate: (n) =>
         simpleGenerate(
             'zhanglie',
             '铁枪·张烈',
             'strong',
             'iron_spear',
-            { strength: 16, vitality: 13, agility: 18, dexterity: 14, insight: 13, wisdom: 4 },
+            ZHANGLIE_ATTRS,
             [
                 passive('iron_bone'),
                 artifact('hydraulic_leg'),

@@ -1,16 +1,19 @@
 import { simpleGenerate } from '../../systems/character-gen'
 import { type OpponentDef, passive, artifact, action } from '.'
 
+const LAIFENG_ATTRS = { strength: 14, vitality: 8, agility: 20, dexterity: 12, insight: 10, wisdom: 12 }
+
 export const LAIFENG: OpponentDef = {
     id: 'laifeng',
     name: '空拳·来风',
+    targetAttrs: LAIFENG_ATTRS,
     generate: (n) =>
         simpleGenerate(
             'laifeng',
             '空拳·来风',
             'balanced',
             'bare_hands',
-            { strength: 14, vitality: 8, agility: 20, dexterity: 12, insight: 10, wisdom: 12 },
+            LAIFENG_ATTRS,
             [
                 passive('forge'),
                 artifact('qi_amplifier'),

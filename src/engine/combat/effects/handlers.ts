@@ -372,11 +372,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             for (const [attr, val] of Object.entries(buff.attrMods)) {
                 scaledMods[attr] = (val as number) * stacks
             }
-            for (const [attr, val] of Object.entries(scaledMods)) {
-                const v = val as number
+            const result = applyAttrMods(enemy, engine, scaledMods, buff.name, buff.tags)
+            for (const [attr, v] of Object.entries(result)) {
                 modDetails.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
-                enemy.attrs.modify(attr as AttrName, v)
-                mods[attr] = v
+                mods[attr] = v as number
                 if (attr === 'agility')
                     engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'), enemy.getHaste())
             }
@@ -455,6 +454,11 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 return
             }
             existing.restoreValue = newStacks
+            engine.emitLog({
+                type: 'system',
+                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name)} Lv.${newStacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}`,
+                actorId: self.id,
+            })
             // 再应用 attrMods
             if (buff?.attrMods && delta > 0) {
                 const scaledMods: Record<string, number> = {}
@@ -476,23 +480,23 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const modDetails: string[] = []
         const mods: Record<string, number> = {}
         if (buff?.attrMods) {
-            for (const [attr, val] of Object.entries(buff.attrMods)) {
-                const v = val as number
+            const result = applyAttrMods(self, engine, buff.attrMods as Record<string, number>, buff.name, buff.tags)
+            for (const [attr, v] of Object.entries(result)) {
                 modDetails.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
-                self.attrs.modify(attr as AttrName, v)
-                mods[attr] = v
+                mods[attr] = v as number
                 if (attr === 'agility')
                     engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
             }
         }
+        const stacks = e.stacks ?? 1
         engine.emitLog({
             type: 'system',
             message: modDetails.length
-                ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${modDetails.join(', ')}`
-                : BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description),
+                ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${modDetails.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}`
+                : `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}`,
             actorId: self.id,
         })
-        engine.state.pendingBuffs.set(key, { restoreValue: e.stacks ?? 1, mods })
+        engine.state.pendingBuffs.set(key, { restoreValue: stacks, mods })
         if (e.buffId === 'disarmed') {
             // 清理旧 buff_end 事件，防止残留事件误触
             engine.state.turn.removeEvents('buff_end_' + key)

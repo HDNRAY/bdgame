@@ -1,16 +1,19 @@
 import { simpleGenerate } from '../../systems/character-gen'
 import { type OpponentDef, passive, action, artifact } from '.'
 
+const QILAN_ATTRS = { strength: 12, vitality: 10, agility: 15, dexterity: 14, insight: 14, wisdom: 15 }
+
 export const QILAN: OpponentDef = {
     id: 'qilan',
     name: '雷法·奇岚',
+    targetAttrs: QILAN_ATTRS,
     generate: (n) =>
         simpleGenerate(
             'qilan',
             '雷法·奇岚',
             'swift',
             'bare_hands',
-            { strength: 12, vitality: 10, agility: 14, dexterity: 14, insight: 13, wisdom: 15 },
+            QILAN_ATTRS,
             [
                 passive('godspeed'),
                 passive('thunder_art'),

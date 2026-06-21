@@ -1,4 +1,5 @@
 import type { ActionDefinition } from '../../entities/action'
+import { MAX_CHAN } from '../../constants'
 
 /** 内部招式（被动/天赋触发专用，不直接装备） */
 export const INTERNAL_ACTIONS: ActionDefinition[] = [
@@ -171,7 +172,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         target: 'enemy',
         maxUses: 1,
         getRange: () => [0, 4] as [number, number],
-        canUse: (attacker) => attacker.chan >= 30,
+        canUse: (attacker) => attacker.chan >= MAX_CHAN,
         effects: [
             { type: 'fixed_damage', value: 20 },
             { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },

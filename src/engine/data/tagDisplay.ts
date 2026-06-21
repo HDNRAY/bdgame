@@ -49,6 +49,7 @@ export const TAG_CN: Record<Tag, string> = {
     dual_wield: '双持',
     range_up: '加射程',
     inherent: '固有',
+    weapon: '武器',
 }
 
 /** Tag → 颜色 */
@@ -100,4 +101,5 @@ export const TAG_COLOR: Record<Tag, string> = {
     dual_wield: '#9c27b0',
     range_up: '#4caf50',
     inherent: '#9e9e9e',
+    weapon: '#ff8c00',
 }
