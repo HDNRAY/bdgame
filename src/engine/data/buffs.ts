@@ -692,17 +692,16 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'qishier_bian',
         name: '七十二变',
-        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧增加3点。',
+        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧增加2点。',
         tags: [],
         expiry: { type: 'permanent' },
-        attrMods: { strength: 3 },
         tickInterval: 6000,
         onTickHeal: ({ attacker: char, engine, layer }) => {
             const cycle = ['strength', 'vitality', 'agility', 'dexterity']
             const nextIdx = ((layer.restoreValue ?? 0) + 1) % 4
             revertBuffMods(layer, char, engine)
             const stat = cycle[nextIdx]
-            const newMods = applyAttrMods(char, engine, { [stat]: 3 }, '七十二变')
+            const newMods = applyAttrMods(char, engine, { [stat]: 2 }, '七十二变')
             layer.mods = newMods
             layer.restoreValue = nextIdx
             return 0
