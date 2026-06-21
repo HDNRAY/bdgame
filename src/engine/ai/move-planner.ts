@@ -40,7 +40,7 @@ export function planMovement(
     // 目标距离：由攻击风格和招式射程决定
     const targetDist: number = (() => {
         if (style === 'ranged' || style === 'mid') return actionRange[1]
-        return Math.max(actionRange[0], Math.min(actionRange[1], 1))
+        return actionRange[0] // 近战风格：尽可能贴脸
     })()
 
     const delta = targetDist - distance

@@ -420,7 +420,7 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['heal'],
         expiry: { type: 'permanent' },
         tickInterval: 1000,
-        onTickHeal: ({ target }) => Math.round(target.maxHp * 0.005 + (target.maxHp - target.hp) * 0.01),
+        onTickHeal: ({ target }) => Math.round((target.maxHp - target.hp) * 0.01),
     },
     {
         id: 'qi_state',

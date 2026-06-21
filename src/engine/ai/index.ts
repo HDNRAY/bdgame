@@ -136,12 +136,16 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     if (!mainId) {
         const supportCmds = planSupportActions(self, state, apBudget, overrides?.supportBlacklist)
         if (supportCmds.length > 0) return supportCmds
+        console.log(`[AI] ${self.name} no mainId, return []`)
         return []
     }
 
     // 验证 mainId 对应招式存在（pickup_weapon 可能不在所有角色 action list 中）
     const mainInst = self.actions.find((a) => a.id === mainId)
-    if (!mainInst) return []
+    if (!mainInst) {
+        console.log(`[AI] ${self.name} mainId=${mainId} not found`)
+        return []
+    }
     const mainDef2 = mainInst.def
 
     // ── 4. 辅助招式 ──
@@ -187,24 +191,64 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         }
     }
 
-    // ── 7. 行动后走位（剩余 AP） ──
+    // ── 7. 行动后走位（只在武器射程外才走） ──
     if (enemy) {
-        const style = overrides?.forceStyle ?? classifyAttackStyle(weapon.range)
         const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
         const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
             ? 2
             : basePerAp * (1 + (self.moveEfficiency ?? 0))
-        // 理想距离：远程/中程保持在最大射程边缘，近战贴脸
-        const idealDist = style === 'ranged' || style === 'mid' ? weapon.range[1] : Math.max(weapon.range[0], 2)
-        // 估算行动前走位后的实际距离
+        // 估算行动后的实际距离
         const preMoveDist = state.position.distance(self.id, enemy.id)
         const postMoveDist = moveDelta !== 0 ? preMoveDist + perAp * moveAp * (moveDelta > 0 ? 1 : -1) : preMoveDist
-        const postDelta = idealDist - postMoveDist
-        if (Math.abs(postDelta) > 0) {
-            const dist = Math.abs(postDelta)
-            const apUsed = Math.ceil(dist / perAp)
-            if (apUsed > 0) {
-                cmds.push({ type: 'move', bestDistance: postDelta > 0 ? apUsed : -apUsed })
+        // 已在武器射程内 → 不动
+        if (postMoveDist >= weapon.range[0] && postMoveDist <= weapon.range[1]) {
+            // 不操作
+        } else if (postMoveDist < weapon.range[0]) {
+            // 太近 → 退到 range[0]
+            const targetDist = weapon.range[0]
+            const rawAp = Math.ceil((targetDist - postMoveDist) / perAp)
+            // 防 overshoot：试从 rawAp 往下找，确保最终距离 ≥ range[0]
+            let apUsed = 0
+            for (let a = rawAp; a >= 1; a--) {
+                const finalDist = postMoveDist + perAp * a
+                if (finalDist >= weapon.range[0]) {
+                    apUsed = a
+                    break
+                }
+            }
+            const existingCost = cmds.reduce((sum, c) => {
+                if (c.type === 'move') return sum + Math.abs(c.bestDistance ?? 0)
+                if (c.actionId) {
+                    const inst = self.actions.find((a) => a.id === c.actionId)
+                    return sum + (inst?.apCost ?? 0)
+                }
+                return sum
+            }, 0)
+            if (apUsed > 0 && existingCost + apUsed <= apBudget) {
+                cmds.push({ type: 'move', bestDistance: apUsed })
+            }
+        } else {
+            // 太远 → 进到 range[1]
+            const targetDist = weapon.range[1]
+            const rawAp = Math.ceil((postMoveDist - targetDist) / perAp)
+            let apUsed = 0
+            for (let a = rawAp; a >= 1; a--) {
+                const finalDist = postMoveDist - perAp * a
+                if (finalDist <= weapon.range[1]) {
+                    apUsed = a
+                    break
+                }
+            }
+            const existingCost = cmds.reduce((sum, c) => {
+                if (c.type === 'move') return sum + Math.abs(c.bestDistance ?? 0)
+                if (c.actionId) {
+                    const inst = self.actions.find((a) => a.id === c.actionId)
+                    return sum + (inst?.apCost ?? 0)
+                }
+                return sum
+            }, 0)
+            if (apUsed > 0 && existingCost + apUsed <= apBudget) {
+                cmds.push({ type: 'move', bestDistance: -apUsed })
             }
         }
     }

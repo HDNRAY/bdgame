@@ -16,6 +16,8 @@ import { Character } from '../src/engine/entities/character'
 import { OPPONENTS, getOpponentDef } from '../src/engine/data/opponents/index'
 import { runBattle } from '../src/engine/battle-runner'
 
+const startWall = Date.now()
+
 const N = Math.max(1, parseInt(process.argv[3] ?? '100', 10))
 const targetId = process.argv[2]
 const filterDef = targetId ? getOpponentDef(targetId) : null
@@ -45,10 +47,10 @@ for (let i = 0; i < OPPONENTS.length; i++) {
         let aHp = 0,
             bHp = 0
 
+        const templateA = new Character(aDef.generate(33))
+        const templateB = new Character(bDef.generate(33))
         for (let k = 0; k < N; k++) {
-            const aChar = new Character(aDef.generate(33))
-            const bChar = new Character(bDef.generate(33))
-            const { winner, engine } = runBattle(aChar, bChar)
+            const { winner, engine } = runBattle(templateA, templateB)
             if (winner === aDef.id) aWins++
             else if (winner === bDef.id) bWins++
             const [l, r] = engine.state.characters
@@ -70,7 +72,9 @@ for (let i = 0; i < OPPONENTS.length; i++) {
     }
 }
 
-console.log(`\n📊 ${OPPONENTS.length} 名角色 · ${totalBattles} 场`)
+const elapsed = ((Date.now() - startWall) / 1000).toFixed(1)
+console.log(`\n⏱ 耗时 ${elapsed}s`)
+console.log(`📊 ${OPPONENTS.length} 名角色 · ${totalBattles} 场`)
 for (const r of Object.values(results).sort((a, b) => b.wins - a.wins)) {
     const rate = ((r.wins / r.total) * 100).toFixed(1)
     const hp = ((r.hpPct / r.total) * 100).toFixed(1)

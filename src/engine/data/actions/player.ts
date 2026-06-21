@@ -598,6 +598,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { wisdom: 1 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
+            { type: 'ignore_parry' },
         ],
     },
     {
