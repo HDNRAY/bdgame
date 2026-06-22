@@ -57,6 +57,7 @@ export type EffectDef =
     | { type: 'wisdom_stat_buff'; ratio: number; attrs: AttrName[] }
     | { type: 'copy_best_passive' }
     | { type: 'add_passive'; passiveId: string }
+    | { type: 'steal_artifact' }
     | { type: 'dex_to_str'; ratio: number }
     | {
           type: 'stat_restriction'

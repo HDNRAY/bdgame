@@ -20,6 +20,8 @@ export const ZHANGLIE: OpponentDef = {
                 artifact('heart_pump'),
                 artifact('neural_net'),
                 action('thrust'),
+                action('straight_punch'),
+                action('jab'),
                 // action('break_formation'),
             ],
             [{ condition: { type: 'on_debuff' }, actionId: 'pursuit_thrust' }],

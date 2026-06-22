@@ -14,7 +14,7 @@ import {
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import { getBuff } from '../data/buffs'
-import type { ActionDefinition } from '../entities/action'
+import type { ActionDefinition, EffectDef } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
 import { revertBuffMods, applyAttrMods, reduceBleedOnHeal } from './utils/buff-layer'
@@ -336,6 +336,9 @@ export class BattleEngine {
 
         while (this.#deferredEmits.length > 0) {
             const d = this.#deferredEmits.shift()!
+            const dKey = `${d.self.id}:${d.event}`
+            if (this.state.triggeredThisChain?.has(dKey)) continue
+            this.state.triggeredThisChain?.add(dKey)
             this.state.log.indentDepth = d.indent
             this.state.isEmitting = true
             this.#processEmit(d.event, d.self, d.enemy, d.buffId)
@@ -385,10 +388,34 @@ export class BattleEngine {
                 }
                 if (!isInitPhase) this.state.log.indentDepth--
             } else {
-                const check = canExecuteAction(action, self, this.state)
-                if (!check.ok) continue
+                // 触发招式不消耗 AP（apCost 上限 2 已在前过滤），但仍需距离/标签/条件检测
+                const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
+                const range: [number, number] = action.getRange?.(weapon.range, self) ?? weapon.range
+                const dist = this.state.position.distance(self.id, enemy.id)
+                if (dist < range[0] || dist > range[1]) continue
+                if (action.requiredTags.length > 0) {
+                    const hasTag = action.requiredTags.some((tag) => weapon.tags.includes(tag))
+                    if (!hasTag) continue
+                }
+                if (action.canUse && !action.canUse(self, this.state)) continue
+                // 执行触发招式后，若持有袖里玄机则叠玄机层
                 this.state.log.indentDepth++
                 this.#executeAction(action, self, enemy, true)
+                if (this.state.pendingBuffs.has(`xiu_li::${self.id}`)) {
+                    const xuanJiEff: EffectDef = { type: 'add_buff' as const, buffId: 'xuan_ji', stacks: 1 }
+                    processActionEffect(xuanJiEff, self, enemy, this, this.#tMs)
+                    // 玄机满15层则加天机buff
+                    const xuanJiKey = `xuan_ji::${self.id}`
+                    const xuanJiLayer = this.state.pendingBuffs.get(xuanJiKey)
+                    if (
+                        xuanJiLayer &&
+                        xuanJiLayer.restoreValue >= 15 &&
+                        !this.state.pendingBuffs.has(`tianji_ready::${self.id}`)
+                    ) {
+                        const tianJiEff: EffectDef = { type: 'add_buff' as const, buffId: 'tianji_ready' }
+                        processActionEffect(tianJiEff, self, enemy, this, this.#tMs)
+                    }
+                }
                 this.state.log.indentDepth--
                 tickEngine.onBleedTrigger(self, this)
             }
@@ -556,18 +583,23 @@ export class BattleEngine {
             this.emitLog({ type: 'fumble', sourceId: self.id })
             return r
         }
-        // 验证
-        const c = canExecuteAction(action, self, this.state)
-        if (!c.ok) {
-            // this.emitLog({
-            //     type: 'system',
-            //     message: `[招式检校] ${BattleLog.name(self.name)} ${action.name} ${c.reason}`,
-            //     actorId: self.id,
-            // })
-            return r
+        // 验证（触发招式已在 #processEmit 中通过距离/标签/条件检查，且不消耗 AP）
+        if (!triggered) {
+            const c = canExecuteAction(action, self, this.state)
+            if (!c.ok) return r
         }
         if (!triggered && !self.spendAp(action.apCost)) {
             return r
+        }
+        // 天机消耗：非辅助招式命中目标时，消耗天机并重置玄机层数
+        if (this.state.pendingBuffs.has(`tianji_ready::${self.id}`) && !action.tags.includes('support')) {
+            this.state.pendingBuffs.delete(`tianji_ready::${self.id}`)
+            this.state.pendingBuffs.delete(`xuan_ji::${self.id}`)
+            this.emitLog({
+                type: 'system',
+                message: BattleLog.plain(self.name, '天机已用，玄机重置'),
+                actorId: self.id,
+            })
         }
         // 缠积累（消耗AP × 1）+ 缠消耗
         self.addChan(action.apCost)
@@ -597,6 +629,16 @@ export class BattleEngine {
         if (!processHitCheck(action, r, self, enemy, this)) return r
         // 效果应用
         this.#finalizeAttack(action, r, self, enemy)
+        // 天机消耗：非辅助招式执行后，消耗天机并重置玄机层数（放在 hooks 生效之后）
+        if (this.state.pendingBuffs.has(`tianji_ready::${self.id}`) && !action.tags.includes('support')) {
+            this.state.pendingBuffs.delete(`tianji_ready::${self.id}`)
+            this.state.pendingBuffs.delete(`xuan_ji::${self.id}`)
+            this.emitLog({
+                type: 'system',
+                message: BattleLog.plain(self.name, '天机已用，玄机重置'),
+                actorId: self.id,
+            })
+        }
         return r
     }
 

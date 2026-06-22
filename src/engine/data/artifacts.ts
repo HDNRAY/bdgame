@@ -7,7 +7,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'titanium_arm',
         name: '钛合金臂',
         description: '重型钛合金义肢，力大无穷。可飞向对手自爆。',
-        tags: ['implant'],
+        tags: ['implant', 'inherent'],
         effects: [
             { type: 'stat_buff', attrs: { strength: 3, dexterity: 3 } },
             { type: 'stat_buff', attrs: { agility: -2 } },
@@ -18,7 +18,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'hydraulic_leg',
         name: '液压腿',
         description: '液压驱动义腿，爆发力惊人。所有招式附带短距冲刺。',
-        tags: ['implant'],
+        tags: ['implant', 'inherent'],
         effects: [
             { type: 'move_efficiency', value: 0.2 },
             { type: 'stat_buff', attrs: { agility: -1 } },
@@ -32,7 +32,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'mechanical_eye',
         name: '机械眼球',
         description: '精密光学义眼，洞察入微，免疫迷眼。',
-        tags: ['implant'],
+        tags: ['implant', 'inherent'],
         effects: [
             { type: 'stat_buff', attrs: { insight: 4 } },
             { type: 'max_ap_mod', value: -1 },
@@ -43,14 +43,14 @@ export const ARTIFACTS: Artifact[] = [
         id: 'muscle_boost',
         name: '肌肉强化针',
         description: '肌肉强化注射剂，代价是身体负担。',
-        tags: ['implant'],
+        tags: ['implant', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { strength: 4, vitality: -2, agility: 4, dexterity: -2 } }],
     },
     {
         id: 'heart_pump',
         name: '心肺泵',
         description: '辅助循环系统，全面提升体能。',
-        tags: ['implant'],
+        tags: ['implant', 'inherent'],
         effects: [
             { type: 'stat_buff', attrs: { strength: 2, agility: 2, dexterity: 1 } },
             { type: 'max_ap_mod', value: -1 },
@@ -60,7 +60,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'neural_net',
         name: '人造神经网络',
         description: '仿生神经增强网，反应速度提升。',
-        tags: ['implant'],
+        tags: ['implant', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 4, insight: 1 } }],
         triggers: [
             {
@@ -72,8 +72,8 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'combat_chip',
         name: '战斗芯片',
-        description: '战术辅助芯片，大幅提升悟性。',
-        tags: ['implant'],
+        description: '战术辅助芯片，大幅提升推演。',
+        tags: ['implant', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { wisdom: 6 } }],
         triggers: [
             {
@@ -86,7 +86,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'power_furnace',
         name: '便携式动力炉',
         description: '微型核聚变动力炉，能量永不枯竭。',
-        tags: ['implant'],
+        tags: ['implant', 'inherent'],
         effects: [
             { type: 'max_ap_mod', value: 4 },
             { type: 'permanent_burn', value: 1 },
@@ -98,7 +98,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'blood_thorn_ring',
         name: '血棘戒',
         description: '暴击时在伤口注入血气，引发持续流血。',
-        tags: ['trigger'],
+        tags: ['trigger', 'bleed'],
         triggers: [{ condition: { type: 'on_crit' }, actionId: '_blood_thorn_bleed' }],
     },
     {
@@ -112,7 +112,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'innate_seed',
         name: '天生道种',
         description: '先天道种，扎根武道。',
-        tags: [],
+        tags: ['inherent'],
     },
     {
         id: 'tiger_eye',
@@ -134,7 +134,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'iron_will',
         name: '乌铠',
         description: '受到超过5点的斩/刺/钝伤害时，消耗1AP减少3点。',
-        tags: ['trigger'],
+        tags: ['trigger', 'defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dmg_reduce' }] }],
     },
     {
@@ -148,7 +148,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'qi_amplifier',
         name: '凝炁玉',
         description: '凝聚天地灵炁，增幅炁系武器的锋芒。',
-        tags: ['trigger'],
+        tags: ['trigger', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_amplify' }] }],
     },
     {
@@ -175,7 +175,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'poison_coating',
         name: '淬毒工具',
         description: '刃上淬毒，割裂或刺击时概率令其中毒。',
-        tags: [],
+        tags: ['poison', 'trigger'],
         triggers: [
             {
                 condition: { type: 'on_dealt_damage' },
@@ -187,7 +187,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'western_poison',
         name: '西域奇毒',
         description: '剧毒入体，麻痹神经。每次中毒时叠加一层麻痹。',
-        tags: ['debuff'],
+        tags: ['debuff', 'poison', 'trigger', 'paralyze'],
         triggers: [
             {
                 condition: { type: 'on_poison' },

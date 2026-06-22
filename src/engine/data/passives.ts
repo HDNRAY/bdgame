@@ -378,6 +378,21 @@ export const PASSIVES: Passive[] = [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yuxin_sword_mastery' }] },
         ],
     },
+    {
+        id: 'lingxi_finger',
+        name: '灵犀一指',
+        description: '陆小凤绝学，空手亦可夹住兵刃。灵巧+4，徒手可招架。',
+        tags: ['passive', 'buff', 'defense'],
+        effects: [{ type: 'stat_buff', attrs: { dexterity: 4 } }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lingxi_finger' }] }],
+    },
+    {
+        id: 'yedi_lightness',
+        name: '夜帝轻功',
+        description: '夜帝亲传轻功，雁迥掠影，来去如风。',
+        tags: ['passive', 'buff'],
+        effects: [],
+    },
 ]
 
 /** 天赋（绝学）注册表 */
@@ -410,6 +425,17 @@ export const TALENTS: Talent[] = [
         tags: ['heal', 'talent', 'buff'],
         requireAttrsMin: { vitality: 20 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'vitality_regen' }] }],
+    },
+    {
+        id: 'xiu_li_xuan_ji',
+        name: '袖里玄机',
+        description: '千丝万缕，只在他衣袖之间。闪避获得1层缠劲；受伤消耗1层缠劲减免3点。',
+        tags: ['talent', 'buff', 'qi'],
+        requireAttrsMin: { wisdom: 20 },
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'xiu_li' }] },
+            { condition: { type: 'on_dodge' }, effects: [{ type: 'add_buff', buffId: 'xuan_ji', stacks: 1 }] },
+        ],
     },
     {
         id: 'xiaowuxiang',

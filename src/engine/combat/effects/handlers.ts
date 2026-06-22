@@ -601,10 +601,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             engine.emitLog({ type: 'system', message: BattleLog.plain(self.name, '距离不合适'), actorId: self.id })
             return
         }
-        const moveDist = dist - e.targetDist
+        const targetDist = e.targetDist < 0 ? self.getMaxActionRange() : e.targetDist
+        const moveDist = dist - targetDist
         if (e.useAp) {
-            const perAp = Math.max(0.5, self.attrs.get('agility') / 20)
-            const apCost = Math.ceil(Math.abs(moveDist) / perAp)
+            const apCost = Math.max(1, Math.ceil(Math.abs(moveDist) * 0.4))
             if (self.ap < apCost) {
                 // engine.emitLog({ type: 'system', message: `${self.name} AP不足`, actorId: self.id })
                 return
@@ -687,6 +687,47 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                         processActionEffect(eff2, self, enemy, engine, engine.state.turn.currentTime, action)
             }
         }
+    },
+    steal_artifact({ self, engine }: EffectCtx) {
+        const enemy = engine.getOpponent(self.id)
+        if (!enemy) return
+        // 找对手可偷的奇物（非 inherent）
+        const stealable = enemy.artifactDefs.filter((a) => !a.tags.includes('inherent'))
+        if (stealable.length === 0) {
+            engine.emitLog({ type: 'system', message: `[飞龙探云手] 对手无可偷取奇物`, actorId: self.id })
+            return
+        }
+        // 成功概率
+        const trackKey = `steal_artifact_track::${self.id}`
+        const track = engine.state.pendingBuffs.get(trackKey)
+        const chance = track?.restoreValue ?? 0.8
+        const { success } = calcRoll(chance)
+        if (!success) {
+            engine.emitLog({
+                type: 'system',
+                message: `[飞龙探云手] 失手！(${Math.round(chance * 100)}%)`,
+                actorId: self.id,
+            })
+            return
+        }
+        // 偷取第一个可偷奇物
+        const target = stealable[0]
+        const idx = enemy.artifactDefs.indexOf(target)
+        if (idx !== -1) enemy.artifactDefs.splice(idx, 1)
+        // 移除对手的奇物 triggers
+        for (const t of target.triggers ?? []) {
+            const tIdx = enemy.passiveTriggers.indexOf(t)
+            if (tIdx !== -1) enemy.passiveTriggers.splice(tIdx, 1)
+        }
+        // 加给自己
+        self.addArtifact(target.id)
+        // 更新成功概率（减半）
+        engine.state.pendingBuffs.set(trackKey, { restoreValue: chance / 2 })
+        engine.emitLog({
+            type: 'system',
+            message: `[飞龙探云手] 得手！偷取了「${target.name}」（下次${Math.round((chance / 2) * 100)}%）`,
+            actorId: self.id,
+        })
     },
     switch_weapon({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'switch_weapon' }>

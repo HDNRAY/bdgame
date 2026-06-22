@@ -13,6 +13,7 @@ export { LONGNV } from './longnv'
 export { YANGGUO } from './yangguo'
 export { AJIU } from './ajiu'
 export { WUKONG } from './wukong'
+export { XUNXIANG } from './xunxiang'
 import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
@@ -34,6 +35,7 @@ import { LONGNV } from './longnv'
 import { YANGGUO } from './yangguo'
 import { AJIU } from './ajiu'
 import { WUKONG } from './wukong'
+import { XUNXIANG } from './xunxiang'
 
 /** 对手定义 */
 export interface OpponentDef {
@@ -75,13 +77,13 @@ export const OPPONENTS: OpponentDef[] = [
     SANGYUAN,
     LUHONGTI,
     AJIU,
-    WUKONG,
     // 双持刀剑
     LAYUE,
     BAIHU,
     LONGNV,
     // 长柄
     ZHANGLIE,
+    WUKONG,
     // 御物
     XUANJI,
     // 重型武器
@@ -90,6 +92,7 @@ export const OPPONENTS: OpponentDef[] = [
     // 其他
     YIDAO, // 太刀
     LUEYING, // 匕首
+    XUNXIANG, // 徒手+飞刀
 ]
 
 /** 按 ID 查找对手 def */

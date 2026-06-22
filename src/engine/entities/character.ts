@@ -210,6 +210,19 @@ export class Character {
         return this.haste + this.hasteCallbacks.reduce((sum, cb) => sum + cb(this), 0)
     }
 
+    /** 获取所有招式中最远射程（用于 dash targetDist: -1 解析，仅统计非辅助招式） */
+    getMaxActionRange(): number {
+        const weapon = this.weaponDef ?? getWeapon(this.build.weapon)
+        return Math.max(
+            ...this.actions
+                .filter((a) => !a.def.tags.includes('support'))
+                .map((a) => {
+                    const r = a.def.getRange?.(weapon.range, this) ?? weapon.range
+                    return r[1]
+                }),
+        )
+    }
+
     /** 运行时添加功法（自爆后获得独臂等），返回是否成功添加 */
     addPassive(id: string): boolean {
         if (this.passiveDefs.some((p) => p.id === id)) return false
@@ -217,6 +230,26 @@ export class Character {
         if (!def) return false
         this.passiveDefs.push(def)
         this.applyPassive(def)
+        if (def.actionEnhancer) {
+            this.#actionCache = this.#actionCache.map((a) => {
+                const modified = def.actionEnhancer!(a.def)
+                return modified !== a.def ? new Action(modified) : a
+            })
+        }
+        return true
+    }
+
+    /** 运行时添加奇物 */
+    addArtifact(id: string): boolean {
+        if (this.artifactDefs.some((a) => a.id === id)) return false
+        const def = getArtifact(id)
+        if (!def) return false
+        this.artifactDefs.push(def)
+        for (const eff of def.effects ?? []) {
+            const handler = passiveEffectHandlers[eff.type]
+            if (handler) handler(this, eff)
+        }
+        for (const t of def.triggers ?? []) this.passiveTriggers.push(t)
         if (def.actionEnhancer) {
             this.#actionCache = this.#actionCache.map((a) => {
                 const modified = def.actionEnhancer!(a.def)

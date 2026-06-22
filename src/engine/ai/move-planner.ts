@@ -49,22 +49,28 @@ export function planMovement(
     const distAbs = Math.abs(delta)
     const moveAp = Math.ceil(distAbs / perAp)
 
-    // 检查是否有更省 AP 的位移招式（朝敌人方向移动时），在走路检查之前
-    if (delta < 0) {
+    // 检查是否有更省 AP 的位移招式，在走路检查之前
+    {
         for (const inst of attacker.actions) {
             const dashEff = inst.def.effects?.find((e): e is Extract<EffectDef, { type: 'dash' }> => e.type === 'dash')
             if (!dashEff) continue
-            if (dashEff.useAp) continue
-            const { minRange = 0, maxRange = Infinity, targetDist: dashTarget } = dashEff
+            const { minRange = 0, maxRange = Infinity, targetDist: rawDashTarget } = dashEff
             if (distance < minRange || distance > maxRange) continue
-            // dash 后距离变为 dashTarget，如果已在武器范围内则无需再走路
-            const afterDash = Math.abs(dashTarget - targetDist)
-            const needsExtraMove = afterDash >= 0.5 && (dashTarget < actionRange[0] || dashTarget > actionRange[1])
-            const extraMove = needsExtraMove ? Math.ceil(afterDash / perAp) : 0
-            const totalAp = inst.apCost + extraMove + chosenAction.apCost
+            const dashTarget = rawDashTarget < 0 ? attacker.getMaxActionRange() : rawDashTarget
+            if (dashTarget < 0) continue
+            // dash 后距离变为 dashTarget，检查是否比走路更接近 targetDist
+            const walkAfter = distance + Math.sign(delta) * moveAp * perAp
+            const walkDist = Math.abs(walkAfter - targetDist)
+            const dashDist = Math.abs(dashTarget - targetDist)
+            if (dashDist >= walkDist) continue // 走路效果一样或更好
+            const dashMoveDist = Math.abs(distance - dashTarget)
+            const dashApCost = dashEff.useAp ? Math.max(1, Math.ceil(dashMoveDist * 0.4)) : inst.apCost
+            const needsExtraMove = dashDist >= 0.5 && (dashTarget < actionRange[0] || dashTarget > actionRange[1])
+            const extraMove = needsExtraMove ? Math.ceil(dashDist / perAp) : 0
             const walkingCost = moveAp + chosenAction.apCost
-            if (totalAp <= apRemaining && totalAp <= walkingCost) {
-                return { delta, apCost: inst.apCost, dashActionId: inst.id }
+            const totalAp = dashApCost + extraMove + chosenAction.apCost
+            if (totalAp <= apRemaining && (walkingCost > apRemaining || totalAp <= walkingCost)) {
+                return { delta, apCost: dashApCost, dashActionId: inst.id }
             }
         }
     }
@@ -76,7 +82,11 @@ export function planMovement(
             // 走太多会低于最小射程，试试少用几格 AP 能否落在范围内
             for (let altAp = moveAp - 1; altAp >= 0; altAp--) {
                 const altPost = distance + (delta > 0 ? 1 : -1) * altAp * perAp
-                if (altPost >= actionRange[0] && altPost <= actionRange[1]) {
+                if (
+                    altPost >= actionRange[0] &&
+                    altPost <= actionRange[1] &&
+                    altAp + chosenAction.apCost <= apRemaining
+                ) {
                     return { delta: delta > 0 ? altAp : -altAp, apCost: altAp }
                 }
             }

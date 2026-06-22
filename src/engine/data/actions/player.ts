@@ -64,7 +64,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
         ],
-        getRange: () => [0, 6],
+        getRange: () => [0, 5],
         canUse: (_attacker, state) => state.lastActionExtraDelay >= 200,
     },
 
@@ -447,7 +447,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '捡回脱手的武器。',
         requiredTags: [],
         apCost: 0,
-        tags: ['support'],
+        tags: ['support', 'retrieve_weapon'],
         target: 'self',
         canUse: (attacker, state) => {
             const key = `disarmed::${attacker.id}`
@@ -683,5 +683,70 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             const stacks = layer?.restoreValue ?? 0
             return Math.random() >= (stacks / 19) ** 2 * 0.95
         },
+    },
+    // ── 小凤·寻香 ──
+    {
+        id: 'push_hand',
+        name: '推手',
+        description: '借力打力，推开对手并后撤。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['blunt'],
+        effects: [
+            { type: 'knockback', distance: 1 },
+            { type: 'short_dash', maxDistance: 1 },
+        ],
+    },
+    {
+        id: 'throwing_knife',
+        name: '飞刀',
+        description: '例不虚发，飞刀破空。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['range', 'pierce'],
+        getRange: () => [1, 5],
+        effects: [{ type: 'fixed_damage', value: 6 }],
+    },
+    {
+        id: 'deadly_knife',
+        name: '无情飞刀',
+        description: '小李飞刀，例不虚发。必中但可格挡。',
+        requiredTags: [],
+        apCost: 4,
+        tags: ['range', 'pierce'],
+        getRange: () => [1, 5],
+        chance: 1,
+        effects: [{ type: 'fixed_damage', value: 12 }],
+    },
+    {
+        id: 'steal_artifact',
+        name: '飞龙探云手',
+        description: '神偷绝技，偷取对手一件奇物。初始80%成功，成功后概率减半。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['support'],
+        target: 'enemy',
+        getRange: () => [0, 6] as [number, number],
+        effects: [{ type: 'steal_artifact' }],
+    },
+    {
+        id: 'yan_hui',
+        name: '雁迴',
+        description: '如雁迴旋，瞬移至对手身后。',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['move', 'support'],
+        getRange: () => [0, 12] as [number, number],
+        effects: [{ type: 'dash', maxRange: 12, targetDist: 0, useAp: true }],
+    },
+    {
+        id: 'yan_fan',
+        name: '雁反',
+        description: '如雁反转，瞬移拉开距离。',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['move', 'support'],
+        getRange: () => [0, 12] as [number, number],
+        effects: [{ type: 'dash', maxRange: 12, targetDist: -1, useAp: true }],
     },
 ]

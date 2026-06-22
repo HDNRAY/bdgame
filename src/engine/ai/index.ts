@@ -44,6 +44,10 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                 }
                 return cmds // 先去捡武器，下回合再攻击
             }
+            // AP 不够走到掉落点：能走多少走多少
+            if (apBudget > 0) {
+                return [{ type: 'move', bestDistance: -apBudget }]
+            }
         }
         // 无法捡武器（距离太远/AP不够），fall through 到正常 AI
     }
@@ -106,11 +110,46 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
 
     for (const est of candidates) {
         if (apBudget < est.apCost) continue
-        if (est.canReach) {
-            mainId = est.actionId
-            break
-        }
         const style = overrides?.forceStyle ?? classifyAttackStyle(weapon.range)
+        if (est.canReach) {
+            // 远程/中程风格：即使可命中，也尝试移动到最佳距离
+            let planRejected = false
+            if (style === 'ranged' || style === 'mid') {
+                const mainDef = self.actions.find((a) => a.id === est.actionId)?.def
+                if (mainDef) {
+                    const actionRange = mainDef.getRange?.(weapon.range, self) ?? weapon.range
+                    const idealDist = actionRange[1]
+                    if (Math.abs(distance - idealDist) >= 0.5) {
+                        const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
+                        const plan = planMovement(
+                            self,
+                            enemy,
+                            distance,
+                            style,
+                            weapon.range,
+                            mainDef,
+                            apBudget,
+                            minMoveCost,
+                            self.moveEfficiency,
+                        )
+                        if (plan && plan.apCost + est.apCost <= apBudget) {
+                            mainId = est.actionId
+                            moveDelta = plan.delta
+                            moveAp = plan.apCost
+                            dashActionId = plan.dashActionId
+                            break
+                        }
+                        planRejected = true
+                    }
+                }
+            }
+            if (planRejected) continue
+            if (!mainId) {
+                mainId = est.actionId
+                break
+            }
+            continue
+        }
         const mainDef = self.actions.find((a) => a.id === est.actionId)?.def
         if (!mainDef) continue
         const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
@@ -137,7 +176,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     if (!mainId) {
         const supportCmds = planSupportActions(self, state, apBudget, overrides?.supportBlacklist)
         if (supportCmds.length > 0) return supportCmds
-        console.log(`[AI] ${self.name} no mainId, return []`)
+        if (apBudget > 0) console.log(`[AI] ${self.name} no mainId, ap=${self.ap} budget=${apBudget}`)
         return []
     }
 

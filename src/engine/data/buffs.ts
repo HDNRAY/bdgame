@@ -65,6 +65,8 @@ export interface BuffDef extends GameEntity {
     onHitChance?: (ctx: BuffHookCtx) => number
     /** 允许自行选择可招架（返回 true 则允许招架） */
     onCanParry?: (ctx: { self: Character; engine: BattleEngine }) => boolean
+    /** 攻击方能否被招架（返回 false 则无法招架此攻击） */
+    onCanBeParried?: (ctx: { self: Character; engine: BattleEngine }) => boolean
     /** 暴击率修正钩子（applyDamage 暴击判定前自动调用，返回加算值） */
     onCritChance?: (ctx: BuffHookCtx) => number
     /** 暴击伤害修正钩子（applyDamage 暴击判定时自动调用，返回加算值） */
@@ -732,6 +734,50 @@ export const DEBUFF_DB: BuffDef[] = [
         onHitChance: ({ layer }) => layer.restoreValue * 0.03,
         onCritChance: ({ layer }) => layer.restoreValue * 0.02,
         onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
+    },
+    {
+        id: 'lingxi_finger',
+        name: '灵犀一指',
+        description: '灵犀一指，空手亦可格挡兵刃，灵巧+4。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        attrMods: { dexterity: 4 },
+        onCanParry: () => true,
+    },
+    {
+        id: 'xuan_ji',
+        name: '玄机',
+        description: '袖里玄机。每触发一次触发器招式叠1层，15层满时下一招非辅助招式强化。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 15 },
+    },
+    {
+        id: 'tianji_ready',
+        name: '天机',
+        description: '袖里玄机已满，下一招非辅助招式必中、无视招架、必定暴击。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onHitChance: () => 1,
+        onCanBeParried: () => false,
+        onCritChance: () => 1,
+    },
+    {
+        id: 'xiu_li',
+        name: '袖里',
+        description: '千丝万缕，只在他衣袖之间。闪避获得1层缠劲；受伤消耗1层缠劲减免3点。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTakeDamage: ({ final, target, engine }) => {
+            if (target.chan <= 0) return final
+            target.spendChan(1)
+            engine.emitLog({
+                type: 'system',
+                message: `[袖里] ${target.name} 消耗1层缠劲减免3点（剩${target.chan}层）`,
+                actorId: target.id,
+            })
+            return Math.max(0, Math.round((final - 3) * 10) / 10)
+        },
     },
 ]
 

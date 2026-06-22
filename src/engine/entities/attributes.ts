@@ -9,7 +9,7 @@ export const ATTR_CN: Record<string, string> = {
     agility: '身法', // 闪避(防御方)、移动效率(agi/20 档/AP)、回合间隔(2.8/(1+agi×0.25))
     dexterity: '灵巧', // 命中(攻击方)、暴击率(与洞察叠加)
     insight: '洞察', // 命中(攻防双方)、暴击率(与灵巧叠加)、招架率
-    wisdom: '悟性', // 触发槽数(max(1, floor(wis/4)))、炁效果
+    wisdom: '推演', // 触发槽数(max(1, floor(wis/4)))、炁效果
 }
 
 export const ATTR_MIN = 1

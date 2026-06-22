@@ -120,7 +120,17 @@ function resolveParry(
     engine: BattleEngine,
     act: ActionDefinition | undefined,
 ): { parried: boolean; final: number } {
-    // ── 1. 能否招架 ──
+    // ── 1. 攻击方能否被招架 ──
+    const cannotBeParried = [...engine.state.pendingBuffs].some(([k]) => {
+        const parts = k.split('::')
+        if (parts.length < 2 || parts[1] !== attacker.id) return false
+        const def = getBuff(parts[0])
+        if (!def?.onCanBeParried) return false
+        return !def.onCanBeParried({ self: attacker, engine })
+    })
+    if (cannotBeParried) return { parried: false, final: raw }
+
+    // ── 2. 目标能否招架 ──
     const weapon = target.weaponDef ?? getWeapon(target.build.weapon)
     const hasParryTag = weapon.tags.includes('parry')
     const hasParryBuff = [...engine.state.pendingBuffs].some(([k]) => {
@@ -170,6 +180,7 @@ function resolveParry(
     // ── 4. 消耗 on_parry 类 buff（看破等） ──
     consumeBuffsByTrigger(target.id, engine, 'on_parry')
     engine.emit('on_parry', target, attacker)
+    engine.emit('on_parried', attacker, target)
 
     // ── 5. 伤害减免 ──
     let final = calcParriedDamage(raw, target.attrs.get('strength'))
