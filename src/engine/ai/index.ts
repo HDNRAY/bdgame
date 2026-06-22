@@ -143,7 +143,14 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                     }
                 }
             }
-            if (planRejected) continue
+            if (planRejected) {
+                // 最优走位太贵，原地攻击
+                if (!mainId) {
+                    mainId = est.actionId
+                    break
+                }
+                continue
+            }
             if (!mainId) {
                 mainId = est.actionId
                 break

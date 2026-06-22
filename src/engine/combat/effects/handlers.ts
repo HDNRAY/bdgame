@@ -624,7 +624,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             if (moveDist !== 0) executeMove(self, engine, -moveDist)
         }
     },
-    disarm({ eff, enemy, engine }: EffectCtx) {
+    disarm({ eff, enemy, engine, action }: EffectCtx) {
         if (hasYuanYing(enemy, engine)) {
             engine.emitLog({ type: 'system', message: `[渊渟岳峙] ${enemy.name} 免疫缴械`, actorId: enemy.id })
             return
@@ -664,7 +664,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.state.pendingBuffs.set(key, { restoreValue: 1, extra: { originalWeapon: oldWeapon.id, dropPosition } })
         engine.emitLog({
             type: 'system',
-            message: `[点腕] ${BattleLog.name(enemy.name)} 兵器脱手！`,
+            message: `[${action?.name ?? '点腕'}] ${BattleLog.name(enemy.name)} 兵器脱手！`,
             actorId: enemy.id,
         })
     },

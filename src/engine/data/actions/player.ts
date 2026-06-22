@@ -522,7 +522,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 0,
         tags: [],
-        chance: 0.3,
+        onActionHitChance: () => 0.3,
         effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 2000 }],
         maxUses: 999,
     },
@@ -599,7 +599,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 4],
         chanCost: 18,
         canUse: (attacker) => attacker.chan >= 18,
-        effects: [{ type: 'damage', scaling: { strength: 0.8, wisdom: 0.8 } }],
+        onActionHitChance: (base) => base + 0.25,
+        effects: [{ type: 'damage', scaling: { strength: 0.9, wisdom: 0.9 } }],
     },
     {
         id: 'qinlong_gong',
@@ -715,7 +716,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['range', 'pierce'],
         getRange: () => [1, 5],
-        chance: 1,
+        onActionHitChance: () => 1,
         effects: [{ type: 'fixed_damage', value: 12 }],
     },
     {

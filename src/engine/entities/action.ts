@@ -78,8 +78,8 @@ export interface ActionDefinition extends GameEntity {
     chanCost?: number
     effects?: EffectDef[]
     target?: 'self' | 'enemy'
-    /** 招式固定命中率（不设则用属性公式计算） */
-    chance?: number
+    /** 招式命中率回调（入参为基础命中率，返回实际命中率，不设则用属性公式计算） */
+    onActionHitChance?: (base: number) => number
     maxUses?: number
     /** 自定义释放条件（返回 false 则不可使用） */
     canUse?: (attacker: Character, state: BattleState) => boolean

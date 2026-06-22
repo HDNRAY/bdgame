@@ -167,7 +167,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '将钛合金臂飞向对手并引爆。',
         requiredTags: [],
         apCost: 0,
-        chance: 1,
+        onActionHitChance: () => 1,
         tags: ['trigger', 'damage', 'burn'],
         target: 'enemy',
         maxUses: 1,

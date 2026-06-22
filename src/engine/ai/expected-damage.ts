@@ -56,17 +56,14 @@ export function calcExpectedDamage(
     }
 
     // 3. 命中率
-    const hitChance = Math.min(
-        0.95,
-        action.chance ??
-            calcHitChance({
-                attackerDexterity: attacker.attrs.get('dexterity'),
-                attackerInsight: attacker.attrs.get('insight'),
-                defenderAgility: defender.attrs.get('agility'),
-                defenderInsight: defender.attrs.get('insight'),
-                defenderDodgeMod: defender.dodgeMod,
-            }),
-    )
+    const baseHc = calcHitChance({
+        attackerDexterity: attacker.attrs.get('dexterity'),
+        attackerInsight: attacker.attrs.get('insight'),
+        defenderAgility: defender.attrs.get('agility'),
+        defenderInsight: defender.attrs.get('insight'),
+        defenderDodgeMod: defender.dodgeMod,
+    })
+    const hitChance = Math.min(0.95, action.onActionHitChance?.(baseHc) ?? baseHc)
 
     // 4. 招架概率 + 暴击概率
     const parryChance = Math.min(

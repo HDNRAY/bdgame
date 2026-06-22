@@ -20,15 +20,14 @@ export function processHitCheck(
         engine.state.position.distance(self.id, enemy.id) >= 5
             ? 0.15
             : 0
-    let hc =
-        action.chance ??
-        calcHitChance({
-            attackerDexterity: self.attrs.get('dexterity'),
-            attackerInsight: self.attrs.get('insight'),
-            defenderAgility: enemy.attrs.get('agility'),
-            defenderInsight: enemy.attrs.get('insight'),
-            defenderDodgeMod: enemy.dodgeMod + rangeDodgeMod,
-        })
+    const baseHc = calcHitChance({
+        attackerDexterity: self.attrs.get('dexterity'),
+        attackerInsight: self.attrs.get('insight'),
+        defenderAgility: enemy.attrs.get('agility'),
+        defenderInsight: enemy.attrs.get('insight'),
+        defenderDodgeMod: enemy.dodgeMod + rangeDodgeMod,
+    })
+    let hc = action.onActionHitChance?.(baseHc) ?? baseHc
     // buff 命中率钩子
     for (const [key, layer] of engine.state.pendingBuffs) {
         const parts = key.split('::')

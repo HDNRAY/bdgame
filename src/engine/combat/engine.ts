@@ -591,16 +591,6 @@ export class BattleEngine {
         if (!triggered && !self.spendAp(action.apCost)) {
             return r
         }
-        // 天机消耗：非辅助招式命中目标时，消耗天机并重置玄机层数
-        if (this.state.pendingBuffs.has(`tianji_ready::${self.id}`) && !action.tags.includes('support')) {
-            this.state.pendingBuffs.delete(`tianji_ready::${self.id}`)
-            this.state.pendingBuffs.delete(`xuan_ji::${self.id}`)
-            this.emitLog({
-                type: 'system',
-                message: BattleLog.plain(self.name, '天机已用，玄机重置'),
-                actorId: self.id,
-            })
-        }
         // 缠积累（消耗AP × 1）+ 缠消耗
         self.addChan(action.apCost)
         if (action.chanCost) self.spendChan(action.chanCost)
@@ -635,7 +625,7 @@ export class BattleEngine {
             this.state.pendingBuffs.delete(`xuan_ji::${self.id}`)
             this.emitLog({
                 type: 'system',
-                message: BattleLog.plain(self.name, '天机已用，玄机重置'),
+                message: BattleLog.plain(self.name, `天机已用（${action.name}），玄机重置`),
                 actorId: self.id,
             })
         }
