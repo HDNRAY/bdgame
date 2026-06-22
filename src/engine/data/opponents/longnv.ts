@@ -23,7 +23,6 @@ export const LONGNV: OpponentDef = {
                 action('yufeng_needle'),
                 passive('yuxin_sword_mastery'),
             ],
-            [],
             n,
         ),
     aiOverrides: {},

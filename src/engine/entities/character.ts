@@ -1,6 +1,7 @@
 import { ATTR_MIN, AttributeSet, type AttrName } from './attributes'
 import { Action, type ActionDefinition, type EffectDef } from './action'
 import type { CharacterBuild } from './character-build'
+import type { ActionConfig } from './action-config'
 import type { Passive, Talent } from './passive'
 import type { Artifact } from './artifact'
 import type { TriggerSlot } from './trigger'
@@ -9,6 +10,7 @@ import { getAction as getActionDef } from '../data/actions'
 import { getWeapon } from '../data/weapons'
 import { getPassive } from '../data/passives'
 import { getArtifact } from '../data/artifacts'
+import { TRIGGER_CONDITIONS } from '../data/triggers'
 import { MAX_CHAN } from '../constants'
 
 export function calcMaxHp(vitality: number): number {
@@ -34,8 +36,12 @@ export class Character {
 
     /** 已解析的被动对象列表 */
     passiveDefs: Passive[] = []
-    /** 被动注入的额外 trigger（不污染 build.triggers） */
+    /** 被动注入的额外 trigger */
     passiveTriggers: TriggerSlot[] = []
+    /** 缓存：从 actionConfigs 解析的触发条件 */
+    #configTriggers: TriggerSlot[] = []
+    /** 构造时固定的触发槽上限 */
+    #maxTriggerSlots = 0
     /** 武器定义的 clone（含被动修改） */
     weaponDef?: WeaponDef
     /** 已解析的奇物/义体列表 */
@@ -154,6 +160,23 @@ export class Character {
 
         this.ap = this.maxAp
         this.hp = calcMaxHp(this.attrs.get('vitality')) + this.maxHpMod
+
+        // 按 actionConfigs 排序
+        if (build.actionConfigs) {
+            const order = new Map(build.actionConfigs.map((c, i) => [c.actionId, i]))
+            this.#actionCache.sort((a, b) => (order.get(a.id) ?? 999) - (order.get(b.id) ?? 999))
+        }
+
+        // 初始化触发条件缓存（战斗期间固定，不随属性变化）
+        const initWis = this.attrs.get('wisdom')
+        this.#maxTriggerSlots = Math.max(1, Math.floor(initWis / 4)) + this.triggerSlotMod
+        this.#configTriggers = this.#buildConfigTriggers()
+        if (this.#configTriggers.length > this.#maxTriggerSlots) {
+            console.warn(
+                `[${this.name}] WIS=${initWis} 仅 ${this.#maxTriggerSlots} 个触发槽，`,
+                `丢弃 ${this.#configTriggers.length - this.#maxTriggerSlots} 个触发条件`,
+            )
+        }
     }
 
     get passives(): Passive[] {
@@ -193,16 +216,26 @@ export class Character {
     }
 
     get triggers(): TriggerSlot[] {
-        const wis = this.attrs.get('wisdom')
-        const maxSlots = Math.max(1, Math.floor(wis / 4)) + this.triggerSlotMod
-        const buildSlots = this.build.triggers.slice(0, maxSlots)
-        if (buildSlots.length < this.build.triggers.length) {
-            console.warn(
-                `[${this.name}] WIS=${wis} 仅 ${maxSlots} 个触发槽，`,
-                `丢弃 ${this.build.triggers.length - maxSlots} 个招式触发`,
-            )
+        return [...this.#configTriggers.slice(0, this.#maxTriggerSlots), ...this.passiveTriggers]
+    }
+
+    #buildConfigTriggers(): TriggerSlot[] {
+        const result: TriggerSlot[] = []
+        for (const ac of this.build.actionConfigs ?? []) {
+            if (!ac.triggerId) continue
+            const tc = TRIGGER_CONDITIONS.find((t) => t.id === ac.triggerId)
+            if (!tc) continue
+            result.push({
+                condition: { type: tc.type, buffId: tc.buffId, check: tc.check },
+                actionId: ac.actionId,
+            })
         }
-        return [...buildSlots, ...this.passiveTriggers]
+        return result
+    }
+
+    /** 获取招式配置 */
+    getConfig(actionId: string): ActionConfig | undefined {
+        return this.build.actionConfigs?.find((c) => c.actionId === actionId)
     }
 
     /** 实时计算 haste（固定值 + 所有 eval 回调求值） */

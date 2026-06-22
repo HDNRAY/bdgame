@@ -24,8 +24,15 @@ export const BAIHU: OpponentDef = {
                 action('light_slash'),
                 action('heavy_slash'),
             ],
-            [{ condition: { type: 'on_dodged' }, actionId: 'guard' }],
             n,
+            undefined,
+            [
+                { actionId: 'guard' },
+                { actionId: 'nineteen_stops' },
+                { actionId: 'light_slash' },
+                { actionId: 'heavy_slash' },
+                { actionId: 'guard', triggerId: 'on_dodged' },
+            ],
         ),
     aiOverrides: {},
 }

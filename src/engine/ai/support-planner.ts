@@ -2,6 +2,7 @@ import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../data/weapons'
 import { getBuff } from '../data/buffs'
+import { getConditionPreset, checkCondition } from '../entities/action-config'
 
 /** 选择辅助招式（support 标签），消耗剩余 AP */
 export function planSupportActions(
@@ -39,6 +40,13 @@ export function planSupportActions(
     for (const inst of sorted) {
         if (apLeft < inst.apCost) continue
         if (inst.def.canUse && !inst.def.canUse(attacker, state)) continue
+
+        // 必要条件过滤
+        const config = attacker.getConfig(inst.id)
+        if (config?.conditionId) {
+            const cond = getConditionPreset(config.conditionId)
+            if (cond && !checkCondition(cond, attacker, state)) continue
+        }
 
         // 去重：检查是否已有同 buff（通过 stat_buff / stat_multiply 效果判断）
         if (hasActiveBuff(attacker, state, inst.def)) continue

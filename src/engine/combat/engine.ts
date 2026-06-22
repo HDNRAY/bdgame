@@ -14,7 +14,7 @@ import {
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import { getBuff } from '../data/buffs'
-import type { ActionDefinition, EffectDef } from '../entities/action'
+import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
 import { revertBuffMods, applyAttrMods, reduceBleedOnHeal } from './utils/buff-layer'
@@ -418,25 +418,10 @@ export class BattleEngine {
                     if (!hasTag) continue
                 }
                 if (action.canUse && !action.canUse(self, this.state)) continue
-                // 执行触发招式后，若持有袖里玄机则叠玄机层
                 this.state.log.indentDepth++
                 this.#executeAction(action, self, enemy, true)
-                if (this.state.pendingBuffs.has(`xiu_li::${self.id}`)) {
-                    const xuanJiEff: EffectDef = { type: 'add_buff' as const, buffId: 'xuan_ji', stacks: 1 }
-                    processActionEffect(xuanJiEff, self, enemy, this, this.#tMs)
-                    // 玄机满15层则加天机buff
-                    const xuanJiKey = `xuan_ji::${self.id}`
-                    const xuanJiLayer = this.state.pendingBuffs.get(xuanJiKey)
-                    if (
-                        xuanJiLayer &&
-                        xuanJiLayer.restoreValue >= 15 &&
-                        !this.state.pendingBuffs.has(`tianji_ready::${self.id}`)
-                    ) {
-                        const tianJiEff: EffectDef = { type: 'add_buff' as const, buffId: 'tianji_ready' }
-                        processActionEffect(tianJiEff, self, enemy, this, this.#tMs)
-                    }
-                }
                 this.state.log.indentDepth--
+                this.emit('on_action_trigger', self, enemy)
                 tickEngine.onBleedTrigger(self, this)
             }
         }

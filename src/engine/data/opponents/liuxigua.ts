@@ -24,7 +24,6 @@ export const LIUXIGUA: OpponentDef = {
                 action('retrieve_blade'),
                 action('shadow_kick'),
             ],
-            [],
             n,
         ),
 }

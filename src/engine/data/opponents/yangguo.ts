@@ -24,11 +24,15 @@ export const YANGGUO: OpponentDef = {
                 action('quanzhen_sword'),
                 action('yunv_sword'),
             ],
-            [
-                { condition: { type: 'on_dodge' }, actionId: 'flick' },
-                { condition: { type: 'on_parry' }, actionId: 'yunv_sword' },
-            ],
             n,
+            undefined,
+            [
+                { actionId: 'desolate_palm' },
+                { actionId: 'quanzhen_sword' },
+                { actionId: 'yunv_sword' },
+                { actionId: 'flick', triggerId: 'on_dodge' },
+                { actionId: 'yunv_sword', triggerId: 'on_parry' },
+            ],
         ),
     aiOverrides: {},
 }

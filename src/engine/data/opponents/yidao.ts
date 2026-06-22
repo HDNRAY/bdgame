@@ -1,7 +1,7 @@
 import { simpleGenerate } from '../../systems/character-gen'
 import { type OpponentDef, passive } from '.'
 import type { Reward } from '../rewards'
-import type { TriggerSlot } from '../../entities/trigger'
+import type { ActionConfig } from '../../entities/action-config'
 
 const YIDAO_ATTRS = { strength: 19, vitality: 11, agility: 14, dexterity: 14, insight: 13, wisdom: 6 }
 
@@ -23,8 +23,12 @@ export const YIDAO: OpponentDef = {
             ...POOL.map((id) => ({ type: rewardType(id), id, name: id, description: '', tags: [] }) as Reward),
         ]
 
-        const triggers: TriggerSlot[] = []
+        const actionConfigs: ActionConfig[] = [
+            { actionId: 'iaijutsu_strike' },
+            { actionId: 'light_slash' },
+            { actionId: 'resheath' },
+        ]
 
-        return simpleGenerate('yidao', '居合·一刀', 'swift', 'zantetsu', YIDAO_ATTRS, rewards, triggers, n)
+        return simpleGenerate('yidao', '居合·一刀', 'swift', 'zantetsu', YIDAO_ATTRS, rewards, n, 0, actionConfigs)
     },
 }

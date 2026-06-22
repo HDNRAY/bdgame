@@ -7,6 +7,7 @@ import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
 import { classifyAttackStyle, planMovement } from './move-planner'
 import { planSupportActions } from './support-planner'
+import { getConditionPreset, checkCondition } from '../entities/action-config'
 import type { AiOverrides } from '../data/opponents'
 import { getOpponentDef } from '../data/opponents'
 
@@ -25,7 +26,19 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     if (disarmedLayer) {
         const apBudget = self.ap - (overrides?.reserveAp ?? 0)
         const dropPos = disarmedLayer.extra?.dropPosition as number | undefined
+        // 捡武器前检查条件（如"敌人HP>10"才捡）
+        let shouldPickup = true
         if (dropPos !== undefined) {
+            const pickupAction = self.actions.find((a) => a.def.tags.includes('retrieve_weapon'))
+            if (pickupAction) {
+                const pickupConfig = self.getConfig(pickupAction.id)
+                if (pickupConfig?.conditionId) {
+                    const cond = getConditionPreset(pickupConfig.conditionId)
+                    if (cond && !checkCondition(cond, self, state)) shouldPickup = false
+                }
+            }
+        }
+        if (shouldPickup && dropPos !== undefined) {
             const distToDrop = Math.abs(state.position.get(self.id) - dropPos)
             const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
             const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
@@ -73,96 +86,110 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const dmg = calcSelfDamage(self.maxHp, selfDmgEff.ratio)
             if (self.hp <= dmg) continue
         }
+        // 必要条件过滤
+        const config = self.getConfig(inst.id)
+        if (config?.conditionId) {
+            const cond = getConditionPreset(config.conditionId)
+            if (cond && !checkCondition(cond, self, state)) continue
+        }
         candidates.push(calcExpectedDamage(inst.def, self, enemy, weapon.range, distance))
     }
 
-    // 2. 排序：AP 效率优先，左右互搏时低消耗招式价值翻倍
+    // 2. 分两组：有条件限制的按顺序选，默认的按伤害选
     const apBudget = self.ap - (overrides?.reserveAp ?? 0)
+    const configOrder = new Map(self.build.actionConfigs?.map((c, i) => [c.actionId, i]))
     const huboKey = `zuoyou_hubo::${self.id}`
     const hasHubo = state.pendingBuffs.has(huboKey)
-    if (overrides?.actionPriority) {
-        const weights = overrides.actionPriority(candidates, self, state)
-        candidates.sort((a, b) => {
-            const scoreA = calcActionScore(a, hasHubo, apBudget) + (weights[a.actionId] ?? 0)
-            const scoreB = calcActionScore(b, hasHubo, apBudget) + (weights[b.actionId] ?? 0)
-            if (scoreA !== scoreB) return scoreB - scoreA
-            return b.expectedDamage - a.expectedDamage
-        })
-    } else {
-        candidates.sort((a, b) => {
-            const scoreA = calcActionScore(a, hasHubo, apBudget)
-            const scoreB = calcActionScore(b, hasHubo, apBudget)
-            // 主排序：总伤害（左右互搏时低消耗招式按双倍计）
-            if (scoreA !== scoreB) return scoreB - scoreA
-            // 平局决胜：AP 效率
-            const effA = a.apCost > 0 ? a.expectedDamage / a.apCost : 0
-            const effB = b.apCost > 0 ? b.expectedDamage / b.apCost : 0
-            if (effA !== effB) return effB - effA
-            return Math.random() - 0.5
-        })
-    }
 
-    // ── 3. 遍历候选，找第一个可行的 ──
+    // 有条件限制的招式（conditionId !== always）→ 按 configOrder 排序
+    const conditionalCands = candidates.filter((c) => {
+        const cfg = self.getConfig(c.actionId)
+        return cfg?.conditionId && cfg.conditionId !== 'always'
+    })
+    conditionalCands.sort((a, b) => {
+        const oa = configOrder.get(a.actionId) ?? 999
+        const ob = configOrder.get(b.actionId) ?? 999
+        return oa - ob
+    })
+
+    // 默认招式（无 conditionId 或 always）→ 按伤害排序
+    const defaultCands = candidates.filter((c) => {
+        const cfg = self.getConfig(c.actionId)
+        return !cfg?.conditionId || cfg.conditionId === 'always'
+    })
+    defaultCands.sort((a, b) => {
+        const scoreA = calcActionScore(a, hasHubo, apBudget)
+        const scoreB = calcActionScore(b, hasHubo, apBudget)
+        if (scoreA !== scoreB) return scoreB - scoreA
+        const oa = configOrder.get(a.actionId) ?? 999
+        const ob = configOrder.get(b.actionId) ?? 999
+        if (oa !== ob) return oa - ob
+        const effA = a.apCost > 0 ? a.expectedDamage / a.apCost : 0
+        const effB = b.apCost > 0 ? b.expectedDamage / b.apCost : 0
+        if (effA !== effB) return effB - effA
+        return Math.random() - 0.5
+    })
+
+    // ── 3. 先选有条件限制的（按顺序），不行再按伤害选 ──
     let mainId: string | null = null
     let moveDelta = 0
     let moveAp = 0
     let dashActionId: string | undefined
 
-    for (const est of candidates) {
-        if (apBudget < est.apCost) continue
-        const style = overrides?.forceStyle ?? classifyAttackStyle(weapon.range)
+    const style = overrides?.forceStyle ?? classifyAttackStyle(weapon.range)
+
+    /** 尝试选中一个候选，返回 true 表示继续遍历，false 表示已选中（mainId 已设）或终止 */
+    function trySelect(est: DamageEstimate): boolean {
+        if (apBudget < est.apCost) return true
+        const mainDef = self.actions.find((a) => a.id === est.actionId)?.def
+        if (!mainDef) return true
+        const e = enemy!
         if (est.canReach) {
-            // 远程/中程风格：即使可命中，也尝试移动到最佳距离
             let planRejected = false
             if (style === 'ranged' || style === 'mid') {
-                const mainDef = self.actions.find((a) => a.id === est.actionId)?.def
-                if (mainDef) {
-                    const actionRange = mainDef.getRange?.(weapon.range, self) ?? weapon.range
-                    const idealDist = actionRange[1]
-                    if (Math.abs(distance - idealDist) >= 0.5) {
-                        const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
-                        const plan = planMovement(
-                            self,
-                            enemy,
-                            distance,
-                            style,
-                            weapon.range,
-                            mainDef,
-                            apBudget,
-                            minMoveCost,
-                            self.moveEfficiency,
-                        )
-                        if (plan && plan.apCost + est.apCost <= apBudget) {
-                            mainId = est.actionId
-                            moveDelta = plan.delta
-                            moveAp = plan.apCost
-                            dashActionId = plan.dashActionId
-                            break
-                        }
-                        planRejected = true
+                const actionRange = mainDef.getRange?.(weapon.range, self) ?? weapon.range
+                const idealDist = actionRange[1]
+                if (Math.abs(distance - idealDist) >= 0.5) {
+                    const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
+                    const plan = planMovement(
+                        self,
+                        e,
+                        distance,
+                        style,
+                        weapon.range,
+                        mainDef,
+                        apBudget,
+                        minMoveCost,
+                        self.moveEfficiency,
+                    )
+                    if (plan && plan.apCost + est.apCost <= apBudget) {
+                        mainId = est.actionId
+                        moveDelta = plan.delta
+                        moveAp = plan.apCost
+                        dashActionId = plan.dashActionId
+                        return false
                     }
+                    planRejected = true
                 }
             }
             if (planRejected) {
-                // 最优走位太贵，原地攻击
                 if (!mainId) {
                     mainId = est.actionId
-                    break
+                    return false
                 }
-                continue
+                return true
             }
             if (!mainId) {
                 mainId = est.actionId
-                break
+                return false
             }
-            continue
+            return true
         }
-        const mainDef = self.actions.find((a) => a.id === est.actionId)?.def
-        if (!mainDef) continue
+        // !canReach: 需要移动
         const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
         const plan = planMovement(
             self,
-            enemy,
+            e,
             distance,
             style,
             weapon.range,
@@ -176,7 +203,20 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             moveDelta = plan.delta
             moveAp = plan.apCost
             dashActionId = plan.dashActionId
-            break
+            return false
+        }
+        return true
+    }
+
+    // 先试条件组（按 configOrder 顺序）
+    for (const est of conditionalCands) {
+        if (!trySelect(est)) break
+    }
+
+    // 条件组没选中，走默认伤害组
+    if (!mainId) {
+        for (const est of defaultCands) {
+            if (!trySelect(est)) break
         }
     }
 

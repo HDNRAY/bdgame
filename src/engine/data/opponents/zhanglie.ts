@@ -24,7 +24,13 @@ export const ZHANGLIE: OpponentDef = {
                 action('jab'),
                 // action('break_formation'),
             ],
-            [{ condition: { type: 'on_debuff' }, actionId: 'pursuit_thrust' }],
             n,
+            undefined,
+            [
+                { actionId: 'thrust' },
+                { actionId: 'straight_punch' },
+                { actionId: 'jab' },
+                { actionId: 'pursuit_thrust', triggerId: 'on_debuff' },
+            ],
         ),
 }

@@ -1,6 +1,6 @@
 import type { CharacterBuild } from '../entities/character-build'
 import type { Reward } from '../data/rewards'
-import type { TriggerSlot } from '../entities/trigger'
+import type { ActionConfig } from '../entities/action-config'
 import { STAT_NAMES } from '../data/rewards'
 import { cultCost } from './cultivation'
 import { checkTalents } from './talent-check'
@@ -14,9 +14,9 @@ export function simpleGenerate(
     weapon: string,
     targetAttrs: Record<string, number>,
     rewards: Reward[],
-    triggers: TriggerSlot[],
     n: number,
     extraPoints = 0,
+    actionConfigs?: ActionConfig[],
 ): CharacterBuild {
     // n 代表这是第几个节点，说明前面有 n - 1 个节点的奖励修炼点
     const total = (n - 1) * 2 + extraPoints
@@ -59,7 +59,7 @@ export function simpleGenerate(
         spriteId: id,
         baseAttrs: result,
         rewards: [...talentRewards, ...picked],
-        triggers,
+        actionConfigs,
     }
 }
 

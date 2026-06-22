@@ -25,7 +25,6 @@ export const QILAN: OpponentDef = {
                 action('lightning_speed'),
                 action('thunder_storm'),
             ],
-            [],
             n,
         ),
     aiOverrides: {

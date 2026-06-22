@@ -1,6 +1,6 @@
 import type { AttrName } from './attributes'
-import type { TriggerSlot } from './trigger'
 import type { Reward } from '../data/rewards'
+import type { ActionConfig } from './action-config'
 
 /** 战前角色配置（可序列化） */
 export interface CharacterBuild {
@@ -16,6 +16,6 @@ export interface CharacterBuild {
     spriteId?: string
     /** 非属性奖励列表 */
     rewards: Reward[]
-    /** 触发器槽 */
-    triggers: TriggerSlot[]
+    /** 招式配置表（顺序+条件+触发），缺省按 rewards 顺序+always */
+    actionConfigs?: ActionConfig[]
 }

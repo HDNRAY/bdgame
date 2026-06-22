@@ -25,7 +25,6 @@ function makeChar(
         weapon,
         baseAttrs: attrs,
         rewards,
-        triggers: [],
     })
 }
 

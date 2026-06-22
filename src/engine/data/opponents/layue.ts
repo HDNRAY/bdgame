@@ -1,7 +1,7 @@
 import { simpleGenerate } from '../../systems/character-gen'
 import { type OpponentDef, artifact } from '.'
 import type { Reward } from '../rewards'
-import type { TriggerSlot } from '../../entities/trigger'
+import type { ActionConfig } from '../../entities/action-config'
 
 const LAYUE_ATTRS = { strength: 12, vitality: 8, agility: 20, dexterity: 16, insight: 16, wisdom: 8 }
 
@@ -25,11 +25,12 @@ export const LAYUE: OpponentDef = {
             ...POOL.map((id) => ({ type: rewardType(id), id, name: id, description: '', tags: [] }) as Reward),
         ]
 
-        // 触发槽位（n=33 时所有奖励齐全，触发确定）
-        const triggers: TriggerSlot[] = [
-            { condition: { type: 'on_dodged' }, actionId: 'cun_mang' },
-            { condition: { type: 'on_parry' }, actionId: 'nine_deaths_strike' },
-            { condition: { type: 'on_parried' }, actionId: 'cun_mang' },
+        const actionConfigs: ActionConfig[] = [
+            { actionId: 'nine_deaths_strike' },
+            { actionId: 'cun_mang' },
+            { actionId: 'cun_mang', triggerId: 'on_dodged' },
+            { actionId: 'nine_deaths_strike', triggerId: 'on_parry' },
+            { actionId: 'cun_mang', triggerId: 'on_parried' },
         ]
 
         return simpleGenerate(
@@ -39,9 +40,9 @@ export const LAYUE: OpponentDef = {
             n >= 2 ? 'twin_swords' : 'bare_hands',
             LAYUE_ATTRS,
             rewards,
-            triggers,
             n,
             extra,
+            actionConfigs,
         )
     },
 }

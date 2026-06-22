@@ -29,6 +29,14 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
         maxUses: 1,
     },
     {
+        id: 'hp_below_50',
+        name: '半血',
+        description: 'HP 低于 50% 时触发',
+        type: 'hp_below',
+        check: (ctx) => (ctx.actor.hp / ctx.actor.maxHp) * 100 < 50,
+        maxUses: 1,
+    },
+    {
         id: 'on_dodge',
         name: '闪避时',
         description: '闪避对手攻击时触发',
@@ -111,24 +119,6 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
         name: '行动前',
         description: '行动之前触发',
         type: 'on_pre_action',
-    },
-    {
-        id: 'before_main',
-        name: '主行动前',
-        description: '主行动之前触发',
-        type: 'before_main',
-    },
-    {
-        id: 'after_main',
-        name: '主行动后',
-        description: '主行动之后触发',
-        type: 'after_main',
-    },
-    {
-        id: 'before_turn_end',
-        name: '回合结束前',
-        description: '回合结束之前触发',
-        type: 'before_turn_end',
     },
     {
         id: 'turn_end',

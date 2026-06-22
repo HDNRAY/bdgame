@@ -26,15 +26,15 @@ export const AJIU: OpponentDef = {
                 action('blaze_strike'),
                 action('guard'),
             ],
-            [
-                {
-                    condition: {
-                        type: 'hp_below',
-                        check: (ctx) => ctx.actor.hp / ctx.actor.maxHp < 0.5,
-                    },
-                    actionId: '_arm_explosion',
-                },
-            ],
             n,
+            undefined,
+            [
+                { actionId: 'spirit_sword' },
+                { actionId: 'light_slash' },
+                { actionId: 'heavy_slash' },
+                { actionId: 'blaze_strike' },
+                { actionId: 'guard' },
+                { actionId: '_arm_explosion', triggerId: 'hp_below_50' },
+            ],
         ),
 }

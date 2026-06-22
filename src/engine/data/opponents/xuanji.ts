@@ -21,12 +21,14 @@ export const XUANJI: OpponentDef = {
                 artifact('iron_will'),
                 artifact('ap_boost'),
             ],
-            [
-                { condition: { type: 'on_parry' }, actionId: 'restore_ap' },
-                { condition: { type: 'on_dodge' }, actionId: 'summon_haste' },
-                { condition: { type: 'on_hit' }, actionId: 'agility_steal' },
-            ],
             n,
+            undefined,
+            [
+                { actionId: 'qi_bolt' },
+                { actionId: 'restore_ap', triggerId: 'on_parry' },
+                { actionId: 'summon_haste', triggerId: 'on_dodge' },
+                { actionId: 'agility_steal', triggerId: 'on_hit' },
+            ],
         ),
     aiOverrides: {},
 }

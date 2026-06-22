@@ -22,8 +22,15 @@ export const SANGYUAN: OpponentDef = {
                 action('heavy_slash'),
                 action('big_leap'),
             ],
-            [{ condition: { type: 'on_dodged' }, actionId: 'light_slash' }],
             n,
+            undefined,
+            [
+                { actionId: 'spirit_sword' },
+                { actionId: 'light_slash' },
+                { actionId: 'heavy_slash' },
+                { actionId: 'big_leap' },
+                { actionId: 'light_slash', triggerId: 'on_dodged' },
+            ],
         ),
     aiOverrides: {},
 }

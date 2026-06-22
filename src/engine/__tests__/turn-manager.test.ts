@@ -10,7 +10,6 @@ function mc(id: string, name: string, attrs: Record<string, number> = {}): Chara
         weapon: 'bare_hands',
         baseAttrs: attrs,
         rewards: [],
-        triggers: [],
     })
 }
 

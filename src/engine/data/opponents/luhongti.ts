@@ -23,12 +23,16 @@ export const LUHONGTI: OpponentDef = {
                 action('sword_thrust'),
                 action('crushing_blow'),
             ],
-            [
-                { condition: { type: 'on_dodge' }, actionId: 'wrist_strike' },
-                { condition: { type: 'on_dodged' }, actionId: 'light_slash' },
-                { condition: { type: 'on_opponent_move' }, actionId: 'qi_bolt' },
-                { condition: { type: 'on_debuff' }, actionId: 'break_formation' },
-            ],
             n,
+            undefined,
+            [
+                { actionId: 'push_palm' },
+                { actionId: 'sword_thrust' },
+                { actionId: 'crushing_blow' },
+                { actionId: 'wrist_strike', triggerId: 'on_dodge' },
+                { actionId: 'light_slash', triggerId: 'on_dodged' },
+                { actionId: 'qi_bolt', triggerId: 'on_opponent_move' },
+                { actionId: 'break_formation', triggerId: 'on_debuff' },
+            ],
         ),
 }

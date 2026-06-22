@@ -121,10 +121,10 @@ export function BuildPanel({ character, accentColor = '#888' }: BuildPanelProps)
                 </div>
             )}
 
-            {character.build.triggers.length > 0 && (
+            {character.triggers.length > 0 && (
                 <div className="section">
                     <div className="section-label">触发</div>
-                    {character.build.triggers.map((slot, i) => {
+                    {character.triggers.map((slot, i) => {
                         const actionDef = slot.actionId ? getAction(slot.actionId) : undefined
                         return (
                             <div key={i} className="entity-item">

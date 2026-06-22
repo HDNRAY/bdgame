@@ -22,14 +22,15 @@ export const LUEYING: OpponentDef = {
                 action('kick'),
                 action('dart_throw'),
             ],
-            [
-                {
-                    condition: { type: 'on_dodged' },
-                    actionId: 'sand_throw',
-                },
-                { condition: { type: 'on_dodge' }, actionId: 'dart_throw' },
-                { condition: { type: 'on_parry' }, actionId: 'kick' },
-            ],
             n,
+            undefined,
+            [
+                { actionId: 'gash' },
+                { actionId: 'kick' },
+                { actionId: 'dart_throw' },
+                { actionId: 'sand_throw', triggerId: 'on_dodged' },
+                { actionId: 'dart_throw', triggerId: 'on_dodge' },
+                { actionId: 'kick', triggerId: 'on_parry' },
+            ],
         ),
 }

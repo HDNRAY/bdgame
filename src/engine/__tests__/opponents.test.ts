@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { LAYUE, OPPONENTS } from '../data/opponents/index'
 import { STAT_NAMES } from '../data/rewards'
 import { cultCost } from '../systems/cultivation'
-import { getAction } from '../data/actions'
 
 /** 从统一起点 {3,3,3,3,3,3} 到最终属性反推修炼花费 */
 function calcCultCost(attrs: Record<string, number>): number {
@@ -25,15 +24,6 @@ describe('opponents', () => {
                 // 腊月天生道种加成后目标值72（64 + 8）
                 const expected: Record<string, number> = { layue: 72 }
                 expect(cost).toBe(expected[def.id] ?? 64)
-            })
-
-            it('triggers reference valid actions', () => {
-                for (const t of build.triggers) {
-                    // _ 前缀 = 内置触发，否则需要在全局 action 注册表中有定义
-                    if (!t.actionId) continue
-                    if (t.actionId.startsWith('_')) continue
-                    expect(getAction(t.actionId)).toBeDefined()
-                }
             })
 
             it('generates a valid build', () => {

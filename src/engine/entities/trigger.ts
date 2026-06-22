@@ -21,14 +21,12 @@ export type TriggerEvent =
     | 'turn_start'
     | 'turn_end'
     | 'hp_below'
-    | 'before_main'
-    | 'after_main'
-    | 'before_turn_end'
     | 'battle_start'
     | 'on_equip'
     | 'on_crit'
     | 'on_pre_action'
     | 'chan_overflow'
+    | 'on_action_trigger'
 
 /** 触发条件上下文 */
 export interface ConditionContext {

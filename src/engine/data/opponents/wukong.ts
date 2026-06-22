@@ -29,12 +29,15 @@ export const WUKONG: OpponentDef = {
                 // action('jab'),
                 // action('kick'),
             ],
-            [
-                {
-                    condition: { type: 'on_parried' },
-                    actionId: 'rod_sweep',
-                },
-            ],
             n,
+            undefined,
+            [
+                { actionId: 'rod_thrust' },
+                { actionId: 'rod_cleave' },
+                { actionId: 'rod_sweep' },
+                { actionId: 'santou_liubi' },
+                { actionId: 'jindou' },
+                { actionId: 'rod_sweep', triggerId: 'on_parried' },
+            ],
         ),
 }

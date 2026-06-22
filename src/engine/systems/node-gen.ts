@@ -80,7 +80,6 @@ export function runNodeExploration(bgIndex: number, weaponIndex: number, n: numb
         weapon: weaponId,
         baseAttrs: finalAttrs,
         rewards,
-        triggers: [],
     }
 
     return { build, logs }

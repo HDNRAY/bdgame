@@ -434,6 +434,18 @@ export const TALENTS: Talent[] = [
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'xiu_li' }] },
             { condition: { type: 'on_dodge' }, effects: [{ type: 'add_buff', buffId: 'xuan_ji', stacks: 1 }] },
+            { condition: { type: 'on_action_trigger' }, effects: [{ type: 'add_buff', buffId: 'xuan_ji', stacks: 1 }] },
+            {
+                condition: {
+                    type: 'on_buff',
+                    buffId: 'xuan_ji',
+                    check: (ctx) => {
+                        const layer = ctx.engine?.state.pendingBuffs.get(`xuan_ji::${ctx.actor.id}`)
+                        return !!layer && layer.restoreValue >= 15
+                    },
+                },
+                effects: [{ type: 'add_buff', buffId: 'tianji_ready' }],
+            },
         ],
     },
     {
