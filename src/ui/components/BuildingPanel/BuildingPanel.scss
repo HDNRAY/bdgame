@@ -13,10 +13,12 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 20px;
+    gap: 8px;
 }
 
 .bp-back,
-.bp-save {
+.bp-save,
+.bp-reset {
     padding: 6px 16px;
     border: 1px solid #444;
     border-radius: 4px;
@@ -34,10 +36,30 @@
     color: #4ecdc4;
 }
 
+.bp-reset {
+    border-color: #e67e22;
+    color: #e67e22;
+}
+
+.bp-actions {
+    display: flex;
+    gap: 6px;
+}
+
 .bp-name {
     font-size: 18px;
     font-weight: 600;
     color: #eee;
+}
+
+.bp-error {
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background: #3a1a1a;
+    border: 1px solid #e74c3c;
+    border-radius: 4px;
+    color: #e74c3c;
+    font-size: 13px;
 }
 
 .bp-section {
@@ -172,4 +194,104 @@
     border: 1px solid #333;
     border-radius: 3px;
     cursor: pointer;
+    &:disabled {
+        opacity: 0.3;
+        cursor: default;
+    }
+}
+
+.bp-trigger-count {
+    font-size: 12px;
+    color: #888;
+    margin-left: 8px;
+    font-weight: normal;
+}
+
+/* 天赋列表 */
+.bp-talent-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.bp-talent {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    background: #1a3a1a;
+    border: 1px solid #2a5a2a;
+    color: #8f8;
+}
+
+.bp-talent-lost {
+    background: #3a1a1a;
+    border-color: #5a2a2a;
+    color: #f88;
+}
+
+.bp-talent-new {
+    background: #1a2a3a;
+    border-color: #2a4a6a;
+    color: #8cf;
+}
+
+.bp-talent-status {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.bp-talent-empty {
+    color: #666;
+    font-size: 13px;
+}
+
+/* 功法/奇物列表 */
+.bp-reward-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bp-reward-item {
+    padding: 8px;
+    background: #181828;
+    border-radius: 6px;
+    border: 1px solid #222;
+}
+
+.bp-reward-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bp-reward-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ddd;
+}
+
+.bp-reward-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.bp-tag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border: 1px solid;
+    border-radius: 3px;
+    color: #999;
+}
+
+.bp-reward-desc {
+    font-size: 12px;
+    color: #777;
+    margin-top: 4px;
+    line-height: 1.4;
 }

@@ -5,11 +5,16 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import type { CharacterBuild } from '../../../engine/entities/character-build'
 import { getOpponentDef } from '../../../engine/data/opponents/index'
+import { Character } from '../../../engine/entities/character'
+import { getPassive } from '../../../engine/data/passives'
+import { getArtifact } from '../../../engine/data/artifacts'
 import type { ActionConfig } from '../../../engine/entities/action-config'
-import { CONDITION_PRESETS } from '../../../engine/entities/action-config'
+import { CONDITION_PRESETS } from '../../../engine/data/conditions'
 import { TRIGGER_CONDITIONS } from '../../../engine/data/triggers'
 import { getAction } from '../../../engine/data/actions'
 import { ALL_ATTRS, ATTR_CN, type AttrName } from '../../../engine/entities/attributes'
+import { checkTalents } from '../../../engine/systems/talent-check'
+import { TAG_COLOR } from '../../../engine/data/tagDisplay'
 import './BuildingPanel.scss'
 
 interface BuildingPanelProps {
@@ -47,9 +52,24 @@ export function BuildingPanel({ charId: _charId, n = 33, onSave, onBack }: Build
     const [actionConfigs, setActionConfigs] = useState<ActionConfig[]>(() => {
         const existing = originalBuild.actionConfigs ?? []
         if (existing.length > 0) return existing.map((c) => ({ ...c }))
-        // 从 rewards 推导默认顺序
         return originalBuild.rewards.filter((r) => r.type === 'action').map((r) => ({ actionId: r.id }))
     })
+
+    // 通过 Character 获取触发槽上限
+    const previewChar = new Character({
+        ...originalBuild,
+        baseAttrs: attrs as Partial<Record<AttrName, number>>,
+        actionConfigs,
+    })
+    const maxTriggerSlots = previewChar.maxTriggerSlots
+    const triggerCount = actionConfigs.filter((ac) => ac.triggerId).length
+
+    // 天赋实时检测
+    const activeTalents = checkTalents(attrs)
+
+    // 提取功法/奇物/招式ID
+    const passiveIds = originalBuild.rewards.filter((r) => r.type === 'passive').map((r) => r.id)
+    const artifactIds = originalBuild.rewards.filter((r) => r.type === 'artifact').map((r) => r.id)
 
     function handleAttrAdjust(attr: string, delta: number) {
         const cur = attrs[attr] ?? 3
@@ -58,6 +78,16 @@ export function BuildingPanel({ charId: _charId, n = 33, onSave, onBack }: Build
         const cost = delta > 0 ? cultCost(cur) : -cultCost(cur - 1)
         if (remaining - cost < 0) return
         setAttrs((prev) => ({ ...prev, [attr]: next }))
+    }
+
+    function handleReset() {
+        setAttrs({ ...originalBuild.baseAttrs })
+        setActionConfigs(
+            originalBuild.actionConfigs
+                ? originalBuild.actionConfigs.map((c) => ({ ...c }))
+                : originalBuild.rewards.filter((r) => r.type === 'action').map((r) => ({ actionId: r.id })),
+        )
+        setSaveError(null)
     }
 
     function moveAction(fromIndex: number, toIndex: number) {
@@ -82,7 +112,16 @@ export function BuildingPanel({ charId: _charId, n = 33, onSave, onBack }: Build
         moveAction(from, to)
     }
 
+    const [saveError, setSaveError] = useState<string | null>(null)
+
     function handleSave() {
+        if (triggerCount > maxTriggerSlots) {
+            setSaveError(
+                `触发条件超出上限（${triggerCount}/${maxTriggerSlots}），当前配置最多 ${maxTriggerSlots} 个触发条件`,
+            )
+            return
+        }
+        setSaveError(null)
         const newBuild: CharacterBuild = {
             ...originalBuild,
             baseAttrs: attrs as Partial<Record<AttrName, number>>,
@@ -102,11 +141,18 @@ export function BuildingPanel({ charId: _charId, n = 33, onSave, onBack }: Build
                     ← 返回
                 </button>
                 <span className="bp-name">{def?.name ?? charId}</span>
-                <button className="bp-save" onClick={handleSave}>
-                    ✓ 保存
-                </button>
+                <div className="bp-actions">
+                    <button className="bp-reset" onClick={handleReset}>
+                        ↺ 复位
+                    </button>
+                    <button className="bp-save" onClick={handleSave}>
+                        ✓ 保存
+                    </button>
+                </div>
             </div>
+            {saveError && <div className="bp-error">{saveError}</div>}
 
+            {/* 属性分配 */}
             <div className="bp-section">
                 <div className="bp-section-title">
                     修炼点: 剩余 {remaining} / {totalPoints}
@@ -134,13 +180,112 @@ export function BuildingPanel({ charId: _charId, n = 33, onSave, onBack }: Build
                 })}
             </div>
 
+            {/* 天赋 */}
             <div className="bp-section">
-                <div className="bp-section-title">招式配置 (拖拽排序)</div>
+                <div className="bp-section-title">天赋</div>
+                <div className="bp-talent-list">
+                    {checkTalents(originalBuild.baseAttrs).map((t) => {
+                        const stillActive = activeTalents.some((a) => a.id === t.id)
+                        const def = getPassive(t.id)
+                        return (
+                            <div key={t.id} className={`bp-talent ${stillActive ? '' : 'bp-talent-lost'}`}>
+                                <span className="bp-talent-name">{def?.name ?? t.id}</span>
+                                {!stillActive && <span className="bp-talent-status">（已失效）</span>}
+                            </div>
+                        )
+                    })}
+                    {activeTalents
+                        .filter((t) => !originalBuild.rewards.some((r) => r.type === 'passive' && r.id === t.id))
+                        .map((t) => {
+                            const def = getPassive(t.id)
+                            return (
+                                <div key={t.id} className="bp-talent bp-talent-new">
+                                    <span className="bp-talent-name">{def?.name ?? t.id}</span>
+                                    <span className="bp-talent-status">（新激活）</span>
+                                </div>
+                            )
+                        })}
+                    {activeTalents.length === 0 && <div className="bp-talent-empty">属性达标自动解锁</div>}
+                </div>
+            </div>
+
+            {/* 功法 */}
+            {passiveIds.length > 0 && (
+                <div className="bp-section">
+                    <div className="bp-section-title">功法 ({passiveIds.length})</div>
+                    <div className="bp-reward-list">
+                        {passiveIds.map((id) => {
+                            const def = getPassive(id)
+                            if (!def) return null
+                            return (
+                                <div key={id} className="bp-reward-item">
+                                    <div className="bp-reward-name-row">
+                                        <span className="bp-reward-name">{def.name}</span>
+                                        <span className="bp-reward-tags">
+                                            {def.tags?.map((t) => (
+                                                <span
+                                                    key={t}
+                                                    className="bp-tag"
+                                                    style={{ borderColor: TAG_COLOR[t] ?? '#555' }}
+                                                >
+                                                    {t}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </div>
+                                    {def.description && <div className="bp-reward-desc">{def.description}</div>}
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* 奇物 */}
+            {artifactIds.length > 0 && (
+                <div className="bp-section">
+                    <div className="bp-section-title">奇物 ({artifactIds.length})</div>
+                    <div className="bp-reward-list">
+                        {artifactIds.map((id) => {
+                            const def = getArtifact(id)
+                            if (!def) return null
+                            return (
+                                <div key={id} className="bp-reward-item">
+                                    <div className="bp-reward-name-row">
+                                        <span className="bp-reward-name">{def.name}</span>
+                                        <span className="bp-reward-tags">
+                                            {def.tags?.map((t) => (
+                                                <span
+                                                    key={t}
+                                                    className="bp-tag"
+                                                    style={{ borderColor: TAG_COLOR[t] ?? '#555' }}
+                                                >
+                                                    {t}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </div>
+                                    {def.description && <div className="bp-reward-desc">{def.description}</div>}
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* 招式配置 */}
+            <div className="bp-section">
+                <div className="bp-section-title">
+                    招式配置 (拖拽排序)
+                    <span className="bp-trigger-count">
+                        {triggerCount}/{maxTriggerSlots} 触发
+                    </span>
+                </div>
                 <div className="bp-table-header">
                     <span className="bp-col-order">≡</span>
                     <span className="bp-col-name">招式</span>
-                    <span className="bp-col-cond">必要条件</span>
-                    <span className="bp-col-trig">触发条件</span>
+                    <span className="bp-col-cond">条件</span>
+                    <span className="bp-col-trig">触发</span>
                 </div>
                 <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd} sensors={sensors}>
                     <SortableContext
@@ -155,6 +300,7 @@ export function BuildingPanel({ charId: _charId, n = 33, onSave, onBack }: Build
                                     ac={ac}
                                     index={i}
                                     onUpdate={updateAction}
+                                    disabled={triggerCount >= maxTriggerSlots && !ac.triggerId}
                                 />
                             ))}
                         </div>
@@ -171,11 +317,13 @@ function SortableRow({
     ac,
     index,
     onUpdate,
+    disabled,
 }: {
     id: string
     ac: ActionConfig
     index: number
     onUpdate: (i: number, patch: Partial<ActionConfig>) => void
+    disabled: boolean
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -204,6 +352,7 @@ function SortableRow({
             <span className="bp-col-trig">
                 <select
                     value={ac.triggerId ?? ''}
+                    disabled={disabled}
                     onChange={(e) => onUpdate(index, { triggerId: e.target.value || undefined })}
                 >
                     <option value="">—</option>

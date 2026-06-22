@@ -12,7 +12,7 @@ export const ARTIFACTS: Artifact[] = [
             { type: 'stat_buff', attrs: { strength: 3, dexterity: 3 } },
             { type: 'stat_buff', attrs: { agility: -2 } },
         ],
-        // 自爆由 hp_below 触发器触发，无需加入招式列表
+        grantsActions: ['_arm_explosion'],
     },
     {
         id: 'hydraulic_leg',

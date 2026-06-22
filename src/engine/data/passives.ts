@@ -391,6 +391,7 @@ export const PASSIVES: Passive[] = [
         description: '夜帝亲传轻功，雁迥掠影，来去如风。',
         tags: ['passive', 'buff'],
         effects: [],
+        grantsActions: ['yan_hui', 'yan_fan'],
     },
 ]
 

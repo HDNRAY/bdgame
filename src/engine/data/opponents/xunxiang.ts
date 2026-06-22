@@ -24,8 +24,6 @@ export const XUNXIANG: OpponentDef = {
                 action('throwing_knife'),
                 action('deadly_knife'),
                 action('steal_artifact'),
-                action('yan_hui'),
-                action('yan_fan'),
             ],
             n,
             undefined,

@@ -22,7 +22,7 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
     },
     {
         id: 'hp_below_30',
-        name: '残血',
+        name: 'HP<30%',
         description: 'HP 低于 30% 时触发',
         type: 'hp_below',
         check: (ctx) => (ctx.actor.hp / ctx.actor.maxHp) * 100 < 30,
@@ -30,7 +30,7 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
     },
     {
         id: 'hp_below_50',
-        name: '半血',
+        name: 'HP<50%',
         description: 'HP 低于 50% 时触发',
         type: 'hp_below',
         check: (ctx) => (ctx.actor.hp / ctx.actor.maxHp) * 100 < 50,

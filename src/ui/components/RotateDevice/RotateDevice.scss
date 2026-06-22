@@ -1,0 +1,35 @@
+/* 竖屏窄屏时显示旋转提示（手机/Pad 竖握） */
+.rotate-overlay {
+    display: none;
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+    .rotate-overlay {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .rotate-msg {
+        color: #4ecdc4;
+        font-size: 24px;
+        letter-spacing: 4px;
+        animation: rotate-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes rotate-pulse {
+        0%,
+        100% {
+            opacity: 0.4;
+            transform: rotate(0deg);
+        }
+        50% {
+            opacity: 1;
+            transform: rotate(90deg);
+        }
+    }
+}

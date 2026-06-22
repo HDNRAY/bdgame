@@ -2,7 +2,8 @@ import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../data/weapons'
 import { getBuff } from '../data/buffs'
-import { getConditionPreset, checkCondition } from '../entities/action-config'
+import { checkCondition } from '../entities/action-config'
+import { getConditionPreset } from '../data/conditions'
 
 /** 选择辅助招式（support 标签），消耗剩余 AP */
 export function planSupportActions(

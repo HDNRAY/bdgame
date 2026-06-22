@@ -3,10 +3,12 @@ import { ModeSelect } from './ui/screens/ModeSelect'
 import { SelectionPanel } from './ui/components/SelectionPanel/SelectionPanel'
 import { BuildingPanel } from './ui/components/BuildingPanel/BuildingPanel'
 import { BattleScreen } from './ui/components/BattleScreen/BattleScreen'
+import { RotateDevice } from './ui/components/RotateDevice/RotateDevice'
 
 function App() {
     return (
         <HashRouter>
+            <RotateDevice />
             <Routes>
                 <Route path="/" element={<ModeSelect />} />
                 <Route path="/select" element={<SelectionPanel />} />
