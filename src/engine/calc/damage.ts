@@ -71,7 +71,7 @@ export function calcTurnInterval(agility: number, extraPreDelay = 0, extraStunTi
     return Math.round((base + epd + est) * agiFactor)
 }
 
-/** 召唤物回合间隔: 同人物逻辑，但用悟性代替身法，衰减更平缓 */
+/** 召唤物回合间隔: 同人物逻辑，但用推演代替身法，衰减更平缓 */
 export function calcSummonInterval(wisdom: number, extraPreDelay = 0, extraStunTime = 0): number {
     const wisFactor = 0.6 + Math.max(0, 0.4 - wisdom * 0.01)
     const base = BASE_TURN_INTERVAL
@@ -98,7 +98,7 @@ export function calcSelfDamage(maxHp: number, ratio: number): number {
 }
 
 // ── AP 回复 ──
-/** 每悟性每秒回复 AP 基数 */
+/** 每推演每秒回复 AP 基数 */
 export const AP_REGEN_BASE = 0.2
 /** 最低回复速度 (AP/s) */
 export const AP_REGEN_MIN = 2.0

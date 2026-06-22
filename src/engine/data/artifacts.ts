@@ -227,9 +227,9 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'snake_gall',
         name: '蛇胆',
-        description: '普斯曲蛇的蛇胆，强筋健骨。力道+2，悟性+2，毒抗+70%。',
+        description: '普斯曲蛇的蛇胆，强筋健骨。力道+2，根骨+2，毒抗+70%。',
         tags: ['buff'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 2, wisdom: 2 } }],
+        effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'poison_resist' }] }],
     },
     {

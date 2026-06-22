@@ -160,7 +160,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'inner_power',
         name: '归元劲',
-        description: '内力深厚，悟性反哺四维。每点悟性提升全属性。',
+        description: '内力深厚，。每点推演提升全属性。',
         tags: ['passive', 'buff'],
         effects: [{ type: 'wisdom_stat_buff', ratio: 0.1, attrs: ['strength', 'vitality', 'agility', 'dexterity'] }],
     },
@@ -243,7 +243,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'qiti_source',
         name: '炁体源流',
-        description: '八奇技之一，濒危时炁体护体吸收炁伤害，并将悟性转化为力量、身法和灵巧。',
+        description: '八奇技之一，濒危时炁体护体吸收炁伤害，并将炁转化为力量、身法和灵巧。',
         tags: ['passive', 'buff', 'qi'],
         requireAttrsMin: { wisdom: 16 },
         triggers: [
@@ -313,9 +313,8 @@ export const PASSIVES: Passive[] = [
     {
         id: 'tide_inner_power',
         name: '潮汐内力',
-        description: '内力如潮汐般涨落，每回合交替以力道或身法驱动招式。悟性+2。',
+        description: '内力如潮汐般涨落，每回合交替以力道或身法驱动招式。',
         tags: ['passive', 'buff', 'qi'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 2 } }],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tide_power', stacks: 0 }] },
         ],

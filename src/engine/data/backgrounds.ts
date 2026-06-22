@@ -24,7 +24,7 @@ export const BACKGROUNDS: Background[] = [
     {
         id: 'wise',
         name: '玄门',
-        desc: '悟性通玄，御物于心',
+        desc: '推演通玄，御物于心',
     },
 ]
 
