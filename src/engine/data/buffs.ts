@@ -402,7 +402,7 @@ export const DEBUFF_DB: BuffDef[] = [
             const dexBonus = target.attrs.get('dexterity') * 0.01
             return Math.round(final * (1 - dexBonus) * 10) / 10
         },
-        onCanParry: ({ self }) => !self.weaponDef?.tags.includes('parry'),
+        onCanParry: () => true,
     },
     {
         id: 'silk_guard',
@@ -410,7 +410,7 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '金丝手套护持，无刃亦可格挡兵刃。',
         tags: [],
         expiry: { type: 'permanent' },
-        onCanParry: ({ self }) => !self.weaponDef?.tags.includes('parry'),
+        onCanParry: () => true,
     },
 
     // ── 永久修饰（构造期执行） ──
