@@ -7,13 +7,15 @@ import { BuildPanel } from './ui/components/BuildPanel/BuildPanel'
 import { BattlePanel } from './ui/components/BattlePanel/BattlePanel'
 import { ReplayPanel } from './ui/components/ReplayPanel/ReplayPanel'
 import { SelectionPanel } from './ui/components/SelectionPanel/SelectionPanel'
+import { BuildingPanel } from './ui/components/BuildingPanel/BuildingPanel'
+import { ModeSelect } from './ui/screens/ModeSelect'
 import type { CharacterBuild } from './engine/entities/character-build'
 import './App.scss'
 
-type Screen = 'select' | 'battle'
+type Screen = 'menu' | 'select' | 'build' | 'battle'
 
 function App() {
-    const [screen, setScreen] = useState<Screen>('select')
+    const [screen, setScreen] = useState<Screen>('menu')
     const [battleKey, setBattleKey] = useState(0)
     const [battleData, setBattleData] = useState<{
         log: string[]
@@ -24,6 +26,7 @@ function App() {
     } | null>(null)
     const [currentSnapshot, setCurrentSnapshot] = useState<BattleSnapshot | null>(null)
     const lastBuilds = useRef<{ a: CharacterBuild; b: CharacterBuild } | null>(null)
+    const [buildCharId, setBuildCharId] = useState<string | null>(null)
 
     const runOneBattle = useCallback((buildA: CharacterBuild, buildB: CharacterBuild) => {
         const a = new Character(buildA)
@@ -65,6 +68,16 @@ function App() {
         setScreen('select')
     }, [])
 
+    const handleBuild = useCallback((charId: string) => {
+        setBuildCharId(charId)
+        setScreen('build')
+    }, [])
+
+    const handleBuildSave = useCallback((_build: CharacterBuild) => {
+        // 暂不持久化
+        setScreen('select')
+    }, [])
+
     // Hooks 必须无条件调用（不能在 return 之后）
     const chars = battleData?.chars
     const charAInfo = useMemo(
@@ -76,8 +89,16 @@ function App() {
         [chars],
     )
 
+    if (screen === 'menu') {
+        return <ModeSelect onSelectMode={() => setScreen('select')} />
+    }
+
+    if (screen === 'build' && buildCharId) {
+        return <BuildingPanel charId={buildCharId} onSave={handleBuildSave} onBack={() => setScreen('select')} />
+    }
+
     if (screen === 'select') {
-        return <SelectionPanel onStart={handleStart} />
+        return <SelectionPanel onStart={handleStart} onBuild={handleBuild} />
     }
 
     if (!battleData || !charAInfo || !charBInfo) return null

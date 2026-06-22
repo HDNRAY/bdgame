@@ -1,0 +1,175 @@
+.building-panel {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px;
+    color: #ccc;
+    height: 100vh;
+    overflow-y: auto;
+    background: #0d0d1a;
+}
+
+.bp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.bp-back,
+.bp-save {
+    padding: 6px 16px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #1a1a2e;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 14px;
+    &:hover {
+        background: #2a2a3e;
+    }
+}
+
+.bp-save {
+    border-color: #4ecdc4;
+    color: #4ecdc4;
+}
+
+.bp-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #eee;
+}
+
+.bp-section {
+    margin-bottom: 24px;
+    padding: 12px;
+    background: #12121f;
+    border-radius: 8px;
+}
+
+.bp-section-title {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 10px;
+}
+
+.bp-attr-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.bp-attr-name {
+    width: 40px;
+    font-size: 13px;
+    color: #999;
+}
+
+.bp-attr-val {
+    width: 24px;
+    text-align: right;
+    font-size: 15px;
+    font-weight: 600;
+    color: #eee;
+}
+
+.bp-btn {
+    width: 28px;
+    height: 24px;
+    border: 1px solid #444;
+    border-radius: 3px;
+    background: #1a1a2e;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &:disabled {
+        opacity: 0.3;
+        cursor: default;
+    }
+    &:hover:not(:disabled) {
+        background: #2a2a3e;
+    }
+}
+
+.bp-attr-cost {
+    font-size: 11px;
+    color: #666;
+    margin-left: 4px;
+}
+
+.bp-table-header,
+.bp-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 120px 120px;
+    gap: 6px;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 13px;
+}
+
+.bp-table-header {
+    color: #666;
+    border-bottom: 1px solid #222;
+    padding-bottom: 6px;
+    margin-bottom: 2px;
+}
+
+.bp-row {
+    border-bottom: 1px solid #1a1a2a;
+}
+
+.bp-col-order {
+    display: flex;
+    gap: 2px;
+}
+
+.bp-arrow {
+    background: none;
+    border: 1px solid #333;
+    border-radius: 2px;
+    color: #888;
+    cursor: pointer;
+    font-size: 10px;
+    padding: 1px 4px;
+    line-height: 1;
+    &:disabled {
+        opacity: 0.2;
+        cursor: default;
+    }
+    &:hover:not(:disabled) {
+        color: #4ecdc4;
+        border-color: #4ecdc4;
+    }
+}
+
+.bp-drag-handle {
+    cursor: grab;
+    color: #555;
+    font-size: 16px;
+    line-height: 1;
+    user-select: none;
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.bp-col-name {
+    color: #ddd;
+    font-size: 13px;
+}
+
+.bp-col-cond select,
+.bp-col-trig select {
+    width: 100%;
+    padding: 2px 4px;
+    font-size: 12px;
+    background: #1a1a2e;
+    color: #bbb;
+    border: 1px solid #333;
+    border-radius: 3px;
+    cursor: pointer;
+}

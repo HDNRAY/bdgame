@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { checkCondition, getConditionPreset, describeCondition, CONDITION_PRESETS } from '../entities/action-config'
 import { Character } from '../entities/character'
+import { PositionSystem } from '../combat/position'
+import { BattleLog } from '../combat/battle-log'
+import { TurnManager } from '../combat/turn'
+import type { BattleState } from '../combat/types'
 
 function makeChar(attrs: Record<string, number> = {}): Character {
     return new Character({
@@ -13,7 +17,7 @@ function makeChar(attrs: Record<string, number> = {}): Character {
     })
 }
 
-function makeState(char: Character): any {
+function makeState(char: Character): BattleState {
     const enemy = new Character({
         id: 'enemy',
         name: '敌人',
@@ -22,10 +26,24 @@ function makeState(char: Character): any {
         baseAttrs: { strength: 10, vitality: 10, agility: 10, dexterity: 10, insight: 10, wisdom: 10 },
         rewards: [],
     })
+    const tm = new TurnManager()
     return {
-        characters: [char, enemy],
-        position: { distance: () => 3 },
+        phase: 'fighting',
+        characters: [char, enemy] as [Character, Character],
+        position: new PositionSystem(char.id, -3, enemy.id, 3),
+        turn: tm,
+        log: new BattleLog(),
+        eventActorId: null,
+        eventTime: 0,
+        triggerUses: new Map(),
         pendingBuffs: new Map(),
+        actionCount: 0,
+        lastActionExtraDelay: 0,
+        lastActionExtraStun: 0,
+        actionTimeOffset: 0,
+        isEmitting: false,
+        moveDelta: 0,
+        triggeredThisChain: null,
     }
 }
 
@@ -37,17 +55,15 @@ describe('getConditionPreset', () => {
     })
 
     it('returns hp_below_50 preset', () => {
-        const c = getConditionPreset('hp_below_50')
-        expect(c).toBeDefined()
-        expect(c!.type).toBe('hp_below')
-        expect((c! as any).ratio).toBe(0.5)
+        const c = getConditionPreset('hp_below_50')!
+        expect(c.type).toBe('hp_below')
+        if (c.type === 'hp_below') expect(c.ratio).toBe(0.5)
     })
 
     it('returns distance_gt_3 preset', () => {
-        const c = getConditionPreset('distance_gt_3')
-        expect(c).toBeDefined()
-        expect(c!.type).toBe('distance_greater_than')
-        expect((c! as any).meters).toBe(3)
+        const c = getConditionPreset('distance_gt_3')!
+        expect(c.type).toBe('distance_greater_than')
+        if (c.type === 'distance_greater_than') expect(c.meters).toBe(3)
     })
 
     it('returns undefined for unknown preset', () => {
@@ -109,7 +125,7 @@ describe('checkCondition', () => {
     it('enemy_hp_below: true when enemy HP is low', () => {
         const char = makeChar()
         const state = makeState(char)
-        const enemy = state.characters.find((c: any) => c.id !== char.id)!
+        const enemy = state.characters.find((c) => c.id !== char.id)!
         enemy.hp = 20
         expect(checkCondition({ type: 'enemy_hp_below', ratio: 0.5 }, char, state)).toBe(true)
     })
@@ -117,7 +133,7 @@ describe('checkCondition', () => {
     it('enemy_hp_above: false when enemy HP is low', () => {
         const char = makeChar()
         const state = makeState(char)
-        const enemy = state.characters.find((c: any) => c.id !== char.id)!
+        const enemy = state.characters.find((c) => c.id !== char.id)!
         enemy.hp = 20
         expect(checkCondition({ type: 'enemy_hp_above', ratio: 0.5 }, char, state)).toBe(false)
     })
@@ -125,13 +141,13 @@ describe('checkCondition', () => {
     it('distance_less_than: true when close', () => {
         const char = makeChar()
         const state = makeState(char)
-        expect(checkCondition({ type: 'distance_less_than', meters: 5 }, char, state)).toBe(true)
+        expect(checkCondition({ type: 'distance_less_than', meters: 10 }, char, state)).toBe(true)
     })
 
     it('distance_greater_than: false when close', () => {
         const char = makeChar()
         const state = makeState(char)
-        expect(checkCondition({ type: 'distance_greater_than', meters: 5 }, char, state)).toBe(false)
+        expect(checkCondition({ type: 'distance_greater_than', meters: 10 }, char, state)).toBe(false)
     })
 
     it('debuff_not_active: true when no debuff', () => {
@@ -143,7 +159,7 @@ describe('checkCondition', () => {
     it('debuff_not_active: false when debuff exists', () => {
         const char = makeChar()
         const state = makeState(char)
-        const enemy = state.characters.find((c: any) => c.id !== char.id)!
+        const enemy = state.characters.find((c) => c.id !== char.id)!
         state.pendingBuffs.set(`stun::${enemy.id}`, { restoreValue: 1 })
         expect(checkCondition({ type: 'debuff_not_active', buffId: 'stun' }, char, state)).toBe(false)
     })

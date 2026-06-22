@@ -10,6 +10,7 @@ import './SelectionPanel.scss'
 
 interface SelectionPanelProps {
     onStart: (buildA: CharacterBuild, buildB: CharacterBuild) => void
+    onBuild?: (charId: string) => void
 }
 
 const GRID_COLORS = [
@@ -26,7 +27,7 @@ const GRID_COLORS = [
     '#3498db',
 ]
 
-export function SelectionPanel({ onStart }: SelectionPanelProps) {
+export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
     const [selectedA, setSelectedA] = useState<OpponentDef | null>(null)
     const [selectedB, setSelectedB] = useState<OpponentDef | null>(null)
     const [simResult, setSimResult] = useState<{ aRate: number; bRate: number } | null>(null)
@@ -118,6 +119,17 @@ export function SelectionPanel({ onStart }: SelectionPanelProps) {
                                 <WeaponIconSprite weaponId={opp.generate(33).weapon} />
                             </div>
                             <span className="card-name">{opp.name}</span>
+                            {onBuild && (
+                                <span
+                                    className="card-build-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        onBuild(opp.id)
+                                    }}
+                                >
+                                    备战
+                                </span>
+                            )}
                         </button>
                     ))}
                 </div>
