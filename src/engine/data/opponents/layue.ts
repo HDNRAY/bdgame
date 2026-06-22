@@ -27,8 +27,6 @@ export const LAYUE: OpponentDef = {
 
         const actionConfigs: ActionConfig[] = [
             { actionId: 'nine_deaths_strike' },
-            { actionId: 'cun_mang' },
-            { actionId: 'cun_mang', triggerId: 'on_dodged' },
             { actionId: 'nine_deaths_strike', triggerId: 'on_parry' },
             { actionId: 'cun_mang', triggerId: 'on_parried' },
         ]

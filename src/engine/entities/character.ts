@@ -95,6 +95,25 @@ export class Character {
             else if (r.type === 'action') gainedActions.push(r.id)
         }
 
+        // 2a. 检查重复奖励（功法/奇物/招式）
+        const checkDup = (items: string[], label: string): void => {
+            const seen = new Set<string>()
+            const dups: string[] = []
+            for (const id of items) {
+                if (seen.has(id)) dups.push(id)
+                seen.add(id)
+            }
+            if (dups.length > 0) {
+                throw new Error(
+                    `[${build.name}] 发现重复${label}: ${[...new Set(dups)].join(', ')}。` +
+                        `请检查奖励列表，每个${label}最多出现一次。`,
+                )
+            }
+        }
+        checkDup(gainedPassives, '功法')
+        checkDup(gainedArtifacts, '奇物')
+        checkDup(gainedActions, '招式')
+
         // 3. 解析被动/奇物 ID → 定义
         this.passiveDefs = gainedPassives.map((id) => getPassive(id)).filter((p): p is Passive => p !== undefined)
         this.artifactDefs = gainedArtifacts.map((id) => getArtifact(id)).filter((a): a is Artifact => a !== undefined)

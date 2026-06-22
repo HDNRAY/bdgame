@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -12,10 +13,10 @@ import { ALL_ATTRS, ATTR_CN, type AttrName } from '../../../engine/entities/attr
 import './BuildingPanel.scss'
 
 interface BuildingPanelProps {
-    charId: string
+    charId?: string
     n?: number
-    onSave: (build: CharacterBuild) => void
-    onBack: () => void
+    onSave?: (build: CharacterBuild) => void
+    onBack?: () => void
 }
 
 function cultCost(value: number): number {
@@ -24,7 +25,10 @@ function cultCost(value: number): number {
     return 1
 }
 
-export function BuildingPanel({ charId, n = 33, onSave, onBack }: BuildingPanelProps) {
+export function BuildingPanel({ charId: _charId, n = 33, onSave, onBack }: BuildingPanelProps) {
+    const paramsCharId = useParams<{ charId: string }>().charId
+    const navigate = useNavigate()
+    const charId = _charId ?? paramsCharId ?? ''
     const def = getOpponentDef(charId)
     const originalBuild = def!.generate(n)
 
@@ -84,13 +88,17 @@ export function BuildingPanel({ charId, n = 33, onSave, onBack }: BuildingPanelP
             baseAttrs: attrs as Partial<Record<AttrName, number>>,
             actionConfigs,
         }
-        onSave(newBuild)
+        if (onSave) {
+            onSave(newBuild)
+        } else {
+            navigate('/select')
+        }
     }
 
     return (
         <div className="building-panel">
             <div className="bp-header">
-                <button className="bp-back" onClick={onBack}>
+                <button className="bp-back" onClick={onBack ?? (() => navigate('/select'))}>
                     ← 返回
                 </button>
                 <span className="bp-name">{def?.name ?? charId}</span>

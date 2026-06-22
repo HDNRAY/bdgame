@@ -31,7 +31,6 @@ export const LAIFENG: OpponentDef = {
                 { actionId: 'qi_gather' },
                 { actionId: 'straight_punch' },
                 { actionId: 'iron_charge' },
-                { actionId: 'qi_bolt' },
                 { actionId: 'eighteen_palms' },
                 { actionId: 'qi_bolt', triggerId: 'on_opponent_move' },
                 { actionId: 'qinlong_gong', triggerId: 'on_dodge' },

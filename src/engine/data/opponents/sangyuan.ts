@@ -26,7 +26,6 @@ export const SANGYUAN: OpponentDef = {
             undefined,
             [
                 { actionId: 'spirit_sword' },
-                { actionId: 'light_slash' },
                 { actionId: 'heavy_slash' },
                 { actionId: 'big_leap' },
                 { actionId: 'light_slash', triggerId: 'on_dodged' },

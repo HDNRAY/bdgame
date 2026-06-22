@@ -1,15 +1,18 @@
 import { useRef, useEffect, useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { OPPONENTS } from '../../../engine/data/opponents/index'
 import type { OpponentDef } from '../../../engine/data/opponents/index'
 import type { CharacterBuild } from '../../../engine/entities/character-build'
 import { Character } from '../../../engine/entities/character'
 import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../../pixel-sprites'
-import { simulateWinRate } from '../../../engine/battle-runner'
+import { simulateWinRate, runBattle } from '../../../engine/battle-runner'
+import { formatBattleLog } from '../../../engine/format-log'
 import { BuildPanel } from '../BuildPanel/BuildPanel'
+import { useAppStore } from '../../stores/app-store'
 import './SelectionPanel.scss'
 
 interface SelectionPanelProps {
-    onStart: (buildA: CharacterBuild, buildB: CharacterBuild) => void
+    onStart?: (buildA: CharacterBuild, buildB: CharacterBuild) => void
     onBuild?: (charId: string) => void
 }
 
@@ -28,6 +31,8 @@ const GRID_COLORS = [
 ]
 
 export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
+    const navigate = useNavigate()
+    const setLastBuilds = useAppStore((s) => s.setLastBuilds)
     const [selectedA, setSelectedA] = useState<OpponentDef | null>(null)
     const [selectedB, setSelectedB] = useState<OpponentDef | null>(null)
     const [simResult, setSimResult] = useState<{ aRate: number; bRate: number } | null>(null)
@@ -50,7 +55,29 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
 
     const handleStart = () => {
         if (!selectedA || !selectedB) return
-        onStart(selectedA.generate(33), selectedB.generate(33))
+        const buildA = selectedA.generate(33)
+        const buildB = selectedB.generate(33)
+        if (onStart) {
+            onStart(buildA, buildB)
+            return
+        }
+        // 默认行为：通过 store 启动战斗
+        const a = new Character(buildA)
+        const b = new Character(buildB)
+        const { engine } = runBattle(a, b, undefined, 6)
+        const snapshots = engine.state.log.getAll().map((e) => e.event.snapshot)
+        const { lines: log, eventToLine } = formatBattleLog(engine.state.log)
+        useAppStore.getState().setBattleData({
+            log,
+            chars: { a: engine.state.characters[0], b: engine.state.characters[1] },
+            entries: engine.state.log.getAll(),
+            snapshots,
+            eventToLine,
+        })
+        useAppStore.getState().setCurrentSnapshot(snapshots[0] ?? null)
+        useAppStore.getState().incrementBattleKey()
+        setLastBuilds({ a: buildA, b: buildB })
+        navigate('/battle')
     }
 
     // 选中角色的 Character 实例（用于 BuildPanel）
@@ -119,12 +146,22 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
                                 <WeaponIconSprite weaponId={opp.generate(33).weapon} />
                             </div>
                             <span className="card-name">{opp.name}</span>
-                            {onBuild && (
+                            {onBuild ? (
                                 <span
                                     className="card-build-btn"
                                     onClick={(e) => {
                                         e.stopPropagation()
                                         onBuild(opp.id)
+                                    }}
+                                >
+                                    备战
+                                </span>
+                            ) : (
+                                <span
+                                    className="card-build-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigate(`/build/${opp.id}`)
                                     }}
                                 >
                                     备战

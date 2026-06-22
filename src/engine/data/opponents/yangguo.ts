@@ -29,7 +29,6 @@ export const YANGGUO: OpponentDef = {
             [
                 { actionId: 'desolate_palm' },
                 { actionId: 'quanzhen_sword' },
-                { actionId: 'yunv_sword' },
                 { actionId: 'flick', triggerId: 'on_dodge' },
                 { actionId: 'yunv_sword', triggerId: 'on_parry' },
             ],

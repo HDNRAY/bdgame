@@ -1,132 +1,19 @@
-import { useState, useMemo, useCallback, useRef } from 'react'
-import { Character } from './engine/entities/character'
-import { runBattle } from './engine/battle-runner'
-import { formatBattleLog } from './engine/format-log'
-import type { BattleSnapshot } from './engine/combat/types'
-import { BuildPanel } from './ui/components/BuildPanel/BuildPanel'
-import { BattlePanel } from './ui/components/BattlePanel/BattlePanel'
-import { ReplayPanel } from './ui/components/ReplayPanel/ReplayPanel'
+import { HashRouter, Routes, Route } from 'react-router-dom'
+import { ModeSelect } from './ui/screens/ModeSelect'
 import { SelectionPanel } from './ui/components/SelectionPanel/SelectionPanel'
 import { BuildingPanel } from './ui/components/BuildingPanel/BuildingPanel'
-import { ModeSelect } from './ui/screens/ModeSelect'
-import type { CharacterBuild } from './engine/entities/character-build'
-import './App.scss'
-
-type Screen = 'menu' | 'select' | 'build' | 'battle'
+import { BattleScreen } from './ui/components/BattleScreen/BattleScreen'
 
 function App() {
-    const [screen, setScreen] = useState<Screen>('menu')
-    const [battleKey, setBattleKey] = useState(0)
-    const [battleData, setBattleData] = useState<{
-        log: string[]
-        eventToLine: number[]
-        chars: { a: Character; b: Character }
-        entries: unknown[]
-        snapshots: BattleSnapshot[]
-    } | null>(null)
-    const [currentSnapshot, setCurrentSnapshot] = useState<BattleSnapshot | null>(null)
-    const lastBuilds = useRef<{ a: CharacterBuild; b: CharacterBuild } | null>(null)
-    const [buildCharId, setBuildCharId] = useState<string | null>(null)
-
-    const runOneBattle = useCallback((buildA: CharacterBuild, buildB: CharacterBuild) => {
-        const a = new Character(buildA)
-        const b = new Character(buildB)
-        const { engine } = runBattle(a, b, undefined, 6)
-        const snapshots = engine.state.log.getAll().map((e) => e.event.snapshot)
-        const { lines: log, eventToLine } = formatBattleLog(engine.state.log)
-        setBattleData({
-            log,
-            chars: { a: engine.state.characters[0], b: engine.state.characters[1] },
-            entries: engine.state.log.getAll(),
-            snapshots,
-            eventToLine,
-        })
-        setCurrentSnapshot(snapshots[0] ?? null)
-        setBattleKey((k) => k + 1)
-        setScreen('battle')
-    }, [])
-
-    const handleStart = useCallback(
-        (buildA: CharacterBuild, buildB: CharacterBuild) => {
-            lastBuilds.current = { a: buildA, b: buildB }
-            runOneBattle(buildA, buildB)
-        },
-        [runOneBattle],
-    )
-
-    const handleRefight = useCallback(() => {
-        const builds = lastBuilds.current
-        if (!builds) return
-        runOneBattle(builds.a, builds.b)
-    }, [runOneBattle])
-
-    const handleFrame = useCallback((snapshot: BattleSnapshot) => {
-        setCurrentSnapshot(snapshot)
-    }, [])
-
-    const handleBack = useCallback(() => {
-        setScreen('select')
-    }, [])
-
-    const handleBuild = useCallback((charId: string) => {
-        setBuildCharId(charId)
-        setScreen('build')
-    }, [])
-
-    const handleBuildSave = useCallback((_build: CharacterBuild) => {
-        // 暂不持久化
-        setScreen('select')
-    }, [])
-
-    // Hooks 必须无条件调用（不能在 return 之后）
-    const chars = battleData?.chars
-    const charAInfo = useMemo(
-        () => (chars ? { id: chars.a.id, name: chars.a.name, color: '#4ecdc4' as const } : null),
-        [chars],
-    )
-    const charBInfo = useMemo(
-        () => (chars ? { id: chars.b.id, name: chars.b.name, color: '#ff6b6b' as const } : null),
-        [chars],
-    )
-
-    if (screen === 'menu') {
-        return <ModeSelect onSelectMode={() => setScreen('select')} />
-    }
-
-    if (screen === 'build' && buildCharId) {
-        return <BuildingPanel charId={buildCharId} onSave={handleBuildSave} onBack={() => setScreen('select')} />
-    }
-
-    if (screen === 'select') {
-        return <SelectionPanel onStart={handleStart} onBuild={handleBuild} />
-    }
-
-    if (!battleData || !charAInfo || !charBInfo) return null
-
-    const { log, eventToLine, entries, snapshots } = battleData
-    const { a: charA, b: charB } = battleData.chars
-    const snap = currentSnapshot ?? snapshots[0]
-
     return (
-        <div className="app-root">
-            <BuildPanel character={charA} accentColor={charAInfo.color} />
-            <div className="app-center">
-                <ReplayPanel
-                    key={battleKey}
-                    entries={entries as never[]}
-                    charA={charAInfo}
-                    charB={charBInfo}
-                    logLines={log}
-                    eventToLine={eventToLine}
-                    snapshots={snapshots}
-                    onFrame={handleFrame}
-                    onRefight={handleRefight}
-                    onBack={handleBack}
-                />
-                {snap && <BattlePanel snapshot={snap} charAName={charA.name} charBName={charB.name} />}
-            </div>
-            <BuildPanel character={charB} accentColor={charBInfo.color} />
-        </div>
+        <HashRouter>
+            <Routes>
+                <Route path="/" element={<ModeSelect />} />
+                <Route path="/select" element={<SelectionPanel />} />
+                <Route path="/build/:charId" element={<BuildingPanel />} />
+                <Route path="/battle" element={<BattleScreen />} />
+            </Routes>
+        </HashRouter>
     )
 }
 
