@@ -343,6 +343,7 @@ export const DEBUFF_DB: BuffDef[] = [
 
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
+    { id: 'steal_artifact_track', name: '盗亦有道', description: '飞龙探云手的成功率追踪。', tags: [] },
 
     // ── 战斗状态 ──
     {

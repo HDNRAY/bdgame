@@ -76,6 +76,8 @@ export interface CharacterSnapshot {
     pos: number
     weapon: string
     spriteId: string
+    attrs: Record<string, number>
+    baseAttrs: Record<string, number>
     buffs: ActiveBuffSnapshot[]
 }
 

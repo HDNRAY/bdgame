@@ -3,7 +3,6 @@ import { type Character } from '../../../engine/entities/character'
 import { getAction } from '../../../engine/data/actions'
 import { getWeapon } from '../../../engine/data/weapons'
 import type { AttrName } from '../../../engine/entities/attributes'
-import { ATTR_CN } from '../../../engine/entities/attributes'
 import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../../../ui/pixel-sprites'
 import { Tooltip } from '../ui/Tooltip/Tooltip'
 import { ActionItem } from '../ui/ActionItem/ActionItem'
@@ -13,6 +12,7 @@ import { WeaponItem } from '../ui/WeaponItem/WeaponItem'
 import { TriggerLabel } from '../ui/TriggerLabel/TriggerLabel'
 import { ActionTooltip } from '../tooltip-contents/ActionTooltip'
 import { StatTooltip } from '../tooltip-contents/StatTooltip'
+import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
 import './BuildPanel.scss'
 
 interface BuildPanelProps {
@@ -86,16 +86,9 @@ export function BuildPanel({ character, accentColor = '#888' }: BuildPanelProps)
                 <div className="section-label">属性</div>
                 {ATTR_ORDER.map((attr) => {
                     const val = Math.round(a.get(attr))
-                    const pct = Math.min(100, (val / 30) * 100)
                     return (
                         <Tooltip key={attr} content={<StatTooltip attr={attr} value={val} />}>
-                            <div className="stat-row">
-                                <span className="stat-label">{ATTR_CN[attr]}</span>
-                                <span className="stat-val">{val}</span>
-                                <span className="stat-bar">
-                                    <span className="stat-fill" style={{ width: `${pct}%` }} />
-                                </span>
-                            </div>
+                            <AttributeLabel attr={attr} value={val} />
                         </Tooltip>
                     )
                 })}

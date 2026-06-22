@@ -92,6 +92,16 @@
         gap: 3px;
     }
 
+    .attrs-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-top: 4px;
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #2a2a3e;
+    }
+
     .buff-tag {
         display: inline-block;
         background: #1a2e1a;

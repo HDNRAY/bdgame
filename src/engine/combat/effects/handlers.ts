@@ -820,7 +820,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             const names = copiedIds.map((id) => getPassive(id)?.name ?? id).join('、')
             engine.emitLog({
                 type: 'system',
-                message: `[小无相功] ${self.name} 窥破破绽，复制了「${names}」`,
+                message: `[斗转星移] ${self.name} 窥破破绽，复制了「${names}」`,
                 actorId: self.id,
             })
         }

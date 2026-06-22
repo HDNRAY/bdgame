@@ -1,6 +1,10 @@
 import type { BattleSnapshot } from '../../../engine/combat/types'
 import { getBuff } from '../../../engine/data/buffs'
+import { ALL_ATTRS } from '../../../engine/entities/attributes'
+import { MAX_CHAN } from '../../../engine/constants'
 import { Tooltip } from '../ui/Tooltip/Tooltip'
+import { StatTooltip } from '../tooltip-contents/StatTooltip'
+import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
 import './BattlePanel.scss'
 
 interface BattlePanelProps {
@@ -55,15 +59,30 @@ export function BattlePanel({ snapshot, charAName, charBName }: BattlePanelProps
                             {/* 缠条 */}
                             <>
                                 <div className="hp-text">
-                                    <span className="chan-label">缠</span> {c.chan}/30
+                                    <span className="chan-label">缠</span> {c.chan}/{MAX_CHAN}
                                 </div>
                                 <div className="bar-bg">
                                     <div
                                         className="bar-fill bar-chan"
-                                        style={{ width: `${Math.min(100, (c.chan / 30) * 100)}%` }}
+                                        style={{ width: `${Math.min(100, (c.chan / MAX_CHAN) * 100)}%` }}
                                     />
                                 </div>
                             </>
+                            <div className="attrs-grid">
+                                {ALL_ATTRS.map((attr) => (
+                                    <Tooltip
+                                        key={attr}
+                                        content={<StatTooltip attr={attr} value={c.attrs[attr] ?? 0} />}
+                                    >
+                                        <AttributeLabel
+                                            attr={attr}
+                                            value={c.attrs[attr] ?? 0}
+                                            baseValue={c.baseAttrs?.[attr] ?? 0}
+                                            compact
+                                        />
+                                    </Tooltip>
+                                ))}
+                            </div>
                             <div className="buffs-grid">
                                 {c.buffs.map((b) => {
                                     const def = getBuff(b.buffId)

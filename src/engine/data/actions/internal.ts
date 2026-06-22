@@ -152,7 +152,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
     },
     {
         id: '_xiaowuxiang_copy',
-        name: '小无相功',
+        name: '斗转星移',
         description: '',
         requiredTags: [],
         apCost: 0,

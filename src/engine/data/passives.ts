@@ -438,7 +438,7 @@ export const TALENTS: Talent[] = [
     },
     {
         id: 'xiaowuxiang',
-        name: '小无相功',
+        name: '斗转星移',
         description: '洞察入微，以彼之道还施彼身。缠劲满溢时窥破对手功法破绽，复制其最契合自身武道的功法。',
         tags: ['talent', 'buff'],
         requireAttrsMin: { insight: 20 },
