@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-    checkCondition,
-    getConditionPreset,
-    describeCondition,
-    CONDITION_PRESETS,
-} from '../entities/action-config'
+import { checkCondition, getConditionPreset, describeCondition, CONDITION_PRESETS } from '../entities/action-config'
 import { Character } from '../entities/character'
 
 function makeChar(attrs: Record<string, number> = {}): Character {

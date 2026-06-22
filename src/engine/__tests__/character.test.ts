@@ -77,11 +77,13 @@ describe('Character', () => {
     })
 
     it('should order actions by actionConfigs', () => {
-        const c = mc('test_order', '排序测试', { wisdom: 10 }, ['thrust', 'jab', 'straight_punch', 'crushing_blow'], [
-            { actionId: 'straight_punch' },
-            { actionId: 'thrust' },
-            { actionId: 'jab' },
-        ])
+        const c = mc(
+            'test_order',
+            '排序测试',
+            { wisdom: 10 },
+            ['thrust', 'jab', 'straight_punch', 'crushing_blow'],
+            [{ actionId: 'straight_punch' }, { actionId: 'thrust' }, { actionId: 'jab' }],
+        )
         expect(c.actions.length).toBeGreaterThanOrEqual(3)
         const ids = c.actions.map((a) => a.id)
         // straight_punch first, thrust second, jab third (others at end)
@@ -90,10 +92,13 @@ describe('Character', () => {
     })
 
     it('should build triggers from actionConfigs', () => {
-        const c = mc('test_trig', '触发测试', { wisdom: 20 }, ['thrust', 'jab'], [
-            { actionId: 'thrust' },
-            { actionId: 'jab', triggerId: 'on_dodge' },
-        ])
+        const c = mc(
+            'test_trig',
+            '触发测试',
+            { wisdom: 20 },
+            ['thrust', 'jab'],
+            [{ actionId: 'thrust' }, { actionId: 'jab', triggerId: 'on_dodge' }],
+        )
         const trigs = c.triggers
         const jabTrig = trigs.find((t) => t.actionId === 'jab')
         expect(jabTrig).toBeDefined()
@@ -101,19 +106,25 @@ describe('Character', () => {
     })
 
     it('should limit triggers by wisdom', () => {
-        const c = mc('test_lim', '槽位限制', { wisdom: 4 }, ['thrust', 'jab', 'straight_punch'], [
-            { actionId: 'thrust', triggerId: 'on_dodge' },
-            { actionId: 'jab', triggerId: 'on_parry' },
-            { actionId: 'straight_punch', triggerId: 'on_hit' },
-        ])
+        const c = mc(
+            'test_lim',
+            '槽位限制',
+            { wisdom: 4 },
+            ['thrust', 'jab', 'straight_punch'],
+            [
+                { actionId: 'thrust', triggerId: 'on_dodge' },
+                { actionId: 'jab', triggerId: 'on_parry' },
+                { actionId: 'straight_punch', triggerId: 'on_hit' },
+            ],
+        )
         // wisdom 4 → floor(4/4)=1 slot
-        expect(c.triggers.filter((t) => t.actionId && t.condition.type !== 'battle_start').length).toBeLessThanOrEqual(2)
+        expect(c.triggers.filter((t) => t.actionId && t.condition.type !== 'battle_start').length).toBeLessThanOrEqual(
+            2,
+        )
     })
 
     it('getConfig returns correct config', () => {
-        const c = mc('test_cfg', '配置测试', {}, ['thrust', 'jab'], [
-            { actionId: 'jab', conditionId: 'hp_below_50' },
-        ])
+        const c = mc('test_cfg', '配置测试', {}, ['thrust', 'jab'], [{ actionId: 'jab', conditionId: 'hp_below_50' }])
         expect(c.getConfig('jab')?.conditionId).toBe('hp_below_50')
         expect(c.getConfig('thrust')).toBeUndefined()
     })
