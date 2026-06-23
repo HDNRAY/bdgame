@@ -1,12 +1,12 @@
 import type { CharacterBuild } from '../entities/character-build'
-import type { Reward } from '../data/rewards'
+import type { Reward } from '../entities/reward'
 import type { ActionConfig } from '../entities/action-config'
-import { STAT_NAMES } from '../data/rewards'
+import { STAT_NAMES } from '../entities/reward'
 import { cultCost } from './cultivation'
 import { checkTalents } from './talent-check'
 import { generateOpponent as rawGen } from '../data/opponents/index'
 
-/** 通用生成器：按目标值精确分配 cultivation points */
+/** 通用生成器 */
 export function simpleGenerate(
     id: string,
     name: string,
@@ -15,32 +15,33 @@ export function simpleGenerate(
     targetAttrs: Record<string, number>,
     rewards: Reward[],
     n: number,
+    /** +4 修炼点奖励次数（默认每2节点1次），修炼点 = cultRewards × 4 */
+    cultRewards = Math.floor((n - 1) / 2),
+    /** 额外修炼点（背景加成等） */
     extraPoints = 0,
     actionConfigs?: ActionConfig[],
 ): CharacterBuild {
-    // n 代表这是第几个节点，说明前面有 n - 1 个节点的奖励修炼点
-    const total = (n - 1) * 2 + extraPoints
+    // 总修炼点 = cultRewards × 4 + extraPoints
+    const total = Math.max(0, cultRewards * 4 + extraPoints)
     const result: Record<string, number> = {}
     for (const a of STAT_NAMES) result[a] = 3
 
-    // 先加便宜的，再加贵的
+    // 轮流加点：循环各属性，每次只加1点，不超过 targetAttrs 上限
     let remaining = total
-    for (const maxCost of [1, 2, 3]) {
-        let dirty = true
-        while (dirty) {
-            dirty = false
-            for (const attr of STAT_NAMES) {
-                const cur = result[attr]
-                const target = targetAttrs[attr] ?? 30
-                if (cur >= target) continue
-                const cost = cultCost(cur)
-                if (cost > maxCost) continue
-                if (remaining < cost) continue
+    while (remaining > 0) {
+        let improved = false
+        for (const attr of STAT_NAMES) {
+            const cur = result[attr]
+            const target = targetAttrs[attr] ?? 30
+            if (cur >= target) continue
+            const cost = cultCost(cur)
+            if (remaining >= cost) {
                 result[attr]++
                 remaining -= cost
-                dirty = true
+                improved = true
             }
         }
+        if (!improved) break
     }
 
     // 根据属性自动解锁天赋

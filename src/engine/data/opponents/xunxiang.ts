@@ -27,6 +27,7 @@ export const XUNXIANG: OpponentDef = {
             ],
             n,
             undefined,
+            undefined,
             [
                 { actionId: 'straight_punch' },
                 { actionId: 'wrist_strike' },

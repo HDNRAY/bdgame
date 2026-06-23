@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { OPPONENTS } from '../data/opponents/index'
-import { STAT_NAMES } from '../data/rewards'
+import { STAT_NAMES } from '../entities/reward'
 import { cultCost } from '../systems/cultivation'
 
 /** 从统一起点 {3,3,3,3,3,3} 到最终属性反推修炼花费 */

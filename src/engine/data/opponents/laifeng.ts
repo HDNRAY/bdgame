@@ -26,6 +26,7 @@ export const LAIFENG: OpponentDef = {
             ],
             n,
             undefined,
+            undefined,
             [
                 { actionId: 'qi_focus' },
                 { actionId: 'qi_gather' },

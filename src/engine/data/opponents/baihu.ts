@@ -26,6 +26,7 @@ export const BAIHU: OpponentDef = {
             ],
             n,
             undefined,
+            undefined,
             [
                 { actionId: 'nineteen_stops' },
                 { actionId: 'light_slash' },

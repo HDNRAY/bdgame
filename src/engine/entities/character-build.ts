@@ -1,5 +1,5 @@
 import type { AttrName } from './attributes'
-import type { Reward } from '../data/rewards'
+import type { Reward } from './reward'
 import type { ActionConfig } from './action-config'
 
 /** 战前角色配置（可序列化） */

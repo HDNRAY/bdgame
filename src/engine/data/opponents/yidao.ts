@@ -1,6 +1,6 @@
 import { simpleGenerate } from '../../systems/character-gen'
 import { type OpponentDef, passive } from '.'
-import type { Reward } from '../rewards'
+import type { Reward } from '../../entities/reward'
 import type { ActionConfig } from '../../entities/action-config'
 
 const YIDAO_ATTRS = { strength: 19, vitality: 11, agility: 14, dexterity: 14, insight: 13, wisdom: 6 }
@@ -29,6 +29,17 @@ export const YIDAO: OpponentDef = {
             { actionId: 'resheath' },
         ]
 
-        return simpleGenerate('yidao', '居合·一刀', 'swift', 'zantetsu', YIDAO_ATTRS, rewards, n, 0, actionConfigs)
+        return simpleGenerate(
+            'yidao',
+            '居合·一刀',
+            'swift',
+            'zantetsu',
+            YIDAO_ATTRS,
+            rewards,
+            n,
+            undefined,
+            0,
+            actionConfigs,
+        )
     },
 }

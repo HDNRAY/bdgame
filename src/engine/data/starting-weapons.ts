@@ -36,11 +36,17 @@ export const STARTING_WEAPONS: WeaponDef[] = [
     // ── 御物 ──
     {
         id: 'floating_silk',
-        name: '游丝',
+        name: '七段丝',
         description: '一缕以炁御动的柔丝，可远可近，可硬可软，变幻莫测。',
         tags: ['imperial', 'parry', 'range', 'pierce'],
         bound: true,
         range: [0, 6],
+        summon: {
+            id: 'silk',
+            name: '游丝',
+            maxCount: 7,
+            actionId: 'silk_shot',
+        },
     },
     {
         id: 'tri_orb',
@@ -54,6 +60,20 @@ export const STARTING_WEAPONS: WeaponDef[] = [
             name: '法珠',
             maxCount: 3,
             actionId: 'orb_shot',
+        },
+    },
+    {
+        id: 'fei_jian',
+        name: '一柄大剑',
+        description: '御剑飞行，剑气纵横。',
+        tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy'],
+        bound: true,
+        range: [2, 6],
+        summon: {
+            id: 'fei_jian',
+            name: '一柄大剑',
+            maxCount: 1,
+            actionId: 'fei_jian_shot',
         },
     },
     // ── 双剑 ──

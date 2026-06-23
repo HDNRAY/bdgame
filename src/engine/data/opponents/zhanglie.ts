@@ -28,6 +28,7 @@ export const ZHANGLIE: OpponentDef = {
             ],
             n,
             undefined,
+            undefined,
             [
                 { actionId: 'thrust' },
                 { actionId: 'straight_punch' },

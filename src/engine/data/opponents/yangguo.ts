@@ -26,6 +26,7 @@ export const YANGGUO: OpponentDef = {
             ],
             n,
             undefined,
+            undefined,
             [
                 { actionId: 'desolate_palm' },
                 { actionId: 'quanzhen_sword' },

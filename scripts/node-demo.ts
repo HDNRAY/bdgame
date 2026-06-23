@@ -1,82 +1,111 @@
-// npx tsx scripts/node-demo.ts [n] [bgIdx] [weaponIdx]
-// 节点探索模拟：引擎数据+方法 → 100场对战
-import { Character } from '../src/engine/entities/character'
-import { BACKGROUNDS } from '../src/engine/data/backgrounds'
-import { STARTING_WEAPONS } from '../src/engine/data/rewards'
-import { getWeapon } from '../src/engine/data/weapons'
-import { runNodeExploration } from '../src/engine/systems/node-gen'
-import { generateOpponent } from '../src/engine/systems/opponent-gen'
-import { runBattle } from '../src/engine/battle-runner'
-import { ALL_ATTRS } from '../src/engine/entities/attributes'
+/**
+ * 节点系统 CLI 交互式测试
+ *
+ * 运行: npx tsx scripts/node-demo.ts
+ *
+ * 每回合引擎提供选项，玩家输入 1/2/3 选择。
+ * 不参与状态管理——全由 GameRun 负责。
+ */
 
-const N = Math.max(0, parseInt(process.argv[2] ?? '5', 10))
-const BG_IDX = parseInt(process.argv[3] ?? '0', 10)
-const WEAPON_IDX = parseInt(process.argv[4] ?? '0', 10)
+import { createInterface } from 'readline/promises'
+import { GameRun } from '../src/engine/systems/game-run'
+import { spendCultPoints } from '../src/engine/systems/cultivation'
+import { STAT_NAMES } from '../src/engine/entities/reward'
+import type { AttrName } from '../src/engine/entities/attributes'
 
-console.clear()
-console.log(`📋 节点探索模拟 (n=${N})`)
-console.log('')
+const rl = createInterface({ input: process.stdin, output: process.stdout })
+const ask = (q: string) => rl.question(q).then((a) => a.trim())
 
-// 1. 列出可选项
-console.log('── 可选背景 ──')
-BACKGROUNDS.forEach((b, i) => console.log(`  ${i}. ${b.name} — ${b.desc}`))
-console.log(`  使用: node-demo ${N} <背景序号> <武器序号>`)
+async function main() {
+    console.clear()
+    console.log('╔══════════════════════════════╗')
+    console.log('║   节点系统 CLI 测试          ║')
+    console.log('╚══════════════════════════════╝\n')
 
-console.log('\n── 可选武器 ──')
-STARTING_WEAPONS.forEach((wId, i) => {
-    const w = getWeapon(wId)
-    console.log(`  ${i}. ${w.name} [${w.range}] — ${w.description}`)
-})
+    const run = new GameRun('quick')
 
-// 2. 运行节点探索
-console.log('\n── 节点探索 ──')
-const { build: pBuild, logs } = runNodeExploration(BG_IDX, WEAPON_IDX, N)
-for (const l of logs) console.log(`  ${l}`)
+    while (!run.isFinished()) {
+        const node = run.getCurrentNode()
+        console.log(`\n──────────────────────────────`)
+        console.log(`  节点 ${node.index}/33  (Phase ${node.phase})`)
+        console.log(`──────────────────────────────`)
 
-// 3. 生成对手
-const oBuild = generateOpponent(N)
+        // bg/weapon → 展示选项
+        if (node.type === 'bg' || node.type === 'weapon') {
+            const items = run.getSelectionItems()
+            items.forEach((item, i) => console.log(`  ${i + 1}. ${item.name} — ${item.desc}`))
+            const pick = Math.min(parseInt(await ask('  选 (1-3): ')) - 1, items.length - 1)
+            const result = run.selectOption(pick)
+            if (result.cultPoints) console.log(`  +${result.cultPoints} 修炼点`)
+            continue
+        }
 
-// 4. 展示最终阵容
-console.log('\n── 最终阵容 ──')
-const pChar = new Character(pBuild)
-const oChar = new Character(oBuild)
-const show = (c: Character) => {
-    const base = c.build.baseAttrs
-    const w = getWeapon(c.build.weapon)
-    const baseHp = 20 + (base.vitality ?? 3) * 10
-    const baseAp = Math.round(3 + (base.vitality ?? 3) * 0.5)
-    console.log(`\n${c.name}`)
-    console.log(
-        `  STR ${base.strength ?? 3}  VIT ${base.vitality ?? 3}  AGI ${base.agility ?? 3}  DEX ${base.dexterity ?? 3}  INS ${base.insight ?? 3}  WIS ${base.wisdom ?? 3}`,
-    )
-    console.log(`  HP ${baseHp}  AP ${baseAp}  武器: ${w.name}`)
-    if (c.passiveDefs.length) console.log(`  功法: ${c.passiveDefs.map((p) => p.name).join(', ')}`)
-    if (c.actions.length) console.log(`  招式: ${c.actions.map((i) => i.name).join(', ')}`)
-    if (c.artifactDefs.length) console.log(`  奇物: ${c.artifactDefs.map((a) => a.name).join(', ')}`)
+        // boss
+        if (node.type === 'boss') {
+            const result = run.selectOption(0)
+            console.log(`  ⚔ ${result.battleResult === 'win' ? '✅ Boss 击败' : '❌ 败于 Boss'}`)
+            continue
+        }
+
+        // normal
+        const opts = run.getOptions()
+        console.log('  选择:')
+        opts.forEach((o, i) => {
+            const extra = o.content === 'combat' ? ` vs ${o.enemyId}` : ''
+            console.log(`    ${i + 1}. ${o.desc}${extra}`)
+        })
+        const choice = Math.min(parseInt(await ask('  选 (1-3): ')) - 1, opts.length - 1)
+        const result = run.selectOption(choice)
+
+        if (result.battleResult) {
+            console.log(`  ${result.battleResult === 'win' ? '✅ 胜' : '❌ 败'}`)
+        }
+        if (result.eventText) {
+            console.log(`  ${result.eventText}`)
+        }
+
+        // 奖励
+        if (result.cultPoints) {
+            console.log(`  +${result.cultPoints} 修炼点`)
+        } else if (result.rewardChoices && result.rewardChoices.length > 0) {
+            console.log('  选奖励:')
+            result.rewardChoices.forEach((r, i) => {
+                const reqs = r.requireAttrsMin
+                const reqStr = reqs
+                    ? ` [需: ${Object.entries(reqs)
+                          .map(([k, v]) => `${k}≥${v}`)
+                          .join(', ')}]`
+                    : ''
+                console.log(`    ${i + 1}. ${r.name} — ${r.description}${reqStr}`)
+            })
+            const pick = Math.min(parseInt(await ask('  选 (1-3): ')) - 1, result.rewardChoices.length - 1)
+            run.selectReward(result.rewardChoices[pick].id)
+            console.log(`  获得: ${result.rewardChoices[pick].name}`)
+        }
+
+        // 水桶分配修炼点
+        if (run.state.unspentCultPoints > 0) {
+            const priority: AttrName[] = [...STAT_NAMES]
+            const before = { ...run.state.build.baseAttrs }
+            const result2 = spendCultPoints(
+                run.state.build.baseAttrs as Record<string, number>,
+                run.state.unspentCultPoints,
+                priority,
+            )
+            Object.assign(run.state.build.baseAttrs, result2)
+            const spent = run.state.unspentCultPoints
+            run.state.unspentCultPoints = 0
+            const diff = STAT_NAMES.map((s) => `${s}:${before[s] ?? 3}→${run.state.build.baseAttrs[s] ?? 3}`).join(' ')
+            console.log(`  水桶分配 ${spent} 点: ${diff}`)
+        }
+    }
+
+    console.log('\n══════════════════════════════')
+    console.log('  通关!')
+    const attrs = run.state.build.baseAttrs
+    STAT_NAMES.forEach((s) => console.log(`    ${s}: ${attrs[s] ?? 3}`))
+    console.log(`  奖励: ${run.state.build.rewards.length} 个`)
+    rl.close()
 }
-show(pChar)
-show(oChar)
 
-// 5. 百场对战
-console.log('\n── 对战 100 场 ──')
-let pWin = 0,
-    oWin = 0
-let pHp = 0,
-    oHp = 0
-const pObj = new Character(pBuild)
-const oObj = new Character(oBuild)
-for (let i = 0; i < 100; i++) {
-    const { winner, engine } = runBattle(pObj, oObj)
-    if (winner === pBuild.name) pWin++
-    else if (winner === oBuild.name) oWin++
-    const [a, b] = engine.state.characters
-    pHp += a.hp / a.maxHp
-    oHp += b.hp / b.maxHp
-}
-console.log(`\n📊 ${100} 场统计 (n=${N})`)
-console.log(`  ${pBuild.name}: ${pWin} 胜 (${pWin.toFixed(1)}%)  平均残血 ${((pHp / 100) * 100).toFixed(1)}%`)
-console.log(`  ${oBuild.name}: ${oWin} 胜 (${oWin.toFixed(1)}%)  平均残血 ${((oHp / 100) * 100).toFixed(1)}%`)
-console.log(`  平局: ${100 - pWin - oWin}`)
-const totalAttrs = ALL_ATTRS.reduce((s, a) => s + oChar.attrs.get(a), 0)
-console.log(`对手: ${oBuild.name} | 总属性 ${totalAttrs} | HP ${oChar.maxHp} | 奖励 ${oBuild.rewards.length} 个`)
-console.log(`参考：满配 ≈ 33 节点 × 2 培养点/节点`)
+main().catch(console.error)

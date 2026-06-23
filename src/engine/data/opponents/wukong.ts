@@ -31,6 +31,7 @@ export const WUKONG: OpponentDef = {
             ],
             n,
             undefined,
+            undefined,
             [
                 { actionId: 'rod_thrust' },
                 { actionId: 'rod_cleave' },

@@ -24,6 +24,7 @@ export const LUEYING: OpponentDef = {
             ],
             n,
             undefined,
+            undefined,
             [
                 { actionId: 'gash' },
                 { actionId: 'sand_throw', triggerId: 'on_dodged' },

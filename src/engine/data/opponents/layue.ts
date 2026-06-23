@@ -1,6 +1,6 @@
 import { simpleGenerate } from '../../systems/character-gen'
 import { type OpponentDef, artifact } from '.'
-import type { Reward } from '../rewards'
+import type { Reward } from '../../entities/reward'
 import type { ActionConfig } from '../../entities/action-config'
 
 const LAYUE_ATTRS = { strength: 12, vitality: 8, agility: 20, dexterity: 16, insight: 16, wisdom: 8 }
@@ -39,6 +39,7 @@ export const LAYUE: OpponentDef = {
             LAYUE_ATTRS,
             rewards,
             n,
+            undefined,
             extra,
             actionConfigs,
         )

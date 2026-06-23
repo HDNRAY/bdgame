@@ -23,6 +23,7 @@ export const XUANJI: OpponentDef = {
             ],
             n,
             undefined,
+            undefined,
             [
                 { actionId: 'qi_bolt' },
                 { actionId: 'restore_ap', triggerId: 'on_parry' },

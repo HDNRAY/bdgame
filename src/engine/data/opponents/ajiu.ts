@@ -30,6 +30,7 @@ export const AJIU: OpponentDef = {
             ],
             n,
             undefined,
+            undefined,
             [
                 { actionId: 'spirit_sword' },
                 { actionId: 'light_slash' },

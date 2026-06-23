@@ -29,6 +29,7 @@ export const LUHONGTI: OpponentDef = {
             ],
             n,
             undefined,
+            undefined,
             [
                 { actionId: 'push_palm' },
                 { actionId: 'sword_thrust' },
