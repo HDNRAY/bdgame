@@ -16,11 +16,11 @@ import { ALL_ATTRS, type AttrName } from '../../../engine/entities/attributes'
 import { checkTalents } from '../../../engine/systems/talent-check'
 import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../../../ui/pixel-sprites'
 import { Tooltip } from '../ui/Tooltip/Tooltip'
-import { ActionItem } from '../ui/ActionItem/ActionItem'
-import { PassiveItem } from '../ui/PassiveItem/PassiveItem'
-import { ArtifactItem } from '../ui/ArtifactItem/ArtifactItem'
-import { WeaponItem } from '../ui/WeaponItem/WeaponItem'
 import { StatTooltip } from '../tooltip-contents/StatTooltip'
+import { PassiveTooltip } from '../tooltip-contents/PassiveTooltip'
+import { ArtifactTooltip } from '../tooltip-contents/ArtifactTooltip'
+import { ActionTooltip } from '../tooltip-contents/ActionTooltip'
+import { WeaponTooltip } from '../tooltip-contents/WeaponTooltip'
 import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
 import './CharacterPanel.scss'
 
@@ -213,12 +213,11 @@ export function CharacterPanel({
         <div className="character-panel">
             {/* Header */}
             <div className="cp-header">
-                {isBuild ? (
+                {isBuild && (
                     <>
                         <button className="cp-btn" onClick={onBack ?? (() => navigate('/select'))}>
                             ← 返回
                         </button>
-                        <span className="cp-name">{def?.name ?? charId}</span>
                         <div className="cp-actions">
                             <button className="cp-btn cp-btn-reset" onClick={handleReset}>
                                 ↺ 复位
@@ -228,111 +227,35 @@ export function CharacterPanel({
                             </button>
                         </div>
                     </>
-                ) : (
-                    <div className="cp-header-left">
-                        <canvas ref={avatarRef} width={32} height={32} className="cp-avatar" />
-                        <span className="cp-name">{character.name}</span>
-                    </div>
                 )}
             </div>
             {isBuild && saveError && <div className="cp-error">{saveError}</div>}
 
             <div className="cp-body">
-                {/* 左栏：区块1+2 */}
+                {/* 左栏：区块1+4 */}
                 <div className="cp-col-left">
-                    {/* 区块1: 头像 + 武器 + 气血内息 */}
-                    <div className="cp-section">
-                        <div className="cp-header-row">
+                    {/* 区块1: 角色信息 */}
+                    <div className="cp-section cp-info-section">
+                        <div className="cp-info-row">
                             <canvas ref={avatarRef} width={32} height={32} className="cp-avatar" />
-                            <div className="cp-weapon-area">
-                                <canvas ref={weaponRef} width={48} height={48} className="cp-weapon-art" />
-                                <div className="cp-weapon-name">{weapon && <WeaponItem weapon={weapon} />}</div>
+                            <div className="cp-info-name">{character.name}</div>
+                        </div>
+                        <div className="cp-info-row">
+                            <div className="cp-hp-ap">
+                                <span className="cp-hp">气血</span> {character.maxHp}
+                                <span className="cp-sep">·</span>
+                                <span className="cp-ap">内息</span> {character.maxAp.toFixed(1)}
                             </div>
                         </div>
-                        <div className="cp-hp-ap">
-                            <span className="cp-hp">气血</span> {character.maxHp}
-                            <span className="cp-sep">·</span>
-                            <span className="cp-ap">内息</span> {character.maxAp.toFixed(1)}
+                        <div className="cp-info-row">
+                            <canvas ref={weaponRef} width={48} height={48} className="cp-weapon-art" />
+                            {weapon && (
+                                <Tooltip content={<WeaponTooltip weapon={weapon} />}>
+                                    <span className="cp-tag">{weapon.name}</span>
+                                </Tooltip>
+                            )}
                         </div>
                     </div>
-
-                    {/* 区块2: 属性 */}
-                    <div className="cp-section">
-                        <div className="cp-section-label">属性</div>
-                        {isBuild && (
-                            <div className="cp-points">
-                                修炼点: 剩余 {remaining} / {totalPoints}
-                            </div>
-                        )}
-                        {ATTR_ORDER.map((attr) => {
-                            const val = isBuild ? (attrs[attr] ?? 3) : Math.round(a.get(attr))
-                            const upCost = isBuild && val < 30 ? cultCost(val) : null
-                            return (
-                                <div key={attr} className="cp-attr-row">
-                                    <Tooltip content={<StatTooltip attr={attr} value={val} />}>
-                                        <AttributeLabel attr={attr} value={val} />
-                                    </Tooltip>
-                                    {isBuild && (
-                                        <>
-                                            <button
-                                                className="cp-btn-sm"
-                                                disabled={val <= 3}
-                                                onClick={() => handleAttrAdjust(attr, -1)}
-                                            >
-                                                −
-                                            </button>
-                                            <button
-                                                className="cp-btn-sm"
-                                                disabled={val >= 30 || remaining < (upCost ?? 99)}
-                                                onClick={() => handleAttrAdjust(attr, 1)}
-                                            >
-                                                +
-                                            </button>
-                                            {upCost && <span className="cp-cost">{upCost}pt</span>}
-                                        </>
-                                    )}
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
-
-                {/* 右栏：区块3+4 */}
-                <div className="cp-col-right">
-                    {/* 区块3: 天赋 + 功法 + 奇物 */}
-                    {isBuild && activeTalents.length > 0 && (
-                        <div className="cp-section">
-                            <div className="cp-section-label">天赋</div>
-                            <div className="cp-talent-list">
-                                {activeTalents.map((t) => {
-                                    const def = getPassive(t.id)
-                                    return (
-                                        <span key={t.id} className="cp-talent">
-                                            {def?.name ?? t.id}
-                                        </span>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    )}
-
-                    {character.passiveDefs.length > 0 && (
-                        <div className="cp-section">
-                            <div className="cp-section-label">功法 ({character.passiveDefs.length})</div>
-                            {character.passiveDefs.map((p, i) => (
-                                <PassiveItem key={i} passive={p} />
-                            ))}
-                        </div>
-                    )}
-
-                    {character.artifactDefs.length > 0 && (
-                        <div className="cp-section">
-                            <div className="cp-section-label">奇物 ({character.artifactDefs.length})</div>
-                            {character.artifactDefs.map((art, i) => (
-                                <ArtifactItem key={i} artifact={art} />
-                            ))}
-                        </div>
-                    )}
 
                     {/* 区块4: 招式 */}
                     <div className="cp-section">
@@ -377,9 +300,118 @@ export function CharacterPanel({
                                 </DndContext>
                             </>
                         ) : (
-                            character.actions.map((act, i) => <ActionItem key={i} action={act} />)
+                            <div className="cp-tag-list">
+                                {character.actions.map((act, i) => {
+                                    const cfg = character.getConfig(act.id)
+                                    const condName = cfg?.conditionId
+                                        ? CONDITION_PRESETS.find((p) => p.id === cfg.conditionId)?.name
+                                        : null
+                                    const trigName = cfg?.triggerId
+                                        ? TRIGGER_CONDITIONS.find((t) => t.id === cfg.triggerId)?.name
+                                        : null
+                                    return (
+                                        <Tooltip key={i} content={<ActionTooltip action={act.def} />}>
+                                            <span className="cp-tag">
+                                                {act.name}
+                                                {(condName || trigName) && (
+                                                    <span className="cp-tag-meta">
+                                                        {condName && <span className="cp-tag-cond">{condName}</span>}
+                                                        {trigName && <span className="cp-tag-trig">{trigName}</span>}
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </Tooltip>
+                                    )
+                                })}
+                            </div>
                         )}
                     </div>
+                </div>
+
+                {/* 右栏：区块2+3 */}
+                <div className="cp-col-right">
+                    {/* 区块2: 属性 */}
+                    <div className="cp-section">
+                        <div className="cp-section-label">属性</div>
+                        {isBuild && (
+                            <div className="cp-points">
+                                修炼点: 剩余 {remaining} / {totalPoints}
+                            </div>
+                        )}
+                        {ATTR_ORDER.map((attr) => {
+                            const val = isBuild ? (attrs[attr] ?? 3) : Math.round(a.get(attr))
+                            const upCost = isBuild && val < 30 ? cultCost(val) : null
+                            return (
+                                <div key={attr} className="cp-attr-row">
+                                    <Tooltip content={<StatTooltip attr={attr} value={val} />}>
+                                        <AttributeLabel attr={attr} value={val} />
+                                    </Tooltip>
+                                    {isBuild && (
+                                        <>
+                                            <button
+                                                className="cp-btn-sm"
+                                                disabled={val <= 3}
+                                                onClick={() => handleAttrAdjust(attr, -1)}
+                                            >
+                                                −
+                                            </button>
+                                            <button
+                                                className="cp-btn-sm"
+                                                disabled={val >= 30 || remaining < (upCost ?? 99)}
+                                                onClick={() => handleAttrAdjust(attr, 1)}
+                                            >
+                                                +
+                                            </button>
+                                            {upCost && <span className="cp-cost">{upCost}pt</span>}
+                                        </>
+                                    )}
+                                </div>
+                            )
+                        })}
+                    </div>
+
+                    {/* 区块3: 天赋 + 功法 + 奇物 */}
+                    {isBuild && activeTalents.length > 0 && (
+                        <div className="cp-section">
+                            <div className="cp-section-label">天赋</div>
+                            <div className="cp-tag-list">
+                                {activeTalents.map((t) => {
+                                    const def = getPassive(t.id)
+                                    return (
+                                        <span key={t.id} className="cp-talent">
+                                            {def?.name ?? t.id}
+                                        </span>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {character.passiveDefs.length > 0 && (
+                        <div className="cp-section">
+                            <div className="cp-section-label">功法 ({character.passiveDefs.length})</div>
+                            <div className="cp-tag-list">
+                                {character.passiveDefs.map((p, i) => (
+                                    <Tooltip key={i} content={<PassiveTooltip passive={p} />}>
+                                        <span className="cp-tag">{p.name}</span>
+                                    </Tooltip>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {character.artifactDefs.length > 0 && (
+                        <div className="cp-section">
+                            <div className="cp-section-label">奇物 ({character.artifactDefs.length})</div>
+                            <div className="cp-tag-list">
+                                {character.artifactDefs.map((art, i) => (
+                                    <Tooltip key={i} content={<ArtifactTooltip artifact={art} />}>
+                                        <span className="cp-tag">{art.name}</span>
+                                    </Tooltip>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

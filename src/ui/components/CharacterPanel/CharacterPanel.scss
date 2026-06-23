@@ -1,9 +1,10 @@
 .character-panel {
-    max-width: 1200px;
+    max-width: 900px;
+    width: 100%;
+    height: 100%;
     margin: 0 auto;
-    padding: 16px;
+    padding: 8px;
     color: #fff;
-    min-height: 100vh;
     overflow-y: auto;
     background: #000;
     font-family: monospace;
@@ -76,40 +77,30 @@
     font-size: 13px;
 }
 
-/* 双栏布局 */
+/* 双栏布局 — 自适应宽度，不足时自动竖排 */
 .cp-body {
     display: flex;
-    gap: 16px;
+    column-gap: 16px;
     align-items: flex-start;
+    flex-wrap: wrap;
 }
 
 .cp-col-left {
-    flex: 0 0 280px;
+    flex: 2 1 240px;
     min-width: 0;
     position: sticky;
     top: 16px;
 }
 
 .cp-col-right {
-    flex: 1;
+    flex: 3 1 180px;
     min-width: 0;
-}
-
-@media (max-width: 800px) {
-    .cp-body {
-        flex-direction: column;
-    }
-    .cp-col-left {
-        flex: none;
-        width: 100%;
-        position: static;
-    }
 }
 
 /* 区块通用 */
 .cp-section {
-    margin-bottom: 12px;
-    padding: 10px;
+    margin-bottom: 10px;
+    padding: 8px;
     background: #0d0d0d;
     border: 1px solid #222;
     border-radius: 6px;
@@ -123,18 +114,23 @@
     margin-bottom: 6px;
 }
 
-/* 区块1: 头像 + 武器 */
-.cp-header-row {
+/* 区块1: 角色信息 */
+.cp-info-section {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.cp-weapon-area {
+.cp-info-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+}
+
+.cp-info-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #eee;
 }
 
 .cp-weapon-art {
@@ -152,6 +148,7 @@
 .cp-hp-ap {
     font-size: 13px;
     color: #ccc;
+    white-space: nowrap;
 }
 
 .cp-hp {
@@ -177,6 +174,11 @@
     align-items: center;
     gap: 4px;
     padding: 2px 0;
+}
+
+.cp-attr-row .tooltip-wrapper {
+    flex: 1;
+    min-width: 0;
 }
 
 .cp-btn-sm {
@@ -206,13 +208,52 @@
     margin-left: 2px;
 }
 
-/* 天赋标签 */
-.cp-talent-list {
+/* 通用标签列表 */
+.cp-tag-list {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
 }
 
+.cp-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    background: #181828;
+    border: 1px solid #2a2a3e;
+    color: #ccc;
+    cursor: default;
+}
+
+.cp-tag-meta {
+    display: inline-flex;
+    gap: 3px;
+    font-size: 10px;
+}
+
+.cp-tag-cond {
+    color: #888;
+    &::before {
+        content: '‹';
+        margin-right: 1px;
+    }
+    &::after {
+        content: '›';
+        margin-left: 1px;
+    }
+}
+
+.cp-tag-trig {
+    color: #777;
+    &::before {
+        content: '⤷';
+    }
+}
+
+/* 天赋标签（build 模式专属） */
 .cp-talent {
     padding: 2px 8px;
     border-radius: 3px;
@@ -226,8 +267,8 @@
 .cp-table-header,
 .cp-row {
     display: grid;
-    grid-template-columns: 32px 1fr 100px 100px;
-    gap: 4px;
+    grid-template-columns: 28px 1fr minmax(90px, auto) minmax(90px, auto);
+    gap: 3px;
     align-items: center;
     padding: 4px 0;
     font-size: 12px;
@@ -261,6 +302,8 @@
 .cp-col-name {
     color: #ddd;
     font-size: 12px;
+    padding: 0 4px;
+    white-space: nowrap;
 }
 
 .cp-col-cond select,

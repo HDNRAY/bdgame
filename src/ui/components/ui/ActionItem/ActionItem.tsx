@@ -5,10 +5,12 @@ import '../EntityItem/EntityItem.scss'
 
 interface ActionItemProps {
     action: Action
+    showAp?: boolean
+    showUses?: boolean
 }
 
 /** 招式列表项 — 显示 "▸ 名称 AP 次数"，自带 ActionTooltip */
-export function ActionItem({ action }: ActionItemProps) {
+export function ActionItem({ action, showAp = true, showUses = true }: ActionItemProps) {
     const maxUses = action.def.maxUses
     const hasFiniteUses = maxUses !== undefined && maxUses < 999
     return (
@@ -16,8 +18,8 @@ export function ActionItem({ action }: ActionItemProps) {
             <div className="entity-item">
                 <span className="entity-item-name">▸ {action.name}</span>
                 <span className="entity-item-meta">
-                    {action.apCost > 0 && <span className="action-ap">{action.apCost}AP</span>}
-                    {hasFiniteUses && (
+                    {showAp && action.apCost > 0 && <span className="action-ap">{action.apCost}AP</span>}
+                    {showUses && hasFiniteUses && (
                         <span className="action-uses">
                             {' '}
                             ×{action.remainingUses}/{maxUses}
