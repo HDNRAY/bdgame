@@ -1,15 +1,14 @@
-import { generateMap, generateOptions, shuffle, pickRandom, ALL_OPPONENT_IDS } from './node-gen'
+import { generateMap, generateOptions, shuffle, pickRandom, getNodeChoices, ALL_OPPONENT_IDS } from './node-gen'
 import { rewardPool } from './reward-pool'
 import { runBattle } from '../battle-runner'
 import { Character } from '../entities/character'
 import { getWeapon } from '../data/weapons'
-import { BACKGROUNDS } from '../data/backgrounds'
-import { STARTING_WEAPONS } from '../data/starting-weapons'
 import { getOpponentDef } from '../data/opponents/index'
-import type { MapNode, NodeOption, ChoiceResult, RunState, NodeLogEntry, SaveData } from '../entities/node-map'
+import type { MapNode, ChoiceResult, RunState, NodeLogEntry, SaveData } from '../entities/node-map'
 import type { CharacterBuild } from '../entities/character-build'
 import type { Reward } from '../entities/reward'
 import type { Tag } from '../entities/tag'
+import type { NodeChoice } from './node-gen'
 
 type GameMode = 'quick' | 'normal'
 
@@ -26,6 +25,7 @@ export class GameRun {
     private _nodeIdx = 0
     private _enemyPool: string[] = []
     private _enemyIdx = 0
+    private _currentChoices: NodeChoice[] = []
 
     constructor(mode: GameMode = 'quick') {
         this.mode = mode
@@ -58,36 +58,15 @@ export class GameRun {
         return this.state.finished
     }
 
-    /** 当前节点3个选项 */
-    getOptions(): NodeOption[] {
-        const node = this.getCurrentNode()
-        if (node.type === 'boss') return []
-        const enemies = this._nextEnemies()
-        const opts = generateOptions(node, enemies)
-        node.options = opts
-        return opts
-    }
-
-    /** bg/weapon 节点的选项（背景或武器对象，有 name/desc） */
-    getSelectionItems(): { id: string; name: string; desc: string; tags?: Tag[] }[] {
-        const node = this.getCurrentNode()
-        if (node.type === 'bg') {
-            return pickRandom(BACKGROUNDS, 3).map((b) => ({ id: b.id, name: b.name, desc: b.desc, tags: b.tags }))
-        }
-        if (node.type === 'weapon') {
-            return pickRandom(STARTING_WEAPONS, 3).map((w) => ({
-                id: w.id,
-                name: w.name,
-                desc: w.description,
-                tags: w.tags,
-            }))
-        }
-        return []
+    /** 当前节点的选择项（所有节点类型统一） */
+    getSelectionItems(): NodeChoice[] {
+        this._currentChoices = this._generateChoices()
+        return this._currentChoices
     }
 
     // ── 操作 ──
 
-    /** 选了第 index 个选项（bg/weapon/normal/boss 统一入口） */
+    /** 选了第 index 个选项 */
     selectOption(index: number): ChoiceResult {
         const node = this.getCurrentNode()
         const entry: NodeLogEntry = { nodeIndex: node.index, nodeType: node.type }
@@ -95,6 +74,7 @@ export class GameRun {
         if (node.type === 'bg') return this._selectBg(index, entry)
         if (node.type === 'weapon') return this._selectWeapon(index, entry)
         if (node.type === 'boss') return this._selectBoss(node, entry)
+        if (node.forceRewardType) return this._selectForceReward(node, index, entry)
 
         return this._selectNormal(node, index, entry)
     }
@@ -165,6 +145,19 @@ export class GameRun {
 
     // ── 内部 ──
 
+    /** 委托 node-gen 生成当前节点的选择项 */
+    private _generateChoices(): NodeChoice[] {
+        const node = this.getCurrentNode()
+
+        // normal 节点需要先生成选项
+        if (node.type === 'normal' && !node.forceRewardType) {
+            const enemies = this._nextEnemies()
+            node.options = generateOptions(node, enemies)
+        }
+
+        return getNodeChoices(node, this.ownedRewardIds, this.playerTags, this.state.build.background)
+    }
+
     private _advance(): void {
         this._nodeIdx++
         this.state.currentNode = this.map[this._nodeIdx]?.index ?? 33
@@ -178,9 +171,8 @@ export class GameRun {
     }
 
     private _selectBg(index: number, entry: NodeLogEntry): ChoiceResult {
-        const items = pickRandom(BACKGROUNDS, 3)
-        const bg = items[Math.min(index, items.length - 1)]
-        this.state.build.background = bg.id
+        const picked = this._currentChoices[Math.min(index, this._currentChoices.length - 1)]
+        this.state.build.background = picked.id
         this.state.unspentCultPoints += 4
         entry.cultPointsGained = 4
         this.state.log.push(entry)
@@ -189,9 +181,8 @@ export class GameRun {
     }
 
     private _selectWeapon(index: number, entry: NodeLogEntry): ChoiceResult {
-        const items = pickRandom(STARTING_WEAPONS, 3)
-        const wp = items[Math.min(index, items.length - 1)]
-        this.state.build.weapon = wp.id
+        const picked = this._currentChoices[Math.min(index, this._currentChoices.length - 1)]
+        this.state.build.weapon = picked.id
         this.state.log.push(entry)
         this._advance()
         return {}
@@ -209,6 +200,22 @@ export class GameRun {
         if (winner === 'a') this.state.defeatedEnemies.push(bossId)
         this.state.finished = true
         return { battleResult: entry.battleResult, enemyId: bossId }
+    }
+
+    private _selectForceReward(node: MapNode, index: number, entry: NodeLogEntry): ChoiceResult {
+        const picked = this._currentChoices[Math.min(index, this._currentChoices.length - 1)]
+        const fType = node.forceRewardType
+        if (picked && fType && fType !== 'cult') {
+            const pool = rewardPool.getPool(fType)
+            const reward = pool.find((r) => r.id === picked.id)
+            if (reward) {
+                this.state.build.rewards.push(reward)
+                entry.chosenReward = reward
+            }
+        }
+        this.state.log.push(entry)
+        this._advance()
+        return {}
     }
 
     private _selectNormal(node: MapNode, index: number, entry: NodeLogEntry): ChoiceResult {

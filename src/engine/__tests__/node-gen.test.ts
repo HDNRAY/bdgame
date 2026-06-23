@@ -67,6 +67,17 @@ describe('generateMap', () => {
         })
     })
 
+    it('节点3有 forceRewardType=action', () => {
+        const node3 = map.find((n) => n.index === 3)
+        expect(node3?.forceRewardType).toBe('action')
+    })
+
+    it('其他 normal 节点没有 forceRewardType', () => {
+        const others = map.filter((n) => n.type === 'normal' && n.index !== 3)
+        expect(others.length).toBe(27)
+        others.forEach((n) => expect(n.forceRewardType).toBeUndefined())
+    })
+
     it('节点默认未完成', () => {
         map.forEach((n) => {
             expect(n.completed).toBeUndefined()
@@ -76,7 +87,13 @@ describe('generateMap', () => {
 
 describe('generateOptions', () => {
     const enemies = ['zhanglie', 'laifeng', 'xuanji', 'layue', 'yidao', 'sangyuan']
-    const normalNode = { index: 3, phase: 1 as const, type: 'normal' as const, options: [] }
+    const normalNode = {
+        index: 3,
+        phase: 1 as const,
+        type: 'normal' as const,
+        forceRewardType: 'action' as const,
+        options: [],
+    }
 
     it('返回 3 个选项', () => {
         const opts = generateOptions(normalNode, enemies)
@@ -89,6 +106,12 @@ describe('generateOptions', () => {
         const events = opts.filter((o) => o.content === 'event')
         expect(combats.length).toBeGreaterThanOrEqual(1)
         expect(events.length).toBeGreaterThanOrEqual(1)
+    })
+
+    it('forceRewardType 节点有一个 action 选项', () => {
+        const opts = generateOptions(normalNode, enemies)
+        const actions = opts.filter((o) => o.rewardType === 'action')
+        expect(actions.length).toBeGreaterThanOrEqual(1)
     })
 
     it('3 个 rewardType 各不相同', () => {

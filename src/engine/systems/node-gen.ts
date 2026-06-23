@@ -1,5 +1,10 @@
 import { OPPONENTS } from '../data/opponents/index'
+import { BACKGROUNDS, getBackground } from '../data/backgrounds'
+import { STARTING_WEAPONS } from '../data/starting-weapons'
+import { rewardPool } from './reward-pool'
 import type { MapNode, NodeOption, NodeContent } from '../entities/node-map'
+import type { RewardType } from '../entities/reward'
+import type { Tag } from '../entities/tag'
 
 // ════════════════════════════════════════
 //  工具函数
@@ -51,9 +56,11 @@ export function generateMap(): MapNode[] {
     map.push({ index: idx++, phase: 1, type: 'bg' })
     // 武器选择
     map.push({ index: idx++, phase: 1, type: 'weapon' })
+    // 第3个节点固定出招式
+    map.push({ index: idx++, phase: 1, type: 'normal', forceRewardType: 'action', options: [] })
 
-    // Phase 1: normal 节点 3-10
-    for (let i = 0; i < 8; i++) {
+    // Phase 1: normal 节点 4-10
+    for (let i = 0; i < 7; i++) {
         map.push({ index: idx++, phase: 1, type: 'normal', options: [] })
     }
     // Phase 1 Boss
@@ -91,6 +98,16 @@ const REWARD_WEIGHTS: Record<string, number> = {
     weapon: 5,
 }
 
+/** 按节点权重生成奖励类型 */
+function getRewardTypes(node: MapNode): RewardType[] {
+    const types = pickWeighted<RewardType>(ALL_REWARD_TYPES, REWARD_WEIGHTS, 3)
+    if (node.forceRewardType && !types.includes(node.forceRewardType)) {
+        const idx = types.findIndex((t) => t !== 'cult')
+        if (idx >= 0) types[idx] = node.forceRewardType
+    }
+    return types
+}
+
 /**
  * 为 normal 节点生成 3 个选项。
  *
@@ -98,12 +115,10 @@ const REWARD_WEIGHTS: Record<string, number> = {
  *   - 3 个 rewardType 各不相同
  *   - 至少 1 个 combat, 至少 1 个 event
  *   - weapon 权重最低
+ *   - forceRewardType 强制一个选项的奖励类型
  */
-export function generateOptions(_node: MapNode, availableEnemies: string[]): NodeOption[] {
-    // 1. 加权随机选 3 个不重复的 rewardType
-    const types = pickWeighted(ALL_REWARD_TYPES, REWARD_WEIGHTS, 3)
-
-    // 2. 分配 content：确保至少 1 combat + 1 event
+export function generateOptions(node: MapNode, availableEnemies: string[]): NodeOption[] {
+    const types = getRewardTypes(node)
     const contents = assignContents(types.length)
 
     // 3. 构建选项
@@ -178,3 +193,93 @@ const EVENT_TEXTS = [
     '你在集市上淘到一件有用的物件。',
     '一位老者打量了你一番，点头说道："不错，有缘。"',
 ]
+
+// ════════════════════════════════════════
+//  节点选择内容生成
+// ════════════════════════════════════════
+
+export interface NodeChoice {
+    id: string
+    name: string
+    desc: string
+    tags?: Tag[]
+    /** 选择前的叙事文案（节点2/3等固定节点使用） */
+    flavorText?: string
+}
+
+/** 背景选择——随机 3 个背景 */
+export function getBgChoices(): NodeChoice[] {
+    return pickRandom(BACKGROUNDS, 3).map((b) => ({
+        id: b.id,
+        name: b.name,
+        desc: b.desc,
+        tags: b.tags,
+    }))
+}
+
+/** 默认节点文案 */
+const DEFAULT_NODE_TEXTS: Partial<Record<number, string>> = {
+    2: '你发现了一件趁手的兵器。',
+    3: '你领悟了一招新招式。',
+}
+
+/** 获取节点文案（优先用背景覆盖） */
+export function getNodeFlavorText(nodeIndex: number, backgroundId?: string): string | undefined {
+    if (backgroundId) {
+        const bg = getBackground(backgroundId)
+        const override = bg?.nodeTexts?.[nodeIndex]
+        if (override) return override
+    }
+    return DEFAULT_NODE_TEXTS[nodeIndex]
+}
+
+/** 武器选择——随机 3 把武器，附带 flavorText */
+export function getWeaponChoices(bgId?: string): NodeChoice[] {
+    const ft = getNodeFlavorText(2, bgId)
+    return pickRandom(STARTING_WEAPONS, 3).map((w, i) => ({
+        id: w.id,
+        name: w.name,
+        desc: w.description,
+        tags: w.tags,
+        flavorText: i === 0 ? ft : undefined,
+    }))
+}
+
+/** forceRewardType 节点——奖励选择，附带 flavorText */
+export function getForceRewardChoices(
+    node: MapNode,
+    ownedIds: string[],
+    playerTags: Tag[],
+    bgId?: string,
+): NodeChoice[] {
+    if (!node.forceRewardType || node.forceRewardType === 'cult') return []
+    const ft = getNodeFlavorText(node.index, bgId)
+    return rewardPool.pickChoices(node.forceRewardType, 3, ownedIds, playerTags).map((r, i) => ({
+        id: r.id,
+        name: r.name,
+        desc: r.description,
+        tags: r.tags,
+        flavorText: i === 0 ? ft : undefined,
+    }))
+}
+
+/**
+ * 统一入口：根据节点类型返回选择项。
+ * bg/weapon → 3选1 背景/武器
+ * forceRewardType → 3选1 奖励（附带 flavorText）
+ * normal → 已由 generateOptions 填充 options
+ * boss → []
+ */
+export function getNodeChoices(node: MapNode, ownedIds: string[], playerTags: Tag[], bgId?: string): NodeChoice[] {
+    if (node.type === 'bg') return getBgChoices()
+    if (node.type === 'weapon') return getWeaponChoices(bgId)
+    if (node.type === 'boss') return []
+    if (node.forceRewardType) return getForceRewardChoices(node, ownedIds, playerTags, bgId)
+    // normal 节点：generateOptions 已填充 node.options
+    return (node.options ?? []).map((o) => ({
+        id: `${node.index}-${o.rewardType}-${o.content}`,
+        name: o.desc,
+        desc: o.eventText ?? (o.content === 'combat' ? `vs ${o.enemyId}` : ''),
+        tags: [],
+    }))
+}

@@ -30,44 +30,37 @@ async function main() {
         console.log(`  节点 ${node.index}/33  (Phase ${node.phase})`)
         console.log(`──────────────────────────────`)
 
-        // bg/weapon → 展示选项
-        if (node.type === 'bg' || node.type === 'weapon') {
-            const items = run.getSelectionItems()
-            items.forEach((item, i) => console.log(`  ${i + 1}. ${item.name} — ${item.desc}`))
-            const pick = Math.min(parseInt(await ask('  选 (1-3): ')) - 1, items.length - 1)
-            const result = run.selectOption(pick)
-            if (result.cultPoints) console.log(`  +${result.cultPoints} 修炼点`)
-            continue
-        }
-
-        // boss
+        // boss：直接战斗
         if (node.type === 'boss') {
             const result = run.selectOption(0)
             console.log(`  ⚔ ${result.battleResult === 'win' ? '✅ Boss 击败' : '❌ 败于 Boss'}`)
             continue
         }
 
-        // normal
-        const opts = run.getOptions()
-        console.log('  选择:')
-        opts.forEach((o, i) => {
-            const extra = o.content === 'combat' ? ` vs ${o.enemyId}` : ''
-            console.log(`    ${i + 1}. ${o.desc}${extra}`)
-        })
-        const choice = Math.min(parseInt(await ask('  选 (1-3): ')) - 1, opts.length - 1)
-        const result = run.selectOption(choice)
+        // 统一走 getSelectionItems（bg/weapon/forceReward/normal）
+        const items = run.getSelectionItems()
 
-        if (result.battleResult) {
+        // 展示叙事文案（节点2/3等）
+        const flavorText = items.find((i) => i.flavorText)?.flavorText
+        if (flavorText) console.log(`\n  ${flavorText}\n`)
+
+        items.forEach((item, i) => {
+            const label = `${i + 1}. ${item.name}`
+            console.log(item.desc ? `  ${label} — ${item.desc}` : `  ${label}`)
+        })
+        const pick = Math.min(parseInt(await ask('  选 (1-3): ')) - 1, items.length - 1)
+        const result = run.selectOption(pick)
+
+        if (result.cultPoints) {
+            console.log(`  +${result.cultPoints} 修炼点`)
+        } else if (result.battleResult) {
             console.log(`  ${result.battleResult === 'win' ? '✅ 胜' : '❌ 败'}`)
-        }
-        if (result.eventText) {
+        } else if (result.eventText) {
             console.log(`  ${result.eventText}`)
         }
 
-        // 奖励
-        if (result.cultPoints) {
-            console.log(`  +${result.cultPoints} 修炼点`)
-        } else if (result.rewardChoices && result.rewardChoices.length > 0) {
+        // 奖励选择（normal 节点的被动/奇物/招式/武器奖励）
+        if (result.rewardChoices && result.rewardChoices.length > 0) {
             console.log('  选奖励:')
             result.rewardChoices.forEach((r, i) => {
                 const reqs = r.requireAttrsMin
@@ -78,9 +71,9 @@ async function main() {
                     : ''
                 console.log(`    ${i + 1}. ${r.name} — ${r.description}${reqStr}`)
             })
-            const pick = Math.min(parseInt(await ask('  选 (1-3): ')) - 1, result.rewardChoices.length - 1)
-            run.selectReward(result.rewardChoices[pick].id)
-            console.log(`  获得: ${result.rewardChoices[pick].name}`)
+            const rp = Math.min(parseInt(await ask('  选 (1-3): ')) - 1, result.rewardChoices.length - 1)
+            run.selectReward(result.rewardChoices[rp].id)
+            console.log(`  获得: ${result.rewardChoices[rp].name}`)
         }
 
         // 水桶分配修炼点

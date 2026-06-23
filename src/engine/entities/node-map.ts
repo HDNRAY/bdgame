@@ -30,6 +30,8 @@ export interface MapNode {
     type: NodeType
     /** normal 节点有3个选项 */
     options?: NodeOption[]
+    /** 强制某个选项的 rewardType（用于节点3需出招式等） */
+    forceRewardType?: import('./reward').RewardType
     /** boss 节点固定对手 */
     bossId?: string
     completed?: boolean
