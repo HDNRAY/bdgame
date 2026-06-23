@@ -471,6 +471,11 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                     existing.mods[attr] = (existing.mods[attr] ?? 0) + (val as number)
                 }
             }
+            if (buff?.maxApMod && delta > 0) {
+                self.maxApMod += buff.maxApMod * delta
+                if (!existing.mods) existing.mods = {}
+                existing.mods.maxApMod = (existing.mods.maxApMod ?? 0) + buff.maxApMod * delta
+            }
             engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
             return
         }
@@ -487,6 +492,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 if (attr === 'agility')
                     engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
             }
+        }
+        if (buff?.maxApMod) {
+            self.maxApMod += buff.maxApMod
+            mods.maxApMod = buff.maxApMod
         }
         const stacks = e.stacks ?? 1
         engine.emitLog({

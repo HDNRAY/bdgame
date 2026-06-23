@@ -42,7 +42,7 @@ export function describeEffect(eff: EffectDef): string[] {
                 paralyze: '麻痹',
             }
             const name = statusCN[eff.buffId] ?? eff.buffId
-            return [`附加 ${name} ×${eff.stacks} (${(eff.chance * 100).toFixed(0)}%概率)`]
+            return [`施加 ${name} ×${eff.stacks} (${(eff.chance * 100).toFixed(0)}%概率)`]
         }
         case 'stat_buff': {
             const parts = Object.entries(eff.attrs).map(([k, v]) => {
@@ -65,6 +65,8 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`造成目标已损失HP×${eff.ratio} 的伤害`]
         case 'self_missing_hp_damage':
             return [`造成自身已损失HP×${eff.ratio} 的伤害`]
+        case 'steal_artifact':
+            return ['窃取对手一件奇物']
         case 'self_damage':
             return [`自伤: 当前HP×${eff.ratio}`]
         case 'cleanse':
@@ -125,7 +127,7 @@ export function describeEffect(eff: EffectDef): string[] {
             } else if (buff?.description && buff.description !== name) {
                 extra = ` — ${buff.description}`
             }
-            return [`获取: ${name}${stacks}${extra}`]
+            return [`${name}${stacks}${extra}`]
         }
         case 'remove_buff':
             return [`移除: ${getBuff(eff.buffId)?.name ?? eff.buffId}`]

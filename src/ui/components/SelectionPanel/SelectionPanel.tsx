@@ -7,7 +7,7 @@ import { Character } from '../../../engine/entities/character'
 import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../../pixel-sprites'
 import { simulateWinRate, runBattle } from '../../../engine/battle-runner'
 import { formatBattleLog } from '../../../engine/format-log'
-import { BuildPanel } from '../BuildPanel/BuildPanel'
+import { CharacterPanel } from '../CharacterPanel/CharacterPanel'
 import { useAppStore } from '../../stores/app-store'
 import './SelectionPanel.scss'
 
@@ -88,7 +88,7 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
         <div className="selection-root">
             <div className="selection-side">
                 {charA ? (
-                    <BuildPanel character={charA} accentColor="#4ecdc4" />
+                    <CharacterPanel mode="view" character={charA!} accentColor="#4ecdc4" />
                 ) : (
                     <div className="side-placeholder">请选择 A</div>
                 )}
@@ -178,7 +178,7 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
 
             <div className="selection-side">
                 {charB ? (
-                    <BuildPanel character={charB} accentColor="#ff6b6b" />
+                    <CharacterPanel mode="view" character={charB!} accentColor="#ff6b6b" />
                 ) : (
                     <div className="side-placeholder">请选择 B</div>
                 )}

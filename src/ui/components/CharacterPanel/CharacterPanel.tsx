@@ -1,0 +1,443 @@
+import { useState, useRef, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import type { CharacterBuild } from '../../../engine/entities/character-build'
+import { getOpponentDef } from '../../../engine/data/opponents/index'
+import { Character } from '../../../engine/entities/character'
+import { getAction } from '../../../engine/data/actions'
+import { getWeapon } from '../../../engine/data/weapons'
+import { getPassive } from '../../../engine/data/passives'
+import type { ActionConfig } from '../../../engine/entities/action-config'
+import { CONDITION_PRESETS } from '../../../engine/data/conditions'
+import { TRIGGER_CONDITIONS } from '../../../engine/data/triggers'
+import { ALL_ATTRS, type AttrName } from '../../../engine/entities/attributes'
+import { checkTalents } from '../../../engine/systems/talent-check'
+import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../../../ui/pixel-sprites'
+import { Tooltip } from '../ui/Tooltip/Tooltip'
+import { ActionItem } from '../ui/ActionItem/ActionItem'
+import { PassiveItem } from '../ui/PassiveItem/PassiveItem'
+import { ArtifactItem } from '../ui/ArtifactItem/ArtifactItem'
+import { WeaponItem } from '../ui/WeaponItem/WeaponItem'
+import { StatTooltip } from '../tooltip-contents/StatTooltip'
+import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
+import './CharacterPanel.scss'
+
+interface CharacterPanelProps {
+    mode: 'view' | 'build'
+    character?: Character
+    charId?: string
+    // view
+    accentColor?: string
+    // build
+    n?: number
+    onSave?: (build: CharacterBuild) => void
+    onBack?: () => void
+}
+
+function cultCost(value: number): number {
+    if (value >= 20) return 3
+    if (value >= 14) return 2
+    return 1
+}
+
+const ATTR_ORDER: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
+
+export function CharacterPanel({
+    mode,
+    character: propChar,
+    charId: propCharId,
+    accentColor = '#888',
+    n = 33,
+    onSave,
+    onBack,
+}: CharacterPanelProps) {
+    const paramsCharId = useParams<{ charId: string }>().charId
+    const navigate = useNavigate()
+    const isBuild = mode === 'build'
+
+    // 构建模式：从 charId 生成临时 build
+    const charId = isBuild ? (propCharId ?? paramsCharId ?? '') : ''
+    const def = isBuild ? getOpponentDef(charId) : null
+    const originalBuild = isBuild ? def!.generate(n) : null
+
+    // 属性分配 state（build 模式）
+    const [attrs, setAttrs] = useState<Record<string, number>>(() =>
+        isBuild ? { ...(originalBuild?.baseAttrs ?? {}) } : {},
+    )
+    const [actionConfigs, setActionConfigs] = useState<ActionConfig[]>(() => {
+        if (!isBuild || !originalBuild) return []
+        const existing = originalBuild.actionConfigs ?? []
+        if (existing.length > 0) return existing.map((c) => ({ ...c }))
+        return originalBuild.rewards.filter((r) => r.type === 'action').map((r) => ({ actionId: r.id }))
+    })
+
+    // 构建模式：获取角色实例
+    const buildChar =
+        isBuild && originalBuild
+            ? new Character({ ...originalBuild, baseAttrs: attrs as Partial<Record<AttrName, number>>, actionConfigs })
+            : null
+
+    const totalPoints = isBuild ? (n - 1) * 2 : 0
+    const spent = isBuild
+        ? ALL_ATTRS.reduce((s, a) => {
+              const v = attrs[a] ?? 3
+              let cost = 0
+              for (let i = 3; i < v; i++) cost += cultCost(i)
+              return s + cost
+          }, 0)
+        : 0
+    const remaining = totalPoints - spent
+
+    const maxTriggerSlots = buildChar?.maxTriggerSlots ?? 0
+    const triggerCount = actionConfigs.filter((ac) => ac.triggerId).length
+    const activeTalents = isBuild ? checkTalents(attrs) : []
+
+    // 头像/武器绘制
+    const character = (isBuild ? buildChar : propChar)!
+    const avatarRef = useRef<HTMLCanvasElement>(null)
+    const weaponRef = useRef<HTMLCanvasElement>(null)
+    const spriteId = character?.build.spriteId ?? 'default'
+    const weapon = character?.weaponDef ?? (character ? getWeapon(character.build.weapon) : undefined)
+
+    useEffect(() => {
+        if (!character) return
+        const canvas = avatarRef.current
+        if (!canvas) return
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+        ctx.clearRect(0, 0, 32, 32)
+        const avatar = getCharacterAvatar(spriteId, accentColor)
+        renderAvatarToCanvas(ctx, avatar, 0, 0)
+    }, [character, spriteId, accentColor])
+
+    useEffect(() => {
+        if (!character) return
+        const canvas = weaponRef.current
+        if (!canvas) return
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+        ctx.clearRect(0, 0, 48, 48)
+        const overlay = getWeaponOverlay(character.build.weapon)
+        if (overlay.pixels.length === 0) return
+        const minX = Math.min(...overlay.pixels.map((p) => p[0]))
+        const maxX = Math.max(...overlay.pixels.map((p) => p[0]))
+        const minY = Math.min(...overlay.pixels.map((p) => p[1]))
+        const maxY = Math.max(...overlay.pixels.map((p) => p[1]))
+        const w = (maxX - minX + 1) * 3
+        const h = (maxY - minY + 1) * 3
+        const ox = (48 - w) / 2
+        const oy = (48 - h) / 2
+        for (const [px, py, color] of overlay.pixels) {
+            ctx.fillStyle = color
+            ctx.fillRect(ox + (px - minX) * 3, oy + (py - minY) * 3, 3, 3)
+        }
+    }, [character])
+
+    // build 模式逻辑
+    function handleAttrAdjust(attr: string, delta: number) {
+        if (!isBuild) return
+        const cur = attrs[attr] ?? 3
+        const next = cur + delta
+        if (next < 3 || next > 30) return
+        const cost = delta > 0 ? cultCost(cur) : -cultCost(cur - 1)
+        if (remaining - cost < 0) return
+        setAttrs((prev) => ({ ...prev, [attr]: next }))
+    }
+
+    function handleReset() {
+        if (!isBuild || !originalBuild) return
+        setAttrs({ ...originalBuild.baseAttrs })
+        setActionConfigs(
+            originalBuild.actionConfigs
+                ? originalBuild.actionConfigs.map((c) => ({ ...c }))
+                : originalBuild.rewards.filter((r) => r.type === 'action').map((r) => ({ actionId: r.id })),
+        )
+        setSaveError(null)
+    }
+
+    function moveAction(fromIndex: number, toIndex: number) {
+        if (!isBuild) return
+        if (toIndex < 0 || toIndex >= actionConfigs.length) return
+        const updated = [...actionConfigs]
+        const [moved] = updated.splice(fromIndex, 1)
+        updated.splice(toIndex, 0, moved)
+        setActionConfigs(updated)
+    }
+
+    function updateAction(index: number, patch: Partial<ActionConfig>) {
+        if (!isBuild) return
+        setActionConfigs((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)))
+    }
+
+    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+
+    function handleDragEnd(event: DragEndEvent) {
+        if (!isBuild) return
+        const { active, over } = event
+        if (!over || active.id === over.id) return
+        const from = parseInt(active.id as string)
+        const to = parseInt(over.id as string)
+        moveAction(from, to)
+    }
+
+    const [saveError, setSaveError] = useState<string | null>(null)
+
+    function handleSave() {
+        if (!isBuild || !originalBuild) return
+        if (triggerCount > maxTriggerSlots) {
+            setSaveError(
+                `触发条件超出上限（${triggerCount}/${maxTriggerSlots}），当前配置最多 ${maxTriggerSlots} 个触发条件`,
+            )
+            return
+        }
+        setSaveError(null)
+        const newBuild: CharacterBuild = {
+            ...originalBuild,
+            baseAttrs: attrs as Partial<Record<AttrName, number>>,
+            actionConfigs,
+        }
+        if (onSave) {
+            onSave(newBuild)
+        } else {
+            navigate('/select')
+        }
+    }
+
+    if (!character) return null
+
+    const a = character.attrs
+
+    return (
+        <div className="character-panel">
+            {/* Header */}
+            <div className="cp-header">
+                {isBuild ? (
+                    <>
+                        <button className="cp-btn" onClick={onBack ?? (() => navigate('/select'))}>
+                            ← 返回
+                        </button>
+                        <span className="cp-name">{def?.name ?? charId}</span>
+                        <div className="cp-actions">
+                            <button className="cp-btn cp-btn-reset" onClick={handleReset}>
+                                ↺ 复位
+                            </button>
+                            <button className="cp-btn cp-btn-save" onClick={handleSave}>
+                                ✓ 保存
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <div className="cp-header-left">
+                        <canvas ref={avatarRef} width={32} height={32} className="cp-avatar" />
+                        <span className="cp-name">{character.name}</span>
+                    </div>
+                )}
+            </div>
+            {isBuild && saveError && <div className="cp-error">{saveError}</div>}
+
+            <div className="cp-body">
+                {/* 左栏：区块1+2 */}
+                <div className="cp-col-left">
+                    {/* 区块1: 头像 + 武器 + 气血内息 */}
+                    <div className="cp-section">
+                        <div className="cp-header-row">
+                            <canvas ref={avatarRef} width={32} height={32} className="cp-avatar" />
+                            <div className="cp-weapon-area">
+                                <canvas ref={weaponRef} width={48} height={48} className="cp-weapon-art" />
+                                <div className="cp-weapon-name">{weapon && <WeaponItem weapon={weapon} />}</div>
+                            </div>
+                        </div>
+                        <div className="cp-hp-ap">
+                            <span className="cp-hp">气血</span> {character.maxHp}
+                            <span className="cp-sep">·</span>
+                            <span className="cp-ap">内息</span> {character.maxAp.toFixed(1)}
+                        </div>
+                    </div>
+
+                    {/* 区块2: 属性 */}
+                    <div className="cp-section">
+                        <div className="cp-section-label">属性</div>
+                        {isBuild && (
+                            <div className="cp-points">
+                                修炼点: 剩余 {remaining} / {totalPoints}
+                            </div>
+                        )}
+                        {ATTR_ORDER.map((attr) => {
+                            const val = isBuild ? (attrs[attr] ?? 3) : Math.round(a.get(attr))
+                            const upCost = isBuild && val < 30 ? cultCost(val) : null
+                            return (
+                                <div key={attr} className="cp-attr-row">
+                                    <Tooltip content={<StatTooltip attr={attr} value={val} />}>
+                                        <AttributeLabel attr={attr} value={val} />
+                                    </Tooltip>
+                                    {isBuild && (
+                                        <>
+                                            <button
+                                                className="cp-btn-sm"
+                                                disabled={val <= 3}
+                                                onClick={() => handleAttrAdjust(attr, -1)}
+                                            >
+                                                −
+                                            </button>
+                                            <button
+                                                className="cp-btn-sm"
+                                                disabled={val >= 30 || remaining < (upCost ?? 99)}
+                                                onClick={() => handleAttrAdjust(attr, 1)}
+                                            >
+                                                +
+                                            </button>
+                                            {upCost && <span className="cp-cost">{upCost}pt</span>}
+                                        </>
+                                    )}
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                {/* 右栏：区块3+4 */}
+                <div className="cp-col-right">
+                    {/* 区块3: 天赋 + 功法 + 奇物 */}
+                    {isBuild && activeTalents.length > 0 && (
+                        <div className="cp-section">
+                            <div className="cp-section-label">天赋</div>
+                            <div className="cp-talent-list">
+                                {activeTalents.map((t) => {
+                                    const def = getPassive(t.id)
+                                    return (
+                                        <span key={t.id} className="cp-talent">
+                                            {def?.name ?? t.id}
+                                        </span>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {character.passiveDefs.length > 0 && (
+                        <div className="cp-section">
+                            <div className="cp-section-label">功法 ({character.passiveDefs.length})</div>
+                            {character.passiveDefs.map((p, i) => (
+                                <PassiveItem key={i} passive={p} />
+                            ))}
+                        </div>
+                    )}
+
+                    {character.artifactDefs.length > 0 && (
+                        <div className="cp-section">
+                            <div className="cp-section-label">奇物 ({character.artifactDefs.length})</div>
+                            {character.artifactDefs.map((art, i) => (
+                                <ArtifactItem key={i} artifact={art} />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* 区块4: 招式 */}
+                    <div className="cp-section">
+                        <div className="cp-section-label">
+                            招式 ({character.actions.length})
+                            {isBuild && (
+                                <span className="cp-trigger-count">
+                                    {triggerCount}/{maxTriggerSlots} 触发
+                                </span>
+                            )}
+                        </div>
+                        {isBuild ? (
+                            <>
+                                <div className="cp-table-header">
+                                    <span className="cp-col-order">≡</span>
+                                    <span className="cp-col-name">招式</span>
+                                    <span className="cp-col-cond">条件</span>
+                                    <span className="cp-col-trig">触发</span>
+                                </div>
+                                <DndContext
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                    sensors={sensors}
+                                >
+                                    <SortableContext
+                                        items={actionConfigs.map((_, i) => String(i))}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        <div className="cp-table-body">
+                                            {actionConfigs.map((ac, i) => (
+                                                <SortableRow
+                                                    key={`${ac.actionId}-${i}`}
+                                                    id={String(i)}
+                                                    ac={ac}
+                                                    index={i}
+                                                    onUpdate={updateAction}
+                                                    disabled={triggerCount >= maxTriggerSlots && !ac.triggerId}
+                                                />
+                                            ))}
+                                        </div>
+                                    </SortableContext>
+                                </DndContext>
+                            </>
+                        ) : (
+                            character.actions.map((act, i) => <ActionItem key={i} action={act} />)
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+/** 可拖拽排序的招式行 */
+function SortableRow({
+    id,
+    ac,
+    index,
+    onUpdate,
+    disabled,
+}: {
+    id: string
+    ac: ActionConfig
+    index: number
+    onUpdate: (i: number, patch: Partial<ActionConfig>) => void
+    disabled: boolean
+}) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+    const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
+    const actionDef = getAction(ac.actionId)
+
+    return (
+        <div ref={setNodeRef} style={style} className="cp-row">
+            <span className="cp-col-order" {...attributes} {...listeners}>
+                <span className="cp-drag-handle">⠿</span>
+            </span>
+            <span className="cp-col-name">{actionDef?.name ?? ac.actionId}</span>
+            <span className="cp-col-cond">
+                <select
+                    value={ac.conditionId ?? 'always'}
+                    onChange={(e) =>
+                        onUpdate(index, { conditionId: e.target.value === 'always' ? undefined : e.target.value })
+                    }
+                >
+                    {CONDITION_PRESETS.map((p) => (
+                        <option key={p.id} value={p.id}>
+                            {p.name}
+                        </option>
+                    ))}
+                </select>
+            </span>
+            <span className="cp-col-trig">
+                <select
+                    value={ac.triggerId ?? ''}
+                    disabled={disabled}
+                    onChange={(e) => onUpdate(index, { triggerId: e.target.value || undefined })}
+                >
+                    <option value="">—</option>
+                    {TRIGGER_CONDITIONS.map((tc) => (
+                        <option key={tc.id} value={tc.id}>
+                            {tc.name}
+                        </option>
+                    ))}
+                </select>
+            </span>
+        </div>
+    )
+}

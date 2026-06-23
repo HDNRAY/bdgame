@@ -86,14 +86,14 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
     },
     {
         id: 'on_debuff',
-        name: '获得减益时',
-        description: '获得减益效果时触发',
+        name: '施加减益时',
+        description: '对目标施加减益效果时触发',
         type: 'on_debuff',
     },
     {
         id: 'on_poison',
-        name: '中毒时',
-        description: '中毒时触发',
+        name: '施加中毒时',
+        description: '使目标中毒时触发',
         type: 'on_poison',
     },
     {
@@ -131,6 +131,12 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
         name: '战斗开始时',
         description: '战斗开始时触发',
         type: 'battle_start',
+    },
+    {
+        id: 'on_equip',
+        name: '装备时',
+        description: '装备时触发',
+        type: 'on_equip',
     },
 ]
 

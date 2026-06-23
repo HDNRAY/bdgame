@@ -4,7 +4,7 @@ import type { CharacterBuild } from '../../../engine/entities/character-build'
 import { Character } from '../../../engine/entities/character'
 import { runBattle } from '../../../engine/battle-runner'
 import { formatBattleLog } from '../../../engine/format-log'
-import { BuildPanel } from '../BuildPanel/BuildPanel'
+import { CharacterPanel } from '../CharacterPanel/CharacterPanel'
 import { BattlePanel } from '../BattlePanel/BattlePanel'
 import { ReplayPanel } from '../ReplayPanel/ReplayPanel'
 import { useAppStore } from '../../stores/app-store'
@@ -77,7 +77,7 @@ export function BattleScreen() {
 
     return (
         <div className="app-root">
-            <BuildPanel character={charA} accentColor={charAInfo.color} />
+            <CharacterPanel mode="view" character={charA} accentColor={charAInfo.color} />
             <div className="app-center">
                 <ReplayPanel
                     key={battleKey}
@@ -93,7 +93,7 @@ export function BattleScreen() {
                 />
                 {snap && <BattlePanel snapshot={snap} charAName={charA.name} charBName={charB.name} />}
             </div>
-            <BuildPanel character={charB} accentColor={charBInfo.color} />
+            <CharacterPanel mode="view" character={charB} accentColor={charBInfo.color} />
         </div>
     )
 }

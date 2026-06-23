@@ -43,6 +43,8 @@ export interface BuffDef extends GameEntity {
     stacking?: BuffStacking
     /** 每层属性修正 */
     attrMods?: Record<string, number>
+    /** 每层最大 AP 修正 */
+    maxApMod?: number
     /** DOT/tick 间隔（ms） */
     tickInterval?: number
     /** tick 伤害回调 */
@@ -265,6 +267,33 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'additive' },
+    },
+    {
+        id: 'overload',
+        name: '失重',
+        description: '义体过载，身法下降。',
+        tags: ['debuff', 'implant'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 3 },
+        attrMods: { agility: -1 },
+    },
+    {
+        id: 'muscle_degradation',
+        name: '失感',
+        description: '肌肉负担过重，体质与技巧下降。',
+        tags: ['debuff', 'implant'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        attrMods: { vitality: -2, dexterity: -2 },
+    },
+    {
+        id: 'ap_drain',
+        name: '失能',
+        description: '能量损耗，内息上限下降。',
+        tags: ['debuff', 'implant'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 2 },
+        maxApMod: -1,
     },
     {
         id: 'permanent_burn',

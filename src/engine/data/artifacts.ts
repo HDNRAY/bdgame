@@ -8,21 +8,17 @@ export const ARTIFACTS: Artifact[] = [
         name: '钛合金臂',
         description: '重型钛合金义肢，力大无穷。可飞向对手自爆。',
         tags: ['implant', 'inherent'],
-        effects: [
-            { type: 'stat_buff', attrs: { strength: 3, dexterity: 3 } },
-            { type: 'stat_buff', attrs: { agility: -2 } },
-        ],
+        effects: [{ type: 'stat_buff', attrs: { strength: 3, dexterity: 3 } }],
         grantsActions: ['_arm_explosion'],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 2 }] }],
     },
     {
         id: 'hydraulic_leg',
         name: '液压腿',
         description: '液压驱动义腿，爆发力惊人。所有招式附带短距冲刺。',
         tags: ['implant', 'inherent'],
-        effects: [
-            { type: 'move_efficiency', value: 0.2 },
-            { type: 'stat_buff', attrs: { agility: -1 } },
-        ],
+        effects: [{ type: 'move_efficiency', value: 0.2 }],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 1 }] }],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
             return { ...def, effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])] }
@@ -33,28 +29,32 @@ export const ARTIFACTS: Artifact[] = [
         name: '机械眼球',
         description: '精密光学义眼，洞察入微，免疫迷眼。',
         tags: ['implant', 'inherent'],
-        effects: [
-            { type: 'stat_buff', attrs: { insight: 4 } },
-            { type: 'max_ap_mod', value: -1 },
+        effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dark_room_sense' }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'ap_drain', stacks: 1 }] },
         ],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dark_room_sense' }] }],
     },
     {
         id: 'muscle_boost',
         name: '肌肉强化针',
         description: '肌肉强化注射剂，代价是身体负担。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 4, vitality: -2, agility: 4, dexterity: -2 } }],
+        effects: [{ type: 'stat_buff', attrs: { strength: 4, agility: 4 } }],
+        triggers: [
+            {
+                condition: { type: 'on_equip' },
+                effects: [{ type: 'add_buff', buffId: 'muscle_degradation', stacks: 1 }],
+            },
+        ],
     },
     {
         id: 'heart_pump',
         name: '心肺泵',
         description: '辅助循环系统，全面提升体能。',
         tags: ['implant', 'inherent'],
-        effects: [
-            { type: 'stat_buff', attrs: { strength: 2, agility: 2, dexterity: 1 } },
-            { type: 'max_ap_mod', value: -1 },
-        ],
+        effects: [{ type: 'stat_buff', attrs: { strength: 2, agility: 2, dexterity: 1 } }],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'ap_drain', stacks: 1 }] }],
     },
     {
         id: 'neural_net',
@@ -64,7 +64,7 @@ export const ARTIFACTS: Artifact[] = [
         effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 4, insight: 1 } }],
         triggers: [
             {
-                condition: { type: 'battle_start' },
+                condition: { type: 'on_equip' },
                 effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 2 }],
             },
         ],
@@ -77,7 +77,7 @@ export const ARTIFACTS: Artifact[] = [
         effects: [{ type: 'stat_buff', attrs: { wisdom: 6 } }],
         triggers: [
             {
-                condition: { type: 'battle_start' },
+                condition: { type: 'on_equip' },
                 effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 1 }],
             },
         ],

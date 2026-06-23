@@ -18,7 +18,12 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     // 2-part keys: 直接删
     if (parts.length === 2) {
         const char = engine.getCharacter(charId)
-        if (char) revertBuffMods(layer, char, engine)
+        if (char) {
+            revertBuffMods(layer, char, engine)
+            if (typeof layer.mods?.maxApMod === 'number') {
+                char.maxApMod -= layer.mods.maxApMod
+            }
+        }
         engine.state.pendingBuffs.delete(buffKey)
         return
     }
@@ -27,13 +32,19 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
 
     // 通用：反转属性变化
     const char = engine.getCharacter(charId)
-    if (char) revertBuffMods(layer, char, engine)
+    if (char) {
+        revertBuffMods(layer, char, engine)
+        if (typeof layer.mods?.maxApMod === 'number') {
+            char.maxApMod -= layer.mods.maxApMod
+        }
+    }
 
     // stat_transfer：正向恢复目标
     if (buffId === 'stat_transfer' && layer.targetId) {
         const target = engine.getCharacter(layer.targetId)
         if (target && layer.mods) {
             for (const [attr, delta] of Object.entries(layer.mods)) {
+                if (attr === 'maxApMod') continue
                 target.attrs.modify(attr as AttrName, delta)
                 if (attr === 'agility')
                     engine.state.turn.recalcInterval(target.id, target.attrs.get('agility'), target.getHaste())
@@ -46,6 +57,7 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
             ? `${tag}消失`
             : tag
         const details = Object.entries(layer.mods)
+            .filter(([a]) => a !== 'maxApMod')
             .map(([a, v]) => `${ATTR_CN[a] ?? a}${-(v as number) > 0 ? '+' : ''}${-(v as number)}`)
             .join(', ')
         engine.emitLog({
