@@ -138,6 +138,13 @@
         }
     }
 
+    .selection-actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+    }
+
     .start-btn {
         padding: 10px 40px;
         font-size: 16px;
@@ -156,6 +163,25 @@
         &:disabled {
             opacity: 0.3;
             cursor: not-allowed;
+        }
+    }
+
+    .back-btn {
+        padding: 10px 20px;
+        font-size: 13px;
+        font-family: monospace;
+        background: transparent;
+        color: #666;
+        border: 1px solid #333;
+        border-radius: 4px;
+        cursor: pointer;
+        transition:
+            color 0.15s,
+            border-color 0.15s;
+
+        &:hover {
+            color: #aaa;
+            border-color: #555;
         }
     }
 }
