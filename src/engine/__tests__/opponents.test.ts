@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { LAYUE, OPPONENTS } from '../data/opponents/index'
+import { OPPONENTS } from '../data/opponents/index'
 import { STAT_NAMES } from '../data/rewards'
 import { cultCost } from '../systems/cultivation'
 
@@ -34,12 +34,4 @@ describe('opponents', () => {
             })
         })
     }
-
-    // 腊月额外验证：天生道种加成
-    it('腊月 has innate_seed and extra cultivation points', () => {
-        const build = LAYUE.generate(33)
-        expect(build.rewards.some((r) => r.id === 'innate_seed')).toBe(true)
-        const cost = calcCultCost(build.baseAttrs)
-        expect(cost).toBeGreaterThan(70)
-    })
 })

@@ -12,7 +12,7 @@ export const LUEYING: OpponentDef = {
             'lueying',
             '掠影·无名',
             'swift',
-            'military_dagger',
+            'dagger',
             LUEYING_ATTRS,
             [
                 passive('ordinary_training'),

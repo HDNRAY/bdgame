@@ -35,7 +35,7 @@ export const LAYUE: OpponentDef = {
             'layue',
             '什么·腊月',
             'swift',
-            n >= 2 ? 'twin_swords' : 'bare_hands',
+            'qing_shan_swords',
             LAYUE_ATTRS,
             rewards,
             n,

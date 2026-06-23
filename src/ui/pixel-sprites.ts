@@ -452,7 +452,7 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
             [8, 7, '#ff6b6b'],
         ],
     },
-    military_dagger: {
+    dagger: {
         pixels: [
             [7, -2, '#d8d8d8'],
             [8, -1, '#d8d8d8'],

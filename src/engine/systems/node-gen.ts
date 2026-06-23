@@ -1,7 +1,9 @@
 import { BACKGROUNDS } from '../data/backgrounds'
 import type { CharacterBuild } from '../entities/character-build'
-import { REWARD_POOL, STAT_NAMES, STARTING_WEAPONS } from '../data/rewards'
+import { STAT_NAMES } from '../data/rewards'
 import type { Reward } from '../data/rewards'
+import { getRewardPool } from '../data/rewardAdapter'
+import { STARTING_WEAPONS } from '../data/starting-weapons'
 import type { AttrName } from '../entities/attributes'
 import { spendCultPoints } from './cultivation'
 
@@ -28,7 +30,7 @@ export function pickNonStatRewards(n: number, pool: Reward[], poolIdx: { current
     while (choices.length < n && poolIdx.current < pool.length * 10) {
         const r = pool[poolIdx.current % pool.length]
         poolIdx.current++
-        if (r.type !== 'stat' && !seen.has(r.id)) {
+        if (!seen.has(r.id)) {
             seen.add(r.id)
             choices.push(r)
         }
@@ -41,7 +43,7 @@ export function runNodeExploration(bgIndex: number, weaponIndex: number, n: numb
     const logs: string[] = []
     logs.push(`背景: ${BACKGROUNDS[bgIndex].name}`)
 
-    const weaponId = STARTING_WEAPONS[weaponIndex]
+    const weaponId = STARTING_WEAPONS[weaponIndex].id
     const bgAttrs: Record<string, number> = {
         strength: 3,
         vitality: 3,
@@ -59,7 +61,8 @@ export function runNodeExploration(bgIndex: number, weaponIndex: number, n: numb
 
     // 每节点 1 个非属性奖励
     const rewards: Reward[] = []
-    const shuffledPool = shuffle(REWARD_POOL.filter((r) => r.type !== 'stat'))
+    const allNonStat = [...getRewardPool('passive'), ...getRewardPool('artifact'), ...getRewardPool('action')]
+    const shuffledPool = shuffle(allNonStat)
     const poolIdx = { current: 0 }
     const picked = new Set<string>()
 

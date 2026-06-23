@@ -3,6 +3,7 @@ import type { EffectDef } from '../entities/action'
 import type { SummonDef } from '../entities/summon'
 import type { TriggerSlot } from '../entities/trigger'
 import { AttrName } from '../entities/attributes'
+import { STARTING_WEAPONS } from './starting-weapons'
 
 export interface WeaponDef extends GameEntity {
     bound?: boolean
@@ -15,7 +16,7 @@ export interface WeaponDef extends GameEntity {
     requireAttrsMin?: Partial<Record<AttrName, number>>
 }
 
-/** 武器数据（数组，可在初始化时构建为 Map） */
+/** 武器数据（数组，不包括初始武器，初始武器在 starting-weapons.ts） */
 export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'broken_blade',
@@ -23,22 +24,6 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '一把残损的断刀。加装锁链，免疫缴械。',
         tags: ['slash', 'parry', 'imperial'],
         range: [1, 2],
-    },
-    {
-        id: 'bare_hands',
-        name: '赤手空拳',
-        description: '什么都没有，但什么都有可能。',
-        tags: ['blunt', 'dual_wield', 'melee'],
-        bound: false,
-        effects: [{ type: 'stat_buff', attrs: { agility: 2 } }],
-        range: [0, 2],
-    },
-    {
-        id: 'military_dagger',
-        name: '军用匕首',
-        description: '短小锋利的制式匕首，专攻要害。',
-        tags: ['slash', 'pierce', 'melee'],
-        range: [0, 2],
     },
     {
         id: 'iron_spear',
@@ -50,20 +35,7 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [2, 4],
     },
     {
-        id: 'tri_orb',
-        name: '三相珠',
-        description: '三颗由炁劲驱动的法珠，环绕主人旋转。',
-        tags: ['imperial', 'parry', 'range'],
-        range: [0, 6],
-        summon: {
-            id: 'orb',
-            name: '法珠',
-            maxCount: 3,
-            actionId: 'orb_shot',
-        },
-    },
-    {
-        id: 'twin_swords',
+        id: 'qing_shan_swords',
         name: '青山双剑',
         description: '最快的不二剑和最快的弗思剑',
         tags: ['pierce', 'slash', 'imperial', 'parry', 'trigger', 'dual_wield', 'melee'],
@@ -96,13 +68,6 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [1, 3],
         effects: [{ type: 'stat_buff', attrs: { strength: 4, agility: -2 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'frost_dex_bonus' }] }],
-    },
-    {
-        id: 'dual_swords',
-        name: '双剑',
-        description: '一手一剑，攻守兼备。',
-        tags: ['pierce', 'parry', 'dual_wield', 'melee'],
-        range: [1, 3],
     },
     {
         id: 'overlord_blade',
@@ -157,9 +122,12 @@ export const WEAPON_DB: WeaponDef[] = [
 // ── 运行时武器查找表 ──
 let weaponMap: Map<string, WeaponDef> | null = null
 
-/** 初始化武器查找表 */
+/** 初始化武器查找表（包含 WEAPON_DB + STARTING_WEAPONS） */
 export function initWeapons(): void {
-    weaponMap = new Map(WEAPON_DB.map((w) => [w.id, w]))
+    weaponMap = new Map([
+        ...WEAPON_DB.map((w) => [w.id, w] as const),
+        ...STARTING_WEAPONS.map((w) => [w.id, w] as const),
+    ])
 }
 
 export function getWeapon(id: string): WeaponDef {

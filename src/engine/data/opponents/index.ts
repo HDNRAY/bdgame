@@ -41,6 +41,10 @@ import { XUNXIANG } from './xunxiang'
 export interface OpponentDef {
     id: string
     name: string
+    /** 背景故事 */
+    story?: string
+    /** 战前台词 */
+    taunt?: string
     /** 设计目标属性（用于测试验证 cultivation cost） */
     targetAttrs: Record<string, number>
     /** 根据 n 返回对应强度的 build */
