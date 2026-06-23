@@ -49,6 +49,13 @@ export class RewardPool {
         return sorted.slice(0, Math.min(count, sorted.length))
     }
 
+    /** 从预过滤后的列表中取 count 个候选（外部已过滤） */
+    pickChoicesFrom(pool: Reward[], count: number, exclude: string[] = [], playerTags: Tag[] = []): Reward[] {
+        const filtered = pool.filter((r) => !exclude.includes(r.id))
+        const sorted = sortByTagRelevance(filtered, playerTags, exclude)
+        return sorted.slice(0, Math.min(count, sorted.length))
+    }
+
     /** 检查角色是否满足某奖励的属性门槛 */
     meetsRequirements(reward: Reward, attrs: Record<string, number>): boolean {
         const reqs = reward.requireAttrsMin

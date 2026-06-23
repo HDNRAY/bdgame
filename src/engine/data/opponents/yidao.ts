@@ -1,17 +1,9 @@
 import { simpleGenerate } from '../../systems/character-gen'
-import { type OpponentDef, passive } from '.'
+import { type OpponentDef } from '.'
 import type { Reward } from '../../entities/reward'
 import type { ActionConfig } from '../../entities/action-config'
 
 const YIDAO_ATTRS = { strength: 19, vitality: 11, agility: 14, dexterity: 14, insight: 13, wisdom: 6 }
-
-const POOL = ['iaijutsu_strike', 'light_slash', 'human_radar', 'resheath', 'empty_hand', 'tiger_eye']
-
-function rewardType(id: string): 'passive' | 'artifact' | 'action' {
-    if (id === 'iaijutsu_mastery' || id === 'empty_hand' || id === 'human_radar') return 'passive'
-    if (id === 'tiger_eye') return 'artifact'
-    return 'action'
-}
 
 export const YIDAO: OpponentDef = {
     id: 'yidao',
@@ -19,8 +11,13 @@ export const YIDAO: OpponentDef = {
     targetAttrs: YIDAO_ATTRS,
     generate: (n) => {
         const rewards: Reward[] = [
-            passive('iaijutsu_mastery'),
-            ...POOL.map((id) => ({ type: rewardType(id), id, name: id, description: '', tags: [] }) as Reward),
+            { type: 'passive', id: 'iaijutsu_mastery', name: 'iaijutsu_mastery', description: '', tags: [] },
+            { type: 'passive', id: 'empty_hand', name: 'empty_hand', description: '', tags: [] },
+            { type: 'action', id: 'light_slash', name: 'light_slash', description: '', tags: [] },
+            { type: 'passive', id: 'human_radar', name: 'human_radar', description: '', tags: [] },
+            { type: 'action', id: 'iaijutsu_strike', name: 'iaijutsu_strike', description: '', tags: [] },
+            { type: 'action', id: 'resheath', name: 'resheath', description: '', tags: [] },
+            { type: 'artifact', id: 'tiger_eye', name: 'tiger_eye', description: '', tags: [] },
         ]
 
         const actionConfigs: ActionConfig[] = [
@@ -29,17 +26,6 @@ export const YIDAO: OpponentDef = {
             { actionId: 'resheath' },
         ]
 
-        return simpleGenerate(
-            'yidao',
-            '居合·一刀',
-            'swift',
-            'zantetsu',
-            YIDAO_ATTRS,
-            rewards,
-            n,
-            undefined,
-            0,
-            actionConfigs,
-        )
+        return simpleGenerate('yidao', '居合·一刀', 'swift', 'zantetsu', YIDAO_ATTRS, rewards, n, actionConfigs)
     },
 }

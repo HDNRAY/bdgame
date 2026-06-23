@@ -1,6 +1,7 @@
 import { OPPONENTS } from '../data/opponents/index'
 import { BACKGROUNDS, getBackground } from '../data/backgrounds'
 import { STARTING_WEAPONS } from '../data/starting-weapons'
+import { PLAYER_ACTIONS } from '../data/actions/player'
 import { rewardPool } from './reward-pool'
 import type { MapNode, NodeOption, NodeContent } from '../entities/node-map'
 import type { RewardType } from '../entities/reward'
@@ -251,10 +252,21 @@ export function getForceRewardChoices(
     ownedIds: string[],
     playerTags: Tag[],
     bgId?: string,
+    /** 仅返回 apCost≤2 的非辅助招式（第1个招式节点专用） */
+    lowCostActions?: boolean,
 ): NodeChoice[] {
     if (!node.forceRewardType || node.forceRewardType === 'cult') return []
+
+    let pool = rewardPool.getPool(node.forceRewardType)
+    if (node.forceRewardType === 'action' && lowCostActions) {
+        const allowed = new Set(
+            PLAYER_ACTIONS.filter((a) => a.apCost <= 2 && !a.tags.includes('support')).map((a) => a.id),
+        )
+        pool = pool.filter((r) => allowed.has(r.id))
+    }
+
     const ft = getNodeFlavorText(node.index, bgId)
-    return rewardPool.pickChoices(node.forceRewardType, 3, ownedIds, playerTags).map((r, i) => ({
+    return rewardPool.pickChoicesFrom(pool, 3, ownedIds, playerTags).map((r, i) => ({
         id: r.id,
         name: r.name,
         desc: r.description,

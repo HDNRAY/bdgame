@@ -16,14 +16,12 @@ export const XUANJI: OpponentDef = {
             XUANJI_ATTRS,
             [
                 passive('spirit_resonance'),
-                action('qi_bolt'),
                 artifact('qi_guard'),
+                action('qi_bolt'),
                 artifact('iron_will'),
                 artifact('ap_boost'),
             ],
             n,
-            undefined,
-            undefined,
             [
                 { actionId: 'qi_bolt' },
                 { actionId: 'restore_ap', triggerId: 'on_parry' },

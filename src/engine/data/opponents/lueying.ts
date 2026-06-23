@@ -17,14 +17,12 @@ export const LUEYING: OpponentDef = {
             [
                 passive('ordinary_training'),
                 artifact('poison_coating'),
-                artifact('western_poison'),
                 action('gash'),
+                artifact('western_poison'),
                 action('kick'),
                 action('dart_throw'),
             ],
             n,
-            undefined,
-            undefined,
             [
                 { actionId: 'gash' },
                 { actionId: 'sand_throw', triggerId: 'on_dodged' },

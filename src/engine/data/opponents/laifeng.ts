@@ -17,16 +17,14 @@ export const LAIFENG: OpponentDef = {
             [
                 passive('forge'),
                 artifact('qi_amplifier'),
+                action('straight_punch'),
                 action('qi_focus'),
                 action('qi_gather'),
-                action('straight_punch'),
                 action('iron_charge'),
                 action('qi_bolt'),
                 action('eighteen_palms'),
             ],
             n,
-            undefined,
-            undefined,
             [
                 { actionId: 'qi_focus' },
                 { actionId: 'qi_gather' },

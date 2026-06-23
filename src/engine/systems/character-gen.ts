@@ -15,13 +15,13 @@ export function simpleGenerate(
     targetAttrs: Record<string, number>,
     rewards: Reward[],
     n: number,
-    /** +4 修炼点奖励次数（默认每2节点1次），修炼点 = cultRewards × 4 */
-    cultRewards = Math.floor((n - 1) / 2),
-    /** 额外修炼点（背景加成等） */
-    extraPoints = 0,
     actionConfigs?: ActionConfig[],
 ): CharacterBuild {
-    // 总修炼点 = cultRewards × 4 + extraPoints
+    // 修炼点 = 每2节点1次+4
+    const cultRewards = Math.floor((n - 1) / 2)
+    // 天生道种：每4节点多1次+4修炼点
+    const hasInnateSeed = rewards.some((r) => r.id === 'innate_seed')
+    const extraPoints = hasInnateSeed ? Math.floor((n - 1) / 4) * 4 : 0
     const total = Math.max(0, cultRewards * 4 + extraPoints)
     const result: Record<string, number> = {}
     for (const a of STAT_NAMES) result[a] = 3

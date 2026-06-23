@@ -17,14 +17,12 @@ export const SANGYUAN: OpponentDef = {
             [
                 passive('dimensional_blade_mastery'),
                 artifact('qi_amplifier'),
-                action('spirit_sword'),
                 action('light_slash'),
+                action('spirit_sword'),
                 action('heavy_slash'),
                 action('big_leap'),
             ],
             n,
-            undefined,
-            undefined,
             [
                 { actionId: 'spirit_sword' },
                 { actionId: 'heavy_slash' },

@@ -17,11 +17,11 @@ export const QILAN: OpponentDef = {
             [
                 passive('godspeed'),
                 passive('thunder_art'),
+                action('palm_strike'),
                 passive('zoldyck_art'),
                 passive('qiti_source'),
                 artifact('cinnabar_mole'),
                 action('electric_yoyo'),
-                action('palm_strike'),
                 action('lightning_speed'),
                 action('thunder_storm'),
             ],

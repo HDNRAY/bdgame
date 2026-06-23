@@ -596,6 +596,9 @@ export class BattleEngine {
         if (!triggered && !self.spendAp(action.apCost)) {
             return r
         }
+        // 消耗限次招式
+        const inst = self.actions.find((a) => a.id === action.id)
+        if (inst && inst.def.maxUses !== undefined) inst.use()
         // 缠积累（消耗AP × 1）+ 缠消耗
         self.addChan(action.apCost)
         if (action.chanCost) self.spendChan(action.chanCost)

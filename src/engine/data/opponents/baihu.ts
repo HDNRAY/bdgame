@@ -17,16 +17,14 @@ export const BAIHU: OpponentDef = {
             [
                 passive('ice_heart'),
                 passive('frost_mastery'),
+                action('light_slash'),
                 passive('frost_step_mastery'),
                 artifact('frost_silk_robe'),
+                action('heavy_slash'),
                 action('guard'),
                 action('nineteen_stops'),
-                action('light_slash'),
-                action('heavy_slash'),
             ],
             n,
-            undefined,
-            undefined,
             [
                 { actionId: 'nineteen_stops' },
                 { actionId: 'light_slash' },
@@ -34,5 +32,4 @@ export const BAIHU: OpponentDef = {
                 { actionId: 'guard', triggerId: 'on_dodged' },
             ],
         ),
-    aiOverrides: {},
 }

@@ -19,16 +19,13 @@ export const ZHANGLIE: OpponentDef = {
             [
                 passive('iron_bone'),
                 artifact('hydraulic_leg'),
+                action('jab'),
                 artifact('heart_pump'),
                 artifact('neural_net'),
-                action('thrust'),
                 action('straight_punch'),
-                action('jab'),
-                // action('break_formation'),
+                action('thrust'),
             ],
             n,
-            undefined,
-            undefined,
             [
                 { actionId: 'thrust' },
                 { actionId: 'straight_punch' },
