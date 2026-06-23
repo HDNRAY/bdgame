@@ -15,9 +15,9 @@ export const XUNXIANG: OpponentDef = {
             'bare_hands',
             XUNXIANG_ATTRS,
             [
+                action('straight_punch'),
                 passive('lingxi_finger'),
                 passive('yedi_lightness'),
-                action('straight_punch'),
                 action('wrist_strike'),
                 action('throwing_knife'),
                 action('push_palm'),

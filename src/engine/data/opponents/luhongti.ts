@@ -15,9 +15,9 @@ export const LUHONGTI: OpponentDef = {
             'heshan_sword',
             LUHONGTI_ATTRS,
             [
+                action('sword_thrust'),
                 passive('inner_power'),
                 artifact('other_mountain'),
-                action('sword_thrust'),
                 passive('tai_chi_mastery'),
                 passive('yue_nv_sword'),
                 action('light_slash'),

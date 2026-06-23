@@ -17,9 +17,9 @@ export const ZHANGLIE: OpponentDef = {
             'iron_spear',
             ZHANGLIE_ATTRS,
             [
+                action('jab'),
                 passive('iron_bone'),
                 artifact('hydraulic_leg'),
-                action('jab'),
                 artifact('heart_pump'),
                 artifact('neural_net'),
                 action('straight_punch'),

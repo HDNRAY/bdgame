@@ -15,9 +15,9 @@ export const LUEYING: OpponentDef = {
             'dagger',
             LUEYING_ATTRS,
             [
+                action('gash'),
                 passive('ordinary_training'),
                 artifact('poison_coating'),
-                action('gash'),
                 artifact('western_poison'),
                 action('kick'),
                 action('dart_throw'),

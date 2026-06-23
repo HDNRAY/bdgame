@@ -15,9 +15,9 @@ export const BAIHU: OpponentDef = {
             'frost_twin_blades',
             BAIHU_ATTRS,
             [
+                action('light_slash'),
                 passive('ice_heart'),
                 passive('frost_mastery'),
-                action('light_slash'),
                 passive('frost_step_mastery'),
                 artifact('frost_silk_robe'),
                 action('heavy_slash'),

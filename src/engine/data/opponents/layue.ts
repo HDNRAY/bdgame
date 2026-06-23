@@ -11,9 +11,9 @@ export const LAYUE: OpponentDef = {
     targetAttrs: LAYUE_ATTRS,
     generate: (n) => {
         const rewards: Reward[] = [
+            { type: 'action', id: 'cun_mang', name: 'cun_mang', description: '', tags: [] },
             { type: 'passive', id: 'sword_dominion', name: 'sword_dominion', description: '', tags: [] },
             { type: 'artifact', id: 'innate_seed', name: 'innate_seed', description: '', tags: [] },
-            { type: 'action', id: 'cun_mang', name: 'cun_mang', description: '', tags: [] },
             { type: 'passive', id: 'nine_deaths', name: 'nine_deaths', description: '', tags: [] },
             { type: 'action', id: 'nine_deaths_strike', name: 'nine_deaths_strike', description: '', tags: [] },
             { type: 'artifact', id: 'wisdom_talisman', name: 'wisdom_talisman', description: '', tags: [] },

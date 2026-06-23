@@ -18,7 +18,7 @@ function mc(
     return new Character({
         id,
         name,
-        background: 'balanced',
+        story: 'balanced',
         weapon: 'bare_hands',
         baseAttrs: attrs,
         rewards,

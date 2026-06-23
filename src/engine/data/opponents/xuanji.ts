@@ -15,9 +15,9 @@ export const XUANJI: OpponentDef = {
             'tri_orb',
             XUANJI_ATTRS,
             [
+                action('qi_bolt'),
                 passive('spirit_resonance'),
                 artifact('qi_guard'),
-                action('qi_bolt'),
                 artifact('iron_will'),
                 artifact('ap_boost'),
             ],

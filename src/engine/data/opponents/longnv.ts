@@ -15,9 +15,9 @@ export const LONGNV: OpponentDef = {
             'dual_swords',
             LONGNV_ATTRS,
             [
+                action('yunv_sword'),
                 passive('dark_room_catch'),
                 artifact('golden_silk_gloves'),
-                action('yunv_sword'),
                 artifact('herb_pouch'),
                 action('quanzhen_sword'),
                 action('yufeng_needle'),

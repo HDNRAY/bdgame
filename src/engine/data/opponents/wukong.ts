@@ -16,9 +16,9 @@ export const WUKONG: OpponentDef = {
             'dinghai_shen_tie',
             WUKONG_ATTRS,
             [
+                action('rod_thrust'),
                 passive('stone_skin'),
                 passive('hua_gun'),
-                action('rod_thrust'),
                 passive('qishier_bian'),
                 artifact('fiery_eyes'),
                 action('rod_sweep'),

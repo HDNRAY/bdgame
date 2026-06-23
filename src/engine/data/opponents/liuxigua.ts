@@ -15,9 +15,9 @@ export const LIUXIGUA: OpponentDef = {
             'overlord_blade',
             LIUXIGUA_ATTRS,
             [
+                action('spinning_slash'),
                 passive('momentum_mastery'),
                 passive('overlord_art'),
-                action('spinning_slash'),
                 action('little_fist'),
                 action('shadow_kick'),
                 action('cyclone_slash'),

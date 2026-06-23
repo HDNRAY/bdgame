@@ -15,9 +15,9 @@ export const YANGGUO: OpponentDef = {
             'dark_iron_sword',
             YANGGUO_ATTRS,
             [
+                action('quanzhen_sword'),
                 passive('one_arm'),
                 passive('dark_iron_sword_art'),
-                action('quanzhen_sword'),
                 passive('dark_room_catch'),
                 passive('tide_inner_power'),
                 artifact('snake_gall'),

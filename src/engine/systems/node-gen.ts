@@ -1,5 +1,5 @@
 import { OPPONENTS } from '../data/opponents/index'
-import { BACKGROUNDS, getBackground } from '../data/backgrounds'
+import { STORIES, getStory } from '../data/stories/index'
 import { STARTING_WEAPONS } from '../data/starting-weapons'
 import { PLAYER_ACTIONS } from '../data/actions/player'
 import { rewardPool } from './reward-pool'
@@ -210,11 +210,11 @@ export interface NodeChoice {
 
 /** 背景选择——随机 3 个背景 */
 export function getBgChoices(): NodeChoice[] {
-    return pickRandom(BACKGROUNDS, 3).map((b) => ({
-        id: b.id,
-        name: b.name,
-        desc: b.desc,
-        tags: b.tags,
+    return pickRandom(STORIES, 3).map((s) => ({
+        id: s.id,
+        name: s.name,
+        desc: s.desc,
+        tags: s.tags,
     }))
 }
 
@@ -224,12 +224,12 @@ const DEFAULT_NODE_TEXTS: Partial<Record<number, string>> = {
     3: '你领悟了一招新招式。',
 }
 
-/** 获取节点文案（优先用背景覆盖） */
-export function getNodeFlavorText(nodeIndex: number, backgroundId?: string): string | undefined {
-    if (backgroundId) {
-        const bg = getBackground(backgroundId)
-        const override = bg?.nodeTexts?.[nodeIndex]
-        if (override) return override
+/** 获取节点文案（优先用故事覆盖） */
+export function getNodeFlavorText(nodeIndex: number, storyId?: string): string | undefined {
+    if (storyId) {
+        const s = getStory(storyId)
+        const override = s?.getNodeOverride?.(nodeIndex)
+        if (override?.flavorText) return override.flavorText
     }
     return DEFAULT_NODE_TEXTS[nodeIndex]
 }
@@ -282,7 +282,14 @@ export function getForceRewardChoices(
  * normal → 已由 generateOptions 填充 options
  * boss → []
  */
-export function getNodeChoices(node: MapNode, ownedIds: string[], playerTags: Tag[], bgId?: string): NodeChoice[] {
+export function getNodeChoices(
+    node: MapNode,
+    ownedIds: string[],
+    playerTags: Tag[],
+    bgId?: string,
+    overrideChoices?: NodeChoice[],
+): NodeChoice[] {
+    if (overrideChoices) return overrideChoices
     if (node.type === 'bg') return getBgChoices()
     if (node.type === 'weapon') return getWeaponChoices(bgId)
     if (node.type === 'boss') return []

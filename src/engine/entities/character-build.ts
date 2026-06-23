@@ -6,8 +6,8 @@ import type { ActionConfig } from './action-config'
 export interface CharacterBuild {
     id: string
     name: string
-    /** 背景 ID */
-    background: string
+    /** 故事 ID（玩家用故事ID，对手传战斗风格如 'balanced'） */
+    story: string
     /** 最终属性值 */
     baseAttrs: Partial<Record<AttrName, number>>
     /** 武器 ID */

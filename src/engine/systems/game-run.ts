@@ -3,6 +3,7 @@ import { rewardPool } from './reward-pool'
 import { runBattle } from '../battle-runner'
 import { Character } from '../entities/character'
 import { getWeapon } from '../data/weapons'
+import { getStory } from '../data/stories/index'
 import { getOpponentDef } from '../data/opponents/index'
 import type { MapNode, ChoiceResult, RunState, NodeLogEntry, SaveData } from '../entities/node-map'
 import type { CharacterBuild } from '../entities/character-build'
@@ -36,7 +37,7 @@ export class GameRun {
             build: {
                 id: 'player',
                 name: '挑战者',
-                background: '',
+                story: '',
                 weapon: '',
                 baseAttrs: { strength: 3, vitality: 3, agility: 3, dexterity: 3, insight: 3, wisdom: 3 },
                 rewards: [],
@@ -148,6 +149,8 @@ export class GameRun {
     /** 委托 node-gen 生成当前节点的选择项 */
     private _generateChoices(): NodeChoice[] {
         const node = this.getCurrentNode()
+        const story = getStory(this.state.build.story)
+        const override = story?.getNodeOverride?.(node.index)
 
         // normal 节点需要先生成选项
         if (node.type === 'normal' && !node.forceRewardType) {
@@ -155,12 +158,16 @@ export class GameRun {
             node.options = generateOptions(node, enemies)
         }
 
-        return getNodeChoices(node, this.ownedRewardIds, this.playerTags, this.state.build.background)
+        return getNodeChoices(node, this.ownedRewardIds, this.playerTags, this.state.build.story, override?.choices)
     }
 
     private _advance(): void {
         this._nodeIdx++
         this.state.currentNode = this.map[this._nodeIdx]?.index ?? 33
+        // 故事钩子：额外修炼点
+        const story = getStory(this.state.build.story)
+        const cultPts = story?.getNodeOverride?.(this.state.currentNode)?.cultPoints
+        if (cultPts) this.state.unspentCultPoints += cultPts
         if (this._nodeIdx >= this.map.length) this.state.finished = true
     }
 
@@ -172,12 +179,14 @@ export class GameRun {
 
     private _selectBg(index: number, entry: NodeLogEntry): ChoiceResult {
         const picked = this._currentChoices[Math.min(index, this._currentChoices.length - 1)]
-        this.state.build.background = picked.id
-        this.state.unspentCultPoints += 4
-        entry.cultPointsGained = 4
+        this.state.build.story = picked.id
+        const story = getStory(picked.id)
+        const pts = story?.getNodeOverride?.(1)?.cultPoints ?? 4
+        this.state.unspentCultPoints += pts
+        entry.cultPointsGained = pts
         this.state.log.push(entry)
         this._advance()
-        return { cultPoints: 4 }
+        return { cultPoints: pts }
     }
 
     private _selectWeapon(index: number, entry: NodeLogEntry): ChoiceResult {

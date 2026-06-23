@@ -11,7 +11,7 @@ function makeChar(attrs: Record<string, number> = {}): Character {
     return new Character({
         id: 'test',
         name: '测试',
-        background: 'balanced',
+        story: 'balanced',
         weapon: 'bare_hands',
         baseAttrs: { strength: 10, vitality: 10, agility: 10, dexterity: 10, insight: 10, wisdom: 10, ...attrs },
         rewards: [],
@@ -22,7 +22,7 @@ function makeState(char: Character): BattleState {
     const enemy = new Character({
         id: 'enemy',
         name: '敌人',
-        background: 'balanced',
+        story: 'balanced',
         weapon: 'bare_hands',
         baseAttrs: { strength: 10, vitality: 10, agility: 10, dexterity: 10, insight: 10, wisdom: 10 },
         rewards: [],

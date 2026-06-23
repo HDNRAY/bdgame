@@ -11,9 +11,8 @@ export const YIDAO: OpponentDef = {
     targetAttrs: YIDAO_ATTRS,
     generate: (n) => {
         const rewards: Reward[] = [
-            { type: 'passive', id: 'iaijutsu_mastery', name: 'iaijutsu_mastery', description: '', tags: [] },
-            { type: 'passive', id: 'empty_hand', name: 'empty_hand', description: '', tags: [] },
             { type: 'action', id: 'light_slash', name: 'light_slash', description: '', tags: [] },
+            { type: 'passive', id: 'iaijutsu_mastery', name: 'iaijutsu_mastery', description: '', tags: [] },
             { type: 'passive', id: 'human_radar', name: 'human_radar', description: '', tags: [] },
             { type: 'action', id: 'iaijutsu_strike', name: 'iaijutsu_strike', description: '', tags: [] },
             { type: 'action', id: 'resheath', name: 'resheath', description: '', tags: [] },

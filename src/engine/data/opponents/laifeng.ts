@@ -15,6 +15,7 @@ export const LAIFENG: OpponentDef = {
             'bare_hands',
             LAIFENG_ATTRS,
             [
+                action('straight_punch'),
                 passive('forge'),
                 artifact('qi_amplifier'),
                 action('straight_punch'),

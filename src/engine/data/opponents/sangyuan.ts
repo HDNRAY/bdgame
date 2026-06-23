@@ -15,9 +15,9 @@ export const SANGYUAN: OpponentDef = {
             'bare_hands',
             SANGYUAN_ATTRS,
             [
+                action('light_slash'),
                 passive('dimensional_blade_mastery'),
                 artifact('qi_amplifier'),
-                action('light_slash'),
                 action('spirit_sword'),
                 action('heavy_slash'),
                 action('big_leap'),

@@ -21,7 +21,7 @@ function makeChar(
     return new Character({
         id,
         name,
-        background: 'balanced',
+        story: 'balanced',
         weapon,
         baseAttrs: attrs,
         rewards,

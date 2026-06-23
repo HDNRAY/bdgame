@@ -15,9 +15,9 @@ export const QILAN: OpponentDef = {
             'bare_hands',
             QILAN_ATTRS,
             [
+                action('palm_strike'),
                 passive('godspeed'),
                 passive('thunder_art'),
-                action('palm_strike'),
                 passive('zoldyck_art'),
                 passive('qiti_source'),
                 artifact('cinnabar_mole'),

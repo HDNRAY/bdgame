@@ -6,7 +6,7 @@ function mc(id: string, name: string, attrs: Record<string, number> = {}): Chara
     return new Character({
         id,
         name,
-        background: 'balanced',
+        story: 'balanced',
         weapon: 'bare_hands',
         baseAttrs: attrs,
         rewards: [],

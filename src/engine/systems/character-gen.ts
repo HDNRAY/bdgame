@@ -10,7 +10,7 @@ import { generateOpponent as rawGen } from '../data/opponents/index'
 export function simpleGenerate(
     id: string,
     name: string,
-    background: string,
+    story: string,
     weapon: string,
     targetAttrs: Record<string, number>,
     rewards: Reward[],
@@ -52,15 +52,19 @@ export function simpleGenerate(
     const rewardCount = Math.round(rewards.length * ratio)
     const picked = rewards.slice(0, rewardCount)
 
+    // 只保留已解锁招式对应的 actionConfigs（不把未解锁的触发条件带进去）
+    const pickedActionIds = new Set(picked.filter((r) => r.type === 'action').map((r) => r.id))
+    const filteredConfigs = actionConfigs?.filter((ac) => pickedActionIds.has(ac.actionId))
+
     return {
         id,
         name,
-        background,
+        story,
         weapon,
         spriteId: id,
         baseAttrs: result,
         rewards: [...talentRewards, ...picked],
-        actionConfigs,
+        actionConfigs: filteredConfigs,
     }
 }
 

@@ -17,6 +17,7 @@ export const AJIU: OpponentDef = {
             'broken_blade',
             AJIU_ATTRS,
             [
+                action('light_slash'),
                 passive('dimensional_blade_mastery'),
                 passive('shenxing_baibian'),
                 action('light_slash'),
