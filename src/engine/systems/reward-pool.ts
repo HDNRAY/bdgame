@@ -3,6 +3,7 @@ import type { ItemRewardType, Reward } from '../entities/reward'
 import { PASSIVES } from '../data/passives'
 import { ARTIFACTS } from '../data/artifacts'
 import { PLAYER_ACTIONS } from '../data/actions/player'
+import { SUPPORT_ACTIONS } from '../data/actions/support'
 import { WEAPON_DB } from '../data/weapons'
 import { STARTING_WEAPONS } from '../data/starting-weapons'
 import { sortByTagRelevance } from '../data/tagRelevance'
@@ -105,7 +106,7 @@ export class RewardPool {
 
     private _getActionPool(): Reward[] {
         if (!this._actionPool) {
-            this._actionPool = PLAYER_ACTIONS.map((a) => ({
+            this._actionPool = [...PLAYER_ACTIONS, ...SUPPORT_ACTIONS].map((a) => ({
                 id: a.id,
                 name: a.name,
                 type: 'action' as const,

@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { generateMap, generateOptions, shuffle, pickRandom, ALL_OPPONENT_IDS, ZHANGSAN_ID } from '../systems/node-gen'
+import {
+    generateMap,
+    shuffle,
+    pickRandom,
+    getBgChoices,
+    getWeaponChoices,
+    getFirstActionChoices,
+    ALL_OPPONENT_IDS,
+    ZHANGSAN_ID,
+} from '../systems/node-gen'
 
 describe('generateMap', () => {
     const map = generateMap()
@@ -14,127 +23,76 @@ describe('generateMap', () => {
         })
     })
 
-    it('前两个节点是 bg 和 weapon', () => {
+    it('前三个节点是 bg, weapon, first_action', () => {
         expect(map[0].type).toBe('bg')
         expect(map[0].index).toBe(1)
         expect(map[1].type).toBe('weapon')
         expect(map[1].index).toBe(2)
+        expect(map[2].type).toBe('first_action')
+        expect(map[2].index).toBe(3)
     })
 
-    it('Phase 1: 节点 3-10 是 normal, 节点 11 是 boss', () => {
-        for (let i = 2; i <= 9; i++) {
-            expect(map[i].type).toBe('normal')
-            expect(map[i].phase).toBe(1)
+    it('Phase 1: 节点 4-10 是 event, 节点 11 是 boss', () => {
+        for (let i = 3; i <= 9; i++) {
+            expect(map[i].type).toBe('event')
         }
         expect(map[10].type).toBe('boss')
-        expect(map[10].phase).toBe(1)
-        expect(map[10].bossId).toBeDefined()
     })
 
-    it('Phase 2: 节点 12-21 是 normal, 节点 22 是 boss', () => {
+    it('Phase 2: 节点 12-21 是 event, 节点 22 是 boss', () => {
         for (let i = 11; i <= 20; i++) {
-            expect(map[i].type).toBe('normal')
-            expect(map[i].phase).toBe(2)
+            expect(map[i].type).toBe('event')
         }
         expect(map[21].type).toBe('boss')
-        expect(map[21].phase).toBe(2)
-        expect(map[21].bossId).toBeDefined()
     })
 
-    it('Phase 3: 节点 23-32 是 normal, 节点 33 是 boss', () => {
+    it('Phase 3: 节点 23-32 是 event, 节点 33 是 boss', () => {
         for (let i = 22; i <= 31; i++) {
-            expect(map[i].type).toBe('normal')
-            expect(map[i].phase).toBe(3)
+            expect(map[i].type).toBe('event')
         }
         expect(map[32].type).toBe('boss')
-        expect(map[32].phase).toBe(3)
-        expect(map[32].bossId).toBeDefined()
     })
 
-    it('所有 normal 节点有空的 options 数组', () => {
-        const normals = map.filter((n) => n.type === 'normal')
-        expect(normals).toHaveLength(28)
-        normals.forEach((n) => {
-            expect(n.options).toEqual([])
-        })
-    })
-
-    it('所有 boss 节点有 bossId', () => {
+    it('共有 3 个 boss 节点', () => {
         const bosses = map.filter((n) => n.type === 'boss')
         expect(bosses).toHaveLength(3)
-        bosses.forEach((n) => {
-            expect(typeof n.bossId).toBe('string')
-        })
     })
 
-    it('节点3有 forceRewardType=action', () => {
-        const node3 = map.find((n) => n.index === 3)
-        expect(node3?.forceRewardType).toBe('action')
+    it('共有 27 个 event 节点', () => {
+        const events = map.filter((n) => n.type === 'event')
+        expect(events).toHaveLength(27)
     })
+})
 
-    it('其他 normal 节点没有 forceRewardType', () => {
-        const others = map.filter((n) => n.type === 'normal' && n.index !== 3)
-        expect(others.length).toBe(27)
-        others.forEach((n) => expect(n.forceRewardType).toBeUndefined())
-    })
-
-    it('节点默认未完成', () => {
-        map.forEach((n) => {
-            expect(n.completed).toBeUndefined()
+describe('getBgChoices', () => {
+    it('返回 3 个背景', () => {
+        const choices = getBgChoices()
+        expect(choices).toHaveLength(3)
+        choices.forEach((c) => {
+            expect(c.id).toBeDefined()
+            expect(c.name).toBeDefined()
         })
     })
 })
 
-describe('generateOptions', () => {
-    const enemies = ['zhanglie', 'laifeng', 'xuanji', 'layue', 'yidao', 'sangyuan']
-    const normalNode = {
-        index: 3,
-        phase: 1 as const,
-        type: 'normal' as const,
-        forceRewardType: 'action' as const,
-        options: [],
-    }
-
-    it('返回 3 个选项', () => {
-        const opts = generateOptions(normalNode, enemies)
-        expect(opts).toHaveLength(3)
-    })
-
-    it('至少 1 个 combat, 至少 1 个 event', () => {
-        const opts = generateOptions(normalNode, enemies)
-        const combats = opts.filter((o) => o.content === 'combat')
-        const events = opts.filter((o) => o.content === 'event')
-        expect(combats.length).toBeGreaterThanOrEqual(1)
-        expect(events.length).toBeGreaterThanOrEqual(1)
-    })
-
-    it('forceRewardType 节点有一个 action 选项', () => {
-        const opts = generateOptions(normalNode, enemies)
-        const actions = opts.filter((o) => o.rewardType === 'action')
-        expect(actions.length).toBeGreaterThanOrEqual(1)
-    })
-
-    it('3 个 rewardType 各不相同', () => {
-        const opts = generateOptions(normalNode, enemies)
-        const types = opts.map((o) => o.rewardType)
-        expect(new Set(types).size).toBe(3)
-    })
-
-    it('combat 选项有 enemyId', () => {
-        const opts = generateOptions(normalNode, enemies)
-        opts.forEach((o) => {
-            if (o.content === 'combat') {
-                expect(o.enemyId).toBeDefined()
-            }
+describe('getWeaponChoices', () => {
+    it('返回 3 把武器', () => {
+        const choices = getWeaponChoices()
+        expect(choices).toHaveLength(3)
+        choices.forEach((c) => {
+            expect(c.id).toBeDefined()
+            expect(c.name).toBeDefined()
         })
     })
+})
 
-    it('event 选项有 eventText', () => {
-        const opts = generateOptions(normalNode, enemies)
-        opts.forEach((o) => {
-            if (o.content === 'event') {
-                expect(o.eventText).toBeDefined()
-            }
+describe('getFirstActionChoices', () => {
+    it('返回 3 个低费非辅助招式', () => {
+        const choices = getFirstActionChoices([], [])
+        expect(choices).toHaveLength(3)
+        choices.forEach((c) => {
+            expect(c.id).toBeDefined()
+            expect(c.name).toBeDefined()
         })
     })
 })

@@ -9,6 +9,7 @@
 
 import { createInterface } from 'readline/promises'
 import { GameRun } from '../src/engine/systems/game-run'
+import { getNodeFlavorText } from '../src/engine/systems/node-gen'
 import { spendCultPoints } from '../src/engine/systems/cultivation'
 import { STAT_NAMES } from '../src/engine/entities/reward'
 import type { AttrName } from '../src/engine/entities/attributes'
@@ -27,22 +28,29 @@ async function main() {
     while (!run.isFinished()) {
         const node = run.getCurrentNode()
         console.log(`\n──────────────────────────────`)
-        console.log(`  节点 ${node.index}/33  (Phase ${node.phase})`)
+        const phase = node.index <= 11 ? 1 : node.index <= 22 ? 2 : 3
+        console.log(`  节点 ${node.index}/33  (Phase ${phase})`)
         console.log(`──────────────────────────────`)
 
         // boss：直接战斗
         if (node.type === 'boss') {
             const result = run.selectOption(0)
-            console.log(`  ⚔ ${result.battleResult === 'win' ? '✅ Boss 击败' : '❌ 败于 Boss'}`)
+            const emoji = result.battleResult === 'win' ? '✅' : '❌'
+            console.log(`  ${emoji} ${result.battleResult === 'win' ? 'Boss 击败' : '败于 Boss'}`)
+            if (result.playerHp) {
+                const pHp = `${result.playerHp.current}/${result.playerHp.max}`
+                const eHp = `${result.enemyHp?.current ?? '?'}/${result.enemyHp?.max ?? '?'}`
+                console.log(`    玩家 HP: ${pHp} | 对手 HP: ${eHp} | 回合: ~${result.actionCount ?? '?'}`)
+            }
             continue
         }
 
-        // 统一走 getSelectionItems（bg/weapon/forceReward/normal）
-        const items = run.getSelectionItems()
+        // 节点叙事文案
+        const flavorText = getNodeFlavorText(node.index, run.state.build.story)
+        if (flavorText) console.log(`\n  📖 ${flavorText}\n`)
 
-        // 展示叙事文案（节点2/3等）
-        const flavorText = items.find((i) => i.flavorText)?.flavorText
-        if (flavorText) console.log(`\n  ${flavorText}\n`)
+        // 统一走 getSelectionItems
+        const items = run.getSelectionItems()
 
         items.forEach((item, i) => {
             const label = `${i + 1}. ${item.name}`
@@ -54,7 +62,13 @@ async function main() {
         if (result.cultPoints) {
             console.log(`  +${result.cultPoints} 修炼点`)
         } else if (result.battleResult) {
-            console.log(`  ${result.battleResult === 'win' ? '✅ 胜' : '❌ 败'}`)
+            const emoji = result.battleResult === 'win' ? '✅' : '❌'
+            console.log(`  ${emoji} ${result.battleResult === 'win' ? '胜' : '败'}`)
+            if (result.playerHp) {
+                const pHp = `${result.playerHp.current}/${result.playerHp.max}`
+                const eHp = `${result.enemyHp?.current ?? '?'}/${result.enemyHp?.max ?? '?'}`
+                console.log(`    玩家 HP: ${pHp} | 对手 HP: ${eHp} | 回合: ~${result.actionCount ?? '?'}`)
+            }
         } else if (result.eventText) {
             console.log(`  ${result.eventText}`)
         }

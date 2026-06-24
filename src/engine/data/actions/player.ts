@@ -1,5 +1,4 @@
 import type { ActionDefinition } from '../../entities/action'
-import { MAX_CHAN } from '../../constants'
 
 /**
  * 公开招式（玩家可装备）
@@ -7,22 +6,11 @@ import { MAX_CHAN } from '../../constants'
  */
 export const PLAYER_ACTIONS: ActionDefinition[] = [
     // ── 拳掌系 ──
-
-    {
-        id: 'guard',
-        name: '听潮',
-        description: '凝神防守，提升招架率。',
-        requiredTags: ['parry'],
-        apCost: 2,
-        tags: ['buff', 'defense', 'support'],
-        target: 'self',
-        effects: [{ type: 'add_buff', buffId: 'guard_up' }],
-    },
     {
         id: 'straight_punch',
         name: '正拳',
         description: '一记标准正拳，直取中门。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 2,
         tags: ['blunt'],
         effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
@@ -31,7 +19,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'crushing_blow',
         name: '崩拳',
         description: '蓄力一击，造成崩劲伤害。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 3,
         tags: ['cripple', 'blunt'],
         effects: [
@@ -43,7 +31,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'iron_charge',
         name: '铁山靠',
         description: '近距离冲撞，附带麻痹效果。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 4,
         extraStunTime: 400,
         tags: ['paralyze', 'self_damage', 'blunt'],
@@ -82,17 +70,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.4 },
         ],
     },
-    // ── 新增招式 ──
-    {
-        id: 'break_formation',
-        name: '破军',
-        description: '一往无前，破除一切负面效果。',
-        requiredTags: [],
-        apCost: 2,
-        tags: ['cleanse', 'support'],
-        effects: [{ type: 'cleanse' }],
-        maxUses: 1,
-    },
+    // ── 长枪系 ──
     {
         id: 'pursuit_thrust',
         name: '追刺',
@@ -109,7 +87,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'fissure',
         name: '裂地击',
         description: '猛砸地面，造成冲击波。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 5,
         tags: ['paralyze', 'ignore_parry', 'blunt'],
         effects: [
@@ -124,7 +102,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'needle',
         name: '飞针',
         description: '三枚飞针破空而去。',
-        requiredTags: ['pierce'],
+        requiredTags: [],
         apCost: 2,
         tags: ['paralyze', 'pierce', 'range'],
         effects: [
@@ -136,7 +114,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'poison_dart',
         name: '毒镖',
         description: '淬毒飞镖，见血封喉。',
-        requiredTags: ['pierce'],
+        requiredTags: [],
         apCost: 3,
         tags: ['poison', 'pierce', 'range'],
         effects: [
@@ -148,7 +126,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'tempest',
         name: '暴雨梨花',
         description: '一瞬间射出数十枚暗器。',
-        requiredTags: ['pierce'],
+        requiredTags: [],
         apCost: 5,
         tags: ['fixed_damage', 'poison', 'paralyze', 'bleed', 'pierce', 'range'],
         effects: [
@@ -163,7 +141,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'jab',
         name: '刺拳',
         description: '一记快速刺拳，消耗极低。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 1,
         tags: ['blunt'],
         effects: [{ type: 'damage', scaling: { strength: 0.2 } }],
@@ -220,17 +198,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['slash'],
         effects: [{ type: 'damage', scaling: { strength: 1.2 } }],
     },
-    {
-        id: 'big_leap',
-        name: '虎跃',
-        description: '猛虎跃涧，瞬间近身。范围3~8m。需力道≥10。',
-        requiredTags: [],
-        apCost: 3,
-        tags: ['move', 'support'],
-        getRange: () => [3, 10] as [number, number],
-        canUse: (attacker) => attacker.attrs.get('strength') >= 10,
-        effects: [{ type: 'dash', minRange: 3, maxRange: 8, targetDist: 1 }],
-    },
     // ── 匕首系 ──
     {
         id: 'gash',
@@ -248,7 +215,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'kick',
         name: '脚踢',
         description: '一记凶狠的蹬踏。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 1,
         tags: ['blunt', 'debuff'],
         effects: [
@@ -260,7 +227,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'dart_throw',
         name: '飞镖',
         description: '扬手一镖，例不虚发。',
-        requiredTags: ['pierce'],
+        requiredTags: [],
         apCost: 1,
         tags: ['pierce', 'range'],
         getRange: () => [3, 6] as [number, number],
@@ -394,7 +361,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'push_palm',
         name: '推掌',
         description: '太极推手，借力打力。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 2,
         tags: ['blunt', 'stun'],
         getRange: () => [0, 2] as [number, number],
@@ -408,7 +375,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'desolate_palm',
         name: '黯然销魂掌',
         description: '黯然销魂者，唯别而已矣。心中悲愤越深，掌力越强。重掌蕴含黯然之意，令对手心神不宁。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 5,
         tags: ['blunt', 'damage'],
         effects: [
@@ -421,7 +388,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'wrist_strike',
         name: '点腕',
         description: '精准击中对方手腕，打落兵器。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 1,
         tags: ['blunt'],
         getRange: () => [0, 1] as [number, number],
@@ -430,57 +397,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'disarm', chance: 0.3 },
         ],
     },
-    {
-        id: 'retrieve_blade',
-        name: '拾刀',
-        description: '重握霸刀，恢复刀态。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['support', 'retrieve_weapon'],
-        target: 'self',
-        canUse: (attacker, state) => !state.pendingBuffs.has('overlord_blade::' + attacker.id),
-        effects: [{ type: 'short_dash', maxDistance: 2 }, { type: 'retrieve_weapon' }],
-    },
-    {
-        id: 'pickup_weapon',
-        name: '拾起兵器',
-        description: '捡回脱手的武器。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['support', 'retrieve_weapon'],
-        target: 'self',
-        canUse: (attacker, state) => {
-            const key = `disarmed::${attacker.id}`
-            const layer = state.pendingBuffs.get(key)
-            if (!layer) return false
-            const dropPos = layer.extra?.dropPosition as number | undefined
-            if (dropPos === undefined) return true
-            return Math.abs(state.position.get(attacker.id) - dropPos) <= 1
-        },
-        effects: [{ type: 'retrieve_weapon' }],
-    },
-    {
-        id: 'foresight',
-        name: '看破',
-        description: '凝神静气，洞察先机。',
-        requiredTags: [],
-        apCost: 3,
-        tags: ['buff', 'support'],
-        target: 'self',
-        effects: [{ type: 'add_buff', buffId: 'foresight' }],
-    },
-    {
-        id: 'resheath',
-        name: '纳刀',
-        description: '收刀入鞘，重归居合。',
-        requiredTags: ['slash'],
-        apCost: 1,
-        tags: ['buff', 'support'],
-        target: 'self',
-        canUse: (attacker, state) => !state.pendingBuffs.has('iaijutsu::' + attacker.id),
-        effects: [{ type: 'add_buff', buffId: 'iaijutsu' }],
-    },
-
     {
         id: 'orb_shot',
         name: '法珠',
@@ -529,17 +445,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         maxUses: 999,
     },
     {
-        id: '_lingbo_insight_step',
-        name: '凌波微步',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger', 'buff', 'support'],
-        target: 'self',
-        maxUses: 999,
-        effects: [{ type: 'stat_buff', attrs: { dodgeChance: 0.02 }, durationMs: 3000 }],
-    },
-    {
         id: 'agility_steal',
         name: '汲灵',
         description: '命中时 30% 吸取身法 1 点，持续 2 秒。',
@@ -556,7 +461,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'electric_yoyo',
         name: '电力溜溜球',
         description: '电力灌注的溜溜球，远近皆宜。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 2,
         tags: ['blunt', 'electric', 'range', 'debuff'],
         getRange: () => [1, 3] as [number, number],
@@ -569,20 +474,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'palm_strike',
         name: '掌击',
         description: '平凡一掌，劲力暗藏。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 2,
         tags: ['blunt'],
         getRange: () => [0, 2] as [number, number],
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
-    },
-    {
-        id: 'lightning_speed',
-        name: '电光石火',
-        description: '电光石火，瞬息即至。',
-        requiredTags: [],
-        apCost: 1,
-        tags: ['move', 'support'],
-        effects: [{ type: 'short_dash', maxDistance: 4 }],
     },
     {
         id: 'thunder_storm',
@@ -617,7 +513,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'eighteen_palms',
         name: '十八掌',
         description: '消耗18层缠劲，刚柔并济的掌法。',
-        requiredTags: ['blunt'],
+        requiredTags: [],
         apCost: 6,
         tags: ['blunt', 'damage', 'qi'],
         getRange: () => [0, 4],
@@ -641,33 +537,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     // ── 齐天·悟空 ──
     {
-        id: 'jindou',
-        name: '筋斗',
-        description: '一个筋斗翻腾而出，瞬间近身。范围1~8m。需身法≥10。',
-        requiredTags: [],
-        apCost: 2,
-        tags: ['move', 'support'],
-        getRange: () => [1, 8] as [number, number],
-        canUse: (attacker) => attacker.attrs.get('agility') >= 10,
-        effects: [{ type: 'dash', minRange: 1, maxRange: 8, targetDist: 1 }],
-    },
-    {
-        id: 'santou_liubi',
-        name: '三头六臂',
-        description: `消耗${MAX_CHAN}层缠劲，进入三头六臂状态：后续3个回合结束时AP回满。`,
-        requiredTags: ['blunt'],
-        apCost: 3,
-        tags: ['blunt', 'buff', 'support'],
-        target: 'self',
-        chanCost: MAX_CHAN,
-        canUse: (attacker) => attacker.chan >= MAX_CHAN,
-        effects: [{ type: 'add_buff', buffId: 'santou_liubi', stacks: 2 }],
-    },
-    {
         id: 'rod_thrust',
         name: '棍戳',
         description: '长棍直戳，力透千钧。',
-        requiredTags: ['blunt'],
+        requiredTags: ['polearm'],
         apCost: 2,
         tags: ['blunt', 'pierce'],
         effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
@@ -676,7 +549,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'rod_cleave',
         name: '棍劈',
         description: '高举过顶，一棍劈下，势不可挡。',
-        requiredTags: ['blunt'],
+        requiredTags: ['polearm'],
         apCost: 4,
         tags: ['blunt', 'damage', 'ignore_parry'],
         effects: [{ type: 'damage', scaling: { strength: 0.8 } }, { type: 'ignore_parry' }],
@@ -685,29 +558,13 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'rod_sweep',
         name: '棍扫',
         description: '横扫千军，劲力将对手震退。',
-        requiredTags: ['blunt'],
+        requiredTags: ['polearm'],
         apCost: 3,
         tags: ['blunt', 'knockback'],
         effects: [
             { type: 'damage', scaling: { strength: 0.5 } },
             { type: 'knockback', distance: 1 },
         ],
-    },
-    {
-        id: 'nineteen_stops',
-        name: '十九停',
-        description: '停一息，蓄势一分。每层命中+3%、暴击+2%、暴伤+1%，但层数越高越易失手。',
-        requiredTags: [],
-        apCost: 1,
-        tags: ['buff', 'support'],
-        effects: [{ type: 'add_buff', buffId: 'nineteen_stops', stacks: 1 }],
-        maxUses: 19,
-        canUse: (attacker, state) => {
-            const key = `nineteen_stops::${attacker.id}`
-            const layer = state.pendingBuffs.get(key)
-            const stacks = layer?.restoreValue ?? 0
-            return Math.random() >= (stacks / 19) ** 2 * 0.95
-        },
     },
     // ── 小凤·寻香 ──
     {
@@ -742,36 +599,5 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [1, 5],
         onActionHitChance: () => 1,
         effects: [{ type: 'fixed_damage', value: 12 }],
-    },
-    {
-        id: 'steal_artifact',
-        name: '飞龙探云手',
-        description: '神偷绝技，偷取对手一件奇物。初始80%成功，成功后概率减半。',
-        requiredTags: [],
-        apCost: 2,
-        tags: ['support'],
-        target: 'enemy',
-        getRange: () => [0, 6] as [number, number],
-        effects: [{ type: 'steal_artifact' }],
-    },
-    {
-        id: 'yan_hui',
-        name: '雁迴',
-        description: '如雁迴旋，瞬移至对手身后。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['move', 'support'],
-        getRange: () => [0, 12] as [number, number],
-        effects: [{ type: 'dash', maxRange: 12, targetDist: 0, useAp: true }],
-    },
-    {
-        id: 'yan_fan',
-        name: '雁反',
-        description: '如雁反转，瞬移拉开距离。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['move', 'support'],
-        getRange: () => [0, 12] as [number, number],
-        effects: [{ type: 'dash', maxRange: 12, targetDist: -1, useAp: true }],
     },
 ]

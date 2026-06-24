@@ -30,7 +30,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'qimei_staff',
         name: '齐眉棍',
         description: '长棍一根，攻守兼备。',
-        tags: ['blunt', 'parry', 'polearm'],
+        tags: ['parry', 'polearm'],
         range: [1, 3],
     },
     // ── 长枪 ──

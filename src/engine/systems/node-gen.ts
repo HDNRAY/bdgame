@@ -3,9 +3,10 @@ import { STORIES, getStory } from '../data/stories/index'
 import { STARTING_WEAPONS } from '../data/starting-weapons'
 import { PLAYER_ACTIONS } from '../data/actions/player'
 import { rewardPool } from './reward-pool'
-import type { MapNode, NodeOption, NodeContent } from '../entities/node-map'
-import type { RewardType } from '../entities/reward'
+import { EVENT_DB } from '../data/events/index'
+import type { MapNode } from '../entities/node-map'
 import type { Tag } from '../entities/tag'
+import type { EventDef } from '../entities/event'
 
 // ════════════════════════════════════════
 //  工具函数
@@ -36,167 +37,40 @@ export const ZHANGSAN_ID = 'zhangsan'
 //  地图生成
 // ════════════════════════════════════════
 
-const PHASE1_BOSS = 'zhanglie' // 临时，后续根据背景动态指定
-const GATEKEEPER = 'xuanji' // 守门人（临时）
-const FINAL_BOSS = 'liuxigua' // 决赛Boss（临时）
-
 /**
  * 生成 33 节点地图。
  *
  * 结构:
- *   [1] 选背景    [2] 选武器
- *   Phase 1: [3-10] 8个 normal → [11] Phase1 Boss
- *   Phase 2: [12-21] 10个 normal → [22] 守门人
- *   Phase 3: [23-32] 10个 normal → [33] 决赛Boss
+ *   [1] 选背景     [2] 选武器     [3] 第一个招式
+ *   Phase 1: [4-10] 7个 event → [11] Phase1 Boss
+ *   Phase 2: [12-21] 10个 event → [22] 守门人
+ *   Phase 3: [23-32] 10个 event → [33] 决赛Boss
  */
 export function generateMap(): MapNode[] {
     const map: MapNode[] = []
     let idx = 1
 
-    // 背景选择
-    map.push({ index: idx++, phase: 1, type: 'bg' })
-    // 武器选择
-    map.push({ index: idx++, phase: 1, type: 'weapon' })
-    // 第3个节点固定出招式
-    map.push({ index: idx++, phase: 1, type: 'normal', forceRewardType: 'action', options: [] })
+    map.push({ index: idx++, type: 'bg' })
+    map.push({ index: idx++, type: 'weapon' })
+    map.push({ index: idx++, type: 'first_action' })
 
-    // Phase 1: normal 节点 4-10
-    for (let i = 0; i < 7; i++) {
-        map.push({ index: idx++, phase: 1, type: 'normal', options: [] })
-    }
-    // Phase 1 Boss
-    map.push({ index: idx++, phase: 1, type: 'boss', bossId: PHASE1_BOSS })
+    // Phase 1
+    for (let i = 0; i < 7; i++) map.push({ index: idx++, type: 'event' })
+    map.push({ index: idx++, type: 'boss' })
 
-    // Phase 2: normal 节点 12-21
-    for (let i = 0; i < 10; i++) {
-        map.push({ index: idx++, phase: 2, type: 'normal', options: [] })
-    }
-    // 守门人
-    map.push({ index: idx++, phase: 2, type: 'boss', bossId: GATEKEEPER })
+    // Phase 2
+    for (let i = 0; i < 10; i++) map.push({ index: idx++, type: 'event' })
+    map.push({ index: idx++, type: 'boss' })
 
-    // Phase 3: normal 节点 23-32
-    for (let i = 0; i < 10; i++) {
-        map.push({ index: idx++, phase: 3, type: 'normal', options: [] })
-    }
-    // 决赛Boss
-    map.push({ index: idx, phase: 3, type: 'boss', bossId: FINAL_BOSS })
+    // Phase 3
+    for (let i = 0; i < 10; i++) map.push({ index: idx++, type: 'event' })
+    map.push({ index: idx, type: 'boss' })
 
     return map
 }
 
 // ════════════════════════════════════════
-//  选项生成
-// ════════════════════════════════════════
-
-const ALL_REWARD_TYPES = ['cult', 'passive', 'artifact', 'action', 'weapon'] as const
-
-/** 奖励类型权重（数字越低越不容易出现） */
-const REWARD_WEIGHTS: Record<string, number> = {
-    cult: 20,
-    passive: 25,
-    artifact: 25,
-    action: 25,
-    weapon: 5,
-}
-
-/** 按节点权重生成奖励类型 */
-function getRewardTypes(node: MapNode): RewardType[] {
-    const types = pickWeighted<RewardType>(ALL_REWARD_TYPES, REWARD_WEIGHTS, 3)
-    if (node.forceRewardType && !types.includes(node.forceRewardType)) {
-        const idx = types.findIndex((t) => t !== 'cult')
-        if (idx >= 0) types[idx] = node.forceRewardType
-    }
-    return types
-}
-
-/**
- * 为 normal 节点生成 3 个选项。
- *
- * 规则:
- *   - 3 个 rewardType 各不相同
- *   - 至少 1 个 combat, 至少 1 个 event
- *   - weapon 权重最低
- *   - forceRewardType 强制一个选项的奖励类型
- */
-export function generateOptions(node: MapNode, availableEnemies: string[]): NodeOption[] {
-    const types = getRewardTypes(node)
-    const contents = assignContents(types.length)
-
-    // 3. 构建选项
-    return types.map((rt, i) => {
-        const content = contents[i]
-        const opt: NodeOption = {
-            content,
-            rewardType: rt,
-            desc: describeOption(content, rt),
-        }
-        if (content === 'combat') {
-            const pool = availableEnemies.length > 0 ? availableEnemies : ['zhangsan']
-            opt.enemyId = pool[i % pool.length]
-        } else {
-            opt.eventText = pickRandom(EVENT_TEXTS, 1)[0]
-        }
-        return opt
-    })
-}
-
-/** 加权随机取 n 个不重复元素 */
-function pickWeighted<T extends string>(items: readonly T[], weights: Record<string, number>, n: number): T[] {
-    const pool = items.flatMap((item) => Array(weights[item] ?? 10).fill(item))
-    const result: T[] = []
-    const used = new Set<T>()
-    while (result.length < n && used.size < items.length) {
-        const pick = pool[Math.floor(Math.random() * pool.length)]
-        if (!used.has(pick)) {
-            used.add(pick)
-            result.push(pick)
-        }
-    }
-    // 万一不够，补未选的
-    for (const item of items) {
-        if (result.length >= n) break
-        if (!used.has(item)) result.push(item)
-    }
-    return result
-}
-
-/** 分配 content，保证至少 1 combat + 1 event */
-function assignContents(count: number): NodeContent[] {
-    const result: NodeContent[] = []
-    // 先确保多样性
-    result.push('combat')
-    result.push('event')
-    // 剩余随机
-    for (let i = result.length; i < count; i++) {
-        result.push(Math.random() > 0.5 ? 'combat' : 'event')
-    }
-    return shuffle(result)
-}
-
-/** 选项简短描述 */
-function describeOption(content: NodeContent, rewardType: string): string {
-    const icon = content === 'combat' ? '⚔' : '❓'
-    const label: Record<string, string> = {
-        cult: '+4修炼',
-        passive: '功法',
-        artifact: '奇物',
-        action: '招式',
-        weapon: '武器',
-    }
-    return `${icon} ${label[rewardType] ?? rewardType}`
-}
-
-/** 通用事件文本池 */
-const EVENT_TEXTS = [
-    '你在路边遇到一位云游的炼炁士，他指点你一二。',
-    '一处废弃的遗迹中，你发现了一件遗物。',
-    '有人认出了你的来历，塞给你一样东西后匆匆离去。',
-    '你在集市上淘到一件有用的物件。',
-    '一位老者打量了你一番，点头说道："不错，有缘。"',
-]
-
-// ════════════════════════════════════════
-//  节点选择内容生成
+//  选项展示类型
 // ════════════════════════════════════════
 
 export interface NodeChoice {
@@ -204,9 +78,13 @@ export interface NodeChoice {
     name: string
     desc: string
     tags?: Tag[]
-    /** 选择前的叙事文案（节点2/3等固定节点使用） */
+    /** 选择前的叙事文案 */
     flavorText?: string
 }
+
+// ════════════════════════════════════════
+//  各节点类型的选项生成
+// ════════════════════════════════════════
 
 /** 背景选择——随机 3 个背景 */
 export function getBgChoices(): NodeChoice[] {
@@ -218,13 +96,113 @@ export function getBgChoices(): NodeChoice[] {
     }))
 }
 
-/** 默认节点文案 */
-const DEFAULT_NODE_TEXTS: Partial<Record<number, string>> = {
-    2: '你发现了一件趁手的兵器。',
-    3: '你领悟了一招新招式。',
+/** 武器选择——随机 3 把武器 */
+export function getWeaponChoices(): NodeChoice[] {
+    return pickRandom(STARTING_WEAPONS, 3).map((w) => ({
+        id: w.id,
+        name: w.name,
+        desc: w.description,
+        tags: w.tags,
+    }))
 }
 
-/** 获取节点文案（优先用故事覆盖） */
+/** 第一个招式选择——低费非辅助 + 武器 tag 兼容 */
+export function getFirstActionChoices(ownedIds: string[], playerTags: Tag[]): NodeChoice[] {
+    // 先用 apCost 和 support 过滤
+    const candidates = PLAYER_ACTIONS.filter((a) => a.apCost <= 2 && !a.tags.includes('support'))
+    // 再按 requiredTags 过滤：至少有一个 tag 匹配武器（playerTags 已含武器 tag）
+    const weaponTags = new Set(playerTags)
+    const compatible = candidates.filter((a) => {
+        if (a.requiredTags.length === 0) return true
+        return a.requiredTags.some((t) => weaponTags.has(t))
+    })
+    const allowed = new Set(compatible.map((a) => a.id))
+    const pool = rewardPool.getPool('action').filter((r) => allowed.has(r.id))
+    return rewardPool.pickChoicesFrom(pool, 3, ownedIds, playerTags).map((r) => ({
+        id: r.id,
+        name: r.name,
+        desc: r.description,
+        tags: r.tags,
+    }))
+}
+
+// ════════════════════════════════════════
+//  事件节点的事件选择
+// ════════════════════════════════════════
+
+export interface EventPickContext {
+    nodeIndex: number
+    storyId: string
+    flags: Record<string, boolean>
+    injury: number
+    rewardCount: number
+    usedEventIds: Set<string>
+}
+
+/**
+ * 从 EVENT_DB 中筛选出 3 个符合条件的事件。
+ * 保证至少 1 个 combat。
+ */
+export function pickEventOptions(ctx: EventPickContext): string[] {
+    const filtered = EVENT_DB.filter((e) => {
+        // boss 事件有固定节点位置，不出现在 normal 三选一
+        if (e.type === 'boss') return false
+        if (e.maxCount && ctx.usedEventIds.has(e.id)) return false
+        if (e.minNode && ctx.nodeIndex < e.minNode) return false
+        if (e.maxNode && ctx.nodeIndex > e.maxNode) return false
+        if (
+            e.condition &&
+            !e.condition({
+                nodeIndex: ctx.nodeIndex,
+                storyId: ctx.storyId,
+                flags: ctx.flags,
+                injury: ctx.injury,
+                rewardCount: ctx.rewardCount,
+            })
+        )
+            return false
+        // story 事件：只有匹配 storyIds 才可见
+        if (e.type === 'story' && e.storyIds && !e.storyIds.includes(ctx.storyId)) return false
+        // story 事件：requireFlags 检查
+        if (e.type === 'story' && e.requireFlags) {
+            for (const [k, v] of Object.entries(e.requireFlags)) {
+                if ((ctx.flags[k] ?? false) !== v) return false
+            }
+        }
+        return true
+    })
+
+    // 保证至少 1 个 combat
+    const combatEvents = filtered.filter((e) => e.type === 'combat')
+    const nonCombatEvents = filtered.filter((e) => e.type !== 'combat')
+
+    const result: EventDef[] = []
+    if (combatEvents.length > 0) {
+        result.push(pickRandom(combatEvents, 1)[0])
+    }
+    // 从剩余中补到 3 个
+    const rest = pickRandom(
+        nonCombatEvents.length > 0 ? nonCombatEvents : filtered.filter((e) => !result.includes(e)),
+        3 - result.length,
+    )
+    result.push(...rest)
+
+    return shuffle(result).map((e) => e.id)
+}
+
+/** 默认节点叙事文案（story 可通过 getNodeOverride.flavorText 覆盖） */
+const DEFAULT_NODE_TEXTS: Partial<Record<number, string>> = {
+    1: '你走进擂台，环顾四周。各路高手齐聚于此，为了一场生死不论的淘汰赛。',
+    2: '你打量着面前的兵器架。选一把趁手的。',
+    3: '你默默回想自己最熟练的起手式。',
+    11: '第一轮结束。你望向擂台的更深處——那里还有更强的对手在等你。',
+    12: '硝烟未散，第二轮的旗号已经升起。剩下的人都不简单。',
+    22: '你站在最后一扇门前。守门人就在里面。',
+    23: '最后的十人，最后的擂台。每个人都有自己的故事，只有一个人能站着出去。',
+    33: '决赛。你面前站着这一路来最强大的对手。你握紧了手中的兵器。',
+}
+
+/** 获取节点文案（优先用故事覆盖，其次默认） */
 export function getNodeFlavorText(nodeIndex: number, storyId?: string): string | undefined {
     if (storyId) {
         const s = getStory(storyId)
@@ -232,73 +210,4 @@ export function getNodeFlavorText(nodeIndex: number, storyId?: string): string |
         if (override?.flavorText) return override.flavorText
     }
     return DEFAULT_NODE_TEXTS[nodeIndex]
-}
-
-/** 武器选择——随机 3 把武器，附带 flavorText */
-export function getWeaponChoices(bgId?: string): NodeChoice[] {
-    const ft = getNodeFlavorText(2, bgId)
-    return pickRandom(STARTING_WEAPONS, 3).map((w, i) => ({
-        id: w.id,
-        name: w.name,
-        desc: w.description,
-        tags: w.tags,
-        flavorText: i === 0 ? ft : undefined,
-    }))
-}
-
-/** forceRewardType 节点——奖励选择，附带 flavorText */
-export function getForceRewardChoices(
-    node: MapNode,
-    ownedIds: string[],
-    playerTags: Tag[],
-    bgId?: string,
-    /** 仅返回 apCost≤2 的非辅助招式（第1个招式节点专用） */
-    lowCostActions?: boolean,
-): NodeChoice[] {
-    if (!node.forceRewardType || node.forceRewardType === 'cult') return []
-
-    let pool = rewardPool.getPool(node.forceRewardType)
-    if (node.forceRewardType === 'action' && lowCostActions) {
-        const allowed = new Set(
-            PLAYER_ACTIONS.filter((a) => a.apCost <= 2 && !a.tags.includes('support')).map((a) => a.id),
-        )
-        pool = pool.filter((r) => allowed.has(r.id))
-    }
-
-    const ft = getNodeFlavorText(node.index, bgId)
-    return rewardPool.pickChoicesFrom(pool, 3, ownedIds, playerTags).map((r, i) => ({
-        id: r.id,
-        name: r.name,
-        desc: r.description,
-        tags: r.tags,
-        flavorText: i === 0 ? ft : undefined,
-    }))
-}
-
-/**
- * 统一入口：根据节点类型返回选择项。
- * bg/weapon → 3选1 背景/武器
- * forceRewardType → 3选1 奖励（附带 flavorText）
- * normal → 已由 generateOptions 填充 options
- * boss → []
- */
-export function getNodeChoices(
-    node: MapNode,
-    ownedIds: string[],
-    playerTags: Tag[],
-    bgId?: string,
-    overrideChoices?: NodeChoice[],
-): NodeChoice[] {
-    if (overrideChoices) return overrideChoices
-    if (node.type === 'bg') return getBgChoices()
-    if (node.type === 'weapon') return getWeaponChoices(bgId)
-    if (node.type === 'boss') return []
-    if (node.forceRewardType) return getForceRewardChoices(node, ownedIds, playerTags, bgId, node.index === 3)
-    // normal 节点：generateOptions 已填充 node.options
-    return (node.options ?? []).map((o) => ({
-        id: `${node.index}-${o.rewardType}-${o.content}`,
-        name: o.desc,
-        desc: o.eventText ?? (o.content === 'combat' ? `vs ${o.enemyId}` : ''),
-        tags: [],
-    }))
 }

@@ -1,39 +1,60 @@
-import { generateMap, generateOptions, shuffle, pickRandom, getNodeChoices, ALL_OPPONENT_IDS } from './node-gen'
+import {
+    generateMap,
+    shuffle,
+    pickRandom,
+    getBgChoices,
+    getWeaponChoices,
+    getFirstActionChoices,
+    pickEventOptions,
+    ALL_OPPONENT_IDS,
+} from './node-gen'
 import { rewardPool } from './reward-pool'
 import { runBattle } from '../battle-runner'
 import { Character } from '../entities/character'
 import { getWeapon } from '../data/weapons'
 import { getStory } from '../data/stories/index'
 import { getOpponentDef, gen } from '../data/opponents/index'
-import type { MapNode, ChoiceResult, RunState, NodeLogEntry, SaveData } from '../entities/node-map'
+import { EVENT_DB } from '../data/events/index'
+import type { MapNode, RunState, NodeLogEntry } from '../entities/node-map'
 import type { CharacterBuild } from '../entities/character-build'
 import type { Reward } from '../entities/reward'
 import type { Tag } from '../entities/tag'
 import type { NodeChoice } from './node-gen'
+import type { EventDef, EventEffect } from '../entities/event'
 
 type GameMode = 'quick' | 'normal'
 
+/** selectOption 返回值（兼容现有 UI） */
+export interface SelectionResult {
+    battleResult?: 'win' | 'lose'
+    enemyId?: string
+    eventText?: string
+    rewardChoices?: Reward[]
+    cultPoints?: number
+    /** 战斗统计 */
+    playerHp?: { current: number; max: number }
+    enemyHp?: { current: number; max: number }
+    actionCount?: number
+}
+
 /**
  * 一局游戏的完整状态管理。
- *
- * 快速模式 (quick): 自动/胜率战斗，快速走完33节点。
- * 普通模式 (normal): 手动每回合选招（暂未实现）。
  */
 export class GameRun {
     readonly mode: GameMode
     map: MapNode[]
     state: RunState
-    private _nodeIdx = 0
+    private _nodeIdx = 0 // map 数组索引（0-based），getCurrentNode().index 为 1-based 节点编号
     private _enemyPool: string[] = []
     private _enemyIdx = 0
     private _currentChoices: NodeChoice[] = []
+    /** 当前 event 节点的 3 个可选 eventId */
+    private _currentEventIds: string[] = []
 
     constructor(mode: GameMode = 'quick') {
         this.mode = mode
         this.map = generateMap()
         this.state = {
-            map: this.map,
-            currentNode: 1,
             build: {
                 id: 'player',
                 name: '挑战者',
@@ -43,7 +64,8 @@ export class GameRun {
                 rewards: [],
             },
             unspentCultPoints: 4,
-            defeatedEnemies: [],
+            injury: 0,
+            flags: {},
             log: [],
             finished: false,
         }
@@ -59,7 +81,7 @@ export class GameRun {
         return this.state.finished
     }
 
-    /** 当前节点的选择项（所有节点类型统一） */
+    /** 当前节点的选择项 */
     getSelectionItems(): NodeChoice[] {
         this._currentChoices = this._generateChoices()
         return this._currentChoices
@@ -68,19 +90,25 @@ export class GameRun {
     // ── 操作 ──
 
     /** 选了第 index 个选项 */
-    selectOption(index: number): ChoiceResult {
+    selectOption(index: number): SelectionResult {
         const node = this.getCurrentNode()
         const entry: NodeLogEntry = { nodeIndex: node.index, nodeType: node.type }
 
-        if (node.type === 'bg') return this._selectBg(index, entry)
-        if (node.type === 'weapon') return this._selectWeapon(index, entry)
-        if (node.type === 'boss') return this._selectBoss(node, entry)
-        if (node.forceRewardType) return this._selectForceReward(node, index, entry)
-
-        return this._selectNormal(node, index, entry)
+        switch (node.type) {
+            case 'bg':
+                return this._selectBg(index, entry)
+            case 'weapon':
+                return this._selectWeapon(index, entry)
+            case 'first_action':
+                return this._selectFirstAction(index, entry)
+            case 'boss':
+                return this._selectBoss(entry)
+            case 'event':
+                return this._selectEvent(index, entry)
+        }
     }
 
-    /** 选了具体奖励（selectOption 返回 rewardChoices 后调用） */
+    /** 选了具体奖励 */
     selectReward(rewardId: string): void {
         for (const type of ['passive', 'artifact', 'action', 'weapon'] as const) {
             const found = rewardPool.getPool(type).find((r) => r.id === rewardId)
@@ -93,7 +121,7 @@ export class GameRun {
         }
     }
 
-    /** 获取对手 build（用于外部指挥战斗） */
+    /** 获取对手 build */
     getEnemyBuild(enemyId: string, n: number): CharacterBuild {
         const def = getOpponentDef(enemyId)
         return def ? gen(def, n) : this._fallbackBuild()
@@ -121,69 +149,103 @@ export class GameRun {
         return this.state.build.rewards.map((r) => r.id)
     }
 
-    // ── 存档 ──
-
-    toJSON(): SaveData {
-        return {
-            mode: this.mode,
-            map: this.map,
-            state: this.state,
-            nodeIdx: this._nodeIdx,
-            enemyPool: this._enemyPool,
-            enemyIdx: this._enemyIdx,
-        }
-    }
-
-    static fromJSON(data: SaveData): GameRun {
-        const run = new GameRun(data.mode)
-        run.map = data.map
-        run.state = data.state
-        run._nodeIdx = data.nodeIdx
-        run._enemyPool = data.enemyPool
-        run._enemyIdx = data.enemyIdx
-        return run
+    /** 已击败的对手 ID（从 log 推导） */
+    get defeatedEnemies(): string[] {
+        return this.state.log.filter((e) => e.battleResult === 'win' && e.enemyId).map((e) => e.enemyId!)
     }
 
     // ── 内部 ──
 
-    /** 委托 node-gen 生成当前节点的选择项 */
     private _generateChoices(): NodeChoice[] {
         const node = this.getCurrentNode()
         const story = getStory(this.state.build.story ?? '')
         const override = story?.getNodeOverride?.(node.index)
 
-        // normal 节点需要先生成选项
-        if (node.type === 'normal' && !node.forceRewardType) {
-            const enemies = this._nextEnemies()
-            node.options = generateOptions(node, enemies)
-        }
+        // 故事覆盖：直接返回覆盖的选择项
+        if (override?.choices) return override.choices
 
-        return getNodeChoices(
-            node,
-            this.ownedRewardIds,
-            this.playerTags,
-            this.state.build.story ?? '',
-            override?.choices,
-        )
+        switch (node.type) {
+            case 'bg':
+                return getBgChoices()
+            case 'weapon':
+                return getWeaponChoices()
+            case 'first_action':
+                return getFirstActionChoices(this.ownedRewardIds, this.playerTags)
+            case 'event': {
+                this._currentEventIds = pickEventOptions({
+                    nodeIndex: node.index,
+                    storyId: this.state.build.story ?? '',
+                    flags: this.state.flags,
+                    injury: this.state.injury,
+                    rewardCount: this.state.build.rewards.length,
+                    usedEventIds: new Set(this.state.log.map((e) => e.chosenEventId ?? '')),
+                })
+                return this._currentEventIds.map((eid) => {
+                    const ev = EVENT_DB.find((e) => e.id === eid)
+                    return {
+                        id: eid,
+                        name: ev?.name ?? eid,
+                        desc: ev?.name ?? '',
+                        tags: [],
+                    }
+                })
+            }
+            case 'boss':
+                return []
+        }
     }
 
     private _advance(): void {
         this._nodeIdx++
-        this.state.currentNode = this.map[this._nodeIdx]?.index ?? 33
         // 故事钩子：额外修炼点
         const story = getStory(this.state.build.story ?? '')
-        const cultPts = story?.getNodeOverride?.(this.state.currentNode)?.cultPoints
+        const cultPts = story?.getNodeOverride?.(this.getCurrentNode().index)?.cultPoints
         if (cultPts) this.state.unspentCultPoints += cultPts
         if (this._nodeIdx >= this.map.length) this.state.finished = true
     }
 
-    private _nextEnemies(): string[] {
-        const enemies = this._enemyPool.slice(this._enemyIdx, this._enemyIdx + 3)
-        this._enemyIdx += enemies.length
-        return enemies.length > 0 ? enemies : ['zhangsan']
+    /** 取下一个对手（从 enemyPool 顺序取） */
+    private _nextEnemy(): string {
+        const e = this._enemyPool[this._enemyIdx]
+        if (e) {
+            this._enemyIdx++
+            return e
+        }
+        return 'zhangsan'
     }
 
-    private _selectBg(index: number, entry: NodeLogEntry): ChoiceResult {
+    /** 按 1-based 节点编号查询 Boss EventDef */
+    private _getBossEvent(nodeIndex: number): EventDef | undefined {
+        const bossMap: Record<number, string> = { 11: 'boss_phase1', 22: 'boss_phase2', 33: 'boss_final' }
+        return EVENT_DB.find((e) => e.id === bossMap[nodeIndex])
+    }
+
+    /** 执行事件效果 */
+    private _applyEffects(effects: EventEffect[]): void {
+        for (const eff of effects) {
+            switch (eff.type) {
+                case 'heal':
+                    this.state.injury = Math.max(0, this.state.injury - eff.value)
+                    break
+                case 'wound':
+                    this.state.injury = Math.min(100, this.state.injury + eff.value)
+                    break
+                case 'cult_points':
+                    this.state.unspentCultPoints += eff.value
+                    break
+                case 'grant_reward':
+                    // 由调用方在 story 事件中处理（需要返回 rewardChoices）
+                    break
+                case 'set_flag':
+                    this.state.flags[eff.key] = eff.value
+                    break
+            }
+        }
+    }
+
+    // ── 各节点类型选择逻辑 ──
+
+    private _selectBg(index: number, entry: NodeLogEntry): SelectionResult {
         const picked = this._currentChoices[Math.min(index, this._currentChoices.length - 1)]
         this.state.build.story = picked.id
         const story = getStory(picked.id)
@@ -195,7 +257,7 @@ export class GameRun {
         return { cultPoints: pts }
     }
 
-    private _selectWeapon(index: number, entry: NodeLogEntry): ChoiceResult {
+    private _selectWeapon(index: number, entry: NodeLogEntry): SelectionResult {
         const picked = this._currentChoices[Math.min(index, this._currentChoices.length - 1)]
         this.state.build.weapon = picked.id
         this.state.log.push(entry)
@@ -203,67 +265,127 @@ export class GameRun {
         return {}
     }
 
-    private _selectBoss(node: MapNode, entry: NodeLogEntry): ChoiceResult {
-        const bossId = node.bossId!
-        const { winner } = runBattle(
-            new Character(this.state.build),
-            new Character(this.getEnemyBuild(bossId, node.index)),
-        )
-        entry.battleResult = winner === 'a' ? 'win' : 'lose'
-        entry.enemyId = bossId
-        this.state.log.push(entry)
-        if (winner === 'a') this.state.defeatedEnemies.push(bossId)
-        this.state.finished = true
-        return { battleResult: entry.battleResult, enemyId: bossId }
-    }
-
-    private _selectForceReward(node: MapNode, index: number, entry: NodeLogEntry): ChoiceResult {
+    private _selectFirstAction(index: number, entry: NodeLogEntry): SelectionResult {
         const picked = this._currentChoices[Math.min(index, this._currentChoices.length - 1)]
-        const fType = node.forceRewardType
-        if (picked && fType && fType !== 'cult') {
-            const pool = rewardPool.getPool(fType)
-            const reward = pool.find((r) => r.id === picked.id)
-            if (reward) {
-                this.state.build.rewards.push(reward)
-                entry.chosenReward = reward
-            }
+        const pool = rewardPool.getPool('action')
+        const reward = pool.find((r) => r.id === picked.id)
+        if (reward) {
+            this.state.build.rewards.push(reward)
+            entry.chosenReward = reward
+            entry.chosenEventId = picked.id
         }
         this.state.log.push(entry)
         this._advance()
         return {}
     }
 
-    private _selectNormal(node: MapNode, index: number, entry: NodeLogEntry): ChoiceResult {
-        const opts = node.options ?? []
-        const opt = opts[Math.min(index, opts.length - 1)]
-        if (!opt) {
+    private _selectBoss(entry: NodeLogEntry): SelectionResult {
+        const bossEvent = this._getBossEvent(this.getCurrentNode().index)
+        const bossId = bossEvent?.type === 'boss' ? bossEvent.enemyId : 'zhanglie'
+        const { winner, engine } = runBattle(
+            new Character(this.state.build),
+            new Character(this.getEnemyBuild(bossId, this.getCurrentNode().index)),
+        )
+        entry.battleResult = winner === 'player' ? 'win' : 'lose'
+        entry.enemyId = bossId
+        this.state.log.push(entry)
+        this.state.finished = true
+        const [pc, ec] = engine.state.characters
+        return {
+            battleResult: entry.battleResult,
+            enemyId: bossId,
+            playerHp: { current: pc.hp, max: pc.maxHp },
+            enemyHp: { current: ec.hp, max: ec.maxHp },
+            actionCount: engine.state.actionCount,
+        }
+    }
+
+    private _selectEvent(index: number, entry: NodeLogEntry): SelectionResult {
+        const eid = this._currentEventIds[Math.min(index, this._currentEventIds.length - 1)]
+        if (!eid) {
             this._advance()
             return {}
         }
 
-        entry.chosenOption = opt
-        entry.enemyId = opt.enemyId
-        const result: ChoiceResult = { eventText: opt.eventText }
-
-        // 战斗
-        if (opt.content === 'combat' && opt.enemyId) {
-            const { winner } = runBattle(
-                new Character(this.state.build),
-                new Character(this.getEnemyBuild(opt.enemyId, node.index)),
-            )
-            entry.battleResult = winner === 'a' ? 'win' : 'lose'
-            result.battleResult = entry.battleResult
-            result.enemyId = opt.enemyId
-            if (winner === 'a') this.state.defeatedEnemies.push(opt.enemyId)
+        entry.chosenEventId = eid
+        const ev = EVENT_DB.find((e) => e.id === eid)
+        if (!ev) {
+            this.state.log.push(entry)
+            this._advance()
+            return {}
         }
 
-        // 奖励
-        if (opt.rewardType === 'cult') {
-            this.state.unspentCultPoints += 4
-            entry.cultPointsGained = 4
-            result.cultPoints = 4
-        } else {
-            result.rewardChoices = this._pickReward(opt.rewardType)
+        const result: SelectionResult = { eventText: ev.name }
+
+        switch (ev.type) {
+            case 'combat': {
+                const enemyId = ev.enemyId ?? this._nextEnemy()
+                entry.enemyId = enemyId
+                const { winner, engine } = runBattle(
+                    new Character(this.state.build),
+                    new Character(this.getEnemyBuild(enemyId, this.getCurrentNode().index)),
+                )
+                entry.battleResult = winner === 'player' ? 'win' : 'lose'
+                result.battleResult = entry.battleResult
+                result.enemyId = enemyId
+
+                // 战斗统计
+                const [pc, ec] = engine.state.characters
+                result.playerHp = { current: pc.hp, max: pc.maxHp }
+                result.enemyHp = { current: ec.hp, max: ec.maxHp }
+                result.actionCount = engine.state.actionCount
+
+                if (winner === 'player') {
+                    // 奖励
+                    const rewardType =
+                        ev.rewardType ?? pickRandom(['cult', 'passive', 'artifact', 'action'] as const, 1)[0]
+                    result.rewardChoices = this._pickReward(rewardType)
+                } else {
+                    // 伤势
+                    const hpLostRatio = 1 - pc.hp / pc.maxHp
+                    const wound = Math.round(2 + hpLostRatio * 10)
+                    this.state.injury = Math.min(100, this.state.injury + wound)
+                    entry.injuryGained = wound
+                    if (this.state.injury >= 100) {
+                        this.state.finished = true
+                    }
+                }
+                break
+            }
+            case 'boss': {
+                // boss 由 _selectBoss 处理，这里不应触发
+                break
+            }
+            case 'heal':
+            case 'forge': {
+                this._applyEffects(ev.effects ?? [])
+                entry.injuryGained = ev.effects.find((e) => e.type === 'heal')?.value ?? 0
+                const cpts = ev.effects.find((e) => e.type === 'cult_points')?.value
+                if (cpts) {
+                    entry.cultPointsGained = cpts
+                    result.cultPoints = cpts
+                }
+                break
+            }
+            case 'story': {
+                // 有选项的故事事件：默认选第一个
+                if (ev.choices && ev.choices.length > 0) {
+                    const choice = ev.choices[0]
+                    this._applyEffects(choice.effects ?? [])
+                    result.eventText = choice.description
+                    const grant = (choice.effects ?? []).find((e) => e.type === 'grant_reward')
+                    if (grant?.type === 'grant_reward') {
+                        result.rewardChoices = this._pickReward(grant.rewardType)
+                    }
+                } else {
+                    this._applyEffects(ev.effects ?? [])
+                    const grant = (ev.effects ?? []).find((e) => e.type === 'grant_reward')
+                    if (grant?.type === 'grant_reward') {
+                        result.rewardChoices = this._pickReward(grant.rewardType)
+                    }
+                }
+                break
+            }
         }
 
         this.state.log.push(entry)

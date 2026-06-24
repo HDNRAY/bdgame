@@ -28,12 +28,12 @@ describe('GameRun', () => {
         expect(run.state.build.weapon).toBe(items[0].id)
     })
 
-    it('节点3固定出招式', () => {
+    it('节点3固定出招式(first_action)', () => {
         const run = new GameRun('quick')
         step(run)
         step(run)
         expect(run.getCurrentNode().index).toBe(3)
-        expect(run.getCurrentNode().forceRewardType).toBe('action')
+        expect(run.getCurrentNode().type).toBe('first_action')
         const items = run.getSelectionItems()
         expect(items).toHaveLength(3)
         const prev = run.state.build.rewards.length
@@ -65,12 +65,12 @@ describe('GameRun', () => {
         expect(run.state.unspentCultPoints).toBe(5)
     })
 
-    it('normal节点生成3个选项', () => {
+    it('event节点生成3个选项', () => {
         const run = new GameRun('quick')
         step(run)
         step(run)
         step(run)
-        expect(run.getCurrentNode().type).toBe('normal')
+        expect(run.getCurrentNode().type).toBe('event')
         const items = run.getSelectionItems()
         expect(items).toHaveLength(3)
     })

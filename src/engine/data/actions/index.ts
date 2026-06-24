@@ -1,11 +1,12 @@
 import type { ActionDefinition } from '../../entities/action'
 import type { Tag } from '../../entities/tag'
 import { PLAYER_ACTIONS } from './player'
+import { SUPPORT_ACTIONS } from './support'
 import { INTERNAL_ACTIONS } from './internal'
 import { QI_SKILLS } from './qi'
 
 /** 合并所有招式 */
-const ALL_ACTIONS: ActionDefinition[] = [...PLAYER_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS]
+const ALL_ACTIONS: ActionDefinition[] = [...PLAYER_ACTIONS, ...SUPPORT_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS]
 
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {
