@@ -9,8 +9,6 @@ import { classifyAttackStyle, planMovement, type AttackStyle } from './move-plan
 import { planSupportActions } from './support-planner'
 import { checkCondition } from '../entities/action-config'
 import { getConditionPreset } from '../data/conditions'
-import type { AiOverrides } from '../data/opponents'
-import { getOpponentDef } from '../data/opponents'
 
 /** AI 决策：返回本行动中要执行的一串指令 */
 export function planEvent(self: Character, state: BattleState): ActionCommand[] {
@@ -19,13 +17,12 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
 
     const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
     const distance = state.position.distance(self.id, enemy.id)
-    const overrides = getOverrides(self.id)
 
     // ── 0. 缴械优先：先捡武器再考虑攻击 ──
     const disarmedKey = `disarmed::${self.id}`
     const disarmedLayer = state.pendingBuffs.get(disarmedKey)
     if (disarmedLayer) {
-        const apBudget = self.ap - (overrides?.reserveAp ?? 0)
+        const apBudget = self.ap
         const dropPos = disarmedLayer.extra?.dropPosition as number | undefined
         // 捡武器前检查条件（如"敌人HP>10"才捡）
         let shouldPickup = true
@@ -97,7 +94,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     }
 
     // 2. 分两组：有条件限制的按顺序选，默认的按伤害选
-    const apBudget = self.ap - (overrides?.reserveAp ?? 0)
+    const apBudget = self.ap
     const configOrder = new Map(self.build.actionConfigs?.map((c, i) => [c.actionId, i]))
     const huboKey = `zuoyou_hubo::${self.id}`
     const hasHubo = state.pendingBuffs.has(huboKey)
@@ -222,7 +219,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     }
 
     if (!mainId) {
-        const supportCmds = planSupportActions(self, state, apBudget, overrides?.supportBlacklist)
+        const supportCmds = planSupportActions(self, state, apBudget)
         if (supportCmds.length > 0) return supportCmds
         if (apBudget > 0) console.log(`[AI] ${self.name} no mainId, ap=${self.ap} budget=${apBudget}`)
         return []
@@ -237,12 +234,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const mainDef2 = mainInst.def
 
     // ── 4. 辅助招式 ──
-    const supportCmds = planSupportActions(
-        self,
-        state,
-        apBudget - moveAp - mainDef2.apCost,
-        overrides?.supportBlacklist,
-    )
+    const supportCmds = planSupportActions(self, state, apBudget - moveAp - mainDef2.apCost, undefined)
 
     // ── 5. 组装命令 ──
     const cmds: ActionCommand[] = [...supportCmds]
@@ -385,9 +377,4 @@ function pickBestSecondary(self: Character, state: BattleState, apRemaining: num
         return inst.id
     }
     return null
-}
-
-function getOverrides(charId: string): AiOverrides | undefined {
-    const def = getOpponentDef(charId)
-    return def?.aiOverrides
 }

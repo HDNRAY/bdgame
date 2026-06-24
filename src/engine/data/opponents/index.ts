@@ -19,7 +19,6 @@ import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
 import type { Reward } from '../../entities/reward'
 import type { ActionConfig } from '../../entities/action-config'
-import type { DamageEstimate } from '../../ai/expected-damage'
 import { simpleGenerate } from '../../systems/character-gen'
 
 export { passive, artifact, action } from '../../systems/reward-pool'
@@ -52,14 +51,6 @@ export interface OpponentDef {
     targetAttrs: Record<string, number>
     taunt?: (enemy: OpponentDef) => string
     planEvent?: (self: Character, state: BattleState) => ActionCommand[] | null
-    aiOverrides?: AiOverrides
-}
-
-/** AI 行为覆盖 */
-export interface AiOverrides {
-    actionPriority?: (candidates: DamageEstimate[], self: Character, state: BattleState) => Record<string, number>
-    reserveAp?: number
-    supportBlacklist?: string[]
 }
 
 /** 通用生成器：按 n 生成对手 build */
