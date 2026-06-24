@@ -21,14 +21,8 @@ export const XUNXIANG: OpponentDef = {
         action('steal_artifact'),
     ],
     actionConfigs: [
-        { actionId: 'straight_punch' },
-        { actionId: 'wrist_strike' },
-        { actionId: 'push_palm' },
         { actionId: 'push_hand', triggerId: 'on_parry' },
         { actionId: 'throwing_knife', triggerId: 'on_dodged' },
-        { actionId: 'deadly_knife' },
         { actionId: 'steal_artifact', triggerId: 'on_dodge' },
-        { actionId: 'yan_hui' },
-        { actionId: 'yan_fan' },
     ],
 }

@@ -6,7 +6,6 @@ const XUANJI_ATTRS = { strength: 6, vitality: 10, agility: 12, dexterity: 15, in
 export const XUANJI: OpponentDef = {
     id: 'xuanji',
     name: '御物·玄机',
-    battleStyle: 'wise',
     weapon: 'tri_orb',
     targetAttrs: XUANJI_ATTRS,
     rewards: [
@@ -15,6 +14,9 @@ export const XUANJI: OpponentDef = {
         artifact('qi_guard'),
         artifact('iron_will'),
         artifact('ap_boost'),
+        action('restore_ap'),
+        action('summon_haste'),
+        action('agility_steal'),
     ],
     actionConfigs: [
         { actionId: 'qi_bolt' },

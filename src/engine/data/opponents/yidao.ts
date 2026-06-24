@@ -1,12 +1,12 @@
 import { type OpponentDef } from '.'
+import { weapon } from '../../systems/reward-pool'
 
 const YIDAO_ATTRS = { strength: 19, vitality: 11, agility: 14, dexterity: 14, insight: 13, wisdom: 6 }
 
 export const YIDAO: OpponentDef = {
     id: 'yidao',
     name: '居合·一刀',
-    battleStyle: 'swift',
-    weapon: 'zantetsu',
+    weapon: 'qingfeng_jian',
     targetAttrs: YIDAO_ATTRS,
     rewards: [
         { type: 'action', id: 'light_slash', name: 'light_slash', description: '', tags: [] },
@@ -15,6 +15,7 @@ export const YIDAO: OpponentDef = {
         { type: 'action', id: 'iaijutsu_strike', name: 'iaijutsu_strike', description: '', tags: [] },
         { type: 'action', id: 'resheath', name: 'resheath', description: '', tags: [] },
         { type: 'artifact', id: 'tiger_eye', name: 'tiger_eye', description: '', tags: [] },
+        weapon('zantetsu'),
     ],
     actionConfigs: [{ actionId: 'iaijutsu_strike' }, { actionId: 'light_slash' }, { actionId: 'resheath' }],
 }

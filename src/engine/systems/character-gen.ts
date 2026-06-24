@@ -5,14 +5,9 @@ import { STAT_NAMES } from '../entities/reward'
 import { cultCost } from './cultivation'
 import { checkTalents } from './talent-check'
 
-/** 初始武器猜测（先用 bare_hands，后续按 tag 细化） */
-function guessWeapon(_signature: string): string {
-    return 'bare_hands'
-}
-
 /** 通用生成器 */
 export function simpleGenerate(
-    def: { id: string; name: string; battleStyle: string; story?: string; targetAttrs: Record<string, number> },
+    def: { id: string; name: string; battleStyle?: string; story?: string; targetAttrs: Record<string, number> },
     weapon: string,
     rewards: Reward[],
     n: number,
@@ -53,6 +48,10 @@ export function simpleGenerate(
     const rewardCount = Math.round(rewards.length * ratio)
     const picked = rewards.slice(0, rewardCount)
 
+    // 从奖励中找武器，替换初始武器
+    const weaponReward = picked.filter((r) => r.type === 'weapon').pop()
+    const finalWeapon = weaponReward ? weaponReward.id : weapon
+
     // 只保留已解锁招式对应的 actionConfigs
     const pickedActionIds = new Set(picked.filter((r) => r.type === 'action').map((r) => r.id))
     const filteredConfigs = actionConfigs?.filter((ac) => pickedActionIds.has(ac.actionId))
@@ -62,7 +61,7 @@ export function simpleGenerate(
         name: def.name,
         story: def.story,
         battleStyle: def.battleStyle,
-        weapon: guessWeapon(weapon),
+        weapon: finalWeapon,
         spriteId: def.id,
         baseAttrs: result,
         rewards: [...talentRewards, ...picked],

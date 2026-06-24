@@ -13,7 +13,7 @@ console.log = (...args) => {
 }
 process.on('exit', () => writeFileSync(logPath, logLines.join('\n') + '\n', 'utf-8'))
 import { Character } from '../src/engine/entities/character'
-import { OPPONENTS, getOpponentDef } from '../src/engine/data/opponents/index'
+import { OPPONENTS, getOpponentDef, gen } from '../src/engine/data/opponents/index'
 import { runBattle } from '../src/engine/battle-runner'
 
 const startWall = Date.now()
@@ -47,8 +47,8 @@ for (let i = 0; i < OPPONENTS.length; i++) {
         let aHp = 0,
             bHp = 0
 
-        const templateA = new Character(aDef.generate(33))
-        const templateB = new Character(bDef.generate(33))
+        const templateA = new Character(gen(aDef, 33))
+        const templateB = new Character(gen(bDef, 33))
         for (let k = 0; k < N; k++) {
             const { winner, engine } = runBattle(templateA, templateB)
             if (winner === aDef.id) aWins++

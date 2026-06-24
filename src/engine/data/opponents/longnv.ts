@@ -6,7 +6,6 @@ const LONGNV_ATTRS = { strength: 16, vitality: 10, agility: 14, dexterity: 18, i
 export const LONGNV: OpponentDef = {
     id: 'longnv',
     name: '龙女·语嫣',
-    battleStyle: 'swift',
     weapon: 'dual_swords',
     targetAttrs: LONGNV_ATTRS,
     rewards: [

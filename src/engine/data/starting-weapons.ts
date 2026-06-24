@@ -33,6 +33,14 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         tags: ['blunt', 'parry', 'polearm'],
         range: [1, 3],
     },
+    // ── 长枪 ──
+    {
+        id: 'long_spear',
+        name: '长枪',
+        description: '长枪一杆，势大力沉。',
+        tags: ['pierce', 'parry', 'polearm'],
+        range: [2, 4],
+    },
     // ── 御物 ──
     {
         id: 'floating_silk',

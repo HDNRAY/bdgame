@@ -1,13 +1,12 @@
 import { type OpponentDef } from '.'
-import { passive, artifact, action } from '../../systems/reward-pool'
+import { passive, artifact, action, weapon } from '../../systems/reward-pool'
 
 const YANGGUO_ATTRS = { strength: 10, vitality: 10, agility: 14, dexterity: 14, insight: 20, wisdom: 8 }
 
 export const YANGGUO: OpponentDef = {
     id: 'yangguo',
     name: '西狂·过儿',
-    battleStyle: 'balanced',
-    weapon: 'dark_iron_sword',
+    weapon: 'qingfeng_jian',
     targetAttrs: YANGGUO_ATTRS,
     rewards: [
         action('quanzhen_sword'),
@@ -18,10 +17,10 @@ export const YANGGUO: OpponentDef = {
         artifact('snake_gall'),
         action('yunv_sword'),
         action('desolate_palm'),
+        weapon('dark_iron_sword'),
+        action('flick'),
     ],
     actionConfigs: [
-        { actionId: 'desolate_palm' },
-        { actionId: 'quanzhen_sword' },
         { actionId: 'flick', triggerId: 'on_dodge' },
         { actionId: 'yunv_sword', triggerId: 'on_parry' },
     ],

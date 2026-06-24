@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { Character, calcMaxHp, calcMaxAp } from '../src/engine/entities/character'
 import {
+    gen,
     ZHANGLIE,
     LAIFENG,
     XUANJI,
@@ -62,8 +63,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = XUANJI.generate(4)
-const oBuild = BAIHU.generate(4)
+const pBuild = gen(ZHANGLIE, 33)
+const oBuild = gen(BAIHU, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, artifact, action } from '../../systems/reward-pool'
+import { passive, artifact, action, weapon } from '../../systems/reward-pool'
 
 const WUKONG_ATTRS = { strength: 20, vitality: 10, agility: 13, dexterity: 16, insight: 10, wisdom: 5 }
 
@@ -7,7 +7,7 @@ export const WUKONG: OpponentDef = {
     id: 'wukong',
     name: '天命·悟空',
     battleStyle: 'melee',
-    weapon: 'dinghai_shen_tie',
+    weapon: 'qimei_staff',
     targetAttrs: WUKONG_ATTRS,
     rewards: [
         action('rod_thrust'),
@@ -19,13 +19,7 @@ export const WUKONG: OpponentDef = {
         action('rod_cleave'),
         action('santou_liubi'),
         action('jindou'),
+        weapon('dinghai_shen_tie'),
     ],
-    actionConfigs: [
-        { actionId: 'rod_thrust' },
-        { actionId: 'rod_cleave' },
-        { actionId: 'rod_sweep' },
-        { actionId: 'santou_liubi' },
-        { actionId: 'jindou' },
-        { actionId: 'rod_sweep', triggerId: 'on_parried' },
-    ],
+    actionConfigs: [{ actionId: 'rod_sweep', triggerId: 'on_parried' }],
 }

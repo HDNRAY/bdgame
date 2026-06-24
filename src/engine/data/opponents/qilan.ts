@@ -6,7 +6,6 @@ const QILAN_ATTRS = { strength: 12, vitality: 10, agility: 15, dexterity: 14, in
 export const QILAN: OpponentDef = {
     id: 'qilan',
     name: '雷法·奇岚',
-    battleStyle: 'swift',
     weapon: 'bare_hands',
     targetAttrs: QILAN_ATTRS,
     rewards: [

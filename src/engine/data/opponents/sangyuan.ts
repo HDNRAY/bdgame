@@ -6,7 +6,6 @@ const SANGYUAN_ATTRS = { strength: 12, vitality: 20, agility: 8, dexterity: 18, 
 export const SANGYUAN: OpponentDef = {
     id: 'sangyuan',
     name: '灵剑·桑原',
-    battleStyle: 'strong',
     weapon: 'bare_hands',
     targetAttrs: SANGYUAN_ATTRS,
     rewards: [
@@ -17,10 +16,5 @@ export const SANGYUAN: OpponentDef = {
         action('heavy_slash'),
         action('big_leap'),
     ],
-    actionConfigs: [
-        { actionId: 'spirit_sword' },
-        { actionId: 'heavy_slash' },
-        { actionId: 'big_leap' },
-        { actionId: 'light_slash', triggerId: 'on_dodged' },
-    ],
+    actionConfigs: [{ actionId: 'light_slash', triggerId: 'on_dodged' }],
 }
