@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { OPPONENTS } from '../../../engine/data/opponents/index'
+import { OPPONENTS, gen } from '../../../engine/data/opponents/index'
 import type { OpponentDef } from '../../../engine/data/opponents/index'
 import type { CharacterBuild } from '../../../engine/entities/character-build'
 import { Character } from '../../../engine/entities/character'
@@ -44,8 +44,8 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
         setSimulating(true)
         setSimResult(null)
         const id = setTimeout(() => {
-            const buildA = selectedA.generate(33)
-            const buildB = selectedB.generate(33)
+            const buildA = gen(selectedA, 33)
+            const buildB = gen(selectedB, 33)
             const result = simulateWinRate(buildA, buildB, 200, 6)
             setSimResult({ aRate: result.aRate, bRate: result.bRate })
             setSimulating(false)
@@ -55,8 +55,8 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
 
     const handleStart = () => {
         if (!selectedA || !selectedB) return
-        const buildA = selectedA.generate(33)
-        const buildB = selectedB.generate(33)
+        const buildA = gen(selectedA, 33)
+        const buildB = gen(selectedB, 33)
         if (onStart) {
             onStart(buildA, buildB)
             return
@@ -81,8 +81,8 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
     }
 
     // 选中角色的 Character 实例（用于 BuildPanel）
-    const charA = useMemo(() => (selectedA ? new Character(selectedA.generate(33)) : null), [selectedA])
-    const charB = useMemo(() => (selectedB ? new Character(selectedB.generate(33)) : null), [selectedB])
+    const charA = useMemo(() => (selectedA ? new Character(gen(selectedA, 33)) : null), [selectedA])
+    const charB = useMemo(() => (selectedB ? new Character(gen(selectedB, 33)) : null), [selectedB])
 
     return (
         <div className="selection-root">
@@ -143,7 +143,7 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
                         >
                             <div className="card-row">
                                 <OpponentAvatarSprite opponentId={opp.id} color={GRID_COLORS[i]} />
-                                <WeaponIconSprite weaponId={opp.generate(33).weapon} />
+                                <WeaponIconSprite weaponId={gen(opp, 33).weapon} />
                             </div>
                             <span className="card-name">{opp.name}</span>
                             {onBuild ? (

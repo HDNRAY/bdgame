@@ -4,7 +4,7 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type D
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { CharacterBuild } from '../../../engine/entities/character-build'
-import { getOpponentDef } from '../../../engine/data/opponents/index'
+import { getOpponentDef, gen } from '../../../engine/data/opponents/index'
 import { Character } from '../../../engine/entities/character'
 import { getAction } from '../../../engine/data/actions'
 import { getWeapon } from '../../../engine/data/weapons'
@@ -60,7 +60,7 @@ export function CharacterPanel({
     // 构建模式：从 charId 生成临时 build
     const charId = isBuild ? (propCharId ?? paramsCharId ?? '') : ''
     const def = isBuild ? getOpponentDef(charId) : null
-    const originalBuild = isBuild ? def!.generate(n) : null
+    const originalBuild = isBuild ? gen(def!, n) : null
 
     // 属性分配 state（build 模式）
     const [attrs, setAttrs] = useState<Record<string, number>>(() =>

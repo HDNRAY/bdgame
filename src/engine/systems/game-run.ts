@@ -4,7 +4,7 @@ import { runBattle } from '../battle-runner'
 import { Character } from '../entities/character'
 import { getWeapon } from '../data/weapons'
 import { getStory } from '../data/stories/index'
-import { getOpponentDef } from '../data/opponents/index'
+import { getOpponentDef, gen } from '../data/opponents/index'
 import type { MapNode, ChoiceResult, RunState, NodeLogEntry, SaveData } from '../entities/node-map'
 import type { CharacterBuild } from '../entities/character-build'
 import type { Reward } from '../entities/reward'
@@ -96,7 +96,7 @@ export class GameRun {
     /** 获取对手 build（用于外部指挥战斗） */
     getEnemyBuild(enemyId: string, n: number): CharacterBuild {
         const def = getOpponentDef(enemyId)
-        return def ? def.generate(n) : this._fallbackBuild()
+        return def ? gen(def, n) : this._fallbackBuild()
     }
 
     // ── 计算属性 ──
@@ -149,7 +149,7 @@ export class GameRun {
     /** 委托 node-gen 生成当前节点的选择项 */
     private _generateChoices(): NodeChoice[] {
         const node = this.getCurrentNode()
-        const story = getStory(this.state.build.story)
+        const story = getStory(this.state.build.story ?? '')
         const override = story?.getNodeOverride?.(node.index)
 
         // normal 节点需要先生成选项
@@ -158,14 +158,20 @@ export class GameRun {
             node.options = generateOptions(node, enemies)
         }
 
-        return getNodeChoices(node, this.ownedRewardIds, this.playerTags, this.state.build.story, override?.choices)
+        return getNodeChoices(
+            node,
+            this.ownedRewardIds,
+            this.playerTags,
+            this.state.build.story ?? '',
+            override?.choices,
+        )
     }
 
     private _advance(): void {
         this._nodeIdx++
         this.state.currentNode = this.map[this._nodeIdx]?.index ?? 33
         // 故事钩子：额外修炼点
-        const story = getStory(this.state.build.story)
+        const story = getStory(this.state.build.story ?? '')
         const cultPts = story?.getNodeOverride?.(this.state.currentNode)?.cultPoints
         if (cultPts) this.state.unspentCultPoints += cultPts
         if (this._nodeIdx >= this.map.length) this.state.finished = true
@@ -273,6 +279,6 @@ export class GameRun {
     }
 
     private _fallbackBuild(): CharacterBuild {
-        return getOpponentDef(pickRandom(ALL_OPPONENT_IDS, 1)[0])!.generate(1)
+        return gen(getOpponentDef(pickRandom(ALL_OPPONENT_IDS, 1)[0])!, 1)
     }
 }

@@ -5,7 +5,7 @@ import { getWeapon } from '../data/weapons'
 import { PositionSystem } from '../combat/position'
 import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
-import { classifyAttackStyle, planMovement } from './move-planner'
+import { classifyAttackStyle, planMovement, type AttackStyle } from './move-planner'
 import { planSupportActions } from './support-planner'
 import { checkCondition } from '../entities/action-config'
 import { getConditionPreset } from '../data/conditions'
@@ -137,7 +137,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     let moveAp = 0
     let dashActionId: string | undefined
 
-    const style = overrides?.forceStyle ?? classifyAttackStyle(weapon.range)
+    const style: AttackStyle = (self.build.battleStyle as AttackStyle) ?? classifyAttackStyle(weapon.range)
 
     /** 尝试选中一个候选，返回 true 表示继续遍历，false 表示已选中（mainId 已设）或终止 */
     function trySelect(est: DamageEstimate): boolean {

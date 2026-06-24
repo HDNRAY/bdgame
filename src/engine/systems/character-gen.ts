@@ -4,15 +4,16 @@ import type { ActionConfig } from '../entities/action-config'
 import { STAT_NAMES } from '../entities/reward'
 import { cultCost } from './cultivation'
 import { checkTalents } from './talent-check'
-import { generateOpponent as rawGen } from '../data/opponents/index'
+
+/** 初始武器猜测（先用 bare_hands，后续按 tag 细化） */
+function guessWeapon(_signature: string): string {
+    return 'bare_hands'
+}
 
 /** 通用生成器 */
 export function simpleGenerate(
-    id: string,
-    name: string,
-    story: string,
+    def: { id: string; name: string; battleStyle: string; story?: string; targetAttrs: Record<string, number> },
     weapon: string,
-    targetAttrs: Record<string, number>,
     rewards: Reward[],
     n: number,
     actionConfigs?: ActionConfig[],
@@ -26,13 +27,13 @@ export function simpleGenerate(
     const result: Record<string, number> = {}
     for (const a of STAT_NAMES) result[a] = 3
 
-    // 轮流加点：循环各属性，每次只加1点，不超过 targetAttrs 上限
+    // 轮流加点
     let remaining = total
     while (remaining > 0) {
         let improved = false
         for (const attr of STAT_NAMES) {
             const cur = result[attr]
-            const target = targetAttrs[attr] ?? 30
+            const target = def.targetAttrs[attr] ?? 30
             if (cur >= target) continue
             const cost = cultCost(cur)
             if (remaining >= cost) {
@@ -52,24 +53,19 @@ export function simpleGenerate(
     const rewardCount = Math.round(rewards.length * ratio)
     const picked = rewards.slice(0, rewardCount)
 
-    // 只保留已解锁招式对应的 actionConfigs（不把未解锁的触发条件带进去）
+    // 只保留已解锁招式对应的 actionConfigs
     const pickedActionIds = new Set(picked.filter((r) => r.type === 'action').map((r) => r.id))
     const filteredConfigs = actionConfigs?.filter((ac) => pickedActionIds.has(ac.actionId))
 
     return {
-        id,
-        name,
-        story,
-        weapon,
-        spriteId: id,
+        id: def.id,
+        name: def.name,
+        story: def.story,
+        battleStyle: def.battleStyle,
+        weapon: guessWeapon(weapon),
+        spriteId: def.id,
         baseAttrs: result,
         rewards: [...talentRewards, ...picked],
         actionConfigs: filteredConfigs,
     }
-}
-
-/** 随机生成一个对手的 build */
-export function generateOpponent(n: number): CharacterBuild {
-    const { build } = rawGen(n)
-    return build
 }

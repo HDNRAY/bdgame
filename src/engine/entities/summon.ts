@@ -4,7 +4,8 @@ import type { ActionDefinition } from './action'
 export interface SummonDef {
     id: string
     name: string
-    maxCount: number
+    /** 最大召唤数量，根据使用者属性动态计算 */
+    maxCount: (wis: number) => number
     /** 召唤物使用的招式 ID */
     actionId: string
     /** 构造期解析的动作副本（引擎优先使用） */

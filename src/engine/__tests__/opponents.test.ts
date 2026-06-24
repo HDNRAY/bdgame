@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { OPPONENTS } from '../data/opponents/index'
+import { OPPONENTS, gen } from '../data/opponents/index'
 import { STAT_NAMES } from '../entities/reward'
 import { cultCost } from '../systems/cultivation'
 
@@ -17,7 +17,7 @@ function calcCultCost(attrs: Record<string, number>): number {
 describe('opponents', () => {
     for (const def of OPPONENTS) {
         describe(def.name, () => {
-            const build = def.generate(33)
+            const build = gen(def, 33)
 
             it('total cultivation cost matches points (n × 2)', () => {
                 const cost = calcCultCost(def.targetAttrs)

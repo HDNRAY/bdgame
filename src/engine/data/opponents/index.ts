@@ -18,8 +18,11 @@ import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
 import type { Reward } from '../../entities/reward'
+import type { ActionConfig } from '../../entities/action-config'
 import type { DamageEstimate } from '../../ai/expected-damage'
-import type { AttackStyle } from '../../ai/move-planner'
+import { simpleGenerate } from '../../systems/character-gen'
+
+export { passive, artifact, action } from '../../systems/reward-pool'
 import { ZHANGLIE } from './zhanglie'
 import { LAIFENG } from './laifeng'
 import { XUANJI } from './xuanji'
@@ -37,75 +40,54 @@ import { AJIU } from './ajiu'
 import { WUKONG } from './wukong'
 import { XUNXIANG } from './xunxiang'
 
-/** 对手定义 */
+/** 对手定义（纯数据） */
 export interface OpponentDef {
     id: string
     name: string
-    /** 背景故事 */
     story?: string
-    /** 战前台词 */
-    taunt?: string
-    /** 设计目标属性（用于测试验证 cultivation cost） */
+    battleStyle: string
+    weapon: string
+    rewards: Reward[]
+    actionConfigs?: ActionConfig[]
     targetAttrs: Record<string, number>
-    /** 根据 n 返回对应强度的 build */
-    generate: (n: number) => CharacterBuild
-    /** 自定义 AI（返回 null = 用默认） */
+    taunt?: (enemy: OpponentDef) => string
     planEvent?: (self: Character, state: BattleState) => ActionCommand[] | null
-    /** AI 覆盖配置 */
     aiOverrides?: AiOverrides
 }
 
 /** AI 行为覆盖 */
 export interface AiOverrides {
-    /** 对候选招式打分加权（返回 actionId → 额外分值） */
     actionPriority?: (candidates: DamageEstimate[], self: Character, state: BattleState) => Record<string, number>
-    /** 强制攻击风格 */
-    forceStyle?: AttackStyle
-    /** 保留 AP（不放主招/移动） */
     reserveAp?: number
-    /** 不使用的辅助招式（actionId 列表） */
     supportBlacklist?: string[]
 }
 
-/** 奖励快捷函数 */
-export const passive = (id: string): Reward => ({ type: 'passive', id, name: id, description: '', tags: [] })
-export const artifact = (id: string): Reward => ({ type: 'artifact', id, name: id, description: '', tags: [] })
-export const action = (id: string): Reward => ({ type: 'action', id, name: id, description: '', tags: [] })
+/** 通用生成器：按 n 生成对手 build */
+export function gen(def: OpponentDef, n: number): CharacterBuild {
+    return simpleGenerate(def, def.weapon, def.rewards, n, def.actionConfigs)
+}
 
 /** 所有对手 */
 export const OPPONENTS: OpponentDef[] = [
-    // 拳掌
     QILAN,
     LAIFENG,
-    // 单手刀剑
     SANGYUAN,
     LUHONGTI,
     AJIU,
-    // 双持刀剑
     LAYUE,
     BAIHU,
     LONGNV,
-    // 长柄
     ZHANGLIE,
     WUKONG,
-    // 御物
     XUANJI,
-    // 重型武器
     LIUXIGUA,
     YANGGUO,
-    // 其他
-    YIDAO, // 太刀
-    LUEYING, // 匕首
-    XUNXIANG, // 徒手+飞刀
+    YIDAO,
+    LUEYING,
+    XUNXIANG,
 ]
 
 /** 按 ID 查找对手 def */
 export function getOpponentDef(id: string): OpponentDef | undefined {
     return OPPONENTS.find((o) => o.id === id)
-}
-
-/** 随机选一个对手，按 n 生成 build */
-export function generateOpponent(n: number): { def: OpponentDef; build: CharacterBuild } {
-    const def = OPPONENTS[Math.floor(Math.random() * OPPONENTS.length)]
-    return { def, build: def.generate(n) }
 }

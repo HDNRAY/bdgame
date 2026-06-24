@@ -6,8 +6,12 @@ import type { ActionConfig } from './action-config'
 export interface CharacterBuild {
     id: string
     name: string
-    /** 故事 ID（玩家用故事ID，对手传战斗风格如 'balanced'） */
-    story: string
+    /** 故事/叙事文本 */
+    story?: string
+    /** 战斗风格（如 'balanced'/'melee'/'ranged'），AI 据此决策 */
+    battleStyle?: string
+    /** 战前台词 */
+    taunt?: string
     /** 最终属性值 */
     baseAttrs: Partial<Record<AttrName, number>>
     /** 武器 ID */

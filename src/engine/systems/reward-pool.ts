@@ -134,3 +134,8 @@ export class RewardPool {
 
 /** 全局单例 */
 export const rewardPool = RewardPool.instance
+
+/** 奖励快捷函数 */
+export const passive = (id: string): Reward => ({ type: 'passive', id, name: id, description: '', tags: [] })
+export const artifact = (id: string): Reward => ({ type: 'artifact', id, name: id, description: '', tags: [] })
+export const action = (id: string): Reward => ({ type: 'action', id, name: id, description: '', tags: [] })
