@@ -18,6 +18,7 @@ export const BAIHU: OpponentDef = {
         action('heavy_slash'),
         action('guard'),
         action('nineteen_stops'),
+        // 9
     ],
     actionConfigs: [
         { actionId: 'nineteen_stops' }, // AI 出招顺序

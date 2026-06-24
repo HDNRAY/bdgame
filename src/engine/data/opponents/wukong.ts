@@ -20,6 +20,7 @@ export const WUKONG: OpponentDef = {
         action('santou_liubi'),
         action('jindou'),
         weapon('dinghai_shen_tie'),
+        // 10
     ],
     actionConfigs: [
         { actionId: 'rod_thrust' }, // AI 出招顺序

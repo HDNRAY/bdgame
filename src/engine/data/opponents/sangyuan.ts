@@ -15,6 +15,7 @@ export const SANGYUAN: OpponentDef = {
         action('spirit_sword'),
         action('heavy_slash'),
         action('big_leap'),
+        // 7
     ],
     actionConfigs: [
         { actionId: 'spirit_sword' }, // AI 出招顺序

@@ -12,11 +12,12 @@ export const QILAN: OpponentDef = {
         action('palm_strike'),
         passive('godspeed'),
         passive('thunder_art'),
-        passive('zoldyck_art'),
-        passive('qiti_source'),
-        artifact('cinnabar_mole'),
         action('electric_yoyo'),
+        passive('zoldyck_art'),
         action('lightning_speed'),
+        passive('qiti_source'), // 炁体源流
+        artifact('cinnabar_mole'), // 守宫砂
         action('thunder_storm'),
+        // 10
     ],
 }

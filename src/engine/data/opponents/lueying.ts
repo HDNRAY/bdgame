@@ -16,6 +16,7 @@ export const LUEYING: OpponentDef = {
         action('kick'),
         action('dart_throw'),
         action('sand_throw'),
+        // 7
     ],
     actionConfigs: [
         { actionId: 'gash' }, // AI 出招顺序

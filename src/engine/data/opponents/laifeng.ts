@@ -17,6 +17,7 @@ export const LAIFENG: OpponentDef = {
         action('iron_charge'),
         action('qi_bolt'),
         action('eighteen_palms'),
+        // 8
     ],
     actionConfigs: [
         { actionId: 'qi_focus' }, // AI 出招顺序

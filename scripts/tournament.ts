@@ -47,8 +47,8 @@ for (let i = 0; i < OPPONENTS.length; i++) {
         let aHp = 0,
             bHp = 0
 
-        const templateA = new Character(gen(aDef, 33))
-        const templateB = new Character(gen(bDef, 33))
+        const templateA = new Character(gen(aDef, 11))
+        const templateB = new Character(gen(bDef, 11))
         for (let k = 0; k < N; k++) {
             const { winner, engine } = runBattle(templateA, templateB)
             if (winner === aDef.id) aWins++

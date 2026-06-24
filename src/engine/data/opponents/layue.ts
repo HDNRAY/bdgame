@@ -17,6 +17,7 @@ export const LAYUE: OpponentDef = {
         { type: 'artifact', id: 'wisdom_talisman', name: 'wisdom_talisman', description: '', tags: [] },
         // 其实是第一个，但是别人第一节点选的纯背景，所以这个放到最后，没有作用，通过simpleGenerate来获取效果
         { type: 'artifact', id: 'innate_seed', name: 'innate_seed', description: '', tags: [] },
+        // 7
     ],
     actionConfigs: [
         { actionId: 'nine_deaths_strike' }, // AI 出招顺序

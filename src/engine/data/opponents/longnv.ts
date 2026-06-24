@@ -11,10 +11,14 @@ export const LONGNV: OpponentDef = {
     rewards: [
         action('yunv_sword'),
         passive('dark_room_catch'),
+        action('quanzhen_sword'),
         artifact('golden_silk_gloves'),
         artifact('herb_pouch'),
-        action('quanzhen_sword'),
-        action('yufeng_needle'),
         passive('yuxin_sword_mastery'),
+        action('yufeng_needle'),
+        // 7
+    ],
+    actionConfigs: [
+        { actionId: 'yufeng_needle', triggerId: 'on_opponent_move' }, // AI 出招顺序
     ],
 }

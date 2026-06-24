@@ -21,6 +21,7 @@ export const AJIU: OpponentDef = {
         action('heavy_slash'),
         action('blaze_strike'),
         action('guard'),
+        // 11
     ],
     actionConfigs: [
         { actionId: 'spirit_sword' }, // AI 出招顺序

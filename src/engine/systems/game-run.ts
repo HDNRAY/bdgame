@@ -63,7 +63,7 @@ export class GameRun {
                 baseAttrs: { strength: 3, vitality: 3, agility: 3, dexterity: 3, insight: 3, wisdom: 3 },
                 rewards: [],
             },
-            unspentCultPoints: 4,
+            unspentCultPoints: 0,
             injury: 0,
             flags: {},
             log: [],

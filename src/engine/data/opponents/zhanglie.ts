@@ -19,6 +19,7 @@ export const ZHANGLIE: OpponentDef = {
         action('straight_punch'),
         action('thrust'),
         weapon('iron_spear'),
+        // 10
     ],
     actionConfigs: [
         { actionId: 'thrust' }, // AI 出招顺序

@@ -16,6 +16,7 @@ export const YIDAO: OpponentDef = {
         { type: 'action', id: 'resheath', name: 'resheath', description: '', tags: [] },
         { type: 'artifact', id: 'tiger_eye', name: 'tiger_eye', description: '', tags: [] },
         weapon('zantetsu'),
+        // 7
     ],
     actionConfigs: [{ actionId: 'iaijutsu_strike' }, { actionId: 'light_slash' }, { actionId: 'resheath' }],
 }

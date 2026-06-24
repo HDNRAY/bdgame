@@ -18,5 +18,6 @@ export const LIUXIGUA: OpponentDef = {
         action('cyclone_slash'),
         action('sky_burner'),
         action('retrieve_blade'),
+        // 9
     ],
 }

@@ -10,15 +10,16 @@ export const YANGGUO: OpponentDef = {
     targetAttrs: YANGGUO_ATTRS,
     rewards: [
         action('quanzhen_sword'),
-        passive('one_arm'),
-        passive('dark_iron_sword_art'),
         passive('dark_room_catch'),
-        passive('tide_inner_power'),
-        artifact('snake_gall'),
         action('yunv_sword'),
+        passive('one_arm'),
+        artifact('snake_gall'),
+        passive('dark_iron_sword_art'),
         weapon('dark_iron_sword'),
+        passive('tide_inner_power'),
         action('flick'),
         action('desolate_palm'),
+        // 10
     ],
     actionConfigs: [
         { actionId: 'desolate_palm' }, // AI 出招顺序
