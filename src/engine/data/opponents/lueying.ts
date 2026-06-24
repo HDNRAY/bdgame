@@ -18,6 +18,7 @@ export const LUEYING: OpponentDef = {
         action('sand_throw'),
     ],
     actionConfigs: [
+        { actionId: 'gash' }, // AI 出招顺序
         { actionId: 'sand_throw', triggerId: 'on_dodged' },
         { actionId: 'dart_throw', triggerId: 'on_dodge' },
         { actionId: 'kick', triggerId: 'on_parry' },

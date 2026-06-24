@@ -21,5 +21,12 @@ export const WUKONG: OpponentDef = {
         action('jindou'),
         weapon('dinghai_shen_tie'),
     ],
-    actionConfigs: [{ actionId: 'rod_sweep', triggerId: 'on_parried' }],
+    actionConfigs: [
+        { actionId: 'rod_thrust' }, // AI 出招顺序
+        { actionId: 'rod_cleave' }, // AI 出招顺序
+        { actionId: 'rod_sweep' }, // AI 出招顺序
+        { actionId: 'santou_liubi' }, // AI 出招顺序
+        { actionId: 'jindou' }, // AI 出招顺序
+        { actionId: 'rod_sweep', triggerId: 'on_parried' },
+    ],
 }

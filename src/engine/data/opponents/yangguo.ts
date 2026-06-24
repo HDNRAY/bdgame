@@ -16,11 +16,13 @@ export const YANGGUO: OpponentDef = {
         passive('tide_inner_power'),
         artifact('snake_gall'),
         action('yunv_sword'),
-        action('desolate_palm'),
         weapon('dark_iron_sword'),
         action('flick'),
+        action('desolate_palm'),
     ],
     actionConfigs: [
+        { actionId: 'desolate_palm' }, // AI 出招顺序
+        { actionId: 'quanzhen_sword' }, // AI 出招顺序
         { actionId: 'flick', triggerId: 'on_dodge' },
         { actionId: 'yunv_sword', triggerId: 'on_parry' },
     ],

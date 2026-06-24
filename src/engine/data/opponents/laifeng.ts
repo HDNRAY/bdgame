@@ -19,6 +19,11 @@ export const LAIFENG: OpponentDef = {
         action('eighteen_palms'),
     ],
     actionConfigs: [
+        { actionId: 'qi_focus' }, // AI 出招顺序
+        { actionId: 'qi_gather' }, // AI 出招顺序
+        { actionId: 'straight_punch' }, // AI 出招顺序
+        { actionId: 'iron_charge' }, // AI 出招顺序
+        { actionId: 'eighteen_palms' }, // AI 出招顺序
         { actionId: 'qi_bolt', triggerId: 'on_opponent_move' },
         { actionId: 'qinlong_gong', triggerId: 'on_dodge' },
     ],

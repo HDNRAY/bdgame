@@ -20,6 +20,11 @@ export const ZHANGLIE: OpponentDef = {
         action('thrust'),
         weapon('iron_spear'),
     ],
-    actionConfigs: [{ actionId: 'pursuit_thrust', triggerId: 'on_debuff' }],
+    actionConfigs: [
+        { actionId: 'thrust' }, // AI 出招顺序
+        { actionId: 'straight_punch' }, // AI 出招顺序
+        { actionId: 'jab' }, // AI 出招顺序
+        { actionId: 'pursuit_thrust', triggerId: 'on_debuff' },
+    ],
     taunt: () => '别怨我。各为其主。',
 }

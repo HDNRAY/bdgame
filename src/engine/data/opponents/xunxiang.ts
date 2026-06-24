@@ -21,8 +21,14 @@ export const XUNXIANG: OpponentDef = {
         action('steal_artifact'),
     ],
     actionConfigs: [
+        { actionId: 'straight_punch' }, // AI 出招顺序
+        { actionId: 'wrist_strike' }, // AI 出招顺序
+        { actionId: 'push_palm' }, // AI 出招顺序
         { actionId: 'push_hand', triggerId: 'on_parry' },
         { actionId: 'throwing_knife', triggerId: 'on_dodged' },
+        { actionId: 'deadly_knife' }, // AI 出招顺序
         { actionId: 'steal_artifact', triggerId: 'on_dodge' },
+        { actionId: 'yan_hui' }, // AI 出招顺序
+        { actionId: 'yan_fan' }, // AI 出招顺序
     ],
 }

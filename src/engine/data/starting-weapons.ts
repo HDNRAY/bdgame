@@ -22,7 +22,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'qingfeng_jian',
         name: '青锋剑',
         description: '入门级单手剑，轻灵锐利。',
-        tags: ['slash', 'parry', 'melee'],
+        tags: ['slash', 'pierce', 'parry', 'melee'],
         range: [1, 3],
     },
     // ── 棍 ──
@@ -89,7 +89,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'dual_swords',
         name: '双剑',
         description: '一手一剑，攻守兼备。',
-        tags: ['pierce', 'parry', 'dual_wield', 'melee'],
+        tags: ['pierce', 'slash', 'parry', 'dual_wield', 'melee'],
         range: [1, 3],
     },
     // ── 匕首 ──

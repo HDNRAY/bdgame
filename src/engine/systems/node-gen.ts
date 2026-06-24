@@ -293,7 +293,7 @@ export function getNodeChoices(
     if (node.type === 'bg') return getBgChoices()
     if (node.type === 'weapon') return getWeaponChoices(bgId)
     if (node.type === 'boss') return []
-    if (node.forceRewardType) return getForceRewardChoices(node, ownedIds, playerTags, bgId)
+    if (node.forceRewardType) return getForceRewardChoices(node, ownedIds, playerTags, bgId, node.index === 3)
     // normal 节点：generateOptions 已填充 node.options
     return (node.options ?? []).map((o) => ({
         id: `${node.index}-${o.rewardType}-${o.content}`,

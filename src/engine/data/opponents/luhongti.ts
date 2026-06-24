@@ -23,6 +23,9 @@ export const LUHONGTI: OpponentDef = {
         action('break_formation'),
     ],
     actionConfigs: [
+        { actionId: 'push_palm' }, // AI 出招顺序
+        { actionId: 'sword_thrust' }, // AI 出招顺序
+        { actionId: 'crushing_blow' }, // AI 出招顺序
         { actionId: 'wrist_strike', triggerId: 'on_dodge' },
         { actionId: 'light_slash', triggerId: 'on_dodged' },
         { actionId: 'qi_bolt', triggerId: 'on_opponent_move' },

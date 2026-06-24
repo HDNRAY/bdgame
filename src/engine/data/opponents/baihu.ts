@@ -19,5 +19,10 @@ export const BAIHU: OpponentDef = {
         action('guard'),
         action('nineteen_stops'),
     ],
-    actionConfigs: [{ actionId: 'guard', triggerId: 'on_dodged' }],
+    actionConfigs: [
+        { actionId: 'nineteen_stops' }, // AI 出招顺序
+        { actionId: 'light_slash' }, // AI 出招顺序
+        { actionId: 'heavy_slash' }, // AI 出招顺序
+        { actionId: 'guard', triggerId: 'on_dodged' },
+    ],
 }

@@ -19,6 +19,7 @@ export const LAYUE: OpponentDef = {
         { type: 'artifact', id: 'innate_seed', name: 'innate_seed', description: '', tags: [] },
     ],
     actionConfigs: [
+        { actionId: 'nine_deaths_strike' }, // AI 出招顺序
         { actionId: 'nine_deaths_strike', triggerId: 'on_parry' },
         { actionId: 'cun_mang', triggerId: 'on_parried' },
     ],
