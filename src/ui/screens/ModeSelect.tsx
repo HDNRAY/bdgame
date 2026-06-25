@@ -14,7 +14,7 @@ export function ModeSelect() {
                     肉鸽模式
                     <span className="mode-select-btn-hint">游戏本体 · 开发中</span>
                 </button>
-                <button className="mode-select-btn mode-select-btn-main" onClick={() => {}}>
+                <button className="mode-select-btn mode-select-btn-main" onClick={() => navigate('/quick')}>
                     快速模式
                     <span className="mode-select-btn-hint">跳过战斗 · 测试用 · 开发中</span>
                 </button>

@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useRef, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { CharacterBuild } from '../../../engine/entities/character-build'
-import { getOpponentDef, gen } from '../../../engine/data/opponents/index'
 import { Character } from '../../../engine/entities/character'
 import { getAction } from '../../../engine/data/actions'
 import { getWeapon } from '../../../engine/data/weapons'
@@ -12,9 +11,9 @@ import { getPassive } from '../../../engine/data/passives'
 import type { ActionConfig } from '../../../engine/entities/action-config'
 import { CONDITION_PRESETS } from '../../../engine/data/conditions'
 import { TRIGGER_CONDITIONS } from '../../../engine/data/triggers'
-import { ALL_ATTRS, type AttrName } from '../../../engine/entities/attributes'
-import { checkTalents } from '../../../engine/systems/talent-check'
+import type { AttrName } from '../../../engine/entities/attributes'
 import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../../../ui/pixel-sprites'
+import { useBuildCharacter, cultCost } from '../../hooks/useBuildCharacter'
 import { Tooltip } from '../ui/Tooltip/Tooltip'
 import { StatTooltip } from '../tooltip-contents/StatTooltip'
 import { PassiveTooltip } from '../tooltip-contents/PassiveTooltip'
@@ -26,76 +25,40 @@ import './CharacterPanel.scss'
 
 interface CharacterPanelProps {
     mode: 'view' | 'build'
-    character?: Character
-    charId?: string
-    // view
+    build: CharacterBuild
     accentColor?: string
-    // build
-    n?: number
     onSave?: (build: CharacterBuild) => void
     onBack?: () => void
 }
 
-function cultCost(value: number): number {
-    if (value >= 20) return 3
-    if (value >= 14) return 2
-    return 1
-}
-
 const ATTR_ORDER: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
 
-export function CharacterPanel({
-    mode,
-    character: propChar,
-    charId: propCharId,
-    accentColor = '#888',
-    n = 33,
-    onSave,
-    onBack,
-}: CharacterPanelProps) {
-    const paramsCharId = useParams<{ charId: string }>().charId
+export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBack }: CharacterPanelProps) {
     const navigate = useNavigate()
     const isBuild = mode === 'build'
 
-    // 构建模式：从 charId 生成临时 build
-    const charId = isBuild ? (propCharId ?? paramsCharId ?? '') : ''
-    const def = isBuild ? getOpponentDef(charId) : null
-    const originalBuild = isBuild ? gen(def!, n) : null
+    // Build 模式状态管理
+    const {
+        attrs,
+        actionConfigs,
+        buildChar,
+        totalPoints,
+        remaining,
+        maxTriggerSlots,
+        triggerCount,
+        activeTalents,
+        saveError,
+        handleAttrAdjust,
+        handleReset,
+        moveAction,
+        updateAction,
+        handleSave,
+    } = useBuildCharacter(build, onSave)
 
-    // 属性分配 state（build 模式）
-    const [attrs, setAttrs] = useState<Record<string, number>>(() =>
-        isBuild ? { ...(originalBuild?.baseAttrs ?? {}) } : {},
-    )
-    const [actionConfigs, setActionConfigs] = useState<ActionConfig[]>(() => {
-        if (!isBuild || !originalBuild) return []
-        const existing = originalBuild.actionConfigs ?? []
-        if (existing.length > 0) return existing.map((c) => ({ ...c }))
-        return originalBuild.rewards.filter((r) => r.type === 'action').map((r) => ({ actionId: r.id }))
-    })
+    // View 模式：缓存 Character 实例
+    const viewChar = useMemo(() => (isBuild ? null : new Character(build)), [isBuild, build])
+    const character = (isBuild ? buildChar : viewChar)!
 
-    // 构建模式：获取角色实例
-    const buildChar =
-        isBuild && originalBuild
-            ? new Character({ ...originalBuild, baseAttrs: attrs as Partial<Record<AttrName, number>>, actionConfigs })
-            : null
-
-    const totalPoints = isBuild ? (n - 1) * 2 : 0
-    const spent = isBuild
-        ? ALL_ATTRS.reduce((s, a) => {
-              const v = attrs[a] ?? 3
-              let cost = 0
-              for (let i = 3; i < v; i++) cost += cultCost(i)
-              return s + cost
-          }, 0)
-        : 0
-    const remaining = totalPoints - spent
-
-    const maxTriggerSlots = buildChar?.maxTriggerSlots ?? 0
-    const triggerCount = actionConfigs.filter((ac) => ac.triggerId).length
-    const activeTalents = isBuild ? checkTalents(attrs) : []
-
-    // 头像/武器绘制
-    const character = (isBuild ? buildChar : propChar)!
     const avatarRef = useRef<HTMLCanvasElement>(null)
     const weaponRef = useRef<HTMLCanvasElement>(null)
     const spriteId = character?.build.spriteId ?? 'default'
@@ -135,42 +98,6 @@ export function CharacterPanel({
         }
     }, [character])
 
-    // build 模式逻辑
-    function handleAttrAdjust(attr: string, delta: number) {
-        if (!isBuild) return
-        const cur = attrs[attr] ?? 3
-        const next = cur + delta
-        if (next < 3 || next > 30) return
-        const cost = delta > 0 ? cultCost(cur) : -cultCost(cur - 1)
-        if (remaining - cost < 0) return
-        setAttrs((prev) => ({ ...prev, [attr]: next }))
-    }
-
-    function handleReset() {
-        if (!isBuild || !originalBuild) return
-        setAttrs({ ...originalBuild.baseAttrs })
-        setActionConfigs(
-            originalBuild.actionConfigs
-                ? originalBuild.actionConfigs.map((c) => ({ ...c }))
-                : originalBuild.rewards.filter((r) => r.type === 'action').map((r) => ({ actionId: r.id })),
-        )
-        setSaveError(null)
-    }
-
-    function moveAction(fromIndex: number, toIndex: number) {
-        if (!isBuild) return
-        if (toIndex < 0 || toIndex >= actionConfigs.length) return
-        const updated = [...actionConfigs]
-        const [moved] = updated.splice(fromIndex, 1)
-        updated.splice(toIndex, 0, moved)
-        setActionConfigs(updated)
-    }
-
-    function updateAction(index: number, patch: Partial<ActionConfig>) {
-        if (!isBuild) return
-        setActionConfigs((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)))
-    }
-
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
     function handleDragEnd(event: DragEndEvent) {
@@ -180,29 +107,6 @@ export function CharacterPanel({
         const from = parseInt(active.id as string)
         const to = parseInt(over.id as string)
         moveAction(from, to)
-    }
-
-    const [saveError, setSaveError] = useState<string | null>(null)
-
-    function handleSave() {
-        if (!isBuild || !originalBuild) return
-        if (triggerCount > maxTriggerSlots) {
-            setSaveError(
-                `触发条件超出上限（${triggerCount}/${maxTriggerSlots}），当前配置最多 ${maxTriggerSlots} 个触发条件`,
-            )
-            return
-        }
-        setSaveError(null)
-        const newBuild: CharacterBuild = {
-            ...originalBuild,
-            baseAttrs: attrs as Partial<Record<AttrName, number>>,
-            actionConfigs,
-        }
-        if (onSave) {
-            onSave(newBuild)
-        } else {
-            navigate('/select')
-        }
     }
 
     if (!character) return null

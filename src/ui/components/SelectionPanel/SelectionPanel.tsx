@@ -80,15 +80,15 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
         navigate('/battle')
     }
 
-    // 选中角色的 Character 实例（用于 BuildPanel）
-    const charA = useMemo(() => (selectedA ? new Character(gen(selectedA, 33)) : null), [selectedA])
-    const charB = useMemo(() => (selectedB ? new Character(gen(selectedB, 33)) : null), [selectedB])
+    // 选中角色的 build（用于 BuildPanel）
+    const buildA = useMemo(() => (selectedA ? gen(selectedA, 33) : null), [selectedA])
+    const buildB = useMemo(() => (selectedB ? gen(selectedB, 33) : null), [selectedB])
 
     return (
         <div className="selection-root">
             <div className="selection-side">
-                {charA ? (
-                    <CharacterPanel mode="view" character={charA!} accentColor="#4ecdc4" />
+                {buildA ? (
+                    <CharacterPanel mode="view" build={buildA} accentColor="#4ecdc4" />
                 ) : (
                     <div className="side-placeholder">请选择 A</div>
                 )}
@@ -182,8 +182,8 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
             </div>
 
             <div className="selection-side">
-                {charB ? (
-                    <CharacterPanel mode="view" character={charB!} accentColor="#ff6b6b" />
+                {buildB ? (
+                    <CharacterPanel mode="view" build={buildB} accentColor="#ff6b6b" />
                 ) : (
                     <div className="side-placeholder">请选择 B</div>
                 )}

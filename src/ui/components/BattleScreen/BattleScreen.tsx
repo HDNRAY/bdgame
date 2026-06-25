@@ -77,7 +77,7 @@ export function BattleScreen() {
 
     return (
         <div className="app-root">
-            <CharacterPanel mode="view" character={charA} accentColor={charAInfo.color} />
+            <CharacterPanel mode="view" build={charA.build} accentColor={charAInfo.color} />
             <div className="app-center">
                 <ReplayPanel
                     key={battleKey}
@@ -93,7 +93,7 @@ export function BattleScreen() {
                 />
                 {snap && <BattlePanel snapshot={snap} charAName={charA.name} charBName={charB.name} />}
             </div>
-            <CharacterPanel mode="view" character={charB} accentColor={charBInfo.color} />
+            <CharacterPanel mode="view" build={charB.build} accentColor={charBInfo.color} />
         </div>
     )
 }

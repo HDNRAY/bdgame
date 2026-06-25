@@ -5,6 +5,7 @@ import { BuildScreen } from './ui/screens/BuildScreen'
 import { SettingsScreen } from './ui/screens/SettingsScreen'
 import { AboutScreen } from './ui/screens/AboutScreen'
 import { BattleScreen } from './ui/components/BattleScreen/BattleScreen'
+import { QuickRunScreen } from './ui/screens/QuickRunScreen'
 import { RotateDevice } from './ui/components/RotateDevice/RotateDevice'
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
                 <Route path="/settings" element={<SettingsScreen />} />
                 <Route path="/about" element={<AboutScreen />} />
                 <Route path="/battle" element={<BattleScreen />} />
+                <Route path="/quick" element={<QuickRunScreen />} />
             </Routes>
         </HashRouter>
     )

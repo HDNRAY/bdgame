@@ -28,9 +28,10 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 
 1. **Zero `as any`** — use discriminated union + switch for type narrowing. If unavoidable, justify with a comment.
 2. **Zero unused variables/imports** — `noUnusedLocals: true` + `noUnusedParameters: true` in tsconfig. Parameters that MUST exist for type signature but are truly unused get `_` prefix. Never use a `_`-prefixed variable in code.
-3. **Always run before commit:**
+3. **Always run after every change (not just before commit):**
     ```bash
     npx tsc --noEmit -p tsconfig.app.json  # strict type check
+    npx eslint src/ --quiet                # eslint zero errors
     npx vitest run                         # all tests pass
     grep -rn ' as any' src/engine/         # zero as any
     ```

@@ -62,7 +62,7 @@ describe('GameRun', () => {
         if (idx < 0) return
         const result = run.selectOption(idx)
         expect(result.cultPoints).toBe(0)
-        expect(run.state.unspentCultPoints).toBe(5)
+        expect(run.state.unspentCultPoints).toBe(1)
     })
 
     it('event节点生成3个选项', () => {

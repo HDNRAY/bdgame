@@ -55,6 +55,7 @@ export class GameRun {
         this.mode = mode
         this.map = generateMap()
         this.state = {
+            phase: 'idle',
             build: {
                 id: 'player',
                 name: '挑战者',
@@ -67,7 +68,6 @@ export class GameRun {
             injury: 0,
             flags: {},
             log: [],
-            finished: false,
         }
         this._enemyPool = shuffle([...ALL_OPPONENT_IDS])
     }
@@ -78,7 +78,7 @@ export class GameRun {
         return this.map[this._nodeIdx]
     }
     isFinished(): boolean {
-        return this.state.finished
+        return this.state.phase === 'finished'
     }
 
     /** 当前节点的选择项 */
@@ -91,6 +91,7 @@ export class GameRun {
 
     /** 选了第 index 个选项 */
     selectOption(index: number): SelectionResult {
+        if (this.state.phase !== 'idle') throw new Error('selectOption called in phase: ' + this.state.phase)
         const node = this.getCurrentNode()
         const entry: NodeLogEntry = { nodeIndex: node.index, nodeType: node.type }
 
@@ -110,6 +111,7 @@ export class GameRun {
 
     /** 选了具体奖励 */
     selectReward(rewardId: string): void {
+        if (this.state.phase !== 'rewarding') throw new Error('selectReward called in phase: ' + this.state.phase)
         for (const type of ['passive', 'artifact', 'action', 'weapon'] as const) {
             const found = rewardPool.getPool(type).find((r) => r.id === rewardId)
             if (found) {
@@ -201,7 +203,11 @@ export class GameRun {
         const story = getStory(this.state.build.story ?? '')
         const cultPts = story?.getNodeOverride?.(this.getCurrentNode().index)?.cultPoints
         if (cultPts) this.state.unspentCultPoints += cultPts
-        if (this._nodeIdx >= this.map.length) this.state.finished = true
+        if (this._nodeIdx >= this.map.length) {
+            this.state.phase = 'finished'
+        } else {
+            this.state.phase = 'idle'
+        }
     }
 
     /** 取下一个对手（从 enemyPool 顺序取） */
@@ -289,7 +295,7 @@ export class GameRun {
         entry.battleResult = winner === 'player' ? 'win' : 'lose'
         entry.enemyId = bossId
         this.state.log.push(entry)
-        this.state.finished = true
+        this.state.phase = 'finished'
         const [pc, ec] = engine.state.characters
         return {
             battleResult: entry.battleResult,
@@ -347,7 +353,7 @@ export class GameRun {
                     this.state.injury = Math.min(100, this.state.injury + wound)
                     entry.injuryGained = wound
                     if (this.state.injury >= 100) {
-                        this.state.finished = true
+                        this.state.phase = 'finished'
                     }
                 }
                 break
@@ -368,15 +374,9 @@ export class GameRun {
                 break
             }
             case 'story': {
-                // 有选项的故事事件：默认选第一个
+                // 有选项的故事事件：挂起等待选择，不 advance
                 if (ev.choices && ev.choices.length > 0) {
-                    const choice = ev.choices[0]
-                    this._applyEffects(choice.effects ?? [])
-                    result.eventText = choice.description
-                    const grant = (choice.effects ?? []).find((e) => e.type === 'grant_reward')
-                    if (grant?.type === 'grant_reward') {
-                        result.rewardChoices = this._pickReward(grant.rewardType)
-                    }
+                    this.state.phase = 'event_choice'
                 } else {
                     this._applyEffects(ev.effects ?? [])
                     const grant = (ev.effects ?? []).find((e) => e.type === 'grant_reward')
@@ -389,6 +389,15 @@ export class GameRun {
         }
 
         this.state.log.push(entry)
+        // combat 胜利有奖励 → 等选奖励，不进 advance
+        if (result.rewardChoices && result.rewardChoices.length > 0) {
+            this.state.phase = 'rewarding'
+            return result
+        }
+        // story 有选项 → 等选事件分支
+        if (this.state.phase === 'event_choice') return result
+        // 伤势满 → 结束
+        if (this.state.phase === 'finished') return result
         this._advance()
         return result
     }

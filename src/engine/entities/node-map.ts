@@ -25,12 +25,15 @@ export interface NodeLogEntry {
     injuryGained?: number
 }
 
+/** 引擎执行阶段 */
+export type GamePhase = 'idle' | 'event_choice' | 'rewarding' | 'finished'
+
 /** 运行状态（build 为唯一数据源） */
 export interface RunState {
+    phase: GamePhase
     build: CharacterBuild
     unspentCultPoints: number
     injury: number
     flags: Record<string, boolean>
     log: NodeLogEntry[]
-    finished: boolean
 }
