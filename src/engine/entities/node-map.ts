@@ -26,7 +26,14 @@ export interface NodeLogEntry {
 }
 
 /** 引擎执行阶段 */
-export type GamePhase = 'idle' | 'event_choice' | 'rewarding' | 'finished'
+export type GamePhase = 'idle' | 'interactive' | 'rewarding' | 'finished'
+
+/** 交互事件的运行状态 */
+export interface InteractiveState {
+    eventId: string
+    currentStepId: string
+    history: Array<{ stepId: string; choiceIndex?: number; choiceSuccess?: boolean }>
+}
 
 /** 运行状态（build 为唯一数据源） */
 export interface RunState {
@@ -36,4 +43,7 @@ export interface RunState {
     injury: number
     flags: Record<string, boolean>
     log: NodeLogEntry[]
+
+    /** 交互事件状态（phase === 'interactive' 时存在） */
+    currentInteractive?: InteractiveState
 }

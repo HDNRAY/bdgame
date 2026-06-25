@@ -50,7 +50,7 @@ interface FightStyle {
 
 | ID              | 名称     | 主属性    | 次属性    | 推荐武器 | 标签           |
 | --------------- | -------- | --------- | --------- | -------- | -------------- |
-| `nanoblade`     | 纳米剑术 | dexterity | agility | 待定     | 近战·精准·流血 |
+| `nanoblade`     | 纳米剑术 | dexterity | agility   | 待定     | 近战·精准·流血 |
 | `phantom`       | 幻象术   | wisdom    | insight   | 待定     | 远程·诡术·欺诈 |
 | `broken_katana` | 残心居合 | strength  | dexterity | 待定     | 近战·爆发·忍耐 |
 
@@ -279,8 +279,7 @@ interface StoryBackground {
     unlocks: {
         skills: ['护犊'],            // 解锁功法"护犊"（队友受伤时触发）
     },
-    unlock: { type: 'event_choice', eventId: 'street_incident', optionIndex: 2 },
-    // 需要在通用事件"街头意外"中选择"救助小孩"才会解锁此背景
+    // TODO: 后续实现 forceEventIds 以支持特定事件触发解锁
 }
 ```
 
@@ -314,7 +313,6 @@ type UnlockCondition =
     | { type: 'story_choice'; storyId: string } // 选择某故事背景
     | { type: 'first_encounter'; opponentId: string } // 首次遇到某选手
     | { type: 'defeat_opponent'; opponentId: string } // 击败某选手
-    | { type: 'event_choice'; eventId: string; optionIndex: number } // 事件中选择某选项
     | { type: 'attr_threshold'; attr: AttrName; min: number } // 属性达标
     | { type: 'forging_level'; level: number } // 锻体等级达标
     | { type: 'won_round'; round: number } // 打到第几轮

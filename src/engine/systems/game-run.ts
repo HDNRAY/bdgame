@@ -20,7 +20,7 @@ import type { CharacterBuild } from '../entities/character-build'
 import type { Reward } from '../entities/reward'
 import type { Tag } from '../entities/tag'
 import type { NodeChoice } from './node-gen'
-import type { EventDef, EventEffect } from '../entities/event'
+import type { EventDef, EventEffect, InteractiveEventDef, EventStep } from '../entities/event'
 
 type GameMode = 'quick' | 'normal'
 
@@ -50,6 +50,8 @@ export class GameRun {
     private _currentChoices: NodeChoice[] = []
     /** 当前 event 节点的 3 个可选 eventId */
     private _currentEventIds: string[] = []
+    /** 当前交互事件定义（phase === 'interactive' 时有值） */
+    private _currentInteractiveEvent: InteractiveEventDef | null = null
 
     constructor(mode: GameMode = 'quick') {
         this.mode = mode
@@ -375,15 +377,16 @@ export class GameRun {
                 break
             }
             case 'story': {
-                // 有选项的故事事件：挂起等待选择，不 advance
-                if (ev.choices && ev.choices.length > 0) {
-                    this.state.phase = 'event_choice'
-                } else {
-                    this._applyEffects(ev.effects ?? [])
-                    const grant = (ev.effects ?? []).find((e) => e.type === 'grant_reward')
-                    if (grant?.type === 'grant_reward') {
-                        result.rewardChoices = this._pickReward(grant.rewardType)
-                    }
+                // 交互事件系统（多层选择 + 叙事）
+                if (ev.type === 'story' && ev.steps) {
+                    this._enterInteractive(ev)
+                    return result
+                }
+                // 非交互式故事事件：直接应用效果
+                this._applyEffects(ev.effects ?? [])
+                const grant = (ev.effects ?? []).find((e) => e.type === 'grant_reward')
+                if (grant?.type === 'grant_reward') {
+                    result.rewardChoices = this._pickReward(grant.rewardType)
                 }
                 break
             }
@@ -395,8 +398,6 @@ export class GameRun {
             this.state.phase = 'rewarding'
             return result
         }
-        // story 有选项 → 等选事件分支
-        if (this.state.phase === 'event_choice') return result
         // 伤势满 → 结束
         if (this.state.phase === 'finished') return result
         this._advance()
@@ -408,6 +409,68 @@ export class GameRun {
         if (rt === 'cult') return []
         const type = rt as 'passive' | 'artifact' | 'action' | 'weapon'
         return rewardPool.pickChoices(type, 3, this.ownedRewardIds, this.playerTags)
+    }
+
+    /** 进入交互事件（多层选择 + 叙事） */
+    private _enterInteractive(eventDef: InteractiveEventDef): void {
+        this._currentInteractiveEvent = eventDef
+        this.state.phase = 'interactive'
+        this.state.currentInteractive = {
+            eventId: eventDef.id,
+            currentStepId: eventDef.firstStep,
+            history: [],
+        }
+    }
+
+    /** 获取当前交互步骤 */
+    getInteractiveStep(): EventStep | null {
+        if (!this.state.currentInteractive || !this._currentInteractiveEvent) return null
+        return this._currentInteractiveEvent.steps[this.state.currentInteractive.currentStepId] ?? null
+    }
+
+    /** 推进交互事件：选择一个选项 */
+    advanceInteractive(choiceIndex: number): SelectionResult {
+        const result: SelectionResult = {}
+        if (!this.state.currentInteractive || !this._currentInteractiveEvent) return result
+
+        const step = this.getInteractiveStep()
+        if (!step || step.type !== 'choice') return result
+
+        const choice = step.choices?.[choiceIndex]
+        if (!choice) return result
+
+        // 记录选择
+        this.state.currentInteractive.history.push({
+            stepId: this.state.currentInteractive.currentStepId,
+            choiceIndex,
+        })
+
+        // 应用选择效果（可能有 chance）
+        let effects = choice.success ?? []
+        if (choice.chance !== undefined && Math.random() > choice.chance) {
+            effects = choice.failure ?? []
+        }
+        this._applyEffects(effects)
+
+        // 决定下一步
+        const nextStep = choice.next
+        if (!nextStep) {
+            // 事件结束，推进到下一个阶段
+            this.state.currentInteractive = undefined
+            this._advance()
+            return result
+        }
+
+        if (typeof nextStep === 'string') {
+            // 线性分支
+            this.state.currentInteractive.currentStepId = nextStep
+        } else {
+            // 条件分支 Record<choiceIndex, stepId>
+            this.state.currentInteractive.currentStepId =
+                nextStep[choiceIndex] ?? nextStep['default'] ?? nextStep[0] ?? this._currentInteractiveEvent!.firstStep
+        }
+
+        return result
     }
 
     private _fallbackBuild(): CharacterBuild {

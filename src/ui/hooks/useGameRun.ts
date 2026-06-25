@@ -50,6 +50,14 @@ export function useGameRun() {
         tick()
     }, [])
 
+    /** 在交互事件中选择一个选项 */
+    const selectEventChoice = useCallback((choiceIndex: number) => {
+        if (runRef.current.state.phase !== 'interactive') return
+        const res = runRef.current.advanceInteractive(choiceIndex)
+        setLastResult(res)
+        tick()
+    }, [])
+
     return {
         run: runRef,
         choices,
@@ -58,5 +66,6 @@ export function useGameRun() {
         select,
         selectReward,
         updateBuild,
+        selectEventChoice,
     }
 }

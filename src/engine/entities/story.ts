@@ -13,6 +13,9 @@ export interface NodeOverride {
     bossId?: string
     /** 叙事文案覆盖（节点2/3等固定节点使用） */
     flavorText?: string
+
+    // TODO: 后续实现故事强制事件功能
+    // forceEventIds?: string[]  // 优先级最高的事件 ID 列表
 }
 
 /** 角色故事定义 */

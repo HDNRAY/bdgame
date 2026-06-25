@@ -29,7 +29,7 @@ function calcSpentCultPoints(build: CharacterBuild): number {
 
 export function QuickRunScreen() {
     const navigate = useNavigate()
-    const { run, choices, lastResult, enterNode, select, selectReward, updateBuild } = useGameRun()
+    const { run, choices, lastResult, enterNode, select, selectReward, updateBuild, selectEventChoice } = useGameRun()
     const node = run.current.getCurrentNode()
     const flavor = getNodeFlavorText(node.index, run.current.state.build.story)
 
@@ -134,8 +134,36 @@ export function QuickRunScreen() {
                 )
             }
 
-            case 'event_choice':
-                return <div className="qr-event-choice">事件分支选择（暂未实现）</div>
+            case 'interactive': {
+                const step = run.current.getInteractiveStep()
+                if (!step) {
+                    return <div className="qr-loading">加载交互事件中…</div>
+                }
+                if (step.type === 'narrative') {
+                    return (
+                        <div className="qr-interactive-step">
+                            <div className="narrative-text">{step.text}</div>
+                            <button onClick={() => selectEventChoice(-1)}>继续</button>
+                        </div>
+                    )
+                }
+                if (step.type === 'choice') {
+                    return (
+                        <div className="qr-interactive-step">
+                            <div className="choice-prompt">{step.prompt}</div>
+                            <div className="choices-list">
+                                {step.choices?.map((choice, idx) => (
+                                    <button key={idx} onClick={() => selectEventChoice(idx)} className="choice-button">
+                                        {choice.label}
+                                        {choice.description && <div className="choice-desc">{choice.description}</div>}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )
+                }
+                return <div className="qr-loading">处理交互事件中…</div>
+            }
 
             case 'finished':
                 return (
