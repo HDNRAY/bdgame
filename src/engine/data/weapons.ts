@@ -117,6 +117,13 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [1, 6],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dinghai_pressure' }] }],
     },
+    {
+        id: 'barehanded',
+        name: '赤手空拳',
+        description: '什么都不带，只有一身本事。',
+        tags: ['melee'],
+        range: [1, 1],
+    },
 ]
 
 // ── 运行时武器查找表 ──

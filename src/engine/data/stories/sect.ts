@@ -3,6 +3,7 @@ import type { Story } from '../../entities/story'
 export const SECT: Story = {
     id: 'sect',
     name: '炼炁门派',
+    characterName: '天骄',
     desc: '自幼被选入山门修行。你是百年一遇的天生道种。',
     tags: [],
     comment:

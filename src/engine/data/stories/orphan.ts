@@ -3,6 +3,7 @@ import type { Story } from '../../entities/story'
 export const ORPHAN: Story = {
     id: 'orphan',
     name: '普通孤儿',
+    characterName: '孤儿',
     desc: '被青山镇前任会长收养，在镇里长大。',
     tags: [],
     comment:

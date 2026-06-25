@@ -3,6 +3,7 @@ import type { Story } from '../../entities/story'
 export const VETERAN: Story = {
     id: 'veteran',
     name: '军旅退伍',
+    characterName: '退役军人',
     desc: '世代从军。你从小在军营边长大，看惯了操练和号角。',
     tags: [],
     comment:

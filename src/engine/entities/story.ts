@@ -22,6 +22,7 @@ export interface NodeOverride {
 export interface Story {
     id: string
     name: string
+    characterName: string
     desc: string
     /** 内部备注：隐藏机制、剧情设计（不展示给玩家） */
     comment?: string

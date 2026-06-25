@@ -169,72 +169,70 @@ export class GameRun {
                 return getWeaponChoices()
             case 'first_action':
                 return getFirstActionChoices(this.ownedRewardIds, this.playerTags)
-            case 'event': {
-                this._currentEventIds = pickEventOptions({
-                    nodeIndex: node.index,
-                    storyId: this.state.build.story ?? '',
-                    flags: this.state.flags,
-                    injury: this.state.injury,
-                    rewardCount: this.state.build.rewards.length,
-                    usedEventIds: new Set(this.state.log.map((e) => e.chosenEventId ?? '')),
-                })
-                return this._currentEventIds.map((eid) => {
-                    const ev = EVENT_DB.find((e) => e.id === eid)
-                    if (!ev) {
-                        return {
-                            id: eid,
-                            name: eid,
-                            desc: '',
-                            tags: [],
-                        }
-                    }
-                    let desc = ''
-                    // 对于 story 类型的事件，检查选项后是否直接有奖励
-                    if (isInteractiveEvent(ev)) {
-                        // 这是 InteractiveEventDef，检查第一个选项后是否直接有奖励
-                        const firstStep = ev.steps[ev.firstStep]
-                        if (
-                            firstStep &&
-                            firstStep.type === 'choice' &&
-                            firstStep.choices &&
-                            firstStep.choices.length > 0
-                        ) {
-                            // 检查所有 choice 是否都直接导向有奖励的结果
-                            const allHaveRewards = firstStep.choices.every((choice) => {
-                                const nextStepId = typeof choice.next === 'string' ? choice.next : undefined
-                                if (!nextStepId) return false
-                                const nextStep = ev.steps[nextStepId]
-                                return nextStep && nextStep.effects?.some((e) => e.type === 'grant_reward')
-                            })
-                            if (allHaveRewards) {
-                                desc = `🎁 ${ev.rewardType || 'reward'}`
-                            } else {
-                                desc = ev.description ?? ''
-                            }
-                        } else {
-                            desc = ev.description ?? ''
-                        }
-                    } else if (isCombatEvent(ev) || isBossEvent(ev)) {
-                        // 战斗事件直接显示奖励类型
-                        const rewardType = ev.rewardType
-                        if (rewardType) {
-                            desc = `🎁 ${rewardType}`
-                        }
-                    } else if (isHealEvent(ev) || isForgeEvent(ev) || isSimpleStoryEvent(ev)) {
-                        // heal/forge/simple story events 显示描述
-                        desc = ev.description ?? ''
-                    }
-                    return {
-                        id: eid,
-                        name: ev.name ?? eid,
-                        desc,
-                        tags: [],
-                    }
-                })
-            }
+            case 'event':
+                return this._generateEventChoices()
             case 'boss':
                 return []
         }
+    }
+
+    private _generateEventChoices(): NodeChoice[] {
+        this._currentEventIds = pickEventOptions({
+            nodeIndex: this.getCurrentNode().index,
+            storyId: this.state.build.story ?? '',
+            flags: this.state.flags,
+            injury: this.state.injury,
+            rewardCount: this.state.build.rewards.length,
+            usedEventIds: new Set(this.state.log.map((e) => e.chosenEventId ?? '')),
+        })
+        return this._currentEventIds.map((eid) => {
+            const ev = EVENT_DB.find((e) => e.id === eid)
+            if (!ev) {
+                return {
+                    id: eid,
+                    name: eid,
+                    desc: '',
+                    tags: [],
+                }
+            }
+            let desc = ''
+            // 对于 story 类型的事件，检查选项后是否直接有奖励
+            if (isInteractiveEvent(ev)) {
+                // 这是 InteractiveEventDef，检查第一个选项后是否直接有奖励
+                const firstStep = ev.steps[ev.firstStep]
+                if (firstStep && firstStep.type === 'choice' && firstStep.choices && firstStep.choices.length > 0) {
+                    // 检查所有 choice 是否都直接导向有奖励的结果
+                    const allHaveRewards = firstStep.choices.every((choice) => {
+                        const nextStepId = typeof choice.next === 'string' ? choice.next : undefined
+                        if (!nextStepId) return false
+                        const nextStep = ev.steps[nextStepId]
+                        return nextStep && nextStep.effects?.some((e) => e.type === 'grant_reward')
+                    })
+                    if (allHaveRewards) {
+                        desc = `🎁 ${ev.rewardType || 'reward'}`
+                    } else {
+                        desc = ev.description ?? ''
+                    }
+                } else {
+                    desc = ev.description ?? ''
+                }
+            } else if (isCombatEvent(ev) || isBossEvent(ev)) {
+                // 战斗事件直接显示奖励类型
+                const rewardType = ev.rewardType
+                if (rewardType) {
+                    desc = `🎁 ${rewardType}`
+                }
+            } else if (isHealEvent(ev) || isForgeEvent(ev) || isSimpleStoryEvent(ev)) {
+                // heal/forge/simple story events 显示描述
+                desc = ev.description ?? ''
+            }
+            return {
+                id: eid,
+                name: ev.name ?? eid,
+                desc,
+                tags: [],
+            }
+        })
     }
 
     private _advance(): void {
@@ -294,7 +292,9 @@ export class GameRun {
     private _selectBg(index: number, entry: NodeLogEntry): SelectionResult {
         const picked = this._currentChoices[Math.min(index, this._currentChoices.length - 1)]
         this.state.build.story = picked.id
+        this.state.build.weapon = 'bare_hands'
         const story = getStory(picked.id)
+        this.state.build.name = story?.characterName ?? '挑战者'
         const pts = story?.getNodeOverride?.(1)?.cultPoints ?? 4
         this.state.unspentCultPoints += pts
         entry.cultPointsGained = pts
@@ -362,73 +362,22 @@ export class GameRun {
         }
 
         const result: SelectionResult = { eventText: ev.name }
+        const node = this.getCurrentNode()
 
         switch (ev.type) {
-            case 'combat': {
-                const enemyId = ev.enemyId ?? this._nextEnemy()
-                entry.enemyId = enemyId
-                const { winner, engine } = runBattle(
-                    new Character(this.state.build),
-                    new Character(this.getEnemyBuild(enemyId, this.getCurrentNode().index)),
-                )
-                entry.battleResult = winner === 'player' ? 'win' : 'lose'
-                result.battleResult = entry.battleResult
-                result.enemyId = enemyId
-
-                // 战斗统计
-                const [pc, ec] = engine.state.characters
-                result.playerHp = { current: pc.hp, max: pc.maxHp }
-                result.enemyHp = { current: ec.hp, max: ec.maxHp }
-                result.actionCount = engine.state.actionCount
-
-                if (winner === 'player') {
-                    // 奖励
-                    const rewardType =
-                        ev.rewardType ?? pickRandom(['cult', 'passive', 'artifact', 'action'] as const, 1)[0]
-                    result.rewardChoices = this._pickReward(rewardType)
-                } else {
-                    // 伤势
-                    const hpLostRatio = 1 - pc.hp / pc.maxHp
-                    const wound = Math.round(2 + hpLostRatio * 10)
-                    this.state.injury = Math.min(100, this.state.injury + wound)
-                    entry.injuryGained = wound
-                    if (this.state.injury >= 100) {
-                        this.state.phase = 'finished'
-                    }
-                }
+            case 'combat':
+                this._handleCombatEvent(ev, entry, result, node)
                 break
-            }
-            case 'boss': {
+            case 'boss':
                 // boss 由 _selectBoss 处理，这里不应触发
                 break
-            }
             case 'heal':
-            case 'forge': {
-                this._applyEffects(ev.effects ?? [])
-                entry.injuryGained = ev.effects.find((e) => e.type === 'heal')?.value ?? 0
-                const cpts = ev.effects.find((e) => e.type === 'cult_points')?.value
-                if (cpts) {
-                    entry.cultPointsGained = cpts
-                    result.cultPoints = cpts
-                }
+            case 'forge':
+                this._handleHealForgeEvent(ev, entry, result)
                 break
-            }
-            case 'story': {
-                // 交互事件系统（多层选择 + 叙事）
-                if (isInteractiveEvent(ev)) {
-                    this._enterInteractive(ev)
-                    return result
-                }
-                // 非交互式故事事件：直接应用效果（已缩小为 StoryEventDef）
-                if (isSimpleStoryEvent(ev)) {
-                    this._applyEffects(ev.effects ?? [])
-                    const grant = (ev.effects ?? []).find((e: EventEffect) => e.type === 'grant_reward')
-                    if (grant?.type === 'grant_reward') {
-                        result.rewardChoices = this._pickReward(grant.rewardType)
-                    }
-                }
+            case 'story':
+                this._handleStoryEvent(ev, entry, result)
                 break
-            }
         }
 
         this.state.log.push(entry)
@@ -441,6 +390,68 @@ export class GameRun {
         if (this.state.phase === 'finished') return result
         this._advance()
         return result
+    }
+
+    private _handleCombatEvent(ev: EventDef, entry: NodeLogEntry, result: SelectionResult, node: MapNode): void {
+        if (ev.type !== 'combat') return
+        const enemyId = ev.enemyId ?? this._nextEnemy()
+        entry.enemyId = enemyId
+        const { winner, engine } = runBattle(
+            new Character(this.state.build),
+            new Character(this.getEnemyBuild(enemyId, node.index)),
+        )
+        entry.battleResult = winner === 'player' ? 'win' : 'lose'
+        result.battleResult = entry.battleResult
+        result.enemyId = enemyId
+
+        // 战斗统计
+        const [pc, ec] = engine.state.characters
+        result.playerHp = { current: pc.hp, max: pc.maxHp }
+        result.enemyHp = { current: ec.hp, max: ec.maxHp }
+        result.actionCount = engine.state.actionCount
+
+        if (winner === 'player') {
+            // 奖励
+            const rewardType = ev.rewardType ?? pickRandom(['cult', 'passive', 'artifact', 'action'] as const, 1)[0]
+            result.rewardChoices = this._pickReward(rewardType)
+        } else {
+            // 伤势
+            const hpLostRatio = 1 - pc.hp / pc.maxHp
+            const wound = Math.round(2 + hpLostRatio * 10)
+            this.state.injury = Math.min(100, this.state.injury + wound)
+            entry.injuryGained = wound
+            if (this.state.injury >= 100) {
+                this.state.phase = 'finished'
+            }
+        }
+    }
+
+    private _handleHealForgeEvent(ev: EventDef, entry: NodeLogEntry, result: SelectionResult): void {
+        if (ev.type !== 'heal' && ev.type !== 'forge') return
+        this._applyEffects(ev.effects ?? [])
+        entry.injuryGained = ev.effects.find((e) => e.type === 'heal')?.value ?? 0
+        const cpts = ev.effects.find((e) => e.type === 'cult_points')?.value
+        if (cpts) {
+            entry.cultPointsGained = cpts
+            result.cultPoints = cpts
+        }
+    }
+
+    private _handleStoryEvent(ev: EventDef, entry: NodeLogEntry, result: SelectionResult): void {
+        if (ev.type !== 'story') return
+        // 交互事件系统（多层选择 + 叙事）
+        if (isInteractiveEvent(ev)) {
+            this._enterInteractive(ev)
+            return
+        }
+        // 非交互式故事事件：直接应用效果（已缩小为 StoryEventDef）
+        if (isSimpleStoryEvent(ev)) {
+            this._applyEffects(ev.effects ?? [])
+            const grant = (ev.effects ?? []).find((e: EventEffect) => e.type === 'grant_reward')
+            if (grant?.type === 'grant_reward') {
+                result.rewardChoices = this._pickReward(grant.rewardType)
+            }
+        }
     }
 
     private _pickReward(rt: string): Reward[] {

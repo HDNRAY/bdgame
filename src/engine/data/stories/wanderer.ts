@@ -3,6 +3,7 @@ import type { Story } from '../../entities/story'
 export const WANDERER: Story = {
     id: 'wanderer',
     name: '普通散人',
+    characterName: '散人',
     desc: '普普通通。',
     tags: [],
     comment: '简单奇遇流。一阶段Boss随机，决赛对手随机，没有特别剧情绑定。',

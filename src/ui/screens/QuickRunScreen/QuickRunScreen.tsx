@@ -180,7 +180,7 @@ export function QuickRunScreen() {
         }
     }
 
-    const ready = run.current.state.build.story && run.current.state.build.weapon
+    const ready = run.current.state.build.story
     const isBossActive = bossPhase !== null
 
     if (isBossActive) {

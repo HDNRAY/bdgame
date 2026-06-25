@@ -38,8 +38,14 @@ export function useGameRun() {
     /** 选奖励 */
     const selectReward = useCallback((rewardId: string) => {
         runRef.current.selectReward(rewardId)
-        setChoices([])
         setLastResult(null)
+        // 选完奖励后，自动加载下一个节点的选项
+        if (runRef.current.state.phase === 'idle') {
+            const items = runRef.current.getSelectionItems()
+            setChoices(items)
+        } else {
+            setChoices([])
+        }
         tick()
     }, [])
 

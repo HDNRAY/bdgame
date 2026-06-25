@@ -3,6 +3,7 @@ import type { Story } from '../../entities/story'
 export const XUANMEN: Story = {
     id: 'xuanmen',
     name: '玄门子弟',
+    characterName: '弟子',
     desc: '御物世家，以炁御器。你从记事起就开始修炼家传功法。',
     tags: ['imperial'],
     comment: '唯一与武器绑定的故事，只能选御物(游丝/三相珠/大剑)。一阶段Boss＝兄弟/姐妹（家族试炼·需手刃至亲）。',

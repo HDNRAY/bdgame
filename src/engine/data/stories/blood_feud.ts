@@ -3,6 +3,7 @@ import type { Story } from '../../entities/story'
 export const BLOOD_FEUD: Story = {
     id: 'blood_feud',
     name: '宗门遗孤',
+    characterName: '遗孤',
     desc: '幼年宗门遇劫，你被父亲心腹保护，躲在青山镇。',
     tags: [],
     comment:
