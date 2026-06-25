@@ -8,6 +8,7 @@ import { isSimpleStoryEvent } from '../util/event-utils'
 import type { MapNode } from '../entities/node-map'
 import type { Tag } from '../entities/tag'
 import type { EventDef } from '../entities/event'
+import type { RewardType } from '../entities/reward'
 
 // ════════════════════════════════════════
 //  工具函数
@@ -81,6 +82,8 @@ export interface NodeChoice {
     tags?: Tag[]
     /** 选择前的叙事文案 */
     flavorText?: string
+    /** 战斗事件的奖励类型（已决定的或固定的） */
+    rewardType?: RewardType
 }
 
 // ════════════════════════════════════════

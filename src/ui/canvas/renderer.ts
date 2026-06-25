@@ -3,7 +3,7 @@
  */
 
 import * as PIXI from 'pixi.js'
-import type { Frame, FrameChar, LogEntry } from '../../replay/replay-engine'
+import type { Frame, FrameChar, LogEntry } from '../../bridge/replay-engine'
 import { makeCharacterSprite, getWeaponOverlay } from '../pixel-sprites'
 import { FloatTextSystem } from './float-text'
 import {

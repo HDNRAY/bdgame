@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import type { FrameChar } from '../../replay/replay-engine'
+import type { FrameChar } from '../../bridge/replay-engine'
 import type { BattleEvent } from '../../engine/combat/types'
 import {
     FLOAT_LIFE,

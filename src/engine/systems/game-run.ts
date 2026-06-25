@@ -10,22 +10,16 @@ import {
 } from './node-gen'
 import { rewardPool } from './reward-pool'
 import { runBattle } from '../battle-runner'
+import { enrichEventChoices } from '../../bridge/eventDisplay'
 import { Character } from '../entities/character'
 import { getWeapon } from '../data/weapons'
 import { getStory } from '../data/stories/index'
 import { getOpponentDef, gen } from '../data/opponents/index'
 import { EVENT_DB } from '../data/events/index'
-import {
-    isInteractiveEvent,
-    isCombatEvent,
-    isBossEvent,
-    isHealEvent,
-    isForgeEvent,
-    isSimpleStoryEvent,
-} from '../util/event-utils'
+import { isInteractiveEvent, isCombatEvent, isBossEvent, isSimpleStoryEvent } from '../util/event-utils'
 import type { MapNode, RunState, NodeLogEntry, GameMode, SelectionResult } from '../entities/node-map'
 import type { CharacterBuild } from '../entities/character-build'
-import type { Reward } from '../entities/reward'
+import type { Reward, RewardType } from '../entities/reward'
 import type { Tag } from '../entities/tag'
 import type { NodeChoice } from './node-gen'
 import type { EventDef, EventEffect, InteractiveEventDef, EventStep } from '../entities/event'
@@ -43,6 +37,8 @@ export class GameRun {
     private _currentChoices: NodeChoice[] = []
     /** 当前 event 节点的 3 个可选 eventId */
     private _currentEventIds: string[] = []
+    /** 当前事件对应的已决定 rewardType（eventId -> rewardType） */
+    private _currentRewardTypes: Map<string, RewardType> = new Map()
     /** 当前交互事件定义（phase === 'interactive' 时有值） */
     private _currentInteractiveEvent: InteractiveEventDef | null = null
 
@@ -79,6 +75,10 @@ export class GameRun {
     /** 当前节点的选择项 */
     getSelectionItems(): NodeChoice[] {
         this._currentChoices = this._generateChoices()
+        // 对于事件节点，调用 bridge 层来补充 UI 展示信息
+        if (this.getCurrentNode().type === 'event' && this._currentEventIds.length > 0) {
+            this._currentChoices = enrichEventChoices(this._currentEventIds, this._currentRewardTypes)
+        }
         return this._currentChoices
     }
 
@@ -104,9 +104,21 @@ export class GameRun {
         }
     }
 
-    /** 选了具体奖励 */
-    selectReward(rewardId: string): void {
+    /** 选了具体奖励（返回 SelectionResult 来表示需要继续确认的修炼点） */
+    selectReward(rewardId: string): SelectionResult {
         if (this.state.phase !== 'rewarding') throw new Error('selectReward called in phase: ' + this.state.phase)
+
+        // 处理修炼点奖励（需要用户确认继续）
+        if (rewardId === 'cult_reward') {
+            this.state.unspentCultPoints += 4
+            const last = this.state.log[this.state.log.length - 1]
+            if (last) {
+                last.cultPointsGained = (last.cultPointsGained ?? 0) + 4
+            }
+            return { cultRewardSelected: true }
+        }
+
+        // 处理其他奖励
         for (const type of ['passive', 'artifact', 'action', 'weapon'] as const) {
             const found = rewardPool.getPool(type).find((r) => r.id === rewardId)
             if (found) {
@@ -114,9 +126,17 @@ export class GameRun {
                 const last = this.state.log[this.state.log.length - 1]
                 if (last) last.chosenReward = found
                 this._advance()
-                return
+                return {}
             }
         }
+
+        return {}
+    }
+
+    /** 确认继续（修炼点奖励后） */
+    confirmContinue(): void {
+        if (this.state.phase !== 'rewarding') throw new Error('confirmContinue called in phase: ' + this.state.phase)
+        this._advance()
     }
 
     /** 获取对手 build */
@@ -185,52 +205,39 @@ export class GameRun {
             rewardCount: this.state.build.rewards.length,
             usedEventIds: new Set(this.state.log.map((e) => e.chosenEventId ?? '')),
         })
+
+        // 为战斗/Boss 事件决定 rewardType（其他事件不需要）
+        this._currentRewardTypes.clear()
+        for (const eid of this._currentEventIds) {
+            const ev = EVENT_DB.find((e) => e.id === eid)
+            if (!ev) continue
+
+            // 只处理有 rewardType 字段的事件类型（combat 和 boss）
+            if (isCombatEvent(ev)) {
+                if (ev.rewardType) {
+                    this._currentRewardTypes.set(eid, ev.rewardType)
+                } else {
+                    // 随机战斗事件：根据 weaponLocked 决定类型
+                    const rewardTypes = ['cult', 'passive', 'artifact', 'action']
+                    if (!this.weaponLocked) rewardTypes.push('weapon')
+                    const decidedType = pickRandom(rewardTypes, 1)[0]
+                    this._currentRewardTypes.set(eid, decidedType as RewardType)
+                }
+            } else if (isBossEvent(ev)) {
+                // Boss 事件总是有 rewardType
+                this._currentRewardTypes.set(eid, ev.rewardType)
+            }
+        }
+
+        // 返回暂时的选项列表，真正的 desc 由 enrichEventChoices 生成
         return this._currentEventIds.map((eid) => {
             const ev = EVENT_DB.find((e) => e.id === eid)
-            if (!ev) {
-                return {
-                    id: eid,
-                    name: eid,
-                    desc: '',
-                    tags: [],
-                }
-            }
-            let desc = ''
-            // 对于 story 类型的事件，检查选项后是否直接有奖励
-            if (isInteractiveEvent(ev)) {
-                // 这是 InteractiveEventDef，检查第一个选项后是否直接有奖励
-                const firstStep = ev.steps[ev.firstStep]
-                if (firstStep && firstStep.type === 'choice' && firstStep.choices && firstStep.choices.length > 0) {
-                    // 检查所有 choice 是否都直接导向有奖励的结果
-                    const allHaveRewards = firstStep.choices.every((choice) => {
-                        const nextStepId = typeof choice.next === 'string' ? choice.next : undefined
-                        if (!nextStepId) return false
-                        const nextStep = ev.steps[nextStepId]
-                        return nextStep && nextStep.effects?.some((e) => e.type === 'grant_reward')
-                    })
-                    if (allHaveRewards) {
-                        desc = `🎁 ${ev.rewardType || 'reward'}`
-                    } else {
-                        desc = ev.description ?? ''
-                    }
-                } else {
-                    desc = ev.description ?? ''
-                }
-            } else if (isCombatEvent(ev) || isBossEvent(ev)) {
-                // 战斗事件直接显示奖励类型
-                const rewardType = ev.rewardType
-                if (rewardType) {
-                    desc = `🎁 ${rewardType}`
-                }
-            } else if (isHealEvent(ev) || isForgeEvent(ev) || isSimpleStoryEvent(ev)) {
-                // heal/forge/simple story events 显示描述
-                desc = ev.description ?? ''
-            }
             return {
                 id: eid,
-                name: ev.name ?? eid,
-                desc,
+                name: ev?.name ?? eid,
+                desc: '', // 临时值，由 enrichEventChoices 补充
                 tags: [],
+                rewardType: this._currentRewardTypes.get(eid),
             }
         })
     }
@@ -363,10 +370,12 @@ export class GameRun {
 
         const result: SelectionResult = { eventText: ev.name }
         const node = this.getCurrentNode()
+        // 获取选中的 choice（包含已决定的 rewardType）
+        const choice = this._currentChoices[Math.min(index, this._currentChoices.length - 1)]
 
         switch (ev.type) {
             case 'combat':
-                this._handleCombatEvent(ev, entry, result, node)
+                this._handleCombatEvent(ev, entry, result, node, choice?.rewardType)
                 break
             case 'boss':
                 // boss 由 _selectBoss 处理，这里不应触发
@@ -392,7 +401,13 @@ export class GameRun {
         return result
     }
 
-    private _handleCombatEvent(ev: EventDef, entry: NodeLogEntry, result: SelectionResult, node: MapNode): void {
+    private _handleCombatEvent(
+        ev: EventDef,
+        entry: NodeLogEntry,
+        result: SelectionResult,
+        node: MapNode,
+        decidedRewardType?: RewardType,
+    ): void {
         if (ev.type !== 'combat') return
         const enemyId = ev.enemyId ?? this._nextEnemy()
         entry.enemyId = enemyId
@@ -410,20 +425,23 @@ export class GameRun {
         result.enemyHp = { current: ec.hp, max: ec.maxHp }
         result.actionCount = engine.state.actionCount
 
-        if (winner === 'player') {
-            // 奖励
-            const rewardType = ev.rewardType ?? pickRandom(['cult', 'passive', 'artifact', 'action'] as const, 1)[0]
-            result.rewardChoices = this._pickReward(rewardType)
-        } else {
-            // 伤势
+        // 胜利或失败都给奖励，失败时附加伤势
+        if (winner !== 'player') {
+            // 计算伤势
             const hpLostRatio = 1 - pc.hp / pc.maxHp
             const wound = Math.round(2 + hpLostRatio * 10)
             this.state.injury = Math.min(100, this.state.injury + wound)
             entry.injuryGained = wound
             if (this.state.injury >= 100) {
                 this.state.phase = 'finished'
+                return
             }
         }
+
+        // 无论胜负，若未达成死亡状态就给奖励
+        // 使用已决定的奖励类型（生成选项时已决定并存储在 choice 中）
+        const rewardType: RewardType = decidedRewardType ?? ev.rewardType ?? 'cult'
+        result.rewardChoices = this._pickReward(rewardType)
     }
 
     private _handleHealForgeEvent(ev: EventDef, entry: NodeLogEntry, result: SelectionResult): void {
@@ -454,11 +472,9 @@ export class GameRun {
         }
     }
 
-    private _pickReward(rt: string): Reward[] {
+    private _pickReward(rt: RewardType): Reward[] {
         if (this.weaponLocked && rt === 'weapon') return []
-        if (rt === 'cult') return []
-        const type = rt as 'passive' | 'artifact' | 'action' | 'weapon'
-        return rewardPool.pickChoices(type, 3, this.ownedRewardIds, this.playerTags)
+        return rewardPool.pickChoices(rt, 3, this.ownedRewardIds, this.playerTags)
     }
 
     /** 进入交互事件（多层选择 + 叙事） */

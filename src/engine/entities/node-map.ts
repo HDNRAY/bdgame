@@ -61,6 +61,8 @@ export interface SelectionResult {
     eventText?: string
     rewardChoices?: Reward[]
     cultPoints?: number
+    /** 修炼点奖励已获得，等待用户确认继续 */
+    cultRewardSelected?: boolean
     /** 战斗统计 */
     playerHp?: { current: number; max: number }
     enemyHp?: { current: number; max: number }

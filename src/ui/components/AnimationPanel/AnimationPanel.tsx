@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react'
-import { ReplayEngine, type LogEntry } from '../../../replay/replay-engine'
+import { ReplayEngine, type LogEntry } from '../../../bridge/replay-engine'
 import { CanvasRenderer } from '../../canvas/renderer'
 import './AnimationPanel.scss'
 

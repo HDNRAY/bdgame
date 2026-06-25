@@ -37,9 +37,29 @@ export function useGameRun() {
 
     /** 选奖励 */
     const selectReward = useCallback((rewardId: string) => {
-        runRef.current.selectReward(rewardId)
+        const res = runRef.current.selectReward(rewardId)
+        setLastResult(res)
+        // 如果选的是修炼点，需要用户确认继续（由 UI 显示继续按钮）
+        if (res.cultRewardSelected) {
+            setChoices([])
+            tick()
+            return
+        }
+        // 其他奖励选完后，自动加载下一个节点的选项
+        if (runRef.current.state.phase === 'idle') {
+            const items = runRef.current.getSelectionItems()
+            setChoices(items)
+        } else {
+            setChoices([])
+        }
+        tick()
+    }, [])
+
+    /** 确认继续（修炼点奖励后） */
+    const confirmContinue = useCallback(() => {
+        runRef.current.confirmContinue()
         setLastResult(null)
-        // 选完奖励后，自动加载下一个节点的选项
+        // 加载下一个节点的选项
         if (runRef.current.state.phase === 'idle') {
             const items = runRef.current.getSelectionItems()
             setChoices(items)
@@ -71,6 +91,7 @@ export function useGameRun() {
         enterNode,
         select,
         selectReward,
+        confirmContinue,
         updateBuild,
         selectEventChoice,
     }

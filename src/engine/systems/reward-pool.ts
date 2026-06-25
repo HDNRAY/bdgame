@@ -1,5 +1,5 @@
 import type { Tag } from '../entities/tag'
-import type { ItemRewardType, Reward } from '../entities/reward'
+import type { RewardType, Reward } from '../entities/reward'
 import { PASSIVES } from '../data/passives'
 import { ARTIFACTS } from '../data/artifacts'
 import { PLAYER_ACTIONS } from '../data/actions/player'
@@ -15,6 +15,7 @@ export class RewardPool {
     private _artifactPool: Reward[] | null = null
     private _actionPool: Reward[] | null = null
     private _weaponPool: Reward[] | null = null
+    private _cultPool: Reward[] | null = null
 
     static get instance(): RewardPool {
         if (!RewardPool._instance) RewardPool._instance = new RewardPool()
@@ -22,7 +23,7 @@ export class RewardPool {
     }
 
     /** 按类型取奖励池 */
-    getPool(type: ItemRewardType): Reward[] {
+    getPool(type: RewardType): Reward[] {
         switch (type) {
             case 'passive':
                 return this._getPassivePool()
@@ -32,6 +33,8 @@ export class RewardPool {
                 return this._getActionPool()
             case 'weapon':
                 return this._getWeaponPool()
+            case 'cult':
+                return this._getCultPool()
         }
     }
 
@@ -44,7 +47,7 @@ export class RewardPool {
      * @param playerTags  - 玩家当前 tags，用于关联度排序
      * @returns 按关联度排序的候选列表
      */
-    pickChoices(type: ItemRewardType, count: number, exclude: string[] = [], playerTags: Tag[] = []): Reward[] {
+    pickChoices(type: RewardType, count: number, exclude: string[] = [], playerTags: Tag[] = []): Reward[] {
         const pool = this.getPool(type).filter((r) => !exclude.includes(r.id))
         const sorted = sortByTagRelevance(pool, playerTags, exclude)
         return sorted.slice(0, Math.min(count, sorted.length))
@@ -130,6 +133,22 @@ export class RewardPool {
             }))
         }
         return this._weaponPool
+    }
+
+    private _getCultPool(): Reward[] {
+        if (!this._cultPool) {
+            // 虚拟的修炼点奖励
+            this._cultPool = [
+                {
+                    id: 'cult_reward',
+                    name: '修炼点',
+                    type: 'cult' as const,
+                    tags: [],
+                    description: '+4 修炼点',
+                },
+            ]
+        }
+        return this._cultPool
     }
 }
 
