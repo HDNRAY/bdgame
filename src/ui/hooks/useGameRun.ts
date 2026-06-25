@@ -1,6 +1,6 @@
 import { useRef, useReducer, useCallback, useState } from 'react'
 import { GameRun } from '../../engine/systems/game-run'
-import type { SelectionResult } from '../../engine/systems/game-run'
+import type { SelectionResult } from '../../engine/entities/node-map'
 import type { NodeChoice } from '../../engine/systems/node-gen'
 import type { CharacterBuild } from '../../engine/entities/character-build'
 

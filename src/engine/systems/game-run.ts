@@ -15,27 +15,20 @@ import { getWeapon } from '../data/weapons'
 import { getStory } from '../data/stories/index'
 import { getOpponentDef, gen } from '../data/opponents/index'
 import { EVENT_DB } from '../data/events/index'
-import type { MapNode, RunState, NodeLogEntry } from '../entities/node-map'
+import {
+    isInteractiveEvent,
+    isCombatEvent,
+    isBossEvent,
+    isHealEvent,
+    isForgeEvent,
+    isSimpleStoryEvent,
+} from '../util/event-utils'
+import type { MapNode, RunState, NodeLogEntry, GameMode, SelectionResult } from '../entities/node-map'
 import type { CharacterBuild } from '../entities/character-build'
 import type { Reward } from '../entities/reward'
 import type { Tag } from '../entities/tag'
 import type { NodeChoice } from './node-gen'
 import type { EventDef, EventEffect, InteractiveEventDef, EventStep } from '../entities/event'
-
-type GameMode = 'quick' | 'normal'
-
-/** selectOption 返回值（兼容现有 UI） */
-export interface SelectionResult {
-    battleResult?: 'win' | 'lose'
-    enemyId?: string
-    eventText?: string
-    rewardChoices?: Reward[]
-    cultPoints?: number
-    /** 战斗统计 */
-    playerHp?: { current: number; max: number }
-    enemyHp?: { current: number; max: number }
-    actionCount?: number
-}
 
 /**
  * 一局游戏的完整状态管理。
@@ -187,10 +180,54 @@ export class GameRun {
                 })
                 return this._currentEventIds.map((eid) => {
                     const ev = EVENT_DB.find((e) => e.id === eid)
+                    if (!ev) {
+                        return {
+                            id: eid,
+                            name: eid,
+                            desc: '',
+                            tags: [],
+                        }
+                    }
+                    let desc = ''
+                    // 对于 story 类型的事件，检查选项后是否直接有奖励
+                    if (isInteractiveEvent(ev)) {
+                        // 这是 InteractiveEventDef，检查第一个选项后是否直接有奖励
+                        const firstStep = ev.steps[ev.firstStep]
+                        if (
+                            firstStep &&
+                            firstStep.type === 'choice' &&
+                            firstStep.choices &&
+                            firstStep.choices.length > 0
+                        ) {
+                            // 检查所有 choice 是否都直接导向有奖励的结果
+                            const allHaveRewards = firstStep.choices.every((choice) => {
+                                const nextStepId = typeof choice.next === 'string' ? choice.next : undefined
+                                if (!nextStepId) return false
+                                const nextStep = ev.steps[nextStepId]
+                                return nextStep && nextStep.effects?.some((e) => e.type === 'grant_reward')
+                            })
+                            if (allHaveRewards) {
+                                desc = `🎁 ${ev.rewardType || 'reward'}`
+                            } else {
+                                desc = ev.description ?? ''
+                            }
+                        } else {
+                            desc = ev.description ?? ''
+                        }
+                    } else if (isCombatEvent(ev) || isBossEvent(ev)) {
+                        // 战斗事件直接显示奖励类型
+                        const rewardType = ev.rewardType
+                        if (rewardType) {
+                            desc = `🎁 ${rewardType}`
+                        }
+                    } else if (isHealEvent(ev) || isForgeEvent(ev) || isSimpleStoryEvent(ev)) {
+                        // heal/forge/simple story events 显示描述
+                        desc = ev.description ?? ''
+                    }
                     return {
                         id: eid,
-                        name: ev?.name ?? eid,
-                        desc: ev?.name ?? '',
+                        name: ev.name ?? eid,
+                        desc,
                         tags: [],
                     }
                 })
@@ -378,15 +415,17 @@ export class GameRun {
             }
             case 'story': {
                 // 交互事件系统（多层选择 + 叙事）
-                if (ev.type === 'story' && ev.steps) {
+                if (isInteractiveEvent(ev)) {
                     this._enterInteractive(ev)
                     return result
                 }
-                // 非交互式故事事件：直接应用效果
-                this._applyEffects(ev.effects ?? [])
-                const grant = (ev.effects ?? []).find((e) => e.type === 'grant_reward')
-                if (grant?.type === 'grant_reward') {
-                    result.rewardChoices = this._pickReward(grant.rewardType)
+                // 非交互式故事事件：直接应用效果（已缩小为 StoryEventDef）
+                if (isSimpleStoryEvent(ev)) {
+                    this._applyEffects(ev.effects ?? [])
+                    const grant = (ev.effects ?? []).find((e: EventEffect) => e.type === 'grant_reward')
+                    if (grant?.type === 'grant_reward') {
+                        result.rewardChoices = this._pickReward(grant.rewardType)
+                    }
                 }
                 break
             }
@@ -434,7 +473,29 @@ export class GameRun {
         if (!this.state.currentInteractive || !this._currentInteractiveEvent) return result
 
         const step = this.getInteractiveStep()
-        if (!step || step.type !== 'choice') return result
+        if (!step) return result
+
+        if (step.type === 'narrative') {
+            // narrative 步骤：无条件推进到下一步
+            const nextStep = step.next
+            if (!nextStep) {
+                // 事件结束，推进到下一个阶段
+                this.state.currentInteractive = undefined
+                this._advance()
+                return result
+            }
+
+            if (typeof nextStep === 'string') {
+                this.state.currentInteractive.currentStepId = nextStep
+            } else {
+                // Record 类型分支（不应该在 narrative 中出现，但以防万一）
+                const stepId = nextStep['0'] ?? nextStep['default'] ?? this._currentInteractiveEvent!.firstStep
+                this.state.currentInteractive.currentStepId = stepId
+            }
+            return result
+        }
+
+        if (step.type !== 'choice') return result
 
         const choice = step.choices?.[choiceIndex]
         if (!choice) return result
@@ -466,8 +527,9 @@ export class GameRun {
             this.state.currentInteractive.currentStepId = nextStep
         } else {
             // 条件分支 Record<choiceIndex, stepId>
+            const indexKey = String(choiceIndex)
             this.state.currentInteractive.currentStepId =
-                nextStep[choiceIndex] ?? nextStep['default'] ?? nextStep[0] ?? this._currentInteractiveEvent!.firstStep
+                nextStep[indexKey] ?? nextStep['default'] ?? nextStep['0'] ?? this._currentInteractiveEvent!.firstStep
         }
 
         return result

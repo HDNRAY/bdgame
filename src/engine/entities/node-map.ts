@@ -47,3 +47,22 @@ export interface RunState {
     /** 交互事件状态（phase === 'interactive' 时存在） */
     currentInteractive?: InteractiveState
 }
+
+// ════════════════════════════════════════
+//  游戏运行类型
+// ════════════════════════════════════════
+
+export type GameMode = 'quick' | 'normal'
+
+/** selectOption 返回值（兼容现有 UI） */
+export interface SelectionResult {
+    battleResult?: 'win' | 'lose'
+    enemyId?: string
+    eventText?: string
+    rewardChoices?: Reward[]
+    cultPoints?: number
+    /** 战斗统计 */
+    playerHp?: { current: number; max: number }
+    enemyHp?: { current: number; max: number }
+    actionCount?: number
+}

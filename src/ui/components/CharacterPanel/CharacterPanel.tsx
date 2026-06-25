@@ -34,14 +34,7 @@ interface CharacterPanelProps {
 
 const ATTR_ORDER: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
 
-export function CharacterPanel({
-    mode,
-    build,
-    accentColor = '#888',
-    onSave,
-    onBack,
-    unspentCultPoints,
-}: CharacterPanelProps) {
+export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBack }: CharacterPanelProps) {
     const navigate = useNavigate()
     const isBuild = mode === 'build'
 
@@ -61,7 +54,7 @@ export function CharacterPanel({
         moveAction,
         updateAction,
         handleSave,
-    } = useBuildCharacter(build, onSave, unspentCultPoints)
+    } = useBuildCharacter(build, onSave)
 
     // View 模式：缓存 Character 实例
     const viewChar = useMemo(() => (isBuild ? null : new Character(build)), [isBuild, build])

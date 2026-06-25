@@ -68,6 +68,7 @@ export const EVENT_DB: EventDef[] = [
         maxCount: 1,
         minNode: 4,
         maxNode: 8,
+        rewardType: 'action',
     },
     {
         id: 'ruins_explore',
@@ -118,6 +119,7 @@ export const EVENT_DB: EventDef[] = [
         firstStep: 'start',
         maxCount: 1,
         minNode: 12,
+        rewardType: 'artifact',
     },
     {
         id: 'wounded_stranger',
@@ -169,6 +171,7 @@ export const EVENT_DB: EventDef[] = [
         maxCount: 1,
         minNode: 4,
         maxNode: 20,
+        rewardType: 'passive',
     },
 
     // ── 交互事件（多层选择 + 叙事） ──

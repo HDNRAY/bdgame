@@ -19,11 +19,7 @@ export function cultCost(value: number): number {
  * 角色编辑 hook（只在 build 模式下使用）
  * 管理属性分配、招式配置、触发条件、保存逻辑
  */
-export function useBuildCharacter(
-    build: CharacterBuild,
-    onSave?: (build: CharacterBuild) => void,
-    unspentCultPoints?: number,
-) {
+export function useBuildCharacter(build: CharacterBuild, onSave?: (build: CharacterBuild) => void) {
     const navigate = useNavigate()
 
     const [attrs, setAttrs] = useImmer<Record<string, number>>(() => ({ ...(build.baseAttrs ?? {}) }))
@@ -41,7 +37,7 @@ export function useBuildCharacter(
         actionConfigs,
     })
 
-    const totalPoints = unspentCultPoints ?? build.totalCultPoints ?? 0
+    const totalPoints = build.totalCultPoints ?? 0
     const spent = ALL_ATTRS.reduce((s, a) => {
         const v = attrs[a] ?? 3
         let cost = 0

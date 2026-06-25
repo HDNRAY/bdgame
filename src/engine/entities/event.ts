@@ -39,7 +39,7 @@ export interface EventStepChoice {
     success?: EventEffect[] // 成功时应用的效果
     failure?: EventEffect[] // 失败时应用的效果
     condition?: (ctx: EventContext) => boolean
-    next?: string | Record<number, string> // 该选项导向的下一步
+    next?: string | Record<string, string> // 该选项导向的下一步（choiceIndex -> stepId 或其他条件键）
 }
 
 export interface EventStep {
@@ -55,13 +55,15 @@ export interface EventStep {
 
     // 通用字段
     effects?: EventEffect[] // 步骤完成时应用的效果
-    next?: string | Record<number, string> // 下一步 ID（choice 时为 choiceIndex -> stepId 映射）
+    next?: string | Record<string, string> // 下一步 ID（choice 时为 choiceIndex -> stepId 映射，或 'default' 键）
 }
 
 export interface InteractiveEventDef extends EventDefBase {
     type: 'story'
+    description?: string
     steps: Record<string, EventStep> // stepId -> step 映射
     firstStep: string // 起始步骤 ID
+    rewardType?: RewardType // 主要奖励类型（用于选项显示）
 
     // TODO: 后续实现故事变体和可用故事限制
     // availableStories?: string[]  // 只在哪些故事中出现，undefined = 全局可用
@@ -74,6 +76,7 @@ export interface StoryEventDef extends EventDefBase {
     effects?: EventEffect[]
     storyIds?: string[]
     requireFlags?: Record<string, boolean>
+    rewardType?: RewardType
 }
 
 export interface HealEventDef extends EventDefBase {

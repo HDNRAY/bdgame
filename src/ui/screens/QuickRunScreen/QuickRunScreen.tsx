@@ -227,19 +227,33 @@ export function QuickRunScreen() {
                 {ready && (
                     <div className={'qr-sidebar' + (view === 'build' ? ' qr-sidebar--build' : '')}>
                         {view === 'build' ? (
-                            <CharacterPanel
-                                mode="build"
-                                build={run.current.state.build}
-                                unspentCultPoints={run.current.state.unspentCultPoints}
-                                onSave={(newBuild) => {
-                                    const totalPts = newBuild.totalCultPoints ?? 0
-                                    const spent = calcSpentCultPoints(newBuild)
-                                    const newUnspent = totalPts - spent
-                                    updateBuild(newBuild, newUnspent)
-                                    setView('play')
-                                }}
-                                onBack={() => setView('play')}
-                            />
+                            (() => {
+                                // 当进入 build 模式时，使用当前 unspentCultPoints 或已保存的 totalCultPoints 中的较大值
+                                const buildForMode = {
+                                    ...run.current.state.build,
+                                    totalCultPoints: Math.max(
+                                        run.current.state.unspentCultPoints,
+                                        run.current.state.build.totalCultPoints ?? 0,
+                                    ),
+                                }
+                                return (
+                                    <CharacterPanel
+                                        mode="build"
+                                        build={buildForMode}
+                                        unspentCultPoints={run.current.state.unspentCultPoints}
+                                        onSave={(newBuild) => {
+                                            const currentAvailable = run.current.state.unspentCultPoints
+                                            const spent = calcSpentCultPoints(newBuild)
+                                            const newUnspent = Math.max(0, currentAvailable - spent)
+                                            // 保存总修炼点数，以便下次进入 build 模式时恢复
+                                            newBuild.totalCultPoints = spent + newUnspent
+                                            updateBuild(newBuild, newUnspent)
+                                            setView('play')
+                                        }}
+                                        onBack={() => setView('play')}
+                                    />
+                                )
+                            })()
                         ) : (
                             <CharacterPanel mode="view" build={run.current.state.build} />
                         )}

@@ -159,4 +159,5 @@ export const spiritTavernEvent: EventDef = {
     firstStep: 'start',
     maxCount: 1,
     minNode: 6,
+    rewardType: 'artifact',
 }
