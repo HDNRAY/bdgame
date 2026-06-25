@@ -2,11 +2,12 @@ import type { Story } from '../../entities/story'
 
 export const WANDERER: Story = {
     id: 'wanderer',
-    name: '普通散人',
-    characterName: '散人',
-    desc: '普普通通。',
+    name: '奇遇流',
+    characterName: '浪迹者',
+    desc: '小时候有个很好的玩伴，是个孤儿。后来听说她被招入了**学校修习，就没再见过。',
     tags: [],
-    comment: '简单奇遇流。一阶段Boss随机，决赛对手随机，没有特别剧情绑定。',
+    comment:
+        '二阶段＝与玩伴重逢，共处一段时日｜二阶段末＝玩伴被派任务杀卧底，你目睹了她的另一面，天塌了｜三阶段＝你发现玩伴（朵儿）报名斗炁大会，也随之报名；决赛最后boss＝打朵儿。四天王之一，高根骨+类似陈朵的毒。',
     getNodeOverride: (nodeIndex) => {
         if (nodeIndex === 2)
             return {

@@ -2,12 +2,12 @@ import type { Story } from '../../entities/story'
 
 export const SECT: Story = {
     id: 'sect',
-    name: '炼炁门派',
+    name: '天生道种',
     characterName: '天骄',
-    desc: '自幼被选入山门修行。你是百年一遇的天生道种。',
+    desc: '自幼与师兄被选入山门修行。你们都是百年一遇的天生道种，虽然年纪有差，但一起入门，是最亲的师兄弟。',
     tags: [],
     comment:
-        '天生道种一对，两小无猜(非爱情)。被门派逼着一直比。一阶段结尾单挑，你赢后祂被人害死。二阶段知道仇人(组织的人，用毒)要参加斗炁大会。决赛碰上仇人。',
+        '一阶段末＝与师兄单挑，赢后TA被人害死（实为假死，被组织秘密带走）｜二阶段＝知道仇人组织者（高根骨+毒）要参加斗炁大会｜三阶段＝决赛碰上仇人。军师是组织中推演最强者，是你师兄的首领。',
     getNodeOverride: (nodeIndex) => {
         if (nodeIndex === 1) return { cultPoints: 0 }
         if (nodeIndex === 2)

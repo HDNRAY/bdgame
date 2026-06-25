@@ -1,18 +1,14 @@
 import { useNavigate } from 'react-router-dom'
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { getNodeFlavorText } from '../../../engine/systems/node-gen'
 import { CharacterPanel } from '../../components/CharacterPanel/CharacterPanel'
-import { BattlePanel } from '../../components/BattlePanel/BattlePanel'
 import { GameRunHeader } from './GameRunHeader'
-import { Character } from '../../../engine/entities/character'
-import { runBattle } from '../../../engine/battle-runner'
-import { getOpponentDef, gen } from '../../../engine/data/opponents/index'
-import { getWeapon } from '../../../engine/data/weapons'
+import { BossBattleView } from './BossBattleView'
+import { SparScreen } from './SparScreen'
 import { useGameRun } from '../../hooks/useGameRun'
 import { cultCost } from '../../hooks/useBuildCharacter'
 import { ALL_ATTRS } from '../../../engine/entities/attributes'
 import type { CharacterBuild } from '../../../engine/entities/character-build'
-import type { GameRun } from '../../../engine/systems/game-run'
 import './QuickRunScreen.scss'
 
 /** 计算指定 build 消耗的修炼点 */
@@ -242,97 +238,6 @@ export function QuickRunScreen() {
                 )}
                 <div className={'qr-content' + (ready ? ' qr-content--sidebar' : '')}>{renderMain()}</div>
             </div>
-        </div>
-    )
-}
-
-/** Boss 战面板 */
-function BossBattleView({
-    run,
-    phase,
-    onStart,
-    onExit,
-}: {
-    run: React.MutableRefObject<GameRun>
-    phase: 'intro' | 'battle' | null
-    onStart: () => void
-    onExit: () => void
-}) {
-    const node = run.current.getCurrentNode()
-    const bossMap: Record<number, string> = { 11: 'boss_phase1', 22: 'boss_phase2', 33: 'boss_final' }
-    const bossEventId = bossMap[node.index] ?? 'zhanglie'
-    const bossDef = getOpponentDef(bossEventId)
-    const enemyBuild = useMemo(() => (bossDef ? gen(bossDef, node.index) : null), [bossDef, node.index])
-
-    if (phase === 'battle' && enemyBuild) {
-        return (
-            <div className="boss-battle-wrapper">
-                <div className="boss-battle-bar">
-                    <button className="qr-header-btn" onClick={onExit}>
-                        ← 退出战斗
-                    </button>
-                </div>
-                <BattlePanel buildA={run.current.state.build} buildB={enemyBuild} showSidePanels={false} />
-            </div>
-        )
-    }
-
-    return (
-        <div className="boss-intro">
-            <div className="boss-intro-card">
-                <h2 className="boss-intro-title">⚠ BOSS 战</h2>
-                <p className="boss-intro-enemy">
-                    对手: <strong>{bossDef?.name ?? bossEventId}</strong>
-                </p>
-                <p className="boss-intro-desc">{bossDef?.story ?? '一场生死对决'}</p>
-                <div className="boss-intro-stats">
-                    <div>等级: n={node.index}</div>
-                    <div>武器: {bossDef ? (getWeapon(bossDef.weapon)?.name ?? bossDef.weapon) : '-'}</div>
-                </div>
-                <button className="qr-btn" onClick={onStart}>
-                    开始战斗
-                </button>
-            </div>
-        </div>
-    )
-}
-
-/** 切磋面板 */
-function SparScreen({ playerBuild, onBack }: { playerBuild: CharacterBuild; onBack: () => void }) {
-    const n = 11
-    const def = getOpponentDef('zhanglie')
-    const opponentBuild = def ? gen(def, n) : null
-    const handleFight = useCallback(() => {
-        if (!opponentBuild) return
-        const a = new Character(playerBuild)
-        const b = new Character(opponentBuild)
-        const { engine } = runBattle(a, b, undefined, 6)
-        const chars = engine.state.characters
-        const winner = engine.state.lastWinner
-        alert(
-            `${winner ?? '平局'} 获胜!\n玩家 HP: ${chars[0].hp}/${chars[0].maxHp}\n张烈 HP: ${chars[1].hp}/${chars[1].maxHp}`,
-        )
-    }, [playerBuild, opponentBuild])
-    if (!opponentBuild) return <div>对手数据错误</div>
-    return (
-        <div className="spar-panel">
-            <h3>切磋 — 铁枪·张烈 (n={n})</h3>
-            <div className="spar-stats">
-                <div>
-                    <strong>{playerBuild.name ?? '玩家'}</strong>
-                    <br />
-                    招式: {playerBuild.rewards.length} | 武器: {playerBuild.weapon}
-                </div>
-                <div>
-                    <strong>铁枪·张烈</strong>
-                </div>
-            </div>
-            <button className="qr-btn" onClick={handleFight}>
-                开战
-            </button>
-            <button className="qr-btn qr-btn-secondary" onClick={onBack}>
-                返回
-            </button>
         </div>
     )
 }

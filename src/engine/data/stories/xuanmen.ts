@@ -6,7 +6,8 @@ export const XUANMEN: Story = {
     characterName: '弟子',
     desc: '御物世家，以炁御器。你从记事起就开始修炼家传功法。',
     tags: ['imperial'],
-    comment: '唯一与武器绑定的故事，只能选御物(游丝/三相珠/大剑)。一阶段Boss＝兄弟/姐妹（家族试炼·需手刃至亲）。',
+    comment:
+        '唯一与武器绑定。一阶段Boss＝兄弟（死）｜二阶段Boss＝守门人姐妹（不死）｜三阶段Boss＝玄机兄弟（家族内斗争夺家主，反目成仇）。',
     getNodeOverride: (nodeIndex) => {
         if (nodeIndex === 2)
             return {

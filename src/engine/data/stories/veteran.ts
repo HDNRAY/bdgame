@@ -7,7 +7,7 @@ export const VETERAN: Story = {
     desc: '世代从军。你从小在军营边长大，看惯了操练和号角。',
     tags: [],
     comment:
-        '退役后战友们调查隐藏boss和组织时被害，有些是军队排进组织的卧底。张烈也是军旅退伍，但已是组织的人。一阶段Boss＝最好的战友（被组织控制/洗脑）。',
+        '一阶段＝部队生活，天真烂漫｜二阶段＝退伍后遇一起退伍的好兄弟，他卧底组织被害身亡｜三阶段＝同是卧底的张烈（变节与否以后再定）。',
     getNodeOverride: (nodeIndex) => {
         if (nodeIndex === 2)
             return {

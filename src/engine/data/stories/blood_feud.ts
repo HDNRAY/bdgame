@@ -2,21 +2,22 @@ import type { Story } from '../../entities/story'
 
 export const BLOOD_FEUD: Story = {
     id: 'blood_feud',
-    name: '宗门遗孤',
+    name: '血海深仇',
     characterName: '遗孤',
-    desc: '幼年宗门遇劫，你被父亲心腹保护，躲在青山镇。',
+    desc: '幼年家族被隐藏boss的组织灭门，会长（父亲挚友）恰好救了你，从此在青山镇长大。',
     tags: [],
     comment:
-        '报仇路线，却喜欢上仇人后代。一阶段Boss＝仇人后代。想夺魁请求会长解除两家恩怨。决赛打仇人后代，TA知道自己输了会被杀，最终死在主角手上。',
+        '一阶段＝一个身负重伤的组织成员｜二阶段＝阿九来照顾会长，你喜欢上了TA；二阶段末发现阿九也是组织的人，错手杀死TA｜三阶段＝打军师和隐藏boss，复仇却填不满心灵缺失，最终选择"回到过去"。',
     getNodeOverride: (nodeIndex) => {
         if (nodeIndex === 2)
             return {
                 flavorText:
-                    '父亲的心腹问你："想报仇吗？"你点头。他拿出三件普通兵器，说这些都是他会的，让你挑一件，他教你。',
+                    '那年你六岁。会长从家里找出你父亲遗留的三件兵器，递给你说："这是你父亲留下的。你从中挑一件，我来教你怎么用。"',
             }
         if (nodeIndex === 3)
             return {
-                flavorText: '他把自己练的几招基础功夫一一使给你看，让你挑一式先学着。你年纪虽小，却练得格外拼命。',
+                flavorText:
+                    '会长教你的是炼炁协会的基础功法，循序渐进，很是耐心。但你修炼时眼神总是很凶，好像要把仇恨都煅进骨子里。',
             }
         return undefined
     },
