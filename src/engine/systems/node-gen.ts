@@ -4,6 +4,7 @@ import { STARTING_WEAPONS } from '../data/starting-weapons'
 import { PLAYER_ACTIONS } from '../data/actions/player'
 import { rewardPool } from './reward-pool'
 import { EVENT_DB } from '../data/events/index'
+import { isSimpleStoryEvent } from '../util/event-utils'
 import type { MapNode } from '../entities/node-map'
 import type { Tag } from '../entities/tag'
 import type { EventDef } from '../entities/event'
@@ -161,10 +162,10 @@ export function pickEventOptions(ctx: EventPickContext): string[] {
             })
         )
             return false
-        // story 事件：只有匹配 storyIds 才可见
-        if (e.type === 'story' && e.storyIds && !e.storyIds.includes(ctx.storyId)) return false
-        // story 事件：requireFlags 检查
-        if (e.type === 'story' && e.requireFlags) {
+        // story 事件：只有匹配 storyIds 才可见（仅 StoryEventDef 有此字段）
+        if (isSimpleStoryEvent(e) && e.storyIds && !e.storyIds.includes(ctx.storyId)) return false
+        // story 事件：requireFlags 检查（仅 StoryEventDef 有此字段）
+        if (isSimpleStoryEvent(e) && e.requireFlags) {
             for (const [k, v] of Object.entries(e.requireFlags)) {
                 if ((ctx.flags[k] ?? false) !== v) return false
             }

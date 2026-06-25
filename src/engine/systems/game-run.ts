@@ -437,7 +437,7 @@ export class GameRun {
         }
     }
 
-    private _handleStoryEvent(ev: EventDef, entry: NodeLogEntry, result: SelectionResult): void {
+    private _handleStoryEvent(ev: EventDef, _entry: NodeLogEntry, result: SelectionResult): void {
         if (ev.type !== 'story') return
         // 交互事件系统（多层选择 + 叙事）
         if (isInteractiveEvent(ev)) {
