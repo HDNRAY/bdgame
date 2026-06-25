@@ -165,8 +165,6 @@ export function pickEventOptions(ctx: EventPickContext): string[] {
             })
         )
             return false
-        // story 事件：只有匹配 storyIds 才可见（仅 StoryEventDef 有此字段）
-        if (isSimpleStoryEvent(e) && e.storyIds && !e.storyIds.includes(ctx.storyId)) return false
         // story 事件：requireFlags 检查（仅 StoryEventDef 有此字段）
         if (isSimpleStoryEvent(e) && e.requireFlags) {
             for (const [k, v] of Object.entries(e.requireFlags)) {

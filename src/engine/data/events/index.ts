@@ -1,5 +1,6 @@
 import type { EventDef } from '../../entities/event'
 import { spiritTavernEvent } from './spirit-tavern'
+import { VETERAN_EVENTS } from './veteran'
 
 /**
  * 事件定义表。
@@ -68,7 +69,6 @@ export const EVENT_DB: EventDef[] = [
         maxCount: 1,
         minNode: 4,
         maxNode: 8,
-        rewardType: 'action',
     },
     {
         id: 'ruins_explore',
@@ -119,7 +119,6 @@ export const EVENT_DB: EventDef[] = [
         firstStep: 'start',
         maxCount: 1,
         minNode: 12,
-        rewardType: 'artifact',
     },
     {
         id: 'wounded_stranger',
@@ -171,8 +170,10 @@ export const EVENT_DB: EventDef[] = [
         maxCount: 1,
         minNode: 4,
         maxNode: 20,
-        rewardType: 'passive',
     },
+
+    // ── 军旅线事件 ──
+    ...VETERAN_EVENTS,
 
     // ── 交互事件（多层选择 + 叙事） ──
     spiritTavernEvent,

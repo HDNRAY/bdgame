@@ -18,6 +18,19 @@ export const VETERAN: Story = {
             return {
                 flavorText: '你照着小校场上老兵们练的把式偷偷模仿，一来二去，竟也摸索出了几招自己的路数。',
             }
+        if (nodeIndex === 4)
+            return {
+                flavorText: '一位老班长察觉到你的天赋，悉心指点。在他的教导下，你开始系统地学习正统的功法。',
+                forceRewardType: 'passive',
+            }
+        if (nodeIndex === 5)
+            return {
+                flavorText: '年月如梭。十四岁那年，你正式成为军营的勤杂，开始接受正规训练。',
+            }
+        if (nodeIndex === 6)
+            return {
+                flavorText: '十六岁，你正式入伍。多年的偷学终于派上用场，你在新兵训练中脱颖而出。',
+            }
         return undefined
     },
 }

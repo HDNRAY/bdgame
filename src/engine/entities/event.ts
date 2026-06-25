@@ -63,7 +63,6 @@ export interface InteractiveEventDef extends EventDefBase {
     description?: string
     steps: Record<string, EventStep> // stepId -> step 映射
     firstStep: string // 起始步骤 ID
-    rewardType?: RewardType // 主要奖励类型（用于选项显示）
 
     // TODO: 后续实现故事变体和可用故事限制
     // availableStories?: string[]  // 只在哪些故事中出现，undefined = 全局可用
@@ -74,9 +73,7 @@ export interface StoryEventDef extends EventDefBase {
     type: 'story'
     description: string
     effects?: EventEffect[]
-    storyIds?: string[]
     requireFlags?: Record<string, boolean>
-    rewardType?: RewardType
 }
 
 export interface HealEventDef extends EventDefBase {

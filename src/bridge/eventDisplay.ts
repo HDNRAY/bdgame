@@ -83,7 +83,7 @@ export function generateEventDesc(ev: EventDef, rewardType?: RewardType): string
                 return nextStep && nextStep.effects?.some((e) => e.type === 'grant_reward')
             })
             if (allHaveRewards) {
-                return `🎁 ${ev.rewardType || 'reward'}`
+                return '🎁 reward'
             }
         }
         return ev.description ?? ''

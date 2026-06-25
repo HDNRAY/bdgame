@@ -26,7 +26,17 @@ function calcSpentCultPoints(build: CharacterBuild): number {
 
 export function QuickRunScreen() {
     const navigate = useNavigate()
-    const { run, choices, lastResult, enterNode, select, selectReward, updateBuild, selectEventChoice } = useGameRun()
+    const {
+        run,
+        choices,
+        lastResult,
+        enterNode,
+        select,
+        selectReward,
+        confirmContinue,
+        updateBuild,
+        selectEventChoice,
+    } = useGameRun()
     const node = run.current.getCurrentNode()
     const flavor = getNodeFlavorText(node.index, run.current.state.build.story)
 
@@ -131,6 +141,14 @@ export function QuickRunScreen() {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+                        )}
+                        {r.cultRewardSelected && (
+                            <div className="qr-cult-confirm">
+                                <div>已获得 +4 修炼点</div>
+                                <button className="qr-btn" onClick={() => confirmContinue()}>
+                                    继续
+                                </button>
                             </div>
                         )}
                     </div>

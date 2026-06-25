@@ -214,6 +214,10 @@ export class GameRun {
             usedEventIds: new Set(this.state.log.map((e) => e.chosenEventId ?? '')),
         })
 
+        // 获取故事对象用于查询节点覆盖
+        const story = getStory(this.state.build.story ?? '')
+        const nodeOverride = story?.getNodeOverride?.(this.getCurrentNode().index)
+
         // 为战斗/Boss 事件决定 rewardType（其他事件不需要）
         this._currentRewardTypes.clear()
         for (const eid of this._currentEventIds) {
@@ -222,7 +226,10 @@ export class GameRun {
 
             // 只处理有 rewardType 字段的事件类型（combat 和 boss）
             if (isCombatEvent(ev)) {
-                if (ev.rewardType) {
+                // 优先级：故事 forceRewardType > 事件 rewardType > 随机
+                if (nodeOverride?.forceRewardType) {
+                    this._currentRewardTypes.set(eid, nodeOverride.forceRewardType)
+                } else if (ev.rewardType) {
                     this._currentRewardTypes.set(eid, ev.rewardType)
                 } else {
                     // 随机战斗事件：根据 weaponLocked 决定类型
@@ -273,9 +280,22 @@ export class GameRun {
         return 'zhangsan'
     }
 
-    /** 按 1-based 节点编号查询 Boss EventDef */
+    /** 按 1-based 节点编号查询 Boss EventDef（支持故事覆盖 bossId） */
     private _getBossEvent(nodeIndex: number): EventDef | undefined {
         const bossMap: Record<number, string> = { 11: 'boss_phase1', 22: 'boss_phase2', 33: 'boss_final' }
+        // 优先级：故事 bossId 覆盖 > 默认 boss 事件
+        const story = getStory(this.state.build.story ?? '')
+        const nodeOverride = story?.getNodeOverride?.(nodeIndex)
+        if (nodeOverride?.bossId) {
+            // 返回一个虚拟的 boss 事件，只需要 bossId 即可
+            return {
+                type: 'boss',
+                id: 'boss_override_' + nodeIndex,
+                name: '宿敌',
+                enemyId: nodeOverride.bossId,
+                rewardType: 'cult',
+            } as EventDef
+        }
         return EVENT_DB.find((e) => e.id === bossMap[nodeIndex])
     }
 
@@ -482,7 +502,13 @@ export class GameRun {
 
     private _pickReward(rt: RewardType): Reward[] {
         if (this.weaponLocked && rt === 'weapon') return []
-        return rewardPool.pickChoices(rt, 3, this.ownedRewardIds, this.playerTags)
+        const choices = rewardPool.pickChoices(rt, 3, this.ownedRewardIds, this.playerTags)
+
+        // 如果有可用选项直接返回
+        if (choices.length > 0) return choices
+
+        // 如果没有可用选项（通常因为属性不满足），fallback 到修炼点
+        return rewardPool.pickChoices('cult', 1, [], this.playerTags)
     }
 
     /** 进入交互事件（多层选择 + 叙事） */

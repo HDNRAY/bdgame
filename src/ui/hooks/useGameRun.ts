@@ -55,7 +55,7 @@ export function useGameRun() {
         tick()
     }, [])
 
-    /** 确认继续（修炼点奖励后） */
+    /** 确认继续（修炼点奖励后或修炼点分配后） */
     const confirmContinue = useCallback(() => {
         runRef.current.confirmContinue()
         setLastResult(null)
