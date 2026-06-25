@@ -54,6 +54,7 @@ export class GameRun {
                 weapon: '',
                 baseAttrs: { strength: 3, vitality: 3, agility: 3, dexterity: 3, insight: 3, wisdom: 3 },
                 rewards: [],
+                actionConfigs: [],
             },
             unspentCultPoints: 0,
             injury: 0,
@@ -123,6 +124,13 @@ export class GameRun {
             const found = rewardPool.getPool(type).find((r) => r.id === rewardId)
             if (found) {
                 this.state.build.rewards.push(found)
+                // 如果是 action 类型奖励，也添加到 actionConfigs
+                if (found.type === 'action') {
+                    if (!this.state.build.actionConfigs) {
+                        this.state.build.actionConfigs = []
+                    }
+                    this.state.build.actionConfigs.push({ actionId: found.id })
+                }
                 const last = this.state.log[this.state.log.length - 1]
                 if (last) last.chosenReward = found
                 this._advance()

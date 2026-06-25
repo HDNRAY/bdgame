@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import { getNodeFlavorText } from '../../../engine/systems/node-gen'
 import { CharacterPanel } from '../../components/CharacterPanel/CharacterPanel'
 import { BattlePanel } from '../../components/BattlePanel/BattlePanel'
+import { GameRunHeader } from './GameRunHeader'
 import { Character } from '../../../engine/entities/character'
 import { runBattle } from '../../../engine/battle-runner'
 import { getOpponentDef, gen } from '../../../engine/data/opponents/index'
@@ -39,6 +40,12 @@ export function QuickRunScreen() {
     // ── Header 按钮 ──
     const [view, setView] = useState<'play' | 'build' | 'spar'>('play')
     const [bossPhase, setBossPhase] = useState<'intro' | 'battle' | null>(null)
+    const [showExitDialog, setShowExitDialog] = useState(false)
+
+    const confirmExit = useCallback(() => {
+        setShowExitDialog(false)
+        navigate('/')
+    }, [navigate])
 
     // 进入 idle 节点时自动加载选项（不依赖 flavor 是否存在）
     useEffect(() => {
@@ -189,40 +196,14 @@ export function QuickRunScreen() {
 
     return (
         <div className="qr">
-            <div className="qr-header">
-                <div className="qr-header-left">
-                    <span className="qr-header-title">青山镇2088斗炁大会</span>
-                    <span className="qr-header-info">
-                        修炼点 {run.current.state.unspentCultPoints}
-                        <span className="qr-injury-bar">
-                            <span className="qr-injury-fill" style={{ width: `${run.current.state.injury}%` }} />
-                            <span className="qr-injury-label">伤势 {run.current.state.injury}/100</span>
-                        </span>
-                    </span>
-                </div>
-                {ready && (
-                    <div className="qr-header-right">
-                        <button
-                            className={'qr-header-btn' + (view === 'play' ? ' qr-header-btn-active' : '')}
-                            onClick={() => setView('play')}
-                        >
-                            游戏
-                        </button>
-                        <button
-                            className={'qr-header-btn' + (view === 'build' ? ' qr-header-btn-active' : '')}
-                            onClick={() => setView(view === 'build' ? 'play' : 'build')}
-                        >
-                            备战
-                        </button>
-                        <button
-                            className={'qr-header-btn' + (view === 'spar' ? ' qr-header-btn-active' : '')}
-                            onClick={() => setView(view === 'spar' ? 'play' : 'spar')}
-                        >
-                            切磋
-                        </button>
-                    </div>
-                )}
-            </div>
+            <GameRunHeader
+                run={run}
+                view={view}
+                setView={setView}
+                showExitDialog={showExitDialog}
+                setShowExitDialog={setShowExitDialog}
+                onConfirmExit={confirmExit}
+            />
             <div className="qr-body">
                 {ready && (
                     <div className={'qr-sidebar' + (view === 'build' ? ' qr-sidebar--build' : '')}>
