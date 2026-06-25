@@ -1,0 +1,62 @@
+.controls-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: #000;
+    border: 1px solid #333;
+
+    .ctrl-btn {
+        background: #ccc;
+        color: #000;
+        border: none;
+        padding: 0 10px;
+        height: 22px;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 12px;
+        line-height: 22px;
+
+        &:hover {
+            background: #ddd;
+        }
+
+        &.active {
+            background: #333;
+            color: #e8c34a;
+        }
+    }
+
+    .progress {
+        flex: 1;
+        height: 8px;
+        background: #222;
+        border: 1px solid #444;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: #4ecdc4;
+        transition: width 0.1s;
+    }
+
+    .timestamp {
+        color: #888;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .replay-btn {
+        margin-left: 8px;
+    }
+
+    .refight-btn {
+        color: #ffe66d;
+    }
+
+    .back-btn {
+        color: #888;
+    }
+}

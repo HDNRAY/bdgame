@@ -4,7 +4,8 @@
         "npx tsx": true,
         "rtk": true,
         "npx vitest": true,
-        "npx eslint": true
+        "npx eslint": true,
+        "npx tsc": true
     },
     "js/ts.tsdk.path": "node_modules/typescript/lib"
 }

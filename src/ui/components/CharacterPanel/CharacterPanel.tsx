@@ -29,11 +29,19 @@ interface CharacterPanelProps {
     accentColor?: string
     onSave?: (build: CharacterBuild) => void
     onBack?: () => void
+    unspentCultPoints?: number
 }
 
 const ATTR_ORDER: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
 
-export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBack }: CharacterPanelProps) {
+export function CharacterPanel({
+    mode,
+    build,
+    accentColor = '#888',
+    onSave,
+    onBack,
+    unspentCultPoints,
+}: CharacterPanelProps) {
     const navigate = useNavigate()
     const isBuild = mode === 'build'
 
@@ -53,7 +61,7 @@ export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBa
         moveAction,
         updateAction,
         handleSave,
-    } = useBuildCharacter(build, onSave)
+    } = useBuildCharacter(build, onSave, unspentCultPoints)
 
     // View 模式：缓存 Character 实例
     const viewChar = useMemo(() => (isBuild ? null : new Character(build)), [isBuild, build])
@@ -116,8 +124,8 @@ export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBa
     return (
         <div className="character-panel">
             {/* Header */}
-            <div className="cp-header">
-                {isBuild && (
+            {isBuild && (
+                <div className="cp-header">
                     <>
                         <button className="cp-btn" onClick={onBack ?? (() => navigate('/select'))}>
                             ← 返回
@@ -130,14 +138,18 @@ export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBa
                                 ✓ 保存
                             </button>
                         </div>
-                    </>
-                )}
-            </div>
+                    </>{' '}
+                </div>
+            )}
+
             {isBuild && saveError && <div className="cp-error">{saveError}</div>}
 
             <div className="cp-body">
                 {/* 左栏：区块1+4 */}
-                <div className="cp-col-left">
+                <div
+                    className="cp-col-left"
+                    style={{ position: isBuild ? 'sticky' : 'static', top: isBuild ? 0 : undefined }}
+                >
                     {/* 区块1: 角色信息 */}
                     <div className="cp-section cp-info-section">
                         <div className="cp-info-row">

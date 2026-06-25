@@ -1,11 +1,11 @@
 import { HashRouter, Routes, Route } from 'react-router-dom'
-import { ModeSelect } from './ui/screens/ModeSelect'
+import { ModeSelect } from './ui/screens/ModeSelect/ModeSelect'
 import { SelectionPanel } from './ui/components/SelectionPanel/SelectionPanel'
-import { BuildScreen } from './ui/screens/BuildScreen'
-import { SettingsScreen } from './ui/screens/SettingsScreen'
-import { AboutScreen } from './ui/screens/AboutScreen'
-import { BattleScreen } from './ui/components/BattleScreen/BattleScreen'
-import { QuickRunScreen } from './ui/screens/QuickRunScreen'
+import { BuildScreen } from './ui/screens/BuildScreen/BuildScreen'
+import { SettingsScreen } from './ui/screens/SettingsScreen/SettingsScreen'
+import { AboutScreen } from './ui/screens/AboutScreen/AboutScreen'
+import { BattleScreen } from './ui/screens/BattleScreen/BattleScreen'
+import { QuickRunScreen } from './ui/screens/QuickRunScreen/QuickRunScreen'
 import { RotateDevice } from './ui/components/RotateDevice/RotateDevice'
 
 function App() {

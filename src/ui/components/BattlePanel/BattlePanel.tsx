@@ -1,104 +1,134 @@
+import { useState, useRef, useMemo, useCallback } from 'react'
+import type { CharacterBuild } from '../../../engine/entities/character-build'
+import { Character } from '../../../engine/entities/character'
+import { runBattle } from '../../../engine/battle-runner'
+import { formatBattleLog } from '../../../engine/format-log'
+import type { LogEntry } from '../../../replay/replay-engine'
+import { CharacterPanel } from '../CharacterPanel/CharacterPanel'
+import { AnimationPanel, type AnimationPanelHandle } from '../AnimationPanel/AnimationPanel'
+import { ControlsBar } from '../ControlsBar/ControlsBar'
+import { BattleStatusPanel } from '../BattleStatusPanel/BattleStatusPanel'
+import { LogPanel } from '../LogPanel/LogPanel'
 import type { BattleSnapshot } from '../../../engine/combat/types'
-import { getBuff } from '../../../engine/data/buffs'
-import { ALL_ATTRS } from '../../../engine/entities/attributes'
-import { MAX_CHAN } from '../../../engine/constants'
-import { Tooltip } from '../ui/Tooltip/Tooltip'
-import { StatTooltip } from '../tooltip-contents/StatTooltip'
-import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
 import './BattlePanel.scss'
 
 interface BattlePanelProps {
-    snapshot: BattleSnapshot
-    charAName: string
-    charBName: string
+    buildA: CharacterBuild
+    buildB: CharacterBuild
+    showSidePanels?: boolean
+    onBattleEnd?: () => void
 }
 
-export function BattlePanel({ snapshot, charAName, charBName }: BattlePanelProps) {
-    const [a, b] = snapshot.characters
-    const dist = snapshot.distance
-    const isFinished = snapshot.phase === 'finished'
-    const winner = isFinished ? (a.hp > 0 ? charAName : charBName) : null
+interface BattleData {
+    entries: LogEntry[]
+    logLines: string[]
+    eventToLine: number[]
+    snapshots: BattleSnapshot[]
+    charAInfo: { id: string; name: string; color: string }
+    charBInfo: { id: string; name: string; color: string }
+}
 
-    /** 查角色的缠层数 */
+export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd }: BattlePanelProps) {
+    const [battleKey] = useState(0)
+    const battleEndedRef = useRef(false)
+
+    // 战斗数据：在 render 阶段计算（同步），通过 battleKey 触发重打
+    const battleData: BattleData = useMemo(() => {
+        const a = new Character(buildA)
+        const b = new Character(buildB)
+        const { engine } = runBattle(a, b, undefined, 6)
+        const snapshots = engine.state.log.getAll().map((e) => e.event.snapshot)
+        const { lines: log, eventToLine } = formatBattleLog(engine.state.log)
+        return {
+            entries: engine.state.log.getAll() as LogEntry[],
+            logLines: log,
+            eventToLine,
+            snapshots,
+            charAInfo: {
+                id: engine.state.characters[0].id,
+                name: engine.state.characters[0].name,
+                color: '#4ecdc4' as const,
+            },
+            charBInfo: {
+                id: engine.state.characters[1].id,
+                name: engine.state.characters[1].name,
+                color: '#ff6b6b' as const,
+            },
+        }
+    }, [buildA, buildB, battleKey])
+
+    const { entries, logLines, eventToLine, snapshots, charAInfo, charBInfo } = battleData
+
+    const [currentSnapshot, setCurrentSnapshot] = useState<BattleSnapshot | null>(() => snapshots[0] ?? null)
+    const [currentLine, setCurrentLine] = useState(0)
+    const [playState, setPlayState] = useState({ playing: false, speed: 1, progress: 0, currentTime: 0 })
+
+    const animRef = useRef<AnimationPanelHandle>(null)
+
+    // 帧回调
+    const handleFrame = useCallback(
+        (logIndex: number, state: { playing: boolean; speed: number; progress: number; currentTime: number }) => {
+            setPlayState(state)
+            setCurrentLine(eventToLine[logIndex] ?? logIndex)
+            const snap = snapshots[logIndex] ?? null
+            if (snap) setCurrentSnapshot(snap)
+
+            if (state.progress >= 1 && !battleEndedRef.current) {
+                battleEndedRef.current = true
+                onBattleEnd?.()
+            }
+        },
+        [snapshots, eventToLine, onBattleEnd],
+    )
+
+    const handleTogglePlay = useCallback(() => animRef.current?.togglePlay(), [])
+    const handleChangeSpeed = useCallback((s: number) => animRef.current?.setSpeed(s), [])
+    const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect()
+        animRef.current?.seek((e.clientX - rect.left) / rect.width)
+    }, [])
+    const handleReplay = useCallback(() => animRef.current?.replay(), [])
+
     return (
-        <div className="battle-panel">
-            <div className="title">
-                <span className="char-a">{charAName}</span> vs <span className="char-b">{charBName}</span>
+        <div className="battle-panel-root">
+            {showSidePanels && (
+                <div className="bp-side">
+                    <CharacterPanel mode="view" build={buildA} accentColor={charAInfo.color} />
+                </div>
+            )}
+            <div className="bp-center">
+                <AnimationPanel
+                    ref={animRef}
+                    key={battleKey}
+                    entries={entries}
+                    charA={charAInfo}
+                    charB={charBInfo}
+                    onFrame={handleFrame}
+                />
+                <ControlsBar
+                    playing={playState.playing}
+                    speed={playState.speed}
+                    progress={playState.progress}
+                    currentTime={playState.currentTime}
+                    onTogglePlay={handleTogglePlay}
+                    onChangeSpeed={handleChangeSpeed}
+                    onSeek={handleSeek}
+                    onReplay={handleReplay}
+                />
+                {currentSnapshot && (
+                    <BattleStatusPanel
+                        snapshot={currentSnapshot}
+                        charAName={charAInfo.name}
+                        charBName={charBInfo.name}
+                    />
+                )}
+                <LogPanel logLines={logLines} currentLine={currentLine} />
             </div>
-
-            <div className="distance">
-                {'─'.repeat(8)} {dist.toFixed(1)}m {'─'.repeat(8)}
-            </div>
-
-            {winner && <div className="winner">🏆 {winner} 获胜！</div>}
-
-            <div className="chars">
-                {[a, b].map((c, i) => {
-                    const hpPct = c.maxHp > 0 ? (c.hp / c.maxHp) * 100 : 0
-                    const apPct = c.maxAp > 0 ? (c.ap / c.maxAp) * 100 : 0
-                    return (
-                        <div key={c.id} className="char-col">
-                            <div className="label" style={{ color: i === 0 ? '#4ecdc4' : '#ff6b6b' }}>
-                                {i === 0 ? charAName : charBName}
-                            </div>
-                            <div className="hp-text">
-                                <span className="hp-label">HP</span> {Math.round(c.hp)}/{c.maxHp}
-                            </div>
-                            <div className="bar-bg">
-                                <div
-                                    className={`bar-fill ${hpPct > 30 ? 'bar-hp' : 'bar-hp-low'}`}
-                                    style={{ width: `${Math.min(100, hpPct)}%` }}
-                                />
-                            </div>
-                            <div className="hp-text">
-                                <span className="ap-label">AP</span> {c.ap.toFixed(1)}/{c.maxAp}
-                            </div>
-                            <div className="bar-bg">
-                                <div className="bar-fill bar-ap" style={{ width: `${Math.min(100, apPct)}%` }} />
-                            </div>
-                            {/* 缠条 */}
-                            <>
-                                <div className="hp-text">
-                                    <span className="chan-label">缠</span> {c.chan}/{MAX_CHAN}
-                                </div>
-                                <div className="bar-bg">
-                                    <div
-                                        className="bar-fill bar-chan"
-                                        style={{ width: `${Math.min(100, (c.chan / MAX_CHAN) * 100)}%` }}
-                                    />
-                                </div>
-                            </>
-                            <div className="attrs-grid">
-                                {ALL_ATTRS.map((attr) => (
-                                    <Tooltip
-                                        key={attr}
-                                        content={<StatTooltip attr={attr} value={c.attrs[attr] ?? 0} />}
-                                    >
-                                        <AttributeLabel
-                                            attr={attr}
-                                            value={c.attrs[attr] ?? 0}
-                                            baseValue={c.baseAttrs?.[attr] ?? 0}
-                                            compact
-                                        />
-                                    </Tooltip>
-                                ))}
-                            </div>
-                            <div className="buffs-grid">
-                                {c.buffs.map((b) => {
-                                    const def = getBuff(b.buffId)
-                                    const label = b.stacks > 1 ? `${b.name}(${b.stacks})` : b.name
-                                    const isDebuff = def?.tags.includes('debuff') ?? false
-                                    return (
-                                        <Tooltip key={b.buffId} content={def?.description ?? b.name}>
-                                            <span className={isDebuff ? 'debuff-tag' : 'buff-tag'}>{label}</span>
-                                        </Tooltip>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
+            {showSidePanels && (
+                <div className="bp-side">
+                    <CharacterPanel mode="view" build={buildB} accentColor={charBInfo.color} />
+                </div>
+            )}
         </div>
     )
 }

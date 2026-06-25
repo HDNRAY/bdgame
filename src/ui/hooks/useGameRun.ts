@@ -2,6 +2,7 @@ import { useRef, useReducer, useCallback, useState } from 'react'
 import { GameRun } from '../../engine/systems/game-run'
 import type { SelectionResult } from '../../engine/systems/game-run'
 import type { NodeChoice } from '../../engine/systems/node-gen'
+import type { CharacterBuild } from '../../engine/entities/character-build'
 
 /**
  * useGameRun — 引擎与 React 的连接层。
@@ -37,7 +38,15 @@ export function useGameRun() {
     /** 选奖励 */
     const selectReward = useCallback((rewardId: string) => {
         runRef.current.selectReward(rewardId)
+        setChoices([])
         setLastResult(null)
+        tick()
+    }, [])
+
+    /** 更新 build 和 unspentCultPoints */
+    const updateBuild = useCallback((newBuild: CharacterBuild, unspentCultPoints: number) => {
+        runRef.current.state.build = newBuild
+        runRef.current.state.unspentCultPoints = unspentCultPoints
         tick()
     }, [])
 
@@ -48,5 +57,6 @@ export function useGameRun() {
         enterNode,
         select,
         selectReward,
+        updateBuild,
     }
 }

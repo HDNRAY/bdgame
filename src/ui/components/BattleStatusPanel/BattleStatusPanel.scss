@@ -1,0 +1,157 @@
+.battle-status-panel {
+    background: #000;
+    border: 1px solid #333;
+    padding: 12px;
+    min-width: 240px;
+    width: 100%;
+    font-family: monospace;
+    color: #fff;
+    font-size: 13px;
+
+    .title {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    .char-a {
+        color: #4ecdc4;
+    }
+
+    .char-b {
+        color: #ff6b6b;
+    }
+
+    .distance {
+        text-align: center;
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .winner {
+        text-align: center;
+        color: #ffd700;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        padding: 4px;
+        border: 1px solid #ffd700;
+        border-radius: 4px;
+    }
+
+    .chars {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    .char-col {
+        flex: 1;
+    }
+
+    .label {
+        color: #888;
+        font-size: 12px;
+        font-family: monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1px;
+    }
+
+    .hp-text {
+        font-size: 12px;
+        margin-bottom: 1px;
+        text-align: left;
+    }
+
+    .hp-label {
+        color: #4ecdc4;
+        font-size: 12px;
+    }
+
+    .ap-label {
+        color: #ffe66d;
+        font-size: 12px;
+    }
+
+    .chan-label {
+        color: #9b59b6;
+        font-size: 12px;
+    }
+
+    .buffs-label {
+        margin-top: 3px;
+        margin-bottom: 2px;
+    }
+
+    .buffs-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+
+    .attrs-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-top: 4px;
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #2a2a3e;
+    }
+
+    .buff-tag {
+        display: inline-block;
+        background: #1a2e1a;
+        color: #8f8;
+        border: 1px solid #2a4a2a;
+        border-radius: 3px;
+        padding: 1px 5px;
+        font-size: 12px;
+        cursor: default;
+        white-space: nowrap;
+    }
+
+    .debuff-tag {
+        display: inline-block;
+        background: #2e1a1a;
+        color: #f88;
+        border: 1px solid #4a2a2a;
+        border-radius: 3px;
+        padding: 1px 5px;
+        font-size: 12px;
+        cursor: default;
+        white-space: nowrap;
+    }
+
+    .bar-bg {
+        width: 100%;
+        height: 8px;
+        background: #222;
+        border: 1px solid #444;
+        margin-bottom: 4px;
+    }
+
+    .bar-fill {
+        height: 100%;
+        transition: width 0.3s;
+    }
+
+    .bar-hp {
+        background: #4ecdc4;
+    }
+
+    .bar-hp-low {
+        background: #ff6b6b;
+    }
+
+    .bar-ap {
+        background: #ffe66d;
+    }
+
+    .bar-chan {
+        background: #9b59b6;
+    }
+}

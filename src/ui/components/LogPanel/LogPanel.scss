@@ -1,0 +1,67 @@
+.log-panel {
+    background: #000;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    font-family: monospace;
+    width: 100%;
+
+    .log-font-ctrl {
+        display: flex;
+        gap: 2px;
+        padding: 2px 8px;
+        border-bottom: 1px solid #333;
+
+        .ctrl-btn {
+            background: #ccc;
+            color: #000;
+            border: none;
+            padding: 0 6px;
+            height: 22px;
+            line-height: 22px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 12px;
+
+            &:hover {
+                background: #bbb;
+            }
+        }
+    }
+
+    .log {
+        max-height: 300px;
+        overflow: auto;
+        padding: 4px 8px 100px;
+        line-height: 1.5;
+        text-align: left;
+        white-space: pre-wrap;
+    }
+
+    .log-line {
+        transition:
+            color 0.2s,
+            background 0.15s;
+        border-radius: 2px;
+        padding: 0 4px;
+        cursor: default;
+
+        &:hover {
+            background: #222;
+            color: #ddd;
+        }
+    }
+
+    .log-line.current {
+        color: #fff;
+        background: #1a1a1a;
+
+        &:hover {
+            background: #2a2a2a;
+        }
+    }
+
+    .log-line.past {
+        color: #999;
+    }
+}

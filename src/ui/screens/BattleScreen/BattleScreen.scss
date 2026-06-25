@@ -1,0 +1,36 @@
+.battle-screen-root {
+    background: #0a0a0f;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.battle-screen-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: #12121a;
+    border-bottom: 1px solid #2a2a3a;
+
+    .bs-header-btn {
+        background: #1a1a2a;
+        color: #aaa;
+        border: 1px solid #333;
+        padding: 4px 12px;
+        cursor: pointer;
+        font-size: 12px;
+        font-family: inherit;
+
+        &:hover {
+            background: #2a2a3a;
+            color: #e8c34a;
+        }
+    }
+
+    .bs-header-title {
+        color: #e8c34a;
+        font-size: 14px;
+        font-weight: bold;
+    }
+}

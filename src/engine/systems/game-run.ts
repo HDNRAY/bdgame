@@ -118,6 +118,7 @@ export class GameRun {
                 this.state.build.rewards.push(found)
                 const last = this.state.log[this.state.log.length - 1]
                 if (last) last.chosenReward = found
+                this._advance()
                 return
             }
         }

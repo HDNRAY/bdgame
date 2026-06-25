@@ -1,17 +1,35 @@
 import { useNavigate } from 'react-router-dom'
-import { useState, useCallback } from 'react'
-import { getNodeFlavorText } from '../../engine/systems/node-gen'
-import { CharacterPanel } from '../components/CharacterPanel/CharacterPanel'
-import { Character } from '../../engine/entities/character'
-import { runBattle } from '../../engine/battle-runner'
-import { getOpponentDef, gen } from '../../engine/data/opponents/index'
-import { useGameRun } from '../hooks/useGameRun'
-import type { CharacterBuild } from '../../engine/entities/character-build'
+import { useState, useCallback, useMemo, useEffect } from 'react'
+import { getNodeFlavorText } from '../../../engine/systems/node-gen'
+import { CharacterPanel } from '../../components/CharacterPanel/CharacterPanel'
+import { BattlePanel } from '../../components/BattlePanel/BattlePanel'
+import { Character } from '../../../engine/entities/character'
+import { runBattle } from '../../../engine/battle-runner'
+import { getOpponentDef, gen } from '../../../engine/data/opponents/index'
+import { getWeapon } from '../../../engine/data/weapons'
+import { useGameRun } from '../../hooks/useGameRun'
+import { cultCost } from '../../hooks/useBuildCharacter'
+import { ALL_ATTRS } from '../../../engine/entities/attributes'
+import type { CharacterBuild } from '../../../engine/entities/character-build'
+import type { GameRun } from '../../../engine/systems/game-run'
 import './QuickRunScreen.scss'
+
+/** 计算指定 build 消耗的修炼点 */
+function calcSpentCultPoints(build: CharacterBuild): number {
+    const attrs = build.baseAttrs ?? {}
+    let spent = 0
+    for (const attr of ALL_ATTRS) {
+        const v = attrs[attr as keyof typeof attrs] ?? 3
+        for (let i = 3; i < v; i++) {
+            spent += cultCost(i)
+        }
+    }
+    return spent
+}
 
 export function QuickRunScreen() {
     const navigate = useNavigate()
-    const { run, choices, lastResult, enterNode, select, selectReward } = useGameRun()
+    const { run, choices, lastResult, enterNode, select, selectReward, updateBuild } = useGameRun()
     const node = run.current.getCurrentNode()
     const flavor = getNodeFlavorText(node.index, run.current.state.build.story)
 
@@ -20,20 +38,16 @@ export function QuickRunScreen() {
 
     // ── Header 按钮 ──
     const [view, setView] = useState<'play' | 'build' | 'spar'>('play')
+    const [bossPhase, setBossPhase] = useState<'intro' | 'battle' | null>(null)
+
+    // 进入 idle 节点时自动加载选项（不依赖 flavor 是否存在）
+    useEffect(() => {
+        if (run.current.state.phase === 'idle' && choices.length === 0) {
+            enterNode()
+        }
+    }, [choices.length, enterNode, run])
 
     const renderMain = () => {
-        if (view === 'build') {
-            return (
-                <div className="qr-build">
-                    <CharacterPanel
-                        mode="build"
-                        build={run.current.state.build}
-                        onSave={() => setView('play')}
-                        onBack={() => setView('play')}
-                    />
-                </div>
-            )
-        }
         if (view === 'spar') {
             return (
                 <div className="qr-spar">
@@ -46,8 +60,17 @@ export function QuickRunScreen() {
             case 'idle': {
                 if (choices.length > 0) {
                     if (node.type === 'boss') {
-                        select(0)
-                        return <div className="qr-loading">战斗中…</div>
+                        return (
+                            <BossBattleView
+                                run={run}
+                                phase={bossPhase}
+                                onStart={() => setBossPhase('battle')}
+                                onExit={() => {
+                                    setBossPhase(null)
+                                    select(0)
+                                }}
+                            />
+                        )
                     }
                     return (
                         <div>
@@ -62,9 +85,6 @@ export function QuickRunScreen() {
                             </div>
                         </div>
                     )
-                }
-                if (flavor) {
-                    enterNode()
                 }
                 return <div className="qr-loading">加载中…</div>
             }
@@ -133,6 +153,11 @@ export function QuickRunScreen() {
     }
 
     const ready = run.current.state.build.story && run.current.state.build.weapon
+    const isBossActive = bossPhase !== null
+
+    if (isBossActive) {
+        return <div className="qr-boss-full">{renderMain()}</div>
+    }
 
     return (
         <div className="qr">
@@ -172,11 +197,78 @@ export function QuickRunScreen() {
             </div>
             <div className="qr-body">
                 {ready && (
-                    <div className="qr-sidebar">
-                        <CharacterPanel mode="view" build={run.current.state.build} />
+                    <div className={'qr-sidebar' + (view === 'build' ? ' qr-sidebar--build' : '')}>
+                        {view === 'build' ? (
+                            <CharacterPanel
+                                mode="build"
+                                build={run.current.state.build}
+                                unspentCultPoints={run.current.state.unspentCultPoints}
+                                onSave={(newBuild) => {
+                                    const totalPts = newBuild.totalCultPoints ?? 0
+                                    const spent = calcSpentCultPoints(newBuild)
+                                    const newUnspent = totalPts - spent
+                                    updateBuild(newBuild, newUnspent)
+                                    setView('play')
+                                }}
+                                onBack={() => setView('play')}
+                            />
+                        ) : (
+                            <CharacterPanel mode="view" build={run.current.state.build} />
+                        )}
                     </div>
                 )}
-                <div className="qr-content">{renderMain()}</div>
+                <div className={'qr-content' + (ready ? ' qr-content--sidebar' : '')}>{renderMain()}</div>
+            </div>
+        </div>
+    )
+}
+
+/** Boss 战面板 */
+function BossBattleView({
+    run,
+    phase,
+    onStart,
+    onExit,
+}: {
+    run: React.MutableRefObject<GameRun>
+    phase: 'intro' | 'battle' | null
+    onStart: () => void
+    onExit: () => void
+}) {
+    const node = run.current.getCurrentNode()
+    const bossMap: Record<number, string> = { 11: 'boss_phase1', 22: 'boss_phase2', 33: 'boss_final' }
+    const bossEventId = bossMap[node.index] ?? 'zhanglie'
+    const bossDef = getOpponentDef(bossEventId)
+    const enemyBuild = useMemo(() => (bossDef ? gen(bossDef, node.index) : null), [bossDef, node.index])
+
+    if (phase === 'battle' && enemyBuild) {
+        return (
+            <div className="boss-battle-wrapper">
+                <div className="boss-battle-bar">
+                    <button className="qr-header-btn" onClick={onExit}>
+                        ← 退出战斗
+                    </button>
+                </div>
+                <BattlePanel buildA={run.current.state.build} buildB={enemyBuild} showSidePanels={false} />
+            </div>
+        )
+    }
+
+    return (
+        <div className="boss-intro">
+            <div className="boss-intro-card">
+                <h2 className="boss-intro-title">⚠ BOSS 战</h2>
+                <p className="boss-intro-enemy">
+                    对手: <strong>{bossDef?.name ?? bossEventId}</strong>
+                </p>
+                <p className="boss-intro-desc">{bossDef?.story ?? '一场生死对决'}</p>
+                <div className="boss-intro-stats">
+                    <div>等级: n={node.index}</div>
+                    <div>武器: {bossDef ? (getWeapon(bossDef.weapon)?.name ?? bossDef.weapon) : '-'}</div>
+                </div>
+                <button className="qr-btn" onClick={onStart}>
+                    开始战斗
+                </button>
             </div>
         </div>
     )
