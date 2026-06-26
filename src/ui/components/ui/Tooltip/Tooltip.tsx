@@ -1,6 +1,6 @@
 import { type ReactNode, useRef, useState, useEffect, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { computePosition, offset, shift } from '@floating-ui/dom'
+import { computePosition, offset, shift, autoPlacement } from '@floating-ui/dom'
 import './Tooltip.scss'
 
 let _zIndex = 9999
@@ -27,7 +27,11 @@ export function Tooltip({ content, children }: TooltipProps) {
         computePosition(refEl.current, floatEl.current, {
             placement: 'bottom',
             strategy: 'fixed',
-            middleware: [offset({ mainAxis: 4, crossAxis: 0 }), shift({ padding: 6 })],
+            middleware: [
+                offset({ mainAxis: 4, crossAxis: 0 }),
+                autoPlacement({ allowedPlacements: ['left', 'right', 'top', 'bottom'] }),
+                shift({ padding: 6 }),
+            ],
         }).then(({ x, y }) => setPos({ left: x, top: y }))
     }, [show])
 
