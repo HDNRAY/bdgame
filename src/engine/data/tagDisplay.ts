@@ -50,6 +50,7 @@ export const TAG_CN: Record<Tag, string> = {
     range_up: '加射程',
     inherent: '固有',
     weapon: '武器',
+    thrown: '暗器',
 }
 
 /** Tag → 颜色 */
@@ -102,4 +103,5 @@ export const TAG_COLOR: Record<Tag, string> = {
     range_up: '#4caf50',
     inherent: '#9e9e9e',
     weapon: '#ff8c00',
+    thrown: '#cd853f',
 }

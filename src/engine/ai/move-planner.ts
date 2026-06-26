@@ -75,11 +75,11 @@ export function planMovement(
         }
     }
 
-    // 检查 overshoot：实际位移 moveAp×perAp 可能超出目标距离
+    // 检查 overshoot：实际位移 moveAp×perAp 可能超出目标距离（低于最小或高于最大射程）
     if (moveAp > 0) {
         const postMoveDist = distance + (delta > 0 ? 1 : -1) * moveAp * perAp
-        if (postMoveDist < actionRange[0]) {
-            // 走太多会低于最小射程，试试少用几格 AP 能否落在范围内
+        if (postMoveDist < actionRange[0] || postMoveDist > actionRange[1]) {
+            // 走太多会超出射程，试试少用几格 AP 能否落在范围内
             for (let altAp = moveAp - 1; altAp >= 0; altAp--) {
                 const altPost = distance + (delta > 0 ? 1 : -1) * altAp * perAp
                 if (

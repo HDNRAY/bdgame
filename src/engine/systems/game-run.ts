@@ -126,12 +126,9 @@ export class GameRun {
             const found = rewardPool.getPool(type).find((r) => r.id === rewardId)
             if (found) {
                 this.state.build.rewards.push(found)
-                // 如果是 action 类型奖励，也添加到 actionConfigs
+                // 如果是 action 类型奖励，也添加到 actionConfigs（immer 冻结的数组不能 push）
                 if (found.type === 'action') {
-                    if (!this.state.build.actionConfigs) {
-                        this.state.build.actionConfigs = []
-                    }
-                    this.state.build.actionConfigs.push({ actionId: found.id })
+                    this.state.build.actionConfigs = [...(this.state.build.actionConfigs ?? []), { actionId: found.id }]
                 }
                 const last = this.state.log[this.state.log.length - 1]
                 if (last) last.chosenReward = found
@@ -433,6 +430,8 @@ export class GameRun {
                 break
             case 'story':
                 this._handleStoryEvent(ev, entry, result)
+                // 交互事件由自身管理阶段推进（advanceInteractive 中调 _advance）
+                if (isInteractiveEvent(ev)) return result
                 break
         }
 

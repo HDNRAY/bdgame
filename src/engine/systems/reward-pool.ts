@@ -49,7 +49,16 @@ export class RewardPool {
      */
     pickChoices(type: RewardType, count: number, exclude: string[] = [], playerTags: Tag[] = []): Reward[] {
         const pool = this.getPool(type).filter((r) => !exclude.includes(r.id))
-        const sorted = sortByTagRelevance(pool, playerTags, exclude)
+        // 招式：requiredTags 与武器 tag 不匹配的不出现
+        const filtered =
+            type === 'action'
+                ? pool.filter((r) => {
+                      const reqs = (r as any).requiredTags as string[] | undefined
+                      if (!reqs || reqs.length === 0) return true
+                      return reqs.some((t) => playerTags.includes(t as Tag))
+                  })
+                : pool
+        const sorted = sortByTagRelevance(filtered, playerTags, exclude)
         return sorted.slice(0, Math.min(count, sorted.length))
     }
 
@@ -115,7 +124,8 @@ export class RewardPool {
                 type: 'action' as const,
                 tags: a.tags,
                 description: a.description,
-            }))
+                requiredTags: a.requiredTags,
+            })) as Reward[]
         }
         return this._actionPool
     }

@@ -40,7 +40,7 @@ export type Tag =
     | 'debuff' // 弱化
     | 'dot' // 持续伤害
     | 'melee' // 近战武器
-    | 'damage' // 伤害增强
+    // | 'damage' // 伤害增强
     | 'summon' // 召唤相关
     | 'stance' // 架势/姿态
     | 'support' // 辅助
@@ -50,3 +50,5 @@ export type Tag =
     | 'range_up' // 增加攻击范围
     | 'inherent' // 固有（不可复制、不可禁用）
     | 'weapon' // 武器来源的 buff
+    | 'thrown' // 暗器
+    | 'damage' // 伤害增强

@@ -118,14 +118,14 @@ export const ARTIFACTS: Artifact[] = [
         id: 'tiger_eye',
         name: '虎彻之眼',
         description: '进入居合时双目如虎，洞察先机。',
-        tags: ['trigger'],
+        tags: ['trigger', 'buff'],
         triggers: [{ condition: { type: 'on_buff', buffId: 'iaijutsu' }, actionId: '_tiger_eye_foresight' }],
     },
     {
         id: 'qi_guard',
         name: '吞炁囊',
         description: '开局凝聚炁盾，吸收炁招式伤害2点，共10次。',
-        tags: ['trigger'],
+        tags: ['trigger', 'defense', 'qi'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 20 }] },
         ],
