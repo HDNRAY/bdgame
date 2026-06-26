@@ -181,8 +181,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
     },
     // ── 御物招式 ──
     {
-        id: 'orb_shot',
-        name: '法珠',
+        id: '_orb_shot',
+        name: '法珠冲击',
         description: '',
         requiredTags: [],
         apCost: 1,
@@ -193,8 +193,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         extraStunTime: 800,
     },
     {
-        id: 'silk_shot',
-        name: '游丝',
+        id: '_silk_shot',
+        name: '浮游丝',
         description: '',
         requiredTags: [],
         apCost: 1,
@@ -205,8 +205,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         extraStunTime: 600,
     },
     {
-        id: 'fei_jian_shot',
-        name: '飞剑',
+        id: '_fei_jian_shot',
+        name: '一剑西来',
         description: '',
         requiredTags: [],
         apCost: 2,

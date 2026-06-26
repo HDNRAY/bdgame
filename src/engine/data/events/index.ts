@@ -46,6 +46,8 @@ export const EVENT_DB: EventDef[] = [
         type: 'heal',
         description: '你找到一处安静的地方调息养伤。',
         effects: [{ type: 'heal', value: 15 }],
+        weight: 0.3,
+        minNode: 5,
         maxCount: 3,
     },
 

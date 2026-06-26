@@ -29,6 +29,27 @@ export function pickRandom<T>(arr: T[], n: number): T[] {
     return shuffle(arr).slice(0, n)
 }
 
+/** 加权随机取 n 个（weight 越高越可能被选中，默认 1） */
+export function pickWeightedRandom<T extends { weight?: number }>(arr: T[], n: number): T[] {
+    const result: T[] = []
+    const remaining = [...arr]
+    for (let i = 0; i < n && remaining.length > 0; i++) {
+        const totalWeight = remaining.reduce((sum, item) => sum + (item.weight ?? 1), 0)
+        let r = Math.random() * totalWeight
+        let idx = 0
+        for (let j = 0; j < remaining.length; j++) {
+            r -= remaining[j].weight ?? 1
+            if (r <= 0) {
+                idx = j
+                break
+            }
+        }
+        result.push(remaining[idx])
+        remaining.splice(idx, 1)
+    }
+    return result
+}
+
 /** 所有对手 ID（不含张三） */
 export const ALL_OPPONENT_IDS: string[] = OPPONENTS.map((o) => o.id)
 
@@ -182,8 +203,8 @@ export function pickEventOptions(ctx: EventPickContext): string[] {
     if (combatEvents.length > 0) {
         result.push(pickRandom(combatEvents, 1)[0])
     }
-    // 从剩余中补到 3 个
-    const rest = pickRandom(
+    // 从剩余中补到 3 个（非战斗事件按 weight 加权）
+    const rest = pickWeightedRandom(
         nonCombatEvents.length > 0 ? nonCombatEvents : filtered.filter((e) => !result.includes(e)),
         3 - result.length,
     )

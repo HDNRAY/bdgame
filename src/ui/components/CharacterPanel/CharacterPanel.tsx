@@ -15,10 +15,7 @@ import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../.
 import { useBuildCharacter, cultCost } from '../../hooks/useBuildCharacter'
 import { Tooltip } from '../ui/Tooltip/Tooltip'
 import { StatTooltip } from '../tooltip-contents/StatTooltip'
-import { PassiveTooltip } from '../tooltip-contents/PassiveTooltip'
-import { ArtifactTooltip } from '../tooltip-contents/ArtifactTooltip'
-import { ActionTooltip } from '../tooltip-contents/ActionTooltip'
-import { WeaponTooltip } from '../tooltip-contents/WeaponTooltip'
+import { EntityItem } from '../ui/EntityItem/EntityItem'
 import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
 import './CharacterPanel.scss'
 
@@ -159,11 +156,7 @@ export function CharacterPanel({
                         </div>
                         <div className="cp-info-row">
                             <canvas ref={weaponRef} width={48} height={48} className="cp-weapon-art" />
-                            {weapon && (
-                                <Tooltip content={<WeaponTooltip weapon={weapon} />}>
-                                    <span className="cp-tag">{weapon.name}</span>
-                                </Tooltip>
-                            )}
+                            {weapon && <EntityItem entity={weapon} type="weapon" />}
                         </div>
                     </div>
 
@@ -220,17 +213,14 @@ export function CharacterPanel({
                                         ? TRIGGER_CONDITIONS.find((t) => t.id === cfg.triggerId)?.name
                                         : null
                                     return (
-                                        <Tooltip key={i} content={<ActionTooltip action={act.def} />}>
-                                            <span className="cp-tag">
-                                                {act.name}
-                                                {(condName || trigName) && (
-                                                    <span className="cp-tag-meta">
-                                                        {condName && <span className="cp-tag-cond">{condName}</span>}
-                                                        {trigName && <span className="cp-tag-trig">{trigName}</span>}
-                                                    </span>
-                                                )}
-                                            </span>
-                                        </Tooltip>
+                                        <EntityItem key={i} entity={act.def} type="action">
+                                            {(condName || trigName) && (
+                                                <>
+                                                    {condName && <span className="cp-tag-cond">{condName}</span>}
+                                                    {trigName && <span className="cp-tag-trig">{trigName}</span>}
+                                                </>
+                                            )}
+                                        </EntityItem>
                                     )
                                 })}
                             </div>
@@ -298,9 +288,7 @@ export function CharacterPanel({
                             <div className="cp-section-label">功法 ({character.passiveDefs.length})</div>
                             <div className="cp-tag-list">
                                 {character.passiveDefs.map((p, i) => (
-                                    <Tooltip key={i} content={<PassiveTooltip passive={p} />}>
-                                        <span className="cp-tag">{p.name}</span>
-                                    </Tooltip>
+                                    <EntityItem key={i} entity={p} type="passive" />
                                 ))}
                             </div>
                         </div>
@@ -311,9 +299,7 @@ export function CharacterPanel({
                             <div className="cp-section-label">奇物 ({character.artifactDefs.length})</div>
                             <div className="cp-tag-list">
                                 {character.artifactDefs.map((art, i) => (
-                                    <Tooltip key={i} content={<ArtifactTooltip artifact={art} />}>
-                                        <span className="cp-tag">{art.name}</span>
-                                    </Tooltip>
+                                    <EntityItem key={i} entity={art} type="artifact" />
                                 ))}
                             </div>
                         </div>

@@ -8,6 +8,8 @@ import { SparScreen } from './SparScreen'
 import { useGameRun } from '../../hooks/useGameRun'
 import { cultCost } from '../../hooks/useBuildCharacter'
 import { ALL_ATTRS } from '../../../engine/entities/attributes'
+import { getEntity, type EntityType } from '../../entity-tooltip'
+import { EntityItem } from '../../components/ui/EntityItem/EntityItem'
 import type { CharacterBuild } from '../../../engine/entities/character-build'
 import './QuickRunScreen.scss'
 
@@ -89,12 +91,42 @@ export function QuickRunScreen() {
                         <div>
                             {flavor && <div className="qr-flavor">{flavor}</div>}
                             <div className="qr-choices">
-                                {choices.map((c, i) => (
-                                    <div key={c.id} className="qr-choice-card" onClick={() => select(i)}>
-                                        <div className="qr-choice-name">{c.name}</div>
-                                        {c.desc && <div className="qr-choice-desc">{c.desc}</div>}
-                                    </div>
-                                ))}
+                                {choices.map((c, i) => {
+                                    const type =
+                                        node.type === 'weapon'
+                                            ? 'weapon'
+                                            : node.type === 'first_action'
+                                              ? 'action'
+                                              : null
+                                    const entity = type ? getEntity(c.id, type) : null
+                                    if (entity) {
+                                        return (
+                                            <div key={c.id} className="qr-choice-card">
+                                                <EntityItem entity={entity} type={type!} />
+                                                <button
+                                                    className="qr-btn-sm"
+                                                    onClick={() => select(i)}
+                                                    style={{ marginTop: 8 }}
+                                                >
+                                                    选择
+                                                </button>
+                                            </div>
+                                        )
+                                    }
+                                    return (
+                                        <div key={c.id} className="qr-choice-card">
+                                            <div className="qr-choice-name">{c.name}</div>
+                                            {c.desc && <div className="qr-choice-desc">{c.desc}</div>}
+                                            <button
+                                                className="qr-btn-sm"
+                                                onClick={() => select(i)}
+                                                style={{ marginTop: 8 }}
+                                            >
+                                                选择
+                                            </button>
+                                        </div>
+                                    )
+                                })}
                             </div>
                         </div>
                     )
@@ -126,20 +158,31 @@ export function QuickRunScreen() {
                             <div className="qr-rewards">
                                 <div className="qr-rewards-title">选奖励</div>
                                 <div className="qr-rewards-list">
-                                    {r.rewardChoices.map((rw) => (
-                                        <div key={rw.id} className="qr-reward-card" onClick={() => selectReward(rw.id)}>
-                                            <div className="qr-reward-name">{rw.name}</div>
-                                            <div className="qr-reward-desc">{rw.description}</div>
-                                            {rw.requireAttrsMin && (
-                                                <div className="qr-reward-req">
-                                                    需:{' '}
-                                                    {Object.entries(rw.requireAttrsMin)
-                                                        .map(([k, v]) => `${k}≥${v}`)
-                                                        .join(', ')}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                    {r.rewardChoices.map((rw) => {
+                                        if (rw.type === 'cult') return null
+                                        const entity = getEntity(rw.id, rw.type)
+                                        if (!entity) return null
+                                        return (
+                                            <div key={rw.id} className="qr-reward-card">
+                                                <EntityItem entity={entity} type={rw.type as EntityType} />
+                                                {rw.requireAttrsMin && (
+                                                    <div className="qr-reward-req">
+                                                        需:{' '}
+                                                        {Object.entries(rw.requireAttrsMin)
+                                                            .map(([k, v]) => `${k}≥${v}`)
+                                                            .join(', ')}
+                                                    </div>
+                                                )}
+                                                <button
+                                                    className="qr-btn-sm"
+                                                    onClick={() => selectReward(rw.id)}
+                                                    style={{ marginTop: 8 }}
+                                                >
+                                                    选择
+                                                </button>
+                                            </div>
+                                        )
+                                    })}
                                 </div>
                             </div>
                         )}

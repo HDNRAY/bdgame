@@ -1,8 +1,10 @@
 import type { Artifact } from '../../../engine/entities/artifact'
 import type { EffectDef } from '../../../engine/entities/action'
 import { describeEffect } from '../../../engine/data/effectDisplay'
+import { getAction } from '../../../engine/data/actions'
 import { TagList } from '../ui/TagList/TagList'
 import { TriggerEffects } from '../ui/TriggerEffects/TriggerEffects'
+import { EntityItem } from '../ui/EntityItem/EntityItem'
 
 interface ArtifactTooltipProps {
     artifact: Artifact
@@ -30,6 +32,17 @@ export function ArtifactTooltip({ artifact }: ArtifactTooltipProps) {
             {mainEffects.length > 0 && (
                 <div className="tt-extra" style={{ fontSize: 10, color: '#aaa', lineHeight: 1.6 }}>
                     {mainEffects.flatMap(describeEffect).join('；')}
+                </div>
+            )}
+            {artifact.grantsActions && artifact.grantsActions.length > 0 && (
+                <div className="tt-extra" style={{ marginTop: 4 }}>
+                    <div style={{ fontSize: 10, color: '#888', marginBottom: 2 }}>赋予招式:</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {artifact.grantsActions.map((id) => {
+                            const def = getAction(id)
+                            return def ? <EntityItem key={id} entity={def} type="action" /> : null
+                        })}
+                    </div>
                 </div>
             )}
             {artifact.triggers && artifact.triggers.length > 0 && <TriggerEffects triggers={artifact.triggers} />}

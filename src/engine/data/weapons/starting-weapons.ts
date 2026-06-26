@@ -53,7 +53,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
             id: 'silk',
             name: '游丝',
             maxCount: (wis) => Math.min(7, 1 + Math.round(wis / 2)),
-            actionId: 'silk_shot',
+            actionId: '_silk_shot',
         },
     },
     {
@@ -67,7 +67,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
             id: 'orb',
             name: '法珠',
             maxCount: () => 3,
-            actionId: 'orb_shot',
+            actionId: '_orb_shot',
         },
     },
     {
@@ -81,7 +81,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
             id: 'fei_jian',
             name: '一柄大剑',
             maxCount: () => 1,
-            actionId: 'fei_jian_shot',
+            actionId: '_fei_jian_shot',
         },
     },
     // ── 双剑 ──

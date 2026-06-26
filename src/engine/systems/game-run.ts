@@ -41,6 +41,8 @@ export class GameRun {
     private _currentRewardTypes: Map<string, RewardType> = new Map()
     /** 当前交互事件定义（phase === 'interactive' 时有值） */
     private _currentInteractiveEvent: InteractiveEventDef | null = null
+    /** 各奖励类型已出现的次数（用于限制 weapon 最多 1 次/局） */
+    private _rewardTypeCounts: Map<RewardType, number> = new Map()
 
     constructor(mode: GameMode = 'quick') {
         this.mode = mode
@@ -232,11 +234,28 @@ export class GameRun {
                 } else if (ev.rewardType) {
                     this._currentRewardTypes.set(eid, ev.rewardType)
                 } else {
-                    // 随机战斗事件：根据 weaponLocked 决定类型
-                    const rewardTypes = ['cult', 'passive', 'artifact', 'action']
-                    if (!this.weaponLocked) rewardTypes.push('weapon')
-                    const decidedType = pickRandom(rewardTypes, 1)[0]
-                    this._currentRewardTypes.set(eid, decidedType as RewardType)
+                    // 加权随机战斗事件：weapon 最多 1 次/局，其余类型均等权重
+                    const available: { type: RewardType; weight: number }[] = [
+                        { type: 'cult', weight: 3 },
+                        { type: 'passive', weight: 3 },
+                        { type: 'action', weight: 3 },
+                        { type: 'artifact', weight: 3 },
+                    ]
+                    if (!this.weaponLocked && (this._rewardTypeCounts.get('weapon') ?? 0) < 1) {
+                        available.push({ type: 'weapon', weight: 1 })
+                    }
+                    const totalWeight = available.reduce((s, t) => s + t.weight, 0)
+                    let r = Math.random() * totalWeight
+                    let decidedType: RewardType = 'cult'
+                    for (const t of available) {
+                        r -= t.weight
+                        if (r <= 0) {
+                            decidedType = t.type
+                            break
+                        }
+                    }
+                    this._rewardTypeCounts.set(decidedType, (this._rewardTypeCounts.get(decidedType) ?? 0) + 1)
+                    this._currentRewardTypes.set(eid, decidedType)
                 }
             } else if (isBossEvent(ev)) {
                 // Boss 事件总是有 rewardType

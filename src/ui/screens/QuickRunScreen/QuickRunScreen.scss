@@ -174,11 +174,14 @@
     &-choice-card {
         background: #12121a;
         border: 1px solid #2a2a3a;
-        padding: 20px;
+        padding: 16px;
         width: 200px;
-        cursor: pointer;
         text-align: center;
         transition: all 0.15s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
 
         &:hover {
             border-color: #e8c34a;
@@ -189,7 +192,6 @@
             font-size: 16px;
             color: #e8c34a;
             font-weight: bold;
-            margin-bottom: 8px;
         }
 
         &-desc {
@@ -264,11 +266,14 @@
     &-reward-card {
         background: #12121a;
         border: 1px solid #2a2a3a;
-        padding: 16px;
+        padding: 14px;
         width: 180px;
-        cursor: pointer;
         text-align: center;
         transition: all 0.15s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
 
         &:hover {
             border-color: #e8c34a;
@@ -279,7 +284,6 @@
             font-size: 14px;
             color: #e8c34a;
             font-weight: bold;
-            margin-bottom: 6px;
         }
 
         &-desc {
@@ -290,7 +294,6 @@
         &-req {
             font-size: 10px;
             color: #f44336;
-            margin-top: 4px;
         }
     }
 

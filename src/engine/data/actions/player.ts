@@ -44,12 +44,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'flick',
         name: '弹指',
-        description: '弹指间弹出气劲，短暂眩晕。',
+        description: '指间弹出气劲/石子，击中目标短暂眩晕。',
         requiredTags: [],
         apCost: 2,
         tags: ['blunt', 'stun'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
         ],
         getRange: () => [0, 5],

@@ -1,7 +1,9 @@
 import type { Passive } from '../../../engine/entities/passive'
 import { describeEffects } from '../../../engine/data/effectDisplay'
+import { getAction } from '../../../engine/data/actions'
 import { TagList } from '../ui/TagList/TagList'
 import { TriggerEffects } from '../ui/TriggerEffects/TriggerEffects'
+import { EntityItem } from '../ui/EntityItem/EntityItem'
 
 interface PassiveTooltipProps {
     passive: Passive
@@ -17,6 +19,17 @@ export function PassiveTooltip({ passive }: PassiveTooltipProps) {
             {passive.effects && passive.effects.length > 0 && (
                 <div className="tt-extra" style={{ fontSize: 10, color: '#aaa', lineHeight: 1.6 }}>
                     {describeEffects(passive.effects).join('；')}
+                </div>
+            )}
+            {passive.grantsActions && passive.grantsActions.length > 0 && (
+                <div className="tt-extra" style={{ marginTop: 4 }}>
+                    <div style={{ fontSize: 10, color: '#888', marginBottom: 2 }}>赋予招式:</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {passive.grantsActions.map((id) => {
+                            const def = getAction(id)
+                            return def ? <EntityItem key={id} entity={def} type="action" /> : null
+                        })}
+                    </div>
                 </div>
             )}
             {passive.triggers && passive.triggers.length > 0 && <TriggerEffects triggers={passive.triggers} />}
