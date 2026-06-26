@@ -9,3 +9,10 @@ createRoot(document.getElementById('root')!).render(
         <App />
     </StrictMode>,
 )
+
+// 注册 service worker 更新事件：新 SW 接管时刷新页面
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload()
+    })
+}
