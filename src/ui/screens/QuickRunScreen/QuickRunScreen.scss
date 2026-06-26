@@ -1,7 +1,7 @@
 .qr {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100dvh;
     background: #0a0a0f;
     color: #c8c8d0;
     font-family: 'Courier New', monospace;
@@ -166,22 +166,25 @@
     // ── Choices ──
     &-choices {
         display: flex;
-        gap: 12px;
+        flex-wrap: wrap;
+        gap: 10px;
         justify-content: center;
-        padding: 24px 0;
+        padding: 16px 0;
     }
 
     &-choice-card {
         background: #12121a;
         border: 1px solid #2a2a3a;
-        padding: 16px;
-        width: 200px;
+        padding: 10px;
+        flex: 1 1 140px;
+        max-width: 200px;
+        min-width: 110px;
         text-align: center;
         transition: all 0.15s;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 12px;
+        gap: 6px;
 
         &:hover {
             border-color: #e8c34a;
@@ -189,13 +192,13 @@
         }
 
         &-name {
-            font-size: 16px;
+            font-size: 13px;
             color: #e8c34a;
             font-weight: bold;
         }
 
         &-desc {
-            font-size: 12px;
+            font-size: 11px;
             color: #888;
         }
     }
@@ -258,7 +261,8 @@
 
         &-list {
             display: flex;
-            gap: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
             justify-content: center;
         }
     }
@@ -266,14 +270,16 @@
     &-reward-card {
         background: #12121a;
         border: 1px solid #2a2a3a;
-        padding: 14px;
-        width: 180px;
+        padding: 10px;
+        flex: 1 1 120px;
+        max-width: 170px;
+        min-width: 100px;
         text-align: center;
         transition: all 0.15s;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
+        gap: 6px;
 
         &:hover {
             border-color: #e8c34a;
@@ -297,10 +303,23 @@
         }
     }
 
+    // ── 小按钮（选择/确认）──
+    &-btn-sm {
+        padding: 5px 12px;
+        font-size: 11px;
+        background: #e8c34a;
+        color: #0a0a0f;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-family: inherit;
+        flex-shrink: 0;
+    }
+
     // ── Boss ──
     &-boss-full {
         background: #0a0a0f;
-        min-height: 100vh;
+        min-height: 100dvh;
     }
 
     &-boss {
@@ -407,6 +426,67 @@
 
         &-secondary {
             color: #888;
+        }
+    }
+
+    // ── 移动端等比缩小 ──
+    @media (max-height: 500px) {
+        .qr-content {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            padding-right: 12px;
+        }
+        .qr-flavor {
+            font-size: 12px;
+            padding: 14px;
+        }
+        .qr-choice-card {
+            padding: 8px;
+            gap: 4px;
+            &-name {
+                font-size: 12px;
+            }
+            &-desc {
+                font-size: 10px;
+            }
+        }
+        .qr-reward-card {
+            padding: 8px;
+            gap: 4px;
+            &-name {
+                font-size: 12px;
+            }
+            &-desc {
+                font-size: 10px;
+            }
+        }
+        .qr-btn-sm {
+            padding: 4px 10px;
+            font-size: 10px;
+        }
+        .qr-header {
+            padding: 6px 10px;
+            &-title {
+                font-size: 12px;
+            }
+            &-btn {
+                padding: 3px 8px;
+                font-size: 11px;
+            }
+        }
+        .qr-event-text {
+            font-size: 12px;
+            padding: 12px;
+        }
+        .qr-cult {
+            font-size: 14px;
+            padding: 8px;
+        }
+        .qr-finished {
+            padding: 24px;
+            h2 {
+                font-size: 20px;
+            }
         }
     }
 }
