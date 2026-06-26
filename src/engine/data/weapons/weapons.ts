@@ -1,8 +1,8 @@
-import type { GameEntity } from '../entities/base'
-import type { EffectDef } from '../entities/action'
-import type { SummonDef } from '../entities/summon'
-import type { TriggerSlot } from '../entities/trigger'
-import { AttrName } from '../entities/attributes'
+import type { GameEntity } from '../../entities/base'
+import type { EffectDef } from '../../entities/action'
+import type { SummonDef } from '../../entities/summon'
+import type { TriggerSlot } from '../../entities/trigger'
+import { AttrName } from '../../entities/attributes'
 import { STARTING_WEAPONS } from './starting-weapons'
 
 export interface WeaponDef extends GameEntity {
@@ -22,14 +22,14 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'broken_blade',
         name: '断刀',
         description: '一把残损的断刀。加装锁链，免疫缴械。',
-        tags: ['slash', 'parry', 'imperial'],
+        tags: ['slash', 'parry', 'imperial', 'melee'],
         range: [1, 2],
     },
     {
         id: 'iron_spear',
         name: '铁枪·破军',
         description: '丈二铁枪，势大力沉。',
-        tags: ['pierce', 'parry', 'polearm', 'melee'],
+        tags: ['pierce', 'parry', 'polearm'],
         bound: false,
         effects: [{ type: 'stat_buff', attrs: { agility: -2, strength: 2 } }],
         range: [2, 4],
@@ -92,7 +92,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'dark_iron_sword',
         name: '玄铁剑',
         description: '与身同高的玄铁巨剑，重六十四斤，无锋无刃。大巧不工，以力破万法。',
-        tags: ['heavy', 'blunt', 'slash', 'pierce', 'parry'],
+        tags: ['heavy', 'blunt', 'slash', 'pierce', 'parry', 'melee'],
         requireAttrsMin: { strength: 12, agility: 11 },
         range: [1, 3],
         triggers: [
@@ -106,7 +106,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'heshan_sword',
         name: '河山铁剑',
         description: '一把普通的两用钢铸军剑，可同时使用拳掌功法。',
-        tags: ['slash', 'pierce', 'blunt', 'parry'],
+        tags: ['slash', 'pierce', 'blunt', 'parry', 'melee'],
         range: [1, 3],
     },
     {
@@ -116,13 +116,6 @@ export const WEAPON_DB: WeaponDef[] = [
         tags: ['blunt', 'parry', 'polearm', 'heavy', 'melee'],
         range: [1, 6],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dinghai_pressure' }] }],
-    },
-    {
-        id: 'barehanded',
-        name: '赤手空拳',
-        description: '什么都不带，只有一身本事。',
-        tags: ['melee'],
-        range: [1, 1],
     },
 ]
 

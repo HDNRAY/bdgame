@@ -1,12 +1,11 @@
-import { useRef, useEffect, useMemo } from 'react'
+import { useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { CharacterBuild } from '../../../engine/entities/character-build'
-import { Character } from '../../../engine/entities/character'
 import { getAction } from '../../../engine/data/actions'
-import { getWeapon } from '../../../engine/data/weapons'
+import { getWeapon } from '../../../engine/data/weapons/weapons'
 import { getPassive } from '../../../engine/data/passives'
 import type { ActionConfig } from '../../../engine/entities/action-config'
 import { CONDITION_PRESETS } from '../../../engine/data/conditions'
@@ -34,7 +33,14 @@ interface CharacterPanelProps {
 
 const ATTR_ORDER: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
 
-export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBack }: CharacterPanelProps) {
+export function CharacterPanel({
+    mode,
+    build,
+    accentColor = '#888',
+    onSave,
+    onBack,
+    unspentCultPoints,
+}: CharacterPanelProps) {
     const navigate = useNavigate()
     const isBuild = mode === 'build'
 
@@ -42,8 +48,7 @@ export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBa
     const {
         attrs,
         actionConfigs,
-        buildChar,
-        totalPoints,
+        character,
         remaining,
         maxTriggerSlots,
         triggerCount,
@@ -54,11 +59,7 @@ export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBa
         moveAction,
         updateAction,
         handleSave,
-    } = useBuildCharacter(build, onSave)
-
-    // View 模式：缓存 Character 实例
-    const viewChar = useMemo(() => (isBuild ? null : new Character(build)), [isBuild, build])
-    const character = (isBuild ? buildChar : viewChar)!
+    } = useBuildCharacter(build, onSave, unspentCultPoints)
 
     const avatarRef = useRef<HTMLCanvasElement>(null)
     const weaponRef = useRef<HTMLCanvasElement>(null)
@@ -153,7 +154,7 @@ export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBa
                             <div className="cp-hp-ap">
                                 <span className="cp-hp">气血</span> {character.maxHp}
                                 <span className="cp-sep">·</span>
-                                <span className="cp-ap">内息</span> {character.maxAp.toFixed(1)}
+                                <span className="cp-ap">内息</span> {character.maxAp}
                             </div>
                         </div>
                         <div className="cp-info-row">
@@ -242,11 +243,7 @@ export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBa
                     {/* 区块2: 属性 */}
                     <div className="cp-section">
                         <div className="cp-section-label">属性</div>
-                        {isBuild && (
-                            <div className="cp-points">
-                                修炼点: 剩余 {remaining} / {totalPoints}
-                            </div>
-                        )}
+                        {isBuild && <div className="cp-points">修炼点: 剩余 {remaining}</div>}
                         {ATTR_ORDER.map((attr) => {
                             const val = isBuild ? (attrs[attr] ?? 3) : Math.round(a.get(attr))
                             const upCost = isBuild && val < 30 ? cultCost(val) : null
@@ -259,7 +256,7 @@ export function CharacterPanel({ mode, build, accentColor = '#888', onSave, onBa
                                         <>
                                             <button
                                                 className="cp-btn-sm"
-                                                disabled={val <= 3}
+                                                disabled={val <= (build.baseAttrs?.[attr] ?? 3)}
                                                 onClick={() => handleAttrAdjust(attr, -1)}
                                             >
                                                 −

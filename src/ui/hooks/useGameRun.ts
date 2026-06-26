@@ -38,6 +38,8 @@ export function useGameRun() {
     /** 选奖励 */
     const selectReward = useCallback((rewardId: string) => {
         const res = runRef.current.selectReward(rewardId)
+        // 引擎内部直接修改了 state.build，新建引用触发 CharacterPanel 重建
+        runRef.current.state.build = { ...runRef.current.state.build }
         setLastResult(res)
         // 如果选的是修炼点，需要用户确认继续（由 UI 显示继续按钮）
         if (res.cultRewardSelected) {

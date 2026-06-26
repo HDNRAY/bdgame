@@ -1,7 +1,7 @@
 import type { BattleEngine } from '../engine'
 import type { Character } from '../../entities/character'
 import type { AttrName } from '../../entities/attributes'
-import type { WeaponDef } from '../../data/weapons'
+import type { WeaponDef } from '../../data/weapons/weapons'
 import { getBuff } from '../../data/buffs'
 
 /** 反转旧武器的 stat_buff 效果（御物除外） */

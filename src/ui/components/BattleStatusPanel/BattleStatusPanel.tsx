@@ -50,7 +50,7 @@ export function BattleStatusPanel({ snapshot, charAName, charBName }: BattleStat
                                 />
                             </div>
                             <div className="hp-text">
-                                <span className="ap-label">AP</span> {c.ap.toFixed(1)}/{c.maxAp}
+                                <span className="ap-label">AP</span> {c.ap}/{c.maxAp}
                             </div>
                             <div className="bar-bg">
                                 <div className="bar-fill bar-ap" style={{ width: `${Math.min(100, apPct)}%` }} />

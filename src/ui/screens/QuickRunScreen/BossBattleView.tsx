@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { BattlePanel } from '../../components/BattlePanel/BattlePanel'
 import { getOpponentDef, gen } from '../../../engine/data/opponents/index'
-import { getWeapon } from '../../../engine/data/weapons'
+import { getWeapon } from '../../../engine/data/weapons/weapons'
 import type { GameRun } from '../../../engine/systems/game-run'
 
 interface BossBattleViewProps {

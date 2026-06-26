@@ -1,6 +1,6 @@
 import { OPPONENTS } from '../data/opponents/index'
 import { STORIES, getStory } from '../data/stories/index'
-import { STARTING_WEAPONS } from '../data/starting-weapons'
+import { STARTING_WEAPONS } from '../data/weapons/starting-weapons'
 import { PLAYER_ACTIONS } from '../data/actions/player'
 import { rewardPool } from './reward-pool'
 import { EVENT_DB } from '../data/events/index'

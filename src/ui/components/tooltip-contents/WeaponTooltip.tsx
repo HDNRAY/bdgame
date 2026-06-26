@@ -1,4 +1,4 @@
-import type { WeaponDef } from '../../../engine/data/weapons'
+import type { WeaponDef } from '../../../engine/data/weapons/weapons'
 import { TagList } from '../ui/TagList/TagList'
 import { TriggerEffects } from '../ui/TriggerEffects/TriggerEffects'
 

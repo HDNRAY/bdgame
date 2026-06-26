@@ -506,7 +506,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '长棍直戳，力透千钧。',
         requiredTags: ['polearm'],
         apCost: 2,
-        tags: ['blunt', 'pierce'],
+        tags: ['blunt', 'pierce', 'polearm'],
         effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
     },
     {
@@ -515,8 +515,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '高举过顶，一棍劈下，势不可挡。',
         requiredTags: ['polearm'],
         apCost: 4,
-        tags: ['blunt', 'damage', 'ignore_parry'],
-        effects: [{ type: 'damage', scaling: { strength: 0.8 } }, { type: 'ignore_parry' }],
+        tags: ['blunt', 'damage', 'polearm'],
+        effects: [{ type: 'damage', scaling: { strength: 0.8 } }],
     },
     {
         id: 'rod_sweep',
@@ -524,7 +524,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '横扫千军，劲力将对手震退。',
         requiredTags: ['polearm'],
         apCost: 3,
-        tags: ['blunt', 'knockback'],
+        tags: ['blunt', 'knockback', 'polearm'],
         effects: [
             { type: 'damage', scaling: { strength: 0.5 } },
             { type: 'knockback', distance: 1 },

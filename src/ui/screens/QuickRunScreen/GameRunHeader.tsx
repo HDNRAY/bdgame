@@ -29,7 +29,7 @@ export function GameRunHeader({
         <>
             <div className="qr-header">
                 <div className="qr-header-left">
-                    <span className="qr-header-title">青山镇2088斗炁大会</span>
+                    <span className="qr-header-title">{import.meta.env.VITE_APP_TITLE}</span>
                     <span className="qr-header-info">
                         修炼点 {run.current.state.unspentCultPoints}
                         <span className="qr-injury-bar">

@@ -1,6 +1,6 @@
 import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
-import { getWeapon } from '../data/weapons'
+import { getWeapon } from '../data/weapons/weapons'
 import { getBuff } from '../data/buffs'
 import { checkCondition } from '../entities/action-config'
 import { getConditionPreset } from '../data/conditions'

@@ -23,7 +23,7 @@ import {
     WUKONG,
     XUNXIANG,
 } from '../src/engine/data/opponents/index'
-import { getWeapon } from '../src/engine/data/weapons'
+import { getWeapon } from '../src/engine/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
 import { StatsTracker } from '../src/engine/combat/stats-tracker'

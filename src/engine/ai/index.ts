@@ -1,7 +1,7 @@
 import type { Character } from '../entities/character'
 import type { EffectDef } from '../entities/action'
 import type { BattleState, ActionCommand } from '../combat/types'
-import { getWeapon } from '../data/weapons'
+import { getWeapon } from '../data/weapons/weapons'
 import { PositionSystem } from '../combat/position'
 import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'

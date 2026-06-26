@@ -1,7 +1,7 @@
 import type { ActionDefinition } from '../entities/action'
 import type { Character } from '../entities/character'
 import type { BattleState } from '../combat/types'
-import { getWeapon } from '../data/weapons'
+import { getWeapon } from '../data/weapons/weapons'
 
 /** 检查招式是否满足释放条件 */
 export function canExecuteAction(

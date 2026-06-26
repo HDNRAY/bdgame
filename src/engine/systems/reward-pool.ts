@@ -4,8 +4,8 @@ import { PASSIVES } from '../data/passives'
 import { ARTIFACTS } from '../data/artifacts'
 import { PLAYER_ACTIONS } from '../data/actions/player'
 import { SUPPORT_ACTIONS } from '../data/actions/support'
-import { WEAPON_DB } from '../data/weapons'
-import { STARTING_WEAPONS } from '../data/starting-weapons'
+import { WEAPON_DB } from '../data/weapons/weapons'
+import { STARTING_WEAPONS } from '../data/weapons/starting-weapons'
 import { sortByTagRelevance } from '../data/tagRelevance'
 
 export class RewardPool {

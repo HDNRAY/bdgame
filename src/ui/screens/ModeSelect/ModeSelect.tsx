@@ -6,8 +6,7 @@ export function ModeSelect() {
     const navigate = useNavigate()
     return (
         <div className="mode-select">
-            <div className="mode-select-title">青山镇2088斗炁大会</div>
-            <div className="mode-select-subtitle">《炁》</div>
+            <div className="mode-select-title">{import.meta.env.VITE_APP_TITLE}</div>
 
             <div className="mode-select-buttons">
                 <button className="mode-select-btn mode-select-btn-main" onClick={() => {}}>

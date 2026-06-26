@@ -3,7 +3,7 @@ import { MAX_CHAN } from '../constants'
 import { PositionSystem } from './position'
 import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
-import { getWeapon } from '../data/weapons'
+import { getWeapon } from '../data/weapons/weapons'
 import {
     calcTurnInterval,
     calcSummonInterval,

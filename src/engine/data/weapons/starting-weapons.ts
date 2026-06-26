@@ -31,7 +31,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         name: '齐眉棍',
         description: '长棍一根，攻守兼备。',
         tags: ['parry', 'polearm'],
-        range: [1, 3],
+        range: [1, 4],
     },
     // ── 长枪 ──
     {
@@ -46,7 +46,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'floating_silk',
         name: '七段丝',
         description: '一缕以炁御动的柔丝，可远可近，可硬可软，变幻莫测。',
-        tags: ['imperial', 'parry', 'range', 'pierce'],
+        tags: ['imperial', 'range', 'pierce'],
         bound: true,
         range: [0, 6],
         summon: {
@@ -74,7 +74,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'fei_jian',
         name: '一柄大剑',
         description: '御剑飞行，剑气纵横。',
-        tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy'],
+        tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'melee'],
         bound: true,
         range: [2, 6],
         summon: {

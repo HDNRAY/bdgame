@@ -1,7 +1,7 @@
 import type { EffectDef } from '../../entities/action'
 import { ATTR_CN, type AttrName } from '../../entities/attributes'
 import { calcBaseDamage, calcHealAmount, calcBuffDuration, calcRoll, calcDebuffDuration } from '../../calc/damage'
-import { getWeapon } from '../../data/weapons'
+import { getWeapon } from '../../data/weapons/weapons'
 import { getBuff } from '../../data/buffs'
 import { getPassive } from '../../data/passives'
 import { getAction } from '../../data/actions'

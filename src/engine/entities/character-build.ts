@@ -22,6 +22,4 @@ export interface CharacterBuild {
     rewards: Reward[]
     /** 招式配置表（顺序+条件+触发），缺省按 rewards 顺序+always */
     actionConfigs?: ActionConfig[]
-    /** 总修炼点数（null/undefined/NaN 视为 0），用于 build 面板显示剩余 */
-    totalCultPoints?: number
 }

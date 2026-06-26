@@ -1,4 +1,4 @@
-import type { WeaponDef } from '../../../../engine/data/weapons'
+import type { WeaponDef } from '../../../../engine/data/weapons/weapons'
 import { Tooltip } from '../Tooltip/Tooltip'
 import { WeaponTooltip } from '../../tooltip-contents/WeaponTooltip'
 import '../EntityItem/EntityItem.scss'
