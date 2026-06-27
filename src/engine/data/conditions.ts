@@ -16,6 +16,16 @@ export const CONDITION_PRESETS = [
         build: (): RequiredCondition => ({ type: 'enemy_hp_above', ratio: 0.5 }),
     },
     {
+        id: 'distance_gt_2',
+        name: '距离>2m',
+        build: (): RequiredCondition => ({ type: 'distance_greater_than', meters: 2 }),
+    },
+    {
+        id: 'distance_lt_2',
+        name: '距离<2m',
+        build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 2 }),
+    },
+    {
         id: 'distance_gt_3',
         name: '距离>3m',
         build: (): RequiredCondition => ({ type: 'distance_greater_than', meters: 3 }),
@@ -24,6 +34,16 @@ export const CONDITION_PRESETS = [
         id: 'distance_lt_3',
         name: '距离<3m',
         build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 3 }),
+    },
+    {
+        id: 'distance_gt_4',
+        name: '距离>4m',
+        build: (): RequiredCondition => ({ type: 'distance_greater_than', meters: 4 }),
+    },
+    {
+        id: 'distance_lt_4',
+        name: '距离<4m',
+        build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 4 }),
     },
     {
         id: 'distance_gt_5',

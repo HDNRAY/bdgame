@@ -2,6 +2,7 @@ import type { GameEntity } from './base'
 import type { Tag } from './tag'
 import type { EffectDef } from './action'
 import type { TriggerSlot } from './trigger'
+import type { SummonDef } from './summon'
 
 import type { ActionEnhancer } from './passive'
 
@@ -14,6 +15,8 @@ export interface Artifact extends GameEntity {
     triggers?: TriggerSlot[]
     /** 义体赋予角色的招式 */
     grantsActions?: string[]
+    /** 召唤物（御物类奇物使用） */
+    summon?: SummonDef
     /** 招式强化钩子（构造期执行） */
     actionEnhancer?: ActionEnhancer
 }

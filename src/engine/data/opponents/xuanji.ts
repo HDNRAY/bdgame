@@ -11,13 +11,15 @@ export const XUANJI: OpponentDef = {
     rewards: [
         action('qi_bolt'),
         passive('spirit_resonance'),
+        artifact('floating_eye'),
         artifact('qi_guard'),
         artifact('iron_will'),
         artifact('ap_boost'),
+        artifact('flying_lion'),
         action('restore_ap'),
         action('summon_haste'),
         action('agility_steal'),
-        // 8
+        // 10
     ],
     actionConfigs: [
         { actionId: 'qi_bolt' },

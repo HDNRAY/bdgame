@@ -30,7 +30,7 @@ import type {
     BuffLayer,
     ActiveBuffSnapshot,
 } from './types'
-import type { SummonInstance } from '../entities/summon'
+import type { SummonDef, SummonInstance } from '../entities/summon'
 import type { LogEvent } from './log-events'
 
 // ── LogEvent 监听器类型 ──
@@ -81,6 +81,15 @@ export class BattleEngine {
         this.emit('on_equip', p, p)
         this.emit('on_equip', o, o)
 
+        // 应用永久灼烧
+        for (const c of [p, o]) {
+            if (c.permanentBurn > 0) {
+                const key = `permanent_burn::${c.id}`
+                this.state.pendingBuffs.set(key, { restoreValue: c.permanentBurn })
+                this.state.turn.scheduleSystemEventAt(key, 0, 'tick_buff')
+            }
+        }
+
         // 创建召唤物
         this.#initSummons(p)
         this.#initSummons(o)
@@ -89,8 +98,15 @@ export class BattleEngine {
     /** 为角色创建召唤物（已存在则跳过） */
     #initSummons(self: Character): void {
         const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
-        if (!weapon.summon) return
-        const sd = weapon.summon
+        this.#initSummonFromDef(weapon.summon, self)
+        // 奇物召唤物
+        for (const art of self.artifactDefs) {
+            this.#initSummonFromDef(art.summon, self)
+        }
+    }
+
+    #initSummonFromDef(sd: SummonDef | undefined, self: Character): void {
+        if (!sd) return
         const action = sd.action ?? getAction(sd.actionId)
         const preDelay = action?.extraPreDelay ?? 0
         for (let i = 0; i < sd.maxCount(self.attrs.get('wisdom')); i++) {

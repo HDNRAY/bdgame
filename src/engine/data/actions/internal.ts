@@ -206,6 +206,21 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         extraStunTime: 1000,
     },
     {
+        id: '_flying_lion_roar',
+        name: '飞狮',
+        description: '',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['range'],
+        getRange: () => [1, 4] as [number, number],
+        effects: [
+            { type: 'damage', scaling: { wisdom: 0.3 } },
+            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
+        ],
+        extraPreDelay: 7000,
+        extraStunTime: 8000,
+    },
+    {
         id: '_lingbo_insight_step',
         name: '凌波微步',
         description: '',

@@ -92,8 +92,28 @@ export const ARTIFACTS: Artifact[] = [
             { type: 'permanent_burn', value: 1 },
         ],
     },
-
-    // ── 奇物（tag 待定） ──
+    {
+        id: 'floating_eye',
+        name: '浮游眼',
+        description: '一枚以炁悬浮的异瞳，洞察流转，预判对手。洞察+4，暴击率+10%。',
+        tags: ['buff', 'imperial'],
+        effects: [
+            { type: 'stat_buff', attrs: { insight: 4 } },
+            { type: 'crit_chance', value: 0.1 },
+        ],
+    },
+    {
+        id: 'flying_lion',
+        name: '飞狮',
+        description: '飞狮奇物，每约 10 秒自动释放一次狮吼功。',
+        tags: ['summon'],
+        summon: {
+            id: 'flying_lion',
+            name: '飞狮',
+            maxCount: () => 1,
+            actionId: '_flying_lion_roar',
+        },
+    },
     {
         id: 'blood_thorn_ring',
         name: '血棘戒',
