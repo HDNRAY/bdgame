@@ -14,6 +14,7 @@ export { YANGGUO } from './yangguo'
 export { AJIU } from './ajiu'
 export { WUKONG } from './wukong'
 export { XUNXIANG } from './xunxiang'
+export { JUNSHI } from './junshi'
 import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
@@ -38,6 +39,7 @@ import { YANGGUO } from './yangguo'
 import { AJIU } from './ajiu'
 import { WUKONG } from './wukong'
 import { XUNXIANG } from './xunxiang'
+import { JUNSHI } from './junshi'
 
 /** 对手定义（纯数据） */
 export interface OpponentDef {
@@ -60,21 +62,32 @@ export function gen(def: OpponentDef, n: number): CharacterBuild {
 
 /** 所有对手 */
 export const OPPONENTS: OpponentDef[] = [
+    // 拳掌
     QILAN,
     LAIFENG,
-    SANGYUAN,
+    // 刀剑
     LUHONGTI,
+    SANGYUAN,
     AJIU,
+    // 双持
     LAYUE,
     BAIHU,
     LONGNV,
+    // 长柄
     ZHANGLIE,
+    // 棍
     WUKONG,
+    // 御物
     XUANJI,
+    JUNSHI,
+    // 巨武
     LIUXIGUA,
     YANGGUO,
+    // 太刀
     YIDAO,
+    // 匕首
     LUEYING,
+    // 暗器
     XUNXIANG,
 ]
 

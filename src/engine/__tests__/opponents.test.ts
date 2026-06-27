@@ -21,9 +21,9 @@ describe('opponents', () => {
 
             it('total cultivation cost matches points (n × 2)', () => {
                 const cost = calcCultCost(def.targetAttrs)
-                // 腊月天生道种加成后目标值72（64 + 8）
-                const expected: Record<string, number> = { layue: 72 }
-                expect(cost).toBe(expected[def.id] ?? 64)
+                // 天生道种加成后目标值72（64 + 8）
+                const target = def.rewards.findIndex((r) => r.id === 'innate_seed') > -1 ? 72 : 64
+                expect(cost).toBe(target)
             })
 
             it('generates a valid build', () => {

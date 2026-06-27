@@ -15,7 +15,7 @@ type AttrName = 'strength' | 'vitality' | 'agility' | 'dexterity' | 'insight' | 
 | 身法 | agility   | 命中(防御方)、移动效率(agi/20 档/AP)、回合间隔 |
 | 灵巧 | dexterity | 命中(攻击方)、暴击率                           |
 | 洞察 | insight   | 命中(攻防双方)、暴击率、招架率                 |
-| 悟性 | wisdom    | 触发槽数、缔炁效果时长                         |
+| 推演 | wisdom    | 触发槽数、缔炁效果时长                         |
 
 属性范围：默认 3-20，上限 30。
 
@@ -40,7 +40,7 @@ type AttrName = 'strength' | 'vitality' | 'agility' | 'dexterity' | 'insight' | 
 槽数 = max(1, floor(wis / 4))
 ```
 
-| 悟性  | 槽数 |
+| 推演  | 槽数 |
 | ----- | ---- |
 | ≤7    | 1    |
 | 8-11  | 2    |

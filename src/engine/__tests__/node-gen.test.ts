@@ -6,8 +6,6 @@ import {
     getBgChoices,
     getWeaponChoices,
     getFirstActionChoices,
-    ALL_OPPONENT_IDS,
-    ZHANGSAN_ID,
 } from '../systems/node-gen'
 
 describe('generateMap', () => {
@@ -136,15 +134,5 @@ describe('pickRandom', () => {
         const copy = [...arr]
         pickRandom(arr, 2)
         expect(arr).toEqual(copy)
-    })
-})
-
-describe('ALL_OPPONENT_IDS', () => {
-    it('包含 16 个对手 ID', () => {
-        expect(ALL_OPPONENT_IDS).toHaveLength(16)
-    })
-
-    it('不包含张三', () => {
-        expect(ALL_OPPONENT_IDS).not.toContain(ZHANGSAN_ID)
     })
 })

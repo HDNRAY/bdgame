@@ -436,29 +436,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'add_debuff', buffId: 'burn', stacks: 1, chance: 1 },
         ],
     },
-    // ── 御物系 ──
-    {
-        id: 'summon_haste',
-        name: '御物加速',
-        description: '召唤物加速 100ms。',
-        requiredTags: ['summon'],
-        apCost: 0,
-        tags: ['imperial', 'summon', 'support'],
-        target: 'self',
-        effects: [{ type: 'summon_speed', value: 100 }],
-        maxUses: 999,
-    },
-    {
-        id: 'agility_steal',
-        name: '汲灵',
-        description: '命中时 30% 吸取身法 1 点，持续 2 秒。',
-        requiredTags: ['summon'],
-        apCost: 0,
-        tags: ['imperial', 'summon', 'support'],
-        onActionHitChance: () => 0.3,
-        effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 2000 }],
-        maxUses: 999,
-    },
     // ── 雷系 ──
     {
         id: 'electric_yoyo',

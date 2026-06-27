@@ -63,6 +63,9 @@ export function CharacterPanel({
     const spriteId = character?.build.spriteId ?? 'default'
     const weapon = character?.weaponDef ?? (character ? getWeapon(character.build.weapon) : undefined)
 
+    // 已选触发 ID 集合（只检查 actionConfigs，不检查武器/功法/奇物自带触发）
+    const takenTriggerIds = new Set(actionConfigs.map((ac) => ac.triggerId).filter((id): id is string => !!id))
+
     useEffect(() => {
         if (!character) return
         const canvas = avatarRef.current
@@ -196,6 +199,7 @@ export function CharacterPanel({
                                                     index={i}
                                                     onUpdate={updateAction}
                                                     disabled={triggerCount >= maxTriggerSlots && !ac.triggerId}
+                                                    takenTriggerIds={takenTriggerIds}
                                                 />
                                             ))}
                                         </div>
@@ -317,12 +321,14 @@ function SortableRow({
     index,
     onUpdate,
     disabled,
+    takenTriggerIds,
 }: {
     id: string
     ac: ActionConfig
     index: number
     onUpdate: (i: number, patch: Partial<ActionConfig>) => void
     disabled: boolean
+    takenTriggerIds: Set<string>
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -355,11 +361,14 @@ function SortableRow({
                     onChange={(e) => onUpdate(index, { triggerId: e.target.value || undefined })}
                 >
                     <option value="">—</option>
-                    {TRIGGER_CONDITIONS.map((tc) => (
-                        <option key={tc.id} value={tc.id}>
-                            {tc.name}
-                        </option>
-                    ))}
+                    {TRIGGER_CONDITIONS.map((tc) => {
+                        if (takenTriggerIds.has(tc.id) && tc.id !== ac.triggerId) return null
+                        return (
+                            <option key={tc.id} value={tc.id}>
+                                {tc.name}
+                            </option>
+                        )
+                    })}
                 </select>
             </span>
         </div>

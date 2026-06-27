@@ -44,7 +44,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
     // ── 御物 ──
     {
         id: 'floating_silk',
-        name: '七段丝',
+        name: '七根丝',
         description: '一缕以炁御动的柔丝，可远可近，可硬可软，变幻莫测。',
         tags: ['imperial', 'range', 'pierce'],
         bound: true,

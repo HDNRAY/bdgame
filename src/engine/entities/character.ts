@@ -33,6 +33,8 @@ export class Character {
     chan = 0
     /** 上次行动结束的绝对时间 (ms)，0=未行动过 */
     lastActionEndMs = 0
+    /** 上次召唤物 AP 恢复时间 */
+    lastApUpdate = 0
 
     /** 已解析的被动对象列表 */
     passiveDefs: Passive[] = []
@@ -202,7 +204,7 @@ export class Character {
         }
     }
 
-    /** 触发槽上限（由悟性 + 功法/奇物效果决定） */
+    /** 触发槽上限（由推演 + 功法/奇物效果决定） */
     get maxTriggerSlots(): number {
         return this.#maxTriggerSlots
     }
@@ -249,8 +251,15 @@ export class Character {
 
     #buildConfigTriggers(): TriggerSlot[] {
         const result: TriggerSlot[] = []
+        const seenTriggers = new Set<string>()
         for (const ac of this.build.actionConfigs ?? []) {
             if (!ac.triggerId) continue
+            if (seenTriggers.has(ac.triggerId)) {
+                throw new Error(
+                    `重复触发条件: ${ac.triggerId}（招式「${ac.actionId}」），每个触发条件只能被一个招式使用`,
+                )
+            }
+            seenTriggers.add(ac.triggerId)
             const tc = TRIGGER_CONDITIONS.find((t) => t.id === ac.triggerId)
             if (!tc) continue
             result.push({
@@ -376,6 +385,7 @@ export class Character {
             hp: this.hp,
             ap: this.ap,
             lastActionEndMs: this.lastActionEndMs,
+            lastApUpdate: this.lastApUpdate,
         }
     }
 
@@ -384,6 +394,7 @@ export class Character {
         c.hp = data.hp
         c.ap = data.ap
         c.lastActionEndMs = data.lastActionEndMs
+        c.lastApUpdate = data.lastApUpdate
         return c
     }
 
@@ -393,6 +404,7 @@ export class Character {
         c.hp = this.maxHp
         c.ap = this.maxAp // 战斗开始满 AP
         c.lastActionEndMs = 0
+        c.lastApUpdate = 0
         return c
     }
 

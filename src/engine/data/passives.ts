@@ -34,7 +34,7 @@ export const PASSIVES: Passive[] = [
         tags: ['summon'],
         effects: [
             { type: 'stat_buff', attrs: { strength: -2 } },
-            { type: 'summon_damage_bonus', value: 2 },
+            { type: 'summon_damage_bonus', value: 4 },
         ],
     },
     {
@@ -392,6 +392,18 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff'],
         effects: [],
         grantsActions: ['yan_hui', 'yan_fan'],
+    },
+    {
+        id: 'beiming',
+        name: '北冥神功',
+        description: '北冥之渊，吞噬万物。命中时汲取敌方推演 1 点，持续 3 秒。',
+        tags: ['passive', 'buff', 'qi'],
+        triggers: [
+            {
+                condition: { type: 'on_hit' },
+                effects: [{ type: 'stat_transfer', stat: 'wisdom', value: 1, duration: 3000 }],
+            },
+        ],
     },
 ]
 

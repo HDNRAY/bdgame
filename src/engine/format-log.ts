@@ -78,7 +78,7 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
         const d = dist !== undefined ? ` ${dist.toFixed(1)}m` : ''
         const num = (actionCount ?? 0) > 0 ? ` #${actionCount}` : ''
         if (ap > 0) {
-            lines.push(`── ${t(ms)}${num} ${actor} AP${ap}${hp}${d} ──`)
+            lines.push(`── ${t(ms)}${num} ${actor} AP${ap.toFixed(1)}${hp}${d} ──`)
         } else {
             lines.push(`── ${t(ms)}${num} ${actor}${hp}${d} ──`)
         }
@@ -144,7 +144,9 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     e.newDistance,
                     e.snapshot.actionCount,
                 )
-                lines.push(`  # 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m  | AP${e.apRemaining}`)
+                lines.push(
+                    `  # 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m  | AP${e.apRemaining.toFixed(1)}`,
+                )
                 break
             }
 
@@ -159,7 +161,7 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     time: ms,
                     actor: actorName,
                     text: `${indent}${prefix} ${e.actionName ?? e.weapon}(${apCost}AP) → ${targetName}`,
-                    ap: `AP${e.apRemaining}`,
+                    ap: `AP${e.apRemaining.toFixed(1)}`,
                     startAp: e.apRemaining + apCost,
                     hpInfo: hpInfo(e.actor, e.snapshot),
                     distance: e.snapshot.distance,

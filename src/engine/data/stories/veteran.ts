@@ -29,7 +29,7 @@ export const VETERAN: Story = {
             }
         if (nodeIndex === 6)
             return {
-                flavorText: '十六岁，你正式入伍。多年的偷学终于派上用场，你在新兵训练中脱颖而出。',
+                flavorText: '十六岁，你正式入伍。多年的苦练终于派上用场，你在新兵训练中脱颖而出。',
             }
         return undefined
     },

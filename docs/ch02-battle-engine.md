@@ -160,7 +160,7 @@ type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'stun_reset' |
 武器可定义 `summon` 字段（`SummonDef`），战斗开始时创建对应数量的 `SummonInstance`。召唤物在 TurnManager 中有独立条目，按以下间隔循环行动：
 
 ```ts
-间隔 = (基础间隔 + 前摇 + 硬直) × (0.6 + max(0, 0.4 - 悟性×0.01))
+间隔 = (基础间隔 + 前摇 + 硬直) × (0.6 + max(0, 0.4 - 推演×0.01))
 ```
 
 执行 owner 武器的召唤动作。

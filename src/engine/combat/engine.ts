@@ -738,18 +738,28 @@ export class BattleEngine {
             return true
         }
 
-        // 召唤物不消耗主人 AP
-        const savedAp = owner.ap
-        owner.ap = Math.max(owner.ap, summonAction.apCost)
-        this.#executeAction(summonAction, owner, enemy)
-        owner.ap = savedAp
+        // 召唤物消耗主人 AP，按 AP 恢复速度决定下一击间隔
+        let apRegenDelay = 0
+        const t = this.state.turn.currentTime
+        if (owner.lastApUpdate > 0 || owner.lastActionEndMs > 0) {
+            const ref = owner.lastApUpdate > 0 ? owner.lastApUpdate : owner.lastActionEndMs
+            if (t > ref) {
+                owner.ap = Math.min(owner.maxAp, owner.ap + calcApRegen(t - ref, owner.attrs.get('wisdom')))
+            }
+        }
+        owner.lastApUpdate = t
+        if (owner.ap >= summonAction.apCost) {
+            this.#executeAction(summonAction, owner, enemy)
+            const regenPerSec = calcApRegenPerSec(owner.attrs.get('wisdom'))
+            apRegenDelay = Math.ceil((summonAction.apCost / regenPerSec) * 1000)
+        }
         this.state.turn.next()
         const interval = calcSummonInterval(
             owner.attrs.get('wisdom'),
             summonAction.extraPreDelay ?? 0,
             summonAction.extraStunTime ?? 0,
         )
-        this.state.turn.scheduleNext({ type: 'summon', id: e.id, ownerId: e.ownerId }, interval)
+        this.state.turn.scheduleNext({ type: 'summon', id: e.id, ownerId: e.ownerId }, Math.max(interval, apRegenDelay))
         return true
     }
 
