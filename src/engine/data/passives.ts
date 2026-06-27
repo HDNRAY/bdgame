@@ -150,7 +150,7 @@ export const PASSIVES: Passive[] = [
         id: 'overlord_art',
         name: '霸刀刀法',
         description: '霸刀巨刃配合离心力，每一刀都顺势回旋突进。',
-        tags: ['passive', 'damage', 'stance'],
+        tags: ['passive', 'damage'],
         effects: [],
         actionEnhancer: (def) => {
             if (!def.tags.includes('slash')) return def
@@ -297,7 +297,7 @@ export const PASSIVES: Passive[] = [
         id: 'dark_iron_sword_art',
         name: '玄铁剑法',
         description: '玄铁重剑无锋无刃，运劲之法迥异常理。以力驭剑，身法负担减半。',
-        tags: ['passive', 'buff', 'stance'],
+        tags: ['passive', 'buff', 'heavy'],
         effects: [
             {
                 type: 'stat_restriction',
@@ -326,7 +326,7 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff', 'defense'],
         effects: [
             { type: 'dodge_mod', value: 0.08 },
-            { type: 'haste', eval: (char) => char.attrs.get('agility') * 10 },
+            { type: 'haste', eval: (char) => char.attrs.get('wisdom') * 10 },
         ],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'min_move_cost' }] }],
     },

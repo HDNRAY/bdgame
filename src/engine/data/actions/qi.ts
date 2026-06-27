@@ -18,12 +18,11 @@ export const QI_SKILLS: ActionDefinition[] = [
         name: '聚炁',
         description: '集中炁劲，力量翻倍。',
         requiredTags: [],
-        apCost: 3,
+        apCost: 2,
         tags: ['buff', 'support'],
         target: 'self',
         effects: [
             { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: { attr: 'wisdom', multiplier: 150 } },
-            { type: 'add_buff', buffId: 'qi_state' },
         ],
     },
     {
@@ -43,9 +42,9 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '恢复 1 AP。',
         requiredTags: [],
         apCost: 0,
+        chanCost: 5,
         tags: ['qi'],
         target: 'self',
         effects: [{ type: 'restore_ap', value: 1 }],
-        maxUses: 999,
     },
 ]
