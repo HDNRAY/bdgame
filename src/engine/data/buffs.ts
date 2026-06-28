@@ -302,7 +302,7 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'permanent' },
         tickInterval: 3000,
-        onTickDamage: () => 1,
+        onTickDamage: ({ target }) => Math.max(1, Math.round(target.maxHp * 0.01)),
     },
 
     // ── 伤害修正 buff ──
@@ -332,12 +332,12 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '消耗AP减免斩/刺/钝伤害。',
         tags: [],
         onTakeDamage: ({ final, target, action, engine }) => {
-            if (target.ap < 1 || final <= 5) return final
+            if (target.ap < 1 || final <= 4) return final
             const act = action
-            if (!act?.requiredTags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'blunt')) return final
+            if (!act?.tags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'unarmed')) return final
             target.spendAp(1)
-            engine.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免3点`, actorId: target.id })
-            return Math.max(0, Math.round((final - 3) * 10) / 10)
+            engine.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免2点`, actorId: target.id })
+            return Math.max(0, Math.round((final - 2) * 10) / 10)
         },
     },
     {
@@ -807,6 +807,44 @@ export const DEBUFF_DB: BuffDef[] = [
                 actorId: target.id,
             })
             return Math.max(0, Math.round((final - 3) * 10) / 10)
+        },
+    },
+    {
+        id: 'soft_armor',
+        name: '软猬',
+        description: '软猬甲护体，减免所有伤害；受拳脚攻击时反伤并叠流血。',
+        tags: [],
+        onTakeDamage: ({ final, target, attacker, engine, action }) => {
+            // 1. 通用减伤 1 点
+            const reduced = Math.max(0, Math.round((final - 1) * 10) / 10)
+
+            // 2. 仅拳脚（unarmed）反伤 + 叠流血
+            if (action?.tags?.includes('unarmed')) {
+                attacker.takeDamage(1)
+                engine.emitLog({
+                    type: 'system',
+                    message: `[软猬甲] ${target.name} 刺伤 ${attacker.name}，反伤2点`,
+                    actorId: target.id,
+                })
+
+                const bleedKey = `bleed::${attacker.id}`
+                const existing = engine.state.pendingBuffs.get(bleedKey)
+                if (existing) {
+                    existing.restoreValue = (existing.restoreValue ?? 0) + 1
+                } else {
+                    engine.state.pendingBuffs.set(bleedKey, {
+                        restoreValue: 1,
+                        extra: { bleedTriggerCount: 0, source: target.name, sourceId: target.id },
+                    })
+                }
+                engine.emitLog({
+                    type: 'system',
+                    message: `[软猬甲] ${attacker.name} 被刺伤，流血+1`,
+                    actorId: attacker.id,
+                })
+            }
+
+            return reduced
         },
     },
 ]

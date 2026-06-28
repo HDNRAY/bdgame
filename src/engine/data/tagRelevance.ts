@@ -16,6 +16,7 @@ import type { Tag } from '../entities/tag'
 const TAG_WEIGHTS: Partial<Record<Tag, number>> = {
     // 武器类型 (权重最高)
     slash: 3,
+    unarmed: 3,
     blunt: 3,
     pierce: 3,
     imperial: 3,

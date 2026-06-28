@@ -13,17 +13,18 @@ export const LUEYING: OpponentDef = {
         passive('ordinary_training'),
         artifact('poison_coating'),
         artifact('western_poison'),
+        artifact('soft_hedgehog_mail'),
         action('sword_thrust'),
         action('kick'),
         action('dart_throw'),
         action('sand_throw'),
-        // 8
+        // 9
     ],
     actionConfigs: [
         { actionId: 'gash' }, // AI 出招顺序
         { actionId: 'sword_thrust' }, // AI 出招顺序
         { actionId: 'sand_throw', triggerId: 'on_dodged' },
         { actionId: 'dart_throw', triggerId: 'on_dodge' },
-        { actionId: 'kick', triggerId: 'on_parry' },
+        { actionId: 'gash', triggerId: 'on_parry' },
     ],
 }

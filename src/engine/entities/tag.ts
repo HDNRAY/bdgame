@@ -1,6 +1,7 @@
 /** 统一标签类型（武器/效果/分类） */
 export type Tag =
     | 'qi' // 炁
+    | 'unarmed' // 空手
     | 'slash' // 劈砍
     | 'blunt' // 钝击
     | 'pierce' // 戳刺

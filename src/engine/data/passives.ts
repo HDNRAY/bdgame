@@ -203,7 +203,7 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'thunder_bonus' }] }],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
-            if (!def.tags.includes('blunt')) return def
+            if (!def.tags.includes('unarmed')) return def
             const chance = Math.min(0.8, def.apCost * 0.15)
             // 如果招式已有麻痹效果，合并概率（加法）
             const idx = def.effects!.findIndex(

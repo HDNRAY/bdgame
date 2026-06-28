@@ -55,7 +55,7 @@ type AttrName = 'strength' | 'vitality' | 'agility' | 'dexterity' | 'insight' | 
 ```ts
 type Tag =
     | 'slash'
-    | 'blunt'
+    | 'unarmed'
     | 'pierce'
     | 'parry'
     | 'imperial'

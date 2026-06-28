@@ -86,7 +86,7 @@ export class BattleEngine {
             if (c.permanentBurn > 0) {
                 const key = `permanent_burn::${c.id}`
                 this.state.pendingBuffs.set(key, { restoreValue: c.permanentBurn })
-                this.state.turn.scheduleSystemEventAt(key, 0, 'tick_buff')
+                this.state.turn.scheduleSystemEventAt(`tick_buff_${key}`, 0, 'tick_buff')
             }
         }
 
@@ -116,9 +116,10 @@ export class BattleEngine {
                 id: sid,
                 ownerId: self.id,
                 index: i,
+                actionId: sd.actionId,
             }
             this.#summons.set(sid, inst)
-            this.state.turn.addSummon(sid, self.id, i * preDelay)
+            this.state.turn.addSummon(sid, self.id, preDelay + i * preDelay)
         }
     }
 
@@ -177,12 +178,6 @@ export class BattleEngine {
                     buffs: this.getBuffs(characters[0].id),
                     attrs: characters[0].attrs.getAll(),
                     baseAttrs: {
-                        strength: 3,
-                        vitality: 3,
-                        agility: 3,
-                        dexterity: 3,
-                        insight: 3,
-                        wisdom: 3,
                         ...characters[0].build.baseAttrs,
                     } as Record<string, number>,
                 },
@@ -200,12 +195,6 @@ export class BattleEngine {
                     buffs: this.getBuffs(characters[1].id),
                     attrs: characters[1].attrs.getAll(),
                     baseAttrs: {
-                        strength: 3,
-                        vitality: 3,
-                        agility: 3,
-                        dexterity: 3,
-                        insight: 3,
-                        wisdom: 3,
                         ...characters[1].build.baseAttrs,
                     } as Record<string, number>,
                 },
@@ -745,10 +734,23 @@ export class BattleEngine {
         const enemy = this.getOpponent(e.ownerId)
         if (!owner || !enemy) return true
 
+        let summonAction: ActionDefinition | undefined
+        // 先找武器召唤物 action
         const weapon = owner.weaponDef ?? getWeapon(owner.build.weapon)
-        const summonAction = weapon.summon?.action ?? (weapon.summon ? getAction(weapon.summon.actionId) : undefined)
+        if (weapon.summon && weapon.summon.actionId === inst.actionId) {
+            summonAction = weapon.summon.action ?? getAction(weapon.summon.actionId)
+        }
+        // 再找奇物召唤物 action
         if (!summonAction) {
-            // 武器变更（被缴械等）导致召唤物失效，从队列移除
+            for (const art of owner.artifactDefs) {
+                if (art.summon && art.summon.actionId === inst.actionId) {
+                    summonAction = art.summon.action ?? getAction(art.summon.actionId)
+                    break
+                }
+            }
+        }
+        if (!summonAction) {
+            // 武器变更（被缴械等）导致召唤物失效
             this.state.turn.removeEvents(e.id)
             this.#summons.delete(e.id)
             return true

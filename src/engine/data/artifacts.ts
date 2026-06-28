@@ -259,6 +259,13 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['buff'],
         effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
     },
+    {
+        id: 'soft_hedgehog_mail',
+        name: '软猬甲',
+        description: '以软猬兽皮制成的甲衣，柔韧而多刺。减免所有伤害；受拳脚攻击时反伤并令对手流血。',
+        tags: ['defense'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'soft_armor' }] }],
+    },
 ]
 
 /** 按 ID 查找物品 */

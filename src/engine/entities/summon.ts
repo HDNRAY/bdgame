@@ -17,4 +17,6 @@ export interface SummonInstance {
     id: string
     ownerId: string
     index: number
+    /** 召唤物使用的招式 ID */
+    actionId: string
 }

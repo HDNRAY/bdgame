@@ -4,6 +4,7 @@ import type { Tag } from '../entities/tag'
 export const TAG_CN: Record<Tag, string> = {
     qi: '炁',
     slash: '劈砍',
+    unarmed: '拳脚',
     blunt: '钝击',
     pierce: '戳刺',
     parry: '可招架',
@@ -56,6 +57,7 @@ export const TAG_CN: Record<Tag, string> = {
 /** Tag → 颜色 */
 export const TAG_COLOR: Record<Tag, string> = {
     slash: '#e74c3c',
+    unarmed: '#e67e22',
     blunt: '#e67e22',
     pierce: '#f39c12',
     parry: '#3498db',
