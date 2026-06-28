@@ -513,7 +513,7 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'yue_nv_buff',
         name: '越女剑意',
-        description: '白猿授剑，灵巧化为剑势，附加灵巧×0.2伤害。',
+        description: '白猿授剑，灵巧化为剑势，附加灵巧×0.1伤害。',
         tags: [],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker }) =>
@@ -845,6 +845,23 @@ export const DEBUFF_DB: BuffDef[] = [
             }
 
             return reduced
+        },
+    },
+    {
+        id: 'golden_light',
+        name: '金光',
+        description: '金光咒护体，受伤时消耗1层缠劲减免3点。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTakeDamage: ({ final, target, engine }) => {
+            if (target.chan <= 0) return final
+            target.spendChan(1)
+            engine.emitLog({
+                type: 'system',
+                message: `[金光咒] ${target.name} 消耗1层缠劲减免3点（剩${target.chan}层）`,
+                actorId: target.id,
+            })
+            return Math.max(0, Math.round((final - 3) * 10) / 10)
         },
     },
 ]

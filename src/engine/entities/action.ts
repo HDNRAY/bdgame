@@ -59,6 +59,7 @@ export type EffectDef =
     | { type: 'add_passive'; passiveId: string }
     | { type: 'steal_artifact' }
     | { type: 'dex_to_str'; ratio: number }
+    | { type: 'weapon_tag'; tag: Tag }
     | {
           type: 'stat_restriction'
           check: (

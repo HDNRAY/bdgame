@@ -14,10 +14,11 @@ export const QILAN: OpponentDef = {
         passive('thunder_art'),
         action('electric_yoyo'),
         passive('zoldyck_art'),
+        passive('golden_light'),
         action('lightning_speed'),
         passive('qiti_source'), // 炁体源流
         artifact('cinnabar_mole'), // 守宫砂
         action('thunder_storm'),
-        // 9
+        // 10
     ],
 }

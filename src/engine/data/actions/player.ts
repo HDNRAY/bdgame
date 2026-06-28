@@ -41,6 +41,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '寸劲',
         description: '寸许之间，爆发千钧之力。',
         requiredTags: ['unarmed'],
+        requireAttrsMin: { strength: 14 },
         apCost: 4,
         tags: ['unarmed', 'melee'],
         getRange: () => [0, 1] as [number, number],
@@ -476,19 +477,20 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'thunder_storm',
-        name: '雷暴',
+        name: '雷蛇',
         description: '引天雷入体，爆发万钧雷光。需要20层[缠]才可释放。',
         requiredTags: [],
-        apCost: 7,
+        apCost: 6,
         tags: ['electric', 'stun'],
         getRange: () => [0, 3] as [number, number],
         chanCost: 20,
         canUse: (attacker) => attacker.chan >= 20,
         effects: [
-            { type: 'damage', scaling: { wisdom: 1 } },
+            { type: 'damage', scaling: { wisdom: 1.2 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
             { type: 'ignore_parry' },
         ],
+        onActionHitChance: (base) => base + 0.25,
     },
     // ── 棍系 ──
     {

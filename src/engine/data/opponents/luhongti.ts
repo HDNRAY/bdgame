@@ -24,12 +24,12 @@ export const LUHONGTI: OpponentDef = {
         // 12
     ],
     actionConfigs: [
-        { actionId: 'push_palm' }, // AI 出招顺序
         { actionId: 'sword_thrust' }, // AI 出招顺序
         { actionId: 'crushing_blow' }, // AI 出招顺序
+        { actionId: 'push_palm', triggerId: 'was_hit' },
         { actionId: 'wrist_strike', triggerId: 'on_dodge' },
         { actionId: 'light_slash', triggerId: 'on_dodged' },
-        { actionId: 'qi_bolt', triggerId: 'on_opponent_move' },
+        { actionId: 'qi_bolt', triggerId: 'on_opponent_move', conditionId: 'distance_gt_4' },
         { actionId: 'break_formation', triggerId: 'on_debuff' },
     ],
 }

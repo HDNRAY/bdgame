@@ -40,7 +40,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'sword_dominion',
         name: '御剑诀',
-        description: '以炁御剑，剑随意动，攻击距离延长。',
+        description: '以炁御剑，剑随意动。无需从小以炁养物，估故仅能延长攻击距离。',
         tags: ['imperial', 'qi', 'range', 'range_up'],
         effects: [{ type: 'weapon_range_bonus', value: 2 }],
     },
@@ -50,7 +50,10 @@ export const PASSIVES: Passive[] = [
         description: '虽九死而不悔，伤势越重，剑意越强。',
         tags: ['qi', 'damage'],
         triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'last_stand', stacks: 0.3 }] },
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'last_stand', stacks: 0.25 }],
+            },
         ],
     },
     {
@@ -296,7 +299,8 @@ export const PASSIVES: Passive[] = [
     {
         id: 'dark_iron_sword_art',
         name: '玄铁剑法',
-        description: '玄铁重剑无锋无刃，运劲之法迥异常理。以力驭剑，身法负担减半。',
+        description:
+            '玄门流落在外的秘籍，虽无玄门血脉，亦可以炁御物。无法精巧控制武器，但可降低重武器对修炼者身法的负面影响，并使其可以短暂使用拳脚攻击。',
         tags: ['passive', 'buff', 'heavy'],
         effects: [
             {
@@ -307,6 +311,7 @@ export const PASSIVES: Passive[] = [
                     return null
                 },
             },
+            { type: 'weapon_tag', tag: 'unarmed' },
         ],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'heavy_training' }] }],
     },
@@ -404,6 +409,14 @@ export const PASSIVES: Passive[] = [
                 effects: [{ type: 'stat_transfer', stat: 'wisdom', value: 1, duration: 3000 }],
             },
         ],
+    },
+    {
+        id: 'golden_light',
+        name: '金光咒',
+        description: '金光护体，AP上限-1；受伤时消耗1层缠劲减免3点。',
+        tags: ['passive', 'buff', 'defense', 'qi'],
+        effects: [{ type: 'max_ap_mod', value: -1 }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'golden_light' }] }],
     },
 ]
 

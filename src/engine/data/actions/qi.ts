@@ -18,7 +18,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         name: '聚炁',
         description: '集中炁劲，力量翻倍。',
         requiredTags: [],
-        apCost: 2,
+        apCost: 3,
         tags: ['buff', 'support'],
         target: 'self',
         effects: [
