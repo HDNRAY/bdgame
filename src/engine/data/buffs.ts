@@ -121,7 +121,6 @@ export const BUFF_DB: BuffDef[] = [
         name: '心眼',
         description: '心眼已开，暴击率+0.25。',
         tags: [],
-        value: 0.25,
         expiry: { type: 'consumed', trigger: 'on_crit' },
         stacking: { type: 'none' },
         onCritChance: () => 0.25,
@@ -129,16 +128,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'circle',
         name: '圆',
-        description: '下次攻击距离≤4时，命中+40%。',
+        description: '下次攻击，命中+40%。',
         tags: [],
-        value: 0.4,
         expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },
-        onHitChance: ({ engine, attacker }) => {
-            const dist = engine.state.position.distance(engine.state.characters[0].id, engine.state.characters[1].id)
-            const maxRange = attacker.weaponDef?.range?.[1] ?? 4
-            return dist <= maxRange ? 0.4 : 0
-        },
+        onHitChance: () => 0.4,
     },
     {
         id: 'momentum',
@@ -788,9 +782,16 @@ export const DEBUFF_DB: BuffDef[] = [
         id: 'yuanting_yuezhi',
         name: '渊渟岳峙',
         description: '免疫身法/灵巧减益、位移、缴械、打断。',
-        tags: [],
+        tags: ['super_armor'],
         expiry: { type: 'permanent' },
-        onDisarmChance: () => -1,
+    },
+    {
+        id: 'stance_armor',
+        name: '罡体',
+        description: '刚体护身，免疫眩晕、击退、打断、缴械、击倒。',
+        tags: ['super_armor'],
+        expiry: { type: 'duration', ms: 2000 },
+        stacking: { type: 'none' },
     },
     {
         id: 'yuxin_sword_mastery',

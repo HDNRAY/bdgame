@@ -53,6 +53,7 @@ export const TAG_CN: Record<Tag, string> = {
     inherent: '固有',
     weapon: '武器',
     thrown: '暗器',
+    super_armor: '罡体',
 }
 
 /** Tag → 颜色 */
@@ -92,6 +93,7 @@ export const TAG_COLOR: Record<Tag, string> = {
     talent: '#e91e63',
     trigger: '#9b59b6',
     summon: '#8e44ad',
+    super_armor: '#9b59b6',
     stance: '#1abc9c',
     implant: '#7f8c8d',
     electric: '#3498db',

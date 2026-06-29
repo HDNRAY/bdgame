@@ -19,9 +19,15 @@ import { processActionEffect } from './action'
 
 import { applyAttrMods, reduceBleedOnHeal, applyScaledAttrMods, scheduleBuffEnd } from '../utils/buff-layer'
 
-/** 检查目标是否有渊渟岳峙免疫（不可击退/打断/缴械/击倒/失衡） */
-function hasYuanYing(target: { id: string }, engine: { state: { pendingBuffs: Map<string, unknown> } }): boolean {
-    return engine.state.pendingBuffs.has(`yuanting_yuezhi::${target.id}`)
+/** 检查目标是否有罡体免疫（通过 buff 的 super_armor 标签识别） */
+function hasCcImmunity(target: { id: string }, engine: { state: { pendingBuffs: Map<string, unknown> } }): boolean {
+    for (const [key] of engine.state.pendingBuffs) {
+        const [buffId, charId] = key.split('::')
+        if (charId !== target.id) continue
+        const def = getBuff(buffId)
+        if (def?.tags.includes('super_armor')) return true
+    }
+    return false
 }
 import { tickEngine } from '../tick-engine'
 
@@ -93,8 +99,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         })
     },
     interrupt({ enemy, engine }: EffectCtx) {
-        if (hasYuanYing(enemy, engine)) {
-            engine.emitLog({ type: 'system', message: `[渊渟岳峙] ${enemy.name} 免疫打断`, actorId: enemy.id })
+        if (hasCcImmunity(enemy, engine)) {
+            engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫打断`, actorId: enemy.id })
             return
         }
         const INTERRUPT_DELAY = 1000
@@ -102,8 +108,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.emitLog({ type: 'interrupt', sourceId: '', targetId: enemy.id })
     },
     knockback({ eff, self, engine }: EffectCtx) {
-        if (hasYuanYing(self, engine)) {
-            engine.emitLog({ type: 'system', message: `[渊渟岳峙] ${self.name} 免疫击退`, actorId: self.id })
+        if (hasCcImmunity(self, engine)) {
+            engine.emitLog({ type: 'system', message: `[罡体] ${self.name} 免疫击退`, actorId: self.id })
             return
         }
         const { distance } = eff as Extract<EffectDef, { type: 'knockback' }>
@@ -325,9 +331,12 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             engine.emitLog({ type: 'system', message: `[雷体] ${enemy.name} 免疫麻痹`, actorId: enemy.id })
             return
         }
-        // 渊渟岳峙免疫
-        if (hasYuanYing(enemy, engine) && (st === 'stagger' || st === 'knockdown' || st === 'fumble_chance')) {
-            engine.emitLog({ type: 'system', message: `[渊渟岳峙] ${enemy.name} 免疫${buff.name}`, actorId: enemy.id })
+        // 罡体免疫
+        if (
+            hasCcImmunity(enemy, engine) &&
+            (st === 'stun' || st === 'stagger' || st === 'knockdown' || st === 'fumble_chance')
+        ) {
+            engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫${buff.name}`, actorId: enemy.id })
             return
         }
 
@@ -614,6 +623,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
     },
     disarm({ eff, self, enemy, engine, action }: EffectCtx) {
+        if (hasCcImmunity(enemy, engine)) {
+            engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫缴械`, actorId: enemy.id })
+            return
+        }
         const e = eff as Extract<EffectDef, { type: 'disarm' }>
         let chance = e.chance ?? 1
         // 防御方 buff 缴械抗性

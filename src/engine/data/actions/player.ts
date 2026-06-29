@@ -96,7 +96,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'melee'],
-        effects: [{ type: 'damage', scaling: { strength: 0.25, agility: 0.15 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.1, agility: 0.3 } }],
     },
     {
         id: 'shadow_kick',

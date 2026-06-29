@@ -19,7 +19,7 @@ export const YIDAO: OpponentDef = {
         artifact('tiger_eye'),
         weapon('zantetsu'),
         passive('extreme'),
-        // passive('qi_edge'),
+        passive('stance_armor'),
         // 10
     ],
     actionConfigs: [

@@ -54,3 +54,4 @@ export type Tag =
     | 'weapon' // 武器来源的 buff
     | 'thrown' // 暗器
     | 'damage' // 伤害增强
+    | 'super_armor' // 罡体

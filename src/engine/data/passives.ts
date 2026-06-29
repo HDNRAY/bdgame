@@ -285,6 +285,18 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
+        id: 'stance_armor',
+        name: '罡体',
+        description: '进入架势时罡气护体，2秒内免疫眩晕、击退、打断、缴械、击倒。',
+        tags: ['buff', 'defense'],
+        triggers: [
+            {
+                condition: { type: 'on_stance' },
+                effects: [{ type: 'add_buff', buffId: 'stance_armor' }],
+            },
+        ],
+    },
+    {
         id: 'dark_room_catch',
         name: '暗室抓雀功',
         description: '古墓中蒙眼抓雀练就的身法与感知。身法+2，灵巧+2，免疫迷眼。',
@@ -426,12 +438,12 @@ export const PASSIVES: Passive[] = [
     {
         id: 'beiming',
         name: '北冥神功',
-        description: '北冥之渊，吞噬万物。命中时汲取敌方推演 1 点，持续 3 秒。',
+        description: '北冥之渊，吞噬万物。命中时汲取敌方推演 1 点，持续 5 秒。',
         tags: ['passive', 'buff', 'qi'],
         triggers: [
             {
                 condition: { type: 'on_hit' },
-                effects: [{ type: 'stat_transfer', stat: 'wisdom', value: 1, duration: 3000 }],
+                effects: [{ type: 'stat_transfer', stat: 'wisdom', value: 1, duration: 5000 }],
             },
         ],
     },
@@ -523,7 +535,7 @@ export const TALENTS: Talent[] = [
     {
         id: 'yuanting_yuezhi',
         name: '渊渟岳峙',
-        description: '渊深如潭，岳峙如山。任何身法/灵巧减益、位移、缴械、打断均无效。装备减益也无效。',
+        description: '渊深如潭，岳峙如山。永久罡体，身法/灵巧无法被降低。',
         tags: ['talent', 'buff', 'defense'],
         requireAttrsMin: { strength: 20 },
         effects: [

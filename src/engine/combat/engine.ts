@@ -320,19 +320,18 @@ export class BattleEngine {
         }
         this.emit('turn_end', self, enemy)
         this.state.turn.next()
-        if (totalActionDurationMs > 0) this.state.turn.advanceTime(totalActionDurationMs)
 
-        // ── 4. 计算下次行动的间隔 = AP 回复耗时 ──
+        // ── 4. 计算下次行动的间隔 = 行动耗时 + AP 回复耗时 ──
         const remainingAp = self.ap
         const regenPerSec = calcApRegenPerSec(self.attrs.get('wisdom'))
         const regenMs = Math.ceil(((self.maxAp - remainingAp) / regenPerSec) * 1000)
-        let totalDelay = regenMs
+        let totalDelay = totalActionDurationMs + regenMs
         // 没有执行任何指令时最低等待一个完整回复周期（防止死循环）
         if (totalActionDurationMs === 0) {
             totalDelay = Math.max(totalDelay, Math.ceil((self.maxAp / regenPerSec) * 1000))
         }
 
-        self.lastActionEndMs = this.state.turn.currentTime
+        self.lastActionEndMs = this.state.turn.currentTime + totalActionDurationMs
         this.state.turn.scheduleNext(
             { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.getHaste() },
             totalDelay,
