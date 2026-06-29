@@ -5,7 +5,7 @@ const WUKONG_ATTRS = { strength: 20, vitality: 10, agility: 13, dexterity: 16, i
 
 export const WUKONG: OpponentDef = {
     id: 'wukong',
-    name: '天命·悟空',
+    name: '天命·孙悟',
     battleStyle: 'melee',
     weapon: 'qimei_staff',
     targetAttrs: WUKONG_ATTRS,

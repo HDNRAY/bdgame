@@ -265,7 +265,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                 return s + (inst?.apCost ?? 0)
             }, 0)
         const remaining = apBudget - spent
-        if (remaining >= 2) {
+        if (remaining >= 1) {
             const second = pickBestSecondary(self, state, remaining)
             if (second) cmds.push({ type: 'attack', actionId: second })
         }

@@ -1,11 +1,11 @@
 import type { BattleEngine } from '../engine'
 import type { Character } from '../../entities/character'
-import type { AttrName } from '../../entities/attributes'
+import { ATTR_CN, type AttrName } from '../../entities/attributes'
 import type { BuffLayer } from '../types'
-import { getBuff } from '../../data/buffs'
-import { ATTR_CN } from '../../entities/attributes'
+import { getBuff, type BuffDef } from '../../data/buffs'
 import { BattleLog } from '../battle-log'
 import type { TriggerEvent } from '../../entities/trigger'
+import { calcDebuffDuration } from '../../calc/damage'
 
 /** 调度 buff 过期事件 */
 export function scheduleBuffExpiry(engine: BattleEngine, layerKey: string, duration: number): void {
@@ -24,7 +24,7 @@ export function applyAttrMods(
     char: Character,
     engine: BattleEngine,
     modsIn: Record<string, number>,
-    label: string,
+    _label: string,
     sourceTags?: string[],
 ): Record<string, number> {
     const applied: Record<string, number> = {}
@@ -45,15 +45,6 @@ export function applyAttrMods(
         char.attrs.modify(attr as AttrName, delta)
         applied[attr] = delta
     }
-    // 合并为一条日志
-    const details = Object.entries(applied)
-        .map(([a, v]) => `${ATTR_CN[a] ?? a}${v > 0 ? '+' : ''}${v}`)
-        .join(', ')
-    engine.emitLog({
-        type: 'system',
-        message: `[${label}] ${BattleLog.name(char.name)} ${details}`,
-        actorId: char.id,
-    })
     // 根骨增加 → 按比例增加剩余血量（切走时不降）
     if ('vitality' in applied && applied.vitality > 0) {
         const oldMax = char.maxHp - applied.vitality * 18
@@ -112,5 +103,42 @@ export function consumeBuffsByTrigger(charId: string, engine: BattleEngine, trig
         const def = getBuff(parts[0])
         if (def?.expiry?.type !== 'consumed' || def.expiry.trigger !== trigger) continue
         engine.state.pendingBuffs.delete(k)
+    }
+}
+
+/** 缩放并应用 attrMods，返回 { mods, details } */
+export function applyScaledAttrMods(
+    buff: BuffDef,
+    stacks: number,
+    char: Character,
+    engine: BattleEngine,
+): { mods: Record<string, number>; details: string[] } {
+    const mods: Record<string, number> = {}
+    const details: string[] = []
+    if (!buff.attrMods) return { mods, details }
+    const scaled: Record<string, number> = {}
+    for (const [attr, val] of Object.entries(buff.attrMods)) {
+        scaled[attr] = (val as number) * stacks
+    }
+    const result = applyAttrMods(char, engine, scaled, buff.name, buff.tags)
+    for (const [attr, v] of Object.entries(result)) {
+        details.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
+        mods[attr] = v as number
+        if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
+    }
+    return { mods, details }
+}
+
+/** 根据 buff expiry 类型调度到期事件 */
+export function scheduleBuffEnd(engine: BattleEngine, key: string, buff: BuffDef, char: Character): void {
+    if (buff.expiry?.type === 'duration') {
+        engine.state.turn.scheduleSystemEventAt(
+            `buff_end_${key}`,
+            engine.state.turn.currentTime + buff.expiry.ms,
+            'buff_end',
+        )
+    } else if (buff.expiry?.type === 'duration_by_attr') {
+        const duration = calcDebuffDuration(buff.expiry.multiplier, char.attrs.get(buff.expiry.attr))
+        engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, engine.state.turn.currentTime + duration, 'buff_end')
     }
 }

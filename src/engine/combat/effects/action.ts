@@ -15,3 +15,17 @@ export function processActionEffect(
     const handler = effectHandlers[eff.type]
     if (handler) handler({ eff, self, enemy, engine, tMs, action })
 }
+
+const PRE_HIT_EFFECT_TYPES = new Set<EffectDef['type']>([
+    'dash',
+    'short_dash',
+    'add_buff',
+    'remove_buff',
+    'switch_weapon',
+    'retrieve_weapon',
+])
+
+/** 判断效果类型是否为不受命中影响的先发效果 */
+export function isPreHitEffect(type: EffectDef['type']): boolean {
+    return PRE_HIT_EFFECT_TYPES.has(type)
+}

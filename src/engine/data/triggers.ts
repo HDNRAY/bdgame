@@ -79,15 +79,9 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
         type: 'on_parried',
     },
     {
-        id: 'on_buff',
-        name: '获得增益时',
-        description: '获得增益效果时触发',
-        type: 'on_buff',
-    },
-    {
         id: 'on_debuff',
-        name: '施加减益时',
-        description: '对目标施加减益效果时触发',
+        name: '被减益时',
+        description: '受到减益效果时触发',
         type: 'on_debuff',
     },
     {
@@ -95,6 +89,42 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
         name: '施加中毒时',
         description: '使目标中毒时触发',
         type: 'on_poison',
+    },
+    {
+        id: 'on_burn',
+        name: '施加灼烧时',
+        description: '使目标灼烧时触发',
+        type: 'on_burn',
+    },
+    {
+        id: 'on_bleed',
+        name: '施加流血时',
+        description: '使目标流血时触发',
+        type: 'on_bleed',
+    },
+    {
+        id: 'on_stun',
+        name: '施加眩晕时',
+        description: '使目标眩晕时触发',
+        type: 'on_stun',
+    },
+    {
+        id: 'on_paralyze',
+        name: '施加麻痹时',
+        description: '使目标麻痹时触发',
+        type: 'on_paralyze',
+    },
+    {
+        id: 'on_sand_blind',
+        name: '施加致盲时',
+        description: '使目标致盲时触发',
+        type: 'on_sand_blind',
+    },
+    {
+        id: 'on_disarm',
+        name: '缴械时',
+        description: '缴械目标时触发',
+        type: 'on_disarm',
     },
     {
         id: 'on_move',
@@ -131,12 +161,6 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
         name: '战斗开始时',
         description: '战斗开始时触发',
         type: 'battle_start',
-    },
-    {
-        id: 'on_equip',
-        name: '装备时',
-        description: '装备时触发',
-        type: 'on_equip',
     },
 ]
 

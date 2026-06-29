@@ -40,13 +40,14 @@ import { AJIU } from './ajiu'
 import { WUKONG } from './wukong'
 import { XUNXIANG } from './xunxiang'
 import { JUNSHI } from './junshi'
+import { AttackStyle } from '../../ai/move-planner'
 
 /** 对手定义（纯数据） */
 export interface OpponentDef {
     id: string
     name: string
     story?: string
-    battleStyle?: string
+    battleStyle?: AttackStyle
     weapon: string
     rewards: Reward[]
     actionConfigs?: ActionConfig[]

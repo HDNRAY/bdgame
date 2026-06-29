@@ -92,6 +92,25 @@ export function applyDamage(
     if (isCrit) {
         consumeBuffsByTrigger(attacker.id, engine, 'on_crit')
         engine.emit('on_crit', attacker, target)
+        // 攻击方 buff onCritical 钩子（缩进一层）
+        engine.state.log.indentDepth++
+        for (const [key, layer] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== attacker.id) continue
+            const def = getBuff(parts[0])
+            if (!def?.onCritical) continue
+            def.onCritical({
+                final,
+                raw,
+                target,
+                attacker,
+                engine,
+                layer,
+                buffOwnerId: parts[1],
+                action: act,
+            })
+        }
+        engine.state.log.indentDepth--
     }
 
     // ── buff 独立追加伤害（onAfterDealDamage） ──
@@ -181,6 +200,25 @@ function resolveParry(
     consumeBuffsByTrigger(target.id, engine, 'on_parry')
     engine.emit('on_parry', target, attacker)
     engine.emit('on_parried', attacker, target)
+    // 防御方 buff onParried 钩子（缩进一层）
+    engine.state.log.indentDepth++
+    for (const [key, layer] of engine.state.pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2 || parts[1] !== target.id) continue
+        const def = getBuff(parts[0])
+        if (!def?.onParried) continue
+        def.onParried({
+            final: raw,
+            raw,
+            target,
+            attacker,
+            engine,
+            layer,
+            buffOwnerId: parts[1],
+            action: act,
+        })
+    }
+    engine.state.log.indentDepth--
 
     // ── 5. 伤害减免 ──
     let final = calcParriedDamage(raw, target.attrs.get('strength'))

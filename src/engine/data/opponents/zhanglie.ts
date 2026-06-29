@@ -23,8 +23,8 @@ export const ZHANGLIE: OpponentDef = {
     ],
     actionConfigs: [
         { actionId: 'thrust' }, // AI 出招顺序
-        { actionId: 'pursuit_thrust', triggerId: 'on_debuff' },
-        { actionId: 'straight_punch', conditionId: 'on' }, // AI 出招顺序
+        { actionId: 'pursuit_thrust', triggerId: 'on_bleed' },
+        { actionId: 'straight_punch' }, // AI 出招顺序
         { actionId: 'jab' }, // AI 出招顺序
     ],
     taunt: () => '别怨我。各为其主。',

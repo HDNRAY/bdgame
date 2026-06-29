@@ -8,11 +8,11 @@ interface StatTooltipProps {
 
 const ATTR_DESC: Record<AttrName, string> = {
     strength: '影响攻击伤害和招架减伤',
-    vitality: '影响最大生命值、最大AP',
+    vitality: '影响最大气血、最大内息',
     agility: '影响闪避率、移动效率和回合间隔',
     dexterity: '影响命中率、暴击率和招架率',
     insight: '影响命中率、闪避率、暴击率和招架率',
-    wisdom: '影响触发槽数量和炁效果',
+    wisdom: '影响触发槽数量、炁效果和回合间隔',
 }
 
 /** 属性 tooltip 内容 */

@@ -1,5 +1,4 @@
 import { Character } from '../entities/character'
-import { MAX_CHAN } from '../constants'
 import { PositionSystem } from './position'
 import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
@@ -17,7 +16,7 @@ import { getBuff } from '../data/buffs'
 import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
-import { revertBuffMods, applyAttrMods, reduceBleedOnHeal } from './utils/buff-layer'
+import { reduceBleedOnHeal } from './utils/buff-layer'
 import { processActionEffect, processHitCheck, processBuffEnd } from './effects'
 import { tickEngine } from './tick-engine'
 import type {
@@ -32,6 +31,8 @@ import type {
 } from './types'
 import type { SummonDef, SummonInstance } from '../entities/summon'
 import type { LogEvent } from './log-events'
+import { isPreHitEffect } from './effects/action'
+import { MAX_CHAN } from '../constants'
 
 // ── LogEvent 监听器类型 ──
 type LogListener = (event: LogEvent) => void
@@ -298,12 +299,6 @@ export class BattleEngine {
         }
 
         // endEvent
-        // 不二剑衰减
-        if (self.critDamageMod > 0) {
-            self.critDamageMod = Math.max(0, Math.round((self.critDamageMod - 0.05) * 100) / 100)
-        }
-        self.critChance = Math.max(0, Math.round((self.critChance - 0.05) * 100) / 100)
-        self.dodgeMod = Math.min(0.2, Math.round((self.dodgeMod + 0.04) * 100) / 100)
         // ── Buff onTurnEnd 钩子（不依赖命中） ──
         for (const [key, layer] of this.state.pendingBuffs) {
             const parts = key.split('::')
@@ -489,19 +484,27 @@ export class BattleEngine {
         const hasZhou = this.state.pendingBuffs.has(zhouKey)
 
         if (curValue >= MAX_CHAN && !hasZhou) {
-            const buff = getBuff('zhou')
-            const char = this.getCharacter(charId)
-            if (buff?.attrMods && char) {
-                const mods = applyAttrMods(char, this, buff.attrMods, '周')
-                this.state.pendingBuffs.set(zhouKey, { restoreValue: 1, mods })
-            }
+            processActionEffect(
+                { type: 'add_buff', buffId: 'zhou', stacks: 2 },
+                char,
+                char,
+                this,
+                this.state.turn.currentTime,
+            )
             const enemy = this.getOpponent(charId)
-            if (char && enemy) this.emit('chan_overflow', char, enemy)
-        } else if (curValue < MAX_CHAN && hasZhou) {
-            const zhouLayer = this.state.pendingBuffs.get(zhouKey)
-            const char = this.getCharacter(charId)
-            if (char) revertBuffMods(zhouLayer, char, this)
-            this.state.pendingBuffs.delete(zhouKey)
+            if (enemy) this.emit('chan_overflow', char, enemy)
+        } else if (curValue >= 30 && curValue < MAX_CHAN && !hasZhou) {
+            processActionEffect(
+                { type: 'add_buff', buffId: 'zhou', stacks: 1 },
+                char,
+                char,
+                this,
+                this.state.turn.currentTime,
+            )
+            const enemy = this.getOpponent(charId)
+            if (enemy) this.emit('chan_overflow', char, enemy)
+        } else if (curValue < 30 && hasZhou) {
+            processActionEffect({ type: 'remove_buff', buffId: 'zhou' }, char, char, this, this.state.turn.currentTime)
             this.emitLog({
                 type: 'system',
                 message: `[周] ${BattleLog.name(char?.name ?? '')} 缠劲不足，周流消散`,
@@ -598,8 +601,29 @@ export class BattleEngine {
             const c = canExecuteAction(action, self, this.state)
             if (!c.ok) return r
         }
-        if (!triggered && !self.spendAp(action.apCost)) {
-            return r
+        if (!triggered) {
+            let cost = action.apCost
+            for (const [key, layer] of this.state.pendingBuffs) {
+                const parts = key.split('::')
+                if (parts.length < 2 || parts[1] !== self.id) continue
+                const def = getBuff(parts[0])
+                if (!def?.onActionCost) continue
+                cost = Math.max(
+                    1,
+                    cost +
+                        def.onActionCost({
+                            final: 0,
+                            raw: 0,
+                            attacker: self,
+                            target: enemy,
+                            engine: this,
+                            layer,
+                            buffOwnerId: self.id,
+                            action,
+                        }),
+                )
+            }
+            if (!self.spendAp(cost)) return r
         }
         // 消耗限次招式
         const inst = self.actions.find((a) => a.id === action.id)
@@ -622,9 +646,9 @@ export class BattleEngine {
             indent: this.state.log.indentDepth,
         })
         this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
-        // 移动/跳跃类效果先执行（不受战斗判定影响）
+        // 不受命中影响的效果先执行（移动、换武、buff 等）
         for (const eff of action.effects ?? []) {
-            if (eff.type === 'dash' || eff.type === 'short_dash' || eff.type === 'knockback') {
+            if (isPreHitEffect(eff.type)) {
                 processActionEffect(eff, self, enemy, this, this.#tMs, action)
             }
         }
@@ -660,15 +684,7 @@ export class BattleEngine {
                 !r.dodged
             ) {
                 processActionEffect(eff, self, enemy, this, tMs, action)
-            } else if (
-                eff.type === 'remove_buff' ||
-                eff.type === 'add_buff' ||
-                eff.type === 'switch_weapon' ||
-                eff.type === 'retrieve_weapon'
-            ) {
-                // 这些效果不受命中影响（丢刀、换武、清势等）
-                processActionEffect(eff, self, enemy, this, tMs, action)
-            } else if (r.hit && !r.dodged && eff.type !== 'dash' && eff.type !== 'knockback') {
+            } else if (r.hit && !r.dodged && !isPreHitEffect(eff.type)) {
                 processActionEffect(eff, self, enemy, this, tMs, action)
             }
         }

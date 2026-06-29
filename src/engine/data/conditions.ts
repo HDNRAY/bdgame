@@ -55,6 +55,11 @@ export const CONDITION_PRESETS = [
         name: '距离<5m',
         build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 5 }),
     },
+    {
+        id: 'enemy_no_stun_track',
+        name: '目标无眩晕递减',
+        build: (): RequiredCondition => ({ type: 'enemy_buff_not_active', buffId: 'stun_track' }),
+    },
 ] as const
 
 /** 按 ID 查找条件预设 */
@@ -87,5 +92,7 @@ export function describeCondition(c: RequiredCondition): string {
             return `目标 HP < ${Math.round(c.ratio * 100)}%`
         case 'enemy_hp_above':
             return `目标 HP > ${Math.round(c.ratio * 100)}%`
+        case 'enemy_buff_not_active':
+            return `目标无 [${c.buffId}]`
     }
 }

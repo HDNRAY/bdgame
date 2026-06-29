@@ -4,6 +4,8 @@ import type { ActionConfig } from '../entities/action-config'
 import { STAT_NAMES } from '../entities/reward'
 import { cultCost } from './cultivation'
 import { checkTalents } from './talent-check'
+import { getArtifact } from '../data/artifacts'
+import { getPassive } from '../data/passives'
 
 /** 通用生成器 */
 export function simpleGenerate(
@@ -52,8 +54,17 @@ export function simpleGenerate(
     const weaponReward = picked.filter((r) => r.type === 'weapon').pop()
     const finalWeapon = weaponReward ? weaponReward.id : weapon
 
-    // 只保留已解锁招式对应的 actionConfigs
+    // 收集所有已获得的招式 ID（含被动/奇物 grantsActions）
     const pickedActionIds = new Set(picked.filter((r) => r.type === 'action').map((r) => r.id))
+    for (const r of picked) {
+        if (r.type === 'artifact') {
+            const def = getArtifact(r.id)
+            if (def?.grantsActions) for (const aId of def.grantsActions) pickedActionIds.add(aId)
+        } else if (r.type === 'passive') {
+            const def = getPassive(r.id)
+            if (def?.grantsActions) for (const aId of def.grantsActions) pickedActionIds.add(aId)
+        }
+    }
     const filteredConfigs = actionConfigs?.filter((ac) => pickedActionIds.has(ac.actionId))
 
     return {

@@ -42,6 +42,7 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [1, 3],
         triggers: [
             { condition: { type: 'battle_start' }, actionId: '_buer_init' },
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qing_shan_recovery' }] },
             { condition: { type: 'on_dodge' }, actionId: '_fusi_crit_stack' },
         ],
     },

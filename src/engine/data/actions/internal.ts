@@ -231,4 +231,17 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         maxUses: 999,
         effects: [{ type: 'stat_buff', attrs: { dodgeChance: 0.02 }, durationMs: 3000 }],
     },
+    {
+        id: '_golden_bell_swing',
+        name: '金玲索',
+        description: '',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['blunt', 'range'],
+        getRange: () => [1, 5] as [number, number],
+        effects: [
+            { type: 'damage', scaling: { dexterity: 0.3 } },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
+        ],
+    },
 ]

@@ -345,7 +345,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'stone_skin',
         name: '石肤',
-        description: '肌肤如岩石般坚硬，所受直伤-15%。免疫灼烧。',
+        description: '肌肤如岩石般坚硬，所受直伤-10%。免疫灼烧。',
         tags: ['passive', 'defense', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'stone_skin' }] }],
     },
@@ -369,7 +369,7 @@ export const PASSIVES: Passive[] = [
         id: 'frost_step_mastery',
         name: '踏雪',
         description: '踏雪如履平地，身法轻灵，移动效率+50%。',
-        tags: ['passive', 'buff', 'defense'],
+        tags: ['passive', 'buff'],
         effects: [{ type: 'move_efficiency', value: 0.5 }],
     },
     {
@@ -417,6 +417,19 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff', 'defense', 'qi'],
         effects: [{ type: 'max_ap_mod', value: -1 }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'golden_light' }] }],
+    },
+    {
+        id: 'martial_arts_archive',
+        name: '活武学宝典',
+        description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'stat_buff', attrs: { insight: 2 } }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'martial_arts_archive' }],
+            },
+        ],
     },
 ]
 

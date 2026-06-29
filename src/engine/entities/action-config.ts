@@ -17,6 +17,7 @@ export type RequiredCondition =
     | { type: 'distance_greater_than'; meters: number }
     | { type: 'enemy_hp_below'; ratio: number }
     | { type: 'enemy_hp_above'; ratio: number }
+    | { type: 'enemy_buff_not_active'; buffId: string }
 
 /** 招式配置条目 */
 export interface ActionConfig {
@@ -61,5 +62,7 @@ export function checkCondition(cond: RequiredCondition, self: Character, state: 
             return enemy ? enemy.hp / enemy.maxHp < cond.ratio : false
         case 'enemy_hp_above':
             return enemy ? enemy.hp / enemy.maxHp > cond.ratio : false
+        case 'enemy_buff_not_active':
+            return !state.pendingBuffs.has(`${cond.buffId}::${enemy?.id}`)
     }
 }

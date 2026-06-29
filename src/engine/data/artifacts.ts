@@ -220,7 +220,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '他山之石',
         description: '博采众长，洞察入微。宁毅所赠的现代搏击笔记。',
         tags: ['buff'],
-        effects: [{ type: 'stat_buff', attrs: { insight: 3, dexterity: 1 } }],
+        effects: [{ type: 'stat_buff', attrs: { insight: 4, dexterity: 1 } }],
     },
     {
         id: 'cinnabar_mole',
@@ -240,7 +240,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'herb_pouch',
         name: '蜂草鱼囊',
-        description: '玉蜂浆、断肠草、寒潭白鱼所制，每 3 秒自动化解一层毒素。',
+        description: '玉蜂浆、断肠草、寒潭白鱼所制，每 3 秒自动化解一层毒素，且恢复2点气血',
         tags: ['trigger'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'herb_pouch' }] }],
     },
@@ -265,6 +265,16 @@ export const ARTIFACTS: Artifact[] = [
         description: '以软猬兽皮制成的甲衣，柔韧而多刺。减免所有伤害；受拳脚攻击时反伤并令对手流血。',
         tags: ['defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'soft_armor' }] }],
+    },
+    {
+        id: 'golden_bell_rope',
+        name: '金玲索',
+        description: '金玲索，以炁御之，可攻可守。受到炁攻击时减伤2点；非炁攻击被招架时额外减免2点。',
+        tags: ['defense'],
+        grantsActions: ['_golden_bell_swing'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'golden_bell_guard' }] },
+        ],
     },
 ]
 

@@ -1,7 +1,10 @@
 import type { EffectDef } from '../../entities/action'
+import type { Character } from '../../entities/character'
+import type { BattleEngine } from '../engine'
 import { ATTR_CN, type AttrName } from '../../entities/attributes'
-import { calcBaseDamage, calcHealAmount, calcBuffDuration, calcRoll, calcDebuffDuration } from '../../calc/damage'
+import { calcBaseDamage, calcHealAmount, calcBuffDuration, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../data/weapons/weapons'
+import type { BuffDef } from '../../data/buffs'
 import { getBuff } from '../../data/buffs'
 import { getPassive } from '../../data/passives'
 import { getAction } from '../../data/actions'
@@ -14,13 +17,54 @@ import type { EffectCtx } from './types'
 import { applyDamage, applyBonusDamage } from './damage'
 import { processActionEffect } from './action'
 
-import { applyAttrMods, reduceBleedOnHeal } from '../utils/buff-layer'
+import { applyAttrMods, reduceBleedOnHeal, applyScaledAttrMods, scheduleBuffEnd } from '../utils/buff-layer'
 
 /** 检查目标是否有渊渟岳峙免疫（不可击退/打断/缴械/击倒/失衡） */
 function hasYuanYing(target: { id: string }, engine: { state: { pendingBuffs: Map<string, unknown> } }): boolean {
     return engine.state.pendingBuffs.has(`yuanting_yuezhi::${target.id}`)
 }
 import { tickEngine } from '../tick-engine'
+
+/** 收集角色身上所有 onBuffApply 上限覆盖，取最大值 */
+function emitPerDebuff(engine: BattleEngine, buffId: string, self: Character, enemy: Character): void {
+    switch (buffId) {
+        case 'poison':
+            engine.emit('on_poison', self, enemy)
+            break
+        case 'burn':
+            engine.emit('on_burn', self, enemy)
+            break
+        case 'bleed':
+            engine.emit('on_bleed', self, enemy)
+            break
+        case 'stun':
+            engine.emit('on_stun', self, enemy)
+            break
+        case 'paralyze':
+            engine.emit('on_paralyze', self, enemy)
+            break
+        case 'sand_blind':
+            engine.emit('on_sand_blind', self, enemy)
+            break
+    }
+}
+
+function getBuffMaxOverride(buff: BuffDef, engine: BattleEngine, charId: string): number {
+    const raw = buff.stacking?.type === 'additive' ? (buff.stacking.max ?? Infinity) : Infinity
+    let override: number | null = null
+    for (const [bk] of engine.state.pendingBuffs) {
+        const parts = bk.split('::')
+        if (parts[1] !== charId) continue
+        const char = engine.getCharacter(charId)
+        if (!char) continue
+        const bDef = getBuff(parts[0])
+        if (bDef?.onBuffApply) {
+            const val = bDef.onBuffApply(raw, char, engine)
+            if (val > (override ?? 0)) override = val
+        }
+    }
+    return override ?? raw
+}
 
 export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     cleanse({ eff, self, engine }: EffectCtx) {
@@ -169,6 +213,16 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
         const label = action?.name ?? getBuff('stat_buff')?.name ?? '内劲'
         const mods = applyAttrMods(self, engine, e.attrs as Record<string, number>, label)
+        const details = Object.entries(mods)
+            .map(([a, v]) => `${ATTR_CN[a] ?? a}${v > 0 ? '+' : ''}${v}`)
+            .join(', ')
+        if (details) {
+            engine.emitLog({
+                type: 'system',
+                message: `[${label}] ${BattleLog.name(self.name)} ${details}`,
+                actorId: self.id,
+            })
+        }
         if (e.durationMs) {
             const appId = genAppId(tMs)
             const layerKey = `stat_buff::${self.id}::${appId}`
@@ -295,45 +349,24 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         if (existing && buff?.stacking?.type === 'additive') {
             existing.restoreValue += stacks
-            // 累加 attrMods
-            if (buff.attrMods) {
-                const scaledMods: Record<string, number> = {}
-                for (const [attr, val] of Object.entries(buff.attrMods)) {
-                    scaledMods[attr] = (val as number) * stacks
-                }
-                const newMods = applyAttrMods(enemy, engine, scaledMods, buff.name)
-                if (!existing.mods) existing.mods = {}
-                for (const [attr, val] of Object.entries(newMods)) {
-                    existing.mods[attr] = (existing.mods[attr] ?? 0) + (val as number)
-                }
-                if ('agility' in scaledMods)
-                    engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'), enemy.getHaste())
+            const result = applyScaledAttrMods(buff!, stacks, enemy, engine)
+            if (!existing.mods) existing.mods = {}
+            for (const [attr, v] of Object.entries(result.mods)) {
+                existing.mods[attr] = (existing.mods[attr] ?? 0) + (v as number)
             }
-            // 重新调度 expiry（叠层刷新持续时间）
-            if (buff.expiry?.type === 'duration') {
-                engine.state.turn.removeEvents(`buff_end_${key}`)
-                engine.state.turn.scheduleSystemEventAt(
-                    `buff_end_${key}`,
-                    engine.state.turn.currentTime + buff.expiry.ms,
-                    'buff_end',
-                )
-            } else if (buff.expiry?.type === 'duration_by_attr') {
-                engine.state.turn.removeEvents(`buff_end_${key}`)
-                const duration = calcDebuffDuration(buff.expiry.multiplier, enemy.attrs.get(buff.expiry.attr))
-                engine.state.turn.scheduleSystemEventAt(
-                    `buff_end_${key}`,
-                    engine.state.turn.currentTime + duration,
-                    'buff_end',
-                )
-            }
+            // 刷新 expiry
+            engine.state.turn.removeEvents(`buff_end_${key}`)
+            scheduleBuffEnd(engine, key, buff!, enemy)
             engine.emitLog({
                 type: 'system',
-                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)} Lv.${existing.restoreValue}`,
+                message: result.details.length
+                    ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name)} Lv.${existing.restoreValue}（${result.details.join(', ')}）`
+                    : `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name)} Lv.${existing.restoreValue}`,
                 actorId: enemy.id,
             })
-            engine.emit('on_debuff', self, enemy)
+            engine.emit('on_debuff', enemy, self)
+            emitPerDebuff(engine, e.buffId, self, enemy)
             if (e.buffId === 'poison') {
-                engine.emit('on_poison', self, enemy)
                 // 叠层时也需执行即时伤害 + 重新调度 tick
                 tickEngine.afterApplyDebuff({
                     enemy,
@@ -365,51 +398,24 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         // 首次应用（independent/none/additive 首次均走此路径）
         const extra = makeExtra()
-        const mods: Record<string, number> = {}
-        const modDetails: string[] = []
-        if (buff.attrMods) {
-            const scaledMods: Record<string, number> = {}
-            for (const [attr, val] of Object.entries(buff.attrMods)) {
-                scaledMods[attr] = (val as number) * stacks
-            }
-            const result = applyAttrMods(enemy, engine, scaledMods, buff.name, buff.tags)
-            for (const [attr, v] of Object.entries(result)) {
-                modDetails.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
-                mods[attr] = v as number
-                if (attr === 'agility')
-                    engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'), enemy.getHaste())
-            }
-        }
+        const firstResult = applyScaledAttrMods(buff!, stacks, enemy, engine)
         // stun 的 attrMods 在 afterApplyDebuff 中由 applyAttrMods 输出属性日志，此处不重复
         if (e.buffId !== 'stun') {
             engine.emitLog({
                 type: 'system',
-                message: modDetails.length
-                    ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)} ${modDetails.join(', ')}`
+                message: firstResult.details.length
+                    ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)} ${firstResult.details.join(', ')}`
                     : BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description),
                 actorId: enemy.id,
             })
         }
-        engine.state.pendingBuffs.set(key, { restoreValue: stacks, mods, extra })
+        engine.state.pendingBuffs.set(key, { restoreValue: stacks, mods: firstResult.mods, extra })
 
         // 调度 expiry
-        if (buff.expiry?.type === 'duration') {
-            engine.state.turn.scheduleSystemEventAt(
-                `buff_end_${key}`,
-                engine.state.turn.currentTime + buff.expiry.ms,
-                'buff_end',
-            )
-        } else if (buff.expiry?.type === 'duration_by_attr') {
-            const duration = calcDebuffDuration(buff.expiry.multiplier, enemy.attrs.get(buff.expiry.attr))
-            engine.state.turn.scheduleSystemEventAt(
-                `buff_end_${key}`,
-                engine.state.turn.currentTime + duration,
-                'buff_end',
-            )
-        }
+        scheduleBuffEnd(engine, key, buff!, enemy)
 
-        engine.emit('on_debuff', self, enemy)
-        if (e.buffId === 'poison') engine.emit('on_poison', self, enemy)
+        engine.emit('on_debuff', enemy, self)
+        emitPerDebuff(engine, e.buffId, self, enemy)
 
         // 后处理（stun/poison/burn 额外逻辑）
         // 传入 layer 引用，让 tick engine 可以直接修改 mods
@@ -430,45 +436,29 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         const existing = engine.state.pendingBuffs.get(key)
         if (existing && buff?.stacking?.type === 'additive') {
-            // 遍历身上所有已有 buff，收集 onBuffApply 加成
-            let bonus = 0
-            for (const [bk] of engine.state.pendingBuffs) {
-                const parts = bk.split('::')
-                if (parts[1] !== self.id) continue
-                const bDef = getBuff(parts[0])
-                if (bDef?.onBuffApply) bonus += bDef.onBuffApply(self, engine)
-            }
-            const max = (buff.stacking.max ?? Infinity) + bonus
+            const max = getBuffMaxOverride(buff!, engine, self.id)
             const newStacks = Math.min(max, existing.restoreValue + (e.stacks ?? 1))
             const delta = newStacks - existing.restoreValue
             if (delta <= 0) {
                 // 已达上限，仍刷新持续时间
                 if (buff.expiry?.type === 'duration') {
                     engine.state.turn.removeEvents(`buff_end_${key}`)
-                    engine.state.turn.scheduleSystemEventAt(
-                        `buff_end_${key}`,
-                        engine.state.turn.currentTime + buff.expiry.ms,
-                        'buff_end',
-                    )
+                    scheduleBuffEnd(engine, key, buff, self)
                 }
                 return
             }
             existing.restoreValue = newStacks
             engine.emitLog({
                 type: 'system',
-                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name)} Lv.${newStacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}`,
+                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name)} Lv.${newStacks}${max < Infinity ? `/${max}` : ''}`,
                 actorId: self.id,
             })
             // 再应用 attrMods
-            if (buff?.attrMods && delta > 0) {
-                const scaledMods: Record<string, number> = {}
-                for (const [attr, val] of Object.entries(buff.attrMods)) {
-                    scaledMods[attr] = (val as number) * delta
-                }
-                const newMods = applyAttrMods(self, engine, scaledMods, buff.name)
+            if (delta > 0) {
+                const result = applyScaledAttrMods(buff!, delta, self, engine)
                 if (!existing.mods) existing.mods = {}
-                for (const [attr, val] of Object.entries(newMods)) {
-                    existing.mods[attr] = (existing.mods[attr] ?? 0) + (val as number)
+                for (const [attr, v] of Object.entries(result.mods)) {
+                    existing.mods[attr] = (existing.mods[attr] ?? 0) + (v as number)
                 }
             }
             if (buff?.maxApMod && delta > 0) {
@@ -480,19 +470,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             return
         }
 
-        // 先输出"获得状态"日志，再应用属性变化
-        // 合并"获得状态"和属性变化为一条日志
-        const modDetails: string[] = []
-        const mods: Record<string, number> = {}
-        if (buff?.attrMods) {
-            const result = applyAttrMods(self, engine, buff.attrMods as Record<string, number>, buff.name, buff.tags)
-            for (const [attr, v] of Object.entries(result)) {
-                modDetails.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
-                mods[attr] = v as number
-                if (attr === 'agility')
-                    engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
-            }
-        }
+        // 首次应用
+        const firstResult = applyScaledAttrMods(buff!, e.stacks ?? 1, self, engine)
+        const mods: Record<string, number> = { ...firstResult.mods }
         if (buff?.maxApMod) {
             self.maxApMod += buff.maxApMod
             mods.maxApMod = buff.maxApMod
@@ -500,8 +480,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const stacks = e.stacks ?? 1
         engine.emitLog({
             type: 'system',
-            message: modDetails.length
-                ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${modDetails.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}`
+            message: firstResult.details.length
+                ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${firstResult.details.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}`
                 : `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}`,
             actorId: self.id,
         })
@@ -519,13 +499,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             }
         }
         engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
-        if (buff?.expiry?.type === 'duration') {
-            engine.state.turn.scheduleSystemEventAt(
-                `buff_end_${key}`,
-                engine.state.turn.currentTime + buff.expiry.ms,
-                'buff_end',
-            )
-        }
+        scheduleBuffEnd(engine, key, buff!, self)
         if (buff?.tickInterval) {
             engine.state.turn.scheduleSystemEventAt(
                 `tick_buff_${key}`,
@@ -633,14 +607,29 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             if (moveDist !== 0) executeMove(self, engine, -moveDist)
         }
     },
-    disarm({ eff, enemy, engine, action }: EffectCtx) {
-        if (hasYuanYing(enemy, engine)) {
-            engine.emitLog({ type: 'system', message: `[渊渟岳峙] ${enemy.name} 免疫缴械`, actorId: enemy.id })
-            return
-        }
+    disarm({ eff, self, enemy, engine, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'disarm' }>
-        if (e.chance !== undefined) {
-            const { success } = calcRoll(e.chance)
+        let chance = e.chance ?? 1
+        // 防御方 buff 缴械抗性
+        for (const [key, layer] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== enemy.id) continue
+            const def = getBuff(parts[0])
+            if (!def?.onDisarmChance) continue
+            chance += def.onDisarmChance({
+                final: 0,
+                raw: 0,
+                attacker: engine.getCharacter('')!,
+                target: enemy,
+                engine,
+                layer,
+                buffOwnerId: parts[1],
+                action,
+            })
+        }
+        chance = Math.max(0, Math.min(1, chance))
+        if (chance < 1) {
+            const { success } = calcRoll(chance)
             if (!success) return
         }
         const oldWeapon = enemy.weaponDef ?? getWeapon(enemy.build.weapon)
@@ -676,6 +665,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             message: `[${action?.name ?? '点腕'}] ${BattleLog.name(enemy.name)} 兵器脱手！`,
             actorId: enemy.id,
         })
+        engine.emit('on_disarm', self, enemy)
     },
     add_passive({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_passive' }>

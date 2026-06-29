@@ -7,6 +7,7 @@ import type { ActionDefinition } from '../entities/action'
 import type { Tag } from '../entities/tag'
 import type { TriggerEvent } from '../entities/trigger'
 import { revertBuffMods, applyAttrMods } from '../combat/utils/buff-layer'
+import { processActionEffect } from '../combat/effects/action'
 
 /** Buff 钩子上下文 */
 export interface BuffHookCtx {
@@ -65,10 +66,22 @@ export interface BuffDef extends GameEntity {
     onParryReduction?: (ctx: BuffHookCtx) => number
     /** 命中率修正钩子（processHitCheck 中自动调用，返回加算值） */
     onHitChance?: (ctx: BuffHookCtx) => number
+    /** 闪避率修正钩子（processHitCheck 中防御方 buff 自动调用，返回加算值） */
+    onDodgeChance?: (ctx: BuffHookCtx) => number
+    /** AP 消耗修正钩子（返回加算值，负=更省，最低1） */
+    onActionCost?: (ctx: BuffHookCtx) => number
+    /** 闪避时回调（防御方成功闪避后调用） */
+    onDodged?: (ctx: BuffHookCtx) => void
+    /** 招架时回调（防御方成功招架后调用） */
+    onParried?: (ctx: BuffHookCtx) => void
+    /** 暴击时回调（攻击方造成暴击后调用） */
+    onCritical?: (ctx: BuffHookCtx) => void
     /** 允许自行选择可招架（返回 true 则允许招架） */
     onCanParry?: (ctx: { self: Character; engine: BattleEngine }) => boolean
     /** 攻击方能否被招架（返回 false 则无法招架此攻击） */
     onCanBeParried?: (ctx: { self: Character; engine: BattleEngine }) => boolean
+    /** 缴械概率修正钩子（disarm handler 中自动调用，返回加算值，负=更难被缴械） */
+    onDisarmChance?: (ctx: BuffHookCtx) => number
     /** 暴击率修正钩子（applyDamage 暴击判定前自动调用，返回加算值） */
     onCritChance?: (ctx: BuffHookCtx) => number
     /** 暴击伤害修正钩子（applyDamage 暴击判定时自动调用，返回加算值） */
@@ -76,7 +89,8 @@ export interface BuffDef extends GameEntity {
     /** 回合结束回调（turn_end 时调用，不依赖命中） */
     onTurnEnd?: (ctx: BuffHookCtx) => void
     /** 首次应用时回调 */
-    onBuffApply?: (char: Character, engine: BattleEngine) => number
+    /** 层数上限覆盖钩子（raw=原始 max，返回覆盖后的新上限） */
+    onBuffApply?: (raw: number, char: Character, engine: BattleEngine) => number
 }
 
 /** 增益状态 */
@@ -200,7 +214,7 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 3000 },
         stacking: { type: 'independent' },
-        attrMods: { agility: -0.5 },
+        attrMods: { agility: -0.4 },
     },
     {
         id: 'stun',
@@ -354,8 +368,9 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'zuoyou_hubo',
         name: '左右互搏',
-        description: '一次行动可使用两次主招式。',
+        description: '一次行动可使用两次主招式，非辅助招式AP-1。',
         tags: [],
+        onActionCost: ({ action }) => (action && !action.tags.includes('support') && action.apCost > 0 ? -1 : 0),
     },
     {
         id: 'last_stand',
@@ -390,7 +405,7 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '凝神防守，招架率大幅提升。',
         tags: [],
         value: 0.35,
-        expiry: { type: 'duration', ms: 3000 },
+        expiry: { type: 'consumed', trigger: 'on_parry' },
         stacking: { type: 'none' },
         onParryChance: () => 0.35,
     },
@@ -409,6 +424,13 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '距离≥5m时闪避+15%。',
         tags: [],
         expiry: { type: 'permanent' },
+        onDodgeChance: ({ engine, buffOwnerId }) => {
+            const self = engine.getCharacter(buffOwnerId)!
+            const attacker = engine.getOpponent(buffOwnerId)
+            if (!attacker) return 0
+            const dist = engine.state.position.distance(self.id, attacker.id)
+            return dist >= 5 ? 0.15 : 0
+        },
     },
     {
         id: 'elemental_immunity',
@@ -439,10 +461,11 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'silk_guard',
         name: '金丝护手',
-        description: '金丝手套护持，无刃亦可格挡兵刃。',
+        description: '金丝手套护持，无刃亦可格挡兵刃，缴械抗性+30%。',
         tags: [],
         expiry: { type: 'permanent' },
         onCanParry: () => true,
+        onDisarmChance: () => -0.3,
     },
 
     // ── 永久修饰（构造期执行） ──
@@ -522,7 +545,7 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'herb_pouch',
         name: '蜂草鱼囊',
-        description: '每 3 秒自动化解一层毒素。',
+        description: '每 3 秒自动化解一层毒素，且恢复2点气血。',
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 3000,
@@ -540,7 +563,7 @@ export const DEBUFF_DB: BuffDef[] = [
                     engine.state.pendingBuffs.delete(poisonKey)
                 }
             }
-            return 0
+            return 2
         },
     },
     {
@@ -590,10 +613,10 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'zhou',
         name: '周',
-        description: '缠劲充盈，周身劲力流转。全属性+1。',
+        description: '缠劲充盈，周身劲力流转。每层全属性+1。',
         tags: [],
         expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
+        stacking: { type: 'additive', max: 2 },
         attrMods: { strength: 1, agility: 1, vitality: 1, wisdom: 1, dexterity: 1, insight: 1 },
     },
 
@@ -661,10 +684,10 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'stone_skin',
         name: '石肤',
-        description: '肌肤如岩石般坚硬，所受直伤-15%。免疫灼烧。',
+        description: '肌肤如岩石般坚硬，所受直伤-10%。免疫灼烧。',
         tags: [],
         expiry: { type: 'permanent' },
-        onTakeDamage: ({ final }) => Math.round(final * 0.85 * 10) / 10,
+        onTakeDamage: ({ final }) => Math.round(final * 0.9 * 10) / 10,
     },
     {
         id: 'dinghai_pressure',
@@ -745,6 +768,7 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '免疫身法/灵巧减益、位移、缴械、打断。',
         tags: [],
         expiry: { type: 'permanent' },
+        onDisarmChance: () => -1,
     },
     {
         id: 'yuxin_sword_mastery',
@@ -752,7 +776,7 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '双剑合璧，可叠层 buff 上限+2。',
         tags: [],
         expiry: { type: 'permanent' },
-        onBuffApply: () => 2,
+        onBuffApply: (raw) => raw * 2,
     },
     {
         id: 'nineteen_stops',
@@ -862,6 +886,96 @@ export const DEBUFF_DB: BuffDef[] = [
                 actorId: target.id,
             })
             return Math.max(0, Math.round((final - 3) * 10) / 10)
+        },
+    },
+    {
+        id: 'golden_bell_guard',
+        name: '金玲',
+        description: '金玲索护体，炁伤-2；招架时额外减免2点。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTakeDamage: ({ final, action }) => {
+            if (action?.tags?.includes('qi')) {
+                return Math.max(0, Math.round((final - 2) * 10) / 10)
+            }
+            return final
+        },
+        onParryReduction: ({ final }) => Math.max(0, Math.round((final - 2) * 10) / 10),
+    },
+    {
+        id: 'qing_shan_recovery',
+        name: '青山剑意',
+        description: '不二剑意消退，身法渐复。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTurnEnd: ({ attacker }) => {
+            if (attacker.critDamageMod > 0) {
+                attacker.critDamageMod = Math.max(0, Math.round((attacker.critDamageMod - 0.05) * 100) / 100)
+                attacker.dodgeMod = Math.min(0, Math.round((attacker.dodgeMod + 0.04) * 100) / 100)
+            }
+        },
+    },
+    {
+        id: 'martial_arts_dodge',
+        name: '武学·避',
+        description: '暴击推演出的闪避预判，每层闪避+1%、招架+1%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 4 },
+        onDodgeChance: ({ layer }) => layer.restoreValue * 0.01,
+        onParryChance: ({ layer }) => layer.restoreValue * 0.01,
+    },
+    {
+        id: 'martial_arts_crit',
+        name: '武学·破',
+        description: '推演出的破绽洞察，每层暴击+1%、爆伤+1%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 4 },
+        onCritChance: ({ layer }) => layer.restoreValue * 0.01,
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
+    },
+    {
+        id: 'martial_arts_archive',
+        name: '武学活宝典',
+        description: '通晓天下武学，以推演预判。闪避/招架→武学·破+1层；暴击→武学·避+1层。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDodged: ({ engine, buffOwnerId }) => {
+            const self = engine.getCharacter(buffOwnerId)!
+            const enemy = engine.getOpponent(buffOwnerId)!
+            if (!enemy) return
+            processActionEffect(
+                { type: 'add_buff', buffId: 'martial_arts_crit', stacks: 1 },
+                self,
+                enemy,
+                engine,
+                engine.state.turn.currentTime,
+            )
+        },
+        onParried: ({ engine, buffOwnerId }) => {
+            const self = engine.getCharacter(buffOwnerId)!
+            const enemy = engine.getOpponent(buffOwnerId)!
+            if (!enemy) return
+            processActionEffect(
+                { type: 'add_buff', buffId: 'martial_arts_crit', stacks: 1 },
+                self,
+                enemy,
+                engine,
+                engine.state.turn.currentTime,
+            )
+        },
+        onCritical: ({ engine, buffOwnerId }) => {
+            const self = engine.getCharacter(buffOwnerId)!
+            const enemy = engine.getOpponent(buffOwnerId)!
+            if (!enemy) return
+            processActionEffect(
+                { type: 'add_buff', buffId: 'martial_arts_dodge', stacks: 1 },
+                self,
+                enemy,
+                engine,
+                engine.state.turn.currentTime,
+            )
         },
     },
 ]

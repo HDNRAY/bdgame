@@ -6,6 +6,7 @@ import type { BuffDef } from '../data/buffs'
 import { BattleLog } from './battle-log'
 import { applyAttrMods } from './utils/buff-layer'
 import type { BuffLayer } from './types'
+import { ATTR_CN } from '../entities/attributes'
 
 /** 流血伤害计算 */
 function triggerBleed(stacks: number): number {
@@ -37,7 +38,7 @@ export class TickEngine {
     }
 
     #afterApplyStun(enemy: Character, engine: BattleEngine, _tMs: number, _stacks: number, layer: BuffLayer): void {
-        const STUN_RESET_WINDOW = 5000
+        const STUN_RESET_WINDOW = 15000
         const trackKey = `stun_track::${enemy.id}`
         const lastData = engine.state.pendingBuffs.get(trackKey)
         const now = engine.state.turn.currentTime
@@ -47,6 +48,8 @@ export class TickEngine {
         }
         consecutive++
         engine.state.pendingBuffs.set(trackKey, { restoreValue: now, extra: { consecutive } })
+        // 刷新递减窗口（移除旧的 reset 事件，重新调度）
+        engine.state.turn.removeEvents(`stun_reset_${enemy.id}`)
         engine.state.turn.scheduleSystemEventAt(`stun_reset_${enemy.id}`, now + STUN_RESET_WINDOW, 'stun_reset')
 
         const ratio = calcStunAttrRatio(consecutive)
@@ -62,6 +65,16 @@ export class TickEngine {
             // 存入 layer.mods 供 processBuffEnd 正确回退
             if (!layer.mods) layer.mods = {}
             Object.assign(layer.mods, result)
+            const details = Object.entries(result)
+                .map(([a, v]) => `${ATTR_CN[a] ?? a}${v > 0 ? '+' : ''}${v}`)
+                .join(', ')
+            if (details) {
+                engine.emitLog({
+                    type: 'system',
+                    message: `[眩晕] ${BattleLog.name(enemy.name)} ${details}`,
+                    actorId: enemy.id,
+                })
+            }
         }
 
         // 眩晕日志已通过 applyAttrMods 输出属性变化，不再重复输出"获得状态"

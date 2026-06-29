@@ -20,4 +20,10 @@ export const LIUXIGUA: OpponentDef = {
         action('retrieve_blade'),
         // 9
     ],
+    actionConfigs: [
+        {
+            actionId: 'sky_burner',
+            conditionId: 'distance_gt_4',
+        },
+    ],
 }

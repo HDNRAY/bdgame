@@ -169,7 +169,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 4],
         chanCost: 18,
         canUse: (attacker) => attacker.chan >= 18,
-        onActionHitChance: (base) => base + 0.25,
+        onActionHitChance: (base) => base + 0.2,
         effects: [{ type: 'damage', scaling: { strength: 0.9, wisdom: 0.9 } }],
     },
     {
@@ -244,7 +244,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: ['pierce', 'range', 'thrown'],
-        getRange: () => [3, 6] as [number, number],
+        getRange: () => [2, 5] as [number, number],
         effects: [{ type: 'damage', scaling: { dexterity: 0.2 } }],
     },
     {
@@ -257,7 +257,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [1, 5] as [number, number],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.2 } },
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.3 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.4 },
+            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.3 },
         ],
     },
     {
@@ -306,10 +307,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '无假剑法',
         description: '无假剑法，以力破巧。叠一层柔劲。',
         requiredTags: ['pierce'],
-        apCost: 2,
+        apCost: 3,
         tags: ['pierce', 'melee', 'buff'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'add_buff', buffId: 'gentle_stance', stacks: 1 },
         ],
     },
@@ -318,10 +319,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '用真剑法',
         description: '用真剑法，灵动如烟。叠一层刚劲。',
         requiredTags: ['pierce'],
-        apCost: 2,
+        apCost: 3,
         tags: ['pierce', 'melee', 'buff'],
         effects: [
-            { type: 'damage', scaling: { agility: 0.4 } },
+            { type: 'damage', scaling: { agility: 0.6 } },
             { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 },
         ],
     },

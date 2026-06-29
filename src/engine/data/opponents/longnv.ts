@@ -1,12 +1,13 @@
 import { type OpponentDef } from '.'
 import { passive, artifact, action } from '../../systems/reward-pool'
 
-const LONGNV_ATTRS = { strength: 16, vitality: 10, agility: 14, dexterity: 18, insight: 14, wisdom: 4 }
+const LONGNV_ATTRS = { strength: 15, vitality: 10, agility: 14, dexterity: 18, insight: 12, wisdom: 8 }
 
 export const LONGNV: OpponentDef = {
     id: 'longnv',
     name: '龙女·语嫣',
     weapon: 'dual_swords',
+    battleStyle: 'melee',
     targetAttrs: LONGNV_ATTRS,
     rewards: [
         action('yunv_sword'),
@@ -14,11 +15,15 @@ export const LONGNV: OpponentDef = {
         action('quanzhen_sword'),
         artifact('golden_silk_gloves'),
         artifact('herb_pouch'),
+        artifact('golden_bell_rope'),
         passive('yuxin_sword_mastery'),
+        passive('martial_arts_archive'),
         action('yufeng_needle'),
-        // 7
+        action('sword_thrust'),
+        // 10
     ],
     actionConfigs: [
-        { actionId: 'yufeng_needle', triggerId: 'on_opponent_move' }, // AI 出招顺序
+        { actionId: '_golden_bell_swing', conditionId: 'distance_gt_4', triggerId: 'on_parry' },
+        { actionId: 'yufeng_needle', conditionId: 'distance_gt_4', triggerId: 'on_opponent_move' },
     ],
 }

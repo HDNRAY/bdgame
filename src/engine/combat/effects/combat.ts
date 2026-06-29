@@ -15,17 +15,30 @@ export function processHitCheck(
     engine: BattleEngine,
 ): boolean {
     engine.emit('on_attack', self, enemy)
-    const rangeDodgeMod =
-        engine.state.pendingBuffs.has(`ranged_dodge::${enemy.id}`) &&
-        engine.state.position.distance(self.id, enemy.id) >= 5
-            ? 0.15
-            : 0
+    let defenderDodgeMod = enemy.dodgeMod
+    // 防御方 buff 闪避率修正
+    for (const [key, layer] of engine.state.pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2 || parts[1] !== enemy.id) continue
+        const def = getBuff(parts[0])
+        if (!def?.onDodgeChance) continue
+        defenderDodgeMod += def.onDodgeChance({
+            final: 0,
+            raw: 0,
+            attacker: self,
+            target: enemy,
+            action,
+            engine,
+            buffOwnerId: parts[1],
+            layer,
+        })
+    }
     const baseHc = calcHitChance({
         attackerDexterity: self.attrs.get('dexterity'),
         attackerInsight: self.attrs.get('insight'),
         defenderAgility: enemy.attrs.get('agility'),
         defenderInsight: enemy.attrs.get('insight'),
-        defenderDodgeMod: enemy.dodgeMod + rangeDodgeMod,
+        defenderDodgeMod,
     })
     let hc = action.onActionHitChance?.(baseHc) ?? baseHc
     // buff 命中率钩子
@@ -60,6 +73,25 @@ export function processHitCheck(
         engine.emitLog({ type: 'dodged', sourceId: self.id, targetId: enemy.id })
         engine.emit('on_dodged', self, enemy)
         engine.emit('on_dodge', enemy, self)
+        // 防御方 buff onDodged 钩子（缩进一层）
+        engine.state.log.indentDepth++
+        for (const [key, layer] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== enemy.id) continue
+            const def = getBuff(parts[0])
+            if (!def?.onDodged) continue
+            def.onDodged({
+                final: 0,
+                raw: 0,
+                attacker: self,
+                target: enemy,
+                action,
+                engine,
+                buffOwnerId: parts[1],
+                layer,
+            })
+        }
+        engine.state.log.indentDepth--
         return false
     }
 
