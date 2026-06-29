@@ -14,6 +14,7 @@ export type TriggerEvent =
     | 'on_dodged'
     | 'on_parried'
     | 'on_buff'
+    | 'on_stance'
     | 'on_debuff'
     | 'on_poison'
     | 'on_burn'
@@ -41,6 +42,8 @@ export interface ConditionContext {
     /** 移动事件的位移量（负=靠近，正=远离） */
     moveDelta?: number
     engine?: BattleEngine
+    /** 触发事件的 buffId（仅 on_buff 事件） */
+    buffId?: string
 }
 
 /** 触发条件 */

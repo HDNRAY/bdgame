@@ -373,6 +373,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         extraStunTime: 1000,
         tags: ['slash'],
+        canUse: (attacker, state) => state.pendingBuffs.has('iaijutsu::' + attacker.id),
         effects: [
             { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 1.2 } },
@@ -448,6 +449,16 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'add_buff', buffId: 'disarmed' },
             { type: 'switch_weapon', weaponId: 'bare_hands' },
         ],
+    },
+    {
+        id: 'qi_slash',
+        name: '炁斩',
+        description: '凝炁为刃，隔空斩击。',
+        requiredTags: ['slash'],
+        apCost: 2,
+        tags: ['slash', 'qi'],
+        getRange: (wr) => [wr[0], Math.min(10, wr[1] + 1)] as [number, number],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, wisdom: 0.2 } }],
     },
     {
         id: 'blaze_strike',

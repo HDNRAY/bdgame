@@ -1,22 +1,30 @@
 import { type OpponentDef } from '.'
-import { weapon } from '../../systems/reward-pool'
+import { action, artifact, passive, weapon } from '../../systems/reward-pool'
 
-const YIDAO_ATTRS = { strength: 19, vitality: 11, agility: 14, dexterity: 14, insight: 13, wisdom: 6 }
+const YIDAO_ATTRS = { strength: 18, vitality: 11, agility: 15, dexterity: 14, insight: 13, wisdom: 6 }
 
 export const YIDAO: OpponentDef = {
     id: 'yidao',
     name: '居合·一刀',
     weapon: 'qingfeng_jian',
+    battleStyle: 'mid',
     targetAttrs: YIDAO_ATTRS,
     rewards: [
-        { type: 'action', id: 'light_slash', name: 'light_slash', description: '', tags: [] },
-        { type: 'passive', id: 'iaijutsu_mastery', name: 'iaijutsu_mastery', description: '', tags: [] },
-        { type: 'passive', id: 'human_radar', name: 'human_radar', description: '', tags: [] },
-        { type: 'action', id: 'iaijutsu_strike', name: 'iaijutsu_strike', description: '', tags: [] },
-        { type: 'action', id: 'resheath', name: 'resheath', description: '', tags: [] },
-        { type: 'artifact', id: 'tiger_eye', name: 'tiger_eye', description: '', tags: [] },
+        action('qi_slash'),
+        action('iaijutsu_strike'),
+        action('resheath'),
+        passive('iaijutsu_mastery'),
+        passive('empty_hand'),
+        passive('human_radar'),
+        artifact('tiger_eye'),
         weapon('zantetsu'),
-        // 7
+        passive('extreme'),
+        // passive('qi_edge'),
+        // 10
     ],
-    actionConfigs: [{ actionId: 'iaijutsu_strike' }, { actionId: 'light_slash' }, { actionId: 'resheath' }],
+    actionConfigs: [
+        { actionId: 'iaijutsu_strike' },
+        { actionId: 'light_slash' },
+        { actionId: 'resheath', conditionId: 'no_stance' },
+    ],
 }

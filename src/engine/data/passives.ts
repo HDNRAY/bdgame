@@ -1,5 +1,5 @@
 import type { Passive, Talent } from '../entities/passive'
-import { hasBuff } from '../combat/utils'
+import { hasBuff, hasNoStance } from '../combat/utils'
 import { Tag } from '../entities/tag'
 
 /** 功法注册表 */
@@ -41,8 +41,8 @@ export const PASSIVES: Passive[] = [
         id: 'sword_dominion',
         name: '御剑诀',
         description: '以炁御剑，剑随意动。无需从小以炁养物，估故仅能延长攻击距离。',
-        tags: ['imperial', 'qi', 'range', 'range_up'],
-        effects: [{ type: 'weapon_range_bonus', value: 2 }],
+        tags: ['imperial', 'qi', 'range_up'],
+        effects: [{ type: 'weapon_range_bonus', value: 2, requireWeaponTag: 'imperial' }],
     },
     {
         id: 'nine_deaths',
@@ -58,7 +58,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'iaijutsu_mastery',
-        name: '居合极意',
+        name: '居合道',
         description: '居合拔刀术的极致境界。',
         tags: ['qi', 'stance'],
         triggers: [
@@ -80,6 +80,31 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
+        id: 'extreme',
+        name: '极',
+        description: '蓄势至极，一击必杀。使用≥5AP招式时若缠劲已满：必中，每层缠劲增伤1%。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'extreme' }] }],
+    },
+    {
+        id: 'qi_edge',
+        name: '炁刃',
+        description: '以炁凝刃，刀剑延长斩击距离，蕴含炁劲。slash招式AP+1，范围+2，附加推演伤害。',
+        tags: ['passive', 'qi'],
+        actionEnhancer: (def) => {
+            if (!def.tags.includes('slash')) return def
+            return {
+                ...def,
+                apCost: def.apCost + 1,
+                getRange: (wr) => [wr[0], Math.min(10, wr[1] + 1)] as [number, number],
+                effects: (def.effects ?? []).map((e) => {
+                    if (e.type === 'damage') return { ...e, scaling: { ...e.scaling, wisdom: 0.2 } }
+                    return e
+                }),
+            }
+        },
+    },
+    {
         id: 'empty_hand',
         name: '无刀取',
         description: '空手入白刃，非居合状态招架后反击。',
@@ -88,7 +113,7 @@ export const PASSIVES: Passive[] = [
             {
                 condition: {
                     type: 'on_parry',
-                    check: (ctx) => !hasBuff(ctx.engine!, ctx.actor.id, 'iaijutsu'),
+                    check: (ctx) => hasNoStance(ctx.engine!.state.pendingBuffs, ctx.actor.id),
                 },
                 actionId: '_iaijutsu_counter',
             },
@@ -101,7 +126,7 @@ export const PASSIVES: Passive[] = [
         tags: ['buff'],
         triggers: [
             {
-                condition: { type: 'on_buff', buffId: 'iaijutsu' },
+                condition: { type: 'on_stance' },
                 effects: [{ type: 'add_buff', buffId: 'circle' }],
             },
         ],

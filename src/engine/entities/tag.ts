@@ -32,7 +32,9 @@ export type Tag =
     | 'polearm' // 长柄
     | 'heavy' // 巨型双手
     | 'sand_blind' // 迷眼
-    | 'knockdown' // 倒地    | 'support' // 辅助（buff/回复，不攻击）
+    | 'knockdown' // 倒地
+    | 'pre_action' // 前摇
+    | 'post_action' // 收招
     | 'move' // 位移
     | 'range' // 远程
     | 'counter' // 反击
@@ -44,7 +46,6 @@ export type Tag =
     // | 'damage' // 伤害增强
     | 'summon' // 召唤相关
     | 'stance' // 架势/姿态
-    | 'support' // 辅助
     | 'retrieve_weapon' // 收回武器
     | 'bonus_damage' // 独立附加伤害
     | 'dual_wield' // 双持

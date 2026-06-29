@@ -39,7 +39,7 @@ export type EffectDef =
     | { type: 'crit_chance'; value: number; reset?: boolean }
     | { type: 'crit_damage'; value: number; reset?: boolean }
     | { type: 'last_stand'; ratio: number }
-    | { type: 'weapon_range_bonus'; value: number }
+    | { type: 'weapon_range_bonus'; value: number; requireWeaponTag?: string }
     | { type: 'trigger_slot_mod'; value: number }
     | { type: 'dodge_mod'; value: number }
     | { type: 'parry_mod'; value: number }
@@ -124,4 +124,18 @@ export class Action {
     use(): void {
         if (this.def.maxUses !== undefined) this.remainingUses--
     }
+}
+
+/** 获取招式有效射程（考虑 getRange、short_dash 延伸） */
+export function getActionRange(
+    action: ActionDefinition,
+    weaponRange: [number, number],
+    attacker?: Character,
+): [number, number] {
+    const base = action.getRange?.(weaponRange, attacker) ?? weaponRange
+    const shortDash = action.effects?.find(
+        (e): e is Extract<EffectDef, { type: 'short_dash' }> => e.type === 'short_dash',
+    )
+    if (!shortDash) return base
+    return [base[0], Math.min(10, base[1] + (shortDash.maxDistance ?? 2))]
 }

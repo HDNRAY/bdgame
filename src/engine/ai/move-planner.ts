@@ -1,5 +1,6 @@
 import type { Character } from '../entities/character'
 import type { ActionDefinition, EffectDef } from '../entities/action'
+import { getActionRange } from '../entities/action'
 import { PositionSystem } from '../combat/position'
 
 export type AttackStyle = 'melee' | 'mid' | 'ranged'
@@ -33,7 +34,7 @@ export function planMovement(
     minMoveCost = false,
     moveEfficiency = 0,
 ): MovePlan | null {
-    const actionRange = chosenAction.getRange?.(weaponRange, attacker) ?? weaponRange
+    const actionRange = getActionRange(chosenAction, weaponRange, attacker) // short_dash 已计入有效射程，fallback 中不用重复减 freeApproach
     const basePerAp = PositionSystem.apToRange(attacker.attrs.get('agility'))
     const perAp = minMoveCost ? 2 : basePerAp * (1 + moveEfficiency)
 

@@ -5,20 +5,21 @@ import { getBuff } from '../data/buffs'
 import { checkCondition } from '../entities/action-config'
 import { getConditionPreset } from '../data/conditions'
 
-/** 选择辅助招式（support 标签），消耗剩余 AP */
+/** 按阶段选择辅助招式，返回最多 1 个指令 */
 export function planSupportActions(
     attacker: Character,
     state: BattleState,
     apRemaining: number,
+    phase: 'pre_action' | 'post_action',
     blacklist?: string[],
 ): ActionCommand[] {
     const cmds: ActionCommand[] = []
-    let apLeft = apRemaining
 
-    // 按优先级排序：heal > damage_buff > defense > hit_chance > 其他
+    // 按优先级排序
     const sorted = [...attacker.actions]
         .filter((inst) => {
-            if (!inst.def.tags.includes('support')) return false
+            // 必须有该阶段标签
+            if (!inst.def.tags.includes(phase)) return false
             if (!inst.canUse()) return false
             if (blacklist?.includes(inst.id)) return false
             // 检查武器标签兼容性
@@ -38,22 +39,25 @@ export function planSupportActions(
             return pb - pa
         })
 
+    // 最多取 1 个
     for (const inst of sorted) {
-        if (apLeft < inst.apCost) continue
-        if (inst.def.canUse && !inst.def.canUse(attacker, state)) continue
+        if (apRemaining < inst.apCost) continue
+        // 收招阶段跳过 def.canUse 和条件检查（条件在主招执行后才满足，引擎执行时会再验证）
+        if (inst.def.canUse && phase === 'pre_action' && !inst.def.canUse(attacker, state)) continue
 
-        // 必要条件过滤
-        const config = attacker.getConfig(inst.id)
-        if (config?.conditionId) {
-            const cond = getConditionPreset(config.conditionId)
-            if (cond && !checkCondition(cond, attacker, state)) continue
+        if (phase === 'pre_action') {
+            const config = attacker.getConfig(inst.id)
+            if (config?.conditionId) {
+                const cond = getConditionPreset(config.conditionId)
+                if (cond && !checkCondition(cond, attacker, state)) continue
+            }
         }
 
-        // 去重：检查是否已有同 buff（通过 stat_buff / stat_multiply 效果判断）
-        if (hasActiveBuff(attacker, state, inst.def)) continue
+        // 收招阶段跳过去重（条件在主招执行后才满足，引擎执行时会再验证）
+        if (phase === 'pre_action' && hasActiveBuff(attacker, state, inst.def)) continue
 
         cmds.push({ type: 'support', actionId: inst.id })
-        apLeft -= inst.apCost
+        break // 每阶段最多 1 个
     }
 
     return cmds

@@ -134,7 +134,9 @@ export function getWeaponChoices(): NodeChoice[] {
 /** 第一个招式选择——低费非辅助 + 武器 tag 兼容 */
 export function getFirstActionChoices(ownedIds: string[], playerTags: Tag[]): NodeChoice[] {
     // 先用 apCost 和 support 过滤
-    const candidates = PLAYER_ACTIONS.filter((a) => a.apCost <= 2 && !a.tags.includes('support'))
+    const candidates = PLAYER_ACTIONS.filter(
+        (a) => a.apCost <= 2 && !a.tags.includes('pre_action') && !a.tags.includes('post_action'),
+    )
     // 再按 requiredTags 过滤：至少有一个 tag 匹配武器（playerTags 已含武器 tag）
     const weaponTags = new Set(playerTags)
     const compatible = candidates.filter((a) => {

@@ -60,6 +60,11 @@ export const CONDITION_PRESETS = [
         name: '目标无眩晕递减',
         build: (): RequiredCondition => ({ type: 'enemy_buff_not_active', buffId: 'stun_track' }),
     },
+    {
+        id: 'no_stance',
+        name: '无架势',
+        build: (): RequiredCondition => ({ type: 'no_buff_with_tag', tag: 'stance' }),
+    },
 ] as const
 
 /** 按 ID 查找条件预设 */
@@ -94,5 +99,7 @@ export function describeCondition(c: RequiredCondition): string {
             return `目标 HP > ${Math.round(c.ratio * 100)}%`
         case 'enemy_buff_not_active':
             return `目标无 [${c.buffId}]`
+        case 'no_buff_with_tag':
+            return `无 [${c.tag}] buff`
     }
 }

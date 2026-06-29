@@ -66,7 +66,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     // ── 1. 候选主招（非 support） ──
     const candidates: DamageEstimate[] = []
     for (const inst of self.actions) {
-        if (inst.def.tags.includes('support')) continue
+        if (inst.def.tags.includes('pre_action') || inst.def.tags.includes('post_action')) continue
         if (!inst.canUse()) continue
         if (inst.def.canUse && !inst.def.canUse(self, state)) continue
         // 检查武器标签兼容性（缴械后 bare_hands 无法使用需要标签的招式）
@@ -219,30 +219,40 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     }
 
     if (!mainId) {
-        const supportCmds = planSupportActions(self, state, apBudget)
-        if (supportCmds.length > 0) return supportCmds
-        if (apBudget > 0) console.log(`[AI] ${self.name} no mainId, ap=${self.ap} budget=${apBudget}`)
+        const preCmds = planSupportActions(self, state, apBudget, 'pre_action')
+        if (preCmds.length > 0) return preCmds
+        const postCmds = planSupportActions(self, state, apBudget, 'post_action')
+        if (postCmds.length > 0) return postCmds
         return []
     }
 
     // 验证 mainId 对应招式存在（pickup_weapon 可能不在所有角色 action list 中）
     const mainInst = self.actions.find((a) => a.id === mainId)
     if (!mainInst) {
-        console.log(`[AI] ${self.name} mainId=${mainId} not found`)
         return []
     }
     const mainDef2 = mainInst.def
 
-    // ── 4. 辅助招式 ──
-    const supportCmds = planSupportActions(self, state, apBudget - moveAp - mainDef2.apCost, undefined)
+    // ── 4. 辅助招式（前摇 → 主招 → 收招） ──
+    const mainApUsed = moveAp + mainDef2.apCost
+    const preCmds = planSupportActions(self, state, apBudget - mainApUsed, 'pre_action')
+    const preId = preCmds[0]?.actionId
+    const preAp = preId ? (self.actions.find((a) => a.id === preId)?.apCost ?? 0) : 0
+    const postCmds = planSupportActions(
+        self,
+        state,
+        apBudget - mainApUsed - preAp,
+        'post_action',
+        preId ? [preId] : undefined,
+    )
 
     // ── 5. 组装命令 ──
-    const cmds: ActionCommand[] = [...supportCmds]
+    const cmds: ActionCommand[] = [...preCmds]
 
     if (dashActionId) {
         // 位移招式有 support 标签的用 support 指令（跳过战斗判定）
         const dashInst = self.actions.find((a) => a.id === dashActionId)
-        if (dashInst?.def.tags.includes('support')) {
+        if (dashInst?.def.tags.includes('pre_action') || dashInst?.def.tags.includes('post_action')) {
             cmds.push({ type: 'support', actionId: dashActionId })
         } else {
             cmds.push({ type: 'attack', actionId: dashActionId })
@@ -254,13 +264,19 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         cmds.push({ type: 'move', bestDistance: moveDelta > 0 ? moveAp : -moveAp })
     }
     cmds.push({ type: 'attack', actionId: mainId })
+    // post-support 放在攻击后
+    cmds.push(...postCmds)
 
     // ── 6. 左右互搏 ──
     if (state.pendingBuffs.has(`zuoyou_hubo::${self.id}`) && weapon.tags.includes('dual_wield')) {
         const spent =
             moveAp +
             mainDef2.apCost +
-            supportCmds.reduce((s, c) => {
+            preCmds.reduce((s, c) => {
+                const inst = self.actions.find((a) => a.id === c.actionId)
+                return s + (inst?.apCost ?? 0)
+            }, 0) +
+            postCmds.reduce((s, c) => {
                 const inst = self.actions.find((a) => a.id === c.actionId)
                 return s + (inst?.apCost ?? 0)
             }, 0)
@@ -336,7 +352,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     return cmds
 }
 
-/** 计算招式评分：总伤害为主，AP 效率为辅，左右互搏时低消耗招式按双倍总伤害比较 */
+/** 计算招式评分 */
 function calcActionScore(est: DamageEstimate, hasHubo: boolean, apBudget: number): number {
     let score = est.expectedDamage
     // 左右互搏：能用两次的招式按双倍总伤害比较
@@ -352,7 +368,7 @@ function pickBestSecondary(self: Character, state: BattleState, apRemaining: num
     if (!enemy) return null
     const distance = state.position.distance(self.id, enemy.id)
     const sorted = [...self.actions].filter((a) => {
-        if (a.def.tags.includes('support')) return false
+        if (a.def.tags.includes('pre_action') || a.def.tags.includes('post_action')) return false
         if (!a.canUse()) return false
         if (a.id === 'big_leap') return false
         if (!a.def.effects?.some((e) => e.type === 'damage' || e.type === 'fixed_damage')) return false

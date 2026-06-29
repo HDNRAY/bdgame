@@ -139,7 +139,12 @@ export const ARTIFACTS: Artifact[] = [
         name: '虎彻之眼',
         description: '进入居合时双目如虎，洞察先机。',
         tags: ['trigger', 'buff'],
-        triggers: [{ condition: { type: 'on_buff', buffId: 'iaijutsu' }, actionId: '_tiger_eye_foresight' }],
+        triggers: [
+            {
+                condition: { type: 'on_stance' },
+                actionId: '_tiger_eye_foresight',
+            },
+        ],
     },
     {
         id: 'qi_guard',

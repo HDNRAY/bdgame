@@ -226,9 +226,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'buff', 'support'],
+        tags: ['trigger', 'buff'],
         target: 'self',
-        maxUses: 999,
         effects: [{ type: 'stat_buff', attrs: { dodgeChance: 0.02 }, durationMs: 3000 }],
     },
     {
@@ -238,7 +237,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['blunt', 'range'],
-        getRange: () => [1, 5] as [number, number],
+        getRange: () => [2, 5] as [number, number],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.3 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },

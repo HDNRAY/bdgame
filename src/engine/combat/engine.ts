@@ -13,6 +13,8 @@ import {
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../data/actions'
 import { getBuff } from '../data/buffs'
+import { checkCondition } from '../entities/action-config'
+import { getConditionPreset } from '../data/conditions'
 import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
@@ -318,18 +320,19 @@ export class BattleEngine {
         }
         this.emit('turn_end', self, enemy)
         this.state.turn.next()
+        if (totalActionDurationMs > 0) this.state.turn.advanceTime(totalActionDurationMs)
 
-        // ── 4. 计算下次行动的间隔 = 行动耗时 + AP 回复耗时 ──
+        // ── 4. 计算下次行动的间隔 = AP 回复耗时 ──
         const remainingAp = self.ap
         const regenPerSec = calcApRegenPerSec(self.attrs.get('wisdom'))
         const regenMs = Math.ceil(((self.maxAp - remainingAp) / regenPerSec) * 1000)
-        let totalDelay = totalActionDurationMs + regenMs
+        let totalDelay = regenMs
         // 没有执行任何指令时最低等待一个完整回复周期（防止死循环）
         if (totalActionDurationMs === 0) {
             totalDelay = Math.max(totalDelay, Math.ceil((self.maxAp / regenPerSec) * 1000))
         }
 
-        self.lastActionEndMs = this.state.turn.currentTime + totalActionDurationMs
+        self.lastActionEndMs = this.state.turn.currentTime
         this.state.turn.scheduleNext(
             { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.getHaste() },
             totalDelay,
@@ -380,6 +383,7 @@ export class BattleEngine {
                     distance: position.distance(self.id, enemy.id),
                     moveDelta,
                     engine: this,
+                    buffId,
                 })
             )
                 continue
@@ -657,7 +661,11 @@ export class BattleEngine {
         // 效果应用
         this.#finalizeAttack(action, r, self, enemy)
         // 天机消耗：非辅助招式执行后，消耗天机并重置玄机层数（放在 hooks 生效之后）
-        if (this.state.pendingBuffs.has(`tianji_ready::${self.id}`) && !action.tags.includes('support')) {
+        if (
+            this.state.pendingBuffs.has(`tianji_ready::${self.id}`) &&
+            !action.tags.includes('pre_action') &&
+            !action.tags.includes('post_action')
+        ) {
             this.state.pendingBuffs.delete(`tianji_ready::${self.id}`)
             this.state.pendingBuffs.delete(`xuan_ji::${self.id}`)
             this.emitLog({
@@ -714,8 +722,22 @@ export class BattleEngine {
         }
         if (!cmd.actionId) return r
         const inst = self.actions.find((a) => a.id === cmd.actionId)
-        if (!inst || !inst.def.tags.includes('support') || !inst.canUse()) return r
-        if (!self.spendAp(inst.apCost)) return r
+        if (
+            !inst ||
+            (!inst.def.tags.includes('pre_action') && !inst.def.tags.includes('post_action')) ||
+            !inst.canUse()
+        )
+            return r
+        // 运行时验证（条件可能在前摇/主招后才满足）
+        if (inst.def.canUse && !inst.def.canUse(self, this.state)) return r
+        const config = self.getConfig(inst.id)
+        if (config?.conditionId) {
+            const cond = getConditionPreset(config.conditionId)
+            if (cond && !checkCondition(cond, self, this.state)) return r
+        }
+        if (!self.spendAp(inst.apCost)) {
+            return r
+        }
         inst.use()
         // 缠积累（消耗AP × 1）+ 缠消耗
         self.addChan(inst.apCost)

@@ -55,6 +55,11 @@ export class TurnManager {
         this.sort()
     }
 
+    /** 推进当前时间（用于计入招式执行耗时） */
+    advanceTime(deltaMs: number): void {
+        this.time += deltaMs
+    }
+
     /** 获取当前行动者 */
     peek(): TurnEntry | undefined {
         return this.queue[0]

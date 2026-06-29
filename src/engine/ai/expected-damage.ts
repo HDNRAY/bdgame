@@ -1,5 +1,6 @@
 import type { Character } from '../entities/character'
 import type { ActionDefinition, EffectDef } from '../entities/action'
+import { getActionRange } from '../entities/action'
 import { calcBaseDamage, calcCritChance, calcHitChance, calcParryChance } from '../calc/damage'
 
 export interface DamageEstimate {
@@ -20,7 +21,7 @@ export function calcExpectedDamage(
     distance: number,
 ): DamageEstimate {
     // 1. 可达性：getRange > range > weaponRange
-    const actionRange = action.getRange?.(weaponRange, attacker) ?? weaponRange
+    const actionRange = getActionRange(action, weaponRange, attacker)
     const canReach = distance >= actionRange[0] && distance <= actionRange[1]
 
     // 2. 基础伤害（遍历所有伤害效果，含 missing_hp_damage）

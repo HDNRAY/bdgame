@@ -8,6 +8,7 @@ import type { Tag } from '../entities/tag'
 import type { TriggerEvent } from '../entities/trigger'
 import { revertBuffMods, applyAttrMods } from '../combat/utils/buff-layer'
 import { processActionEffect } from '../combat/effects/action'
+import { MAX_CHAN } from '../constants'
 
 /** Buff 钩子上下文 */
 export interface BuffHookCtx {
@@ -100,7 +101,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'iaijutsu',
         name: '居合',
         description: '拔刀之势，蓄势待发。',
-        tags: [],
+        tags: ['stance'],
         value: 0,
         expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },
@@ -370,7 +371,10 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '左右互搏',
         description: '一次行动可使用两次主招式，非辅助招式AP-1。',
         tags: [],
-        onActionCost: ({ action }) => (action && !action.tags.includes('support') && action.apCost > 0 ? -1 : 0),
+        onActionCost: ({ action }) =>
+            action && !action.tags.includes('pre_action') && !action.tags.includes('post_action') && action.apCost > 0
+                ? -1
+                : 0,
     },
     {
         id: 'last_stand',
@@ -390,6 +394,24 @@ export const DEBUFF_DB: BuffDef[] = [
     { id: 'steal_artifact_track', name: '盗亦有道', description: '飞龙探云手的成功率追踪。', tags: [] },
 
     // ── 战斗状态 ──
+    {
+        id: 'extreme',
+        name: '极',
+        description: '蓄势至极，一击必杀。使用≥5AP招式时若缠劲已满：消耗所有缠劲，每层+1%暴击率和+1%暴伤。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onCritChance: ({ action, attacker, layer }) => {
+            if ((action?.apCost ?? 0) < 5 || attacker.chan < MAX_CHAN) return 0
+            const chan = attacker.chan
+            attacker.spendChan(chan)
+            layer.restoreValue = chan
+            return chan * 0.01
+        },
+        onCritDamage: ({ action, layer }) => {
+            if ((action?.apCost ?? 0) < 5 || !layer.restoreValue) return 0
+            return layer.restoreValue * 0.02
+        },
+    },
     {
         id: 'iaijutsu_focus',
         name: '居合·势',

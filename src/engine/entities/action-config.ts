@@ -1,5 +1,6 @@
 import type { BattleState } from '../combat/types'
 import type { Character } from './character'
+import { getBuff } from '../data/buffs'
 
 /**
  * 招式的必要条件 — AI 在选择该招式前必须满足的条件
@@ -18,6 +19,7 @@ export type RequiredCondition =
     | { type: 'enemy_hp_below'; ratio: number }
     | { type: 'enemy_hp_above'; ratio: number }
     | { type: 'enemy_buff_not_active'; buffId: string }
+    | { type: 'no_buff_with_tag'; tag: string }
 
 /** 招式配置条目 */
 export interface ActionConfig {
@@ -64,5 +66,13 @@ export function checkCondition(cond: RequiredCondition, self: Character, state: 
             return enemy ? enemy.hp / enemy.maxHp > cond.ratio : false
         case 'enemy_buff_not_active':
             return !state.pendingBuffs.has(`${cond.buffId}::${enemy?.id}`)
+        case 'no_buff_with_tag':
+            for (const [key] of state.pendingBuffs) {
+                const parts = key.split('::')
+                if (parts.length < 2 || parts[1] !== self.id) continue
+                const buff = getBuff(parts[0])
+                if (buff?.tags.includes(cond.tag as import('./tag').Tag)) return false
+            }
+            return true
     }
 }

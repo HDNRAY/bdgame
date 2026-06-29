@@ -95,6 +95,17 @@ export function hasBuff(engine: BattleEngine, charId: string, buffId: string): b
     return engine.state.pendingBuffs.has(`${buffId}::${charId}`)
 }
 
+/** 检查某人是否有架势 buff（tag 含 'stance'） */
+export function hasNoStance(pendingBuffs: Map<string, unknown>, charId: string): boolean {
+    for (const [key] of pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2 || parts[1] !== charId) continue
+        const def = getBuff(parts[0])
+        if (def?.tags.includes('stance')) return false
+    }
+    return true
+}
+
 /** 根据 trigger 消耗该角色的 consumed buff */
 export function consumeBuffsByTrigger(charId: string, engine: BattleEngine, trigger: TriggerEvent): void {
     for (const [k] of engine.state.pendingBuffs) {

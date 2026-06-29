@@ -52,14 +52,19 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '一刀两断，无物不斩。',
         tags: ['slash', 'parry', 'melee'],
         range: [1, 3],
-        triggers: [{ condition: { type: 'on_buff' }, actionId: '_zantetsu_mind_eye' }],
+        triggers: [
+            {
+                condition: { type: 'on_stance' },
+                actionId: '_zantetsu_mind_eye',
+            },
+        ],
     },
     {
         id: 'ciyuan_blade',
         name: '次元刃',
         description: '以炁凝成的无形之刃。',
         tags: ['slash', 'parry', 'dual_wield', 'qi', 'melee'],
-        range: [1, 4],
+        range: [1, 3],
     },
     {
         id: 'frost_twin_blades',

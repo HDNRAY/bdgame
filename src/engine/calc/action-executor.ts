@@ -3,6 +3,7 @@ import type { Character } from '../entities/character'
 import type { BattleState } from '../combat/types'
 import { getWeapon } from '../data/weapons/weapons'
 import { getBuff } from '../data/buffs'
+import { getActionRange } from '../entities/action'
 
 /** 检查招式是否满足释放条件 */
 export function canExecuteAction(
@@ -35,7 +36,7 @@ export function canExecuteAction(
     }
     if (attacker.ap < cost) return { ok: false, reason: 'AP不足' }
     const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)
-    const range: [number, number] = action.getRange?.(weapon.range, attacker) ?? weapon.range
+    const range = getActionRange(action, weapon.range, attacker)
     const dist = state.position.distance(attacker.id, state.characters.find((c) => c.id !== attacker.id)!.id)
     if (dist < range[0] || dist > range[1]) return { ok: false, reason: '距离不合适' }
     if (action.requiredTags.length > 0) {

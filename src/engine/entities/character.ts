@@ -5,6 +5,7 @@ import type { ActionConfig } from './action-config'
 import type { Passive, Talent } from './passive'
 import type { Artifact } from './artifact'
 import type { TriggerSlot } from './trigger'
+import type { Tag } from './tag'
 import type { WeaponDef } from '../data/weapons/weapons'
 import { getAction as getActionDef } from '../data/actions'
 import { getWeapon } from '../data/weapons/weapons'
@@ -287,7 +288,7 @@ export class Character {
         const weapon = this.weaponDef ?? getWeapon(this.build.weapon)
         return Math.max(
             ...this.actions
-                .filter((a) => !a.def.tags.includes('support'))
+                .filter((a) => !a.def.tags.includes('pre_action') && !a.def.tags.includes('post_action'))
                 .map((a) => {
                     const r = a.def.getRange?.(weapon.range, this) ?? weapon.range
                     return r[1]
@@ -543,6 +544,7 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     weapon_range_bonus(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'weapon_range_bonus' }>
         const weapon = getWeapon(char.build.weapon)
+        if (e.requireWeaponTag && !weapon.tags.includes(e.requireWeaponTag as Tag)) return
         char.weaponDef = {
             ...weapon,
             range: [weapon.range[0], Math.min(10, weapon.range[1] + e.value)] as [number, number],

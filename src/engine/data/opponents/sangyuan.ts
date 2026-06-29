@@ -15,6 +15,7 @@ export const SANGYUAN: OpponentDef = {
         action('spirit_sword'),
         action('heavy_slash'),
         action('big_leap'),
+        // action('qi_slash'),
         // 7
     ],
     actionConfigs: [

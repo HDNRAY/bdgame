@@ -8,6 +8,8 @@ export interface GameEntity {
     description: string
     /** 标签（用于分类/条件过滤） */
     tags: Tag[]
+    /** 装备/使用条件（不满足则无法获得/使用） */
+    requiredTags?: Tag[]
     /** 属性门槛（不够则不装备/使用） */
     requireAttrsMin?: Partial<Record<AttrName, number>>
 }

@@ -53,7 +53,7 @@ export class RewardPool {
         const filtered =
             type === 'action'
                 ? pool.filter((r) => {
-                      const reqs = (r as any).requiredTags as string[] | undefined
+                      const reqs = r.requiredTags
                       if (!reqs || reqs.length === 0) return true
                       return reqs.some((t) => playerTags.includes(t as Tag))
                   })
@@ -124,8 +124,7 @@ export class RewardPool {
                 type: 'action' as const,
                 tags: a.tags,
                 description: a.description,
-                requiredTags: a.requiredTags,
-            })) as Reward[]
+            }))
         }
         return this._actionPool
     }

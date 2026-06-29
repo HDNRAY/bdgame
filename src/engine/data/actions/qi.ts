@@ -8,7 +8,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '凝聚体内炁劲，全属性小幅提升。',
         requiredTags: [],
         apCost: 1,
-        tags: ['buff', 'support'],
+        tags: ['buff', 'pre_action'],
         target: 'self',
         maxUses: 1,
         effects: [{ type: 'add_buff', buffId: 'qi_state' }],
@@ -19,7 +19,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '集中炁劲，力量翻倍。',
         requiredTags: [],
         apCost: 3,
-        tags: ['buff', 'support'],
+        tags: ['buff', 'pre_action'],
         target: 'self',
         effects: [
             { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: { attr: 'wisdom', multiplier: 150 } },
