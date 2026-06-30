@@ -1009,16 +1009,44 @@ export const DEBUFF_DB: BuffDef[] = [
         onParryReduction: ({ final }) => Math.max(0, Math.round((final - 2) * 10) / 10),
     },
     {
-        id: 'qing_shan_recovery',
-        name: '青山剑意',
-        description: '不二剑意消退，身法渐复。',
+        id: 'buer_sword',
+        name: '不二剑灵',
+        description: '起手暴击大增但身法略滞，剑意逐回合恢复。',
         tags: [],
         expiry: { type: 'permanent' },
-        onTurnEnd: ({ attacker }) => {
-            if (attacker.critDamageMod > 0) {
-                attacker.critDamageMod = Math.max(0, Math.round((attacker.critDamageMod - 0.05) * 100) / 100)
-                attacker.dodgeMod = Math.min(0, Math.round((attacker.dodgeMod + 0.04) * 100) / 100)
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.05,
+        onDodgeChance: ({ layer }) => -(layer.restoreValue * 0.02),
+        onTurnEnd: ({ layer }) => {
+            if (layer.restoreValue > 0) {
+                layer.restoreValue = Math.max(0, layer.restoreValue - 1)
             }
+        },
+    },
+    {
+        id: 'sword_intent_tempering',
+        name: '剑意淬体',
+        description: '剑意淬炼肉身，slash/pierce伤害减免25%，单次受伤不超过最大生命的25%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTakeDamage: ({ final, target, action }) => {
+            let dmg = final
+            if (action?.tags?.includes('slash') || action?.tags?.includes('pierce')) {
+                dmg = Math.round(dmg * 0.75 * 10) / 10
+            }
+            const cap = Math.round(target.maxHp * 0.25 * 10) / 10
+            return Math.min(dmg, cap)
+        },
+    },
+    {
+        id: 'tongtian',
+        name: '通天大物',
+        description: '悟生离死别，所有伤害受推演按AP加成。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDealDamage: ({ final, attacker, action }) => {
+            const bonus = attacker.attrs.get('wisdom') * (action?.apCost ?? 1) * 0.1
+
+            return Math.round((final + bonus) * 10) / 10
         },
     },
     {

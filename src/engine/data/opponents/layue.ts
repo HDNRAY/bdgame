@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../systems/reward-pool'
 
-const LAYUE_ATTRS = { strength: 12, vitality: 8, agility: 20, dexterity: 16, insight: 16, wisdom: 8 }
+const LAYUE_ATTRS = { strength: 14, vitality: 10, agility: 20, dexterity: 16, insight: 16, wisdom: 4 }
 
 export const LAYUE: OpponentDef = {
     id: 'layue',
@@ -10,14 +10,16 @@ export const LAYUE: OpponentDef = {
     targetAttrs: LAYUE_ATTRS,
     rewards: [
         action('cun_mang'),
-        weapon('qing_shan_swords'),
+        weapon('fusi_sword'),
         passive('nine_deaths'),
         action('nine_deaths_strike'),
-        artifact('wisdom_talisman'),
+        passive('sword_intent_tempering'),
         passive('sword_dominion'),
-        // 其实是第一个，但是别人第一节点选的纯背景，所以这个放到最后，没有作用，通过simpleGenerate来获取效果
+        artifact('wisdom_talisman'),
         artifact('innate_seed'),
-        // 7
+        artifact('buer_sword'),
+        passive('tongtian'),
+        // 10
     ],
     actionConfigs: [
         { actionId: 'nine_deaths_strike' }, // AI 出招顺序

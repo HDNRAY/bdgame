@@ -34,16 +34,12 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [2, 4],
     },
     {
-        id: 'qing_shan_swords',
-        name: '青山双剑',
-        description: '最快的不二剑和最快的弗思剑',
-        tags: ['pierce', 'slash', 'imperial', 'parry', 'trigger', 'dual_wield', 'melee'],
+        id: 'fusi_sword',
+        name: '弗思剑',
+        description: '最快的剑之一，闪避后本能蓄势。',
+        tags: ['pierce', 'slash', 'imperial', 'parry'],
         range: [1, 3],
-        triggers: [
-            { condition: { type: 'battle_start' }, actionId: '_buer_init' },
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qing_shan_recovery' }] },
-            { condition: { type: 'on_dodge' }, actionId: '_fusi_crit_stack' },
-        ],
+        triggers: [{ condition: { type: 'on_dodge' }, actionId: '_fusi_crit_stack' }],
     },
     {
         id: 'zantetsu',

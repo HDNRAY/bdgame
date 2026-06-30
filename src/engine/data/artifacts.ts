@@ -297,6 +297,15 @@ export const ARTIFACTS: Artifact[] = [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'golden_bell_guard' }] },
         ],
     },
+    {
+        id: 'buer_sword',
+        name: '不二剑',
+        description: '最快的剑之一，起手暴击大增但身法略滞，剑意逐回合恢复。',
+        tags: ['imperial', 'buff'],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword', stacks: 10 }] },
+        ],
+    },
 ]
 
 /** 按 ID 查找物品 */

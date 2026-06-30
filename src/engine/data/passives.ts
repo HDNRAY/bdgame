@@ -523,6 +523,22 @@ export const PASSIVES: Passive[] = [
             },
         ],
     },
+    {
+        id: 'sword_intent_tempering',
+        name: '剑意淬体',
+        description: '剑意淬炼肉身，减免slash/pierce伤害25%，且单次受伤不超过最大生命的25%。',
+        tags: ['passive', 'buff', 'defense'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_intent_tempering' }] },
+        ],
+    },
+    {
+        id: 'tongtian',
+        name: '通天',
+        description: '悟生离死别，所有伤害受推演按AP加成。',
+        tags: ['passive', 'buff', 'qi'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tongtian' }] }],
+    },
 ]
 
 /** 天赋（绝学）注册表 */

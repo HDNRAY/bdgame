@@ -83,8 +83,11 @@ describe('GameRun', () => {
         run.getSelectionItems()
         const result = run.selectOption(0)
         if (result.rewardChoices && result.rewardChoices.length > 0) {
+            const rewardId = result.rewardChoices[0].id
+            // 修炼点不走 rewards 数组，跳过
+            if (rewardId === 'cult_reward') return
             const before = run.state.build.rewards.length
-            run.selectReward(result.rewardChoices[0].id)
+            run.selectReward(rewardId)
             expect(run.state.build.rewards.length).toBe(before + 1)
         }
     })
