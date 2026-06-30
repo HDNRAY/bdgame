@@ -43,7 +43,6 @@ export type EffectDef =
     | { type: 'trigger_slot_mod'; value: number }
     | { type: 'dodge_mod'; value: number }
     | { type: 'parry_mod'; value: number }
-    | { type: 'stat_parry_dodge'; parryScale?: number; dodgeScale?: number }
     | { type: 'haste'; value?: number; eval?: (char: Character) => number }
     | { type: 'attr_floor'; attrs: Partial<Record<AttrName, number>> }
     | { type: 'add_buff'; buffId: string; stacks?: number }
@@ -53,6 +52,7 @@ export type EffectDef =
     | { type: 'retrieve_weapon' }
     | { type: 'short_dash'; maxDistance?: number }
     | { type: 'disarm'; chance?: number }
+    | { type: 'self_disarm' }
     | { type: 'ignore_parry' }
     | { type: 'wisdom_stat_buff'; ratio: number; attrs: AttrName[] }
     | { type: 'copy_best_passive' }

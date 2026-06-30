@@ -1,29 +1,31 @@
 import { type OpponentDef } from '.'
-import { passive, action, weapon } from '../../systems/reward-pool'
+import { passive, action, weapon, artifact } from '../../systems/reward-pool'
 
-const LIUXIGUA_ATTRS = { strength: 14, vitality: 10, agility: 20, dexterity: 15, insight: 12, wisdom: 4 }
+const LIUXIGUA_ATTRS = { strength: 14, vitality: 10, agility: 20, dexterity: 14, insight: 14, wisdom: 4 }
 
 export const LIUXIGUA: OpponentDef = {
     id: 'liuxigua',
     name: '霸刀·西瓜',
     weapon: 'qingfeng_jian',
+    battleStyle: 'melee',
     targetAttrs: LIUXIGUA_ATTRS,
     rewards: [
         action('spinning_slash'),
         passive('momentum_mastery'),
         passive('overlord_art'),
         weapon('overlord_blade'),
-        action('little_fist'),
-        action('shadow_kick'),
+        action('shadow_fist'),
         action('cyclone_slash'),
         action('sky_burner'),
-        action('retrieve_blade'),
-        // 9
+        passive('weapon_stance'),
+        passive('stance_time'),
+        artifact('calming_talisman'),
+        // 10
     ],
     actionConfigs: [
         {
-            actionId: 'sky_burner',
-            conditionId: 'distance_gt_4',
+            actionId: 'shadow_fist',
+            triggerId: 'on_disarmed',
         },
     ],
 }

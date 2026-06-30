@@ -97,6 +97,23 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             targetId: self.id,
             amount,
         })
+        // 通知所有 buff 持有者收到治疗
+        for (const [key, layer] of engine.state.pendingBuffs) {
+            const [buffId, charId] = key.split('::')
+            if (charId !== self.id) continue
+            const def = getBuff(buffId)
+            if (def?.onReceiveHeal) {
+                def.onReceiveHeal({
+                    final: amount,
+                    raw: amount,
+                    target: self,
+                    attacker: self,
+                    engine,
+                    layer,
+                    buffOwnerId: self.id,
+                })
+            }
+        }
     },
     interrupt({ enemy, engine }: EffectCtx) {
         if (hasCcImmunity(enemy, engine)) {
@@ -438,12 +455,14 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             layer: engine.state.pendingBuffs.get(key)!,
         })
     },
-    add_buff({ eff, self, engine }: EffectCtx) {
+    add_buff({ eff, self, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_buff' }>
-        const key = `${e.buffId}::${self.id}`
         const buff = getBuff(e.buffId)
+        const isIndependent = buff?.stacking?.type === 'independent'
+        const keyBase = `${e.buffId}::${self.id}`
+        const key = isIndependent ? `${keyBase}::${genAppId(tMs)}` : keyBase
 
-        const existing = engine.state.pendingBuffs.get(key)
+        const existing = !isIndependent ? engine.state.pendingBuffs.get(key) : undefined
         if (existing && buff?.stacking?.type === 'additive') {
             const max = getBuffMaxOverride(buff!, engine, self.id)
             const newStacks = Math.min(max, existing.restoreValue + (e.stacks ?? 1))
@@ -490,31 +509,36 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             mods.maxApMod = buff.maxApMod
         }
         const stacks = e.stacks ?? 1
+        // independent 叠层统计当前总层数
+        let totalStacks = stacks
+        if (buff?.stacking?.type === 'independent') {
+            const prefix = `${e.buffId}::${self.id}::`
+            for (const k of engine.state.pendingBuffs.keys()) {
+                if (k.startsWith(prefix)) totalStacks++
+            }
+        }
         engine.emitLog({
             type: 'system',
             message: firstResult.details.length
-                ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${firstResult.details.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}`
+                ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${firstResult.details.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`
                 : `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}`,
             actorId: self.id,
         })
         engine.state.pendingBuffs.set(key, { restoreValue: stacks, mods })
-        if (e.buffId === 'disarmed') {
-            // 清理旧 buff_end 事件，防止残留事件误触
-            engine.state.turn.removeEvents('buff_end_' + key)
-            const layer = engine.state.pendingBuffs.get(key)
-            if (layer && !layer.extra?.originalWeapon) {
-                layer.extra = {
-                    ...layer.extra,
-                    originalWeapon: self.weaponDef?.id ?? getWeapon(self.build.weapon).id,
-                    dropPosition: engine.state.position.get(self.id),
-                }
-            }
-        }
         engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
         if (buff?.tags.includes('stance')) {
             engine.emit('on_stance', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
         }
         scheduleBuffEnd(engine, key, buff!, self)
+        if (buff?.tags.includes('super_armor')) {
+            for (const id of ['stun', 'knockdown', 'disarmed']) {
+                const ck = `${id}::${self.id}`
+                if (engine.state.pendingBuffs.has(ck)) {
+                    engine.state.pendingBuffs.delete(ck)
+                    engine.state.turn.removeEvents('buff_end_' + ck)
+                }
+            }
+        }
         if (buff?.tickInterval) {
             engine.state.turn.scheduleSystemEventAt(
                 `tick_buff_${key}`,
@@ -658,20 +682,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const key = `disarmed::${enemy.id}`
         if (engine.state.pendingBuffs.has(key)) return
 
-        // 脱手清除刀势
-        const momentumKey = `momentum::${enemy.id}`
-        const momentumLayer = engine.state.pendingBuffs.get(momentumKey)
-        if (momentumLayer) {
-            const stacks = momentumLayer.restoreValue
-            engine.state.pendingBuffs.delete(momentumKey)
-            engine.state.turn.removeEvents('buff_end_' + momentumKey)
-            engine.emitLog({
-                type: 'system',
-                message: `[刀势] ${BattleLog.name(enemy.name)} 状态消失（${stacks}层）`,
-                actorId: enemy.id,
-            })
-        }
-
         // 记录掉落位置
         const dropPosition = engine.state.position.get(enemy.id)
         revertWeaponStatBuffs(oldWeapon, enemy, engine)
@@ -685,6 +695,42 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             actorId: enemy.id,
         })
         engine.emit('on_disarm', self, enemy)
+        engine.emit('on_disarmed', enemy, self)
+    },
+    self_disarm({ self, engine, action }: EffectCtx) {
+        const oldWeapon = self.weaponDef ?? getWeapon(self.build.weapon)
+        if (oldWeapon.id === 'bare_hands') return
+        if (oldWeapon.tags.includes('imperial')) return
+        if (engine.state.pendingBuffs.has(`disarmed::${self.id}`)) return
+
+        // 保存原始武器信息
+        const originalWeapon = oldWeapon.id
+        const dropPosition = engine.state.position.get(self.id)
+
+        // 换空手（复用已有 handler）
+        processActionEffect(
+            { type: 'switch_weapon', weaponId: 'bare_hands' },
+            self,
+            self,
+            engine,
+            engine.state.turn.currentTime,
+        )
+
+        // 设置 disarmed buff 层
+        engine.state.pendingBuffs.set(`disarmed::${self.id}`, {
+            restoreValue: 1,
+            extra: { originalWeapon, dropPosition },
+        })
+
+        engine.emitLog({
+            type: 'system',
+            message: `[${action?.name ?? '自缴械'}] ${BattleLog.name(self.name)} 兵器脱手！`,
+            actorId: self.id,
+        })
+
+        const opponent = engine.getOpponent(self.id)
+        engine.emit('on_disarm', self, self)
+        if (opponent) engine.emit('on_disarmed', self, opponent)
     },
     add_passive({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_passive' }>
@@ -790,15 +836,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     retrieve_weapon({ self, engine }: EffectCtx) {
         const key = `disarmed::${self.id}`
         const layer = engine.state.pendingBuffs.get(key)
-        if (!layer?.extra?.originalWeapon) return
+        const weaponId = layer?.extra?.originalWeapon as string | undefined
+        if (!weaponId) {
+            console.error('retrieve_weapon: missing originalWeapon')
+            return
+        }
         // 1. 切回原武器 → 触发 on_equip → 自动加武器 buff
-        processActionEffect(
-            { type: 'switch_weapon', weaponId: layer.extra.originalWeapon as string },
-            self,
-            self,
-            engine,
-            engine.state.turn.currentTime,
-        )
+        processActionEffect({ type: 'switch_weapon', weaponId }, self, self, engine, engine.state.turn.currentTime)
         // 2. 移除缴械
         const removeEff: EffectDef = { type: 'remove_buff', buffId: 'disarmed' }
         processActionEffect(removeEff, self, self, engine, engine.state.turn.currentTime)

@@ -149,12 +149,6 @@ export function describeEffect(eff: EffectDef): string[] {
         }
         case 'limit_uses':
             return [`使用次数上限: ${eff.max}`]
-        case 'stat_parry_dodge': {
-            const parts: string[] = []
-            if (eff.parryScale) parts.push(`招架 ×${eff.parryScale}`)
-            if (eff.dodgeScale) parts.push(`闪避 ×${eff.dodgeScale}`)
-            return [`属性替代: ${parts.join(', ')}`]
-        }
         case 'add_passive':
             return [`获得功法: ${eff.passiveId}`]
         case 'dex_to_str':

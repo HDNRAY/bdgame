@@ -33,7 +33,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['cripple', 'unarmed', 'melee'],
         effects: [
             { type: 'damage', scaling: { strength: 0.1 } },
-            { type: 'missing_hp_damage', ratio: 0.08 },
+            { type: 'missing_hp_damage', ratio: 0.07 },
         ],
     },
     {
@@ -90,13 +90,17 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         canUse: (_attacker, state) => state.lastActionExtraDelay >= 200,
     },
     {
-        id: 'little_fist',
-        name: '小拳拳',
+        id: 'shadow_fist',
+        name: '无影拳',
         description: '看似柔弱的小拳头，实则借全身旋转之力。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'melee'],
-        effects: [{ type: 'damage', scaling: { strength: 0.1, agility: 0.3 } }],
+        tags: ['unarmed'],
+        effects: [
+            { type: 'short_dash', maxDistance: 2 },
+            { type: 'damage', scaling: { strength: 0.1, agility: 0.3 } },
+            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.3 },
+        ],
     },
     {
         id: 'shadow_kick',
@@ -107,7 +111,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'move'],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
-            { type: 'damage', scaling: { strength: 0.2, agility: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
         ],
     },
     {
@@ -416,39 +420,29 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '顺势回旋，刀光如水。',
         requiredTags: ['slash'],
         apCost: 2,
-        tags: ['slash', 'buff'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.3 }, base: 1 },
-            { type: 'add_buff', buffId: 'momentum', stacks: 1 },
-        ],
+        tags: ['slash'],
+        effects: [{ type: 'damage', scaling: { strength: 0.4 }, base: 2 }],
     },
     {
         id: 'cyclone_slash',
         name: '旋风斩',
-        description: '离心力驱动的连环斩，势越强刀越利。',
+        description: '离心力驱动的连环斩。',
         requiredTags: ['slash'],
         apCost: 4,
-        tags: ['slash', 'buff'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.5 }, base: 2 },
-            { type: 'add_buff', buffId: 'momentum', stacks: 1 },
-        ],
+        tags: ['slash'],
+        effects: [{ type: 'damage', scaling: { strength: 0.8 }, base: 4 }],
     },
     {
         id: 'sky_burner',
         name: '燎天势',
-        description: '离心之势已然极致，顺势脱手。刀如流星，刀势越强伤害越高。',
+        description: '离心之势已然极致，顺势脱手。刀如流星，消耗缠劲灌注刀意。',
         requiredTags: ['slash'],
         apCost: 5,
+        chanCost: 25,
         tags: ['slash', 'range'],
         getRange: () => [0, 8] as [number, number],
-        canUse: (attacker, state) => (state.pendingBuffs.get(`momentum::${attacker.id}`)?.restoreValue ?? 0) >= 4,
-        effects: [
-            { type: 'damage', scaling: { strength: 1.2 }, base: 6 },
-            { type: 'remove_buff', buffId: 'momentum' },
-            { type: 'add_buff', buffId: 'disarmed' },
-            { type: 'switch_weapon', weaponId: 'bare_hands' },
-        ],
+        canUse: (attacker) => attacker.chan >= 25,
+        effects: [{ type: 'damage', scaling: { strength: 1.2 }, base: 10 }, { type: 'self_disarm' }],
     },
     {
         id: 'qi_slash',

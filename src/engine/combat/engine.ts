@@ -346,7 +346,6 @@ export class BattleEngine {
         const key = `${self.id}:${event}`
         if (this.state.triggeredThisChain.has(key)) return
         if (this.state.isEmitting) {
-            this.state.triggeredThisChain.add(key)
             this.#deferredEmits.push({ event, self, enemy, buffId, indent: this.state.log.indentDepth })
             return
         }
@@ -508,11 +507,6 @@ export class BattleEngine {
             if (enemy) this.emit('chan_overflow', char, enemy)
         } else if (curValue < 30 && hasZhou) {
             processActionEffect({ type: 'remove_buff', buffId: 'zhou' }, char, char, this, this.state.turn.currentTime)
-            this.emitLog({
-                type: 'system',
-                message: `[周] ${BattleLog.name(char?.name ?? '')} 缠劲不足，周流消散`,
-                actorId: charId,
-            })
         }
     }
 
@@ -882,6 +876,23 @@ export class BattleEngine {
                         char.heal(amt)
                         reduceBleedOnHeal(this, char.id, amt, 8)
                         this.emitLog({ type: 'heal', sourceId: char.id, targetId: char.id, amount: amt })
+                        // 通知所有 buff 持有者收到治疗
+                        for (const [key, layer] of this.state.pendingBuffs) {
+                            const [buffId, charId] = key.split('::')
+                            if (charId !== char.id) continue
+                            const def = getBuff(buffId)
+                            if (def?.onReceiveHeal) {
+                                def.onReceiveHeal({
+                                    final: amt,
+                                    raw: amt,
+                                    target: char,
+                                    attacker: char,
+                                    engine: this,
+                                    layer,
+                                    buffOwnerId: char.id,
+                                })
+                            }
+                        }
                     }
                 }
                 if (this.state.pendingBuffs.has(`${buffId}::${charId}`)) {

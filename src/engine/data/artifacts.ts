@@ -147,6 +147,22 @@ export const ARTIFACTS: Artifact[] = [
         ],
     },
     {
+        id: 'calming_talisman',
+        name: '定心香氛',
+        description: '感知肾上腺素后散发镇定香氛，切换姿态时旧香换新，余香缭绕。洞察+2，推演+1。',
+        tags: ['buff'],
+        triggers: [
+            {
+                condition: { type: 'on_stance' },
+                effects: [
+                    { type: 'remove_buff', buffId: 'calming_fragrance' },
+                    { type: 'add_buff', buffId: 'calming_aftertaste', stacks: 1 },
+                    { type: 'add_buff', buffId: 'calming_fragrance' },
+                ],
+            },
+        ],
+    },
+    {
         id: 'qi_guard',
         name: '吞炁囊',
         description: '开局凝聚炁盾，吸收炁招式伤害2点，共99次。',

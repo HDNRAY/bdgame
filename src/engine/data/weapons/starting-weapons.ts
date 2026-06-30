@@ -13,7 +13,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'bare_hands',
         name: '赤手空拳',
         description: '什么都没有，但什么都有可能。',
-        tags: ['unarmed', 'dual_wield', 'melee'],
+        tags: ['unarmed', 'dual_wield'],
         effects: [{ type: 'stat_buff', attrs: { agility: 2 } }],
         range: [0, 2],
     },
@@ -60,7 +60,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'tri_orb',
         name: '三相珠',
         description: '三颗由炁劲驱动的法珠，环绕主人旋转。',
-        tags: ['imperial', 'parry', 'range', 'unarmed'],
+        tags: ['imperial', 'parry', 'range'],
         bound: true,
         range: [0, 6],
         summon: {
@@ -74,7 +74,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'fei_jian',
         name: '一柄大剑',
         description: '御剑飞行，剑气纵横。',
-        tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'melee'],
+        tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'polearm'],
         bound: true,
         range: [2, 6],
         summon: {

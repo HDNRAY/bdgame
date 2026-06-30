@@ -127,6 +127,12 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
         type: 'on_disarm',
     },
     {
+        id: 'on_disarmed',
+        name: '被缴械时',
+        description: '自身被缴械时触发',
+        type: 'on_disarmed',
+    },
+    {
         id: 'on_move',
         name: '移动时',
         description: '移动时触发',

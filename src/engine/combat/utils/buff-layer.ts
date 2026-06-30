@@ -64,9 +64,14 @@ export function applyAttrMods(
 /** 反转 buff 的属性修正 */
 export function revertBuffMods(layer: BuffLayer | undefined, char: Character, engine: BattleEngine): void {
     if (!layer?.mods) return
+    const oldMaxHp = char.maxHp
     for (const [attr, delta] of Object.entries(layer.mods)) {
         char.attrs.modify(attr as AttrName, -(delta as number))
         if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
+    }
+    // 根骨减少 → 按比例减少血量
+    if (oldMaxHp > char.maxHp) {
+        char.hp = Math.max(1, Math.round(char.hp * (char.maxHp / oldMaxHp)))
     }
     // 属性下降后封顶 hp/ap
     if (char.hp > char.maxHp) char.hp = char.maxHp

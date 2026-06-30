@@ -151,6 +151,13 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
             }
 
             case 'attack_start': {
+                // 触发招式暂存到系统行，父招式 pending 保留不变
+                if (e.isTriggered && pending && !pending.extra) {
+                    pendingSystemLines.push(
+                        `${'  '.repeat(e.indent ?? 0)}↳ ${e.actionName}(${e.apCost}AP) → ${fmtName(e.target, e.snapshot)}  | AP${e.apRemaining.toFixed(1)}`,
+                    )
+                    break
+                }
                 flush()
                 const actorName = fmtName(e.actor, e.snapshot)
                 const targetName = fmtName(e.target, e.snapshot)
@@ -176,7 +183,6 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     pending.extra = `  ${roll('命中', e.hitChance, e.roll)}`
                     if (!e.result) {
                         pending.extra += '  » 未命中'
-                        // 不 flush，让后续触发事件（弗思等）能缓存到 pendingSystemLines
                         pending.ap = undefined
                     }
                 }
@@ -184,7 +190,10 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
 
             case 'dodge':
                 if (pending) {
-                    pending.extra = (pending.extra ?? '') + `  » ${fmtName(e.evader)} 闪避`
+                    // 未命中的情况下不再重复显示闪避
+                    if (!(pending.extra ?? '').includes('未命中')) {
+                        pending.extra = (pending.extra ?? '') + `  » ${fmtName(e.evader)} 闪避`
+                    }
                     flush()
                 }
                 break
@@ -239,6 +248,7 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 lines.push(`\n🏆 ${winnerName} 获胜！`)
                 break
             }
+
             case 'system': {
                 if (pending) {
                     // 攻击判定期间：缓存系统消息，等攻击行 flush 时一并输出

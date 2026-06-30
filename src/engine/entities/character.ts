@@ -162,19 +162,11 @@ export class Character {
 
         // 通用招式强化：被动钩子
         for (const p of this.passiveDefs) {
-            if (!p.actionEnhancer) continue
-            this.#actionCache = this.#actionCache.map((a) => {
-                const modified = p.actionEnhancer!(a.def)
-                return modified !== a.def ? new Action(modified) : a
-            })
+            if (p.actionEnhancer) this.#applyActionEnhancer(p.actionEnhancer)
         }
         // 通用招式强化：义体钩子
         for (const a of this.artifactDefs) {
-            if (!a.actionEnhancer) continue
-            this.#actionCache = this.#actionCache.map((act) => {
-                const modified = a.actionEnhancer!(act.def)
-                return modified !== act.def ? new Action(modified) : act
-            })
+            if (a.actionEnhancer) this.#applyActionEnhancer(a.actionEnhancer)
         }
 
         // 非空手角色自动获取捡武器招式
@@ -296,6 +288,17 @@ export class Character {
         )
     }
 
+    /** 应用 actionEnhancer，重建招式缓存时保留剩余次数 */
+    #applyActionEnhancer(enhancer: (def: ActionDefinition) => ActionDefinition): void {
+        this.#actionCache = this.#actionCache.map((a) => {
+            const modified = enhancer(a.def)
+            if (modified === a.def) return a
+            const newAction = new Action(modified)
+            newAction.remainingUses = a.remainingUses
+            return newAction
+        })
+    }
+
     /** 运行时添加功法（自爆后获得独臂等），返回是否成功添加 */
     addPassive(id: string): boolean {
         if (this.passiveDefs.some((p) => p.id === id)) return false
@@ -303,12 +306,7 @@ export class Character {
         if (!def) return false
         this.passiveDefs.push(def)
         this.applyPassive(def)
-        if (def.actionEnhancer) {
-            this.#actionCache = this.#actionCache.map((a) => {
-                const modified = def.actionEnhancer!(a.def)
-                return modified !== a.def ? new Action(modified) : a
-            })
-        }
+        if (def.actionEnhancer) this.#applyActionEnhancer(def.actionEnhancer)
         return true
     }
 
@@ -323,12 +321,7 @@ export class Character {
             if (handler) handler(this, eff)
         }
         for (const t of def.triggers ?? []) this.passiveTriggers.push(t)
-        if (def.actionEnhancer) {
-            this.#actionCache = this.#actionCache.map((a) => {
-                const modified = def.actionEnhancer!(a.def)
-                return modified !== a.def ? new Action(modified) : a
-            })
-        }
+        if (def.actionEnhancer) this.#applyActionEnhancer(def.actionEnhancer)
         return true
     }
 
@@ -528,11 +521,6 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     parry_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'parry_mod' }>
         char.parryMod += e.value
-    },
-    stat_parry_dodge(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'stat_parry_dodge' }>
-        if (e.parryScale) char.parryMod += Math.round(char.attrs.get('dexterity') * e.parryScale * 100) / 100
-        if (e.dodgeScale) char.dodgeMod += Math.round(char.attrs.get('agility') * e.dodgeScale * 100) / 100
     },
     weapon_tag(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'weapon_tag' }>

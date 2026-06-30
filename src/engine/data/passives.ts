@@ -1,5 +1,6 @@
 import type { Passive, Talent } from '../entities/passive'
 import { hasBuff, hasNoStance } from '../combat/utils'
+import { getWeapon } from './weapons/weapons'
 import { Tag } from '../entities/tag'
 
 /** 功法注册表 */
@@ -158,20 +159,20 @@ export const PASSIVES: Passive[] = [
         name: '平平无奇的锻炼',
         description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
         tags: ['passive', 'defense'],
-        effects: [{ type: 'stat_parry_dodge', parryScale: 0.005, dodgeScale: 0.005 }],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ordinary_training' }] },
+        ],
     },
     {
         id: 'momentum_mastery',
-        name: '刀势',
-        description: '越战越强，每次击中积攒刀势，未命中则丢失。每层刀势提升斩击伤害10%，命中+5%。',
-        tags: ['passive', 'damage', 'buff'],
+        name: '刀炁大师',
+        description: '刀炁入体，每层受到伤害+5%。受到治疗时减少一层（累计10点治疗消一层）。',
+        tags: ['passive', 'damage', 'debuff'],
         triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'momentum', stacks: 1 }] },
             {
                 condition: { type: 'on_hit', check: (ctx) => ctx.actor.weaponDef?.tags.includes('slash') ?? false },
-                effects: [{ type: 'add_buff', buffId: 'momentum', stacks: 1 }],
+                effects: [{ type: 'add_debuff', buffId: 'blade_qi', stacks: 1, chance: 1 }],
             },
-            { condition: { type: 'on_dodged' }, effects: [{ type: 'remove_buff', buffId: 'momentum', stacks: 1 }] },
         ],
     },
     {
@@ -180,9 +181,13 @@ export const PASSIVES: Passive[] = [
         description: '霸刀巨刃配合离心力，每一刀都顺势回旋突进。',
         tags: ['passive', 'damage'],
         effects: [],
+        grantsActions: ['retrieve_blade'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'overlord_art_buff' }] },
+        ],
         actionEnhancer: (def) => {
             if (!def.tags.includes('slash')) return def
-            return { ...def, effects: [{ type: 'short_dash', maxDistance: 2 }, ...(def.effects ?? [])] }
+            return { ...def, effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])] }
         },
     },
     {
@@ -199,7 +204,7 @@ export const PASSIVES: Passive[] = [
         description: '太极圆满，以柔克刚。空手可招架，灵巧增益招架减伤。招架后可顺势推掌。',
         tags: ['passive', 'counter', 'defense'],
         triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tai_chi' }] },
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'nuo_yi' }] },
             { condition: { type: 'on_parry' }, actionId: 'push_palm' },
         ],
     },
@@ -285,14 +290,64 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
-        id: 'stance_armor',
-        name: '罡体',
+        id: 'stance_time',
+        name: '转换时刻',
         description: '进入架势时罡气护体，2秒内免疫眩晕、击退、打断、缴械、击倒。',
         tags: ['buff', 'defense'],
         triggers: [
             {
                 condition: { type: 'on_stance' },
                 effects: [{ type: 'add_buff', buffId: 'stance_armor' }],
+            },
+        ],
+    },
+    {
+        id: 'weapon_stance',
+        name: '行云流水',
+        description: '每次切换武器自动进入对应架势。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            {
+                condition: {
+                    type: 'on_equip',
+                    check: (ctx) => {
+                        const w = ctx.actor.weaponDef ?? getWeapon(ctx.actor.build.weapon)
+                        return w.tags.includes('polearm')
+                    },
+                },
+                effects: [
+                    { type: 'remove_buff', buffId: 'melee_stance' },
+                    { type: 'remove_buff', buffId: 'fist_stance' },
+                    { type: 'add_buff', buffId: 'polearm_stance' },
+                ],
+            },
+            {
+                condition: {
+                    type: 'on_equip',
+                    check: (ctx) => {
+                        const w = ctx.actor.weaponDef ?? getWeapon(ctx.actor.build.weapon)
+                        return w.tags.includes('melee')
+                    },
+                },
+                effects: [
+                    { type: 'remove_buff', buffId: 'polearm_stance' },
+                    { type: 'remove_buff', buffId: 'fist_stance' },
+                    { type: 'add_buff', buffId: 'melee_stance' },
+                ],
+            },
+            {
+                condition: {
+                    type: 'on_equip',
+                    check: (ctx) => {
+                        const w = ctx.actor.weaponDef ?? getWeapon(ctx.actor.build.weapon)
+                        return w.tags.includes('unarmed')
+                    },
+                },
+                effects: [
+                    { type: 'remove_buff', buffId: 'polearm_stance' },
+                    { type: 'remove_buff', buffId: 'melee_stance' },
+                    { type: 'add_buff', buffId: 'fist_stance' },
+                ],
             },
         ],
     },

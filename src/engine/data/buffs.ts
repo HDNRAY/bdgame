@@ -63,8 +63,10 @@ export interface BuffDef extends GameEntity {
     onBeforeModify?: (delta: number, ctx: { character: Character; engine: BattleEngine }) => number
     /** 招架率修正钩子（applyDamage 招架判定前自动调用，返回加算值） */
     onParryChance?: (ctx: BuffHookCtx) => number
-    /** 招架减伤修正钩子（applyDamage 招架成功后自动调用） */
+    /** 招架减伤修正钩子（防御方 buff，applyDamage 招架成功后自动调用） */
     onParryReduction?: (ctx: BuffHookCtx) => number
+    /** 招架穿透修正钩子（攻击方 buff，削弱对方招架减伤） */
+    onParryPenetration?: (ctx: BuffHookCtx) => number
     /** 命中率修正钩子（processHitCheck 中自动调用，返回加算值） */
     onHitChance?: (ctx: BuffHookCtx) => number
     /** 闪避率修正钩子（processHitCheck 中防御方 buff 自动调用，返回加算值） */
@@ -92,6 +94,8 @@ export interface BuffDef extends GameEntity {
     /** 首次应用时回调 */
     /** 层数上限覆盖钩子（raw=原始 max，返回覆盖后的新上限） */
     onBuffApply?: (raw: number, char: Character, engine: BattleEngine) => number
+    /** 收到治疗时回调（所有治疗路径，含 tick heal） */
+    onReceiveHeal?: (ctx: BuffHookCtx) => void
 }
 
 /** 增益状态 */
@@ -126,6 +130,30 @@ export const BUFF_DB: BuffDef[] = [
         onCritChance: () => 0.25,
     },
     {
+        id: 'melee_stance',
+        name: '守拙',
+        description: '持械架势，招架率+10%。',
+        tags: ['stance'],
+        expiry: { type: 'permanent' },
+        onParryChance: () => 0.1,
+    },
+    {
+        id: 'polearm_stance',
+        name: '撼岳',
+        description: '重器架势，命中率+10%。',
+        tags: ['stance'],
+        expiry: { type: 'permanent' },
+        onHitChance: () => 0.1,
+    },
+    {
+        id: 'fist_stance',
+        name: '穿花',
+        description: '空手架势，闪避率+10%。',
+        tags: ['stance'],
+        expiry: { type: 'permanent' },
+        onDodgeChance: () => 0.1,
+    },
+    {
         id: 'circle',
         name: '圆',
         description: '下次攻击，命中+40%。',
@@ -135,33 +163,54 @@ export const BUFF_DB: BuffDef[] = [
         onHitChance: () => 0.4,
     },
     {
-        id: 'momentum',
-        name: '刀势',
-        description: '越战越勇，每层斩击伤害+10%, 命中率+5%。',
-        tags: [],
+        id: 'blade_qi',
+        name: '刀炁',
+        description: '每层增伤5%。累计10点治疗消一层。',
+        tags: ['debuff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 6 },
-        onDealDamage: ({ final, layer }) => Math.round((final + final * 0.1 * layer.restoreValue) * 10) / 10,
-        onHitChance: ({ layer }) => layer.restoreValue * 0.05,
-        onBeforeModify: (delta, { character, engine }) => {
-            if (delta < 0 && engine.state.pendingBuffs.has(`overlord_blade::${character.id}`)) {
-                return 0 // 霸刀护体，刀势不降
+        stacking: { type: 'additive' },
+        onTakeDamage: ({ final, layer }) => Math.round(final * (1 + layer.restoreValue * 0.05) * 10) / 10,
+        onReceiveHeal: ({ layer, engine, target, final: amount }) => {
+            const HEAL_PER_STACK = 10
+            const acc = (layer.extra?.healAccumulator as number) ?? 0
+            const total = acc + amount
+            if (total < HEAL_PER_STACK) {
+                layer.extra = { ...layer.extra, healAccumulator: total }
+                return
             }
-            return delta
+            const reduce = Math.min(layer.restoreValue, Math.floor(total / HEAL_PER_STACK))
+            layer.restoreValue -= reduce
+            layer.extra = { ...layer.extra, healAccumulator: total - reduce * HEAL_PER_STACK }
+            const char = engine.getCharacter(target.id)
+            engine.emitLog({
+                type: 'system',
+                message: `[治疗] ${char?.name ?? ''} 刀炁 -${reduce}层，剩${layer.restoreValue}层`,
+                actorId: target.id,
+            })
         },
     },
     {
         id: 'overlord_blade',
-        name: '霸刀',
+        name: '霸刀在手',
         description: '霸刀在手，身法受限但势不可挡。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { agility: -8, strength: 4 },
-        onParryChance: () => 0.15,
-        onHitChance: ({ action }) => (action?.tags.includes('slash') ? 0.1 : 0),
+        onParryChance: () => 0.2,
+        // onHitChance: ({ action }) => (action?.tags.includes('slash') ? 0.2 : 0),
+        onParryPenetration: ({ final, raw }) => {
+            return Math.round((final + Math.round(raw * 0.2) * 10) / 10)
+        },
     },
-
+    {
+        id: 'overlord_art_buff',
+        name: '霸刀刀路',
+        description: '霸刀巨刃配合离心力，重器加持，命中+15%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),
+    },
     {
         id: 'ciyuan_blade',
         name: '次元刃',
@@ -353,10 +402,10 @@ export const DEBUFF_DB: BuffDef[] = [
         id: 'dimensional_blade',
         name: '次元刃',
         description: '凝炁为刃，削弱招架减伤效果。',
-        tags: [],
-        onParryReduction: ({ final, raw }) => {
+        tags: ['qi'],
+        onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const reduced = Math.round(blocked * 0.2 * 10) / 10
+            const reduced = Math.round(blocked * 0.3 * 10) / 10
             return raw - reduced
         },
     },
@@ -463,14 +512,29 @@ export const DEBUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
     },
     {
-        id: 'tai_chi',
-        name: '太极',
-        description: '以柔克刚，四两拨千斤。空手可招架，灵巧增益招架减伤。',
+        id: 'ordinary_training',
+        name: '平平无奇的锻炼',
+        description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
         tags: [],
         expiry: { type: 'permanent' },
-        onParryReduction: ({ final, target }) => {
-            const dexBonus = target.attrs.get('dexterity') * 0.01
-            return Math.round(final * (1 - dexBonus) * 10) / 10
+        onDodgeChance: ({ engine, buffOwnerId }) => {
+            const char = engine.getCharacter(buffOwnerId)
+            return char ? char.attrs.get('agility') * 0.005 : 0
+        },
+        onParryChance: ({ engine, buffOwnerId }) => {
+            const char = engine.getCharacter(buffOwnerId)
+            return char ? char.attrs.get('dexterity') * 0.005 : 0
+        },
+    },
+    {
+        id: 'nuo_yi',
+        name: '挪移',
+        description: '以柔克刚，四两拨千斤。每点灵巧减少1%所受伤害。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTakeDamage: ({ final, target }) => {
+            const dexReduction = target.attrs.get('dexterity') * 0.01
+            return Math.round(final * (1 - dexReduction) * 10) / 10
         },
         onCanParry: () => true,
     },
@@ -683,9 +747,9 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         attrMods: { agility: -10, strength: 4 },
-        onParryReduction: ({ final, raw }) => {
+        onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const half = Math.round(blocked * 0.5 * 10) / 10
+            const half = Math.round(blocked * 0.4 * 10) / 10
             return raw - half
         },
     },
@@ -720,7 +784,7 @@ export const DEBUFF_DB: BuffDef[] = [
             const bonus = Math.round(((attacker.attrs.get('strength') * 0.66 * Math.max(0, 6 - dist)) / 5) * 10) / 10
             return bonus > 0 ? Math.round((final + bonus) * 10) / 10 : final
         },
-        onParryReduction: ({ final, raw }) => {
+        onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
             const reduced = Math.round(blocked * 0.4 * 10) / 10
             return raw - reduced
@@ -784,6 +848,24 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '免疫身法/灵巧减益、位移、缴械、打断。',
         tags: ['super_armor'],
         expiry: { type: 'permanent' },
+    },
+    {
+        id: 'calming_fragrance',
+        name: '定心清香',
+        description: '清香常驻',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        attrMods: { insight: 2, wisdom: 1 },
+    },
+    {
+        id: 'calming_aftertaste',
+        name: '定心余香',
+        description: '余香留存10秒',
+        tags: [],
+        expiry: { type: 'duration', ms: 10000 },
+        stacking: { type: 'independent' },
+        attrMods: { insight: 2, wisdom: 1 },
     },
     {
         id: 'stance_armor',

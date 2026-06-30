@@ -23,6 +23,7 @@ const PRE_HIT_EFFECT_TYPES = new Set<EffectDef['type']>([
     'remove_buff',
     'switch_weapon',
     'retrieve_weapon',
+    'self_disarm',
 ])
 
 /** 判断效果类型是否为不受命中影响的先发效果 */

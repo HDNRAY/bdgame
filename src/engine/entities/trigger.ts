@@ -23,6 +23,7 @@ export type TriggerEvent =
     | 'on_paralyze'
     | 'on_sand_blind'
     | 'on_disarm'
+    | 'on_disarmed'
     | 'on_move'
     | 'on_opponent_move'
     | 'turn_start'
