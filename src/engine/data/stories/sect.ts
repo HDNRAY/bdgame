@@ -13,7 +13,7 @@ export const SECT: Story = {
         if (nodeIndex === 2)
             return {
                 cultPoints: 1,
-                flavorText: '入山门那年你刚满七岁。掌门领你到藏兵阁，让你以炁感应。三件法器微微发光，等你伸手。',
+                flavorText: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。三件法器微微发光，等你伸手。',
             }
         if (nodeIndex === 3)
             return {

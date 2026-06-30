@@ -300,7 +300,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 5,
         tags: ['pierce', 'imperial', 'slash'],
-        effects: [{ type: 'damage', scaling: { strength: 0.8, agility: 0.8 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.7, agility: 0.7 } }],
     },
     {
         id: 'quanzhen_sword',
