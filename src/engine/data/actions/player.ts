@@ -268,7 +268,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['range', 'pierce', 'thrown'],
-        getRange: () => [1, 5],
+        getRange: () => [1, 6],
         effects: [{ type: 'fixed_damage', value: 6 }],
     },
     {
@@ -278,7 +278,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 4,
         tags: ['range', 'pierce', 'thrown'],
-        getRange: () => [1, 5],
+        getRange: () => [1, 6],
         onActionHitChance: () => 1,
         effects: [{ type: 'fixed_damage', value: 12 }],
     },

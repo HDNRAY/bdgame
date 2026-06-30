@@ -232,13 +232,13 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 break
             }
 
-            case 'defeat':
+            case 'defeat': {
                 flush()
                 // 从快照找出赢家
                 const winnerName = e.snapshot?.characters.find((c) => c.id !== e.loser)?.name ?? e.winner
                 lines.push(`\n🏆 ${winnerName} 获胜！`)
                 break
-
+            }
             case 'system': {
                 if (pending) {
                     // 攻击判定期间：缓存系统消息，等攻击行 flush 时一并输出

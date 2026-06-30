@@ -95,11 +95,11 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'floating_eye',
         name: '浮游眼',
-        description: '一枚以炁悬浮的异瞳，洞察流转，预判对手。洞察+4，暴击率+10%。',
+        description: '一枚以炁悬浮的异瞳，洞察流转，预判对手。洞察+4，暴击率+5%。',
         tags: ['buff', 'imperial'],
         effects: [
             { type: 'stat_buff', attrs: { insight: 4 } },
-            { type: 'crit_chance', value: 0.1 },
+            { type: 'crit_chance', value: 0.05 },
         ],
     },
     {

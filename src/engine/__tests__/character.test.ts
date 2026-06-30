@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { Character, calcMaxHp } from '../entities/character'
+import { ActionConfig } from '../entities/action-config'
 
 function mc(
     id: string,
     name: string,
     attrs: Record<string, number> = {},
     moveIds: string[] = [],
-    actionConfigs?: any[],
+    actionConfigs?: ActionConfig[],
 ): Character {
     const rewards = moveIds.map((id) => ({
         type: 'action' as const,
