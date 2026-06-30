@@ -64,7 +64,7 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(LIUXIGUA, 33)
+const pBuild = gen(LAYUE, 33)
 const oBuild = gen(LUHONGTI, 33)
 
 if (N === 1) {

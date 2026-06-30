@@ -198,9 +198,10 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         attrMods: { agility: -8, strength: 4 },
         onParryChance: () => 0.2,
-        // onHitChance: ({ action }) => (action?.tags.includes('slash') ? 0.2 : 0),
         onParryPenetration: ({ final, raw }) => {
-            return Math.round((final + Math.round(raw * 0.2) * 10) / 10)
+            const blocked = raw - final
+            const reduced = Math.round(blocked * 0.2 * 10) / 10
+            return raw - reduced
         },
     },
     {
@@ -529,11 +530,11 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'nuo_yi',
         name: '挪移',
-        description: '以柔克刚，四两拨千斤。每点灵巧减少1%所受伤害。',
+        description: '以柔克刚，四两拨千斤。你加每点灵巧减少1%所受伤害。',
         tags: [],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target }) => {
-            const dexReduction = target.attrs.get('dexterity') * 0.01
+            const dexReduction = (target.attrs.get('dexterity') - 3) * 0.01
             return Math.round(final * (1 - dexReduction) * 10) / 10
         },
         onCanParry: () => true,
