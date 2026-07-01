@@ -87,7 +87,12 @@ export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd
         const rect = e.currentTarget.getBoundingClientRect()
         animRef.current?.seek((e.clientX - rect.left) / rect.width)
     }, [])
-    const handleReplay = useCallback(() => animRef.current?.replay(), [])
+    const handleReplay = useCallback(() => {
+        battleEndedRef.current = false
+        setCurrentLine(0)
+        setPlayState({ playing: true, speed: 1, progress: 0, currentTime: 0 })
+        animRef.current?.replay()
+    }, [])
 
     return (
         <div className="battle-panel-root">

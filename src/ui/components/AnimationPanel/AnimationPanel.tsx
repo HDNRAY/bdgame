@@ -122,8 +122,10 @@ export const AnimationPanel = forwardRef<AnimationPanelHandle, AnimationPanelPro
                 if (!replay) return
                 replay.seek(0)
                 if (!replay.isPlaying) {
-                    replay.play(speedRef.current)
-                    setPlaying(true)
+                    queueMicrotask(() => {
+                        replay.play(speedRef.current)
+                        setPlaying(true)
+                    })
                 }
             },
         }),

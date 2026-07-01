@@ -121,6 +121,7 @@ export class ReplayEngine {
 
     seek(time: number): void {
         this.currentTime = Math.max(0, Math.min(time, this.duration))
+        this.lastTick = performance.now()
         this.emitFrame()
     }
 
