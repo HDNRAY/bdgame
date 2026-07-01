@@ -11,17 +11,16 @@ export const AJIU: OpponentDef = {
     targetAttrs: AJIU_ATTRS,
     rewards: [
         action('light_slash'),
-        passive('dimensional_blade_mastery'),
         weapon('broken_blade'),
+        action('spirit_sword'),
         passive('shenxing_baibian'),
-        passive('xuannv_sword'),
+        action('blaze_strike'),
         artifact('titanium_arm'),
         artifact('muscle_boost'),
-        action('spirit_sword'),
-        action('heavy_slash'),
-        action('blaze_strike'),
+        passive('dimensional_blade_mastery'),
+        passive('xuannv_sword'),
         action('guard'),
-        // 11
+        // 10
     ],
     actionConfigs: [
         { actionId: 'spirit_sword' }, // AI 出招顺序

@@ -400,12 +400,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     // ── 斩击系 ──
     {
         id: 'light_slash',
-        name: '斩击',
+        name: '顺劈',
         description: '普普通通的一刀。',
         requiredTags: ['slash'],
         apCost: 2,
         tags: ['slash'],
-        effects: [{ type: 'damage', scaling: { strength: 0.5 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
     },
     {
         id: 'heavy_slash',
@@ -435,7 +435,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 2,
         tags: ['slash'],
-        effects: [{ type: 'damage', scaling: { strength: 0.4 }, base: 2 }],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, base: 2 }],
     },
     {
         id: 'cyclone_slash',
@@ -444,7 +444,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 4,
         tags: ['slash'],
-        effects: [{ type: 'damage', scaling: { strength: 0.8 }, base: 4 }],
+        effects: [{ type: 'damage', scaling: { strength: 0.4, agility: 0.4 }, base: 4 }],
     },
     {
         id: 'sky_burner',
@@ -454,7 +454,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         chanCost: 25,
         tags: ['slash', 'range'],
-        getRange: () => [0, 8] as [number, number],
+        getRange: () => [0, 8],
         canUse: (attacker) => attacker.chan >= 25,
         effects: [{ type: 'damage', scaling: { strength: 1.2 }, base: 10 }, { type: 'self_disarm' }],
     },
@@ -465,7 +465,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 2,
         tags: ['slash', 'qi'],
-        getRange: (wr) => [wr[0], Math.min(10, wr[1] + 1)] as [number, number],
+        getRange: (wr) => [wr[0], wr[1] + 1],
         effects: [{ type: 'damage', scaling: { strength: 0.2, wisdom: 0.2 } }],
     },
     {

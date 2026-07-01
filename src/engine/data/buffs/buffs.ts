@@ -299,6 +299,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '春雷灵巧加成，灵巧增伤。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
+        attrMods: { strength: 4, agility: -2 },
         onDealDamage: ({ final, attacker }) =>
             Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.5 * 10) / 10) * 10) / 10,
     },

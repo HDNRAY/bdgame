@@ -67,8 +67,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '绣冬长三尺二寸，势沉力猛；春雷轻灵迅捷，见血封喉。',
         tags: ['slash', 'parry', 'frost', 'dual_wield', 'melee', 'heavy'],
         range: [1, 3],
-        effects: [{ type: 'stat_buff', attrs: { strength: 4, agility: -2 } }],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'frost_dex_bonus' }] }],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'frost_dex_bonus' }] }],
     },
     {
         id: 'overlord_blade',
@@ -76,7 +75,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '与身同高的巨刃，离心力驱动，势不可挡。',
         tags: ['slash', 'parry', 'polearm', 'heavy'],
         effects: [],
-        requireAttrsMin: { strength: 12, agility: 11 },
+        requireAttrsMin: { strength: 10, agility: 9 },
         range: [1, 4],
         triggers: [
             {
