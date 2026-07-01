@@ -74,7 +74,7 @@ export const OPPONENTS: OpponentDef[] = [
     LUHONGTI,
     SANGYUAN,
     AJIU,
-    FENGSHUI,
+    // FENGSHUI,
     // 双持
     LAYUE,
     BAIHU,

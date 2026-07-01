@@ -855,9 +855,10 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 10000,
-        onTickDamage: ({ attacker: self, target, engine }) => {
-            if (!target) return 0
+        onTickDamage: ({ attacker: self, engine }) => {
             if (!engine) return 0
+            const target = engine.getOpponent(self.id)
+            if (!target) return 0
             const tMs = engine.state.turn.currentTime
             if (self.hp / self.maxHp < 0.6) {
                 processActionEffect(
@@ -1039,44 +1040,30 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'draw_sword_combo_buff',
         name: '抽刀断水',
-        tags: ['buff'],
+        tags: ['buff', 'slash'],
         description: '交替使用斩击可叠加增伤。',
         stacking: { type: 'none' },
-        // 出招即更新队列（不受命中影响）
-        onAction: ({ action, layer, attacker, engine }) => {
+        // 出招即记录到队列（滚动窗口，永远保留最近3招）
+        onAction: ({ action, layer }) => {
             if (!action || !action.tags.includes('slash')) return
-
-            const queue = (layer.extra?.slashIds as string[]) ?? []
-            const alreadyIn = queue.includes(action.id)
-
             layer.extra = layer.extra ?? {}
-
-            if (alreadyIn) {
-                layer.extra.slashIds = [action.id]
-                engine?.emitLog({ type: 'system', message: `[抽刀断水] 连斩中断`, actorId: attacker.id })
-                return
-            }
-
-            if (queue.length >= 3) queue.shift()
+            const queue = (layer.extra.slashIds as string[]) ?? []
             queue.push(action.id)
+            if (queue.length > 3) queue.shift()
             layer.extra.slashIds = queue
-            const mult = 1.2 ** queue.length
-            if (engine) {
-                const pct = Math.round((mult - 1) * 100)
-                engine.emitLog({
-                    type: 'system',
-                    message: `[抽刀断水] ${queue.length}层·+${pct}%`,
-                    actorId: attacker.id,
-                })
-            }
         },
-        // 命中后按队列层数增伤
-        onDealDamage: ({ final, action, layer }) => {
+        // 命中后按不同ID数增伤
+        onDealDamage: ({ final, action, layer, attacker, engine }) => {
             if (!action || !action.tags.includes('slash')) return final
             const q = (layer.extra?.slashIds as string[]) ?? []
-            // 不在队列中才享受增伤（在队列中说明是重复招）
-            if (!q.includes(action.id)) return final * 1.2 ** q.length
-            return final
+            const diff = q.filter((id) => id !== action.id).length
+            if (diff === 0) return final
+            const mult = 1.3 ** diff
+            if (engine) {
+                const pct = Math.round((mult - 1) * 100)
+                engine.emitLog({ type: 'system', message: `[抽刀断水] ${diff}层·+${pct}%`, actorId: attacker.id })
+            }
+            return final * mult
         },
     },
 ]
