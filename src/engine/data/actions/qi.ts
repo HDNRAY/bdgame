@@ -21,9 +21,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         apCost: 3,
         tags: ['buff', 'pre_action'],
         target: 'self',
-        effects: [
-            { type: 'stat_multiply', stat: 'strength', multiplier: 2, duration: { attr: 'wisdom', multiplier: 150 } },
-        ],
+        effects: [{ type: 'stat_multiply', stat: 'strength', multiplier: 2 }],
     },
     {
         id: 'qi_bolt',

@@ -99,6 +99,8 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
     } | null = null
     /** 系统事件缓冲区：攻击判定期间的系统消息暂存到这里，与攻击行一同输出 */
     let pendingSystemLines: string[] = []
+    /** 前置行缓冲区：攻击判定期间的前置事件（如 dash），在攻击行前输出 */
+    let preLines: string[] = []
 
     function flush() {
         if (!pending) return
@@ -111,10 +113,13 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
             pending.actionCount,
             pending.indent,
         )
+        // 先输出前置行（如 dash 移动）
+        for (const l of preLines) lines.push(l)
+        preLines = []
         let line = `  ${pending.text}`
         if (pending.extra) line += pending.extra
         if (pending.ap) line += `  | ${pending.ap}`
-        // 先输出攻击行
+        // 输出攻击行
         lines.push(line)
         // 再输出缓存的系统消息
         if (pendingSystemLines.length > 0) {
@@ -133,6 +138,13 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 break
 
             case 'move': {
+                // pre-hit 阶段的 dash 移动缓存到攻击行前输出
+                if (pending) {
+                    const oldDist = e.newDistance - e.delta
+                    const apInfo = e.apCost > 0 ? `  | AP${e.apRemaining.toFixed(1)}` : ''
+                    preLines.push(`  # 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m${apInfo}`)
+                    break
+                }
                 flush()
                 const oldDist = e.newDistance - e.delta
                 const actorName = fmtName(e.actor, e.snapshot)

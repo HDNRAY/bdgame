@@ -485,7 +485,7 @@ export class BattleEngine {
         const zhouKey = `zhou::${charId}`
         const hasZhou = this.state.pendingBuffs.has(zhouKey)
 
-        if (curValue >= MAX_CHAN && !hasZhou) {
+        if (curValue >= MAX_CHAN) {
             processActionEffect(
                 { type: 'add_buff', buffId: 'zhou', stacks: 2 },
                 char,
@@ -503,8 +503,6 @@ export class BattleEngine {
                 this,
                 this.state.turn.currentTime,
             )
-            const enemy = this.getOpponent(charId)
-            if (enemy) this.emit('chan_overflow', char, enemy)
         } else if (curValue < 30 && hasZhou) {
             processActionEffect({ type: 'remove_buff', buffId: 'zhou' }, char, char, this, this.state.turn.currentTime)
         }

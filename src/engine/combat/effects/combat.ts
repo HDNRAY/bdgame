@@ -92,6 +92,7 @@ export function processHitCheck(
             })
         }
         engine.state.log.indentDepth--
+        consumeBuffsByTrigger(enemy.id, engine, 'on_dodge')
         return false
     }
 

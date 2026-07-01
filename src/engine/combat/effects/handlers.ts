@@ -2,10 +2,8 @@ import type { EffectDef } from '../../entities/action'
 import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../engine'
 import { ATTR_CN, type AttrName } from '../../entities/attributes'
-import { calcBaseDamage, calcHealAmount, calcBuffDuration, calcRoll } from '../../calc/damage'
+import { calcBaseDamage, calcHealAmount, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../data/weapons/weapons'
-import type { BuffDef } from '../../data/buffs'
-import { getBuff } from '../../data/buffs'
 import { getPassive } from '../../data/passives'
 import { getAction } from '../../data/actions'
 import { genAppId } from '../../util/buff-utils'
@@ -14,10 +12,12 @@ import { scheduleBuffExpiry, revertBuffMods, clearWeaponBuffLayers, executeMove,
 import { pickBestPassives } from '../utils/tag-match'
 import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
+import type { BuffLayer } from '../types'
 import { applyDamage, applyBonusDamage } from './damage'
 import { processActionEffect } from './action'
-
+import { tickEngine } from '../tick-engine'
 import { applyAttrMods, reduceBleedOnHeal, applyScaledAttrMods, scheduleBuffEnd } from '../utils/buff-layer'
+import { BuffDef, getBuff } from '../../data/buffs'
 
 /** 检查目标是否有罡体免疫（通过 buff 的 super_armor 标签识别） */
 function hasCcImmunity(target: { id: string }, engine: { state: { pendingBuffs: Map<string, unknown> } }): boolean {
@@ -29,7 +29,6 @@ function hasCcImmunity(target: { id: string }, engine: { state: { pendingBuffs: 
     }
     return false
 }
-import { tickEngine } from '../tick-engine'
 
 /** 收集角色身上所有 onBuffApply 上限覆盖，取最大值 */
 function emitPerDebuff(engine: BattleEngine, buffId: string, self: Character, enemy: Character): void {
@@ -167,6 +166,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const { value } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
         applyDamage(value, enemy, self, engine, action)
     },
+    functional_damage({ eff, self, enemy, engine, action }: EffectCtx) {
+        const { fn } = eff as Extract<EffectDef, { type: 'functional_damage' }>
+        const dmg = fn({ self, enemy, state: engine.state })
+        if (dmg > 0) {
+            applyBonusDamage(dmg, enemy, self, engine, action, action?.name ?? '特殊伤害', 'functional_damage')
+        }
+    },
     damage({ eff, self, enemy, engine, action }: EffectCtx) {
         const { scaling } = eff as Extract<EffectDef, { type: 'damage' }>
         const base = (eff as Extract<EffectDef, { type: 'damage' }>).base ?? 0
@@ -223,14 +229,12 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             delta: old * e.multiplier - old,
             label: getBuff('stat_multiply')?.name ?? '超越',
         })
-        const attrVal = self.attrs.get(e.duration.attr)
-        const buffDuration = calcBuffDuration(attrVal, e.duration.multiplier)
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'stat_multiply',
             restoreValue: old,
             mods: { [e.stat]: old },
         })
-        scheduleBuffExpiry(engine, layerKey, buffDuration)
+        scheduleBuffEnd(engine, layerKey, getBuff('stat_multiply')!, self)
     },
     stat_buff({ eff, self, engine, tMs, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
@@ -333,10 +337,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         const st = e.buffId
         // 免疫检查
-        if (
-            engine.state.pendingBuffs.has(`elemental_immunity::${enemy.id}`) &&
-            (st === 'burn' || st === 'frost' || st === 'paralyze')
-        ) {
+        if (engine.state.pendingBuffs.has(`elemental_immunity::${enemy.id}`) && (st === 'frost' || st === 'paralyze')) {
             engine.emitLog({ type: 'system', message: `[冰心] ${enemy.name} 免疫 ${st}`, actorId: enemy.id })
             return
         }
@@ -369,7 +370,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             if (st === 'burn')
                 return { source: self.name, burnBaseDamage: 5, remainingTicks: stacks, sourceId: self.id }
             if (st === 'bleed') return { bleedTriggerCount: 0, source: self.name, sourceId: self.id }
-            if (st === 'poison') return { source: self.name, sourceId: self.id }
             return undefined
         }
 
@@ -392,18 +392,17 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             })
             engine.emit('on_debuff', enemy, self)
             emitPerDebuff(engine, e.buffId, self, enemy)
-            if (e.buffId === 'poison') {
-                // 叠层时也需执行即时伤害 + 重新调度 tick
-                tickEngine.afterApplyDebuff({
-                    enemy,
-                    engine,
-                    tMs,
-                    buffDef: buff,
-                    stacks,
-                    layerKey: key,
-                    layer: existing,
-                })
-            }
+            // debuff 自定钩子（设置 extra 数据）
+            buff.onDebuffApply?.({ self, enemy, engine, stacks, layer: existing })
+            tickEngine.afterApplyDebuff({
+                enemy,
+                engine,
+                tMs,
+                buffDef: buff,
+                stacks,
+                layerKey: key,
+                layer: existing,
+            })
             if (e.buffId === 'burn') {
                 // 叠层时重新调度 tick
                 engine.state.turn.removeEvents(`tick_burn_${enemy.id}`)
@@ -435,13 +434,17 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 actorId: enemy.id,
             })
         }
-        engine.state.pendingBuffs.set(key, { restoreValue: stacks, mods: firstResult.mods, extra })
+        const layer: BuffLayer = { restoreValue: stacks, mods: firstResult.mods, extra }
+        engine.state.pendingBuffs.set(key, layer)
 
         // 调度 expiry
         scheduleBuffEnd(engine, key, buff!, enemy)
 
         engine.emit('on_debuff', enemy, self)
         emitPerDebuff(engine, e.buffId, self, enemy)
+
+        // debuff 自定钩子（设置 extra 数据）
+        buff.onDebuffApply?.({ self, enemy, engine, stacks, layer })
 
         // 后处理（stun/poison/burn 额外逻辑）
         // 传入 layer 引用，让 tick engine 可以直接修改 mods
@@ -452,7 +455,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             buffDef: buff,
             stacks,
             layerKey: key,
-            layer: engine.state.pendingBuffs.get(key)!,
+            layer,
         })
     },
     add_buff({ eff, self, engine, tMs }: EffectCtx) {

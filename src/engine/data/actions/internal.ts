@@ -1,8 +1,35 @@
 import type { ActionDefinition } from '../../entities/action'
 import { MAX_CHAN } from '../../constants'
+import { hasNoStance } from '../../combat/utils'
 
 /** 内部招式（被动/天赋触发专用，不直接装备） */
 export const INTERNAL_ACTIONS: ActionDefinition[] = [
+    {
+        id: 'iaijutsu_strike',
+        name: '居合斩',
+        description: '拔刀一瞬，电光石火。',
+        requiredTags: ['slash'],
+        apCost: 5,
+        extraStunTime: 1000,
+        tags: ['move', 'slash'],
+        canUse: (attacker, state) => state.pendingBuffs.has('iaijutsu::' + attacker.id),
+        effects: [
+            { type: 'short_dash', maxDistance: 1 },
+            { type: 'damage', scaling: { strength: 1.5 } },
+            { type: 'remove_buff', buffId: 'iaijutsu' },
+        ],
+    },
+    {
+        id: 'resheath',
+        name: '纳刀',
+        description: '收刀入鞘，重归居合。',
+        requiredTags: ['slash'],
+        apCost: 1,
+        tags: ['buff', 'post_action'],
+        target: 'self',
+        canUse: (attacker, state) => hasNoStance(state.pendingBuffs, attacker.id),
+        effects: [{ type: 'add_buff', buffId: 'iaijutsu' }],
+    },
     {
         id: '_sangui_heal',
         name: '三分归元',
@@ -98,17 +125,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'add_buff', buffId: 'mind_eye' }],
     },
     {
-        id: '_iaijutsu_counter',
-        name: '无刀取',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger'],
-        target: 'self',
-        maxUses: 1,
-        effects: [{ type: 'damage', scaling: { strength: 0.5 } }],
-    },
-    {
         id: '_godspeed_counter',
         name: '神速·闪雷',
         description: '',
@@ -126,7 +142,10 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['trigger'],
         target: 'self',
-        effects: [{ type: 'add_buff', buffId: 'foresight' }],
+        effects: [
+            { type: 'add_buff', buffId: 'foresight' },
+            { type: 'add_buff', buffId: 'kanchuan' },
+        ],
     },
     {
         id: '_detox',

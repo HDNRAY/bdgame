@@ -1,5 +1,6 @@
 import type { Character } from '../entities/character'
 import type { ActionDefinition, EffectDef } from '../entities/action'
+import type { BattleState } from '../combat/types'
 import { getActionRange } from '../entities/action'
 import { calcBaseDamage, calcCritChance, calcHitChance, calcParryChance } from '../calc/damage'
 
@@ -18,8 +19,10 @@ export function calcExpectedDamage(
     attacker: Character,
     defender: Character,
     weaponRange: [number, number],
-    distance: number,
+    state: BattleState,
 ): DamageEstimate {
+    const distance = state.position.distance(attacker.id, defender.id)
+
     // 1. 可达性：getRange > range > weaponRange
     const actionRange = getActionRange(action, weaponRange, attacker)
     const canReach = distance >= actionRange[0] && distance <= actionRange[1]
@@ -46,6 +49,11 @@ export function calcExpectedDamage(
             rawDamage += Math.round(
                 (attacker.maxHp - attacker.hp) * (eff as Extract<EffectDef, { type: 'self_missing_hp_damage' }>).ratio,
             )
+        }
+        if (eff.type === 'functional_damage') {
+            // 克隆 pendingBuffs，防止 fn 篡改真实战斗状态
+            const clonedState = { ...state, pendingBuffs: new Map(state.pendingBuffs) }
+            rawDamage += eff.fn({ self: attacker, enemy: defender, state: clonedState })
         }
         // debuff 持续伤害估值（灼烧/中毒/流血 ≈ 每层3点）
         if (eff.type === 'add_debuff') {

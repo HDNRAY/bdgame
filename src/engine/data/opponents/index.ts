@@ -15,6 +15,7 @@ export { AJIU } from './ajiu'
 export { WUKONG } from './wukong'
 export { XUNXIANG } from './xunxiang'
 export { JUNSHI } from './junshi'
+export { DUOER } from './duoer'
 import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
@@ -40,6 +41,7 @@ import { AJIU } from './ajiu'
 import { WUKONG } from './wukong'
 import { XUNXIANG } from './xunxiang'
 import { JUNSHI } from './junshi'
+import { DUOER } from './duoer'
 import { AttackStyle } from '../../ai/move-planner'
 
 /** 对手定义（纯数据） */
@@ -88,6 +90,7 @@ export const OPPONENTS: OpponentDef[] = [
     YIDAO,
     // 匕首
     LUEYING,
+    DUOER,
     // 暗器
     XUNXIANG,
 ]

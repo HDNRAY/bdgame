@@ -261,7 +261,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'herb_pouch',
         name: '蜂草鱼囊',
-        description: '玉蜂浆、断肠草、寒潭白鱼所制，每 3 秒自动化解一层毒素，且恢复2点气血',
+        description: '玉蜂浆、断肠草、寒潭白鱼所制，每 5 秒自动化解一层毒素，且恢复3点气血',
         tags: ['trigger'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'herb_pouch' }] }],
     },
@@ -304,6 +304,37 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['imperial', 'buff'],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword', stacks: 10 }] },
+        ],
+    },
+    {
+        id: 'gu_tong_body',
+        name: '蛊童圣体',
+        description: '从小被蛊毒炼就的毒体。拳掌互击时双方各半概率叠毒。',
+        tags: ['inherent', 'poison'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'gu_tong_body' }] }],
+    },
+    {
+        id: 'venom_gland',
+        name: '毒腺',
+        description: '改造毒腺，每回合自动消耗3层自身毒素换取1点洞察（30秒）。',
+        tags: ['implant', 'inherent', 'poison'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'venom_gland' }] }],
+    },
+    {
+        id: 'chan_orb',
+        name: '凝缠珠',
+        description: '古法淬炼的缠劲珠，每2秒自动凝聚2点缠劲。',
+        tags: ['buff', 'qi'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chan_orb_regen' }] }],
+    },
+    {
+        id: 'wakizashi',
+        name: '胁差',
+        description: '腰间短刀，收拔自如。闪避或招架后可立即反击。',
+        tags: ['weapon', 'counter'],
+        triggers: [
+            { condition: { type: 'on_parry' }, actionId: 'light_slash' },
+            { condition: { type: 'on_dodge' }, actionId: 'light_slash' },
         ],
     },
 ]

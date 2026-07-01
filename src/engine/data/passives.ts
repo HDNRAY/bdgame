@@ -1,5 +1,5 @@
 import type { Passive, Talent } from '../entities/passive'
-import { hasBuff, hasNoStance } from '../combat/utils'
+import { hasBuff } from '../combat/utils'
 import { getWeapon } from './weapons/weapons'
 import { Tag } from '../entities/tag'
 
@@ -60,10 +60,17 @@ export const PASSIVES: Passive[] = [
     {
         id: 'iaijutsu_mastery',
         name: '居合道',
-        description: '居合拔刀术的极致境界。',
+        description: '居合拔刀术的极致境界。习得居合斩与纳刀。',
         tags: ['qi', 'stance'],
+        grantsActions: ['iaijutsu_strike', 'resheath'],
+        triggers: [{ condition: { type: 'battle_start' }, actionId: '_iaijutsu_ready' }],
+    },
+    {
+        id: 'dragon_palace_style',
+        name: '龙宫院流',
+        description: '龙宫院秘传剑术，招架或闪避后蓄势，叠加居合·势。',
+        tags: ['passive', 'counter'],
         triggers: [
-            { condition: { type: 'battle_start' }, actionId: '_iaijutsu_ready' },
             {
                 condition: {
                     type: 'on_parry',
@@ -83,9 +90,16 @@ export const PASSIVES: Passive[] = [
     {
         id: 'extreme',
         name: '极',
-        description: '蓄势至极，一击必杀。使用≥5AP招式时若缠劲已满：必中，每层缠劲增伤1%。',
+        description: '蓄势至极，一击必杀。缠劲满时获得极状态，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+2%暴伤。',
         tags: ['passive', 'buff'],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'extreme' }] }],
+        triggers: [
+            {
+                condition: {
+                    type: 'chan_overflow',
+                },
+                effects: [{ type: 'add_buff', buffId: 'extreme' }],
+            },
+        ],
     },
     {
         id: 'qi_edge',
@@ -104,21 +118,6 @@ export const PASSIVES: Passive[] = [
                 }),
             }
         },
-    },
-    {
-        id: 'empty_hand',
-        name: '无刀取',
-        description: '空手入白刃，非居合状态招架后反击。',
-        tags: ['counter'],
-        triggers: [
-            {
-                condition: {
-                    type: 'on_parry',
-                    check: (ctx) => hasNoStance(ctx.engine!.state.pendingBuffs, ctx.actor.id),
-                },
-                actionId: '_iaijutsu_counter',
-            },
-        ],
     },
     {
         id: 'human_radar',
@@ -531,6 +530,13 @@ export const PASSIVES: Passive[] = [
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_intent_tempering' }] },
         ],
+    },
+    {
+        id: 'yu_du_shu',
+        name: '御毒术',
+        description: '毒雾护体，每10秒释放毒素。血量充裕时仅降对手推演；受伤过重时毒雾失控。',
+        tags: ['passive', 'buff', 'poison'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yu_du_shu' }] }],
     },
     {
         id: 'tongtian',

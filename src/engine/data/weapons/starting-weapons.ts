@@ -97,7 +97,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'dagger',
         name: '军用匕首',
         description: '短小而致命的匕首。',
-        tags: ['pierce', 'parry', 'melee'],
+        tags: ['pierce', 'unarmed', 'parry', 'melee'],
         effects: [{ type: 'stat_buff', attrs: { agility: 1 } }],
         range: [0, 2],
     },

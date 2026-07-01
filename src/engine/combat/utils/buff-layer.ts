@@ -5,7 +5,7 @@ import type { BuffLayer } from '../types'
 import { getBuff, type BuffDef } from '../../data/buffs'
 import { BattleLog } from '../battle-log'
 import type { TriggerEvent } from '../../entities/trigger'
-import { calcDebuffDuration } from '../../calc/damage'
+import { calcDebuffDuration, calcBuffDuration } from '../../calc/damage'
 
 /** 调度 buff 过期事件 */
 export function scheduleBuffExpiry(engine: BattleEngine, layerKey: string, duration: number): void {
@@ -155,6 +155,9 @@ export function scheduleBuffEnd(engine: BattleEngine, key: string, buff: BuffDef
         )
     } else if (buff.expiry?.type === 'duration_by_attr') {
         const duration = calcDebuffDuration(buff.expiry.multiplier, char.attrs.get(buff.expiry.attr))
+        engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, engine.state.turn.currentTime + duration, 'buff_end')
+    } else if (buff.expiry?.type === 'attr_mult') {
+        const duration = calcBuffDuration(char.attrs.get(buff.expiry.attr), buff.expiry.multiplier)
         engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, engine.state.turn.currentTime + duration, 'buff_end')
     }
 }

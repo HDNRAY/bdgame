@@ -1,102 +1,9 @@
-import type { GameEntity } from '../entities/base'
-import type { AttrName } from '../entities/attributes'
-import type { Character } from '../entities/character'
-import type { BattleEngine } from '../combat/engine'
-import type { BuffLayer } from '../combat/types'
-import type { ActionDefinition } from '../entities/action'
-import type { Tag } from '../entities/tag'
-import type { TriggerEvent } from '../entities/trigger'
-import { revertBuffMods, applyAttrMods } from '../combat/utils/buff-layer'
-import { processActionEffect } from '../combat/effects/action'
-import { MAX_CHAN } from '../constants'
-
-/** Buff 钩子上下文 */
-export interface BuffHookCtx {
-    final: number
-    raw: number
-    target: Character
-    attacker: Character
-    engine: BattleEngine
-    layer: BuffLayer
-    /** 该 buff 所属角色 ID */
-    buffOwnerId: string
-    /** 当前执行的招式（部分钩子如 onTurnEnd 无此值） */
-    action?: ActionDefinition
-}
-
-/** 消耗方式 */
-export type BuffExpiry =
-    | { type: 'duration'; ms: number }
-    | { type: 'duration_by_attr'; attr: AttrName; multiplier: number }
-    | { type: 'tick'; interval: number }
-    | { type: 'trigger'; event: string }
-    | { type: 'consumed'; trigger: TriggerEvent }
-    | { type: 'permanent' }
-
-/** 叠层行为 */
-export type BuffStacking = { type: 'none' } | { type: 'additive'; max?: number } | { type: 'independent' }
-
-/** Buff 定义 */
-export interface BuffDef extends GameEntity {
-    value?: number
-    /** 消耗方式 */
-    expiry?: BuffExpiry
-    /** 叠层行为 */
-    stacking?: BuffStacking
-    /** 每层属性修正 */
-    attrMods?: Record<string, number>
-    /** 每层最大 AP 修正 */
-    maxApMod?: number
-    /** DOT/tick 间隔（ms） */
-    tickInterval?: number
-    /** tick 伤害回调 */
-    onTickDamage?: (ctx: BuffHookCtx) => number
-    /** tick 回复回调 */
-    onTickHeal?: (ctx: BuffHookCtx) => number
-    /** 攻击伤害修正（buff 持有者造成伤害时调用） */
-    onDealDamage?: (ctx: BuffHookCtx) => number
-    /** 造成伤害后追加独立伤害（返回 >0 则额外调 applyBonusDamage） */
-    onAfterDealDamage?: (ctx: BuffHookCtx) => number
-    /** 受击伤害修正（buff 持有者受到伤害时调用） */
-    onTakeDamage?: (ctx: BuffHookCtx) => number
-    /** 层数变更前回调（返回实际 delta，0=拦截变更） */
-    onBeforeModify?: (delta: number, ctx: { character: Character; engine: BattleEngine }) => number
-    /** 招架率修正钩子（applyDamage 招架判定前自动调用，返回加算值） */
-    onParryChance?: (ctx: BuffHookCtx) => number
-    /** 招架减伤修正钩子（防御方 buff，applyDamage 招架成功后自动调用） */
-    onParryReduction?: (ctx: BuffHookCtx) => number
-    /** 招架穿透修正钩子（攻击方 buff，削弱对方招架减伤） */
-    onParryPenetration?: (ctx: BuffHookCtx) => number
-    /** 命中率修正钩子（processHitCheck 中自动调用，返回加算值） */
-    onHitChance?: (ctx: BuffHookCtx) => number
-    /** 闪避率修正钩子（processHitCheck 中防御方 buff 自动调用，返回加算值） */
-    onDodgeChance?: (ctx: BuffHookCtx) => number
-    /** AP 消耗修正钩子（返回加算值，负=更省，最低1） */
-    onActionCost?: (ctx: BuffHookCtx) => number
-    /** 闪避时回调（防御方成功闪避后调用） */
-    onDodged?: (ctx: BuffHookCtx) => void
-    /** 招架时回调（防御方成功招架后调用） */
-    onParried?: (ctx: BuffHookCtx) => void
-    /** 暴击时回调（攻击方造成暴击后调用） */
-    onCritical?: (ctx: BuffHookCtx) => void
-    /** 允许自行选择可招架（返回 true 则允许招架） */
-    onCanParry?: (ctx: { self: Character; engine: BattleEngine }) => boolean
-    /** 攻击方能否被招架（返回 false 则无法招架此攻击） */
-    onCanBeParried?: (ctx: { self: Character; engine: BattleEngine }) => boolean
-    /** 缴械概率修正钩子（disarm handler 中自动调用，返回加算值，负=更难被缴械） */
-    onDisarmChance?: (ctx: BuffHookCtx) => number
-    /** 暴击率修正钩子（applyDamage 暴击判定前自动调用，返回加算值） */
-    onCritChance?: (ctx: BuffHookCtx) => number
-    /** 暴击伤害修正钩子（applyDamage 暴击判定时自动调用，返回加算值） */
-    onCritDamage?: (ctx: BuffHookCtx) => number
-    /** 回合结束回调（turn_end 时调用，不依赖命中） */
-    onTurnEnd?: (ctx: BuffHookCtx) => void
-    /** 首次应用时回调 */
-    /** 层数上限覆盖钩子（raw=原始 max，返回覆盖后的新上限） */
-    onBuffApply?: (raw: number, char: Character, engine: BattleEngine) => number
-    /** 收到治疗时回调（所有治疗路径，含 tick heal） */
-    onReceiveHeal?: (ctx: BuffHookCtx) => void
-}
+import { processActionEffect } from '../../combat/effects'
+import { revertBuffMods } from '../../combat/utils'
+import { applyAttrMods } from '../../combat/utils/buff-layer'
+import { MAX_CHAN } from '../../constants'
+import { Tag } from '../../entities/tag'
+import type { BuffDef } from './types'
 
 /** 增益状态 */
 export const BUFF_DB: BuffDef[] = [
@@ -106,19 +13,25 @@ export const BUFF_DB: BuffDef[] = [
         name: '居合',
         description: '拔刀之势，蓄势待发。',
         tags: ['stance'],
-        value: 0,
-        expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },
     },
     {
         id: 'foresight',
         name: '看破',
-        description: '洞察先机，招架率+40%。',
+        description: '洞察先机，招架率+30%。',
         tags: [],
-        value: 0.4,
         expiry: { type: 'consumed', trigger: 'on_parry' },
         stacking: { type: 'none' },
-        onParryChance: () => 0.4,
+        onParryChance: () => 0.3,
+    },
+    {
+        id: 'kanchuan',
+        name: '看穿',
+        description: '看穿对手攻击轨迹，闪避率+30%。',
+        tags: [],
+        expiry: { type: 'consumed', trigger: 'on_dodge' },
+        stacking: { type: 'none' },
+        onDodgeChance: () => 0.1,
     },
     {
         id: 'mind_eye',
@@ -160,7 +73,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },
-        onHitChance: () => 0.4,
+        onHitChance: () => 0.5,
     },
     {
         id: 'blade_qi',
@@ -239,132 +152,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'duration', ms: 2000 },
         stacking: { type: 'independent' },
     },
-]
 
-/** 减益状态 */
-export const DEBUFF_DB: BuffDef[] = [
-    {
-        id: 'paralyze',
-        name: '麻痹',
-        description: '身法、灵巧降低。',
-        tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 1800 },
-        stacking: { type: 'independent' },
-        attrMods: { agility: -1, dexterity: -1 },
-    },
-    {
-        id: 'frost',
-        name: '霜冻',
-        description: '身法降低，移动缓慢。',
-        tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 3000 },
-        stacking: { type: 'independent' },
-        attrMods: { agility: -0.4 },
-    },
-    {
-        id: 'stun',
-        name: '眩晕',
-        description: '大幅降低身法、洞察（连续命中递减）。',
-        tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
-        stacking: { type: 'independent' },
-    },
-    {
-        id: 'sand_blind',
-        name: '迷眼',
-        description: '沙尘入眼，洞察大幅降低。',
-        tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
-        stacking: { type: 'none' },
-        attrMods: { insight: -4 },
-    },
-    {
-        id: 'knockdown',
-        name: '倒地',
-        description: '重心不稳，倒地不起，身法大幅降低。',
-        tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
-        stacking: { type: 'independent' },
-        attrMods: { agility: -4 },
-    },
-    {
-        id: 'burn',
-        name: '灼烧',
-        description: '持续火焰伤害。',
-        tags: ['debuff'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive' },
-    },
-    {
-        id: 'poison',
-        name: '中毒',
-        description: '持续毒素伤害。',
-        tags: ['debuff'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive' },
-    },
-    {
-        id: 'bleed',
-        name: '流血',
-        description: '行动触发额外伤害。',
-        tags: ['debuff'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive' },
-    },
-    {
-        id: 'disarmed',
-        name: '缴械',
-        description: '兵器脱手，无法使用武器招式。',
-        tags: ['debuff'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-    },
-    {
-        id: 'fumble_chance',
-        name: '失心',
-        description: '动作失败率。',
-        tags: ['debuff'],
-        expiry: { type: 'duration', ms: 5000 },
-        stacking: { type: 'additive' },
-    },
-    {
-        id: 'overload',
-        name: '失重',
-        description: '义体过载，身法下降。',
-        tags: ['debuff', 'implant'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 3 },
-        attrMods: { agility: -1 },
-    },
-    {
-        id: 'muscle_degradation',
-        name: '失感',
-        description: '肌肉负担过重，体质与技巧下降。',
-        tags: ['debuff', 'implant'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        attrMods: { vitality: -2, dexterity: -2 },
-    },
-    {
-        id: 'ap_drain',
-        name: '失能',
-        description: '能量损耗，内息上限下降。',
-        tags: ['debuff', 'implant'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 2 },
-        maxApMod: -1,
-    },
-    {
-        id: 'permanent_burn',
-        name: '过热',
-        description: '持续灼烧伤害。',
-        tags: ['debuff'],
-        expiry: { type: 'permanent' },
-        tickInterval: 3000,
-        onTickDamage: ({ target }) => Math.max(1, Math.round(target.maxHp * 0.01)),
-    },
-
-    // ── 伤害修正 buff ──
     {
         id: 'qi_shield',
         name: '炁盾',
@@ -439,21 +227,51 @@ export const DEBUFF_DB: BuffDef[] = [
 
     // ── 战斗状态 ──
     {
-        id: 'extreme',
-        name: '极',
-        description: '蓄势至极，一击必杀。使用≥5AP招式时若缠劲已满：消耗所有缠劲，每层+1%暴击率和+1%暴伤。',
+        id: 'chan_orb_regen',
+        name: '凝缠珠·流转',
+        description: '凝缠珠之力流转不息，每2秒恢复3点缠劲。',
         tags: [],
         expiry: { type: 'permanent' },
-        onCritChance: ({ action, attacker, layer }) => {
-            if ((action?.apCost ?? 0) < 5 || attacker.chan < MAX_CHAN) return 0
+        tickInterval: 2000,
+        onTickHeal: ({ attacker, engine }) => {
+            attacker.addChan(3)
+            engine.emitLog({
+                type: 'system',
+                message: `[凝缠珠] ${attacker.name} 缠劲+3（${attacker.chan}层）`,
+                actorId: attacker.id,
+            })
+            return 0
+        },
+    },
+    {
+        id: 'extreme',
+        name: '极',
+        description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+2%暴伤。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onCritChance: ({ action, attacker, layer, engine }) => {
+            if ((action?.apCost ?? 0) < 5 || attacker.chan < MAX_CHAN) {
+                layer.restoreValue = 0
+                return 0
+            }
             const chan = attacker.chan
             attacker.spendChan(chan)
-            layer.restoreValue = chan
+            layer.restoreValue = chan * 0.02
+            const key = `extreme::${attacker.id}`
+            engine.state.pendingBuffs.delete(key)
+            engine.state.turn.removeEvents(`buff_end_${key}`)
+            engine.emitLog({
+                type: 'system',
+                message: `[极] ${attacker.name} 极意绽放，缠劲尽散`,
+                actorId: attacker.id,
+            })
             return chan * 0.01
         },
-        onCritDamage: ({ action, layer }) => {
-            if ((action?.apCost ?? 0) < 5 || !layer.restoreValue) return 0
-            return layer.restoreValue * 0.02
+        onCritDamage: ({ layer }) => {
+            if (!layer.restoreValue) return 0
+            const bonus = layer.restoreValue
+            layer.restoreValue = 0
+            return bonus * 2
         },
     },
     {
@@ -501,7 +319,7 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'elemental_immunity',
         name: '冰心',
-        description: '免疫灼烧、冰霜、麻痹。',
+        description: '免疫冰霜、麻痹。',
         tags: [],
         expiry: { type: 'permanent' },
     },
@@ -548,10 +366,6 @@ export const DEBUFF_DB: BuffDef[] = [
         onCanParry: () => true,
         onDisarmChance: () => -0.3,
     },
-
-    // ── 永久修饰（构造期执行） ──
-    { id: 'max_ap_mod', name: '失能', description: '最大AP变化。', tags: [], expiry: { type: 'permanent' } },
-    { id: 'max_hp_mod', name: '失血', description: '最大HP变化。', tags: [], expiry: { type: 'permanent' } },
     {
         id: 'vitality_regen',
         name: '生生不息',
@@ -626,10 +440,10 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'herb_pouch',
         name: '蜂草鱼囊',
-        description: '每 3 秒自动化解一层毒素，且恢复2点气血。',
+        description: '每 5 秒自动化解一层毒素，且恢复3点气血。',
         tags: [],
         expiry: { type: 'permanent' },
-        tickInterval: 3000,
+        tickInterval: 5000,
         onTickHeal: ({ target, engine }) => {
             const poisonKey = `poison::${target.id}`
             const poisonLayer = engine.state.pendingBuffs.get(poisonKey)
@@ -644,7 +458,7 @@ export const DEBUFF_DB: BuffDef[] = [
                     engine.state.pendingBuffs.delete(poisonKey)
                 }
             }
-            return 2
+            return 3
         },
     },
     {
@@ -694,14 +508,12 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'zhou',
         name: '周',
-        description: '缠劲充盈，周身劲力流转。每层全属性+1。',
+        description: '缠劲充盈，周身劲力流转。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         attrMods: { strength: 1, agility: 1, vitality: 1, wisdom: 1, dexterity: 1, insight: 1 },
     },
-
-    // ── 杨过 ──
     {
         id: 'poison_resist',
         name: '蛇毒不侵',
@@ -765,7 +577,7 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'stone_skin',
         name: '石肤',
-        description: '肌肤如岩石般坚硬，所受直伤-10%。免疫灼烧。',
+        description: '肌肤如岩石般坚硬，所受直伤-10%。',
         tags: [],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final }) => Math.round(final * 0.9 * 10) / 10,
@@ -781,7 +593,6 @@ export const DEBUFF_DB: BuffDef[] = [
             const opponent = engine.getOpponent(attacker.id)
             if (!opponent) return final
             const dist = engine.state.position.distance(attacker.id, opponent.id)
-            // 定海：str × 0.66 × (6-dist)/5，贴脸 66%，6m 处 0%
             const bonus = Math.round(((attacker.attrs.get('strength') * 0.66 * Math.max(0, 6 - dist)) / 5) * 10) / 10
             return bonus > 0 ? Math.round((final + bonus) * 10) / 10 : final
         },
@@ -945,10 +756,7 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '软猬甲护体，减免所有伤害；受拳脚攻击时反伤并叠流血。',
         tags: [],
         onTakeDamage: ({ final, target, attacker, engine, action }) => {
-            // 1. 通用减伤 1 点
             const reduced = Math.max(0, Math.round((final - 1) * 10) / 10)
-
-            // 2. 仅拳脚（unarmed）反伤 + 叠流血
             if (action?.tags?.includes('unarmed')) {
                 attacker.takeDamage(1)
                 engine.emitLog({
@@ -956,7 +764,6 @@ export const DEBUFF_DB: BuffDef[] = [
                     message: `[软猬甲] ${target.name} 刺伤 ${attacker.name}，反伤2点`,
                     actorId: target.id,
                 })
-
                 const bleedKey = `bleed::${attacker.id}`
                 const existing = engine.state.pendingBuffs.get(bleedKey)
                 if (existing) {
@@ -973,7 +780,6 @@ export const DEBUFF_DB: BuffDef[] = [
                     actorId: attacker.id,
                 })
             }
-
             return reduced
         },
     },
@@ -1045,8 +851,109 @@ export const DEBUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, action }) => {
             const bonus = attacker.attrs.get('wisdom') * (action?.apCost ?? 1) * 0.1
-
             return Math.round((final + bonus) * 10) / 10
+        },
+    },
+    {
+        id: 'yu_du_shu',
+        name: '剧毒吐纳',
+        description: '剧毒吐纳，每10秒释放毒素。血量充裕时仅降对手推演；受伤过重时毒雾失控。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        tickInterval: 10000,
+        onTickDamage: ({ attacker: self, engine }) => {
+            const enemy = engine.getOpponent(self.id)
+            if (!enemy) return 0
+            const tMs = engine.state.turn.currentTime
+            if (self.hp / self.maxHp < 0.6) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
+                    self,
+                    enemy,
+                    engine,
+                    tMs,
+                )
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
+                    self,
+                    enemy,
+                    engine,
+                    tMs,
+                )
+            } else {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 1 },
+                    self,
+                    enemy,
+                    engine,
+                    tMs,
+                )
+            }
+            return 0
+        },
+    },
+    {
+        id: 'gu_tong_body',
+        name: '蛊童圣体',
+        description: '从小被炼的毒体，拳脚互传毒。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDealDamage: ({ final, target, attacker, engine, action }) => {
+            if (action?.tags?.includes('unarmed') && Math.random() < 0.4) {
+                attacker.spendAp(1)
+                const tMs = engine.state.turn.currentTime
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
+                    attacker,
+                    target,
+                    engine,
+                    tMs,
+                )
+            }
+            return final
+        },
+        onTakeDamage: ({ final, attacker, target, engine, action }) => {
+            if (action?.tags?.includes('unarmed') && Math.random() < 0.4) {
+                target.spendAp(1)
+                const tMs = engine.state.turn.currentTime
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
+                    target,
+                    attacker,
+                    engine,
+                    tMs,
+                )
+            }
+            return final
+        },
+    },
+    {
+        id: 'venom_gland',
+        name: '毒腺',
+        description: '每10秒消耗4层自身毒素，获得1点洞察，持续30秒。不满4层时不触发。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        tickInterval: 10000,
+        onTickHeal: ({ attacker: self, engine }) => {
+            const poisonKey = `poison::${self.id}`
+            const poisonLayer = engine.state.pendingBuffs.get(poisonKey)
+            if (!poisonLayer || poisonLayer.restoreValue < 4) return 0
+            poisonLayer.restoreValue -= 4
+            if (poisonLayer.restoreValue <= 0) {
+                engine.state.pendingBuffs.delete(poisonKey)
+            }
+            const now = engine.state.turn.currentTime
+            const appId = `${now}_${Math.random().toString(36).slice(2, 6)}`
+            const key = `venom_gland_insight::${self.id}::${appId}`
+            const mods = applyAttrMods(self, engine, { insight: 1 }, '毒腺')
+            engine.state.pendingBuffs.set(key, { restoreValue: 1, mods })
+            engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, now + 30000, 'buff_end')
+            engine.emitLog({
+                type: 'system',
+                message: `[毒腺] ${self.name} 消耗4层毒，洞察+1（30s）`,
+                actorId: self.id,
+            })
+            return 0
         },
     },
     {
@@ -1113,7 +1020,3 @@ export const DEBUFF_DB: BuffDef[] = [
         },
     },
 ]
-
-export function getBuff(id: string): BuffDef | undefined {
-    return BUFF_DB.find((b) => b.id === id) ?? DEBUFF_DB.find((b) => b.id === id)
-}

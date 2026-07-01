@@ -76,7 +76,12 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         }
         // 跳过纯位移招式（无伤害效果，如虎跃），近战时不应作为主招
         if (inst.id === 'big_leap') continue
-        if (!inst.def.effects?.some((e) => e.type === 'damage' || e.type === 'fixed_damage')) continue
+        if (
+            !inst.def.effects?.some(
+                (e) => e.type === 'damage' || e.type === 'fixed_damage' || e.type === 'functional_damage',
+            )
+        )
+            continue
         const selfDmgEff = inst.def.effects?.find(
             (e): e is Extract<EffectDef, { type: 'self_damage' }> => e.type === 'self_damage',
         )
@@ -90,7 +95,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const cond = getConditionPreset(config.conditionId)
             if (cond && !checkCondition(cond, self, state)) continue
         }
-        candidates.push(calcExpectedDamage(inst.def, self, enemy, weapon.range, distance))
+        candidates.push(calcExpectedDamage(inst.def, self, enemy, weapon.range, state))
     }
 
     // 2. 分两组：有条件限制的按顺序选，默认的按伤害选
@@ -366,12 +371,16 @@ function pickBestSecondary(self: Character, state: BattleState, apRemaining: num
     const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
     const enemy = state.characters.find((c) => c.id !== self.id)
     if (!enemy) return null
-    const distance = state.position.distance(self.id, enemy.id)
     const sorted = [...self.actions].filter((a) => {
         if (a.def.tags.includes('pre_action') || a.def.tags.includes('post_action')) return false
         if (!a.canUse()) return false
         if (a.id === 'big_leap') return false
-        if (!a.def.effects?.some((e) => e.type === 'damage' || e.type === 'fixed_damage')) return false
+        if (
+            !a.def.effects?.some(
+                (e) => e.type === 'damage' || e.type === 'fixed_damage' || e.type === 'functional_damage',
+            )
+        )
+            return false
         if (a.def.requiredTags.length > 0) {
             const hasTag = a.def.requiredTags.some((tag) => weapon.tags.includes(tag))
             if (!hasTag) return false
@@ -380,7 +389,7 @@ function pickBestSecondary(self: Character, state: BattleState, apRemaining: num
     })
     // 按 AP 效率排序（伤害/AP），选性价比最高的
     const scored = sorted.map((inst) => {
-        const est = calcExpectedDamage(inst.def, self, enemy, weapon.range, distance)
+        const est = calcExpectedDamage(inst.def, self, enemy, weapon.range, state)
         return { inst, score: est.apCost > 0 ? est.expectedDamage / est.apCost : 0, apCost: est.apCost }
     })
     scored.sort((a, b) => {

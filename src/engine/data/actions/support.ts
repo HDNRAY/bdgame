@@ -1,6 +1,5 @@
 import type { ActionDefinition } from '../../entities/action'
 import { MAX_CHAN } from '../../constants'
-import { hasNoStance } from '../../combat/utils'
 
 /**
  * 辅助招式（非战斗直接伤害，含 buff / 位移 / 缴械回复 / 净化等）。
@@ -109,27 +108,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             return Math.abs(state.position.get(attacker.id) - dropPos) <= 1
         },
         effects: [{ type: 'retrieve_weapon' }],
-    },
-    {
-        id: 'foresight',
-        name: '看破',
-        description: '凝神静气，洞察先机。',
-        requiredTags: [],
-        apCost: 3,
-        tags: ['buff', 'pre_action'],
-        target: 'self',
-        effects: [{ type: 'add_buff', buffId: 'foresight' }],
-    },
-    {
-        id: 'resheath',
-        name: '纳刀',
-        description: '收刀入鞘，重归居合。',
-        requiredTags: ['slash'],
-        apCost: 1,
-        tags: ['buff', 'post_action'],
-        target: 'self',
-        canUse: (attacker, state) => hasNoStance(state.pendingBuffs, attacker.id),
-        effects: [{ type: 'add_buff', buffId: 'iaijutsu' }],
     },
     {
         id: 'santou_liubi',

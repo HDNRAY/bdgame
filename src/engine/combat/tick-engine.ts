@@ -7,6 +7,7 @@ import { BattleLog } from './battle-log'
 import { applyAttrMods } from './utils/buff-layer'
 import type { BuffLayer } from './types'
 import { ATTR_CN } from '../entities/attributes'
+import { DMG_PER_POISON_TICK } from '../constants'
 
 /** 流血伤害计算 */
 function triggerBleed(stacks: number): number {
@@ -81,8 +82,11 @@ export class TickEngine {
     }
 
     #afterApplyPoison(enemy: Character, engine: BattleEngine, tMs: number, layer: BuffLayer): void {
+        if (!layer) {
+            console.error(enemy, layer)
+        }
         const totalStacks = layer.restoreValue
-        let dmg = totalStacks * 2
+        let dmg = totalStacks * DMG_PER_POISON_TICK
         if (engine.state.pendingBuffs.has(`poison_resist::${enemy.id}`)) {
             dmg = Math.round(dmg * 0.3 * 10) / 10
         }
@@ -90,9 +94,30 @@ export class TickEngine {
         const buffName = getBuff('poison')?.name ?? '中毒'
         engine.emitLog({
             type: 'system',
-            message: BattleLog.msg(buffName, enemy.name, `${totalStacks}层×2=${dmg}伤害`),
+            message: BattleLog.msg(buffName, enemy.name, `${totalStacks}层×${DMG_PER_POISON_TICK}=${dmg}伤害`),
             actorId: enemy.id,
         })
+        // 每层各扣 1 跳
+        if (layer.extra) {
+            const ticks: number[] = (layer.extra.remainingTicks as number[]) ?? []
+            let expired = 0
+            const next = ticks
+                .map((t) => t - 1)
+                .filter((t) => {
+                    if (t <= 0) {
+                        expired++
+                        return false
+                    }
+                    return true
+                })
+            if (next.length === 0) {
+                engine.state.pendingBuffs.delete(`poison::${enemy.id}`)
+                engine.state.turn.removeEvents(`tick_poison_${enemy.id}`)
+                return
+            }
+            layer.restoreValue -= expired
+            layer.extra = { ...layer.extra, remainingTicks: next }
+        }
         // 调度 tick
         engine.state.turn.removeEvents(`tick_poison_${enemy.id}`)
         const interval = calcPoisonTickInterval(totalStacks)
@@ -110,14 +135,14 @@ export class TickEngine {
         if (!entry) return { nextInterval: 0 }
 
         const stacks = entry.restoreValue
-        let dmg = stacks * 2
+        let dmg = stacks * DMG_PER_POISON_TICK
         if (engine.state.pendingBuffs.has(`poison_resist::${charId}`)) {
             dmg = Math.round(dmg * 0.3 * 10) / 10
         }
         const char = engine.getCharacter(charId)
         if (!char) return { nextInterval: 0 }
         char.takeDamage(dmg)
-        const nextInterval = calcPoisonTickInterval(stacks)
+
         const buffName = getBuff('poison')?.name ?? '中毒'
         engine.emitLog({
             type: 'damage_over_time',
@@ -131,6 +156,33 @@ export class TickEngine {
         if (dmg > 0) {
             engine.emit('on_took_damage', char, char)
         }
+
+        // 每层各扣 1 跳
+        const ticks: number[] = (entry.extra?.remainingTicks as number[]) ?? []
+        let expired = 0
+        const next = ticks
+            .map((t) => t - 1)
+            .filter((t) => {
+                if (t <= 0) {
+                    expired++
+                    return false
+                }
+                return true
+            })
+        if (next.length === 0) {
+            engine.state.pendingBuffs.delete(key)
+            engine.state.turn.removeEvents(`tick_poison_${charId}`)
+            engine.emitLog({
+                type: 'system',
+                message: `[${buffName}] ${BattleLog.name(char.name)} 毒素消退`,
+                actorId: charId,
+            })
+            return { nextInterval: 0 }
+        }
+        entry.restoreValue -= expired
+        entry.extra = { ...entry.extra, remainingTicks: next }
+
+        const nextInterval = calcPoisonTickInterval(entry.restoreValue)
         return { nextInterval }
     }
 

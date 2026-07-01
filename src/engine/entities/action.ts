@@ -4,6 +4,12 @@ import type { GameEntity } from './base'
 import type { Tag } from './tag'
 import type { BattleState } from '../combat/types'
 
+export interface FunctionalDamageCtx {
+    self: Character
+    enemy: Character
+    state: BattleState
+}
+
 /** buff 持续时间：{ attr: '属性名', multiplier: 系数 } = 属性×系数 ms，系数大≈永久 */
 export type BuffDuration = { attr: AttrName; multiplier: number }
 
@@ -24,7 +30,7 @@ export type EffectDef =
     | { type: 'cleanse'; buffIds?: string[] }
     // 自效果（无需命中判定，总是生效）
     | { type: 'heal'; value: number; ratio?: number }
-    | { type: 'stat_multiply'; stat: string; multiplier: number; duration: BuffDuration }
+    | { type: 'stat_multiply'; stat: string; multiplier: number }
     | { type: 'stat_buff'; attrs: Record<string, number>; duration?: BuffDuration; durationMs?: number }
     | { type: 'restore_ap'; value: number }
     | { type: 'summon_speed'; value: number }
@@ -53,7 +59,6 @@ export type EffectDef =
     | { type: 'short_dash'; maxDistance?: number }
     | { type: 'disarm'; chance?: number }
     | { type: 'self_disarm' }
-    | { type: 'ignore_parry' }
     | { type: 'wisdom_stat_buff'; ratio: number; attrs: AttrName[] }
     | { type: 'copy_best_passive' }
     | { type: 'add_passive'; passiveId: string }
@@ -70,6 +75,7 @@ export type EffectDef =
               sourceTags?: string[],
           ) => { skip?: boolean; delta?: number } | null
       }
+    | { type: 'functional_damage'; fn: (ctx: FunctionalDamageCtx) => number }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {

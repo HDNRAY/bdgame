@@ -11,16 +11,15 @@ export const YIDAO: OpponentDef = {
     targetAttrs: YIDAO_ATTRS,
     rewards: [
         action('qi_slash'),
-        action('iaijutsu_strike'),
-        action('resheath'),
         passive('iaijutsu_mastery'),
-        passive('empty_hand'),
+        passive('dragon_palace_style'),
+        artifact('wakizashi'),
         passive('human_radar'),
         artifact('tiger_eye'),
+        artifact('chan_orb'),
         weapon('zantetsu'),
         passive('extreme'),
         passive('stance_time'),
-        // 10
     ],
     actionConfigs: [
         { actionId: 'iaijutsu_strike' },

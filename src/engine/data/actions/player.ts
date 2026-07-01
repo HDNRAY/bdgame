@@ -1,3 +1,4 @@
+import { DMG_PER_POISON_TICK } from '../../constants'
 import type { ActionDefinition } from '../../entities/action'
 
 /**
@@ -177,6 +178,33 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'damage', scaling: { strength: 0.9, wisdom: 0.9 } }],
     },
     {
+        id: 'poison_detonate',
+        name: '毒素引爆',
+        description: '引爆对手身上的毒素，造成剩余跳数总伤害并清除所有毒层。',
+        requiredTags: [],
+        apCost: 5,
+        chanCost: 30,
+        canUse: (attacker) => attacker.chan >= 30,
+        tags: ['poison', 'qi'],
+        getRange: () => [0, 10],
+        onActionHitChance: () => 1,
+        effects: [
+            {
+                type: 'functional_damage',
+                fn: ({ enemy, state }) => {
+                    const poisonKey = `poison::${enemy.id}`
+                    const layer = state.pendingBuffs.get(poisonKey)
+                    if (!layer) return 0
+                    const remainingTicks: number[] = (layer.extra?.remainingTicks as number[]) ?? []
+                    const totalRemaining = remainingTicks.reduce((s, t) => s + t, 0)
+                    state.pendingBuffs.delete(poisonKey)
+                    const AMPLIFY = 1
+                    return totalRemaining * DMG_PER_POISON_TICK * AMPLIFY
+                },
+            },
+        ],
+    },
+    {
         id: 'qinlong_gong',
         name: '擒龙功',
         description: '隔空擒龙，夺人兵刃。',
@@ -221,6 +249,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 3,
         tags: ['poison', 'pierce', 'range', 'thrown'],
+        getRange: () => [1, 5],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.3 } },
             { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.4 },
@@ -369,21 +398,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         ],
     },
     // ── 斩击系 ──
-    {
-        id: 'iaijutsu_strike',
-        name: '居合斩',
-        description: '拔刀一瞬，电光石火。',
-        requiredTags: ['slash'],
-        apCost: 5,
-        extraStunTime: 1000,
-        tags: ['slash'],
-        canUse: (attacker, state) => state.pendingBuffs.has('iaijutsu::' + attacker.id),
-        effects: [
-            { type: 'short_dash', maxDistance: 1 },
-            { type: 'damage', scaling: { strength: 1.2 } },
-            { type: 'remove_buff', buffId: 'iaijutsu' },
-        ],
-    },
     {
         id: 'light_slash',
         name: '斩击',
@@ -548,11 +562,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '脚踢',
         description: '一记凶狠的蹬踏。',
         requiredTags: [],
-        apCost: 1,
+        apCost: 2,
         tags: ['unarmed', 'debuff'],
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.15 } },
-            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
+            { type: 'damage', scaling: { dexterity: 0.1, strength: 0.2, agility: 0.1 } },
+            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.3 },
         ],
     },
 ]
