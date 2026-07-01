@@ -39,7 +39,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         name: '长枪',
         description: '长枪一杆，势大力沉。',
         tags: ['pierce', 'parry', 'polearm'],
-        range: [2, 4],
+        range: [1, 4],
     },
     // ── 御物 ──
     {

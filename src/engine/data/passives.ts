@@ -277,7 +277,7 @@ export const PASSIVES: Passive[] = [
         name: '炁体源流',
         description: '八奇技之一，濒危时炁体护体吸收炁伤害，并将炁转化为力量、身法和灵巧。',
         tags: ['passive', 'buff', 'qi'],
-        requireAttrsMin: { wisdom: 16 },
+        requireAttrsMin: { wisdom: 14 },
         triggers: [
             {
                 condition: {

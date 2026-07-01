@@ -1,5 +1,5 @@
 import type { TriggerSlot } from '../../../../engine/entities/trigger'
-import { getTriggerName } from '../../../../engine/data/triggers'
+import { getTriggerName } from '../../../../bridge/triggerDisplay'
 
 interface TriggerLabelProps {
     slot: TriggerSlot

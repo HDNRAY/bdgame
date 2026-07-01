@@ -13,6 +13,7 @@ import { getPassive } from '../data/passives'
 import { getArtifact } from '../data/artifacts'
 import { TRIGGER_CONDITIONS } from '../data/triggers'
 import { MAX_CHAN } from '../constants'
+import type { BattleEngine } from '../combat/engine'
 
 export function calcMaxHp(vitality: number): number {
     return 20 + vitality * 18
@@ -339,8 +340,14 @@ export class Character {
         return this.#actionCache
     }
 
-    takeDamage(amount: number): void {
+    takeDamage(amount: number, engine?: BattleEngine): void {
+        const prevHp = this.hp
         this.hp = Math.max(0, this.hp - amount)
+        const dealt = prevHp - this.hp
+        if (dealt > 0 && engine) {
+            this.addChan(Math.round(dealt * 0.3 * 10) / 10)
+            engine.checkChanOverflow(this.id)
+        }
     }
     heal(amount: number): void {
         this.hp = Math.min(this.maxHp, this.hp + amount)
@@ -357,6 +364,7 @@ export class Character {
     spendAp(cost: number): boolean {
         if (this.ap < cost) return false
         this.ap -= cost
+        this.addChan(cost)
         return true
     }
 
@@ -367,12 +375,12 @@ export class Character {
 
     /** 增加缠劲（不超过上限） */
     addChan(amount: number): void {
-        this.chan = Math.min(MAX_CHAN, this.chan + amount)
+        this.chan = Math.min(MAX_CHAN, Math.round((this.chan + amount) * 10) / 10)
     }
 
     /** 消耗缠劲（不低于0） */
     spendChan(cost: number): void {
-        this.chan = Math.max(0, this.chan - cost)
+        this.chan = Math.max(0, Math.round((this.chan - cost) * 10) / 10)
     }
 
     toJSON() {

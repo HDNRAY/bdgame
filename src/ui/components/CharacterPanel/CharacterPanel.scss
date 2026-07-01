@@ -306,6 +306,11 @@
     white-space: nowrap;
 }
 
+.cp-col-cond,
+.cp-col-trig {
+    min-width: 120px;
+}
+
 .cp-col-cond select,
 .cp-col-trig select {
     width: 100%;

@@ -10,6 +10,7 @@ import { getPassive } from '../../../engine/data/passives'
 import type { ActionConfig } from '../../../engine/entities/action-config'
 import { CONDITION_PRESETS } from '../../../engine/data/conditions'
 import { TRIGGER_CONDITIONS } from '../../../engine/data/triggers'
+import { getTriggerConditionName } from '../../../bridge/triggerDisplay'
 import type { AttrName } from '../../../engine/entities/attributes'
 import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../../../ui/pixel-sprites'
 import { useBuildCharacter, cultCost } from '../../hooks/useBuildCharacter'
@@ -213,9 +214,7 @@ export function CharacterPanel({
                                     const condName = cfg?.conditionId
                                         ? CONDITION_PRESETS.find((p) => p.id === cfg.conditionId)?.name
                                         : null
-                                    const trigName = cfg?.triggerId
-                                        ? TRIGGER_CONDITIONS.find((t) => t.id === cfg.triggerId)?.name
-                                        : null
+                                    const trigName = cfg?.triggerId ? getTriggerConditionName(cfg.triggerId) : null
                                     return (
                                         <EntityItem key={i} entity={act.def} type="action">
                                             {(condName || trigName) && (
@@ -365,7 +364,7 @@ function SortableRow({
                         if (takenTriggerIds.has(tc.id) && tc.id !== ac.triggerId) return null
                         return (
                             <option key={tc.id} value={tc.id}>
-                                {tc.name}
+                                {getTriggerConditionName(tc.id)}
                             </option>
                         )
                     })}

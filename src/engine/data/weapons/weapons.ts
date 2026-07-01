@@ -31,7 +31,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '丈二铁枪，势大力沉。',
         tags: ['pierce', 'parry', 'polearm'],
         effects: [{ type: 'stat_buff', attrs: { agility: -2, strength: 2 } }],
-        range: [2, 4],
+        range: [1, 4],
     },
     {
         id: 'fusi_sword',

@@ -22,26 +22,21 @@ export function BattleStatusPanel({ snapshot, charAName, charBName }: BattleStat
     return (
         <div className="battle-status-panel">
             <div className="title">
-                <span className="char-a">{charAName}</span> vs <span className="char-b">{charBName}</span>
-            </div>
-
-            <div className="distance">
-                {'─'.repeat(8)} {dist.toFixed(1)}m {'─'.repeat(8)}
+                <span className="char-a">{charAName}</span>
+                <span className="vs"> {dist.toFixed(1)}m </span>
+                <span className="char-b">{charBName}</span>
             </div>
 
             {winner && <div className="winner">🏆 {winner} 获胜！</div>}
 
             <div className="chars">
-                {[a, b].map((c, i) => {
+                {[a, b].map((c) => {
                     const hpPct = c.maxHp > 0 ? (c.hp / c.maxHp) * 100 : 0
                     const apPct = c.maxAp > 0 ? (c.ap / c.maxAp) * 100 : 0
                     return (
                         <div key={c.id} className="char-col">
-                            <div className="label" style={{ color: i === 0 ? '#4ecdc4' : '#ff6b6b' }}>
-                                {i === 0 ? charAName : charBName}
-                            </div>
                             <div className="hp-text">
-                                <span className="hp-label">HP</span> {Math.round(c.hp)}/{c.maxHp}
+                                <span className="hp-label">气血</span> {Math.round(c.hp)}/{c.maxHp}
                             </div>
                             <div className="bar-bg">
                                 <div
@@ -50,14 +45,14 @@ export function BattleStatusPanel({ snapshot, charAName, charBName }: BattleStat
                                 />
                             </div>
                             <div className="hp-text">
-                                <span className="ap-label">AP</span> {c.ap}/{c.maxAp}
+                                <span className="ap-label">内息</span> {c.ap}/{c.maxAp}
                             </div>
                             <div className="bar-bg">
                                 <div className="bar-fill bar-ap" style={{ width: `${Math.min(100, apPct)}%` }} />
                             </div>
                             <>
                                 <div className="hp-text">
-                                    <span className="chan-label">缠</span> {c.chan}/{MAX_CHAN}
+                                    <span className="chan-label">缠劲</span> {c.chan}/{MAX_CHAN}
                                 </div>
                                 <div className="bar-bg">
                                     <div

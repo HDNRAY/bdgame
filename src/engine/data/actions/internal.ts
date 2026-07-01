@@ -78,8 +78,11 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         target: 'self',
         maxUses: 1,
         effects: [
-            { type: 'add_buff', buffId: 'qi_shield', stacks: 5 },
-            { type: 'stat_buff', attrs: { wisdom: -15, strength: 5, agility: 5, dexterity: 5 } },
+            { type: 'add_buff', buffId: 'qi_shield', stacks: 10 },
+            {
+                type: 'stat_buff',
+                attrs: { wisdom: -12, strength: 4, agility: 4, dexterity: 4, vitality: 4, insight: 4 },
+            },
         ],
     },
     {

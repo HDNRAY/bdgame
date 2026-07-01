@@ -1,6 +1,6 @@
 import type { TriggerSlot } from '../../../../engine/entities/trigger'
 import { getAction } from '../../../../engine/data/actions'
-import { getTriggerName } from '../../../../engine/data/triggers'
+import { getTriggerName } from '../../../../bridge/triggerDisplay'
 import { describeEffects } from '../../../../engine/data/effectDisplay'
 
 interface TriggerEffectsProps {

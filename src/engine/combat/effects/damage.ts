@@ -24,12 +24,7 @@ export function applyBonusDamage(
 ): void {
     if (raw <= 0) return
     const final = applyDamageModifiers(raw, target, attacker, engine, raw, actionDef, true)
-    target.takeDamage(final)
-    // 缠积累（损失血量 × 0.3）
-    if (final > 0) {
-        target.addChan(Math.round(final * 0.3))
-        engine.checkChanOverflow(target.id)
-    }
+    target.takeDamage(final, engine)
     engine.emitLog({
         type: 'damage',
         actionId: labelId,
@@ -63,13 +58,7 @@ export function applyDamage(
     const { isCrit, final: afterCrit } = resolveCrit(afterParry, buffed, target, attacker, engine, act)
     const final = afterCrit
 
-    target.takeDamage(final)
-
-    // 缠积累（损失血量 × 0.3）
-    if (final > 0) {
-        target.addChan(Math.round(final * 0.3))
-        engine.checkChanOverflow(target.id)
-    }
+    target.takeDamage(final, engine)
 
     if (final > 0) {
         engine.emit('on_dealt_damage', attacker, target)
@@ -291,7 +280,8 @@ function resolveCrit(
                 action: act,
             })
     }
-    const critChance = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), bonus)
+    let critChance = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), bonus)
+    if (act?.onActionCritChance) critChance = act.onActionCritChance(critChance)
     const critRoll = calcRoll(critChance)
     const isCrit = critRoll.success
 

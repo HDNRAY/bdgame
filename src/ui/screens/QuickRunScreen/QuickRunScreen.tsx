@@ -146,8 +146,8 @@ export function QuickRunScreen() {
                                 </div>
                                 {r.playerHp && (
                                     <div className="qr-battle-stats">
-                                        玩家 HP: {r.playerHp.current}/{r.playerHp.max} | 对手 HP: {r.enemyHp?.current}/
-                                        {r.enemyHp?.max} | 回合: ~{r.actionCount}
+                                        玩家 气血: {r.playerHp.current}/{r.playerHp.max} | 对手 气血:{' '}
+                                        {r.enemyHp?.current}/{r.enemyHp?.max} | 回合: ~{r.actionCount}
                                     </div>
                                 )}
                             </div>

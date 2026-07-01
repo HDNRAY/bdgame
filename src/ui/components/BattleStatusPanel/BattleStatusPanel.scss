@@ -19,15 +19,12 @@
         color: #4ecdc4;
     }
 
-    .char-b {
-        color: #ff6b6b;
+    .vs {
+        color: #888;
     }
 
-    .distance {
-        text-align: center;
-        color: #888;
-        font-size: 12px;
-        margin-bottom: 10px;
+    .char-b {
+        color: #ff6b6b;
     }
 
     .winner {
@@ -49,15 +46,6 @@
 
     .char-col {
         flex: 1;
-    }
-
-    .label {
-        color: #888;
-        font-size: 12px;
-        font-family: monospace;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 1px;
     }
 
     .hp-text {

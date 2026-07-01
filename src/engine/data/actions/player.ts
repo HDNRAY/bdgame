@@ -381,8 +381,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['bleed', 'pierce'],
         effects: [
             { type: 'short_dash', maxDistance: 1 },
-            { type: 'damage', scaling: { strength: 0.6 } },
-            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.4 },
+            { type: 'damage', scaling: { strength: 0.8 } },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.3 },
         ],
     },
     {
@@ -393,8 +393,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['bleed', 'pierce'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.3 } },
-            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.6 },
+            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.5 },
         ],
     },
     // ── 斩击系 ──
@@ -519,7 +519,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '长棍直戳，力透千钧。',
         requiredTags: ['polearm'],
         apCost: 2,
-        tags: ['unarmed', 'pierce', 'polearm'],
+        tags: ['blunt', 'pierce', 'polearm'],
         effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
     },
     {
@@ -528,19 +528,19 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '高举过顶，一棍劈下，势不可挡。',
         requiredTags: ['polearm'],
         apCost: 4,
-        tags: ['unarmed', 'polearm'],
+        tags: ['blunt'],
         effects: [{ type: 'damage', scaling: { strength: 0.8 } }],
     },
     {
         id: 'rod_sweep',
-        name: '棍扫',
+        name: '横扫',
         description: '横扫千军，劲力将对手震退。',
         requiredTags: ['polearm'],
         apCost: 3,
-        tags: ['unarmed', 'knockback', 'polearm'],
+        tags: ['blunt', 'knockdown', 'polearm'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.5 } },
-            { type: 'knockback', distance: 1 },
+            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
         ],
     },
     {
@@ -555,6 +555,20 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.6 },
             { type: 'ignore_parry' },
         ],
+    },
+    {
+        id: 'return_spear',
+        name: '回马枪',
+        description: '佯装撤退，回首一枪。需要25层缠劲。',
+        requiredTags: ['polearm'],
+        apCost: 5,
+        chanCost: 50,
+        tags: ['polearm', 'pierce', 'range'],
+        getRange: () => [4, 4] as [number, number],
+        canUse: (attacker) => attacker.chan >= 50,
+        onActionHitChance: (base) => base + 0.5,
+        onActionCritChance: (base) => base + 0.5,
+        effects: [{ type: 'damage', scaling: { strength: 0.9, dexterity: 0.5 } }],
     },
     // ── 通用 ──
     {

@@ -618,14 +618,12 @@ export class BattleEngine {
                         }),
                 )
             }
+            if (action.chanCost) self.spendChan(action.chanCost)
             if (!self.spendAp(cost)) return r
         }
         // 消耗限次招式
         const inst = self.actions.find((a) => a.id === action.id)
         if (inst && inst.def.maxUses !== undefined) inst.use()
-        // 缠积累（消耗AP × 1）+ 缠消耗
-        self.addChan(action.apCost)
-        if (action.chanCost) self.spendChan(action.chanCost)
         this.checkChanOverflow(self.id)
         const weapon = getWeapon(self.build.weapon)
         this.emitLog({
@@ -674,6 +672,12 @@ export class BattleEngine {
 
         this.emit('on_hit', self, enemy)
         this.emit('on_was_hit', enemy, self)
+
+        // 按攻击方招式 tag 命中触发（发射给防守方，与 on_was_hit 对应）
+        if (action.tags.includes('melee')) this.emit('on_melee', enemy, self)
+        if (action.tags.includes('range')) this.emit('on_range', enemy, self)
+        if (action.tags.includes('unarmed')) this.emit('on_unarmed', enemy, self)
+        if (action.tags.includes('polearm')) this.emit('on_polearm', enemy, self)
 
         this.state.log.indentDepth++
         for (const eff of action.effects ?? []) {
@@ -730,8 +734,6 @@ export class BattleEngine {
             return r
         }
         inst.use()
-        // 缠积累（消耗AP × 1）+ 缠消耗
-        self.addChan(inst.apCost)
         if (inst.def.chanCost) self.spendChan(inst.def.chanCost)
         this.checkChanOverflow(self.id)
         this.emitLog({

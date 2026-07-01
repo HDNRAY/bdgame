@@ -480,7 +480,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '攻击附加3点雷击伤害。',
         tags: [],
         expiry: { type: 'permanent' },
-        onAfterDealDamage: () => 2,
+        onAfterDealDamage: () => 3,
     },
     {
         id: 'cinnabar_mark',
@@ -639,7 +639,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'qishier_bian',
         name: '七十二变',
-        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧增加2点。',
+        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧增加3点。',
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 6000,
@@ -648,7 +648,7 @@ export const BUFF_DB: BuffDef[] = [
             const nextIdx = ((layer.restoreValue ?? 0) + 1) % 4
             revertBuffMods(layer, char, engine)
             const stat = cycle[nextIdx]
-            const newMods = applyAttrMods(char, engine, { [stat]: 2 }, '七十二变')
+            const newMods = applyAttrMods(char, engine, { [stat]: 3 }, '七十二变')
             layer.mods = newMods
             layer.restoreValue = nextIdx
             return 0
@@ -721,7 +721,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '袖里玄机。每触发一次触发器招式叠1层，15层满时下一招非辅助招式强化。',
         tags: [],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 15 },
+        stacking: { type: 'additive', max: 9 },
     },
     {
         id: 'tianji_ready',

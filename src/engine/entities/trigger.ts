@@ -35,6 +35,10 @@ export type TriggerEvent =
     | 'on_pre_action'
     | 'chan_overflow'
     | 'on_action_trigger'
+    | 'on_melee'
+    | 'on_range'
+    | 'on_unarmed'
+    | 'on_polearm'
 
 /** 触发条件上下文 */
 export interface ConditionContext {
@@ -58,8 +62,6 @@ export interface Condition {
 /** 可供玩家选择的触发条件 */
 export interface TriggerCondition extends Condition {
     id: string
-    name: string
-    description: string
     apCost?: number
     maxUses?: number
 }

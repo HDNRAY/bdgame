@@ -15,17 +15,15 @@ export const ZHANGLIE: OpponentDef = {
         artifact('hydraulic_leg'),
         artifact('heart_pump'),
         artifact('neural_net'),
-        action('jab'),
-        action('straight_punch'),
+        artifact('blood_thorn_ring'),
         action('thrust'),
         weapon('iron_spear'),
-        // 10
+        action('rod_sweep'),
+        action('return_spear'),
     ],
     actionConfigs: [
-        { actionId: 'thrust' }, // AI 出招顺序
         { actionId: 'pursuit_thrust', triggerId: 'on_bleed' },
-        { actionId: 'straight_punch' }, // AI 出招顺序
-        { actionId: 'jab' }, // AI 出招顺序
+        // { actionId: 'rod_sweep', triggerId: 'on_melee' },
     ],
     taunt: () => '别怨我。各为其主。',
 }
