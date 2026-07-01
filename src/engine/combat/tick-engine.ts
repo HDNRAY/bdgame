@@ -62,7 +62,7 @@ export class TickEngine {
         if (agiDelta !== 0) stunMods.agility = agiDelta
         if (insDelta !== 0) stunMods.insight = insDelta
         if (Object.keys(stunMods).length > 0) {
-            const result = applyAttrMods(enemy, engine, stunMods, '眩晕')
+            const result = applyAttrMods(enemy, engine.state, stunMods, '眩晕')
             // 存入 layer.mods 供 processBuffEnd 正确回退
             if (!layer.mods) layer.mods = {}
             Object.assign(layer.mods, result)

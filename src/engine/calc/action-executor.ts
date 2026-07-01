@@ -4,12 +4,14 @@ import type { BattleState } from '../combat/types'
 import { getWeapon } from '../data/weapons/weapons'
 import { getBuff } from '../data/buffs'
 import { getActionRange } from '../entities/action'
+import { BattleEngine } from '../combat/engine'
 
 /** 检查招式是否满足释放条件 */
 export function canExecuteAction(
     action: ActionDefinition,
     attacker: Character,
     state: BattleState,
+    engine?: BattleEngine,
 ): { ok: boolean; reason?: string } {
     let cost = action.apCost
     for (const [key, layer] of state.pendingBuffs) {
@@ -27,9 +29,9 @@ export function canExecuteAction(
                     raw: 0,
                     attacker,
                     target,
-                    engine: null as unknown as import('../combat/engine').BattleEngine,
+                    engine,
+                    state,
                     layer,
-                    buffOwnerId: attacker.id,
                     action,
                 }),
         )

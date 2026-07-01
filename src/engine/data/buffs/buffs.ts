@@ -3,6 +3,7 @@ import { revertBuffMods } from '../../combat/utils'
 import { applyAttrMods } from '../../combat/utils/buff-layer'
 import { MAX_CHAN } from '../../constants'
 import { Tag } from '../../entities/tag'
+import { calcParryChance } from '../../calc/damage'
 import type { BuffDef } from './types'
 
 /** 增益状态 */
@@ -94,10 +95,9 @@ export const BUFF_DB: BuffDef[] = [
             const reduce = Math.min(layer.restoreValue, Math.floor(total / HEAL_PER_STACK))
             layer.restoreValue -= reduce
             layer.extra = { ...layer.extra, healAccumulator: total - reduce * HEAL_PER_STACK }
-            const char = engine.getCharacter(target.id)
-            engine.emitLog({
+            engine?.emitLog({
                 type: 'system',
-                message: `[治疗] ${char?.name ?? ''} 刀炁 -${reduce}层，剩${layer.restoreValue}层`,
+                message: `[治疗] ${target?.name ?? ''} 刀炁 -${reduce}层，剩${layer.restoreValue}层`,
                 actorId: target.id,
             })
         },
@@ -158,18 +158,18 @@ export const BUFF_DB: BuffDef[] = [
         name: '炁盾',
         description: '吸收炁招式伤害，每次2点。',
         tags: [],
-        onTakeDamage: ({ final, target, attacker, engine, action, layer }) => {
+        onTakeDamage: ({ final, target, attacker, engine, action, layer, state }) => {
             const act = action
             const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (!isQi || final <= 0 || layer.restoreValue <= 0) return final
             const absorb = Math.min(2, final)
             layer.restoreValue--
-            engine.emitLog({
+            engine?.emitLog({
                 type: 'system',
                 message: `[炁盾] ${target.name} 吸收${absorb}点（剩${layer.restoreValue}次）`,
                 actorId: target.id,
             })
-            if (layer.restoreValue <= 0) engine.state.pendingBuffs.delete(`qi_shield::${target.id}`)
+            if (layer.restoreValue <= 0) state.pendingBuffs.delete(`qi_shield::${target.id}`)
             return Math.max(0, Math.round((final - absorb) * 10) / 10)
         },
     },
@@ -183,7 +183,7 @@ export const BUFF_DB: BuffDef[] = [
             const act = action
             if (!act?.tags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'unarmed')) return final
             target.spendAp(1)
-            engine.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免2点`, actorId: target.id })
+            engine?.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免2点`, actorId: target.id })
             return Math.max(0, Math.round((final - 2) * 10) / 10)
         },
     },
@@ -235,7 +235,7 @@ export const BUFF_DB: BuffDef[] = [
         tickInterval: 2000,
         onTickHeal: ({ attacker, engine }) => {
             attacker.addChan(3)
-            engine.emitLog({
+            engine?.emitLog({
                 type: 'system',
                 message: `[凝缠珠] ${attacker.name} 缠劲+3（${attacker.chan}层）`,
                 actorId: attacker.id,
@@ -249,7 +249,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+2%暴伤。',
         tags: [],
         expiry: { type: 'permanent' },
-        onCritChance: ({ action, attacker, layer, engine }) => {
+        onCritChance: ({ action, attacker, layer, engine, state }) => {
             if ((action?.apCost ?? 0) < 5 || attacker.chan < MAX_CHAN) {
                 layer.restoreValue = 0
                 return 0
@@ -258,9 +258,9 @@ export const BUFF_DB: BuffDef[] = [
             attacker.spendChan(chan)
             layer.restoreValue = chan * 0.02
             const key = `extreme::${attacker.id}`
-            engine.state.pendingBuffs.delete(key)
-            engine.state.turn.removeEvents(`buff_end_${key}`)
-            engine.emitLog({
+            state.pendingBuffs.delete(key)
+            state.turn.removeEvents(`buff_end_${key}`)
+            engine?.emitLog({
                 type: 'system',
                 message: `[极] ${attacker.name} 极意绽放，缠劲尽散`,
                 actorId: attacker.id,
@@ -309,11 +309,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '距离≥5m时闪避+15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDodgeChance: ({ engine, buffOwnerId }) => {
-            const self = engine.getCharacter(buffOwnerId)!
-            const attacker = engine.getOpponent(buffOwnerId)
-            if (!attacker) return 0
-            const dist = engine.state.position.distance(self.id, attacker.id)
+        onDodgeChance: ({ attacker, target, state }) => {
+            const dist = state.position.distance(target.id, attacker.id)
             return dist >= 5 ? 0.15 : 0
         },
     },
@@ -337,13 +334,11 @@ export const BUFF_DB: BuffDef[] = [
         description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDodgeChance: ({ engine, buffOwnerId }) => {
-            const char = engine.getCharacter(buffOwnerId)
-            return char ? char.attrs.get('agility') * 0.005 : 0
+        onDodgeChance: ({ attacker }) => {
+            return attacker.attrs.get('agility') * 0.005
         },
-        onParryChance: ({ engine, buffOwnerId }) => {
-            const char = engine.getCharacter(buffOwnerId)
-            return char ? char.attrs.get('dexterity') * 0.005 : 0
+        onParryChance: ({ attacker }) => {
+            return attacker.attrs.get('dexterity') * 0.005
         },
     },
     {
@@ -390,8 +385,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '凝炁玉增幅，炁系招式伤害+15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, action, engine }) => {
-            const hasQiState = engine.state.pendingBuffs.has(`qi_state::${attacker.id}`)
+        onDealDamage: ({ final, attacker, action, state }) => {
+            const hasQiState = state.pendingBuffs.has(`qi_state::${attacker.id}`)
             const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi') || hasQiState
             if (!isQi) return final
             return Math.round(final * 1.1 * 10) / 10
@@ -445,18 +440,18 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 5000,
-        onTickHeal: ({ target, engine }) => {
+        onTickHeal: ({ target, engine, state }) => {
             const poisonKey = `poison::${target.id}`
-            const poisonLayer = engine.state.pendingBuffs.get(poisonKey)
+            const poisonLayer = state.pendingBuffs.get(poisonKey)
             if (poisonLayer && poisonLayer.restoreValue > 0) {
                 poisonLayer.restoreValue -= 1
-                engine.emitLog({
+                engine?.emitLog({
                     type: 'system',
                     message: `[蜂草鱼囊] ${target.name} 解毒-1层`,
                     actorId: target.id,
                 })
                 if (poisonLayer.restoreValue <= 0) {
-                    engine.state.pendingBuffs.delete(poisonKey)
+                    state.pendingBuffs.delete(poisonKey)
                 }
             }
             return 3
@@ -492,11 +487,11 @@ export const BUFF_DB: BuffDef[] = [
         onDealDamage: ({ final, attacker, layer, engine }) => {
             if (layer.restoreValue >= 4) {
                 layer.restoreValue = 0
-                engine.emitLog({ type: 'system', message: '[守宫砂] 雷印爆发！伤害×1.5', actorId: attacker.id })
+                engine?.emitLog({ type: 'system', message: '[守宫砂] 雷印爆发！伤害×1.5', actorId: attacker.id })
                 return Math.round(final * 1.5 * 10) / 10
             }
             layer.restoreValue = (layer.restoreValue ?? 0) + 1
-            engine.emitLog({
+            engine?.emitLog({
                 type: 'system',
                 message: `[守宫砂] ${attacker.name} 雷印+1（${layer.restoreValue}/4）`,
                 actorId: attacker.id,
@@ -530,16 +525,16 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         attrMods: { strength: 5, agility: 0 },
         tickInterval: 2000,
-        onTickHeal: ({ attacker: char, engine, layer }) => {
+        onTickHeal: ({ attacker: char, engine, state, layer }) => {
             const current = layer.restoreValue ?? 0
             const next = current >= 5 ? 0 : current + 1
-            revertBuffMods(layer, char, engine)
+            revertBuffMods(layer, char, state)
             const str = 5 - next
             const agi = next
-            const newMods = applyAttrMods(char, engine, { strength: str, agility: agi }, '潮汐内力')
+            const newMods = applyAttrMods(char, state, { strength: str, agility: agi }, '潮汐内力')
             layer.mods = newMods
             layer.restoreValue = next
-            engine.emitLog({
+            engine?.emitLog({
                 type: 'system',
                 message: `[潮汐内力] ${char.name} 力道${str} 身法${agi}`,
                 actorId: char.id,
@@ -590,10 +585,8 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         attrMods: { agility: -12 },
-        onDealDamage: ({ final, attacker, engine }) => {
-            const opponent = engine.getOpponent(attacker.id)
-            if (!opponent) return final
-            const dist = engine.state.position.distance(attacker.id, opponent.id)
+        onDealDamage: ({ final, attacker, target, state }) => {
+            const dist = state.position.distance(attacker.id, target.id)
             const bonus = Math.round(((attacker.attrs.get('strength') * 0.66 * Math.max(0, 6 - dist)) / 5) * 10) / 10
             return bonus > 0 ? Math.round((final + bonus) * 10) / 10 : final
         },
@@ -609,10 +602,10 @@ export const BUFF_DB: BuffDef[] = [
         description: '后续2个回合结束时AP回满。',
         tags: [],
         expiry: { type: 'permanent' },
-        onTurnEnd: ({ attacker, engine, layer }) => {
+        onTurnEnd: ({ attacker, state, engine, layer }) => {
             if (attacker.ap < attacker.maxAp) {
                 attacker.ap = attacker.maxAp
-                engine.emitLog({
+                engine?.emitLog({
                     type: 'system',
                     message: `[三头六臂] ${attacker.name} AP回满（剩${layer.restoreValue - 1}次）`,
                     actorId: attacker.id,
@@ -621,8 +614,8 @@ export const BUFF_DB: BuffDef[] = [
             layer.restoreValue--
             if (layer.restoreValue <= 0) {
                 const key = `santou_liubi::${attacker.id}`
-                engine.state.pendingBuffs.delete(key)
-                engine.state.turn.removeEvents('buff_end_' + key)
+                state.pendingBuffs.delete(key)
+                state.turn.removeEvents('buff_end_' + key)
             }
         },
     },
@@ -644,12 +637,12 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 6000,
-        onTickHeal: ({ attacker: char, engine, layer }) => {
+        onTickHeal: ({ attacker: char, state, layer }) => {
             const cycle = ['strength', 'vitality', 'agility', 'dexterity']
             const nextIdx = ((layer.restoreValue ?? 0) + 1) % 4
-            revertBuffMods(layer, char, engine)
+            revertBuffMods(layer, char, state)
             const stat = cycle[nextIdx]
-            const newMods = applyAttrMods(char, engine, { [stat]: 3 }, '七十二变')
+            const newMods = applyAttrMods(char, state, { [stat]: 3 }, '七十二变')
             layer.mods = newMods
             layer.restoreValue = nextIdx
             return 0
@@ -743,7 +736,7 @@ export const BUFF_DB: BuffDef[] = [
         onTakeDamage: ({ final, target, engine }) => {
             if (target.chan <= 0) return final
             target.spendChan(1)
-            engine.emitLog({
+            engine?.emitLog({
                 type: 'system',
                 message: `[袖里] ${target.name} 消耗1层缠劲减免3点（剩${target.chan}层）`,
                 actorId: target.id,
@@ -756,26 +749,26 @@ export const BUFF_DB: BuffDef[] = [
         name: '软猬',
         description: '软猬甲护体，减免所有伤害；受拳脚攻击时反伤并叠流血。',
         tags: [],
-        onTakeDamage: ({ final, target, attacker, engine, action }) => {
+        onTakeDamage: ({ final, target, attacker, engine, state, action }) => {
             const reduced = Math.max(0, Math.round((final - 1) * 10) / 10)
             if (action?.tags?.includes('unarmed')) {
                 attacker.takeDamage(1)
-                engine.emitLog({
+                engine?.emitLog({
                     type: 'system',
                     message: `[软猬甲] ${target.name} 刺伤 ${attacker.name}，反伤2点`,
                     actorId: target.id,
                 })
                 const bleedKey = `bleed::${attacker.id}`
-                const existing = engine.state.pendingBuffs.get(bleedKey)
+                const existing = state.pendingBuffs.get(bleedKey)
                 if (existing) {
                     existing.restoreValue = (existing.restoreValue ?? 0) + 1
                 } else {
-                    engine.state.pendingBuffs.set(bleedKey, {
+                    state.pendingBuffs.set(bleedKey, {
                         restoreValue: 1,
                         extra: { bleedTriggerCount: 0, source: target.name, sourceId: target.id },
                     })
                 }
-                engine.emitLog({
+                engine?.emitLog({
                     type: 'system',
                     message: `[软猬甲] ${attacker.name} 被刺伤，流血+1`,
                     actorId: attacker.id,
@@ -793,7 +786,7 @@ export const BUFF_DB: BuffDef[] = [
         onTakeDamage: ({ final, target, engine }) => {
             if (target.chan <= 0) return final
             target.spendChan(1)
-            engine.emitLog({
+            engine?.emitLog({
                 type: 'system',
                 message: `[金光咒] ${target.name} 消耗1层缠劲减免3点（剩${target.chan}层）`,
                 actorId: target.id,
@@ -862,22 +855,22 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 10000,
-        onTickDamage: ({ attacker: self, engine }) => {
-            const enemy = engine.getOpponent(self.id)
-            if (!enemy) return 0
+        onTickDamage: ({ attacker: self, target, engine }) => {
+            if (!target) return 0
+            if (!engine) return 0
             const tMs = engine.state.turn.currentTime
             if (self.hp / self.maxHp < 0.6) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
                     self,
-                    enemy,
+                    target,
                     engine,
                     tMs,
                 )
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
                     self,
-                    enemy,
+                    target,
                     engine,
                     tMs,
                 )
@@ -885,7 +878,7 @@ export const BUFF_DB: BuffDef[] = [
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 1 },
                     self,
-                    enemy,
+                    target,
                     engine,
                     tMs,
                 )
@@ -902,28 +895,32 @@ export const BUFF_DB: BuffDef[] = [
         onDealDamage: ({ final, target, attacker, engine, action }) => {
             if (action?.tags?.includes('unarmed') && Math.random() < 0.4) {
                 attacker.spendAp(1)
-                const tMs = engine.state.turn.currentTime
-                processActionEffect(
-                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
-                    attacker,
-                    target,
-                    engine,
-                    tMs,
-                )
+                if (engine) {
+                    const tMs = engine.state.turn.currentTime
+                    processActionEffect(
+                        { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
+                        attacker,
+                        target,
+                        engine,
+                        tMs,
+                    )
+                }
             }
             return final
         },
         onTakeDamage: ({ final, attacker, target, engine, action }) => {
             if (action?.tags?.includes('unarmed') && Math.random() < 0.4) {
                 target.spendAp(1)
-                const tMs = engine.state.turn.currentTime
-                processActionEffect(
-                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
-                    target,
-                    attacker,
-                    engine,
-                    tMs,
-                )
+                if (engine) {
+                    const tMs = engine.state.turn.currentTime
+                    processActionEffect(
+                        { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
+                        target,
+                        attacker,
+                        engine,
+                        tMs,
+                    )
+                }
             }
             return final
         },
@@ -935,21 +932,21 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 10000,
-        onTickHeal: ({ attacker: self, engine }) => {
+        onTickHeal: ({ attacker: self, engine, state }) => {
             const poisonKey = `poison::${self.id}`
-            const poisonLayer = engine.state.pendingBuffs.get(poisonKey)
+            const poisonLayer = state.pendingBuffs.get(poisonKey)
             if (!poisonLayer || poisonLayer.restoreValue < 4) return 0
             poisonLayer.restoreValue -= 4
             if (poisonLayer.restoreValue <= 0) {
-                engine.state.pendingBuffs.delete(poisonKey)
+                state.pendingBuffs.delete(poisonKey)
             }
-            const now = engine.state.turn.currentTime
+            const now = state.turn.currentTime
             const appId = `${now}_${Math.random().toString(36).slice(2, 6)}`
             const key = `venom_gland_insight::${self.id}::${appId}`
-            const mods = applyAttrMods(self, engine, { insight: 1 }, '毒腺')
-            engine.state.pendingBuffs.set(key, { restoreValue: 1, mods })
-            engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, now + 30000, 'buff_end')
-            engine.emitLog({
+            const mods = applyAttrMods(self, state, { insight: 1 }, '毒腺')
+            state.pendingBuffs.set(key, { restoreValue: 1, mods })
+            state.turn.scheduleSystemEventAt(`buff_end_${key}`, now + 30000, 'buff_end')
+            engine?.emitLog({
                 type: 'system',
                 message: `[毒腺] ${self.name} 消耗4层毒，洞察+1（30s）`,
                 actorId: self.id,
@@ -983,41 +980,103 @@ export const BUFF_DB: BuffDef[] = [
         description: '通晓天下武学，以推演预判。闪避/招架→武学·破+1层；暴击→武学·避+1层。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDodged: ({ engine, buffOwnerId }) => {
-            const self = engine.getCharacter(buffOwnerId)!
-            const enemy = engine.getOpponent(buffOwnerId)!
-            if (!enemy) return
-            processActionEffect(
-                { type: 'add_buff', buffId: 'martial_arts_crit', stacks: 1 },
-                self,
-                enemy,
-                engine,
-                engine.state.turn.currentTime,
-            )
+        onDodged: ({ engine, target, attacker, state }) => {
+            if (engine) {
+                processActionEffect(
+                    { type: 'add_buff', buffId: 'martial_arts_crit', stacks: 1 },
+                    target,
+                    attacker,
+                    engine,
+                    state.turn.currentTime,
+                )
+            }
         },
-        onParried: ({ engine, buffOwnerId }) => {
-            const self = engine.getCharacter(buffOwnerId)!
-            const enemy = engine.getOpponent(buffOwnerId)!
-            if (!enemy) return
-            processActionEffect(
-                { type: 'add_buff', buffId: 'martial_arts_crit', stacks: 1 },
-                self,
-                enemy,
-                engine,
-                engine.state.turn.currentTime,
-            )
+        onParried: ({ engine, target, attacker, state }) => {
+            if (engine) {
+                processActionEffect(
+                    { type: 'add_buff', buffId: 'martial_arts_crit', stacks: 1 },
+                    target,
+                    attacker,
+                    engine,
+                    state.turn.currentTime,
+                )
+            }
         },
-        onCritical: ({ engine, buffOwnerId }) => {
-            const self = engine.getCharacter(buffOwnerId)!
-            const enemy = engine.getOpponent(buffOwnerId)!
-            if (!enemy) return
-            processActionEffect(
-                { type: 'add_buff', buffId: 'martial_arts_dodge', stacks: 1 },
-                self,
-                enemy,
-                engine,
-                engine.state.turn.currentTime,
-            )
+        onCritical: ({ engine, attacker, target, state }) => {
+            if (engine) {
+                processActionEffect(
+                    { type: 'add_buff', buffId: 'martial_arts_dodge', stacks: 1 },
+                    attacker,
+                    target,
+                    engine,
+                    state.turn.currentTime,
+                )
+            }
+        },
+    },
+    // ── 风水·四娘的专属 buff ──
+    {
+        id: 'no_parry_buff',
+        name: '流风回雪',
+        description: '招架率转化为等额闪避率。',
+        tags: ['buff'],
+        stacking: { type: 'none' },
+        onCanParry: () => false,
+        onDodgeChance: ({ target }) => {
+            const dex = target.attrs.get('dexterity')
+            const ins = target.attrs.get('insight')
+            return calcParryChance(0, dex, ins) / 2
+        },
+    },
+    {
+        id: 'quick_glance_buff',
+        name: '匆匆一瞥',
+        description: '暴击伤害提升。',
+        tags: ['buff'],
+        stacking: { type: 'none' },
+        onCritDamage: () => 0.15,
+    },
+    {
+        id: 'draw_sword_combo_buff',
+        name: '抽刀断水',
+        tags: ['buff'],
+        description: '交替使用斩击可叠加增伤。',
+        stacking: { type: 'none' },
+        // 出招即更新队列（不受命中影响）
+        onAction: ({ action, layer, attacker, engine }) => {
+            if (!action || !action.tags.includes('slash')) return
+
+            const queue = (layer.extra?.slashIds as string[]) ?? []
+            const alreadyIn = queue.includes(action.id)
+
+            layer.extra = layer.extra ?? {}
+
+            if (alreadyIn) {
+                layer.extra.slashIds = [action.id]
+                engine?.emitLog({ type: 'system', message: `[抽刀断水] 连斩中断`, actorId: attacker.id })
+                return
+            }
+
+            if (queue.length >= 3) queue.shift()
+            queue.push(action.id)
+            layer.extra.slashIds = queue
+            const mult = 1.2 ** queue.length
+            if (engine) {
+                const pct = Math.round((mult - 1) * 100)
+                engine.emitLog({
+                    type: 'system',
+                    message: `[抽刀断水] ${queue.length}层·+${pct}%`,
+                    actorId: attacker.id,
+                })
+            }
+        },
+        // 命中后按队列层数增伤
+        onDealDamage: ({ final, action, layer }) => {
+            if (!action || !action.tags.includes('slash')) return final
+            const q = (layer.extra?.slashIds as string[]) ?? []
+            // 不在队列中才享受增伤（在队列中说明是重复招）
+            if (!q.includes(action.id)) return final * 1.2 ** q.length
+            return final
         },
     },
 ]

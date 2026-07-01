@@ -29,7 +29,8 @@ export function processHitCheck(
             target: enemy,
             action,
             engine,
-            buffOwnerId: parts[1],
+            state: engine.state,
+            // buffOwnerId: parts[1],
             layer,
         })
     }
@@ -54,7 +55,7 @@ export function processHitCheck(
             target: enemy,
             action,
             engine,
-            buffOwnerId: parts[1],
+            state: engine.state,
             layer,
         })
         hc = hc + hcMod
@@ -87,7 +88,8 @@ export function processHitCheck(
                 target: enemy,
                 action,
                 engine,
-                buffOwnerId: parts[1],
+                state: engine.state,
+                // buffOwnerId: parts[1],
                 layer,
             })
         }

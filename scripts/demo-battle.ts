@@ -24,6 +24,7 @@ import {
     XUNXIANG,
     JUNSHI,
     DUOER,
+    FENGSHUI,
 } from '../src/engine/data/opponents/index'
 import { getWeapon } from '../src/engine/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
@@ -66,7 +67,7 @@ function show(c: Character) {
 
 // ── 满配对手（n=33） ──
 const pBuild = gen(ZHANGLIE, 33)
-const oBuild = gen(LUHONGTI, 33)
+const oBuild = gen(FENGSHUI, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

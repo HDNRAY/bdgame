@@ -313,8 +313,8 @@ export class BattleEngine {
                     attacker: self,
                     target: enemy,
                     engine: this,
+                    state: this.state,
                     layer,
-                    buffOwnerId: self.id,
                 })
             }
         }
@@ -593,7 +593,7 @@ export class BattleEngine {
         }
         // 验证（触发招式已在 #processEmit 中通过距离/标签/条件检查，且不消耗 AP）
         if (!triggered) {
-            const c = canExecuteAction(action, self, this.state)
+            const c = canExecuteAction(action, self, this.state, this)
             if (!c.ok) return r
         }
         if (!triggered) {
@@ -612,8 +612,8 @@ export class BattleEngine {
                             attacker: self,
                             target: enemy,
                             engine: this,
+                            state: this.state,
                             layer,
-                            buffOwnerId: self.id,
                             action,
                         }),
                 )
@@ -639,6 +639,23 @@ export class BattleEngine {
             indent: this.state.log.indentDepth,
         })
         this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
+        // buff onAction 钩子（出招即触发，不受命中影响）
+        for (const [key, layer] of this.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== self.id) continue
+            const def = getBuff(parts[0])
+            if (!def?.onAction) continue
+            def.onAction({
+                final: 0,
+                raw: 0,
+                target: enemy,
+                attacker: self,
+                engine: this,
+                state: this.state,
+                layer,
+                action,
+            })
+        }
         // 不受命中影响的效果先执行（移动、换武、buff 等）
         for (const eff of action.effects ?? []) {
             if (isPreHitEffect(eff.type)) {
@@ -845,8 +862,8 @@ export class BattleEngine {
                         target: char,
                         attacker: char,
                         engine: this,
+                        state: this.state,
                         layer: layer!,
-                        buffOwnerId: char.id,
                         action: undefined!,
                     })
                     if (dmg > 0) {
@@ -869,7 +886,7 @@ export class BattleEngine {
                         attacker: char,
                         engine: this,
                         layer: layer!,
-                        buffOwnerId: char.id,
+                        state: this.state,
                         action: undefined!,
                     })
                     if (amt > 0) {
@@ -888,8 +905,8 @@ export class BattleEngine {
                                     target: char,
                                     attacker: char,
                                     engine: this,
+                                    state: this.state,
                                     layer,
-                                    buffOwnerId: char.id,
                                 })
                             }
                         }

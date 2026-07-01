@@ -26,7 +26,7 @@ export interface BuffLayer {
     restoreValue: number
     targetId?: string
     mods?: Record<string, number>
-    extra?: Record<string, number | string | boolean | number[]>
+    extra?: Record<string, number | string | boolean | number[] | string[]>
 }
 
 export interface BattleState {

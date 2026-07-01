@@ -94,8 +94,8 @@ export function applyDamage(
                 target,
                 attacker,
                 engine,
+                state: engine.state,
                 layer,
-                buffOwnerId: parts[1],
                 action: act,
             })
         }
@@ -110,7 +110,17 @@ export function applyDamage(
         if (!def?.onAfterDealDamage) continue
         const act = actionDef ?? getAction('')
         if (!act) continue
-        const ctx = { final, raw, target, attacker, engine, layer, buffOwnerId: parts[1], action: act }
+        const ctx = {
+            final,
+            raw,
+            target,
+            attacker,
+            engine,
+            state: engine.state,
+            layer,
+            buffOwnerId: parts[1],
+            action: act,
+        }
         const bonus = def.onAfterDealDamage(ctx)
         if (bonus > 0) {
             applyBonusDamage(bonus, target, attacker, engine, actionDef, def.name, def.id)
@@ -138,20 +148,31 @@ function resolveParry(
     })
     if (cannotBeParried) return { parried: false, final: raw }
 
-    // ── 2. 目标能否招架 ──
+    // ── 2. 目标能否招架（buff onCanParry 覆盖武器标签） ──
     const weapon = target.weaponDef ?? getWeapon(target.build.weapon)
     const hasParryTag = weapon.tags.includes('parry')
-    const hasParryBuff = [...engine.state.pendingBuffs].some(([k]) => {
-        const parts = k.split('::')
-        if (parts.length < 2 || parts[1] !== target.id) return false
-        return getBuff(parts[0])?.onCanParry?.({ self: target, engine }) ?? false
-    })
-    if (!hasParryTag && !hasParryBuff) return { parried: false, final: raw }
+
+    let buffCanParry: boolean | undefined
+    for (const [key] of engine.state.pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2 || parts[1] !== target.id) continue
+        const def = getBuff(parts[0])
+        if (!def?.onCanParry) continue
+        const result = def.onCanParry({ self: target, engine })
+        if (!result) {
+            buffCanParry = false
+            break
+        }
+        buffCanParry = true
+    }
+
+    const canParry = buffCanParry ?? hasParryTag
+    if (!canParry) return { parried: false, final: raw }
 
     // ── 2. 招架概率 ──
     let pc = calcParryChance(0, target.attrs.get('dexterity'), target.attrs.get('insight'))
     if (target.parryMod) {
-        pc = Math.min(0.95, pc + target.parryMod)
+        pc = pc + target.parryMod
     }
     if (act) {
         for (const [key, layer] of engine.state.pendingBuffs) {
@@ -165,11 +186,11 @@ function resolveParry(
                 target,
                 attacker,
                 engine,
-                buffOwnerId: parts[1],
+                state: engine.state,
                 layer,
                 action: act,
             })
-            pc = Math.min(0.95, pc + bonus)
+            pc = pc + bonus
         }
     }
 
@@ -203,7 +224,7 @@ function resolveParry(
             attacker,
             engine,
             layer,
-            buffOwnerId: parts[1],
+            state: engine.state,
             action: act,
         })
     }
@@ -224,7 +245,7 @@ function resolveParry(
                 target,
                 attacker,
                 engine,
-                buffOwnerId: parts[1],
+                state: engine.state,
                 layer,
                 action: act,
             })
@@ -241,7 +262,7 @@ function resolveParry(
                 target,
                 attacker,
                 engine,
-                buffOwnerId: parts[1],
+                state: engine.state,
                 layer,
                 action: act,
             })
@@ -275,7 +296,7 @@ function resolveCrit(
                 target,
                 attacker,
                 engine,
-                buffOwnerId: parts[1],
+                state: engine.state,
                 layer,
                 action: act,
             })
@@ -298,7 +319,7 @@ function resolveCrit(
                     target,
                     attacker,
                     engine,
-                    buffOwnerId: parts[1],
+                    state: engine.state,
                     layer,
                     action: act,
                 })
@@ -328,7 +349,17 @@ function applyDamageModifiers(
         const def = getBuff(parts[0])
         const act = actionDef ?? getAction('')
         if (!act) continue
-        const ctx = { final, raw, target, attacker, engine, layer, buffOwnerId: parts[1], action: act }
+        const ctx = {
+            final,
+            raw,
+            target,
+            attacker,
+            engine,
+            state: engine.state,
+            layer,
+            buffOwnerId: parts[1],
+            action: act,
+        }
         // 独立追加伤害不触发攻击者的 onDealDamage（防止守宫砂等重复计数）
         if (!bonus && parts[1] === attacker.id && def?.onDealDamage) {
             final = def.onDealDamage(ctx)

@@ -15,6 +15,7 @@ export { AJIU } from './ajiu'
 export { WUKONG } from './wukong'
 export { XUNXIANG } from './xunxiang'
 export { JUNSHI } from './junshi'
+export { FENGSHUI } from './fengshui'
 export { DUOER } from './duoer'
 import type { CharacterBuild } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
@@ -42,6 +43,7 @@ import { WUKONG } from './wukong'
 import { XUNXIANG } from './xunxiang'
 import { JUNSHI } from './junshi'
 import { DUOER } from './duoer'
+import { FENGSHUI } from './fengshui'
 import { AttackStyle } from '../../ai/move-planner'
 
 /** 对手定义（纯数据） */
@@ -72,6 +74,7 @@ export const OPPONENTS: OpponentDef[] = [
     LUHONGTI,
     SANGYUAN,
     AJIU,
+    FENGSHUI,
     // 双持
     LAYUE,
     BAIHU,

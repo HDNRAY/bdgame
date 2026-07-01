@@ -134,6 +134,16 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     })
 
     // ── 3. 先选有条件限制的（按顺序），不行再按伤害选 ──
+    if (self.id === 'fengshui') {
+        const sorted = [...defaultCands].sort((a, b) => {
+            const scoreA = calcActionScore(a, hasHubo, apBudget)
+            const scoreB = calcActionScore(b, hasHubo, apBudget)
+            return scoreB - scoreA
+        })
+        console.log(
+            `[${self.name}] pick=${sorted[0]?.actionId} cands=${defaultCands.map((c) => c.actionId + ':' + c.expectedDamage.toFixed(1)).join(' ')}`,
+        )
+    }
     let mainId: string | null = null
     let moveDelta = 0
     let moveAp = 0

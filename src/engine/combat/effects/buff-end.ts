@@ -19,7 +19,7 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     if (parts.length === 2) {
         const char = engine.getCharacter(charId)
         if (char) {
-            revertBuffMods(layer, char, engine)
+            revertBuffMods(layer, char, engine.state)
             if (typeof layer.mods?.maxApMod === 'number') {
                 char.maxApMod -= layer.mods.maxApMod
             }
@@ -33,7 +33,7 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     // 通用：反转属性变化
     const char = engine.getCharacter(charId)
     if (char) {
-        revertBuffMods(layer, char, engine)
+        revertBuffMods(layer, char, engine.state)
         if (typeof layer.mods?.maxApMod === 'number') {
             char.maxApMod -= layer.mods.maxApMod
         }

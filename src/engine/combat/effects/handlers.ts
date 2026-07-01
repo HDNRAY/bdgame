@@ -108,8 +108,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                     target: self,
                     attacker: self,
                     engine,
+                    state: engine.state,
                     layer,
-                    buffOwnerId: self.id,
+                    // buffOwnerId: self.id,
                 })
             }
         }
@@ -239,7 +240,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     stat_buff({ eff, self, engine, tMs, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
         const label = action?.name ?? getBuff('stat_buff')?.name ?? '内劲'
-        const mods = applyAttrMods(self, engine, e.attrs as Record<string, number>, label)
+        const mods = applyAttrMods(self, engine.state, e.attrs as Record<string, number>, label)
         const details = Object.entries(mods)
             .map(([a, v]) => `${ATTR_CN[a] ?? a}${v > 0 ? '+' : ''}${v}`)
             .join(', ')
@@ -375,7 +376,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         if (existing && buff?.stacking?.type === 'additive') {
             existing.restoreValue += stacks
-            const result = applyScaledAttrMods(buff!, stacks, enemy, engine)
+            const result = applyScaledAttrMods(buff!, stacks, enemy, engine.state)
             if (!existing.mods) existing.mods = {}
             for (const [attr, v] of Object.entries(result.mods)) {
                 existing.mods[attr] = (existing.mods[attr] ?? 0) + (v as number)
@@ -423,7 +424,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         // 首次应用（independent/none/additive 首次均走此路径）
         const extra = makeExtra()
-        const firstResult = applyScaledAttrMods(buff!, stacks, enemy, engine)
+        const firstResult = applyScaledAttrMods(buff!, stacks, enemy, engine.state)
         // stun 的 attrMods 在 afterApplyDebuff 中由 applyAttrMods 输出属性日志，此处不重复
         if (e.buffId !== 'stun') {
             engine.emitLog({
@@ -486,7 +487,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             })
             // 再应用 attrMods
             if (delta > 0) {
-                const result = applyScaledAttrMods(buff!, delta, self, engine)
+                const result = applyScaledAttrMods(buff!, delta, self, engine.state)
                 if (!existing.mods) existing.mods = {}
                 for (const [attr, v] of Object.entries(result.mods)) {
                     existing.mods[attr] = (existing.mods[attr] ?? 0) + (v as number)
@@ -505,7 +506,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
 
         // 首次应用
-        const firstResult = applyScaledAttrMods(buff!, e.stacks ?? 1, self, engine)
+        const firstResult = applyScaledAttrMods(buff!, e.stacks ?? 1, self, engine.state)
         const mods: Record<string, number> = { ...firstResult.mods }
         if (buff?.maxApMod) {
             self.maxApMod += buff.maxApMod
@@ -589,7 +590,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
 
         const oldStacks = layer.restoreValue
-        revertBuffMods(layer, self, engine)
+        revertBuffMods(layer, self, engine.state)
         engine.state.pendingBuffs.delete(key)
         engine.state.turn.removeEvents('buff_end_' + key)
         const buffName = getBuff(e.buffId)?.name ?? e.buffId
@@ -668,8 +669,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 attacker: engine.getCharacter('')!,
                 target: enemy,
                 engine,
+                state: engine.state,
                 layer,
-                buffOwnerId: parts[1],
                 action,
             })
         }

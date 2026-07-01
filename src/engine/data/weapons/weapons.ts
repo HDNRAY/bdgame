@@ -113,6 +113,14 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [1, 6],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dinghai_pressure' }] }],
     },
+    {
+        id: 'yanling_blade',
+        name: '惊鸿',
+        description: '薄刃轻刀，雁翎般轻灵。',
+        tags: ['slash', 'parry', 'melee'],
+        range: [1, 3],
+        effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 1, strength: 1 } }],
+    },
 ]
 
 // ── 运行时武器查找表 ──

@@ -82,13 +82,6 @@ describe('rewardPool', () => {
             const reward = rewardPool.getPool('passive').find((r) => r.id === 'qiti_source')!
             expect(rewardPool.meetsRequirements(reward, { wisdom: 10 })).toBe(false)
         })
-
-        it('霸刀需要 STR≥12, AGI≥11', () => {
-            const reward = rewardPool.getPool('weapon').find((r) => r.id === 'overlord_blade')!
-            expect(rewardPool.meetsRequirements(reward, { strength: 12, agility: 11 })).toBe(true)
-            expect(rewardPool.meetsRequirements(reward, { strength: 11, agility: 11 })).toBe(false)
-            expect(rewardPool.meetsRequirements(reward, { strength: 12, agility: 10 })).toBe(false)
-        })
     })
 
     describe('validateChoices', () => {

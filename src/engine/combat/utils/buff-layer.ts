@@ -1,7 +1,7 @@
 import type { BattleEngine } from '../engine'
 import type { Character } from '../../entities/character'
 import { ATTR_CN, type AttrName } from '../../entities/attributes'
-import type { BuffLayer } from '../types'
+import type { BattleState, BuffLayer } from '../types'
 import { getBuff, type BuffDef } from '../../data/buffs'
 import { BattleLog } from '../battle-log'
 import type { TriggerEvent } from '../../entities/trigger'
@@ -22,7 +22,7 @@ export function scheduleBuffExpiry(engine: BattleEngine, layerKey: string, durat
  */
 export function applyAttrMods(
     char: Character,
-    engine: BattleEngine,
+    state: BattleState,
     modsIn: Record<string, number>,
     _label: string,
     sourceTags?: string[],
@@ -53,7 +53,7 @@ export function applyAttrMods(
     }
     // 身法变化 → 重新计算回合间隔
     if ('agility' in applied) {
-        engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
+        state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
     }
     // 属性变化后封顶 hp/ap
     if (char.hp > char.maxHp) char.hp = char.maxHp
@@ -62,12 +62,12 @@ export function applyAttrMods(
 }
 
 /** 反转 buff 的属性修正 */
-export function revertBuffMods(layer: BuffLayer | undefined, char: Character, engine: BattleEngine): void {
+export function revertBuffMods(layer: BuffLayer | undefined, char: Character, state: BattleState): void {
     if (!layer?.mods) return
     const oldMaxHp = char.maxHp
     for (const [attr, delta] of Object.entries(layer.mods)) {
         char.attrs.modify(attr as AttrName, -(delta as number))
-        if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
+        if (attr === 'agility') state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
     }
     // 根骨减少 → 按比例减少血量
     if (oldMaxHp > char.maxHp) {
@@ -127,7 +127,7 @@ export function applyScaledAttrMods(
     buff: BuffDef,
     stacks: number,
     char: Character,
-    engine: BattleEngine,
+    state: BattleState,
 ): { mods: Record<string, number>; details: string[] } {
     const mods: Record<string, number> = {}
     const details: string[] = []
@@ -136,11 +136,11 @@ export function applyScaledAttrMods(
     for (const [attr, val] of Object.entries(buff.attrMods)) {
         scaled[attr] = (val as number) * stacks
     }
-    const result = applyAttrMods(char, engine, scaled, buff.name, buff.tags)
+    const result = applyAttrMods(char, state, scaled, buff.name, buff.tags)
     for (const [attr, v] of Object.entries(result)) {
         details.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
         mods[attr] = v as number
-        if (attr === 'agility') engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
+        if (attr === 'agility') state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
     }
     return { mods, details }
 }

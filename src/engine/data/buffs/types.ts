@@ -2,7 +2,7 @@ import type { GameEntity } from '../../entities/base'
 import type { AttrName } from '../../entities/attributes'
 import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../../combat/engine'
-import type { BuffLayer } from '../../combat/types'
+import type { BattleState, BuffLayer } from '../../combat/types'
 import type { ActionDefinition } from '../../entities/action'
 import type { TriggerEvent } from '../../entities/trigger'
 
@@ -12,10 +12,11 @@ export interface BuffHookCtx {
     raw: number
     target: Character
     attacker: Character
-    engine: BattleEngine
+    engine?: BattleEngine
+    state: BattleState
     layer: BuffLayer
     /** 该 buff 所属角色 ID */
-    buffOwnerId: string
+    // buffOwnerId: string
     /** 当前执行的招式（部分钩子如 onTurnEnd 无此值） */
     action?: ActionDefinition
 }
@@ -70,6 +71,8 @@ export interface BuffDef extends GameEntity {
     onDodgeChance?: (ctx: BuffHookCtx) => number
     /** AP 消耗修正钩子（返回加算值，负=更省，最低1） */
     onActionCost?: (ctx: BuffHookCtx) => number
+    /** 出招回调（释放任何招式时调用，不受命中影响） */
+    onAction?: (ctx: BuffHookCtx) => void
     /** 闪避时回调（防御方成功闪避后调用） */
     onDodged?: (ctx: BuffHookCtx) => void
     /** 招架时回调（防御方成功招架后调用） */
