@@ -22,92 +22,83 @@ export function calcExpectedDamage(
     weaponRange: [number, number],
     state: BattleState,
 ): DamageEstimate {
-    const distance = state.position.distance(attacker.id, defender.id)
-    const actionRange = getActionRange(action, weaponRange, attacker)
+    // 克隆可变参数（钩子篡改只影响克隆，不影响原件）
+    const safeAtk = Object.create(attacker) as Character
+    const safeDef = Object.create(defender) as Character
+    const safePendings = new Map([...state.pendingBuffs].map(([k, v]) => [k, structuredClone(v)]))
+    const safeState = { ...state, pendingBuffs: safePendings }
+
+    const distance = state.position.distance(safeAtk.id, safeDef.id)
+    const actionRange = getActionRange(action, weaponRange, safeAtk)
     const canReach = distance >= actionRange[0] && distance <= actionRange[1]
 
     // 1. 基础伤害
     let rawDamage = 0
     for (const eff of action.effects ?? []) {
         if (eff.type === 'damage' && 'scaling' in eff)
-            rawDamage += calcBaseDamage(eff.scaling, attacker.attrs.getAll(), eff.base ?? 0)
+            rawDamage += calcBaseDamage(eff.scaling, safeAtk.attrs.getAll(), eff.base ?? 0)
         if (eff.type === 'fixed_damage') rawDamage += eff.value ?? 0
-        if (eff.type === 'missing_hp_damage') rawDamage += Math.round((defender.maxHp - defender.hp) * eff.ratio)
-        if (eff.type === 'self_missing_hp_damage') rawDamage += Math.round((attacker.maxHp - attacker.hp) * eff.ratio)
+        if (eff.type === 'missing_hp_damage') rawDamage += Math.round((safeDef.maxHp - safeDef.hp) * eff.ratio)
+        if (eff.type === 'self_missing_hp_damage') rawDamage += Math.round((safeAtk.maxHp - safeAtk.hp) * eff.ratio)
         if (eff.type === 'functional_damage') {
             rawDamage += eff.fn({
-                self: attacker,
-                enemy: defender,
+                self: safeAtk,
+                enemy: safeDef,
                 state: { ...state, pendingBuffs: new Map(state.pendingBuffs) },
             })
         }
         if (eff.type === 'add_debuff' && ['burn', 'poison', 'bleed'].includes(eff.buffId)) rawDamage += eff.stacks * 3
     }
 
-    // 2. 单次遍历 buff 收集修正值
-    let dodgeMod = defender.dodgeMod
+    // 2. 收集 buff 修正值（直接累到克隆上）
     let hitMod = 0
-    let parryMod = defender.parryMod
-    let critBonus = attacker.critChance
-    let critDmgMod = attacker.critDamageMod
-    const estBuffs = new Map(
-        [...state.pendingBuffs].map(([k, v]) => [
-            k,
-            {
-                ...v,
-                extra: v.extra
-                    ? { ...v.extra, slashIds: v.extra.slashIds ? [...(v.extra.slashIds as string[])] : [] }
-                    : undefined,
-            },
-        ]),
-    )
-
-    for (const [key, layer] of estBuffs) {
+    for (const [key, layer] of safePendings) {
         const p = key.split('::')
         if (p.length < 2) continue
         const def = getBuff(p[0])
         if (!def) continue
-        const ctx = { final: 0, raw: 0, target: defender, attacker, state, layer, action }
-        if (p[1] === defender.id && def.onDodgeChance) dodgeMod += def.onDodgeChance(ctx)
-        if (p[1] === attacker.id && def.onHitChance) hitMod += def.onHitChance(ctx)
-        if (p[1] === defender.id && def.onParryChance) parryMod += def.onParryChance(ctx)
-        if (p[1] === attacker.id && def.onCritChance) critBonus += def.onCritChance(ctx)
-        if (p[1] === attacker.id && def.onCritDamage) critDmgMod += def.onCritDamage(ctx)
+        const ctx = { final: 0, raw: 0, target: safeDef, attacker: safeAtk, state: safeState, layer, action }
+        if (p[1] === safeDef.id && def.onDodgeChance) safeDef.dodgeMod += def.onDodgeChance(ctx)
+        if (p[1] === safeAtk.id && def.onHitChance) hitMod += def.onHitChance(ctx)
+        if (p[1] === safeDef.id && def.onParryChance) safeDef.parryMod += def.onParryChance(ctx)
+        if (p[1] === safeAtk.id && def.onCritChance) safeAtk.critChance += def.onCritChance(ctx)
+        if (p[1] === safeAtk.id && def.onCritDamage) safeAtk.critDamageMod += def.onCritDamage(ctx)
     }
 
     // 3. 命中率
     const baseHc = calcHitChance({
-        attackerDexterity: attacker.attrs.get('dexterity'),
-        attackerInsight: attacker.attrs.get('insight'),
-        defenderAgility: defender.attrs.get('agility'),
-        defenderInsight: defender.attrs.get('insight'),
-        defenderDodgeMod: dodgeMod,
+        attackerDexterity: safeAtk.attrs.get('dexterity'),
+        attackerInsight: safeAtk.attrs.get('insight'),
+        defenderAgility: safeDef.attrs.get('agility'),
+        defenderInsight: safeDef.attrs.get('insight'),
+        defenderDodgeMod: safeDef.dodgeMod,
     })
     const hitChance = (action.onActionHitChance?.(baseHc) ?? baseHc) + hitMod
 
     // 4. 招架 + 暴击
-    const parryChance = calcParryChance(0, defender.attrs.get('dexterity'), defender.attrs.get('insight')) + parryMod
-    const rawCrit = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), critBonus)
+    const parryChance =
+        calcParryChance(0, safeDef.attrs.get('dexterity'), safeDef.attrs.get('insight')) + safeDef.parryMod
+    const rawCrit = calcCritChance(safeAtk.attrs.get('dexterity'), safeAtk.attrs.get('insight'), safeAtk.critChance)
     const critChance = action.onActionCritChance?.(rawCrit) ?? rawCrit
 
-    // 5. 期望伤害 = 命中 × [未招架 + 招架减伤] × 暴击
+    // 5. 期望伤害
     let expected =
         hitChance *
-        ((1 - parryChance) * rawDamage + parryChance * calcParriedDamage(rawDamage, defender.attrs.get('strength')))
-    expected *= 1 + critChance * (0.5 + critDmgMod)
+        ((1 - parryChance) * rawDamage + parryChance * calcParriedDamage(rawDamage, safeDef.attrs.get('strength')))
+    expected *= 1 + critChance * (0.5 + safeAtk.critDamageMod)
 
-    // 6. onDealDamage 修正（克隆上跑，抽刀断水自动生效）
-    for (const [key, layer] of estBuffs) {
+    // 6. onDealDamage 修正
+    for (const [key, layer] of safePendings) {
         const p = key.split('::')
-        if (p.length < 2 || p[1] !== attacker.id) continue
+        if (p.length < 2 || p[1] !== safeAtk.id) continue
         const def = getBuff(p[0])
         if (!def?.onDealDamage) continue
         expected = def.onDealDamage({
             final: expected,
             raw: rawDamage,
-            target: defender,
-            attacker,
-            state,
+            target: safeDef,
+            attacker: safeAtk,
+            state: safeState,
             layer,
             action,
         })
