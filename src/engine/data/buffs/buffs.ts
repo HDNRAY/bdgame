@@ -1048,17 +1048,20 @@ export const BUFF_DB: BuffDef[] = [
             if (!action || !action.tags.includes('slash')) return
             layer.extra = layer.extra ?? {}
             const queue = (layer.extra.slashIds as string[]) ?? []
+            // push 前算 diff：已有队列里有多少不同 ID
+            const diff = queue.filter((id) => id !== action.id).length
+            layer.restoreValue = diff
+            // 再入队
             queue.push(action.id)
             if (queue.length > 3) queue.shift()
             layer.extra.slashIds = queue
         },
-        // 命中后按不同ID数增伤
+        // 命中后直接用存好的 diff
         onDealDamage: ({ final, action, layer, attacker, engine }) => {
             if (!action || !action.tags.includes('slash')) return final
-            const q = (layer.extra?.slashIds as string[]) ?? []
-            const diff = q.filter((id) => id !== action.id).length
+            const diff = layer.restoreValue
             if (diff === 0) return final
-            const mult = 1.3 ** diff
+            const mult = 1.2 ** diff
             if (engine) {
                 const pct = Math.round((mult - 1) * 100)
                 engine.emitLog({ type: 'system', message: `[抽刀断水] ${diff}层·+${pct}%`, actorId: attacker.id })
