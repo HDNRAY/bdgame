@@ -7,18 +7,45 @@ interface LogPanelProps {
     compact?: boolean
 }
 
+const LOG_INTERVAL = 150
+
 export function LogPanel({ logLines, currentLine, compact }: LogPanelProps) {
     const logRef = useRef<HTMLDivElement>(null)
     const [autoScroll, setAutoScroll] = useState(true)
     const [logFontSize, setLogFontSize] = useState(13)
+    const [displayCount, setDisplayCount] = useState(0)
+    const timerRef = useRef<ReturnType<typeof setInterval>>(undefined)
+    const targetRef = useRef(currentLine)
 
-    // 自动滚动
+    // 逐行动画：前进时 60ms/行，后退时立即追上
+    useEffect(() => {
+        targetRef.current = currentLine
+        if (displayCount === currentLine) return
+        if (displayCount > currentLine) {
+            setTimeout(() => setDisplayCount(currentLine))
+            return
+        }
+        clearInterval(timerRef.current)
+        timerRef.current = setInterval(() => {
+            setDisplayCount((c) => {
+                if (c >= targetRef.current) {
+                    clearInterval(timerRef.current!)
+                    timerRef.current = undefined
+                    return c
+                }
+                return c + 1
+            })
+        }, LOG_INTERVAL)
+        return () => clearInterval(timerRef.current)
+    }, [currentLine]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // 自动滚动（依赖 displayCount，随动画滚动）
     useEffect(() => {
         if (autoScroll) {
             const el = logRef.current
             if (el) el.scrollTop = el.scrollHeight
         }
-    }, [currentLine, autoScroll])
+    }, [displayCount, autoScroll])
 
     const handleScroll = useCallback(() => {
         const el = logRef.current
@@ -44,8 +71,8 @@ export function LogPanel({ logLines, currentLine, compact }: LogPanelProps) {
                 </button>
             </div>
             <div ref={logRef} className="log" style={{ fontSize: logFontSize }} onScroll={handleScroll}>
-                {logLines.slice(0, currentLine + 1).map((line, i) => (
-                    <div key={i} className={`log-line ${i === currentLine ? 'current' : 'past'}`}>
+                {logLines.slice(0, displayCount + 1).map((line, i) => (
+                    <div key={i} className={`log-line ${i === displayCount ? 'current' : 'past'}`}>
                         {line}
                     </div>
                 ))}

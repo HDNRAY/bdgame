@@ -55,7 +55,7 @@ export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd
                 color: '#ff6b6b' as const,
             },
         }
-    }, [buildA, buildB, battleKey])
+    }, [buildA, buildB])
 
     const { entries, logLines, eventToLine, snapshots, charAInfo, charBInfo } = battleData
 

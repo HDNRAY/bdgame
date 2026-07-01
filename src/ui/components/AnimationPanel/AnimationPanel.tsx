@@ -7,7 +7,7 @@ export interface AnimationPanelHandle {
     togglePlay: () => void
     setSpeed: (s: number) => void
     seek: (pct: number) => void
-    getState: () => { playing: boolean; speed: number; progress: number; currentTime: number; currentLine: number }
+    getState: () => { playing: boolean; speed: number; progress: number; currentTime: number }
     replay: () => void
 }
 
@@ -35,12 +35,6 @@ export const AnimationPanel = forwardRef<AnimationPanelHandle, AnimationPanelPro
     const [speed, setSpeed] = useState(1)
     const [progress, setProgress] = useState(0)
     const [currentTime, setCurrentTime] = useState(0)
-    const [currentLine, setCurrentLine] = useState(0)
-
-    // Refs for timing
-    const lastLogTime = useRef(0)
-    const logTargetRef = useRef(0)
-    const LOG_INTERVAL = 300
 
     useEffect(() => {
         const el = canvasRef.current
@@ -64,18 +58,6 @@ export const AnimationPanel = forwardRef<AnimationPanelHandle, AnimationPanelPro
                 const p = f.total > 0 ? f.time / f.total : 0
                 setProgress(p)
                 setCurrentTime(f.time)
-
-                // Log line pacing: 每 LOG_INTERVAL 出现一行
-                const targetLine = 0 // 父组件自己跟踪 logIndex
-                logTargetRef.current = targetLine
-                const effectiveInterval = LOG_INTERVAL / speedRef.current
-                if (performance.now() - lastLogTime.current >= effectiveInterval) {
-                    setCurrentLine((prev) => {
-                        const next = Math.min(prev + 1, targetLine)
-                        if (next > prev) lastLogTime.current = performance.now()
-                        return next
-                    })
-                }
 
                 if (f.time >= f.total) setPlaying(false)
 
@@ -134,7 +116,7 @@ export const AnimationPanel = forwardRef<AnimationPanelHandle, AnimationPanelPro
             togglePlay,
             setSpeed: changeSpeed,
             seek: seekPct,
-            getState: () => ({ playing, speed, progress, currentTime, currentLine }),
+            getState: () => ({ playing, speed, progress, currentTime }),
             replay: () => {
                 const replay = engineRef.current
                 if (!replay) return
@@ -145,7 +127,7 @@ export const AnimationPanel = forwardRef<AnimationPanelHandle, AnimationPanelPro
                 }
             },
         }),
-        [togglePlay, changeSpeed, seekPct, playing, speed, progress, currentTime, currentLine],
+        [togglePlay, changeSpeed, seekPct, playing, speed, progress, currentTime],
     )
 
     return <div ref={canvasRef} className={`animation-canvas ${compact ? 'compact' : ''}`} />
