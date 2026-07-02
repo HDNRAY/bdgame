@@ -29,7 +29,7 @@ export const LUHONGTI: OpponentDef = {
         { actionId: 'push_palm', triggerId: 'was_hit' },
         { actionId: 'wrist_strike', triggerId: 'on_dodge' },
         { actionId: 'light_slash', triggerId: 'on_dodged' },
-        { actionId: 'qi_bolt', triggerId: 'on_opponent_move', conditionId: 'distance_gt_4' },
+        { actionId: 'qi_bolt', triggerId: 'on_opponent_move_away', conditionId: 'distance_gt_4' },
         { actionId: 'break_formation', triggerId: 'on_debuff' },
     ],
 }

@@ -118,7 +118,7 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '惊鸿',
         description: '薄刃轻刀，雁翎般轻灵。',
         tags: ['slash', 'parry', 'melee'],
-        range: [1, 3],
+        range: [0, 2],
         effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 1, strength: 1 } }],
     },
 ]

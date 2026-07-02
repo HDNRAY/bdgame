@@ -24,6 +24,6 @@ export const LONGNV: OpponentDef = {
     ],
     actionConfigs: [
         { actionId: '_golden_bell_swing', conditionId: 'distance_gt_4', triggerId: 'on_parry' },
-        { actionId: 'yufeng_needle', conditionId: 'distance_gt_4', triggerId: 'on_opponent_move' },
+        { actionId: 'yufeng_needle', conditionId: 'distance_gt_4', triggerId: 'on_opponent_move_away' },
     ],
 }

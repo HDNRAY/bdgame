@@ -550,10 +550,17 @@ export class BattleEngine {
             apCost: ap,
             apRemaining: self.ap,
         })
-        this.emit('on_move', self, enemy)
-        this.state.moveDelta = actualDelta
-        this.emit('on_opponent_move', enemy, self)
-        this.state.moveDelta = 0
+        if (delta < 0) {
+            this.emit('on_move_closer', self, enemy)
+            this.state.moveDelta = actualDelta
+            this.emit('on_opponent_move_closer', enemy, self)
+            this.state.moveDelta = 0
+        } else if (delta > 0) {
+            this.emit('on_move_away', self, enemy)
+            this.state.moveDelta = actualDelta
+            this.emit('on_opponent_move_away', enemy, self)
+            this.state.moveDelta = 0
+        }
         tickEngine.onBleedTrigger(self, this)
         return r
     }

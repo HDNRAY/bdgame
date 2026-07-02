@@ -337,6 +337,13 @@ export const ARTIFACTS: Artifact[] = [
             { condition: { type: 'on_dodge' }, actionId: 'light_slash' },
         ],
     },
+    {
+        id: 'iron_mask',
+        name: '机巧面具',
+        description: '精工锻造的黑铁面具，暗藏精密机巧，感知与推演皆大幅提升。',
+        tags: ['buff'],
+        effects: [{ type: 'stat_buff', attrs: { insight: 3, wisdom: 2 } }],
+    },
 ]
 
 /** 按 ID 查找物品 */

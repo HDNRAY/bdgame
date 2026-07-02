@@ -29,7 +29,7 @@ export const LAIFENG: OpponentDef = {
         { actionId: 'iron_charge', conditionId: 'enemy_no_stun_track' }, // AI 出招顺序
         { actionId: 'eighteen_palms' }, // AI 出招顺序
         { actionId: 'lion_roar', conditionId: 'distance_gt_2' },
-        { actionId: 'qi_bolt', triggerId: 'on_opponent_move' },
+        { actionId: 'qi_bolt', triggerId: 'on_opponent_move_away' },
         { actionId: 'qinlong_gong', triggerId: 'on_dodge' },
     ],
 }

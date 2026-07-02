@@ -29,6 +29,19 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     },
     // ── 位移 ──
     {
+        id: 'swift_step',
+        name: '魅影步',
+        description: '魅影乱步，身随心动。',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['move', 'pre_action'],
+        effects: [
+            { type: 'dash', maxRange: 3, targetDist: 0, useAp: true },
+            // { type: 'short_dash', maxDistance: 2 },
+            { type: 'add_buff', buffId: 'phantom_step' },
+        ],
+    },
+    {
         id: 'big_leap',
         name: '虎跃',
         description: '猛虎跃涧，瞬间近身。范围3~8m。需力道≥10。',
@@ -46,7 +59,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: ['move', 'pre_action'],
-        effects: [{ type: 'short_dash', maxDistance: 4 }],
+        effects: [{ type: 'dash', maxRange: 4, targetDist: 0 }],
     },
     {
         id: 'jindou',

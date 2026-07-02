@@ -488,7 +488,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 2,
         tags: ['slash'],
-        // onActionHitChance: (base) => base + 0.2,
+        onActionHitChance: (base) => base + 0.1,
         effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 } }],
     },
     {
@@ -498,17 +498,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 2,
         tags: ['slash'],
-        // onActionCritChance: (base) => base + 0.1,
+        onActionCritChance: (base) => base + 0.1,
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
-    },
-    {
-        id: 'swift_step',
-        name: '月步',
-        description: '月下漫步，身随心动。',
-        requiredTags: [],
-        apCost: 1,
-        tags: ['move', 'pre_action'],
-        effects: [{ type: 'short_dash', maxDistance: 2 }],
     },
     {
         id: 'follow_the_current',
@@ -520,7 +511,13 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['slash', 'qi'],
         canUse: (attacker) => attacker.chan >= 30,
         onActionCritChance: (base) => base + 0.3,
-        effects: [{ type: 'damage', scaling: { agility: 0.4, dexterity: 0.4 } }],
+        onActionHitChance: (base) => base + 0.2,
+        effects: [
+            { type: 'damage', scaling: { agility: 0.4, dexterity: 0.4 } },
+            {
+                type: 'ignore_parry',
+            },
+        ],
     },
     // ── 雷系 ──
     {

@@ -6,8 +6,8 @@ import { planEvent } from './ai'
 import { getOpponentDef } from './data/opponents/index'
 import type { CharacterBuild } from './entities/character-build'
 
-/** 最大行动数限制，防止死循环 */
-const MAX_ACTIONS = 300
+/** 最大战斗时长限制（ms），防死循环 */
+const MAX_BATTLE_TIME_MS = 300_000
 /** 系统事件上限，防 bug 导致无限循环 */
 const MAX_SYSTEM_EVENTS = 10000
 
@@ -23,7 +23,6 @@ export function runBattle(
     const engine = new BattleEngine(a, b, distance)
     if (onLog) engine.onLog(onLog)
     const { state } = engine
-    let actionCount = 0
     let systemCount = 0
 
     // 收集自定义 AI
@@ -42,7 +41,7 @@ export function runBattle(
     }
 
     while (state.phase === 'fighting') {
-        // 系统事件（tick 回血等）不消耗行动计数，不参与 MAX_ACTIONS 限制
+        // 系统事件（tick 回血等）不消耗行动计数，不参与 MAX_BATTLE_TIME_MS 限制
         const nextEvent = state.turn.peek()
         if (nextEvent?.type === 'system') {
             if (++systemCount > MAX_SYSTEM_EVENTS) {
@@ -52,7 +51,7 @@ export function runBattle(
             if (!engine.runEvent(planFn)) break
             continue
         }
-        if (++actionCount > MAX_ACTIONS) {
+        if (state.turn.currentTime > MAX_BATTLE_TIME_MS) {
             state.phase = 'finished'
             break
         }

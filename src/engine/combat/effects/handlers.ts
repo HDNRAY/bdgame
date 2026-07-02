@@ -279,21 +279,26 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     stat_transfer({ eff, self, enemy, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'stat_transfer' }>
         const attr = e.stat as AttrName
+        const before = enemy.attrs.get(attr)
+        enemy.attrs.modify(attr, -e.value)
+        // 实际扣减量（可能因属性下限 ATTR_MIN 被夹住而小于请求值）
+        const actual = before - enemy.attrs.get(attr)
+        if (actual <= 0) return // 目标属性已在下限，未能汲取，不产生效果/日志
+
         const appId = genAppId(tMs)
         const layerKey = `stat_transfer::${self.id}::${appId}`
 
-        self.attrs.modify(attr, e.value)
-        enemy.attrs.modify(attr, -e.value)
-        engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr: e.stat, delta: -e.value, label: '汲取' })
+        self.attrs.modify(attr, actual)
+        engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr: e.stat, delta: -actual, label: '汲取' })
         if (e.stat === 'agility') {
             engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
             engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'), enemy.getHaste())
         }
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'stat_transfer',
-            restoreValue: e.value,
+            restoreValue: actual,
             targetId: enemy.id,
-            mods: { [e.stat]: e.value },
+            mods: { [e.stat]: actual },
         })
         scheduleBuffExpiry(engine, layerKey, e.duration)
 
