@@ -1,36 +1,27 @@
-import type { Tag } from './tag'
-import type { RewardType } from './reward'
+import type { GameState } from './state'
 
-/** 节点覆盖配置：故事对某个节点的特殊行为 */
-export interface NodeOverride {
-    /** 该节点给的修炼点（不设则走默认） */
-    cultPoints?: number
-    /** 强制奖励类型 */
-    forceRewardType?: RewardType
-    /** 直接覆盖该节点的 3 个选择项 */
-    choices?: { id: string; name: string; desc: string; tags?: Tag[] }[]
-    /** boss ID 覆盖 */
-    bossId?: string
-    /** 叙事文案覆盖（节点2/3等固定节点使用） */
-    flavorText?: string
+// ════════════════════════════════════════
+//  故事定义（新系统）
+//  玩家在 node 1 选完背景后，故事将 overrides 和 insertions 叠加到地图上。
+// ════════════════════════════════════════
 
-    // TODO: 后续实现故事强制事件功能
-    // forceEventIds?: string[]  // 优先级最高的事件 ID 列表
+/** 在某个范围内随机插入一个事件。 */
+export interface EventInsertion {
+    eventId: string
+    /** 插入范围 [min, max]（1-based，含两端）。叠加时随机选一个位置。 */
+    range: [number, number]
 }
 
-/** 角色故事定义 */
-export interface Story {
+/** 故事定义 */
+export interface StoryDef {
     id: string
     name: string
-    characterName: string
-    desc: string
-    /** 内部备注：隐藏机制、剧情设计（不展示给玩家） */
-    comment?: string
-    /** 关联标签 */
-    tags?: Tag[]
-    /**
-     * 节点行为钩子。问故事："当前是节点 N，你有没有特殊配置？"
-     * 返回 undefined 表示走引擎默认逻辑。
-     */
-    getNodeOverride?: (nodeIndex: number) => NodeOverride | undefined
+    characterName?: string
+    description?: string
+    /** { 节点编号: 事件ID | 事件ID[] }。覆盖 eventIds。 */
+    overrides?: Record<number, string | string[]>
+    /** 随机插入列表。叠加时一次性定死。 */
+    insertions?: EventInsertion[]
+    /** 进入每个节点时调用。故事可以在此修改 GameState（如 sect 每 4 节点加修炼点）。 */
+    onNode?: (state: GameState, nodeIndex: number) => void
 }

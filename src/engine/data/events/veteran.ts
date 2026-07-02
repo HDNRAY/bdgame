@@ -1,101 +1,65 @@
 import type { EventDef } from '../../entities/event'
 
-/**
- * 军旅线事件定义
- * 涵盖一阶段训练 (n=7-10) 和二阶段故事 (n=12-21)
- */
-export const VETERAN_EVENTS: EventDef[] = [
-    // ── 一阶段训练事件 (n=7-10) ──
-    {
-        id: 'veteran_training_1',
-        name: '体能训练',
-        type: 'story',
-        description: '老班长带你参加严苛的体能训练。在挥洒的汗水中，你感受到身体变得更加强健。',
-        effects: [{ type: 'grant_reward', rewardType: 'action' }],
-        minNode: 7,
-        maxNode: 10,
-        maxCount: 2,
-    },
-    {
-        id: 'veteran_training_2',
-        name: '剑法指导',
-        type: 'story',
-        description: '经验丰富的剑师为你讲解剑法的精妙之处。在他的指导下，你的招式变得更加精准有力。',
-        effects: [{ type: 'grant_reward', rewardType: 'passive' }],
-        minNode: 7,
-        maxNode: 10,
-        maxCount: 2,
-    },
-    {
-        id: 'veteran_meditation',
-        name: '营地冥想',
-        type: 'story',
-        description: '夜色中，你在营地外盘坐冥想。星辰照耀着你，一切烦忧都消散了。',
-        effects: [{ type: 'cult_points', value: 4 }],
-        minNode: 7,
-        maxNode: 10,
-        maxCount: 1,
-    },
-    {
-        id: 'veteran_letter_home',
-        name: '家书往来',
-        type: 'story',
-        description: '你收到了家里的信。读着熟悉的笔迹，你的心中涌起对亲人的思念。',
-        effects: [{ type: 'heal', value: 10 }],
-        minNode: 7,
-        maxNode: 10,
-        maxCount: 1,
-    },
+export const VETERAN_N02_INTRO: EventDef = {
+    id: 'veteran_n02_intro',
+    name: '偷看训练',
+    description: '你天天扒在军营训练场的栅栏边偷看。',
+    rewardType: 'points',
+    rounds: [{
+        id: 'scene', type: 'narrative', title: '栅栏边',
+        description: '你天天扒在军营训练场的栅栏边偷看，晚上趁没人时捡根木棍自己比划。时间长了，居然也让你学了个七七八八。',
+        choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+    }],
+}
 
-    // ── 二阶段故事事件 (n=12-21) ──
-    {
-        id: 'veteran_retire',
-        name: '退伍令下达',
-        type: 'story',
-        description:
-            '十年军旅生涯在这一刻画上句号。你领到了退伍证，走出了营门。站在旧日的夜色中，你对整个人生有了新的理解。',
-        effects: [{ type: 'cult_points', value: 4 }],
-        minNode: 12,
-        maxNode: 12,
-    },
-    {
-        id: 'veteran_meet_brother',
-        name: '重逢故友',
-        type: 'story',
-        description:
-            '在城市的角落，你遇见了一起退伍的好兄弟。多年未见，他帅气地展示了这两年学到的新招式，你也感受到了他技艺的进步。',
-        effects: [{ type: 'grant_reward', rewardType: 'action' }],
-        minNode: 13,
-        maxNode: 13,
-    },
-    {
-        id: 'veteran_brother_letter',
-        name: '兄弟的信',
-        type: 'story',
-        description:
-            '兄弟突然失踪了。你找到了他留下的一封信和一个储物柜的钥匙。打开箱子后，你素了他沿瞳挥了多年的珍贵物件。',
-        effects: [{ type: 'grant_reward', rewardType: 'artifact' }],
-        minNode: 17,
-        maxNode: 17,
-    },
-    {
-        id: 'veteran_brother_death',
-        name: '噩耗传来',
-        type: 'story',
-        description:
-            '你最终还是听到了最坏的消息。你的好兄弟在执行任务时牺牲了。愤怒、悲痛牙入梅筛时，你坤然领悟——你的冒险不是为了自己，而是为了找出真相。',
-        effects: [{ type: 'cult_points', value: 4 }],
-        minNode: 20,
-        maxNode: 20,
-    },
-    {
-        id: 'veteran_discover_org',
-        name: '真相浮出',
-        type: 'story',
-        description:
-            '调查兄弟的死因时，你发现了一个庞大的组织的蒸面目，就是他卧底的那个地方。弹幕一角，你的目标逐渐渐了。',
-        effects: [{ type: 'set_flag', key: 'discovered_org', value: true }],
-        minNode: 21,
-        maxNode: 21,
-    },
-]
+export const VETERAN_N03_INTRO: EventDef = {
+    id: 'veteran_n03_intro',
+    name: '偷学',
+    description: '你照着小校场上老兵们练的把式偷偷模仿。',
+    rewardType: 'points',
+    rounds: [{
+        id: 'scene', type: 'narrative', title: '学艺',
+        description: '你照着小校场上老兵们练的把式偷偷模仿，一来二去，竟也摸索出了几招自己的路数。',
+        choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+    }],
+}
+
+export const VETERAN_START_TRAINING: EventDef = {
+    id: 'veteran_start_training',
+    name: '正式训练',
+    description: '陆红提注意到了栅栏边偷看的你。',
+    rewardType: 'action',
+    rounds: [
+        { id: 'intro', type: 'narrative', title: '被发现',
+          description: '你被陆红提抓了个正着。她上下打量了你一番，笑了：「小子，有毅力。想学？明天早上卯时，训练场上见。」',
+          choices: [{ id: 'reward_round', type: 'continue', label: '卯时到' }] },
+        { id: 'reward_round', type: 'reward', title: '第一课', choices: [] },
+        { id: 'epilogue', type: 'narrative', title: '陆红提的话',
+          description: '陆红提拍了拍你的肩：「底子虽然野，根骨不错。从今天起我就是你的教官。」',
+          choices: [{ id: '__end__', type: 'continue', label: '继续' }] },
+    ],
+}
+
+export const VETERAN_N05_FORMAL: EventDef = {
+    id: 'veteran_n05_formal',
+    name: '正规训练',
+    description: '年月如梭。十四岁那年，你正式成为军营的勤杂。',
+    rewardType: 'points',
+    rounds: [{
+        id: 'scene', type: 'narrative', title: '成长',
+        description: '年月如梭。十四岁那年，你正式成为军营的勤杂，开始接受正规训练。',
+        choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+    }],
+}
+
+export const VETERAN_N06_ENLIST: EventDef = {
+    id: 'veteran_n06_enlist',
+    name: '入伍',
+    description: '十六岁，你正式入伍。',
+    rewardType: 'points',
+    rounds: [{
+        id: 'scene', type: 'narrative', title: '新兵',
+        description: '十六岁，你正式入伍。多年的苦练终于派上用场，你在新兵训练中脱颖而出。',
+        choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+    }],
+}

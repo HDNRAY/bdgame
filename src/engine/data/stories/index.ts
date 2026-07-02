@@ -1,14 +1,12 @@
+import { FEUD } from './feud'
+import { SECT } from './sect'
 import { XUANMEN } from './xuanmen'
 import { VETERAN } from './veteran'
-import { SECT } from './sect'
 import { WANDERER } from './wanderer'
-import { BLOOD_FEUD } from './blood_feud'
-import type { Story } from '../../entities/story'
+import type { StoryDef } from '../../entities/story'
 
-/** 所有可选故事 */
-export const STORIES: Story[] = [XUANMEN, VETERAN, SECT, WANDERER, BLOOD_FEUD]
+export const STORIES: StoryDef[] = [FEUD, SECT, XUANMEN, VETERAN, WANDERER]
 
-/** 按 ID 查找故事 */
-export function getStory(id: string): Story | undefined {
+export function getStory(id: string): StoryDef | undefined {
     return STORIES.find((s) => s.id === id)
 }
