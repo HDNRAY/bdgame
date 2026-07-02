@@ -1,4 +1,6 @@
 import type { EventDef } from '../../entities/event'
+import { getAction } from '../actions'
+import { STARTING_WEAPONS } from '../weapons/starting-weapons'
 import { spiritTavernEvent } from './spirit-tavern'
 import { VETERAN_EVENTS } from './veteran'
 
@@ -6,9 +8,103 @@ import { VETERAN_EVENTS } from './veteran'
  * 事件定义表。
  *
  * 所有 event 节点（'event' 类型）的选项都从这里筛选。
- * bg/weapon/first_action/boss 节点由 node-gen.ts / game-run.ts 单独处理。
+ * 节点1（选背景）/ 节点11/22/33（Boss）由 game-run.ts 单独处理。
+ * 节点2（选兵器）和节点3（选起手式）是普通 event 节点，
+ * 通过 MapNode.forceEventIds 强制选中指定事件，故事可通过 getNodeOverride 覆盖。
  */
 export const EVENT_DB: EventDef[] = [
+    // ── 节点2：选兵器（默认起始武器三选一，故事可通过 forceEventIds 替换） ──
+    {
+        id: 'select_weapon',
+        name: '选兵器',
+        type: 'story',
+        description: '你打量着面前的兵器架。选一把趁手的。',
+        minNode: 2,
+        maxNode: 2,
+        effects: [
+            {
+                type: 'grant_reward',
+                rewardType: 'weapon',
+                filter: (r) => STARTING_WEAPONS.some((w) => w.id === r.id),
+            },
+        ],
+    },
+
+    // ── 玄门专有：三件御物 ──
+    {
+        id: 'xuanmen_weapon',
+        name: '选兵器',
+        type: 'story',
+        description: '你六岁那年，父亲将你叫到祖祠前。三件家族御物悬浮在炁阵中，他说："伸出手，感受哪一件与你共鸣。"',
+        minNode: 2,
+        maxNode: 2,
+        effects: [
+            {
+                type: 'grant_reward',
+                rewardType: 'weapon',
+                filter: (r) => ['floating_silk', 'tri_orb', 'fei_jian'].includes(r.id),
+            },
+        ],
+    },
+
+    // ── 玄门起手式（默认也是招式选择，玄门改为选奇物） ──
+    {
+        id: 'xuanmen_start_action',
+        name: '起手式',
+        type: 'story',
+        description: '招式已随御物附赠，父亲翻出家传库房，让你先择一件趁手的奇物傍身。',
+        minNode: 3,
+        maxNode: 3,
+        effects: [
+            {
+                type: 'grant_reward',
+                rewardType: 'artifact',
+            },
+        ],
+    },
+
+    // ── 军旅：班长教功法（节点4，故事 forceEventIds 强制选中） ──
+    {
+        id: 'veteran_start_training',
+        name: '入门功法',
+        type: 'story',
+        description: '陆红提察觉到你的天赋，悉心指点。在她的教导下，你开始系统地学习正统的功法。',
+        minNode: 4,
+        maxNode: 4,
+        effects: [
+            {
+                type: 'grant_reward',
+                rewardType: 'passive',
+            },
+        ],
+    },
+
+    // ── 节点3：选起手式（普通 story 事件，默认通过 forceEventIds 强制选中） ──
+    {
+        id: 'start_action',
+        name: '起手式',
+        type: 'story',
+        description: '你默默回想自己最熟练的起手式。',
+        // 仅用于自我声明该事件所属节点范围（防止意外出现在随机三选一中），实际选中靠 forceEventIds 显式指定
+        minNode: 3,
+        maxNode: 3,
+        effects: [
+            {
+                type: 'grant_reward',
+                rewardType: 'action',
+                filter: (r) => {
+                    const def = getAction(r.id)
+                    return (
+                        !!def &&
+                        def.apCost <= 2 &&
+                        !def.tags.includes('pre_action') &&
+                        !def.tags.includes('post_action')
+                    )
+                },
+            },
+        ],
+    },
+
     // ── 战斗事件 ──
     {
         id: 'combat',

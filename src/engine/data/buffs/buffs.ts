@@ -392,11 +392,13 @@ export const BUFF_DB: BuffDef[] = [
         id: 'qi_amplify',
         name: '炁意',
         description: '凝炁玉增幅，炁系招式伤害+15%。',
-        tags: [],
+        tags: ['qi'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, action, state }) => {
-            const hasQiState = state.pendingBuffs.has(`qi_state::${attacker.id}`)
-            const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi') || hasQiState
+            const isQi =
+                action?.tags?.includes('qi') ||
+                attacker?.weaponDef?.tags?.includes('qi') ||
+                state.pendingBuffs.has(`qi_state::${attacker.id}`)
             if (!isQi) return final
             return Math.round(final * 1.1 * 10) / 10
         },

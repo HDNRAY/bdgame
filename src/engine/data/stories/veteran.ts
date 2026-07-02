@@ -20,8 +20,7 @@ export const VETERAN: Story = {
             }
         if (nodeIndex === 4)
             return {
-                flavorText: '一位老班长察觉到你的天赋，悉心指点。在他的教导下，你开始系统地学习正统的功法。',
-                forceRewardType: 'passive',
+                forceEventIds: ['veteran_start_training'],
             }
         if (nodeIndex === 5)
             return {
