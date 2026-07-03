@@ -5,6 +5,9 @@ import { generateRewardChoices } from './reward-gen'
 import { rewardPool } from './reward-pool'
 import { pickRandom } from './util'
 import { END_EVENT, type Round } from '../../entities/round'
+import { Character } from '../../entities/character'
+import { gen, getOpponentDef } from '../../data/opponents/index'
+import { runBattle } from '../../battle-runner'
 import type { GameState, RogueliteEngine } from '../../entities/engine'
 import type { RewardType } from '../../entities/reward'
 import type { EventDef } from '../../entities/event'
@@ -93,9 +96,9 @@ export class RogueliteRun implements RogueliteEngine {
     private _defaultBuild(): CharacterBuild {
         return {
             id: 'player',
-            name: '挑战者',
+            name: '小蝌蚪',
             story: '',
-            weapon: '',
+            weapon: 'bare_hands',
             baseAttrs: { strength: 3, vitality: 3, agility: 3, dexterity: 3, insight: 3, wisdom: 3 },
             rewards: [],
             actionConfigs: [],
@@ -129,7 +132,6 @@ export class RogueliteRun implements RogueliteEngine {
     private _showPathChoices(eventIds: string[]): void {
         this._state.rounds.push({
             id: 'pick_path',
-            type: 'narrative',
             title: `第${this._state.nodeIndex}关`,
             description: '选择你接下来要做的事：',
             choices: eventIds.map((id) => {
@@ -167,7 +169,6 @@ export class RogueliteRun implements RogueliteEngine {
         // 无自定义 rounds → 自动生成 reward 轮次
         this._state.rounds.push({
             id: 'event_' + ev.id,
-            type: 'reward',
             title: ev.name,
             description: ev.description,
             choices: [],
@@ -181,8 +182,11 @@ export class RogueliteRun implements RogueliteEngine {
 
     private _pushRound(round: Round): void {
         const copy = { ...round, choices: [...round.choices] }
-        if (round.type === 'reward' && round.choices.length === 0 && this._eventDef) {
+        if (round.choices.length === 0 && this._eventDef) {
             this._fillRewardChoices(copy)
+        }
+        if (round.enemyId) {
+            this._executeCombat(copy)
         }
         this._state.rounds.push(copy)
     }
@@ -214,6 +218,28 @@ export class RogueliteRun implements RogueliteEngine {
             }
             return true
         })
+    }
+
+    /** 执行战斗轮 */
+    private _executeCombat(round: Round): void {
+        const enemyDef = getOpponentDef(round.enemyId ?? '')
+        if (!enemyDef) return
+
+        const player = new Character(this._state.build)
+        const enemyBuild = gen(enemyDef, this._state.nodeIndex)
+        const enemy = new Character(enemyBuild)
+
+        const { winner } = runBattle(player, enemy)
+        const lost = winner === enemy.id
+        const injuryGained = lost ? 20 : 0
+
+        round.result = {
+            won: !lost,
+            injuryGained,
+            log: [],
+        }
+
+        this._state.injury += injuryGained
     }
 
     /** 从已有奖励中推导玩家 tags */
@@ -276,7 +302,7 @@ export class RogueliteRun implements RogueliteEngine {
 
     private _advanceToNextNode(): void {
         this._state.nodeIndex++
-        if (this._state.nodeIndex > 33) {
+        if (this._state.nodeIndex > 33 || this._state.injury >= 100) {
             this._state.finished = true
             this._state.rounds = []
             return

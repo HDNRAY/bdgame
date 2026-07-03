@@ -5,11 +5,10 @@ import type { GameState } from '../../engine/entities/state'
 interface RogueliteState {
     engine: RogueliteRun
     gameState: GameState | null
-    isPrepping: boolean
+    mode: 'view' | 'build'
 
     select: (index: number) => void
-    enterPrep: () => void
-    exitPrep: () => void
+    setMode: (mode: 'view' | 'build') => void
     reset: () => void
 }
 
@@ -28,21 +27,20 @@ export const useRogueliteStore = create<RogueliteState>((set, get) => {
     return {
         engine,
         gameState: engine.getState(),
-        isPrepping: false,
+        mode: 'view',
 
         select: (index: number) => {
             get().engine.selectChoice(index)
         },
 
-        enterPrep: () => set({ isPrepping: true }),
-        exitPrep: () => set({ isPrepping: false }),
+        setMode: (mode) => set({ mode }),
 
         reset: () => {
             const engine = createEngine()
             engine.subscribe((state) => {
                 set({ engine, gameState: state })
             })
-            set({ engine, gameState: engine.getState(), isPrepping: false })
+            set({ engine, gameState: engine.getState(), mode: 'view' })
         },
     }
 })

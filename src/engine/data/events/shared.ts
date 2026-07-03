@@ -12,7 +12,6 @@ export const PICK_STORY: EventDef = {
     rounds: [
         {
             id: 'pick',
-            type: 'reward',
             title: '选择出身',
             choices: [],
         },
@@ -31,20 +30,17 @@ export const BOSS_PHASE1: EventDef = {
     rounds: [
         {
             id: 'intro',
-            type: 'narrative',
             title: '第一关',
             description: '你面对第一个强大的对手。击败他，才能继续前进。',
             choices: [{ id: 'combat_round', type: 'continue', label: '迎战' }],
         },
         {
             id: 'combat_round',
-            type: 'combat',
             title: '死斗',
             choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
         {
             id: 'reward_round',
-            type: 'reward',
             title: '战利品',
             choices: [],
         },
@@ -59,20 +55,17 @@ export const BOSS_PHASE2: EventDef = {
     rounds: [
         {
             id: 'intro',
-            type: 'narrative',
             title: '守门人',
             description: '经过海选，你只需要战胜面前的最后一人，即可获得决赛32位的资格之一。',
             choices: [{ id: 'combat_round', type: 'continue', label: '迎战' }],
         },
         {
             id: 'combat_round',
-            type: 'combat',
             title: '资格赛',
             choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
         {
             id: 'reward_round',
-            type: 'reward',
             title: '战利品',
             choices: [],
         },
@@ -87,20 +80,17 @@ export const BOSS_PHASE3: EventDef = {
     rounds: [
         {
             id: 'intro',
-            type: 'narrative',
             title: '最终战',
             description: '一切恩怨在此了结。你面对最终的对手。',
             choices: [{ id: 'combat_round', type: 'continue', label: '迎战' }],
         },
         {
             id: 'combat_round',
-            type: 'combat',
             title: '决战',
             choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
         {
             id: 'reward_round',
-            type: 'reward',
             title: '战利品',
             choices: [],
         },

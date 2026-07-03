@@ -52,30 +52,25 @@ export interface Round {
      *  continue 选择用此值做跳转目标。引擎自动生成格式 'round_0'，自定义轮次可用 'help_stranger'。 */
     id: string
 
-    /** 本轮类型。
-     *  'narrative' : 剧情展示。description 为剧情文本，choices 为 continue。
-     *  'combat'    : 战斗轮。引擎执行战斗，结果写入 description，injuryGained 记录伤势。
-     *  'reward'    : 奖励选择轮。引擎根据 rewardType 生成多个选项。 */
-    type: 'narrative' | 'combat' | 'reward'
-
-    /** 本轮标题。narrative→"祖祠", combat→"战斗", reward→"战利品"。 */
+    /** 本轮标题。 */
     title: string
 
-    /** 本轮说明文本。narrative→剧情, combat→战斗结果, reward→奖励提示。 */
+    /** 本轮说明文本。 */
     description?: string
 
-    /** 上一个选择的结果文本。显示在轮次顶部。选填。 */
-    result?: string
+    /** 战斗结算（有值代表已打完）。 */
+    result?: {
+        won: boolean
+        injuryGained: number
+        log?: string[]
+    }
 
-    /** 本轮的选项。至少 1 项。narrative/combat→continue, reward→实体选项。 */
+    /** 本轮的选项。至少 1 项。 */
     choices: Choice[]
 
-    /** 敌人 ID（combat 轮）。引擎据其加载敌人。 */
+    /** 敌人 ID。有值→战斗轮，引擎自动执行战斗。 */
     enemyId?: string
 
-    /** Boss 剧情名（boss combat 轮）。覆盖敌人默认名字。 */
+    /** Boss 剧情名。覆盖敌人默认名字。 */
     bossName?: string
-
-    /** 战败导致的伤势增加量（combat 轮）。引擎已同步更新到 injury。 */
-    injuryGained?: number
 }

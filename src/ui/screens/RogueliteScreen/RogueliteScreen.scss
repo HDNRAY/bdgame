@@ -1,0 +1,74 @@
+.rs {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-size: 14px;
+
+    &-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 8px 16px;
+        border-bottom: 1px solid #333;
+        background: #16213e;
+        flex-shrink: 0;
+    }
+
+    &-body {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+    }
+
+    &-rounds {
+        flex: 1;
+        padding: 16px;
+        overflow-y: auto;
+    }
+
+    &-finish {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        gap: 16px;
+    }
+
+    &-btn {
+        padding: 8px 20px;
+        border: 1px solid #555;
+        border-radius: 4px;
+        background: #2a2a4a;
+        color: #e0e0e0;
+        cursor: pointer;
+        font-size: 14px;
+
+        &:hover {
+            background: #3a3a5a;
+        }
+    }
+
+    &.rs-landscape .rs-body {
+        flex-direction: row;
+    }
+    &.rs-portrait .rs-body {
+        flex-direction: column;
+    }
+
+    &.rs-landscape .rs-body .character-panel {
+        width: 340px;
+        border-left: 1px solid #333;
+        overflow-y: auto;
+        flex-shrink: 0;
+    }
+
+    &.rs-portrait .rs-body .character-panel {
+        border-top: 1px solid #333;
+        overflow-y: auto;
+        max-height: 45vh;
+        flex-shrink: 0;
+    }
+}
