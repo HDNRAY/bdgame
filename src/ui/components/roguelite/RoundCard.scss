@@ -1,78 +1,91 @@
 .rc {
-    max-width: 600px;
-
     &-past {
-        opacity: 0.6;
-        font-size: 13px;
-        border-left: 2px solid #444;
-        padding-left: 12px;
+        opacity: 0.45;
+        font-size: 12px;
+        border-left: 1px solid #333;
+        padding-left: 10px;
+        margin-bottom: 4px;
+
+        .rc-desc {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        .rc-title {
+            font-size: 13px;
+        }
     }
 
     &-title {
-        font-size: 16px;
-        font-weight: bold;
-        margin-bottom: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #eee;
+        margin-bottom: 2px;
+        text-align: left;
     }
 
     &-desc {
         line-height: 1.5;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         white-space: pre-wrap;
-        color: #bbb;
+        color: #999;
+        font-size: 12px;
+        text-align: left;
     }
 
     &-result {
-        padding: 4px 8px;
-        border-radius: 4px;
-        margin-bottom: 8px;
-        font-weight: bold;
-        font-size: 13px;
+        padding: 3px 8px;
+        border-radius: 3px;
+        margin-bottom: 6px;
+        font-size: 12px;
     }
 
     &-win {
-        color: #66bb6a;
-        background: rgba(102, 187, 106, 0.1);
+        color: #4ecdc4;
+        background: rgba(78, 205, 196, 0.08);
     }
     &-lose {
-        color: #ef5350;
-        background: rgba(239, 83, 80, 0.1);
+        color: #e74c3c;
+        background: rgba(231, 76, 60, 0.08);
     }
 
     &-choices {
         display: flex;
-        gap: 8px;
-        margin-top: 8px;
+        gap: 6px;
+        margin-top: 6px;
+        align-items: flex-start;
     }
 
     &-choice {
         flex: 1;
-        padding: 10px 14px;
-        border: 1px solid #444;
-        border-radius: 6px;
-        background: #16213e;
-        color: #e0e0e0;
+        padding: 8px 12px;
+        border: 1px solid #333;
+        border-radius: 4px;
+        background: #0d0d0d;
+        color: #ccc;
         cursor: pointer;
         text-align: left;
-        font-size: 14px;
-        transition:
-            border-color 0.15s,
-            background 0.15s;
+        font-family: monospace;
+        font-size: 13px;
+        transition: all 0.15s;
 
         &:hover {
-            border-color: #888;
-            background: #1a2747;
+            border-color: #4ecdc4;
+            background: #1a1a1a;
         }
     }
 
     &-label {
-        font-weight: bold;
+        font-weight: 600;
         display: block;
     }
 
     &-desc-text {
-        font-size: 12px;
-        color: #999;
-        margin-top: 4px;
+        font-size: 11px;
+        color: #666;
+        margin-top: 2px;
         display: block;
     }
 }

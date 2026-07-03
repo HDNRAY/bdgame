@@ -15,6 +15,7 @@ export const SECT: StoryDef = {
         22: 'sect_n22_tournament',
     },
     insertions: [],
+    reward: { type: 'artifact', id: 'innate_seed' },
     onNode: (state, idx) => {
         if (idx === 2 || (idx >= 5 && idx % 4 === 1)) {
             state.unspentPoints += 1

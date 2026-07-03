@@ -2,17 +2,18 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: #1a1a2e;
-    color: #e0e0e0;
-    font-size: 14px;
+    background: #000;
+    color: #ccc;
+    font-family: monospace;
+    font-size: 13px;
 
     &-header {
         display: flex;
         align-items: center;
-        gap: 16px;
-        padding: 8px 16px;
-        border-bottom: 1px solid #333;
-        background: #16213e;
+        gap: 12px;
+        padding: 6px 12px;
+        border-bottom: 1px solid #222;
+        background: #000;
         flex-shrink: 0;
     }
 
@@ -24,8 +25,129 @@
 
     &-rounds {
         flex: 1;
-        padding: 16px;
+        padding: 12px;
         overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &-finish {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        gap: 16px;
+    }
+
+    &-points {
+        color: #ffe66d;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    &-points-zero {
+        color: #555;
+    }
+
+    &-title {
+        margin-left: auto;
+        color: #555;
+        font-size: 12px;
+    }
+
+    &-btn {
+        padding: 8px 20px;
+        border: 1px solid #444;
+        border-radius: 4px;
+        background: #111;
+        color: #ccc;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 13px;
+        transition: all 0.15s;
+
+        &:hover {
+            border-color: #4ecdc4;
+            background: #1a1a1a;
+        }
+    }
+
+    // ── Sidebar ──
+
+    &-sidebar {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: flex 0.3s ease;
+        border-left: 1px solid #222;
+
+        &.rs-view {
+            flex: 0 0 auto;
+            min-width: 300px;
+        }
+        &.rs-build {
+            flex: 0 0 50%;
+        }
+    }
+
+    &-prep-btn {
+        flex-shrink: 0;
+        padding: 6px 14px;
+        border: none;
+        border-bottom: 1px solid #222;
+        background: #0d0d0d;
+        color: #4ecdc4;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 12px;
+        transition: all 0.15s;
+
+        &:hover {
+            background: #1a1a1a;
+        }
+    }
+
+    &-panel-wrapper {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    // 竖屏窄屏适配
+    &.rs-portrait {
+        .rs-header {
+            gap: 8px;
+            padding: 6px 8px;
+        }
+        .ib {
+            max-width: 100px;
+        }
+    }
+
+    &.rs-portrait .rs-sidebar {
+        border-left: none;
+        border-top: 1px solid #222;
+
+        &.rs-view {
+            flex: 0 0 auto;
+            max-height: 35vh;
+        }
+        &.rs-build {
+            flex: 1;
+            max-height: 70vh;
+        }
+    }
+
+    &.rs-finish {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        gap: 16px;
     }
 
     &-finish {
@@ -56,19 +178,5 @@
     }
     &.rs-portrait .rs-body {
         flex-direction: column;
-    }
-
-    &.rs-landscape .rs-body .character-panel {
-        width: 340px;
-        border-left: 1px solid #333;
-        overflow-y: auto;
-        flex-shrink: 0;
-    }
-
-    &.rs-portrait .rs-body .character-panel {
-        border-top: 1px solid #333;
-        overflow-y: auto;
-        max-height: 45vh;
-        flex-shrink: 0;
     }
 }

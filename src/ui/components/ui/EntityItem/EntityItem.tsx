@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import type { EntityDef, EntityType } from '../../../entity-tooltip'
+import type { EntityDef, EntityType } from '../../../bridge/entity-tooltip'
 import { Tooltip } from '../Tooltip/Tooltip'
 import { WeaponTooltip } from '../../tooltip-contents/WeaponTooltip'
 import { ActionTooltip } from '../../tooltip-contents/ActionTooltip'

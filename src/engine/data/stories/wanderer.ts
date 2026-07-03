@@ -11,4 +11,5 @@ export const WANDERER: StoryDef = {
         3: 'wanderer_n03_intro',
     },
     insertions: [],
+    reward: { type: 'points', id: '' },
 }

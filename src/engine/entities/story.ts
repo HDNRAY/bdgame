@@ -1,4 +1,5 @@
 import type { GameState } from './state'
+import type { RewardType } from './reward'
 
 // ════════════════════════════════════════
 //  故事定义（新系统）
@@ -22,6 +23,8 @@ export interface StoryDef {
     overrides: Record<number, string>
     /** 随机插入列表。叠加时一次性定死。 */
     insertions: EventInsertion[]
-    /** 进入每个节点时调用。故事可以在此修改 GameState（如 sect 每 4 节点加修炼点）。 */
+    /** 选择故事后立即获得的奖励。 */
+    reward: { type: RewardType; id: string }
+    /** 进入每个节点时调用。故事可以在此修改 GameState。 */
     onNode?: (state: GameState, nodeIndex: number) => void
 }

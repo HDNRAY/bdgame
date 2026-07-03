@@ -55,25 +55,27 @@ export class RogueliteRun implements RogueliteEngine {
             case 'passive':
             case 'artifact':
                 this._grantReward(choice.id, choice.type)
+                this._advanceRound()
                 break
             case 'points':
                 this._state.unspentPoints += 4
                 this._state.nodeLog.push('+4 修炼点')
-                this._afterReward()
+                this._advanceRound()
                 break
             case 'heal':
                 this._state.injury = Math.max(0, this._state.injury - 15)
                 this._state.nodeLog.push('恢复 15 伤势')
-                this._afterReward()
+                this._advanceRound()
                 break
             case 'continue':
                 if (choice.id === END_EVENT) {
                     this._finishEvent()
                 } else if (this._eventDef?.id === 'pick_story') {
-                    // 选择故事 → 叠加故事层
                     this._state.build.story = choice.id
                     this._applyStoryOverlay()
-                    this._finishEvent()
+                    const story = getStory(choice.id)
+                    if (story?.onNode) story.onNode(this._state, this._state.nodeIndex)
+                    this._advanceRound()
                 } else {
                     this._jumpToRound(choice.id)
                 }
@@ -84,6 +86,12 @@ export class RogueliteRun implements RogueliteEngine {
 
     getState(): GameState {
         return structuredClone(this._state)
+    }
+
+    /** 更新角色数据（备战保存时调用）。 */
+    updateBuild(build: CharacterBuild): void {
+        this._state.build = build
+        this._emit()
     }
 
     // ── 内部 ──
@@ -132,8 +140,8 @@ export class RogueliteRun implements RogueliteEngine {
     private _showPathChoices(eventIds: string[]): void {
         this._state.rounds.push({
             id: 'pick_path',
-            title: `第${this._state.nodeIndex}关`,
-            description: '选择你接下来要做的事：',
+            title: `又是阳光明媚的一天`,
+            description: '你决定去-',
             choices: eventIds.map((id) => {
                 const ev = getEvent(id)
                 return {
@@ -197,13 +205,28 @@ export class RogueliteRun implements RogueliteEngine {
 
         // pick_story: 从 STORIES 随机抽
         if (ev.id === 'pick_story') {
-            const stories = pickRandom(STORIES, 3)
-            round.choices = stories.map((s) => ({
-                id: s.id,
-                type: 'continue' as const,
-                label: s.name,
-                description: s.description,
-            }))
+            if (round.id === 'pick') {
+                const stories = pickRandom(STORIES, 3)
+                round.choices = stories.map((s) => ({
+                    id: s.id,
+                    type: 'continue' as const,
+                    label: s.name,
+                    description: s.description,
+                }))
+                return
+            }
+            if (round.id === 'reward_show') {
+                const story = getStory(this._state.build.story)
+                round.choices = []
+                if (story?.reward) {
+                    round.choices.push({
+                        id: story.reward.id,
+                        type: story.reward.type,
+                        label: story.reward.type === 'points' ? '4 修炼点' : story.reward.id,
+                    })
+                }
+                return
+            }
             return
         }
 
@@ -266,14 +289,13 @@ export class RogueliteRun implements RogueliteEngine {
             tags: [],
         })
         this._state.nodeLog.push(`${type}: ${entityId}`)
-        this._afterReward()
     }
 
     // ════════════════════════════════════════
     //  奖励后 / 跳转 / 结束 / 推进
     // ════════════════════════════════════════
 
-    private _afterReward(): void {
+    private _advanceRound(): void {
         // 自定义轮次: 进入下一轮
         if (this._eventDef?.rounds) {
             this._state.roundIdx++

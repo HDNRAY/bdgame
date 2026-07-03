@@ -1,31 +1,34 @@
 .nm {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 
     &-row {
         display: flex;
-        gap: 4px;
+        gap: 3px;
     }
 
     &-dot {
-        width: 12px;
-        height: 12px;
+        width: 8px;
+        height: 8px;
         border-radius: 2px;
-        background: #333;
-        border: 1px solid #555;
+        background: #222;
         flex-shrink: 0;
     }
 
     &-done {
-        background: #2e7d32;
-        border-color: #388e3c;
+        background: #2a5a2a;
     }
-
     &-current {
-        background: #1565c0;
-        border-color: #1976d2;
-        box-shadow: 0 0 4px #1976d2;
+        background: #4ecdc4;
+    }
+    &-boss {
+        &.nm-done {
+            background: #e67e22;
+        }
+        &.nm-current {
+            background: #e67e22;
+        }
     }
 
     &-boss {

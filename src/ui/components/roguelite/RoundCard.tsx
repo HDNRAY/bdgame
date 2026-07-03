@@ -1,5 +1,30 @@
 import type { Round } from '../../../engine/entities/round'
+import { getEntity, isEntityType } from '../../../bridge/entity-tooltip'
+import { EntityItem } from '../ui/EntityItem/EntityItem'
 import './RoundCard.scss'
+
+function ChoiceButton({
+    choice,
+    index,
+    onChoice,
+}: {
+    choice: Round['choices'][0]
+    index: number
+    onChoice: (i: number) => void
+}) {
+    const entity = isEntityType(choice.type) ? (getEntity(choice.id, choice.type) ?? null) : null
+
+    return (
+        <button className="rc-choice" onClick={() => onChoice(index)}>
+            {entity ? (
+                <EntityItem entity={entity} type={choice.type} />
+            ) : (
+                <span className="rc-label">{choice.label}</span>
+            )}
+            {choice.description && <span className="rc-desc-text">{choice.description}</span>}
+        </button>
+    )
+}
 
 interface RoundCardProps {
     round: Round
@@ -21,10 +46,7 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
             {!past && round.choices.length > 0 && (
                 <div className="rc-choices">
                     {round.choices.map((c, i) => (
-                        <button key={c.id} className="rc-choice" onClick={() => onChoice?.(i)}>
-                            <span className="rc-label">{c.label}</span>
-                            {c.description && <span className="rc-desc-text">{c.description}</span>}
-                        </button>
+                        <ChoiceButton key={c.id} choice={c} index={i} onChoice={onChoice!} />
                     ))}
                 </div>
             )}

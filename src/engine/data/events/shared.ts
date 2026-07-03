@@ -15,6 +15,11 @@ export const PICK_STORY: EventDef = {
             title: '选择出身',
             choices: [],
         },
+        {
+            id: 'reward_show',
+            title: '获得奖励',
+            choices: [],
+        },
     ],
 }
 

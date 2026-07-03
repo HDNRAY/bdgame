@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { RogueliteRun } from '../../engine/systems/roguelite/engine'
 import type { GameState } from '../../engine/entities/state'
+import type { CharacterBuild } from '../../engine/entities/character-build'
 
 interface RogueliteState {
     engine: RogueliteRun
@@ -9,6 +10,7 @@ interface RogueliteState {
 
     select: (index: number) => void
     setMode: (mode: 'view' | 'build') => void
+    saveBuild: (build: CharacterBuild) => void
     reset: () => void
 }
 
@@ -21,6 +23,7 @@ export const useRogueliteStore = create<RogueliteState>((set, get) => {
     const engine = createEngine()
 
     engine.subscribe((state) => {
+        console.log('RogueliteStore: state updated', state.rounds)
         set({ gameState: state })
     })
 
@@ -34,6 +37,11 @@ export const useRogueliteStore = create<RogueliteState>((set, get) => {
         },
 
         setMode: (mode) => set({ mode }),
+
+        saveBuild: (build) => {
+            get().engine.updateBuild(build)
+            set({ mode: 'view' })
+        },
 
         reset: () => {
             const engine = createEngine()

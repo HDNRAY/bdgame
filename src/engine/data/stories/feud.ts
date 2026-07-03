@@ -12,4 +12,5 @@ export const FEUD: StoryDef = {
         22: 'boss_ajiu',
     },
     insertions: [{ eventId: 'feud_luhongti_spar', range: [12, 21] }],
+    reward: { type: 'points', id: '' },
 }

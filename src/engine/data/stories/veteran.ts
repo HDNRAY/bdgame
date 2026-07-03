@@ -13,4 +13,5 @@ export const VETERAN: StoryDef = {
         6: 'veteran_n06_enlist',
     },
     insertions: [],
+    reward: { type: 'points', id: '' },
 }

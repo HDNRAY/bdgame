@@ -10,6 +10,12 @@ import type { WeaponDef } from '../engine/data/weapons/weapons'
 export type EntityDef = ActionDefinition | Passive | Artifact | WeaponDef
 export type EntityType = 'action' | 'passive' | 'artifact' | 'weapon'
 
+const ENTITY_TYPES = ['weapon', 'action', 'passive', 'artifact'] as const
+
+export function isEntityType(type: string): type is EntityType {
+    return (ENTITY_TYPES as readonly string[]).includes(type)
+}
+
 /** 根据实体 ID 和类型获取实体定义。 */
 export function getEntity(id: string, type: string): EntityDef | undefined {
     switch (type) {

@@ -10,8 +10,8 @@ export function InjuryBar({ injury }: InjuryBarProps) {
         <div className="ib">
             <div className="ib-bar">
                 <div className="ib-fill" style={{ width: `${pct}%` }} />
+                <span className="ib-text">{injury}/100</span>
             </div>
-            <span className="ib-text">伤势 {injury}/100</span>
         </div>
     )
 }

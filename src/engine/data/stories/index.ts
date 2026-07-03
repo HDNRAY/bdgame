@@ -7,6 +7,6 @@ import type { StoryDef } from '../../entities/story'
 
 export const STORIES: StoryDef[] = [FEUD, SECT, XUANMEN, VETERAN, WANDERER]
 
-export function getStory(id: string): StoryDef | undefined {
+export function getStory(id?: string): StoryDef | undefined {
     return STORIES.find((s) => s.id === id)
 }

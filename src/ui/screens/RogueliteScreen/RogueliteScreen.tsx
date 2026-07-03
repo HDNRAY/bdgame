@@ -7,7 +7,7 @@ import { RoundCard } from '../../components/roguelite/RoundCard'
 import './RogueliteScreen.scss'
 
 export function RogueliteScreen() {
-    const { gameState, mode, select, reset } = useRogueliteStore()
+    const { gameState, mode, select, setMode, saveBuild, reset } = useRogueliteStore()
     const { isLandscape } = useOrientation()
 
     if (!gameState) return null
@@ -30,6 +30,10 @@ export function RogueliteScreen() {
             <header className="rs-header">
                 <NodeMap nodeIndex={gameState.nodeIndex} />
                 <InjuryBar injury={gameState.injury} />
+                <span className={`rs-points${gameState.unspentPoints > 0 ? '' : ' rs-points-zero'}`}>
+                    修炼点 {gameState.unspentPoints}
+                </span>
+                <span className="rs-title">斗炁大会</span>
             </header>
             <div className="rs-body">
                 <div className="rs-rounds">
@@ -37,7 +41,22 @@ export function RogueliteScreen() {
                         <RoundCard key={i} round={r} past={i < gameState.rounds.length - 1} onChoice={select} />
                     ))}
                 </div>
-                <CharacterPanel mode={mode} build={gameState.build} />
+                <div className={`rs-sidebar rs-${mode}`}>
+                    {mode === 'view' && (
+                        <button className="rs-prep-btn" onClick={() => setMode('build')}>
+                            备 战
+                        </button>
+                    )}
+                    <div className="rs-panel-wrapper">
+                        <CharacterPanel
+                            mode={mode}
+                            build={gameState.build}
+                            unspentCultPoints={gameState.unspentPoints}
+                            onSave={saveBuild}
+                            onBack={() => setMode('view')}
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     )
