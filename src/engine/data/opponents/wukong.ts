@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, artifact, action, weapon } from '../../systems/reward-pool'
+import { action, artifact, passive, weapon } from '../../util/reward-utils'
 
 const WUKONG_ATTRS = { strength: 20, vitality: 10, agility: 13, dexterity: 16, insight: 10, wisdom: 5 }
 

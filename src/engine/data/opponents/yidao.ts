@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive, weapon } from '../../systems/reward-pool'
+import { action, artifact, passive, weapon } from '../../util/reward-utils'
 
 const YIDAO_ATTRS = { strength: 18, vitality: 11, agility: 15, dexterity: 14, insight: 13, wisdom: 6 }
 

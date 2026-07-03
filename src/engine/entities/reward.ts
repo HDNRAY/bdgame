@@ -2,10 +2,7 @@ import type { GameEntity } from './base'
 import type { AttrName } from './attributes'
 
 /** 节点奖励类型 */
-export type RewardType = 'cult' | 'passive' | 'artifact' | 'action' | 'weapon'
-
-/** 可展示可选择的奖励物品类型（cult 不在此列） */
-export type ItemRewardType = 'passive' | 'artifact' | 'action' | 'weapon'
+export type RewardType = 'weapon' | 'action' | 'passive' | 'artifact' | 'points' | 'heal'
 
 /** 统一奖励接口 */
 export interface Reward extends GameEntity {

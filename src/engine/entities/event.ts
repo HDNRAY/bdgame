@@ -1,4 +1,5 @@
 import type { Round } from './round'
+import type { RewardType } from './reward'
 
 // ════════════════════════════════════════
 //  事件定义（新系统）
@@ -10,8 +11,6 @@ export interface EventDef {
     id: string
     name: string
     description?: string
-    /** 奖励类型：weapon | action | passive | artifact | points | heal */
-    rewardType: string
-    /** 自定义轮次序列。未定义时引擎根据 rewardType 自动生成。 */
-    rounds?: Round[]
+    rewardType: RewardType
+    rounds: Round[]
 }

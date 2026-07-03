@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, artifact, action, weapon } from '../../systems/reward-pool'
+import { action, artifact, passive, weapon } from '../../util/reward-utils'
 
 const LUHONGTI_ATTRS = { strength: 10, vitality: 9, agility: 10, dexterity: 9, insight: 16, wisdom: 20 }
 

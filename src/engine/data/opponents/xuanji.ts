@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, artifact, action } from '../../systems/reward-pool'
+import { action, artifact, passive } from '../../util/reward-utils'
 
 const XUANJI_ATTRS = { strength: 6, vitality: 10, agility: 12, dexterity: 15, insight: 15, wisdom: 18 }
 

@@ -13,4 +13,5 @@ export const XUANMEN: StoryDef = {
         15: 'xuanmen_n15_heishu',
         16: 'xuanmen_n16_confront',
     },
+    insertions: [],
 }

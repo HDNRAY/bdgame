@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, artifact, action } from '../../systems/reward-pool'
+import { action, artifact, passive } from '../../util/reward-utils'
 
 const LAIFENG_ATTRS = { strength: 14, vitality: 8, agility: 20, dexterity: 12, insight: 10, wisdom: 12 }
 

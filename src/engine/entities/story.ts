@@ -16,12 +16,12 @@ export interface EventInsertion {
 export interface StoryDef {
     id: string
     name: string
-    characterName?: string
-    description?: string
-    /** { 节点编号: 事件ID | 事件ID[] }。覆盖 eventIds。 */
-    overrides?: Record<number, string | string[]>
+    characterName: string
+    description: string
+    /** { 节点编号: 事件ID }。覆盖该节点的 eventIds 为该事件。 */
+    overrides: Record<number, string>
     /** 随机插入列表。叠加时一次性定死。 */
-    insertions?: EventInsertion[]
+    insertions: EventInsertion[]
     /** 进入每个节点时调用。故事可以在此修改 GameState（如 sect 每 4 节点加修炼点）。 */
     onNode?: (state: GameState, nodeIndex: number) => void
 }

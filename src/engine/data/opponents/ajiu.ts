@@ -1,5 +1,5 @@
-import { type OpponentDef } from '.'
-import { passive, artifact, action, weapon } from '../../systems/reward-pool'
+import { OpponentDef } from '.'
+import { action, artifact, passive, weapon } from '../../util/reward-utils'
 
 const AJIU_ATTRS = { strength: 12, vitality: 10, agility: 19, dexterity: 16, insight: 14, wisdom: 4 }
 

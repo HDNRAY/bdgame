@@ -1,5 +1,5 @@
 import type { Tag as TagType } from '../../../../engine/entities/tag'
-import { TAG_CN, TAG_COLOR } from '../../../../engine/data/tagDisplay'
+import { TAG_CN, TAG_COLOR } from '../../../../bridge/tagDisplay'
 import './Tag.scss'
 
 interface TagProps {

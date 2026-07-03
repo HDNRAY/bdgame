@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, artifact, action } from '../../systems/reward-pool'
+import { action, artifact, passive } from '../../util/reward-utils'
 
 const LONGNV_ATTRS = { strength: 15, vitality: 10, agility: 14, dexterity: 18, insight: 12, wisdom: 8 }
 

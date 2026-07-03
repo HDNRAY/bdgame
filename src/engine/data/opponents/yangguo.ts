@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, artifact, action, weapon } from '../../systems/reward-pool'
+import { action, artifact, passive, weapon } from '../../util/reward-utils'
 
 const YANGGUO_ATTRS = { strength: 10, vitality: 10, agility: 14, dexterity: 14, insight: 20, wisdom: 8 }
 

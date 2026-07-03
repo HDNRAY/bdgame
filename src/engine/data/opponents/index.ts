@@ -24,7 +24,6 @@ import type { Reward } from '../../entities/reward'
 import type { ActionConfig } from '../../entities/action-config'
 import { simpleGenerate } from '../../systems/character-gen'
 
-export { passive, artifact, action } from '../../systems/reward-pool'
 import { ZHANGLIE } from './zhanglie'
 import { LAIFENG } from './laifeng'
 import { XUANJI } from './xuanji'

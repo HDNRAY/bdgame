@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, artifact, action } from '../../systems/reward-pool'
+import { action, artifact, passive } from '../../util/reward-utils'
 
 const SANGYUAN_ATTRS = { strength: 12, vitality: 20, agility: 8, dexterity: 18, insight: 10, wisdom: 4 }
 

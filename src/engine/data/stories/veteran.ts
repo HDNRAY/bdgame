@@ -12,4 +12,5 @@ export const VETERAN: StoryDef = {
         5: 'veteran_n05_formal',
         6: 'veteran_n06_enlist',
     },
+    insertions: [],
 }

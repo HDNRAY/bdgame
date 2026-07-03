@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, action, weapon, artifact } from '../../systems/reward-pool'
+import { action, artifact, passive, weapon } from '../../util/reward-utils'
 
 const LIUXIGUA_ATTRS = { strength: 14, vitality: 10, agility: 20, dexterity: 14, insight: 14, wisdom: 4 }
 

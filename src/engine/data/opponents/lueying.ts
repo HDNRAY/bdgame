@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, artifact, action } from '../../systems/reward-pool'
+import { action, artifact, passive } from '../../util/reward-utils'
 
 const LUEYING_ATTRS = { strength: 6, vitality: 10, agility: 16, dexterity: 16, insight: 16, wisdom: 12 }
 

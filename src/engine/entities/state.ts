@@ -7,6 +7,9 @@ export interface GameState {
     /** 当前节点编号。1-based，1-33。>33 时 finished=true。 */
     nodeIndex: number
 
+    /** 当前事件在 eventDef.rounds 中的索引。引擎内部使用。 */
+    roundIdx: number
+
     /** 完整地图 33 个节点。叠加后锁定。 */
     nodes: Node[]
 

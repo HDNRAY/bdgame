@@ -1,4 +1,4 @@
-import type { Tag } from '../entities/tag'
+import type { Tag } from '../engine/entities/tag'
 
 /** Tag → 中文显示名 */
 export const TAG_CN: Record<Tag, string> = {

@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { passive, action } from '../../systems/reward-pool'
+import { action, passive } from '../../util/reward-utils'
 
 const XUNXIANG_ATTRS = { strength: 4, vitality: 6, agility: 16, dexterity: 14, insight: 14, wisdom: 20 }
 

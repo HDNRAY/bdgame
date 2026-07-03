@@ -1,12 +1,12 @@
-import type { Tag } from '../entities/tag'
-import type { RewardType, Reward } from '../entities/reward'
-import { PASSIVES } from '../data/passives'
-import { ARTIFACTS } from '../data/artifacts'
-import { PLAYER_ACTIONS } from '../data/actions/player'
-import { SUPPORT_ACTIONS } from '../data/actions/support'
-import { WEAPON_DB } from '../data/weapons/weapons'
-import { STARTING_WEAPONS } from '../data/weapons/starting-weapons'
-import { sortByTagRelevance } from '../data/tagRelevance'
+import type { Tag } from '../../entities/tag'
+import type { RewardType, Reward } from '../../entities/reward'
+import { PASSIVES } from '../../data/passives'
+import { ARTIFACTS } from '../../data/artifacts'
+import { PLAYER_ACTIONS } from '../../data/actions/player'
+import { SUPPORT_ACTIONS } from '../../data/actions/support'
+import { WEAPON_DB } from '../../data/weapons/weapons'
+import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
+import { pickWeightedByTags } from '../tagRelevance'
 
 export class RewardPool {
     private static _instance: RewardPool
@@ -22,7 +22,6 @@ export class RewardPool {
         return RewardPool._instance
     }
 
-    /** 按类型取奖励池 */
     getPool(type: RewardType): Reward[] {
         switch (type) {
             case 'passive':
@@ -33,8 +32,10 @@ export class RewardPool {
                 return this._getActionPool()
             case 'weapon':
                 return this._getWeaponPool()
-            case 'cult':
+            case 'points':
                 return this._getCultPool()
+            default:
+                return []
         }
     }
 
@@ -58,15 +59,15 @@ export class RewardPool {
                       return reqs.some((t) => playerTags.includes(t as Tag))
                   })
                 : pool
-        const sorted = sortByTagRelevance(filtered, playerTags, exclude)
-        return sorted.slice(0, Math.min(count, sorted.length))
+        const sorted = pickWeightedByTags(filtered, playerTags, count, exclude)
+        return sorted
     }
 
     /** 从预过滤后的列表中取 count 个候选（外部已过滤） */
     pickChoicesFrom(pool: Reward[], count: number, exclude: string[] = [], playerTags: Tag[] = []): Reward[] {
         const filtered = pool.filter((r) => !exclude.includes(r.id))
-        const sorted = sortByTagRelevance(filtered, playerTags, exclude)
-        return sorted.slice(0, Math.min(count, sorted.length))
+        const sorted = pickWeightedByTags(filtered, playerTags, count, exclude)
+        return sorted
     }
 
     /** 检查角色是否满足某奖励的属性门槛 */
@@ -83,7 +84,7 @@ export class RewardPool {
      * 从候选奖励中确保至少一个满足属性门槛，否则回退为修炼点策略。
      */
     validateChoices(choices: Reward[], attrs: Record<string, number>): { valid: Reward[]; allBlocked: boolean } {
-        const valid = choices.filter((r) => r.type === 'cult' || this.meetsRequirements(r, attrs))
+        const valid = choices.filter((r) => r.type === 'points' || this.meetsRequirements(r, attrs))
         return { valid, allBlocked: valid.length === 0 }
     }
 
@@ -123,6 +124,7 @@ export class RewardPool {
                 name: a.name,
                 type: 'action' as const,
                 tags: a.tags,
+                requiredTags: a.requiredTags,
                 description: a.description,
             }))
         }
@@ -151,7 +153,7 @@ export class RewardPool {
                 {
                     id: 'cult_reward',
                     name: '修炼点',
-                    type: 'cult' as const,
+                    type: 'points',
                     tags: [],
                     description: '+4 修炼点',
                 },
@@ -163,9 +165,3 @@ export class RewardPool {
 
 /** 全局单例 */
 export const rewardPool = RewardPool.instance
-
-/** 奖励快捷函数 */
-export const passive = (id: string): Reward => ({ type: 'passive', id, name: id, description: '', tags: [] })
-export const artifact = (id: string): Reward => ({ type: 'artifact', id, name: id, description: '', tags: [] })
-export const action = (id: string): Reward => ({ type: 'action', id, name: id, description: '', tags: [] })
-export const weapon = (id: string): Reward => ({ type: 'weapon', id, name: id, description: '', tags: [] })

@@ -14,6 +14,7 @@ export const SECT: StoryDef = {
         19: 'sect_n19_trail',
         22: 'sect_n22_tournament',
     },
+    insertions: [],
     onNode: (state, idx) => {
         if (idx === 2 || (idx >= 5 && idx % 4 === 1)) {
             state.unspentPoints += 1

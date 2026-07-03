@@ -1,3 +1,5 @@
+export type { GameState } from './state'
+
 import type { GameState } from './state'
 
 /** 引擎接口。输入输出分离：subscribe 接收状态变更，selectChoice 发起操作。 */
