@@ -80,13 +80,13 @@ export class RogueliteRun implements RogueliteEngine {
     }
 
     getState(): GameState {
-        return { ...this._state, rounds: [...this._state.rounds], nodes: [...this._state.nodes] }
+        return structuredClone(this._state)
     }
 
     // ── 内部 ──
 
     private _emit(): void {
-        const s = { ...this._state, rounds: [...this._state.rounds], nodes: [...this._state.nodes] }
+        const s = structuredClone(this._state)
         for (const fn of this._listeners) fn(s)
     }
 

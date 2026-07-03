@@ -9,7 +9,7 @@ export function ModeSelect() {
             <div className="mode-select-title">{import.meta.env.VITE_APP_TITLE}</div>
 
             <div className="mode-select-buttons">
-                <button className="mode-select-btn mode-select-btn-main" onClick={() => {}}>
+                <button className="mode-select-btn mode-select-btn-main" onClick={() => navigate('/roguelite')}>
                     肉鸽模式
                     <span className="mode-select-btn-hint">游戏本体 · 开发中</span>
                 </button>
