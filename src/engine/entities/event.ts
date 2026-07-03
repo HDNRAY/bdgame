@@ -1,5 +1,5 @@
 import type { Round } from './round'
-import type { RewardType } from './reward'
+import type { RewardType, RewardEntity } from './reward'
 
 // ════════════════════════════════════════
 //  事件定义（新系统）
@@ -12,5 +12,6 @@ export interface EventDef {
     name: string
     description?: string
     rewardType: RewardType
+    rewardFilter?: (item: RewardEntity) => boolean
     rounds: Round[]
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { rewardPool } from '../systems/roguelite/reward-pool'
-import type { Reward } from '../entities/reward'
+import type { RewardEntity } from '../entities/reward'
 
 describe('rewardPool', () => {
     describe('getPool', () => {
@@ -8,7 +8,6 @@ describe('rewardPool', () => {
             const pool = rewardPool.getPool('passive')
             expect(pool.length).toBeGreaterThan(10)
             pool.forEach((r) => {
-                expect(r.type).toBe('passive')
                 expect(r.id).toBeTruthy()
                 expect(r.name).toBeTruthy()
             })
@@ -17,28 +16,34 @@ describe('rewardPool', () => {
         it('artifact 池返回奇物列表', () => {
             const pool = rewardPool.getPool('artifact')
             expect(pool.length).toBeGreaterThan(10)
-            pool.forEach((r) => expect(r.type).toBe('artifact'))
+            pool.forEach((r) => {
+                expect(r.id).toBeTruthy()
+                expect(r.name).toBeTruthy()
+            })
         })
 
-        it('action 池返回招式列表', () => {
+        it('action 池返回招式列表（含 apCost）', () => {
             const pool = rewardPool.getPool('action')
             expect(pool.length).toBeGreaterThan(10)
-            pool.forEach((r) => expect(r.type).toBe('action'))
+            pool.forEach((r) => {
+                expect(r.name).toBeTruthy()
+                expect('apCost' in r).toBe(true)
+            })
         })
 
-        it('weapon 池返回非初始武器列表', () => {
+        it('weapon 池返回武器列表', () => {
             const pool = rewardPool.getPool('weapon')
             expect(pool.length).toBeGreaterThan(5)
-            pool.forEach((r) => expect(r.type).toBe('weapon'))
+            pool.forEach((r) => {
+                expect(r.name).toBeTruthy()
+            })
         })
 
-        it('weapon 池不包含初始武器', () => {
+        it('weapon 池包含所有武器（含初始）', () => {
             const pool = rewardPool.getPool('weapon')
             const ids = pool.map((r) => r.id)
-            // 初始武器 ID
-            expect(ids).not.toContain('bare_hands')
-            expect(ids).not.toContain('qingfeng_jian')
-            expect(ids).not.toContain('twin_swords')
+            expect(ids).toContain('bare_hands')
+            expect(ids).toContain('qingfeng_jian')
         })
     })
 
@@ -93,14 +98,13 @@ describe('rewardPool', () => {
         })
 
         it('全部不可用时返回 allBlocked=true', () => {
-            const mock: Reward = {
+            const mock: RewardEntity = {
                 id: 'test',
                 name: '测试',
-                type: 'weapon',
                 tags: [],
                 description: '',
                 requireAttrsMin: { strength: 99 },
-            }
+            } as RewardEntity
             const { valid, allBlocked } = rewardPool.validateChoices([mock], { strength: 1 })
             expect(valid).toHaveLength(0)
             expect(allBlocked).toBe(true)

@@ -1,13 +1,13 @@
 import { type ReactNode } from 'react'
-import type { EntityDef, EntityType } from '../../../bridge/entity-tooltip'
 import { Tooltip } from '../Tooltip/Tooltip'
 import { WeaponTooltip } from '../../tooltip-contents/WeaponTooltip'
 import { ActionTooltip } from '../../tooltip-contents/ActionTooltip'
 import { PassiveTooltip } from '../../tooltip-contents/PassiveTooltip'
 import { ArtifactTooltip } from '../../tooltip-contents/ArtifactTooltip'
-import './EntityItem.scss'
 import { WeaponDef } from '../../../../engine/data/weapons/weapons'
 import { ActionDefinition, Artifact, Passive } from '../../../../engine'
+import { EntityDef, EntityType } from '../../../../bridge/entity-tooltip'
+import './EntityItem.scss'
 
 interface EntityItemProps {
     entity: EntityDef

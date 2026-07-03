@@ -1,5 +1,5 @@
 import type { Tag } from '../../entities/tag'
-import type { RewardType, Reward } from '../../entities/reward'
+import type { RewardType, RewardEntity } from '../../entities/reward'
 import { PASSIVES } from '../../data/passives'
 import { ARTIFACTS } from '../../data/artifacts'
 import { PLAYER_ACTIONS } from '../../data/actions/player'
@@ -11,18 +11,18 @@ import { pickWeightedByTags } from '../tagRelevance'
 export class RewardPool {
     private static _instance: RewardPool
 
-    private _passivePool: Reward[] | null = null
-    private _artifactPool: Reward[] | null = null
-    private _actionPool: Reward[] | null = null
-    private _weaponPool: Reward[] | null = null
-    private _cultPool: Reward[] | null = null
+    private _passivePool: RewardEntity[] | null = null
+    private _artifactPool: RewardEntity[] | null = null
+    private _actionPool: RewardEntity[] | null = null
+    private _weaponPool: RewardEntity[] | null = null
+    private _cultPool: RewardEntity[] | null = null
 
     static get instance(): RewardPool {
         if (!RewardPool._instance) RewardPool._instance = new RewardPool()
         return RewardPool._instance
     }
 
-    getPool(type: RewardType): Reward[] {
+    getPool(type: RewardType): RewardEntity[] {
         switch (type) {
             case 'passive':
                 return this._getPassivePool()
@@ -39,39 +39,32 @@ export class RewardPool {
         }
     }
 
-    /**
-     * 从指定类型的奖励池中选取 count 个候选奖励。
-     *
-     * @param type        - 奖励类型
-     * @param count       - 需要几个候选（通常 3）
-     * @param exclude     - 已拥有的奖励 ID 列表（不重复出）
-     * @param playerTags  - 玩家当前 tags，用于关联度排序
-     * @returns 按关联度排序的候选列表
-     */
-    pickChoices(type: RewardType, count: number, exclude: string[] = [], playerTags: Tag[] = []): Reward[] {
+    pickChoices(type: RewardType, count: number, exclude: string[] = [], playerTags: Tag[] = []): RewardEntity[] {
         const pool = this.getPool(type).filter((r) => !exclude.includes(r.id))
-        // 招式：requiredTags 与武器 tag 不匹配的不出现
         const filtered =
             type === 'action'
                 ? pool.filter((r) => {
                       const reqs = r.requiredTags
                       if (!reqs || reqs.length === 0) return true
-                      return reqs.some((t) => playerTags.includes(t as Tag))
+                      return reqs.some((t) => playerTags.includes(t))
                   })
                 : pool
         const sorted = pickWeightedByTags(filtered, playerTags, count, exclude)
         return sorted
     }
 
-    /** 从预过滤后的列表中取 count 个候选（外部已过滤） */
-    pickChoicesFrom(pool: Reward[], count: number, exclude: string[] = [], playerTags: Tag[] = []): Reward[] {
+    pickChoicesFrom(
+        pool: RewardEntity[],
+        count: number,
+        exclude: string[] = [],
+        playerTags: Tag[] = [],
+    ): RewardEntity[] {
         const filtered = pool.filter((r) => !exclude.includes(r.id))
         const sorted = pickWeightedByTags(filtered, playerTags, count, exclude)
         return sorted
     }
 
-    /** 检查角色是否满足某奖励的属性门槛 */
-    meetsRequirements(reward: Reward, attrs: Record<string, number>): boolean {
+    meetsRequirements(reward: RewardEntity, attrs: Record<string, number>): boolean {
         const reqs = reward.requireAttrsMin
         if (!reqs) return true
         for (const [attr, min] of Object.entries(reqs)) {
@@ -80,83 +73,54 @@ export class RewardPool {
         return true
     }
 
-    /**
-     * 从候选奖励中确保至少一个满足属性门槛，否则回退为修炼点策略。
-     */
-    validateChoices(choices: Reward[], attrs: Record<string, number>): { valid: Reward[]; allBlocked: boolean } {
-        const valid = choices.filter((r) => r.type === 'points' || this.meetsRequirements(r, attrs))
+    validateChoices(
+        choices: RewardEntity[],
+        attrs: Record<string, number>,
+    ): { valid: RewardEntity[]; allBlocked: boolean } {
+        const valid = choices.filter((r) => this.meetsRequirements(r, attrs))
         return { valid, allBlocked: valid.length === 0 }
     }
 
     // ── 私有池初始化 ──
 
-    private _getPassivePool(): Reward[] {
+    private _getPassivePool(): RewardEntity[] {
         if (!this._passivePool) {
-            this._passivePool = PASSIVES.map((p) => ({
-                id: p.id,
-                name: p.name,
-                type: 'passive' as const,
-                tags: p.tags,
-                description: p.description,
-                requireAttrsMin: p.requireAttrsMin,
-            }))
+            this._passivePool = [...PASSIVES] as RewardEntity[]
         }
         return this._passivePool
     }
 
-    private _getArtifactPool(): Reward[] {
+    private _getArtifactPool(): RewardEntity[] {
         if (!this._artifactPool) {
-            this._artifactPool = ARTIFACTS.map((a) => ({
-                id: a.id,
-                name: a.name,
-                type: 'artifact' as const,
-                tags: a.tags,
-                description: a.description,
-            }))
+            this._artifactPool = [...ARTIFACTS] as RewardEntity[]
         }
         return this._artifactPool
     }
 
-    private _getActionPool(): Reward[] {
+    private _getActionPool(): RewardEntity[] {
         if (!this._actionPool) {
-            this._actionPool = [...PLAYER_ACTIONS, ...SUPPORT_ACTIONS].map((a) => ({
-                id: a.id,
-                name: a.name,
-                type: 'action' as const,
-                tags: a.tags,
-                requiredTags: a.requiredTags,
-                description: a.description,
-            }))
+            this._actionPool = [...PLAYER_ACTIONS, ...SUPPORT_ACTIONS] as RewardEntity[]
         }
         return this._actionPool
     }
 
-    private _getWeaponPool(): Reward[] {
+    private _getWeaponPool(): RewardEntity[] {
         if (!this._weaponPool) {
-            const startingIds = new Set(STARTING_WEAPONS.map((w) => w.id))
-            this._weaponPool = WEAPON_DB.filter((w) => !startingIds.has(w.id)).map((w) => ({
-                id: w.id,
-                name: w.name,
-                type: 'weapon' as const,
-                tags: w.tags,
-                description: w.description,
-                requireAttrsMin: w.requireAttrsMin,
-            }))
+            this._weaponPool = [...WEAPON_DB, ...STARTING_WEAPONS] as RewardEntity[]
         }
         return this._weaponPool
     }
 
-    private _getCultPool(): Reward[] {
+    private _getCultPool(): RewardEntity[] {
         if (!this._cultPool) {
-            // 虚拟的修炼点奖励
             this._cultPool = [
                 {
                     id: 'cult_reward',
                     name: '修炼点',
-                    type: 'points',
+                    type: 'points' as const,
                     tags: [],
                     description: '+4 修炼点',
-                },
+                } as RewardEntity,
             ]
         }
         return this._cultPool

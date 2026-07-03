@@ -123,14 +123,14 @@ export function CharacterPanel({
                 <div className="cp-header">
                     <>
                         <button className="cp-btn" onClick={onBack ?? (() => navigate('/select'))}>
-                            ← 返回
+                            返回
                         </button>
                         <div className="cp-actions">
                             <button className="cp-btn cp-btn-reset" onClick={handleReset}>
-                                ↺ 复位
+                                复位
                             </button>
                             <button className="cp-btn cp-btn-save" onClick={handleSave}>
-                                ✓ 保存
+                                保存
                             </button>
                         </div>
                     </>{' '}

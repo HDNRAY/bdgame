@@ -24,7 +24,7 @@ export interface StoryDef {
     /** 随机插入列表。叠加时一次性定死。 */
     insertions: EventInsertion[]
     /** 选择故事后立即获得的奖励。 */
-    reward: { type: RewardType; id: string }
+    reward?: { type: RewardType; id: string }
     /** 进入每个节点时调用。故事可以在此修改 GameState。 */
     onNode?: (state: GameState, nodeIndex: number) => void
 }

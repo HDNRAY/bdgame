@@ -16,11 +16,12 @@ function ChoiceButton({
     onSelect: (i: number) => void
 }) {
     const entity = isEntityType(choice.type) ? (getEntity(choice.id, choice.type) ?? null) : null
+    const eType = isEntityType(choice.type) ? choice.type : null
 
     return (
         <div className={`rc-choice${selected ? ' rc-choice-selected' : ''}`} onClick={() => onSelect(index)}>
-            {entity ? (
-                <EntityItem entity={entity} type={choice.type} />
+            {entity && eType ? (
+                <EntityItem entity={entity} type={eType} />
             ) : (
                 <span className="rc-label">{choice.label}</span>
             )}

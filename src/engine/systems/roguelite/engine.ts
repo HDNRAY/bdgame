@@ -75,7 +75,11 @@ export class RogueliteRun implements RogueliteEngine {
                     this._applyStoryOverlay()
                     const story = getStory(choice.id)
                     if (story?.onNode) story.onNode(this._state, this._state.nodeIndex)
-                    this._advanceRound()
+                    if (story?.reward) {
+                        this._advanceRound()
+                    } else {
+                        this._finishEvent()
+                    }
                 } else {
                     this._jumpToRound(choice.id)
                 }
@@ -240,9 +244,10 @@ export class RogueliteRun implements RogueliteEngine {
             if (exclude.includes(r.id)) return false
             // 招式 requiredTags 过滤
             if (r.requiredTags && r.requiredTags.length > 0) {
-                return r.requiredTags.some((t) => playerTags.includes(t))
+                if (!r.requiredTags.some((t) => playerTags.includes(t))) return false
             }
-            return true
+            // 自定义 rewardFilter
+            return !ev.rewardFilter || ev.rewardFilter(r)
         })
     }
 

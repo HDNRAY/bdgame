@@ -14,5 +14,4 @@ export const XUANMEN: StoryDef = {
         16: 'xuanmen_n16_confront',
     },
     insertions: [],
-    reward: { type: 'points', id: '' },
 }

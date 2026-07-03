@@ -1,4 +1,6 @@
 import type { EventDef } from '../../entities/event'
+import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
+import { isBasicAction } from '../../systems/roguelite/util'
 
 // ════════════════════════════════════════
 //  天生道种 — 自定义事件
@@ -10,6 +12,7 @@ export const SECT_N02_WEAPON: EventDef = {
     name: '选兵器',
     description: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。三件法器微微发光，等你伸手。',
     rewardType: 'weapon',
+    rewardFilter: (item) => STARTING_WEAPONS.some((w) => w.id === item.id),
     rounds: [
         {
             id: 'intro',
@@ -38,6 +41,7 @@ export const SECT_N03_ACTION: EventDef = {
     name: '选招式',
     description: '入门后腊月师姐负责带你和师兄。她翻了翻你们的根骨记录，丢过来三门基础功法让你们挑。',
     rewardType: 'action',
+    rewardFilter: isBasicAction,
     rounds: [
         {
             id: 'intro',

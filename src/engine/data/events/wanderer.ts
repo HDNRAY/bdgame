@@ -1,10 +1,13 @@
 import type { EventDef } from '../../entities/event'
+import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
+import { isBasicAction } from '../../systems/roguelite/util'
 
 export const WANDERER_N02_INTRO: EventDef = {
     id: 'wanderer_n02_intro',
     name: '山洞奇遇',
     description: '七岁那年你在后山玩耍，偶遇一对隐世夫妇。',
     rewardType: 'weapon',
+    rewardFilter: (item) => STARTING_WEAPONS.some((w) => w.id === item.id),
     rounds: [
         {
             id: 'intro',
@@ -29,6 +32,7 @@ export const WANDERER_N03_INTRO: EventDef = {
     name: '悟道',
     description: '过儿和龙女留下的图谱在你脑海中挥之不去。',
     rewardType: 'action',
+    rewardFilter: isBasicAction,
     rounds: [
         {
             id: 'intro',

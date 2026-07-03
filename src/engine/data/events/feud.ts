@@ -1,4 +1,6 @@
 import type { EventDef } from '../../entities/event'
+import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
+import { isBasicAction } from '../../systems/roguelite/util'
 
 // ════════════════════════════════════════
 //  血海深仇 — 自定义事件
@@ -11,6 +13,7 @@ export const FEUD_N02_WEAPON: EventDef = {
     description:
         '那年你六岁。会长从家里找出你父亲遗留的三件兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
     rewardType: 'weapon',
+    rewardFilter: (item) => STARTING_WEAPONS.some((w) => w.id === item.id),
     rounds: [
         {
             id: 'intro',
@@ -36,6 +39,7 @@ export const FEUD_N03_ACTION: EventDef = {
     description:
         '会长教你的是炼炁协会的基础功法，循序渐进，很是耐心。但你修炼时眼神总是很凶，好像要把仇恨都煅进骨子里。',
     rewardType: 'action',
+    rewardFilter: isBasicAction,
     rounds: [
         {
             id: 'intro',
