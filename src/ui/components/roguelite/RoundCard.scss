@@ -2,8 +2,6 @@
     &-past {
         opacity: 0.45;
         font-size: 12px;
-        border-left: 1px solid #333;
-        padding-left: 10px;
         margin-bottom: 4px;
 
         .rc-desc {
@@ -53,9 +51,18 @@
 
     &-choices {
         display: flex;
+        flex-wrap: wrap;
         gap: 6px;
         margin-top: 6px;
         align-items: flex-start;
+
+        .rs-portrait & {
+            flex-direction: column;
+
+            .rc-choice {
+                width: 100%;
+            }
+        }
     }
 
     &-choice {
@@ -74,6 +81,30 @@
         &:hover {
             border-color: #4ecdc4;
             background: #1a1a1a;
+        }
+
+        &-selected {
+            border-color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.1);
+        }
+    }
+
+    &-confirm {
+        width: 100%;
+        padding: 12px;
+        margin-top: 4px;
+        border: none;
+        border-radius: 4px;
+        background: #1a6b5a;
+        color: #eee;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        transition: all 0.15s;
+
+        &:hover {
+            background: #208a74;
         }
     }
 

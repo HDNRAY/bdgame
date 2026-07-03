@@ -21,7 +21,7 @@ export function cultCost(value: number): number {
  */
 export function useBuildCharacter(
     build: CharacterBuild,
-    onSave?: (build: CharacterBuild) => void,
+    onSave?: (build: CharacterBuild, remaining?: number) => void,
     unspentCultPoints: number = 0,
 ) {
     const navigate = useNavigate()
@@ -123,7 +123,7 @@ export function useBuildCharacter(
             actionConfigs,
         }
         if (onSave) {
-            onSave(newBuild)
+            onSave(newBuild, remaining)
         } else {
             navigate('/select')
         }

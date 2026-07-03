@@ -89,8 +89,11 @@ export class RogueliteRun implements RogueliteEngine {
     }
 
     /** 更新角色数据（备战保存时调用）。 */
-    updateBuild(build: CharacterBuild): void {
+    updateBuild(build: CharacterBuild, remainingPoints?: number): void {
         this._state.build = build
+        if (remainingPoints !== undefined) {
+            this._state.unspentPoints = remainingPoints
+        }
         this._emit()
     }
 
@@ -288,6 +291,9 @@ export class RogueliteRun implements RogueliteEngine {
             description: '',
             tags: [],
         })
+        if (type === 'weapon') {
+            this._state.build.weapon = entityId
+        }
         this._state.nodeLog.push(`${type}: ${entityId}`)
     }
 

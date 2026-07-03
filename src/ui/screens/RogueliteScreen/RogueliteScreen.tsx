@@ -41,6 +41,7 @@ export function RogueliteScreen() {
                         <RoundCard key={i} round={r} past={i < gameState.rounds.length - 1} onChoice={select} />
                     ))}
                 </div>
+                {mode === 'build' && <div className="rs-overlay" />}
                 <div className={`rs-sidebar rs-${mode}`}>
                     {mode === 'view' && (
                         <button className="rs-prep-btn" onClick={() => setMode('build')}>

@@ -23,7 +23,7 @@ export const useRogueliteStore = create<RogueliteState>((set, get) => {
     const engine = createEngine()
 
     engine.subscribe((state) => {
-        console.log('RogueliteStore: state updated', state.rounds)
+        console.log('RogueliteStore: state updated', state)
         set({ gameState: state })
     })
 
@@ -38,8 +38,8 @@ export const useRogueliteStore = create<RogueliteState>((set, get) => {
 
         setMode: (mode) => set({ mode }),
 
-        saveBuild: (build) => {
-            get().engine.updateBuild(build)
+        saveBuild: (build: CharacterBuild, remainingPoints?: number) => {
+            get().engine.updateBuild(build, remainingPoints)
             set({ mode: 'view' })
         },
 

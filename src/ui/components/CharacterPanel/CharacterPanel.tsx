@@ -24,7 +24,7 @@ interface CharacterPanelProps {
     mode: 'view' | 'build'
     build: CharacterBuild
     accentColor?: string
-    onSave?: (build: CharacterBuild) => void
+    onSave?: (build: CharacterBuild, remaining?: number) => void
     onBack?: () => void
     unspentCultPoints?: number
 }
