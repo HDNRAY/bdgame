@@ -1,5 +1,6 @@
 import type { Character } from '../entities/character'
 import type { EffectDef } from '../entities/action'
+import { getActionRange } from '../entities/action'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../data/weapons/weapons'
 import { PositionSystem } from '../combat/position'
@@ -150,7 +151,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         if (est.canReach) {
             let planRejected = false
             if (style === 'ranged' || style === 'mid') {
-                const actionRange = mainDef.getRange?.(weapon.range, self) ?? weapon.range
+                const actionRange = getActionRange(mainDef, weapon.range, self)
                 const idealDist = actionRange[1]
                 if (Math.abs(distance - idealDist) >= 0.5) {
                     const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
@@ -297,7 +298,8 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         }
     }
 
-    // ── 7. 行动后走位（只在武器射程外才走） ──
+    // ── 7. 行动后走位（只在招式射程外才走） ──
+    const mainActionRange = getActionRange(mainDef2, weapon.range, self)
     if (enemy) {
         const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
         const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
@@ -306,18 +308,18 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         // 估算行动后的实际距离
         const preMoveDist = state.position.distance(self.id, enemy.id)
         const postMoveDist = moveDelta !== 0 ? preMoveDist + perAp * moveAp * (moveDelta > 0 ? 1 : -1) : preMoveDist
-        // 已在武器射程内 → 不动
-        if (postMoveDist >= weapon.range[0] && postMoveDist <= weapon.range[1]) {
+        // 已在招式射程内 → 不动
+        if (postMoveDist >= mainActionRange[0] && postMoveDist <= mainActionRange[1]) {
             // 不操作
-        } else if (postMoveDist < weapon.range[0]) {
+        } else if (postMoveDist < mainActionRange[0]) {
             // 太近 → 退到 range[0]
-            const targetDist = weapon.range[0]
+            const targetDist = mainActionRange[0]
             const rawAp = Math.ceil((targetDist - postMoveDist) / perAp)
             // 防 overshoot：试从 rawAp 往下找，确保最终距离 ≥ range[0]
             let apUsed = 0
             for (let a = rawAp; a >= 1; a--) {
                 const finalDist = postMoveDist + perAp * a
-                if (finalDist >= weapon.range[0]) {
+                if (finalDist >= mainActionRange[0]) {
                     apUsed = a
                     break
                 }
@@ -335,12 +337,12 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             }
         } else {
             // 太远 → 进到 range[1]
-            const targetDist = weapon.range[1]
+            const targetDist = mainActionRange[1]
             const rawAp = Math.ceil((postMoveDist - targetDist) / perAp)
             let apUsed = 0
             for (let a = rawAp; a >= 1; a--) {
                 const finalDist = postMoveDist - perAp * a
-                if (finalDist <= weapon.range[1]) {
+                if (finalDist <= mainActionRange[1]) {
                     apUsed = a
                     break
                 }

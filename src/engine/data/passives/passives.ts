@@ -520,7 +520,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'yu_du_shu',
-        name: '御毒术',
+        name: '毒炁外泄',
         description: '毒雾护体，每10秒释放毒素。血量充裕时仅降对手推演；受伤过重时毒雾失控。',
         tags: ['passive', 'buff', 'poison'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yu_du_shu' }] }],
@@ -608,5 +608,12 @@ export const PASSIVES: Passive[] = [
                 effects: [{ type: 'add_buff', buffId: 'qian_kun_fan_tan' }],
             },
         ],
+    },
+    {
+        id: 'sword_focus',
+        name: '怒炁充盈',
+        description: '每被闪避一次积攒怒气，下次命中附加 层数×3 点伤害，击中后重置。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_focus' }] }],
     },
 ]

@@ -108,7 +108,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'push_palm',
-        name: '排云掌',
+        name: '云手',
         description: '太极推手，借力打力。',
         requiredTags: ['unarmed'],
         apCost: 2,
@@ -147,7 +147,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'palm_strike',
-        name: '掌击',
+        name: '排云掌',
         description: '平凡一掌，劲力暗藏。',
         requiredTags: ['unarmed'],
         apCost: 2,
@@ -234,16 +234,24 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         ],
     },
     {
-        id: 'poison_dart',
-        name: '毒镖',
-        description: '淬毒飞镖，见血封喉。',
+        id: 'blood_droplet',
+        name: '血滴子',
+        description: '以血为引，凝炁成滴，射向对手。消耗10%当前气血。',
         requiredTags: [],
-        apCost: 3,
-        tags: ['poison', 'pierce', 'range', 'thrown'],
-        getRange: () => [1, 5],
+        apCost: 2,
+        tags: ['qi', 'unarmed', 'range'],
+        getRange: () => [2, 4],
+        onActionHitChance: (base) => base + 0.3,
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.3 } },
-            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.4 },
+            {
+                type: 'functional_damage',
+                fn: ({ self }) => {
+                    const cost = Math.round(self.hp * 0.1)
+                    if (cost <= 0) return 0
+                    self.takeDamage(cost)
+                    return Math.round(cost * 0.5)
+                },
+            },
         ],
     },
     {
@@ -263,17 +271,17 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'dart_throw',
-        name: '飞镖',
+        name: '梅花镖',
         description: '扬手一镖，例不虚发。',
         requiredTags: [],
-        apCost: 1,
+        apCost: 2,
         tags: ['pierce', 'range', 'thrown'],
-        getRange: () => [2, 5] as [number, number],
-        effects: [{ type: 'damage', scaling: { dexterity: 0.2 } }],
+        getRange: () => [2, 6],
+        effects: [{ type: 'damage', scaling: { dexterity: 0.3 }, base: 1 }],
     },
     {
         id: 'yufeng_needle',
-        name: '玉峰针',
+        name: '玉蜂针',
         description: '玉蜂针破空，附寒毒麻痹。',
         requiredTags: [],
         apCost: 2,

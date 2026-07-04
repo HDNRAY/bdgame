@@ -171,7 +171,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const { fn } = eff as Extract<EffectDef, { type: 'functional_damage' }>
         const dmg = fn({ self, enemy, state: engine.state })
         if (dmg > 0) {
-            applyBonusDamage(dmg, enemy, self, engine, action, action?.name ?? '特殊伤害', 'functional_damage')
+            applyDamage(dmg, enemy, self, engine, action)
         }
     },
     damage({ eff, self, enemy, engine, action }: EffectCtx) {

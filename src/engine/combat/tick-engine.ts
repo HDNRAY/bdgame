@@ -34,7 +34,7 @@ export class TickEngine {
             case 'poison':
                 return this.#afterApplyPoison(enemy, engine, tMs, layer)
             case 'burn':
-                return this.#afterApplyBurn(enemy, engine, tMs)
+                return this.#afterApplyBurn(enemy, engine, tMs, layer)
         }
     }
 
@@ -124,7 +124,8 @@ export class TickEngine {
         engine.state.turn.scheduleSystemEventAt(`tick_poison_${enemy.id}`, tMs + interval, 'tick_poison')
     }
 
-    #afterApplyBurn(enemy: Character, engine: BattleEngine, tMs: number): void {
+    #afterApplyBurn(enemy: Character, engine: BattleEngine, tMs: number, layer: BuffLayer): void {
+        layer.extra = { ...(layer.extra ?? {}), remainingTicks: layer.restoreValue }
         engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, tMs + 1000, 'tick_burn')
     }
 

@@ -309,4 +309,16 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         getRange: () => [2, 4] as [number, number],
         effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 } }],
     },
+    {
+        id: '_braid_blade',
+        name: '发辫刃',
+        description: '辫中藏刃，回旋飞出。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['range', 'slash', 'pierce'],
+        getRange: () => [2, 4] as [number, number],
+        onActionHitChance: (base) => base + 0.2,
+        onActionCritChance: (base) => base + 0.2,
+        effects: [{ type: 'damage', scaling: { agility: 0.2, dexterity: 0.2 } }],
+    },
 ]

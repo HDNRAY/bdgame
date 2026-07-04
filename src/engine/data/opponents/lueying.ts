@@ -14,11 +14,12 @@ export const LUEYING: OpponentDef = {
         artifact('poison_coating'),
         artifact('western_poison'),
         artifact('soft_hedgehog_mail'),
+        artifact('braid_blade'),
         action('sword_thrust'),
         action('kick'),
         action('dart_throw'),
         action('sand_throw'),
-        // 9
+        // 10
     ],
     actionConfigs: [
         { actionId: 'gash' }, // AI 出招顺序

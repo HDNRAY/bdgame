@@ -169,7 +169,11 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['debuff', 'pre_action'],
         getRange: () => [1, 3] as [number, number],
-        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 1 }],
+        canUse: (attacker, state) => {
+            const enemy = state.characters.find((c) => c.id !== attacker.id)
+            return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
+        },
+        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 1 }],
     },
     {
         id: 'spirit_sword',
@@ -212,5 +216,17 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['imperial', 'summon', 'pre_action'],
         onActionHitChance: () => 0.3,
         effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 2000 }],
+    },
+    {
+        id: 'sword_intent_burst',
+        name: '灵炁爆发',
+        description: '消耗30层缠劲，激发灵炁爆发。力道、身法、灵巧各+4持续10秒，之后各-2持续5秒。',
+        requiredTags: [],
+        apCost: 3,
+        tags: ['buff', 'qi'],
+        target: 'self',
+        chanCost: 30,
+        canUse: (attacker) => attacker.chan >= 30,
+        effects: [{ type: 'add_buff', buffId: 'sword_intent_burst' }],
     },
 ]

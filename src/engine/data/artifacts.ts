@@ -93,6 +93,22 @@ export const ARTIFACTS: Artifact[] = [
         ],
     },
     {
+        id: 'venom_gland',
+        name: '毒腺',
+        description: '每10秒消耗4层自身毒素，获得1点洞察，持续30秒。不满4层时不触发。',
+        tags: ['implant', 'inherent', 'poison'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'venom_gland' }] }],
+    },
+    {
+        id: 'marrow_pump',
+        name: '髓泵',
+        description: '植入脊椎的骨髓增强装置，持续刺激造血干细胞。最大气血+60，但装置耗能。',
+        tags: ['implant', 'inherent'],
+        effects: [{ type: 'max_hp_mod', value: 60 }],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'ap_drain', stacks: 1 }] }],
+    },
+    // imperial
+    {
         id: 'floating_eye',
         name: '浮游眼',
         description: '一枚以炁悬浮的异瞳，洞察流转，预判对手。洞察+4，暴击率+5%。',
@@ -106,7 +122,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'flying_lion',
         name: '飞狮',
         description: '飞狮奇物，每约 10 秒自动释放一次狮吼功。',
-        tags: ['summon'],
+        tags: ['summon', 'imperial'],
         summon: {
             id: 'flying_lion',
             name: '飞狮',
@@ -262,7 +278,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'herb_pouch',
         name: '蜂草鱼囊',
         description: '玉蜂浆、断肠草、寒潭白鱼所制，每 5 秒自动化解一层毒素，且恢复3点气血',
-        tags: ['trigger'],
+        tags: ['trigger', 'heal'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'herb_pouch' }] }],
     },
     {
@@ -314,13 +330,6 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'gu_tong_body' }] }],
     },
     {
-        id: 'venom_gland',
-        name: '毒腺',
-        description: '改造毒腺，每回合自动消耗3层自身毒素换取1点洞察（30秒）。',
-        tags: ['implant', 'inherent', 'poison'],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'venom_gland' }] }],
-    },
-    {
         id: 'chan_orb',
         name: '凝缠珠',
         description: '古法淬炼的缠劲珠，每2秒自动凝聚2点缠劲。',
@@ -353,8 +362,8 @@ export const ARTIFACTS: Artifact[] = [
     },
     {
         id: 'jiu_hu',
-        name: '酒壶',
-        description: '不知年岁的黄酒壶。血量低于70%时自动喝一口回复30点气血，可用3次。',
+        name: '酒葫芦',
+        description: '不知年岁的黄酒葫芦。血量低于70%时自动喝一口回复30点气血，可用3次。',
         tags: ['trigger', 'heal'],
         grantsActions: ['_jiu_hu_heal'],
         triggers: [
@@ -363,6 +372,24 @@ export const ARTIFACTS: Artifact[] = [
                 actionId: '_jiu_hu_heal',
             },
         ],
+    },
+    {
+        id: 'combat_armor',
+        name: '斗铠',
+        description: '百战之铠，非炁伤害减免2点，但身法-2。',
+        tags: ['defense'],
+        effects: [{ type: 'stat_buff', attrs: { agility: -4 } }],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_armor_def' }] },
+        ],
+    },
+    {
+        id: 'braid_blade',
+        name: '发辫刃',
+        description: '辫发中暗藏飞刃，敌人远离时自动追击。',
+        tags: ['weapon', 'counter'],
+        grantsActions: ['_braid_blade'],
+        triggers: [{ condition: { type: 'on_opponent_move_away' }, actionId: '_braid_blade' }],
     },
 ]
 

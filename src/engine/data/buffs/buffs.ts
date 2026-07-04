@@ -379,7 +379,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '持续恢复生命，血越少恢复越多。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
-        tickInterval: 2000,
+        tickInterval: 1000,
         onTickHeal: ({ target }) => Math.round((target.maxHp - target.hp) * 0.01),
     },
     {
@@ -764,7 +764,11 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         onTakeDamage: ({ final, target, attacker, engine, state, action }) => {
             const reduced = Math.max(0, Math.round((final - 1) * 10) / 10)
-            if (action?.tags?.includes('unarmed')) {
+            if (
+                action?.tags?.includes('unarmed') &&
+                !action?.tags?.includes('qi') &&
+                !action?.tags?.includes('range')
+            ) {
                 attacker.takeDamage(1)
                 engine?.emitLog({
                     type: 'system',
@@ -873,7 +877,7 @@ export const BUFF_DB: BuffDef[] = [
             const target = engine.getOpponent(self.id)
             if (!target) return 0
             const tMs = engine.state.turn.currentTime
-            if (self.hp / self.maxHp < 0.6) {
+            if (self.hp / self.maxHp < 0.7) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
                     self,
@@ -1144,6 +1148,58 @@ export const BUFF_DB: BuffDef[] = [
                 actorId: target.id,
             })
             return final - reflectDmg
+        },
+    },
+    // ── 灵剑·桑原 ──
+    {
+        id: 'sword_intent_burst',
+        name: '灵炁爆发',
+        description: '力道、身法、灵巧各+4持续10秒，之后各-2持续5秒。',
+        tags: ['qi', 'buff'],
+        expiry: { type: 'duration', ms: 15000 },
+        attrMods: { strength: 4, agility: 4, dexterity: 4 },
+        tickInterval: 10000,
+        onTickHeal: ({ layer, engine, target, state }) => {
+            revertBuffMods(layer, target, state)
+            const newMods = applyAttrMods(target, state, { strength: -2, agility: -2, dexterity: -2 }, '灵炁爆发')
+            layer.mods = newMods
+            engine?.emitLog({
+                type: 'system',
+                message: `[灵炁爆发] ${target.name} 力竭，各属性-2（5秒）`,
+                actorId: target.id,
+            })
+            return 0
+        },
+    },
+    {
+        id: 'combat_armor_def',
+        name: '斗铠',
+        description: '非炁伤害减免2点。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTakeDamage: ({ final, action, attacker }) => {
+            const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
+            if (isQi || final <= 0) return final
+            return Math.max(0, Math.round((final - 2) * 10) / 10)
+        },
+    },
+    {
+        id: 'sword_focus',
+        name: '怒炁充盈',
+        description: '每被闪避一次积攒怒气，下次命中附加 层数×3 点伤害，击中后重置。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive' },
+        onDodged: ({ layer }) => {
+            layer.restoreValue = (layer.restoreValue ?? 0) + 1
+        },
+        onDealDamage: ({ final, layer }) => {
+            const stacks = layer.restoreValue ?? 0
+            if (stacks > 0) {
+                layer.restoreValue = 0
+                return Math.round((final + stacks * 3) * 10) / 10
+            }
+            return final
         },
     },
 ]
