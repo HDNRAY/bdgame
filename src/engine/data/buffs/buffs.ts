@@ -126,6 +126,14 @@ export const BUFF_DB: BuffDef[] = [
         onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),
     },
     {
+        id: 'li_wu_xu_fa',
+        name: '例无虚发',
+        description: '暗器命中率+50%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onHitChance: ({ action }) => (action?.tags?.includes('thrown') ? 0.5 : 0),
+    },
+    {
         id: 'ciyuan_blade',
         name: '次元刃',
         description: '凝炁为刃，或凝炁与刃',

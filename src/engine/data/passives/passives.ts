@@ -191,7 +191,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'inner_power',
         name: '归元劲',
-        description: '内力深厚，。每点推演提升全属性。',
+        description: '内力深厚。每点推演提升全属性。',
         tags: ['passive', 'buff'],
         effects: [{ type: 'wisdom_stat_buff', ratio: 0.1, attrs: ['strength', 'vitality', 'agility', 'dexterity'] }],
     },
@@ -456,7 +456,7 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hua_gun_parry' }] }],
     },
     {
-        id: 'frost_step_mastery',
+        id: 'frost_step',
         name: '踏雪',
         description: '踏雪如履平地，身法轻灵，移动效率+50%。',
         tags: ['passive', 'buff'],
@@ -569,5 +569,12 @@ export const PASSIVES: Passive[] = [
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'draw_sword_combo_buff' }] },
         ],
+    },
+    {
+        id: 'li_wu_xu_fa',
+        name: '例无虚发',
+        description: '所有暗器招式命中率+50%。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'li_wu_xu_fa' }] }],
     },
 ]

@@ -307,13 +307,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'deadly_knife',
         name: '无情飞刀',
-        description: '小李飞刀，例不虚发。必中但可格挡。',
+        description: '例不虚发，飞刀破空。',
         requiredTags: [],
         apCost: 4,
         tags: ['range', 'pierce', 'thrown'],
         getRange: () => [1, 6],
-        onActionHitChance: () => 1,
-        effects: [{ type: 'fixed_damage', value: 12 }],
+        effects: [{ type: 'fixed_damage', value: 15 }],
     },
     // ── 穿刺系 ──
     {

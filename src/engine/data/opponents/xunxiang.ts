@@ -11,15 +11,16 @@ export const XUNXIANG: OpponentDef = {
     targetAttrs: XUNXIANG_ATTRS,
     rewards: [
         action('straight_punch'),
+        action('steal_artifact'),
         passive('lingxi_finger'),
+        action('deadly_knife'),
         passive('yedi_lightness'),
         action('wrist_strike'),
         action('throwing_knife'),
+        passive('li_wu_xu_fa'),
         action('push_palm'),
         action('push_hand'),
-        action('deadly_knife'),
-        action('steal_artifact'),
-        // 9
+        // 10
     ],
     actionConfigs: [
         { actionId: 'straight_punch' }, // AI 出招顺序

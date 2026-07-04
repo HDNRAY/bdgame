@@ -12,7 +12,7 @@ export const BAIHU: OpponentDef = {
         action('light_slash'),
         passive('ice_heart'),
         passive('frost_mastery'),
-        passive('frost_step_mastery'),
+        passive('frost_step'),
         artifact('frost_silk_robe'),
         weapon('frost_twin_blades'),
         action('heavy_slash'),
