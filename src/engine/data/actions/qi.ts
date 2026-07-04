@@ -32,7 +32,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         tags: ['qi', 'range'],
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 2.4 }],
         extraPreDelay: 200,
-        getRange: () => [3, 8] as [number, number],
+        getRange: () => [2, 6],
     },
     {
         id: 'restore_ap',

@@ -163,9 +163,10 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'momentum_mastery',
-        name: '刀炁大师',
-        description: '刀炁入体，每层受到伤害+5%。受到治疗时减少一层（累计10点治疗消一层）。',
-        tags: ['passive', 'damage', 'debuff'],
+        name: '刃炁大师',
+        requiredTags: ['slash'],
+        description: '刃炁入体，每层受到伤害+5%。受到治疗时减少一层（累计10点治疗消一层）。',
+        tags: ['passive', 'damage', 'debuff', 'slash'],
         triggers: [
             {
                 condition: { type: 'on_hit', check: (ctx) => ctx.actor.weaponDef?.tags.includes('slash') ?? false },

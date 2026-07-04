@@ -78,7 +78,7 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'blade_qi',
-        name: '刀炁',
+        name: '刃炁',
         description: '每层增伤5%。累计10点治疗消一层。',
         tags: ['debuff'],
         expiry: { type: 'permanent' },
@@ -97,7 +97,7 @@ export const BUFF_DB: BuffDef[] = [
             layer.extra = { ...layer.extra, healAccumulator: total - reduce * HEAL_PER_STACK }
             engine?.emitLog({
                 type: 'system',
-                message: `[治疗] ${target?.name ?? ''} 刀炁 -${reduce}层，剩${layer.restoreValue}层`,
+                message: `[治疗] ${target?.name ?? ''} 刃炁 -${reduce}层，剩${layer.restoreValue}层`,
                 actorId: target.id,
             })
         },
@@ -1052,7 +1052,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '暴击伤害提升。',
         tags: ['buff'],
         stacking: { type: 'none' },
-        onCritDamage: () => 0.15,
+        onCritDamage: () => 0.25,
     },
     {
         id: 'draw_sword_combo_buff',
