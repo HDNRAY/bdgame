@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive } from '../../util/reward-utils'
+import { action, artifact } from '../../util/reward-utils'
 
 const SANGYUAN_ATTRS = { strength: 12, vitality: 20, agility: 8, dexterity: 18, insight: 10, wisdom: 4 }
 
@@ -10,7 +10,7 @@ export const SANGYUAN: OpponentDef = {
     targetAttrs: SANGYUAN_ATTRS,
     rewards: [
         action('light_slash'),
-        passive('dimensional_blade_mastery'),
+        action('horizontal_slash'),
         artifact('qi_amplifier'),
         action('spirit_sword'),
         action('heavy_slash'),

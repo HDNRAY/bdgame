@@ -299,4 +299,14 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
             { type: 'knockback', distance: 1 },
         ],
     },
+    {
+        id: '_shuai_ren',
+        name: '甩刃',
+        description: '断刀锁链甩出，如灵蛇出洞。',
+        requiredTags: ['slash'],
+        apCost: 2,
+        tags: ['slash'],
+        getRange: () => [2, 4] as [number, number],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 } }],
+    },
 ]

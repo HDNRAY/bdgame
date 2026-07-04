@@ -161,7 +161,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 actorId: self.id,
             })
         }
-        engine.state.pendingBuffs.set(`dimensional_blade::${self.id}`, { restoreValue: 1 })
+        engine.state.pendingBuffs.set(`ciyuan_blade::${self.id}`, { restoreValue: 1 })
     },
     fixed_damage({ eff, self, enemy, engine, action }: EffectCtx) {
         const { value } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
@@ -696,7 +696,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         revertWeaponStatBuffs(oldWeapon, enemy, engine)
         clearWeaponBuffLayers(enemy.id, engine)
         enemy.weaponDef = { ...getWeapon('bare_hands') }
-        engine.state.pendingBuffs.delete(`dimensional_blade::${enemy.id}`)
+        engine.state.pendingBuffs.delete(`ciyuan_blade::${enemy.id}`)
         engine.state.pendingBuffs.set(key, { restoreValue: 1, extra: { originalWeapon: oldWeapon.id, dropPosition } })
         engine.emitLog({
             type: 'system',

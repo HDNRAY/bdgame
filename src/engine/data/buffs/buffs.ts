@@ -136,10 +136,15 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'ciyuan_blade',
         name: '次元刃',
-        description: '凝炁为刃，或凝炁与刃',
-        tags: [],
+        description: '凝炁为刃，削弱招架减伤效果。',
+        tags: ['qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
+        onParryPenetration: ({ final, raw }) => {
+            const blocked = raw - final
+            const reduced = Math.round(blocked * 0.3 * 10) / 10
+            return raw - reduced
+        },
     },
 
     // ── 属性类 ──
@@ -193,17 +198,6 @@ export const BUFF_DB: BuffDef[] = [
             target.spendAp(1)
             engine?.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免2点`, actorId: target.id })
             return Math.max(0, Math.round((final - 2) * 10) / 10)
-        },
-    },
-    {
-        id: 'dimensional_blade',
-        name: '次元刃',
-        description: '凝炁为刃，削弱招架减伤效果。',
-        tags: ['qi'],
-        onParryPenetration: ({ final, raw }) => {
-            const blocked = raw - final
-            const reduced = Math.round(blocked * 0.3 * 10) / 10
-            return raw - reduced
         },
     },
     {

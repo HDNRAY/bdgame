@@ -207,18 +207,6 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
-        id: 'dimensional_blade_mastery',
-        name: '次元刃',
-        description: '次元之力削弱招架，被招架时减伤效果大幅降低。',
-        tags: ['passive', 'debuff'],
-        triggers: [
-            {
-                condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'dimensional_blade' }],
-            },
-        ],
-    },
-    {
         id: 'godspeed',
         name: '神速',
         description: '以电刺激神经，身法灵巧大幅提升。',

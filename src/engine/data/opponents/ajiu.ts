@@ -17,7 +17,7 @@ export const AJIU: OpponentDef = {
         action('blaze_strike'),
         artifact('titanium_arm'),
         artifact('muscle_boost'),
-        passive('dimensional_blade_mastery'),
+        action('horizontal_slash'),
         passive('xuannv_sword'),
         action('guard'),
         // 10
