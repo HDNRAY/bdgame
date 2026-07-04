@@ -725,7 +725,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'xuan_ji',
         name: '玄机',
-        description: '袖里玄机。每触发一次触发器招式叠1层，15层满时下一招非辅助招式强化。',
+        description: '袖里玄机。每触发一次触发器招式叠1层，9层满时下一招非辅助招式强化。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 9 },
@@ -1200,6 +1200,26 @@ export const BUFF_DB: BuffDef[] = [
                 return Math.round((final + stacks * 3) * 10) / 10
             }
             return final
+        },
+    },
+    // ── 战术腰包 ──
+    {
+        id: 'adrenaline_rush',
+        name: '肾上腺素',
+        description: 'AP恢复速度翻倍，持续15秒。',
+        tags: [],
+        expiry: { type: 'duration', ms: 15000 },
+        tickInterval: 1000,
+        onTickHeal: ({ target: char, engine }) => {
+            const regenPerSec = Math.max(2, char.attrs.get('wisdom') * 0.2)
+            const apGain = Math.max(1, Math.round(regenPerSec))
+            char.ap = Math.min(char.maxAp, char.ap + apGain)
+            engine?.emitLog({
+                type: 'system',
+                message: `[肾上腺素] ${char.name} AP +${apGain}`,
+                actorId: char.id,
+            })
+            return 0
         },
     },
 ]

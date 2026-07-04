@@ -391,6 +391,41 @@ export const ARTIFACTS: Artifact[] = [
         grantsActions: ['_braid_blade'],
         triggers: [{ condition: { type: 'on_opponent_move_away' }, actionId: '_braid_blade' }],
     },
+    // ── 战术腰包 ──
+    {
+        id: 'tactical_pouch',
+        name: '战术腰包',
+        description: '多功能战术腰包，内含战地包扎、解毒针、肾上腺素针。',
+        tags: ['trigger', 'heal'],
+        grantsActions: ['_field_dressing', '_detox_shot', '_adrenaline_shot'],
+        triggers: [
+            {
+                condition: {
+                    type: 'hp_below',
+                    check: (ctx) => ctx.actor.hp / ctx.actor.maxHp < 0.7,
+                },
+                actionId: '_field_dressing',
+            },
+            {
+                condition: {
+                    type: 'on_poison',
+                    check: (ctx) => {
+                        const key = `poison::${ctx.actor.id}`
+                        const layer = ctx.engine?.state.pendingBuffs.get(key)
+                        return (layer?.restoreValue ?? 0) >= 4
+                    },
+                },
+                actionId: '_detox_shot',
+            },
+            {
+                condition: {
+                    type: 'hp_below',
+                    check: (ctx) => ctx.actor.hp / ctx.actor.maxHp < 0.5,
+                },
+                actionId: '_adrenaline_shot',
+            },
+        ],
+    },
 ]
 
 /** 按 ID 查找物品 */

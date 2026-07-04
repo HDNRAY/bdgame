@@ -15,7 +15,7 @@ export const LUEYING: OpponentDef = {
         artifact('western_poison'),
         artifact('soft_hedgehog_mail'),
         artifact('braid_blade'),
-        action('sword_thrust'),
+        artifact('tactical_pouch'),
         action('kick'),
         action('dart_throw'),
         action('sand_throw'),
@@ -23,7 +23,6 @@ export const LUEYING: OpponentDef = {
     ],
     actionConfigs: [
         { actionId: 'gash' }, // AI 出招顺序
-        { actionId: 'sword_thrust' }, // AI 出招顺序
         { actionId: 'sand_throw', triggerId: 'on_dodged' },
         { actionId: 'dart_throw', triggerId: 'on_dodge' },
         { actionId: 'gash', triggerId: 'on_parry' },

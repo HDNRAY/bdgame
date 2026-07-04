@@ -20,6 +20,7 @@ export const YIDAO: OpponentDef = {
         weapon('zantetsu'),
         passive('extreme'),
         passive('stance_time'),
+        // 10
     ],
     actionConfigs: [
         { actionId: 'iaijutsu_strike' },
