@@ -14,6 +14,7 @@ import { getTriggerConditionName } from '../../../bridge/triggerDisplay'
 import type { AttrName } from '../../../engine/entities/attributes'
 import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../../../ui/pixel-sprites'
 import { useBuildCharacter, cultCost } from '../../hooks/useBuildCharacter'
+import { BattleStyleSelector } from './BattleStyleSelector'
 import { Tooltip } from '../ui/Tooltip/Tooltip'
 import { StatTooltip } from '../tooltip-contents/StatTooltip'
 import { EntityItem } from '../ui/EntityItem/EntityItem'
@@ -46,6 +47,8 @@ export function CharacterPanel({
     const {
         attrs,
         actionConfigs,
+        battleStyle,
+        setBattleStyle,
         character,
         remaining,
         maxTriggerSlots,
@@ -121,19 +124,17 @@ export function CharacterPanel({
             {/* Header */}
             {isBuild && (
                 <div className="cp-header">
-                    <>
-                        <button className="cp-btn" onClick={onBack ?? (() => navigate('/select'))}>
-                            返回
+                    <button className="cp-btn" onClick={onBack ?? (() => navigate('/select'))}>
+                        返回
+                    </button>
+                    <div className="cp-actions">
+                        <button className="cp-btn cp-btn-reset" onClick={handleReset}>
+                            复位
                         </button>
-                        <div className="cp-actions">
-                            <button className="cp-btn cp-btn-reset" onClick={handleReset}>
-                                复位
-                            </button>
-                            <button className="cp-btn cp-btn-save" onClick={handleSave}>
-                                保存
-                            </button>
-                        </div>
-                    </>{' '}
+                        <button className="cp-btn cp-btn-save" onClick={handleSave}>
+                            保存
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -147,20 +148,31 @@ export function CharacterPanel({
                 >
                     {/* 区块1: 角色信息 */}
                     <div className="cp-section cp-info-section">
-                        <div className="cp-info-row">
-                            <canvas ref={avatarRef} width={32} height={32} className="cp-avatar" />
-                            <div className="cp-info-name">{character.name}</div>
-                        </div>
-                        <div className="cp-info-row">
-                            <div className="cp-hp-ap">
-                                <span className="cp-hp">气血</span> {character.maxHp}
-                                <span className="cp-sep">·</span>
-                                <span className="cp-ap">内息</span> {character.maxAp}
+                        <div className="cp-info-left">
+                            <div className="cp-info-row">
+                                <canvas ref={avatarRef} width={32} height={32} className="cp-avatar" />
+                                <div className="cp-info-name">{character.name}</div>
+                            </div>
+                            <div className="cp-info-row">
+                                <div className="cp-hp-ap">
+                                    <span className="cp-hp">气血</span> {character.maxHp}
+                                    <span className="cp-sep">·</span>
+                                    <span className="cp-ap">内息</span> {character.maxAp}
+                                </div>
+                            </div>
+                            <div className="cp-info-row">
+                                <canvas ref={weaponRef} width={48} height={48} className="cp-weapon-art" />
+                                {weapon && <EntityItem entity={weapon} type="weapon" />}
                             </div>
                         </div>
-                        <div className="cp-info-row">
-                            <canvas ref={weaponRef} width={48} height={48} className="cp-weapon-art" />
-                            {weapon && <EntityItem entity={weapon} type="weapon" />}
+                        <div className="cp-info-right">
+                            <div className="cp-style-label">战斗风格</div>
+                            <BattleStyleSelector
+                                value={battleStyle}
+                                onChange={setBattleStyle}
+                                weapon={weapon}
+                                isBuild={isBuild}
+                            />
                         </div>
                     </div>
 

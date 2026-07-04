@@ -8,15 +8,6 @@ import type { ActionDefinition } from '../../entities/action'
 export const PLAYER_ACTIONS: ActionDefinition[] = [
     // ── 拳掌系 ──
     {
-        id: 'jab',
-        name: '刺拳',
-        description: '一记快速刺拳，消耗极低。',
-        requiredTags: ['unarmed'],
-        apCost: 1,
-        tags: ['unarmed'],
-        effects: [{ type: 'damage', scaling: { strength: 0.2 } }],
-    },
-    {
         id: 'straight_punch',
         name: '正拳',
         description: '一记标准正拳，直取中门。',
@@ -117,7 +108,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'push_palm',
-        name: '推掌',
+        name: '排云掌',
         description: '太极推手，借力打力。',
         requiredTags: ['unarmed'],
         apCost: 2,
@@ -419,7 +410,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'gash',
         name: '切割',
         description: '匕首划过，血流如注。',
-        requiredTags: ['slash', 'pierce'],
+        requiredTags: ['slash'],
         apCost: 2,
         tags: ['bleed', 'debuff'],
         effects: [

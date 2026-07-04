@@ -18,7 +18,7 @@ export { WUZUI } from './wuzui'
 export { JUNSHI } from './junshi'
 export { FENGSHUI } from './fengshui'
 export { DUOER } from './duoer'
-import type { CharacterBuild } from '../../entities/character-build'
+import type { CharacterBuild, BattleStyle } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
 import type { Reward } from '../../entities/reward'
@@ -45,14 +45,13 @@ import { JUNSHI } from './junshi'
 import { DUOER } from './duoer'
 import { FENGSHUI } from './fengshui'
 import { WUZUI } from './wuzui'
-import { AttackStyle } from '../../ai/move-planner'
 
 /** 对手定义（纯数据） */
 export interface OpponentDef {
     id: string
     name: string
     story?: string
-    battleStyle?: AttackStyle
+    battleStyle?: BattleStyle
     weapon: string
     rewards: Reward[]
     actionConfigs?: ActionConfig[]

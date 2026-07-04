@@ -1,4 +1,4 @@
-import type { CharacterBuild } from '../entities/character-build'
+import type { CharacterBuild, BattleStyle } from '../entities/character-build'
 import type { Reward } from '../entities/reward'
 import type { ActionConfig } from '../entities/action-config'
 import { STAT_NAMES } from '../entities/reward'
@@ -9,7 +9,7 @@ import { getPassive } from '../data/passives'
 
 /** 通用生成器 */
 export function simpleGenerate(
-    def: { id: string; name: string; battleStyle?: string; story?: string; targetAttrs: Record<string, number> },
+    def: { id: string; name: string; battleStyle?: BattleStyle; story?: string; targetAttrs: Record<string, number> },
     weapon: string,
     rewards: Reward[],
     n: number,

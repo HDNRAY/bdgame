@@ -124,8 +124,29 @@
 /* 区块1: 角色信息 */
 .cp-info-section {
     display: flex;
+    flex-direction: row;
+    gap: 12px;
+}
+
+.cp-info-left {
+    display: flex;
     flex-direction: column;
     gap: 8px;
+    flex: 1;
+}
+
+.cp-info-right {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+    min-width: 110px;
+}
+
+.cp-style-label {
+    font-size: 11px;
+    color: #888;
+    white-space: nowrap;
 }
 
 .cp-info-row {
@@ -150,6 +171,29 @@
 .cp-weapon-name {
     font-size: 11px;
     color: #ddd;
+}
+
+/* 战斗风格选择器 */
+.cp-style-select {
+    font-size: 11px;
+    padding: 2px 4px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #2a2a2a;
+    color: #ccc;
+    cursor: pointer;
+    outline: none;
+    width: 100%;
+
+    &:focus {
+        border-color: #4ecdc4;
+    }
+}
+
+.cp-style-tag {
+    font-size: 11px;
+    color: #4ecdc4;
+    white-space: nowrap;
 }
 
 .cp-hp-ap {

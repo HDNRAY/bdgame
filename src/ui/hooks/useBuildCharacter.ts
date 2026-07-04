@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useImmer } from 'use-immer'
-import type { CharacterBuild } from '../../engine/entities/character-build'
+import type { CharacterBuild, BattleStyle } from '../../engine/entities/character-build'
 import type { ActionConfig } from '../../engine/entities/action-config'
 import type { AttrName } from '../../engine/entities/attributes'
 import { Character } from '../../engine/entities/character'
@@ -40,6 +40,7 @@ export function useBuildCharacter(
         return existing
     })
     const [saveError, setSaveError] = useState<string | null>(null)
+    const [battleStyle, setBattleStyle] = useState<BattleStyle | undefined>(build.battleStyle)
 
     // 根据当前编辑中的 attrs/actionConfigs 构造 Character 实例
     const character = new Character({
@@ -120,6 +121,7 @@ export function useBuildCharacter(
         const newBuild: CharacterBuild = {
             ...build,
             baseAttrs: attrs as Partial<Record<AttrName, number>>,
+            battleStyle,
             actionConfigs,
         }
         if (onSave) {
@@ -132,6 +134,8 @@ export function useBuildCharacter(
     return {
         attrs,
         actionConfigs,
+        battleStyle,
+        setBattleStyle,
         character,
         remaining,
         maxTriggerSlots,

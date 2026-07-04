@@ -82,14 +82,13 @@ describe('Character', () => {
             'test_order',
             '排序测试',
             { wisdom: 10 },
-            ['thrust', 'jab', 'straight_punch', 'crushing_blow'],
-            [{ actionId: 'straight_punch' }, { actionId: 'thrust' }, { actionId: 'jab' }],
+            ['thrust', 'straight_punch', 'crushing_blow'],
+            [{ actionId: 'straight_punch' }, { actionId: 'thrust' }],
         )
         expect(c.actions.length).toBeGreaterThanOrEqual(3)
         const ids = c.actions.map((a) => a.id)
         // straight_punch first, thrust second, jab third (others at end)
         expect(ids.indexOf('straight_punch')).toBeLessThan(ids.indexOf('thrust'))
-        expect(ids.indexOf('thrust')).toBeLessThan(ids.indexOf('jab'))
     })
 
     it('should build triggers from actionConfigs', () => {
