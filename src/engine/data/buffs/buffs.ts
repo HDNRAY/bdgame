@@ -379,7 +379,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '持续恢复生命，血越少恢复越多。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
-        tickInterval: 1000,
+        tickInterval: 2000,
         onTickHeal: ({ target }) => Math.round((target.maxHp - target.hp) * 0.01),
     },
     {

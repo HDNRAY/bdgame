@@ -67,36 +67,36 @@ export function gen(def: OpponentDef, n: number): CharacterBuild {
 
 /** 所有对手 */
 export const OPPONENTS: OpponentDef[] = [
-    // 拳掌
-    QILAN,
+    /** 拳掌 */
+    QILAN, // 江湖新人
     LAIFENG,
-    WUZUI,
-    // 刀剑
-    LUHONGTI,
-    SANGYUAN,
-    AJIU,
-    FENGSHUI,
-    // 双持
+    WUZUI, // 六绝之根
+    /** 刀剑 */
+    LUHONGTI, // 军方
+    SANGYUAN, // 归海楼
+    AJIU, // 组织
+    FENGSHUI, // 江湖新人
+    /** 双持 */
     LAYUE,
     BAIHU,
-    LONGNV,
-    // 长柄
-    ZHANGLIE,
-    // 棍
-    WUKONG,
-    // 御物
-    XUANJI,
-    JUNSHI,
-    // 巨武
-    LIUXIGUA,
-    YANGGUO,
-    // 太刀
-    YIDAO,
-    // 匕首
-    LUEYING,
-    DUOER,
-    // 暗器
-    XUNXIANG,
+    LONGNV, // 六绝之巧
+    /** 长柄 */
+    ZHANGLIE, // 组织(变节卧底)
+    /** 棍 */
+    WUKONG, // 六绝之力
+    /** 御物 */
+    XUANJI, // 玄门
+    JUNSHI, // 组织
+    /** 巨武 */
+    LIUXIGUA, // 六绝之闪
+    YANGGUO, // 六绝之观
+    /** 太刀 */
+    YIDAO, // 归海楼
+    /** 匕首 */
+    LUEYING, // 军方
+    DUOER, // 组织
+    /** 暗器 */
+    XUNXIANG, // 六绝之悟
 ]
 
 /** 按 ID 查找对手 def */

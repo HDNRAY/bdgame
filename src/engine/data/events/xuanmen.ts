@@ -114,18 +114,18 @@ export const BOSS_JUNSHI: EventDef = {
     ],
 }
 
-/** node 15: 扶桑门 — 黑云·小树 */
+/** node 15: 归海楼 — 黑云·小树 */
 export const XUANMEN_N15_HEISHU: EventDef = {
     id: 'xuanmen_n15_heishu',
     name: '黑云·小树',
-    description: '扶桑门比武大会上，你又见到了那位早已从家中消失的旁系叔叔。',
+    description: '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔。',
     rewardType: 'points',
     rounds: [
         {
             id: 'scene',
             title: '重逢',
             description:
-                '扶桑门比武大会上，你又见到了那位早已从家中消失的旁系叔叔——黑云·小树。他看着你，忽然笑了：「其实，你根本不需要杀他。手刃血亲，不过是玄门为了更好地拿捏后代编出来的说辞。我知道了这秘密，才离开的。」话音未落，他转身再次远去。',
+                '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔——黑云·小树。他看着你，忽然笑了：「其实，你根本不需要杀他。手刃血亲，不过是玄门为了更好地拿捏后代编出来的说辞。我知道了这秘密，才离开的。」话音未落，他转身再次远去。',
             choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],
