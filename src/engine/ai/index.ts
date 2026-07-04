@@ -201,7 +201,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             minMoveCost,
             self.moveEfficiency,
         )
-        if (plan) {
+        if (plan && plan.apCost + est.apCost <= apBudget) {
             mainId = est.actionId
             moveDelta = plan.delta
             moveAp = plan.apCost
@@ -228,7 +228,12 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         if (preCmds.length > 0) return preCmds
         const postCmds = planSupportActions(self, state, apBudget, 'post_action')
         if (postCmds.length > 0) return postCmds
-        return []
+        // P5: 所有招式都出不了，尽量向理想距离移动
+        const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
+        const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
+        const perAp = minMoveCost ? 2 : basePerAp * (1 + self.moveEfficiency)
+        const bestDist = -(apBudget * perAp)
+        return [{ type: 'move', bestDistance: bestDist }]
     }
 
     // 验证 mainId 对应招式存在（pickup_weapon 可能不在所有角色 action list 中）

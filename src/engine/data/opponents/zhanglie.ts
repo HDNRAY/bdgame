@@ -20,6 +20,7 @@ export const ZHANGLIE: OpponentDef = {
         weapon('iron_spear'),
         action('rod_sweep'),
         action('return_spear'),
+        // 10
     ],
     actionConfigs: [
         { actionId: 'pursuit_thrust', triggerId: 'on_bleed' },

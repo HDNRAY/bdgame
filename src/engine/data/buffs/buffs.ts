@@ -1088,4 +1088,68 @@ export const BUFF_DB: BuffDef[] = [
             return final * mult
         },
     },
+    {
+        id: 'bean_buff',
+        name: '茴香气',
+        description: '茴香豆的余香，全属性+1（除推演）。',
+        tags: [],
+        expiry: { type: 'duration', ms: 10000 },
+        attrMods: { strength: 1, vitality: 1, agility: 1, dexterity: 1, wisdom: 1 },
+    },
+    // ── 酒鬼·无志 ──
+    {
+        id: 'you_shen',
+        name: '游身',
+        description: '游身步法，敏捷+1、灵巧+1。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 3 },
+        attrMods: { agility: 1, dexterity: 1 },
+    },
+    {
+        id: 'wan_liu_gui_zong',
+        name: '归宗势',
+        description: '完全招架远程攻击。',
+        tags: [],
+        expiry: { type: 'duration', ms: 3000 },
+        onParryChance: () => 1,
+    },
+    {
+        id: 'jiu_yang_regen',
+        name: '九阳真气',
+        description: '九阳真气护体，每5秒回复1%生命。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        tickInterval: 5000,
+        onTickHeal: ({ target }) => Math.max(1, Math.round(target.maxHp * 0.01)),
+    },
+    {
+        id: 'zui_quan_dodge',
+        name: '醉步',
+        description: '醉态蹒跚，闪避率+12%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDodgeChance: () => 0.12,
+    },
+    {
+        id: 'qian_kun_fan_tan',
+        name: '乾坤大挪移',
+        description: '受伤时25%概率消耗2缠反弹最多30点伤害，自身仅承受剩余伤害。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onTakeDamage: ({ final, attacker, target, engine }) => {
+            if (attacker === target || Math.random() >= 0.25) return final
+            if (target.chan < 2) return final
+            const reflectDmg = Math.min(Math.round(final), 30)
+            if (reflectDmg <= 0) return final
+            target.spendChan(2)
+            attacker.takeDamage?.(reflectDmg)
+            engine?.emitLog({
+                type: 'system',
+                message: `[乾坤大挪移] ${target.name} 消耗2缠反弹 ${reflectDmg} 点伤害给 ${attacker.name}，自承 ${final - reflectDmg} 点`,
+                actorId: target.id,
+            })
+            return final - reflectDmg
+        },
+    },
 ]

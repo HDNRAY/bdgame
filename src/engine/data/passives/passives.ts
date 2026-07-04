@@ -577,4 +577,48 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'li_wu_xu_fa' }] }],
     },
+    // ── 酒鬼·无志 ──
+    {
+        id: 'zui_quan',
+        name: '醉拳',
+        description: '醉态蹒跚，步法诡谲。徒手招式附带短距冲刺，闪避率+12%。',
+        tags: ['passive', 'buff'],
+        actionEnhancer: (def) => {
+            if (!def.tags?.includes('unarmed') || !def.effects?.some((e) => e.type === 'damage')) return def
+            return { ...def, effects: [{ type: 'short_dash', maxDistance: 1 }, ...def.effects] }
+        },
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'zui_quan_dodge' }] }],
+    },
+    {
+        id: 'jiu_yang_shen_gong',
+        name: '九阳神功',
+        description: '九阳真气护体，体魄+2，免疫冰冻，每5秒回复1%生命。',
+        tags: ['passive', 'buff', 'defense'],
+        effects: [{ type: 'stat_buff', attrs: { vitality: 2 } }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'jiu_yang_regen' }] }],
+    },
+    {
+        id: 'hun_yuan_gong',
+        name: '混元功',
+        description: '混元护体，近身受到超过8点或炁伤害时反伤并击退对手。',
+        tags: ['passive', 'qi', 'defense'],
+        triggers: [
+            {
+                condition: { type: 'on_was_hit', check: (ctx) => ctx.distance <= 1 },
+                actionId: '_hun_yuan_reflect',
+            },
+        ],
+    },
+    {
+        id: 'qian_kun_da_nuo_yi',
+        name: '乾坤大挪移',
+        description: '醉态中身体不受控制地晃动，受击时15%概率将所受伤害全额反弹。',
+        tags: ['passive', 'defense'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'qian_kun_fan_tan' }],
+            },
+        ],
+    },
 ]

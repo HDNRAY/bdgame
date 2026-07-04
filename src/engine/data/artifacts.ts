@@ -344,6 +344,26 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['buff'],
         effects: [{ type: 'stat_buff', attrs: { insight: 3, wisdom: 2 } }],
     },
+    {
+        id: 'hui_xiang_dou',
+        name: '茴香豆',
+        description: '茴香豆，下酒良品。嚼几颗提神醒脑，全属性+1（除推演），持续10秒。',
+        tags: ['buff'],
+        grantsActions: ['_eat_beans'],
+    },
+    {
+        id: 'jiu_hu',
+        name: '酒壶',
+        description: '不知年岁的黄酒壶。血量低于70%时自动喝一口回复30点气血，可用3次。',
+        tags: ['trigger', 'heal'],
+        grantsActions: ['_jiu_hu_heal'],
+        triggers: [
+            {
+                condition: { type: 'hp_below', check: (ctx) => ctx.actor.hp / ctx.actor.maxHp < 0.7 },
+                actionId: '_jiu_hu_heal',
+            },
+        ],
+    },
 ]
 
 /** 按 ID 查找物品 */

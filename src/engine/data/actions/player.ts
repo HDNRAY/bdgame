@@ -621,4 +621,38 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.3 },
         ],
     },
+    // ── 酒鬼·无志 ──
+    {
+        id: 'ba_gua_you_shen_zhang',
+        name: '八卦游身掌',
+        description: '脚踏八卦，游身缠斗。叠一层游身，每层敏捷+1、灵巧+1。',
+        requiredTags: ['unarmed'],
+        apCost: 2,
+        tags: ['unarmed', 'melee', 'buff'],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.15, dexterity: 0.15 } },
+            { type: 'add_buff', buffId: 'you_shen', stacks: 1 },
+        ],
+    },
+    {
+        id: 'hun_yuan_zhang',
+        name: '混元掌',
+        description: '混元一气，蕴含炁劲的掌法。',
+        requiredTags: ['unarmed'],
+        apCost: 4,
+        chanCost: 15,
+        tags: ['unarmed', 'qi'],
+        canUse: (attacker) => attacker.chan >= 15,
+        effects: [{ type: 'damage', scaling: { strength: 0.4, wisdom: 0.6 } }],
+    },
+    {
+        id: 'wan_liu_gui_zong',
+        name: '万流归宗',
+        description: '酒醉归宗之势，完全招架远程攻击。',
+        requiredTags: ['unarmed'],
+        apCost: 1,
+        tags: ['defense', 'unarmed', 'post_action'],
+        canUse: (attacker) => attacker.chan >= 2,
+        effects: [{ type: 'add_buff', buffId: 'wan_liu_gui_zong' }],
+    },
 ]

@@ -14,6 +14,7 @@ export { YANGGUO } from './yangguo'
 export { AJIU } from './ajiu'
 export { WUKONG } from './wukong'
 export { XUNXIANG } from './xunxiang'
+export { WUZUI } from './wuzui'
 export { JUNSHI } from './junshi'
 export { FENGSHUI } from './fengshui'
 export { DUOER } from './duoer'
@@ -43,6 +44,7 @@ import { XUNXIANG } from './xunxiang'
 import { JUNSHI } from './junshi'
 import { DUOER } from './duoer'
 import { FENGSHUI } from './fengshui'
+import { WUZUI } from './wuzui'
 import { AttackStyle } from '../../ai/move-planner'
 
 /** 对手定义（纯数据） */
@@ -69,6 +71,7 @@ export const OPPONENTS: OpponentDef[] = [
     // 拳掌
     QILAN,
     LAIFENG,
+    WUZUI,
     // 刀剑
     LUHONGTI,
     SANGYUAN,
