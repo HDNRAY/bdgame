@@ -24,9 +24,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '一把残损的断刀。加装锁链，免疫缴械。',
         tags: ['slash', 'parry', 'melee'],
         range: [1, 2],
-        triggers: [
-            { condition: { type: 'on_opponent_move_away' }, actionId: '_shuai_ren' },
-        ],
+        triggers: [{ condition: { type: 'on_opponent_move_away' }, actionId: '_shuai_ren' }],
     },
     {
         id: 'iron_spear',
