@@ -140,6 +140,7 @@ export class Character {
             if (a.grantsActions) gainedActions.push(...a.grantsActions)
         }
         const weapon = getWeapon(build.weapon)
+        this.weaponDef = weapon
         // 武器属性要求检测
         const weaponOk =
             !weapon.requireAttrsMin ||
