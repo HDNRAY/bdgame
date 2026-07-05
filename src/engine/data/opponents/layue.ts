@@ -23,7 +23,7 @@ export const LAYUE: OpponentDef = {
     ],
     actionConfigs: [
         { actionId: 'nine_deaths_strike' }, // AI 出招顺序
-        { actionId: 'nine_deaths_strike', triggerId: 'on_parry' },
+        { actionId: 'nine_deaths_strike', triggerId: 'on_opponent_move_away' },
         { actionId: 'cun_mang', triggerId: 'on_parried' },
     ],
 }

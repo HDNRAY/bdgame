@@ -82,7 +82,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '每层增伤5%。累计10点治疗消一层。',
         tags: ['debuff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive' },
+        stacking: { type: 'additive', max: 9 },
         onTakeDamage: ({ final, layer }) => Math.round(final * (1 + layer.restoreValue * 0.05) * 10) / 10,
         onReceiveHeal: ({ layer, engine, target, final: amount }) => {
             const HEAL_PER_STACK = 10
@@ -110,7 +110,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { agility: -8, strength: 4 },
-        onParryChance: () => 0.2,
+        onParryChance: ({ action }) => (action?.tags.includes('range') ? 0.4 : 0.2),
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
             const reduced = Math.round(blocked * 0.2 * 10) / 10
@@ -162,7 +162,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '汲取',
         description: '吸取目标属性。',
         tags: [],
-        expiry: { type: 'duration', ms: 2000 },
+        expiry: { type: 'duration', ms: 1500 },
         stacking: { type: 'independent' },
     },
 
@@ -795,6 +795,19 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
+        id: 'spirit_resonance_buff',
+        name: '灵器共鸣',
+        description: '将自身力道转化为召唤物的攻击力。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final, action, layer }) => {
+            if (!action?.tags?.includes('summon')) return final
+            const bonus = (action.apCost ?? 0) * layer.restoreValue
+            return Math.round((final + bonus) * 10) / 10
+        },
+    },
+    {
         id: 'golden_light',
         name: '金光',
         description: '金光咒护体，受伤时消耗1层缠劲减免3点。',
@@ -828,11 +841,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'buer_sword',
         name: '不二剑灵',
-        description: '起手暴击大增但身法略滞，剑意逐回合恢复。',
+        description: '起手暴击大增但身法略滞，逐回合恢复。',
         tags: [],
         expiry: { type: 'permanent' },
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.05,
-        onDodgeChance: ({ layer }) => -(layer.restoreValue * 0.02),
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.04,
+        onDodgeChance: ({ layer }) => -(layer.restoreValue * 0.01),
         onTurnEnd: ({ layer }) => {
             if (layer.restoreValue > 0) {
                 layer.restoreValue = Math.max(0, layer.restoreValue - 1)
@@ -842,13 +855,13 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'sword_intent_tempering',
         name: '剑意淬体',
-        description: '剑意淬炼肉身，slash/pierce伤害减免25%，单次受伤不超过最大生命的25%。',
+        description: '剑意淬炼肉身，slash/pierce伤害减免20%，单次受伤不超过最大生命的25%。',
         tags: [],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, action }) => {
             let dmg = final
             if (action?.tags?.includes('slash') || action?.tags?.includes('pierce')) {
-                dmg = Math.round(dmg * 0.75 * 10) / 10
+                dmg = Math.round(dmg * 0.8 * 10) / 10
             }
             const cap = Math.round(target.maxHp * 0.25 * 10) / 10
             return Math.min(dmg, cap)
@@ -1200,6 +1213,49 @@ export const BUFF_DB: BuffDef[] = [
                 return Math.round((final + stacks * 3) * 10) / 10
             }
             return final
+        },
+    },
+    // ── 黑云·小树 ──
+    {
+        id: 'sword_enhance_buff',
+        name: '灵炁灌注',
+        description: '下次御物伤害+30%。',
+        tags: ['imperial'],
+        expiry: { type: 'consumed', trigger: 'on_hit' },
+        stacking: { type: 'none' },
+        onDealDamage: (ctx) => {
+            if (!ctx.attacker.weaponDef?.tags.includes('imperial')) return ctx.final
+            return Math.round(ctx.final * 1.3)
+        },
+    },
+    {
+        id: 'drunken_dodge',
+        name: '醉仙望月步',
+        description: '闪避+15%。',
+        tags: [],
+        expiry: { type: 'duration', ms: 15000 },
+        stacking: { type: 'none' },
+        onDodgeChance: () => 0.15,
+    },
+    {
+        id: 'drunken_step_watcher',
+        name: '醉仙望月',
+        description: '监测治疗量，≥9点时触发醉仙望月步。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onReceiveHeal: ({ final: amount, target, engine, state }) => {
+            if ((amount ?? 0) >= 9) {
+                const enemy = engine?.getOpponent(target.id)
+                if (enemy) {
+                    processActionEffect(
+                        { type: 'add_buff', buffId: 'drunken_dodge', stacks: 1 },
+                        target,
+                        enemy,
+                        engine!,
+                        state.turn.currentTime,
+                    )
+                }
+            }
         },
     },
     // ── 战术腰包 ──

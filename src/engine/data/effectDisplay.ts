@@ -137,8 +137,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`切换武器: ${eff.weaponId}`]
         case 'summon_speed':
             return [`召唤速度: ${eff.value}`]
-        case 'summon_damage_bonus':
-            return [`召唤伤害加成: ${eff.value}`]
         case 'stat_transfer':
             return [`属性转移: ${eff.stat} → +${eff.value}`]
         case 'ciyuan_init':

@@ -75,14 +75,12 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const hasTag = inst.def.requiredTags.some((tag) => weapon.tags.includes(tag))
             if (!hasTag) continue
         }
-        // 跳过纯位移招式（无伤害效果，如虎跃），近战时不应作为主招
-        if (inst.id === 'big_leap') continue
-        if (
-            !inst.def.effects?.some(
-                (e) => e.type === 'damage' || e.type === 'fixed_damage' || e.type === 'functional_damage',
-            )
-        )
-            continue
+        // if (
+        //     !inst.def.effects?.some(
+        //         (e) => e.type === 'damage' || e.type === 'fixed_damage' || e.type === 'functional_damage',
+        //     )
+        // )
+        //     continue
         const selfDmgEff = inst.def.effects?.find(
             (e): e is Extract<EffectDef, { type: 'self_damage' }> => e.type === 'self_damage',
         )

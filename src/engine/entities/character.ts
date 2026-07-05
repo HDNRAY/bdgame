@@ -170,9 +170,10 @@ export class Character {
             if (a.actionEnhancer) this.#applyActionEnhancer(a.actionEnhancer)
         }
 
-        // 非空手角色自动获取捡武器招式
+        // 非空手、非御物角色自动获取捡武器招式
         if (
             weapon.id !== 'bare_hands' &&
+            !weapon.tags.includes('imperial') &&
             !this.#actionCache.some((a) => a.id === 'pickup_weapon' || a.id === 'retrieve_blade')
         ) {
             const pw = getActionDef('pickup_weapon')
@@ -458,23 +459,6 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     stat_restriction(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'stat_restriction' }>
         char.statRestrictionChecks.push(e.check)
-    },
-    summon_damage_bonus(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'summon_damage_bonus' }>
-        const weapon = getWeapon(char.build.weapon)
-        if (weapon.summon) {
-            const orig = getActionDef(weapon.summon.actionId)
-            if (orig) {
-                const clonedAction: ActionDefinition = {
-                    ...orig,
-                    effects: orig.effects?.map((ef) =>
-                        ef.type === 'fixed_damage' ? { ...ef, value: ef.value + e.value } : ef,
-                    ),
-                }
-                // 克隆武器，嵌入修改后的召唤动作
-                char.weaponDef = { ...weapon, summon: { ...weapon.summon, action: clonedAction } }
-            }
-        }
     },
     // 义体效果（构造期执行）
     max_ap_mod(char, eff) {

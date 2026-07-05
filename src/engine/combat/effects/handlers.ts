@@ -83,15 +83,15 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
         engine.emitLog({ type: 'cleanse', sourceId: self.id, targetId: self.id, buffIds: targets })
     },
-    heal({ eff, self, engine }: EffectCtx) {
+    heal({ eff, self, engine, action }: EffectCtx) {
         const { value, ratio } = eff as Extract<EffectDef, { type: 'heal' }>
         const amount = calcHealAmount(value, self.maxHp, ratio)
         self.heal(amount)
         reduceBleedOnHeal(engine, self.id, amount)
         engine.emitLog({
             type: 'heal',
-            actionId: '_heal',
-            actionName: '治疗',
+            actionId: action?.id ?? '_heal',
+            actionName: action?.name ?? '治疗',
             sourceId: self.id,
             targetId: self.id,
             amount,
@@ -380,8 +380,17 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
 
         if (existing && buff?.stacking?.type === 'additive') {
-            existing.restoreValue += stacks
-            const result = applyScaledAttrMods(buff!, stacks, enemy, engine.state)
+            const max = buff?.stacking?.max ?? Infinity
+            const newVal = Math.min(existing.restoreValue + stacks, max)
+            const delta = newVal - existing.restoreValue
+            if (delta <= 0) {
+                // 已达上限，仍刷新持续时间
+                engine.state.turn.removeEvents(`buff_end_${key}`)
+                scheduleBuffEnd(engine, key, buff!, enemy)
+                return
+            }
+            existing.restoreValue = newVal
+            const result = applyScaledAttrMods(buff!, delta, enemy, engine.state)
             if (!existing.mods) existing.mods = {}
             for (const [attr, v] of Object.entries(result.mods)) {
                 existing.mods[attr] = (existing.mods[attr] ?? 0) + (v as number)
@@ -428,8 +437,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
 
         // 首次应用（independent/none/additive 首次均走此路径）
+        const capped = buff?.stacking?.type === 'additive' ? Math.min(stacks, buff.stacking.max ?? Infinity) : stacks
         const extra = makeExtra()
-        const firstResult = applyScaledAttrMods(buff!, stacks, enemy, engine.state)
+        const firstResult = applyScaledAttrMods(buff!, capped, enemy, engine.state)
         // stun 的 attrMods 在 afterApplyDebuff 中由 applyAttrMods 输出属性日志，此处不重复
         if (e.buffId !== 'stun') {
             engine.emitLog({
@@ -440,7 +450,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 actorId: enemy.id,
             })
         }
-        const layer: BuffLayer = { restoreValue: stacks, mods: firstResult.mods, extra }
+        const layer: BuffLayer = { restoreValue: capped, mods: firstResult.mods, extra }
         engine.state.pendingBuffs.set(key, layer)
 
         // 调度 expiry

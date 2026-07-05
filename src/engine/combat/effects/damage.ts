@@ -347,7 +347,7 @@ function applyDamageModifiers(
         if (parts.length < 2) continue
         if (parts[1] !== target.id && parts[1] !== attacker.id) continue
         const def = getBuff(parts[0])
-        const act = actionDef ?? getAction('')
+        const act = actionDef
         if (!act) continue
         const ctx = {
             final,

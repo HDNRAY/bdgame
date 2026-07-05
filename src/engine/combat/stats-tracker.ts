@@ -50,12 +50,13 @@ export class StatsTracker {
             case 'heal': {
                 this.totalHeal += event.amount
                 const src = event.sourceId ?? event.targetId
-                const k = key('_heal', src)
+                const actionLabel = event.actionId ?? '_heal'
+                const k = key(actionLabel, src)
                 let s = this.byAction.get(k)
                 if (!s) {
                     s = {
-                        actionId: '_heal',
-                        actionName: '治疗',
+                        actionId: actionLabel,
+                        actionName: event.actionName ?? '治疗',
                         sourceId: src,
                         totalDamage: 0,
                         hitCount: 0,

@@ -19,7 +19,7 @@ export const XUANJI: OpponentDef = {
         action('restore_ap'),
         action('summon_haste'),
         action('agility_steal'),
-        // 11
+        // 10 + 1
     ],
     actionConfigs: [
         { actionId: 'qi_bolt' },

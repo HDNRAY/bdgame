@@ -76,7 +76,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         description: '御剑飞行，剑气纵横。',
         tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'polearm'],
         bound: true,
-        range: [2, 6],
+        range: [0, 6],
         summon: {
             id: 'fei_jian',
             name: '一柄大剑',

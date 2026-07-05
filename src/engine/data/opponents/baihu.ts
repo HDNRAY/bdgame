@@ -18,6 +18,7 @@ export const BAIHU: OpponentDef = {
         action('heavy_slash'),
         action('guard'),
         action('nineteen_stops'),
+        // 听潮九剑
         // 9
     ],
     actionConfigs: [

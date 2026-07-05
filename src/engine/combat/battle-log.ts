@@ -161,9 +161,10 @@ export class BattleLog {
                 break
             case 'heal': {
                 const src = event.sourceId ? this.resolveName(event.sourceId, snapshot) : undefined
+                const label = event.actionName ?? '回复'
                 const msg = src
-                    ? `[回复] ${src} → ${this.resolveName(event.targetId, snapshot)} +${event.amount.toFixed(1)}HP`
-                    : `[回复] ${this.resolveName(event.targetId, snapshot)} +${event.amount.toFixed(1)}HP`
+                    ? `[${label}] ${src} → ${this.resolveName(event.targetId, snapshot)} +${event.amount.toFixed(1)}HP`
+                    : `[${label}] ${this.resolveName(event.targetId, snapshot)} +${event.amount.toFixed(1)}HP`
                 this.push({ type: 'system', message: msg, indent: this.indentDepth, snapshot }, tMs)
                 break
             }

@@ -32,15 +32,18 @@ export const PASSIVES: Passive[] = [
         name: '灵器共鸣',
         description: '将自身力道转化为召唤物的攻击力。',
         tags: ['summon'],
-        effects: [
-            { type: 'stat_buff', attrs: { strength: -2 } },
-            { type: 'summon_damage_bonus', value: 4 },
+        effects: [{ type: 'stat_buff', attrs: { strength: -2 } }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'spirit_resonance_buff', stacks: 1 }],
+            },
         ],
     },
     {
         id: 'sword_dominion',
         name: '御剑诀',
-        description: '以炁御剑，剑随意动。无需从小以炁养物，估故仅能延长攻击距离。',
+        description: '以炁御剑，剑随意动。延长攻击距离。',
         tags: ['imperial', 'qi', 'range_up'],
         effects: [{ type: 'weapon_range_bonus', value: 2, requireWeaponTag: 'imperial' }],
     },
@@ -52,7 +55,7 @@ export const PASSIVES: Passive[] = [
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'last_stand', stacks: 0.25 }],
+                effects: [{ type: 'add_buff', buffId: 'last_stand', stacks: 0.3 }],
             },
         ],
     },
@@ -616,5 +619,17 @@ export const PASSIVES: Passive[] = [
         description: '每被闪避一次积攒怒气，下次命中附加 层数×3 点伤害，击中后重置。',
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_focus' }] }],
+    },
+    {
+        id: 'drunken_step',
+        name: '醉仙望月步',
+        description: '每次受到≥9点治疗时，获得20%闪避，持续20秒。',
+        tags: ['passive', 'defense', 'buff'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'drunken_step_watcher' }],
+            },
+        ],
     },
 ]

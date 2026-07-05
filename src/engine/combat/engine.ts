@@ -251,9 +251,10 @@ export class BattleEngine {
             return true
         }
 
-        // ── 1. AP 回复（距离上次行动经过的时间） ──
-        if (self.lastActionEndMs > 0) {
-            const elapsedMs = e.nextActionAt - self.lastActionEndMs
+        // ── 1. AP 回复（距离上次行动/召唤消耗经过的时间） ──
+        const lastRef = Math.max(self.lastActionEndMs, self.lastApUpdate)
+        if (lastRef > 0) {
+            const elapsedMs = e.nextActionAt - lastRef
             if (elapsedMs > 0) {
                 self.ap = Math.min(self.maxAp, self.ap + calcApRegen(elapsedMs, self.attrs.get('wisdom')))
             }
@@ -281,6 +282,7 @@ export class BattleEngine {
         // ── 3. AI 决策 + 执行指令 ──
         const cmds = planFn(self, enemy, this.state)
         let totalActionDurationMs = 0
+        let firstActionTime = 0
         for (const cmd of cmds) {
             if (self.ap <= 0 && cmd.type !== 'support') break
             // 用当前即时身法计算该指令耗时
@@ -291,6 +293,9 @@ export class BattleEngine {
                     : cmd.actionId
                       ? (self.actions.find((a) => a.id === cmd.actionId)?.apCost ?? 0)
                       : 0
+            if (firstActionTime === 0 && cost > 0) {
+                firstActionTime = this.state.turn.currentTime + this.state.actionTimeOffset
+            }
             const cmdDur = Math.max(1, calcActionDurationMs(cost, agility))
             totalActionDurationMs += cmdDur
             this.execute(cmd, self, enemy)
@@ -331,7 +336,8 @@ export class BattleEngine {
             totalDelay = Math.max(totalDelay, Math.ceil((self.maxAp / regenPerSec) * 1000))
         }
 
-        self.lastActionEndMs = this.state.turn.currentTime + totalActionDurationMs
+        self.lastActionEndMs =
+            firstActionTime > 0 ? firstActionTime : this.state.turn.currentTime + totalActionDurationMs
         this.state.turn.scheduleNext(
             { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.getHaste() },
             totalDelay,

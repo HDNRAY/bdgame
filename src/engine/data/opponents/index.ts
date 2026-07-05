@@ -18,6 +18,7 @@ export { WUZUI } from './wuzui'
 export { JUNSHI } from './junshi'
 export { FENGSHUI } from './fengshui'
 export { DUOER } from './duoer'
+export { HEIYUN } from './heiyun'
 import type { CharacterBuild, BattleStyle } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
@@ -45,6 +46,7 @@ import { JUNSHI } from './junshi'
 import { DUOER } from './duoer'
 import { FENGSHUI } from './fengshui'
 import { WUZUI } from './wuzui'
+import { HEIYUN } from './heiyun'
 
 /** 对手定义（纯数据） */
 export interface OpponentDef {
@@ -87,6 +89,7 @@ export const OPPONENTS: OpponentDef[] = [
     /** 御物 */
     XUANJI, // 玄门
     JUNSHI, // 组织
+    HEIYUN, // 玄门(退出)
     /** 巨武 */
     LIUXIGUA, // 六绝之闪
     YANGGUO, // 六绝之观

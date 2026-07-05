@@ -26,6 +26,7 @@ import {
     DUOER,
     FENGSHUI,
     WUZUI,
+    HEIYUN,
 } from '../src/engine/data/opponents/index'
 import { getWeapon } from '../src/engine/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
@@ -67,8 +68,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(AJIU, 33)
-const oBuild = gen(JUNSHI, 33)
+const pBuild = gen(HEIYUN, 33)
+const oBuild = gen(LAYUE, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

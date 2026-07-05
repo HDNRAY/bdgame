@@ -21,7 +21,7 @@ export const JUNSHI: OpponentDef = {
         action('summon_haste'),
         // 天生道种
         artifact('innate_seed'),
-        // 11
+        // 10 + 1
     ],
     actionConfigs: [
         { actionId: 'condense_shield', triggerId: 'on_took_damage' },

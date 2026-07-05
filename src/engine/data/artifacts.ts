@@ -316,10 +316,10 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'buer_sword',
         name: '不二剑',
-        description: '最快的剑之一，起手暴击大增但身法略滞，剑意逐回合恢复。',
+        description: '最快的剑之一，起手暴击大增但身法略滞，逐回合恢复。',
         tags: ['imperial', 'buff'],
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword', stacks: 10 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword', stacks: 20 }] },
         ],
     },
     {
@@ -363,7 +363,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'jiu_hu',
         name: '酒葫芦',
-        description: '不知年岁的黄酒葫芦。血量低于70%时自动喝一口回复30点气血，可用3次。',
+        description: '不知年岁的黄酒葫芦。血量低于70%时自动喝一口回复20点气血，可用3次。',
         tags: ['trigger', 'heal'],
         grantsActions: ['_jiu_hu_heal'],
         triggers: [

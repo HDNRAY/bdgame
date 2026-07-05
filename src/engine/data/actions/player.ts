@@ -319,9 +319,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '寸芒',
         description: '一寸剑芒，顺势反击。',
         requiredTags: ['pierce'],
-        apCost: 1,
+        apCost: 2,
         tags: ['counter', 'pierce'],
-        effects: [{ type: 'damage', scaling: { agility: 0.15 } }],
+        effects: [{ type: 'damage', scaling: { agility: 0.2, dexterity: 0.2 } }],
     },
 
     {
@@ -653,5 +653,35 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['defense', 'unarmed', 'post_action'],
         canUse: (attacker) => attacker.chan >= 2,
         effects: [{ type: 'add_buff', buffId: 'wan_liu_gui_zong' }],
+    },
+    // ── 御剑系 ──
+    {
+        id: 'ling_qi_guan_zhu',
+        name: '灵炁灌注',
+        description: '将大量炁劲注入御物，下个招式伤害+30%。不可叠加。',
+        requiredTags: ['imperial'],
+        apCost: 4,
+        tags: ['buff', 'pre_action', 'imperial'],
+        target: 'self',
+        effects: [{ type: 'add_buff', buffId: 'sword_enhance_buff' }],
+    },
+    {
+        id: 'yi_night_fish_dragon',
+        name: '一夜鱼龙舞',
+        description: '大剑一分为五，五剑齐发。【多段判定待实现】',
+        requiredTags: ['imperial'],
+        apCost: 5,
+        chanCost: 25,
+        tags: ['range', 'slash', 'pierce'],
+        getRange: (wr) => [0, Math.min(10, wr[1] + 2)] as [number, number],
+        canUse: (attacker) => attacker.chan >= 25,
+        onActionHitChance: (base) => base + 0.2,
+        effects: [
+            { type: 'damage', scaling: { wisdom: 0.5 } },
+            { type: 'damage', scaling: { wisdom: 0.5 } },
+            { type: 'damage', scaling: { wisdom: 0.5 } },
+            { type: 'damage', scaling: { wisdom: 0.5 } },
+            { type: 'damage', scaling: { wisdom: 0.5 } },
+        ],
     },
 ]
