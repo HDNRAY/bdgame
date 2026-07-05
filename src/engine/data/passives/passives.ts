@@ -189,7 +189,7 @@ export const PASSIVES: Passive[] = [
         ],
         actionEnhancer: (def) => {
             if (!def.tags.includes('slash')) return def
-            return { ...def, effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])] }
+            return { ...def, effects: [{ type: 'short_dash', maxDistance: 2 }, ...(def.effects ?? [])] }
         },
     },
     {
@@ -623,7 +623,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'drunken_step',
         name: '醉仙望月步',
-        description: '每次受到≥9点治疗时，获得20%闪避，持续20秒。',
+        description: '每次受到≥9点治疗时，获得15%闪避，持续15秒。',
         tags: ['passive', 'defense', 'buff'],
         triggers: [
             {

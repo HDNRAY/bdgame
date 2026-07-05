@@ -164,8 +164,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.state.pendingBuffs.set(`ciyuan_blade::${self.id}`, { restoreValue: 1 })
     },
     fixed_damage({ eff, self, enemy, engine, action }: EffectCtx) {
-        const { value } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
-        applyDamage(value, enemy, self, engine, action)
+        const { value, independentHits = 1 } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
+        for (let i = 0; i < independentHits; i++) {
+            applyDamage(value, enemy, self, engine, action)
+        }
     },
     functional_damage({ eff, self, enemy, engine, action }: EffectCtx) {
         const { fn } = eff as Extract<EffectDef, { type: 'functional_damage' }>
@@ -175,11 +177,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
     },
     damage({ eff, self, enemy, engine, action }: EffectCtx) {
-        const { scaling } = eff as Extract<EffectDef, { type: 'damage' }>
+        const { scaling, independentHits = 1 } = eff as Extract<EffectDef, { type: 'damage' }>
         const base = (eff as Extract<EffectDef, { type: 'damage' }>).base ?? 0
         const raw = calcBaseDamage(scaling, self.attrs.getAll(), base)
         if (raw > 0) {
-            applyDamage(raw, enemy, self, engine, action)
+            for (let i = 0; i < independentHits; i++) {
+                applyDamage(raw, enemy, self, engine, action)
+            }
         }
     },
     self_damage({ eff, self, engine }: EffectCtx) {

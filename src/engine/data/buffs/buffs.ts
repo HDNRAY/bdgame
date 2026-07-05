@@ -79,10 +79,10 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'blade_qi',
         name: '刃炁',
-        description: '每层增伤5%。累计10点治疗消一层。',
+        description: '每层增伤3%。累计10点治疗消一层。',
         tags: ['debuff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 9 },
+        stacking: { type: 'additive', max: 81 },
         onTakeDamage: ({ final, layer }) => Math.round(final * (1 + layer.restoreValue * 0.05) * 10) / 10,
         onReceiveHeal: ({ layer, engine, target, final: amount }) => {
             const HEAL_PER_STACK = 10
@@ -675,7 +675,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        attrMods: { insight: 2, wisdom: 1 },
+        attrMods: { insight: 2, wisdom: 2 },
     },
     {
         id: 'calming_aftertaste',

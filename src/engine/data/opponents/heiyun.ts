@@ -9,7 +9,7 @@ export const HEIYUN: OpponentDef = {
     weapon: 'fei_jian',
     targetAttrs: HEIYUN_ATTRS,
     rewards: [
-        // action('yi_night_fish_dragon'),
+        action('yi_night_fish_dragon'),
         passive('momentum_mastery'),
         passive('sword_intent_tempering'),
         passive('drunken_step'),

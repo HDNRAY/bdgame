@@ -221,23 +221,25 @@ export function CharacterPanel({
                             </>
                         ) : (
                             <div className="cp-tag-list">
-                                {character.actions.map((act, i) => {
-                                    const cfg = character.getConfig(act.id)
-                                    const condName = cfg?.conditionId
-                                        ? CONDITION_PRESETS.find((p) => p.id === cfg.conditionId)?.name
-                                        : null
-                                    const trigName = cfg?.triggerId ? getTriggerConditionName(cfg.triggerId) : null
-                                    return (
-                                        <EntityItem key={i} entity={act.def} type="action">
-                                            {(condName || trigName) && (
-                                                <>
-                                                    {condName && <span className="cp-tag-cond">{condName}</span>}
-                                                    {trigName && <span className="cp-tag-trig">{trigName}</span>}
-                                                </>
-                                            )}
-                                        </EntityItem>
-                                    )
-                                })}
+                                {character.actions
+                                    .filter((a) => !a.def.tags.includes('internal'))
+                                    .map((act, i) => {
+                                        const cfg = character.getConfig(act.id)
+                                        const condName = cfg?.conditionId
+                                            ? CONDITION_PRESETS.find((p) => p.id === cfg.conditionId)?.name
+                                            : null
+                                        const trigName = cfg?.triggerId ? getTriggerConditionName(cfg.triggerId) : null
+                                        return (
+                                            <EntityItem key={i} entity={act.def} type="action">
+                                                {(condName || trigName) && (
+                                                    <>
+                                                        {condName && <span className="cp-tag-cond">{condName}</span>}
+                                                        {trigName && <span className="cp-tag-trig">{trigName}</span>}
+                                                    </>
+                                                )}
+                                            </EntityItem>
+                                        )
+                                    })}
                             </div>
                         )}
                     </div>

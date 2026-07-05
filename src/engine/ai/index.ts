@@ -67,7 +67,12 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     // ── 1. 候选主招（非 support） ──
     const candidates: DamageEstimate[] = []
     for (const inst of self.actions) {
-        if (inst.def.tags.includes('pre_action') || inst.def.tags.includes('post_action')) continue
+        if (
+            inst.def.tags.includes('pre_action') ||
+            inst.def.tags.includes('post_action') ||
+            inst.def.tags.includes('internal')
+        )
+            continue
         if (!inst.canUse()) continue
         if (inst.def.canUse && !inst.def.canUse(self, state)) continue
         // 检查武器标签兼容性（缴械后 bare_hands 无法使用需要标签的招式）

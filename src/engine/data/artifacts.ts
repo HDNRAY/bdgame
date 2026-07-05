@@ -165,7 +165,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'calming_talisman',
         name: '定心香氛',
-        description: '感知肾上腺素后散发镇定香氛，切换姿态时旧香换新，余香缭绕。洞察+2，推演+1。',
+        description: '感知肾上腺素后散发镇定香氛，切换姿态时旧香换新，余香缭绕。洞察+2，推演+2。',
         tags: ['buff'],
         triggers: [
             {
