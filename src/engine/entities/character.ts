@@ -162,6 +162,25 @@ export class Character {
             })
             .filter((a): a is Action => a !== null)
 
+        // 5b. 补充触发招式（被动/奇物/actionConfig 引用的内部招式）到缓存，供 maxUses 追踪
+        const triggerActionIds = new Set<string>()
+        for (const p of this.passiveDefs) {
+            for (const t of p.triggers ?? []) if (t.actionId) triggerActionIds.add(t.actionId)
+        }
+        for (const a of this.artifactDefs) {
+            for (const t of a.triggers ?? []) if (t.actionId) triggerActionIds.add(t.actionId)
+        }
+        for (const ac of build.actionConfigs ?? []) {
+            if (ac.actionId) triggerActionIds.add(ac.actionId)
+        }
+        const existingIds = new Set(this.#actionCache.map((a) => a.id))
+        for (const id of triggerActionIds) {
+            if (!existingIds.has(id)) {
+                const def = getActionDef(id)
+                if (def) this.#actionCache.push(new Action(def))
+            }
+        }
+
         // 通用招式强化：被动钩子
         for (const p of this.passiveDefs) {
             if (p.actionEnhancer) this.#applyActionEnhancer(p.actionEnhancer)

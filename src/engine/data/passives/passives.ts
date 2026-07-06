@@ -467,7 +467,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'lingxi_finger',
         name: '灵犀一指',
-        description: '陆小凤绝学，空手亦可夹住兵刃。灵巧+4，徒手可招架。',
+        description: '陆小凤绝学，空手入白刃，招架时缴械对手。灵巧+4，徒手可招架。',
         tags: ['passive', 'buff', 'defense'],
         effects: [{ type: 'stat_buff', attrs: { dexterity: 4 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lingxi_finger' }] }],
@@ -495,7 +495,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'golden_light',
         name: '金光咒',
-        description: '金光护体，AP上限-1；受伤时消耗1层缠劲减免3点；非御物攻击消耗1层缠劲附加3点伤害（1点穿透）。',
+        description: '金光护体，AP上限-1；受伤时消耗1层缠劲减免3点；非御物攻击消耗1层缠劲附加2点伤害。',
         tags: ['passive', 'buff', 'defense', 'qi'],
         effects: [{ type: 'max_ap_mod', value: -1 }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'golden_light' }] }],

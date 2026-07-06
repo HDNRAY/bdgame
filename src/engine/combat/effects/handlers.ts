@@ -20,8 +20,8 @@ import { applyAttrMods, reduceBleedOnHeal, applyScaledAttrMods, scheduleBuffEnd 
 import { BuffDef, getBuff } from '../../data/buffs'
 
 /** 检查目标是否有罡体免疫（通过 buff 的 super_armor 标签识别） */
-function hasCcImmunity(target: { id: string }, engine: { state: { pendingBuffs: Map<string, unknown> } }): boolean {
-    for (const [key] of engine.state.pendingBuffs) {
+function hasCcImmunity(target: { id: string }, state: { pendingBuffs: Map<string, unknown> }): boolean {
+    for (const [key] of state.pendingBuffs) {
         const [buffId, charId] = key.split('::')
         if (charId !== target.id) continue
         const def = getBuff(buffId)
@@ -116,7 +116,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
     },
     interrupt({ enemy, engine }: EffectCtx) {
-        if (hasCcImmunity(enemy, engine)) {
+        if (hasCcImmunity(enemy, engine.state)) {
             engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫打断`, actorId: enemy.id })
             return
         }
@@ -125,7 +125,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.emitLog({ type: 'interrupt', sourceId: '', targetId: enemy.id })
     },
     knockback({ eff, self, engine }: EffectCtx) {
-        if (hasCcImmunity(self, engine)) {
+        if (hasCcImmunity(self, engine.state)) {
             engine.emitLog({ type: 'system', message: `[罡体] ${self.name} 免疫击退`, actorId: self.id })
             return
         }
@@ -361,7 +361,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
         // 罡体免疫
         if (
-            hasCcImmunity(enemy, engine) &&
+            hasCcImmunity(enemy, engine.state) &&
             (st === 'stun' || st === 'stagger' || st === 'knockdown' || st === 'fumble_chance')
         ) {
             engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫${buff.name}`, actorId: enemy.id })
@@ -671,7 +671,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
     },
     disarm({ eff, self, enemy, engine, action }: EffectCtx) {
-        if (hasCcImmunity(enemy, engine)) {
+        if (hasCcImmunity(enemy, engine.state)) {
             engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫缴械`, actorId: enemy.id })
             return
         }
@@ -686,7 +686,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             chance += def.onDisarmChance({
                 final: 0,
                 raw: 0,
-                attacker: engine.getCharacter('')!,
+                attacker: self,
                 target: enemy,
                 engine,
                 state: engine.state,

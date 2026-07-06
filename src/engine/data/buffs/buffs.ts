@@ -171,7 +171,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'qi_shield',
         name: '炁盾',
         description: '吸收炁招式伤害，每次2点。',
-        tags: [],
+        tags: ['defense'],
         onTakeDamage: ({ final, target, attacker, engine, source, layer, state }) => {
             const act = source
             const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
@@ -191,7 +191,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'dmg_reduce',
         name: '乌铠',
         description: '消耗AP减免斩/刺/钝伤害。',
-        tags: [],
+        tags: ['defense'],
         onTakeDamage: ({ final, target, source, engine }) => {
             if (target.ap < 1 || final <= 4) return final
             const act = source
@@ -217,7 +217,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'last_stand',
         name: '九死剑诀',
         description: '损失血量增伤。',
-        tags: [],
+        tags: ['damage'],
         onDealDamage: ({ final, attacker, layer }) => {
             const ratio = layer.restoreValue
             if (ratio <= 0 || attacker.hp >= attacker.maxHp) return final
@@ -252,7 +252,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'extreme',
         name: '极',
         description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+2%暴伤。',
-        tags: [],
+        tags: ['damage'],
         expiry: { type: 'permanent' },
         onCritChance: ({ source, attacker, layer, engine, state }) => {
             if (((source as ActionDefinition)?.apCost ?? 0) < 5 || attacker.chan < MAX_CHAN) {
@@ -283,7 +283,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'iaijutsu_focus',
         name: '居合·势',
         description: '招架或闪避后蓄势，每层暴击伤害+0.25。',
-        tags: [],
+        tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 3 },
         onCritDamage: ({ layer }) => layer.restoreValue * 0.25,
@@ -292,7 +292,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'guard_up',
         name: '守势',
         description: '凝神防守，招架率大幅提升。',
-        tags: [],
+        tags: ['defense'],
         value: 0.35,
         expiry: { type: 'consumed', trigger: 'on_parry' },
         stacking: { type: 'none' },
@@ -302,7 +302,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'frost_dex_bonus',
         name: '春雷',
         description: '春雷灵巧加成，灵巧增伤。',
-        tags: ['weapon'],
+        tags: ['weapon', 'damage'],
         expiry: { type: 'permanent' },
         attrMods: { strength: 4, agility: -2 },
         onDealDamage: ({ final, attacker }) =>
@@ -312,7 +312,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'ranged_dodge',
         name: '斗笠掩踪',
         description: '距离≥5m时闪避+15%。',
-        tags: [],
+        tags: ['defense'],
         expiry: { type: 'permanent' },
         onDodgeChance: ({ attacker, target, state }) => {
             const dist = state.position.distance(target.id, attacker.id)
@@ -323,7 +323,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'elemental_immunity',
         name: '冰心',
         description: '免疫冰霜、麻痹。',
-        tags: [],
+        tags: ['defense'],
         expiry: { type: 'permanent' },
     },
     {
@@ -339,14 +339,14 @@ export const BUFF_DB: BuffDef[] = [
         id: 'min_move_cost',
         name: '跑得贼快',
         description: '步法精妙，移动消耗最低。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
     },
     {
         id: 'ordinary_training',
         name: '平平无奇的锻炼',
         description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
-        tags: [],
+        tags: ['defense'],
         expiry: { type: 'permanent' },
         onDodgeChance: ({ attacker }) => {
             return attacker.attrs.get('agility') * 0.005
@@ -359,7 +359,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'nuo_yi',
         name: '挪移',
         description: '以柔克刚，四两拨千斤。你加每点灵巧减少1%所受伤害。',
-        tags: [],
+        tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target }) => {
             const dexReduction = (target.attrs.get('dexterity') - 3) * 0.01
@@ -371,7 +371,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'silk_guard',
         name: '金丝护手',
         description: '金丝手套护持，无刃亦可格挡兵刃，缴械抗性+30%。',
-        tags: [],
+        tags: ['defense'],
         expiry: { type: 'permanent' },
         onCanParry: () => true,
         onDisarmChance: () => -0.3,
@@ -389,7 +389,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'qi_amplify',
         name: '炁意',
         description: '凝炁玉增幅，炁系招式伤害根据推演加成。',
-        tags: ['qi'],
+        tags: ['qi', 'damage'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, source }) => {
             const isQi = source?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
@@ -403,14 +403,14 @@ export const BUFF_DB: BuffDef[] = [
         id: 'paralyze_immunity',
         name: '雷体',
         description: '免疫麻痹。',
-        tags: [],
+        tags: ['defense'],
         expiry: { type: 'permanent' },
     },
     {
         id: 'vigor_stance',
         name: '刚劲',
         description: '剑势·刚，力道+4/层，身法-2/层。最多2层。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { strength: 4, agility: -2 },
@@ -419,7 +419,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'gentle_stance',
         name: '柔劲',
         description: '剑势·柔，身法+4/层，力道-2/层。最多2层。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { agility: 4, strength: -2 },
@@ -428,14 +428,14 @@ export const BUFF_DB: BuffDef[] = [
         id: 'dark_room_sense',
         name: '暗室雀眼',
         description: '暗室练就的敏锐感知，免疫迷眼。',
-        tags: [],
+        tags: ['defense'],
         expiry: { type: 'permanent' },
     },
     {
         id: 'yue_nv_buff',
         name: '越女剑意',
         description: '白猿授剑，灵巧化为剑势，附加灵巧×0.1伤害。',
-        tags: [],
+        tags: ['pierce', 'slash', 'damage'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker }) =>
             Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.1 * 10) / 10) * 10) / 10,
@@ -444,7 +444,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'herb_pouch',
         name: '蜂草鱼囊',
         description: '每 5 秒自动化解一层毒素，且恢复3点气血。',
-        tags: [],
+        tags: ['heal'],
         expiry: { type: 'permanent' },
         tickInterval: 5000,
         onTickHeal: ({ target, engine, state }) => {
@@ -468,7 +468,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'thunder_constitution',
         name: '雷电锻体',
         description: '雷系伤害减免80%，其他伤害减免10%。',
-        tags: [],
+        tags: ['defense', 'electric'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, source }) => {
             if (source?.tags?.includes('electric')) {
@@ -481,7 +481,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'thunder_bonus',
         name: '雷法',
         description: '攻击附加3点雷击伤害（1点穿透）。',
-        tags: ['qi', 'electric'],
+        tags: ['qi', 'electric', 'damage'],
         expiry: { type: 'permanent' },
         onAfterDealDamage: () => ({ normal: 2, piercing: 1 }),
     },
@@ -489,7 +489,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'cinnabar_mark',
         name: '守宫砂·印',
         description: '每次攻击积攒一颗雷印，满四颗后下一击爆发。',
-        tags: [],
+        tags: ['damage'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, layer, engine }) => {
             if (layer.restoreValue >= 4) {
@@ -512,7 +512,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'zhou',
         name: '周',
         description: '缠劲充盈，周身劲力流转。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         attrMods: { strength: 1, agility: 1, vitality: 1, wisdom: 1, dexterity: 1, insight: 1 },
@@ -521,7 +521,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'poison_resist',
         name: '蛇毒不侵',
         description: '毒抗+70%。',
-        tags: [],
+        tags: ['defense'],
         expiry: { type: 'permanent' },
     },
     {
@@ -589,7 +589,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'dinghai_pressure',
         name: '定海',
         description: '锭海神铁的压制力场，距离越近伤害越高。',
-        tags: ['weapon'],
+        tags: ['weapon', 'heavy'],
         expiry: { type: 'permanent' },
         attrMods: { agility: -12 },
         onDealDamage: ({ final, attacker, target, state }) => {
@@ -710,11 +710,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'lingxi_finger',
         name: '灵犀一指',
-        description: '灵犀一指，空手亦可格挡兵刃，灵巧+4。',
+        description: '灵犀一指，空手可格挡兵刃，招架时缴械对手，灵巧+4。',
         tags: [],
         expiry: { type: 'permanent' },
         attrMods: { dexterity: 4 },
         onCanParry: () => true,
+        onParried: ({ target, attacker, engine, state }) => {
+            processActionEffect({ type: 'disarm', chance: 1 }, target, attacker, engine!, state.turn.currentTime)
+        },
     },
     {
         id: 'xuan_ji',
@@ -792,7 +795,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'spirit_resonance_buff',
         name: '灵器共鸣',
         description: '将自身力道转化为召唤物的攻击力。',
-        tags: [],
+        tags: ['summon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, source, layer }) => {
@@ -804,8 +807,8 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'golden_light',
         name: '金光',
-        description: '金光咒护体，受伤时消耗1层缠劲减免3点；非御物攻击消耗1层缠劲附加3点伤害（1点穿透）。',
-        tags: [],
+        description: '金光咒护体，受伤时消耗1层缠劲减免3点；非御物攻击消耗1层缠劲附加2点伤害。',
+        tags: ['qi'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, engine }) => {
             if (target.chan <= 0) return final
@@ -822,10 +825,10 @@ export const BUFF_DB: BuffDef[] = [
             attacker.spendChan(1)
             engine?.emitLog({
                 type: 'system',
-                message: `[金光咒] ${attacker.name} 消耗1层缠劲，附加3点伤害`,
+                message: `[金光咒] ${attacker.name} 消耗1层缠劲，附加2点伤害`,
                 actorId: attacker.id,
             })
-            return 3
+            return 2
         },
     },
     {

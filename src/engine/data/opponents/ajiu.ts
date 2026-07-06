@@ -28,7 +28,7 @@ export const AJIU: OpponentDef = {
         { actionId: 'heavy_slash' }, // AI 出招顺序
         { actionId: 'blaze_strike' }, // AI 出招顺序
         { actionId: 'guard' }, // AI 出招顺序
-        { actionId: '_arm_explosion', triggerId: 'hp_below_50' },
+        { actionId: '_arm_explosion', triggerId: 'hp_below_30' },
     ],
     taunt: () => '……让开。',
 }

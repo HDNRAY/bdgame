@@ -36,7 +36,6 @@ function makeState(char: Character): BattleState {
         log: new BattleLog(),
         eventActorId: null,
         eventTime: 0,
-        triggerUses: new Map(),
         pendingBuffs: new Map(),
         actionCount: 0,
         lastActionExtraDelay: 0,

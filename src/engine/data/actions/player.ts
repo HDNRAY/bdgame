@@ -169,44 +169,52 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'damage', scaling: { strength: 0.9, wisdom: 0.9 } }],
     },
     {
-        id: 'poison_detonate',
-        name: '毒素引爆',
-        description: '引爆对手身上的毒素，造成剩余跳数总伤害并清除所有毒层。',
-        requiredTags: [],
-        apCost: 5,
-        chanCost: 30,
-        canUse: (attacker) => attacker.chan >= 30,
-        tags: ['poison', 'qi'],
-        getRange: () => [0, 10],
-        onActionHitChance: () => 1,
+        id: 'dian_xue',
+        name: '点穴',
+        description: '一指封穴，阻断气血。',
+        requiredTags: ['unarmed'],
+        apCost: 2,
+        tags: ['unarmed', 'debuff'],
+        getRange: () => [0, 1] as [number, number],
         effects: [
-            {
-                type: 'functional_damage',
-                fn: ({ enemy, state }) => {
-                    const poisonKey = `poison::${enemy.id}`
-                    const layer = state.pendingBuffs.get(poisonKey)
-                    if (!layer) return 0
-                    const remainingTicks: number[] = (layer.extra?.remainingTicks as number[]) ?? []
-                    const totalRemaining = remainingTicks.reduce((s, t) => s + t, 0)
-                    state.pendingBuffs.delete(poisonKey)
-                    const AMPLIFY = 1
-                    return totalRemaining * DMG_PER_POISON_TICK * AMPLIFY
-                },
-            },
+            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1, wisdom: 0.1 } },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 9, chance: 1 },
         ],
     },
     {
-        id: 'qinlong_gong',
-        name: '擒龙功',
-        description: '隔空擒龙，夺人兵刃。',
+        id: 'kick',
+        name: '脚踢',
+        description: '一记凶狠的蹬踏。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['unarmed', 'debuff'],
+        effects: [
+            { type: 'damage', scaling: { dexterity: 0.1, strength: 0.2, agility: 0.1 } },
+            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.3 },
+        ],
+    },
+    {
+        id: 'ba_gua_you_shen_zhang',
+        name: '八卦游身掌',
+        description: '脚踏八卦，游身缠斗。叠一层游身，每层敏捷+1、灵巧+1。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['qi', 'debuff', 'range'],
-        getRange: () => [1, 3],
+        tags: ['unarmed', 'melee', 'buff'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.1, wisdom: 0.1 } },
-            { type: 'disarm', chance: 0.3 },
+            { type: 'damage', scaling: { strength: 0.15, dexterity: 0.15 } },
+            { type: 'add_buff', buffId: 'you_shen', stacks: 1 },
         ],
+    },
+    {
+        id: 'hun_yuan_zhang',
+        name: '混元掌',
+        description: '混元一气，蕴含炁劲的掌法。',
+        requiredTags: ['unarmed'],
+        apCost: 4,
+        chanCost: 15,
+        tags: ['unarmed', 'qi'],
+        canUse: (attacker) => attacker.chan >= 15,
+        effects: [{ type: 'damage', scaling: { strength: 0.4, wisdom: 0.6 } }],
     },
     {
         id: 'push_hand',
@@ -301,7 +309,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['range', 'pierce', 'thrown'],
         getRange: () => [1, 6],
-        effects: [{ type: 'fixed_damage', value: 6 }],
+        effects: [{ type: 'fixed_damage', value: 8 }],
     },
     {
         id: 'deadly_knife',
@@ -311,7 +319,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['range', 'pierce', 'thrown'],
         getRange: () => [1, 6],
-        effects: [{ type: 'fixed_damage', value: 15 }],
+        effects: [{ type: 'fixed_damage', value: 18 }],
     },
     // ── 穿刺系 ──
     {
@@ -478,8 +486,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['slash', 'burn'],
         getRange: (wr) => [wr[0], wr[1] + 1],
         effects: [
-            { type: 'damage', scaling: { strength: 0.8 } },
-            { type: 'add_debuff', buffId: 'burn', stacks: 1, chance: 1 },
+            { type: 'damage', scaling: { strength: 0.5, wisdom: 0.2 } },
+            { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
         ],
     },
     {
@@ -527,11 +535,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '电力灌注的溜溜球，远近皆宜。',
         requiredTags: [],
         apCost: 2,
-        tags: ['unarmed', 'electric', 'range', 'debuff'],
+        tags: ['electric', 'debuff', 'qi'],
         getRange: () => [1, 3] as [number, number],
+        onActionHitChance: (base) => base + 0.2,
         effects: [
-            { type: 'damage', scaling: { wisdom: 0.4 } },
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.2 },
+            { type: 'damage', scaling: { wisdom: 0.3 } },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 },
         ],
     },
     {
@@ -610,43 +619,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         onActionCritChance: (base) => base + 0.5,
         effects: [{ type: 'damage', scaling: { strength: 0.9, dexterity: 0.5 } }],
     },
-    // ── 通用 ──
-    {
-        id: 'kick',
-        name: '脚踢',
-        description: '一记凶狠的蹬踏。',
-        requiredTags: [],
-        apCost: 2,
-        tags: ['unarmed', 'debuff'],
-        effects: [
-            { type: 'damage', scaling: { dexterity: 0.1, strength: 0.2, agility: 0.1 } },
-            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.3 },
-        ],
-    },
     // ── 酒鬼·无志 ──
-    {
-        id: 'ba_gua_you_shen_zhang',
-        name: '八卦游身掌',
-        description: '脚踏八卦，游身缠斗。叠一层游身，每层敏捷+1、灵巧+1。',
-        requiredTags: ['unarmed'],
-        apCost: 2,
-        tags: ['unarmed', 'melee', 'buff'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.15, dexterity: 0.15 } },
-            { type: 'add_buff', buffId: 'you_shen', stacks: 1 },
-        ],
-    },
-    {
-        id: 'hun_yuan_zhang',
-        name: '混元掌',
-        description: '混元一气，蕴含炁劲的掌法。',
-        requiredTags: ['unarmed'],
-        apCost: 4,
-        chanCost: 15,
-        tags: ['unarmed', 'qi'],
-        canUse: (attacker) => attacker.chan >= 15,
-        effects: [{ type: 'damage', scaling: { strength: 0.4, wisdom: 0.6 } }],
-    },
     {
         id: 'wan_liu_gui_zong',
         name: '万流归宗',
@@ -657,17 +630,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         canUse: (attacker) => attacker.chan >= 2,
         effects: [{ type: 'add_buff', buffId: 'wan_liu_gui_zong' }],
     },
-    // ── 御剑系 ──
-    {
-        id: 'ling_qi_guan_zhu',
-        name: '灵炁灌注',
-        description: '将大量炁劲注入御物，下个招式伤害+30%。不可叠加。',
-        requiredTags: ['imperial'],
-        apCost: 4,
-        tags: ['buff', 'pre_action', 'imperial'],
-        target: 'self',
-        effects: [{ type: 'add_buff', buffId: 'sword_enhance_buff' }],
-    },
+    // ── 御物系 ──
     {
         id: 'yi_night_fish_dragon',
         name: '一夜鱼龙舞',
@@ -679,5 +642,33 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         canUse: (attacker) => attacker.chan >= 42,
         onActionHitChance: (base) => base + 0.2,
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, independentHits: 5 }],
+    },
+    // ── 毒 ──
+    {
+        id: 'poison_detonate',
+        name: '毒素引爆',
+        description: '引爆对手身上的毒素，造成剩余跳数总伤害并清除所有毒层。',
+        requiredTags: [],
+        apCost: 5,
+        chanCost: 30,
+        canUse: (attacker) => attacker.chan >= 30,
+        tags: ['poison', 'qi'],
+        getRange: () => [0, 10],
+        onActionHitChance: () => 1,
+        effects: [
+            {
+                type: 'functional_damage',
+                fn: ({ enemy, state }) => {
+                    const poisonKey = `poison::${enemy.id}`
+                    const layer = state.pendingBuffs.get(poisonKey)
+                    if (!layer) return 0
+                    const remainingTicks: number[] = (layer.extra?.remainingTicks as number[]) ?? []
+                    const totalRemaining = remainingTicks.reduce((s, t) => s + t, 0)
+                    state.pendingBuffs.delete(poisonKey)
+                    const AMPLIFY = 1
+                    return totalRemaining * DMG_PER_POISON_TICK * AMPLIFY
+                },
+            },
+        ],
     },
 ]

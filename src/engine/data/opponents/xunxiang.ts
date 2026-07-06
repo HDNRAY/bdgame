@@ -10,25 +10,25 @@ export const XUNXIANG: OpponentDef = {
     weapon: 'bare_hands',
     targetAttrs: XUNXIANG_ATTRS,
     rewards: [
-        action('straight_punch'),
-        action('steal_artifact'),
-        passive('lingxi_finger'),
-        action('deadly_knife'),
-        passive('yedi_lightness'),
-        action('wrist_strike'),
-        action('throwing_knife'),
-        passive('li_wu_xu_fa'),
         action('push_palm'),
+        action('throwing_knife'),
+        passive('lingxi_finger'),
+        passive('yedi_lightness'),
+        action('steal_artifact'),
+        action('deadly_knife'),
+        action('wrist_strike'),
+        passive('li_wu_xu_fa'),
+        action('dian_xue'),
         action('push_hand'),
         // 10
     ],
     actionConfigs: [
-        { actionId: 'straight_punch' }, // AI 出招顺序
+        { actionId: 'dian_xue', triggerId: 'on_dodge' }, // AI 出招顺序
         { actionId: 'wrist_strike' }, // AI 出招顺序
         { actionId: 'push_palm', triggerId: 'on_parry' }, // AI 出招顺序
         { actionId: 'push_hand', triggerId: 'on_parried' },
         { actionId: 'throwing_knife', triggerId: 'on_opponent_move_away' },
         { actionId: 'deadly_knife' }, // AI 出招顺序
-        { actionId: 'steal_artifact', triggerId: 'on_dodge' },
+        { actionId: 'steal_artifact', triggerId: 'on_turn_start' },
     ],
 }

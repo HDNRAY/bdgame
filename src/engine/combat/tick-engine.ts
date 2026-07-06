@@ -124,8 +124,7 @@ export class TickEngine {
         engine.state.turn.scheduleSystemEventAt(`tick_poison_${enemy.id}`, tMs + interval, 'tick_poison')
     }
 
-    #afterApplyBurn(enemy: Character, engine: BattleEngine, tMs: number, layer: BuffLayer): void {
-        layer.extra = { ...(layer.extra ?? {}), remainingTicks: layer.restoreValue }
+    #afterApplyBurn(enemy: Character, engine: BattleEngine, tMs: number, _layer: BuffLayer): void {
         engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, tMs + 1000, 'tick_burn')
     }
 
@@ -194,12 +193,9 @@ export class TickEngine {
         if (!entry) return { nextInterval: 0 }
 
         const stacks = entry.restoreValue
-        const burnBaseDamage = (entry.extra?.burnBaseDamage as number) ?? 0
-        const remainingTicks = (entry.extra?.remainingTicks as number) ?? 0
-        if (!burnBaseDamage || !remainingTicks) return { nextInterval: 0 }
-        const dmg = Math.round(burnBaseDamage * (stacks / (stacks + remainingTicks)))
-        entry.extra = { ...entry.extra, remainingTicks: remainingTicks - 1 }
-        entry.restoreValue = Math.max(0, stacks - 1)
+        if (stacks <= 0) return { nextInterval: 0 }
+        const dmg = 2 * stacks
+        entry.restoreValue = stacks - 1
         const char = engine.getCharacter(charId)
         if (!char) return { nextInterval: 0 }
         char.takeDamage(dmg)
@@ -227,7 +223,14 @@ export class TickEngine {
         if (dmg > 0) {
             engine.emit('on_took_damage', char, char)
         }
-        return { nextInterval: remainingTicks - 1 > 0 ? 1000 : 0 }
+
+        if (entry.restoreValue > 0) {
+            return { nextInterval: 1000 }
+        }
+        // 灼烧结束，清除
+        engine.state.pendingBuffs.delete(key)
+        engine.state.turn.removeEvents(`tick_burn_${charId}`)
+        return { nextInterval: 0 }
     }
 
     /** 行动触发流血伤害 */

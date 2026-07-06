@@ -230,4 +230,14 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             attacker.chan >= 32 && !state?.pendingBuffs.has(`sword_intent_burst::${attacker.id}`),
         effects: [{ type: 'add_buff', buffId: 'sword_intent_burst' }],
     },
+    {
+        id: 'ling_qi_guan_zhu',
+        name: '灵炁灌注',
+        description: '将大量炁劲注入御物，下个招式伤害+30%。不可叠加。',
+        requiredTags: ['imperial'],
+        apCost: 4,
+        tags: ['buff', 'pre_action', 'imperial'],
+        target: 'self',
+        effects: [{ type: 'add_buff', buffId: 'sword_enhance_buff' }],
+    },
 ]

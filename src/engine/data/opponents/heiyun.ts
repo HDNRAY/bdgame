@@ -9,15 +9,16 @@ export const HEIYUN: OpponentDef = {
     weapon: 'fei_jian',
     targetAttrs: HEIYUN_ATTRS,
     rewards: [
-        action('yi_night_fish_dragon'),
+        passive('spirit_resonance'),
         passive('momentum_mastery'),
         passive('sword_intent_tempering'),
         passive('drunken_step'),
         passive('sword_dominion'),
         artifact('jiu_hu'),
+        action('yi_night_fish_dragon'),
         action('ling_qi_guan_zhu'),
         action('condense_shield'),
-        // 8 + 1
+        // 9 + 1
     ],
     actionConfigs: [{ actionId: 'condense_shield', triggerId: 'on_took_damage' }],
 }

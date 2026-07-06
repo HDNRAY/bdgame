@@ -67,7 +67,6 @@ export class BattleEngine {
             log,
             eventActorId: null,
             eventTime: 0,
-            triggerUses: new Map(),
             pendingBuffs: new Map(),
             actionCount: 0,
             lastActionExtraDelay: 0,
@@ -161,7 +160,7 @@ export class BattleEngine {
 
     /** 构建当前战斗快照 */
     getSnapshot(): BattleSnapshot {
-        const { characters, turn, triggerUses, pendingBuffs, phase, position } = this.state
+        const { characters, turn, pendingBuffs, phase, position } = this.state
         return {
             time: turn.currentTime,
             phase,
@@ -203,7 +202,6 @@ export class BattleEngine {
                 },
             ],
             turn: { time: turn.currentTime, queue: [...turn.entries] },
-            triggerUses: [...triggerUses.entries()],
             pendingBuffs: [...pendingBuffs.entries()],
             actionCount: this.state.actionCount,
         }
@@ -376,7 +374,7 @@ export class BattleEngine {
     }
 
     #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
-        const { triggerUses, moveDelta, position } = this.state
+        const { moveDelta, position } = this.state
         const isInitPhase = event === 'battle_start' || event === 'turn_start' || event === 'on_equip'
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
@@ -405,9 +403,8 @@ export class BattleEngine {
             if (!action) continue
             // 触发器招式 AP 上限（防止高消耗大招白嫖）
             if (action.apCost > 2) continue
-            const used = triggerUses.get(slot.actionId) ?? 0
-            if (action.maxUses !== undefined && used >= action.maxUses) continue
-            triggerUses.set(slot.actionId, used + 1)
+            const inst = self.actions.find((a) => a.id === slot.actionId)
+            if (!inst || !inst.canUse()) continue
 
             if (action.target === 'self') {
                 if (!isInitPhase) this.state.log.indentDepth++
@@ -415,6 +412,7 @@ export class BattleEngine {
                     processActionEffect(eff, self, enemy, this, this.#tMs, action)
                 }
                 if (!isInitPhase) this.state.log.indentDepth--
+                inst.use()
             } else {
                 // 触发招式不消耗 AP（apCost 上限 2 已在前过滤），但仍需距离/标签/条件检测
                 const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
@@ -429,6 +427,7 @@ export class BattleEngine {
                 this.state.log.indentDepth++
                 this.#executeAction(action, self, enemy, true)
                 this.state.log.indentDepth--
+                inst.use()
                 this.emit('on_action_trigger', self, enemy)
                 tickEngine.onBleedTrigger(self, this)
             }

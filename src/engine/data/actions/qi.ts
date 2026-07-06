@@ -34,4 +34,17 @@ export const QI_SKILLS: ActionDefinition[] = [
         target: 'self',
         effects: [{ type: 'restore_ap', value: 1 }],
     },
+    {
+        id: 'qinlong_gong',
+        name: '擒龙功',
+        description: '隔空擒龙，夺人兵刃。',
+        requiredTags: ['unarmed'],
+        apCost: 2,
+        tags: ['qi', 'debuff', 'range'],
+        getRange: () => [1, 3],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.1, wisdom: 0.1 } },
+            { type: 'disarm', chance: 0.3 },
+        ],
+    },
 ]

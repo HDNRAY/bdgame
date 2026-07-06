@@ -37,7 +37,6 @@ export interface BattleState {
     log: BattleLog
     eventActorId: string | null
     eventTime: number
-    triggerUses: Map<string, number>
     pendingBuffs: Map<string, BuffLayer>
     lastWinner?: string
     actionCount: number
@@ -98,7 +97,6 @@ export interface BattleSnapshot {
             stunTime?: number
         }>
     }
-    triggerUses: [string, number][]
     pendingBuffs: [string, BuffLayer][]
     actionCount: number
 }
