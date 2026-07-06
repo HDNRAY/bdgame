@@ -57,7 +57,7 @@ export function calcExpectedDamage(
         if (p.length < 2) continue
         const def = getBuff(p[0])
         if (!def) continue
-        const ctx = { final: 0, raw: 0, target: safeDef, attacker: safeAtk, state: safeState, layer, action }
+        const ctx = { final: 0, raw: 0, target: safeDef, attacker: safeAtk, state: safeState, layer, source: action }
         // onAction 必须在其他钩子之前调用（如抽刀断水需要先算 diff）
         if (p[1] === safeAtk.id && def.onAction) def.onAction(ctx)
         if (p[1] === safeDef.id && def.onDodgeChance) safeDef.dodgeMod += def.onDodgeChance(ctx)
