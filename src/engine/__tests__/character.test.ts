@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { Character, calcMaxHp } from '../entities/character'
+import { Character } from '../entities/character'
+import { calcMaxHp } from '../calc/stats'
 import { ActionConfig } from '../entities/action-config'
 
 function mc(

@@ -7,6 +7,9 @@ import type { Artifact } from './artifact'
 import type { TriggerSlot } from './trigger'
 import type { Tag } from './tag'
 import type { WeaponDef } from '../data/weapons/weapons'
+import type { AttackStyle } from '../ai/move-planner'
+import { classifyAttackStyle } from '../ai/move-planner'
+import { calcMaxHp, calcMaxAp } from '../calc/stats'
 import { getAction as getActionDef } from '../data/actions'
 import { getWeapon } from '../data/weapons/weapons'
 import { getPassive } from '../data/passives'
@@ -14,15 +17,6 @@ import { getArtifact } from '../data/artifacts'
 import { TRIGGER_CONDITIONS } from '../data/triggers'
 import { MAX_CHAN } from '../constants'
 import type { BattleEngine } from '../combat/engine'
-
-export function calcMaxHp(vitality: number): number {
-    return 20 + vitality * 18
-}
-
-/** 根据体质计算最大 AP */
-export function calcMaxAp(vitality: number, mod = 0): number {
-    return Math.round(4 + vitality * 0.25) + mod
-}
 
 export class Character {
     readonly build: CharacterBuild
@@ -58,6 +52,8 @@ export class Character {
 
     /** 移动效率倍率（0.2 = +20% 每AP移动距离） */
     moveEfficiency = 0
+    /** 战斗风格（构建时按武器自动决定，不走 build.battleStyle fallback） */
+    battleStyle: AttackStyle
     /** 身法相关独立加速（凌波微步等） */
     haste = 0
     /** haste eval 回调列表（构造期收集，getHaste 时求值） */
@@ -141,6 +137,8 @@ export class Character {
         }
         const weapon = getWeapon(build.weapon)
         this.weaponDef = weapon
+        // 自动决定战斗风格
+        this.battleStyle = build.battleStyle ?? classifyAttackStyle(this.weaponDef?.range ?? [0, 2])
         // 武器属性要求检测
         const weaponOk =
             !weapon.requireAttrsMin ||

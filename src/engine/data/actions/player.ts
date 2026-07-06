@@ -146,12 +146,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '点腕',
         description: '精准击中对方手腕，打落兵器。',
         requiredTags: ['unarmed'],
-        apCost: 1,
+        apCost: 2,
         tags: ['unarmed', 'melee', 'debuff'],
         getRange: () => [0, 1] as [number, number],
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.1 } },
-            { type: 'disarm', chance: 0.3 },
+            { type: 'damage', scaling: { dexterity: 0.4 } },
+            { type: 'disarm', chance: 0.4 },
         ],
     },
     {

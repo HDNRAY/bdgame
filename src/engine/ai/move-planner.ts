@@ -25,7 +25,7 @@ export interface MovePlan {
 /** 规划移动：进入目标招式的攻击范围 */
 export function planMovement(
     attacker: Character,
-    _defender: Character,
+    defender: Character,
     distance: number,
     style: AttackStyle,
     weaponRange: [number, number],
@@ -38,9 +38,19 @@ export function planMovement(
     const basePerAp = PositionSystem.apToRange(attacker.attrs.get('agility'))
     const perAp = minMoveCost ? 2 : basePerAp * (1 + moveEfficiency)
 
-    // 目标距离：由攻击风格和招式射程决定
+    // 目标距离：由攻击风格和对手决定
     const targetDist: number = (() => {
-        if (style === 'ranged' || style === 'mid') return actionRange[1]
+        if (style === 'ranged') return actionRange[1]
+        if (style === 'mid') {
+            const enemyStyle: AttackStyle =
+                (defender.build.battleStyle as AttackStyle) ?? classifyAttackStyle(defender.weaponDef?.range ?? [0, 2])
+            if (enemyStyle === 'melee') return actionRange[1] // 对手近战 → 风筝
+            if (enemyStyle === 'ranged') return actionRange[0] // 对手远程 → 贴脸
+            // 对手也是 mid → 比较武器射程：射程更长的风筝，更短的贴脸
+            const myMax = weaponRange[1]
+            const enemyMax = defender.weaponDef?.range?.[1] ?? 0
+            return myMax >= enemyMax ? actionRange[1] : actionRange[0]
+        }
         return actionRange[0] // 近战风格：尽可能贴脸
     })()
 

@@ -3,7 +3,8 @@
 import { writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-import { Character, calcMaxHp, calcMaxAp } from '../src/engine/entities/character'
+import { Character } from '../src/engine/entities/character'
+import { calcMaxHp, calcMaxAp } from '../src/engine/calc/stats'
 import {
     gen,
     ZHANGLIE,
