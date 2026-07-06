@@ -35,7 +35,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '眩晕',
         description: '大幅降低身法、洞察（连续命中递减）。',
         tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
+        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 5000 },
         stacking: { type: 'independent' },
     },
     {

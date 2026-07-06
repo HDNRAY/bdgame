@@ -12,21 +12,19 @@ export const LAIFENG: OpponentDef = {
         action('straight_punch'),
         passive('forge'),
         artifact('qi_amplifier'),
-        action('qi_focus'),
-        action('qi_gather'),
+        passive('ningqi_jue'),
         action('iron_charge'),
         action('qi_bolt'),
         action('eighteen_palms'),
         action('lion_roar'),
         action('cun_jin'),
+        action('qinlong_gong'),
         // 10
     ],
     actionConfigs: [
-        { actionId: 'qi_focus' }, // AI 出招顺序
         { actionId: 'qi_gather' }, // AI 出招顺序
         { actionId: 'straight_punch' }, // AI 出招顺序
         { actionId: 'cun_jin' }, // AI 出招顺序
-        { actionId: 'iron_charge', conditionId: 'enemy_no_stun_track' }, // AI 出招顺序
         { actionId: 'eighteen_palms' }, // AI 出招顺序
         { actionId: 'lion_roar', conditionId: 'distance_gt_2' },
         { actionId: 'qi_bolt', triggerId: 'on_opponent_move_away' },

@@ -68,8 +68,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(HEIYUN, 33)
-const oBuild = gen(LIUXIGUA, 33)
+const pBuild = gen(LAIFENG, 33)
+const oBuild = gen(XUANJI, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

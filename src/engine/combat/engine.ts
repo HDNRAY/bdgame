@@ -869,6 +869,7 @@ export class BattleEngine {
                 if (!char || !char.isAlive() || !buffDef) break
                 if (buffDef.onTickDamage) {
                     const layer = this.state.pendingBuffs.get(key)
+                    if (!layer) break
                     const dmg = buffDef.onTickDamage({
                         final: 0,
                         raw: 0,
@@ -892,6 +893,7 @@ export class BattleEngine {
                 }
                 if (buffDef.onTickHeal) {
                     const layer = this.state.pendingBuffs.get(key)
+                    if (!layer) break
                     const amt = buffDef.onTickHeal({
                         final: 0,
                         raw: 0,
@@ -905,7 +907,13 @@ export class BattleEngine {
                     if (amt > 0) {
                         char.heal(amt)
                         reduceBleedOnHeal(this, char.id, amt, 8)
-                        this.emitLog({ type: 'heal', sourceId: char.id, targetId: char.id, amount: amt })
+                        this.emitLog({
+                            type: 'heal',
+                            actionName: buffDef.name,
+                            sourceId: char.id,
+                            targetId: char.id,
+                            amount: amt,
+                        })
                         // 通知所有 buff 持有者收到治疗
                         for (const [key, layer] of this.state.pendingBuffs) {
                             const [buffId, charId] = key.split('::')

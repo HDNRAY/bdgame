@@ -62,8 +62,9 @@ export class TurnManager {
 
     /** 推进到下一行动者 */
     next(): void {
-        const current = this.queue.shift()
-        if (!current) return
+        const idx = this.queue.findIndex((e) => e.type === 'character' || e.type === 'summon')
+        if (idx === -1) return
+        const current = this.queue.splice(idx, 1)[0]
         this.time = current.nextActionAt
     }
 

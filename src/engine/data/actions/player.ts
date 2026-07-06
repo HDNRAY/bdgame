@@ -42,7 +42,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'iron_charge',
         name: '铁山靠',
-        description: '近距离冲撞，附带麻痹效果。',
+        description: '近距离冲撞，附带眩晕效果。',
         requiredTags: ['unarmed'],
         apCost: 3,
         extraStunTime: 400,
@@ -50,7 +50,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.6 },
-            { type: 'self_damage', ratio: 0.02 },
+            { type: 'self_damage', ratio: 0.01 },
         ],
     },
     {
@@ -63,8 +63,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['stun', 'debuff'],
         getRange: () => [1, 4] as [number, number],
         effects: [
-            { type: 'damage', scaling: { vitality: 0.3, dexterity: 0.2 } },
-            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
+            { type: 'damage', scaling: { vitality: 0.3, dexterity: 0.2, strength: 0.2 } },
+            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.8 },
         ],
     },
     {
@@ -160,7 +160,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '十八掌',
         description: '消耗18层缠劲，刚柔并济的掌法。',
         requiredTags: ['unarmed'],
-        apCost: 6,
+        apCost: 5,
         tags: ['unarmed', 'qi'],
         getRange: () => [0, 4],
         chanCost: 18,

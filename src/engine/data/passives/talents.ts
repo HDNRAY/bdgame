@@ -26,7 +26,7 @@ export const TALENTS: Talent[] = [
     {
         id: 'vitality_regen',
         name: '生生不息',
-        description: '根骨强健，每2秒回复缺失生命的1%。',
+        description: '根骨强健，每2秒回复1+缺失生命的1%。',
         tags: ['heal', 'talent', 'buff'],
         requireAttrsMin: { vitality: 20 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'vitality_regen' }] }],
@@ -47,7 +47,7 @@ export const TALENTS: Talent[] = [
                     buffId: 'xuan_ji',
                     check: (ctx) => {
                         const layer = ctx.engine?.state.pendingBuffs.get(`xuan_ji::${ctx.actor.id}`)
-                        return !!layer && layer.restoreValue >= 15
+                        return !!layer && layer.restoreValue >= 9
                     },
                 },
                 effects: [{ type: 'add_buff', buffId: 'tianji_ready' }],

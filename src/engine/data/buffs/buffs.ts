@@ -379,30 +379,21 @@ export const BUFF_DB: BuffDef[] = [
         description: '持续恢复生命，血越少恢复越多。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
-        tickInterval: 1000,
-        onTickHeal: ({ target }) => Math.round((target.maxHp - target.hp) * 0.01),
-    },
-    {
-        id: 'qi_state',
-        name: '凝炁状态',
-        description: '炁劲充盈全身，全属性+1，炁系效果可作用于所有招式。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        attrMods: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 },
+        tickInterval: 2000,
+        onTickHeal: ({ target }) => Math.round(10 + (target.maxHp - target.hp) * 0.1) / 10,
     },
     {
         id: 'qi_amplify',
         name: '炁意',
-        description: '凝炁玉增幅，炁系招式伤害+15%。',
+        description: '凝炁玉增幅，炁系招式伤害根据推演加成。',
         tags: ['qi'],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, action, state }) => {
-            const isQi =
-                action?.tags?.includes('qi') ||
-                attacker?.weaponDef?.tags?.includes('qi') ||
-                state.pendingBuffs.has(`qi_state::${attacker.id}`)
+        onDealDamage: ({ final, attacker, action }) => {
+            const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (!isQi) return final
-            return Math.round(final * 1.1 * 10) / 10
+            const wis = attacker.attrs.get('wisdom')
+            const mult = wis <= 4 ? 1.1 : wis >= 20 ? 1.3 : 1.1 + (wis - 4) * 0.0125
+            return Math.round(final * mult * 10) / 10
         },
     },
     {
@@ -1167,18 +1158,18 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'sword_intent_burst',
         name: '灵炁爆发',
-        description: '力道、身法、灵巧各+4持续10秒，之后各-2持续5秒。',
+        description: '力道、身法、灵巧各+6持续15秒，之后各-8持续3秒。',
         tags: ['qi', 'buff'],
-        expiry: { type: 'duration', ms: 15000 },
-        attrMods: { strength: 4, agility: 4, dexterity: 4 },
-        tickInterval: 10000,
+        expiry: { type: 'duration', ms: 18000 },
+        attrMods: { strength: 6, agility: 6, dexterity: 6 },
+        tickInterval: 15000,
         onTickHeal: ({ layer, engine, target, state }) => {
             revertBuffMods(layer, target, state)
-            const newMods = applyAttrMods(target, state, { strength: -2, agility: -2, dexterity: -2 }, '灵炁爆发')
+            const newMods = applyAttrMods(target, state, { strength: -8, agility: -8, dexterity: -8 }, '灵炁爆发')
             layer.mods = newMods
             engine?.emitLog({
                 type: 'system',
-                message: `[灵炁爆发] ${target.name} 力竭，各属性-2（5秒）`,
+                message: `[灵炁爆发] ${target.name} 力竭，各属性-8（3秒）`,
                 actorId: target.id,
             })
             return 0
@@ -1187,13 +1178,13 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'combat_armor_def',
         name: '斗铠',
-        description: '非炁伤害减免2点。',
+        description: '非炁伤害减免1点。',
         tags: [],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, action, attacker }) => {
             const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (isQi || final <= 0) return final
-            return Math.max(0, Math.round((final - 2) * 10) / 10)
+            return Math.max(0, Math.round((final - 1) * 10) / 10)
         },
     },
     {

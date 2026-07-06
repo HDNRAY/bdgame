@@ -563,6 +563,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             }
         }
         if (buff?.tickInterval) {
+            engine.state.turn.removeEvents(`tick_buff_${key}`)
             engine.state.turn.scheduleSystemEventAt(
                 `tick_buff_${key}`,
                 engine.state.turn.currentTime + buff.tickInterval,

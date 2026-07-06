@@ -181,10 +181,10 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'qi_guard',
         name: '吞炁囊',
-        description: '开局凝聚炁盾，吸收炁招式伤害2点，共99次。',
+        description: '开局凝聚炁盾，吸收炁招式伤害2点，共21次。',
         tags: ['trigger', 'defense', 'qi'],
         triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 99 }] },
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 21 }] },
         ],
     },
     {
@@ -376,9 +376,9 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'combat_armor',
         name: '斗铠',
-        description: '百战之铠，非炁伤害减免2点，但身法-2。',
+        description: '百战之铠，非炁伤害减免1点，但身法-2。',
         tags: ['defense'],
-        effects: [{ type: 'stat_buff', attrs: { agility: -4 } }],
+        effects: [{ type: 'stat_buff', attrs: { agility: -2 } }],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_armor_def' }] },
         ],

@@ -42,8 +42,12 @@ export function applyAttrMods(
             if (result.delta !== undefined) delta = result.delta
         }
         if (delta === 0) continue
+        const before = char.attrs.get(attr as AttrName)
         char.attrs.modify(attr as AttrName, delta)
-        applied[attr] = delta
+        const after = char.attrs.get(attr as AttrName)
+        const actual = after - before
+        if (actual === 0) continue
+        applied[attr] = actual
     }
     // 根骨增加 → 按比例增加剩余血量（切走时不降）
     if ('vitality' in applied && applied.vitality > 0) {

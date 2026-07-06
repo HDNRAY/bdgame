@@ -220,13 +220,14 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'sword_intent_burst',
         name: '灵炁爆发',
-        description: '消耗30层缠劲，激发灵炁爆发。力道、身法、灵巧各+4持续10秒，之后各-2持续5秒。',
+        description: '消耗32层缠劲，激发灵炁爆发。力道、身法、灵巧各+4持续15秒，之后各-8持续3秒。',
         requiredTags: [],
-        apCost: 3,
-        tags: ['buff', 'qi'],
+        apCost: 1,
+        tags: ['buff', 'qi', 'pre_action'],
         target: 'self',
-        chanCost: 30,
-        canUse: (attacker) => attacker.chan >= 30,
+        chanCost: 32,
+        canUse: (attacker, state) =>
+            attacker.chan >= 32 && !state?.pendingBuffs.has(`sword_intent_burst::${attacker.id}`),
         effects: [{ type: 'add_buff', buffId: 'sword_intent_burst' }],
     },
 ]

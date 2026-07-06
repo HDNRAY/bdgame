@@ -9,7 +9,7 @@ export const PASSIVES: Passive[] = [
         name: '三分归元气',
         description: '全属性提升。濒危时触发「三分归元」，消耗元气大幅回血。',
         tags: ['qi', 'heal', 'buff', 'defense'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1 } }],
+        effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2 } }],
         triggers: [
             {
                 condition: {
@@ -631,5 +631,16 @@ export const PASSIVES: Passive[] = [
                 effects: [{ type: 'add_buff', buffId: 'drunken_step_watcher' }],
             },
         ],
+    },
+    {
+        id: 'ningqi_jue',
+        name: '凝气诀',
+        description: '以炁劲贯通全身，全属性+1，所有招式带炁。',
+        tags: ['passive', 'qi'],
+        effects: [{ type: 'stat_buff', attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 } }],
+        actionEnhancer: (def) => {
+            if (def.tags?.includes('qi')) return def
+            return { ...def, tags: [...(def.tags ?? []), 'qi'] }
+        },
     },
 ]

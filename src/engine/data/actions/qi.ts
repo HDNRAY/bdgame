@@ -3,17 +3,6 @@ import type { ActionDefinition } from '../../entities/action'
 /** 炁技 —— 锻体解锁的辅招 */
 export const QI_SKILLS: ActionDefinition[] = [
     {
-        id: 'qi_focus',
-        name: '凝炁',
-        description: '凝聚体内炁劲，全属性小幅提升。',
-        requiredTags: [],
-        apCost: 1,
-        tags: ['buff', 'pre_action'],
-        target: 'self',
-        maxUses: 1,
-        effects: [{ type: 'add_buff', buffId: 'qi_state' }],
-    },
-    {
         id: 'qi_gather',
         name: '聚炁',
         description: '集中炁劲，力量翻倍。',
