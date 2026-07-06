@@ -5,6 +5,7 @@ import { MAX_CHAN } from '../../constants'
 import { Tag } from '../../entities/tag'
 import { calcParryChance } from '../../calc/damage'
 import type { BuffDef } from './types'
+import type { ActionDefinition } from '../../entities/action'
 
 /** 增益状态 */
 export const BUFF_DB: BuffDef[] = [
@@ -110,7 +111,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { agility: -8, strength: 4 },
-        onParryChance: ({ action }) => (action?.tags.includes('range') ? 0.4 : 0.2),
+        onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.4 : 0.2),
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
             const reduced = Math.round(blocked * 0.2 * 10) / 10
@@ -131,7 +132,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '暗器命中率+50%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onHitChance: ({ action }) => (action?.tags?.includes('thrown') ? 0.5 : 0),
+        onHitChance: ({ source }) => (source?.tags?.includes('thrown') ? 0.5 : 0),
     },
     {
         id: 'ciyuan_blade',
@@ -171,8 +172,8 @@ export const BUFF_DB: BuffDef[] = [
         name: '炁盾',
         description: '吸收炁招式伤害，每次2点。',
         tags: [],
-        onTakeDamage: ({ final, target, attacker, engine, action, layer, state }) => {
-            const act = action
+        onTakeDamage: ({ final, target, attacker, engine, source, layer, state }) => {
+            const act = source
             const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (!isQi || final <= 0 || layer.restoreValue <= 0) return final
             const absorb = Math.min(2, final)
@@ -191,9 +192,9 @@ export const BUFF_DB: BuffDef[] = [
         name: '乌铠',
         description: '消耗AP减免斩/刺/钝伤害。',
         tags: [],
-        onTakeDamage: ({ final, target, action, engine }) => {
+        onTakeDamage: ({ final, target, source, engine }) => {
             if (target.ap < 1 || final <= 4) return final
-            const act = action
+            const act = source
             if (!act?.tags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'unarmed')) return final
             target.spendAp(1)
             engine?.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免2点`, actorId: target.id })
@@ -205,10 +206,12 @@ export const BUFF_DB: BuffDef[] = [
         name: '左右互搏',
         description: '一次行动可使用两次主招式，非辅助招式AP-1。',
         tags: [],
-        onActionCost: ({ action }) =>
-            action && !action.tags.includes('pre_action') && !action.tags.includes('post_action') && action.apCost > 0
+        onActionCost: ({ source }) => {
+            const act = source as ActionDefinition
+            return act && !act.tags.includes('pre_action') && !act.tags.includes('post_action') && act.apCost > 0
                 ? -1
-                : 0,
+                : 0
+        },
     },
     {
         id: 'last_stand',
@@ -251,8 +254,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+2%暴伤。',
         tags: [],
         expiry: { type: 'permanent' },
-        onCritChance: ({ action, attacker, layer, engine, state }) => {
-            if ((action?.apCost ?? 0) < 5 || attacker.chan < MAX_CHAN) {
+        onCritChance: ({ source, attacker, layer, engine, state }) => {
+            if (((source as ActionDefinition)?.apCost ?? 0) < 5 || attacker.chan < MAX_CHAN) {
                 layer.restoreValue = 0
                 return 0
             }
@@ -388,8 +391,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '凝炁玉增幅，炁系招式伤害根据推演加成。',
         tags: ['qi'],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, action }) => {
-            const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
+        onDealDamage: ({ final, attacker, source }) => {
+            const isQi = source?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (!isQi) return final
             const wis = attacker.attrs.get('wisdom')
             const mult = wis <= 4 ? 1.1 : wis >= 20 ? 1.3 : 1.1 + (wis - 4) * 0.0125
@@ -467,8 +470,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '雷系伤害减免80%，其他伤害减免10%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, action }) => {
-            if (action?.tags?.includes('electric')) {
+        onTakeDamage: ({ final, source }) => {
+            if (source?.tags?.includes('electric')) {
                 return Math.round(final * 0.2 * 10) / 10
             }
             return Math.round(final * 0.9 * 10) / 10
@@ -629,8 +632,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '灵巧转化为远程招架率。',
         tags: [],
         expiry: { type: 'permanent' },
-        onParryChance: ({ attacker, action }) => {
-            if (!action?.tags.includes('range')) return 0
+        onParryChance: ({ attacker, source }) => {
+            if (!source?.tags.includes('range')) return 0
             return attacker.attrs.get('dexterity') * 0.02
         },
     },
@@ -753,12 +756,12 @@ export const BUFF_DB: BuffDef[] = [
         name: '软猬',
         description: '软猬甲护体，减免所有伤害；受拳脚攻击时反伤并叠流血。',
         tags: [],
-        onTakeDamage: ({ final, target, attacker, engine, state, action }) => {
+        onTakeDamage: ({ final, target, attacker, engine, state, source }) => {
             const reduced = Math.max(0, Math.round((final - 1) * 10) / 10)
             if (
-                action?.tags?.includes('unarmed') &&
-                !action?.tags?.includes('qi') &&
-                !action?.tags?.includes('range')
+                source?.tags?.includes('unarmed') &&
+                !source?.tags?.includes('qi') &&
+                !source?.tags?.includes('range')
             ) {
                 attacker.takeDamage(1)
                 engine?.emitLog({
@@ -792,16 +795,16 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onDealDamage: ({ final, action, layer }) => {
-            if (!action?.tags?.includes('summon')) return final
-            const bonus = (action.apCost ?? 0) * layer.restoreValue
+        onDealDamage: ({ final, source, layer }) => {
+            if (!source?.tags?.includes('summon')) return final
+            const bonus = ((source as ActionDefinition).apCost ?? 0) * layer.restoreValue
             return Math.round((final + bonus) * 10) / 10
         },
     },
     {
         id: 'golden_light',
         name: '金光',
-        description: '金光咒护体，受伤时消耗1层缠劲减免3点。',
+        description: '金光咒护体，受伤时消耗1层缠劲减免3点；非御物攻击消耗1层缠劲附加3点伤害（1点穿透）。',
         tags: [],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, engine }) => {
@@ -814,6 +817,16 @@ export const BUFF_DB: BuffDef[] = [
             })
             return Math.max(0, Math.round((final - 3) * 10) / 10)
         },
+        onAfterDealDamage: ({ source, attacker, engine }) => {
+            if (source?.tags?.includes('imperial') || attacker.chan < 1) return 0
+            attacker.spendChan(1)
+            engine?.emitLog({
+                type: 'system',
+                message: `[金光咒] ${attacker.name} 消耗1层缠劲，附加3点伤害`,
+                actorId: attacker.id,
+            })
+            return 3
+        },
     },
     {
         id: 'golden_bell_guard',
@@ -821,8 +834,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '金玲索护体，炁伤-2；招架时额外减免2点。',
         tags: [],
         expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, action }) => {
-            if (action?.tags?.includes('qi')) {
+        onTakeDamage: ({ final, source }) => {
+            if (source?.tags?.includes('qi')) {
                 return Math.max(0, Math.round((final - 2) * 10) / 10)
             }
             return final
@@ -849,9 +862,9 @@ export const BUFF_DB: BuffDef[] = [
         description: '剑意淬炼肉身，slash/pierce伤害减免20%，单次受伤不超过最大生命的25%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, target, action }) => {
+        onTakeDamage: ({ final, target, source }) => {
             let dmg = final
-            if (action?.tags?.includes('slash') || action?.tags?.includes('pierce')) {
+            if (source?.tags?.includes('slash') || source?.tags?.includes('pierce')) {
                 dmg = Math.round(dmg * 0.8 * 10) / 10
             }
             const cap = Math.round(target.maxHp * 0.25 * 10) / 10
@@ -864,8 +877,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '悟生离死别，所有伤害受推演按AP加成。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, action }) => {
-            const bonus = attacker.attrs.get('wisdom') * (action?.apCost ?? 1) * 0.1
+        onDealDamage: ({ final, attacker, source }) => {
+            const bonus = attacker.attrs.get('wisdom') * ((source as ActionDefinition)?.apCost ?? 1) * 0.1
             return Math.round((final + bonus) * 10) / 10
         },
     },
@@ -914,8 +927,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '从小被炼的毒体，拳脚互传毒。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, target, attacker, engine, action }) => {
-            if (action?.tags?.includes('unarmed') && Math.random() < 0.4) {
+        onDealDamage: ({ final, target, attacker, engine, source }) => {
+            if (source?.tags?.includes('unarmed') && Math.random() < 0.4) {
                 attacker.spendAp(1)
                 if (engine) {
                     const tMs = engine.state.turn.currentTime
@@ -930,8 +943,8 @@ export const BUFF_DB: BuffDef[] = [
             }
             return final
         },
-        onTakeDamage: ({ final, attacker, target, engine, action }) => {
-            if (action?.tags?.includes('unarmed') && Math.random() < 0.4) {
+        onTakeDamage: ({ final, attacker, target, engine, source }) => {
+            if (source?.tags?.includes('unarmed') && Math.random() < 0.4) {
                 target.spendAp(1)
                 if (engine) {
                     const tMs = engine.state.turn.currentTime
@@ -1065,21 +1078,21 @@ export const BUFF_DB: BuffDef[] = [
         description: '交替使用斩击可叠加增伤。',
         stacking: { type: 'none' },
         // 出招即记录到队列（滚动窗口，永远保留最近3招）
-        onAction: ({ action, layer }) => {
-            if (!action || !action.tags.includes('slash')) return
+        onAction: ({ source, layer }) => {
+            if (!source || !source.tags.includes('slash')) return
             layer.extra = layer.extra ?? {}
             const queue = (layer.extra.slashIds as string[]) ?? []
             // push 前算 diff：已有队列里有多少不同 ID
-            const diff = queue.filter((id) => id !== action.id).length
+            const diff = queue.filter((id) => id !== source.id).length
             layer.restoreValue = diff
             // 再入队
-            queue.push(action.id)
+            queue.push(source.id)
             if (queue.length > 3) queue.shift()
             layer.extra.slashIds = queue
         },
         // 命中后直接用存好的 diff
-        onDealDamage: ({ final, action, layer, attacker, engine }) => {
-            if (!action || !action.tags.includes('slash')) return final
+        onDealDamage: ({ final, source, layer, attacker, engine }) => {
+            if (!source || !source.tags.includes('slash')) return final
             const diff = layer.restoreValue
             if (diff === 0) return final
             const mult = 1.2 ** diff
@@ -1181,8 +1194,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '非炁伤害减免1点。',
         tags: [],
         expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, action, attacker }) => {
-            const isQi = action?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
+        onTakeDamage: ({ final, source, attacker }) => {
+            const isQi = source?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (isQi || final <= 0) return final
             return Math.max(0, Math.round((final - 1) * 10) / 10)
         },

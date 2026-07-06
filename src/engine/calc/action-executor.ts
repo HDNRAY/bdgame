@@ -32,7 +32,7 @@ export function canExecuteAction(
                     engine,
                     state,
                     layer,
-                    action,
+                    source: action,
                 }),
         )
     }

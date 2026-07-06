@@ -102,7 +102,7 @@ export function calcExpectedDamage(
             attacker: safeAtk,
             state: safeState,
             layer,
-            action,
+            source: action,
         })
         expected = typeof result === 'object' ? result.normal + (result.piercing ?? 0) : result
     }

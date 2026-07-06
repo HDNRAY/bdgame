@@ -627,7 +627,7 @@ export class BattleEngine {
                             engine: this,
                             state: this.state,
                             layer,
-                            action,
+                            source: action,
                         }),
                 )
             }
@@ -666,7 +666,7 @@ export class BattleEngine {
                 engine: this,
                 state: this.state,
                 layer,
-                action,
+                source: action,
             })
         }
         // 不受命中影响的效果先执行（移动、换武、buff 等）
@@ -878,7 +878,7 @@ export class BattleEngine {
                         engine: this,
                         state: this.state,
                         layer: layer!,
-                        action: undefined!,
+                        source: undefined!,
                     })
                     if (dmg > 0) {
                         char.takeDamage(dmg)
@@ -902,7 +902,7 @@ export class BattleEngine {
                         engine: this,
                         layer: layer!,
                         state: this.state,
-                        action: undefined!,
+                        source: undefined!,
                     })
                     if (amt > 0) {
                         char.heal(amt)

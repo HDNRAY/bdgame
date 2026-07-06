@@ -28,7 +28,7 @@ export const QILAN: OpponentDef = {
         },
         {
             actionId: 'palm_strike',
-            triggerId: 'on_parried',
+            triggerId: 'on_dodged',
         },
     ],
 }

@@ -1,10 +1,10 @@
 import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../engine'
 import type { ActionDefinition } from '../../entities/action'
+import type { GameEntity } from '../../entities/base'
 import { calcCritChance, calcFinalDamage, calcParriedDamage, calcParryChance, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../data/weapons/weapons'
 import { getBuff } from '../../data/buffs'
-import { getAction } from '../../data/actions'
 import { consumeBuffsByTrigger } from '../utils'
 
 // ── 独立伤害管道 ──
@@ -18,7 +18,7 @@ export function applyBonusDamage(
     target: Character,
     attacker: Character,
     engine: BattleEngine,
-    actionDef: ActionDefinition | undefined,
+    source: GameEntity | undefined,
     label: string,
     labelId: string,
     piercing: number = 0,
@@ -33,7 +33,7 @@ export function applyBonusDamage(
     // 普通追加伤害（走修正管道）
     let final = 0
     if (raw > 0) {
-        const modResult = applyDamageModifiers(raw, target, attacker, engine, raw, actionDef, true)
+        const modResult = applyDamageModifiers(raw, target, attacker, engine, raw, source, true)
         final = modResult.damage
         target.takeDamage(final, engine)
     }
@@ -64,19 +64,12 @@ export function applyDamage(
     target: Character,
     attacker: Character,
     engine: BattleEngine,
-    actionDef?: ActionDefinition,
+    source?: GameEntity,
     piercing: number = 0,
 ): void {
-    const act = actionDef
+    const act = source as ActionDefinition | undefined
     // 增伤效果在招架前计算
-    const { damage: buffed, piercing: buffPiercing } = applyDamageModifiers(
-        raw,
-        target,
-        attacker,
-        engine,
-        raw,
-        actionDef,
-    )
+    const { damage: buffed, piercing: buffPiercing } = applyDamageModifiers(raw, target, attacker, engine, raw, source)
     const totalPiercing = piercing + buffPiercing
     const { parried, final: afterParry } = resolveParry(buffed, target, attacker, engine, act)
     const blocked = buffed - afterParry
@@ -92,8 +85,8 @@ export function applyDamage(
 
     engine.emitLog({
         type: 'damage',
-        actionId: actionDef?.id ?? 'unknown',
-        actionName: actionDef?.name ?? '未知',
+        actionId: source?.id ?? 'unknown',
+        actionName: source?.name ?? '未知',
         sourceId: attacker.id,
         targetId: target.id,
         base: raw,
@@ -121,7 +114,7 @@ export function applyDamage(
                 engine,
                 state: engine.state,
                 layer,
-                action: act,
+                source: act,
             })
         }
         engine.state.log.indentDepth--
@@ -133,8 +126,6 @@ export function applyDamage(
         if (parts.length < 2 || parts[1] !== attacker.id) continue
         const def = getBuff(parts[0])
         if (!def?.onAfterDealDamage) continue
-        const act = actionDef ?? getAction('')
-        if (!act) continue
         const ctx = {
             final,
             raw,
@@ -144,16 +135,16 @@ export function applyDamage(
             state: engine.state,
             layer,
             buffOwnerId: parts[1],
-            action: act,
+            source: def,
         }
         const bonusResult = def.onAfterDealDamage(ctx)
         if (typeof bonusResult === 'object') {
             const { normal = 0, piercing: p = 0 } = bonusResult
             if (normal > 0 || p > 0) {
-                applyBonusDamage(normal, target, attacker, engine, actionDef, def.name, def.id, p)
+                applyBonusDamage(normal, target, attacker, engine, def, def.name, def.id, p)
             }
         } else if (bonusResult > 0) {
-            applyBonusDamage(bonusResult, target, attacker, engine, actionDef, def.name, def.id)
+            applyBonusDamage(bonusResult, target, attacker, engine, def, def.name, def.id)
         }
     }
 }
@@ -218,7 +209,7 @@ function resolveParry(
                 engine,
                 state: engine.state,
                 layer,
-                action: act,
+                source: act,
             })
             pc = pc + bonus
         }
@@ -255,7 +246,7 @@ function resolveParry(
             engine,
             layer,
             state: engine.state,
-            action: act,
+            source: act,
         })
     }
     engine.state.log.indentDepth--
@@ -277,7 +268,7 @@ function resolveParry(
                 engine,
                 state: engine.state,
                 layer,
-                action: act,
+                source: act,
             })
         }
         // 攻击方 buff 修正招架穿透（如玄铁剑·重剑无锋、霸刀）
@@ -294,7 +285,7 @@ function resolveParry(
                 engine,
                 state: engine.state,
                 layer,
-                action: act,
+                source: act,
             })
         }
     }
@@ -328,7 +319,7 @@ function resolveCrit(
                 engine,
                 state: engine.state,
                 layer,
-                action: act,
+                source: act,
             })
     }
     let critChance = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), bonus)
@@ -351,7 +342,7 @@ function resolveCrit(
                     engine,
                     state: engine.state,
                     layer,
-                    action: act,
+                    source: act,
                 })
         }
     }
@@ -369,7 +360,7 @@ function applyDamageModifiers(
     attacker: Character,
     engine: BattleEngine,
     raw: number,
-    actionDef?: ActionDefinition,
+    source?: GameEntity,
     bonus = false,
 ): { damage: number; piercing: number } {
     let piercing = 0
@@ -378,8 +369,7 @@ function applyDamageModifiers(
         if (parts.length < 2) continue
         if (parts[1] !== target.id && parts[1] !== attacker.id) continue
         const def = getBuff(parts[0])
-        const act = actionDef
-        if (!act) continue
+        if (!source) continue
         const ctx = {
             final,
             raw,
@@ -389,7 +379,7 @@ function applyDamageModifiers(
             state: engine.state,
             layer,
             buffOwnerId: parts[1],
-            action: act,
+            source,
         }
         // 独立追加伤害不触发攻击者的 onDealDamage（防止守宫砂等重复计数）
         if (!bonus && parts[1] === attacker.id && def?.onDealDamage) {

@@ -495,7 +495,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'golden_light',
         name: '金光咒',
-        description: '金光护体，AP上限-1；受伤时消耗1层缠劲减免3点。',
+        description: '金光护体，AP上限-1；受伤时消耗1层缠劲减免3点；非御物攻击消耗1层缠劲附加3点伤害（1点穿透）。',
         tags: ['passive', 'buff', 'defense', 'qi'],
         effects: [{ type: 'max_ap_mod', value: -1 }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'golden_light' }] }],

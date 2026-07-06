@@ -691,7 +691,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 engine,
                 state: engine.state,
                 layer,
-                action,
+                source: action,
             })
         }
         chance = Math.max(0, Math.min(1, chance))

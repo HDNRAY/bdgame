@@ -3,7 +3,6 @@ import type { AttrName } from '../../entities/attributes'
 import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../../combat/engine'
 import type { BattleState, BuffLayer } from '../../combat/types'
-import type { ActionDefinition } from '../../entities/action'
 import type { TriggerEvent } from '../../entities/trigger'
 
 /** Buff 钩子上下文 */
@@ -17,8 +16,8 @@ export interface BuffHookCtx {
     layer: BuffLayer
     /** 该 buff 所属角色 ID */
     // buffOwnerId: string
-    /** 当前执行的招式（部分钩子如 onTurnEnd 无此值） */
-    action?: ActionDefinition
+    /** 伤害来源（招式/buff/效果），携带正确的 tags */
+    source?: GameEntity
 }
 
 /** 消耗方式 */
