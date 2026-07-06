@@ -311,22 +311,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             enemy.capAp()
         }
     },
-    crit_chance({ eff, self, engine, action }: EffectCtx) {
-        const e = eff as Extract<EffectDef, { type: 'crit_chance' }>
-        const label = action?.name || '暴击率'
-        if (e.reset) {
-            self.critChance = 0
-        } else {
-            self.critChance += e.value
-        }
-        engine.emitLog({
-            type: 'system',
-            message: e.reset
-                ? BattleLog.msg(label, self.name, '蓄势消散')
-                : BattleLog.msg(label, self.name, `蓄势暴击率+${Math.round(e.value * 100)}%`),
-            actorId: self.id,
-        })
-    },
     crit_damage({ eff, self, engine, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'crit_damage' }>
         const label = action?.name || '暴击伤害'

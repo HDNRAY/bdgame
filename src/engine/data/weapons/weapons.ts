@@ -40,7 +40,10 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '最快的剑之一，闪避后本能蓄势。',
         tags: ['pierce', 'slash', 'imperial', 'parry'],
         range: [1, 3],
-        triggers: [{ condition: { type: 'on_dodge' }, actionId: '_fusi_crit_stack' }],
+        triggers: [
+            { condition: { type: 'on_dodge' }, actionId: '_fusi_crit_stack' },
+            { condition: { type: 'on_crit' }, actionId: '_fusi_reset' },
+        ],
     },
     {
         id: 'zantetsu',

@@ -51,7 +51,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['buff', 'trigger', 'internal'],
         target: 'self',
-        effects: [{ type: 'crit_chance', value: 0.03 }],
+        effects: [{ type: 'add_buff', buffId: 'fusi_crit_stack', stacks: 1 }],
     },
     {
         id: '_qiti_awaken',
@@ -78,7 +78,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['trigger', 'internal'],
         target: 'self',
-        effects: [{ type: 'crit_chance', value: 0, reset: true }],
+        effects: [{ type: 'remove_buff', buffId: 'fusi_crit_stack' }],
     },
     {
         id: '_blood_thorn_bleed',

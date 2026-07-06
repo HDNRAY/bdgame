@@ -47,7 +47,6 @@ export type EffectDef =
     | { type: 'move_efficiency'; value: number }
     | { type: 'permanent_burn'; value: number }
     // 功法/奇物效果
-    | { type: 'crit_chance'; value: number; reset?: boolean }
     | { type: 'crit_damage'; value: number; reset?: boolean }
     | { type: 'last_stand'; ratio: number }
     | { type: 'weapon_range_bonus'; value: number; requireWeaponTag?: string }

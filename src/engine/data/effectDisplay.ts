@@ -71,8 +71,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`自伤: 当前HP×${eff.ratio}`]
         case 'cleanse':
             return eff.buffIds && eff.buffIds.length > 0 ? [`净化: ${eff.buffIds.join(', ')}`] : ['净化所有负面状态']
-        case 'crit_chance':
-            return [`暴击率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
         case 'crit_damage':
             return [`暴击伤害 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
         case 'dodge_mod':

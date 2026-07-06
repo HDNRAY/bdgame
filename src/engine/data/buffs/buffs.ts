@@ -1,14 +1,16 @@
 import { processActionEffect } from '../../combat/effects'
 import { revertBuffMods } from '../../combat/utils'
 import { applyAttrMods } from '../../combat/utils/buff-layer'
-import { MAX_CHAN } from '../../constants'
-import { Tag } from '../../entities/tag'
 import { calcParryChance } from '../../calc/damage'
 import type { BuffDef } from './types'
-import type { ActionDefinition } from '../../entities/action'
+import { DEFENSE_BUFFS } from './defense'
+import { DAMAGE_BUFFS } from './damage'
+import { ActionDefinition } from '../../entities/action'
 
 /** 增益状态 */
 export const BUFF_DB: BuffDef[] = [
+    ...DAMAGE_BUFFS,
+    ...DEFENSE_BUFFS,
     // ── 战斗状态 ──
     {
         id: 'iaijutsu',
@@ -168,40 +170,6 @@ export const BUFF_DB: BuffDef[] = [
     },
 
     {
-        id: 'qi_shield',
-        name: '炁盾',
-        description: '吸收炁招式伤害，每次2点。',
-        tags: ['defense'],
-        onTakeDamage: ({ final, target, attacker, engine, source, layer, state }) => {
-            const act = source
-            const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
-            if (!isQi || final <= 0 || layer.restoreValue <= 0) return final
-            const absorb = Math.min(2, final)
-            layer.restoreValue--
-            engine?.emitLog({
-                type: 'system',
-                message: `[炁盾] ${target.name} 吸收${absorb}点（剩${layer.restoreValue}次）`,
-                actorId: target.id,
-            })
-            if (layer.restoreValue <= 0) state.pendingBuffs.delete(`qi_shield::${target.id}`)
-            return Math.max(0, Math.round((final - absorb) * 10) / 10)
-        },
-    },
-    {
-        id: 'dmg_reduce',
-        name: '乌铠',
-        description: '消耗AP减免斩/刺/钝伤害。',
-        tags: ['defense'],
-        onTakeDamage: ({ final, target, source, engine }) => {
-            if (target.ap < 1 || final <= 4) return final
-            const act = source
-            if (!act?.tags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'unarmed')) return final
-            target.spendAp(1)
-            engine?.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免2点`, actorId: target.id })
-            return Math.max(0, Math.round((final - 2) * 10) / 10)
-        },
-    },
-    {
         id: 'zuoyou_hubo',
         name: '左右互搏',
         description: '一次行动可使用两次主招式，非辅助招式AP-1。',
@@ -213,19 +181,6 @@ export const BUFF_DB: BuffDef[] = [
                 : 0
         },
     },
-    {
-        id: 'last_stand',
-        name: '九死剑诀',
-        description: '损失血量增伤。',
-        tags: ['damage'],
-        onDealDamage: ({ final, attacker, layer }) => {
-            const ratio = layer.restoreValue
-            if (ratio <= 0 || attacker.hp >= attacker.maxHp) return final
-            const missingRatio = 1 - attacker.hp / attacker.maxHp
-            return Math.round(final * (1 + missingRatio * ratio) * 10) / 10
-        },
-    },
-
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
     { id: 'steal_artifact_track', name: '盗亦有道', description: '飞龙探云手的成功率追踪。', tags: [] },
@@ -249,84 +204,6 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        id: 'extreme',
-        name: '极',
-        description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+2%暴伤。',
-        tags: ['damage'],
-        expiry: { type: 'permanent' },
-        onCritChance: ({ source, attacker, layer, engine, state }) => {
-            if (((source as ActionDefinition)?.apCost ?? 0) < 5 || attacker.chan < MAX_CHAN) {
-                layer.restoreValue = 0
-                return 0
-            }
-            const chan = attacker.chan
-            attacker.spendChan(chan)
-            layer.restoreValue = chan * 0.02
-            const key = `extreme::${attacker.id}`
-            state.pendingBuffs.delete(key)
-            state.turn.removeEvents(`buff_end_${key}`)
-            engine?.emitLog({
-                type: 'system',
-                message: `[极] ${attacker.name} 极意绽放，缠劲尽散`,
-                actorId: attacker.id,
-            })
-            return chan * 0.01
-        },
-        onCritDamage: ({ layer }) => {
-            if (!layer.restoreValue) return 0
-            const bonus = layer.restoreValue
-            layer.restoreValue = 0
-            return bonus * 2
-        },
-    },
-    {
-        id: 'iaijutsu_focus',
-        name: '居合·势',
-        description: '招架或闪避后蓄势，每层暴击伤害+0.25。',
-        tags: ['damage'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 3 },
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.25,
-    },
-    {
-        id: 'guard_up',
-        name: '守势',
-        description: '凝神防守，招架率大幅提升。',
-        tags: ['defense'],
-        value: 0.35,
-        expiry: { type: 'consumed', trigger: 'on_parry' },
-        stacking: { type: 'none' },
-        onParryChance: () => 0.35,
-    },
-    {
-        id: 'frost_dex_bonus',
-        name: '春雷',
-        description: '春雷灵巧加成，灵巧增伤。',
-        tags: ['weapon', 'damage'],
-        expiry: { type: 'permanent' },
-        attrMods: { strength: 4, agility: -2 },
-        onDealDamage: ({ final, attacker }) =>
-            Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.5 * 10) / 10) * 10) / 10,
-    },
-    {
-        id: 'ranged_dodge',
-        name: '斗笠掩踪',
-        description: '距离≥5m时闪避+15%。',
-        tags: ['defense'],
-        expiry: { type: 'permanent' },
-        onDodgeChance: ({ attacker, target, state }) => {
-            const dist = state.position.distance(target.id, attacker.id)
-            return dist >= 5 ? 0.15 : 0
-        },
-    },
-    {
-        id: 'elemental_immunity',
-        name: '冰心',
-        description: '免疫冰霜、麻痹。',
-        tags: ['defense'],
-        expiry: { type: 'permanent' },
-    },
-    {
         id: 'phantom_step',
         name: '魅影',
         description: '身法+1，持续5秒。可独立叠加。',
@@ -343,40 +220,6 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
     },
     {
-        id: 'ordinary_training',
-        name: '平平无奇的锻炼',
-        description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
-        tags: ['defense'],
-        expiry: { type: 'permanent' },
-        onDodgeChance: ({ attacker }) => {
-            return attacker.attrs.get('agility') * 0.005
-        },
-        onParryChance: ({ attacker }) => {
-            return attacker.attrs.get('dexterity') * 0.005
-        },
-    },
-    {
-        id: 'nuo_yi',
-        name: '挪移',
-        description: '以柔克刚，四两拨千斤。你加每点灵巧减少1%所受伤害。',
-        tags: ['defense'],
-        expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, target }) => {
-            const dexReduction = (target.attrs.get('dexterity') - 3) * 0.01
-            return Math.round(final * (1 - dexReduction) * 10) / 10
-        },
-        onCanParry: () => true,
-    },
-    {
-        id: 'silk_guard',
-        name: '金丝护手',
-        description: '金丝手套护持，无刃亦可格挡兵刃，缴械抗性+30%。',
-        tags: ['defense'],
-        expiry: { type: 'permanent' },
-        onCanParry: () => true,
-        onDisarmChance: () => -0.3,
-    },
-    {
         id: 'vitality_regen',
         name: '生生不息',
         description: '持续恢复生命，血越少恢复越多。',
@@ -384,27 +227,6 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         tickInterval: 2000,
         onTickHeal: ({ target }) => Math.round(10 + (target.maxHp - target.hp) * 0.1) / 10,
-    },
-    {
-        id: 'qi_amplify',
-        name: '炁意',
-        description: '凝炁玉增幅，炁系招式伤害根据推演加成。',
-        tags: ['qi', 'damage'],
-        expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, source }) => {
-            const isQi = source?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
-            if (!isQi) return final
-            const wis = attacker.attrs.get('wisdom')
-            const mult = wis <= 4 ? 1.1 : wis >= 20 ? 1.3 : 1.1 + (wis - 4) * 0.0125
-            return Math.round(final * mult * 10) / 10
-        },
-    },
-    {
-        id: 'paralyze_immunity',
-        name: '雷体',
-        description: '免疫麻痹。',
-        tags: ['defense'],
-        expiry: { type: 'permanent' },
     },
     {
         id: 'vigor_stance',
@@ -423,22 +245,6 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { agility: 4, strength: -2 },
-    },
-    {
-        id: 'dark_room_sense',
-        name: '暗室雀眼',
-        description: '暗室练就的敏锐感知，免疫迷眼。',
-        tags: ['defense'],
-        expiry: { type: 'permanent' },
-    },
-    {
-        id: 'yue_nv_buff',
-        name: '越女剑意',
-        description: '白猿授剑，灵巧化为剑势，附加灵巧×0.1伤害。',
-        tags: ['pierce', 'slash', 'damage'],
-        expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker }) =>
-            Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.1 * 10) / 10) * 10) / 10,
     },
     {
         id: 'herb_pouch',
@@ -464,49 +270,6 @@ export const BUFF_DB: BuffDef[] = [
             return 3
         },
     },
-    {
-        id: 'thunder_constitution',
-        name: '雷电锻体',
-        description: '雷系伤害减免80%，其他伤害减免10%。',
-        tags: ['defense', 'electric'],
-        expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, source }) => {
-            if (source?.tags?.includes('electric')) {
-                return Math.round(final * 0.2 * 10) / 10
-            }
-            return Math.round(final * 0.9 * 10) / 10
-        },
-    },
-    {
-        id: 'thunder_bonus',
-        name: '雷法',
-        description: '攻击附加3点雷击伤害（1点穿透）。',
-        tags: ['qi', 'electric', 'damage'],
-        expiry: { type: 'permanent' },
-        onAfterDealDamage: () => ({ normal: 2, piercing: 1 }),
-    },
-    {
-        id: 'cinnabar_mark',
-        name: '守宫砂·印',
-        description: '每次攻击积攒一颗雷印，满四颗后下一击爆发。',
-        tags: ['damage'],
-        expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, layer, engine }) => {
-            if (layer.restoreValue >= 4) {
-                layer.restoreValue = 0
-                engine?.emitLog({ type: 'system', message: '[守宫砂] 雷印爆发！伤害×1.5', actorId: attacker.id })
-                return Math.round(final * 1.5 * 10) / 10
-            }
-            layer.restoreValue = (layer.restoreValue ?? 0) + 1
-            engine?.emitLog({
-                type: 'system',
-                message: `[守宫砂] ${attacker.name} 雷印+1（${layer.restoreValue}/4）`,
-                actorId: attacker.id,
-            })
-            return final
-        },
-    },
-
     // ── 缠劲溢出奖励 ──
     {
         id: 'zhou',
@@ -516,13 +279,6 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         attrMods: { strength: 1, agility: 1, vitality: 1, wisdom: 1, dexterity: 1, insight: 1 },
-    },
-    {
-        id: 'poison_resist',
-        name: '蛇毒不侵',
-        description: '毒抗+70%。',
-        tags: ['defense'],
-        expiry: { type: 'permanent' },
     },
     {
         id: 'tide_power',
@@ -570,22 +326,6 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        id: 'iron_defense',
-        name: '铁布衫',
-        description: '所受直伤-20%。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onTakeDamage: ({ final }) => Math.round(final * 0.8 * 10) / 10,
-    },
-    {
-        id: 'stone_skin',
-        name: '石肤',
-        description: '肌肤如岩石般坚硬，所受直伤-10%。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onTakeDamage: ({ final }) => Math.round(final * 0.9 * 10) / 10,
-    },
-    {
         id: 'dinghai_pressure',
         name: '定海',
         description: '锭海神铁的压制力场，距离越近伤害越高。',
@@ -627,17 +367,6 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        id: 'hua_gun_parry',
-        name: '花棍',
-        description: '灵巧转化为远程招架率。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onParryChance: ({ attacker, source }) => {
-            if (!source?.tags.includes('range')) return 0
-            return attacker.attrs.get('dexterity') * 0.02
-        },
-    },
-    {
         id: 'qishier_bian',
         name: '七十二变',
         description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧增加3点。',
@@ -666,7 +395,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'calming_fragrance',
         name: '定心清香',
         description: '清香常驻',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { insight: 2, wisdom: 2 },
@@ -675,49 +404,18 @@ export const BUFF_DB: BuffDef[] = [
         id: 'calming_aftertaste',
         name: '定心余香',
         description: '余香留存10秒',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'duration', ms: 10000 },
         stacking: { type: 'independent' },
         attrMods: { insight: 2, wisdom: 1 },
     },
     {
-        id: 'stance_armor',
-        name: '罡体',
-        description: '刚体护身，免疫眩晕、击退、打断、缴械、击倒。',
-        tags: ['super_armor'],
-        expiry: { type: 'duration', ms: 2000 },
-        stacking: { type: 'none' },
-    },
-    {
         id: 'yuxin_sword_mastery',
         name: '真假无用',
         description: '双剑合璧，可叠层 buff 上限+2。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         onBuffApply: (raw) => raw * 2,
-    },
-    {
-        id: 'nineteen_stops',
-        name: '十九停',
-        description: '每层命中+3%、暴击+2%、暴伤+1%。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 19 },
-        onHitChance: ({ layer }) => layer.restoreValue * 0.03,
-        onCritChance: ({ layer }) => layer.restoreValue * 0.02,
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
-    },
-    {
-        id: 'lingxi_finger',
-        name: '灵犀一指',
-        description: '灵犀一指，空手可格挡兵刃，招架时缴械对手，灵巧+4。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        attrMods: { dexterity: 4 },
-        onCanParry: () => true,
-        onParried: ({ target, attacker, engine, state }) => {
-            processActionEffect({ type: 'disarm', chance: 1 }, target, attacker, engine!, state.turn.currentTime)
-        },
     },
     {
         id: 'xuan_ji',
@@ -738,60 +436,6 @@ export const BUFF_DB: BuffDef[] = [
         onCritChance: () => 1,
     },
     {
-        id: 'xiu_li',
-        name: '袖里',
-        description: '千丝万缕，只在他衣袖之间。闪避获得1层缠劲；受伤消耗1层缠劲减免3点。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, target, engine }) => {
-            if (target.chan <= 0) return final
-            target.spendChan(1)
-            engine?.emitLog({
-                type: 'system',
-                message: `[袖里] ${target.name} 消耗1层缠劲减免3点（剩${target.chan}层）`,
-                actorId: target.id,
-            })
-            return Math.max(0, Math.round((final - 3) * 10) / 10)
-        },
-    },
-    {
-        id: 'soft_armor',
-        name: '软猬',
-        description: '软猬甲护体，减免所有伤害；受拳脚攻击时反伤并叠流血。',
-        tags: [],
-        onTakeDamage: ({ final, target, attacker, engine, state, source }) => {
-            const reduced = Math.max(0, Math.round((final - 1) * 10) / 10)
-            if (
-                source?.tags?.includes('unarmed') &&
-                !source?.tags?.includes('qi') &&
-                !source?.tags?.includes('range')
-            ) {
-                attacker.takeDamage(1)
-                engine?.emitLog({
-                    type: 'system',
-                    message: `[软猬甲] ${target.name} 刺伤 ${attacker.name}，反伤2点`,
-                    actorId: target.id,
-                })
-                const bleedKey = `bleed::${attacker.id}`
-                const existing = state.pendingBuffs.get(bleedKey)
-                if (existing) {
-                    existing.restoreValue = (existing.restoreValue ?? 0) + 1
-                } else {
-                    state.pendingBuffs.set(bleedKey, {
-                        restoreValue: 1,
-                        extra: { bleedTriggerCount: 0, source: target.name, sourceId: target.id },
-                    })
-                }
-                engine?.emitLog({
-                    type: 'system',
-                    message: `[软猬甲] ${attacker.name} 被刺伤，流血+1`,
-                    actorId: attacker.id,
-                })
-            }
-            return reduced
-        },
-    },
-    {
         id: 'spirit_resonance_buff',
         name: '灵器共鸣',
         description: '将自身力道转化为召唤物的攻击力。',
@@ -805,47 +449,6 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        id: 'golden_light',
-        name: '金光',
-        description: '金光咒护体，受伤时消耗1层缠劲减免3点；非御物攻击消耗1层缠劲附加2点伤害。',
-        tags: ['qi'],
-        expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, target, engine }) => {
-            if (target.chan <= 0) return final
-            target.spendChan(1)
-            engine?.emitLog({
-                type: 'system',
-                message: `[金光咒] ${target.name} 消耗1层缠劲减免3点（剩${target.chan}层）`,
-                actorId: target.id,
-            })
-            return Math.max(0, Math.round((final - 3) * 10) / 10)
-        },
-        onAfterDealDamage: ({ source, attacker, engine }) => {
-            if (source?.tags?.includes('imperial') || attacker.chan < 1) return 0
-            attacker.spendChan(1)
-            engine?.emitLog({
-                type: 'system',
-                message: `[金光咒] ${attacker.name} 消耗1层缠劲，附加2点伤害`,
-                actorId: attacker.id,
-            })
-            return 2
-        },
-    },
-    {
-        id: 'golden_bell_guard',
-        name: '金玲',
-        description: '金玲索护体，炁伤-2；招架时额外减免2点。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, source }) => {
-            if (source?.tags?.includes('qi')) {
-                return Math.max(0, Math.round((final - 2) * 10) / 10)
-            }
-            return final
-        },
-        onParryReduction: ({ final }) => Math.max(0, Math.round((final - 2) * 10) / 10),
-    },
-    {
         id: 'buer_sword',
         name: '不二剑灵',
         description: '起手暴击大增但身法略滞，逐回合恢复。',
@@ -857,32 +460,6 @@ export const BUFF_DB: BuffDef[] = [
             if (layer.restoreValue > 0) {
                 layer.restoreValue = Math.max(0, layer.restoreValue - 1)
             }
-        },
-    },
-    {
-        id: 'sword_intent_tempering',
-        name: '剑意淬体',
-        description: '剑意淬炼肉身，slash/pierce伤害减免20%，单次受伤不超过最大生命的25%。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, target, source }) => {
-            let dmg = final
-            if (source?.tags?.includes('slash') || source?.tags?.includes('pierce')) {
-                dmg = Math.round(dmg * 0.8 * 10) / 10
-            }
-            const cap = Math.round(target.maxHp * 0.25 * 10) / 10
-            return Math.min(dmg, cap)
-        },
-    },
-    {
-        id: 'tongtian',
-        name: '通天大物',
-        description: '悟生离死别，所有伤害受推演按AP加成。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, source }) => {
-            const bonus = attacker.attrs.get('wisdom') * ((source as ActionDefinition)?.apCost ?? 1) * 0.1
-            return Math.round((final + bonus) * 10) / 10
         },
     },
     {
@@ -1052,7 +629,6 @@ export const BUFF_DB: BuffDef[] = [
             }
         },
     },
-    // ── 风水·四娘的专属 buff ──
     {
         id: 'no_parry_buff',
         name: '流风回雪',
@@ -1110,7 +686,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'bean_buff',
         name: '茴香气',
         description: '茴香豆的余香，全属性+1（除推演）。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'duration', ms: 10000 },
         attrMods: { strength: 1, vitality: 1, agility: 1, dexterity: 1, wisdom: 1 },
     },
@@ -1119,56 +695,19 @@ export const BUFF_DB: BuffDef[] = [
         id: 'you_shen',
         name: '游身',
         description: '游身步法，敏捷+1、灵巧+1。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 3 },
         attrMods: { agility: 1, dexterity: 1 },
     },
     {
-        id: 'wan_liu_gui_zong',
-        name: '归宗势',
-        description: '完全招架远程攻击。',
-        tags: [],
-        expiry: { type: 'duration', ms: 3000 },
-        onParryChance: () => 1,
-    },
-    {
         id: 'jiu_yang_regen',
         name: '九阳真气',
         description: '九阳真气护体，每5秒回复1%生命。',
-        tags: [],
+        tags: ['heal'],
         expiry: { type: 'permanent' },
         tickInterval: 5000,
         onTickHeal: ({ target }) => Math.max(1, Math.round(target.maxHp * 0.01)),
-    },
-    {
-        id: 'zui_quan_dodge',
-        name: '醉步',
-        description: '醉态蹒跚，闪避率+12%。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onDodgeChance: () => 0.12,
-    },
-    {
-        id: 'qian_kun_fan_tan',
-        name: '乾坤大挪移',
-        description: '受伤时25%概率消耗2缠反弹最多30点伤害，自身仅承受剩余伤害。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, attacker, target, engine }) => {
-            if (attacker === target || Math.random() >= 0.25) return final
-            if (target.chan < 2) return final
-            const reflectDmg = Math.min(Math.round(final), 30)
-            if (reflectDmg <= 0) return final
-            target.spendChan(2)
-            attacker.takeDamage?.(reflectDmg)
-            engine?.emitLog({
-                type: 'system',
-                message: `[乾坤大挪移] ${target.name} 消耗2缠反弹 ${reflectDmg} 点伤害给 ${attacker.name}，自承 ${final - reflectDmg} 点`,
-                actorId: target.id,
-            })
-            return final - reflectDmg
-        },
     },
     // ── 灵剑·桑原 ──
     {
@@ -1192,22 +731,10 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        id: 'combat_armor_def',
-        name: '斗铠',
-        description: '非炁伤害减免1点。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, source, attacker }) => {
-            const isQi = source?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
-            if (isQi || final <= 0) return final
-            return Math.max(0, Math.round((final - 1) * 10) / 10)
-        },
-    },
-    {
         id: 'sword_focus',
         name: '怒炁充盈',
         description: '每被闪避一次积攒怒气，下次命中附加 层数×3 点伤害，击中后重置。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
         onDodged: ({ layer }) => {
@@ -1235,36 +762,6 @@ export const BUFF_DB: BuffDef[] = [
             return Math.round(ctx.final * 1.3)
         },
     },
-    {
-        id: 'drunken_dodge',
-        name: '醉仙望月步',
-        description: '闪避+15%。',
-        tags: [],
-        expiry: { type: 'duration', ms: 15000 },
-        stacking: { type: 'none' },
-        onDodgeChance: () => 0.15,
-    },
-    {
-        id: 'drunken_step_watcher',
-        name: '醉仙望月',
-        description: '监测治疗量，≥9点时触发醉仙望月步。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onReceiveHeal: ({ final: amount, target, engine, state }) => {
-            if ((amount ?? 0) >= 9) {
-                const enemy = engine?.getOpponent(target.id)
-                if (enemy) {
-                    processActionEffect(
-                        { type: 'add_buff', buffId: 'drunken_dodge', stacks: 1 },
-                        target,
-                        enemy,
-                        engine!,
-                        state.turn.currentTime,
-                    )
-                }
-            }
-        },
-    },
     // ── 战术腰包 ──
     {
         id: 'adrenaline_rush',
@@ -1284,5 +781,26 @@ export const BUFF_DB: BuffDef[] = [
             })
             return 0
         },
+    },
+    // ── 弗思剑 ──
+    {
+        id: 'fusi_crit_stack',
+        name: '弗思·蓄势',
+        description: '闪避后本能蓄势，每层暴击率+3%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive' },
+        onCritChance: ({ layer }) => layer.restoreValue * 0.03,
+    },
+    // ── 浮游眼 ──
+    {
+        id: 'floating_eye_buff',
+        name: '浮游眼',
+        description: '洞察流转，预判对手。洞察+4，暴击率+5%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        attrMods: { insight: 4 },
+        onCritChance: () => 0.05,
     },
 ]

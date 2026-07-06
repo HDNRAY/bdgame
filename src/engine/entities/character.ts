@@ -510,14 +510,6 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
         const e = eff as Extract<EffectDef, { type: 'permanent_burn' }>
         char.permanentBurn = (char.permanentBurn ?? 0) + e.value
     },
-    crit_chance(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'crit_chance' }>
-        if (e.reset) {
-            char.critChance = 0
-        } else {
-            char.critChance += e.value
-        }
-    },
     crit_damage(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'crit_damage' }>
         if (e.reset) {
