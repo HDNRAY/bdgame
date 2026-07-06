@@ -52,9 +52,9 @@ export interface BuffDef extends GameEntity {
     /** tick 回复回调 */
     onTickHeal?: (ctx: BuffHookCtx) => number
     /** 攻击伤害修正（buff 持有者造成伤害时调用） */
-    onDealDamage?: (ctx: BuffHookCtx) => number
+    onDealDamage?: (ctx: BuffHookCtx) => number | { normal: number; piercing: number }
     /** 造成伤害后追加独立伤害（返回 >0 则额外调 applyBonusDamage） */
-    onAfterDealDamage?: (ctx: BuffHookCtx) => number
+    onAfterDealDamage?: (ctx: BuffHookCtx) => number | { normal: number; piercing: number }
     /** 受击伤害修正（buff 持有者受到伤害时调用） */
     onTakeDamage?: (ctx: BuffHookCtx) => number
     /** 层数变更前回调（返回实际 delta，0=拦截变更） */

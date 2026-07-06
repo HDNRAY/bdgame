@@ -8,6 +8,7 @@ export const TAG_CN: Record<Tag, string> = {
     blunt: '钝击',
     pierce: '戳刺',
     parry: '可招架',
+    internal: '内置',
     imperial: '御物',
     stagger: '失衡',
     paralyze: '麻痹',
@@ -110,4 +111,5 @@ export const TAG_COLOR: Record<Tag, string> = {
     inherent: '#9e9e9e',
     weapon: '#ff8c00',
     thrown: '#cd853f',
+    internal: '#95a5a6',
 }

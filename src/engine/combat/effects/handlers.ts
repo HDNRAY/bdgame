@@ -164,25 +164,25 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.state.pendingBuffs.set(`ciyuan_blade::${self.id}`, { restoreValue: 1 })
     },
     fixed_damage({ eff, self, enemy, engine, action }: EffectCtx) {
-        const { value, independentHits = 1 } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
+        const { value, independentHits = 1, piercing = 0 } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
         for (let i = 0; i < independentHits; i++) {
-            applyDamage(value, enemy, self, engine, action)
+            applyDamage(value, enemy, self, engine, action, piercing)
         }
     },
     functional_damage({ eff, self, enemy, engine, action }: EffectCtx) {
-        const { fn } = eff as Extract<EffectDef, { type: 'functional_damage' }>
+        const { fn, piercing = 0 } = eff as Extract<EffectDef, { type: 'functional_damage' }>
         const dmg = fn({ self, enemy, state: engine.state })
         if (dmg > 0) {
-            applyDamage(dmg, enemy, self, engine, action)
+            applyDamage(dmg, enemy, self, engine, action, piercing)
         }
     },
     damage({ eff, self, enemy, engine, action }: EffectCtx) {
-        const { scaling, independentHits = 1 } = eff as Extract<EffectDef, { type: 'damage' }>
+        const { scaling, independentHits = 1, piercing = 0 } = eff as Extract<EffectDef, { type: 'damage' }>
         const base = (eff as Extract<EffectDef, { type: 'damage' }>).base ?? 0
         const raw = calcBaseDamage(scaling, self.attrs.getAll(), base)
         if (raw > 0) {
             for (let i = 0; i < independentHits; i++) {
-                applyDamage(raw, enemy, self, engine, action)
+                applyDamage(raw, enemy, self, engine, action, piercing)
             }
         }
     },

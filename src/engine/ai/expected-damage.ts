@@ -95,7 +95,7 @@ export function calcExpectedDamage(
         if (p.length < 2 || p[1] !== safeAtk.id) continue
         const def = getBuff(p[0])
         if (!def?.onDealDamage) continue
-        expected = def.onDealDamage({
+        const result = def.onDealDamage({
             final: expected,
             raw: rawDamage,
             target: safeDef,
@@ -104,6 +104,7 @@ export function calcExpectedDamage(
             layer,
             action,
         })
+        expected = typeof result === 'object' ? result.normal + (result.piercing ?? 0) : result
     }
 
     return { actionId: action.id, rawDamage, expectedDamage: expected, hitChance, canReach, apCost: action.apCost }

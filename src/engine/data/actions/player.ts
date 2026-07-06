@@ -530,7 +530,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'electric', 'range', 'debuff'],
         getRange: () => [1, 3] as [number, number],
         effects: [
-            { type: 'damage', scaling: { wisdom: 0.2 } },
+            { type: 'damage', scaling: { wisdom: 0.4 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.2 },
         ],
     },

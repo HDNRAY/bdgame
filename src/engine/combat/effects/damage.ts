@@ -21,23 +21,39 @@ export function applyBonusDamage(
     actionDef: ActionDefinition | undefined,
     label: string,
     labelId: string,
+    piercing: number = 0,
 ): void {
-    if (raw <= 0) return
-    const final = applyDamageModifiers(raw, target, attacker, engine, raw, actionDef, true)
-    target.takeDamage(final, engine)
-    engine.emitLog({
-        type: 'damage',
-        actionId: labelId,
-        actionName: label,
-        sourceId: attacker.id,
-        targetId: target.id,
-        base: raw,
-        final,
-        blocked: 0,
-        isCrit: false,
-        isParried: false,
-        tags: ['bonus_damage'],
-    })
+    if (raw <= 0 && piercing <= 0) return
+
+    // 穿透伤害（无视所有减免/吸收）
+    if (piercing > 0) {
+        target.takeDamage(piercing, engine)
+    }
+
+    // 普通追加伤害（走修正管道）
+    let final = 0
+    if (raw > 0) {
+        const modResult = applyDamageModifiers(raw, target, attacker, engine, raw, actionDef, true)
+        final = modResult.damage
+        target.takeDamage(final, engine)
+    }
+
+    const total = piercing + final
+    if (total > 0) {
+        engine.emitLog({
+            type: 'damage',
+            actionId: labelId,
+            actionName: label,
+            sourceId: attacker.id,
+            targetId: target.id,
+            base: piercing + raw,
+            final: total,
+            blocked: raw - Math.max(final, 0),
+            isCrit: false,
+            isParried: false,
+            tags: ['bonus_damage'],
+        })
+    }
 }
 
 // ── 伤害管道 ──
@@ -49,14 +65,23 @@ export function applyDamage(
     attacker: Character,
     engine: BattleEngine,
     actionDef?: ActionDefinition,
+    piercing: number = 0,
 ): void {
     const act = actionDef
     // 增伤效果在招架前计算
-    const buffed = applyDamageModifiers(raw, target, attacker, engine, raw, actionDef)
+    const { damage: buffed, piercing: buffPiercing } = applyDamageModifiers(
+        raw,
+        target,
+        attacker,
+        engine,
+        raw,
+        actionDef,
+    )
+    const totalPiercing = piercing + buffPiercing
     const { parried, final: afterParry } = resolveParry(buffed, target, attacker, engine, act)
     const blocked = buffed - afterParry
     const { isCrit, final: afterCrit } = resolveCrit(afterParry, buffed, target, attacker, engine, act)
-    const final = afterCrit
+    const final = afterCrit + totalPiercing
 
     target.takeDamage(final, engine)
 
@@ -121,9 +146,14 @@ export function applyDamage(
             buffOwnerId: parts[1],
             action: act,
         }
-        const bonus = def.onAfterDealDamage(ctx)
-        if (bonus > 0) {
-            applyBonusDamage(bonus, target, attacker, engine, actionDef, def.name, def.id)
+        const bonusResult = def.onAfterDealDamage(ctx)
+        if (typeof bonusResult === 'object') {
+            const { normal = 0, piercing: p = 0 } = bonusResult
+            if (normal > 0 || p > 0) {
+                applyBonusDamage(normal, target, attacker, engine, actionDef, def.name, def.id, p)
+            }
+        } else if (bonusResult > 0) {
+            applyBonusDamage(bonusResult, target, attacker, engine, actionDef, def.name, def.id)
         }
     }
 }
@@ -341,7 +371,8 @@ function applyDamageModifiers(
     raw: number,
     actionDef?: ActionDefinition,
     bonus = false,
-): number {
+): { damage: number; piercing: number } {
+    let piercing = 0
     for (const [key, layer] of engine.state.pendingBuffs) {
         const parts = key.split('::')
         if (parts.length < 2) continue
@@ -362,11 +393,17 @@ function applyDamageModifiers(
         }
         // 独立追加伤害不触发攻击者的 onDealDamage（防止守宫砂等重复计数）
         if (!bonus && parts[1] === attacker.id && def?.onDealDamage) {
-            final = def.onDealDamage(ctx)
+            const result = def.onDealDamage(ctx)
+            if (typeof result === 'object') {
+                final = result.normal
+                piercing += result.piercing ?? 0
+            } else {
+                final = result
+            }
         }
         if (parts[1] === target.id && def?.onTakeDamage) {
             final = def.onTakeDamage(ctx)
         }
     }
-    return final
+    return { damage: final, piercing }
 }

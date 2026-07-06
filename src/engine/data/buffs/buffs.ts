@@ -477,10 +477,10 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'thunder_bonus',
         name: '雷法',
-        description: '攻击附加3点雷击伤害。',
-        tags: [],
+        description: '攻击附加3点雷击伤害（1点穿透）。',
+        tags: ['qi', 'electric'],
         expiry: { type: 'permanent' },
-        onAfterDealDamage: () => 3,
+        onAfterDealDamage: () => ({ normal: 2, piercing: 1 }),
     },
     {
         id: 'cinnabar_mark',

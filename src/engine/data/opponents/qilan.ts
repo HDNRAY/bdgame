@@ -21,4 +21,14 @@ export const QILAN: OpponentDef = {
         action('thunder_storm'),
         // 10
     ],
+    actionConfigs: [
+        {
+            actionId: 'electric_yoyo',
+            triggerId: 'on_opponent_move_away',
+        },
+        {
+            actionId: 'palm_strike',
+            triggerId: 'on_parried',
+        },
+    ],
 }
