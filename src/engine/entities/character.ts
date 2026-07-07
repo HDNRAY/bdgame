@@ -14,6 +14,7 @@ import { getAction as getActionDef } from '../data/actions'
 import { getWeapon } from '../data/weapons/weapons'
 import { getPassive } from '../data/passives'
 import { getArtifact } from '../data/artifacts'
+import { getBuff } from '../data/buffs'
 import { TRIGGER_CONDITIONS } from '../data/triggers'
 import { MAX_CHAN } from '../constants'
 import type { BattleEngine } from '../combat/engine'
@@ -367,9 +368,32 @@ export class Character {
             this.addChan(Math.round(dealt * 0.3 * 10) / 10)
             engine.checkChanOverflow(this.id)
         }
+        if (engine && dealt > 0) this.#fireHpChange(engine)
     }
-    heal(amount: number): void {
+    heal(amount: number, engine?: BattleEngine): void {
+        const prevHp = this.hp
         this.hp = Math.min(this.maxHp, this.hp + amount)
+        if (engine && this.hp > prevHp) this.#fireHpChange(engine)
+    }
+
+    /** 触发 onHpChange 钩子 */
+    #fireHpChange(engine: BattleEngine): void {
+        for (const [key, layer] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== this.id) continue
+            const def = getBuff(parts[0])
+            if (def?.onHpChange) {
+                def.onHpChange({
+                    final: 0,
+                    raw: 0,
+                    target: this,
+                    attacker: this,
+                    engine,
+                    state: engine.state,
+                    layer,
+                })
+            }
+        }
     }
     isAlive(): boolean {
         return this.hp > 0
@@ -490,6 +514,10 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     move_efficiency(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'move_efficiency' }>
         char.moveEfficiency += e.value
+    },
+    trigger_slot_mod(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'trigger_slot_mod' }>
+        char.triggerSlotMod += e.value
     },
     dex_to_str(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'dex_to_str' }>

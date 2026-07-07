@@ -44,13 +44,13 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'big_leap',
         name: '虎跃',
-        description: '猛虎跃涧，瞬间近身。范围3~8m。需力道≥10。',
+        description: '猛虎跃涧，瞬间近身。范围2~8m。需力道≥10。',
         requiredTags: [],
         apCost: 3,
         tags: ['move', 'pre_action'],
-        getRange: () => [3, 10] as [number, number],
+        getRange: () => [2, 8] as [number, number],
         canUse: (attacker) => attacker.attrs.get('strength') >= 10,
-        effects: [{ type: 'dash', minRange: 3, maxRange: 8, targetDist: 1 }],
+        effects: [{ type: 'dash', minRange: 2, maxRange: 8, targetDist: 1 }],
     },
     {
         id: 'lightning_speed',

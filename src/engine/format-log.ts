@@ -7,6 +7,15 @@ import type { BattleSnapshot } from './combat/types'
  *  []  状态名   |  信息分隔
  */
 
+/** 从快照计算移动前距离 */
+function calcOldDist(delta: number, snapshot: BattleSnapshot, actorId: string): number {
+    const mover = snapshot.characters.find((c) => c.id === actorId)
+    const opponent = snapshot.characters.find((c) => c.id !== actorId)
+    if (!mover || !opponent) return 0
+    // delta 是位置位移量，老位置 = 新位置 - delta
+    return Math.abs(mover.pos - delta - opponent.pos)
+}
+
 /** 从快照构建 id→name 映射 */
 function buildNameMap(snapshot: BattleSnapshot): Map<string, string> {
     const map = new Map<string, string>()
@@ -140,13 +149,13 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
             case 'move': {
                 // pre-hit 阶段的 dash 移动缓存到攻击行前输出
                 if (pending) {
-                    const oldDist = e.newDistance - e.delta
+                    const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
                     const apInfo = e.apCost > 0 ? `  | AP${e.apRemaining.toFixed(1)}` : ''
                     preLines.push(`  # 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m${apInfo}`)
                     break
                 }
                 flush()
-                const oldDist = e.newDistance - e.delta
+                const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
                 const actorName = fmtName(e.actor, e.snapshot)
                 checkNewEvent(
                     ms,

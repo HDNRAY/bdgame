@@ -342,4 +342,18 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             }
         },
     },
+    // ── 无刀取 ──
+    {
+        id: 'sword_capture',
+        name: '无刀取',
+        description: '空手入白刃。招架成功后有50%概率缴械对手。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        onCanParry: () => true,
+        onParried: ({ target, attacker, engine, state }) => {
+            if (engine) {
+                processActionEffect({ type: 'disarm', chance: 0.5 }, target, attacker, engine, state.turn.currentTime)
+            }
+        },
+    },
 ]

@@ -643,4 +643,19 @@ export const PASSIVES: Passive[] = [
             return { ...def, tags: [...(def.tags ?? []), 'qi'] }
         },
     },
+    {
+        id: 'sword_capture',
+        name: '无刀取',
+        description: '空手入白刃。获得1个额外触发槽，空手可招架，招架成功后有50%概率缴械对手。',
+        tags: ['buff', 'defense'],
+        effects: [{ type: 'trigger_slot_mod', value: 1 }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_capture' }] }],
+    },
+    {
+        id: 'blood_rage',
+        name: '血战到底',
+        description: '气血越低属性加成越高。力道、身法、灵巧随血量减少而提升。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'blood_rage' }] }],
+    },
 ]

@@ -1,31 +1,27 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive } from '../../util/reward-utils'
 
-const SANGYUAN_ATTRS = { strength: 12, vitality: 20, agility: 8, dexterity: 18, insight: 10, wisdom: 4 }
+const ATTRS = { strength: 10, vitality: 20, agility: 10, dexterity: 16, insight: 14, wisdom: 4 }
 
 export const SANGYUAN: OpponentDef = {
     id: 'sangyuan',
-    name: '灵剑·桑原',
-    weapon: 'qingfeng_jian',
-    targetAttrs: SANGYUAN_ATTRS,
+    name: '红眼·桑原',
+    story: '归海楼的空手道高手，以血祭之术闻名。越是濒临绝境，越是狂暴难挡。',
+    weapon: 'bare_hands',
+    targetAttrs: ATTRS,
     rewards: [
-        action('light_slash'),
-        action('spirit_sword'),
-        action('horizontal_slash'),
-        artifact('qi_amplifier'),
+        action('hand_blade'),
+        action('blood_qi_protection'),
+        passive('blood_rage'),
+        action('blood_droplet'),
+        passive('sword_capture'),
         action('big_leap'),
-        action('heavy_slash'),
-        action('sword_intent_burst'),
-        passive('sword_focus'),
-        artifact('combat_armor'),
-        action('qi_slash'),
+        action('side_kick'),
+        action('spinning_kick'),
+        artifact('blood_sacrifice_armband'),
+        artifact('headband'),
         // 10
     ],
-    actionConfigs: [
-        { actionId: 'spirit_sword' },
-        { actionId: 'sword_intent_burst' },
-        { actionId: 'heavy_slash' },
-        { actionId: 'big_leap' },
-        { actionId: 'light_slash', triggerId: 'on_dodged' },
-    ],
+    actionConfigs: [{ actionId: 'blood_droplet', conditionId: 'hp_above_70', triggerId: 'on_opponent_move_away' }],
+    taunt: () => '血流得越多，我越兴奋。',
 }

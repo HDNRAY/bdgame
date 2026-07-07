@@ -81,6 +81,7 @@ export function applyDamage(
     if (final > 0) {
         engine.emit('on_dealt_damage', attacker, target)
         engine.emit('on_took_damage', target, attacker)
+        consumeBuffsByTrigger(target.id, engine, 'on_took_damage')
     }
 
     engine.emitLog({

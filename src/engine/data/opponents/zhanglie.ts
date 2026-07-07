@@ -20,6 +20,7 @@ export const ZHANGLIE: OpponentDef = {
         weapon('iron_spear'),
         action('rod_sweep'),
         action('return_spear'),
+        // 战场之枪，后续加入加暴击功法
         // 10
     ],
     actionConfigs: [

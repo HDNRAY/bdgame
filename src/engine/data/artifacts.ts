@@ -188,7 +188,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'iron_will',
         name: '乌铠',
         description: '受到超过5点的斩/刺/钝伤害时，消耗1AP减少3点。',
-        tags: ['trigger', 'defense'],
+        tags: ['trigger', 'defense', 'inherent'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dmg_reduce' }] }],
     },
     {
@@ -216,7 +216,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'frost_silk_robe',
         name: '冰蚕衣',
         description: '冰蚕丝织就的软甲，遇寒愈坚。招架率+15%；招架后以寒气反噬对手。',
-        tags: ['defense'],
+        tags: ['defense', 'inherent'],
         effects: [{ type: 'parry_mod', value: 0.15 }],
         triggers: [
             {
@@ -260,7 +260,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'cinnabar_mole',
         name: '守宫砂',
         description: '龙虎山秘传之印，每三击蓄满雷印，下一击爆发×1.5。',
-        tags: ['trigger', 'electric'],
+        tags: ['trigger', 'inherent'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'cinnabar_mark' }] }],
     },
     {
@@ -282,7 +282,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'snake_gall',
         name: '蛇胆',
         description: '普斯曲蛇的蛇胆，强筋健骨。力道+2，根骨+2，毒抗+70%。',
-        tags: ['buff'],
+        tags: ['buff', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'poison_resist' }] }],
     },
@@ -290,14 +290,14 @@ export const ARTIFACTS: Artifact[] = [
         id: 'fiery_eyes',
         name: '火眼金睛',
         description: '历经焚炼，目光如炬，洞察入微。洞察+4。',
-        tags: ['buff'],
+        tags: ['buff', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
     },
     {
         id: 'soft_hedgehog_mail',
         name: '软猬甲',
         description: '以软猬兽皮制成的甲衣，柔韧而多刺。减免所有伤害；受拳脚攻击时反伤并令对手流血。',
-        tags: ['defense'],
+        tags: ['defense', 'inherent'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'soft_armor' }] }],
     },
     {
@@ -327,11 +327,18 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'gu_tong_body' }] }],
     },
     {
-        id: 'chan_orb',
-        name: '凝缠珠',
-        description: '古法淬炼的缠劲珠，每2秒自动凝聚2点缠劲。',
-        tags: ['buff', 'qi'],
+        id: 'headband',
+        name: '旧头巾',
+        description: '师门传下来的头巾，棉纱密实，经年不坏。系上它，气就顺了。',
+        tags: ['buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chan_orb_regen' }] }],
+    },
+    {
+        id: 'blood_sacrifice_armband',
+        name: '血祭护腕',
+        description: '以血饲器的古老护腕。每招消耗3%最大气血，化为额外伤害并缓慢恢复。',
+        tags: ['buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'blood_sacrifice' }] }],
     },
     {
         id: 'wakizashi',
@@ -374,7 +381,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'combat_armor',
         name: '斗铠',
         description: '百战之铠，非炁伤害减免1点，但身法-2。',
-        tags: ['defense'],
+        tags: ['defense', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { agility: -2 } }],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_armor_def' }] },
@@ -384,7 +391,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'braid_blade',
         name: '发辫刃',
         description: '辫发中暗藏飞刃，敌人远离时自动追击。',
-        tags: ['weapon', 'counter'],
+        tags: ['weapon', 'counter', 'inherent'],
         grantsActions: ['_braid_blade'],
         triggers: [{ condition: { type: 'on_opponent_move_away' }, actionId: '_braid_blade' }],
     },

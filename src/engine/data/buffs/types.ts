@@ -94,6 +94,8 @@ export interface BuffDef extends GameEntity {
     onBuffApply?: (raw: number, char: Character, engine: BattleEngine) => number
     /** 收到治疗时回调（所有治疗路径，含 tick heal） */
     onReceiveHeal?: (ctx: BuffHookCtx) => void
+    /** 气血变化时回调（任意 hp 变更，含伤害与治疗） */
+    onHpChange?: (ctx: BuffHookCtx) => void
     /** debuff 应用回调（首次/叠层时调用，用于设置 extra 数据） */
     onDebuffApply?: (ctx: DebuffApplyCtx) => void
 }

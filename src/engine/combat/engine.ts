@@ -904,10 +904,11 @@ export class BattleEngine {
                         source: undefined!,
                     })
                     if (amt > 0) {
-                        char.heal(amt)
+                        char.heal(amt, this)
                         reduceBleedOnHeal(this, char.id, amt, 8)
                         this.emitLog({
                             type: 'heal',
+                            actionId: buffDef.id,
                             actionName: buffDef.name,
                             sourceId: char.id,
                             targetId: char.id,
@@ -932,7 +933,7 @@ export class BattleEngine {
                         }
                     }
                 }
-                if (this.state.pendingBuffs.has(`${buffId}::${charId}`)) {
+                if (this.state.pendingBuffs.has(key)) {
                     this.state.turn.scheduleSystemEventAt(
                         eventId,
                         e.nextActionAt + (buffDef.tickInterval ?? 1000),

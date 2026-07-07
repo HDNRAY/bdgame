@@ -19,6 +19,7 @@ export { JUNSHI } from './junshi'
 export { FENGSHUI } from './fengshui'
 export { DUOER } from './duoer'
 export { HEIYUN } from './heiyun'
+export { HAORAN } from './haoran'
 import type { CharacterBuild, BattleStyle } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
@@ -47,6 +48,7 @@ import { DUOER } from './duoer'
 import { FENGSHUI } from './fengshui'
 import { WUZUI } from './wuzui'
 import { HEIYUN } from './heiyun'
+import { HAORAN } from './haoran'
 
 /** 对手定义（纯数据） */
 export interface OpponentDef {
@@ -72,24 +74,25 @@ export const OPPONENTS: OpponentDef[] = [
     /** 拳掌 */
     QILAN, // 江湖新人
     LAIFENG,
-    WUZUI, // 六绝之根
+    WUZUI, // 饮酒结拜
+    SANGYUAN, // 归海楼
     /** 刀剑 */
     LUHONGTI, // 军方
-    SANGYUAN, // 归海楼
     AJIU, // 组织
-    FENGSHUI, // 江湖新人
+    FENGSHUI, // 饮酒结拜
+    HAORAN, // 饮酒结拜
     /** 双持 */
-    LAYUE,
+    LAYUE, // 天生道种师姐
     BAIHU,
-    LONGNV, // 六绝之巧
+    LONGNV, // 六绝之逸
     /** 长柄 */
     ZHANGLIE, // 组织(变节卧底)
     /** 棍 */
-    WUKONG, // 六绝之力
+    WUKONG, // 六绝之破
     /** 御物 */
     XUANJI, // 玄门
     JUNSHI, // 组织
-    HEIYUN, // 玄门(退出)
+    HEIYUN, // 玄门(退出) 饮酒结拜
     /** 巨武 */
     LIUXIGUA, // 六绝之闪
     YANGGUO, // 六绝之观

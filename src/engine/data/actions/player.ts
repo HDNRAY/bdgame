@@ -25,7 +25,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'stun'],
         getRange: () => [0, 2] as [number, number],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
         ],
     },
@@ -36,7 +36,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'melee'],
-        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2, wisdom: 0.1 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, wisdom: 0.2 } }],
     },
     {
         id: 'crushing_blow',
@@ -226,6 +226,78 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'knockback', distance: 1 },
             { type: 'short_dash', maxDistance: 1 },
         ],
+    },
+    {
+        id: 'hand_blade',
+        name: '手刀',
+        description: '一记凌厉的手刀，兼具拳脚与刀势。',
+        requiredTags: ['unarmed'],
+        apCost: 2,
+        tags: ['unarmed', 'slash'],
+        onActionHitChance: (base) => base + 0.1,
+        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
+    },
+    {
+        id: 'blood_qi_protection',
+        name: '血炁护体',
+        description: '释放15%当前气血换取护体真气，减伤10%并持续恢复10秒。已有buff时不可重复使用。',
+        requiredTags: ['unarmed'],
+        apCost: 0,
+        tags: ['pre_action', 'buff'],
+        target: 'self',
+        canUse: (attacker, state) => {
+            if (state.pendingBuffs.has(`blood_qi_protection::${attacker.id}`)) return false
+            return true
+        },
+        effects: [
+            { type: 'add_buff', buffId: 'blood_qi_protection' },
+            {
+                type: 'functional_damage',
+                fn: ({ self, state }) => {
+                    const cost = Math.max(1, Math.round(self.hp * 0.15 * 10) / 10)
+                    if (self.hp <= cost) return 0
+                    self.takeDamage(cost)
+                    const totalRecovery = Math.round(cost * 10) / 10
+                    const key = `blood_qi_protection::${self.id}`
+                    const layer = state.pendingBuffs.get(key)
+                    if (layer) layer.restoreValue = totalRecovery
+                    return 0
+                },
+            },
+        ],
+    },
+    {
+        id: 'side_kick',
+        name: '侧踢',
+        description: '一记势大力沉的侧踢，直取中门。',
+        requiredTags: ['unarmed'],
+        apCost: 4,
+        tags: ['unarmed', 'melee'],
+        effects: [{ type: 'damage', scaling: { strength: 0.5, dexterity: 0.2 } }],
+    },
+    {
+        id: 'sweep_kick',
+        name: '扫腿',
+        description: '低身扫腿，攻其下盘。',
+        requiredTags: ['unarmed'],
+        apCost: 3,
+        tags: ['unarmed', 'melee'],
+        effects: [
+            { type: 'damage', scaling: { agility: 0.25, dexterity: 0.15 } },
+            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.4 },
+        ],
+    },
+    {
+        id: 'spinning_kick',
+        name: '回旋踢',
+        description: '全身回旋，一记高难度腿法。需要40层缠劲。',
+        requiredTags: ['unarmed'],
+        apCost: 5,
+        chanCost: 40,
+        tags: ['unarmed', 'melee'],
+        canUse: (attacker) => attacker.chan >= 40,
+        onActionCritChance: (base) => base + 0.25,
+        effects: [{ type: 'damage', scaling: { agility: 0.4, strength: 0.6 } }],
     },
     // ── 暗器系 ──
     {

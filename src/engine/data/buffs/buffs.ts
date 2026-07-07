@@ -2,6 +2,7 @@ import { processActionEffect } from '../../combat/effects'
 import { revertBuffMods } from '../../combat/utils'
 import { applyAttrMods } from '../../combat/utils/buff-layer'
 import { calcParryChance } from '../../calc/damage'
+import { round1 } from '../../util/math'
 import type { BuffDef } from './types'
 import { DEFENSE_BUFFS } from './defense'
 import { DAMAGE_BUFFS } from './damage'
@@ -802,5 +803,95 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         attrMods: { insight: 4 },
         onCritChance: () => 0.05,
+    },
+    // ── 血炁护体 ──
+    {
+        id: 'blood_qi_protection',
+        name: '血炁护体',
+        description: '消耗15%当前气血换取护体真气，减伤10%并持续恢复。',
+        tags: ['buff'],
+        expiry: { type: 'duration', ms: 10000 },
+        stacking: { type: 'none' },
+        onTakeDamage: ({ final }) => Math.round(final * 0.9 * 10) / 10,
+        tickInterval: 1000,
+        onTickHeal: ({ layer }) => Math.max(0.1, round1(layer.restoreValue / 10)),
+    },
+    // ── 血战到底 ──
+    {
+        id: 'blood_rage',
+        name: '血战到底',
+        description: '气血越低属性加成越高。力道、身法、灵巧随血量减少而提升。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        onHpChange: ({ target: char, state, layer }) => {
+            const hpPct = char.hp / char.maxHp
+            let str = 0,
+                agi = 0,
+                dex = 0
+            if (hpPct < 1) {
+                if (hpPct > 0.7) {
+                    str = 2
+                    agi = 2
+                    dex = 2
+                } else if (hpPct > 0.3) {
+                    str = 4
+                    agi = 4
+                    dex = 4
+                } else {
+                    str = 8
+                    agi = 8
+                    dex = 8
+                }
+            }
+            const prev = layer.extra as Record<string, number> | undefined
+            if (prev?.str === str && prev?.agi === agi && prev?.dex === dex) return
+            revertBuffMods(layer, char, state)
+            const newMods = applyAttrMods(char, state, { strength: str, agility: agi, dexterity: dex }, '血战到底')
+            layer.mods = newMods
+            layer.extra = { str, agi, dex }
+        },
+    },
+    // ── 气血回溯 ──
+    {
+        id: 'blood_recovery',
+        name: '气血回溯',
+        description: '正在回复消耗的气血。',
+        tags: [],
+        expiry: { type: 'duration', ms: 5000 },
+        stacking: { type: 'independent' },
+        tickInterval: 1000,
+        onTickHeal: ({ layer }) => Math.max(0.1, round1(layer.restoreValue / 5)),
+    },
+    // ── 血祭监控 ──
+    {
+        id: 'blood_sacrifice',
+        name: '血祭',
+        description: '每招消耗3%最大气血，其中50%化为额外伤害，并开始气血回溯5%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onAction: ({ source, attacker, engine, state, layer }) => {
+            if (!source || attacker.hp <= 0) return
+            if (source.tags.includes('pre_action')) return
+            const cost = Math.max(1, Math.round(attacker.maxHp * 0.03 * 10) / 10)
+            if (attacker.hp <= cost) return
+            attacker.takeDamage(cost)
+            layer.restoreValue = cost
+            // 追加独立的气血回溯（记录总回复量 = 5% maxHP，分10秒恢复）
+            if (engine) {
+                const totalRecovery = Math.round(attacker.maxHp * 0.015 * 10) / 10
+                processActionEffect(
+                    { type: 'add_buff', buffId: 'blood_recovery', stacks: totalRecovery },
+                    attacker,
+                    attacker,
+                    engine,
+                    state.turn.currentTime,
+                )
+            }
+        },
+        onDealDamage: ({ final, layer }) => {
+            const cost = layer.restoreValue ?? 0
+            if (cost <= 0) return final
+            return Math.round((final + cost * 0.5) * 10) / 10
+        },
     },
 ]
