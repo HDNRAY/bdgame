@@ -212,11 +212,13 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'godspeed',
-        name: '神速',
-        description: '以电刺激神经，身法灵巧大幅提升。',
+        name: '疾风迅雷',
+        description: '神经电刺激，闪避后蓄势，被击中时雷闪反击。',
         tags: ['passive', 'buff', 'electric'],
-        effects: [{ type: 'stat_buff', attrs: { insight: 2, dexterity: 2 } }],
-        triggers: [{ condition: { type: 'on_dodge' }, actionId: '_godspeed_counter' }],
+        triggers: [
+            { condition: { type: 'on_dodge' }, effects: [{ type: 'add_buff', buffId: 'thunder_swift', stacks: 1 }] },
+            { condition: { type: 'on_was_hit' }, actionId: '_godspeed_counter' },
+        ],
     },
     {
         id: 'thunder_art',

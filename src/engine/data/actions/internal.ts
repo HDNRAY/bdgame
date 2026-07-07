@@ -114,7 +114,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
     },
     {
         id: '_godspeed_counter',
-        name: '神速·闪雷',
+        name: '疾风·雷闪',
         description: '',
         requiredTags: [],
         apCost: 0,

@@ -234,7 +234,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '刚劲',
         description: '剑势·刚，力道+4/层，身法-2/层。最多2层。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 20000 },
+        expiry: { type: 'duration', ms: 30000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { strength: 4, agility: -2 },
     },
@@ -243,9 +243,39 @@ export const BUFF_DB: BuffDef[] = [
         name: '柔劲',
         description: '剑势·柔，身法+4/层，力道-2/层。最多2层。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 20000 },
+        expiry: { type: 'duration', ms: 30000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { agility: 4, strength: -2 },
+    },
+    // ── 浩然·剑法 ──
+    {
+        id: 'thunder_swift',
+        name: '迅雷',
+        description: '迅雷之势，灵巧+1，洞察+1。最多2层。',
+        tags: ['buff'],
+        expiry: { type: 'duration', ms: 30000 },
+        stacking: { type: 'additive', max: 2 },
+        attrMods: { dexterity: 1, insight: 1 },
+    },
+    {
+        id: 'chill_blade',
+        name: '寒锋',
+        description: '剑意凛冽，剑气浸骨。每层伤害+8%。最多2层。',
+        tags: ['buff'],
+        expiry: { type: 'duration', ms: 30000 },
+        stacking: { type: 'additive', max: 2 },
+        onDealDamage: ({ final, layer }) => Math.round(final * (1 + layer.restoreValue * 0.08) * 10) / 10,
+    },
+    // ── 春竹·回春 ──
+    {
+        id: 'bamboo_regen',
+        name: '回春',
+        description: '剑气如春竹吐纳，生生不息。',
+        tags: ['heal'],
+        expiry: { type: 'duration', ms: 30000 },
+        stacking: { type: 'additive', max: 2 },
+        tickInterval: 2000,
+        onTickHeal: ({ layer }) => layer.restoreValue,
     },
     {
         id: 'herb_pouch',
@@ -710,27 +740,6 @@ export const BUFF_DB: BuffDef[] = [
         tickInterval: 5000,
         onTickHeal: ({ target }) => Math.max(1, Math.round(target.maxHp * 0.01)),
     },
-    // ── 灵剑·桑原 ──
-    {
-        id: 'sword_intent_burst',
-        name: '灵炁爆发',
-        description: '力道、身法、灵巧各+6持续15秒，之后各-8持续3秒。',
-        tags: ['qi', 'buff'],
-        expiry: { type: 'duration', ms: 18000 },
-        attrMods: { strength: 6, agility: 6, dexterity: 6 },
-        tickInterval: 15000,
-        onTickHeal: ({ layer, engine, target, state }) => {
-            revertBuffMods(layer, target, state)
-            const newMods = applyAttrMods(target, state, { strength: -8, agility: -8, dexterity: -8 }, '灵炁爆发')
-            layer.mods = newMods
-            engine?.emitLog({
-                type: 'system',
-                message: `[灵炁爆发] ${target.name} 力竭，各属性-8（3秒）`,
-                actorId: target.id,
-            })
-            return 0
-        },
-    },
     {
         id: 'sword_focus',
         name: '怒炁充盈',
@@ -788,7 +797,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'fusi_crit_stack',
         name: '弗思·蓄势',
         description: '闪避后本能蓄势，每层暴击率+3%。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
         onCritChance: ({ layer }) => layer.restoreValue * 0.03,
@@ -798,7 +807,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'floating_eye_buff',
         name: '浮游眼',
         description: '洞察流转，预判对手。洞察+4，暴击率+5%。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { insight: 4 },
@@ -809,7 +818,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'blood_qi_protection',
         name: '血炁护体',
         description: '消耗15%当前气血换取护体真气，减伤10%并持续恢复。',
-        tags: ['buff'],
+        tags: ['buff', 'defense'],
         expiry: { type: 'duration', ms: 10000 },
         stacking: { type: 'none' },
         onTakeDamage: ({ final }) => Math.round(final * 0.9 * 10) / 10,
@@ -856,7 +865,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'blood_recovery',
         name: '气血回溯',
         description: '正在回复消耗的气血。',
-        tags: [],
+        tags: ['heal'],
         expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'independent' },
         tickInterval: 1000,
@@ -867,7 +876,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'blood_sacrifice',
         name: '血祭',
         description: '每招消耗3%最大气血，其中50%化为额外伤害，并开始气血回溯5%。',
-        tags: [],
+        tags: ['damage'],
         expiry: { type: 'permanent' },
         onAction: ({ source, attacker, engine, state, layer }) => {
             if (!source || attacker.hp <= 0) return

@@ -568,8 +568,4 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
             range: [weapon.range[0], Math.min(10, weapon.range[1] + e.value)] as [number, number],
         }
     },
-    trigger_slot_mod(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'trigger_slot_mod' }>
-        char.triggerSlotMod += e.value
-    },
 }

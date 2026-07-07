@@ -426,14 +426,54 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'yunv_sword',
-        name: '用真剑法',
-        description: '用真剑法，灵动如烟。叠一层刚劲。',
+        name: '流萤剑法',
+        description: '流萤剑法，灵动如烟。叠一层刚劲。',
         requiredTags: ['pierce'],
         apCost: 3,
         tags: ['pierce', 'melee', 'buff'],
         effects: [
             { type: 'damage', scaling: { agility: 0.6 } },
             { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 },
+        ],
+    },
+    // ── 浩然·剑法 ──
+    {
+        id: 'swift_thunder_sword',
+        name: '迅雷剑法',
+        description: '电光石火，目眩神驰。',
+        requiredTags: ['pierce'],
+        apCost: 3,
+        tags: ['pierce', 'melee', 'buff', 'qi'],
+        effects: [
+            { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 0.5 },
+            { type: 'add_buff', buffId: 'thunder_swift', stacks: 1 },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.3 } },
+        ],
+    },
+    {
+        id: 'blowing_snow_sword',
+        name: '吹雪剑法',
+        description: '一剑西来，天外飞仙。剑气凛冽如雪。',
+        requiredTags: ['pierce'],
+        apCost: 3,
+        tags: ['pierce', 'melee', 'buff', 'qi'],
+        effects: [
+            { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.5 },
+            { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
+            { type: 'damage', scaling: { agility: 0.3, dexterity: 0.2 } },
+        ],
+    },
+    {
+        id: 'spring_bamboo_sword',
+        name: '春竹剑法',
+        description: '剑气如春竹，破土凌云。',
+        requiredTags: ['pierce'],
+        apCost: 3,
+        tags: ['pierce', 'qi', 'heal'],
+        getRange: () => [2, 5] as [number, number],
+        effects: [
+            { type: 'add_buff', buffId: 'bamboo_regen', stacks: 1 },
+            { type: 'damage', scaling: { wisdom: 0.3, dexterity: 0.2 } },
         ],
     },
     {

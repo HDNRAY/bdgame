@@ -218,19 +218,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 2000 }],
     },
     {
-        id: 'sword_intent_burst',
-        name: '灵炁爆发',
-        description: '消耗32层缠劲，激发灵炁爆发。力道、身法、灵巧各+4持续15秒，之后各-8持续3秒。',
-        requiredTags: [],
-        apCost: 1,
-        tags: ['buff', 'qi', 'pre_action'],
-        target: 'self',
-        chanCost: 32,
-        canUse: (attacker, state) =>
-            attacker.chan >= 32 && !state?.pendingBuffs.has(`sword_intent_burst::${attacker.id}`),
-        effects: [{ type: 'add_buff', buffId: 'sword_intent_burst' }],
-    },
-    {
         id: 'ling_qi_guan_zhu',
         name: '灵炁灌注',
         description: '将大量炁劲注入御物，下个招式伤害+30%。不可叠加。',
