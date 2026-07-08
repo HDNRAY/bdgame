@@ -575,7 +575,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'zui_quan',
         name: '醉拳',
-        description: '醉态蹒跚，步法诡谲。徒手招式附带短距冲刺，闪避率+12%。',
+        description: '醉态蹒跚，步法诡谲。徒手招式附带短距冲刺，闪避率+8%。',
         tags: ['passive', 'buff', 'jiu'],
         actionEnhancer: (def) => {
             if (!def.tags?.includes('unarmed') || !def.effects?.some((e) => e.type === 'damage')) return def
@@ -586,10 +586,14 @@ export const PASSIVES: Passive[] = [
     {
         id: 'jiu_yang_shen_gong',
         name: '九阳神功',
-        description: '九阳真气护体，体魄+2，免疫冰冻，每5秒回复1%生命。',
-        tags: ['passive', 'buff', 'defense'],
-        effects: [{ type: 'stat_buff', attrs: { vitality: 2 } }],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'jiu_yang_regen' }] }],
+        description: '九阳真气护体，AP恢复速度提升至1.5倍。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 5 }],
+            },
+        ],
     },
     {
         id: 'hun_yuan_gong',

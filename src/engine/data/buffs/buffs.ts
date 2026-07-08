@@ -1,7 +1,7 @@
 import { processActionEffect } from '../../combat/effects'
 import { revertBuffMods } from '../../combat/utils'
 import { applyAttrMods } from '../../combat/utils/buff-layer'
-import { calcParryChance } from '../../calc/damage'
+import { calcParryChance, calcApRegenPerSec } from '../../calc/damage'
 import { round1 } from '../../util/math'
 import type { BuffDef } from './types'
 import { DEFENSE_BUFFS } from './defense'
@@ -732,15 +732,6 @@ export const BUFF_DB: BuffDef[] = [
         attrMods: { agility: 1, dexterity: 1 },
     },
     {
-        id: 'jiu_yang_regen',
-        name: '九阳真气',
-        description: '九阳真气护体，每5秒回复1%生命。',
-        tags: ['heal'],
-        expiry: { type: 'permanent' },
-        tickInterval: 5000,
-        onTickHeal: ({ target }) => Math.max(1, Math.round(target.maxHp * 0.01)),
-    },
-    {
         id: 'sword_focus',
         name: '怒炁充盈',
         description: '每被闪避一次积攒怒气，下次命中附加 层数×3 点伤害，击中后重置。',
@@ -858,5 +849,29 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'independent' },
         tickInterval: 1000,
         onTickHeal: ({ layer }) => Math.max(0.1, round1(layer.restoreValue / 5)),
+    },
+    // ── 内息澎湃（AP回复倍率） ──
+    {
+        id: 'nei_xi_peng_pai',
+        name: '内息澎湃',
+        description: '内息奔涌，每层AP恢复速度+0.1倍。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive' },
+        tickInterval: 1000,
+        onTickHeal: ({ target, layer, engine }) => {
+            const mult = 1 + (layer.restoreValue ?? 0) * 0.1
+            const basePerSec = calcApRegenPerSec(target.attrs.get('wisdom'))
+            const extra = Math.round(basePerSec * (mult - 1) * 10) / 10
+            if (extra > 0) {
+                target.ap = Math.min(target.maxAp, target.ap + extra)
+                engine?.emitLog({
+                    type: 'system',
+                    message: `[内息澎湃] ${target.name} AP +${extra}`,
+                    actorId: target.id,
+                })
+            }
+            return 0
+        },
     },
 ]

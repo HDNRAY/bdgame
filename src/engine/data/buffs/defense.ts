@@ -275,10 +275,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'zui_quan_dodge',
         name: '醉步',
-        description: '醉态蹒跚，闪避率+12%。',
+        description: '醉态蹒跚，闪避率+5%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onDodgeChance: () => 0.12,
+        onDodgeChance: () => 0.05,
     },
     {
         id: 'qian_kun_fan_tan',

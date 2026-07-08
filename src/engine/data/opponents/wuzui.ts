@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, passive, artifact } from '../../util/reward-utils'
 
-const WUZUI_ATTRS = { strength: 14, vitality: 16, agility: 16, dexterity: 14, insight: 10, wisdom: 8 }
+const WUZUI_ATTRS = { strength: 10, vitality: 20, agility: 14, dexterity: 14, insight: 10, wisdom: 8 }
 
 export const WUZUI: OpponentDef = {
     id: 'wuzui',

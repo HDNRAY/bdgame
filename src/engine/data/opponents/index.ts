@@ -96,8 +96,7 @@ export const OPPONENTS: OpponentDef[] = [
     /** 巨武 */
     LIUXIGUA, // 六绝之闪
     YANGGUO, // 六绝之观
-    /** 太刀 */
-    YIDAO, // 归海楼
+    YIDAO, // 太刀 归海楼
     /** 匕首 */
     LUEYING, // 军方
     DUOER, // 组织
