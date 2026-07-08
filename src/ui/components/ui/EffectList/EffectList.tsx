@@ -19,11 +19,7 @@ export function EffectList({ effects, label = '效果：' }: EffectListProps) {
             <ul>
                 {effects.map((eff, i) => (
                     <li key={i}>
-                        {eff.type === 'add_buff' ? (
-                            <AddBuffDisplay eff={eff} />
-                        ) : (
-                            describeEffect(eff).join('；')
-                        )}
+                        {eff.type === 'add_buff' ? <AddBuffDisplay eff={eff} /> : describeEffect(eff).join('；')}
                     </li>
                 ))}
             </ul>
