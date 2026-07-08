@@ -4,8 +4,10 @@ import { WeaponTooltip } from '../../tooltip-contents/WeaponTooltip'
 import { ActionTooltip } from '../../tooltip-contents/ActionTooltip'
 import { PassiveTooltip } from '../../tooltip-contents/PassiveTooltip'
 import { ArtifactTooltip } from '../../tooltip-contents/ArtifactTooltip'
+import { BuffTooltip } from '../../tooltip-contents/BuffTooltip'
 import { WeaponDef } from '../../../../engine/data/weapons/weapons'
 import { ActionDefinition, Artifact, Passive } from '../../../../engine'
+import type { BuffDef } from '../../../../engine/data/buffs/types'
 import { EntityDef, EntityType } from '../../../../bridge/entity-tooltip'
 import './EntityItem.scss'
 
@@ -28,6 +30,8 @@ export function EntityItem({ entity, type, children, onClick }: EntityItemProps)
                 return <PassiveTooltip passive={entity as Passive} />
             case 'artifact':
                 return <ArtifactTooltip artifact={entity as Artifact} />
+            case 'buff':
+                return <BuffTooltip buff={entity as BuffDef} />
         }
     })()
 

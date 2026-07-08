@@ -51,7 +51,7 @@ export function Tooltip({ content, children }: TooltipProps) {
                 // 在自己 popup 上或任意 tooltip popup 上 → 保持显示
             } else {
                 if (show) {
-                    timerRef.current = setTimeout(() => setShow(false), 200)
+                    timerRef.current = setTimeout(() => setShow(false), 120)
                 }
             }
         }

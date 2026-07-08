@@ -2,15 +2,17 @@ import { getAction } from '../engine/data/actions'
 import { getPassive } from '../engine/data/passives'
 import { getArtifact } from '../engine/data/artifacts'
 import { getWeapon } from '../engine/data/weapons/weapons'
+import { getBuff } from '../engine/data/buffs'
 import type { ActionDefinition } from '../engine/entities/action'
 import type { Passive } from '../engine/entities/passive'
 import type { Artifact } from '../engine/entities/artifact'
 import type { WeaponDef } from '../engine/data/weapons/weapons'
+import type { BuffDef } from '../engine/data/buffs/types'
 
-export type EntityDef = ActionDefinition | Passive | Artifact | WeaponDef
-export type EntityType = 'action' | 'passive' | 'artifact' | 'weapon'
+export type EntityDef = ActionDefinition | Passive | Artifact | WeaponDef | BuffDef
+export type EntityType = 'action' | 'passive' | 'artifact' | 'weapon' | 'buff'
 
-const ENTITY_TYPES = ['weapon', 'action', 'passive', 'artifact'] as const
+const ENTITY_TYPES = ['weapon', 'action', 'passive', 'artifact', 'buff'] as const
 
 export function isEntityType(type: string): type is EntityType {
     return (ENTITY_TYPES as readonly string[]).includes(type)
@@ -27,6 +29,8 @@ export function getEntity(id: string, type: string): EntityDef | undefined {
             return getArtifact(id)
         case 'weapon':
             return getWeapon(id)
+        case 'buff':
+            return getBuff(id)
         default:
             throw new Error(`getEntity: unknown entity type "${type}"`)
     }
