@@ -14,7 +14,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         canUse: (attacker, state) => state.pendingBuffs.has('iaijutsu::' + attacker.id),
         effects: [
             { type: 'short_dash', maxDistance: 1 },
-            { type: 'damage', scaling: { strength: 1.5 } },
+            { type: 'damage', scaling: { strength: 1.6 } },
             { type: 'remove_buff', buffId: 'iaijutsu' },
         ],
     },

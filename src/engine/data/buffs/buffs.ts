@@ -74,7 +74,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'circle',
         name: '圆',
-        description: '下次攻击，命中+40%。',
+        description: '下次攻击，命中+50%。',
         tags: ['buff'],
         expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },

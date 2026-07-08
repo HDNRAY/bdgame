@@ -166,7 +166,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         name: '罡体',
         description: '刚体护身，免疫眩晕、击退、打断、缴械、击倒。',
         tags: ['super_armor', 'defense'],
-        expiry: { type: 'duration', ms: 2000 },
+        expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
     },
     {

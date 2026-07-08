@@ -22,7 +22,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+2%暴伤。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
-        onCritChance: ({ source, attacker, layer, engine, state }) => {
+        onCritChance: ({ source, attacker, layer, engine }) => {
             if (((source as ActionDefinition)?.apCost ?? 0) < 5 || attacker.chan < MAX_CHAN) {
                 layer.restoreValue = 0
                 return 0
@@ -30,9 +30,6 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             const chan = attacker.chan
             attacker.spendChan(chan)
             layer.restoreValue = chan * 0.02
-            const key = `extreme::${attacker.id}`
-            state.pendingBuffs.delete(key)
-            state.turn.removeEvents(`buff_end_${key}`)
             engine?.emitLog({
                 type: 'system',
                 message: `[极] ${attacker.name} 极意绽放，缠劲尽散`,
@@ -40,10 +37,13 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             })
             return chan * 0.01
         },
-        onCritDamage: ({ layer }) => {
+        onCritDamage: ({ layer, state, attacker }) => {
             if (!layer.restoreValue) return 0
             const bonus = layer.restoreValue
             layer.restoreValue = 0
+            const key = `extreme::${attacker.id}`
+            state.pendingBuffs.delete(key)
+            state.turn.removeEvents(`buff_end_${key}`)
             return bonus * 2
         },
     },

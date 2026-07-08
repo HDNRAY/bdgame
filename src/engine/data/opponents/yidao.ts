@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../util/reward-utils'
 
-const YIDAO_ATTRS = { strength: 18, vitality: 11, agility: 15, dexterity: 14, insight: 13, wisdom: 6 }
+const YIDAO_ATTRS = { strength: 18, vitality: 10, agility: 15, dexterity: 14, insight: 14, wisdom: 6 }
 
 export const YIDAO: OpponentDef = {
     id: 'yidao',
@@ -22,9 +22,5 @@ export const YIDAO: OpponentDef = {
         passive('stance_time'),
         // 10
     ],
-    actionConfigs: [
-        { actionId: 'iaijutsu_strike' },
-        { actionId: 'light_slash' },
-        { actionId: 'resheath', conditionId: 'no_stance' },
-    ],
+    actionConfigs: [{ actionId: 'resheath', conditionId: 'no_stance' }],
 }
