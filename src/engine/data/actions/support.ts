@@ -203,7 +203,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '凝聚炁息化为护盾，2层炁盾护体。',
         requiredTags: [],
         apCost: 2,
-        tags: ['imperial', 'qi', 'pre_action', 'defense'],
+        tags: ['imperial', 'qi', 'post_action', 'defense'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 2 }],
     },

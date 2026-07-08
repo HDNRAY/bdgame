@@ -1,6 +1,7 @@
 import { processActionEffect } from '../../combat/effects'
 import type { BuffDef } from './types'
 import { Tag } from '../../entities/tag'
+import { round1 } from '../../util/math'
 
 export const DEFENSE_BUFFS: BuffDef[] = [
     {
@@ -322,25 +323,72 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         onDodgeChance: () => 0.15,
     },
     {
+        id: 'blood_qi_protection',
+        name: '血炁护体',
+        description: '消耗15%当前气血换取护体真气，减伤10%并持续恢复。',
+        tags: ['buff', 'defense'],
+        expiry: { type: 'duration', ms: 10000 },
+        stacking: { type: 'none' },
+        onTakeDamage: ({ final }) => Math.round(final * 0.9 * 10) / 10,
+        tickInterval: 1000,
+        onTickHeal: ({ layer }) => Math.max(0.1, round1(layer.restoreValue / 10)),
+    },
+    {
         id: 'drunken_step_watcher',
         name: '醉仙望月',
-        description: '监测治疗量，≥9点时触发醉仙望月步。',
+        description: '饮酒后触发，获得15%闪避。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onReceiveHeal: ({ final: amount, target, engine, state }) => {
-            if ((amount ?? 0) >= 9) {
-                const enemy = engine?.getOpponent(target.id)
-                if (enemy) {
-                    processActionEffect(
-                        { type: 'add_buff', buffId: 'drunken_dodge', stacks: 1 },
-                        target,
-                        enemy,
-                        engine!,
-                        state.turn.currentTime,
-                    )
-                }
+        onAction: ({ source, target, engine, state }) => {
+            if (!source?.tags.includes('jiu')) return
+            if (engine) {
+                processActionEffect(
+                    { type: 'add_buff', buffId: 'drunken_dodge', stacks: 1 },
+                    target,
+                    target,
+                    engine,
+                    state.turn.currentTime,
+                )
             }
         },
+    },
+    {
+        id: 'zhu_ye_qing',
+        name: '竹叶青',
+        description: '每秒回复1%气血，持续10秒。',
+        tags: ['defense'],
+        expiry: { type: 'duration', ms: 10000 },
+        stacking: { type: 'none' },
+        tickInterval: 1000,
+        onTickHeal: ({ target }) => Math.round(target.maxHp * 0.01 * 10) / 10,
+    },
+    {
+        id: 'bu_lao_quan',
+        name: '不老泉',
+        description: 'AP恢复速度增加，持续15秒。',
+        tags: ['defense'],
+        expiry: { type: 'duration', ms: 15000 },
+        stacking: { type: 'none' },
+        tickInterval: 1000,
+        onTickHeal: ({ target, engine }) => {
+            const apGain = Math.max(1, Math.round(target.attrs.get('wisdom') * 0.2))
+            target.ap = Math.min(target.maxAp, target.ap + apGain)
+            engine?.emitLog({
+                type: 'system',
+                message: `[不老泉] ${target.name} AP +${apGain}`,
+                actorId: target.id,
+            })
+            return 0
+        },
+    },
+    {
+        id: 'shao_dao_zi',
+        name: '烧刀子',
+        description: '烈酒烧心，暴击率+50%，持续15秒。',
+        tags: ['defense'],
+        expiry: { type: 'duration', ms: 15000 },
+        stacking: { type: 'none' },
+        onCritChance: () => 0.5,
     },
     // ── 无刀取 ──
     {

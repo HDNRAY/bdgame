@@ -56,3 +56,4 @@ export type Tag =
     | 'thrown' // 暗器
     | 'damage' // 伤害增强
     | 'super_armor' // 罡体
+    | 'jiu' // 酒

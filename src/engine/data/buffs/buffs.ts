@@ -234,7 +234,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '刚劲',
         description: '剑势·刚，力道+4/层，身法-2/层。最多2层。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 30000 },
+        expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { strength: 4, agility: -2 },
     },
@@ -243,7 +243,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '柔劲',
         description: '剑势·柔，身法+4/层，力道-2/层。最多2层。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 30000 },
+        expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { agility: 4, strength: -2 },
     },
@@ -253,7 +253,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '迅雷',
         description: '迅雷之势，灵巧+1，洞察+1。最多2层。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 30000 },
+        expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { dexterity: 1, insight: 1 },
     },
@@ -262,7 +262,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '寒锋',
         description: '剑意凛冽，剑气浸骨。每层伤害+8%。最多2层。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 30000 },
+        expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         onDealDamage: ({ final, layer }) => Math.round(final * (1 + layer.restoreValue * 0.08) * 10) / 10,
     },
@@ -272,7 +272,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '回春',
         description: '剑气如春竹吐纳，生生不息。',
         tags: ['heal'],
-        expiry: { type: 'duration', ms: 30000 },
+        expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         tickInterval: 2000,
         onTickHeal: ({ layer }) => layer.restoreValue,
@@ -280,7 +280,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'herb_pouch',
         name: '蜂草鱼囊',
-        description: '每 5 秒自动化解一层毒素，且恢复3点气血。',
+        description: '每 5 秒自动化解一层毒素，且恢复2点气血。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
         tickInterval: 5000,
@@ -298,7 +298,7 @@ export const BUFF_DB: BuffDef[] = [
                     state.pendingBuffs.delete(poisonKey)
                 }
             }
-            return 3
+            return 2
         },
     },
     // ── 缠劲溢出奖励 ──
@@ -606,7 +606,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '暴击推演出的闪避预判，每层闪避+1%、招架+1%。',
         tags: [],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 4 },
+        stacking: { type: 'additive', max: 2 },
         onDodgeChance: ({ layer }) => layer.restoreValue * 0.01,
         onParryChance: ({ layer }) => layer.restoreValue * 0.01,
     },
@@ -616,7 +616,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '推演出的破绽洞察，每层暴击+1%、爆伤+1%。',
         tags: [],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 4 },
+        stacking: { type: 'additive', max: 2 },
         onCritChance: ({ layer }) => layer.restoreValue * 0.01,
         onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
     },
@@ -813,18 +813,6 @@ export const BUFF_DB: BuffDef[] = [
         attrMods: { insight: 4 },
         onCritChance: () => 0.05,
     },
-    // ── 血炁护体 ──
-    {
-        id: 'blood_qi_protection',
-        name: '血炁护体',
-        description: '消耗15%当前气血换取护体真气，减伤10%并持续恢复。',
-        tags: ['buff', 'defense'],
-        expiry: { type: 'duration', ms: 10000 },
-        stacking: { type: 'none' },
-        onTakeDamage: ({ final }) => Math.round(final * 0.9 * 10) / 10,
-        tickInterval: 1000,
-        onTickHeal: ({ layer }) => Math.max(0.1, round1(layer.restoreValue / 10)),
-    },
     // ── 血战到底 ──
     {
         id: 'blood_rage',
@@ -870,37 +858,5 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'independent' },
         tickInterval: 1000,
         onTickHeal: ({ layer }) => Math.max(0.1, round1(layer.restoreValue / 5)),
-    },
-    // ── 血祭监控 ──
-    {
-        id: 'blood_sacrifice',
-        name: '血祭',
-        description: '每招消耗3%最大气血，其中50%化为额外伤害，并开始气血回溯5%。',
-        tags: ['damage'],
-        expiry: { type: 'permanent' },
-        onAction: ({ source, attacker, engine, state, layer }) => {
-            if (!source || attacker.hp <= 0) return
-            if (source.tags.includes('pre_action')) return
-            const cost = Math.max(1, Math.round(attacker.maxHp * 0.03 * 10) / 10)
-            if (attacker.hp <= cost) return
-            attacker.takeDamage(cost)
-            layer.restoreValue = cost
-            // 追加独立的气血回溯（记录总回复量 = 5% maxHP，分10秒恢复）
-            if (engine) {
-                const totalRecovery = Math.round(attacker.maxHp * 0.015 * 10) / 10
-                processActionEffect(
-                    { type: 'add_buff', buffId: 'blood_recovery', stacks: totalRecovery },
-                    attacker,
-                    attacker,
-                    engine,
-                    state.turn.currentTime,
-                )
-            }
-        },
-        onDealDamage: ({ final, layer }) => {
-            const cost = layer.restoreValue ?? 0
-            if (cost <= 0) return final
-            return Math.round((final + cost * 0.5) * 10) / 10
-        },
     },
 ]

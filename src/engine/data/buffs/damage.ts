@@ -1,6 +1,7 @@
 import type { BuffDef } from './types'
 import { MAX_CHAN } from '../../constants'
 import type { ActionDefinition } from '../../entities/action'
+import { processActionEffect } from '../../combat/effects'
 
 export const DAMAGE_BUFFS: BuffDef[] = [
     {
@@ -164,6 +165,37 @@ export const DAMAGE_BUFFS: BuffDef[] = [
                 actorId: attacker.id,
             })
             return 2
+        },
+    },
+    {
+        id: 'blood_sacrifice',
+        name: '血祭',
+        description: '每招消耗3%最大气血，其中50%化为额外伤害，并开始气血回溯5%。',
+        tags: ['damage'],
+        expiry: { type: 'permanent' },
+        onAction: ({ source, attacker, engine, state, layer }) => {
+            if (!source || attacker.hp <= 0) return
+            if (source.tags.includes('pre_action')) return
+            const cost = Math.max(1, Math.round(attacker.maxHp * 0.03 * 10) / 10)
+            if (attacker.hp <= cost) return
+            attacker.takeDamage(cost)
+            layer.restoreValue = cost
+            // 追加独立的气血回溯（记录总回复量 = 5% maxHP，分10秒恢复）
+            if (engine) {
+                const totalRecovery = Math.round(attacker.maxHp * 0.015 * 10) / 10
+                processActionEffect(
+                    { type: 'add_buff', buffId: 'blood_recovery', stacks: totalRecovery },
+                    attacker,
+                    attacker,
+                    engine,
+                    state.turn.currentTime,
+                )
+            }
+        },
+        onDealDamage: ({ final, layer }) => {
+            const cost = layer.restoreValue ?? 0
+            if (cost <= 0) return final
+            return Math.round((final + cost * 0.5) * 10) / 10
         },
     },
 ]

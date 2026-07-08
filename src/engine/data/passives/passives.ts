@@ -576,7 +576,7 @@ export const PASSIVES: Passive[] = [
         id: 'zui_quan',
         name: '醉拳',
         description: '醉态蹒跚，步法诡谲。徒手招式附带短距冲刺，闪避率+12%。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'jiu'],
         actionEnhancer: (def) => {
             if (!def.tags?.includes('unarmed') || !def.effects?.some((e) => e.type === 'damage')) return def
             return { ...def, effects: [{ type: 'short_dash', maxDistance: 1 }, ...def.effects] }
@@ -625,8 +625,8 @@ export const PASSIVES: Passive[] = [
     {
         id: 'drunken_step',
         name: '醉仙望月步',
-        description: '每次受到≥9点治疗时，获得15%闪避，持续15秒。',
-        tags: ['passive', 'defense', 'buff'],
+        description: '每次饮酒时，获得15%闪避，持续15秒。',
+        tags: ['passive', 'defense', 'buff', 'jiu'],
         triggers: [
             {
                 condition: { type: 'battle_start' },

@@ -168,7 +168,9 @@ function resolveParry(
         if (!def?.onCanBeParried) return false
         return !def.onCanBeParried({ self: attacker, engine })
     })
-    if (cannotBeParried) return { parried: false, final: raw }
+    // 招式自带无视招架
+    const actionIgnoresParry = act?.effects?.some((e) => e.type === 'ignore_parry')
+    if (cannotBeParried || actionIgnoresParry) return { parried: false, final: raw }
 
     // ── 2. 目标能否招架（buff onCanParry 覆盖武器标签） ──
     const weapon = target.weaponDef ?? getWeapon(target.build.weapon)

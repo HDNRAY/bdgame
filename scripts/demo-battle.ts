@@ -28,6 +28,7 @@ import {
     FENGSHUI,
     WUZUI,
     HEIYUN,
+    HAORAN,
 } from '../src/engine/data/opponents/index'
 import { getWeapon } from '../src/engine/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
@@ -69,8 +70,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(LONGNV, 33)
-const oBuild = gen(SANGYUAN, 33)
+const pBuild = gen(HAORAN, 33)
+const oBuild = gen(XUANJI, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

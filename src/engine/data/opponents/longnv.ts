@@ -10,6 +10,8 @@ export const LONGNV: OpponentDef = {
     battleStyle: 'melee',
     targetAttrs: LONGNV_ATTRS,
     rewards: [
+        action('sword_thrust'),
+        passive('martial_arts_archive'),
         action('yunv_sword'),
         passive('dark_room_catch'),
         action('quanzhen_sword'),
@@ -17,9 +19,7 @@ export const LONGNV: OpponentDef = {
         artifact('herb_pouch'),
         artifact('golden_bell_rope'),
         passive('yuxin_sword_mastery'),
-        passive('martial_arts_archive'),
         action('yufeng_needle'),
-        action('sword_thrust'),
         // 10
     ],
     actionConfigs: [

@@ -3,13 +3,15 @@ import type { EffectDef } from '../entities/action'
 import { getActionRange } from '../entities/action'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../data/weapons/weapons'
+import { getBuff } from '../data/buffs'
 import { PositionSystem } from '../combat/position'
 import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
-import { classifyAttackStyle, planMovement, type AttackStyle } from './move-planner'
+import { planMovement, type AttackStyle } from './move-planner'
 import { planSupportActions } from './support-planner'
 import { checkCondition } from '../entities/action-config'
 import { getConditionPreset } from '../data/conditions'
+import { getAction } from '../data/actions'
 
 /** AI 决策：返回本行动中要执行的一串指令 */
 export function planEvent(self: Character, state: BattleState): ActionCommand[] {
@@ -107,6 +109,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const configOrder = new Map(self.build.actionConfigs?.map((c, i) => [c.actionId, i]))
     const huboKey = `zuoyou_hubo::${self.id}`
     const hasHubo = state.pendingBuffs.has(huboKey)
+    const style: AttackStyle = self.battleStyle
 
     // 有条件限制的招式（conditionId !== always）→ 按 configOrder 排序
     const conditionalCands = candidates.filter((c) => {
@@ -125,8 +128,8 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         return !cfg?.conditionId || cfg.conditionId === 'always'
     })
     defaultCands.sort((a, b) => {
-        const scoreA = calcActionScore(a, hasHubo, apBudget)
-        const scoreB = calcActionScore(b, hasHubo, apBudget)
+        const scoreA = calcActionScore(a, hasHubo, apBudget, self, state, style)
+        const scoreB = calcActionScore(b, hasHubo, apBudget, self, state, style)
         if (scoreA !== scoreB) return scoreB - scoreA
         const oa = configOrder.get(a.actionId) ?? 999
         const ob = configOrder.get(b.actionId) ?? 999
@@ -142,8 +145,6 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     let moveDelta = 0
     let moveAp = 0
     let dashActionId: string | undefined
-
-    const style: AttackStyle = (self.build.battleStyle as AttackStyle) ?? classifyAttackStyle(weapon.range)
 
     /** 尝试选中一个候选，返回 true 表示继续遍历，false 表示已选中（mainId 已设）或终止 */
     function trySelect(est: DamageEstimate): boolean {
@@ -368,12 +369,50 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
 }
 
 /** 计算招式评分 */
-function calcActionScore(est: DamageEstimate, hasHubo: boolean, apBudget: number): number {
+function calcActionScore(
+    est: DamageEstimate,
+    hasHubo: boolean,
+    apBudget: number,
+    self: Character,
+    state: BattleState,
+    style: AttackStyle,
+): number {
     let score = est.expectedDamage
-    // 左右互搏：能用两次的招式按双倍总伤害比较
+
+    // 左右互搏
     if (hasHubo && est.apCost > 0 && est.apCost <= apBudget / 2) {
         score *= 2
     }
+
+    // 符合战斗风格加成
+    const def = getAction(est.actionId)
+    if (def) {
+        const tags = new Set(def.tags)
+        if ((style === 'melee' && tags.has('melee')) || (style === 'ranged' && tags.has('range'))) {
+            score *= 1.3
+        }
+    }
+
+    // 招式有自身未满层的 buff 时加成
+    if (def) {
+        for (const eff of def.effects ?? []) {
+            if (eff.type !== 'add_buff') continue
+            const { buffId } = eff as Extract<EffectDef, { type: 'add_buff' }>
+            const key = `${buffId}::${self.id}`
+            const layer = state.pendingBuffs.get(key)
+            const buffDef = getBuff(buffId)
+            if (!buffDef?.stacking || buffDef.stacking.type !== 'additive') continue
+            const maxStacks = buffDef.stacking.max ?? Infinity
+            const current = layer?.restoreValue ?? 0
+            if (current < maxStacks) {
+                const missing = maxStacks - current
+                const mult = 1 + (missing / maxStacks) * 0.4
+                score *= mult
+                break
+            }
+        }
+    }
+
     return score
 }
 

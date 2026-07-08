@@ -16,7 +16,7 @@ export const WUZUI: OpponentDef = {
         passive('hun_yuan_gong'),
         action('wan_liu_gui_zong'),
         passive('qian_kun_da_nuo_yi'),
-        artifact('jiu_hu'),
+        artifact('shao_dao_zi'),
         passive('zui_quan'),
         artifact('hui_xiang_dou'),
         action('hun_yuan_zhang'),

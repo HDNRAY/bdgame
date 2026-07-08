@@ -6,6 +6,7 @@ import { getBuff, type BuffDef } from '../../data/buffs'
 import { BattleLog } from '../battle-log'
 import type { TriggerEvent } from '../../entities/trigger'
 import { calcDebuffDuration, calcBuffDuration } from '../../calc/damage'
+import { round1 } from '../../util/math'
 
 /** 调度 buff 过期事件 */
 export function scheduleBuffExpiry(engine: BattleEngine, layerKey: string, duration: number): void {
@@ -138,12 +139,13 @@ export function applyScaledAttrMods(
     if (!buff.attrMods) return { mods, details }
     const scaled: Record<string, number> = {}
     for (const [attr, val] of Object.entries(buff.attrMods)) {
-        scaled[attr] = (val as number) * stacks
+        scaled[attr] = round1((val as number) * stacks)
     }
     const result = applyAttrMods(char, state, scaled, buff.name, buff.tags)
     for (const [attr, v] of Object.entries(result)) {
-        details.push(`${ATTR_CN[attr] ?? attr}${v > 0 ? '+' : ''}${v}`)
-        mods[attr] = v as number
+        const rounded = round1(v as number)
+        details.push(`${ATTR_CN[attr] ?? attr}${rounded > 0 ? '+' : ''}${rounded}`)
+        mods[attr] = rounded
         if (attr === 'agility') state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
     }
     return { mods, details }
