@@ -84,6 +84,21 @@ export const STARTING_WEAPONS: WeaponDef[] = [
             actionId: '_fei_jian_shot',
         },
     },
+    // ── 无人机 ──
+    {
+        id: 'hover_drone',
+        name: '浮游无人机',
+        description: '一枚悬浮的无人机平台，以炁供能，脑机操控。',
+        tags: ['imperial', 'range', 'pierce'],
+        bound: true,
+        range: [0, 6],
+        summon: {
+            id: 'hover_drone',
+            name: '无人机',
+            maxCount: (wis) => Math.min(3, 1 + Math.round(wis / 6)),
+            actionId: '_drone_shot',
+        },
+    },
     // ── 双剑 ──
     {
         id: 'dual_swords',

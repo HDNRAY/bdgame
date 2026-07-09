@@ -697,4 +697,11 @@ export const PASSIVES: Passive[] = [
         requireAttrsMin: { dexterity: 16 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'fei_hua_shou' }] }],
     },
+    {
+        id: 'wheelchair_lightness',
+        name: '轮椅轻功',
+        description: '无情秘传轮椅术，以炁驱轮，如履平地。移动效率+50%。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'move_efficiency', value: 0.5 }],
+    },
 ]

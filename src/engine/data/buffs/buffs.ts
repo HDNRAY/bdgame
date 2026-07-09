@@ -996,4 +996,29 @@ export const BUFF_DB: BuffDef[] = [
             }
         },
     },
+    // ── 扫描分析 ──
+    {
+        id: 'scan_analysis',
+        name: '扫描分析',
+        description: '战斗数据分析，每层命中+5%、暴击+5%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 5 },
+        onHitChance: ({ layer }) => layer.restoreValue * 0.05,
+        onCritChance: ({ layer }) => layer.restoreValue * 0.05,
+    },
+    // ── 战斗芯片 ──
+    {
+        id: 'combat_chip',
+        name: '战斗芯片',
+        description: '战斗数据分析，回合开始概率叠加层数。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 3 },
+        onTurnEnd: ({ layer }) => {
+            if (Math.random() < 0.4) layer.restoreValue = Math.min(3, (layer.restoreValue ?? 0) + 1)
+        },
+        onHitChance: ({ layer }) => layer.restoreValue * 0.03,
+        onCritChance: ({ layer }) => layer.restoreValue * 0.03,
+    },
 ]

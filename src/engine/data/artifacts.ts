@@ -498,6 +498,14 @@ export const ARTIFACTS: Artifact[] = [
         ],
     },
     {
+        id: 'doctor_chip',
+        name: '战斗芯片·改',
+        description: '博士特制的战斗分析芯片，推演+6，回合开始时有概率叠加战斗数据。',
+        tags: ['implant', 'inherent'],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 6 } }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_chip' }] }],
+    },
+    {
         id: 'tempest',
         name: '暴雨梨花钉',
         description: '机簧发射二十七枚银钉，力道万钧，中者必死无救。从不淬毒。',

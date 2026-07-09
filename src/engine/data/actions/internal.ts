@@ -189,6 +189,17 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         extraStunTime: 1000,
     },
     {
+        id: '_drone_shot',
+        name: '无人机射击',
+        description: '',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['range', 'summon'],
+        effects: [{ type: 'fixed_damage', value: 2, piercing: 1 }],
+        extraPreDelay: 400,
+        extraStunTime: 800,
+    },
+    {
         id: '_silk_shot',
         name: '浮游丝',
         description: '',
