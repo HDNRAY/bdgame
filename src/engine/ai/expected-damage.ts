@@ -36,8 +36,10 @@ export function calcExpectedDamage(
     let rawDamage = 0
     for (const eff of action.effects ?? []) {
         if (eff.type === 'damage' && 'scaling' in eff)
-            rawDamage += calcBaseDamage(eff.scaling, safeAtk.attrs.getAll(), eff.base ?? 0)
-        if (eff.type === 'fixed_damage') rawDamage += eff.value ?? 0
+            rawDamage +=
+                (calcBaseDamage(eff.scaling, safeAtk.attrs.getAll(), eff.base ?? 0) + (eff.piercing ?? 0)) *
+                (eff.independentHits ?? 1)
+        if (eff.type === 'fixed_damage') rawDamage += (eff.value ?? 0) * (eff.independentHits ?? 1)
         if (eff.type === 'missing_hp_damage') rawDamage += Math.round((safeDef.maxHp - safeDef.hp) * eff.ratio)
         if (eff.type === 'self_missing_hp_damage') rawDamage += Math.round((safeAtk.maxHp - safeAtk.hp) * eff.ratio)
         if (eff.type === 'functional_damage') {

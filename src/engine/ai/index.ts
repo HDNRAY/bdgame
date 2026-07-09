@@ -104,11 +104,9 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         candidates.push(calcExpectedDamage(inst.def, self, enemy, weapon.range, state))
     }
 
-    // 2. 分两组：有条件限制的按顺序选，默认的按伤害选
+    // 2. 分两组：有条件限制的按顺序选，默认的按计划总伤害选
     const apBudget = self.ap
     const configOrder = new Map(self.build.actionConfigs?.map((c, i) => [c.actionId, i]))
-    const huboKey = `zuoyou_hubo::${self.id}`
-    const hasHubo = state.pendingBuffs.has(huboKey)
     const style: AttackStyle = self.battleStyle
 
     // 有条件限制的招式（conditionId !== always）→ 按 configOrder 排序
@@ -122,14 +120,14 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         return oa - ob
     })
 
-    // 默认招式（无 conditionId 或 always）→ 按伤害排序
+    // 默认招式（无 conditionId 或 always）→ 按计划总伤害排序
     const defaultCands = candidates.filter((c) => {
         const cfg = self.getConfig(c.actionId)
         return !cfg?.conditionId || cfg.conditionId === 'always'
     })
     defaultCands.sort((a, b) => {
-        const scoreA = calcActionScore(a, hasHubo, apBudget, self, state, style)
-        const scoreB = calcActionScore(b, hasHubo, apBudget, self, state, style)
+        const scoreA = estimatePlan(a.actionId, self, state, apBudget, style)
+        const scoreB = estimatePlan(b.actionId, self, state, apBudget, style)
         if (scoreA !== scoreB) return scoreB - scoreA
         const oa = configOrder.get(a.actionId) ?? 999
         const ob = configOrder.get(b.actionId) ?? 999
@@ -282,9 +280,17 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     // post-support 放在攻击后
     cmds.push(...postCmds)
 
-    // ── 6. 左右互搏 ──
-    if (state.pendingBuffs.has(`zuoyou_hubo::${self.id}`) && weapon.tags.includes('dual_wield')) {
-        const spent =
+    // ── 6. 通用额外攻击（遍历 buff 调 getExtraAttack） ──
+    let extraTotal = 0
+    for (const [key] of state.pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2 || parts[1] !== self.id) continue
+        const def = getBuff(parts[0])
+        if (!def?.getExtraAttack) continue
+        extraTotal += def.getExtraAttack({ source: mainDef2 })
+    }
+    if (extraTotal > 0) {
+        let spentExtra =
             moveAp +
             mainDef2.apCost +
             preCmds.reduce((s, c) => {
@@ -295,10 +301,14 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                 const inst = self.actions.find((a) => a.id === c.actionId)
                 return s + (inst?.apCost ?? 0)
             }, 0)
-        const remaining = apBudget - spent
-        if (remaining >= 1) {
+        for (let i = 0; i < extraTotal; i++) {
+            const remaining = apBudget - spentExtra
+            if (remaining < 1) break
             const second = pickBestSecondary(self, state, remaining)
-            if (second) cmds.push({ type: 'attack', actionId: second })
+            if (!second) break
+            cmds.push({ type: 'attack', actionId: second })
+            const inst = self.actions.find((a) => a.id === second)
+            if (inst) spentExtra += inst.def.apCost
         }
     }
 
@@ -368,55 +378,63 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     return cmds
 }
 
-/** 计算招式评分 */
-function calcActionScore(
-    est: DamageEstimate,
-    hasHubo: boolean,
-    apBudget: number,
+/** 估算以某招式为主招的整回合总伤害 */
+function estimatePlan(
+    mainId: string,
     self: Character,
     state: BattleState,
+    apBudget: number,
     style: AttackStyle,
 ): number {
-    let score = est.expectedDamage
+    const mainInst = self.actions.find((a) => a.id === mainId)
+    if (!mainInst) return 0
+    const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
+    const enemy = state.characters.find((c) => c.id !== self.id)
+    if (!enemy) return 0
 
-    // 左右互搏
-    if (hasHubo && est.apCost > 0 && est.apCost <= apBudget / 2) {
-        score *= 2
+    // 主招伤害
+    const mainEst = calcExpectedDamage(mainInst.def, self, enemy, weapon.range, state)
+    let total = mainEst.expectedDamage
+
+    // 计算可触发的额外攻击次数
+    let extraTotal = 0
+    for (const [key] of state.pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2 || parts[1] !== self.id) continue
+        const def = getBuff(parts[0])
+        if (!def?.getExtraAttack) continue
+        extraTotal += def.getExtraAttack({ source: mainInst.def })
     }
 
-    // 符合战斗风格加成
-    const def = getAction(est.actionId)
-    if (def) {
-        const tags = new Set(def.tags)
-        if ((style === 'melee' && tags.has('melee')) || (style === 'ranged' && tags.has('range'))) {
-            score *= 1.3
-        }
-    }
-
-    // 招式有自身未满层的 buff 时加成
-    if (def) {
-        for (const eff of def.effects ?? []) {
-            if (eff.type !== 'add_buff') continue
-            const { buffId } = eff as Extract<EffectDef, { type: 'add_buff' }>
-            const key = `${buffId}::${self.id}`
-            const layer = state.pendingBuffs.get(key)
-            const buffDef = getBuff(buffId)
-            if (!buffDef?.stacking || buffDef.stacking.type !== 'additive') continue
-            const maxStacks = buffDef.stacking.max ?? Infinity
-            const current = layer?.restoreValue ?? 0
-            if (current < maxStacks) {
-                const missing = maxStacks - current
-                const mult = 1 + (missing / maxStacks) * 0.4
-                score *= mult
-                break
+    // 填充额外攻击
+    const excludeIds = new Set<string>([mainId])
+    if (extraTotal > 0 && mainEst.apCost > 0) {
+        let remaining = apBudget - mainEst.apCost
+        for (let i = 0; i < extraTotal && remaining >= 1; i++) {
+            const id = pickBestSecondary(self, state, remaining, excludeIds)
+            if (!id) break
+            const secondDef = getAction(id)
+            if (secondDef) {
+                total += calcExpectedDamage(secondDef, self, enemy, weapon.range, state).expectedDamage
+                remaining -= secondDef.apCost
+                excludeIds.add(id)
             }
         }
     }
 
-    return score
+    // 符合战斗风格加成
+    if (style === 'melee' && mainInst.def.tags.includes('melee')) total *= 1.3
+    if (style === 'ranged' && mainInst.def.tags.includes('range')) total *= 1.3
+
+    return total
 }
 
-function pickBestSecondary(self: Character, state: BattleState, apRemaining: number): string | null {
+function pickBestSecondary(
+    self: Character,
+    state: BattleState,
+    apRemaining: number,
+    excludeIds?: Set<string>,
+): string | null {
     const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
     const enemy = state.characters.find((c) => c.id !== self.id)
     if (!enemy) return null
@@ -424,6 +442,7 @@ function pickBestSecondary(self: Character, state: BattleState, apRemaining: num
         if (a.def.tags.includes('pre_action') || a.def.tags.includes('post_action')) return false
         if (!a.canUse()) return false
         if (a.id === 'big_leap') return false
+        if (excludeIds?.has(a.id)) return false
         if (
             !a.def.effects?.some(
                 (e) => e.type === 'damage' || e.type === 'fixed_damage' || e.type === 'functional_damage',

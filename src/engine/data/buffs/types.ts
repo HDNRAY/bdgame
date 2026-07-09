@@ -98,6 +98,10 @@ export interface BuffDef extends GameEntity {
     onHpChange?: (ctx: BuffHookCtx) => void
     /** debuff 应用回调（首次/叠层时调用，用于设置 extra 数据） */
     onDebuffApply?: (ctx: DebuffApplyCtx) => void
+    /** 攻击者施加 debuff 时回调（遍历攻击者身上的 buff 调用） */
+    onDebuffApplied?: (ctx: DebuffApplyCtx) => void
+    /** 额外攻击钩子（返回额外攻击次数，AI 自动循环调用 pickBestSecondary） */
+    getExtraAttack?: (ctx: { source: GameEntity }) => number
 }
 
 /** onDebuffApply 钩子上下文 */
@@ -107,4 +111,6 @@ export interface DebuffApplyCtx {
     engine: BattleEngine
     stacks: number
     layer: BuffLayer
+    /** 被应用的 debuff ID */
+    debuffId?: string
 }

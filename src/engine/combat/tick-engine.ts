@@ -34,7 +34,7 @@ export class TickEngine {
             case 'poison':
                 return this.#afterApplyPoison(enemy, engine, tMs, layer)
             case 'burn':
-                return this.#afterApplyBurn(enemy, engine, tMs, layer)
+                return this.#afterApplyBurn(enemy, engine, tMs)
         }
     }
 
@@ -85,8 +85,9 @@ export class TickEngine {
         if (!layer) {
             console.error(enemy, layer)
         }
-        const totalStacks = layer.restoreValue
-        let dmg = totalStacks * DMG_PER_POISON_TICK
+        const stacks = layer.restoreValue ?? 0
+        const mult = (layer.extra?.poisonMult as number) ?? 1
+        let dmg = stacks * DMG_PER_POISON_TICK * mult
         if (engine.state.pendingBuffs.has(`poison_resist::${enemy.id}`)) {
             dmg = Math.round(dmg * 0.3 * 10) / 10
         }
@@ -94,7 +95,11 @@ export class TickEngine {
         const buffName = getBuff('poison')?.name ?? '中毒'
         engine.emitLog({
             type: 'system',
-            message: BattleLog.msg(buffName, enemy.name, `${totalStacks}层×${DMG_PER_POISON_TICK}=${dmg}伤害`),
+            message: BattleLog.msg(
+                buffName,
+                enemy.name,
+                `${stacks}层×${DMG_PER_POISON_TICK}${mult > 1 ? `×${mult}` : ''}=${dmg}伤害`,
+            ),
             actorId: enemy.id,
         })
         // 每层各扣 1 跳
@@ -120,11 +125,11 @@ export class TickEngine {
         }
         // 调度 tick
         engine.state.turn.removeEvents(`tick_poison_${enemy.id}`)
-        const interval = calcPoisonTickInterval(totalStacks)
+        const interval = calcPoisonTickInterval(stacks)
         engine.state.turn.scheduleSystemEventAt(`tick_poison_${enemy.id}`, tMs + interval, 'tick_poison')
     }
 
-    #afterApplyBurn(enemy: Character, engine: BattleEngine, tMs: number, _layer: BuffLayer): void {
+    #afterApplyBurn(enemy: Character, engine: BattleEngine, tMs: number): void {
         engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, tMs + 1000, 'tick_burn')
     }
 
@@ -135,7 +140,8 @@ export class TickEngine {
         if (!entry) return { nextInterval: 0 }
 
         const stacks = entry.restoreValue
-        let dmg = stacks * DMG_PER_POISON_TICK
+        const mult = (entry.extra?.poisonMult as number) ?? 1
+        let dmg = stacks * DMG_PER_POISON_TICK * mult
         if (engine.state.pendingBuffs.has(`poison_resist::${charId}`)) {
             dmg = Math.round(dmg * 0.3 * 10) / 10
         }

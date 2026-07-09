@@ -58,7 +58,7 @@ describe('BattleEngine', () => {
             'laifeng',
             '远程',
             { dexterity: 12, agility: 14, strength: 6, vitality: 8, insight: 6, wisdom: 10 },
-            ['needle'],
+            ['iron_pellet'],
             'iron_spear',
         )
         const o = makeChar('o1', '近战', {
@@ -70,7 +70,7 @@ describe('BattleEngine', () => {
             wisdom: 3,
         })
         const e = new BattleEngine(p, o, 4)
-        const plan: EventPlan = () => [{ type: 'attack', actionId: 'needle' }]
+        const plan: EventPlan = () => [{ type: 'attack', actionId: 'iron_pellet' }]
         e.runEvent(plan)
         const logs = e.state.log.getAll()
         const attacks = logs.filter((l) => l.event.type === 'attack_start')

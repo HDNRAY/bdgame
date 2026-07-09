@@ -66,6 +66,7 @@ export function applyDamage(
     engine: BattleEngine,
     source?: GameEntity,
     piercing: number = 0,
+    suppressTrigger?: boolean,
 ): void {
     const act = source as ActionDefinition | undefined
     // 增伤效果在招架前计算
@@ -78,7 +79,7 @@ export function applyDamage(
 
     target.takeDamage(final, engine)
 
-    if (final > 0) {
+    if (final > 0 && !suppressTrigger) {
         engine.emit('on_dealt_damage', attacker, target)
         engine.emit('on_took_damage', target, attacker)
         consumeBuffsByTrigger(target.id, engine, 'on_took_damage')

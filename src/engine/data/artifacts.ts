@@ -230,12 +230,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '淬毒工具',
         description: '刃上淬毒，割裂或刺击时概率令其中毒。',
         tags: ['poison', 'trigger'],
-        triggers: [
-            {
-                condition: { type: 'on_dealt_damage' },
-                effects: [{ type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.3 }],
-            },
-        ],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'poison_coating' }] }],
     },
     {
         id: 'western_poison',
@@ -489,6 +484,25 @@ export const ARTIFACTS: Artifact[] = [
                 actionId: '_adrenaline_shot',
             },
         ],
+    },
+    {
+        id: 'qi_xin_hai_tang',
+        name: '七心海棠',
+        description: '唐门至毒，所有施加的中毒伤害翻倍。',
+        tags: ['poison', 'inherent'],
+        triggers: [
+            {
+                condition: { type: 'on_equip' },
+                effects: [{ type: 'add_buff', buffId: 'qi_xin_hai_tang' }],
+            },
+        ],
+    },
+    {
+        id: 'tempest',
+        name: '暴雨梨花钉',
+        description: '机簧发射二十七枚银钉，力道万钧，中者必死无救。从不淬毒。',
+        tags: ['weapon', 'inherent'],
+        grantsActions: ['tempest'],
     },
 ]
 

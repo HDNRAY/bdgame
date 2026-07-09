@@ -24,9 +24,9 @@ export const XUNXIANG: OpponentDef = {
     ],
     actionConfigs: [
         { actionId: 'wrist_strike' }, // AI 出招顺序
-        { actionId: 'push_palm', triggerId: 'on_parry' }, // AI 出招顺序
-        { actionId: 'push_hand', triggerId: 'on_parried' },
-        { actionId: 'throwing_knife', triggerId: 'on_opponent_move_away' },
+        { actionId: 'throwing_knife', triggerId: 'on_dodged' }, // AI 出招顺序
+        { actionId: 'push_hand', triggerId: 'on_parry' },
+        { actionId: 'push_palm', triggerId: 'on_opponent_move_closer' },
         { actionId: 'deadly_knife' }, // AI 出招顺序
         { actionId: 'steal_artifact', triggerId: 'on_turn_start' },
     ],

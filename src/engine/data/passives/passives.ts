@@ -689,4 +689,12 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'blood_rage' }] }],
     },
+    {
+        id: 'fei_hua_shou',
+        name: '飞花手',
+        description: '暗器出手如飞花，可连续追加投掷攻击。',
+        tags: ['buff'],
+        requireAttrsMin: { dexterity: 16 },
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'fei_hua_shou' }] }],
+    },
 ]

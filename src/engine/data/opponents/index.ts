@@ -21,6 +21,7 @@ export { DUOER } from './duoer'
 export { HEIYUN } from './heiyun'
 export { HAORAN } from './haoran'
 export { BAMBOO } from './bamboo'
+export { TANGROU } from './tangrou'
 import type { CharacterBuild, BattleStyle } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
@@ -48,6 +49,7 @@ import { JUNSHI } from './junshi'
 import { DUOER } from './duoer'
 import { FENGSHUI } from './fengshui'
 import { WUZUI } from './wuzui'
+import { TANGROU } from './tangrou'
 import { HEIYUN } from './heiyun'
 import { HAORAN } from './haoran'
 import { BAMBOO } from './bamboo'
@@ -105,7 +107,7 @@ export const OPPONENTS: OpponentDef[] = [
     DUOER, // 组织
     /** 暗器 */
     XUNXIANG, // 六绝之悟
-    // 灵素·唐柔
+    TANGROU, // 灵素·唐柔
     // 博士
 ]
 

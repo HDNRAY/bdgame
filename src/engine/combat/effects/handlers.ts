@@ -166,7 +166,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     fixed_damage({ eff, self, enemy, engine, action }: EffectCtx) {
         const { value, independentHits = 1, piercing = 0 } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
         for (let i = 0; i < independentHits; i++) {
-            applyDamage(value, enemy, self, engine, action, piercing)
+            applyDamage(value, enemy, self, engine, action, piercing, i < independentHits - 1)
         }
     },
     functional_damage({ eff, self, enemy, engine, action }: EffectCtx) {
@@ -182,7 +182,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const raw = calcBaseDamage(scaling, self.attrs.getAll(), base)
         if (raw > 0) {
             for (let i = 0; i < independentHits; i++) {
-                applyDamage(raw, enemy, self, engine, action, piercing)
+                applyDamage(raw, enemy, self, engine, action, piercing, i < independentHits - 1)
             }
         }
     },
@@ -396,7 +396,14 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             engine.emit('on_debuff', enemy, self)
             emitPerDebuff(engine, e.buffId, self, enemy)
             // debuff 自定钩子（设置 extra 数据）
-            buff.onDebuffApply?.({ self, enemy, engine, stacks, layer: existing })
+            buff.onDebuffApply?.({ self, enemy, engine, stacks, layer: existing, debuffId: e.buffId })
+            // 遍历攻击者的 buff，触发 onDebuffApplied 钩子
+            for (const [bk] of engine.state.pendingBuffs) {
+                const [buffId, charId] = bk.split('::')
+                if (charId !== self.id) continue
+                const bDef = getBuff(buffId)
+                bDef?.onDebuffApplied?.({ self, enemy, engine, stacks, layer: existing, debuffId: e.buffId })
+            }
             tickEngine.afterApplyDebuff({
                 enemy,
                 engine,
@@ -449,7 +456,15 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         emitPerDebuff(engine, e.buffId, self, enemy)
 
         // debuff 自定钩子（设置 extra 数据）
-        buff.onDebuffApply?.({ self, enemy, engine, stacks, layer })
+        buff.onDebuffApply?.({ self, enemy, engine, stacks, layer, debuffId: e.buffId })
+
+        // 遍历攻击者的 buff，触发 onDebuffApplied 钩子
+        for (const [bk] of engine.state.pendingBuffs) {
+            const [buffId, charId] = bk.split('::')
+            if (charId !== self.id) continue
+            const bDef = getBuff(buffId)
+            bDef?.onDebuffApplied?.({ self, enemy, engine, stacks, layer, debuffId: e.buffId })
+        }
 
         // 后处理（stun/poison/burn 额外逻辑）
         // 传入 layer 引用，让 tick engine 可以直接修改 mods

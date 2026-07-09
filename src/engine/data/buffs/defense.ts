@@ -9,10 +9,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         name: '炁盾',
         description: '吸收炁招式伤害，每次2点。',
         tags: ['defense'],
-        onTakeDamage: ({ final, target, attacker, engine, source, layer, state }) => {
-            const act = source
-            const isQi = act?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
-            if (!isQi || final <= 0 || layer.restoreValue <= 0) return final
+        onTakeDamage: ({ final, target, engine, source, layer, state }) => {
+            if (!source?.tags?.includes('qi') || final <= 0 || layer.restoreValue <= 0) return final
             const absorb = Math.min(2, final)
             layer.restoreValue--
             engine?.emitLog({

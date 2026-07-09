@@ -181,6 +181,19 @@ export const BUFF_DB: BuffDef[] = [
                 ? -1
                 : 0
         },
+        getExtraAttack: () => 1,
+    },
+    // ── 飞花手 ──
+    {
+        id: 'fei_hua_shou',
+        name: '飞花手',
+        description: '暗器出手如飞花，可连续追加投掷攻击。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        getExtraAttack: ({ source }) => {
+            if (!source?.tags.includes('thrown')) return 0
+            return 2
+        },
     },
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
@@ -882,15 +895,22 @@ export const BUFF_DB: BuffDef[] = [
         tickInterval: 7000,
         onTickHeal: ({ target, engine, state }) => {
             if (!engine) return 0
-            const tMs = engine.state.turn.currentTime
-            const hasPoison = state.pendingBuffs.has(`poison::${target.id}`)
-            const hasBleed = state.pendingBuffs.has(`bleed::${target.id}`)
-            if (hasPoison) {
-                processActionEffect({ type: 'cleanse', buffIds: ['poison'] }, target, target, engine, tMs)
+            const poisonKey = `poison::${target.id}`
+            const bleedKey = `bleed::${target.id}`
+            const poisonLayer = state.pendingBuffs.get(poisonKey)
+            if (poisonLayer && poisonLayer.restoreValue > 0) {
+                poisonLayer.restoreValue -= 1
+                if (poisonLayer.restoreValue <= 0) {
+                    state.pendingBuffs.delete(poisonKey)
+                }
                 return 0
             }
-            if (hasBleed) {
-                processActionEffect({ type: 'cleanse', buffIds: ['bleed'] }, target, target, engine, tMs)
+            const bleedLayer = state.pendingBuffs.get(bleedKey)
+            if (bleedLayer && bleedLayer.restoreValue > 0) {
+                bleedLayer.restoreValue -= 1
+                if (bleedLayer.restoreValue <= 0) {
+                    state.pendingBuffs.delete(bleedKey)
+                }
                 return 0
             }
             return 7
@@ -919,6 +939,17 @@ export const BUFF_DB: BuffDef[] = [
             return final
         },
     },
+    // ── 七心海棠 ──
+    {
+        id: 'qi_xin_hai_tang',
+        name: '七心海棠',
+        description: '所有施加的中毒伤害翻倍。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDebuffApplied: ({ layer, debuffId }) => {
+            if (debuffId === 'poison' && layer.extra) layer.extra.poisonMult = 2
+        },
+    },
     // ── 内息澎湃（AP回复倍率） ──
     {
         id: 'nei_xi_peng_pai',
@@ -941,6 +972,28 @@ export const BUFF_DB: BuffDef[] = [
                 })
             }
             return 0
+        },
+    },
+    // ── 淬毒工具 ──
+    {
+        id: 'poison_coating',
+        name: '淬毒工具',
+        description: '刃上淬毒，割裂或刺击时概率令其中毒。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onAction: ({ source, attacker, target, engine, state }) => {
+            if (!source) return
+            if (!source.tags.includes('pierce') && !source.tags.includes('slash') && !source.tags.includes('thrown'))
+                return
+            if (engine && Math.random() < 0.3) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
+                    attacker,
+                    target,
+                    engine,
+                    state.turn.currentTime,
+                )
+            }
         },
     },
 ]

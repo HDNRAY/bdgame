@@ -45,10 +45,11 @@ describe('weapon tags', () => {
             const hasMelee = w.tags.includes('melee')
             const hasPolearm = w.tags.includes('polearm')
             const hasUnarmed = w.tags.includes('unarmed')
+            const isRanged = w.tags.includes('thrown') || w.tags.includes('range')
             const isImperial = w.tags.includes('imperial')
             expect(hasMelee && hasPolearm).toBe(false)
             if (!isImperial) {
-                expect(hasMelee || hasPolearm || hasUnarmed).toBe(true)
+                expect(hasMelee || hasPolearm || hasUnarmed || isRanged).toBe(true)
             }
         })
     }

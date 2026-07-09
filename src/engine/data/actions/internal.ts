@@ -372,4 +372,16 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         maxUses: 1,
         effects: [{ type: 'add_buff', buffId: 'adrenaline_rush' }],
     },
+    {
+        id: 'tempest',
+        name: '暴雨梨花',
+        description: '一瞬间射出二十七枚银钉，力道万钧，中者必死无救。',
+        requiredTags: [],
+        apCost: 5,
+        chanCost: 50,
+        tags: ['pierce', 'range', 'thrown'],
+        getRange: () => [1, 6] as [number, number],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 3, independentHits: 27, piercing: 2 }],
+        maxUses: 1,
+    },
 ]
