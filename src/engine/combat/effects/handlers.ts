@@ -429,12 +429,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const extra = makeExtra()
         const firstResult = applyScaledAttrMods(buff!, capped, enemy, engine.state)
         // stun 的 attrMods 在 afterApplyDebuff 中由 applyAttrMods 输出属性日志，此处不重复
+        const stackLabel = capped > 1 ? ` ×${capped}` : ''
         if (e.buffId !== 'stun') {
             engine.emitLog({
                 type: 'system',
                 message: firstResult.details.length
-                    ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)} ${firstResult.details.join(', ')}`
-                    : BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description),
+                    ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel} ${firstResult.details.join(', ')}`
+                    : `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel}`,
                 actorId: enemy.id,
             })
         }

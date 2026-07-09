@@ -390,6 +390,14 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         stacking: { type: 'none' },
         onCritChance: () => 0.5,
     },
+    {
+        id: 'po_lang_zhu_zhi_buff',
+        name: '破狼竹枝',
+        description: '招架后减免3点伤害。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        onParryReduction: ({ final }) => Math.max(0, Math.round((final - 3) * 10) / 10),
+    },
     // ── 无刀取 ──
     {
         id: 'sword_capture',

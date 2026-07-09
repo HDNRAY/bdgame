@@ -18,12 +18,11 @@ export const XUNXIANG: OpponentDef = {
         action('deadly_knife'),
         action('wrist_strike'),
         passive('li_wu_xu_fa'),
-        action('dian_xue'),
+        passive('dian_xue_passive'),
         action('push_hand'),
         // 10
     ],
     actionConfigs: [
-        { actionId: 'dian_xue', triggerId: 'on_dodge' }, // AI 出招顺序
         { actionId: 'wrist_strike' }, // AI 出招顺序
         { actionId: 'push_palm', triggerId: 'on_parry' }, // AI 出招顺序
         { actionId: 'push_hand', triggerId: 'on_parried' },

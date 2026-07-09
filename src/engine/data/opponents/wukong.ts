@@ -15,7 +15,7 @@ export const WUKONG: OpponentDef = {
         passive('hua_gun'),
         passive('qishier_bian'),
         artifact('fiery_eyes'),
-        action('rod_sweep'),
+        action('stand_rod_kick'),
         action('rod_cleave'),
         action('santou_liubi'),
         action('jindou'),
@@ -25,9 +25,10 @@ export const WUKONG: OpponentDef = {
     actionConfigs: [
         { actionId: 'rod_thrust' }, // AI 出招顺序
         { actionId: 'rod_cleave' }, // AI 出招顺序
-        { actionId: 'rod_sweep' }, // AI 出招顺序
+        { actionId: 'rod_sweep' },
+        { actionId: 'stand_rod_kick' }, // AI 出招顺序
         { actionId: 'santou_liubi' }, // AI 出招顺序
         { actionId: 'jindou' }, // AI 出招顺序
-        { actionId: 'rod_sweep', triggerId: 'on_parried' },
+        { actionId: 'stand_rod_kick', triggerId: 'on_parried' },
     ],
 }

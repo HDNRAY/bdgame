@@ -20,6 +20,7 @@ export { FENGSHUI } from './fengshui'
 export { DUOER } from './duoer'
 export { HEIYUN } from './heiyun'
 export { HAORAN } from './haoran'
+export { BAMBOO } from './bamboo'
 import type { CharacterBuild, BattleStyle } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
@@ -49,6 +50,7 @@ import { FENGSHUI } from './fengshui'
 import { WUZUI } from './wuzui'
 import { HEIYUN } from './heiyun'
 import { HAORAN } from './haoran'
+import { BAMBOO } from './bamboo'
 
 /** 对手定义（纯数据） */
 export interface OpponentDef {
@@ -72,8 +74,8 @@ export function gen(def: OpponentDef, n: number): CharacterBuild {
 /** 所有对手 */
 export const OPPONENTS: OpponentDef[] = [
     /** 拳掌 */
-    QILAN, // 江湖新人
-    LAIFENG,
+    QILAN,
+    LAIFENG, // 饮酒结拜
     WUZUI, // 饮酒结拜
     SANGYUAN, // 归海楼
     /** 刀剑 */
@@ -89,6 +91,7 @@ export const OPPONENTS: OpponentDef[] = [
     ZHANGLIE, // 组织(变节卧底)
     /** 棍 */
     WUKONG, // 六绝之破
+    BAMBOO, // 宝字堂·医生
     /** 御物 */
     XUANJI, // 玄门
     JUNSHI, // 组织
@@ -102,6 +105,8 @@ export const OPPONENTS: OpponentDef[] = [
     DUOER, // 组织
     /** 暗器 */
     XUNXIANG, // 六绝之悟
+    // 灵素·唐柔
+    // 博士
 ]
 
 /** 按 ID 查找对手 def */

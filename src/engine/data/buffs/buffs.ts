@@ -850,6 +850,75 @@ export const BUFF_DB: BuffDef[] = [
         tickInterval: 1000,
         onTickHeal: ({ layer }) => Math.max(0.1, round1(layer.restoreValue / 5)),
     },
+    // ── 如意劲 ──
+    {
+        id: 'ru_yi_jin',
+        name: '如意劲',
+        description: '暴击时消耗3缠，灵巧×3%暴伤。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onCritDamage: ({ attacker }) => {
+            if (attacker.chan < 3) return 0
+            attacker.spendChan(3)
+            return Math.round(attacker.attrs.get('dexterity') * 0.03 * 10) / 10
+        },
+    },
+    // ── 经络初鉴 ──
+    {
+        id: 'jing_luo_chu_jian',
+        name: '经络初鉴',
+        description: '每点洞察增加1%暴击率。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onCritChance: ({ attacker }) => Math.max(0, attacker.attrs.get('insight') * 0.01),
+    },
+    // ── 青囊三卷 ──
+    {
+        id: 'qing_nang_san_juan',
+        name: '青囊三宝',
+        description: '每7秒检查：有毒解毒，没毒止血。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        tickInterval: 7000,
+        onTickHeal: ({ target, engine, state }) => {
+            if (!engine) return 0
+            const tMs = engine.state.turn.currentTime
+            const hasPoison = state.pendingBuffs.has(`poison::${target.id}`)
+            const hasBleed = state.pendingBuffs.has(`bleed::${target.id}`)
+            if (hasPoison) {
+                processActionEffect({ type: 'cleanse', buffIds: ['poison'] }, target, target, engine, tMs)
+                return 0
+            }
+            if (hasBleed) {
+                processActionEffect({ type: 'cleanse', buffIds: ['bleed'] }, target, target, engine, tMs)
+                return 0
+            }
+            return 7
+        },
+    },
+    {
+        id: 'ling_xu_zhen_jie',
+        name: '灵枢真解',
+        description: '拳脚及钝击招式40%概率造成4层麻痹。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDealDamage: ({ final, source, attacker, engine, state }) => {
+            if (!source?.tags?.includes('unarmed') && !source?.tags?.includes('blunt')) return final
+            if (engine && Math.random() < 0.4) {
+                const enemy = engine.getOpponent(attacker.id)
+                if (enemy) {
+                    processActionEffect(
+                        { type: 'add_debuff', buffId: 'paralyze', stacks: 4, chance: 1 },
+                        attacker,
+                        enemy,
+                        engine,
+                        state.turn.currentTime,
+                    )
+                }
+            }
+            return final
+        },
+    },
     // ── 内息澎湃（AP回复倍率） ──
     {
         id: 'nei_xi_peng_pai',

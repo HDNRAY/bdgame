@@ -20,7 +20,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
     // ── 单手剑 ──
     {
         id: 'qingfeng_jian',
-        name: '青锋剑',
+        name: '桃木剑',
         description: '入门级单手剑，轻灵锐利。',
         tags: ['slash', 'pierce', 'parry', 'melee'],
         range: [1, 3],
@@ -30,7 +30,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'qimei_staff',
         name: '齐眉棍',
         description: '长棍一根，攻守兼备。',
-        tags: ['parry', 'polearm'],
+        tags: ['parry', 'polearm', 'blunt'],
         range: [1, 4],
     },
     // ── 长枪 ──

@@ -565,6 +565,24 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
+        id: 'jing_luo_chu_jian',
+        name: '经络初鉴',
+        description: '熟稔经络，洞察弱点。每点洞察增加1%暴击率。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'jing_luo_chu_jian' }] },
+        ],
+    },
+    {
+        id: 'dian_xue_passive',
+        name: '灵枢真解',
+        description: '灵枢真解，点穴封脉。拳脚及钝击招式均有40%概率造成4层麻痹。',
+        tags: ['passive', 'debuff'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ling_xu_zhen_jie' }] },
+        ],
+    },
+    {
         id: 'li_wu_xu_fa',
         name: '例无虚发',
         description: '所有暗器招式命中率+50%。',
@@ -656,6 +674,13 @@ export const PASSIVES: Passive[] = [
         tags: ['buff', 'defense'],
         effects: [{ type: 'trigger_slot_mod', value: 1 }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_capture' }] }],
+    },
+    {
+        id: 'ru_yi_jin',
+        name: '如意劲',
+        description: '暴击时消耗3层缠劲，按灵巧增加暴击伤害。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ru_yi_jin' }] }],
     },
     {
         id: 'blood_rage',

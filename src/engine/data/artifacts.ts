@@ -289,9 +289,9 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'fiery_eyes',
         name: '火眼金睛',
-        description: '历经焚炼，目光如炬，洞察入微。洞察+4。',
+        description: '历经焚炼，目光如炬，洞察入微。洞察+5。',
         tags: ['buff', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
+        effects: [{ type: 'stat_buff', attrs: { insight: 5 } }],
     },
     {
         id: 'soft_hedgehog_mail',
@@ -426,6 +426,15 @@ export const ARTIFACTS: Artifact[] = [
                 },
                 actionId: '_bu_lao_quan',
             },
+        ],
+    },
+    {
+        id: 'qing_nang_san_bao',
+        name: '青囊三宝',
+        description: '每7秒：有毒解毒，没毒止血。',
+        tags: ['heal'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qing_nang_san_juan' }] },
         ],
     },
     {

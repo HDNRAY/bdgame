@@ -120,7 +120,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'shadow_kick',
         name: '无影脚',
         description: '身形一闪，先近身再出腿。',
-        requiredTags: ['unarmed'],
+        requiredTags: [],
         apCost: 2,
         tags: ['unarmed', 'move'],
         effects: [
@@ -702,7 +702,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 4,
         tags: ['blunt'],
-        effects: [{ type: 'damage', scaling: { strength: 0.8 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.9 } }],
     },
     {
         id: 'rod_sweep',
@@ -742,6 +742,39 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         onActionHitChance: (base) => base + 0.5,
         onActionCritChance: (base) => base + 0.5,
         effects: [{ type: 'damage', scaling: { strength: 0.9, dexterity: 0.5 } }],
+    },
+    // ── 飞虎·竹子 ──
+    {
+        id: 'rod_lift',
+        name: '棍挑',
+        description: '竹棍一挑，破敌防势，降低对手招架闪避。',
+        requiredTags: ['polearm'],
+        apCost: 3,
+        tags: ['blunt', 'polearm'],
+        onActionHitChance: (base) => base + 0.15,
+        effects: [{ type: 'damage', scaling: { strength: 0.3, dexterity: 0.3 } }],
+    },
+    {
+        id: 'stand_rod_kick',
+        name: '立棍踢',
+        description: '以棍撑地，凌空一脚。',
+        requiredTags: ['polearm'],
+        apCost: 3,
+        tags: ['blunt', 'polearm'],
+        getRange: () => [3, 3] as [number, number],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.3, agility: 0.3 } },
+            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
+        ],
+    },
+    {
+        id: 'po_lang_gun_fa',
+        name: '破狼棍法',
+        description: '棍出如狼，势不可挡。',
+        requiredTags: ['polearm'],
+        apCost: 4,
+        tags: ['blunt', 'polearm'],
+        effects: [{ type: 'damage', scaling: { strength: 0.5, dexterity: 0.5 } }],
     },
     // ── 酒鬼·无志 ──
     {

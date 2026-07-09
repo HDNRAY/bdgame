@@ -18,6 +18,17 @@ export interface WeaponDef extends GameEntity {
 
 /** 武器数据（数组，不包括初始武器，初始武器在 starting-weapons.ts） */
 export const WEAPON_DB: WeaponDef[] = [
+    // ── 棍 ──
+    {
+        id: 'po_lang_zhu_zhi',
+        name: '破狼竹枝',
+        description: '经特殊药水浸泡多年的竹枝，坚如钢铁，轻如竹羽。招架后减免3点伤害。',
+        tags: ['parry', 'polearm', 'blunt'],
+        range: [1, 4],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'po_lang_zhu_zhi_buff' }] },
+        ],
+    },
     {
         id: 'broken_blade',
         name: '断刀',
