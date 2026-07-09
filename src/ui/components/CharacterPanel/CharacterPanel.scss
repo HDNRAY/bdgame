@@ -114,7 +114,7 @@
 }
 
 .cp-section-label {
-    color: #888;
+    color: #aaa;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -145,7 +145,7 @@
 
 .cp-style-label {
     font-size: 11px;
-    color: #888;
+    color: #bbb;
     white-space: nowrap;
 }
 
@@ -216,7 +216,7 @@
 /* 区块2: 属性 */
 .cp-points {
     font-size: 12px;
-    color: #666;
+    color: #999;
     margin-bottom: 6px;
 }
 
@@ -255,7 +255,7 @@
 
 .cp-cost {
     font-size: 10px;
-    color: #555;
+    color: #999;
     margin-left: 2px;
 }
 
@@ -286,7 +286,7 @@
 }
 
 .cp-tag-cond {
-    color: #888;
+    color: #aaa;
     &::before {
         content: '‹';
         margin-right: 1px;
@@ -298,7 +298,7 @@
 }
 
 .cp-tag-trig {
-    color: #777;
+    color: #bbb;
     &::before {
         content: '⤷';
     }
@@ -327,7 +327,7 @@
 }
 
 .cp-table-header {
-    color: #555;
+    color: #999;
     border-bottom: 1px solid #222;
     padding-bottom: 6px;
     margin-bottom: 2px;
@@ -382,7 +382,7 @@
 
 .cp-trigger-count {
     font-size: 11px;
-    color: #666;
+    color: #999;
     margin-left: 8px;
     font-weight: normal;
 }

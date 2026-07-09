@@ -93,7 +93,7 @@ export const OPPONENTS: OpponentDef[] = [
     ZHANGLIE, // 组织(变节卧底)
     /** 棍 */
     WUKONG, // 六绝之破
-    BAMBOO, // 宝字堂·医生
+    BAMBOO, // 宝字堂
     /** 御物 */
     XUANJI, // 玄门
     JUNSHI, // 组织
@@ -107,7 +107,7 @@ export const OPPONENTS: OpponentDef[] = [
     DUOER, // 组织
     /** 暗器 */
     XUNXIANG, // 六绝之悟
-    TANGROU, // 灵素·唐柔
+    TANGROU, // 宝字堂
     // 博士
 ]
 
