@@ -28,6 +28,7 @@
     }
 
     &-bar {
+        position: relative;
         flex: 1;
         height: 6px;
         background: #1e1e2e;
@@ -37,9 +38,26 @@
 
     &-fill {
         display: block;
+        position: absolute;
+        top: 0;
         height: 100%;
-        background: linear-gradient(90deg, #4ecdc4, #44b3ab);
         border-radius: 3px;
         transition: width 0.3s;
+    }
+
+    .attr-base {
+        background: #666;
+    }
+    .attr-passive {
+        background: #4caf50;
+    }
+    .attr-artifact {
+        background: #2196f3;
+    }
+    .attr-weapon {
+        background: #ff9800;
+    }
+    .attr-negative {
+        background: #f44336;
     }
 }

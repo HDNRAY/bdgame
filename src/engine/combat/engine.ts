@@ -375,7 +375,8 @@ export class BattleEngine {
 
     #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
         const { moveDelta, position } = this.state
-        const isInitPhase = event === 'battle_start' || event === 'turn_start' || event === 'on_equip'
+        const isInitPhase =
+            event === 'battle_start' || event === 'turn_start' || event === 'on_equip' || event === 'turn_end'
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue

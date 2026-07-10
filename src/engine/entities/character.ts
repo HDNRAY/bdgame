@@ -151,6 +151,7 @@ export class Character {
                 if (handler) handler(this, eff)
             }
             for (const t of activeWeapon.triggers ?? []) this.passiveTriggers.push(t)
+            if (activeWeapon.grantsActions) gainedActions.push(...activeWeapon.grantsActions)
         }
 
         // 5. 缓存招式
@@ -517,7 +518,11 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     },
     trigger_slot_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'trigger_slot_mod' }>
-        char.triggerSlotMod += e.value
+        if (e.fn) {
+            char.triggerSlotMod += e.fn(char)
+        } else {
+            char.triggerSlotMod += e.value ?? 0
+        }
     },
     dex_to_str(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'dex_to_str' }>

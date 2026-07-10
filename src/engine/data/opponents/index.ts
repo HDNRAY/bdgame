@@ -23,6 +23,7 @@ export { HAORAN } from './haoran'
 export { BAMBOO } from './bamboo'
 export { TANGROU } from './tangrou'
 export { DOCTOR } from './doctor'
+export { OTSU } from './otsu'
 import type { CharacterBuild, BattleStyle } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
 import type { Character } from '../../entities/character'
@@ -52,6 +53,7 @@ import { FENGSHUI } from './fengshui'
 import { WUZUI } from './wuzui'
 import { TANGROU } from './tangrou'
 import { DOCTOR } from './doctor'
+import { OTSU } from './otsu'
 import { HEIYUN } from './heiyun'
 import { HAORAN } from './haoran'
 import { BAMBOO } from './bamboo'
@@ -111,6 +113,7 @@ export const OPPONENTS: OpponentDef[] = [
     /** 暗器 */
     XUNXIANG, // 六绝之悟
     TANGROU, // 宝字堂
+    OTSU, // 归海楼·乙橘槙绘
 ]
 
 /** 按 ID 查找对手 def */

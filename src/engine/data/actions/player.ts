@@ -750,6 +750,27 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [1, 5] as [number, number],
         effects: [{ type: 'damage', scaling: { wisdom: 0.5 }, piercing: 12 }],
     },
+    // ── 三节枪架势 ──
+    {
+        id: 'spear_guard',
+        name: '枪·守势',
+        description: '切换至守势，招架率+20%。',
+        requiredTags: ['polearm'],
+        apCost: 0,
+        tags: ['trigger', 'internal'],
+        target: 'self',
+        effects: [{ type: 'add_buff', buffId: 'spear_guard_stance' }],
+    },
+    {
+        id: 'spear_break',
+        name: '枪·攻势',
+        description: '切换至攻势，削弱对手招架。',
+        requiredTags: ['polearm'],
+        apCost: 0,
+        tags: ['trigger', 'internal'],
+        target: 'self',
+        effects: [{ type: 'add_buff', buffId: 'spear_break_stance' }],
+    },
     // ── 飞虎·竹子 ──
     {
         id: 'rod_lift',

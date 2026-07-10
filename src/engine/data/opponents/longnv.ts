@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive } from '../../util/reward-utils'
 
-const LONGNV_ATTRS = { strength: 15, vitality: 10, agility: 14, dexterity: 18, insight: 12, wisdom: 8 }
+const LONGNV_ATTRS = { strength: 16, vitality: 10, agility: 15, dexterity: 18, insight: 12, wisdom: 4 }
 
 export const LONGNV: OpponentDef = {
     id: 'longnv',
@@ -22,8 +22,5 @@ export const LONGNV: OpponentDef = {
         action('yufeng_needle'),
         // 10
     ],
-    actionConfigs: [
-        { actionId: '_golden_bell_swing', conditionId: 'distance_gt_4', triggerId: 'on_parry' },
-        { actionId: 'yufeng_needle', conditionId: 'distance_gt_4', triggerId: 'on_opponent_move_away' },
-    ],
+    actionConfigs: [{ actionId: 'yufeng_needle', conditionId: 'distance_gt_4', triggerId: 'on_opponent_move_away' }],
 }

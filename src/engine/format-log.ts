@@ -110,6 +110,29 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
     let pendingSystemLines: string[] = []
     /** 前置行缓冲区：攻击判定期间的前置事件（如 dash），在攻击行前输出 */
     let preLines: string[] = []
+    /** 待输出系统行缓冲区：未命中攻击前的系统消息，在 bar 后输出 */
+    let standbyLines: string[] = []
+    let standbyMs = 0
+    let standbyActorId = ''
+    let standbySnapshot: BattleSnapshot | null = null
+
+    function flushStandby() {
+        if (standbyLines.length === 0) return
+        if (standbySnapshot && standbyActorId) {
+            checkNewEvent(
+                standbyMs,
+                fmtName(standbyActorId, standbySnapshot),
+                0,
+                hpInfo(standbyActorId, standbySnapshot),
+                standbySnapshot.distance,
+                standbySnapshot.actionCount,
+            )
+        }
+        for (const l of standbyLines) lines.push(l)
+        standbyLines = []
+        standbyActorId = ''
+        standbySnapshot = null
+    }
 
     function flush() {
         if (!pending) return
@@ -179,6 +202,7 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     )
                     break
                 }
+                flushStandby()
                 flush()
                 const actorName = fmtName(e.actor, e.snapshot)
                 const targetName = fmtName(e.target, e.snapshot)
@@ -278,21 +302,12 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     pendingSystemLines.push(`${indent}${prefix}${e.message}`)
                     break
                 }
-                flush()
-                if (e.actor) {
-                    checkNewEvent(
-                        ms,
-                        fmtName(e.actor, e.snapshot),
-                        0,
-                        undefined,
-                        undefined,
-                        e.snapshot?.actionCount,
-                        e.indent,
-                    )
-                }
-                const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
-                const prefix = (e.indent ?? 0) > 0 ? '↳ ' : e.message.startsWith('[') ? '· ' : ''
-                lines.push(`${indent}${prefix}${e.message}`)
+                // 不同时间 → 先 flush 之前缓存的系统消息
+                if (standbyLines.length > 0 && ms !== standbyMs) flushStandby()
+                standbyLines.push(`  ${e.message.startsWith('[') ? '· ' : ''}${e.message}`)
+                if (!standbyActorId && e.actor) standbyActorId = e.actor
+                standbyMs = ms
+                if (!standbySnapshot && e.snapshot) standbySnapshot = e.snapshot
                 break
             }
         }
@@ -310,5 +325,6 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
     flush()
     // 最后的 flush 可能加了行，更新最后一事件的映射
     eventToLine[all.length - 1] = lines.length - 1
+    flushStandby()
     return { lines, eventToLine }
 }

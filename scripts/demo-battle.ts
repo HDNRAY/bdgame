@@ -31,6 +31,7 @@ import {
     HAORAN,
     BAMBOO,
     TANGROU,
+    OTSU,
 } from '../src/engine/data/opponents/index'
 import { getWeapon } from '../src/engine/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
@@ -72,8 +73,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(TANGROU, 33)
-const oBuild = gen(HEIYUN, 33)
+const pBuild = gen(OTSU, 33)
+const oBuild = gen(BAMBOO, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

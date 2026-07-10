@@ -9,6 +9,7 @@ export interface WeaponDef extends GameEntity {
     bound?: boolean
     effects?: EffectDef[]
     triggers?: TriggerSlot[]
+    grantsActions?: string[]
     range: [number, number]
     /** 召唤物定义（御物武器使用） */
     summon?: SummonDef
@@ -28,6 +29,15 @@ export const WEAPON_DB: WeaponDef[] = [
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'po_lang_zhu_zhi_buff' }] },
         ],
+    },
+    // ── 三节枪 ──
+    {
+        id: 'three_section_spear',
+        name: '春翁',
+        description: '三段式机关枪，通过旋转接口切换形态。',
+        tags: ['pierce', 'parry', 'polearm', 'slash'],
+        range: [1, 3],
+        grantsActions: ['_spear_throw'],
     },
     {
         id: 'broken_blade',

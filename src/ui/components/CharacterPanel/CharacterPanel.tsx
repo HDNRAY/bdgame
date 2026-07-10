@@ -4,6 +4,7 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type D
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { CharacterBuild } from '../../../engine/entities/character-build'
+import type { Character } from '../../../engine/entities/character'
 import { getAction } from '../../../engine/data/actions'
 import { getWeapon } from '../../../engine/data/weapons/weapons'
 import { getPassive } from '../../../engine/data/passives'
@@ -20,6 +21,40 @@ import { StatTooltip } from '../tooltip-contents/StatTooltip'
 import { EntityItem } from '../ui/EntityItem/EntityItem'
 import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
 import './CharacterPanel.scss'
+
+/** 计算某属性的来源分解 */
+function getAttrBreakdown(
+    attr: AttrName,
+    character: Character,
+): { base: number; passives: number; artifacts: number; weapons: number } {
+    const base = character.build.baseAttrs?.[attr] ?? 3
+    let passives = 0,
+        artifacts = 0,
+        weapons = 0
+    for (const p of character.passiveDefs)
+        for (const e of p.effects ?? []) {
+            if (e.type === 'stat_buff') {
+                const s = e as Extract<typeof e, { type: 'stat_buff' }>
+                passives += s.attrs?.[attr] ?? 0
+            }
+        }
+    for (const a of character.artifactDefs)
+        for (const e of a.effects ?? []) {
+            if (e.type === 'stat_buff') {
+                const s = e as Extract<typeof e, { type: 'stat_buff' }>
+                artifacts += s.attrs?.[attr] ?? 0
+            }
+        }
+    const w = character.weaponDef
+    if (w)
+        for (const e of w.effects ?? []) {
+            if (e.type === 'stat_buff') {
+                const s = e as Extract<typeof e, { type: 'stat_buff' }>
+                weapons += s.attrs?.[attr] ?? 0
+            }
+        }
+    return { base, passives, artifacts, weapons }
+}
 
 interface CharacterPanelProps {
     mode: 'view' | 'build'
@@ -45,7 +80,6 @@ export function CharacterPanel({
 
     // Build 模式状态管理
     const {
-        attrs,
         actionConfigs,
         battleStyle,
         setBattleStyle,
@@ -116,8 +150,6 @@ export function CharacterPanel({
     }
 
     if (!character) return null
-
-    const a = character.attrs
 
     return (
         <div className="character-panel">
@@ -252,30 +284,35 @@ export function CharacterPanel({
                         <div className="cp-section-label">属性</div>
                         {isBuild && <div className="cp-points">修炼点: 剩余 {remaining}</div>}
                         {ATTR_ORDER.map((attr) => {
-                            const val = isBuild ? (attrs[attr] ?? 3) : Math.round(a.get(attr))
-                            const upCost = isBuild && val < 30 ? cultCost(val) : null
+                            const finalVal = Math.round(character.attrs.get(attr))
+                            const brk = getAttrBreakdown(attr, character)
                             return (
                                 <div key={attr} className="cp-attr-row">
-                                    <Tooltip content={<StatTooltip attr={attr} value={val} />}>
-                                        <AttributeLabel attr={attr} value={val} />
+                                    <Tooltip content={<StatTooltip attr={attr} value={finalVal} />}>
+                                        <AttributeLabel
+                                            attr={attr}
+                                            value={finalVal}
+                                            baseValue={brk.base}
+                                            breakdown={isBuild ? brk : undefined}
+                                        />
                                     </Tooltip>
                                     {isBuild && (
                                         <>
                                             <button
                                                 className="cp-btn-sm"
-                                                disabled={val <= (build.baseAttrs?.[attr] ?? 3)}
+                                                disabled={brk.base <= (build.baseAttrs?.[attr] ?? 3)}
                                                 onClick={() => handleAttrAdjust(attr, -1)}
                                             >
                                                 −
                                             </button>
                                             <button
                                                 className="cp-btn-sm"
-                                                disabled={val >= 30 || remaining < (upCost ?? 99)}
+                                                disabled={brk.base >= 30 || remaining < cultCost(brk.base)}
                                                 onClick={() => handleAttrAdjust(attr, 1)}
                                             >
                                                 +
                                             </button>
-                                            {upCost && <span className="cp-cost">{upCost}pt</span>}
+                                            {brk.base < 30 && <span className="cp-cost">{cultCost(brk.base)}pt</span>}
                                         </>
                                     )}
                                 </div>

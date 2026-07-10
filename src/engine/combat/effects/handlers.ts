@@ -481,6 +481,26 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     add_buff({ eff, self, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_buff' }>
         const buff = getBuff(e.buffId)
+
+        // ── Stance auto-replace: if another stance exists, remove it silently ──
+        let replacedStance = false
+        let oldStanceName = ''
+        if (buff?.tags.includes('stance')) {
+            for (const [key, layer] of engine.state.pendingBuffs) {
+                const [buffId, charId] = key.split('::')
+                if (charId !== self.id) continue
+                if (buffId === e.buffId) continue
+                const existing = getBuff(buffId)
+                if (existing?.tags.includes('stance')) {
+                    oldStanceName = existing.name ?? buffId
+                    revertBuffMods(layer, self, engine.state)
+                    engine.state.pendingBuffs.delete(key)
+                    engine.state.turn.removeEvents('buff_end_' + key)
+                    replacedStance = true
+                    break
+                }
+            }
+        }
         const isIndependent = buff?.stacking?.type === 'independent'
         const keyBase = `${e.buffId}::${self.id}`
         const key = isIndependent ? `${keyBase}::${genAppId(tMs)}` : keyBase
@@ -542,9 +562,11 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
         engine.emitLog({
             type: 'system',
-            message: firstResult.details.length
-                ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${firstResult.details.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`
-                : `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}`,
+            message: replacedStance
+                ? `切换架势: ${oldStanceName} → ${buff?.name ?? e.buffId}`
+                : firstResult.details.length
+                  ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${firstResult.details.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`
+                  : `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}`,
             actorId: self.id,
         })
         engine.state.pendingBuffs.set(key, { restoreValue: stacks, mods })

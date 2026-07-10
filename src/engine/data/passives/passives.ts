@@ -704,4 +704,45 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff'],
         effects: [{ type: 'move_efficiency', value: 0.5 }],
     },
+    {
+        id: 'sekai_heroism',
+        name: '世一英雄主义',
+        description: '并非好胜，只是有人需要她赢。根骨-2，身法+2、灵巧+2、洞察+2。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'stat_buff', attrs: { vitality: -2, agility: 2, dexterity: 2, insight: 2 } }],
+    },
+    {
+        id: 'combat_instinct',
+        name: '战斗本能',
+        description: '每4点洞察增加1触发槽。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'trigger_slot_mod', fn: (char) => Math.floor(char.attrs.get('insight') / 4) }],
+    },
+    {
+        id: 'insight_awareness',
+        name: '料敌机先',
+        description: '洞察入微，洞察越高招架/闪避越强。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_instinct' }] }],
+    },
+    {
+        id: 'wolf_hunting',
+        name: '狼狩',
+        description:
+            '善用自重、惯性与借力造成毁灭性打击。polearm/slash招式附加（根骨×0.1+身法×0.1+灵巧×0.1）额外伤害。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'wolf_hunting_buff' }] },
+        ],
+    },
+    {
+        id: 'spear_stance_mastery',
+        name: '三节枪术',
+        description: '出招前切攻势，收招后切守势。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            { condition: { type: 'turn_start' }, actionId: 'spear_break' },
+            { condition: { type: 'turn_end' }, actionId: 'spear_guard' },
+        ],
+    },
 ]

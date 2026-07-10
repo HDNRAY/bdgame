@@ -395,4 +395,21 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 3, independentHits: 27, piercing: 2 }],
         maxUses: 1,
     },
+    // ── 春翁 ──
+    {
+        id: '_spear_throw',
+        name: '枪出如龙',
+        description: '',
+        requiredTags: ['polearm'],
+        apCost: 2,
+        tags: ['pierce', 'range', 'polearm'],
+        getRange: () => [2, 4] as [number, number],
+        effects: [
+            {
+                type: 'short_dash',
+                maxDistance: 1,
+            },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
+        ],
+    },
 ]

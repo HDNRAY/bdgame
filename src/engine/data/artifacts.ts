@@ -138,8 +138,11 @@ export const ARTIFACTS: Artifact[] = [
         id: 'wisdom_talisman',
         name: '通明符',
         description: '开悟通明，额外承载一道触发。',
-        tags: ['trigger'],
-        effects: [{ type: 'trigger_slot_mod', value: 1 }],
+        tags: ['trigger', 'buff'],
+        effects: [
+            { type: 'stat_buff', attrs: { insight: 2 } },
+            { type: 'trigger_slot_mod', value: 1 },
+        ],
     },
     {
         id: 'innate_seed',
@@ -194,9 +197,9 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'ap_boost',
         name: '气海丹',
-        description: '拓展气海，AP上限+2。',
+        description: '拓展气海，AP上限+4。',
         tags: ['buff'],
-        effects: [{ type: 'max_ap_mod', value: 2 }],
+        effects: [{ type: 'max_ap_mod', value: 4 }],
     },
     {
         id: 'qi_amplifier',
@@ -500,10 +503,16 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'doctor_chip',
         name: '战斗芯片·改',
-        description: '博士特制的战斗分析芯片，推演+6，回合开始时有概率叠加战斗数据。',
+        description: '博士特制的战斗分析芯片，推演+4，回合开始时有概率叠加战斗数据。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 6 } }],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_chip' }] }],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 4 } }],
+        triggers: [
+            {
+                condition: { type: 'on_equip' },
+                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 1 }],
+            },
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_chip' }] },
+        ],
     },
     {
         id: 'tempest',

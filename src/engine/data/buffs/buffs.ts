@@ -199,6 +199,39 @@ export const BUFF_DB: BuffDef[] = [
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
     { id: 'steal_artifact_track', name: '盗亦有道', description: '飞龙探云手的成功率追踪。', tags: [] },
 
+    // ── 三节枪架势 ──
+    {
+        id: 'spear_guard_stance',
+        name: '守势',
+        description: '三节枪·守势，招架率+20%。',
+        tags: ['stance'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onParryChance: () => 0.2,
+    },
+    {
+        id: 'spear_break_stance',
+        name: '攻势',
+        description: '三节枪·攻势，削弱对手招架。',
+        tags: ['stance'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onParryPenetration: ({ final, raw }) => {
+            const blocked = raw - final
+            return Math.round((raw - blocked * 0.5) * 10) / 10
+        },
+    },
+    // ── 料敌机先 ──
+    {
+        id: 'combat_instinct',
+        name: '料敌机先',
+        description: '每点洞察+1%招架率、+1%闪避率。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onParryChance: ({ attacker }) => attacker.attrs.get('insight') * 0.01,
+        onDodgeChance: ({ attacker }) => attacker.attrs.get('insight') * 0.01,
+    },
+
     // ── 战斗状态 ──
     {
         id: 'chan_orb_regen',
@@ -1020,5 +1053,27 @@ export const BUFF_DB: BuffDef[] = [
         },
         onHitChance: ({ layer }) => layer.restoreValue * 0.03,
         onCritChance: ({ layer }) => layer.restoreValue * 0.03,
+    },
+    // ── 狼狩 ──
+    {
+        id: 'wolf_hunting_buff',
+        name: '狼狩',
+        description: '善用自重、惯性与借力造成额外伤害。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final, attacker, source }) => {
+            if (!source?.tags?.includes('polearm') && !source?.tags?.includes('slash')) return final
+            if (attacker.chan < 2) return final
+            attacker.spendChan(2)
+            const bonus =
+                Math.round(
+                    (attacker.attrs.get('vitality') * 0.1 +
+                        attacker.attrs.get('agility') * 0.1 +
+                        attacker.attrs.get('dexterity') * 0.1) *
+                        10,
+                ) / 10
+            return Math.round((final + bonus) * 10) / 10
+        },
     },
 ]

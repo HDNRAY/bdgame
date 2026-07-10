@@ -50,7 +50,7 @@ export type EffectDef =
     | { type: 'crit_damage'; value: number; reset?: boolean }
     | { type: 'last_stand'; ratio: number }
     | { type: 'weapon_range_bonus'; value: number; requireWeaponTag?: string }
-    | { type: 'trigger_slot_mod'; value: number }
+    | { type: 'trigger_slot_mod'; value?: number; fn?: (char: Character) => number }
     | { type: 'dodge_mod'; value: number }
     | { type: 'parry_mod'; value: number }
     | { type: 'haste'; value?: number; eval?: (char: Character) => number }
