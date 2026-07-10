@@ -26,7 +26,19 @@ export const OTSU: OpponentDef = {
     actionConfigs: [
         {
             actionId: '_spear_throw',
+            triggerId: 'on_opponent_move_away',
+        },
+        {
+            actionId: 'spinning_slash',
             triggerId: 'on_opponent_move_closer',
+        },
+        {
+            actionId: 'light_slash',
+            triggerId: 'on_parried',
+        },
+        {
+            actionId: 'rising_slash',
+            triggerId: 'on_parry',
         },
     ],
 }

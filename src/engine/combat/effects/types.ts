@@ -9,4 +9,5 @@ export interface EffectCtx {
     engine: BattleEngine
     tMs: number
     action?: ActionDefinition
+    triggered?: boolean
 }

@@ -6,14 +6,18 @@ import { effectHandlers } from './handlers'
 /** 处理一个效果（统一入口） */
 export function processActionEffect(
     eff: EffectDef,
-    self: Character,
-    enemy: Character,
-    engine: BattleEngine,
-    tMs: number,
-    action?: ActionDefinition,
+    opts: {
+        self: Character
+        enemy: Character
+        engine: BattleEngine
+        tMs: number
+        action?: ActionDefinition
+        triggered?: boolean
+    },
 ): void {
+    const { self, enemy, engine, tMs, action, triggered } = opts
     const handler = effectHandlers[eff.type]
-    if (handler) handler({ eff, self, enemy, engine, tMs, action })
+    if (handler) handler({ eff, self, enemy, engine, tMs, action, triggered })
 }
 
 const PRE_HIT_EFFECT_TYPES = new Set<EffectDef['type']>([

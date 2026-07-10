@@ -185,10 +185,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
                 const totalRecovery = Math.round(attacker.maxHp * 0.015 * 10) / 10
                 processActionEffect(
                     { type: 'add_buff', buffId: 'blood_recovery', stacks: totalRecovery },
-                    attacker,
-                    attacker,
-                    engine,
-                    state.turn.currentTime,
+                    { self: attacker, enemy: attacker, engine, tMs: state.turn.currentTime },
                 )
             }
         },

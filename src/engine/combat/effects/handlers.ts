@@ -138,10 +138,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             // 走 switch_weapon 流程以确保 passiveTriggers / on_equip 等正确
             processActionEffect(
                 { type: 'switch_weapon', weaponId: 'ciyuan_blade' },
-                self,
-                self,
-                engine,
-                engine.state.turn.currentTime,
+                { self, enemy: self, engine, tMs: engine.state.turn.currentTime },
             )
             engine.emitLog({
                 type: 'system',
@@ -163,26 +160,44 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
         engine.state.pendingBuffs.set(`ciyuan_blade::${self.id}`, { restoreValue: 1 })
     },
-    fixed_damage({ eff, self, enemy, engine, action }: EffectCtx) {
+    fixed_damage({ eff, self, enemy, engine, action, triggered }: EffectCtx) {
         const { value, independentHits = 1, piercing = 0 } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
         for (let i = 0; i < independentHits; i++) {
-            applyDamage(value, enemy, self, engine, action, piercing, i < independentHits - 1)
+            applyDamage({
+                raw: value,
+                target: enemy,
+                attacker: self,
+                engine,
+                source: action,
+                piercing,
+                suppressTrigger: i < independentHits - 1,
+                triggered,
+            })
         }
     },
-    functional_damage({ eff, self, enemy, engine, action }: EffectCtx) {
+    functional_damage({ eff, self, enemy, engine, action, triggered }: EffectCtx) {
         const { fn, piercing = 0 } = eff as Extract<EffectDef, { type: 'functional_damage' }>
         const dmg = fn({ self, enemy, state: engine.state })
         if (dmg > 0) {
-            applyDamage(dmg, enemy, self, engine, action, piercing)
+            applyDamage({ raw: dmg, target: enemy, attacker: self, engine, source: action, piercing, triggered })
         }
     },
-    damage({ eff, self, enemy, engine, action }: EffectCtx) {
+    damage({ eff, self, enemy, engine, action, triggered }: EffectCtx) {
         const { scaling, independentHits = 1, piercing = 0 } = eff as Extract<EffectDef, { type: 'damage' }>
         const base = (eff as Extract<EffectDef, { type: 'damage' }>).base ?? 0
         const raw = calcBaseDamage(scaling, self.attrs.getAll(), base)
         if (raw > 0) {
             for (let i = 0; i < independentHits; i++) {
-                applyDamage(raw, enemy, self, engine, action, piercing, i < independentHits - 1)
+                applyDamage({
+                    raw,
+                    target: enemy,
+                    attacker: self,
+                    engine,
+                    source: action,
+                    piercing,
+                    suppressTrigger: i < independentHits - 1,
+                    triggered,
+                })
             }
         }
     },
@@ -204,18 +219,36 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             tags: ['self_damage'],
         })
     },
-    missing_hp_damage({ eff, self, enemy, engine, action }: EffectCtx) {
+    missing_hp_damage({ eff, self, enemy, engine, action, triggered }: EffectCtx) {
         const { ratio } = eff as Extract<EffectDef, { type: 'missing_hp_damage' }>
         const dmg = Math.round((enemy.maxHp - enemy.hp) * ratio)
         if (dmg > 0) {
-            applyBonusDamage(dmg, enemy, self, engine, action, '崩劲', 'missing_hp_damage')
+            applyBonusDamage({
+                raw: dmg,
+                target: enemy,
+                attacker: self,
+                engine,
+                source: action,
+                label: '崩劲',
+                labelId: 'missing_hp_damage',
+                triggered,
+            })
         }
     },
-    self_missing_hp_damage({ eff, self, enemy, engine, action }: EffectCtx) {
+    self_missing_hp_damage({ eff, self, enemy, engine, action, triggered }: EffectCtx) {
         const { ratio } = eff as Extract<EffectDef, { type: 'self_missing_hp_damage' }>
         const dmg = Math.round((self.maxHp - self.hp) * ratio)
         if (dmg > 0) {
-            applyBonusDamage(dmg, enemy, self, engine, action, '黯然', 'self_missing_hp_damage')
+            applyBonusDamage({
+                raw: dmg,
+                target: enemy,
+                attacker: self,
+                engine,
+                source: action,
+                label: '黯然',
+                labelId: 'self_missing_hp_damage',
+                triggered,
+            })
         }
     },
 
@@ -756,10 +789,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 换空手（复用已有 handler）
         processActionEffect(
             { type: 'switch_weapon', weaponId: 'bare_hands' },
-            self,
-            self,
-            engine,
-            engine.state.turn.currentTime,
+            { self, enemy: self, engine, tMs: engine.state.turn.currentTime },
         )
 
         // 设置 disarmed buff 层
@@ -789,12 +819,12 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             if (slot.condition.type !== 'battle_start') continue
             if (slot.effects)
                 for (const eff2 of slot.effects)
-                    processActionEffect(eff2, self, enemy, engine, engine.state.turn.currentTime)
+                    processActionEffect(eff2, { self, enemy, engine, tMs: engine.state.turn.currentTime })
             if (slot.actionId) {
                 const action = getAction(slot.actionId)
                 if (action && action.apCost <= 2)
                     for (const eff2 of action.effects ?? [])
-                        processActionEffect(eff2, self, enemy, engine, engine.state.turn.currentTime, action)
+                        processActionEffect(eff2, { self, enemy, engine, tMs: engine.state.turn.currentTime, action })
             }
         }
     },
@@ -888,10 +918,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             return
         }
         // 1. 切回原武器 → 触发 on_equip → 自动加武器 buff
-        processActionEffect({ type: 'switch_weapon', weaponId }, self, self, engine, engine.state.turn.currentTime)
+        processActionEffect(
+            { type: 'switch_weapon', weaponId },
+            { self, enemy: self, engine, tMs: engine.state.turn.currentTime },
+        )
         // 2. 移除缴械
         const removeEff: EffectDef = { type: 'remove_buff', buffId: 'disarmed' }
-        processActionEffect(removeEff, self, self, engine, engine.state.turn.currentTime)
+        processActionEffect(removeEff, { self, enemy: self, engine, tMs: engine.state.turn.currentTime })
     },
     copy_best_passive({ self, engine }: EffectCtx) {
         const enemy = engine.getOpponent(self.id)
@@ -911,14 +944,20 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 if (slot.condition.type !== 'battle_start') continue
                 if (slot.effects) {
                     for (const eff of slot.effects) {
-                        processActionEffect(eff, self, enemy, engine, engine.state.turn.currentTime)
+                        processActionEffect(eff, { self, enemy, engine, tMs: engine.state.turn.currentTime })
                     }
                 }
                 if (slot.actionId) {
                     const action = getAction(slot.actionId)
                     if (action && action.apCost <= 2) {
                         for (const eff of action.effects ?? []) {
-                            processActionEffect(eff, self, enemy, engine, engine.state.turn.currentTime, action)
+                            processActionEffect(eff, {
+                                self,
+                                enemy,
+                                engine,
+                                tMs: engine.state.turn.currentTime,
+                                action,
+                            })
                         }
                     }
                 }

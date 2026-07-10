@@ -736,6 +736,13 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
+        id: 'no_way_win',
+        name: '无招胜有招',
+        description: '不拘泥一板一眼的招式，任何触发招式伤害+15。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_way_win_buff' }] }],
+    },
+    {
         id: 'spear_stance_mastery',
         name: '三节枪术',
         description: '出招前切攻势，收招后切守势。',

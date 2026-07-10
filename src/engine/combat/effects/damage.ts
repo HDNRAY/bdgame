@@ -7,22 +7,59 @@ import { getWeapon } from '../../data/weapons/weapons'
 import { getBuff } from '../../data/buffs'
 import { consumeBuffsByTrigger } from '../utils'
 
+// ── Options 类型 ──
+
+export interface ApplyDamageOptions {
+    raw: number
+    target: Character
+    attacker: Character
+    engine: BattleEngine
+    source?: GameEntity
+    piercing?: number
+    suppressTrigger?: boolean
+    triggered?: boolean
+}
+
+interface ApplyBonusDamageOptions {
+    raw: number
+    target: Character
+    attacker: Character
+    engine: BattleEngine
+    source?: GameEntity
+    label: string
+    labelId: string
+    piercing?: number
+    triggered?: boolean
+}
+
+interface ApplyDamageModifiersOptions {
+    final: number
+    target: Character
+    attacker: Character
+    engine: BattleEngine
+    raw: number
+    source?: GameEntity
+    bonus?: boolean
+    triggered?: boolean
+}
+
 // ── 独立伤害管道 ──
 
 /**
  * 独立追加伤害（跳过招架/暴击/命中，吃 onDealDamage/onTakeDamage 修正）
  * 用于 buff 的 onAfterDealDamage 或 action effect 的独立伤害
  */
-export function applyBonusDamage(
-    raw: number,
-    target: Character,
-    attacker: Character,
-    engine: BattleEngine,
-    source: GameEntity | undefined,
-    label: string,
-    labelId: string,
-    piercing: number = 0,
-): void {
+export function applyBonusDamage({
+    raw,
+    target,
+    attacker,
+    engine,
+    source,
+    label,
+    labelId,
+    piercing = 0,
+    triggered,
+}: ApplyBonusDamageOptions): void {
     if (raw <= 0 && piercing <= 0) return
 
     // 穿透伤害（无视所有减免/吸收）
@@ -33,7 +70,16 @@ export function applyBonusDamage(
     // 普通追加伤害（走修正管道）
     let final = 0
     if (raw > 0) {
-        const modResult = applyDamageModifiers(raw, target, attacker, engine, raw, source, true)
+        const modResult = applyDamageModifiers({
+            final: raw,
+            target,
+            attacker,
+            engine,
+            raw,
+            source,
+            bonus: true,
+            triggered,
+        })
         final = modResult.damage
         target.takeDamage(final, engine)
     }
@@ -59,18 +105,27 @@ export function applyBonusDamage(
 // ── 伤害管道 ──
 
 /** 应用伤害（含招架判定） */
-export function applyDamage(
-    raw: number,
-    target: Character,
-    attacker: Character,
-    engine: BattleEngine,
-    source?: GameEntity,
-    piercing: number = 0,
-    suppressTrigger?: boolean,
-): void {
+export function applyDamage({
+    raw,
+    target,
+    attacker,
+    engine,
+    source,
+    piercing = 0,
+    suppressTrigger,
+    triggered,
+}: ApplyDamageOptions): void {
     const act = source as ActionDefinition | undefined
     // 增伤效果在招架前计算
-    const { damage: buffed, piercing: buffPiercing } = applyDamageModifiers(raw, target, attacker, engine, raw, source)
+    const { damage: buffed, piercing: buffPiercing } = applyDamageModifiers({
+        final: raw,
+        target,
+        attacker,
+        engine,
+        raw,
+        source,
+        triggered,
+    })
     const totalPiercing = piercing + buffPiercing
     const { parried, final: afterParry } = resolveParry(buffed, target, attacker, engine, act)
     const blocked = buffed - afterParry
@@ -143,10 +198,27 @@ export function applyDamage(
         if (typeof bonusResult === 'object') {
             const { normal = 0, piercing: p = 0 } = bonusResult
             if (normal > 0 || p > 0) {
-                applyBonusDamage(normal, target, attacker, engine, def, def.name, def.id, p)
+                applyBonusDamage({
+                    raw: normal,
+                    target,
+                    attacker,
+                    engine,
+                    source: def,
+                    label: def.name,
+                    labelId: def.id,
+                    piercing: p,
+                })
             }
         } else if (bonusResult > 0) {
-            applyBonusDamage(bonusResult, target, attacker, engine, def, def.name, def.id)
+            applyBonusDamage({
+                raw: bonusResult,
+                target,
+                attacker,
+                engine,
+                source: def,
+                label: def.name,
+                labelId: def.id,
+            })
         }
     }
 }
@@ -358,15 +430,16 @@ function resolveCrit(
 // ── 通用伤害修正 ──
 
 /** 遍历双方 buff 的伤害修正钩子，自动修正伤害 */
-function applyDamageModifiers(
-    final: number,
-    target: Character,
-    attacker: Character,
-    engine: BattleEngine,
-    raw: number,
-    source?: GameEntity,
+function applyDamageModifiers({
+    final,
+    target,
+    attacker,
+    engine,
+    raw,
+    source,
     bonus = false,
-): { damage: number; piercing: number } {
+    triggered,
+}: ApplyDamageModifiersOptions): { damage: number; piercing: number } {
     let piercing = 0
     for (const [key, layer] of engine.state.pendingBuffs) {
         const parts = key.split('::')
@@ -384,6 +457,7 @@ function applyDamageModifiers(
             layer,
             buffOwnerId: parts[1],
             source,
+            triggered,
         }
         // 独立追加伤害不触发攻击者的 onDealDamage（防止守宫砂等重复计数）
         if (!bonus && parts[1] === attacker.id && def?.onDealDamage) {

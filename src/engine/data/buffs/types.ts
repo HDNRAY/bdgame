@@ -18,6 +18,8 @@ export interface BuffHookCtx {
     // buffOwnerId: string
     /** 伤害来源（招式/buff/效果），携带正确的 tags */
     source?: GameEntity
+    /** 是否为触发招式执行的伤害 */
+    triggered?: boolean
 }
 
 /** 消耗方式 */

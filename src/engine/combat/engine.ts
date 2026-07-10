@@ -394,7 +394,7 @@ export class BattleEngine {
             if (slot.effects) {
                 if (!isInitPhase) this.state.log.indentDepth++
                 for (const eff of slot.effects) {
-                    processActionEffect(eff, self, enemy, this, this.#tMs)
+                    processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs })
                 }
                 if (!isInitPhase) this.state.log.indentDepth--
                 continue
@@ -410,7 +410,7 @@ export class BattleEngine {
             if (action.target === 'self') {
                 if (!isInitPhase) this.state.log.indentDepth++
                 for (const eff of action.effects ?? []) {
-                    processActionEffect(eff, self, enemy, this, this.#tMs, action)
+                    processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered: true })
                 }
                 if (!isInitPhase) this.state.log.indentDepth--
                 inst.use()
@@ -494,23 +494,20 @@ export class BattleEngine {
         if (curValue >= MAX_CHAN) {
             processActionEffect(
                 { type: 'add_buff', buffId: 'zhou', stacks: 2 },
-                char,
-                char,
-                this,
-                this.state.turn.currentTime,
+                { self: char, enemy: char, engine: this, tMs: this.state.turn.currentTime },
             )
             const enemy = this.getOpponent(charId)
             if (enemy) this.emit('chan_overflow', char, enemy)
         } else if (curValue >= 30 && curValue < MAX_CHAN && !hasZhou) {
             processActionEffect(
                 { type: 'add_buff', buffId: 'zhou', stacks: 1 },
-                char,
-                char,
-                this,
-                this.state.turn.currentTime,
+                { self: char, enemy: char, engine: this, tMs: this.state.turn.currentTime },
             )
         } else if (curValue < 30 && hasZhou) {
-            processActionEffect({ type: 'remove_buff', buffId: 'zhou' }, char, char, this, this.state.turn.currentTime)
+            processActionEffect(
+                { type: 'remove_buff', buffId: 'zhou' },
+                { self: char, enemy: char, engine: this, tMs: this.state.turn.currentTime },
+            )
         }
     }
 
@@ -672,13 +669,13 @@ export class BattleEngine {
         // 不受命中影响的效果先执行（移动、换武、buff 等）
         for (const eff of action.effects ?? []) {
             if (isPreHitEffect(eff.type)) {
-                processActionEffect(eff, self, enemy, this, this.#tMs, action)
+                processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered })
             }
         }
         // 战斗判定
         if (!processHitCheck(action, r, self, enemy, this)) return r
         // 效果应用
-        this.#finalizeAttack(action, r, self, enemy)
+        this.#finalizeAttack(action, r, self, enemy, triggered)
         // 天机消耗：非辅助招式执行后，消耗天机并重置玄机层数（放在 hooks 生效之后）
         if (
             this.state.pendingBuffs.has(`tianji_ready::${self.id}`) &&
@@ -697,7 +694,13 @@ export class BattleEngine {
     }
 
     /** 命中后效：触发/流血/状态/击败 */
-    #finalizeAttack(action: ActionDefinition, r: ActionResult, self: Character, enemy: Character): void {
+    #finalizeAttack(
+        action: ActionDefinition,
+        r: ActionResult,
+        self: Character,
+        enemy: Character,
+        triggered = false,
+    ): void {
         const tMs = this.#tMs
 
         this.emit('on_hit', self, enemy)
@@ -716,9 +719,9 @@ export class BattleEngine {
                 r.hit &&
                 !r.dodged
             ) {
-                processActionEffect(eff, self, enemy, this, tMs, action)
+                processActionEffect(eff, { self, enemy, engine: this, tMs, action, triggered })
             } else if (r.hit && !r.dodged && !isPreHitEffect(eff.type)) {
-                processActionEffect(eff, self, enemy, this, tMs, action)
+                processActionEffect(eff, { self, enemy, engine: this, tMs, action, triggered })
             }
         }
         this.state.log.indentDepth--
@@ -772,7 +775,7 @@ export class BattleEngine {
             actorId: self.id,
         })
         for (const eff of inst.def.effects ?? []) {
-            processActionEffect(eff, self, self, this, this.#tMs, inst.def)
+            processActionEffect(eff, { self, enemy: self, engine: this, tMs: this.#tMs, action: inst.def })
         }
         return r
     }

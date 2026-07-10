@@ -176,7 +176,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         attrMods: { dexterity: 4 },
         onCanParry: () => true,
         onParried: ({ target, attacker, engine, state }) => {
-            processActionEffect({ type: 'disarm', chance: 1 }, target, attacker, engine!, state.turn.currentTime)
+            processActionEffect(
+                { type: 'disarm', chance: 1 },
+                { self: target, enemy: attacker, engine: engine!, tMs: state.turn.currentTime },
+            )
         },
     },
     {
@@ -342,10 +345,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             if (engine) {
                 processActionEffect(
                     { type: 'add_buff', buffId: 'drunken_dodge', stacks: 1 },
-                    target,
-                    target,
-                    engine,
-                    state.turn.currentTime,
+                    { self: target, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }
         },
@@ -406,8 +406,21 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         onCanParry: () => true,
         onParried: ({ target, attacker, engine, state }) => {
             if (engine) {
-                processActionEffect({ type: 'disarm', chance: 0.5 }, target, attacker, engine, state.turn.currentTime)
+                processActionEffect(
+                    { type: 'disarm', chance: 0.5 },
+                    { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
+                )
             }
         },
+    },
+    // ── 料敌机先 ──
+    {
+        id: 'combat_instinct',
+        name: '料敌机先',
+        description: '每点洞察+1%招架率、+1%闪避率。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onParryChance: ({ attacker }) => attacker.attrs.get('insight') * 0.005,
+        onDodgeChance: ({ attacker }) => attacker.attrs.get('insight') * 0.005,
     },
 ]

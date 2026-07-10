@@ -221,16 +221,6 @@ export const BUFF_DB: BuffDef[] = [
             return Math.round((raw - blocked * 0.5) * 10) / 10
         },
     },
-    // ── 料敌机先 ──
-    {
-        id: 'combat_instinct',
-        name: '料敌机先',
-        description: '每点洞察+1%招架率、+1%闪避率。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onParryChance: ({ attacker }) => attacker.attrs.get('insight') * 0.01,
-        onDodgeChance: ({ attacker }) => attacker.attrs.get('insight') * 0.01,
-    },
 
     // ── 战斗状态 ──
     {
@@ -554,25 +544,16 @@ export const BUFF_DB: BuffDef[] = [
             if (self.hp / self.maxHp < 0.7) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
-                    self,
-                    target,
-                    engine,
-                    tMs,
+                    { self, enemy: target, engine, tMs },
                 )
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
-                    self,
-                    target,
-                    engine,
-                    tMs,
+                    { self, enemy: target, engine, tMs },
                 )
             } else {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 1 },
-                    self,
-                    target,
-                    engine,
-                    tMs,
+                    { self, enemy: target, engine, tMs },
                 )
             }
             return 0
@@ -591,26 +572,7 @@ export const BUFF_DB: BuffDef[] = [
                     const tMs = engine.state.turn.currentTime
                     processActionEffect(
                         { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
-                        attacker,
-                        target,
-                        engine,
-                        tMs,
-                    )
-                }
-            }
-            return final
-        },
-        onTakeDamage: ({ final, attacker, target, engine, source }) => {
-            if (source?.tags?.includes('unarmed') && Math.random() < 0.4) {
-                target.spendAp(1)
-                if (engine) {
-                    const tMs = engine.state.turn.currentTime
-                    processActionEffect(
-                        { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
-                        target,
-                        attacker,
-                        engine,
-                        tMs,
+                        { self: attacker, enemy: target, engine, tMs },
                     )
                 }
             }
@@ -676,10 +638,7 @@ export const BUFF_DB: BuffDef[] = [
             if (engine) {
                 processActionEffect(
                     { type: 'add_buff', buffId: 'martial_arts_crit', stacks: 1 },
-                    target,
-                    attacker,
-                    engine,
-                    state.turn.currentTime,
+                    { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
                 )
             }
         },
@@ -687,10 +646,7 @@ export const BUFF_DB: BuffDef[] = [
             if (engine) {
                 processActionEffect(
                     { type: 'add_buff', buffId: 'martial_arts_crit', stacks: 1 },
-                    target,
-                    attacker,
-                    engine,
-                    state.turn.currentTime,
+                    { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
                 )
             }
         },
@@ -698,10 +654,7 @@ export const BUFF_DB: BuffDef[] = [
             if (engine) {
                 processActionEffect(
                     { type: 'add_buff', buffId: 'martial_arts_dodge', stacks: 1 },
-                    attacker,
-                    target,
-                    engine,
-                    state.turn.currentTime,
+                    { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }
         },
@@ -962,10 +915,7 @@ export const BUFF_DB: BuffDef[] = [
                 if (enemy) {
                     processActionEffect(
                         { type: 'add_debuff', buffId: 'paralyze', stacks: 4, chance: 1 },
-                        attacker,
-                        enemy,
-                        engine,
-                        state.turn.currentTime,
+                        { self: attacker, enemy, engine, tMs: state.turn.currentTime },
                     )
                 }
             }
@@ -1021,10 +971,7 @@ export const BUFF_DB: BuffDef[] = [
             if (engine && Math.random() < 0.3) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
-                    attacker,
-                    target,
-                    engine,
-                    state.turn.currentTime,
+                    { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }
         },
@@ -1053,6 +1000,16 @@ export const BUFF_DB: BuffDef[] = [
         },
         onHitChance: ({ layer }) => layer.restoreValue * 0.03,
         onCritChance: ({ layer }) => layer.restoreValue * 0.03,
+    },
+    // ── 无招胜有招 ──
+    {
+        id: 'no_way_win_buff',
+        name: '无招胜有招',
+        description: '触发招式伤害+15。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final, triggered }) => (triggered ? Math.round((final + 15) * 10) / 10 : final),
     },
     // ── 狼狩 ──
     {
