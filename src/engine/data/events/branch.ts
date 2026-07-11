@@ -1,5 +1,7 @@
 import type { EventDef } from '../../entities/event'
 
+import { CHRONICLE_EVENTS } from './chronicle'
+
 export const BRANCH_PASSIVE: EventDef = {
     id: 'branch_passive',
     name: '深山发现炼炁秘籍',
@@ -100,4 +102,11 @@ export const BRANCH_HEAL: EventDef = {
     ],
 }
 
-export const BRANCH_EVENTS: EventDef[] = [BRANCH_PASSIVE, BRANCH_ACTION, BRANCH_ARTIFACT, BRANCH_POINTS, BRANCH_HEAL]
+export const BRANCH_EVENTS: EventDef[] = [
+    BRANCH_PASSIVE,
+    BRANCH_ACTION,
+    BRANCH_ARTIFACT,
+    BRANCH_POINTS,
+    BRANCH_HEAL,
+    ...CHRONICLE_EVENTS,
+]

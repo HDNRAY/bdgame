@@ -1,0 +1,167 @@
+.encyclopedia {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #000;
+    color: #ccc;
+    font-family: monospace;
+    padding: 12px;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    &-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    &-back {
+        background: none;
+        border: 1px solid #444;
+        color: #aaa;
+        padding: 4px 10px;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 13px;
+        border-radius: 3px;
+
+        &:hover {
+            color: #fff;
+            border-color: #888;
+        }
+    }
+
+    &-title {
+        font-size: 18px;
+        color: #eee;
+        font-weight: bold;
+    }
+
+    &-search {
+        margin-bottom: 10px;
+    }
+
+    &-search-input {
+        width: 100%;
+        padding: 6px 10px;
+        background: #111;
+        border: 1px solid #333;
+        color: #ccc;
+        font-family: monospace;
+        font-size: 13px;
+        border-radius: 3px;
+        box-sizing: border-box;
+        outline: none;
+
+        &:focus {
+            border-color: #4ecdc4;
+        }
+
+        &::placeholder {
+            color: #555;
+        }
+    }
+
+    &-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 10px;
+    }
+
+    &-tab {
+        flex: 1;
+        padding: 6px 0;
+        background: #111;
+        border: 1px solid #333;
+        color: #888;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 13px;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+
+        &:hover {
+            color: #ccc;
+            border-color: #555;
+        }
+
+        &.active {
+            color: #4ecdc4;
+            border-color: #4ecdc4;
+        }
+
+        &-count {
+            font-size: 11px;
+            color: #666;
+        }
+    }
+
+    &-list {
+        flex: 1;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 6px;
+        align-content: start;
+        padding-right: 4px;
+
+        &::-webkit-scrollbar {
+            width: 4px;
+        }
+        &::-webkit-scrollbar-track {
+            background: #111;
+        }
+        &::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 2px;
+        }
+    }
+
+    &-empty {
+        text-align: center;
+        color: #555;
+        padding: 40px 0;
+        font-size: 14px;
+    }
+
+    &-item {
+        background: #0d0d0d;
+        border: 1px solid #222;
+        border-radius: 3px;
+        padding: 8px 10px;
+        text-align: left;
+
+        .entity-item {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ddd;
+        }
+
+        &-desc {
+            font-size: 11px;
+            color: #777;
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        &-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            margin-top: 4px;
+        }
+    }
+
+    &-tag {
+        font-size: 10px;
+        padding: 1px 5px;
+        background: #1a1a2e;
+        color: #8888aa;
+        border-radius: 2px;
+        border: 1px solid #2a2a3e;
+    }
+}

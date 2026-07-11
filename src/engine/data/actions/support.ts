@@ -210,12 +210,12 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'agility_steal',
         name: '汲灵',
-        description: '命中时 30% 吸取身法 1 点，持续 2 秒。',
+        description: '命中时 30% 吸取身法 1 点，持续 3 秒。',
         requiredTags: ['summon'],
         apCost: 0,
         tags: ['imperial', 'summon', 'pre_action'],
         onActionHitChance: () => 0.3,
-        effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 2000 }],
+        effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 3000 }],
     },
     {
         id: 'ling_qi_guan_zhu',

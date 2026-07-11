@@ -8,6 +8,8 @@ import { QI_SKILLS } from './qi'
 /** 合并所有招式 */
 const ALL_ACTIONS: ActionDefinition[] = [...PLAYER_ACTIONS, ...SUPPORT_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS]
 
+export { PLAYER_ACTIONS, SUPPORT_ACTIONS, INTERNAL_ACTIONS, QI_SKILLS }
+
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {
     return ALL_ACTIONS.find((a) => a.id === id)

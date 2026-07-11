@@ -125,10 +125,11 @@ export const WEAPON_DB: WeaponDef[] = [
     },
     {
         id: 'heshan_sword',
-        name: '河山铁剑',
-        description: '一把普通的两用钢铸军剑，可同时使用拳掌功法。',
+        name: '阿赖耶识',
+        description: '一把触及识海的唐刀，可同时使用拳掌功夫。命中后窃取对手 1 点洞察，持续 3 秒。',
         tags: ['slash', 'pierce', 'unarmed', 'parry', 'melee'],
         range: [1, 3],
+        grantsActions: ['_alaya_insight'],
     },
     {
         id: 'dinghai_shen_tie',

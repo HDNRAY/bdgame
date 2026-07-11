@@ -24,6 +24,9 @@ export function ModeSelect() {
             </div>
 
             <div className="mode-select-footer">
+                <button className="mode-select-btn mode-select-btn-sm" onClick={() => navigate('/encyclopedia')}>
+                    图鉴
+                </button>
                 <button className="mode-select-btn mode-select-btn-sm" onClick={() => navigate('/settings')}>
                     设置
                 </button>

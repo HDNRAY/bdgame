@@ -412,4 +412,15 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
             { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
         ],
     },
+    // ── 阿赖耶识 ──
+    {
+        id: '_alaya_insight',
+        name: '阿赖耶识',
+        description: '',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['trigger', 'internal'],
+        target: 'self',
+        effects: [{ type: 'stat_transfer', stat: 'insight', value: 1, duration: 3000 }],
+    },
 ]

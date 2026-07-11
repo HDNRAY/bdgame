@@ -4,6 +4,7 @@ import { SelectionPanel } from './ui/components/SelectionPanel/SelectionPanel'
 import { BuildScreen } from './ui/screens/BuildScreen/BuildScreen'
 import { SettingsScreen } from './ui/screens/SettingsScreen/SettingsScreen'
 import { AboutScreen } from './ui/screens/AboutScreen/AboutScreen'
+import { EncyclopediaScreen } from './ui/screens/EncyclopediaScreen/EncyclopediaScreen'
 import { BattleScreen } from './ui/screens/BattleScreen/BattleScreen'
 import { RogueliteScreen } from './ui/screens/RogueliteScreen/RogueliteScreen'
 import { RotateDevice } from './ui/components/RotateDevice/RotateDevice'
@@ -18,6 +19,7 @@ function App() {
                 <Route path="/build/:charId" element={<BuildScreen />} />
                 <Route path="/settings" element={<SettingsScreen />} />
                 <Route path="/about" element={<AboutScreen />} />
+                <Route path="/encyclopedia" element={<EncyclopediaScreen />} />
                 <Route path="/battle" element={<BattleScreen />} />
                 <Route path="/roguelite" element={<RogueliteScreen />} />
             </Routes>
