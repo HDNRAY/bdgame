@@ -1,5 +1,6 @@
 import { useRogueliteStore } from '../../stores/roguelite-store'
 import { useOrientation } from '../../hooks/useOrientation'
+import { useNavigate } from 'react-router-dom'
 import { CharacterPanel } from '../../components/CharacterPanel/CharacterPanel'
 import { NodeMap } from '../../components/roguelite/NodeMap'
 import { InjuryBar } from '../../components/roguelite/InjuryBar'
@@ -9,6 +10,12 @@ import './RogueliteScreen.scss'
 export function RogueliteScreen() {
     const { gameState, mode, select, setMode, saveBuild, reset } = useRogueliteStore()
     const { isLandscape } = useOrientation()
+    const navigate = useNavigate()
+
+    function handleExit() {
+        reset()
+        navigate('/')
+    }
 
     if (!gameState) return null
 
@@ -20,6 +27,9 @@ export function RogueliteScreen() {
                 <p>获得: {gameState.build.rewards.length} 个奖励</p>
                 <button className="rs-btn" onClick={reset}>
                     再来一局
+                </button>
+                <button className="rs-btn" onClick={() => navigate('/')}>
+                    返回主菜单
                 </button>
             </div>
         )
@@ -34,6 +44,9 @@ export function RogueliteScreen() {
                     修炼点 {gameState.unspentPoints}
                 </span>
                 <span className="rs-title">斗炁大会</span>
+                <button className="rs-exit-btn" onClick={handleExit}>
+                    退出
+                </button>
             </header>
             <div className="rs-body">
                 <div className="rs-rounds">

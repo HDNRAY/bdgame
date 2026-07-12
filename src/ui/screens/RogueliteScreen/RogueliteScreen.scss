@@ -17,6 +17,23 @@
         flex-shrink: 0;
     }
 
+    &-exit-btn {
+        margin-left: auto;
+        background: none;
+        border: 1px solid #444;
+        color: #aaa;
+        padding: 3px 8px;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 12px;
+        border-radius: 3px;
+
+        &:hover {
+            color: #f88;
+            border-color: #f88;
+        }
+    }
+
     &-body {
         flex: 1;
         display: flex;
