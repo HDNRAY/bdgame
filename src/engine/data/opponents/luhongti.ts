@@ -5,7 +5,7 @@ const LUHONGTI_ATTRS = { strength: 10, vitality: 9, agility: 10, dexterity: 9, i
 
 export const LUHONGTI: OpponentDef = {
     id: 'luhongti',
-    name: '铁剑·红提',
+    name: '白月·红提',
     weapon: 'qingfeng_jian',
     targetAttrs: LUHONGTI_ATTRS,
     rewards: [

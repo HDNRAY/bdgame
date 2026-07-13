@@ -34,7 +34,7 @@ export const VETERAN_N03_INTRO: EventDef = {
 export const VETERAN_START_TRAINING: EventDef = {
     id: 'veteran_start_training',
     name: '正式训练',
-    description: '陆红提注意到了栅栏边偷看的你。',
+    description: '白月·红提注意到了栅栏边偷看的你。',
     rewardType: 'action',
     rounds: [
         {

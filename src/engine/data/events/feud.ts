@@ -69,7 +69,7 @@ export const FEUD_LUHONGTI_SPAR: EventDef = {
             id: 'greeting',
             title: '旧友来访',
             description:
-                '一名腰悬铁剑的女子拦住你的去路。她上下打量了你一番，笑道：「你就是老陆的儿子？我叫陆红提，曾与你父亲并肩作战。让我看看他教了你些什么。」',
+                '一名腰悬唐刀的女子拦住你的去路。她上下打量了你一番，笑道：「你就是老陆的儿子？我叫陆红提，曾与你父亲并肩作战。让我看看他教了你些什么。」',
             choices: [{ id: 'combat_round', type: 'continue', label: '迎战' }],
         },
         {
@@ -82,7 +82,7 @@ export const FEUD_LUHONGTI_SPAR: EventDef = {
             id: 'epilogue',
             title: '陆红提的评价',
             description:
-                '陆红提收回铁剑，满意地点了点头：「底子不错，有你父亲当年的风范。这门功法你拿去练，算是我的见面礼。若有事，随时可来找我。」说罢她转身离去，身影很快消失在街角。',
+                '陆红提收回唐刀，满意地点了点头：「底子不错，有你父亲当年的风范。这门功法你拿去练，算是我的见面礼。若有事，随时可来找我。」说罢她转身离去，身影很快消失在街角。',
             choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],

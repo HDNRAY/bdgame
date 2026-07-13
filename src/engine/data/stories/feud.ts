@@ -3,7 +3,7 @@ import type { StoryDef } from '../../entities/story'
 export const FEUD: StoryDef = {
     id: 'feud',
     name: '血海深仇',
-    characterName: '遗孤',
+    characterName: '林晚风',
     description:
         '你的家族世代反对义体研究。某个深夜，一场大火吞没了祖宅——"意外"中只有你活了下来。会长（你父亲挚友）赶到时从废墟里把你抱出来。你从此在青山镇长大，不知道那场火是义体研究部的手笔。',
     overrides: {
