@@ -288,8 +288,13 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
 
             case 'defeat': {
                 flush()
-                // 从快照找出赢家
-                const winnerName = e.snapshot?.characters.find((c) => c.id !== e.loser)?.name ?? e.winner
+                // 兼容 emitLog(loserId/winnerId) 和 logDefeat(loser/winner) 两种格式
+                const winnerId = (e as any).winner ?? (e as any).winnerId
+                // 先按 ID 匹配（emitLog 格式），再按名字匹配（logDefeat 格式）
+                const winnerName =
+                    e.snapshot?.characters.find((c) => c.id === winnerId)?.name ??
+                    e.snapshot?.characters.find((c) => c.name === winnerId)?.name ??
+                    winnerId
                 lines.push(`\n🏆 ${winnerName} 获胜！`)
                 break
             }
@@ -302,8 +307,9 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     pendingSystemLines.push(`${indent}${prefix}${e.message}`)
                     break
                 }
-                // 不同时间 → 先 flush 之前缓存的系统消息
-                if (standbyLines.length > 0 && ms !== standbyMs) flushStandby()
+                // 不同时间或不同角色 → 先 flush 之前缓存的系统消息
+                if (standbyLines.length > 0 && (ms !== standbyMs || (e.actor && e.actor !== standbyActorId)))
+                    flushStandby()
                 standbyLines.push(`  ${e.message.startsWith('[') ? '· ' : ''}${e.message}`)
                 if (!standbyActorId && e.actor) standbyActorId = e.actor
                 standbyMs = ms

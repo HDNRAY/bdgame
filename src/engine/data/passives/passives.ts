@@ -658,7 +658,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'ningqi_jue',
-        name: '凝气诀',
+        name: '凝炁诀',
         description: '以炁劲贯通全身，全属性+1，所有招式带炁。',
         tags: ['passive', 'qi'],
         effects: [{ type: 'stat_buff', attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 } }],
@@ -750,6 +750,38 @@ export const PASSIVES: Passive[] = [
         triggers: [
             { condition: { type: 'turn_start' }, actionId: 'spear_break' },
             { condition: { type: 'turn_end' }, actionId: 'spear_guard' },
+        ],
+    },
+    // ── 药屋·黛玄 ──
+    {
+        id: 'ni_zhuan_jing_mai',
+        name: '逆转经脉',
+        description: '逆转经脉运行，概率抵抗麻痹，降低被暴击率。',
+        tags: ['passive', 'defense'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ni_zhuan_jing_mai' }] },
+        ],
+    },
+    {
+        id: 'luo_ying_shen_jian',
+        name: '落英神剑',
+        description: '所有伤害的30%寄存于神剑印记内（消耗1缠劲），5层满时爆发2倍伤害。',
+        tags: ['passive', 'buff', 'qi'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'luo_ying_shen_jian_buff' }],
+            },
+        ],
+    },
+    {
+        id: 'enhanced_vision',
+        name: '超强感知',
+        description: '失聪后锻炼出的超强视觉与触觉。洞察+2，招架时以敏锐感知进一步化解伤害。',
+        tags: ['passive', 'buff', 'defense'],
+        effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'enhanced_vision_buff' }] },
         ],
     },
 ]

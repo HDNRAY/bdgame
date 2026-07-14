@@ -147,6 +147,15 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [0, 2],
         effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 1, strength: 1 } }],
     },
+    // ── 千机（药屋·黛玄） ──
+    {
+        id: 'qianji',
+        name: '千机',
+        description: '漆黑纳米长棍，可在相似尺寸的固态构造间快速切换——箫、笛、细剑、长短棍、手杖乃至遮阳伞。',
+        tags: ['melee', 'polearm', 'pierce', 'parry', 'slash', 'blunt', 'unarmed'],
+        range: [0, 3],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'qianji_crit' }] }],
+    },
 ]
 
 // ── 运行时武器查找表 ──

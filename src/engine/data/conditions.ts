@@ -66,6 +66,11 @@ export const CONDITION_PRESETS = [
         name: '无架势',
         build: (): RequiredCondition => ({ type: 'no_buff_with_tag', tag: 'stance' }),
     },
+    {
+        id: 'enemy_no_shixin',
+        name: '目标无失心',
+        build: (): RequiredCondition => ({ type: 'debuff_not_active', buffId: 'fumble_chance_temp' }),
+    },
 ] as const
 
 /** 按 ID 查找条件预设 */

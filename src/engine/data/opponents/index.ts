@@ -23,6 +23,7 @@ export { HAORAN } from './haoran'
 export { BAMBOO } from './bamboo'
 export { TANGROU } from './tangrou'
 export { DOCTOR } from './doctor'
+export { DAIXUAN } from './daixuan'
 export { OTSU } from './otsu'
 import type { CharacterBuild, BattleStyle } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
@@ -57,6 +58,7 @@ import { OTSU } from './otsu'
 import { HEIYUN } from './heiyun'
 import { HAORAN } from './haoran'
 import { BAMBOO } from './bamboo'
+import { DAIXUAN } from './daixuan'
 
 /** 对手定义（纯数据） */
 export interface OpponentDef {
@@ -80,7 +82,7 @@ export function gen(def: OpponentDef, n: number): CharacterBuild {
 /** 所有对手 */
 export const OPPONENTS: OpponentDef[] = [
     /** 拳掌 */
-    QILAN,
+    QILAN, // 特殊事件调查科
     LAIFENG, // 饮酒结拜
     WUZUI, // 饮酒结拜
     SANGYUAN, // 归海楼
@@ -95,9 +97,10 @@ export const OPPONENTS: OpponentDef[] = [
     LONGNV, // 六绝之逸
     /** 长柄 */
     ZHANGLIE, // 组织(变节卧底)
+    DAIXUAN, // 特殊事件调查科
     /** 棍 */
     WUKONG, // 六绝之破
-    BAMBOO, // 宝字堂
+    BAMBOO, // 宝字堂 特殊事件调查科兼职法医
     /** 御物 */
     XUANJI, // 玄门
     JUNSHI, // 组织
@@ -106,14 +109,14 @@ export const OPPONENTS: OpponentDef[] = [
     /** 巨武 */
     LIUXIGUA, // 六绝之闪
     YANGGUO, // 六绝之观
-    YIDAO, // 太刀 归海楼
+    YIDAO, // 归海楼
     /** 匕首 */
     LUEYING, // 军方
     DUOER, // 组织
     /** 暗器 */
     XUNXIANG, // 六绝之悟
     TANGROU, // 宝字堂
-    OTSU, // 归海楼·乙橘槙绘
+    OTSU, // 归海楼
 ]
 
 /** 按 ID 查找对手 def */

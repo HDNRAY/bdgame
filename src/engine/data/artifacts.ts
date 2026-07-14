@@ -120,6 +120,13 @@ export const ARTIFACTS: Artifact[] = [
         effects: [{ type: 'max_hp_mod', value: 60 }],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'ap_drain', stacks: 1 }] }],
     },
+    {
+        id: 'cochlear_implant',
+        name: '人造耳蜗',
+        description: '听觉植入装置，集成翻译与通讯模块。',
+        tags: ['implant', 'inherent'],
+        effects: [{ type: 'stat_buff', attrs: { insight: 4, wisdom: 1 } }],
+    },
     // imperial
     {
         id: 'floating_eye',
@@ -263,9 +270,9 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'other_mountain',
         name: '他山之石',
-        description: '博采众长，洞察入微。宁毅所赠的现代搏击笔记。',
+        description: '现代搏击技巧总汇。博采众长，洞察入微。',
         tags: ['buff'],
-        effects: [{ type: 'stat_buff', attrs: { insight: 4, dexterity: 1 } }],
+        effects: [{ type: 'stat_buff', attrs: { insight: 1, dexterity: 2, wisdom: 2 } }],
     },
     {
         id: 'cinnabar_mole',

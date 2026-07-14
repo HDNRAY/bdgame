@@ -385,12 +385,36 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             return
         }
 
+        const stacks = e.stacks ?? 1
+
+        // 遍历防御者身上的 buff，触发 onReceiveDebuff 钩子（概率抵抗等）
+        for (const [bk] of engine.state.pendingBuffs) {
+            const [buffId, charId] = bk.split('::')
+            if (charId !== enemy.id) continue
+            const bDef = getBuff(buffId)
+            if (!bDef?.onReceiveDebuff) continue
+            const result = bDef.onReceiveDebuff({
+                self: enemy,
+                enemy: self,
+                engine,
+                buffId: st,
+                stacks,
+            })
+            if (result === 0) {
+                engine.emitLog({
+                    type: 'system',
+                    message: `[${bDef.name}] ${enemy.name} 抵抗了${buff?.name ?? st}`,
+                    actorId: enemy.id,
+                })
+                return
+            }
+        }
+
         const keyBase = `${buff.id}::${enemy.id}`
         const isIndependent = buff?.stacking?.type === 'independent'
         // independent 叠层使用 appId 后缀，每次应用独立生效
         const key = isIndependent ? `${keyBase}::${genAppId(tMs)}` : keyBase
         const existing = !isIndependent ? engine.state.pendingBuffs.get(key) : undefined
-        const stacks = e.stacks ?? 1
 
         /** 获取 debuff 专属 extra 数据 */
         function makeExtra(): Record<string, number | string | boolean> | undefined {

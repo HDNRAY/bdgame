@@ -398,6 +398,23 @@ function resolveCrit(
                 source: act,
             })
     }
+    // 遍历防御方 buff，降低被暴击率
+    for (const [key, layer] of engine.state.pendingBuffs) {
+        const parts = key.split('::')
+        if (parts.length < 2 || parts[1] !== target.id) continue
+        const def = getBuff(parts[0])
+        if (def?.onCritTakenChance)
+            bonus += def.onCritTakenChance({
+                final: damage,
+                raw,
+                target,
+                attacker,
+                engine,
+                state: engine.state,
+                layer,
+                source: act,
+            })
+    }
     let critChance = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), bonus)
     if (act?.onActionCritChance) critChance = act.onActionCritChance(critChance)
     const critRoll = calcRoll(critChance)
@@ -421,6 +438,7 @@ function resolveCrit(
                     source: act,
                 })
         }
+        if (act.onActionCritDamage) critDmgMod += act.onActionCritDamage(critDmgMod, engine.state, attacker)
     }
     engine.emitLog({ type: 'check_crit', sourceId: attacker.id, critChance, roll: critRoll.roll, result: isCrit })
     const final = calcFinalDamage(damage, 1, isCrit, critDmgMod)

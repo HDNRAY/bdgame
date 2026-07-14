@@ -92,16 +92,15 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'flick',
         name: '弹指',
-        description: '指间弹出气劲/石子，击中目标短暂眩晕。',
+        description: '指间弹出炁劲，击中目标短暂眩晕。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'stun'],
+        tags: ['unarmed', 'stun', 'qi', 'range'],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
         ],
-        getRange: () => [0, 5],
-        canUse: (_attacker, state) => state.lastActionExtraDelay >= 200,
+        getRange: () => [0, 6],
     },
     {
         id: 'shadow_fist',
@@ -138,7 +137,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'self_missing_hp_damage', ratio: 0.15 },
-            { type: 'add_debuff', buffId: 'fumble_chance', stacks: 2, chance: 1 },
+            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
     },
     {
@@ -885,5 +884,56 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         target: 'self',
         maxUses: 3,
         effects: [{ type: 'add_buff', buffId: 'scan_analysis', stacks: 1 }],
+    },
+    // ── 碧海潮生曲（药屋·黛玄） ──
+    {
+        id: 'bi_hai_chao_sheng_qu',
+        name: '碧海潮生曲',
+        description: '以炁御音，曲如碧海潮生。无视招架闪避，直摄心魄。',
+        requiredTags: [],
+        apCost: 3,
+        tags: ['qi', 'range', 'debuff'],
+        getRange: () => [0, 6],
+        onActionHitChance: () => 1,
+        effects: [
+            { type: 'ignore_parry' },
+            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 10, chance: 1 },
+        ],
+    },
+    // ── 一辉（药屋·黛玄） ──
+    {
+        id: 'yi_hui',
+        name: '一辉',
+        description: '失聪后以自身炁感知对手炁的流转，在走炁一瞬突刺要害。',
+        requiredTags: ['pierce'],
+        apCost: 5,
+        chanCost: 50,
+        canUse: (attacker) => attacker.chan >= 50,
+        tags: ['pierce', 'qi', 'melee'],
+        extraPreDelay: 300,
+        onActionCritChance: (base) => base + 0.5,
+        onActionHitChance: (_base, state, self) => {
+            const enemy = state.characters.find((c) => c.id !== self.id)
+            if (!enemy || enemy.hp / enemy.maxHp >= 0.35) return _base
+            return 1
+        },
+        effects: [
+            { type: 'short_dash', maxDistance: 4 },
+            { type: 'damage', scaling: { strength: 0.6, agility: 0.4, dexterity: 0.4 } },
+        ],
+    },
+    // ── 玉箫剑法（药屋·黛玄） ──
+    {
+        id: 'yu_xiao_jian_fa',
+        name: '玉箫剑法',
+        description: '玉箫为剑，点穴封脉。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['melee', 'blunt', 'pierce', 'debuff'],
+        getRange: () => [1, 3],
+        effects: [
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 5, chance: 1 },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
+        ],
     },
 ]

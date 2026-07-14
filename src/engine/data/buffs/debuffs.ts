@@ -1,5 +1,8 @@
+import { applyDamage } from '../../combat/effects/damage'
 import type { BuffDef } from './types'
 import { calcPoisonTicksPerStack } from '../../calc/damage'
+import { round1 } from '../../util/math'
+import { getBuff } from '../buffs'
 
 /** 减益状态 */
 export const DEBUFF_DB: BuffDef[] = [
@@ -103,11 +106,54 @@ export const DEBUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
     },
     {
+        id: 'shen_jian_mark',
+        name: '神剑印记',
+        description: '被落英神剑标记，积满5层自动引爆。',
+        tags: ['debuff', 'qi'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 5 },
+        onDebuffApply: ({ self, enemy, engine, layer }) => {
+            if (layer.restoreValue < 5) return
+            // 5层满 → 引爆
+            const stored = (layer.extra?.stored as number) ?? 0
+            const explosionDmg = round1(stored * 2)
+            if (explosionDmg <= 0) return
+
+            // 清除印记
+            engine.state.pendingBuffs.delete(`shen_jian_mark::${enemy.id}`)
+
+            // 造成伤害（标记 triggered 防止递归触发落英神剑）
+            const buff = getBuff('shen_jian_mark')
+            if (!buff) return
+            applyDamage({
+                raw: explosionDmg,
+                target: enemy,
+                attacker: self,
+                engine,
+                source: buff,
+                triggered: true,
+            })
+            engine.emitLog({
+                type: 'system',
+                message: `[落英神剑] 神剑印记引爆！寄存${stored}，双倍造成${explosionDmg}点伤害`,
+                actorId: self.id,
+            })
+        },
+    },
+    {
         id: 'fumble_chance',
+        name: '永久失心',
+        description: '动作失败率。',
+        tags: ['debuff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive' },
+    },
+    {
+        id: 'fumble_chance_temp',
         name: '失心',
         description: '动作失败率。',
         tags: ['debuff'],
-        expiry: { type: 'duration', ms: 5000 },
+        expiry: { type: 'duration_by_attr', attr: 'wisdom', multiplier: 30000 },
         stacking: { type: 'additive' },
     },
     {
@@ -116,7 +162,7 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '义体过载，身法下降。',
         tags: ['debuff', 'implant'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 3 },
+        stacking: { type: 'additive' },
         attrMods: { agility: -1 },
     },
     {

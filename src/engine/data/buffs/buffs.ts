@@ -933,6 +933,81 @@ export const BUFF_DB: BuffDef[] = [
             if (debuffId === 'poison' && layer.extra) layer.extra.poisonMult = 2
         },
     },
+    // ── 千机暴击 ──
+    {
+        id: 'qianji_crit',
+        name: '千机·千变',
+        description: '千机百变，暴击伤害+50%。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onCritDamage: () => 0.5,
+    },
+    // ── 超强视觉·听劲 ──
+    {
+        id: 'enhanced_vision_buff',
+        name: '超强视觉·听劲',
+        description: '触觉敏锐，招架时洞察化解。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onParryReduction: ({ final, target }) => Math.max(0, round1(final - target.attrs.get('insight') * 0.1)),
+    },
+    // ── 落英神剑（炁伤寄存印记） ──
+    {
+        id: 'luo_ying_shen_jian_buff',
+        name: '落英神剑',
+        description: '所有伤害的30%寄存于神剑印记（消耗1缠劲），当次伤害只生效70%。',
+        tags: ['buff', 'qi'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: (ctx) => {
+            const damage = ctx.final
+            if (damage <= 0) return damage
+            if (ctx.triggered) return damage
+            if (ctx.attacker.chan < 1) return damage
+
+            const stored = round1(damage * 0.3)
+            if (stored <= 0) return damage
+
+            ctx.attacker.spendChan(1)
+
+            const { state, engine } = ctx
+            const markKey = `shen_jian_mark::${ctx.target.id}`
+            let layer = state.pendingBuffs.get(markKey)
+
+            // 首次命中需创建印记（需要 engine）
+            if (!layer && engine) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'shen_jian_mark', stacks: 1, chance: 1 },
+                    { self: ctx.attacker, enemy: ctx.target, engine, tMs: state.turn.currentTime },
+                )
+                layer = state.pendingBuffs.get(markKey)
+            }
+
+            if (layer) {
+                if (!layer.extra) layer.extra = {}
+                const prevStored = (layer.extra.stored as number) ?? 0
+                layer.extra.stored = round1(prevStored + stored)
+
+                engine?.emitLog({
+                    type: 'system',
+                    message: `[落英神剑] 寄存${stored}点伤害（累计${layer.extra.stored}）`,
+                    actorId: ctx.attacker.id,
+                })
+
+                // 已有印记时叠层（触发 onDebuffApply 检查满层引爆）
+                if (engine && layer.restoreValue < 5) {
+                    processActionEffect(
+                        { type: 'add_debuff', buffId: 'shen_jian_mark', stacks: 1, chance: 1 },
+                        { self: ctx.attacker, enemy: ctx.target, engine, tMs: state.turn.currentTime },
+                    )
+                }
+            }
+
+            return round1(damage - stored)
+        },
+    },
     // ── 内息澎湃（AP回复倍率） ──
     {
         id: 'nei_xi_peng_pai',

@@ -47,7 +47,10 @@ describe('weapon tags', () => {
             const hasUnarmed = w.tags.includes('unarmed')
             const isRanged = w.tags.includes('thrown') || w.tags.includes('range')
             const isImperial = w.tags.includes('imperial')
-            expect(hasMelee && hasPolearm).toBe(false)
+            // 千机为纳米变形武器，可同时拥有 melee 和 polearm
+            if (w.id !== 'qianji') {
+                expect(hasMelee && hasPolearm).toBe(false)
+            }
             if (!isImperial) {
                 expect(hasMelee || hasPolearm || hasUnarmed || isRanged).toBe(true)
             }

@@ -86,8 +86,10 @@ export interface BuffDef extends GameEntity {
     onCanBeParried?: (ctx: { self: Character; engine: BattleEngine }) => boolean
     /** 缴械概率修正钩子（disarm handler 中自动调用，返回加算值，负=更难被缴械） */
     onDisarmChance?: (ctx: BuffHookCtx) => number
-    /** 暴击率修正钩子（applyDamage 暴击判定前自动调用，返回加算值） */
+    /** 暴击率修正钩子（applyDamage 暴击判定前自动调用，遍历攻击方 buff，返回加算值） */
     onCritChance?: (ctx: BuffHookCtx) => number
+    /** 降低被暴击率钩子（遍历防御方 buff，返回加算值，负=更难被暴击） */
+    onCritTakenChance?: (ctx: BuffHookCtx) => number
     /** 暴击伤害修正钩子（applyDamage 暴击判定时自动调用，返回加算值） */
     onCritDamage?: (ctx: BuffHookCtx) => number
     /** 回合结束回调（turn_end 时调用，不依赖命中） */
@@ -102,6 +104,8 @@ export interface BuffDef extends GameEntity {
     onDebuffApply?: (ctx: DebuffApplyCtx) => void
     /** 攻击者施加 debuff 时回调（遍历攻击者身上的 buff 调用） */
     onDebuffApplied?: (ctx: DebuffApplyCtx) => void
+    /** 自身受到 debuff 时回调（返回 0=完全抵抗，>0=削减到该层数，undefined=不干预） */
+    onReceiveDebuff?: (ctx: ReceiveDebuffCtx) => number | undefined
     /** 额外攻击钩子（返回额外攻击次数，AI 自动循环调用 pickBestSecondary） */
     getExtraAttack?: (ctx: { source: GameEntity }) => number
 }
@@ -115,4 +119,13 @@ export interface DebuffApplyCtx {
     layer: BuffLayer
     /** 被应用的 debuff ID */
     debuffId?: string
+}
+
+/** onReceiveDebuff 钩子上下文 */
+export interface ReceiveDebuffCtx {
+    self: Character
+    enemy: Character
+    engine: BattleEngine
+    buffId: string
+    stacks: number
 }

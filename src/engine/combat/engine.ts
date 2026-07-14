@@ -594,8 +594,8 @@ export class BattleEngine {
             crit: false,
             distanceDelta: 0,
         }
-        // 失心检查（从 buff 读取）
-        const fcKey = `fumble_chance::${self.id}`
+        // 失心检查（仅临时失心影响动作成功率）
+        const fcKey = `fumble_chance_temp::${self.id}`
         const fcLayer = this.state.pendingBuffs.get(fcKey)
         if (fcLayer && Math.random() < fcLayer.restoreValue * 0.05) {
             this.emitLog({ type: 'fumble', sourceId: self.id })
@@ -713,11 +713,12 @@ export class BattleEngine {
         if (action.tags.includes('polearm')) this.emit('on_polearm', enemy, self)
 
         this.state.log.indentDepth++
+        const ignoresParry = action.effects?.some((e) => e.type === 'ignore_parry')
         for (const eff of action.effects ?? []) {
             if (
                 (eff.type === 'add_debuff' || eff.type === 'damage' || eff.type === 'fixed_damage') &&
                 r.hit &&
-                !r.dodged
+                (ignoresParry || !r.dodged)
             ) {
                 processActionEffect(eff, { self, enemy, engine: this, tMs, action, triggered })
             } else if (r.hit && !r.dodged && !isPreHitEffect(eff.type)) {

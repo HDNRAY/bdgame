@@ -77,7 +77,7 @@ export function calcExpectedDamage(
         defenderInsight: safeDef.attrs.get('insight'),
         defenderDodgeMod: safeDef.dodgeMod,
     })
-    const hitChance = (action.onActionHitChance?.(baseHc) ?? baseHc) + hitMod
+    const hitChance = (action.onActionHitChance?.(baseHc, state, attacker) ?? baseHc) + hitMod
 
     // 4. 招架 + 暴击
     const parryChance =

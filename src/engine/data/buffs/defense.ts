@@ -2,6 +2,7 @@ import { processActionEffect } from '../../combat/effects'
 import type { BuffDef } from './types'
 import { Tag } from '../../entities/tag'
 import { round1 } from '../../util/math'
+import { calcRoll } from '../../calc/damage'
 
 export const DEFENSE_BUFFS: BuffDef[] = [
     {
@@ -422,5 +423,20 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         onParryChance: ({ attacker }) => attacker.attrs.get('insight') * 0.005,
         onDodgeChance: ({ attacker }) => attacker.attrs.get('insight') * 0.005,
+    },
+    // ── 逆转经脉（药屋·黛玄） ──
+    {
+        id: 'ni_zhuan_jing_mai',
+        name: '逆转经脉',
+        description: '逆转经脉运行，概率抵抗麻痹，降低被暴击率。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onReceiveDebuff: ({ buffId }) => {
+            if (buffId !== 'paralyze') return
+            const { success } = calcRoll(0.6)
+            if (success) return 0
+        },
+        onCritTakenChance: () => -0.5,
     },
 ]

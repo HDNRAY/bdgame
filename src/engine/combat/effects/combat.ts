@@ -41,7 +41,7 @@ export function processHitCheck(
         defenderInsight: enemy.attrs.get('insight'),
         defenderDodgeMod,
     })
-    let hc = action.onActionHitChance?.(baseHc) ?? baseHc
+    let hc = action.onActionHitChance?.(baseHc, engine.state, self) ?? baseHc
     // buff 命中率钩子
     for (const [key, layer] of engine.state.pendingBuffs) {
         const parts = key.split('::')

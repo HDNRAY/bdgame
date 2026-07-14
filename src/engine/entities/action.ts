@@ -89,10 +89,12 @@ export interface ActionDefinition extends GameEntity {
     chanCost?: number
     effects?: EffectDef[]
     target?: 'self' | 'enemy'
-    /** 招式命中率回调（入参为基础命中率，返回实际命中率，不设则用属性公式计算） */
-    onActionHitChance?: (base: number) => number
+    /** 招式命中率回调（入参为基础命中率、状态、自身，返回实际命中率，不设则用属性公式计算） */
+    onActionHitChance?: (base: number, state: BattleState, self: Character) => number
     /** 招式暴击率回调（入参为基础暴击率，返回实际暴击率） */
     onActionCritChance?: (base: number) => number
+    /** 招式暴击伤害加成（入参为基础爆伤修正、状态、自身，返回额外爆伤修正） */
+    onActionCritDamage?: (base: number, state: BattleState, self: Character) => number
     maxUses?: number
     /** 自定义释放条件（返回 false 则不可使用） */
     canUse?: (attacker: Character, state: BattleState) => boolean
