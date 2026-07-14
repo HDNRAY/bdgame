@@ -15,7 +15,7 @@ export const JUNSHI: OpponentDef = {
         action('restore_ap'),
         artifact('neural_net'),
         artifact('power_furnace'),
-        artifact('heart_pump'),
+        artifact('nano_metal_heart'),
         action('condense_shield'),
         action('agility_steal'),
         action('summon_haste'),

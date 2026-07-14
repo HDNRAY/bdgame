@@ -13,7 +13,7 @@ export const ZHANGLIE: OpponentDef = {
         action('pursuit_thrust'),
         passive('iron_bone'),
         artifact('hydraulic_leg'),
-        artifact('heart_pump'),
+        artifact('nano_metal_heart'),
         artifact('neural_net'),
         artifact('blood_thorn_ring'),
         action('thrust'),

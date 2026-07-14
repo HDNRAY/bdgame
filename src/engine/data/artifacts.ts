@@ -49,12 +49,19 @@ export const ARTIFACTS: Artifact[] = [
         ],
     },
     {
-        id: 'heart_pump',
-        name: '心肺泵',
-        description: '辅助循环系统，全面提升体能。',
+        id: 'nano_metal_heart',
+        name: '纳米金属心脏',
+        description: '纳米金属构筑的仿生心脏，泵血能力远超原生器官。',
         tags: ['implant', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { strength: 2, agility: 2, dexterity: 1 } }],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'ap_drain', stacks: 1 }] }],
+    },
+    {
+        id: 'synthetic_lung',
+        name: '合成肺叶',
+        description: '纳米材料合成的仿生肺叶，替换病变肺组织，焕活根骨。',
+        tags: ['implant', 'inherent'],
+        effects: [{ type: 'stat_buff', attrs: { vitality: 3 } }],
     },
     {
         id: 'neural_net',
@@ -85,11 +92,17 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'power_furnace',
         name: '便携式动力炉',
-        description: '微型核聚变动力炉，能量永不枯竭。',
+        description: '微型核聚变动力炉，输出炁态能量供炼炁士使用，加速炁的恢复。',
         tags: ['implant', 'inherent'],
         effects: [
-            { type: 'max_ap_mod', value: 4 },
-            { type: 'permanent_burn', value: 1 },
+            { type: 'max_ap_mod', value: 2 },
+            { type: 'permanent_burn', value: 2 },
+        ],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 1 }],
+            },
         ],
     },
     {
