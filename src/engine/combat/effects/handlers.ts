@@ -957,6 +957,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // })
         // 仅触发新武器的 on_equip（不触发奇物）
         processOnEquipEffects(engine, self, [weapon], engine.state.turn.currentTime)
+        // 广播武器变更事件（让被动如行云流水切换架势）
+        engine.emit('on_weapon_change', self, self)
     },
     retrieve_weapon({ self, engine }: EffectCtx) {
         const key = `disarmed::${self.id}`

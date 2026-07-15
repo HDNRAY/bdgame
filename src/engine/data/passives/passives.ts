@@ -301,7 +301,7 @@ export const PASSIVES: Passive[] = [
         triggers: [
             {
                 condition: {
-                    type: 'on_equip',
+                    type: 'on_weapon_change',
                     check: (ctx) => {
                         const w = ctx.actor.weaponDef ?? getWeapon(ctx.actor.build.weapon)
                         return w.tags.includes('polearm')
@@ -315,7 +315,7 @@ export const PASSIVES: Passive[] = [
             },
             {
                 condition: {
-                    type: 'on_equip',
+                    type: 'on_weapon_change',
                     check: (ctx) => {
                         const w = ctx.actor.weaponDef ?? getWeapon(ctx.actor.build.weapon)
                         return w.tags.includes('melee')
@@ -329,7 +329,7 @@ export const PASSIVES: Passive[] = [
             },
             {
                 condition: {
-                    type: 'on_equip',
+                    type: 'on_weapon_change',
                     check: (ctx) => {
                         const w = ctx.actor.weaponDef ?? getWeapon(ctx.actor.build.weapon)
                         return w.tags.includes('unarmed')

@@ -28,6 +28,7 @@ export type TriggerEvent =
     | 'on_move_away'
     | 'on_opponent_move_closer'
     | 'on_opponent_move_away'
+    | 'on_weapon_change'
     | 'turn_start'
     | 'turn_end'
     | 'hp_below'

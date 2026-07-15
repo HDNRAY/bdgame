@@ -84,6 +84,9 @@ export class BattleEngine {
         for (const ch of [p, o]) {
             processOnEquipEffects(this, ch, [getWeapon(ch.build.weapon), ...ch.artifactDefs], 0)
         }
+        // 广播武器变更事件（让被动如行云流水切换架势）
+        this.emit('on_weapon_change', p, o)
+        this.emit('on_weapon_change', o, p)
 
         // 应用永久灼烧
         for (const c of [p, o]) {
