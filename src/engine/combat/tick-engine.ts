@@ -8,6 +8,7 @@ import { applyAttrMods } from './utils/buff-layer'
 import type { BuffLayer } from './types'
 import { ATTR_CN } from '../entities/attributes'
 import { DMG_PER_POISON_TICK } from '../constants'
+import { round1 } from '../util/math'
 
 /** 流血伤害计算 */
 function triggerBleed(stacks: number): number {
@@ -143,7 +144,7 @@ export class TickEngine {
         const mult = (entry.extra?.poisonMult as number) ?? 1
         let dmg = stacks * DMG_PER_POISON_TICK * mult
         if (engine.state.pendingBuffs.has(`poison_resist::${charId}`)) {
-            dmg = Math.round(dmg * 0.3 * 10) / 10
+            dmg = round1(dmg * 0.4)
         }
         const char = engine.getCharacter(charId)
         if (!char) return { nextInterval: 0 }

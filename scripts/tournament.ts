@@ -18,7 +18,7 @@ import { runBattle } from '../src/engine/battle-runner'
 
 const startWall = Date.now()
 
-const N = Math.max(1, parseInt(process.argv[3] ?? '12', 10))
+const N = Math.max(1, parseInt(process.argv[3] ?? '10', 10))
 const targetId = process.argv[2]
 const filterDef = targetId ? getOpponentDef(targetId) : null
 if (targetId && !filterDef) {

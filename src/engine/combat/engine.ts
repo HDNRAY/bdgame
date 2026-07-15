@@ -442,7 +442,7 @@ export class BattleEngine {
             case 'attack':
                 return this.#executeAttack(cmd, self, enemy)
             case 'support':
-                return this.#executeSupport(cmd, self)
+                return this.#executeSupport(cmd, self, enemy)
             default:
                 this.emitLog({
                     type: 'system',
@@ -739,7 +739,7 @@ export class BattleEngine {
         }
     }
 
-    #executeSupport(cmd: ActionCommand, self: Character): ActionResult {
+    #executeSupport(cmd: ActionCommand, self: Character, enemy: Character): ActionResult {
         const r = {
             damage: 0,
             hit: false,
@@ -776,7 +776,7 @@ export class BattleEngine {
             actorId: self.id,
         })
         for (const eff of inst.def.effects ?? []) {
-            processActionEffect(eff, { self, enemy: self, engine: this, tMs: this.#tMs, action: inst.def })
+            processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action: inst.def })
         }
         return r
     }

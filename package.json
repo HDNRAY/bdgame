@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "vite",
         "demo": "tsx scripts/demo-battle.ts",
-        "tournament": "tsx scripts/tournament.ts",
+        "tour": "tsx scripts/tournament.ts",
         "node": "tsx scripts/node-demo.ts",
         "build": "tsc -b && vite build",
         "lint": "eslint .",
