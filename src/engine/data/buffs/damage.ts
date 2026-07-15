@@ -2,6 +2,7 @@ import type { BuffDef } from './types'
 import { MAX_CHAN } from '../../constants'
 import type { ActionDefinition } from '../../entities/action'
 import { processActionEffect } from '../../combat/effects'
+import { round1 } from '../../util/math'
 
 export const DAMAGE_BUFFS: BuffDef[] = [
     {
@@ -193,6 +194,87 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             const cost = layer.restoreValue ?? 0
             if (cost <= 0) return final
             return Math.round((final + cost * 0.5) * 10) / 10
+        },
+    },
+    // ── 千机暴击 ──
+    {
+        id: 'qianji_crit',
+        name: '千机·千变',
+        description: '千机百变，暴击伤害+50%。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onCritDamage: () => 0.5,
+    },
+    // ── 落英神剑（炁伤寄存印记） ──
+    {
+        id: 'luo_ying_shen_jian_buff',
+        name: '落英神剑',
+        description: '所有伤害的30%寄存于神剑印记（消耗1缠劲），当次伤害只生效70%。',
+        tags: ['buff', 'qi'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: (ctx) => {
+            const damage = ctx.final
+            if (damage <= 0) return damage
+            if (ctx.triggered) return damage
+            if (ctx.attacker.chan < 1) return damage
+
+            const stored = round1(damage * 0.3)
+            if (stored <= 0) return damage
+
+            ctx.attacker.spendChan(1)
+
+            const { state, engine } = ctx
+            const markKey = `shen_jian_mark::${ctx.target.id}`
+            let layer = state.pendingBuffs.get(markKey)
+
+            // 首次命中需创建印记（需要 engine）
+            if (!layer && engine) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'shen_jian_mark', stacks: 1, chance: 1 },
+                    { self: ctx.attacker, enemy: ctx.target, engine, tMs: state.turn.currentTime },
+                )
+                layer = state.pendingBuffs.get(markKey)
+            }
+
+            if (layer) {
+                if (!layer.extra) layer.extra = {}
+                const prevStored = (layer.extra.stored as number) ?? 0
+                layer.extra.stored = round1(prevStored + stored)
+
+                // 已有印记时叠层（触发 onDebuffApply 检查满层引爆）
+                // 寄存信息已由 shen_jian_mark.logFormat 在"获得状态"日志中合并输出
+                if (engine && layer.restoreValue < 5) {
+                    processActionEffect(
+                        { type: 'add_debuff', buffId: 'shen_jian_mark', stacks: 1, chance: 1 },
+                        { self: ctx.attacker, enemy: ctx.target, engine, tMs: state.turn.currentTime },
+                    )
+                }
+            }
+
+            return round1(damage - stored)
+        },
+    },
+    {
+        id: 'wolf_hunting_buff',
+        name: '狼狩',
+        description: '善用自重、惯性与借力造成额外伤害。',
+        tags: ['buff', 'damage'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final, attacker, source }) => {
+            if (!source?.tags?.includes('polearm') && !source?.tags?.includes('slash')) return final
+            if (attacker.chan < 2) return final
+            attacker.spendChan(2)
+            const bonus =
+                Math.round(
+                    (attacker.attrs.get('vitality') * 0.1 +
+                        attacker.attrs.get('agility') * 0.1 +
+                        attacker.attrs.get('dexterity') * 0.1) *
+                        10,
+                ) / 10
+            return Math.round((final + bonus) * 10) / 10
         },
     },
 ]

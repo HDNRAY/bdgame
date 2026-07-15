@@ -439,4 +439,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         },
         onCritTakenChance: () => -0.5,
     },
+    {
+        id: 'enhanced_vision_buff',
+        name: '超强视觉·听劲',
+        description: '触觉敏锐，招架时洞察化解。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onParryReduction: ({ final, target }) => Math.max(0, round1(final - target.attrs.get('insight') * 0.1)),
+    },
 ]
