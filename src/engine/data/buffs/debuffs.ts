@@ -1,8 +1,6 @@
-import { applyDamage } from '../../combat/effects/damage'
 import type { BuffDef } from './types'
 import { calcPoisonTicksPerStack } from '../../calc/damage'
 import { round1 } from '../../util/math'
-import { getBuff } from '../buffs'
 
 /** 减益状态 */
 export const DEBUFF_DB: BuffDef[] = [
@@ -112,6 +110,11 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 5 },
+        logFormat: (layer, targetName) => {
+            const stored = layer.extra?.stored as number | undefined
+            const base = `「${targetName}」 获得状态 Lv.${layer.restoreValue}`
+            return stored ? `${base}（累计寄存${stored}）` : base
+        },
         onDebuffApply: ({ self, enemy, engine, layer }) => {
             if (layer.restoreValue < 5) return
             // 5层满 → 引爆
@@ -122,17 +125,8 @@ export const DEBUFF_DB: BuffDef[] = [
             // 清除印记
             engine.state.pendingBuffs.delete(`shen_jian_mark::${enemy.id}`)
 
-            // 造成伤害（标记 triggered 防止递归触发落英神剑）
-            const buff = getBuff('shen_jian_mark')
-            if (!buff) return
-            applyDamage({
-                raw: explosionDmg,
-                target: enemy,
-                attacker: self,
-                engine,
-                source: buff,
-                triggered: true,
-            })
+            // 直接扣血 + 单行汇总（避免 applyDamage 产生额外日志）
+            enemy.takeDamage(explosionDmg, engine)
             engine.emitLog({
                 type: 'system',
                 message: `[落英神剑] 神剑印记引爆！寄存${stored}，双倍造成${explosionDmg}点伤害`,
@@ -153,7 +147,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '失心',
         description: '动作失败率。',
         tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'wisdom', multiplier: 30000 },
+        expiry: { type: 'duration_by_attr', attr: 'wisdom', multiplier: 10000 },
         stacking: { type: 'additive' },
     },
     {

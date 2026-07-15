@@ -891,11 +891,14 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '碧海潮生曲',
         description: '以炁御音，曲如碧海潮生。无视招架闪避，直摄心魄。',
         requiredTags: [],
-        apCost: 1,
-        tags: ['qi', 'range', 'debuff', 'pre_action', 'post_action'],
-        getRange: () => [0, 6],
-        onActionHitChance: () => 1,
-        effects: [{ type: 'ignore_parry' }, { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 4, chance: 1 }],
+        apCost: 3,
+        tags: ['qi', 'range', 'debuff'],
+        getRange: () => [0, 10],
+        effects: [
+            { type: 'ignore_parry' },
+            { type: 'damage', scaling: { dexterity: 0.3, wisdom: 0.3 } },
+            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
+        ],
     },
     // ── 一辉（药屋·黛玄） ──
     {

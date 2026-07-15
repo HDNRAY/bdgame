@@ -22,6 +22,9 @@ export const DAIXUAN: OpponentDef = {
         action('yi_hui'),
         // 10
     ],
-    actionConfigs: [{ actionId: 'flick', triggerId: 'on_opponent_move_away' }],
+    actionConfigs: [
+        { actionId: 'bi_hai_chao_sheng_qu', conditionId: 'distance_gt_3' },
+        { actionId: 'flick', triggerId: 'on_opponent_move_away' },
+    ],
     taunt: () => '……',
 }

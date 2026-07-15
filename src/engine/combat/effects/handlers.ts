@@ -443,13 +443,22 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             // 刷新 expiry
             engine.state.turn.removeEvents(`buff_end_${key}`)
             scheduleBuffEnd(engine, key, buff!, enemy)
-            engine.emitLog({
-                type: 'system',
-                message: result.details.length
-                    ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name)} Lv.${existing.restoreValue}（${result.details.join(', ')}）`
-                    : `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name)} Lv.${existing.restoreValue}`,
-                actorId: enemy.id,
-            })
+            const applyMsg = buff?.logFormat?.(existing, enemy.name)
+            if (applyMsg) {
+                engine.emitLog({
+                    type: 'system',
+                    message: `[${buff?.name ?? e.buffId}] ${applyMsg}`,
+                    actorId: enemy.id,
+                })
+            } else {
+                engine.emitLog({
+                    type: 'system',
+                    message: result.details.length
+                        ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name)} Lv.${existing.restoreValue}（${result.details.join(', ')}）`
+                        : `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name)} Lv.${existing.restoreValue}`,
+                    actorId: enemy.id,
+                })
+            }
             engine.emit('on_debuff', enemy, self)
             emitPerDebuff(engine, e.buffId, self, enemy)
             // debuff 自定钩子（设置 extra 数据）
@@ -494,16 +503,25 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const firstResult = applyScaledAttrMods(buff!, capped, enemy, engine.state)
         // stun 的 attrMods 在 afterApplyDebuff 中由 applyAttrMods 输出属性日志，此处不重复
         const stackLabel = capped > 1 ? ` ×${capped}` : ''
-        if (e.buffId !== 'stun') {
-            engine.emitLog({
-                type: 'system',
-                message: firstResult.details.length
-                    ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel} ${firstResult.details.join(', ')}`
-                    : `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel}`,
-                actorId: enemy.id,
-            })
-        }
         const layer: BuffLayer = { restoreValue: capped, mods: firstResult.mods, extra }
+        if (e.buffId !== 'stun') {
+            const applyMsg = buff?.logFormat?.(layer, enemy.name)
+            if (applyMsg) {
+                engine.emitLog({
+                    type: 'system',
+                    message: `[${buff?.name ?? e.buffId}] ${applyMsg}`,
+                    actorId: enemy.id,
+                })
+            } else {
+                engine.emitLog({
+                    type: 'system',
+                    message: firstResult.details.length
+                        ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel} ${firstResult.details.join(', ')}`
+                        : `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel}`,
+                    actorId: enemy.id,
+                })
+            }
+        }
         engine.state.pendingBuffs.set(key, layer)
 
         // 调度 expiry

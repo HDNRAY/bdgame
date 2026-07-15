@@ -427,10 +427,10 @@ export class BattleEngine {
                 if (action.canUse && !action.canUse(self, this.state)) continue
                 this.state.log.indentDepth++
                 this.#executeAction(action, self, enemy, true)
-                this.state.log.indentDepth--
                 inst.use()
                 this.emit('on_action_trigger', self, enemy)
                 tickEngine.onBleedTrigger(self, this)
+                this.state.log.indentDepth--
             }
         }
     }
@@ -703,15 +703,6 @@ export class BattleEngine {
     ): void {
         const tMs = this.#tMs
 
-        this.emit('on_hit', self, enemy)
-        this.emit('on_was_hit', enemy, self)
-
-        // 按攻击方招式 tag 命中触发（发射给防守方，与 on_was_hit 对应）
-        if (action.tags.includes('melee')) this.emit('on_melee', enemy, self)
-        if (action.tags.includes('range')) this.emit('on_range', enemy, self)
-        if (action.tags.includes('unarmed')) this.emit('on_unarmed', enemy, self)
-        if (action.tags.includes('polearm')) this.emit('on_polearm', enemy, self)
-
         this.state.log.indentDepth++
         const ignoresParry = action.effects?.some((e) => e.type === 'ignore_parry')
         for (const eff of action.effects ?? []) {
@@ -726,17 +717,31 @@ export class BattleEngine {
             }
         }
         this.state.log.indentDepth--
+        // 立即击败检测：先于所有触发器，防止死亡后继续触发
+        if (!enemy.isAlive()) {
+            this.emitLog({ type: 'defeat', loserId: enemy.id, winnerId: self.id })
+            this.state.phase = 'finished'
+            if (self.isAlive()) this.state.lastWinner = self.name
+            return
+        }
+        if (!self.isAlive()) {
+            this.emitLog({ type: 'defeat', loserId: self.id, winnerId: enemy.id })
+            this.state.phase = 'finished'
+            if (enemy.isAlive()) this.state.lastWinner = enemy.name
+            return
+        }
+
+        this.emit('on_hit', self, enemy)
+        this.emit('on_was_hit', enemy, self)
+        // 按攻击方招式 tag 命中触发
+        if (action.tags.includes('melee')) this.emit('on_melee', enemy, self)
+        if (action.tags.includes('range')) this.emit('on_range', enemy, self)
+        if (action.tags.includes('unarmed')) this.emit('on_unarmed', enemy, self)
+        if (action.tags.includes('polearm')) this.emit('on_polearm', enemy, self)
         tickEngine.onBleedTrigger(enemy, this)
         // HP 阈值触发检测
         this.emit('hp_below', self, enemy)
         this.emit('hp_below', enemy, self)
-        if (!enemy.isAlive()) {
-            this.emitLog({ type: 'defeat', loserId: enemy.id, winnerId: self.id })
-            this.state.phase = 'finished'
-            if (self.isAlive()) {
-                this.state.lastWinner = self.name
-            }
-        }
     }
 
     #executeSupport(cmd: ActionCommand, self: Character, enemy: Character): ActionResult {
@@ -775,9 +780,11 @@ export class BattleEngine {
             message: BattleLog.msg(inst.name, self.name, ''),
             actorId: self.id,
         })
+        this.state.log.indentDepth++
         for (const eff of inst.def.effects ?? []) {
             processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action: inst.def })
         }
+        this.state.log.indentDepth--
         return r
     }
 

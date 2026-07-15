@@ -108,6 +108,8 @@ export interface BuffDef extends GameEntity {
     onReceiveDebuff?: (ctx: ReceiveDebuffCtx) => number | undefined
     /** 额外攻击钩子（返回额外攻击次数，AI 自动循环调用 pickBestSecondary） */
     getExtraAttack?: (ctx: { source: GameEntity }) => number
+    /** 自定义日志格式（覆盖默认的"获得状态"消息，返回整个消息体，不含 [BuffName] 前缀） */
+    logFormat?: (layer: BuffLayer, targetName: string) => string | undefined
 }
 
 /** onDebuffApply 钩子上下文 */

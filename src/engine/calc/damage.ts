@@ -152,7 +152,7 @@ export function calcPoisonTickInterval(stacks: number): number {
 
 /** 每层毒的基础 tick 数：wisdom 越高消退越快 */
 export function calcPoisonTicksPerStack(wisdom: number): number {
-    return Math.max(4, Math.min(12, Math.round(12 - wisdom * 0.4)))
+    return Math.max(5, Math.min(12, Math.round((220 - 7 * wisdom) / 16)))
 }
 
 /** 掷骰：返回 roll 结果和是否成功 */

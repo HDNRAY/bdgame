@@ -990,13 +990,8 @@ export const BUFF_DB: BuffDef[] = [
                 const prevStored = (layer.extra.stored as number) ?? 0
                 layer.extra.stored = round1(prevStored + stored)
 
-                engine?.emitLog({
-                    type: 'system',
-                    message: `[落英神剑] 寄存${stored}点伤害（累计${layer.extra.stored}）`,
-                    actorId: ctx.attacker.id,
-                })
-
                 // 已有印记时叠层（触发 onDebuffApply 检查满层引爆）
+                // 寄存信息已由 shen_jian_mark.logFormat 在"获得状态"日志中合并输出
                 if (engine && layer.restoreValue < 5) {
                     processActionEffect(
                         { type: 'add_debuff', buffId: 'shen_jian_mark', stacks: 1, chance: 1 },
