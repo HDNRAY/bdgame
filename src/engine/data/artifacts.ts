@@ -17,7 +17,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '液压腿',
         description: '液压驱动义腿，爆发力惊人。所有招式附带短距冲刺。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'move_efficiency', value: 0.2 }],
+        effects: [{ type: 'move_efficiency', value: 0.3 }],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 1 }] }],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
@@ -91,7 +91,7 @@ export const ARTIFACTS: Artifact[] = [
     },
     {
         id: 'power_furnace',
-        name: '便携式动力炉',
+        name: '便携式核动力炉',
         description: '微型核聚变动力炉，输出炁态能量供炼炁士使用，加速炁的恢复。',
         tags: ['implant', 'inherent'],
         effects: [
@@ -224,8 +224,8 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'qi_amplifier',
         name: '凝炁玉',
-        description: '凝聚天地灵炁，增幅炁系武器的锋芒。',
-        tags: ['trigger', 'buff'],
+        description: '天工锻造的炁能增幅器，增幅炁系武器的锋芒。',
+        tags: ['trigger', 'buff', 'craft'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_amplify' }] }],
     },
     {
@@ -284,8 +284,8 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'golden_silk_gloves',
         name: '金丝手套',
-        description: '冰蚕金丝织就，空手亦可格挡兵刃。招架率+15%，空手可招架。',
-        tags: ['defense'],
+        description: '天工锻造的金丝手套，空手亦可格挡兵刃。招架率+15%，空手可招架。',
+        tags: ['defense', 'craft'],
         effects: [{ type: 'parry_mod', value: 0.15 }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'silk_guard' }] }],
     },
@@ -314,8 +314,8 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'soft_hedgehog_mail',
         name: '软猬甲',
-        description: '以软猬兽皮制成的甲衣，柔韧而多刺。减免所有伤害；受拳脚攻击时反伤并令对手流血。',
-        tags: ['defense', 'inherent'],
+        description: '天工锻造的软猬甲衣，柔韧而多刺。减免所有伤害；受拳脚攻击时反伤并令对手流血。',
+        tags: ['defense', 'inherent', 'craft'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'soft_armor' }] }],
     },
     {
@@ -354,8 +354,8 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'blood_sacrifice_armband',
         name: '血祭护腕',
-        description: '以血饲器的古老护腕。每招消耗3%最大气血，化为额外伤害并缓慢恢复。',
-        tags: ['buff'],
+        description: '天工锻造的血祭护腕，每招消耗3%最大气血，化为额外伤害并缓慢恢复。',
+        tags: ['buff', 'craft'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'blood_sacrifice' }] }],
     },
     {
@@ -371,8 +371,8 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'iron_mask',
         name: '机巧面具',
-        description: '精工锻造的黑铁面具，暗藏精密机巧，感知与推演皆大幅提升。',
-        tags: ['buff'],
+        description: '天工锻造的黑铁面具，暗藏精密机巧，感知与推演皆大幅提升。',
+        tags: ['buff', 'craft'],
         effects: [{ type: 'stat_buff', attrs: { insight: 3, wisdom: 2 } }],
     },
     {
@@ -540,6 +540,55 @@ export const ARTIFACTS: Artifact[] = [
         description: '机簧发射二十七枚银钉，力道万钧，中者必死无救。从不淬毒。',
         tags: ['weapon', 'inherent'],
         grantsActions: ['tempest'],
+    },
+    // ── 天工锻造品 ──
+    {
+        id: 'tactical_goggles',
+        name: '战术护目镜',
+        description: '天工出品的多功能战术护目镜，集成分析仪与辅助瞄准系统，免疫迷眼。',
+        tags: ['craft', 'buff'],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 3, insight: 2 } }],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dark_room_sense' }] }],
+    },
+    {
+        id: 'nano_exoskeleton',
+        name: '纳米外骨骼',
+        description: '天工锻造的纳米外骨骼，增强力量与机动性。',
+        tags: ['craft', 'buff'],
+        effects: [{ type: 'stat_buff', attrs: { strength: 3, agility: 3 } }],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'ap_drain', stacks: 1 }] }],
+    },
+    {
+        id: 'jet_drive',
+        name: '喷气式机动装置',
+        description: '天工锻造的喷气推进装置，大幅提升移动能力，免疫击倒。',
+        tags: ['craft', 'buff'],
+        effects: [{ type: 'move_efficiency', value: 0.3 }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rocket_boost' }] }],
+    },
+    // ── 能量护盾 ──
+    {
+        id: 'energy_shield',
+        name: '能量护盾',
+        description: '天工锻造的能量护盾发生器，AP上限-1，完全吸收10点以下伤害，共50点。耗尽后解除限制。',
+        tags: ['craft', 'defense'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'energy_shield_buff' }] },
+        ],
+    },
+    // ── 蓄炁瓶 ──
+    {
+        id: 'qi_battery',
+        name: '蓄炁瓶',
+        description: '天工锻造的炁能储存装置，稳定释放炁能。',
+        tags: ['craft', 'buff'],
+        effects: [{ type: 'max_ap_mod', value: 1 }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 1 }],
+            },
+        ],
     },
 ]
 

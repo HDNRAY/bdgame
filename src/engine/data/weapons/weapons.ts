@@ -156,6 +156,36 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [0, 3],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'qianji_crit' }] }],
     },
+    // ── 引擎铁锤（天工·千星） ──
+    {
+        id: 'engine_hammer',
+        name: '引擎铁锤',
+        description: '天工锻造的电磁锤，以炁驱动，雷火交加。',
+        tags: ['blunt', 'electric', 'qi', 'craft', 'melee'],
+        range: [1, 3],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'engine_hammer_buff' }] },
+            {
+                condition: { type: 'on_hit' },
+                effects: [{ type: 'add_debuff', buffId: 'burn', stacks: 1, chance: 0.5 }],
+            },
+        ],
+    },
+    // ── 无人机 ──
+    {
+        id: 'hover_drone',
+        name: '浮游无人机',
+        description: '一枚悬浮的无人机平台，以炁供能，脑机操控。',
+        tags: ['imperial', 'range', 'pierce'],
+        bound: true,
+        range: [0, 6],
+        summon: {
+            id: 'hover_drone',
+            name: '无人机',
+            maxCount: (wis) => Math.min(3, 1 + Math.round(wis / 6)),
+            actionId: '_drone_shot',
+        },
+    },
 ]
 
 // ── 运行时武器查找表 ──

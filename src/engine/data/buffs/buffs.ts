@@ -141,7 +141,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'ciyuan_blade',
         name: '次元刃',
         description: '凝炁为刃，削弱招架减伤效果。',
-        tags: ['qi'],
+        tags: ['qi', 'weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onParryPenetration: ({ final, raw }) => {
@@ -204,7 +204,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'spear_guard_stance',
         name: '守势',
         description: '三节枪·守势，招架率+20%。',
-        tags: ['stance'],
+        tags: ['weapon', 'stance'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onParryChance: () => 0.2,
@@ -213,7 +213,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'spear_break_stance',
         name: '攻势',
         description: '三节枪·攻势，削弱对手招架。',
-        tags: ['stance'],
+        tags: ['weapon', 'stance'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onParryPenetration: ({ final, raw }) => {
@@ -937,7 +937,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'nei_xi_peng_pai',
         name: '内息澎湃',
-        description: '内息奔涌，每层AP恢复速度+0.1倍。',
+        description: '内息奔涌，每层AP恢复速度+10%。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
@@ -1010,5 +1010,73 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, triggered }) => (triggered ? Math.round((final + 15) * 10) / 10 : final),
+    },
+    // ── 引擎铁锤（天工·千星） ──
+    {
+        id: 'engine_hammer_buff',
+        name: '引擎铁锤',
+        description: '天工锻造的电磁锤。maxAP-1，所有伤害附加推演×0.1。',
+        tags: ['buff', 'weapon', 'electric', 'blunt'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        maxApMod: -1,
+        onDealDamage: ({ final, attacker }) => {
+            const bonus = round1(attacker.attrs.get('wisdom') * 0.1)
+            return final + bonus
+        },
+    },
+    {
+        id: 'rocket_boost',
+        name: '火箭推进',
+        description: '喷气式机动装置的推进力，免疫击倒。',
+        tags: ['buff', 'craft'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onReceiveDebuff: (ctx) => {
+            if (ctx.buffId === 'knockdown') return 0
+            return undefined
+        },
+    },
+    // ── 炁电转换 ──
+    {
+        id: 'qi_electric_buff',
+        name: '炁电转换',
+        description: '以炁驱动装备，力道、身法、灵巧提升。',
+        tags: ['buff', 'craft', 'electric'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+    },
+    // ── 能量护盾 ──
+    {
+        id: 'energy_shield_buff',
+        name: '能量护盾',
+        description: '吸收10点以下伤害，共50点。AP上限-1。',
+        tags: ['buff', 'craft', 'defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        maxApMod: -1,
+        onTakeDamage: ({ final, target, engine, layer }) => {
+            if (final <= 0 || final >= 10 || !engine) return final
+            if (!layer.extra) layer.extra = { absorbed: 0 }
+            const prev = (layer.extra.absorbed as number) ?? 0
+            const newVal = prev + final
+            layer.extra.absorbed = newVal
+            if (newVal >= 50) {
+                engine.emitLog({ type: 'system', message: `[能量护盾] 耗尽！`, actorId: target.id })
+                // 恢复 AP 上限再移除自身
+                if (layer.mods?.maxApMod) {
+                    target.maxApMod -= layer.mods.maxApMod as number
+                    target.capAp()
+                }
+                engine.state.pendingBuffs.delete(`energy_shield_buff::${target.id}`)
+                return 0
+            }
+            engine.emitLog({
+                type: 'system',
+                message: `[能量护盾] 吸收${final}点（${Math.round(newVal * 10) / 10}/50）`,
+                actorId: target.id,
+            })
+            return 0
+        },
     },
 ]

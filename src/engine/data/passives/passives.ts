@@ -784,4 +784,18 @@ export const PASSIVES: Passive[] = [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'enhanced_vision_buff' }] },
         ],
     },
+    // ── 炁电转换（天工·千星） ──
+    {
+        id: 'qi_electric_conversion',
+        name: '炁电转换',
+        description: '以炁驱动装备，每件craft/implant装备增加力道+2、身法+2、灵巧+2。',
+        tags: ['passive', 'buff', 'electric', 'craft'],
+        effects: [{ type: 'stat_buff', attrs: { strength: 6, agility: 6, dexterity: 6 } }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'qi_electric_buff' }],
+            },
+        ],
+    },
 ]

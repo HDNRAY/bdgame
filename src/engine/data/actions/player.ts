@@ -237,35 +237,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     {
-        id: 'blood_qi_protection',
-        name: '血炁护体',
-        description: '释放15%当前气血换取护体真气，减伤10%并持续恢复10秒。已有buff时不可重复使用。',
-        requiredTags: ['unarmed'],
-        apCost: 0,
-        tags: ['pre_action', 'buff'],
-        target: 'self',
-        canUse: (attacker, state) => {
-            if (state.pendingBuffs.has(`blood_qi_protection::${attacker.id}`)) return false
-            return true
-        },
-        effects: [
-            { type: 'add_buff', buffId: 'blood_qi_protection' },
-            {
-                type: 'functional_damage',
-                fn: ({ self, state }) => {
-                    const cost = Math.max(1, Math.round(self.hp * 0.15 * 10) / 10)
-                    if (self.hp <= cost) return 0
-                    self.takeDamage(cost)
-                    const totalRecovery = Math.round(cost * 10) / 10
-                    const key = `blood_qi_protection::${self.id}`
-                    const layer = state.pendingBuffs.get(key)
-                    if (layer) layer.restoreValue = totalRecovery
-                    return 0
-                },
-            },
-        ],
-    },
-    {
         id: 'side_kick',
         name: '侧踢',
         description: '一记势大力沉的侧踢，直取中门。',
@@ -387,6 +358,16 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [1, 6],
         effects: [{ type: 'fixed_damage', value: 18 }],
     },
+    {
+        id: 'sheng_si_fu',
+        name: '生死符',
+        description: '一道气劲凝符，穿透防御直击经脉。',
+        requiredTags: [],
+        apCost: 4,
+        tags: ['range', 'thrown', 'qi'],
+        getRange: () => [1, 5] as [number, number],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.5 }, piercing: 12 }],
+    },
     // ── 穿刺系 ──
     {
         id: 'cun_mang',
@@ -431,7 +412,19 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 },
         ],
     },
-    // ── 浩然·剑法 ──
+    {
+        id: 'yu_xiao_jian_fa',
+        name: '玉箫剑法',
+        description: '玉箫为剑，点穴封脉。',
+        requiredTags: ['melee', 'pierce'],
+        apCost: 2,
+        tags: ['melee', 'blunt', 'pierce', 'debuff'],
+        getRange: () => [1, 3],
+        effects: [
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 5, chance: 1 },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
+        ],
+    },
     {
         id: 'swift_thunder_sword',
         name: '迅雷剑法',
@@ -520,6 +513,27 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.5 },
+        ],
+    },
+    {
+        id: 'yi_hui',
+        name: '一辉',
+        description: '失聪后以自身炁感知对手炁的流转，在走炁一瞬突刺要害。',
+        requiredTags: ['pierce'],
+        apCost: 5,
+        chanCost: 50,
+        canUse: (attacker) => attacker.chan >= 50,
+        tags: ['pierce', 'qi', 'melee'],
+        extraPreDelay: 300,
+        onActionCritChance: (base) => base + 0.5,
+        onActionHitChance: (_base, state, self) => {
+            const enemy = state.characters.find((c) => c.id !== self.id)
+            if (!enemy || enemy.hp / enemy.maxHp >= 0.35) return _base
+            return 1
+        },
+        effects: [
+            { type: 'short_dash', maxDistance: 4 },
+            { type: 'damage', scaling: { strength: 0.6, agility: 0.4, dexterity: 0.4 } },
         ],
     },
     // ── 斩击系 ──
@@ -738,18 +752,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         onActionCritChance: (base) => base + 0.5,
         effects: [{ type: 'damage', scaling: { strength: 0.9, dexterity: 0.5 } }],
     },
-    // ── 灵素·唐柔 ──
-    {
-        id: 'sheng_si_fu',
-        name: '生死符',
-        description: '一道气劲凝符，穿透防御直击经脉。',
-        requiredTags: [],
-        apCost: 4,
-        tags: ['range', 'thrown', 'qi'],
-        getRange: () => [1, 5] as [number, number],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.5 }, piercing: 12 }],
-    },
-    // ── 三节枪架势 ──
     {
         id: 'spear_guard',
         name: '枪·守势',
@@ -770,7 +772,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'spear_break_stance' }],
     },
-    // ── 飞虎·竹子 ──
     {
         id: 'rod_lift',
         name: '棍挑',
@@ -803,16 +804,28 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'polearm'],
         effects: [{ type: 'damage', scaling: { strength: 0.5, dexterity: 0.5 } }],
     },
-    // ── 酒鬼·无志 ──
+    // ── 钝器系 ──
     {
-        id: 'wan_liu_gui_zong',
-        name: '万流归宗',
-        description: '酒醉归宗之势，完全招架远程攻击。',
-        requiredTags: ['unarmed'],
-        apCost: 1,
-        tags: ['defense', 'unarmed', 'post_action'],
-        canUse: (attacker) => attacker.chan >= 2,
-        effects: [{ type: 'add_buff', buffId: 'wan_liu_gui_zong' }],
+        id: 'hammer_swing',
+        name: '挥击',
+        description: '一记势大力沉的挥击。',
+        requiredTags: ['blunt'],
+        apCost: 2,
+        tags: ['blunt', 'melee'],
+        onActionCritChance: (base) => base + 0.1,
+        effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
+    },
+    {
+        id: 'hammer_smash',
+        name: '重锤',
+        description: '高举铁锤雷霆砸下，附带电击。',
+        requiredTags: ['blunt'],
+        apCost: 4,
+        tags: ['blunt', 'electric', 'melee'],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 1 },
+        ],
     },
     // ── 御物系 ──
     {
@@ -827,35 +840,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         onActionHitChance: (base) => base + 0.2,
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, independentHits: 5 }],
     },
-    // ── 毒 ──
-    {
-        id: 'poison_detonate',
-        name: '毒素引爆',
-        description: '引爆对手身上的毒素，造成剩余跳数总伤害并清除所有毒层。',
-        requiredTags: [],
-        apCost: 5,
-        chanCost: 30,
-        canUse: (attacker) => attacker.chan >= 30,
-        tags: ['poison', 'qi'],
-        getRange: () => [0, 10],
-        onActionHitChance: () => 1,
-        effects: [
-            {
-                type: 'functional_damage',
-                fn: ({ enemy, state }) => {
-                    const poisonKey = `poison::${enemy.id}`
-                    const layer = state.pendingBuffs.get(poisonKey)
-                    if (!layer) return 0
-                    const remainingTicks: number[] = (layer.extra?.remainingTicks as number[]) ?? []
-                    const totalRemaining = remainingTicks.reduce((s, t) => s + t, 0)
-                    state.pendingBuffs.delete(poisonKey)
-                    const AMPLIFY = 1
-                    return totalRemaining * DMG_PER_POISON_TICK * AMPLIFY
-                },
-            },
-        ],
-    },
-    // ── 博士·无人机 ──
     {
         id: 'drone_strike',
         name: '无人机攻击',
@@ -885,7 +869,46 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         maxUses: 3,
         effects: [{ type: 'add_buff', buffId: 'scan_analysis', stacks: 1 }],
     },
-    // ── 碧海潮生曲（药屋·黛玄） ──
+    // ── 特殊系 ──
+    {
+        id: 'wan_liu_gui_zong',
+        name: '万流归宗',
+        description: '酒醉归宗之势，完全招架远程攻击。',
+        requiredTags: ['unarmed'],
+        apCost: 1,
+        tags: ['defense', 'unarmed', 'post_action'],
+        canUse: (attacker) => attacker.chan >= 2,
+        effects: [{ type: 'add_buff', buffId: 'wan_liu_gui_zong' }],
+    },
+    {
+        id: 'blood_qi_protection',
+        name: '血炁护体',
+        description: '释放15%当前气血换取护体真气，减伤10%并持续恢复10秒。已有buff时不可重复使用。',
+        requiredTags: ['unarmed'],
+        apCost: 0,
+        tags: ['pre_action', 'buff'],
+        target: 'self',
+        canUse: (attacker, state) => {
+            if (state.pendingBuffs.has(`blood_qi_protection::${attacker.id}`)) return false
+            return true
+        },
+        effects: [
+            { type: 'add_buff', buffId: 'blood_qi_protection' },
+            {
+                type: 'functional_damage',
+                fn: ({ self, state }) => {
+                    const cost = Math.max(1, Math.round(self.hp * 0.15 * 10) / 10)
+                    if (self.hp <= cost) return 0
+                    self.takeDamage(cost)
+                    const totalRecovery = Math.round(cost * 10) / 10
+                    const key = `blood_qi_protection::${self.id}`
+                    const layer = state.pendingBuffs.get(key)
+                    if (layer) layer.restoreValue = totalRecovery
+                    return 0
+                },
+            },
+        ],
+    },
     {
         id: 'bi_hai_chao_sheng_qu',
         name: '碧海潮生曲',
@@ -900,40 +923,46 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
     },
-    // ── 一辉（药屋·黛玄） ──
     {
-        id: 'yi_hui',
-        name: '一辉',
-        description: '失聪后以自身炁感知对手炁的流转，在走炁一瞬突刺要害。',
-        requiredTags: ['pierce'],
+        id: 'poison_detonate',
+        name: '毒素引爆',
+        description: '引爆对手身上的毒素，造成剩余跳数总伤害并清除所有毒层。',
+        requiredTags: [],
         apCost: 5,
-        chanCost: 50,
-        canUse: (attacker) => attacker.chan >= 50,
-        tags: ['pierce', 'qi', 'melee'],
-        extraPreDelay: 300,
-        onActionCritChance: (base) => base + 0.5,
-        onActionHitChance: (_base, state, self) => {
-            const enemy = state.characters.find((c) => c.id !== self.id)
-            if (!enemy || enemy.hp / enemy.maxHp >= 0.35) return _base
-            return 1
-        },
+        chanCost: 30,
+        canUse: (attacker) => attacker.chan >= 30,
+        tags: ['poison', 'qi'],
+        getRange: () => [0, 10],
+        onActionHitChance: () => 1,
         effects: [
-            { type: 'short_dash', maxDistance: 4 },
-            { type: 'damage', scaling: { strength: 0.6, agility: 0.4, dexterity: 0.4 } },
+            {
+                type: 'functional_damage',
+                fn: ({ enemy, state }) => {
+                    const poisonKey = `poison::${enemy.id}`
+                    const layer = state.pendingBuffs.get(poisonKey)
+                    if (!layer) return 0
+                    const remainingTicks: number[] = (layer.extra?.remainingTicks as number[]) ?? []
+                    const totalRemaining = remainingTicks.reduce((s, t) => s + t, 0)
+                    state.pendingBuffs.delete(poisonKey)
+                    const AMPLIFY = 1
+                    return totalRemaining * DMG_PER_POISON_TICK * AMPLIFY
+                },
+            },
         ],
     },
-    // ── 玉箫剑法（药屋·黛玄） ──
+    // ── 闪光 ──
     {
-        id: 'yu_xiao_jian_fa',
-        name: '玉箫剑法',
-        description: '玉箫为剑，点穴封脉。',
+        id: 'flash',
+        name: '闪光',
+        description: '以炁激发强光致盲对手，范围广，效果显著。',
         requiredTags: [],
         apCost: 2,
-        tags: ['melee', 'blunt', 'pierce', 'debuff'],
-        getRange: () => [1, 3],
-        effects: [
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 5, chance: 1 },
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
-        ],
+        tags: ['debuff', 'pre_action'],
+        getRange: () => [1, 5] as [number, number],
+        canUse: (attacker, state) => {
+            const enemy = state.characters.find((c) => c.id !== attacker.id)
+            return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
+        },
+        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 1 }],
     },
 ]

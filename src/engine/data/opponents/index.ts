@@ -24,6 +24,7 @@ export { BAMBOO } from './bamboo'
 export { TANGROU } from './tangrou'
 export { DOCTOR } from './doctor'
 export { DAIXUAN } from './daixuan'
+export { QIANXING } from './qianxing'
 export { OTSU } from './otsu'
 import type { CharacterBuild, BattleStyle } from '../../entities/character-build'
 import type { BattleState, ActionCommand } from '../../combat/types'
@@ -59,6 +60,7 @@ import { HEIYUN } from './heiyun'
 import { HAORAN } from './haoran'
 import { BAMBOO } from './bamboo'
 import { DAIXUAN } from './daixuan'
+import { QIANXING } from './qianxing'
 
 /** 对手定义（纯数据） */
 export interface OpponentDef {
@@ -95,9 +97,6 @@ export const OPPONENTS: OpponentDef[] = [
     LAYUE, // 天生道种师姐
     BAIHU,
     LONGNV, // 六绝之逸
-    /** 长柄 */
-    ZHANGLIE, // 组织(变节卧底)
-    DAIXUAN, // 特殊事件调查科
     /** 棍 */
     WUKONG, // 六绝之破
     BAMBOO, // 宝字堂 特殊事件调查科兼职法医
@@ -106,10 +105,14 @@ export const OPPONENTS: OpponentDef[] = [
     JUNSHI, // 组织
     HEIYUN, // 玄门(退出) 饮酒结拜
     DOCTOR, // 组织
+    /** 长柄 */
+    ZHANGLIE, // 组织(变节卧底)
+    DAIXUAN, // 特殊事件调查科
     /** 巨武 */
     LIUXIGUA, // 六绝之闪
     YANGGUO, // 六绝之观
     YIDAO, // 归海楼
+    QIANXING, // 天工坊
     /** 匕首 */
     LUEYING, // 军方
     DUOER, // 组织

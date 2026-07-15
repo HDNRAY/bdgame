@@ -57,3 +57,4 @@ export type Tag =
     | 'damage' // 伤害增强
     | 'super_armor' // 罡体
     | 'jiu' // 酒
+    | 'craft' // 锻造品（天工出品，无副作用的人造装备）

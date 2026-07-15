@@ -29,9 +29,14 @@ export function clearWeaponBuffLayers(charId: string, engine: BattleEngine): voi
         const char = engine.getCharacter(charId)
         if (!char) continue
         for (const [attr, delta] of Object.entries(layer.mods)) {
-            char.attrs.modify(attr as AttrName, -(delta as number))
-            if (attr === 'agility')
-                engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
+            if (attr === 'maxApMod') {
+                char.maxApMod -= delta as number
+                char.capAp()
+            } else {
+                char.attrs.modify(attr as AttrName, -(delta as number))
+                if (attr === 'agility')
+                    engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
+            }
         }
         engine.state.pendingBuffs.delete(k)
         engine.state.turn.removeEvents('buff_end_' + k)
