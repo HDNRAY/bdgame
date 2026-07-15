@@ -547,7 +547,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '战术护目镜',
         description: '天工出品的多功能战术护目镜，集成分析仪与辅助瞄准系统，免疫迷眼。',
         tags: ['craft', 'buff'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 3, insight: 2 } }],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 2, insight: 2 } }],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dark_room_sense' }] }],
     },
     {

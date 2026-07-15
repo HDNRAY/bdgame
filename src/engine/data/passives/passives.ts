@@ -788,9 +788,8 @@ export const PASSIVES: Passive[] = [
     {
         id: 'qi_electric_conversion',
         name: '炁电转换',
-        description: '以炁驱动装备，每件craft/implant装备增加力道+2、身法+2、灵巧+2。',
+        description: '以炁驱动装备，每件craft/implant装备提升属性。',
         tags: ['passive', 'buff', 'electric', 'craft'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 6, agility: 6, dexterity: 6 } }],
         triggers: [
             {
                 condition: { type: 'battle_start' },

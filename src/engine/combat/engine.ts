@@ -20,6 +20,7 @@ import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
 import { reduceBleedOnHeal } from './utils/buff-layer'
 import { processActionEffect, processHitCheck, processBuffEnd } from './effects'
+import { processOnEquipEffects } from './utils'
 import { tickEngine } from './tick-engine'
 import type {
     ActionCommand,
@@ -79,9 +80,10 @@ export class BattleEngine {
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o)
         this.emit('battle_start', o, p)
-        // 武器 on_equip 触发（初始装备）
-        this.emit('on_equip', p, p)
-        this.emit('on_equip', o, o)
+        // 分别触发武器和每个奇物的 on_equip 效果
+        for (const ch of [p, o]) {
+            processOnEquipEffects(this, ch, [getWeapon(ch.build.weapon), ...ch.artifactDefs], 0)
+        }
 
         // 应用永久灼烧
         for (const c of [p, o]) {

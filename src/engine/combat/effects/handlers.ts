@@ -8,7 +8,14 @@ import { getPassive } from '../../data/passives'
 import { getAction } from '../../data/actions'
 import { genAppId } from '../../util/buff-utils'
 import type { Tag } from '../../entities/tag'
-import { scheduleBuffExpiry, revertBuffMods, clearWeaponBuffLayers, executeMove, revertWeaponStatBuffs } from '../utils'
+import {
+    scheduleBuffExpiry,
+    revertBuffMods,
+    clearWeaponBuffLayers,
+    executeMove,
+    revertWeaponStatBuffs,
+    processOnEquipEffects,
+} from '../utils'
 import { pickBestPassives } from '../utils/tag-match'
 import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
@@ -948,8 +955,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         //     message: `[换武] ${self.name} ${oldWeaponName} → ${weapon.name}`,
         //     actorId: self.id,
         // })
-        // 触发武器的 on_equip（新武器的装备效果，如霸刀buff）
-        engine.emit('on_equip', self, self)
+        // 仅触发新武器的 on_equip（不触发奇物）
+        processOnEquipEffects(engine, self, [weapon], engine.state.turn.currentTime)
     },
     retrieve_weapon({ self, engine }: EffectCtx) {
         const key = `disarmed::${self.id}`

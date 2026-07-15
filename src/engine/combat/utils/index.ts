@@ -2,3 +2,4 @@ export { scheduleBuffExpiry, revertBuffMods, consumeBuffsByTrigger, hasBuff, has
 export { revertWeaponStatBuffs, clearWeaponBuffLayers } from './weapon'
 export { executeMove } from './move'
 export { countTags, pickBestPassives } from './tag-match'
+export { processOnEquipEffects } from './equip'

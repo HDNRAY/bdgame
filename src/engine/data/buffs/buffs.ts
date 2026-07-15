@@ -1019,7 +1019,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff', 'weapon', 'electric', 'blunt'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        maxApMod: -1,
+        // maxApMod: -1,
         onDealDamage: ({ final, attacker }) => {
             const bonus = round1(attacker.attrs.get('wisdom') * 0.1)
             return final + bonus
@@ -1045,37 +1045,23 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff', 'craft', 'electric'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-    },
-    // ── 能量护盾 ──
-    {
-        id: 'energy_shield_buff',
-        name: '能量护盾',
-        description: '吸收10点以下伤害，共50点。AP上限-1。',
-        tags: ['buff', 'craft', 'defense'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        maxApMod: -1,
-        onTakeDamage: ({ final, target, engine, layer }) => {
-            if (final <= 0 || final >= 10 || !engine) return final
-            if (!layer.extra) layer.extra = { absorbed: 0 }
-            const prev = (layer.extra.absorbed as number) ?? 0
-            const newVal = prev + final
-            layer.extra.absorbed = newVal
-            if (newVal >= 50) {
-                engine.emitLog({ type: 'system', message: `[能量护盾] 耗尽！`, actorId: target.id })
-                // 恢复 AP 上限再移除自身
-                if (layer.mods?.maxApMod) {
-                    target.maxApMod -= layer.mods.maxApMod as number
-                    target.capAp()
-                }
-                engine.state.pendingBuffs.delete(`energy_shield_buff::${target.id}`)
-                return 0
+        tickInterval: 1,
+        onTickHeal: ({ attacker: char, engine, state, layer }) => {
+            if (layer.extra?.applied) return 0
+            const count = char.artifactDefs.filter((a) => a.tags.some((t) => t === 'craft' || t === 'implant')).length
+            const wis = char.attrs.get('wisdom')
+            const bonus = Math.floor((wis * count) / 15)
+            const mods = applyAttrMods(char, state, { strength: bonus, agility: bonus, dexterity: bonus }, '炁电转换')
+            layer.mods = { ...mods }
+            layer.extra = { applied: true, count, wis, bonus }
+            if (bonus > 0) {
+                engine?.emitLog({
+                    type: 'system',
+                    message: `[炁电转换] ${char.name} ${count}件装备·推演${wis}，力道/身法/灵巧+${bonus}`,
+                    actorId: char.id,
+                })
             }
-            engine.emitLog({
-                type: 'system',
-                message: `[能量护盾] 吸收${final}点（${Math.round(newVal * 10) / 10}/50）`,
-                actorId: target.id,
-            })
+            state.turn.removeEvents(`tick_buff_qi_electric_buff::${char.id}`)
             return 0
         },
     },

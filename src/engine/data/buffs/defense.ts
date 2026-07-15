@@ -448,4 +448,44 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         stacking: { type: 'none' },
         onParryReduction: ({ final, target }) => Math.max(0, round1(final - target.attrs.get('insight') * 0.1)),
     },
+    // ── 能量护盾 ──
+    {
+        id: 'energy_shield_buff',
+        name: '能量护盾',
+        description: '吸收10点以下伤害，共50点。AP上限-1。',
+        tags: ['buff', 'craft', 'defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        maxApMod: -1,
+        onTakeDamage: ({ final, target, engine, layer }) => {
+            if (final <= 0 || final >= 10 || !engine) return final
+            if (!layer.extra) layer.extra = { absorbed: 0 }
+            const prev = (layer.extra.absorbed as number) ?? 0
+            const remaining = 50 - prev
+            const absorb = Math.min(final, remaining)
+            const overflow = final - absorb
+            const newVal = prev + absorb
+            layer.extra.absorbed = newVal
+            if (newVal >= 50) {
+                engine.emitLog({
+                    type: 'system',
+                    message: `[能量护盾] 耗尽！吸收${absorb}点（50/50）${overflow > 0 ? `，溢出${overflow}点` : ''}`,
+                    actorId: target.id,
+                })
+                // 恢复 AP 上限再移除自身
+                if (layer.mods?.maxApMod) {
+                    target.maxApMod -= layer.mods.maxApMod as number
+                    target.capAp()
+                }
+                engine.state.pendingBuffs.delete(`energy_shield_buff::${target.id}`)
+                return overflow > 0 ? overflow : 0
+            }
+            engine.emitLog({
+                type: 'system',
+                message: `[能量护盾] 吸收${absorb}点（${Math.round(newVal * 10) / 10}/50）`,
+                actorId: target.id,
+            })
+            return 0
+        },
+    },
 ]
