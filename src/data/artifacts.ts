@@ -1,4 +1,4 @@
-import type { Artifact } from '../entities/artifact'
+import type { Artifact } from '../engine/entities/artifact'
 
 /** 所有可获取物品：义体（带副作用） + 奇物（特殊效果） */
 export const ARTIFACTS: Artifact[] = [

@@ -1,4 +1,4 @@
-import type { ActionDefinition } from '../../entities/action'
+import type { ActionDefinition } from '../../engine/entities/action'
 
 /** 炁技 —— 锻体解锁的辅招 */
 export const QI_SKILLS: ActionDefinition[] = [

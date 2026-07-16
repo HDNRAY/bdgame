@@ -1,6 +1,6 @@
 import type { BuffDef } from './types'
-import { calcPoisonTicksPerStack } from '../../calc/damage'
-import { round1 } from '../../util/math'
+import { calcPoisonTicksPerStack } from '../../engine/calc/damage'
+import { round1 } from '../../engine/util/math'
 
 /** 减益状态 */
 export const DEBUFF_DB: BuffDef[] = [

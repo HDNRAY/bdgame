@@ -2,7 +2,7 @@
  * 触发条件/事件的中文显示 — 纯展示适配，不涉及游戏状态
  */
 
-import { TRIGGER_CONDITIONS } from '../engine/data/triggers'
+import { TRIGGER_CONDITIONS } from '../data/triggers'
 
 /** 所有触发事件的中文名 */
 const TRIGGER_NAMES: Record<string, string> = {

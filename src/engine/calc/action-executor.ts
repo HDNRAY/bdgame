@@ -1,8 +1,8 @@
 import type { ActionDefinition } from '../entities/action'
 import type { Character } from '../entities/character'
 import type { BattleState } from '../combat/types'
-import { getWeapon } from '../data/weapons/weapons'
-import { getBuff } from '../data/buffs'
+import { getWeapon } from '../../data/weapons/weapons'
+import { getBuff } from '../../data/buffs'
 import { getActionRange } from '../entities/action'
 import { BattleEngine } from '../combat/engine'
 

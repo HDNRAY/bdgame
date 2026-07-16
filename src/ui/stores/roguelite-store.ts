@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { RogueliteRun } from '../../engine/systems/roguelite/engine'
+import { RogueliteRun } from '../../game/roguelite/engine'
 import type { GameState } from '../../engine/entities/state'
 import type { CharacterBuild } from '../../engine/entities/character-build'
 

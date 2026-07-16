@@ -1,6 +1,6 @@
 import type { Passive } from '../../../engine/entities/passive'
-import { describeEffects } from '../../../engine/data/effectDisplay'
-import { getAction } from '../../../engine/data/actions'
+import { describeEffects } from '../../../data/effectDisplay'
+import { getAction } from '../../../data/actions'
 import { TagList } from '../ui/TagList/TagList'
 import { TriggerEffects } from '../ui/TriggerEffects/TriggerEffects'
 import { EntityItem } from '../ui/EntityItem/EntityItem'

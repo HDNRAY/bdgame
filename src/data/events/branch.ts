@@ -1,4 +1,4 @@
-import type { EventDef } from '../../entities/event'
+import type { EventDef } from '../../engine/entities/event'
 
 import { CHRONICLE_EVENTS } from './chronicle'
 

@@ -1,6 +1,6 @@
 import type { BattleState } from '../combat/types'
 import type { Character } from './character'
-import { getBuff } from '../data/buffs'
+import { getBuff } from '../../data/buffs'
 
 /**
  * 招式的必要条件 — AI 在选择该招式前必须满足的条件

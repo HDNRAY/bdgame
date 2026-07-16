@@ -1,5 +1,5 @@
-import type { ActionDefinition } from '../../entities/action'
-import { MAX_CHAN } from '../../constants'
+import type { ActionDefinition } from '../../engine/entities/action'
+import { MAX_CHAN } from '../../engine/constants'
 
 /**
  * 辅助招式（非战斗直接伤害，含 buff / 位移 / 缴械回复 / 净化等）。

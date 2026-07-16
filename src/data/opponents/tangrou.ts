@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive } from '../../util/reward-utils'
+import { action, artifact, passive } from '../../engine/util/reward-utils'
 
 const TANGROU_ATTRS = { strength: 6, vitality: 10, agility: 14, dexterity: 20, insight: 16, wisdom: 8 }
 

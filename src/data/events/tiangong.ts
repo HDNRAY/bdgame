@@ -1,4 +1,4 @@
-import type { EventDef } from '../../entities/event'
+import type { EventDef } from '../../engine/entities/event'
 
 /** 去天工坊找千星打造武器 */
 export const TIANGONG_WEAPON: EventDef = {

@@ -2,7 +2,7 @@ import { Character } from '../entities/character'
 import { PositionSystem } from './position'
 import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
-import { getWeapon } from '../data/weapons/weapons'
+import { getWeapon } from '../../data/weapons/weapons'
 import {
     calcTurnInterval,
     calcSummonInterval,
@@ -11,10 +11,10 @@ import {
     calcActionDurationMs,
 } from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
-import { getAction } from '../data/actions'
-import { getBuff } from '../data/buffs'
+import { getAction } from '../../data/actions'
+import { getBuff } from '../../data/buffs'
 import { checkCondition } from '../entities/action-config'
-import { getConditionPreset } from '../data/conditions'
+import { getConditionPreset } from '../../data/conditions'
 import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'

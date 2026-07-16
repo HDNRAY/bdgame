@@ -1,8 +1,8 @@
 import type { BuffDef } from './types'
-import { MAX_CHAN } from '../../constants'
-import type { ActionDefinition } from '../../entities/action'
-import { processActionEffect } from '../../combat/effects'
-import { round1 } from '../../util/math'
+import { MAX_CHAN } from '../../engine/constants'
+import type { ActionDefinition } from '../../engine/entities/action'
+import { processActionEffect } from '../../engine/combat/effects'
+import { round1 } from '../../engine/util/math'
 
 export const DAMAGE_BUFFS: BuffDef[] = [
     {

@@ -6,7 +6,7 @@ import type { ActionConfig } from '../../engine/entities/action-config'
 import type { AttrName } from '../../engine/entities/attributes'
 import { Character } from '../../engine/entities/character'
 import { ALL_ATTRS } from '../../engine/entities/attributes'
-import { checkTalents } from '../../engine/systems/talent-check'
+import { checkTalents } from '../../game/talent-check'
 
 /** 每级属性消耗的修炼点 */
 export function cultCost(value: number): number {

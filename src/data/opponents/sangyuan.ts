@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive } from '../../util/reward-utils'
+import { action, artifact, passive } from '../../engine/util/reward-utils'
 
 const ATTRS = { strength: 10, vitality: 20, agility: 10, dexterity: 16, insight: 14, wisdom: 4 }
 

@@ -1,9 +1,9 @@
-import type { GameEntity } from '../../entities/base'
-import type { AttrName } from '../../entities/attributes'
-import type { Character } from '../../entities/character'
-import type { BattleEngine } from '../../combat/engine'
-import type { BattleState, BuffLayer } from '../../combat/types'
-import type { TriggerEvent } from '../../entities/trigger'
+import type { GameEntity } from '../../engine/entities/base'
+import type { AttrName } from '../../engine/entities/attributes'
+import type { Character } from '../../engine/entities/character'
+import type { BattleEngine } from '../../engine/combat/engine'
+import type { BattleState, BuffLayer } from '../../engine/combat/types'
+import type { TriggerEvent } from '../../engine/entities/trigger'
 
 /** Buff 钩子上下文 */
 export interface BuffHookCtx {

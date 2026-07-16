@@ -1,9 +1,9 @@
 import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
-import { getWeapon } from '../data/weapons/weapons'
-import { getBuff } from '../data/buffs'
+import { getWeapon } from '../../data/weapons/weapons'
+import { getBuff } from '../../data/buffs'
 import { checkCondition } from '../entities/action-config'
-import { getConditionPreset } from '../data/conditions'
+import { getConditionPreset } from '../../data/conditions'
 
 /** 按阶段选择辅助招式，返回最多 1 个指令 */
 export function planSupportActions(

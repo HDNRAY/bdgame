@@ -2,7 +2,7 @@ import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../engine'
 import type { ActionDefinition } from '../../entities/action'
 import { calcHitChance, calcRoll } from '../../calc/damage'
-import { getBuff } from '../../data/buffs'
+import { getBuff } from '../../../data/buffs'
 import type { ActionResult } from '../types'
 import { consumeBuffsByTrigger } from '../utils'
 

@@ -1,4 +1,4 @@
-import type { AttrName } from '../entities/attributes'
+import type { AttrName } from '../engine/entities/attributes'
 
 /** 培养点成本：≤13 = 1, 14~19 = 2, 20+ = 3 */
 export function cultCost(value: number): number {

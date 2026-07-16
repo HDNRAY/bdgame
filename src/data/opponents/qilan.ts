@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive } from '../../util/reward-utils'
+import { action, artifact, passive } from '../../engine/util/reward-utils'
 
 const QILAN_ATTRS = { strength: 14, vitality: 10, agility: 14, dexterity: 14, insight: 15, wisdom: 14 }
 

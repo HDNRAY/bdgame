@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { CharacterPanel } from '../../components/CharacterPanel/CharacterPanel'
-import { getOpponentDef, gen } from '../../../engine/data/opponents/index'
+import { getOpponentDef, gen } from '../../../data/opponents/index'
 import type { CharacterBuild } from '../../../engine/entities/character-build'
 import './BuildScreen.scss'
 

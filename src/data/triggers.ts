@@ -1,4 +1,4 @@
-import type { TriggerCondition } from '../entities/trigger'
+import type { TriggerCondition } from '../engine/entities/trigger'
 
 /** 玩家可选的所有触发条件 */
 export const TRIGGER_CONDITIONS: TriggerCondition[] = [

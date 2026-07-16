@@ -1,8 +1,8 @@
 import { rewardPool } from './reward-pool'
 import { pickWeightedByTags } from '../tagRelevance'
-import type { Choice } from '../../entities/round'
-import type { RewardEntity, RewardType } from '../../entities/reward'
-import type { Tag } from '../../entities/tag'
+import type { Choice } from '../../engine/entities/round'
+import type { RewardEntity, RewardType } from '../../engine/entities/reward'
+import type { Tag } from '../../engine/entities/tag'
 
 export function generateRewardChoices(
     rewardType: RewardType,

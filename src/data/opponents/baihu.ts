@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive, weapon } from '../../util/reward-utils'
+import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
 const BAIHU_ATTRS = { strength: 14, vitality: 14, agility: 16, dexterity: 16, insight: 14, wisdom: 4 }
 

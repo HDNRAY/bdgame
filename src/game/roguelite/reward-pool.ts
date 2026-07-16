@@ -1,5 +1,5 @@
-import type { Tag } from '../../entities/tag'
-import type { RewardType, RewardEntity } from '../../entities/reward'
+import type { Tag } from '../../engine/entities/tag'
+import type { RewardType, RewardEntity } from '../../engine/entities/reward'
 import { PASSIVES } from '../../data/passives'
 import { ARTIFACTS } from '../../data/artifacts'
 import { PLAYER_ACTIONS } from '../../data/actions/player'

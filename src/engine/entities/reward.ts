@@ -3,7 +3,7 @@ import type { AttrName } from './attributes'
 import type { ActionDefinition } from './action'
 import type { Passive } from './passive'
 import type { Artifact } from './artifact'
-import type { WeaponDef } from '../data/weapons/weapons'
+import type { WeaponDef } from '../../data/weapons/weapons'
 
 /** 节点奖励类型 */
 export type RewardType = 'weapon' | 'action' | 'passive' | 'artifact' | 'points' | 'heal'

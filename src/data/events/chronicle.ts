@@ -1,4 +1,4 @@
-import type { EventDef } from '../../entities/event'
+import type { EventDef } from '../../engine/entities/event'
 
 /** 归海楼比武大会（支线版 — 非玄门线玩家） */
 export const CHRONICLE_GUIHAILOU: EventDef = {

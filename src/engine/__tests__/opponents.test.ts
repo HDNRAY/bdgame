@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { OPPONENTS, gen } from '../data/opponents/index'
+import { OPPONENTS, gen } from '../../data/opponents/index'
 import { STAT_NAMES } from '../entities/reward'
-import { cultCost } from '../systems/cultivation'
-import { WEAPON_DB } from '../data/weapons/weapons'
-import { STARTING_WEAPONS } from '../data/weapons/starting-weapons'
+import { cultCost } from '../../game/cultivation'
+import { WEAPON_DB } from '../../data/weapons/weapons'
+import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
 
 /** 从统一起点 {3,3,3,3,3,3} 到最终属性反推修炼花费 */
 function calcCultCost(attrs: Record<string, number>): number {

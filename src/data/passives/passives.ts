@@ -1,7 +1,7 @@
-import type { Passive } from '../../entities/passive'
-import { hasBuff } from '../../combat/utils'
+import type { Passive } from '../../engine/entities/passive'
+import { hasBuff } from '../../engine/combat/utils'
 import { getWeapon } from '../weapons/weapons'
-import { Tag } from '../../entities/tag'
+import { Tag } from '../../engine/entities/tag'
 
 export const PASSIVES: Passive[] = [
     {

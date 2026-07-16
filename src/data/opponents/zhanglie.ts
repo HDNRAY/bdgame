@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive, weapon } from '../../util/reward-utils'
+import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
 const ZHANGLIE_ATTRS = { strength: 16, vitality: 13, agility: 17, dexterity: 14, insight: 13, wisdom: 4 }
 

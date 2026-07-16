@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { rewardPool } from '../systems/roguelite/reward-pool'
+import { rewardPool } from '../../game/roguelite/reward-pool'
 import type { RewardEntity } from '../entities/reward'
 
 describe('rewardPool', () => {

@@ -1,5 +1,5 @@
 import type { BattleSnapshot } from '../../../engine/combat/types'
-import { getBuff } from '../../../engine/data/buffs'
+import { getBuff } from '../../../data/buffs'
 import { ALL_ATTRS } from '../../../engine/entities/attributes'
 import { MAX_CHAN } from '../../../engine/constants'
 import { Tooltip } from '../ui/Tooltip/Tooltip'

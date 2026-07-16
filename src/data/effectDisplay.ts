@@ -1,6 +1,6 @@
-import type { EffectDef, BuffDuration } from '../entities/action'
-import type { AttrName } from '../entities/attributes'
-import { ATTR_CN } from '../entities/attributes'
+import type { EffectDef, BuffDuration } from '../engine/entities/action'
+import type { AttrName } from '../engine/entities/attributes'
+import { ATTR_CN } from '../engine/entities/attributes'
 import { getBuff } from './buffs'
 
 /** 格式化属性缩放为中文，如 {strength: 2, base: 5} → "力道×2 + 5" */

@@ -1,6 +1,6 @@
-import type { EventDef } from '../../entities/event'
+import type { EventDef } from '../../engine/entities/event'
 import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
-import { isBasicAction } from '../../systems/roguelite/util'
+import { isBasicAction } from '../../game/roguelite/util'
 
 // ════════════════════════════════════════
 //  血海深仇 — 自定义事件

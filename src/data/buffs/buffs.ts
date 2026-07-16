@@ -1,12 +1,12 @@
-import { processActionEffect } from '../../combat/effects'
-import { revertBuffMods } from '../../combat/utils'
-import { applyAttrMods } from '../../combat/utils/buff-layer'
-import { calcParryChance, calcApRegenPerSec } from '../../calc/damage'
-import { round1 } from '../../util/math'
+import { processActionEffect } from '../../engine/combat/effects'
+import { revertBuffMods } from '../../engine/combat/utils'
+import { applyAttrMods } from '../../engine/combat/utils/buff-layer'
+import { calcParryChance, calcApRegenPerSec } from '../../engine/calc/damage'
+import { round1 } from '../../engine/util/math'
 import type { BuffDef } from './types'
 import { DEFENSE_BUFFS } from './defense'
 import { DAMAGE_BUFFS } from './damage'
-import { ActionDefinition } from '../../entities/action'
+import { ActionDefinition } from '../../engine/entities/action'
 
 /** 增益状态 */
 export const BUFF_DB: BuffDef[] = [

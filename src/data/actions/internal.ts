@@ -1,5 +1,5 @@
-import type { ActionDefinition } from '../../entities/action'
-import { hasNoStance } from '../../combat/utils'
+import type { ActionDefinition } from '../../engine/entities/action'
+import { hasNoStance } from '../../engine/combat/utils'
 
 /** 内部招式（被动/天赋触发专用，不直接装备） */
 export const INTERNAL_ACTIONS: ActionDefinition[] = [

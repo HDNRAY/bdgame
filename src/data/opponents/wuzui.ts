@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, passive, artifact } from '../../util/reward-utils'
+import { action, passive, artifact } from '../../engine/util/reward-utils'
 
 const WUZUI_ATTRS = { strength: 10, vitality: 20, agility: 14, dexterity: 14, insight: 10, wisdom: 8 }
 

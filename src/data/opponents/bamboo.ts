@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, passive, weapon, artifact } from '../../util/reward-utils'
+import { action, passive, weapon, artifact } from '../../engine/util/reward-utils'
 
 const BAMBOO_ATTRS = { strength: 13, vitality: 13, agility: 10, dexterity: 18, insight: 16, wisdom: 6 }
 

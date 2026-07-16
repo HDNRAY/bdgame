@@ -1,5 +1,5 @@
-import type { ActionDefinition } from '../../entities/action'
-import type { Tag } from '../../entities/tag'
+import type { ActionDefinition } from '../../engine/entities/action'
+import type { Tag } from '../../engine/entities/tag'
 import { PLAYER_ACTIONS } from './player'
 import { SUPPORT_ACTIONS } from './support'
 import { INTERNAL_ACTIONS } from './internal'

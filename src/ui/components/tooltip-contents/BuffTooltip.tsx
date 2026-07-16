@@ -1,4 +1,4 @@
-import type { BuffDef } from '../../../engine/data/buffs/types'
+import type { BuffDef } from '../../../data/buffs/types'
 import { TagList } from '../ui/TagList/TagList'
 
 interface BuffTooltipProps {

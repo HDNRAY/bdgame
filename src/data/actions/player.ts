@@ -1,5 +1,5 @@
-import { DMG_PER_POISON_TICK } from '../../constants'
-import type { ActionDefinition } from '../../entities/action'
+import { DMG_PER_POISON_TICK } from '../../engine/constants'
+import type { ActionDefinition } from '../../engine/entities/action'
 
 /**
  * 公开招式（玩家可装备）

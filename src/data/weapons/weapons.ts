@@ -1,8 +1,8 @@
-import type { GameEntity } from '../../entities/base'
-import type { EffectDef } from '../../entities/action'
-import type { SummonDef } from '../../entities/summon'
-import type { TriggerSlot } from '../../entities/trigger'
-import { AttrName } from '../../entities/attributes'
+import type { GameEntity } from '../../engine/entities/base'
+import type { EffectDef } from '../../engine/entities/action'
+import type { SummonDef } from '../../engine/entities/summon'
+import type { TriggerSlot } from '../../engine/entities/trigger'
+import { AttrName } from '../../engine/entities/attributes'
 import { STARTING_WEAPONS } from './starting-weapons'
 
 export interface WeaponDef extends GameEntity {

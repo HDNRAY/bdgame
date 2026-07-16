@@ -1,8 +1,8 @@
-import { processActionEffect } from '../../combat/effects'
+import { processActionEffect } from '../../engine/combat/effects'
 import type { BuffDef } from './types'
-import { Tag } from '../../entities/tag'
-import { round1 } from '../../util/math'
-import { calcRoll } from '../../calc/damage'
+import { Tag } from '../../engine/entities/tag'
+import { round1 } from '../../engine/util/math'
+import { calcRoll } from '../../engine/calc/damage'
 
 export const DEFENSE_BUFFS: BuffDef[] = [
     {

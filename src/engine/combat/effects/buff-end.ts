@@ -1,6 +1,6 @@
 import type { BattleEngine } from '../engine'
 import type { AttrName } from '../../entities/attributes'
-import { getBuff } from '../../data/buffs'
+import { getBuff } from '../../../data/buffs'
 import { revertBuffMods } from '../utils'
 import { ATTR_CN } from '../../entities/attributes'
 import { BattleLog } from '../battle-log'

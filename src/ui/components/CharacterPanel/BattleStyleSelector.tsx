@@ -1,5 +1,5 @@
 import type { BattleStyle } from '../../../engine/entities/character-build'
-import type { WeaponDef } from '../../../engine/data/weapons/weapons'
+import type { WeaponDef } from '../../../data/weapons/weapons'
 import { STYLE_OPTIONS, getAutoLabel, getStyleLabel } from '../../../bridge/styleDisplay'
 
 interface BattleStyleSelectorProps {

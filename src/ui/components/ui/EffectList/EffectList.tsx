@@ -1,6 +1,6 @@
 import type { EffectDef } from '../../../../engine/entities/action'
-import { describeEffect } from '../../../../engine/data/effectDisplay'
-import { getBuff } from '../../../../engine/data/buffs'
+import { describeEffect } from '../../../../data/effectDisplay'
+import { getBuff } from '../../../../data/buffs'
 import { EntityItem } from '../EntityItem/EntityItem'
 import './EffectList.scss'
 

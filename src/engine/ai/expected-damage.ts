@@ -3,7 +3,7 @@ import type { ActionDefinition } from '../entities/action'
 import type { BattleState } from '../combat/types'
 import { getActionRange } from '../entities/action'
 import { calcBaseDamage, calcCritChance, calcHitChance, calcParryChance, calcParriedDamage } from '../calc/damage'
-import { getBuff } from '../data/buffs'
+import { getBuff } from '../../data/buffs'
 
 export interface DamageEstimate {
     actionId: string

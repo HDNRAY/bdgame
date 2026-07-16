@@ -3,9 +3,9 @@ import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../engine'
 import { ATTR_CN, type AttrName } from '../../entities/attributes'
 import { calcBaseDamage, calcHealAmount, calcRoll } from '../../calc/damage'
-import { getWeapon } from '../../data/weapons/weapons'
-import { getPassive } from '../../data/passives'
-import { getAction } from '../../data/actions'
+import { getWeapon } from '../../../data/weapons/weapons'
+import { getPassive } from '../../../data/passives'
+import { getAction } from '../../../data/actions'
 import { genAppId } from '../../util/buff-utils'
 import type { Tag } from '../../entities/tag'
 import {
@@ -24,7 +24,7 @@ import { applyDamage, applyBonusDamage } from './damage'
 import { processActionEffect } from './action'
 import { tickEngine } from '../tick-engine'
 import { applyAttrMods, reduceBleedOnHeal, applyScaledAttrMods, scheduleBuffEnd } from '../utils/buff-layer'
-import { BuffDef, getBuff } from '../../data/buffs'
+import { BuffDef, getBuff } from '../../../data/buffs'
 
 /** 检查目标是否有罡体免疫（通过 buff 的 super_armor 标签识别） */
 function hasCcImmunity(target: { id: string }, state: { pendingBuffs: Map<string, unknown> }): boolean {

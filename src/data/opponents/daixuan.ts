@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive, weapon } from '../../util/reward-utils'
+import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
 const DAIXUAN_ATTRS = { strength: 14, vitality: 11, agility: 14, dexterity: 16, insight: 16, wisdom: 7 }
 

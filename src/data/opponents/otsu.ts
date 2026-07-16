@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive, weapon } from '../../util/reward-utils'
+import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
 const OTSU_ATTRS = { strength: 8, vitality: 8, agility: 18, dexterity: 18, insight: 16, wisdom: 4 }
 

@@ -1,5 +1,5 @@
-import type { WeaponDef } from '../../../engine/data/weapons/weapons'
-import { getAction } from '../../../engine/data/actions'
+import type { WeaponDef } from '../../../data/weapons/weapons'
+import { getAction } from '../../../data/actions'
 import { TagList } from '../ui/TagList/TagList'
 import { EffectList } from '../ui/EffectList/EffectList'
 import { TriggerEffects } from '../ui/TriggerEffects/TriggerEffects'

@@ -3,8 +3,8 @@ import type { BattleEngine } from '../engine'
 import type { ActionDefinition } from '../../entities/action'
 import type { GameEntity } from '../../entities/base'
 import { calcCritChance, calcFinalDamage, calcParriedDamage, calcParryChance, calcRoll } from '../../calc/damage'
-import { getWeapon } from '../../data/weapons/weapons'
-import { getBuff } from '../../data/buffs'
+import { getWeapon } from '../../../data/weapons/weapons'
+import { getBuff } from '../../../data/buffs'
 import { consumeBuffsByTrigger } from '../utils'
 
 // ── Options 类型 ──

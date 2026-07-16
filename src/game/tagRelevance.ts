@@ -1,4 +1,4 @@
-import type { Tag } from '../entities/tag'
+import type { Tag } from '../engine/entities/tag'
 
 // ── tag 分级 ──
 // 每类赋予不同权重，匹配时累加 score，用 2^score 做加权随机

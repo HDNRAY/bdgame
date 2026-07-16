@@ -1,4 +1,4 @@
-import type { EventDef } from '../../entities/event'
+import type { EventDef } from '../../engine/entities/event'
 
 // ════════════════════════════════════════
 //  选背景故事

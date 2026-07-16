@@ -1,4 +1,4 @@
-import type { Talent } from '../../entities/passive'
+import type { Talent } from '../../engine/entities/passive'
 
 /** 天赋（绝学）注册表 */
 export const TALENTS: Talent[] = [
