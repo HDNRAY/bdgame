@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { Character } from '../entities/character'
 import { calcMaxHp } from '../calc/stats'
-import { ActionConfig } from '../entities/action-config'
+import { ActionConfig } from '../../game/entities/action-config'
 
 function mc(
     id: string,

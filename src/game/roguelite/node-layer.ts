@@ -1,7 +1,7 @@
 import { getStory } from '../../data/stories/index'
 import { BRANCH_EVENTS } from '../../data/events/branch'
-import type { Node } from '../../engine/entities/node'
-import type { StoryDef } from '../../engine/entities/story'
+import type { Node } from '../../game/entities/node'
+import type { StoryDef } from '../../game/entities/story'
 
 /**
  * 生成 33 个骨架节点。

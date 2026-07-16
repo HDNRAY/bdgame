@@ -1,4 +1,4 @@
-import type { RewardEntity } from '../../engine/entities/reward'
+import type { RewardEntity } from '../../game/entities/reward'
 
 /** 从数组中随机取 n 个不重复的元素 */
 export function pickRandom<T>(arr: T[], n: number): T[] {

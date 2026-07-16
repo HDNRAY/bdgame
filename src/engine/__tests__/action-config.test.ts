@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { checkCondition } from '../entities/action-config'
+import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset, describeCondition, CONDITION_PRESETS } from '../../data/conditions'
 import { Character } from '../entities/character'
 import { PositionSystem } from '../combat/position'

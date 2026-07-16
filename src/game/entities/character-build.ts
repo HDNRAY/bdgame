@@ -1,4 +1,4 @@
-import type { AttrName } from './attributes'
+import type { AttrName } from '../../engine/entities/attributes'
 import type { Reward } from './reward'
 import type { ActionConfig } from './action-config'
 

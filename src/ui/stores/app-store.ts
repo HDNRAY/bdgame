@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { CharacterBuild } from '../../engine/entities/character-build'
+import type { CharacterBuild } from '../../game/entities/character-build'
 import type { BattleSnapshot } from '../../engine/combat/types'
 import type { Character } from '../../engine/entities/character'
 

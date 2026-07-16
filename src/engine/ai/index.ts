@@ -9,7 +9,7 @@ import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
 import { planMovement, type AttackStyle } from './move-planner'
 import { planSupportActions } from './support-planner'
-import { checkCondition } from '../entities/action-config'
+import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
 import { getAction } from '../../data/actions'
 

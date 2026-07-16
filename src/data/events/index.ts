@@ -1,4 +1,4 @@
-import type { EventDef } from '../../engine/entities/event'
+import type { EventDef } from '../../game/entities/event'
 import { TIANGONG_WEAPON } from './tiangong'
 import { PICK_STORY, BOSS_PHASE1, BOSS_PHASE2, BOSS_PHASE3 } from './shared'
 import { FEUD_N02_WEAPON, FEUD_N03_ACTION, FEUD_LUHONGTI_SPAR, BOSS_AJIU } from './feud'

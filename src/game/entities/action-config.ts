@@ -1,5 +1,5 @@
-import type { BattleState } from '../combat/types'
-import type { Character } from './character'
+import type { BattleState } from '../../engine/combat/types'
+import type { Character } from '../../engine/entities/character'
 import { getBuff } from '../../data/buffs'
 
 /**
@@ -71,7 +71,7 @@ export function checkCondition(cond: RequiredCondition, self: Character, state: 
                 const parts = key.split('::')
                 if (parts.length < 2 || parts[1] !== self.id) continue
                 const buff = getBuff(parts[0])
-                if (buff?.tags.includes(cond.tag as import('./tag').Tag)) return false
+                if (buff?.tags.includes(cond.tag as import('../../engine/entities/tag').Tag)) return false
             }
             return true
     }

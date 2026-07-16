@@ -1,4 +1,4 @@
-import { Reward } from '../entities/reward'
+import { Reward } from '../../game/entities/reward'
 
 /** 奖励快捷函数 */
 export const passive = (id: string): Reward => ({ type: 'passive', id, name: id, description: '', tags: [] })

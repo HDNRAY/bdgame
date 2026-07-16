@@ -1,6 +1,6 @@
 import { TALENTS } from '../data/passives'
 import type { AttrName } from '../engine/entities/attributes'
-import type { Reward } from '../engine/entities/reward'
+import type { Reward } from '../game/entities/reward'
 
 /** 根据基础属性检查可解锁的天赋 */
 export function checkTalents(baseAttrs: Record<string, number>): Reward[] {

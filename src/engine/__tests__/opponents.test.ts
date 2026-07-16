@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { OPPONENTS, gen } from '../../data/opponents/index'
-import { STAT_NAMES } from '../entities/reward'
+import { STAT_NAMES } from '../../game/entities/reward'
 import { cultCost } from '../../game/cultivation'
 import { WEAPON_DB } from '../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'

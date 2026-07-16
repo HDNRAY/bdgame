@@ -13,7 +13,7 @@ import {
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction } from '../../data/actions'
 import { getBuff } from '../../data/buffs'
-import { checkCondition } from '../entities/action-config'
+import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
 import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'

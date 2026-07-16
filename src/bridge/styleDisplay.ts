@@ -1,5 +1,5 @@
 import { classifyAttackStyle } from '../engine/ai/move-planner'
-import type { BattleStyle } from '../engine/entities/character-build'
+import type { BattleStyle } from '../game/entities/character-build'
 import type { WeaponDef } from '../data/weapons/weapons'
 
 /** 战斗风格选项定义 */

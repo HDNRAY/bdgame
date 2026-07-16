@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { RogueliteRun } from '../../game/roguelite/engine'
-import type { GameState } from '../../engine/entities/state'
-import type { CharacterBuild } from '../../engine/entities/character-build'
+import type { GameState } from '../../game/entities/state'
+import type { CharacterBuild } from '../../game/entities/character-build'
 
 interface RogueliteState {
     engine: RogueliteRun

@@ -1,4 +1,4 @@
-import type { EventDef } from '../../engine/entities/event'
+import type { EventDef } from '../../game/entities/event'
 
 // ════════════════════════════════════════
 //  玄门 — 自定义事件

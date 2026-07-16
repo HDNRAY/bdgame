@@ -4,7 +4,7 @@ import type { EventPlan, ActionCommand } from './combat/types'
 import type { LogEvent } from './combat/log-events'
 import { planEvent } from './ai'
 import { getOpponentDef } from '../data/opponents/index'
-import type { CharacterBuild } from './entities/character-build'
+import type { CharacterBuild } from '../game/entities/character-build'
 
 /** 最大战斗时长限制（ms），防死循环 */
 const MAX_BATTLE_TIME_MS = 300_000

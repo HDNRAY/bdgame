@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Round } from '../../../engine/entities/round'
+import type { Round } from '../../../game/entities/round'
 import { getEntity, isEntityType } from '../../../bridge/entity-tooltip'
 import { EntityItem } from '../ui/EntityItem/EntityItem'
 import { useTypewriter } from '../../hooks/useTypewriter'

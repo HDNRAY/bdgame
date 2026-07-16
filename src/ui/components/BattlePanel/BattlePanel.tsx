@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useCallback } from 'react'
-import type { CharacterBuild } from '../../../engine/entities/character-build'
+import type { CharacterBuild } from '../../../game/entities/character-build'
 import { Character } from '../../../engine/entities/character'
 import { runBattle } from '../../../engine/battle-runner'
 import { formatBattleLog } from '../../../engine/format-log'

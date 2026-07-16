@@ -1,4 +1,4 @@
-import type { RequiredCondition } from '../engine/entities/action-config'
+import type { RequiredCondition } from '../game/entities/action-config'
 
 /** 预定义必要条件预设 */
 export const CONDITION_PRESETS = [

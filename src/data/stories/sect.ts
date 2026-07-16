@@ -1,4 +1,4 @@
-import type { StoryDef } from '../../engine/entities/story'
+import type { StoryDef } from '../../game/entities/story'
 
 export const SECT: StoryDef = {
     id: 'sect',

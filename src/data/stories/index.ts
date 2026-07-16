@@ -3,7 +3,7 @@ import { SECT } from './sect'
 import { XUANMEN } from './xuanmen'
 import { VETERAN } from './veteran'
 import { WANDERER } from './wanderer'
-import type { StoryDef } from '../../engine/entities/story'
+import type { StoryDef } from '../../game/entities/story'
 
 export const STORIES: StoryDef[] = [FEUD, SECT, XUANMEN, VETERAN, WANDERER]
 

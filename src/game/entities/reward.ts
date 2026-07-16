@@ -1,8 +1,8 @@
-import type { GameEntity } from './base'
-import type { AttrName } from './attributes'
-import type { ActionDefinition } from './action'
-import type { Passive } from './passive'
-import type { Artifact } from './artifact'
+import type { GameEntity } from '../../engine/entities/base'
+import type { AttrName } from '../../engine/entities/attributes'
+import type { ActionDefinition } from '../../engine/entities/action'
+import type { Passive } from '../../engine/entities/passive'
+import type { Artifact } from '../../engine/entities/artifact'
 import type { WeaponDef } from '../../data/weapons/weapons'
 
 /** 节点奖励类型 */
