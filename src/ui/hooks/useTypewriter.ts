@@ -1,18 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef, useReducer } from 'react'
 
 interface UseTypewriterOptions {
-    /** 是否启用逐字效果（默认 true） */
     enabled?: boolean
-    /** 每字间隔毫秒数（默认 30） */
     speed?: number
 }
 
 interface UseTypewriterReturn {
-    /** 当前应显示的文本 */
     displayText: string
-    /** 是否已完成 */
     done: boolean
-    /** 跳过动画，立即显示全文 */
     skip: () => void
 }
 
@@ -24,13 +19,29 @@ export function useTypewriter(
     text: string,
     { enabled = true, speed = 30 }: UseTypewriterOptions = {},
 ): UseTypewriterReturn {
-    const [pos, setPos] = useState(enabled ? 0 : text.length)
+    const [pos, tick] = useReducer(
+        (s: number, a: 'tick' | 'skip' | 'reset') => {
+            switch (a) {
+                case 'tick':
+                    return s + 1
+                case 'skip':
+                    return text.length
+                case 'reset':
+                    return enabled && text.length > 0 ? 0 : text.length
+            }
+        },
+        enabled ? 0 : text.length,
+    )
+    const posRef = useRef(pos)
     const rafRef = useRef<number | null>(null)
     const lastTickRef = useRef(0)
-    const posRef = useRef(pos)
     const doneRef = useRef(false)
-    const versionRef = useRef(0) // 每次 text 变化递增，tick 用此判断是否过期
-    posRef.current = pos
+    const versionRef = useRef(0)
+
+    // 同步 pos 到 ref
+    useEffect(() => {
+        posRef.current = pos
+    }, [pos])
 
     const clearTimer = useCallback(() => {
         if (rafRef.current !== null) {
@@ -42,20 +53,18 @@ export function useTypewriter(
     const skip = useCallback(() => {
         clearTimer()
         doneRef.current = true
-        setPos(text.length)
-    }, [text.length, clearTimer])
+        tick('skip')
+    }, [clearTimer])
 
     // text 变化时重置
     useEffect(() => {
         clearTimer()
         doneRef.current = false
         versionRef.current += 1
+        tick('reset')
         if (!enabled || text.length === 0) {
-            setPos(text.length)
             doneRef.current = true
-            return
         }
-        setPos(0)
     }, [text, enabled, clearTimer])
 
     // 逐字推进 — 使用 rAF
@@ -63,17 +72,16 @@ export function useTypewriter(
         if (!enabled || doneRef.current) return
 
         const version = versionRef.current
-        posRef.current = 0
         lastTickRef.current = performance.now()
 
-        function tick(now: number) {
+        function tickRaf(now: number) {
             if (doneRef.current || versionRef.current !== version) return
 
             const elapsed = now - lastTickRef.current
             if (elapsed >= speed) {
                 lastTickRef.current = now
                 posRef.current += 1
-                setPos(posRef.current)
+                tick('tick')
 
                 if (posRef.current >= text.length) {
                     doneRef.current = true
@@ -81,10 +89,10 @@ export function useTypewriter(
                 }
             }
 
-            rafRef.current = requestAnimationFrame(tick)
+            rafRef.current = requestAnimationFrame(tickRaf)
         }
 
-        rafRef.current = requestAnimationFrame(tick)
+        rafRef.current = requestAnimationFrame(tickRaf)
         return () => {
             if (rafRef.current !== null) {
                 cancelAnimationFrame(rafRef.current)

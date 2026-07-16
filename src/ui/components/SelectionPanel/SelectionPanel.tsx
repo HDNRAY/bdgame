@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useMemo } from 'react'
+import { useRef, useEffect, useState, useMemo, useReducer } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { OPPONENTS, gen } from '../../../engine/data/opponents/index'
 import type { OpponentDef } from '../../../engine/data/opponents/index'
@@ -30,25 +30,33 @@ const GRID_COLORS = [
     '#3498db',
 ]
 
+type SimState = { status: 'idle' } | { status: 'simulating' } | { status: 'done'; aRate: number; bRate: number }
+
+function simReducer(_: SimState, action: { type: 'start' } | { type: 'done'; aRate: number; bRate: number }): SimState {
+    switch (action.type) {
+        case 'start':
+            return { status: 'simulating' }
+        case 'done':
+            return { status: 'done', aRate: action.aRate, bRate: action.bRate }
+    }
+}
+
 export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
     const navigate = useNavigate()
     const setLastBuilds = useAppStore((s) => s.setLastBuilds)
     const [selectedA, setSelectedA] = useState<OpponentDef | null>(null)
     const [selectedB, setSelectedB] = useState<OpponentDef | null>(null)
-    const [simResult, setSimResult] = useState<{ aRate: number; bRate: number } | null>(null)
-    const [simulating, setSimulating] = useState(false)
+    const [sim, dispatch] = useReducer(simReducer, { status: 'idle' })
 
     // 选人完成后自动模拟胜率
     useEffect(() => {
         if (!selectedA || !selectedB) return
-        setSimulating(true)
-        setSimResult(null)
+        dispatch({ type: 'start' })
         const id = setTimeout(() => {
             const buildA = gen(selectedA, 33)
             const buildB = gen(selectedB, 33)
             const result = simulateWinRate(buildA, buildB, 200, 6)
-            setSimResult({ aRate: result.aRate, bRate: result.bRate })
-            setSimulating(false)
+            dispatch({ type: 'done', aRate: result.aRate, bRate: result.bRate })
         }, 50)
         return () => clearTimeout(id)
     }, [selectedA, selectedB])
@@ -105,12 +113,12 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
 
                 {/* 胜率显示（预留空间防抖动） */}
                 <div className="win-rate" style={{ minHeight: 20 }}>
-                    {simResult ? (
+                    {sim.status === 'done' ? (
                         <>
-                            {selectedA?.name} {Math.round(simResult.aRate * 100)}%<span className="sep">:</span>
-                            {selectedB?.name} {Math.round(simResult.bRate * 100)}%
+                            {selectedA?.name} {Math.round(sim.aRate * 100)}%<span className="sep">:</span>
+                            {selectedB?.name} {Math.round(sim.bRate * 100)}%
                         </>
-                    ) : simulating ? (
+                    ) : sim.status === 'simulating' ? (
                         <span className="dim">模拟中...</span>
                     ) : (
                         ''
