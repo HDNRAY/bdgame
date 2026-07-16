@@ -34,8 +34,8 @@ import {
     OTSU,
     DAIXUAN,
     QIANXING,
-} from '../src/engine/data/opponents/index'
-import { getWeapon } from '../src/engine/data/weapons/weapons'
+} from '../src/data/opponents/index'
+import { getWeapon } from '../src/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
 import { StatsTracker } from '../src/engine/combat/stats-tracker'

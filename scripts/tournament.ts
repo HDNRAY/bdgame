@@ -2,6 +2,12 @@
 import { writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { Character } from '../src/engine/entities/character'
+import { OPPONENTS, getOpponentDef, gen } from '../src/data/opponents/index'
+import { runBattle } from '../src/engine/battle-runner'
+
+const startWall = Date.now()
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const logPath = join(__dirname, 'tournament-log.txt')
 const logLines: string[] = []
@@ -12,11 +18,6 @@ console.log = (...args) => {
     origLog(...args)
 }
 process.on('exit', () => writeFileSync(logPath, logLines.join('\n') + '\n', 'utf-8'))
-import { Character } from '../src/engine/entities/character'
-import { OPPONENTS, getOpponentDef, gen } from '../src/engine/data/opponents/index'
-import { runBattle } from '../src/engine/battle-runner'
-
-const startWall = Date.now()
 
 const N = Math.max(1, parseInt(process.argv[3] ?? '10', 10))
 const targetId = process.argv[2]

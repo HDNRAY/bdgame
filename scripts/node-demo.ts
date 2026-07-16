@@ -7,7 +7,7 @@
  */
 
 import { createInterface } from 'readline/promises'
-import { RogueliteRun } from '../src/engine/systems/roguelite/engine'
+import { RogueliteRun } from '../src/game/roguelite/engine'
 
 const rl = createInterface({ input: process.stdin, output: process.stdout })
 const ask = (q: string) => rl.question(q).then((a) => a.trim())
