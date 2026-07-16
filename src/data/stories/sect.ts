@@ -14,7 +14,10 @@ export const SECT: StoryDef = {
         19: 'sect_n19_trail',
         22: 'sect_n22_tournament',
     },
-    insertions: [{ eventId: 'tiangong_weapon', range: [23, 23] }],
+    insertions: [
+        { eventId: 'tiangong_weapon', range: [23, 23] },
+        { eventId: 'douqi_library', range: [24, 24] },
+    ],
     reward: { type: 'artifact', id: 'innate_seed' },
     onNode: (state, idx) => {
         if (idx === 2 || (idx >= 5 && idx % 4 === 1)) {

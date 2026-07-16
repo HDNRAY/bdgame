@@ -1,3 +1,5 @@
+import type { RewardEntity } from './reward'
+
 // ════════════════════════════════════════
 //  常量
 // ════════════════════════════════════════
@@ -73,4 +75,7 @@ export interface Round {
 
     /** Boss 剧情名。覆盖敌人默认名字。 */
     bossName?: string
+
+    /** 轮次级奖励过滤器。在事件级 rewardFilter 之后追加过滤，所有过滤通过后再随机抽 3 个。 */
+    rewardFilter?: (item: RewardEntity) => boolean
 }

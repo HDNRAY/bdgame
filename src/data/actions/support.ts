@@ -16,6 +16,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['buff', 'defense', 'pre_action'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'guard_up' }],
+        canUse: (attacker, state) => !state.pendingBuffs.has(`guard_up::${attacker.id}`),
     },
     {
         id: 'break_formation',

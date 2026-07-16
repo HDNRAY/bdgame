@@ -199,7 +199,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['unarmed', 'melee', 'buff'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.15, dexterity: 0.15 } },
+            { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
             { type: 'add_buff', buffId: 'you_shen', stacks: 1 },
         ],
     },

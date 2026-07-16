@@ -29,6 +29,7 @@ import {
 import { WANDERER_N02_INTRO, WANDERER_N03_INTRO } from './wanderer'
 import { BRANCH_PASSIVE, BRANCH_ACTION, BRANCH_ARTIFACT, BRANCH_POINTS, BRANCH_HEAL } from './branch'
 import { CHRONICLE_GUIHAILOU, CHRONICLE_BAR_KILLING, CHRONICLE_SIX_DUEL, CHRONICLE_SWORD_BROTHERS } from './chronicle'
+import { LIBRARY_EVENT } from './library'
 
 const REGISTRY: Record<string, EventDef> = {
     [PICK_STORY.id]: PICK_STORY,
@@ -69,6 +70,7 @@ const REGISTRY: Record<string, EventDef> = {
     [CHRONICLE_BAR_KILLING.id]: CHRONICLE_BAR_KILLING,
     [CHRONICLE_SIX_DUEL.id]: CHRONICLE_SIX_DUEL,
     [CHRONICLE_SWORD_BROTHERS.id]: CHRONICLE_SWORD_BROTHERS,
+    [LIBRARY_EVENT.id]: LIBRARY_EVENT,
 }
 
 export function getEvent(id: string): EventDef | undefined {

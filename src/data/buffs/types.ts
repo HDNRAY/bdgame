@@ -37,7 +37,6 @@ export type BuffStacking = { type: 'none' } | { type: 'additive'; max?: number }
 
 /** Buff 定义 */
 export interface BuffDef extends GameEntity {
-    value?: number
     /** 消耗方式 */
     expiry?: BuffExpiry
     /** 叠层行为 */

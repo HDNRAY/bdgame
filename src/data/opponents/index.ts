@@ -108,6 +108,7 @@ export const OPPONENTS: OpponentDef[] = [
     /** 长柄 */
     ZHANGLIE, // 组织(变节卧底)
     DAIXUAN, // 特殊事件调查科
+    OTSU, // 归海楼
     /** 巨武 */
     LIUXIGUA, // 六绝之闪
     YANGGUO, // 六绝之观
@@ -119,7 +120,6 @@ export const OPPONENTS: OpponentDef[] = [
     /** 暗器 */
     XUNXIANG, // 六绝之悟
     TANGROU, // 宝字堂
-    OTSU, // 归海楼
 ]
 
 /** 按 ID 查找对手 def */

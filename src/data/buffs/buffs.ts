@@ -726,8 +726,8 @@ export const BUFF_DB: BuffDef[] = [
         name: '游身',
         description: '游身步法，敏捷+1、灵巧+1。',
         tags: ['buff'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 3 },
+        expiry: { type: 'duration', ms: 3000 },
+        stacking: { type: 'independent' },
         attrMods: { agility: 1, dexterity: 1 },
     },
     {

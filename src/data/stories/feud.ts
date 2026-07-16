@@ -14,6 +14,7 @@ export const FEUD: StoryDef = {
     insertions: [
         { eventId: 'tiangong_weapon', range: [23, 23] },
         { eventId: 'feud_luhongti_spar', range: [12, 21] },
+        { eventId: 'douqi_library', range: [24, 24] },
     ],
     reward: { type: 'points', id: '' },
 }

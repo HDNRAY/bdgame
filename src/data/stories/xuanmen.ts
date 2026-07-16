@@ -13,5 +13,5 @@ export const XUANMEN: StoryDef = {
         15: 'xuanmen_n15_heishu',
         16: 'xuanmen_n16_confront',
     },
-    insertions: [],
+    insertions: [{ eventId: 'douqi_library', range: [24, 24] }],
 }

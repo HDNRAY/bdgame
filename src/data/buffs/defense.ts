@@ -42,7 +42,6 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         name: '守势',
         description: '凝神防守，招架率大幅提升。',
         tags: ['defense'],
-        value: 0.35,
         expiry: { type: 'consumed', trigger: 'on_parry' },
         stacking: { type: 'none' },
         onParryChance: () => 0.35,

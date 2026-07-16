@@ -246,8 +246,11 @@ export class RogueliteRun implements RogueliteEngine {
             if (r.requiredTags && r.requiredTags.length > 0) {
                 if (!r.requiredTags.some((t) => playerTags.includes(t))) return false
             }
-            // 自定义 rewardFilter
-            return !ev.rewardFilter || ev.rewardFilter(r)
+            // 事件级 rewardFilter
+            if (ev.rewardFilter && !ev.rewardFilter(r)) return false
+            // 轮次级 rewardFilter
+            if (round.rewardFilter && !round.rewardFilter(r)) return false
+            return true
         })
     }
 
