@@ -13,6 +13,6 @@ export const VETERAN: StoryDef = {
         6: 'veteran_n06_enlist',
         8: 'veteran_n08_path_choice',
     },
-    insertions: [],
+    insertions: [{ eventId: 'tiangong_weapon', range: [23, 23] }],
     reward: { type: 'points', id: '' },
 }

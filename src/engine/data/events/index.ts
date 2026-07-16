@@ -1,4 +1,5 @@
 import type { EventDef } from '../../entities/event'
+import { TIANGONG_WEAPON } from './tiangong'
 import { PICK_STORY, BOSS_PHASE1, BOSS_PHASE2, BOSS_PHASE3 } from './shared'
 import { FEUD_N02_WEAPON, FEUD_N03_ACTION, FEUD_LUHONGTI_SPAR, BOSS_AJIU } from './feud'
 import {
@@ -58,6 +59,7 @@ const REGISTRY: Record<string, EventDef> = {
     [VETERAN_N08_PATH_CHOICE.id]: VETERAN_N08_PATH_CHOICE,
     [WANDERER_N02_INTRO.id]: WANDERER_N02_INTRO,
     [WANDERER_N03_INTRO.id]: WANDERER_N03_INTRO,
+    [TIANGONG_WEAPON.id]: TIANGONG_WEAPON,
     [BRANCH_PASSIVE.id]: BRANCH_PASSIVE,
     [BRANCH_ACTION.id]: BRANCH_ACTION,
     [BRANCH_ARTIFACT.id]: BRANCH_ARTIFACT,

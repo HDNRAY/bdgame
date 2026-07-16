@@ -10,6 +10,6 @@ export const WANDERER: StoryDef = {
         2: 'wanderer_n02_intro',
         3: 'wanderer_n03_intro',
     },
-    insertions: [],
+    insertions: [{ eventId: 'tiangong_weapon', range: [23, 23] }],
     reward: { type: 'points', id: '' },
 }

@@ -11,6 +11,9 @@ export const FEUD: StoryDef = {
         3: 'feud_n03_action',
         22: 'boss_ajiu',
     },
-    insertions: [{ eventId: 'feud_luhongti_spar', range: [12, 21] }],
+    insertions: [
+        { eventId: 'tiangong_weapon', range: [23, 23] },
+        { eventId: 'feud_luhongti_spar', range: [12, 21] },
+    ],
     reward: { type: 'points', id: '' },
 }
