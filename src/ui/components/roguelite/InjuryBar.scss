@@ -1,19 +1,19 @@
 .ib {
     flex: 1;
-    max-width: 200px;
+    max-width: 12.5rem;
 
     &-bar {
         position: relative;
-        height: 32px;
-        background: #222;
-        border-radius: 4px;
+        height: 2rem;
+        background: var(--color-bg-panel);
+        border-radius: var(--radius-md);
         overflow: hidden;
     }
 
     &-fill {
         height: 100%;
-        background: linear-gradient(90deg, #4ecdc4, #e67e22, #e74c3c);
-        border-radius: 4px;
+        background: linear-gradient(90deg, var(--color-p1), var(--color-warning), var(--color-danger));
+        border-radius: var(--radius-md);
         transition: width 0.3s;
     }
 
@@ -23,8 +23,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
-        font-family: monospace;
+        font-size: var(--font-sm);
+        font-family: var(--font-mono);
         color: #fff;
         text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
     }

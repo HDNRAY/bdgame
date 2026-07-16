@@ -6,17 +6,17 @@
 .tooltip-popup {
     position: fixed;
     z-index: 9999;
-    background: rgba(26, 26, 26, 0.95);
-    border: 1px solid #444;
-    padding: 10px 12px;
-    min-width: 200px;
-    max-width: 320px;
-    font-family: monospace;
-    font-size: 12px;
-    color: #ddd;
+    background: var(--color-tooltip-bg);
+    border: var(--border-width) solid var(--color-tooltip-border);
+    padding: var(--sp-xs) var(--sp-sm);
+    min-width: 12.5rem;
+    max-width: 20rem;
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    color: var(--color-tooltip-text);
     line-height: 1.5;
     pointer-events: auto;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--shadow-md);
     opacity: 0;
     transition: opacity 0.1s ease;
 
@@ -25,27 +25,27 @@
     }
 
     .tt-name {
-        font-size: 14px;
+        font-size: var(--font-lg);
         font-weight: bold;
-        color: #fff;
-        margin-bottom: 4px;
+        color: var(--color-text-h);
+        margin-bottom: var(--sp-xxs);
     }
 
     .tt-tags {
         display: flex;
         flex-wrap: wrap;
         gap: 3px;
-        margin-bottom: 6px;
+        margin-bottom: var(--sp-xxs);
     }
 
     .tag-list {
-        margin-bottom: 6px;
+        margin-bottom: var(--sp-xxs);
     }
 
     .tt-desc {
-        color: #999;
-        font-size: 11px;
-        margin-bottom: 6px;
+        color: var(--color-text-dim);
+        font-size: var(--font-xs);
+        margin-bottom: var(--sp-xxs);
     }
 
     .tt-effects {
@@ -54,26 +54,61 @@
         padding: 0;
 
         li {
-            font-size: 11px;
-            color: #ccc;
+            font-size: var(--font-xs);
+            color: var(--color-text);
             padding: 1px 0;
         }
 
         li::before {
             content: '•';
-            margin-right: 4px;
-            color: #666;
+            margin-right: var(--sp-xxs);
+            color: var(--color-text-dim);
         }
     }
 
     .tt-separator {
         border: none;
-        border-top: 1px solid #444;
-        margin: 6px 0;
+        border-top: var(--border-width) solid var(--color-border);
+        margin: var(--sp-xxs) 0;
     }
 
     .tt-extra {
-        font-size: 11px;
-        color: #ccc;
+        font-size: var(--font-xs);
+        color: var(--color-text);
+
+        &-dim {
+            color: var(--color-text-dim);
+            line-height: 1.6;
+        }
+
+        &-danger {
+            color: var(--color-danger);
+            line-height: 1.6;
+        }
+    }
+
+    .tt-ap-cost {
+        position: absolute;
+        top: 0;
+        right: 0;
+        color: var(--color-ap);
+        font-size: var(--font-md);
+        font-weight: bold;
+    }
+
+    .tt-label {
+        font-size: var(--font-xxs);
+        color: var(--color-text-dim);
+        margin-bottom: var(--sp-xxs);
+    }
+
+    .tt-flex-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-xxs);
+    }
+
+    .tt-relative {
+        position: relative;
     }
 }

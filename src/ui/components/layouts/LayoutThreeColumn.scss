@@ -1,0 +1,29 @@
+.layout-3col {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+    min-height: 100vh;
+
+    &-header {
+        flex-shrink: 0;
+    }
+
+    &-body {
+        display: flex;
+        gap: var(--sp-md);
+        flex: 1;
+        align-items: flex-start;
+    }
+
+    &-side {
+        width: var(--sidebar-width);
+        flex-shrink: 0;
+    }
+
+    &-center {
+        flex: 1;
+        min-width: var(--center-min-width);
+        display: flex;
+        flex-direction: column;
+    }
+}

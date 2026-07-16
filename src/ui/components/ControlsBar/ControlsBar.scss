@@ -1,64 +1,64 @@
 .controls-bar {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-    background: #000;
-    border: 1px solid #333;
+    gap: var(--sp-xxs);
+    padding: var(--sp-xxs) var(--sp-xs);
+    background: var(--color-bg);
+    border: var(--border-width) solid var(--color-border);
 
     .ctrl-btn {
-        background: #ccc;
-        color: #000;
+        background: var(--color-text);
+        color: var(--color-bg);
         border: none;
-        padding: 0 10px;
-        height: 20px;
+        padding: 0 var(--sp-xs);
+        height: 1.25rem;
         cursor: pointer;
-        font-family: monospace;
-        font-size: 12px;
-        line-height: 20px;
+        font-family: var(--font-mono);
+        font-size: var(--font-sm);
+        line-height: 1.25rem;
 
         &:hover {
-            background: #ddd;
+            filter: brightness(1.15);
         }
 
         &.active {
-            background: #333;
-            color: #e8c34a;
+            background: var(--color-bg-panel);
+            color: var(--color-gold);
         }
     }
 
     .progress {
         flex: 1;
-        height: 8px;
-        background: #222;
-        border: 1px solid #444;
+        height: 0.5rem;
+        background: var(--color-bg-panel);
+        border: var(--border-width) solid var(--color-border);
         cursor: pointer;
         position: relative;
     }
 
     .progress-fill {
         height: 100%;
-        background: #4ecdc4;
+        background: var(--color-accent);
         transition: width 0.1s;
     }
 
     .timestamp {
-        color: #888;
-        font-size: 11px;
+        color: var(--color-text-dim);
+        font-size: var(--font-xs);
         white-space: nowrap;
         text-align: right;
-        width: 36px;
+        width: 2.25rem;
     }
 
     .replay-btn {
-        margin-left: 8px;
+        margin-left: var(--sp-xs);
     }
 
     .refight-btn {
-        color: #ffe66d;
+        color: var(--color-ap);
     }
 
     .back-btn {
-        color: #888;
+        color: var(--color-text-dim);
     }
 }

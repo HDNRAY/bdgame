@@ -18,11 +18,9 @@ export function TriggerEffects({ triggers }: TriggerEffectsProps) {
                 const actionEffects = t.actionId ? getAction(t.actionId)?.effects : undefined
                 const effects = actionEffects ?? t.effects
                 return (
-                    <div key={i} className="tt-extra" style={{ fontSize: 10, lineHeight: 1.7 }}>
-                        <span style={{ color: '#888' }}>触发</span> {name}
-                        {effects && effects.length > 0 && (
-                            <span style={{ color: '#aaa' }}> → {describeEffects(effects).join('；')}</span>
-                        )}
+                    <div key={i} className="tt-extra tt-extra-dim">
+                        <span>触发</span> {name}
+                        {effects && effects.length > 0 && <span> → {describeEffects(effects).join('；')}</span>}
                     </div>
                 )
             })}

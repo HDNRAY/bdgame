@@ -1,5 +1,5 @@
 .battle-screen-root {
-    background: #0a0a0f;
+    background: var(--color-bg-alt);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -8,29 +8,29 @@
 .battle-screen-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 16px;
-    background: #12121a;
-    border-bottom: 1px solid #2a2a3a;
+    gap: var(--sp-sm);
+    padding: var(--sp-xs) var(--sp-md);
+    background: var(--color-bg-panel);
+    border-bottom: var(--border-width) solid var(--color-border);
 
     .bs-header-btn {
-        background: #1a1a2a;
-        color: #aaa;
-        border: 1px solid #333;
-        padding: 4px 12px;
+        background: var(--color-bg);
+        color: var(--color-text);
+        border: var(--border-width) solid var(--color-border);
+        padding: var(--sp-xxs) var(--sp-sm);
         cursor: pointer;
-        font-size: 12px;
+        font-size: var(--font-sm);
         font-family: inherit;
 
         &:hover {
-            background: #2a2a3a;
-            color: #e8c34a;
+            background: var(--color-bg-hover);
+            color: var(--color-gold);
         }
     }
 
     .bs-header-title {
-        color: #e8c34a;
-        font-size: 14px;
+        color: var(--color-gold);
+        font-size: var(--font-lg);
         font-weight: bold;
     }
 }

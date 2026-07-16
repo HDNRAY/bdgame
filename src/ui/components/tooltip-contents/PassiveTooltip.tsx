@@ -17,14 +17,12 @@ export function PassiveTooltip({ passive }: PassiveTooltipProps) {
             {passive.tags.length > 0 && <TagList tags={passive.tags} />}
             {passive.description && <div className="tt-desc">{passive.description}</div>}
             {passive.effects && passive.effects.length > 0 && (
-                <div className="tt-extra" style={{ fontSize: 10, color: '#aaa', lineHeight: 1.6 }}>
-                    {describeEffects(passive.effects).join('；')}
-                </div>
+                <div className="tt-extra tt-extra-dim">{describeEffects(passive.effects).join('；')}</div>
             )}
             {passive.grantsActions && passive.grantsActions.length > 0 && (
-                <div className="tt-extra" style={{ marginTop: 4 }}>
-                    <div style={{ fontSize: 10, color: '#888', marginBottom: 2 }}>赋予招式:</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                <div className="tt-extra" style={{ marginTop: 'var(--sp-xxs)' }}>
+                    <div className="tt-label">赋予招式:</div>
+                    <div className="tt-flex-wrap">
                         {passive.grantsActions.map((id) => {
                             const def = getAction(id)
                             return def ? <EntityItem key={id} entity={def} type="action" /> : null

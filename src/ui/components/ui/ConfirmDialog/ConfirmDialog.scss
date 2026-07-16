@@ -1,7 +1,7 @@
 .confirm-dialog-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--color-overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -10,48 +10,48 @@
 }
 
 .confirm-dialog {
-    background: #1a1a2a;
-    border: 2px solid #333;
-    border-radius: 8px;
-    padding: 24px;
-    max-width: 400px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    background: var(--color-bg-panel);
+    border: var(--border-width-lg) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-lg);
+    max-width: 25rem;
+    box-shadow: var(--shadow-lg);
 }
 
 .confirm-dialog-title {
-    font-size: 18px;
+    font-size: var(--font-xl);
     font-weight: 600;
-    color: #e8c34a;
-    margin-bottom: 12px;
+    color: var(--color-gold);
+    margin-bottom: var(--sp-sm);
 }
 
 .confirm-dialog-message {
-    font-size: 14px;
-    color: #aaa;
-    margin-bottom: 20px;
+    font-size: var(--font-lg);
+    color: var(--color-text);
+    margin-bottom: var(--sp-xl);
     line-height: 1.6;
 }
 
 .confirm-dialog-buttons {
     display: flex;
-    gap: 12px;
+    gap: var(--sp-sm);
     justify-content: flex-end;
 }
 
 .confirm-dialog-btn {
-    padding: 8px 16px;
-    border: 1px solid #333;
-    border-radius: 4px;
-    background: #111;
-    color: #ccc;
+    padding: var(--sp-xs) var(--sp-md);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text);
     cursor: pointer;
-    font-size: 13px;
-    font-family: monospace;
+    font-size: var(--font-md);
+    font-family: var(--font-mono);
     transition: all 0.2s;
 
     &:hover {
-        background: #222;
-        border-color: #555;
+        background: var(--color-bg-hover);
+        border-color: var(--color-border-hover);
     }
 
     &:active {
@@ -61,13 +61,13 @@
 
 .confirm-dialog-cancel {
     &:hover {
-        color: #aaa;
+        color: var(--color-text);
     }
 }
 
 .confirm-dialog-confirm {
-    border-color: #4ecdc4;
-    color: #4ecdc4;
+    border-color: var(--color-accent);
+    color: var(--color-accent);
 
     &:hover {
         background: #0a2a2a;

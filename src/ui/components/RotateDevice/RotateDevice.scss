@@ -9,14 +9,14 @@
         position: fixed;
         inset: 0;
         z-index: 9999;
-        background: #000;
+        background: var(--color-bg);
         align-items: center;
         justify-content: center;
     }
 
     .rotate-msg {
-        color: #4ecdc4;
-        font-size: 24px;
+        color: var(--color-accent);
+        font-size: var(--font-xxl);
         letter-spacing: 4px;
         font-family: monospace;
         animation: rotate-pulse 2s ease-in-out infinite;

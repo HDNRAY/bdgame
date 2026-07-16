@@ -1,26 +1,26 @@
 .entity-item {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 12px;
-    background: #181828;
-    border: 1px solid #2a2a3e;
-    color: #ccc;
+    gap: var(--sp-xxs);
+    padding: 2px var(--sp-xs);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    background: var(--color-entity-bg);
+    border: var(--border-width) solid var(--color-entity-border);
+    color: var(--color-text);
     cursor: default;
 
     &[role='button'] {
         cursor: pointer;
         &:hover {
-            border-color: #e8c34a;
-            background: #1a1a2a;
+            border-color: var(--color-gold);
+            background: var(--color-bg-hover);
         }
     }
 
     .entity-item-meta {
         display: inline-flex;
         gap: 3px;
-        font-size: 10px;
+        font-size: var(--font-xxs);
     }
 }

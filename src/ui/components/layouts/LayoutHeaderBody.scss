@@ -1,0 +1,73 @@
+.layout-hb {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: var(--font-md);
+
+    &-header {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-sm);
+        padding: var(--sp-xxs) var(--sp-sm);
+        border-bottom: var(--border-width) solid var(--color-border);
+        background: var(--color-bg);
+        flex-shrink: 0;
+    }
+
+    &-body {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+    }
+
+    &-content {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    &-sidebar {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition:
+            flex-basis 0.3s ease,
+            max-height 0.3s ease;
+        border-left: var(--border-width) solid var(--color-border);
+
+        &--view {
+            flex: 0 0 var(--sidebar-width);
+            min-width: var(--sidebar-width);
+        }
+
+        &--build {
+            flex: 0 0 50%;
+            z-index: 2;
+        }
+    }
+
+    /* ── 竖屏 portrait 适配 ── */
+    &.rs-portrait {
+        .layout-hb-header {
+            gap: var(--sp-xs);
+            padding: var(--sp-xxs) var(--sp-xs);
+        }
+
+        .layout-hb-sidebar {
+            border-left: none;
+            border-top: var(--border-width) solid var(--color-border);
+
+            &--view {
+                flex: 0 0 35vh;
+                max-height: 35vh;
+            }
+
+            &--build {
+                flex: 0 0 80vh;
+                max-height: 80vh;
+            }
+        }
+    }
+}

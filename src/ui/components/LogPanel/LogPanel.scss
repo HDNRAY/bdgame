@@ -1,36 +1,36 @@
 .log-panel {
-    background: #000;
-    border: 1px solid #333;
+    background: var(--color-bg);
+    border: var(--border-width) solid var(--color-border);
     display: flex;
     flex-direction: column;
-    font-family: monospace;
+    font-family: var(--font-mono);
     width: 100%;
 
     .log-font-ctrl {
         display: flex;
         gap: 2px;
-        padding: 2px 8px;
-        border-bottom: 1px solid #333;
+        padding: 2px var(--sp-xs);
+        border-bottom: var(--border-width) solid var(--color-border);
 
         .ctrl-btn {
-            background: #ccc;
-            color: #000;
+            background: var(--color-text);
+            color: var(--color-bg);
             border: none;
-            padding: 0 6px;
+            padding: 0 var(--sp-xxs);
             cursor: pointer;
-            font-family: monospace;
-            font-size: 10px;
+            font-family: var(--font-mono);
+            font-size: var(--font-xxs);
 
             &:hover {
-                background: #bbb;
+                filter: brightness(1.15);
             }
         }
     }
 
     .log {
-        max-height: 300px;
+        max-height: 18.75rem;
         overflow: auto;
-        padding: 4px 8px 100px;
+        padding: var(--sp-xxs) var(--sp-xs) 6.25rem;
         line-height: 1.5;
         text-align: left;
         white-space: pre-wrap;
@@ -40,22 +40,22 @@
         transition:
             color 0.2s,
             background 0.15s;
-        border-radius: 2px;
-        padding: 0 4px;
+        border-radius: var(--radius-sm);
+        padding: 0 var(--sp-xxs);
         cursor: default;
 
         &:hover {
-            background: #222;
-            color: #ddd;
+            background: var(--color-bg-hover);
+            color: var(--color-text-h);
         }
     }
 
     .log-line.current {
-        color: #fff;
-        background: #1a1a1a;
+        color: var(--color-text-h);
+        background: var(--color-bg-panel);
 
         &:hover {
-            background: #2a2a2a;
+            background: var(--color-bg-hover);
         }
     }
 

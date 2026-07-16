@@ -10,14 +10,14 @@
     }
 
     li {
-        font-size: 11px;
-        color: #ccc;
+        font-size: var(--font-xs);
+        color: var(--color-text);
         padding: 1px 0;
     }
 
     li::before {
         content: '•';
-        margin-right: 4px;
-        color: #666;
+        margin-right: var(--sp-xxs);
+        color: var(--color-text-dim);
     }
 }

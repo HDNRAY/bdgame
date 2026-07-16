@@ -11,10 +11,8 @@ interface ActionTooltipProps {
 /** 招式 tooltip 内容 */
 export function ActionTooltip({ action, remainingUses }: ActionTooltipProps) {
     return (
-        <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', top: 0, right: 0, color: '#ffe66d', fontSize: 13, fontWeight: 'bold' }}>
-                {action.apCost}AP
-            </div>
+        <div className="tt-relative">
+            <div className="tt-ap-cost">{action.apCost}AP</div>
             <div className="tt-name">{action.name}</div>
             <TagList tags={action.tags} />
             {action.description && <div className="tt-desc">{action.description}</div>}

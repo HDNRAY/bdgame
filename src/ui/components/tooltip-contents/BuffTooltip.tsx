@@ -19,7 +19,7 @@ export function BuffTooltip({ buff }: BuffTooltipProps) {
             {buff.tags.length > 0 && <TagList tags={buff.tags} />}
             {buff.description && <div className="tt-desc">{buff.description}</div>}
             {buff.expiry && (
-                <div className="tt-extra" style={{ fontSize: 10, color: '#888', lineHeight: 1.6 }}>
+                <div className="tt-extra tt-extra-dim">
                     {buff.expiry.type === 'duration' && `持续 ${buff.expiry.ms / 1000}秒`}
                     {buff.expiry.type === 'permanent' && '永久'}
                     {buff.expiry.type === 'consumed' && `消耗: ${buff.expiry.trigger}`}
@@ -28,11 +28,7 @@ export function BuffTooltip({ buff }: BuffTooltipProps) {
                     {buff.stacking?.type === 'independent' && ' · 独立叠层'}
                 </div>
             )}
-            {attrModLines.length > 0 && (
-                <div className="tt-extra" style={{ fontSize: 10, color: '#aaa', lineHeight: 1.6 }}>
-                    {attrModLines.join('；')}
-                </div>
-            )}
+            {attrModLines.length > 0 && <div className="tt-extra tt-extra-dim">{attrModLines.join('；')}</div>}
         </div>
     )
 }

@@ -1,0 +1,11 @@
+.build-screen-wrap {
+    background: var(--color-bg);
+    min-height: 100vh;
+}
+
+.build-screen-not-found {
+    background: var(--color-bg);
+    min-height: 100vh;
+    color: var(--color-text-h);
+    padding: 1.25rem;
+}

@@ -25,19 +25,15 @@ export function ArtifactTooltip({ artifact }: ArtifactTooltipProps) {
             {artifact.tags.length > 0 && <TagList tags={artifact.tags} />}
             {artifact.description && <div className="tt-desc">{artifact.description}</div>}
             {sideEffects.length > 0 && (
-                <div className="tt-extra" style={{ fontSize: 10, color: '#e74c3c', lineHeight: 1.6 }}>
-                    副作用: {sideEffects.flatMap(describeEffect).join('；')}
-                </div>
+                <div className="tt-extra tt-extra-danger">副作用: {sideEffects.flatMap(describeEffect).join('；')}</div>
             )}
             {mainEffects.length > 0 && (
-                <div className="tt-extra" style={{ fontSize: 10, color: '#aaa', lineHeight: 1.6 }}>
-                    {mainEffects.flatMap(describeEffect).join('；')}
-                </div>
+                <div className="tt-extra tt-extra-dim">{mainEffects.flatMap(describeEffect).join('；')}</div>
             )}
             {artifact.grantsActions && artifact.grantsActions.length > 0 && (
-                <div className="tt-extra" style={{ marginTop: 4 }}>
-                    <div style={{ fontSize: 10, color: '#888', marginBottom: 2 }}>赋予招式:</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                <div className="tt-extra" style={{ marginTop: 'var(--sp-xxs)' }}>
+                    <div className="tt-label">赋予招式:</div>
+                    <div className="tt-flex-wrap">
                         {artifact.grantsActions.map((id) => {
                             const def = getAction(id)
                             return def ? <EntityItem key={id} entity={def} type="action" /> : null

@@ -1,47 +1,47 @@
 .battle-status-panel {
-    background: #000;
-    border: 1px solid #333;
-    padding: 12px;
-    min-width: 240px;
+    background: var(--color-bg);
+    border: var(--border-width) solid var(--color-border);
+    padding: var(--sp-sm);
+    min-width: 15rem;
     width: 100%;
-    font-family: monospace;
-    color: #fff;
-    font-size: 13px;
+    font-family: var(--font-mono);
+    color: var(--color-text-h);
+    font-size: var(--font-md);
 
     .title {
-        font-size: 14px;
+        font-size: var(--font-lg);
         font-weight: bold;
-        margin-bottom: 8px;
+        margin-bottom: var(--sp-xs);
         text-align: center;
     }
 
     .char-a {
-        color: #4ecdc4;
+        color: var(--color-p1);
     }
 
     .vs {
-        color: #888;
+        color: var(--color-text-dim);
     }
 
     .char-b {
-        color: #ff6b6b;
+        color: var(--color-p2);
     }
 
     .winner {
         text-align: center;
-        color: #ffd700;
-        font-size: 14px;
+        color: var(--color-gold);
+        font-size: var(--font-lg);
         font-weight: bold;
-        margin-bottom: 10px;
-        padding: 4px;
-        border: 1px solid #ffd700;
-        border-radius: 4px;
+        margin-bottom: var(--sp-xs);
+        padding: var(--sp-xxs);
+        border: var(--border-width) solid var(--color-gold);
+        border-radius: var(--radius-md);
     }
 
     .chars {
         display: flex;
-        gap: 8px;
-        margin-bottom: 6px;
+        gap: var(--sp-xs);
+        margin-bottom: var(--sp-xxs);
     }
 
     .char-col {
@@ -49,35 +49,35 @@
     }
 
     .hp-text {
-        font-size: 12px;
+        font-size: var(--font-sm);
         margin-bottom: 1px;
         text-align: left;
     }
 
     .hp-label {
-        color: #4ecdc4;
-        font-size: 12px;
+        color: var(--color-p1);
+        font-size: var(--font-sm);
     }
 
     .ap-label {
-        color: #ffe66d;
-        font-size: 12px;
+        color: var(--color-ap);
+        font-size: var(--font-sm);
     }
 
     .chan-label {
-        color: #9b59b6;
-        font-size: 12px;
+        color: var(--color-qi);
+        font-size: var(--font-sm);
     }
 
     .buffs-label {
-        margin-top: 3px;
+        margin-top: var(--sp-xxs);
         margin-bottom: 2px;
     }
 
     .buffs-grid {
         display: flex;
         flex-wrap: wrap;
-        gap: 3px;
+        gap: var(--sp-xxs);
     }
 
     .attrs-grid {
@@ -116,9 +116,9 @@
 
     .bar-bg {
         width: 100%;
-        height: 8px;
-        background: #222;
-        border: 1px solid #444;
+        height: 0.5rem;
+        background: var(--color-bg-panel);
+        border: var(--border-width) solid var(--color-border);
         margin-bottom: 4px;
     }
 

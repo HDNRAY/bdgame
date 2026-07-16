@@ -1,60 +1,60 @@
 .character-panel {
-    max-width: 900px;
+    max-width: 56.25rem;
     width: 100%;
     height: 100%;
     margin: 0 auto;
-    padding: 8px;
-    color: #fff;
+    padding: var(--sp-xs);
+    color: var(--color-text-h);
     overflow-y: auto;
-    background: #000;
-    font-family: monospace;
-    font-size: 13px;
+    background: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: var(--font-md);
 }
 
 .cp-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
-    gap: 8px;
+    margin-bottom: var(--sp-md);
+    gap: var(--sp-xs);
 }
 
 .cp-header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--sp-xs);
 }
 
 .cp-avatar {
-    width: 32px;
-    height: 32px;
+    width: 2rem;
+    height: 2rem;
     image-rendering: pixelated;
     flex-shrink: 0;
 }
 
 .cp-name {
-    font-size: 16px;
+    font-size: var(--font-lg);
     font-weight: 600;
-    color: #eee;
+    color: var(--color-text-h);
 }
 
 .cp-actions {
     display: flex;
-    gap: 6px;
+    gap: var(--sp-xxs);
 }
 
 .cp-btn {
-    padding: 6px 14px;
+    padding: var(--sp-xxs) var(--sp-lg);
     border: none;
-    border-radius: 4px;
-    background: #1a1a1a;
-    color: #ccc;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-panel);
+    color: var(--color-text);
     cursor: pointer;
-    font-size: 13px;
-    font-family: monospace;
+    font-size: var(--font-md);
+    font-family: var(--font-mono);
     transition: all 0.15s;
     &:hover {
-        background: #2a2a2a;
+        background: var(--color-bg-hover);
     }
 }
 
@@ -75,155 +75,162 @@
     }
 }
 
+.cp-btn-reset {
+    background: #6b3a1a;
+    color: #eee;
+    &:hover {
+        background: #8a4a20;
+    }
+}
+
 .cp-error {
-    padding: 8px 12px;
-    margin-bottom: 12px;
-    background: #3a1a1a;
-    border: 1px solid #e74c3c;
-    border-radius: 4px;
-    color: #e74c3c;
-    font-size: 13px;
+    padding: var(--sp-xs) var(--sp-sm);
+    margin-bottom: var(--sp-sm);
+    background: var(--color-danger-bg);
+    border: var(--border-width) solid var(--color-danger);
+    border-radius: var(--radius-md);
+    color: var(--color-danger);
+    font-size: var(--font-md);
 }
 
 /* 双栏布局 — 自适应宽度，不足时自动竖排 */
 .cp-body {
     display: flex;
-    column-gap: 16px;
+    column-gap: var(--sp-md);
     align-items: flex-start;
     flex-wrap: wrap;
 }
 
 .cp-col-left {
-    flex: 2 1 240px;
+    flex: 2 1 15rem;
     min-width: 0;
-    top: 16px;
+    top: var(--sp-md);
 }
 
 .cp-col-right {
-    flex: 3 1 180px;
+    flex: 3 1 11.25rem;
     min-width: 0;
 }
 
 /* 区块通用 */
 .cp-section {
-    margin-bottom: 10px;
-    padding: 8px;
-    background: #0d0d0d;
-    border: 1px solid #222;
-    border-radius: 6px;
+    margin-bottom: var(--sp-xs);
+    padding: var(--sp-xs);
+    background: var(--color-bg-alt);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
 }
 
 .cp-section-label {
-    color: #aaa;
-    font-size: 11px;
+    color: var(--color-text-dim);
+    font-size: var(--font-xs);
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 6px;
+    margin-bottom: var(--sp-xxs);
 }
 
 /* 区块1: 角色信息 */
 .cp-info-section {
     display: flex;
     flex-direction: row;
-    gap: 12px;
+    gap: var(--sp-sm);
 }
 
 .cp-info-left {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--sp-xs);
     flex: 1;
 }
 
 .cp-info-right {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--sp-xxs);
     align-items: flex-end;
-    min-width: 110px;
 }
 
 .cp-style-label {
-    font-size: 11px;
-    color: #bbb;
+    font-size: var(--font-xs);
+    color: var(--color-text);
     white-space: nowrap;
 }
 
 .cp-info-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--sp-xs);
 }
 
 .cp-info-name {
-    font-size: 15px;
+    font-size: var(--font-lg);
     font-weight: 600;
-    color: #eee;
+    color: var(--color-text-h);
 }
 
 .cp-weapon-art {
-    width: 48px;
-    height: 48px;
+    width: 3rem;
+    height: 3rem;
     image-rendering: pixelated;
     flex-shrink: 0;
 }
 
 .cp-weapon-name {
-    font-size: 11px;
-    color: #ddd;
+    font-size: var(--font-xs);
+    color: var(--color-text);
 }
 
 /* 战斗风格选择器 */
 .cp-style-select {
-    font-size: 11px;
-    padding: 2px 4px;
-    border: 1px solid #555;
-    border-radius: 4px;
-    background: #2a2a2a;
-    color: #ccc;
+    font-size: var(--font-xs);
+    padding: 2px var(--sp-xxs);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-panel);
+    color: var(--color-text);
     cursor: pointer;
     outline: none;
     width: 100%;
 
     &:focus {
-        border-color: #4ecdc4;
+        border-color: var(--color-accent);
     }
 }
 
 .cp-style-tag {
-    font-size: 11px;
-    color: #4ecdc4;
+    font-size: var(--font-xs);
+    color: var(--color-accent);
     white-space: nowrap;
 }
 
 .cp-hp-ap {
-    font-size: 13px;
-    color: #ccc;
+    font-size: var(--font-md);
+    color: var(--color-text);
     white-space: nowrap;
 }
 
 .cp-hp {
-    color: #4ecdc4;
+    color: var(--color-p1);
 }
 .cp-ap {
-    color: #ffe66d;
+    color: var(--color-ap);
 }
 .cp-sep {
-    color: #444;
-    margin: 0 6px;
+    color: var(--color-border);
+    margin: 0 var(--sp-xxs);
 }
 
 /* 区块2: 属性 */
 .cp-points {
-    font-size: 12px;
-    color: #999;
-    margin-bottom: 6px;
+    font-size: var(--font-sm);
+    color: var(--color-text-dim);
+    margin-bottom: var(--sp-xxs);
 }
 
 .cp-attr-row {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--sp-xxs);
     padding: 2px 0;
 }
 
@@ -233,14 +240,14 @@
 }
 
 .cp-btn-sm {
-    width: 22px;
-    height: 18px;
-    border: 1px solid #444;
-    border-radius: 3px;
-    background: #111;
-    color: #ccc;
+    width: 1.375rem;
+    height: 1.125rem;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-panel);
+    color: var(--color-text);
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--font-sm);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -249,13 +256,13 @@
         cursor: default;
     }
     &:hover:not(:disabled) {
-        background: #222;
+        background: var(--color-bg-hover);
     }
 }
 
 .cp-cost {
-    font-size: 10px;
-    color: #999;
+    font-size: var(--font-xxs);
+    color: var(--color-text-dim);
     margin-left: 2px;
 }
 
@@ -263,30 +270,30 @@
 .cp-tag-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: var(--sp-xxs);
 }
 
 .cp-tag {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 12px;
-    background: #181828;
-    border: 1px solid #2a2a3e;
-    color: #ccc;
+    gap: var(--sp-xxs);
+    padding: 2px var(--sp-xs);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    background: var(--color-entity-bg);
+    border: var(--border-width) solid var(--color-entity-border);
+    color: var(--color-text);
     cursor: default;
 }
 
 .cp-tag-meta {
     display: inline-flex;
-    gap: 3px;
-    font-size: 10px;
+    gap: var(--sp-xxs);
+    font-size: var(--font-xxs);
 }
 
 .cp-tag-cond {
-    color: #aaa;
+    color: var(--color-text);
     &::before {
         content: '‹';
         margin-right: 1px;
@@ -298,7 +305,7 @@
 }
 
 .cp-tag-trig {
-    color: #bbb;
+    color: var(--color-text);
     &::before {
         content: '⤷';
     }
@@ -306,35 +313,35 @@
 
 /* 天赋标签（build 模式专属） */
 .cp-talent {
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 12px;
-    background: #1a3a1a;
-    border: 1px solid #2a5a2a;
-    color: #8f8;
+    padding: 2px var(--sp-xs);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    background: var(--color-success-bg);
+    border: var(--border-width) solid var(--color-success);
+    color: var(--color-success);
 }
 
 /* 招式表格 */
 .cp-table-header,
 .cp-row {
     display: grid;
-    grid-template-columns: 28px 1fr minmax(90px, auto) minmax(90px, auto);
-    gap: 3px;
+    grid-template-columns: 1.75rem 1fr minmax(5.625rem, auto) minmax(5.625rem, auto);
+    gap: var(--sp-xxs);
     align-items: center;
-    padding: 4px 0;
-    font-size: 12px;
+    padding: var(--sp-xxs) 0;
+    font-size: var(--font-sm);
     user-select: none;
 }
 
 .cp-table-header {
-    color: #999;
-    border-bottom: 1px solid #222;
-    padding-bottom: 6px;
+    color: var(--color-text-dim);
+    border-bottom: var(--border-width) solid var(--color-border);
+    padding-bottom: var(--sp-xxs);
     margin-bottom: 2px;
 }
 
 .cp-row {
-    border-bottom: 1px solid #151515;
+    border-bottom: var(--border-width) solid var(--color-bg-alt);
 }
 
 .cp-col-order {
@@ -343,8 +350,8 @@
 
 .cp-drag-handle {
     cursor: grab;
-    color: #444;
-    font-size: 14px;
+    color: var(--color-border);
+    font-size: var(--font-lg);
     user-select: none;
     &:active {
         cursor: grabbing;
@@ -352,28 +359,28 @@
 }
 
 .cp-col-name {
-    color: #ddd;
-    font-size: 12px;
-    padding: 0 4px;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    padding: 0 var(--sp-xxs);
     white-space: nowrap;
 }
 
 .cp-col-cond,
 .cp-col-trig {
-    min-width: 120px;
+    min-width: 7.5rem;
 }
 
 .cp-col-cond select,
 .cp-col-trig select {
     width: 100%;
-    padding: 2px 4px;
-    font-size: 11px;
-    background: #111;
-    color: #bbb;
-    border: 1px solid #333;
-    border-radius: 3px;
+    padding: 2px var(--sp-xxs);
+    font-size: var(--font-xs);
+    background: var(--color-bg-panel);
+    color: var(--color-text);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-family: monospace;
+    font-family: var(--font-mono);
     &:disabled {
         opacity: 0.25;
         cursor: default;

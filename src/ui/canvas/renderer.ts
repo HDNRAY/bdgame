@@ -67,7 +67,7 @@ export class CanvasRenderer {
         }
 
         await this.app.init({
-            background: '#000',
+            background: 'transparent',
             antialias: false,
             resolution: 1,
             width: this.canvasWidth,

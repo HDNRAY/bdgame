@@ -1,9 +1,9 @@
 .tag-badge {
     display: inline-block;
     padding: 1px 5px;
-    font-size: 10px;
-    border: 1px solid;
-    border-radius: 2px;
+    font-size: var(--font-xxs);
+    border: var(--border-width) solid;
+    border-radius: var(--radius-sm);
     background: rgba(0, 0, 0, 0.4);
     line-height: 1.4;
     white-space: nowrap;
