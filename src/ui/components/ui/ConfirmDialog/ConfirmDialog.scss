@@ -70,15 +70,15 @@
     color: var(--color-accent);
 
     &:hover {
-        background: #0a2a2a;
+        background: var(--color-accent-bg);
     }
 }
 
 .confirm-dialog-danger {
-    border-color: #c74c3c;
-    color: #c74c3c;
+    border-color: var(--color-danger);
+    color: var(--color-danger);
 
     &:hover {
-        background: #3a1a1a;
+        background: var(--color-danger-bg);
     }
 }

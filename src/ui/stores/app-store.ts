@@ -10,6 +10,7 @@ export type ThemeMode = 'light' | 'dark' | 'system'
 export interface UiConfig {
     theme: ThemeMode
     uiScale: number // 0.5 ~ 2.0
+    typewriter: boolean // 逐字显示
 }
 
 const UI_CONFIG_KEY = 'bdgame-ui-config'
@@ -21,7 +22,7 @@ function loadUiConfig(): UiConfig {
     } catch {
         /* ignore */
     }
-    return { theme: 'system', uiScale: 1 }
+    return { theme: 'system', uiScale: 1, typewriter: true }
 }
 
 function saveUiConfig(config: UiConfig) {
@@ -56,6 +57,7 @@ interface AppState {
     incrementBattleKey: () => void
     setTheme: (theme: ThemeMode) => void
     setUiScale: (scale: number) => void
+    setTypewriter: (enabled: boolean) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -81,6 +83,13 @@ export const useAppStore = create<AppState>((set) => ({
         set((s) => {
             const clamped = Math.min(2, Math.max(0.5, uiScale))
             const next = { ...s.uiConfig, uiScale: clamped }
+            saveUiConfig(next)
+            return { uiConfig: next }
+        }),
+
+    setTypewriter: (typewriter) =>
+        set((s) => {
+            const next = { ...s.uiConfig, typewriter }
             saveUiConfig(next)
             return { uiConfig: next }
         }),

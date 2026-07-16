@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useImmer } from 'use-immer'
 import type { CharacterBuild, BattleStyle } from '../../engine/entities/character-build'
@@ -35,6 +35,7 @@ export function useBuildCharacter(
         for (const r of build.rewards) {
             if (r.type === 'action' && !existingIds.has(r.id)) {
                 existing.push({ actionId: r.id })
+                existingIds.add(r.id)
             }
         }
         return existing
@@ -43,11 +44,36 @@ export function useBuildCharacter(
     const [battleStyle, setBattleStyle] = useState<BattleStyle | undefined>(build.battleStyle)
 
     // 根据当前编辑中的 attrs/actionConfigs 构造 Character 实例
-    const character = new Character({
-        ...build,
-        baseAttrs: attrs as Partial<Record<AttrName, number>>,
-        actionConfigs,
-    })
+    const character = useMemo(
+        () =>
+            new Character({
+                ...build,
+                baseAttrs: attrs as Partial<Record<AttrName, number>>,
+                actionConfigs,
+            }),
+        [build, attrs, actionConfigs],
+    )
+
+    // 同步 actionConfigs：build 变化时（新奖励等），同步所有可用招式到配置列表
+    useEffect(() => {
+        const temp = new Character(build)
+        const allActionIds = new Set(temp.actions.filter((a) => !a.def.tags.includes('internal')).map((a) => a.id))
+        setActionConfigs((draft) => {
+            // 移除不再可用的招式
+            for (let i = draft.length - 1; i >= 0; i--) {
+                if (!allActionIds.has(draft[i].actionId)) {
+                    draft.splice(i, 1)
+                }
+            }
+            // 补充新招式
+            const existingIds = new Set(draft.map((c) => c.actionId))
+            for (const id of allActionIds) {
+                if (!existingIds.has(id)) {
+                    draft.push({ actionId: id })
+                }
+            }
+        })
+    }, [build, setActionConfigs])
 
     // 当前编辑的属性消耗
     const spent = ALL_ATTRS.reduce((s, a) => {

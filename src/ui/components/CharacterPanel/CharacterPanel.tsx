@@ -288,12 +288,12 @@ export function CharacterPanel({
                             const brk = getAttrBreakdown(attr, character)
                             return (
                                 <div key={attr} className="cp-attr-row">
-                                    <Tooltip content={<StatTooltip attr={attr} value={finalVal} />}>
+                                    <Tooltip content={<StatTooltip attr={attr} value={finalVal} breakdown={brk} />}>
                                         <AttributeLabel
                                             attr={attr}
                                             value={finalVal}
                                             baseValue={brk.base}
-                                            breakdown={isBuild ? brk : undefined}
+                                            breakdown={brk}
                                         />
                                     </Tooltip>
                                     {isBuild && (
@@ -389,7 +389,9 @@ function SortableRow({
             <span className="cp-col-order" {...attributes} {...listeners}>
                 <span className="cp-drag-handle">⠿</span>
             </span>
-            <span className="cp-col-name">{actionDef?.name ?? ac.actionId}</span>
+            <span className="cp-col-name">
+                {actionDef ? <EntityItem entity={actionDef} type="action" /> : ac.actionId}
+            </span>
             <span className="cp-col-cond">
                 <select
                     value={ac.conditionId ?? 'always'}

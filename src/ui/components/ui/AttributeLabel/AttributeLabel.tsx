@@ -15,8 +15,7 @@ interface AttributeLabelProps {
 
 export function AttributeLabel({ attr, value, baseValue, compact, breakdown }: AttributeLabelProps) {
     const cn = ATTR_CN[attr] ?? attr
-    const diff = baseValue !== undefined ? value - baseValue : 0
-    const displayVal = diff !== 0 ? `${value}(${diff > 0 ? '+' : ''}${diff})` : `${value}`
+    const displayVal = `${value}`
     if (compact) {
         return (
             <span className="attr-label-compact">
@@ -43,6 +42,13 @@ export function AttributeLabel({ attr, value, baseValue, compact, breakdown }: A
     }
     const grossPct = Math.min(100, (((baseValue ?? 0) + posPassives + posArtifacts + posWeapons) / 30) * 100)
     const negPct = Math.min(100, (totalNeg / 30) * 100)
+
+    // 各段累计偏移
+    const baseW = basePct
+    const passW = Math.min(100, (posPassives / 30) * 100)
+    const artW = Math.min(100, (posArtifacts / 30) * 100)
+    const wpnW = Math.min(100, (posWeapons / 30) * 100)
+
     return (
         <div className="attr-label-full">
             <span className="attr-label-full-name">{cn}</span>
@@ -50,23 +56,23 @@ export function AttributeLabel({ attr, value, baseValue, compact, breakdown }: A
             <span className="attr-label-full-bar">
                 {breakdown ? (
                     <>
-                        <span className="attr-label-full-fill attr-base" style={{ width: `${basePct}%` }} />
+                        <span className="attr-label-full-fill attr-base" style={{ width: `${baseW}%` }} />
                         {posPassives > 0 && (
                             <span
                                 className="attr-label-full-fill attr-passive"
-                                style={{ width: `${Math.min(100, (posPassives / 30) * 100)}%` }}
+                                style={{ left: `${baseW}%`, width: `${passW}%` }}
                             />
                         )}
                         {posArtifacts > 0 && (
                             <span
                                 className="attr-label-full-fill attr-artifact"
-                                style={{ width: `${Math.min(100, (posArtifacts / 30) * 100)}%` }}
+                                style={{ left: `${baseW + passW}%`, width: `${artW}%` }}
                             />
                         )}
                         {posWeapons > 0 && (
                             <span
                                 className="attr-label-full-fill attr-weapon"
-                                style={{ width: `${Math.min(100, (posWeapons / 30) * 100)}%` }}
+                                style={{ left: `${baseW + passW + artW}%`, width: `${wpnW}%` }}
                             />
                         )}
                         {totalNeg > 0 && (

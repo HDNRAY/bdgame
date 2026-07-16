@@ -18,9 +18,10 @@ const THEME_OPTIONS: { label: string; value: ThemeMode }[] = [
 
 export function SettingsScreen() {
     const navigate = useNavigate()
-    const { theme, uiScale } = useAppStore((s) => s.uiConfig)
+    const { theme, uiScale, typewriter } = useAppStore((s) => s.uiConfig)
     const setTheme = useAppStore((s) => s.setTheme)
     const setUiScale = useAppStore((s) => s.setUiScale)
+    const setTypewriter = useAppStore((s) => s.setTypewriter)
 
     // 滑块拖拽时只更新本地状态，mouseup 才提交到 store
     const [dragScale, setDragScale] = useState(uiScale)
@@ -83,6 +84,19 @@ export function SettingsScreen() {
                     ))}
                 </div>
                 <div className="settings-hint">拖动滑块或点击预设调整界面大小（0.5× ~ 2.0×）</div>
+            </div>
+
+            {/* ── 叙事 ── */}
+            <div className="settings-section">
+                <div className="settings-section-title">叙事</div>
+                <div className="settings-row">
+                    <span className="settings-label">逐字显示</span>
+                    <label className="toggle-switch">
+                        <input type="checkbox" checked={typewriter} onChange={(e) => setTypewriter(e.target.checked)} />
+                        <span className="toggle-slider" />
+                    </label>
+                </div>
+                <div className="settings-hint">开启后事件描述会逐字打出，点击文字可跳过</div>
             </div>
 
             {/* ── 返回 ── */}

@@ -174,3 +174,48 @@
         background: var(--color-bg-hover);
     }
 }
+
+/* ── Toggle Switch ── */
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 3rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    cursor: pointer;
+
+    input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+}
+
+.toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--color-border);
+    border-radius: 1.5rem;
+    transition: background 0.2s;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: calc(1.5rem - 4px);
+        height: calc(1.5rem - 4px);
+        background: var(--color-bg);
+        border-radius: 50%;
+        transition: transform 0.2s;
+    }
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--color-accent);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(1.5rem);
+}

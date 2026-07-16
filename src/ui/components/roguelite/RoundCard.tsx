@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { Round } from '../../../engine/entities/round'
 import { getEntity, isEntityType } from '../../../bridge/entity-tooltip'
 import { EntityItem } from '../ui/EntityItem/EntityItem'
+import { useTypewriter } from '../../hooks/useTypewriter'
+import { useAppStore } from '../../stores/app-store'
 import './RoundCard.scss'
 
 function ChoiceButton({
@@ -38,22 +40,33 @@ interface RoundCardProps {
 
 export function RoundCard({ round, past, onChoice }: RoundCardProps) {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+    const typewriterEnabled = useAppStore((s) => s.uiConfig.typewriter)
+    const desc = useTypewriter(round.description ?? '', {
+        enabled: !past && typewriterEnabled,
+    })
 
-    // 单个选项自动触发，跳过 check+confirm
+    // 单选项：无需确认按钮，选择即执行
     if (round.choices.length === 1 && !past && onChoice) {
         return (
-            <div className={`rc ${past ? 'rc-past' : 'rc-current'}`}>
+            <div className={`rc ${past ? 'rc-past' : 'rc-current'}`} onClick={!desc.done ? desc.skip : undefined}>
                 <div className="rc-title">{round.title}</div>
-                {round.description && <div className="rc-desc">{round.description}</div>}
+                {round.description && (
+                    <div className={`rc-desc${!desc.done ? ' rc-desc-typing' : ''}`}>
+                        {desc.displayText}
+                        {!desc.done && <span className="rc-cursor">▌</span>}
+                    </div>
+                )}
                 {round.result && (
                     <div className={`rc-result ${round.result.won ? 'rc-win' : 'rc-lose'}`}>
                         {round.result.won ? '胜利' : '败北'}
                         {round.result.injuryGained > 0 && <> 伤势 +{round.result.injuryGained}</>}
                     </div>
                 )}
-                <div className="rc-choices">
-                    <ChoiceButton choice={round.choices[0]} index={0} selected={false} onSelect={onChoice} />
-                </div>
+                {desc.done && (
+                    <div className="rc-choices">
+                        <ChoiceButton choice={round.choices[0]} index={0} selected={false} onSelect={onChoice} />
+                    </div>
+                )}
             </div>
         )
     }
@@ -70,16 +83,21 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
     }
 
     return (
-        <div className={`rc ${past ? 'rc-past' : 'rc-current'}`}>
+        <div className={`rc ${past ? 'rc-past' : 'rc-current'}`} onClick={!desc.done ? desc.skip : undefined}>
             <div className="rc-title">{round.title}</div>
-            {round.description && <div className="rc-desc">{round.description}</div>}
+            {round.description && (
+                <div className={`rc-desc${!desc.done ? ' rc-desc-typing' : ''}`}>
+                    {desc.displayText}
+                    {!desc.done && <span className="rc-cursor">▌</span>}
+                </div>
+            )}
             {round.result && (
                 <div className={`rc-result ${round.result.won ? 'rc-win' : 'rc-lose'}`}>
                     {round.result.won ? '胜利' : '败北'}
                     {round.result.injuryGained > 0 && <> 伤势 +{round.result.injuryGained}</>}
                 </div>
             )}
-            {!past && round.choices.length > 0 && (
+            {desc.done && !past && round.choices.length > 0 && (
                 <div className="rc-choices">
                     {round.choices.map((c, i) => (
                         <ChoiceButton

@@ -1,13 +1,16 @@
 .rc {
+    &-current {
+        flex: 1;
+    }
+
     &-past {
-        opacity: 0.45;
+        opacity: 0.6;
         font-size: var(--font-sm);
         margin-bottom: var(--sp-xxs);
 
         .rc-desc {
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
             max-width: 100%;
         }
 
@@ -79,33 +82,38 @@
         transition: all 0.15s;
 
         &:hover {
-            border-color: #4ecdc4;
-            background: #1a1a1a;
+            border-color: var(--color-accent);
+            background: var(--color-bg-hover);
         }
 
         &-selected {
-            border-color: #4ecdc4;
-            background: rgba(78, 205, 196, 0.1);
+            border-color: var(--color-accent);
+            background: var(--color-accent-bg);
         }
     }
 
     &-confirm {
         width: 100%;
-        padding: 12px;
-        margin-top: 4px;
+        padding: var(--sp-sm);
+        margin-top: var(--sp-xxs);
         border: none;
-        border-radius: 4px;
-        background: #1a6b5a;
-        color: #eee;
+        border-radius: var(--radius-md);
+        background: var(--color-accent);
+        color: #fff;
         cursor: pointer;
-        font-size: 14px;
+        font-size: var(--font-lg);
         font-weight: 700;
         letter-spacing: 4px;
         transition: all 0.15s;
 
         &:hover {
-            background: #208a74;
+            filter: brightness(1.15);
         }
+    }
+
+    &-confirm-selected {
+        border-color: var(--color-accent);
+        background: var(--color-accent-bg);
     }
 
     &-label {
@@ -118,5 +126,27 @@
         color: #666;
         margin-top: 2px;
         display: block;
+    }
+}
+
+/* ── Typewriter ── */
+
+.rc-desc-typing {
+    cursor: pointer;
+    user-select: none;
+}
+
+.rc-cursor {
+    display: inline-block;
+    animation: rc-cursor-blink 0.6s step-end infinite;
+    color: var(--color-accent);
+    font-size: inherit;
+    line-height: 1;
+    margin-left: 1px;
+}
+
+@keyframes rc-cursor-blink {
+    50% {
+        opacity: 0;
     }
 }

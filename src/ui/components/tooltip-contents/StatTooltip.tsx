@@ -1,9 +1,17 @@
 import type { AttrName } from '../../../engine/entities/attributes'
 import { ATTR_CN } from '../../../engine/entities/attributes'
 
+interface Breakdown {
+    base: number
+    passives: number
+    artifacts: number
+    weapons: number
+}
+
 interface StatTooltipProps {
     attr: AttrName
     value: number
+    breakdown?: Breakdown
 }
 
 const ATTR_DESC: Record<AttrName, string> = {
@@ -15,14 +23,32 @@ const ATTR_DESC: Record<AttrName, string> = {
     wisdom: '影响触发槽数量、炁效果和回合间隔',
 }
 
+function fmt(v: number): string {
+    return v > 0 ? `+${v}` : `${v}`
+}
+
 /** 属性 tooltip 内容 */
-export function StatTooltip({ attr, value }: StatTooltipProps) {
+export function StatTooltip({ attr, value, breakdown }: StatTooltipProps) {
     return (
         <div>
             <div className="tt-name">{ATTR_CN[attr]}</div>
             <div className="tt-desc">{ATTR_DESC[attr]}</div>
             <hr className="tt-separator" />
-            <div className="tt-extra">当前值: {value}</div>
+            <div className="tt-extra">总值: {value}</div>
+            {breakdown && (
+                <>
+                    <div className="tt-extra tt-extra-dim">基础: {breakdown.base}</div>
+                    {breakdown.passives !== 0 && (
+                        <div className="tt-extra tt-extra-dim">功法: {fmt(breakdown.passives)}</div>
+                    )}
+                    {breakdown.artifacts !== 0 && (
+                        <div className="tt-extra tt-extra-dim">奇物: {fmt(breakdown.artifacts)}</div>
+                    )}
+                    {breakdown.weapons !== 0 && (
+                        <div className="tt-extra tt-extra-dim">武器: {fmt(breakdown.weapons)}</div>
+                    )}
+                </>
+            )}
         </div>
     )
 }

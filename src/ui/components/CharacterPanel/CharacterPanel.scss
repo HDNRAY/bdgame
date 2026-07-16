@@ -59,27 +59,19 @@
 }
 
 .cp-btn-save {
-    background: #1a6b5a;
-    color: #eee;
+    background: var(--color-accent);
+    color: #fff;
     font-weight: 700;
     &:hover {
-        background: #208a74;
+        filter: brightness(1.1);
     }
 }
 
 .cp-btn-reset {
-    background: #6b3a1a;
-    color: #eee;
+    background: var(--color-warning);
+    color: #fff;
     &:hover {
-        background: #8a4a20;
-    }
-}
-
-.cp-btn-reset {
-    background: #6b3a1a;
-    color: #eee;
-    &:hover {
-        background: #8a4a20;
+        filter: brightness(1.1);
     }
 }
 
@@ -361,13 +353,7 @@
 .cp-col-name {
     color: var(--color-text);
     font-size: var(--font-sm);
-    padding: 0 var(--sp-xxs);
     white-space: nowrap;
-}
-
-.cp-col-cond,
-.cp-col-trig {
-    min-width: 7.5rem;
 }
 
 .cp-col-cond select,
