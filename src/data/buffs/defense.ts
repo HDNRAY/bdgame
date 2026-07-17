@@ -42,9 +42,25 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         name: '守势',
         description: '凝神防守，招架率大幅提升。',
         tags: ['defense'],
-        expiry: { type: 'consumed', trigger: 'on_parry' },
+        expiry: { type: 'duration', ms: 8000 },
         stacking: { type: 'none' },
-        onParryChance: () => 0.35,
+        onParryChance: () => 0.5,
+    },
+    {
+        id: 'wind_hear_buff',
+        name: '听风',
+        description: '听风辩位，闪避率提升。闪避后向对手前移。',
+        tags: ['defense'],
+        expiry: { type: 'duration', ms: 8000 },
+        stacking: { type: 'none' },
+        onDodgeChance: () => 0.2,
+        onDodged: ({ target, attacker, engine, state }) => {
+            if (!engine) return
+            processActionEffect(
+                { type: 'short_dash', maxDistance: 3 },
+                { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
+            )
+        },
     },
     {
         id: 'ranged_dodge',
@@ -63,6 +79,14 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '免疫冰霜、麻痹。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
+        onReceiveDebuff: (ctx) => {
+            if (ctx.buffId === 'frost') return 0
+            if (ctx.buffId === 'paralyze') {
+                const { success } = calcRoll(0.5)
+                if (success) return 0
+            }
+            return undefined
+        },
     },
     {
         id: 'ordinary_training',
@@ -104,13 +128,24 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '免疫麻痹。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
+        onReceiveDebuff: (ctx) => {
+            if (ctx.buffId === 'paralyze') return 0
+            return undefined
+        },
     },
     {
         id: 'dark_room_sense',
-        name: '暗室雀眼',
+        name: '黑暗视觉',
         description: '暗室练就的敏锐感知，免疫迷眼。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
+        onReceiveDebuff: (ctx) => {
+            if (ctx.buffId === 'sand_blind') {
+                const { success } = calcRoll(0.8)
+                if (success) return 0
+            }
+            return undefined
+        },
     },
     {
         id: 'thunder_constitution',
@@ -166,6 +201,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['super_armor', 'defense'],
         expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
+        onReceiveDebuff: (ctx) => {
+            if (['stun', 'stagger', 'knockdown', 'fumble_chance'].includes(ctx.buffId)) return 0
+            return undefined
+        },
     },
     {
         id: 'lingxi_finger',
@@ -496,5 +535,17 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         stacking: { type: 'additive', max: 2 },
         onDodgeChance: ({ layer }) => layer.restoreValue * 0.01,
         onParryChance: ({ layer }) => layer.restoreValue * 0.01,
+    },
+    {
+        id: 'rocket_boost',
+        name: '火箭推进',
+        description: '喷气式机动装置的推进力，免疫击倒。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onReceiveDebuff: (ctx) => {
+            if (ctx.buffId === 'knockdown') return 0
+            return undefined
+        },
     },
 ]

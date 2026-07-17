@@ -73,7 +73,6 @@ export function processHitCheck(
     if (!r.hit) {
         engine.emitLog({ type: 'dodged', sourceId: self.id, targetId: enemy.id })
         engine.emit('on_dodged', self, enemy)
-        engine.emit('on_dodge', enemy, self)
         // 防御方 buff onDodged 钩子（缩进一层）
         engine.state.log.indentDepth++
         for (const [key, layer] of engine.state.pendingBuffs) {
@@ -94,6 +93,7 @@ export function processHitCheck(
             })
         }
         engine.state.log.indentDepth--
+        engine.emit('on_dodge', enemy, self)
         consumeBuffsByTrigger(enemy.id, engine, 'on_dodge')
         return false
     }

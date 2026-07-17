@@ -109,5 +109,12 @@ export function calcExpectedDamage(
         expected = typeof result === 'object' ? result.normal + (result.piercing ?? 0) : result
     }
 
+    // 7. piercingRatio
+    for (const eff of action.effects ?? []) {
+        if (eff.type === 'damage' && eff.piercingRatio) {
+            expected += Math.round(expected * eff.piercingRatio)
+        }
+    }
+
     return { actionId: action.id, rawDamage, expectedDamage: expected, hitChance, canReach, apCost: action.apCost }
 }

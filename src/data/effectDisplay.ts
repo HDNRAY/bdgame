@@ -27,7 +27,9 @@ export function describeEffect(eff: EffectDef): string[] {
     switch (eff.type) {
         case 'damage': {
             const s = fmtScaling(eff.scaling, eff.base)
-            return [`伤害: ${s}`]
+            const parts = [`伤害: ${s}`]
+            if (eff.piercingRatio) parts.push(`穿透${(eff.piercingRatio * 100).toFixed(0)}%`)
+            return parts
         }
         case 'fixed_damage':
             return [`固定伤害: ${eff.value}`]
@@ -145,8 +147,7 @@ export function describeEffect(eff: EffectDef): string[] {
         }
         case 'limit_uses':
             return [`使用次数上限: ${eff.max}`]
-        case 'add_passive':
-            return [`获得功法: ${eff.passiveId}`]
+        // case 'add_passive': removed — use add_buff directly
         case 'dex_to_str':
             return [`以巧借力: 灵巧×${eff.ratio} → 力道`]
         default:

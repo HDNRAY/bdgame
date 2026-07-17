@@ -1,7 +1,7 @@
 import { processActionEffect } from '../../engine/combat/effects'
 import { revertBuffMods } from '../../engine/combat/utils'
 import { applyAttrMods } from '../../engine/combat/utils/buff-layer'
-import { calcParryChance, calcApRegenPerSec } from '../../engine/calc/damage'
+import { calcParryChance, calcApRegenPerSec, calcRoll } from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
 import type { BuffDef } from './types'
 import { DEFENSE_BUFFS } from './defense'
@@ -457,6 +457,10 @@ export const BUFF_DB: BuffDef[] = [
         description: '免疫身法/灵巧减益、位移、缴械、打断。',
         tags: ['super_armor'],
         expiry: { type: 'permanent' },
+        onReceiveDebuff: (ctx) => {
+            if (['stun', 'stagger', 'knockdown', 'fumble_chance'].includes(ctx.buffId)) return 0
+            return undefined
+        },
     },
     {
         id: 'calming_fragrance',
@@ -964,25 +968,12 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff', 'weapon', 'electric', 'blunt'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        // maxApMod: -1,
+        maxApMod: -1,
         onDealDamage: ({ final, attacker }) => {
             const bonus = round1(attacker.attrs.get('wisdom') * 0.1)
             return final + bonus
         },
     },
-    {
-        id: 'rocket_boost',
-        name: '火箭推进',
-        description: '喷气式机动装置的推进力，免疫击倒。',
-        tags: ['buff', 'craft'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        onReceiveDebuff: (ctx) => {
-            if (ctx.buffId === 'knockdown') return 0
-            return undefined
-        },
-    },
-    // ── 炁电转换 ──
     {
         id: 'qi_electric_buff',
         name: '炁电转换',
@@ -1010,6 +1001,23 @@ export const BUFF_DB: BuffDef[] = [
             return 0
         },
     },
+    // ── 无明之明 ──
+    {
+        id: 'no_light_buff',
+        name: '无明之明',
+        description: '以推演替代洞察，感知万物。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.01,
+        onDodgeChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.01,
+        onParryChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.01,
+        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.005,
+        onReceiveDebuff: (ctx) => {
+            if (ctx.buffId === 'sand_blind') return 0
+            return undefined
+        },
+    },
     // ── 西域奇毒 ──
     {
         id: 'western_poison_buff',
@@ -1030,7 +1038,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'blood_thorn_suppress',
         name: '血棘·压制',
-        description: '暴击时向创口渡入棘炁，额外伤害越高流血越烈。',
+        description: '暴击时向创口渡入棘炁，额外伤害转化为流血。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -1044,5 +1052,44 @@ export const BUFF_DB: BuffDef[] = [
             )
             return extraDamage
         },
+    },
+    {
+        id: 'hearing_insight',
+        name: '听劲',
+        description: '感知流转，洞察提升。',
+        tags: [],
+        expiry: { type: 'duration', ms: 2500 },
+        stacking: { type: 'additive' },
+        attrMods: { insight: 2 },
+    },
+    // ── 独臂 ──
+    {
+        id: 'one_arm_buff',
+        name: '独臂',
+        description: '运劲更凝练，招式消耗降低但身法受限。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        attrMods: { agility: -4 },
+        onActionCost: () => -1,
+    },
+    // ── 明镜止水 ──
+    {
+        id: 'mingjing_zhishui_buff',
+        name: '明镜止水',
+        description: '心如明镜，神清目明。招式省AP但推演降低。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        attrMods: { wisdom: -2 },
+        onReceiveDebuff: (ctx) => {
+            if (ctx.buffId === 'confuse') return 0
+            if (ctx.buffId === 'fumble_chance' || ctx.buffId === 'fumble_chance_temp') {
+                const { success } = calcRoll(0.6)
+                if (success) return 0
+            }
+            return undefined
+        },
+        onActionCost: () => -1,
     },
 ]

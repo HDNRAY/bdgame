@@ -269,6 +269,34 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         onActionCritChance: (base) => base + 0.25,
         effects: [{ type: 'damage', scaling: { agility: 0.4, strength: 0.6 } }],
     },
+    {
+        id: 'three_inch_light',
+        name: '三寸光',
+        description: '炁凝指尖，三寸毫光破空而去。',
+        requiredTags: ['unarmed'],
+        apCost: 4,
+        chanCost: 20,
+        canUse: (attacker) => attacker.chan >= 20,
+        tags: ['unarmed', 'qi', 'pierce'],
+        getRange: () => [0, 1] as [number, number],
+        effects: [
+            { type: 'short_dash', maxDistance: 2 },
+            { type: 'damage', scaling: { wisdom: 0.6, strength: 0.4 }, piercingRatio: 0.5 },
+        ],
+    },
+    {
+        id: 'zhemei_shou',
+        name: '折梅手',
+        description: '折梅之手，拂穴拿脉。吸取对方身法。',
+        requiredTags: ['unarmed'],
+        apCost: 2,
+        tags: ['unarmed', 'melee', 'debuff'],
+        getRange: () => [0, 1] as [number, number],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
+            { type: 'stat_transfer', stat: 'agility', value: 1, duration: 5000 },
+        ],
+    },
     // ── 暗器系 ──
     {
         id: 'iron_pellet',
@@ -693,6 +721,20 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         ],
         onActionHitChance: (base) => base + 0.25,
     },
+    {
+        id: 'flash',
+        name: '闪光',
+        description: '以炁激发强光致盲对手，范围广，效果显著。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['debuff', 'pre_action', 'electric'],
+        getRange: () => [1, 5] as [number, number],
+        canUse: (attacker, state) => {
+            const enemy = state.characters.find((c) => c.id !== attacker.id)
+            return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
+        },
+        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 1 }],
+    },
     // ── 棍系 ──
     {
         id: 'rod_thrust',
@@ -949,20 +991,5 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                 },
             },
         ],
-    },
-    // ── 闪光 ──
-    {
-        id: 'flash',
-        name: '闪光',
-        description: '以炁激发强光致盲对手，范围广，效果显著。',
-        requiredTags: [],
-        apCost: 2,
-        tags: ['debuff', 'pre_action'],
-        getRange: () => [1, 5] as [number, number],
-        canUse: (attacker, state) => {
-            const enemy = state.characters.find((c) => c.id !== attacker.id)
-            return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
-        },
-        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 1 }],
     },
 ]

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { AttributeSet, ATTR_MIN, ATTR_ABSOLUTE_MAX } from '../entities/attributes'
+import { AttributeSet, ATTR_ABSOLUTE_MAX } from '../entities/attributes'
 
 describe('AttributeSet', () => {
     it('should initialize with default values', () => {
@@ -28,10 +28,22 @@ describe('AttributeSet', () => {
         expect(attrs.get('strength')).toBe(ATTR_ABSOLUTE_MAX)
     })
 
-    it('should clamp to minimum', () => {
+    it('should allow values below minimum without floor', () => {
         const attrs = new AttributeSet({ strength: 2 })
         attrs.modify('strength', -5)
-        expect(attrs.get('strength')).toBe(ATTR_MIN)
+        expect(attrs.get('strength')).toBe(-3)
+    })
+
+    it('should respect minValues floor', () => {
+        const attrs = new AttributeSet({ insight: 6 })
+        attrs.minValues.insight = 3
+        attrs.modify('insight', -8)
+        expect(attrs.get('insight')).toBe(3)
+        // buff 先填坑（被地板吸收的部分）再生效
+        attrs.modify('insight', 2)
+        expect(attrs.get('insight')).toBe(3)
+        attrs.modify('insight', 6)
+        expect(attrs.get('insight')).toBe(6)
     })
 
     it('should clone correctly', () => {

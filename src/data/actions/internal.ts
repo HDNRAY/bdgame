@@ -161,7 +161,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'fixed_damage', value: 20 },
             { type: 'add_debuff', buffId: 'burn', stacks: 5, chance: 1 },
-            { type: 'add_passive', passiveId: 'one_arm' },
+            { type: 'add_buff', buffId: 'one_arm_buff' },
             { type: 'remove_buff', buffId: 'overload' },
         ],
     },

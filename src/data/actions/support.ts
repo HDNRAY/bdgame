@@ -9,14 +9,25 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     // ── 防御/增益 ──
     {
         id: 'guard',
-        name: '听潮',
-        description: '凝神防守，提升招架率。',
+        name: '听潮式',
+        description: '凝神防守，如潮汐般稳固。大幅提升招架率。',
         requiredTags: ['parry'],
         apCost: 2,
         tags: ['buff', 'defense', 'pre_action'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'guard_up' }],
         canUse: (attacker, state) => !state.pendingBuffs.has(`guard_up::${attacker.id}`),
+    },
+    {
+        id: 'wind_hear',
+        name: '听风式',
+        description: '听风辩位，身随意动。提升闪避率，闪避后顺势前移。',
+        requiredTags: [],
+        apCost: 1,
+        tags: ['buff', 'defense', 'post_action'],
+        target: 'self',
+        effects: [{ type: 'add_buff', buffId: 'wind_hear_buff' }],
+        canUse: (attacker, state) => !state.pendingBuffs.has(`wind_hear_buff::${attacker.id}`),
     },
     {
         id: 'break_formation',

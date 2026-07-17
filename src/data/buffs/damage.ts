@@ -321,4 +321,16 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onCritChance: ({ layer }) => layer.restoreValue * 0.01,
         onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
     },
+    {
+        id: 'iron_back_buff',
+        name: '无相',
+        description: '玉环化甲，拳劲透体，伤害穿透。',
+        tags: ['damage'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final }) => {
+            const pierce = Math.round(final / 3)
+            return { normal: final - pierce, piercing: pierce }
+        },
+    },
 ]

@@ -367,18 +367,13 @@ export const PASSIVES: Passive[] = [
             }
         },
     },
-
     // ── 杨过 ──
     {
         id: 'one_arm',
         name: '独臂',
         description: '总有断臂之人不喜义体。无法双持。运劲更凝练，招式消耗降低1AP（最低1）。',
         tags: ['passive', 'debuff', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { agility: -2 } }],
-        actionEnhancer: (def) => ({
-            ...def,
-            apCost: Math.max(1, def.apCost - 1),
-        }),
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'one_arm_buff' }] }],
     },
     {
         id: 'dark_iron_sword_art',
@@ -469,9 +464,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'lingxi_finger',
         name: '灵犀一指',
-        description: '陆小凤绝学，空手入白刃，招架时缴械对手。灵巧+4，徒手可招架。',
+        description: '空手入白刃，招架时缴械。',
         tags: ['passive', 'buff', 'defense'],
-        effects: [{ type: 'stat_buff', attrs: { dexterity: 4 } }],
+        effects: [{ type: 'stat_buff', attrs: { strength: 1, dexterity: 3 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lingxi_finger' }] }],
     },
     {
@@ -794,6 +789,41 @@ export const PASSIVES: Passive[] = [
             {
                 condition: { type: 'battle_start' },
                 effects: [{ type: 'add_buff', buffId: 'qi_electric_buff' }],
+            },
+        ],
+    },
+    // ── 无明之明 ──
+    {
+        id: 'no_light_wisdom',
+        name: '无明之明',
+        description: '完全失去视觉，重新构建感知体系。推演也影响命中、闪避、招架与暴击。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'stat_buff', attrs: { insight: -8 } }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_light_buff' }] }],
+    },
+    // ── 听劲 ──
+    {
+        id: 'hearing_power',
+        name: '听劲',
+        description: '接触感知对手劲力流转，每次徒手击中短暂提升洞察。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            {
+                condition: { type: 'on_hit' },
+                effects: [{ type: 'add_buff', buffId: 'hearing_insight', stacks: 1 }],
+            },
+        ],
+    },
+    // ── 明镜止水 ──
+    {
+        id: 'mingjing_zhishui',
+        name: '明镜止水',
+        description: '心如明镜止水，神清目明。免疫迷惑，抵抗失心，出招省AP但推演降低。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'mingjing_zhishui_buff' }],
             },
         ],
     },

@@ -22,6 +22,7 @@ export type EffectDef =
           base?: number
           independentHits?: number
           piercing?: number
+          piercingRatio?: number
       }
     | { type: 'fixed_damage'; value: number; independentHits?: number; piercing?: number }
     | { type: 'add_debuff'; buffId: string; stacks: number; chance: number }
@@ -65,7 +66,6 @@ export type EffectDef =
     | { type: 'self_disarm' }
     | { type: 'wisdom_stat_buff'; ratio: number; attrs: AttrName[] }
     | { type: 'copy_best_passive' }
-    | { type: 'add_passive'; passiveId: string }
     | { type: 'steal_artifact' }
     | { type: 'dex_to_str'; ratio: number }
     | { type: 'weapon_tag'; tag: Tag }

@@ -40,6 +40,14 @@ export const WEAPON_DB: WeaponDef[] = [
         grantsActions: ['_spear_throw'],
     },
     {
+        id: 'iron_back_hand',
+        name: '素手无相',
+        description: '一枚古朴的玉环，以炁驱动时延展覆盖整条手臂，化作无形护甲。拳劲透体，伤人于无形。',
+        tags: ['unarmed', 'parry'],
+        range: [0, 1],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'iron_back_buff' }] }],
+    },
+    {
         id: 'broken_blade',
         name: '断刀',
         description: '一把残损的断刀。加装锁链，免疫缴械。',

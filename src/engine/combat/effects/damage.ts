@@ -132,6 +132,20 @@ export function applyDamage({
     const { isCrit, final: afterCrit } = resolveCrit(afterParry, buffed, target, attacker, engine, act)
     let final = afterCrit + totalPiercing
 
+    // 百分比穿透（按暴击后伤害计算）
+    let piercingRatioTotal = 0
+    if (act) {
+        for (const eff of act.effects ?? []) {
+            if (eff.type === 'damage' && eff.piercingRatio) {
+                const p = Math.max(1, Math.round(final * eff.piercingRatio))
+                piercingRatioTotal += p
+            }
+        }
+        if (piercingRatioTotal > 0) {
+            final += piercingRatioTotal
+        }
+    }
+
     // onAfterCritDamage 钩子：暴击后、实施伤害前，可将部分爆伤转为其他效果
     if (isCrit) {
         const damage = afterParry + totalPiercing

@@ -1,4 +1,4 @@
-import { ATTR_MIN, AttributeSet, type AttrName } from './attributes'
+import { AttributeSet, type AttrName } from './attributes'
 import { Action, type ActionDefinition, type EffectDef } from './action'
 import type { CharacterBuild } from '../../game/entities/character-build'
 import type { ActionConfig } from '../../game/entities/action-config'
@@ -495,8 +495,7 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
             }
             if (delta === 0) continue
             const cur = char.attrs.get(attr as AttrName)
-            const next = Math.max(ATTR_MIN, cur + delta)
-            char.attrs.set(attr as AttrName, next)
+            char.attrs.set(attr as AttrName, cur + delta)
         }
     },
     stat_restriction(char, eff) {

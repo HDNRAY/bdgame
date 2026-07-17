@@ -370,27 +370,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         if (!buff) return
 
         const st = e.buffId
-        // 免疫检查
-        if (engine.state.pendingBuffs.has(`elemental_immunity::${enemy.id}`) && (st === 'frost' || st === 'paralyze')) {
-            engine.emitLog({ type: 'system', message: `[冰心] ${enemy.name} 免疫 ${st}`, actorId: enemy.id })
-            return
-        }
-        if (engine.state.pendingBuffs.has(`dark_room_sense::${enemy.id}`) && st === 'sand_blind') {
-            engine.emitLog({ type: 'system', message: `[暗室抓雀功] ${enemy.name} 免疫迷眼`, actorId: enemy.id })
-            return
-        }
-        if (engine.state.pendingBuffs.has(`paralyze_immunity::${enemy.id}`) && st === 'paralyze') {
-            engine.emitLog({ type: 'system', message: `[雷体] ${enemy.name} 免疫麻痹`, actorId: enemy.id })
-            return
-        }
-        // 罡体免疫
-        if (
-            hasCcImmunity(enemy, engine.state) &&
-            (st === 'stun' || st === 'stagger' || st === 'knockdown' || st === 'fumble_chance')
-        ) {
-            engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫${buff.name}`, actorId: enemy.id })
-            return
-        }
+        // 罡体免疫（已由各 buff 的 onReceiveDebuff 接管）
 
         const stacks = e.stacks ?? 1
 
@@ -857,26 +837,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.emit('on_disarm', self, self)
         if (opponent) engine.emit('on_disarmed', self, opponent)
     },
-    add_passive({ eff, self, engine }: EffectCtx) {
-        const e = eff as Extract<EffectDef, { type: 'add_passive' }>
-        self.addPassive(e.passiveId)
-        const def = getPassive(e.passiveId)
-        if (!def) return
-        const enemy = engine.getOpponent(self.id)
-        if (!enemy) return
-        for (const slot of def.triggers ?? []) {
-            if (slot.condition.type !== 'battle_start') continue
-            if (slot.effects)
-                for (const eff2 of slot.effects)
-                    processActionEffect(eff2, { self, enemy, engine, tMs: engine.state.turn.currentTime })
-            if (slot.actionId) {
-                const action = getAction(slot.actionId)
-                if (action && action.apCost <= 2)
-                    for (const eff2 of action.effects ?? [])
-                        processActionEffect(eff2, { self, enemy, engine, tMs: engine.state.turn.currentTime, action })
-            }
-        }
-    },
+    // add_passive removed — use add_buff directly
     steal_artifact({ self, engine }: EffectCtx) {
         const enemy = engine.getOpponent(self.id)
         if (!enemy) return

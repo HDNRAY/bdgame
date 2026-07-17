@@ -35,29 +35,37 @@ export class AttributeSet {
     }
 
     get(attr: AttrName): number {
-        return this.values[attr]
+        const floor = this.minValues[attr]
+        const val = this.values[attr]
+        return floor !== undefined ? Math.max(val, floor) : val
     }
 
     set(attr: AttrName, value: number): void {
-        let clamped = Math.max(ATTR_MIN, Math.min(ATTR_ABSOLUTE_MAX, value))
-        const floor = this.minValues[attr]
-        if (floor !== undefined) clamped = Math.max(clamped, floor)
-        this.values[attr] = clamped
+        // 不设下限，地板仅在 get 时生效
+        this.values[attr] = Math.min(ATTR_ABSOLUTE_MAX, value)
     }
 
     modify(attr: AttrName, delta: number): void {
-        this.set(attr, this.get(attr) + delta)
+        this.set(attr, this.values[attr] + delta)
     }
 
     getAll(): Record<AttrName, number> {
-        return { ...this.values }
+        return ALL_ATTRS.reduce(
+            (acc, a) => {
+                acc[a] = this.get(a)
+                return acc
+            },
+            {} as Record<AttrName, number>,
+        )
     }
 
     total(): number {
-        return ALL_ATTRS.reduce((sum, a) => sum + this.values[a], 0)
+        return ALL_ATTRS.reduce((sum, a) => sum + this.get(a), 0)
     }
 
     clone(): AttributeSet {
-        return new AttributeSet({ ...this.values })
+        const c = new AttributeSet({ ...this.values })
+        c.minValues = { ...this.minValues }
+        return c
     }
 }
