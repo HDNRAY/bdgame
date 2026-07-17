@@ -28,7 +28,8 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 
 1. **Zero `as any`** — use discriminated union + switch for type narrowing. If unavoidable, justify with a comment.
 2. **Zero unused variables/imports** — `noUnusedLocals: true` + `noUnusedParameters: true` in tsconfig. Parameters that MUST exist for type signature but are truly unused get `_` prefix. Never use a `_`-prefixed variable in code.
-3. **Always run after every change (not just before commit):**
+3. **不要硬编码业务逻辑到 engine** — 优先用 buff hook（`onCritDamage` / `onAfterCritDamage` / `onDealDamage` 等）、artifact/passive effect、trigger action 等已有扩展点实现特性。避免直接修改 `src/engine/` 下的核心战斗管道。
+4. **Always run after every change (not just before commit):**
     ```bash
     npx tsc --noEmit -p tsconfig.app.json  # strict type check
     npx eslint src/ --quiet                # eslint zero errors

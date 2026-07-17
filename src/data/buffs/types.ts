@@ -91,6 +91,8 @@ export interface BuffDef extends GameEntity {
     onCritTakenChance?: (ctx: BuffHookCtx) => number
     /** 暴击伤害修正钩子（applyDamage 暴击判定时自动调用，返回加算值） */
     onCritDamage?: (ctx: BuffHookCtx) => number
+    /** 暴击伤害后钩子（计算完爆伤后、实施伤害前调用，返回要扣除的伤害量，用于将爆伤转为其他效果）。 */
+    onAfterCritDamage?: (ctx: AfterCritDamageCtx) => number
     /** 回合结束回调（turn_end 时调用，不依赖命中） */
     onTurnEnd?: (ctx: BuffHookCtx) => void
     /** 层数上限覆盖钩子（raw=原始 max，返回覆盖后的新上限） */
@@ -129,4 +131,12 @@ export interface ReceiveDebuffCtx {
     engine: BattleEngine
     buffId: string
     stacks: number
+}
+
+/** onAfterCritDamage 钩子上下文 */
+export interface AfterCritDamageCtx extends BuffHookCtx {
+    /** 暴击加成前的伤害（招架后 + 破甲穿透） */
+    damage: number
+    /** 暴击加成后的完整伤害 */
+    critDamage: number
 }

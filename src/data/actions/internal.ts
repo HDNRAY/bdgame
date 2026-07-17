@@ -81,16 +81,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'remove_buff', buffId: 'fusi_crit_stack' }],
     },
     {
-        id: '_blood_thorn_bleed',
-        name: '血棘',
-        description: '暴击引发流血。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger', 'internal'],
-        target: 'enemy',
-        effects: [{ type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 1 }],
-    },
-    {
         id: '_iaijutsu_ready',
         name: '居合',
         description: '',

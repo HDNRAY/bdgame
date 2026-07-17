@@ -150,9 +150,11 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'blood_thorn_ring',
         name: '血棘戒',
-        description: '暴击时在伤口注入血气，引发持续流血。',
+        description: '暴击时向创口渡入棘炁，引发持续流血。暴击的额外伤害转为流血层数。',
         tags: ['trigger', 'bleed'],
-        triggers: [{ condition: { type: 'on_crit' }, actionId: '_blood_thorn_bleed' }],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'blood_thorn_suppress' }] },
+        ],
     },
     {
         id: 'wisdom_talisman',
@@ -261,10 +263,7 @@ export const ARTIFACTS: Artifact[] = [
         description: '剧毒入体，麻痹神经。每次中毒时叠加一层麻痹。',
         tags: ['debuff', 'poison', 'trigger', 'paralyze'],
         triggers: [
-            {
-                condition: { type: 'on_poison' },
-                effects: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 }],
-            },
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'western_poison_buff' }] },
         ],
     },
     {

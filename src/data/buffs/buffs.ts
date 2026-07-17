@@ -516,20 +516,6 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        id: 'buer_sword',
-        name: '不二剑灵',
-        description: '起手暴击大增但身法略滞，逐回合恢复。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.04,
-        onDodgeChance: ({ layer }) => -(layer.restoreValue * 0.01),
-        onTurnEnd: ({ layer }) => {
-            if (layer.restoreValue > 0) {
-                layer.restoreValue = Math.max(0, layer.restoreValue - 1)
-            }
-        },
-    },
-    {
         id: 'yu_du_shu',
         name: '剧毒吐纳',
         description: '剧毒吐纳，每10秒释放毒素。血量充裕时仅降对手推演；受伤过重时毒雾失控。',
@@ -609,26 +595,6 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        id: 'martial_arts_dodge',
-        name: '武学·避',
-        description: '暴击推演出的闪避预判，每层闪避+1%、招架+1%。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 2 },
-        onDodgeChance: ({ layer }) => layer.restoreValue * 0.01,
-        onParryChance: ({ layer }) => layer.restoreValue * 0.01,
-    },
-    {
-        id: 'martial_arts_crit',
-        name: '武学·破',
-        description: '推演出的破绽洞察，每层暴击+1%、爆伤+1%。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 2 },
-        onCritChance: ({ layer }) => layer.restoreValue * 0.01,
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
-    },
-    {
         id: 'martial_arts_archive',
         name: '武学活宝典',
         description: '通晓天下武学，以推演预判。闪避/招架→武学·破+1层；暴击→武学·避+1层。',
@@ -671,14 +637,6 @@ export const BUFF_DB: BuffDef[] = [
             const ins = target.attrs.get('insight')
             return calcParryChance(0, dex, ins) / 2
         },
-    },
-    {
-        id: 'quick_glance_buff',
-        name: '匆匆一瞥',
-        description: '暴击伤害提升。',
-        tags: ['buff'],
-        stacking: { type: 'none' },
-        onCritDamage: () => 0.25,
     },
     {
         id: 'draw_sword_combo_buff',
@@ -848,19 +806,6 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'independent' },
         tickInterval: 1000,
         onTickHeal: ({ layer }) => Math.max(0.1, round1(layer.restoreValue / 5)),
-    },
-    // ── 如意劲 ──
-    {
-        id: 'ru_yi_jin',
-        name: '如意劲',
-        description: '暴击时消耗3缠，灵巧×3%暴伤。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onCritDamage: ({ attacker }) => {
-            if (attacker.chan < 3) return 0
-            attacker.spendChan(3)
-            return Math.round(attacker.attrs.get('dexterity') * 0.03 * 10) / 10
-        },
     },
     // ── 经络初鉴 ──
     {
@@ -1063,6 +1008,41 @@ export const BUFF_DB: BuffDef[] = [
             }
             state.turn.removeEvents(`tick_buff_qi_electric_buff::${char.id}`)
             return 0
+        },
+    },
+    // ── 西域奇毒 ──
+    {
+        id: 'western_poison_buff',
+        name: '西域奇毒',
+        description: '剧毒入体，麻痹神经。每次中毒时叠加一层麻痹。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDebuffApplied: ({ debuffId, self, enemy, engine }) => {
+            if (debuffId !== 'poison' || !engine) return
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
+                { self, enemy, engine, tMs: engine.state.turn.currentTime },
+            )
+        },
+    },
+    // ── 血棘戒（爆伤转流血） ──
+    {
+        id: 'blood_thorn_suppress',
+        name: '血棘·压制',
+        description: '暴击时向创口渡入棘炁，额外伤害越高流血越烈。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onAfterCritDamage: ({ damage, critDamage, attacker, target, engine, state }) => {
+            if (!engine) return 0
+            const extraDamage = critDamage - damage
+            const bleedStacks = Math.max(1, Math.floor(extraDamage / 5))
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },
+                { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
+            )
+            return extraDamage
         },
     },
 ]

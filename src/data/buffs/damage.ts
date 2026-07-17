@@ -277,4 +277,48 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             return Math.round((final + bonus) * 10) / 10
         },
     },
+    {
+        id: 'quick_glance_buff',
+        name: '匆匆一瞥',
+        description: '暴击伤害提升。',
+        tags: ['buff', 'damage'],
+        stacking: { type: 'none' },
+        onCritDamage: () => 0.25,
+    },
+    {
+        id: 'ru_yi_jin',
+        name: '如意劲',
+        description: '暴击时消耗3缠，灵巧×3%暴伤。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onCritDamage: ({ attacker }) => {
+            if (attacker.chan < 3) return 0
+            attacker.spendChan(3)
+            return Math.round(attacker.attrs.get('dexterity') * 0.03 * 10) / 10
+        },
+    },
+    {
+        id: 'buer_sword',
+        name: '不二剑灵',
+        description: '起手暴击大增但身法略滞，逐回合恢复。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.04,
+        onDodgeChance: ({ layer }) => -(layer.restoreValue * 0.01),
+        onTurnEnd: ({ layer }) => {
+            if (layer.restoreValue > 0) {
+                layer.restoreValue = Math.max(0, layer.restoreValue - 1)
+            }
+        },
+    },
+    {
+        id: 'martial_arts_crit',
+        name: '武学·破',
+        description: '推演出的破绽洞察，每层暴击+1%、爆伤+1%。',
+        tags: ['damage'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 2 },
+        onCritChance: ({ layer }) => layer.restoreValue * 0.01,
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
+    },
 ]

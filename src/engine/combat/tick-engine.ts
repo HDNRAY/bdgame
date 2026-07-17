@@ -1,6 +1,6 @@
 import type { Character } from '../entities/character'
 import type { BattleEngine } from './engine'
-import { calcPoisonTickInterval, calcStunAttrRatio, calcStunAttrDelta } from '../calc/damage'
+import { calcPoisonTickInterval, calcStunAttrRatio, calcStunAttrDelta, calcBleedDamage } from '../calc/damage'
 import { getBuff } from '../../data/buffs'
 import type { BuffDef } from '../../data/buffs'
 import { BattleLog } from './battle-log'
@@ -9,11 +9,6 @@ import type { BuffLayer } from './types'
 import { ATTR_CN } from '../entities/attributes'
 import { DMG_PER_POISON_TICK } from '../constants'
 import { round1 } from '../util/math'
-
-/** 流血伤害计算 */
-function triggerBleed(stacks: number): number {
-    return Math.floor(stacks * 1.5)
-}
 
 export interface AfterApplyDebuffCtx {
     enemy: Character
@@ -246,7 +241,7 @@ export class TickEngine {
         const entry = engine.state.pendingBuffs.get(key)
         if (!entry) return
         const stacks = entry.restoreValue
-        const dmg = triggerBleed(stacks)
+        const dmg = calcBleedDamage(stacks)
         if (dmg > 0) {
             owner.takeDamage(dmg)
             const bt = ((entry.extra?.bleedTriggerCount as number) ?? 0) + 1

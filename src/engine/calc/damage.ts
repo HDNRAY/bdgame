@@ -155,6 +155,11 @@ export function calcPoisonTicksPerStack(wisdom: number): number {
     return Math.max(5, Math.min(12, Math.round((220 - 7 * wisdom) / 16)))
 }
 
+/** 流血伤害：floor(层数 × 1.5) */
+export function calcBleedDamage(stacks: number): number {
+    return Math.floor(stacks * 1.5)
+}
+
 /** 掷骰：返回 roll 结果和是否成功 */
 export function calcRoll(chance: number): { roll: number; success: boolean } {
     const roll = Math.random()

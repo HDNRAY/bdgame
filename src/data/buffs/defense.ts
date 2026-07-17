@@ -487,4 +487,14 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             return 0
         },
     },
+    {
+        id: 'martial_arts_dodge',
+        name: '武学·避',
+        description: '暴击推演出的闪避预判，每层闪避+1%、招架+1%。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 2 },
+        onDodgeChance: ({ layer }) => layer.restoreValue * 0.01,
+        onParryChance: ({ layer }) => layer.restoreValue * 0.01,
+    },
 ]

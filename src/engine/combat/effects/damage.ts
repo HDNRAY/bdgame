@@ -130,7 +130,35 @@ export function applyDamage({
     const { parried, final: afterParry } = resolveParry(buffed, target, attacker, engine, act)
     const blocked = buffed - afterParry
     const { isCrit, final: afterCrit } = resolveCrit(afterParry, buffed, target, attacker, engine, act)
-    const final = afterCrit + totalPiercing
+    let final = afterCrit + totalPiercing
+
+    // onAfterCritDamage 钩子：暴击后、实施伤害前，可将部分爆伤转为其他效果
+    if (isCrit) {
+        const damage = afterParry + totalPiercing
+        const critDamage = afterCrit + totalPiercing
+        let converted = 0
+        for (const [key, layer] of engine.state.pendingBuffs) {
+            const parts = key.split('::')
+            if (parts.length < 2 || parts[1] !== attacker.id) continue
+            const def = getBuff(parts[0])
+            if (!def?.onAfterCritDamage) continue
+            converted += def.onAfterCritDamage({
+                damage,
+                critDamage,
+                final: critDamage,
+                raw,
+                target,
+                attacker,
+                engine,
+                state: engine.state,
+                layer,
+                source: act,
+            })
+        }
+        if (converted > 0) {
+            final -= Math.min(converted, critDamage - damage)
+        }
+    }
 
     target.takeDamage(final, engine)
 
