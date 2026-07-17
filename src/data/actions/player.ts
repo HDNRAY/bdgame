@@ -316,8 +316,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'dart_throw',
-        name: '梅花镖',
-        description: '扬手一镖，例不虚发。',
+        name: '五芒镖',
+        description: '五芒破空，轨迹莫测。',
         requiredTags: [],
         apCost: 2,
         tags: ['slash', 'range', 'thrown'],
