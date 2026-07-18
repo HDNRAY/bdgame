@@ -647,7 +647,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['slash', 'burn'],
         getRange: (wr) => [wr[0], wr[1] + 1],
         effects: [
-            { type: 'damage', scaling: { strength: 0.5, wisdom: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.2 } },
             { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
         ],
     },

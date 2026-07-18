@@ -85,14 +85,16 @@ export class RewardPool {
 
     private _getPassivePool(): RewardEntity[] {
         if (!this._passivePool) {
-            this._passivePool = [...PASSIVES] as RewardEntity[]
+            // 排除 inherent（血脉限定/特性被动，如独臂、凝炁诀）
+            this._passivePool = [...PASSIVES].filter((p) => !p.tags.includes('inherent')) as RewardEntity[]
         }
         return this._passivePool
     }
 
     private _getArtifactPool(): RewardEntity[] {
         if (!this._artifactPool) {
-            this._artifactPool = [...ARTIFACTS] as RewardEntity[]
+            // 排除 inherent（义体/血脉限定奇物，如钛合金臂、天生道种）
+            this._artifactPool = [...ARTIFACTS].filter((a) => !a.tags.includes('inherent')) as RewardEntity[]
         }
         return this._artifactPool
     }
@@ -106,7 +108,10 @@ export class RewardPool {
 
     private _getWeaponPool(): RewardEntity[] {
         if (!this._weaponPool) {
-            this._weaponPool = [...WEAPON_DB, ...STARTING_WEAPONS] as RewardEntity[]
+            // 排除 imperial（御物武器，仅通过天工坊事件获得）
+            this._weaponPool = [...WEAPON_DB, ...STARTING_WEAPONS].filter(
+                (w) => !w.tags.includes('imperial'),
+            ) as RewardEntity[]
         }
         return this._weaponPool
     }

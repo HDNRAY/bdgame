@@ -419,7 +419,7 @@ export const PASSIVES: Passive[] = [
         name: '玄女剑法',
         description: '独臂神尼所创上乘剑法，以巧借力、以奇制胜，灵巧化为力道。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'dex_to_str', ratio: 0.25 }],
+        effects: [{ type: 'dex_to_str', ratio: 0.3 }],
     },
     {
         id: 'stone_skin',
@@ -654,8 +654,8 @@ export const PASSIVES: Passive[] = [
     {
         id: 'ningqi_jue',
         name: '凝炁诀',
-        description: '以炁劲贯通全身，所有招式带炁。',
-        tags: ['passive', 'qi'],
+        description: '药屋家传呼吸法，血脉限定的炼炁诀。以炁劲贯通全身，所有招式带炁。外人无法修习。',
+        tags: ['passive', 'qi', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 } }],
         actionEnhancer: (def) => {
             if (def.tags?.includes('qi')) return def

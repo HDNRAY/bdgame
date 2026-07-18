@@ -1084,7 +1084,7 @@ export const BUFF_DB: BuffDef[] = [
         attrMods: { wisdom: -2 },
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId === 'confuse') return 0
-            if (ctx.buffId === 'fumble_chance' || ctx.buffId === 'fumble_chance_temp') {
+            if (ctx.buffId === 'fumble_chance_temp') {
                 const { success } = calcRoll(0.6)
                 if (success) return 0
             }
