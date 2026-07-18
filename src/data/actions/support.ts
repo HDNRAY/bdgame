@@ -13,7 +13,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '凝神防守，如潮汐般稳固。大幅提升招架率。',
         requiredTags: ['parry'],
         apCost: 2,
-        tags: ['buff', 'defense', 'pre_action'],
+        tags: ['buff', 'defense', 'post_action'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'guard_up' }],
         canUse: (attacker, state) => !state.pendingBuffs.has(`guard_up::${attacker.id}`),

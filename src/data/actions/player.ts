@@ -914,11 +914,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     // ── 特殊系 ──
     {
         id: 'wan_liu_gui_zong',
-        name: '万流归宗',
-        description: '酒醉归宗之势，完全招架远程攻击。',
+        name: '归宗式',
+        description: '万流归宗之势，完全招架远程攻击。',
         requiredTags: ['unarmed'],
         apCost: 1,
-        tags: ['defense', 'unarmed', 'post_action'],
+        tags: ['defense', 'unarmed', 'post_action', 'stance'],
         canUse: (attacker) => attacker.chan >= 2,
         effects: [{ type: 'add_buff', buffId: 'wan_liu_gui_zong' }],
     },

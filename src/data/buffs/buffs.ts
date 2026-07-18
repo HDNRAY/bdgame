@@ -1009,10 +1009,10 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.01,
-        onDodgeChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.01,
-        onParryChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.01,
-        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.005,
+        onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.006,
+        onDodgeChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.006,
+        onParryChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.006,
+        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.0006,
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId === 'sand_blind') return 0
             return undefined

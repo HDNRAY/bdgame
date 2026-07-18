@@ -324,10 +324,11 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'iron_back_buff',
         name: '无相',
-        description: '玉环化甲，拳劲透体，伤害穿透。',
+        description: '玉环化甲，拳劲透体，伤害穿透。免疫缴械。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
+        onDisarmChance: () => -1,
         onDealDamage: ({ final }) => {
             const pierce = Math.round(final / 3)
             return { normal: final - pierce, piercing: pierce }

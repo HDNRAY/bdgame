@@ -12,15 +12,20 @@ export const ATTR_CN: Record<string, string> = {
     wisdom: '推演', // 触发槽数(max(1, floor(wis/4)))、炁效果
 }
 
-export const ATTR_MIN = 1
-export const ATTR_NORMAL_MAX = 20
 export const ATTR_ABSOLUTE_MAX = 30
 
 /** 属性容器 */
 export class AttributeSet {
     private values: Record<AttrName, number>
     /** 各属性下限（被动/天赋设置），空 = 不限制 */
-    minValues: Partial<Record<AttrName, number>> = {}
+    minValues: Partial<Record<AttrName, number>> = {
+        strength: 3,
+        vitality: 3,
+        agility: 3,
+        dexterity: 3,
+        insight: 3,
+        wisdom: 3,
+    }
 
     constructor(values?: Partial<Record<AttrName, number>>) {
         this.values = {

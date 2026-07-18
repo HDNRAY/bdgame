@@ -498,6 +498,15 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
             char.attrs.set(attr as AttrName, cur + delta)
         }
     },
+    stat_ratio(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'stat_ratio' }>
+        for (const [attr, ratio] of Object.entries(e.attrs)) {
+            const base = char.build.baseAttrs[attr as AttrName] ?? 0
+            const keep = Math.floor(base * (ratio as number))
+            const reduction = base - keep
+            if (reduction > 0) char.attrs.modify(attr as AttrName, -reduction)
+        }
+    },
     stat_restriction(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'stat_restriction' }>
         char.statRestrictionChecks.push(e.check)

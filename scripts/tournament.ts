@@ -1,4 +1,5 @@
 // npx tsx scripts/tournament.ts [N=100] [id]
+/// <reference types="node" />
 import { writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'

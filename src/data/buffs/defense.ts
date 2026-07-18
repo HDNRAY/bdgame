@@ -41,8 +41,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         id: 'guard_up',
         name: '守势',
         description: '凝神防守，招架率大幅提升。',
-        tags: ['defense'],
-        expiry: { type: 'duration', ms: 8000 },
+        tags: ['defense', 'stance'],
+        expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
         onParryChance: () => 0.5,
     },
@@ -50,16 +50,27 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         id: 'wind_hear_buff',
         name: '听风',
         description: '听风辩位，闪避率提升。闪避后向对手前移。',
-        tags: ['defense'],
-        expiry: { type: 'duration', ms: 8000 },
+        tags: ['defense', 'stance'],
+        expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
         onDodgeChance: () => 0.2,
         onDodged: ({ target, attacker, engine, state }) => {
             if (!engine) return
             processActionEffect(
-                { type: 'short_dash', maxDistance: 3 },
+                { type: 'short_dash', maxDistance: 2 },
                 { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
             )
+        },
+    },
+    {
+        id: 'wan_liu_gui_zong',
+        name: '归宗',
+        description: '完全招架远程攻击。',
+        tags: ['defense', 'stance'],
+        expiry: { type: 'duration', ms: 5000 },
+        onParryChance: ({ source }) => {
+            if (!source?.tags.includes('range')) return 0
+            return 1
         },
     },
     {
@@ -305,14 +316,6 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         },
     },
     {
-        id: 'wan_liu_gui_zong',
-        name: '归宗势',
-        description: '完全招架远程攻击。',
-        tags: ['defense'],
-        expiry: { type: 'duration', ms: 3000 },
-        onParryChance: () => 1,
-    },
-    {
         id: 'zui_quan_dodge',
         name: '醉步',
         description: '醉态蹒跚，闪避率+5%。',
@@ -462,7 +465,6 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         onParryChance: ({ attacker }) => attacker.attrs.get('insight') * 0.005,
         onDodgeChance: ({ attacker }) => attacker.attrs.get('insight') * 0.005,
     },
-    // ── 逆转经脉（药屋·黛玄） ──
     {
         id: 'ni_zhuan_jing_mai',
         name: '逆转经脉',

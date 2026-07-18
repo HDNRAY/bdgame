@@ -654,7 +654,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'ningqi_jue',
         name: '凝炁诀',
-        description: '以炁劲贯通全身，全属性+1，所有招式带炁。',
+        description: '以炁劲贯通全身，所有招式带炁。',
         tags: ['passive', 'qi'],
         effects: [{ type: 'stat_buff', attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 } }],
         actionEnhancer: (def) => {
@@ -747,7 +747,6 @@ export const PASSIVES: Passive[] = [
             { condition: { type: 'turn_end' }, actionId: 'spear_guard' },
         ],
     },
-    // ── 药屋·黛玄 ──
     {
         id: 'ni_zhuan_jing_mai',
         name: '逆转经脉',
@@ -798,7 +797,7 @@ export const PASSIVES: Passive[] = [
         name: '无明之明',
         description: '完全失去视觉，重新构建感知体系。推演也影响命中、闪避、招架与暴击。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'stat_buff', attrs: { insight: -8 } }],
+        effects: [{ type: 'stat_ratio', attrs: { insight: 0.5 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_light_buff' }] }],
     },
     // ── 听劲 ──

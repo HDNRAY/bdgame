@@ -68,6 +68,7 @@ export type EffectDef =
     | { type: 'copy_best_passive' }
     | { type: 'steal_artifact' }
     | { type: 'dex_to_str'; ratio: number }
+    | { type: 'stat_ratio'; attrs: Partial<Record<AttrName, number>> }
     | { type: 'weapon_tag'; tag: Tag }
     | {
           type: 'stat_restriction'

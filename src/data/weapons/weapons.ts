@@ -155,7 +155,6 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [0, 2],
         effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 1, strength: 1 } }],
     },
-    // ── 千机（药屋·黛玄） ──
     {
         id: 'qianji',
         name: '千机',
