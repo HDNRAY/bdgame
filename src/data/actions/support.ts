@@ -152,7 +152,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '停一息，蓄势一分。每层命中+3%、暴击+2%、暴伤+1%，但层数越高越易失手。',
         requiredTags: [],
         apCost: 1,
-        tags: ['buff', 'pre_action'],
+        tags: ['buff', 'post_action'],
         effects: [{ type: 'add_buff', buffId: 'nineteen_stops', stacks: 1 }],
         maxUses: 19,
         canUse: (attacker, state) => {

@@ -474,7 +474,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         tags: ['pierce', 'melee', 'buff', 'qi'],
         effects: [
-            { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.6 },
             { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
             { type: 'damage', scaling: { agility: 0.3, dexterity: 0.2 } },
         ],

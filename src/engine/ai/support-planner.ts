@@ -5,7 +5,7 @@ import { getBuff } from '../../data/buffs'
 import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
 
-/** 按阶段选择辅助招式，返回最多 1 个指令 */
+/** 按阶段选择辅助招式 */
 export function planSupportActions(
     attacker: Character,
     state: BattleState,
@@ -14,6 +14,7 @@ export function planSupportActions(
     blacklist?: string[],
 ): ActionCommand[] {
     const cmds: ActionCommand[] = []
+    const pickedIds = new Set<string>()
 
     // 按优先级排序
     const sorted = [...attacker.actions]
@@ -39,8 +40,9 @@ export function planSupportActions(
             return pb - pa
         })
 
-    // 最多取 1 个
+    // 取多个，但同一招式不出现两次
     for (const inst of sorted) {
+        if (pickedIds.has(inst.id)) continue
         if (apRemaining < inst.apCost) continue
         // 收招阶段跳过 def.canUse 和条件检查（条件在主招执行后才满足，引擎执行时会再验证）
         if (inst.def.canUse && phase === 'pre_action' && !inst.def.canUse(attacker, state)) continue
@@ -57,7 +59,8 @@ export function planSupportActions(
         if (phase === 'pre_action' && hasActiveBuff(attacker, state, inst.def)) continue
 
         cmds.push({ type: 'support', actionId: inst.id })
-        break // 每阶段最多 1 个
+        pickedIds.add(inst.id)
+        apRemaining -= inst.apCost
     }
 
     return cmds
