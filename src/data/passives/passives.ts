@@ -136,7 +136,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'ice_heart',
         name: '冰心诀',
-        description: '寒冰之心，万邪不侵。免疫灼烧、冰霜、麻痹。',
+        description: '冰心玉壶，免疫霜冻，对麻痹、灼烧有50%几率免疫。',
         tags: ['passive', 'defense'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'elemental_immunity' }] },

@@ -87,12 +87,16 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'elemental_immunity',
         name: '冰心',
-        description: '免疫冰霜、麻痹。',
+        description: '冰心玉壶，免疫霜冻，对麻痹、灼烧有50%几率免疫。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId === 'frost') return 0
             if (ctx.buffId === 'paralyze') {
+                const { success } = calcRoll(0.5)
+                if (success) return 0
+            }
+            if (ctx.buffId === 'burn') {
                 const { success } = calcRoll(0.5)
                 if (success) return 0
             }

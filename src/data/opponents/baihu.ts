@@ -17,14 +17,10 @@ export const BAIHU: OpponentDef = {
         weapon('frost_twin_blades'),
         action('heavy_slash'),
         action('guard'),
+        artifact('wisdom_talisman'),
         action('nineteen_stops'),
         // 听潮九剑
         // 9
     ],
-    actionConfigs: [
-        { actionId: 'nineteen_stops' }, // AI 出招顺序
-        { actionId: 'light_slash' }, // AI 出招顺序
-        { actionId: 'heavy_slash' }, // AI 出招顺序
-        { actionId: 'guard', triggerId: 'on_dodged' },
-    ],
+    actionConfigs: [{ actionId: 'light_slash', triggerId: 'on_dodged' }],
 }

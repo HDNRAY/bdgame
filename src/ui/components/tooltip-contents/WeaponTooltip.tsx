@@ -29,6 +29,17 @@ export function WeaponTooltip({ weapon }: WeaponTooltipProps) {
                 </div>
             )}
             {weapon.effects && weapon.effects.length > 0 && <EffectList effects={weapon.effects} />}
+            {weapon.grantsActions && weapon.grantsActions.length > 0 && (
+                <div className="tt-extra" style={{ marginTop: 'var(--sp-xxs)' }}>
+                    <div className="tt-label">赋予招式:</div>
+                    <div className="tt-flex-wrap">
+                        {weapon.grantsActions.map((id) => {
+                            const def = getAction(id)
+                            return def ? <EntityItem key={id} entity={def} type="action" /> : null
+                        })}
+                    </div>
+                </div>
+            )}
             {weapon.summon && (
                 <div className="tt-extra" style={{ marginTop: 'var(--sp-xxs)' }}>
                     <div className="tt-label">召唤: {weapon.summon.name}</div>

@@ -150,6 +150,20 @@ export function describeEffect(eff: EffectDef): string[] {
         // case 'add_passive': removed — use add_buff directly
         case 'dex_to_str':
             return [`以巧借力: 灵巧×${eff.ratio} → 力道`]
+        case 'functional_damage':
+            return ['函数伤害: 视条件而定']
+        case 'self_disarm':
+            return ['自卸武器']
+        case 'copy_best_passive':
+            return ['复制对手功法']
+        case 'stat_ratio': {
+            const parts = Object.entries(eff.attrs).map(([k, v]) => `${ATTR_CN[k] ?? k}×${v}`)
+            return [`属性比率: ${parts.join(', ')}`]
+        }
+        case 'weapon_tag':
+            return [`武器标签: ${eff.tag}`]
+        case 'stat_restriction':
+            return ['属性限制']
         default:
             return [`[未知效果: ${effType}]`]
     }
