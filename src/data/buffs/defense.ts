@@ -496,17 +496,18 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'energy_shield_buff',
         name: '能量护盾',
-        description: '吸收10点以下伤害，共50点。AP上限-1。',
+        description: '吸收6点以下伤害，共50点。AP上限-1。',
         tags: ['buff', 'craft', 'defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         maxApMod: -1,
         onTakeDamage: ({ final, target, engine, layer }) => {
-            if (final <= 0 || final >= 10 || !engine) return final
+            if (final <= 0 || !engine) return final
             if (!layer.extra) layer.extra = { absorbed: 0 }
             const prev = (layer.extra.absorbed as number) ?? 0
             const remaining = 50 - prev
-            const absorb = Math.min(final, remaining)
+            if (remaining <= 0) return final
+            const absorb = Math.min(6, final, remaining)
             const overflow = final - absorb
             const newVal = prev + absorb
             layer.extra.absorbed = newVal
@@ -516,7 +517,6 @@ export const DEFENSE_BUFFS: BuffDef[] = [
                     message: `[能量护盾] 耗尽！吸收${absorb}点（50/50）${overflow > 0 ? `，溢出${overflow}点` : ''}`,
                     actorId: target.id,
                 })
-                // 恢复 AP 上限再移除自身
                 if (layer.mods?.maxApMod) {
                     target.maxApMod -= layer.mods.maxApMod as number
                     target.capAp()
@@ -529,7 +529,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
                 message: `[能量护盾] 吸收${absorb}点（${Math.round(newVal * 10) / 10}/50）`,
                 actorId: target.id,
             })
-            return 0
+            return Math.max(0, Math.round(overflow * 10) / 10)
         },
     },
     {

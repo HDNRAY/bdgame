@@ -314,7 +314,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'soft_hedgehog_mail',
         name: '软猬甲',
         description: '天工锻造的软猬甲衣，柔韧而多刺。减免所有伤害；受拳脚攻击时反伤并令对手流血。',
-        tags: ['defense', 'inherent', 'craft'],
+        tags: ['defense', 'craft'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'soft_armor' }] }],
     },
     {
@@ -562,14 +562,14 @@ export const ARTIFACTS: Artifact[] = [
         name: '喷气式机动装置',
         description: '天工锻造的喷气推进装置，大幅提升移动能力，免疫击倒。',
         tags: ['craft', 'buff'],
-        effects: [{ type: 'move_efficiency', value: 0.3 }],
+        effects: [{ type: 'move_efficiency', value: 0.2 }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rocket_boost' }] }],
     },
     // ── 能量护盾 ──
     {
         id: 'energy_shield',
         name: '能量护盾',
-        description: '天工锻造的能量护盾发生器，AP上限-1，完全吸收10点以下伤害，共50点。耗尽后解除限制。',
+        description: '天工锻造的能量护盾发生器，AP上限-1，完全吸收6点以下伤害，共50点。耗尽后解除限制。',
         tags: ['craft', 'defense'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'energy_shield_buff' }] },

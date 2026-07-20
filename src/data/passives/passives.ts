@@ -522,7 +522,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yu_du_shu',
         name: '毒炁外泄',
-        description: '毒雾护体，每10秒释放毒素。血量充裕时仅降对手推演；受伤过重时毒雾失控。',
+        description: '毒雾护体，每8秒释放毒素。血量越少，毒雾越烈。',
         tags: ['passive', 'buff', 'poison'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yu_du_shu' }] }],
     },
@@ -695,9 +695,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'wheelchair_lightness',
         name: '轮椅轻功',
-        description: '秘传轮椅术，以炁驱轮，如履平地。移动效率+50%。',
+        description: '秘传轮椅术，以炁驱轮，如履平地。移动效率+30%。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'move_efficiency', value: 0.4 }],
+        effects: [{ type: 'move_efficiency', value: 0.3 }],
     },
     {
         id: 'sekai_heroism',
@@ -782,7 +782,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'qi_electric_conversion',
         name: '炁电转换',
-        description: '以炁驱动装备，每件craft/implant装备提升属性。',
+        description: '以炁驱动装备，身上的天工造物与义体越多、推演越高，力道、身法、灵巧提升越多。',
         tags: ['passive', 'buff', 'electric', 'craft'],
         triggers: [
             {

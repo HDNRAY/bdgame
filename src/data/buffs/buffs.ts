@@ -522,30 +522,31 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yu_du_shu',
         name: '剧毒吐纳',
-        description: '剧毒吐纳，每10秒释放毒素。血量充裕时仅降对手推演；受伤过重时毒雾失控。',
+        description: '剧毒吐纳，每8秒释放毒素。血量越少，毒雾越烈。',
         tags: [],
         expiry: { type: 'permanent' },
-        tickInterval: 10000,
+        tickInterval: 8000,
         onTickDamage: ({ attacker: self, engine }) => {
             if (!engine) return 0
             const target = engine.getOpponent(self.id)
             if (!target) return 0
             const tMs = engine.state.turn.currentTime
-            if (self.hp / self.maxHp < 0.7) {
-                processActionEffect(
-                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
-                    { self, enemy: target, engine, tMs },
-                )
-                processActionEffect(
-                    { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
-                    { self, enemy: target, engine, tMs },
-                )
-            } else {
-                processActionEffect(
-                    { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 1 },
-                    { self, enemy: target, engine, tMs },
-                )
-            }
+            const hpRatio = self.hp / self.maxHp
+            const debuffChance = Math.min(1, Math.max(0, (0.8 - hpRatio) / 0.6))
+
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: debuffChance },
+                { self, enemy: target, engine, tMs },
+            )
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: debuffChance },
+                { self, enemy: target, engine, tMs },
+            )
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 1 },
+                { self, enemy: target, engine, tMs },
+            )
+
             return 0
         },
     },
@@ -977,7 +978,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'qi_electric_buff',
         name: '炁电转换',
-        description: '以炁驱动装备，力道、身法、灵巧提升。',
+        description: '以炁驱动装备，身上的天工造物与义体越多、推演越高，力道、身法、灵巧提升越多。',
         tags: ['buff', 'craft', 'electric'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -986,7 +987,7 @@ export const BUFF_DB: BuffDef[] = [
             if (layer.extra?.applied) return 0
             const count = char.artifactDefs.filter((a) => a.tags.some((t) => t === 'craft' || t === 'implant')).length
             const wis = char.attrs.get('wisdom')
-            const bonus = Math.floor((wis * count) / 15)
+            const bonus = Math.floor((count * (wis + 18)) / 56)
             const mods = applyAttrMods(char, state, { strength: bonus, agility: bonus, dexterity: bonus }, '炁电转换')
             layer.mods = { ...mods }
             layer.extra = { applied: true, count, wis, bonus }
