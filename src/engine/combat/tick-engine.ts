@@ -30,7 +30,7 @@ export class TickEngine {
             case 'poison':
                 return this.#afterApplyPoison(enemy, engine, tMs, layer)
             case 'burn':
-                return this.#afterApplyBurn(enemy, engine, tMs)
+                return this.#afterApplyBurn(enemy, engine)
         }
     }
 
@@ -125,8 +125,13 @@ export class TickEngine {
         engine.state.turn.scheduleSystemEventAt(`tick_poison_${enemy.id}`, tMs + interval, 'tick_poison')
     }
 
-    #afterApplyBurn(enemy: Character, engine: BattleEngine, tMs: number): void {
-        engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, tMs + 1000, 'tick_burn')
+    #afterApplyBurn(enemy: Character, engine: BattleEngine): void {
+        // 已有 tick 在队列中时不再重复调度
+        const existing = engine.state.turn.entries.find((e) => e.type === 'system' && e.id === `tick_burn_${enemy.id}`)
+        if (existing) return
+        // 用 eventTime + actionTimeOffset 算实际执行时间，而非 _tMs（不含 offset）
+        const now = engine.state.eventTime + engine.state.actionTimeOffset
+        engine.state.turn.scheduleSystemEventAt(`tick_burn_${enemy.id}`, now + 1000, 'tick_burn')
     }
 
     /** 中毒 tick 伤害 */
@@ -143,14 +148,32 @@ export class TickEngine {
         }
         const char = engine.getCharacter(charId)
         if (!char) return { nextInterval: 0 }
-        char.takeDamage(dmg)
+        // onDebuffTick：遍历目标 buff 修改 DOT 伤害
+        let finalDmg = dmg
+        for (const [bk] of engine.state.pendingBuffs) {
+            const [buffId, charId2] = bk.split('::')
+            if (charId2 !== charId) continue
+            const bDef = getBuff(buffId)
+            if (!bDef?.onDebuffTick) continue
+            const layer2 = engine.state.pendingBuffs.get(bk)
+            if (!layer2) continue
+            const result = bDef.onDebuffTick({
+                debuffId: 'poison',
+                target: char,
+                damage: finalDmg,
+                engine,
+                layer: layer2,
+            })
+            if (result !== undefined) finalDmg = result
+        }
+        char.takeDamage(finalDmg)
 
         const buffName = getBuff('poison')?.name ?? '中毒'
         engine.emitLog({
             type: 'damage_over_time',
             actionId: 'poison',
             actionName: `${buffName}(${stacks}层)`,
-            sourceId: (entry.extra?.sourceId as string) ?? '?',
+            sourceId: (entry.sourceId as string) ?? '?',
             targetId: char.id,
             status: buffName,
             amount: dmg,
@@ -217,7 +240,7 @@ export class TickEngine {
             type: 'damage_over_time',
             actionId: 'burn',
             actionName: `${buffName}(${stacks}层)`,
-            sourceId: (entry.extra?.sourceId as string) ?? '?',
+            sourceId: (entry.sourceId as string) ?? '?',
             targetId: char.id,
             status: buffName,
             amount: dmg,
@@ -243,7 +266,25 @@ export class TickEngine {
         const stacks = entry.restoreValue
         const dmg = calcBleedDamage(stacks)
         if (dmg > 0) {
-            owner.takeDamage(dmg)
+            // onDebuffTick：遍历目标 buff 修改 DOT 伤害
+            let finalDmg = dmg
+            for (const [bk] of engine.state.pendingBuffs) {
+                const [buffId, charId2] = bk.split('::')
+                if (charId2 !== owner.id) continue
+                const bDef = getBuff(buffId)
+                if (!bDef?.onDebuffTick) continue
+                const layer2 = engine.state.pendingBuffs.get(bk)
+                if (!layer2) continue
+                const result = bDef.onDebuffTick({
+                    debuffId: 'bleed',
+                    target: owner,
+                    damage: finalDmg,
+                    engine,
+                    layer: layer2,
+                })
+                if (result !== undefined) finalDmg = result
+            }
+            owner.takeDamage(finalDmg)
             const bt = ((entry.extra?.bleedTriggerCount as number) ?? 0) + 1
             entry.extra = { ...entry.extra, bleedTriggerCount: bt }
             if (bt >= 5) {
@@ -255,7 +296,7 @@ export class TickEngine {
                 type: 'damage_over_time',
                 actionId: 'bleed',
                 actionName: `${buffName}(${stacks}层)`,
-                sourceId: (entry.extra?.sourceId as string) ?? '?',
+                sourceId: (entry.sourceId as string) ?? '?',
                 targetId: owner.id,
                 status: buffName,
                 amount: dmg,

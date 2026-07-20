@@ -110,10 +110,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onDodgeChance: ({ attacker }) => {
-            return attacker.attrs.get('agility') * 0.005
+            return attacker.attrs.get('agility') * 0.002
         },
         onParryChance: ({ attacker }) => {
-            return attacker.attrs.get('dexterity') * 0.005
+            return attacker.attrs.get('dexterity') * 0.002
         },
     },
     {
@@ -278,7 +278,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
                 } else {
                     state.pendingBuffs.set(bleedKey, {
                         restoreValue: 1,
-                        extra: { bleedTriggerCount: 0, source: target.name, sourceId: target.id },
+                        sourceId: target.id,
+                        extra: { bleedTriggerCount: 0 },
                     })
                 }
                 engine?.emitLog({
@@ -342,10 +343,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             attacker.takeDamage?.(reflectDmg)
             engine?.emitLog({
                 type: 'system',
-                message: `[乾坤大挪移] ${target.name} 消耗2缠反弹 ${reflectDmg} 点伤害给 ${attacker.name}，自承 ${final - reflectDmg} 点`,
+                message: `[乾坤大挪移] ${target.name} 消耗2缠反弹 ${reflectDmg} 点伤害给 ${attacker.name}，自承 ${round1(final - reflectDmg)} 点`,
                 actorId: target.id,
             })
-            return final - reflectDmg
+            return round1(final - reflectDmg)
         },
     },
     {
@@ -552,6 +553,36 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId === 'knockdown') return 0
             return undefined
+        },
+    },
+    // ── 混元功（反伤） ──
+    {
+        id: 'hun_yuan_gong_buff',
+        name: '混元炁',
+        description: '混元护体，近身受到超过8点或炁伤害时反伤并击退对手。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onTakeDamage: ({ final, attacker, target, engine, state, source }) => {
+            if (final <= 0 || !engine || attacker === target) return final
+            const dist = state.position.distance(target.id, attacker.id)
+            if (dist > 1) return final
+            const isHeavyHit = final > 8
+            const isQiHit = source?.tags.includes('qi') ?? false
+            if (!isHeavyHit && !isQiHit) return final
+
+            const reflectDmg = Math.max(1, Math.round(target.attrs.get('wisdom') * 0.4))
+            attacker.takeDamage(reflectDmg, engine)
+            processActionEffect(
+                { type: 'knockback', distance: 1 },
+                { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
+            )
+            engine.emitLog({
+                type: 'system',
+                message: `[混元炁] ${target.name}反伤${reflectDmg}并击退${attacker.name}`,
+                actorId: target.id,
+            })
+            return final
         },
     },
 ]

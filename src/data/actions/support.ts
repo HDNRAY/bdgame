@@ -49,7 +49,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['move', 'pre_action'],
         effects: [
             { type: 'dash', maxRange: 3, targetDist: 0, useAp: true },
-            // { type: 'short_dash', maxDistance: 2 },
             { type: 'add_buff', buffId: 'phantom_step' },
         ],
     },

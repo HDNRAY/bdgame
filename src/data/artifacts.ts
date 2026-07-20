@@ -589,6 +589,15 @@ export const ARTIFACTS: Artifact[] = [
             },
         ],
     },
+    // ── 忍者工具包 ──
+    {
+        id: 'ninja_tool_kit',
+        name: '忍者工具包',
+        description: '多功能忍者工具包，内含撒菱、泼油和烟玉。',
+        tags: ['craft', 'debuff'],
+        grantsActions: ['_caltrops', '_oil_splash', '_smoke_bomb'],
+        triggers: [],
+    },
 ]
 
 /** 按 ID 查找物品 */

@@ -193,6 +193,14 @@ export const WEAPON_DB: WeaponDef[] = [
             actionId: '_drone_shot',
         },
     },
+    // ── 忍具 ──
+    {
+        id: 'ninja_sword',
+        name: '极乐',
+        description: '忍者短刀，轻便灵活，可藏于袖中。',
+        tags: ['slash', 'pierce', 'parry', 'melee', 'unarmed'],
+        range: [0, 2],
+    },
 ]
 
 // ── 运行时武器查找表 ──

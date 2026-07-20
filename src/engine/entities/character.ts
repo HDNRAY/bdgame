@@ -46,7 +46,7 @@ export class Character {
     /** 武器定义的 clone（含被动修改） */
     weaponDef?: WeaponDef
     /** 待应用的 weapon_tag（构造时先记录，武器设置后统一应用） */
-    pendingWeaponTags: string[] = []
+    pendingWeaponTags: Tag[] = []
     /** 已解析的奇物/义体列表 */
     artifactDefs: Artifact[] = []
     /** 义体/效果修正 */
@@ -142,8 +142,8 @@ export class Character {
         this.weaponDef = weapon
         // 应用被动的 weapon_tag
         for (const tag of this.pendingWeaponTags) {
-            if (!this.weaponDef.tags.includes(tag)) {
-                this.weaponDef = { ...this.weaponDef, tags: [...this.weaponDef.tags, tag] }
+            if (!weapon.tags.includes(tag)) {
+                this.weaponDef = { ...weapon, tags: [...weapon.tags, tag] }
             }
         }
         // 自动决定战斗风格

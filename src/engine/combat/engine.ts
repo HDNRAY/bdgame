@@ -223,7 +223,11 @@ export class BattleEngine {
         // 系统事件
         if (e.type === 'system') {
             this.#handleSystemEvent()
-            this.state.turn.removeEntry(e.id)
+            // tick_poison/tick_burn 已在 #handleBuffTick 中自行管理生命周期（删除旧 + 按需调度新）
+            // 此处 removeEntry 会误删新调度的 tick，故跳过
+            if (e.systemEventType !== 'tick_poison' && e.systemEventType !== 'tick_burn') {
+                this.state.turn.removeEntry(e.id)
+            }
             this.state.eventActorId = null
             return true
         }

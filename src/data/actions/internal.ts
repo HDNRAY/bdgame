@@ -159,8 +159,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         maxUses: 1,
         getRange: () => [0, 5] as [number, number],
         effects: [
-            { type: 'fixed_damage', value: 50 },
-            { type: 'add_debuff', buffId: 'burn', stacks: 9, chance: 1 },
+            { type: 'fixed_damage', value: 25 },
+            { type: 'add_debuff', buffId: 'burn', stacks: 8, chance: 1 },
             { type: 'add_buff', buffId: 'one_arm_buff' },
             { type: 'remove_buff', buffId: 'overload' },
         ],
@@ -306,18 +306,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'add_buff', buffId: 'bu_lao_quan' }],
     },
     {
-        id: '_hun_yuan_reflect',
-        name: '混元炁',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger', 'melee', 'internal'],
-        effects: [
-            { type: 'damage', scaling: { wisdom: 0.4 } },
-            { type: 'knockback', distance: 1 },
-        ],
-    },
-    {
         id: '_shuai_ren',
         name: '甩刃',
         description: '断刀锁链甩出，如灵蛇出洞。',
@@ -412,5 +400,43 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['trigger', 'internal'],
         target: 'self',
         effects: [{ type: 'stat_transfer', stat: 'insight', value: 1, duration: 3000 }],
+    },
+    // ── 忍者工具包 ──
+    {
+        id: '_caltrops',
+        name: '撒菱',
+        description: '',
+        requiredTags: [],
+        apCost: 1,
+        tags: ['debuff', 'post_action', 'internal'],
+        effects: [
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.6 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 },
+            { type: 'add_buff', buffId: 'caltrops_cd' },
+        ],
+        canUse: (attacker, state) => !state.pendingBuffs.has(`caltrops_cd::${attacker.id}`),
+    },
+    {
+        id: '_oil_splash',
+        name: '泼油',
+        description: '',
+        requiredTags: [],
+        apCost: 1,
+        tags: ['debuff', 'pre_action', 'internal'],
+        maxUses: 2,
+        effects: [{ type: 'add_debuff', buffId: 'oil_coating', stacks: 1, chance: 1 }],
+    },
+    {
+        id: '_smoke_bomb',
+        name: '烟玉',
+        description: '',
+        requiredTags: [],
+        apCost: 1,
+        tags: ['debuff', 'post_action', 'internal'],
+        canUse: (attacker, state) => !state.pendingBuffs.has(`smoke_bomb_cd::${attacker.id}`),
+        effects: [
+            { type: 'add_buff', buffId: 'smoke_bomb_cd' },
+            { type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 1 },
+        ],
     },
 ]

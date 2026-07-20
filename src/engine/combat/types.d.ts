@@ -25,6 +25,7 @@ export interface BuffLayer {
     buffId?: string
     restoreValue: number
     targetId?: string
+    sourceId?: string
     mods?: Record<string, number>
     extra?: Record<string, number | string | boolean | number[] | string[]>
 }

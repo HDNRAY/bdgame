@@ -522,10 +522,10 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yu_du_shu',
         name: '剧毒吐纳',
-        description: '剧毒吐纳，每8秒释放毒素。血量越少，毒雾越烈。',
+        description: '剧毒吐纳，每5秒释放毒素。血量越少，毒雾越烈。',
         tags: [],
         expiry: { type: 'permanent' },
-        tickInterval: 8000,
+        tickInterval: 5000,
         onTickDamage: ({ attacker: self, engine }) => {
             if (!engine) return 0
             const target = engine.getOpponent(self.id)
@@ -918,7 +918,7 @@ export const BUFF_DB: BuffDef[] = [
             if (!source) return
             if (!source.tags.includes('pierce') && !source.tags.includes('slash') && !source.tags.includes('thrown'))
                 return
-            if (engine && Math.random() < 0.3) {
+            if (engine && Math.random() < 0.2) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
@@ -1092,5 +1092,15 @@ export const BUFF_DB: BuffDef[] = [
             return undefined
         },
         onActionCost: () => -1,
+    },
+    // ── 残影步·虚影 ──
+    {
+        id: 'xu_ying',
+        name: '虚影',
+        description: '残影步带出的虚影，身法飘忽。',
+        tags: [],
+        expiry: { type: 'duration', ms: 5000 },
+        stacking: { type: 'additive' },
+        onDodgeChance: ({ layer }) => layer.restoreValue * 0.05,
     },
 ]

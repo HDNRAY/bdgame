@@ -34,6 +34,7 @@ import {
     OTSU,
     DAIXUAN,
     QIANXING,
+    ORANGE,
 } from '../src/data/opponents/index'
 import { getWeapon } from '../src/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
@@ -75,8 +76,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(YANGGUO, 33)
-const oBuild = gen(TANGROU, 33)
+const pBuild = gen(TANGROU, 33)
+const oBuild = gen(ORANGE, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

@@ -19,8 +19,9 @@ import {
 import { pickBestPassives } from '../utils/tag-match'
 import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
-import type { BuffLayer } from '../types'
+import type { BuffLayer, ActionResult } from '../types'
 import { applyDamage, applyBonusDamage } from './damage'
+import { processHitCheck } from './combat'
 import { processActionEffect } from './action'
 import { tickEngine } from '../tick-engine'
 import { applyAttrMods, reduceBleedOnHeal, applyScaledAttrMods, scheduleBuffEnd } from '../utils/buff-layer'
@@ -193,19 +194,33 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const { scaling, independentHits = 1, piercing = 0 } = eff as Extract<EffectDef, { type: 'damage' }>
         const base = (eff as Extract<EffectDef, { type: 'damage' }>).base ?? 0
         const raw = calcBaseDamage(scaling, self.attrs.getAll(), base)
-        if (raw > 0) {
-            for (let i = 0; i < independentHits; i++) {
-                applyDamage({
-                    raw,
-                    target: enemy,
-                    attacker: self,
-                    engine,
-                    source: action,
-                    piercing,
-                    suppressTrigger: i < independentHits - 1,
-                    triggered,
-                })
+        if (raw <= 0) return
+        if (independentHits <= 1) {
+            applyDamage({ raw, target: enemy, attacker: self, engine, source: action, piercing, triggered })
+            return
+        }
+        // 多段独立命中判定
+        for (let i = 0; i < independentHits; i++) {
+            const r: ActionResult = {
+                damage: 0,
+                hit: false,
+                parried: false,
+                dodged: false,
+                crit: false,
+                distanceDelta: 0,
             }
+            if (!processHitCheck(action!, r, self, enemy, engine)) continue
+            if (r.dodged) continue
+            applyDamage({
+                raw,
+                target: enemy,
+                attacker: self,
+                engine,
+                source: action,
+                piercing,
+                suppressTrigger: i < independentHits - 1,
+                triggered,
+            })
         }
     },
     self_damage({ eff, self, engine }: EffectCtx) {
@@ -403,14 +418,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const key = isIndependent ? `${keyBase}::${genAppId(tMs)}` : keyBase
         const existing = !isIndependent ? engine.state.pendingBuffs.get(key) : undefined
 
-        /** 获取 debuff 专属 extra 数据 */
-        function makeExtra(): Record<string, number | string | boolean> | undefined {
-            if (st === 'burn')
-                return { source: self.name, burnBaseDamage: 5, remainingTicks: stacks, sourceId: self.id }
-            if (st === 'bleed') return { bleedTriggerCount: 0, source: self.name, sourceId: self.id }
-            return undefined
-        }
-
         if (existing && buff?.stacking?.type === 'additive') {
             const max = buff?.stacking?.max ?? Infinity
             const newVal = Math.min(existing.restoreValue + stacks, max)
@@ -466,15 +473,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 layerKey: key,
                 layer: existing,
             })
-            if (e.buffId === 'burn') {
-                // 叠层时重新调度 tick
-                engine.state.turn.removeEvents(`tick_burn_${enemy.id}`)
-                engine.state.turn.scheduleSystemEventAt(
-                    `tick_burn_${enemy.id}`,
-                    engine.state.turn.currentTime + 1000,
-                    'tick_burn',
-                )
-            }
             return
         }
 
@@ -486,28 +484,22 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         // 首次应用（independent/none/additive 首次均走此路径）
         const capped = buff?.stacking?.type === 'additive' ? Math.min(stacks, buff.stacking.max ?? Infinity) : stacks
-        const extra = makeExtra()
         const firstResult = applyScaledAttrMods(buff!, capped, enemy, engine.state)
         // stun 的 attrMods 在 afterApplyDebuff 中由 applyAttrMods 输出属性日志，此处不重复
         const stackLabel = capped > 1 ? ` ×${capped}` : ''
-        const layer: BuffLayer = { restoreValue: capped, mods: firstResult.mods, extra }
+        const layer: BuffLayer = { restoreValue: capped, mods: firstResult.mods, sourceId: self.id }
         if (e.buffId !== 'stun') {
             const applyMsg = buff?.logFormat?.(layer, enemy.name)
-            if (applyMsg) {
-                engine.emitLog({
-                    type: 'system',
-                    message: `[${buff?.name ?? e.buffId}] ${applyMsg}`,
-                    actorId: enemy.id,
-                })
-            } else {
-                engine.emitLog({
-                    type: 'system',
-                    message: firstResult.details.length
-                        ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel} ${firstResult.details.join(', ')}`
-                        : `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel}`,
-                    actorId: enemy.id,
-                })
-            }
+            const msg = applyMsg
+                ? `[${buff?.name ?? e.buffId}] ${applyMsg}`
+                : firstResult.details.length
+                  ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel} ${firstResult.details.join(', ')}`
+                  : `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel}`
+            engine.emitLog({
+                type: 'system',
+                message: msg,
+                actorId: enemy.id,
+            })
         }
         engine.state.pendingBuffs.set(key, layer)
 

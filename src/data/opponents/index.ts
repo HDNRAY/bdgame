@@ -27,6 +27,7 @@ export { DAIXUAN } from './daixuan'
 export { QIANXING } from './qianxing'
 export { OTSU } from './otsu'
 export { XIAOHUA } from './xiaohua'
+export { ORANGE } from './orange'
 import type { CharacterBuild, BattleStyle } from '../../game/entities/character-build'
 import type { BattleState, ActionCommand } from '../../engine/combat/types'
 import type { Character } from '../../engine/entities/character'
@@ -62,6 +63,7 @@ import { HAORAN } from './haoran'
 import { BAMBOO } from './bamboo'
 import { DAIXUAN } from './daixuan'
 import { QIANXING } from './qianxing'
+import { ORANGE } from './orange'
 import { XIAOHUA } from './xiaohua'
 
 /** 对手定义（纯数据） */
@@ -96,6 +98,7 @@ export const OPPONENTS: OpponentDef[] = [
     AJIU, // 组织
     FENGSHUI, // 饮酒结拜
     HAORAN, // 饮酒结拜
+    ORANGE, // 归海楼
     /** 双持 */
     LAYUE, // 天生道种师姐
     BAIHU, // 图书馆

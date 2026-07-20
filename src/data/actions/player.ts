@@ -572,7 +572,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 2,
         tags: ['slash'],
-        effects: [{ type: 'damage', scaling: { strength: 0.5 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.4, dexterity: 0.1 } }],
     },
     {
         id: 'heavy_slash',

@@ -1,4 +1,5 @@
 import type { BuffDef } from './types'
+import { processActionEffect } from '../../engine/combat/effects'
 import { calcPoisonTicksPerStack } from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
 
@@ -80,11 +81,7 @@ export const DEBUFF_DB: BuffDef[] = [
             const ticksPerStack = calcPoisonTicksPerStack(enemy.attrs.get('wisdom'))
             const existing: number[] = (layer.extra?.remainingTicks as number[]) ?? []
             for (let i = 0; i < stacks; i++) existing.push(ticksPerStack)
-            layer.extra = {
-                source: self.name,
-                sourceId: self.id,
-                remainingTicks: existing,
-            }
+            layer.extra = { ...layer.extra, remainingTicks: existing }
         },
     },
     {
@@ -94,6 +91,10 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
+        onDebuffApply: ({ layer }) => {
+            if (!layer) return
+            layer.extra = { ...layer.extra, bleedTriggerCount: 0 }
+        },
     },
     {
         id: 'disarmed',
@@ -188,4 +189,60 @@ export const DEBUFF_DB: BuffDef[] = [
     },
     { id: 'max_ap_mod', name: '失能', description: '最大AP变化。', tags: [], expiry: { type: 'permanent' } },
     { id: 'max_hp_mod', name: '失血', description: '最大HP变化。', tags: [], expiry: { type: 'permanent' } },
+    // ── 泼油 ──
+    {
+        id: 'oil_coating',
+        name: '泼油',
+        description: '浑身浇满油，灼烧层数翻倍。',
+        tags: ['debuff'],
+        expiry: { type: 'permanent' },
+        // 泼油时身上有灼烧 → 已有层数翻倍
+        onDebuffApply: ({ enemy, engine }) => {
+            if (!engine) return
+            const burnKey = `burn::${enemy.id}`
+            const burnLayer = engine.state.pendingBuffs.get(burnKey)
+            if (burnLayer) {
+                burnLayer.restoreValue *= 2
+                engine.emitLog({
+                    type: 'system',
+                    message: `[泼油] 灼烧层数翻倍！→${burnLayer.restoreValue}`,
+                    actorId: enemy.id,
+                })
+            }
+        },
+        // 灼烧时身上有泼油 → 抵抗并重新应用翻倍层数
+        onReceiveDebuff: (ctx) => {
+            if (ctx.buffId !== 'burn') return
+            if (!ctx.engine) return
+            ctx.engine.state.pendingBuffs.delete(`oil_coating::${ctx.self.id}`)
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'burn', stacks: ctx.stacks * 2, chance: 1 },
+                { self: ctx.enemy, enemy: ctx.self, engine: ctx.engine, tMs: ctx.engine.state.turn.currentTime },
+            )
+            ctx.engine.emitLog({
+                type: 'system',
+                message: `[泼油] 灼烧层数翻倍！${ctx.stacks}→${ctx.stacks * 2}`,
+                actorId: ctx.self.id,
+            })
+            return 0
+        },
+    },
+    // ── 烟玉冷却 ──
+    {
+        id: 'smoke_bomb_cd',
+        name: '烟玉冷却',
+        description: '',
+        tags: [],
+        expiry: { type: 'duration', ms: 20000 },
+        stacking: { type: 'none' },
+    },
+    // ── 撒菱冷却 ──
+    {
+        id: 'caltrops_cd',
+        name: '撒菱冷却',
+        description: '',
+        tags: [],
+        expiry: { type: 'duration', ms: 15000 },
+        stacking: { type: 'none' },
+    },
 ]

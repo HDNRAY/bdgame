@@ -614,10 +614,7 @@ export const PASSIVES: Passive[] = [
         description: '混元护体，近身受到超过8点或炁伤害时反伤并击退对手。',
         tags: ['passive', 'qi', 'defense'],
         triggers: [
-            {
-                condition: { type: 'on_was_hit', check: (ctx) => ctx.distance <= 1 },
-                actionId: '_hun_yuan_reflect',
-            },
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hun_yuan_gong_buff' }] },
         ],
     },
     {
@@ -824,6 +821,18 @@ export const PASSIVES: Passive[] = [
                 condition: { type: 'battle_start' },
                 effects: [{ type: 'add_buff', buffId: 'mingjing_zhishui_buff' }],
             },
+        ],
+    },
+    // ── 残影步 ──
+    {
+        id: 'can_ying_bu',
+        name: '残影步',
+        description: '步法如残影，移动时留下虚影迷惑对手。移动效率提升，每次移动叠加闪避。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'move_efficiency', value: 0.2 }],
+        triggers: [
+            { condition: { type: 'on_move_away' }, effects: [{ type: 'add_buff', buffId: 'xu_ying', stacks: 1 }] },
+            { condition: { type: 'on_move_closer' }, effects: [{ type: 'add_buff', buffId: 'xu_ying', stacks: 1 }] },
         ],
     },
 ]

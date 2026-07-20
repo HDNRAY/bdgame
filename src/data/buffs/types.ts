@@ -79,6 +79,8 @@ export interface BuffDef extends GameEntity {
     onParried?: (ctx: BuffHookCtx) => void
     /** 暴击时回调（攻击方造成暴击后调用） */
     onCritical?: (ctx: BuffHookCtx) => void
+    /** DOT tick 时回调（遍历目标身上所有有 onDebuffTick 的 buff 调用，可修改 damage） */
+    onDebuffTick?: (ctx: DebuffTickCtx) => number | undefined
     /** 允许自行选择可招架（返回 true 则允许招架） */
     onCanParry?: (ctx: { self: Character; engine: BattleEngine }) => boolean
     /** 攻击方能否被招架（返回 false 则无法招架此攻击） */
@@ -131,6 +133,19 @@ export interface ReceiveDebuffCtx {
     engine: BattleEngine
     buffId: string
     stacks: number
+}
+
+/** DOT tick 回调上下文（onDebuffTick） */
+export interface DebuffTickCtx {
+    /** 正在 tick 的 DOT debuff ID（'burn'/'poison'/'bleed'） */
+    debuffId: string
+    /** 受害者 */
+    target: Character
+    /** 本次 tick 的原始伤害值（可修改） */
+    damage: number
+    engine: BattleEngine
+    /** DOT 的 buff 层数据 */
+    layer: BuffLayer
 }
 
 /** onAfterCritDamage 钩子上下文 */
