@@ -37,6 +37,7 @@ export function canExecuteAction(
         )
     }
     if (attacker.ap < cost) return { ok: false, reason: 'AP不足' }
+    if (action.chanCost && attacker.chan < action.chanCost) return { ok: false, reason: '缠劲不足' }
     const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)
     const range = getActionRange(action, weapon.range, attacker)
     const dist = state.position.distance(attacker.id, state.characters.find((c) => c.id !== attacker.id)!.id)

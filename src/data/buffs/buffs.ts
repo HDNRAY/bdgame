@@ -385,10 +385,10 @@ export const BUFF_DB: BuffDef[] = [
         description: '玄铁剑的沉重负担与无锋剑意。身法受限但力道大增，招架只能减免一半伤害。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
-        attrMods: { agility: -10, strength: 4 },
+        attrMods: { agility: -10, strength: 6 },
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const half = Math.round(blocked * 0.4 * 10) / 10
+            const half = round1(blocked * 0.5)
             return raw - half
         },
     },

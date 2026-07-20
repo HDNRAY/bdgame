@@ -45,6 +45,8 @@ export class Character {
     #maxTriggerSlots = 0
     /** 武器定义的 clone（含被动修改） */
     weaponDef?: WeaponDef
+    /** 待应用的 weapon_tag（构造时先记录，武器设置后统一应用） */
+    pendingWeaponTags: string[] = []
     /** 已解析的奇物/义体列表 */
     artifactDefs: Artifact[] = []
     /** 义体/效果修正 */
@@ -138,6 +140,12 @@ export class Character {
         }
         const weapon = getWeapon(build.weapon)
         this.weaponDef = weapon
+        // 应用被动的 weapon_tag
+        for (const tag of this.pendingWeaponTags) {
+            if (!this.weaponDef.tags.includes(tag)) {
+                this.weaponDef = { ...this.weaponDef, tags: [...this.weaponDef.tags, tag] }
+            }
+        }
         // 自动决定战斗风格
         this.battleStyle = build.battleStyle ?? classifyAttackStyle(this.weaponDef?.range ?? [0, 2])
         // 武器属性要求检测
@@ -567,6 +575,7 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     },
     weapon_tag(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'weapon_tag' }>
+        char.pendingWeaponTags.push(e.tag)
         const weapon = char.weaponDef ?? getWeapon(char.build.weapon)
         if (!weapon.tags.includes(e.tag)) {
             char.weaponDef = { ...weapon, tags: [...weapon.tags, e.tag] }

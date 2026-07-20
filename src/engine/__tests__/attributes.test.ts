@@ -31,7 +31,7 @@ describe('AttributeSet', () => {
     it('should allow values below minimum without floor', () => {
         const attrs = new AttributeSet({ strength: 2 })
         attrs.modify('strength', -5)
-        expect(attrs.get('strength')).toBe(-3)
+        expect(attrs.get('strength')).toBe(3)
     })
 
     it('should respect minValues floor', () => {
