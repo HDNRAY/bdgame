@@ -855,12 +855,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'ling_xu_zhen_jie',
         name: '灵枢真解',
-        description: '拳脚及钝击招式40%概率造成4层麻痹。',
+        description: '拳脚及钝击招式50%概率造成4层麻痹。',
         tags: [],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, source, attacker, engine, state }) => {
             if (!source?.tags?.includes('unarmed') && !source?.tags?.includes('blunt')) return final
-            if (engine && Math.random() < 0.4) {
+            if (engine && Math.random() < 0.5) {
                 const enemy = engine.getOpponent(attacker.id)
                 if (enemy) {
                     processActionEffect(

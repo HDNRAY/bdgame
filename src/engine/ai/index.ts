@@ -82,12 +82,8 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const hasTag = inst.def.requiredTags.some((tag) => weapon.tags.includes(tag))
             if (!hasTag) continue
         }
-        // if (
-        //     !inst.def.effects?.some(
-        //         (e) => e.type === 'damage' || e.type === 'fixed_damage' || e.type === 'functional_damage',
-        //     )
-        // )
-        //     continue
+        // 检查资源消耗（缠劲等），距离/AP 由后续 trySelect 处理
+        if (inst.def.chanCost && self.chan < inst.def.chanCost) continue
         const selfDmgEff = inst.def.effects?.find(
             (e): e is Extract<EffectDef, { type: 'self_damage' }> => e.type === 'self_damage',
         )

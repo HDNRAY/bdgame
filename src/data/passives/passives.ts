@@ -571,7 +571,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'dian_xue_passive',
         name: '灵枢真解',
-        description: '灵枢真解，点穴封脉。拳脚及钝击招式均有40%概率造成4层麻痹。',
+        description: '灵枢真解，点穴封脉。拳脚及钝击招式均有50%概率造成4层麻痹。',
         tags: ['passive', 'debuff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ling_xu_zhen_jie' }] },

@@ -157,10 +157,10 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['burn', 'internal'],
         target: 'enemy',
         maxUses: 1,
-        getRange: () => [0, 4] as [number, number],
+        getRange: () => [0, 5] as [number, number],
         effects: [
-            { type: 'fixed_damage', value: 20 },
-            { type: 'add_debuff', buffId: 'burn', stacks: 5, chance: 1 },
+            { type: 'fixed_damage', value: 50 },
+            { type: 'add_debuff', buffId: 'burn', stacks: 9, chance: 1 },
             { type: 'add_buff', buffId: 'one_arm_buff' },
             { type: 'remove_buff', buffId: 'overload' },
         ],
