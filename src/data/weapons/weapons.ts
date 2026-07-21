@@ -141,7 +141,7 @@ export const WEAPON_DB: WeaponDef[] = [
     },
     {
         id: 'dinghai_shen_tie',
-        name: '陨铁如意棒',
+        name: '陨铁神珍',
         description: '对传说中兵器的仿制品。由天外陨铁打造，由使用者的炁激活，伸缩自如。',
         tags: ['parry', 'polearm', 'heavy'],
         range: [1, 6],

@@ -1,5 +1,4 @@
 import type { EventDef } from '../../game/entities/event'
-import { TIANGONG_WEAPON } from './tiangong'
 import { PICK_STORY, BOSS_PHASE1, BOSS_PHASE2, BOSS_PHASE3 } from './shared'
 import { FEUD_N02_WEAPON, FEUD_N03_ACTION, FEUD_LUHONGTI_SPAR, BOSS_AJIU } from './feud'
 import {
@@ -27,9 +26,16 @@ import {
     VETERAN_N08_PATH_CHOICE,
 } from './veteran'
 import { WANDERER_N02_INTRO, WANDERER_N03_INTRO } from './wanderer'
-import { BRANCH_PASSIVE, BRANCH_ACTION, BRANCH_ARTIFACT, BRANCH_POINTS, BRANCH_HEAL } from './branch'
+import {
+    BRANCH_PASSIVE,
+    BRANCH_ACTION,
+    BRANCH_ARTIFACT,
+    BRANCH_POINTS,
+    BRANCH_HEAL,
+    TIANGONG_WEAPON,
+    LIBRARY_EVENT,
+} from './branch'
 import { CHRONICLE_GUIHAILOU, CHRONICLE_BAR_KILLING, CHRONICLE_SIX_DUEL, CHRONICLE_SWORD_BROTHERS } from './chronicle'
-import { LIBRARY_EVENT } from './library'
 
 const REGISTRY: Record<string, EventDef> = {
     [PICK_STORY.id]: PICK_STORY,
