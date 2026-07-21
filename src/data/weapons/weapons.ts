@@ -193,7 +193,6 @@ export const WEAPON_DB: WeaponDef[] = [
             actionId: '_drone_shot',
         },
     },
-    // ── 忍具 ──
     {
         id: 'ninja_sword',
         name: '极乐',
