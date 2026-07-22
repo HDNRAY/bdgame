@@ -1,11 +1,11 @@
 .tag-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     padding: 1px 5px;
     font-size: var(--font-xxs);
     border: var(--border-width) solid;
     border-radius: var(--radius-sm);
     background: var(--color-entity-bg);
-    line-height: 1.4;
     white-space: nowrap;
     cursor: default;
 

@@ -299,7 +299,8 @@
 .cp-tag-trig {
     color: var(--color-text);
     &::before {
-        content: '⤷';
+        content: '▸';
+        margin-right: 1px;
     }
 }
 

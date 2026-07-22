@@ -26,7 +26,7 @@ function buildNameMap(snapshot: BattleSnapshot): Map<string, string> {
 }
 
 export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine: number[] } {
-    const all = log.getAll()
+    const all = log.getAll().sort((a, b) => a.timelineMs - b.timelineMs)
     const lines: string[] = []
     // eventToLine[i] = 事件 i 处理完后可见的最后一行索引（含）
     const eventToLine: number[] = []

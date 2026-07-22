@@ -111,4 +111,10 @@
     .tt-relative {
         position: relative;
     }
+
+    /* tooltip 内的 entity-item 缩小 */
+    .entity-item {
+        padding: 1px 5px;
+        font-size: var(--font-xxs);
+    }
 }

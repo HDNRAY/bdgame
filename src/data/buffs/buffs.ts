@@ -241,7 +241,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'vigor_stance',
         name: '刚劲',
-        description: '剑势·刚，力道+4/层，身法-2/层。最多2层。',
+        description: '剑势刚猛，以力破巧。',
         tags: ['buff'],
         expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
@@ -250,7 +250,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'gentle_stance',
         name: '柔劲',
-        description: '剑势·柔，身法+4/层，力道-2/层。最多2层。',
+        description: '剑势连绵，以柔克刚。',
         tags: ['buff'],
         expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },

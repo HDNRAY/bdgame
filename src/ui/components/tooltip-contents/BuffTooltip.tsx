@@ -1,5 +1,6 @@
 import type { BuffDef } from '../../../data/buffs/types'
 import { TagList } from '../ui/TagList/TagList'
+import { ATTR_CN } from '../../../engine/entities/attributes'
 
 interface BuffTooltipProps {
     buff: BuffDef
@@ -9,7 +10,7 @@ export function BuffTooltip({ buff }: BuffTooltipProps) {
     const attrModLines: string[] = []
     if (buff.attrMods) {
         for (const [k, v] of Object.entries(buff.attrMods)) {
-            attrModLines.push(`${k} ${v > 0 ? '+' : ''}${v}`)
+            attrModLines.push(`${ATTR_CN[k] ?? k} ${v > 0 ? '+' : ''}${v}`)
         }
     }
 
