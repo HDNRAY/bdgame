@@ -1,11 +1,24 @@
-import type { BattleSnapshot } from '../../../engine/combat/types'
+import type { ActiveBuffSnapshot, BattleSnapshot } from '../../../engine/combat/types'
 import { getBuff } from '../../../data/buffs'
 import { ALL_ATTRS } from '../../../engine/entities/attributes'
 import { MAX_CHAN } from '../../../engine/constants'
 import { Tooltip } from '../ui/Tooltip/Tooltip'
-import { StatTooltip } from '../tooltip-contents/StatTooltip'
 import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
 import './BattleStatusPanel.scss'
+
+/** 从活跃 buff 中汇总各属性的临时修正值 */
+function sumBuffAttrMods(buffs: ActiveBuffSnapshot[]): Record<string, number> {
+    const mods: Record<string, number> = {}
+    for (const b of buffs) {
+        const def = getBuff(b.buffId)
+        if (def?.attrMods) {
+            for (const [attr, val] of Object.entries(def.attrMods)) {
+                mods[attr] = (mods[attr] ?? 0) + val * b.stacks
+            }
+        }
+    }
+    return mods
+}
 
 interface BattleStatusPanelProps {
     snapshot: BattleSnapshot
@@ -33,6 +46,7 @@ export function BattleStatusPanel({ snapshot, charAName, charBName }: BattleStat
                 {[a, b].map((c) => {
                     const hpPct = c.maxHp > 0 ? (c.hp / c.maxHp) * 100 : 0
                     const apPct = c.maxAp > 0 ? (c.ap / c.maxAp) * 100 : 0
+                    const buffAttrMods = sumBuffAttrMods(c.buffs)
                     return (
                         <div key={c.id} className="char-col">
                             <div className="hp-text">
@@ -62,19 +76,27 @@ export function BattleStatusPanel({ snapshot, charAName, charBName }: BattleStat
                                 </div>
                             </>
                             <div className="attrs-grid">
-                                {ALL_ATTRS.map((attr) => (
-                                    <Tooltip
-                                        key={attr}
-                                        content={<StatTooltip attr={attr} value={c.attrs[attr] ?? 0} />}
-                                    >
+                                {ALL_ATTRS.map((attr) => {
+                                    const val = c.attrs[attr] ?? 0
+                                    const base = c.baseAttrs?.[attr] ?? 0
+                                    const brk = c.attrBreakdown
+                                    return (
                                         <AttributeLabel
+                                            key={attr}
                                             attr={attr}
-                                            value={c.attrs[attr] ?? 0}
-                                            baseValue={c.baseAttrs?.[attr] ?? 0}
+                                            value={val}
+                                            baseValue={base}
                                             compact
+                                            breakdown={{
+                                                base,
+                                                passives: brk.passives[attr] ?? 0,
+                                                artifacts: brk.artifacts[attr] ?? 0,
+                                                weapons: brk.weapons[attr] ?? 0,
+                                                buffs: buffAttrMods[attr] ?? 0,
+                                            }}
                                         />
-                                    </Tooltip>
-                                ))}
+                                    )
+                                })}
                             </div>
                             <div className="buffs-grid">
                                 {c.buffs.map((b) => {

@@ -164,6 +164,26 @@ export class BattleEngine {
     }
 
     /** 构建当前战斗快照 */
+    private sumAttrMods(effects: { type: string; attrs?: Record<string, number> }[]): Record<string, number> {
+        const mods: Record<string, number> = {}
+        for (const e of effects) {
+            if (e.type === 'stat_buff' && e.attrs) {
+                for (const [attr, val] of Object.entries(e.attrs)) {
+                    mods[attr] = (mods[attr] ?? 0) + val
+                }
+            }
+        }
+        return mods
+    }
+
+    private getAttrBreakdown(c: import('./entities/character').Character): import('./types').AttrSourceBreakdown {
+        return {
+            passives: this.sumAttrMods(c.passiveDefs.flatMap((p) => p.effects ?? [])),
+            artifacts: this.sumAttrMods(c.artifactDefs.flatMap((a) => a.effects ?? [])),
+            weapons: this.sumAttrMods(c.weaponDef?.effects ?? []),
+        }
+    }
+
     getSnapshot(): BattleSnapshot {
         const { characters, turn, pendingBuffs, phase, position } = this.state
         return {
@@ -187,6 +207,7 @@ export class BattleEngine {
                     baseAttrs: {
                         ...characters[0].build.baseAttrs,
                     } as Record<string, number>,
+                    attrBreakdown: this.getAttrBreakdown(characters[0]),
                 },
                 {
                     id: characters[1].id,
@@ -204,6 +225,7 @@ export class BattleEngine {
                     baseAttrs: {
                         ...characters[1].build.baseAttrs,
                     } as Record<string, number>,
+                    attrBreakdown: this.getAttrBreakdown(characters[1]),
                 },
             ],
             turn: { time: turn.currentTime, queue: [...turn.entries] },

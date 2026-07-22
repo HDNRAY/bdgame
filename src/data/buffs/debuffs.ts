@@ -245,4 +245,30 @@ export const DEBUFF_DB: BuffDef[] = [
         expiry: { type: 'duration', ms: 15000 },
         stacking: { type: 'none' },
     },
+    {
+        id: 'blade_qi',
+        name: '刃炁',
+        description: '每层增伤3%。累计10点治疗消一层。',
+        tags: ['debuff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 81 },
+        onTakeDamage: ({ final, layer }) => Math.round(final * (1 + layer.restoreValue * 0.05) * 10) / 10,
+        onReceiveHeal: ({ layer, engine, target, final: amount }) => {
+            const HEAL_PER_STACK = 10
+            const acc = (layer.extra?.healAccumulator as number) ?? 0
+            const total = acc + amount
+            if (total < HEAL_PER_STACK) {
+                layer.extra = { ...layer.extra, healAccumulator: total }
+                return
+            }
+            const reduce = Math.min(layer.restoreValue, Math.floor(total / HEAL_PER_STACK))
+            layer.restoreValue -= reduce
+            layer.extra = { ...layer.extra, healAccumulator: total - reduce * HEAL_PER_STACK }
+            engine?.emitLog({
+                type: 'system',
+                message: `[治疗] ${target?.name ?? ''} 刃炁 -${reduce}层，剩${layer.restoreValue}层`,
+                actorId: target.id,
+            })
+        },
+    },
 ]

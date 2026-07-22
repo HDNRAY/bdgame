@@ -81,32 +81,6 @@ export const BUFF_DB: BuffDef[] = [
         onHitChance: () => 0.5,
     },
     {
-        id: 'blade_qi',
-        name: '刃炁',
-        description: '每层增伤3%。累计10点治疗消一层。',
-        tags: ['debuff'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 81 },
-        onTakeDamage: ({ final, layer }) => Math.round(final * (1 + layer.restoreValue * 0.05) * 10) / 10,
-        onReceiveHeal: ({ layer, engine, target, final: amount }) => {
-            const HEAL_PER_STACK = 10
-            const acc = (layer.extra?.healAccumulator as number) ?? 0
-            const total = acc + amount
-            if (total < HEAL_PER_STACK) {
-                layer.extra = { ...layer.extra, healAccumulator: total }
-                return
-            }
-            const reduce = Math.min(layer.restoreValue, Math.floor(total / HEAL_PER_STACK))
-            layer.restoreValue -= reduce
-            layer.extra = { ...layer.extra, healAccumulator: total - reduce * HEAL_PER_STACK }
-            engine?.emitLog({
-                type: 'system',
-                message: `[治疗] ${target?.name ?? ''} 刃炁 -${reduce}层，剩${layer.restoreValue}层`,
-                actorId: target.id,
-            })
-        },
-    },
-    {
         id: 'overlord_blade',
         name: '霸刀在手',
         description: '霸刀在手，身法受限但势不可挡。',
@@ -156,7 +130,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'stat_multiply',
         name: '超越',
         description: '属性临时倍增。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'duration_by_attr', attr: 'wisdom', multiplier: 150 },
         stacking: { type: 'independent' },
     },
@@ -165,11 +139,10 @@ export const BUFF_DB: BuffDef[] = [
         id: 'stat_transfer',
         name: '汲取',
         description: '吸取目标属性。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'duration', ms: 1500 },
         stacking: { type: 'independent' },
     },
-
     {
         id: 'zuoyou_hubo',
         name: '左右互搏',
@@ -253,7 +226,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'min_move_cost',
         name: '跑得贼快',
         description: '步法精妙，移动消耗最低。',
-        tags: ['buff'],
+        tags: [],
         expiry: { type: 'permanent' },
     },
     {
@@ -307,7 +280,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'bamboo_regen',
         name: '回春',
         description: '剑气如春竹吐纳，生生不息。',
-        tags: ['heal'],
+        tags: ['heal', 'buff'],
         expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
         tickInterval: 2000,
@@ -437,7 +410,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'qishier_bian',
         name: '七十二变',
         description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧增加6点。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         tickInterval: 6000,
         onTickHeal: ({ attacker: char, state, layer }) => {
@@ -466,7 +439,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'calming_fragrance',
         name: '定心清香',
         description: '清香常驻',
-        tags: ['buff'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { insight: 2, wisdom: 2 },
@@ -475,7 +448,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'calming_aftertaste',
         name: '定心余香',
         description: '余香留存10秒',
-        tags: ['buff'],
+        tags: [],
         expiry: { type: 'duration', ms: 10000 },
         stacking: { type: 'independent' },
         attrMods: { insight: 2, wisdom: 1 },
@@ -484,7 +457,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'yuxin_sword_mastery',
         name: '真假无用',
         description: '双剑合璧，可叠层 buff 上限+2。',
-        tags: ['buff'],
+        tags: [],
         expiry: { type: 'permanent' },
         onBuffApply: (raw) => raw * 2,
     },
@@ -492,7 +465,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'xuan_ji',
         name: '玄机',
         description: '袖里玄机。每触发一次触发器招式叠1层，9层满时下一招非辅助招式强化。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 9 },
     },
@@ -500,7 +473,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'tianji_ready',
         name: '天机',
         description: '袖里玄机已满，下一招非辅助招式必中、无视招架、必定暴击。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         onHitChance: () => 1,
         onCanBeParried: () => false,
@@ -634,7 +607,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'no_parry_buff',
         name: '流风回雪',
         description: '招架率转化为等额闪避率。',
-        tags: ['buff'],
+        tags: [],
         stacking: { type: 'none' },
         onCanParry: () => false,
         onDodgeChance: ({ target }) => {
@@ -646,7 +619,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'draw_sword_combo_buff',
         name: '抽刀断水',
-        tags: ['buff', 'slash'],
+        tags: ['slash'],
         description: '交替使用斩击可叠加增伤。',
         stacking: { type: 'none' },
         // 出招即记录到队列（滚动窗口，永远保留最近3招）
@@ -697,7 +670,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'sword_focus',
         name: '怒炁充盈',
         description: '每被闪避一次积攒怒气，下次命中附加 层数×3 点伤害，击中后重置。',
-        tags: ['buff'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
         onDodged: ({ layer }) => {
@@ -717,7 +690,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'sword_enhance_buff',
         name: '灵炁灌注',
         description: '下次御物伤害+30%。',
-        tags: ['imperial'],
+        tags: ['imperial', 'buff'],
         expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },
         onDealDamage: (ctx) => {
@@ -730,7 +703,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'adrenaline_rush',
         name: '肾上腺素',
         description: 'AP恢复速度翻倍，持续15秒。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'duration', ms: 15000 },
         tickInterval: 1000,
         onTickHeal: ({ target: char, engine }) => {
@@ -760,7 +733,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'floating_eye_buff',
         name: '浮游眼',
         description: '洞察流转，预判对手。洞察+4，暴击率+5%。',
-        tags: ['buff'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { insight: 4 },
@@ -771,7 +744,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'blood_rage',
         name: '血战到底',
         description: '气血越低属性加成越高。力道、身法、灵巧随血量减少而提升。',
-        tags: ['buff'],
+        tags: [],
         expiry: { type: 'permanent' },
         onHpChange: ({ target: char, state, layer }) => {
             const hpPct = char.hp / char.maxHp
@@ -956,7 +929,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'no_way_win_buff',
         name: '无招胜有招',
         description: '触发招式伤害+15。',
-        tags: ['buff'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, triggered }) => (triggered ? Math.round((final + 15) * 10) / 10 : final),
@@ -966,7 +939,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'engine_hammer_buff',
         name: '引擎铁锤',
         description: '天工锻造的电磁锤。maxAP-1，所有伤害附加推演×0.1。',
-        tags: ['buff', 'weapon', 'electric', 'blunt'],
+        tags: ['weapon', 'electric', 'blunt'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         maxApMod: -1,
@@ -979,7 +952,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'qi_electric_buff',
         name: '炁电转换',
         description: '以炁驱动装备，身上的天工造物与义体越多、推演越高，力道、身法、灵巧提升越多。',
-        tags: ['buff', 'craft', 'electric'],
+        tags: ['craft', 'electric'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         tickInterval: 1,
@@ -1007,7 +980,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'no_light_buff',
         name: '无明之明',
         description: '以推演替代洞察，感知万物。',
-        tags: ['buff'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.006,
@@ -1079,7 +1052,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'mingjing_zhishui_buff',
         name: '明镜止水',
         description: '心如明镜，神清目明。招式省AP但推演降低。',
-        tags: ['buff'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { wisdom: -2 },
@@ -1098,7 +1071,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'xu_ying',
         name: '虚影',
         description: '残影步带出的虚影，身法飘忽。',
-        tags: [],
+        tags: ['buff'],
         expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'additive' },
         onDodgeChance: ({ layer }) => layer.restoreValue * 0.05,

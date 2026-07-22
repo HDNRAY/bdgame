@@ -65,6 +65,12 @@ export interface ActiveBuffSnapshot {
     stacks: number
 }
 
+export interface AttrSourceBreakdown {
+    passives: Record<string, number>
+    artifacts: Record<string, number>
+    weapons: Record<string, number>
+}
+
 export interface CharacterSnapshot {
     id: string
     name: string
@@ -79,6 +85,7 @@ export interface CharacterSnapshot {
     attrs: Record<string, number>
     baseAttrs: Record<string, number>
     buffs: ActiveBuffSnapshot[]
+    attrBreakdown: AttrSourceBreakdown
 }
 
 export interface BattleSnapshot {

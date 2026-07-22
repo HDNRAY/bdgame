@@ -3,9 +3,11 @@ import { ATTR_CN } from '../../../engine/entities/attributes'
 
 interface Breakdown {
     base: number
-    passives: number
-    artifacts: number
-    weapons: number
+    passives?: number
+    artifacts?: number
+    weapons?: number
+    /** 战斗中临时 buff 效果（如刚劲、柔劲） */
+    buffs?: number
 }
 
 interface StatTooltipProps {
@@ -38,15 +40,14 @@ export function StatTooltip({ attr, value, breakdown }: StatTooltipProps) {
             {breakdown && (
                 <>
                     <div className="tt-extra tt-extra-dim">基础: {breakdown.base}</div>
-                    {breakdown.passives !== 0 && (
+                    {!!breakdown.passives && (
                         <div className="tt-extra tt-extra-dim">功法: {fmt(breakdown.passives)}</div>
                     )}
-                    {breakdown.artifacts !== 0 && (
+                    {!!breakdown.artifacts && (
                         <div className="tt-extra tt-extra-dim">奇物: {fmt(breakdown.artifacts)}</div>
                     )}
-                    {breakdown.weapons !== 0 && (
-                        <div className="tt-extra tt-extra-dim">武器: {fmt(breakdown.weapons)}</div>
-                    )}
+                    {!!breakdown.weapons && <div className="tt-extra tt-extra-dim">武器: {fmt(breakdown.weapons)}</div>}
+                    {!!breakdown.buffs && <div className="tt-extra tt-extra-dim">Buff: {fmt(breakdown.buffs)}</div>}
                 </>
             )}
         </div>

@@ -16,8 +16,6 @@ import type { AttrName } from '../../../engine/entities/attributes'
 import { getCharacterAvatar, getWeaponOverlay } from '../../../ui/pixel-sprites'
 import { useBuildCharacter, cultCost } from '../../hooks/useBuildCharacter'
 import { BattleStyleSelector } from './BattleStyleSelector'
-import { Tooltip } from '../ui/Tooltip/Tooltip'
-import { StatTooltip } from '../tooltip-contents/StatTooltip'
 import { EntityItem } from '../ui/EntityItem/EntityItem'
 import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
 import './CharacterPanel.scss'
@@ -260,14 +258,7 @@ export function CharacterPanel({
                             const brk = getAttrBreakdown(attr, character)
                             return (
                                 <div key={attr} className="cp-attr-row">
-                                    <Tooltip content={<StatTooltip attr={attr} value={finalVal} breakdown={brk} />}>
-                                        <AttributeLabel
-                                            attr={attr}
-                                            value={finalVal}
-                                            baseValue={brk.base}
-                                            breakdown={brk}
-                                        />
-                                    </Tooltip>
+                                    <AttributeLabel attr={attr} value={finalVal} baseValue={brk.base} breakdown={brk} />
                                     {isBuild && (
                                         <>
                                             <button
