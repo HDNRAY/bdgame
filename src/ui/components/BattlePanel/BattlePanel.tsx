@@ -59,6 +59,19 @@ export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd
 
     const { entries, logLines, eventToLine, snapshots, charAInfo, charBInfo } = battleData
 
+    // 按时间排序 events + 每行 log 对应的 battle time
+    const sortedEntries = useMemo(() => entries.slice().sort((a, b) => a.timelineMs - b.timelineMs), [entries])
+    const lineTimelineMs = useMemo(() => {
+        const times: number[] = new Array(logLines.length)
+        let ei = 0
+        const lastMs = sortedEntries[sortedEntries.length - 1]?.timelineMs ?? 0
+        for (let li = 0; li < logLines.length; li++) {
+            while (ei < eventToLine.length && li > eventToLine[ei]) ei++
+            times[li] = ei < sortedEntries.length ? sortedEntries[ei].timelineMs : lastMs
+        }
+        return times
+    }, [logLines.length, eventToLine, sortedEntries])
+
     const [currentSnapshot, setCurrentSnapshot] = useState<BattleSnapshot | null>(() => snapshots[0] ?? null)
     const [currentLine, setCurrentLine] = useState(0)
     const [playState, setPlayState] = useState({ playing: false, speed: 1, progress: 0, currentTime: 0 })
@@ -127,7 +140,12 @@ export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd
                         charBName={charBInfo.name}
                     />
                 )}
-                <LogPanel logLines={logLines} currentLine={currentLine} />
+                <LogPanel
+                    logLines={logLines}
+                    currentLine={currentLine}
+                    lineTimelineMs={lineTimelineMs}
+                    speed={playState.speed}
+                />
             </div>
             {showSidePanels && (
                 <div className="bp-side">
