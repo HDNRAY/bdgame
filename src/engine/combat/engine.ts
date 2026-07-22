@@ -15,7 +15,7 @@ import { getAction } from '../../data/actions'
 import { getBuff } from '../../data/buffs'
 import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
-import type { ActionDefinition } from '../entities/action'
+import type { ActionDefinition, EffectDef } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
 import { reduceBleedOnHeal } from './utils/buff-layer'
@@ -25,6 +25,7 @@ import { tickEngine } from './tick-engine'
 import type {
     ActionCommand,
     ActionResult,
+    AttrSourceBreakdown,
     BattleState,
     EventPlan,
     BattleSnapshot,
@@ -164,7 +165,7 @@ export class BattleEngine {
     }
 
     /** 构建当前战斗快照 */
-    private sumAttrMods(effects: { type: string; attrs?: Record<string, number> }[]): Record<string, number> {
+    private sumAttrMods(effects: EffectDef[]): Record<string, number> {
         const mods: Record<string, number> = {}
         for (const e of effects) {
             if (e.type === 'stat_buff' && e.attrs) {
@@ -176,7 +177,7 @@ export class BattleEngine {
         return mods
     }
 
-    private getAttrBreakdown(c: import('./entities/character').Character): import('./types').AttrSourceBreakdown {
+    private getAttrBreakdown(c: Character): AttrSourceBreakdown {
         return {
             passives: this.sumAttrMods(c.passiveDefs.flatMap((p) => p.effects ?? [])),
             artifacts: this.sumAttrMods(c.artifactDefs.flatMap((a) => a.effects ?? [])),

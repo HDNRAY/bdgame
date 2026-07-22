@@ -1,6 +1,6 @@
 /** 角色精灵 & 头像 */
 
-import type { Palette, PixelMap, PixelSprite, AvatarData } from './types'
+import type { PixelSprite, AvatarData } from './types'
 import { getSpriteBodyType, buildPalette } from './palette'
 import { SPRITES } from './sprites'
 
