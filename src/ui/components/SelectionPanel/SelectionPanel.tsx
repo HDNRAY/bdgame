@@ -1,4 +1,4 @@
-import { useState, useMemo, useReducer, useEffect } from 'react'
+import { useState, useMemo, useReducer, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { OPPONENTS, gen } from '../../../data/opponents/index'
 import type { OpponentDef } from '../../../data/opponents/index'
@@ -6,7 +6,7 @@ import type { CharacterBuild } from '../../../game/entities/character-build'
 import { Character } from '../../../engine/entities/character'
 import { getCharacterAvatar, getWeaponOverlay } from '../../pixel-sprites'
 import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
-import { simulateWinRate, runBattle } from '../../../engine/battle-runner'
+import { runBattle } from '../../../engine/battle-runner'
 import { formatBattleLog } from '../../../engine/format-log'
 import { CharacterPanel } from '../CharacterPanel/CharacterPanel'
 import { useAppStore } from '../../stores/app-store'
@@ -48,18 +48,31 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
     const [selectedA, setSelectedA] = useState<OpponentDef | null>(null)
     const [selectedB, setSelectedB] = useState<OpponentDef | null>(null)
     const [sim, dispatch] = useReducer(simReducer, { status: 'idle' })
+    const simIdRef = useRef(true)
 
     // 选人完成后自动模拟胜率
     useEffect(() => {
         if (!selectedA || !selectedB) return
+        simIdRef.current = true
         dispatch({ type: 'start' })
-        const id = setTimeout(() => {
-            const buildA = gen(selectedA, 33)
-            const buildB = gen(selectedB, 33)
-            const result = simulateWinRate(buildA, buildB, 200, 6)
-            dispatch({ type: 'done', aRate: result.aRate, bRate: result.bRate })
-        }, 50)
-        return () => clearTimeout(id)
+        const buildA = gen(selectedA, 33)
+        const buildB = gen(selectedB, 33)
+
+        let aWins = 0,
+            bWins = 0
+        const total = 20
+
+        for (let i = 0; i < total; i++) {
+            const a = new Character(buildA)
+            const b = new Character(buildB)
+            const { winner } = runBattle(a, b, undefined, 6)
+            if (winner === buildA.id) aWins++
+            else if (winner === buildB.id) bWins++
+        }
+        if (simIdRef.current) dispatch({ type: 'done', aRate: aWins / total, bRate: bWins / total })
+        return () => {
+            simIdRef.current = false
+        }
     }, [selectedA, selectedB])
 
     const handleStart = () => {
@@ -108,22 +121,27 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
 
                 <div className="slots">
                     <div className="slot-label">{selectedA?.name ?? '挑战者 A'}</div>
+                    {sim.status === 'done' ? (
+                        <span className="slot-rate">{Math.round(sim.aRate * 100)}%</span>
+                    ) : sim.status === 'simulating' ? (
+                        <span className="slot-bar" />
+                    ) : null}
                     <span className="vs">VS</span>
+                    {sim.status === 'done' ? (
+                        <span className="slot-rate">{Math.round(sim.bRate * 100)}%</span>
+                    ) : sim.status === 'simulating' ? (
+                        <span className="slot-bar" />
+                    ) : null}
                     <div className="slot-label">{selectedB?.name ?? '挑战者 B'}</div>
                 </div>
 
-                {/* 胜率显示（预留空间防抖动） */}
-                <div className="win-rate" style={{ minHeight: 20 }}>
-                    {sim.status === 'done' ? (
-                        <>
-                            {selectedA?.name} {Math.round(sim.aRate * 100)}%<span className="sep">:</span>
-                            {selectedB?.name} {Math.round(sim.bRate * 100)}%
-                        </>
-                    ) : sim.status === 'simulating' ? (
-                        <span className="dim">模拟中...</span>
-                    ) : (
-                        ''
-                    )}
+                <div className="selection-actions">
+                    <button className="start-btn" disabled={!selectedA || !selectedB} onClick={handleStart}>
+                        开始战斗
+                    </button>
+                    <button className="back-btn" onClick={() => navigate('/')}>
+                        返回
+                    </button>
                 </div>
 
                 <div className="grid">
@@ -154,39 +172,32 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
                                 <OpponentAvatarSprite opponentId={opp.id} color={GRID_COLORS[i]} />
                                 <WeaponIconSprite weaponId={gen(opp, 33).weapon} />
                             </div>
-                            <span className="card-name">{opp.name}</span>
-                            {onBuild ? (
-                                <span
-                                    className="card-build-btn"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        onBuild(opp.id)
-                                    }}
-                                >
-                                    备战
-                                </span>
-                            ) : (
-                                <span
-                                    className="card-build-btn"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        navigate(`/build/${opp.id}`)
-                                    }}
-                                >
-                                    备战
-                                </span>
-                            )}
+                            <div className="card-meta">
+                                <span className="card-name">{opp.name}</span>
+                                {onBuild ? (
+                                    <span
+                                        className="card-build-btn"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            onBuild(opp.id)
+                                        }}
+                                    >
+                                        备战
+                                    </span>
+                                ) : (
+                                    <span
+                                        className="card-build-btn"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            navigate(`/build/${opp.id}`)
+                                        }}
+                                    >
+                                        备战
+                                    </span>
+                                )}
+                            </div>
                         </button>
                     ))}
-                </div>
-
-                <div className="selection-actions">
-                    <button className="start-btn" disabled={!selectedA || !selectedB} onClick={handleStart}>
-                        开始战斗
-                    </button>
-                    <button className="back-btn" onClick={() => navigate('/')}>
-                        返回
-                    </button>
                 </div>
             </div>
 

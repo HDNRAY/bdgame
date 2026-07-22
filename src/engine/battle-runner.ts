@@ -83,14 +83,16 @@ export function simulateWinRate(
     buildB: CharacterBuild,
     n: number = 200,
     distance = 4,
+    abortSignal?: { get aborted(): boolean },
 ): { aWins: number; bWins: number; draws: number; aRate: number; bRate: number } {
     let aWins = 0
     let bWins = 0
     let draws = 0
 
     for (let i = 0; i < n; i++) {
-        const a = new Character(JSON.parse(JSON.stringify(buildA)))
-        const b = new Character(JSON.parse(JSON.stringify(buildB)))
+        if (abortSignal?.aborted) break
+        const a = new Character(buildA)
+        const b = new Character(buildB)
         const { winner } = runBattle(a, b, undefined, distance)
         if (winner === buildA.id) aWins++
         else if (winner === buildB.id) bWins++

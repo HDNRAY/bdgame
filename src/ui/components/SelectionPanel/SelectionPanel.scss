@@ -13,6 +13,12 @@
     flex-shrink: 0;
 }
 
+@media (max-width: 768px) {
+    .selection-side {
+        display: none;
+    }
+}
+
 .side-placeholder {
     border: var(--border-width) dashed var(--color-border);
     border-radius: var(--radius-md);
@@ -55,34 +61,40 @@
         letter-spacing: 1px;
     }
 
+    .slot-rate {
+        font-size: var(--font-sm);
+        color: var(--color-gold);
+        font-weight: bold;
+    }
+
+    .slot-bar {
+        display: inline-block;
+        width: 0.7rem;
+        height: 0.7rem;
+        border: 2px dashed var(--color-accent);
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: slot-spin 0.8s linear infinite;
+        opacity: 0.7;
+    }
+
+    @keyframes slot-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
     .vs {
         font-size: var(--font-xxl);
         color: var(--color-text-dim);
         font-weight: bold;
     }
 
-    .win-rate {
-        font-size: var(--font-md);
-        color: var(--color-text);
-        height: 1.25rem;
-        line-height: 1.25rem;
-        margin-bottom: var(--sp-sm);
-    }
-
-    .win-rate .sep {
-        margin: 0 var(--sp-xs);
-        color: var(--color-border);
-    }
-
-    .win-rate .dim {
-        color: var(--color-text-dim);
-    }
-
     .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
-        gap: var(--sp-xs);
-        margin-bottom: var(--sp-xl);
+        grid-template-columns: repeat(auto-fill, 5rem);
+        gap: var(--sp-xxs);
+        margin-top: var(--sp-sm);
     }
 
     .card {
@@ -90,14 +102,14 @@
         flex-direction: column;
         align-items: center;
         gap: var(--sp-xxs);
-        padding: var(--sp-xs) var(--sp-xxs);
+        padding: var(--sp-xxs) var(--sp-xxs);
         background: var(--color-bg-panel);
         border: var(--border-width) solid var(--color-border);
-        border-radius: var(--radius-md);
+        border-radius: var(--radius-sm);
         cursor: pointer;
         color: var(--color-text);
         font-family: var(--font-mono);
-        font-size: var(--font-sm);
+        font-size: var(--font-xs);
         transition:
             border-color 0.15s,
             background 0.15s;
@@ -120,15 +132,32 @@
         }
     }
 
+    .card-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .card-name {
+        font-size: 9px;
+        line-height: 1.2;
+        color: var(--color-text);
+        max-width: 3.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     .card-build-btn {
-        font-size: var(--font-xs);
+        font-size: var(--font-xxs);
         color: var(--color-text-dim);
         cursor: pointer;
-        padding: 1px var(--sp-xs);
+        padding: 0 var(--sp-xxs);
         border: var(--border-width) solid var(--color-border);
         border-radius: var(--radius-sm);
         background: var(--color-entity-bg);
-        margin-top: 2px;
+        line-height: 1.5;
         transition:
             color 0.15s,
             border-color 0.15s;
@@ -143,16 +172,17 @@
         justify-content: center;
         align-items: center;
         gap: var(--sp-sm);
+        margin-bottom: var(--sp-sm);
     }
 
     .start-btn {
-        padding: var(--sp-xs) 2.5rem;
-        font-size: var(--font-lg);
+        padding: var(--sp-xxs) 1.5rem;
+        font-size: var(--font-md);
         font-family: var(--font-mono);
         background: var(--color-bg-panel);
         color: var(--color-text-h);
         border: var(--border-width) solid var(--color-border);
-        border-radius: var(--radius-md);
+        border-radius: var(--radius-sm);
         cursor: pointer;
         transition: background 0.15s;
 
@@ -167,40 +197,42 @@
     }
 
     .back-btn {
-        padding: 10px 20px;
-        font-size: 13px;
-        font-family: monospace;
+        padding: var(--sp-xxs) var(--sp-md);
+        font-size: var(--font-sm);
+        font-family: var(--font-mono);
         background: transparent;
-        color: #666;
-        border: 1px solid #333;
-        border-radius: 4px;
+        color: var(--color-text-dim);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-sm);
         cursor: pointer;
         transition:
             color 0.15s,
             border-color 0.15s;
 
         &:hover {
-            color: #aaa;
-            border-color: #555;
+            color: var(--color-text-h);
+            border-color: var(--color-border-hover);
         }
     }
 }
 
 .avatar-sprite {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     image-rendering: pixelated;
 }
 
 .weapon-icon {
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
     image-rendering: pixelated;
-    opacity: 0.6;
+    opacity: 0.7;
 }
 
 .card-row {
     display: flex;
     align-items: center;
-    gap: 4px;
+    justify-content: flex-start;
+    gap: var(--sp-xxs);
+    width: 100%;
 }
