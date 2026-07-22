@@ -9,7 +9,6 @@ import {
     TEXT_STACK_V,
     TEXT_STACK_H,
     TEXT_EFFECT_OFFSET,
-    CHAR_SIZE,
 } from './constants'
 
 interface FloatEntry {
@@ -46,6 +45,7 @@ export class FloatTextSystem {
         pxPerUnit: number,
         viewOffset: number,
         groundY: number,
+        charDims: Map<string, { w: number; h: number }>,
     ): void {
         if (!this.hasPlayed) return
 
@@ -54,6 +54,7 @@ export class FloatTextSystem {
 
         const char = chars.find((c) => c.id === data.charId) ?? chars[0]
         const isSelf = data.kind === 'action'
+        const dim = charDims.get(char.id) ?? { w: 48, h: 48 }
 
         let ox: number
         let oy: number
@@ -64,7 +65,7 @@ export class FloatTextSystem {
             const charCenterX = this.container.width / 2 + (char.pos - viewOffset) * pxPerUnit
             const mid = this.container.width / 2
             ox = charCenterX + (charCenterX < mid ? TEXT_EFFECT_OFFSET : -TEXT_EFFECT_OFFSET)
-            oy = groundY - CHAR_SIZE + 20
+            oy = groundY - dim.h + 20
         }
 
         // 延迟到执行时才计算位置（此时 this.texts 已包含之前显示的文字）

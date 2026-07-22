@@ -83,7 +83,9 @@ export function BattleStatusPanel({ snapshot, charAName, charBName }: BattleStat
                                     const isDebuff = def?.tags.includes('debuff') ?? false
                                     return (
                                         <Tooltip key={b.buffId} content={def?.description ?? b.name}>
-                                            <span className={isDebuff ? 'debuff-tag' : 'buff-tag'}>{label}</span>
+                                            <span className={`tag-badge ${isDebuff ? 'debuff-tag' : 'buff-tag'}`}>
+                                                {label}
+                                            </span>
                                         </Tooltip>
                                     )
                                 })}

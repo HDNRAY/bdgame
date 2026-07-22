@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { useNavigate } from 'react-router-dom'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
@@ -13,7 +13,7 @@ import { CONDITION_PRESETS } from '../../../data/conditions'
 import { TRIGGER_CONDITIONS } from '../../../data/triggers'
 import { getTriggerConditionName } from '../../../bridge/triggerDisplay'
 import type { AttrName } from '../../../engine/entities/attributes'
-import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../../../ui/pixel-sprites'
+import { getCharacterAvatar, getWeaponOverlay } from '../../../ui/pixel-sprites'
 import { useBuildCharacter, cultCost } from '../../hooks/useBuildCharacter'
 import { BattleStyleSelector } from './BattleStyleSelector'
 import { Tooltip } from '../ui/Tooltip/Tooltip'
@@ -96,47 +96,11 @@ export function CharacterPanel({
         handleSave,
     } = useBuildCharacter(build, onSave, unspentCultPoints)
 
-    const avatarRef = useRef<HTMLCanvasElement>(null)
-    const weaponRef = useRef<HTMLCanvasElement>(null)
     const spriteId = character?.build.spriteId ?? 'default'
     const weapon = character?.weaponDef ?? (character ? getWeapon(character.build.weapon) : undefined)
 
     // 已选触发 ID 集合（只检查 actionConfigs，不检查武器/功法/奇物自带触发）
     const takenTriggerIds = new Set(actionConfigs.map((ac) => ac.triggerId).filter((id): id is string => !!id))
-
-    useEffect(() => {
-        if (!character) return
-        const canvas = avatarRef.current
-        if (!canvas) return
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return
-        ctx.clearRect(0, 0, 32, 32)
-        const avatar = getCharacterAvatar(spriteId, accentColor)
-        renderAvatarToCanvas(ctx, avatar, 0, 0)
-    }, [character, spriteId, accentColor])
-
-    useEffect(() => {
-        if (!character) return
-        const canvas = weaponRef.current
-        if (!canvas) return
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return
-        ctx.clearRect(0, 0, 48, 48)
-        const overlay = getWeaponOverlay(character.build.weapon)
-        if (overlay.pixels.length === 0) return
-        const minX = Math.min(...overlay.pixels.map((p) => p[0]))
-        const maxX = Math.max(...overlay.pixels.map((p) => p[0]))
-        const minY = Math.min(...overlay.pixels.map((p) => p[1]))
-        const maxY = Math.max(...overlay.pixels.map((p) => p[1]))
-        const w = (maxX - minX + 1) * 3
-        const h = (maxY - minY + 1) * 3
-        const ox = (48 - w) / 2
-        const oy = (48 - h) / 2
-        for (const [px, py, color] of overlay.pixels) {
-            ctx.fillStyle = color
-            ctx.fillRect(ox + (px - minX) * 3, oy + (py - minY) * 3, 3, 3)
-        }
-    }, [character])
 
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
@@ -182,7 +146,12 @@ export function CharacterPanel({
                     <div className="cp-section cp-info-section">
                         <div className="cp-info-left">
                             <div className="cp-info-row">
-                                <canvas ref={avatarRef} width={32} height={32} className="cp-avatar" />
+                                <PixelCanvas
+                                    pixels={getCharacterAvatar(spriteId, accentColor).pixels}
+                                    palette={getCharacterAvatar(spriteId, accentColor).palette}
+                                    scale={4}
+                                    className="cp-avatar"
+                                />
                                 <div className="cp-info-name">{character.name}</div>
                             </div>
                             <div className="cp-info-row">
@@ -193,7 +162,10 @@ export function CharacterPanel({
                                 </div>
                             </div>
                             <div className="cp-info-row">
-                                <canvas ref={weaponRef} width={48} height={48} className="cp-weapon-art" />
+                                <PixelCanvas
+                                    overlay={getWeaponOverlay(character.build.weapon)}
+                                    className="cp-weapon-art"
+                                />
                                 {weapon && <EntityItem entity={weapon} type="weapon" />}
                             </div>
                         </div>

@@ -1,10 +1,11 @@
-import { useRef, useEffect, useState, useMemo, useReducer } from 'react'
+import { useState, useMemo, useReducer, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { OPPONENTS, gen } from '../../../data/opponents/index'
 import type { OpponentDef } from '../../../data/opponents/index'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import { Character } from '../../../engine/entities/character'
-import { getCharacterAvatar, renderAvatarToCanvas, getWeaponOverlay } from '../../pixel-sprites'
+import { getCharacterAvatar, getWeaponOverlay } from '../../pixel-sprites'
+import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { simulateWinRate, runBattle } from '../../../engine/battle-runner'
 import { formatBattleLog } from '../../../engine/format-log'
 import { CharacterPanel } from '../CharacterPanel/CharacterPanel'
@@ -202,42 +203,12 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
 
 /** 对手小头像 */
 function OpponentAvatarSprite({ opponentId, color }: { opponentId: string; color: string }) {
-    const ref = useRef<HTMLCanvasElement>(null)
-    useEffect(() => {
-        const c = ref.current
-        if (!c) return
-        const ctx = c.getContext('2d')
-        if (!ctx) return
-        ctx.clearRect(0, 0, 32, 32)
-        const avatar = getCharacterAvatar(opponentId, color)
-        renderAvatarToCanvas(ctx, avatar, 0, 0)
-    }, [opponentId, color])
-    return <canvas ref={ref} width={32} height={32} className="avatar-sprite" />
+    const avatar = useMemo(() => getCharacterAvatar(opponentId, color), [opponentId, color])
+    return <PixelCanvas pixels={avatar.pixels} palette={avatar.palette} scale={4} className="avatar-sprite" />
 }
 
 /** 武器小图标 */
 function WeaponIconSprite({ weaponId }: { weaponId: string }) {
-    const ref = useRef<HTMLCanvasElement>(null)
-    useEffect(() => {
-        const c = ref.current
-        if (!c) return
-        const ctx = c.getContext('2d')
-        if (!ctx) return
-        ctx.clearRect(0, 0, 32, 32)
-        const overlay = getWeaponOverlay(weaponId)
-        if (overlay.pixels.length === 0) return
-        const minX = Math.min(...overlay.pixels.map((p) => p[0]))
-        const maxX = Math.max(...overlay.pixels.map((p) => p[0]))
-        const minY = Math.min(...overlay.pixels.map((p) => p[1]))
-        const maxY = Math.max(...overlay.pixels.map((p) => p[1]))
-        const w = (maxX - minX + 1) * 3
-        const h = (maxY - minY + 1) * 3
-        const ox = (32 - w) / 2
-        const oy = (32 - h) / 2
-        for (const [px, py, color] of overlay.pixels) {
-            ctx.fillStyle = color
-            ctx.fillRect(ox + (px - minX) * 3, oy + (py - minY) * 3, 3, 3)
-        }
-    }, [weaponId])
-    return <canvas ref={ref} width={32} height={32} className="weapon-icon" />
+    const overlay = useMemo(() => getWeaponOverlay(weaponId), [weaponId])
+    return <PixelCanvas overlay={overlay} className="weapon-icon" />
 }

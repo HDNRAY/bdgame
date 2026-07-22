@@ -1,9 +1,5 @@
 /** 每个像素放大倍数 */
 export const PIXEL = 3
-/** 精灵原始尺寸 */
-export const SPRITE_SIZE = 16
-/** 角色显示尺寸 */
-export const CHAR_SIZE = SPRITE_SIZE * PIXEL
 /** 角色脚底到画布底的偏移 */
 export const VERT_OFFSET = 24
 /** 角色脚底的 Y 坐标 */

@@ -13,8 +13,8 @@
         border-bottom: var(--border-width) solid var(--color-border);
 
         .ctrl-btn {
-            background: var(--color-text);
-            color: var(--color-bg);
+            background: var(--color-entity-bg);
+            color: var(--color-text);
             border: none;
             padding: 0 var(--sp-xxs);
             cursor: pointer;
@@ -22,7 +22,7 @@
             font-size: var(--font-xxs);
 
             &:hover {
-                filter: brightness(1.15);
+                filter: brightness(0.92);
             }
         }
     }
@@ -34,6 +34,17 @@
         line-height: 1.5;
         text-align: left;
         white-space: pre-wrap;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+        &::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+        }
+        &::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 3px;
+        }
     }
 
     .log-line {

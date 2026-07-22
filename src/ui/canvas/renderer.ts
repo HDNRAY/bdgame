@@ -8,7 +8,6 @@ import { makeCharacterSprite, getWeaponOverlay } from '../pixel-sprites'
 import { FloatTextSystem } from './float-text'
 import {
     PIXEL,
-    CHAR_SIZE,
     GROUND_Y,
     MAX_MOVE_SPEED,
     GHOST_ALPHA,
@@ -119,6 +118,19 @@ export class CanvasRenderer {
         const { chars, eventIndex } = frame
         const groundY = GROUND_Y(this.canvasHeight)
 
+        // 根据当前帧精灵数据计算实际尺寸
+        const charDims = new Map<string, { w: number; h: number }>()
+        let maxSpriteW = 48
+        for (const c of chars) {
+            const color = this.charColors.get(c.id) ?? '#888'
+            const sprite = makeCharacterSprite(c.spriteId, color)
+            const frameData = sprite.frames[c.pose] ?? sprite.frames.idle
+            const w = (frameData[0]?.length ?? 16) * PIXEL
+            const h = frameData.length * PIXEL
+            charDims.set(c.id, { w, h })
+            if (w > maxSpriteW) maxSpriteW = w
+        }
+
         let pxPerUnit = 8
         let viewOffset = 0
         if (chars.length >= 2) {
@@ -127,7 +139,7 @@ export class CanvasRenderer {
             const range = maxP - minP
             const viewUnits = Math.max(MIN_VIEW_UNITS, range + 2)
             const midP = (minP + maxP) / 2
-            pxPerUnit = (this.canvasWidth - CHAR_SIZE) / viewUnits
+            pxPerUnit = (this.canvasWidth - maxSpriteW) / viewUnits
             viewOffset = midP
         }
 
@@ -137,14 +149,15 @@ export class CanvasRenderer {
         for (const c of chars) {
             const otherPos = chars.find((o) => o.id !== c.id)?.pos ?? 0
             const facingRight = c.pos < otherPos
-            const target = this.canvasWidth / 2 + (c.pos - viewOffset) * pxPerUnit - CHAR_SIZE / 2
+            const dim = charDims.get(c.id)!
+            const target = this.canvasWidth / 2 + (c.pos - viewOffset) * pxPerUnit - dim.w / 2
             const cur = this.displayPos.get(c.id) ?? target
             const diff = target - cur
             const newPos = cur + Math.sign(diff) * Math.min(Math.abs(diff), MAX_MOVE_SPEED)
             this.displayPos.set(c.id, newPos)
 
             if (Math.abs(diff) >= MAX_MOVE_SPEED * GHOST_SPAWN_RATIO) {
-                this.spawnGhost(newPos, groundY - CHAR_SIZE, facingRight, c)
+                this.spawnGhost(newPos, groundY - dim.h, facingRight, c)
             }
             this.renderChar(c, pxPerUnit, viewOffset, facingRight, groundY, newPos)
         }
@@ -153,7 +166,7 @@ export class CanvasRenderer {
         while (this.lastSpawnedIdx < eventIndex && this.lastSpawnedIdx + 1 < this.entries.length) {
             this.lastSpawnedIdx++
             const entry = this.entries[this.lastSpawnedIdx]
-            this.floatTexts.spawn(entry.event, undefined, chars, pxPerUnit, viewOffset, groundY)
+            this.floatTexts.spawn(entry.event, undefined, chars, pxPerUnit, viewOffset, groundY, charDims)
         }
         this.floatTexts.update()
 
@@ -235,8 +248,10 @@ export class CanvasRenderer {
 
         g.clear()
 
-        const ox = displayOx ?? this.canvasWidth / 2 + (c.pos - viewOffset) * pxPerUnit - CHAR_SIZE / 2
-        const oy = groundY - CHAR_SIZE
+        const spriteW = frameData[0].length * PIXEL
+        const spriteH = frameData.length * PIXEL
+        const ox = displayOx ?? this.canvasWidth / 2 + (c.pos - viewOffset) * pxPerUnit - spriteW / 2
+        const oy = groundY - spriteH
 
         for (let y = 0; y < frameData.length; y++) {
             for (let x = 0; x < frameData[y].length; x++) {
@@ -251,7 +266,7 @@ export class CanvasRenderer {
 
         this.renderWeapon(c, ox, oy, facingRight)
 
-        const barW = CHAR_SIZE
+        const barW = spriteW
         const waitRatio = Math.min(1, Math.max(0, c.waitProgress ?? c.ap / c.maxAp))
         // 等待条：黑色背景 + 灰色缩短条
         g.rect(ox, groundY + 2, barW, 3).fill({ color: '#000' })

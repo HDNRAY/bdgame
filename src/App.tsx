@@ -8,6 +8,7 @@ import { AboutScreen } from './ui/screens/AboutScreen/AboutScreen'
 import { EncyclopediaScreen } from './ui/screens/EncyclopediaScreen/EncyclopediaScreen'
 import { BattleScreen } from './ui/screens/BattleScreen/BattleScreen'
 import { RogueliteScreen } from './ui/screens/RogueliteScreen/RogueliteScreen'
+import { DevMode } from './ui/screens/DevMode/DevMode'
 import { RotateDevice } from './ui/components/RotateDevice/RotateDevice'
 import { useAppStore } from './ui/stores/app-store'
 import { useSystemTheme } from './ui/hooks/useSystemTheme'
@@ -56,6 +57,7 @@ function App() {
                     <Route path="/encyclopedia" element={<EncyclopediaScreen />} />
                     <Route path="/battle" element={<BattleScreen />} />
                     <Route path="/roguelite" element={<RogueliteScreen />} />
+                    <Route path="/dev" element={<DevMode />} />
                 </Routes>
             </AppShell>
         </HashRouter>

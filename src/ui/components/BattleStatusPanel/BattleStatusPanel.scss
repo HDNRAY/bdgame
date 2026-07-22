@@ -87,31 +87,19 @@
         margin-top: 4px;
         margin-bottom: 6px;
         padding-bottom: 6px;
-        border-bottom: 1px solid #2a2a3e;
+        border-bottom: var(--border-width) solid var(--color-border);
     }
 
     .buff-tag {
-        display: inline-block;
-        background: #1a2e1a;
-        color: #8f8;
-        border: 1px solid #2a4a2a;
-        border-radius: 3px;
-        padding: 1px 5px;
-        font-size: 12px;
-        cursor: default;
-        white-space: nowrap;
+        background: var(--color-buff-bg);
+        color: var(--color-buff-text);
+        border-color: var(--color-buff-border);
     }
 
     .debuff-tag {
-        display: inline-block;
-        background: #2e1a1a;
-        color: #f88;
-        border: 1px solid #4a2a2a;
-        border-radius: 3px;
-        padding: 1px 5px;
-        font-size: 12px;
-        cursor: default;
-        white-space: nowrap;
+        background: var(--color-debuff-bg);
+        color: var(--color-debuff-text);
+        border-color: var(--color-debuff-border);
     }
 
     .bar-bg {

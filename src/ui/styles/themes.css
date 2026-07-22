@@ -45,6 +45,14 @@
     --color-success-bg: rgba(39, 174, 96, 0.1);
     --color-warning-bg: rgba(230, 126, 34, 0.1);
 
+    /* Buff / Debuff tags */
+    --color-buff-bg: #e6f7e6;
+    --color-buff-text: #2d7a2d;
+    --color-buff-border: #b8e6b8;
+    --color-debuff-bg: #fde8e8;
+    --color-debuff-text: #c0392b;
+    --color-debuff-border: #f5baba;
+
     /* Overlay */
     --color-overlay: rgba(0, 0, 0, 0.3);
 
@@ -109,6 +117,14 @@
     --color-danger-bg: rgba(231, 76, 60, 0.15);
     --color-success-bg: rgba(39, 174, 96, 0.15);
     --color-warning-bg: rgba(230, 126, 34, 0.15);
+
+    /* Buff / Debuff tags */
+    --color-buff-bg: #1a2e1a;
+    --color-buff-text: #8f8;
+    --color-buff-border: #2a4a2a;
+    --color-debuff-bg: #2e1a1a;
+    --color-debuff-text: #f88;
+    --color-debuff-border: #4a2a2a;
 
     /* Overlay */
     --color-overlay: rgba(0, 0, 0, 0.5);

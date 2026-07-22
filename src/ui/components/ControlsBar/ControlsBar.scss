@@ -7,8 +7,8 @@
     border: var(--border-width) solid var(--color-border);
 
     .ctrl-btn {
-        background: var(--color-text);
-        color: var(--color-bg);
+        background: var(--color-entity-bg);
+        color: var(--color-text);
         border: none;
         padding: 0 var(--sp-xs);
         height: 1.25rem;
@@ -18,7 +18,7 @@
         line-height: 1.25rem;
 
         &:hover {
-            filter: brightness(1.15);
+            filter: brightness(0.92);
         }
 
         &.active {

@@ -24,8 +24,22 @@ export class Character {
     readonly id: string
     name: string
     attrs: AttributeSet
-    hp: number
-    ap: number
+    /** 当前 HP（赋值自动保留 1 位小数） */
+    private _hp = 0
+    get hp(): number {
+        return this._hp
+    }
+    set hp(v: number) {
+        this._hp = Math.round(v * 10) / 10
+    }
+    /** 当前 AP（赋值自动保留 1 位小数） */
+    private _ap = 0
+    get ap(): number {
+        return this._ap
+    }
+    set ap(v: number) {
+        this._ap = Math.round(v * 10) / 10
+    }
     /** 缠劲层数 */
     chan = 0
     /** 上次行动结束的绝对时间 (ms)，0=未行动过 */
