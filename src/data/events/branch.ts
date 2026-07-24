@@ -185,6 +185,63 @@ export const LIBRARY_EVENT: EventDef = {
     ],
 }
 
+/** 药屋 — 小花指教洞察/推演 */
+export const XIAOHUA_INSIGHT: EventDef = {
+    id: 'xiaohua_insight',
+    name: '药屋问心',
+    description: '你去药屋拜访小花，想请教洞察与推演之道。',
+    rewardType: 'passive',
+    rewardFilter: (item) =>
+        [
+            'combat_instinct',
+            'insight_awareness',
+            'hearing_power',
+            'mingjing_zhishui',
+            'enhanced_vision',
+            'martial_arts_archive',
+        ].includes(item.id),
+    rounds: [
+        {
+            id: 'intro',
+            title: '药屋',
+            description:
+                '你推门走进药屋，小花正背对着你碾药。她没有回头，只是安静地说了一句：「来了？」\n\n你说明来意——想请教洞察与推演的心法。小花停下手中的活，沉默了片刻。\n\n「洞察和推演……」她转过身来，明明双目失明，你却感到她"看"了你一眼。「想学可以，先让我看看你的底子。」',
+            choices: [
+                { id: 'fight_xiaohua', type: 'continue', label: '请小花亲自指点' },
+                { id: 'fight_orange', type: 'continue', label: '请橘子会代为切磋' },
+            ],
+        },
+        {
+            id: 'fight_xiaohua',
+            title: '小花亲自下场',
+            enemyId: 'xiaohua',
+            description:
+                '小花缓缓起身：「好，我亲自来会会你。」\n\n她每一步都精准地踏在你的气机之上。你意识到——这不是普通的切磋，这是她用「无明之明」在"看"你。',
+            choices: [{ id: 'aftermath', type: 'continue', label: '聆听指点' }],
+        },
+        {
+            id: 'fight_orange',
+            title: '橘子会迎战',
+            enemyId: 'orange',
+            description:
+                '小花轻轻一笑：「那让橘子会陪你走几招。」\n\n橘子会从里屋走出，朝你抱拳一礼。小花退到一旁，侧耳倾听——她要通过橘子会的交手来"看"你的路数。',
+            choices: [{ id: 'aftermath', type: 'continue', label: '聆听指点' }],
+        },
+        {
+            id: 'aftermath',
+            title: '小花的指点',
+            description:
+                '（战斗过后）小花沉默了一会儿，然后缓缓开口，从你最基础的感知方式讲起——如何区分"看"和"察"、如何用推演补洞察之不足、如何在混沌中抓住那一线先机。\n\n橘子会在旁认真听着，不时点头。你感觉到，这番指点让你的感知之道豁然开朗。',
+            choices: [{ id: 'reward', type: 'continue', label: '细细体会' }],
+        },
+        {
+            id: 'reward',
+            title: '收获',
+            choices: [],
+        },
+    ],
+}
+
 export const BRANCH_EVENTS: EventDef[] = [
     BRANCH_PASSIVE,
     BRANCH_ACTION,
@@ -193,5 +250,6 @@ export const BRANCH_EVENTS: EventDef[] = [
     BRANCH_HEAL,
     TIANGONG_WEAPON,
     LIBRARY_EVENT,
+    XIAOHUA_INSIGHT,
     ...CHRONICLE_EVENTS,
 ]

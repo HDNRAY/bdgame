@@ -528,7 +528,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'tongtian',
-        name: '通天',
+        name: '通天录',
         description: '悟生离死别，所有伤害受推演按AP加成。',
         tags: ['passive', 'buff', 'qi'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tongtian' }] }],
