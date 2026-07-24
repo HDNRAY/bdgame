@@ -25,7 +25,9 @@ export function LogPanel({ logLines, currentLine, compact, lineTimelineMs, speed
     const targetRef = useRef(currentLine)
 
     // 保持 ref 与 state 同步
-    useEffect(() => { displayRef.current = displayCount }, [displayCount])
+    useEffect(() => {
+        displayRef.current = displayCount
+    }, [displayCount])
 
     // 逐行动画：按 battle time 间隔展示，后退时立即追上
     useEffect(() => {

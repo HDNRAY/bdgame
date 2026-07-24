@@ -508,7 +508,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'sword_thrust',
         name: '突刺',
-        description: '短兵直刺，兼具力道与灵巧。',
+        description: '垫步突刺，迅捷灵活。泛用戳刺技，任何带尖的兵器皆可施展。',
         requiredTags: ['pierce'],
         apCost: 2,
         tags: ['pierce'],
@@ -521,20 +521,19 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'thrust',
         name: '直刺',
-        description: '一往无前的直刺。',
+        description: '聚力一刺，劲透三分。有几率撕裂伤口造成流血。',
         requiredTags: ['pierce'],
         apCost: 4,
         tags: ['bleed', 'pierce'],
         effects: [
-            { type: 'short_dash', maxDistance: 1 },
-            { type: 'damage', scaling: { strength: 0.8 } },
+            { type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } },
             { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.3 },
         ],
     },
     {
         id: 'pursuit_thrust',
         name: '追刺',
-        description: '趁虚而入，追击刺击。',
+        description: '趁敌露出破绽时追击刺击，有较高几率造成流血。',
         requiredTags: ['pierce'],
         apCost: 2,
         tags: ['bleed', 'pierce'],

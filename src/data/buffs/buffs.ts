@@ -354,7 +354,7 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'dark_iron_weight',
-        name: '玄铁剑意',
+        name: '玄铁剑重',
         description: '玄铁剑的沉重负担与无锋剑意。身法受限但力道大增，招架只能减免一半伤害。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
