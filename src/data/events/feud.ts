@@ -11,7 +11,7 @@ export const FEUD_N02_WEAPON: EventDef = {
     id: 'feud_n02_weapon',
     name: '选兵器',
     description:
-        '那年你六岁。会长从家里找出你父亲遗留的三件兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
+        '那年你六岁。会长姬仲从家里找出你父亲遗留的三件兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
     rewardType: 'weapon',
     rewardFilter: (item) => STARTING_WEAPONS.some((w) => w.id === item.id),
     rounds: [
@@ -19,7 +19,7 @@ export const FEUD_N02_WEAPON: EventDef = {
             id: 'intro',
             title: '父亲的遗物',
             description:
-                '那年你六岁。会长从家里找出你父亲遗留的三件兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
+                '那年你六岁。会长姬仲从家里找出你父亲遗留的三件兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
             choices: [],
         },
         {
@@ -92,26 +92,27 @@ export const FEUD_LUHONGTI_SPAR: EventDef = {
 export const BOSS_AJIU: EventDef = {
     id: 'boss_ajiu',
     name: '阿九',
-    description: '一个身负重伤的组织成员。你认出了他——他就是当年灭门的参与者之一。',
+    description: '阿九站在巷口，等你。她知道你会来。',
     rewardType: 'points',
     rounds: [
         {
             id: 'intro',
-            title: '仇人见面',
+            title: '守门人',
             description:
-                '一个身负重伤的组织成员倒在巷口。你认出了他——他就是当年灭门的参与者之一。他看见你，咧嘴一笑：「你是……那家的孩子？哈哈哈，你长大了啊。」',
+                '阿九站在巷口，月光落在她脸上。她没有躲，也没有逃。她看见你手中的兵器，轻轻笑了笑：「我知道你会来。」\n\n你看见她的右手——义体手臂在月光下泛着冰冷的金属光泽。那是组织成员的标记。',
             choices: [{ id: 'combat_round', type: 'continue', label: '拔剑' }],
         },
         {
             id: 'combat_round',
-            title: '复仇',
+            title: '赴死',
             enemyId: 'ajiu',
-            description: '你拔出兵器，一步步向他走去。他挣扎着站起身，从腰间抽出一把短刀。',
+            description:
+                '你拔出兵器。阿九没有动。她只是站在那里，看着你——眼神里没有恐惧，没有抵抗，只有一种说不清的平静。她缓缓抬起义体手臂，让你看清它。',
             choices: [],
         },
         {
             id: 'reward_round',
-            title: '复仇之后',
+            title: '阿九',
             choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],

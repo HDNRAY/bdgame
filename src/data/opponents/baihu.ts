@@ -5,7 +5,7 @@ const BAIHU_ATTRS = { strength: 14, vitality: 14, agility: 16, dexterity: 16, in
 
 export const BAIHU: OpponentDef = {
     id: 'baihu',
-    name: '白狐·南宫',
+    name: '南宫狐儿',
     weapon: 'dual_swords',
     targetAttrs: BAIHU_ATTRS,
     rewards: [

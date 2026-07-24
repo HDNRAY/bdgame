@@ -5,7 +5,7 @@ const TANGROU_ATTRS = { strength: 6, vitality: 10, agility: 14, dexterity: 20, i
 
 export const TANGROU: OpponentDef = {
     id: 'tangrou',
-    name: '灵素·唐柔',
+    name: '唐柔',
     story: '唐门旁支传人，以银针使毒闻名。外表温婉可亲，出手却凌厉致命。',
     battleStyle: 'ranged',
     weapon: 'bare_hands',
