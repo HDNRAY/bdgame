@@ -71,6 +71,21 @@ export const CONDITION_PRESETS = [
         name: '目标无失心',
         build: (): RequiredCondition => ({ type: 'debuff_not_active', buffId: 'fumble_chance_temp' }),
     },
+    {
+        id: 'chill_blade_lt_2',
+        name: '寒锋<2层',
+        build: (): RequiredCondition => ({ type: 'buff_stacks_below', buffId: 'chill_blade', maxStacks: 2 }),
+    },
+    {
+        id: 'bamboo_regen_lt_2',
+        name: '回春<2层',
+        build: (): RequiredCondition => ({ type: 'buff_stacks_below', buffId: 'bamboo_regen', maxStacks: 2 }),
+    },
+    {
+        id: 'thunder_swift_lt_2',
+        name: '迅雷<2层',
+        build: (): RequiredCondition => ({ type: 'buff_stacks_below', buffId: 'thunder_swift', maxStacks: 2 }),
+    },
 ] as const
 
 /** 按 ID 查找条件预设 */

@@ -105,10 +105,10 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const configOrder = new Map(self.build.actionConfigs?.map((c, i) => [c.actionId, i]))
     const style: AttackStyle = self.battleStyle
 
-    // 有条件限制的招式（conditionId !== always）→ 按 configOrder 排序
+    // 有条件限制的招式（有 conditionId）→ 按 configOrder 排序
     const conditionalCands = candidates.filter((c) => {
         const cfg = self.getConfig(c.actionId)
-        return cfg?.conditionId && cfg.conditionId !== 'always'
+        return cfg?.conditionId !== undefined
     })
     conditionalCands.sort((a, b) => {
         const oa = configOrder.get(a.actionId) ?? 999
@@ -116,10 +116,10 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         return oa - ob
     })
 
-    // 默认招式（无 conditionId 或 always）→ 按计划总伤害排序
+    // 默认招式（无 conditionId）→ 按计划总伤害排序
     const defaultCands = candidates.filter((c) => {
         const cfg = self.getConfig(c.actionId)
-        return !cfg?.conditionId || cfg.conditionId === 'always'
+        return cfg?.conditionId === undefined
     })
     defaultCands.sort((a, b) => {
         const scoreA = estimatePlan(a.actionId, self, state, apBudget, style)

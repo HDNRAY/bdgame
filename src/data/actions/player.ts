@@ -420,7 +420,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'quanzhen_sword',
         name: '无假剑法',
         description: '无假剑法，以力破巧。叠一层柔劲。',
-        requiredTags: ['pierce'],
+        requiredTags: ['pierce', 'melee'],
         apCost: 3,
         tags: ['pierce', 'melee', 'buff'],
         effects: [
@@ -432,7 +432,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'yunv_sword',
         name: '流萤剑法',
         description: '流萤剑法，灵动如烟。叠一层刚劲。',
-        requiredTags: ['pierce'],
+        requiredTags: ['pierce', 'melee'],
         apCost: 3,
         tags: ['pierce', 'melee', 'buff'],
         effects: [
@@ -457,7 +457,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'swift_thunder_sword',
         name: '迅雷剑法',
         description: '电光石火，目眩神驰。',
-        requiredTags: ['pierce'],
+        requiredTags: ['pierce', 'melee'],
         apCost: 3,
         tags: ['pierce', 'melee', 'buff', 'qi'],
         effects: [
@@ -470,7 +470,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'blowing_snow_sword',
         name: '吹雪剑法',
         description: '一剑西来，天外飞仙。剑气凛冽如雪。',
-        requiredTags: ['pierce'],
+        requiredTags: ['pierce', 'melee'],
         apCost: 3,
         tags: ['pierce', 'melee', 'buff', 'qi'],
         effects: [
@@ -483,7 +483,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'spring_bamboo_sword',
         name: '春竹剑法',
         description: '剑气如春竹，破土凌云。',
-        requiredTags: ['pierce'],
+        requiredTags: ['pierce', 'melee'],
         apCost: 3,
         tags: ['pierce', 'qi', 'heal', 'melee'],
         getRange: () => [1, 5] as [number, number],
@@ -496,7 +496,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'fall_to_azure_sword',
         name: '碧落剑法',
         description: '上穷碧落下黄泉，一剑既出，无可遁逃。',
-        requiredTags: ['pierce'],
+        requiredTags: ['pierce', 'melee'],
         apCost: 5,
         chanCost: 50,
         tags: ['pierce', 'qi', 'range'],

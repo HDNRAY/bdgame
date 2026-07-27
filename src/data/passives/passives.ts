@@ -354,7 +354,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yue_nv_sword',
         name: '越女剑法',
-        description: '白猿授剑，万兵为剑。刀枪棍棒在手亦是剑法，出剑极快，身随剑走，灵巧愈高剑势愈利。',
+        description: '白猿授剑，万兵为剑。刀枪棍棒在手亦是剑法，出剑极快，身随剑走。',
         tags: ['buff', 'passive'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yue_nv_buff' }] }],
         actionEnhancer: (def) => {
@@ -736,8 +736,8 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'spear_stance_mastery',
-        name: '三节枪术',
-        description: '出招前切攻势，收招后切守势。',
+        name: '秋水论',
+        description: '秋水时至，百川灌河。攻守转换如流水，出招前切攻势，收招后切守势。',
         tags: ['passive', 'buff'],
         triggers: [
             { condition: { type: 'turn_start' }, actionId: 'spear_break' },

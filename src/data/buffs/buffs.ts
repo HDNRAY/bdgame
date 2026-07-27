@@ -256,7 +256,6 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'additive', max: 2 },
         attrMods: { agility: 4, strength: -2 },
     },
-    // ── 浩然·剑法 ──
     {
         id: 'thunder_swift',
         name: '迅雷',
@@ -275,7 +274,6 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'additive', max: 2 },
         onDealDamage: ({ final, layer }) => Math.round(final * (1 + layer.restoreValue * 0.08) * 10) / 10,
     },
-    // ── 春竹·回春 ──
     {
         id: 'bamboo_regen',
         name: '回春',
@@ -865,17 +863,13 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
         tickInterval: 1000,
-        onTickHeal: ({ target, layer, engine }) => {
+        onTickHeal: ({ target, layer }) => {
             const mult = 1 + (layer.restoreValue ?? 0) * 0.1
             const basePerSec = calcApRegenPerSec(target.attrs.get('wisdom'))
             const extra = Math.round(basePerSec * (mult - 1) * 10) / 10
             if (extra > 0) {
                 target.ap = Math.min(target.maxAp, target.ap + extra)
-                engine?.emitLog({
-                    type: 'system',
-                    message: `[内息澎湃] ${target.name} AP +${extra}`,
-                    actorId: target.id,
-                })
+                // 加速回复内息就不打log了
             }
             return 0
         },

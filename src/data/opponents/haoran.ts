@@ -23,6 +23,27 @@ export const HAORAN: OpponentDef = {
         artifact('nv_er_hong'),
         // 10
     ],
-    actionConfigs: [],
+    actionConfigs: [
+        {
+            actionId: 'qi_slash',
+            triggerId: 'on_dodged',
+        },
+        {
+            actionId: 'fall_to_azure_sword',
+            conditionId: 'always',
+        },
+        {
+            actionId: 'spring_bamboo_sword',
+            conditionId: 'bamboo_regen_lt_2',
+        },
+        {
+            actionId: 'swift_thunder_sword',
+            conditionId: 'thunder_swift_lt_2',
+        },
+        {
+            actionId: 'blowing_snow_sword',
+            conditionId: 'chill_blade_lt_2',
+        },
+    ],
     taunt: () => '道法自然，剑亦自然。',
 }
