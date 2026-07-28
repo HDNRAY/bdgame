@@ -1,6 +1,6 @@
 import type { Character } from '../entities/character'
 import type { ActionDefinition, EffectDef } from '../entities/action'
-import { getActionRange } from '../entities/action'
+import { getActionRange } from '../../data/actions'
 import { PositionSystem } from '../combat/position'
 
 export type AttackStyle = 'melee' | 'mid' | 'ranged'

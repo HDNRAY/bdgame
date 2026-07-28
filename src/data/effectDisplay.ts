@@ -145,9 +145,6 @@ export function describeEffect(eff: EffectDef): string[] {
             const names = eff.attrs.map((a) => ATTR_CN[a] ?? a).join('、')
             return [`推演加成: 推演×${eff.ratio} 加到 ${names}`]
         }
-        case 'limit_uses':
-            return [`使用次数上限: ${eff.max}`]
-        // case 'add_passive': removed — use add_buff directly
         case 'dex_to_str':
             return [`以巧借力: 灵巧×${eff.ratio} → 力道`]
         case 'functional_damage':

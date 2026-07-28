@@ -1,7 +1,7 @@
 import type { Character } from '../entities/character'
 import type { ActionDefinition } from '../entities/action'
 import type { BattleState } from '../combat/types'
-import { getActionRange } from '../entities/action'
+import { getActionRange } from '../../data/actions'
 import { calcBaseDamage, calcCritChance, calcHitChance, calcParryChance, calcParriedDamage } from '../calc/damage'
 import { getBuff } from '../../data/buffs'
 
@@ -47,6 +47,7 @@ export function calcExpectedDamage(
                 self: safeAtk,
                 enemy: safeDef,
                 state: { ...state, pendingBuffs: new Map(state.pendingBuffs) },
+                emitLog: () => {},
             })
         }
         if (eff.type === 'add_debuff' && ['burn', 'poison', 'bleed'].includes(eff.buffId)) rawDamage += eff.stacks * 3

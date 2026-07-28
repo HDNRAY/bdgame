@@ -8,6 +8,8 @@ export interface FunctionalDamageCtx {
     self: Character
     enemy: Character
     state: BattleState
+    /** 在招式行后追加一行日志 */
+    emitLog: (msg: string) => void
 }
 
 /** buff 持续时间：{ attr: '属性名', multiplier: 系数 } = 属性×系数 ms，系数大≈永久 */
@@ -33,7 +35,6 @@ export type EffectDef =
     | { type: 'interrupt' }
     | { type: 'knockback'; distance: number }
     | { type: 'dash'; minRange?: number; maxRange?: number; targetDist: number; useAp?: boolean }
-    | { type: 'limit_uses'; max: number }
     | { type: 'cleanse'; buffIds?: string[] }
     // 自效果（无需命中判定，总是生效）
     | { type: 'heal'; value: number; ratio?: number }
@@ -139,18 +140,4 @@ export class Action {
     use(): void {
         if (this.def.maxUses !== undefined) this.remainingUses--
     }
-}
-
-/** 获取招式有效射程（考虑 getRange、short_dash 延伸） */
-export function getActionRange(
-    action: ActionDefinition,
-    weaponRange: [number, number],
-    attacker?: Character,
-): [number, number] {
-    const base = action.getRange?.(weaponRange, attacker) ?? weaponRange
-    const shortDash = action.effects?.find(
-        (e): e is Extract<EffectDef, { type: 'short_dash' }> => e.type === 'short_dash',
-    )
-    if (!shortDash) return base
-    return [base[0], Math.min(10, base[1] + (shortDash.maxDistance ?? 2))]
 }

@@ -20,6 +20,7 @@ export type RequiredCondition =
     | { type: 'enemy_hp_above'; ratio: number }
     | { type: 'enemy_buff_not_active'; buffId: string }
     | { type: 'no_buff_with_tag'; tag: string }
+    | { type: 'chan_above'; value: number }
 
 /** 招式配置条目 */
 export interface ActionConfig {
@@ -74,5 +75,7 @@ export function checkCondition(cond: RequiredCondition, self: Character, state: 
                 if (buff?.tags.includes(cond.tag as import('../../engine/entities/tag').Tag)) return false
             }
             return true
+        case 'chan_above':
+            return self.chan >= cond.value
     }
 }

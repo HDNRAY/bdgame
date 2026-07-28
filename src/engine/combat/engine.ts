@@ -11,7 +11,8 @@ import {
     calcActionDurationMs,
 } from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
-import { getAction } from '../../data/actions'
+import { getAction as getBaseAction } from '../../data/actions'
+import { getRuntimeAction } from '../../data/actions'
 import { getBuff } from '../../data/buffs'
 import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
@@ -115,7 +116,7 @@ export class BattleEngine {
 
     #initSummonFromDef(sd: SummonDef | undefined, self: Character): void {
         if (!sd) return
-        const action = sd.action ?? getAction(sd.actionId)
+        const action = sd.action ?? getBaseAction(sd.actionId)
         const preDelay = action?.extraPreDelay ?? 0
         for (let i = 0; i < sd.maxCount(self.attrs.get('wisdom')); i++) {
             const sid = `${sd.id}_${self.id}_${i}`
@@ -432,7 +433,7 @@ export class BattleEngine {
                 continue
             }
             if (!slot.actionId) continue
-            const action = getAction(slot.actionId)
+            const action = getRuntimeAction(slot.actionId, self, this.state) ?? getBaseAction(slot.actionId)
             if (!action) continue
             // 触发器招式 AP 上限（防止高消耗大招白嫖）
             if (action.apCost > 2) continue
@@ -602,7 +603,7 @@ export class BattleEngine {
 
     #executeAttack(cmd: ActionCommand, self: Character, enemy: Character): ActionResult {
         const inst = self.actions.find((a) => a.id === cmd.actionId)
-        const action = inst?.def ?? (cmd.actionId ? getAction(cmd.actionId) : undefined)
+        const action = inst?.def ?? (cmd.actionId ? getBaseAction(cmd.actionId) : undefined)
         if (!action) {
             this.emitLog({ type: 'system', message: BattleLog.plain(self.name, '没有可用招式'), actorId: self.id })
             return this.#emptyResult()
@@ -842,13 +843,13 @@ export class BattleEngine {
         // 先找武器召唤物 action
         const weapon = owner.weaponDef ?? getWeapon(owner.build.weapon)
         if (weapon.summon && weapon.summon.actionId === inst.actionId) {
-            summonAction = weapon.summon.action ?? getAction(weapon.summon.actionId)
+            summonAction = weapon.summon.action ?? getBaseAction(weapon.summon.actionId)
         }
         // 再找奇物召唤物 action
         if (!summonAction) {
             for (const art of owner.artifactDefs) {
                 if (art.summon && art.summon.actionId === inst.actionId) {
-                    summonAction = art.summon.action ?? getAction(art.summon.actionId)
+                    summonAction = art.summon.action ?? getBaseAction(art.summon.actionId)
                     break
                 }
             }

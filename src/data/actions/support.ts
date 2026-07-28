@@ -103,6 +103,18 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 12] as [number, number],
         effects: [{ type: 'dash', maxRange: 12, targetDist: -1, useAp: true }],
     },
+    {
+        id: 'yun_bu',
+        name: '云步',
+        description: '身形如云，缥缈难测。向对手飘移2米，云步后身法缥缈，下次攻击更难招架闪避。',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['move', 'pre_action', 'qi'],
+        effects: [
+            { type: 'dash', maxRange: 4, targetDist: 2, useAp: true },
+            { type: 'add_buff', buffId: 'yun_bu_foresight', stacks: 1 },
+        ],
+    },
     // ── 缴械/收回武器 ──
     {
         id: 'retrieve_blade',

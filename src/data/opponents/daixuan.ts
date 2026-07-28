@@ -10,7 +10,7 @@ export const DAIXUAN: OpponentDef = {
     weapon: 'qimei_staff',
     targetAttrs: DAIXUAN_ATTRS,
     rewards: [
-        action('sword_thrust'),
+        action('rod_thrust'),
         passive('ningqi_jue'),
         passive('enhanced_vision'),
         weapon('qianji'),
@@ -26,7 +26,7 @@ export const DAIXUAN: OpponentDef = {
     actionConfigs: [
         { actionId: 'bi_hai_chao_sheng_qu', conditionId: 'distance_gt_3' },
         { actionId: 'flick', triggerId: 'on_opponent_move_away' },
-        { actionId: 'sword_thrust', triggerId: 'on_dodged' },
+        { actionId: 'rod_thrust', triggerId: 'on_dodged' },
     ],
     taunt: () => '……',
 }

@@ -3,7 +3,7 @@ import type { Character } from '../entities/character'
 import type { BattleState } from '../combat/types'
 import { getWeapon } from '../../data/weapons/weapons'
 import { getBuff } from '../../data/buffs'
-import { getActionRange } from '../entities/action'
+import { getActionRange } from '../../data/actions'
 import { BattleEngine } from '../combat/engine'
 
 /** 检查招式是否满足释放条件 */

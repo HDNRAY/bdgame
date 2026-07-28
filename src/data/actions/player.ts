@@ -1,5 +1,23 @@
 import { DMG_PER_POISON_TICK } from '../../engine/constants'
 import type { ActionDefinition } from '../../engine/entities/action'
+import type { Character } from '../../engine/entities/character'
+import type { BattleState } from '../../engine/combat/types'
+
+const DEBUFF_IDS = ['frost', 'paralyze', 'bleed', 'poison', 'burn', 'confuse', 'sand_blind'] as const
+
+/** 消耗目标所有减益并返回总层数 */
+function consumeEnemyDebuffs(enemy: Character, state: BattleState): number {
+    let total = 0
+    for (const id of DEBUFF_IDS) {
+        const key = `${id}::${enemy.id}`
+        const layer = state.pendingBuffs.get(key)
+        if (layer && layer.restoreValue > 0) {
+            total += layer.restoreValue
+            state.pendingBuffs.delete(key)
+        }
+    }
+    return total
+}
 
 /**
  * 公开招式（玩家可装备）
@@ -733,7 +751,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         },
         effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 1 }],
     },
-    // ── 棍系 ──
+    // ── 枪棍系 ──
     {
         id: 'rod_thrust',
         name: '棍戳',
@@ -843,6 +861,64 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['blunt', 'polearm'],
         effects: [{ type: 'damage', scaling: { strength: 0.5, dexterity: 0.5 } }],
+    },
+    {
+        id: 'yi_dian_han_mang',
+        name: '一点寒芒',
+        description: '寒芒一点，枪出如龙。刺入瞬间寒意迸发，附加寒锋与霜冻。',
+        requiredTags: ['polearm', 'pierce'],
+        apCost: 3,
+        tags: ['polearm', 'pierce', 'buff', 'qi'],
+        effects: [
+            { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
+            { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 },
+            { type: 'damage', scaling: { strength: 0.2, wisdom: 0.2 } },
+        ],
+    },
+    {
+        id: 'fen_cheng',
+        name: '焚城',
+        description: '炁化烈焰，一戟燎原。附加灼烧。',
+        requiredTags: ['polearm', 'pierce'],
+        apCost: 3,
+        tags: ['polearm', 'pierce', 'burn', 'qi'],
+        effects: [
+            { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
+            { type: 'damage', scaling: { strength: 0.3, wisdom: 0.2 } },
+        ],
+    },
+    {
+        id: 'ru_long',
+        name: '如龙',
+        description: '苍龙镇北，如龙出海。消耗目标所有减益状态，每层增伤30%。',
+        requiredTags: ['polearm', 'pierce'],
+        apCost: 4,
+        chanCost: 20,
+        tags: ['polearm', 'pierce', 'qi', 'damage'],
+        effects: [
+            {
+                type: 'functional_damage',
+                fn: ({ enemy, state, self, emitLog }) => {
+                    const totalStacks = consumeEnemyDebuffs(enemy, state)
+                    if (totalStacks > 0) emitLog(`消耗${totalStacks}层减益`)
+                    const baseDmg = self.attrs.get('wisdom') * 0.4 + self.attrs.get('strength') * 0.4
+                    const mult = 1 + totalStacks * 0.3
+                    return Math.round(baseDmg * mult * 10) / 10
+                },
+            },
+        ],
+    },
+    {
+        id: 'dao_ma_dan',
+        name: '刀马旦',
+        description: '入戏。消耗50缠劲进入刀马旦状态，持续25秒。期间力道身法灵巧各+2，招式带炁，射程+1。',
+        requiredTags: ['polearm'],
+        apCost: 3,
+        chanCost: 50,
+        tags: ['buff', 'pre_action', 'qi'],
+        target: 'self',
+        maxUses: 1,
+        effects: [{ type: 'add_buff', buffId: 'dao_ma_dan' }],
     },
     // ── 钝器系 ──
     {

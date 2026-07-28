@@ -35,6 +35,7 @@ import {
     DAIXUAN,
     QIANXING,
     ORANGE,
+    JIRAN,
 } from '../src/data/opponents/index'
 import { getWeapon } from '../src/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
@@ -77,7 +78,7 @@ function show(c: Character) {
 
 // ── 满配对手（n=33） ──
 const pBuild = gen(QIANXING, 33)
-const oBuild = gen(DAIXUAN, 33)
+const oBuild = gen(JIRAN, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

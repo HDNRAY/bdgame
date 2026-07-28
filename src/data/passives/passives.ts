@@ -835,4 +835,12 @@ export const PASSIVES: Passive[] = [
             { condition: { type: 'on_move_closer' }, effects: [{ type: 'add_buff', buffId: 'xu_ying', stacks: 1 }] },
         ],
     },
+    // ── 姬然 ──
+    {
+        id: 'guan_zi_zai_yan',
+        name: '观自在眼',
+        description: '心境通明，气血波动中窥见武道真意。气血越低，洞察、推演、灵巧越高。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'guan_zi_zai_yan' }] }],
+    },
 ]

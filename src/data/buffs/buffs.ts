@@ -7,6 +7,7 @@ import type { BuffDef } from './types'
 import { DEFENSE_BUFFS } from './defense'
 import { DAMAGE_BUFFS } from './damage'
 import { ActionDefinition } from '../../engine/entities/action'
+import { Tag } from '../../engine/entities/tag'
 
 /** 增益状态 */
 export const BUFF_DB: BuffDef[] = [
@@ -772,6 +773,75 @@ export const BUFF_DB: BuffDef[] = [
             layer.extra = { str, agi, dex }
         },
     },
+    // ── 观自在眼（姬然） ──
+    {
+        id: 'guan_zi_zai_yan',
+        name: '观自在眼',
+        description: '气血越低，洞察、推演、灵巧越高。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onHpChange: ({ target: char, state, layer }) => {
+            const hpPct = char.hp / char.maxHp
+            let ins = 0,
+                wis = 0,
+                dex = 0
+            if (hpPct < 1) {
+                if (hpPct > 0.7) {
+                    ins = 2
+                    wis = 2
+                    dex = 2
+                } else if (hpPct > 0.3) {
+                    ins = 4
+                    wis = 4
+                    dex = 4
+                } else {
+                    ins = 8
+                    wis = 8
+                    dex = 8
+                }
+            }
+            const prev = layer.extra as Record<string, number> | undefined
+            if (prev?.ins === ins && prev?.wis === wis && prev?.dex === dex) return
+            revertBuffMods(layer, char, state)
+            const newMods = applyAttrMods(char, state, { insight: ins, wisdom: wis, dexterity: dex }, '观自在眼')
+            layer.mods = newMods
+            layer.extra = { ins, wis, dex }
+        },
+    },
+    // ── 镇北戟（千星重铸） ──
+    {
+        id: 'zhen_bei_ji_buff',
+        name: '镇北戟',
+        description: '千星重铸的赛博战戟。击中施加霜冻，被招架施加麻痹，被闪避叠游身。',
+        tags: ['weapon', 'electric', 'polearm'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final, attacker, target, engine, state, source }) => {
+            if (engine && source && !source.tags?.includes('internal')) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 },
+                    { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
+                )
+            }
+            return final
+        },
+        onParried: ({ target, attacker, engine, state }) => {
+            if (engine) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
+                    { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
+                )
+            }
+        },
+        onDodged: ({ target, engine, state }) => {
+            if (engine) {
+                processActionEffect(
+                    { type: 'add_buff', buffId: 'you_shen', stacks: 1 },
+                    { self: target, enemy: target, engine, tMs: state.turn.currentTime },
+                )
+            }
+        },
+    },
     // ── 气血回溯 ──
     {
         id: 'blood_recovery',
@@ -1069,5 +1139,31 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'additive' },
         onDodgeChance: ({ layer }) => layer.restoreValue * 0.05,
+    },
+    {
+        id: 'yun_bu_foresight',
+        name: '云步·先机',
+        description: '云步后身形缥缈，下次攻击命中+15%。',
+        tags: ['buff'],
+        expiry: { type: 'consumed', trigger: 'on_hit' },
+        stacking: { type: 'none' },
+        onHitChance: () => 0.15,
+    },
+    {
+        id: 'dao_ma_dan',
+        name: '刀马旦',
+        description: '入戏状态，力道身法灵巧各+2，招式带炁，射程+1。',
+        tags: ['buff'],
+        expiry: { type: 'duration', ms: 25000 },
+        stacking: { type: 'none' },
+        attrMods: { strength: 2, agility: 2, dexterity: 2 },
+        onRuntimeAction: (_ctx, action) => {
+            const tags: Tag[] = action.tags.includes('qi') ? action.tags : [...action.tags, 'qi']
+            const getRange: typeof action.getRange = (wr: [number, number]) => {
+                const base = action.getRange?.(wr) ?? wr
+                return [base[0], Math.min(10, base[1] + 1)]
+            }
+            return { ...action, tags, getRange }
+        },
     },
 ]

@@ -86,6 +86,16 @@ export const CONDITION_PRESETS = [
         name: '迅雷<2层',
         build: (): RequiredCondition => ({ type: 'buff_stacks_below', buffId: 'thunder_swift', maxStacks: 2 }),
     },
+    {
+        id: 'chan_ge_30',
+        name: '缠劲≥30',
+        build: (): RequiredCondition => ({ type: 'chan_above', value: 30 }),
+    },
+    {
+        id: 'chan_ge_50',
+        name: '缠劲≥50',
+        build: (): RequiredCondition => ({ type: 'chan_above', value: 50 }),
+    },
 ] as const
 
 /** 按 ID 查找条件预设 */
@@ -122,5 +132,7 @@ export function describeCondition(c: RequiredCondition): string {
             return `目标无 [${c.buffId}]`
         case 'no_buff_with_tag':
             return `无 [${c.tag}] buff`
+        case 'chan_above':
+            return `缠劲 ≥ ${c.value}`
     }
 }

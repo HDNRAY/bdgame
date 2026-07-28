@@ -1,6 +1,6 @@
 import type { Character } from '../entities/character'
 import type { EffectDef } from '../entities/action'
-import { getActionRange } from '../entities/action'
+import { getActionRange, getRuntimeAction } from '../../data/actions'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../../data/weapons/weapons'
 import { getBuff } from '../../data/buffs'
@@ -11,7 +11,7 @@ import { planMovement, type AttackStyle } from './move-planner'
 import { planSupportActions } from './support-planner'
 import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
-import { getAction } from '../../data/actions'
+import { getAction as getBaseAction } from '../../data/actions'
 
 /** AI 决策：返回本行动中要执行的一串指令 */
 export function planEvent(self: Character, state: BattleState): ActionCommand[] {
@@ -409,7 +409,7 @@ function estimatePlan(
         for (let i = 0; i < extraTotal && remaining >= 1; i++) {
             const id = pickBestSecondary(self, state, remaining, excludeIds)
             if (!id) break
-            const secondDef = getAction(id)
+            const secondDef = getRuntimeAction(id, self, state) ?? getBaseAction(id)
             if (secondDef) {
                 total += calcExpectedDamage(secondDef, self, enemy, weapon.range, state).expectedDamage
                 remaining -= secondDef.apCost

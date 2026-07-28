@@ -1,5 +1,10 @@
-import type { ActionDefinition } from '../../engine/entities/action'
+import type { ActionDefinition, EffectDef } from '../../engine/entities/action'
+import type { Character } from '../../engine/entities/character'
 import type { Tag } from '../../engine/entities/tag'
+import type { BattleState } from '../../engine/combat/types'
+import type { BattleEngine } from '../../engine/combat/engine'
+import type { BuffHookCtx, RuntimeAction } from '../buffs/types'
+import { getBuff } from '../buffs'
 import { PLAYER_ACTIONS } from './player'
 import { SUPPORT_ACTIONS } from './support'
 import { INTERNAL_ACTIONS } from './internal'
@@ -21,4 +26,40 @@ export function getActionsByWeapon(weaponTags: Tag[]): ActionDefinition[] {
         if (a.requiredTags.length === 0) return true
         return a.requiredTags.some((tag) => weaponTags.includes(tag))
     })
+}
+
+/** 获取招式有效射程（考虑 getRange、short_dash 延伸） */
+export function getActionRange(
+    action: ActionDefinition,
+    weaponRange: [number, number],
+    attacker?: Character,
+): [number, number] {
+    const base = action.getRange?.(weaponRange, attacker) ?? weaponRange
+    const shortDash = action.effects?.find(
+        (e): e is Extract<EffectDef, { type: 'short_dash' }> => e.type === 'short_dash',
+    )
+    if (!shortDash) return base
+    return [base[0], Math.min(10, base[1] + (shortDash.maxDistance ?? 2))]
+}
+
+/** 运行时招式（考虑角色身上 buff 的 onRuntimeAction 修正） */
+export function getRuntimeAction(
+    actionId: string,
+    self: Character,
+    state: BattleState,
+    engine?: BattleEngine,
+): ActionDefinition | undefined {
+    let action: ActionDefinition | RuntimeAction | undefined = getAction(actionId)
+    if (!action) return undefined
+    for (const [key, layer] of state.pendingBuffs) {
+        const [buffId, charId] = key.split('::')
+        if (charId !== self.id) continue
+        const buff = getBuff(buffId)
+        if (!buff?.onRuntimeAction) continue
+        action = buff.onRuntimeAction(
+            { final: 0, raw: 0, target: self, attacker: self, engine, state, layer } as BuffHookCtx,
+            action,
+        )
+    }
+    return action as ActionDefinition
 }

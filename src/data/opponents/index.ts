@@ -28,6 +28,7 @@ export { QIANXING } from './qianxing'
 export { OTSU } from './otsu'
 export { XIAOHUA } from './xiaohua'
 export { ORANGE } from './orange'
+export { JIRAN } from './jiran'
 import type { CharacterBuild, BattleStyle } from '../../game/entities/character-build'
 import type { BattleState, ActionCommand } from '../../engine/combat/types'
 import type { Character } from '../../engine/entities/character'
@@ -64,6 +65,7 @@ import { BAMBOO } from './bamboo'
 import { DAIXUAN } from './daixuan'
 import { QIANXING } from './qianxing'
 import { ORANGE } from './orange'
+import { JIRAN } from './jiran'
 import { XIAOHUA } from './xiaohua'
 
 /** 对手定义（纯数据） */
@@ -92,7 +94,7 @@ export const OPPONENTS: OpponentDef[] = [
     LAIFENG, // 饮酒结拜
     WUZUI, // 饮酒结拜
     SANGYUAN, // 归海楼
-    XIAOHUA, //
+    XIAOHUA, // 药屋家 洞察宗师
     /** 刀剑 */
     LUHONGTI, // 军方
     AJIU, // 组织
@@ -106,10 +108,11 @@ export const OPPONENTS: OpponentDef[] = [
     /** 棍 */
     WUKONG, // 六绝之破
     BAMBOO, // 宝字堂 特殊事件调查科兼职法医
+    DAIXUAN, // 特殊事件调查科科长
     /** 长柄 */
     ZHANGLIE, // 组织(变节卧底)
-    DAIXUAN, // 特殊事件调查科
     OTSU, // 归海楼
+    JIRAN, // 姬家 天工坊
     /** 巨武 */
     LIUXIGUA, // 六绝之闪
     YANGGUO, // 六绝之观
@@ -125,7 +128,7 @@ export const OPPONENTS: OpponentDef[] = [
     XUANJI, // 玄门
     JUNSHI, // 组织
     HEIYUN, // 玄门(退出) 饮酒结拜
-    DOCTOR, // 组织
+    DOCTOR, // 组织 义体研究
 ]
 
 /** 按 ID 查找对手 def */

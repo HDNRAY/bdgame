@@ -200,6 +200,15 @@ export const WEAPON_DB: WeaponDef[] = [
         tags: ['slash', 'pierce', 'parry', 'melee', 'unarmed'],
         range: [0, 2],
     },
+    // ── 镇北戟（姬家传承） ──
+    {
+        id: 'zhen_bei_ji',
+        name: '镇北戟',
+        description: '姬家世代相传的战戟，曾为守关领袖所用。经千星重铸为赛博战戟，可将使用者的炁转化为冰电之力。',
+        tags: ['polearm', 'parry', 'pierce', 'blunt', 'electric'],
+        range: [1, 4],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'zhen_bei_ji_buff' }] }],
+    },
 ]
 
 // ── 运行时武器查找表 ──

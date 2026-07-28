@@ -5,6 +5,14 @@ import type { BattleEngine } from '../../engine/combat/engine'
 import type { BattleState, BuffLayer } from '../../engine/combat/types'
 import type { TriggerEvent } from '../../engine/entities/trigger'
 
+/** 运行时招式的最小接口（供 onRuntimeAction 使用） */
+export interface RuntimeAction {
+    tags: import('../../engine/entities/tag').Tag[]
+    getRange?(weaponRange: [number, number], self?: Character): [number, number]
+}
+
+export { type ActionDefinition } from '../../engine/entities/action'
+
 /** Buff 钩子上下文 */
 export interface BuffHookCtx {
     final: number
@@ -109,6 +117,8 @@ export interface BuffDef extends GameEntity {
     onDebuffApplied?: (ctx: DebuffApplyCtx) => void
     /** 自身受到 debuff 时回调（返回 0=完全抵抗，>0=削减到该层数，undefined=不干预） */
     onReceiveDebuff?: (ctx: ReceiveDebuffCtx) => number | undefined
+    /** 运行时招式修正（每次 getRuntimeAction 时链式调用，可用于改 tags/range 等） */
+    onRuntimeAction?: (ctx: BuffHookCtx, action: RuntimeAction) => RuntimeAction
     /** 额外攻击钩子（返回额外攻击次数，AI 自动循环调用 pickBestSecondary） */
     getExtraAttack?: (ctx: { source: GameEntity }) => number
     /** 自定义日志格式（覆盖默认的"获得状态"消息，返回整个消息体，不含 [BuffName] 前缀） */

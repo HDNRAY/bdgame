@@ -5,7 +5,8 @@ import { ATTR_CN, type AttrName } from '../../entities/attributes'
 import { calcBaseDamage, calcHealAmount, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../../data/weapons/weapons'
 import { getPassive } from '../../../data/passives'
-import { getAction } from '../../../data/actions'
+import { getAction as getBaseAction } from '../../../data/actions'
+import { getRuntimeAction } from '../../../data/actions'
 import { genAppId } from '../../util/buff-utils'
 import type { Tag } from '../../entities/tag'
 import {
@@ -185,7 +186,12 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     },
     functional_damage({ eff, self, enemy, engine, action, triggered }: EffectCtx) {
         const { fn, piercing = 0 } = eff as Extract<EffectDef, { type: 'functional_damage' }>
-        const dmg = fn({ self, enemy, state: engine.state })
+        const dmg = fn({
+            self,
+            enemy,
+            state: engine.state,
+            emitLog: (msg) => engine.emitLog({ type: 'system', message: msg, actorId: self.id }),
+        })
         if (dmg > 0) {
             applyDamage({ raw: dmg, target: enemy, attacker: self, engine, source: action, piercing, triggered })
         }
@@ -952,7 +958,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                     }
                 }
                 if (slot.actionId) {
-                    const action = getAction(slot.actionId)
+                    const action = getRuntimeAction(slot.actionId, self, engine.state) ?? getBaseAction(slot.actionId)
                     if (action && action.apCost <= 2) {
                         for (const eff of action.effects ?? []) {
                             processActionEffect(eff, {
