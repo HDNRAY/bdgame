@@ -37,7 +37,6 @@ export type Tag =
     | 'post_action' // 收招
     | 'move' // 位移
     | 'range' // 远程
-    | 'counter' // 反击
     | 'internal' // 内部实现（不对用户/AI暴露）
     // | 'charge' // 冲锋
     | 'defense' // 防御

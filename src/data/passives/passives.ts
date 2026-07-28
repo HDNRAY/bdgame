@@ -71,7 +71,7 @@ export const PASSIVES: Passive[] = [
         id: 'dragon_palace_style',
         name: '龙宫院流',
         description: '龙宫院秘传剑术，招架或闪避后蓄势，叠加居合·势。',
-        tags: ['passive', 'counter'],
+        tags: ['passive'],
         triggers: [
             {
                 condition: {

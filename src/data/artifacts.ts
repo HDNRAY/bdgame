@@ -468,7 +468,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'braid_blade',
         name: '发辫刃',
         description: '辫发中暗藏飞刃，敌人远离时自动追击。',
-        tags: ['weapon', 'counter', 'inherent'],
+        tags: ['weapon', 'inherent'],
         grantsActions: ['_braid_blade'],
         triggers: [{ condition: { type: 'on_opponent_move_away' }, actionId: '_braid_blade' }],
     },
