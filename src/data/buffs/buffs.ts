@@ -8,6 +8,7 @@ import { DEFENSE_BUFFS } from './defense'
 import { DAMAGE_BUFFS } from './damage'
 import { ActionDefinition } from '../../engine/entities/action'
 import { Tag } from '../../engine/entities/tag'
+import { buffEnhanceActionRange } from './util'
 
 /** 增益状态 */
 export const BUFF_DB: BuffDef[] = [
@@ -88,11 +89,11 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        attrMods: { agility: -8, strength: 4 },
+        attrMods: { agility: -8, strength: 8 },
         onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.4 : 0.2),
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const reduced = Math.round(blocked * 0.2 * 10) / 10
+            const reduced = Math.round(blocked * 0.4 * 10) / 10
             return raw - reduced
         },
     },
@@ -192,7 +193,7 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            return Math.round((raw - blocked * 0.5) * 10) / 10
+            return Math.round((raw - blocked * 0.3) * 10) / 10
         },
     },
 
@@ -378,7 +379,7 @@ export const BUFF_DB: BuffDef[] = [
         },
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const reduced = Math.round(blocked * 0.4 * 10) / 10
+            const reduced = Math.round(blocked * 0.6 * 10) / 10
             return raw - reduced
         },
     },
@@ -1159,11 +1160,16 @@ export const BUFF_DB: BuffDef[] = [
         attrMods: { strength: 2, agility: 2, dexterity: 2 },
         onRuntimeAction: (_ctx, action) => {
             const tags: Tag[] = action.tags.includes('qi') ? action.tags : [...action.tags, 'qi']
-            const getRange: typeof action.getRange = (wr: [number, number]) => {
-                const base = action.getRange?.(wr) ?? wr
-                return [base[0], Math.min(10, base[1] + 1)]
-            }
-            return { ...action, tags, getRange }
+            return buffEnhanceActionRange({ ...action, tags }, 1)
         },
+    },
+    {
+        id: 'sword_dominion',
+        name: '御剑诀',
+        description: '以炁御剑，剑随意动。延长攻击距离。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
     },
 ]

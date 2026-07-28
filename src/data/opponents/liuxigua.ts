@@ -13,11 +13,11 @@ export const LIUXIGUA: OpponentDef = {
         action('spinning_slash'),
         passive('momentum_mastery'),
         passive('overlord_art'),
-        weapon('overlord_blade'),
         action('shadow_fist'),
         action('cyclone_slash'),
         action('sky_burner'),
         passive('weapon_stance'),
+        weapon('overlord_blade'),
         passive('stance_time'),
         artifact('calming_talisman'),
         // 10

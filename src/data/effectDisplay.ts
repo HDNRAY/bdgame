@@ -97,8 +97,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`移动效率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
         case 'trigger_slot_mod':
             return [`触发槽 ${eff.value && eff.value > 0 ? '+' : ''}${eff.value ?? '?'}`]
-        case 'weapon_range_bonus':
-            return [`武器范围 +${eff.value}`]
         case 'permanent_burn':
             return [`永久灼烧: ${eff.value}层`]
         case 'last_stand':

@@ -595,13 +595,4 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
             char.weaponDef = { ...weapon, tags: [...weapon.tags, e.tag] }
         }
     },
-    weapon_range_bonus(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'weapon_range_bonus' }>
-        const weapon = getWeapon(char.build.weapon)
-        if (e.requireWeaponTag && !weapon.tags.includes(e.requireWeaponTag as Tag)) return
-        char.weaponDef = {
-            ...weapon,
-            range: [weapon.range[0], Math.min(10, weapon.range[1] + e.value)] as [number, number],
-        }
-    },
 }

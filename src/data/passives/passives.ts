@@ -45,7 +45,7 @@ export const PASSIVES: Passive[] = [
         name: '御剑诀',
         description: '以炁御剑，剑随意动。延长攻击距离。',
         tags: ['imperial', 'qi', 'range_up'],
-        effects: [{ type: 'weapon_range_bonus', value: 2, requireWeaponTag: 'imperial' }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_dominion' }] }],
     },
     {
         id: 'nine_deaths',
