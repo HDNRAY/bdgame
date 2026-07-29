@@ -833,7 +833,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         const opponent = engine.getOpponent(self.id)
         engine.emit('on_disarm', self, self)
-        if (opponent) engine.emit('on_disarmed', self, opponent)
+        if (opponent) {
+            engine.emit('on_disarmed', self, opponent)
+            engine.emit('on_disarmed', opponent, self)
+        }
     },
     // add_passive removed — use add_buff directly
     steal_artifact({ self, engine }: EffectCtx) {

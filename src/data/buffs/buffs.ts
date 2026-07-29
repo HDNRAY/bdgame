@@ -93,7 +93,7 @@ export const BUFF_DB: BuffDef[] = [
         onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.4 : 0.2),
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const reduced = Math.round(blocked * 0.4 * 10) / 10
+            const reduced = round1(blocked * 0.4)
             return raw - reduced
         },
     },
@@ -122,7 +122,7 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const reduced = Math.round(blocked * 0.3 * 10) / 10
+            const reduced = round1(blocked * 0.3)
             return raw - reduced
         },
     },
@@ -173,16 +173,14 @@ export const BUFF_DB: BuffDef[] = [
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
     { id: 'steal_artifact_track', name: '盗亦有道', description: '飞龙探云手的成功率追踪。', tags: [] },
-
-    // ── 三节枪架势 ──
     {
         id: 'spear_guard_stance',
         name: '守势',
-        description: '三节枪·守势，招架率+20%。',
+        description: '三节枪·守势，招架率+10%。',
         tags: ['weapon', 'stance'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onParryChance: () => 0.2,
+        onParryChance: () => 0.1,
     },
     {
         id: 'spear_break_stance',
@@ -193,7 +191,8 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            return Math.round((raw - blocked * 0.3) * 10) / 10
+            const half = round1(blocked * 0.2)
+            return raw - half
         },
     },
 
@@ -379,7 +378,7 @@ export const BUFF_DB: BuffDef[] = [
         },
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const reduced = Math.round(blocked * 0.6 * 10) / 10
+            const reduced = round1(blocked * 0.6)
             return raw - reduced
         },
     },

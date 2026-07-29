@@ -812,8 +812,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'spear_guard',
-        name: '枪·守势',
-        description: '切换至守势，招架率+20%。',
+        name: '秋水守',
+        description: '秋水之势，以静制动。招架率+10%。',
         requiredTags: ['polearm'],
         apCost: 0,
         tags: ['trigger', 'internal'],
@@ -822,8 +822,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'spear_break',
-        name: '枪·攻势',
-        description: '切换至攻势，削弱对手招架。',
+        name: '秋水攻',
+        description: '秋水之势，以流破坚。削弱对手招架。',
         requiredTags: ['polearm'],
         apCost: 0,
         tags: ['trigger', 'internal'],
