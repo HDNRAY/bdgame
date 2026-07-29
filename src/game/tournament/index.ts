@@ -26,3 +26,5 @@ export { simulateSingleMatch, simulateGroupRound, simulateKnockoutRound } from '
 
 export { selectParticipants } from './participants'
 export type { SelectParticipantsOptions } from './participants'
+
+export { processTournament } from './integration'

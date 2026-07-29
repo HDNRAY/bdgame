@@ -1,5 +1,4 @@
 import type { GameEntity } from '../../engine/entities/base'
-import type { AttrName } from '../../engine/entities/attributes'
 import type { ActionDefinition } from '../../engine/entities/action'
 import type { Passive } from '../../engine/entities/passive'
 import type { Artifact } from '../../engine/entities/artifact'
@@ -16,4 +15,11 @@ export interface Reward extends GameEntity {
 /** 奖励池中的实体（完整定义，含 apCost 等字段） */
 export type RewardEntity = ActionDefinition | WeaponDef | Passive | Artifact
 
-export const STAT_NAMES: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
+export const CULT_REWARD = {
+    id: 'cult_reward',
+    name: '修炼点',
+    label: '修炼点',
+    description: '+4 修炼点',
+    log: '+4 修炼点',
+    points: 4,
+} as const

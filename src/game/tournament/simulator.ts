@@ -102,6 +102,9 @@ export function simulateGroupRound(tournament: TournamentData): TournamentData {
             match.winnerId = result.winnerId
             match.loserId = result.loserId
             match.scores = result.scores
+
+            // 强制决赛 Boss 获胜（非玩家比赛）
+            forceBossWin(match, t.finalBossId, t.playerId)
         }
     }
 
@@ -169,6 +172,11 @@ export function simulateKnockoutRound(tournament: TournamentData): TournamentDat
 
         // 更新或创建 match
         match.match = result
+
+        // 强制决赛 Boss 获胜（非玩家比赛）
+        if (match.match && !match.match.isPlayerMatch) {
+            forceBossWin(match.match, t.finalBossId, t.playerId)
+        }
     }
 
     // 推进轮次
@@ -209,4 +217,24 @@ function fillNextRoundParticipants(rounds: KnockoutRound[], currentRound: number
             next.matches[targetSlot].participantIds[1] = match.match.winnerId
         }
     }
+}
+
+/**
+ * 如果指定了决赛 Boss，且本场比赛涉及 Boss（对手不是玩家），强制 Boss 获胜。
+ * 在 simulateSingleMatch 之后调用，覆盖真实模拟结果。
+ */
+export function forceBossWin(match: MatchResult, finalBossId: string | undefined, playerId: string | null): void {
+    if (!finalBossId) return
+    if (match.isPlayerMatch) return
+    if (match.participantIds.includes(playerId ?? '')) return
+
+    if (match.winnerId === finalBossId) return // 已经赢了，不需要改
+
+    const bossIdx = match.participantIds.indexOf(finalBossId)
+    if (bossIdx === -1) return // 本场没 Boss
+
+    const opponentId = match.participantIds[1 - bossIdx]
+    match.winnerId = finalBossId
+    match.loserId = opponentId
+    match.scores = bossIdx === 0 ? ([1, 0] as [number, number]) : ([0, 1] as [number, number])
 }

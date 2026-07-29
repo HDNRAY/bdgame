@@ -1,6 +1,8 @@
 import { STORIES, getStory } from '../../data/stories/index'
 import { getEvent } from '../../data/events/index'
-import { buildSkeleton, applyStoryOverlay, fillEmptyNodes } from './node-layer'
+import { buildSkeleton, applyStoryOverlay, fillEmptyNodes, applyTournamentLayer } from './node-layer'
+import { processTournament, TOURNAMENT_EVENT_IDS } from '../tournament/integration'
+import { CULT_REWARD } from '../entities/reward'
 import { generateRewardChoices } from './reward-gen'
 import { rewardPool } from './reward-pool'
 import { pickRandom } from './util'
@@ -30,6 +32,8 @@ export class RogueliteRun implements RogueliteEngine {
             injury: 0,
             flags: {},
             nodeLog: [],
+            tournamentData: undefined,
+            rewardBudget: { pointsGiven: 0 },
             finished: false,
         }
         this._enterNode()
@@ -58,8 +62,9 @@ export class RogueliteRun implements RogueliteEngine {
                 this._advanceRound()
                 break
             case 'points':
-                this._state.unspentPoints += 4
-                this._state.nodeLog.push('+4 修炼点')
+                this._state.unspentPoints += CULT_REWARD.points
+                this._state.rewardBudget.pointsGiven++
+                this._state.nodeLog.push(CULT_REWARD.log)
                 this._advanceRound()
                 break
             case 'heal':
@@ -167,6 +172,19 @@ export class RogueliteRun implements RogueliteEngine {
     // ════════════════════════════════════════
 
     private _startEvent(eventId: string): void {
+        // 斗炁大会事件：先处理赛程再启动事件
+        let tournamentEnemyId: string | undefined
+        if (TOURNAMENT_EVENT_IDS.has(eventId)) {
+            const bossId = this._state.flags['tournament_final_boss'] as string | undefined
+            const result = processTournament(this._state.tournamentData, eventId, bossId)
+            this._state.tournamentData = result.tournamentData
+            if (result.eliminated) {
+                this._state.finished = true
+                return
+            }
+            tournamentEnemyId = result.opponentId
+        }
+
         const ev = getEvent(eventId)
         if (!ev) {
             this._finishEvent()
@@ -177,7 +195,9 @@ export class RogueliteRun implements RogueliteEngine {
         this._state.roundIdx = 0
 
         if (ev.rounds && ev.rounds.length > 0) {
-            this._pushRound(ev.rounds[0])
+            const round = { ...ev.rounds[0], choices: [...ev.rounds[0].choices] }
+            if (tournamentEnemyId) round.enemyId = tournamentEnemyId
+            this._pushRound(round)
             return
         }
 
@@ -200,7 +220,7 @@ export class RogueliteRun implements RogueliteEngine {
         if (round.choices.length === 0 && this._eventDef) {
             this._fillRewardChoices(copy)
         }
-        if (round.enemyId) {
+        if (copy.enemyId) {
             this._executeCombat(copy)
         }
         this._state.rounds.push(copy)
@@ -229,7 +249,7 @@ export class RogueliteRun implements RogueliteEngine {
                     round.choices.push({
                         id: story.reward.id,
                         type: story.reward.type,
-                        label: story.reward.type === 'points' ? '4 修炼点' : story.reward.id,
+                        label: story.reward.type === 'points' ? CULT_REWARD.label : story.reward.id,
                     })
                 }
                 return
@@ -240,7 +260,21 @@ export class RogueliteRun implements RogueliteEngine {
         // 其他: 从奖励池生成
         const exclude = this._state.build.rewards.map((r) => (typeof r === 'string' ? r : r.id))
         const playerTags = this._derivePlayerTags()
-        round.choices = generateRewardChoices(ev.rewardType, playerTags, (r) => {
+
+        // 奖励预算：按概率决定当前轮次是否强转为修炼点
+        let budgetType = ev.rewardType
+        const { nodeIndex, rewardBudget } = this._state
+        if (nodeIndex !== 32 && rewardBudget.pointsGiven < 16) {
+            const remaining = 31 - nodeIndex
+            if (remaining > 0) {
+                const prob = (16 - rewardBudget.pointsGiven) / remaining
+                if (Math.random() < prob) {
+                    budgetType = 'points'
+                }
+            }
+        }
+
+        round.choices = generateRewardChoices(budgetType, playerTags, (r) => {
             if (exclude.includes(r.id)) return false
             // 招式 requiredTags 过滤
             if (r.requiredTags && r.requiredTags.length > 0) {
@@ -354,6 +388,8 @@ export class RogueliteRun implements RogueliteEngine {
         const story = getStory(this._state.build.story ?? '')
         if (!story) return
         this._state.build.name = story.characterName ?? this._state.build.name
+        // 层叠顺序：骨架 → 斗炁大会层 → 故事覆写/插入 → 支线填充
+        applyTournamentLayer(this._state.nodes)
         applyStoryOverlay(this._state.nodes, this._state.build.story ?? '')
         fillEmptyNodes(this._state.nodes)
     }

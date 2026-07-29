@@ -1,5 +1,6 @@
 import { rewardPool } from './reward-pool'
 import { pickWeightedByTags } from '../tagRelevance'
+import { CULT_REWARD } from '../entities/reward'
 import type { Choice } from '../../game/entities/round'
 import type { RewardEntity, RewardType } from '../../game/entities/reward'
 import type { Tag } from '../../engine/entities/tag'
@@ -11,7 +12,7 @@ export function generateRewardChoices(
     pool?: RewardEntity[],
 ): Choice[] {
     if (rewardType === 'points') {
-        return [{ id: 'cult_reward', type: 'points', label: '修炼点', description: '+4 修炼点' }]
+        return [{ id: CULT_REWARD.id, type: 'points', label: CULT_REWARD.label, description: CULT_REWARD.description }]
     }
     if (rewardType === 'heal') {
         return [{ id: 'heal_reward', type: 'heal', label: '疗伤', description: '恢复 15 伤势' }]

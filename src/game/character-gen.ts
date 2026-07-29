@@ -1,7 +1,7 @@
 import type { CharacterBuild, BattleStyle } from '../game/entities/character-build'
 import type { Reward } from '../game/entities/reward'
 import type { ActionConfig } from '../game/entities/action-config'
-import { STAT_NAMES } from '../game/entities/reward'
+import { ALL_ATTRS } from '../engine/entities/attributes'
 import { cultCost } from './cultivation'
 import { checkTalents } from './talent-check'
 import { getArtifact } from '../data/artifacts'
@@ -22,13 +22,13 @@ export function simpleGenerate(
     const extraPoints = hasInnateSeed ? Math.floor((n - 1) / 4) * 4 : 0
     const total = Math.max(0, cultRewards * 4 + extraPoints)
     const result: Record<string, number> = {}
-    for (const a of STAT_NAMES) result[a] = 3
+    for (const a of ALL_ATTRS) result[a] = 3
 
     // 轮流加点
     let remaining = total
     while (remaining > 0) {
         let improved = false
-        for (const attr of STAT_NAMES) {
+        for (const attr of ALL_ATTRS) {
             const cur = result[attr]
             const target = def.targetAttrs[attr] ?? 30
             if (cur >= target) continue

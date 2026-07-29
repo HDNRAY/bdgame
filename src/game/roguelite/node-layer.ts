@@ -3,6 +3,20 @@ import { BRANCH_EVENTS } from '../../data/events/branch'
 import type { Node } from '../../game/entities/node'
 import type { StoryDef } from '../../game/entities/story'
 
+// ── 斗炁大会默认事件映射 ──
+// 骨架阶段将以下节点设为对应的大会事件。
+// 故事可通过 overrides 替换其中任意节点。
+export const TOURNAMENT_NODE_MAP: Record<number, string> = {
+    23: 'tournament_open',
+    26: 'tournament_group_r1',
+    27: 'tournament_group_r2',
+    28: 'tournament_group_r3',
+    29: 'tournament_knockout_16',
+    30: 'tournament_knockout_8',
+    31: 'tournament_knockout_4',
+    33: 'tournament_final',
+}
+
 /**
  * 生成 33 个骨架节点。
  *
@@ -11,7 +25,8 @@ import type { StoryDef } from '../../game/entities/story'
  *   node 1       = 选背景故事
  *   node 2       = 选兵器
  *   node 3       = 选招式
- *   node 11/22/33 = Boss 位（默认 generic boss，故事可覆盖）
+ *   node 11/22 = Boss 位（默认 generic boss，故事可覆盖）
+ *   node 23/26-33 = 斗炁大会事件（由 applyTournamentLayer 设置，故事可覆盖）
  *
  * 其余节点为空，由 fillEmptyNodes 填充。
  */
@@ -24,7 +39,7 @@ export function buildSkeleton(): Node[] {
         else if (i === 3) node.eventIds = ['pick_action']
         else if (i === 11) node.eventIds = ['boss_phase1']
         else if (i === 22) node.eventIds = ['boss_phase2']
-        else if (i === 33) node.eventIds = ['boss_phase3']
+        // n33 = tournament_final（由 applyTournamentLayer 设置，故事可覆盖）
         nodes.push(node)
     }
     return nodes
@@ -88,6 +103,22 @@ export function fillEmptyNodes(nodes: Node[]): void {
             // 打乱后取前 3
             const shuffled = [...BRANCH_EVENTS].sort(() => Math.random() - 0.5)
             node.eventIds = shuffled.slice(0, 3).map((ev) => ev.id)
+        }
+    }
+}
+
+/**
+ * 第 1.5 层：斗炁大会默认节点。
+ *
+ * 在骨架之后、故事叠加之前调用。
+ * 将 TOURNAMENT_NODE_MAP 中定义的节点设为对应的大会事件。
+ * 故事可通过 overrides 替换其中任意节点。
+ */
+export function applyTournamentLayer(nodes: Node[]): void {
+    for (const [key, eventId] of Object.entries(TOURNAMENT_NODE_MAP)) {
+        const idx = parseInt(key) - 1
+        if (idx >= 0 && idx < nodes.length) {
+            nodes[idx].eventIds = [eventId]
         }
     }
 }

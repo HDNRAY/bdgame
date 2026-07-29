@@ -112,6 +112,8 @@ export interface TournamentData {
     participants: TournamentParticipant[]
     /** 玩家 id，null 表示纯 NPC 模拟 */
     playerId: string | null
+    /** 指定的决赛对手 ID。若设置，该对手的所有非玩家比赛强制获胜（确保进决赛）。 */
+    finalBossId?: string
     /** 小组赛数据，phase='group_stage' 时有效 */
     groupStage: GroupStageData
     /** 淘汰赛数据，phase='knockout' 或 'finished' 时有效 */

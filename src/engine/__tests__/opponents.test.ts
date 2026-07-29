@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { OPPONENTS, gen } from '../../data/opponents/index'
-import { STAT_NAMES } from '../../game/entities/reward'
+import { ALL_ATTRS } from '../../engine/entities/attributes'
 import { cultCost } from '../../game/cultivation'
 import { WEAPON_DB } from '../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
@@ -8,7 +8,7 @@ import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
 /** 从统一起点 {3,3,3,3,3,3} 到最终属性反推修炼花费 */
 function calcCultCost(attrs: Record<string, number>): number {
     let total = 0
-    for (const a of STAT_NAMES) {
+    for (const a of ALL_ATTRS) {
         const start = 3
         const end = attrs[a] ?? 3
         for (let v = start; v < end; v++) total += cultCost(v)
@@ -29,7 +29,7 @@ describe('opponents', () => {
             })
 
             it('generates a valid build', () => {
-                const sum = STAT_NAMES.reduce((s, a) => s + (build.baseAttrs[a] ?? 0), 0)
+                const sum = ALL_ATTRS.reduce((s, a) => s + (build.baseAttrs[a] ?? 0), 0)
                 expect(sum).toBeGreaterThan(60)
                 expect(build.rewards.length).toBeGreaterThan(0)
                 expect(build.weapon).toBeTruthy()

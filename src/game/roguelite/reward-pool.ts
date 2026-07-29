@@ -1,5 +1,6 @@
 import type { Tag } from '../../engine/entities/tag'
 import type { RewardType, RewardEntity } from '../../game/entities/reward'
+import { CULT_REWARD } from '../../game/entities/reward'
 import { PASSIVES } from '../../data/passives'
 import { ARTIFACTS } from '../../data/artifacts'
 import { PLAYER_ACTIONS } from '../../data/actions/player'
@@ -120,11 +121,11 @@ export class RewardPool {
         if (!this._cultPool) {
             this._cultPool = [
                 {
-                    id: 'cult_reward',
-                    name: '修炼点',
+                    id: CULT_REWARD.id,
+                    name: CULT_REWARD.name,
                     type: 'points' as const,
                     tags: [],
-                    description: '+4 修炼点',
+                    description: CULT_REWARD.description,
                 } as RewardEntity,
             ]
         }

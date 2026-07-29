@@ -1,14 +1,7 @@
 import type { EventDef } from '../../game/entities/event'
 import { PICK_STORY, BOSS_PHASE1, BOSS_PHASE2, BOSS_PHASE3 } from './shared'
 import { FEUD_N02_WEAPON, FEUD_N03_ACTION, FEUD_LUHONGTI_SPAR, BOSS_AJIU } from './feud'
-import {
-    SECT_N02_WEAPON,
-    SECT_N03_ACTION,
-    SECT_N11_TRAGEDY,
-    SECT_N16_REUNION,
-    SECT_N19_TRAIL,
-    SECT_N22_TOURNAMENT,
-} from './sect'
+import { SECT_N02_WEAPON, SECT_N03_ACTION, SECT_N11_TRAGEDY, SECT_N16_REUNION, SECT_N19_TRAIL } from './sect'
 import {
     XUANMEN_N02_WEAPON,
     XUANMEN_N03_START,
@@ -37,6 +30,7 @@ import {
     XIAOHUA_INSIGHT,
 } from './branch'
 import { CHRONICLE_GUIHAILOU, CHRONICLE_BAR_KILLING, CHRONICLE_SIX_DUEL, CHRONICLE_SWORD_BROTHERS } from './chronicle'
+import { TOURNAMENT_EVENT_MAP } from './tournament'
 
 const REGISTRY: Record<string, EventDef> = {
     [PICK_STORY.id]: PICK_STORY,
@@ -52,7 +46,7 @@ const REGISTRY: Record<string, EventDef> = {
     [SECT_N11_TRAGEDY.id]: SECT_N11_TRAGEDY,
     [SECT_N16_REUNION.id]: SECT_N16_REUNION,
     [SECT_N19_TRAIL.id]: SECT_N19_TRAIL,
-    [SECT_N22_TOURNAMENT.id]: SECT_N22_TOURNAMENT,
+    // n22 二阶段Boss 由各故事线在 overrides 中自行定义
     [XUANMEN_N02_WEAPON.id]: XUANMEN_N02_WEAPON,
     [XUANMEN_N03_START.id]: XUANMEN_N03_START,
     [XUANMEN_N09_SECRET.id]: XUANMEN_N09_SECRET,
@@ -79,6 +73,7 @@ const REGISTRY: Record<string, EventDef> = {
     [CHRONICLE_SWORD_BROTHERS.id]: CHRONICLE_SWORD_BROTHERS,
     [XIAOHUA_INSIGHT.id]: XIAOHUA_INSIGHT,
     [LIBRARY_EVENT.id]: LIBRARY_EVENT,
+    ...TOURNAMENT_EVENT_MAP,
 }
 
 export function getEvent(id: string): EventDef | undefined {
