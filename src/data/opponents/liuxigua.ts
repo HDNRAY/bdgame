@@ -18,9 +18,10 @@ export const LIUXIGUA: OpponentDef = {
         action('sky_burner'),
         passive('weapon_stance'),
         weapon('overlord_blade'),
+        passive('sword_focus'),
         passive('stance_time'),
         artifact('calming_talisman'),
-        // 10
+        // 11
     ],
     actionConfigs: [
         {

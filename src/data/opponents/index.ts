@@ -112,7 +112,7 @@ export const OPPONENTS: OpponentDef[] = [
     /** 长柄 */
     ZHANGLIE, // 组织(变节卧底)
     OTSU, // 归海楼
-    JIRAN, // 姬家 天工坊
+    JIRAN, // 姬家 天工坊？
     /** 巨武 */
     LIUXIGUA, // 六绝之闪
     YANGGUO, // 六绝之观
