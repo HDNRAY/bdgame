@@ -6,7 +6,7 @@ const LIUXIGUA_ATTRS = { strength: 14, vitality: 10, agility: 20, dexterity: 14,
 export const LIUXIGUA: OpponentDef = {
     id: 'liuxigua',
     name: '霸刀·西瓜',
-    weapon: 'qingfeng_jian',
+    weapon: 'peach_sword',
     battleStyle: 'melee',
     targetAttrs: LIUXIGUA_ATTRS,
     rewards: [

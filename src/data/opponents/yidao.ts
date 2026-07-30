@@ -6,7 +6,7 @@ const YIDAO_ATTRS = { strength: 18, vitality: 10, agility: 15, dexterity: 14, in
 export const YIDAO: OpponentDef = {
     id: 'yidao',
     name: '居合·一刀',
-    weapon: 'qingfeng_jian',
+    weapon: 'peach_sword',
     battleStyle: 'mid',
     targetAttrs: YIDAO_ATTRS,
     rewards: [

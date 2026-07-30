@@ -6,21 +6,29 @@ const BAIHU_ATTRS = { strength: 14, vitality: 14, agility: 16, dexterity: 16, in
 export const BAIHU: OpponentDef = {
     id: 'baihu',
     name: '南宫狐儿',
-    weapon: 'dual_swords',
+    weapon: 'peach_sword',
     targetAttrs: BAIHU_ATTRS,
     rewards: [
         action('light_slash'),
         passive('ice_heart'),
         passive('frost_mastery'),
         passive('frost_step'),
-        artifact('frost_silk_robe'),
-        weapon('frost_twin_blades'),
+        artifact('wisdom_talisman'),
+        action('rising_slash'),
+        weapon('xiu_dong'),
         action('heavy_slash'),
         action('guard'),
-        artifact('wisdom_talisman'),
+        artifact('frost_silk_robe'),
+        weapon('chun_lei'),
         action('nineteen_stops'),
         // 听潮九剑
-        // 9
+        // 11
     ],
-    actionConfigs: [{ actionId: 'light_slash', triggerId: 'on_dodged' }],
+    actionConfigs: [
+        { actionId: 'light_slash', triggerId: 'on_dodged' },
+        {
+            actionId: 'rising_slash',
+            triggerId: 'on_parry',
+        },
+    ],
 }

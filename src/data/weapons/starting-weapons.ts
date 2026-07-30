@@ -19,7 +19,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
     },
     // ── 单手剑 ──
     {
-        id: 'qingfeng_jian',
+        id: 'peach_sword',
         name: '桃木剑',
         description: '入门级单手剑，轻灵锐利。',
         tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed'],
@@ -83,14 +83,6 @@ export const STARTING_WEAPONS: WeaponDef[] = [
             maxCount: () => 1,
             actionId: '_fei_jian_shot',
         },
-    },
-    // ── 双剑 ──
-    {
-        id: 'dual_swords',
-        name: '双剑',
-        description: '一手一剑，攻守兼备。',
-        tags: ['pierce', 'slash', 'parry', 'dual_wield', 'melee'],
-        range: [1, 3],
     },
     // ── 匕首 ──
     {

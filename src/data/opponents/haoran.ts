@@ -8,7 +8,7 @@ export const HAORAN: OpponentDef = {
     name: '浩然·潮生',
     story: '持剑道士，讲究又不讲究。会元素剑法，以炁化为意象。',
     battleStyle: 'mid',
-    weapon: 'qingfeng_jian',
+    weapon: 'peach_sword',
     targetAttrs: ATTRS,
     rewards: [
         action('qi_slash'),

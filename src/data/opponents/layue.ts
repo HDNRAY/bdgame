@@ -6,7 +6,7 @@ const LAYUE_ATTRS = { strength: 14, vitality: 10, agility: 20, dexterity: 16, in
 export const LAYUE: OpponentDef = {
     id: 'layue',
     name: '什么·腊月',
-    weapon: 'qingfeng_jian',
+    weapon: 'peach_sword',
     targetAttrs: LAYUE_ATTRS,
     rewards: [
         action('cun_mang'),

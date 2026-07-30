@@ -128,7 +128,19 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
             [12, 8, '#2ecc71'],
         ],
     },
-    frost_twin_blades: {
+    xiu_dong: {
+        gripX: 8,
+        gripY: 7,
+        pixels: [
+            [5, 4, '#a8d8ff'],
+            [6, 4, '#a8d8ff'],
+            [6, 5, '#c9e4ff'],
+            [7, 6, '#c9e4ff'],
+            [5, 7, '#7fb3d5'],
+            [9, 7, '#7fb3d5'],
+        ],
+    },
+    chun_lei: {
         gripX: 8,
         gripY: 7,
         pixels: [

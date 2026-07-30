@@ -43,7 +43,7 @@ describe('rewardPool', () => {
             const pool = rewardPool.getPool('weapon')
             const ids = pool.map((r) => r.id)
             expect(ids).toContain('bare_hands')
-            expect(ids).toContain('qingfeng_jian')
+            expect(ids).toContain('peach_sword')
         })
     })
 

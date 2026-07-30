@@ -6,7 +6,7 @@ const YANGGUO_ATTRS = { strength: 10, vitality: 10, agility: 14, dexterity: 14, 
 export const YANGGUO: OpponentDef = {
     id: 'yangguo',
     name: '西狂·过儿',
-    weapon: 'qingfeng_jian',
+    weapon: 'peach_sword',
     targetAttrs: YANGGUO_ATTRS,
     rewards: [
         action('quanzhen_sword'),

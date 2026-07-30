@@ -153,17 +153,14 @@ export function applyScaledAttrMods(
 
 /** 根据 buff expiry 类型调度到期事件 */
 export function scheduleBuffEnd(engine: BattleEngine, key: string, buff: BuffDef, char: Character): void {
+    const now = engine.state.eventTime
     if (buff.expiry?.type === 'duration') {
-        engine.state.turn.scheduleSystemEventAt(
-            `buff_end_${key}`,
-            engine.state.turn.currentTime + buff.expiry.ms,
-            'buff_end',
-        )
+        engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, now + buff.expiry.ms, 'buff_end')
     } else if (buff.expiry?.type === 'duration_by_attr') {
         const duration = calcDebuffDuration(buff.expiry.multiplier, char.attrs.get(buff.expiry.attr))
-        engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, engine.state.turn.currentTime + duration, 'buff_end')
+        engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, now + duration, 'buff_end')
     } else if (buff.expiry?.type === 'attr_mult') {
         const duration = calcBuffDuration(char.attrs.get(buff.expiry.attr), buff.expiry.multiplier)
-        engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, engine.state.turn.currentTime + duration, 'buff_end')
+        engine.state.turn.scheduleSystemEventAt(`buff_end_${key}`, now + duration, 'buff_end')
     }
 }

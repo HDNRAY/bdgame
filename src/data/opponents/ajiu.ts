@@ -7,7 +7,7 @@ export const AJIU: OpponentDef = {
     id: 'ajiu',
     name: '断刀·阿九',
     story: '青山镇孤儿院里出来的孩子。没人知道TA的父母是谁，只知道TA那把断刀从不离手。沉默，寡言，但比谁都可靠。',
-    weapon: 'qingfeng_jian',
+    weapon: 'peach_sword',
     targetAttrs: AJIU_ATTRS,
     rewards: [
         action('light_slash'),

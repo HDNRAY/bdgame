@@ -115,6 +115,8 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
     let standbyMs = 0
     let standbyActorId = ''
     let standbySnapshot: BattleSnapshot | null = null
+    /** 上一条 flush 的攻击时间戳，用于 post-damage 系统消息 inline 渲染 */
+    let lastFlushMs = -1
 
     function flushStandby() {
         if (standbyLines.length === 0) return
@@ -136,6 +138,7 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
 
     function flush() {
         if (!pending) return
+        lastFlushMs = pending.time
         checkNewEvent(
             pending.time,
             pending.actor,
@@ -308,6 +311,13 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
                     const prefix = (e.indent ?? 0) > 0 ? '↳ ' : ''
                     pendingSystemLines.push(`${indent}${prefix}${e.message}`)
+                    break
+                }
+                // 刚 flush 的攻击后紧随的系统消息（如 on_hit 触发的 debuff），直接 inline 输出
+                if (lastFlushMs === ms) {
+                    const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
+                    const prefix = (e.indent ?? 0) > 0 ? '↳ ' : '· '
+                    lines.push(`${indent}${prefix}${e.message}`)
                     break
                 }
                 // 不同时间或同级不同角色（如 battle_start 双方独立的 init buff）→ flush

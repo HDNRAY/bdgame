@@ -145,12 +145,16 @@ export const PASSIVES: Passive[] = [
     {
         id: 'frost_mastery',
         name: '冰霜诀',
-        description: '春雷疾掠，寒气侵骨。劈砍击中80%概率叠加寒冰。',
+        description: '春雷疾掠，寒气侵骨。劈砍击中80%概率叠加寒冰，暴击时剑意凝寒。',
         tags: ['passive', 'debuff'],
         triggers: [
             {
                 condition: { type: 'on_hit' },
                 effects: [{ type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.8 }],
+            },
+            {
+                condition: { type: 'on_crit' },
+                effects: [{ type: 'add_buff', buffId: 'chill_blade', stacks: 1 }],
             },
         ],
     },

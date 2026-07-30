@@ -42,9 +42,9 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         name: '守势',
         description: '凝神防守，招架率大幅提升。',
         tags: ['defense', 'stance'],
-        expiry: { type: 'duration', ms: 5000 },
+        expiry: { type: 'duration', ms: 6000 },
         stacking: { type: 'none' },
-        onParryChance: () => 0.5,
+        onParryChance: () => 0.3,
     },
     {
         id: 'wind_hear_buff',

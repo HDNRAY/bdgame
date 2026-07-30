@@ -80,7 +80,7 @@ function show(c: Character) {
 
 // ── 满配对手（n=33） ──
 const pBuild = gen(LAYUE, 33)
-const oBuild = gen(JIRAN, 33)
+const oBuild = gen(BAIHU, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)
