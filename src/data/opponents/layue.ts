@@ -6,19 +6,19 @@ const LAYUE_ATTRS = { strength: 14, vitality: 10, agility: 20, dexterity: 16, in
 export const LAYUE: OpponentDef = {
     id: 'layue',
     name: '什么·腊月',
-    weapon: 'dual_swords',
+    weapon: 'qingfeng_jian',
     targetAttrs: LAYUE_ATTRS,
     rewards: [
         action('cun_mang'),
-        weapon('fusi_sword'),
         passive('nine_deaths'),
         action('nine_deaths_strike'),
         passive('sword_intent_tempering'),
+        weapon('fusi_sword'),
         passive('sword_dominion'),
         artifact('wisdom_talisman'),
-        artifact('innate_seed'),
         artifact('buer_sword'),
         passive('tongtian'),
+        artifact('innate_seed'),
         // 10
     ],
     actionConfigs: [

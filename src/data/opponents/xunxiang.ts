@@ -20,6 +20,7 @@ export const XUNXIANG: OpponentDef = {
         passive('li_wu_xu_fa'),
         passive('dian_xue_passive'),
         action('push_hand'),
+        // 扇子
         // 10
     ],
     actionConfigs: [

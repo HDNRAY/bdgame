@@ -43,6 +43,8 @@ export type Tag =
     | 'debuff' // 弱化
     | 'dot' // 持续伤害
     | 'melee' // 近战武器
+    | 'one_handed' // 单手
+    | 'two_handed' // 双手
     // | 'damage' // 伤害增强
     | 'summon' // 召唤相关
     | 'stance' // 架势/姿态

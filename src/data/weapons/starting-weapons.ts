@@ -22,7 +22,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'qingfeng_jian',
         name: '桃木剑',
         description: '入门级单手剑，轻灵锐利。',
-        tags: ['slash', 'pierce', 'parry', 'melee'],
+        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed'],
         range: [1, 3],
     },
     // ── 棍 ──
@@ -97,7 +97,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'dagger',
         name: '军用匕首',
         description: '短小而致命的匕首。',
-        tags: ['pierce', 'unarmed', 'parry', 'melee'],
+        tags: ['pierce', 'unarmed', 'parry', 'melee', 'one_handed'],
         effects: [{ type: 'stat_buff', attrs: { agility: 1 } }],
         range: [0, 2],
     },

@@ -89,7 +89,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        attrMods: { agility: -8, strength: 8 },
+        attrMods: { agility: -6, strength: 6 },
         onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.4 : 0.2),
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
@@ -175,18 +175,18 @@ export const BUFF_DB: BuffDef[] = [
     { id: 'steal_artifact_track', name: '盗亦有道', description: '飞龙探云手的成功率追踪。', tags: [] },
     {
         id: 'spear_guard_stance',
-        name: '守势',
-        description: '三节枪·守势，招架率+10%。',
-        tags: ['weapon', 'stance'],
+        name: '秋水·守',
+        description: '秋水之势，以静制动。招架率+10%。',
+        tags: ['stance'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onParryChance: () => 0.1,
     },
     {
         id: 'spear_break_stance',
-        name: '攻势',
-        description: '三节枪·攻势，削弱对手招架。',
-        tags: ['weapon', 'stance'],
+        name: '秋水·攻',
+        description: '秋水之势，以流破坚。削弱对手招架。',
+        tags: ['stance'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onParryPenetration: ({ final, raw }) => {

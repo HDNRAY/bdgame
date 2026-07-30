@@ -25,7 +25,6 @@ export const AJIU: OpponentDef = {
     actionConfigs: [
         { actionId: 'spirit_sword' }, // AI 出招顺序
         { actionId: 'light_slash' }, // AI 出招顺序
-        { actionId: 'heavy_slash' }, // AI 出招顺序
         { actionId: 'blaze_strike' }, // AI 出招顺序
         { actionId: 'guard' }, // AI 出招顺序
         { actionId: '_arm_explosion', triggerId: 'hp_below_50' },
