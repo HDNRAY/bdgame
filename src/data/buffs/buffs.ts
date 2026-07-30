@@ -458,14 +458,14 @@ export const BUFF_DB: BuffDef[] = [
             if (!target) return 0
             const tMs = engine.state.turn.currentTime
             const hpRatio = self.hp / self.maxHp
-            const debuffChance = Math.min(1, Math.max(0, (0.8 - hpRatio) / 0.6))
+            const debuffChance = Math.min(1, Math.max(0, (0.8 - hpRatio) * 0.3))
 
             processActionEffect(
-                { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: debuffChance },
+                { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: debuffChance * 0.5 },
                 { self, enemy: target, engine, tMs },
             )
             processActionEffect(
-                { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: debuffChance },
+                { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: debuffChance },
                 { self, enemy: target, engine, tMs },
             )
             processActionEffect(

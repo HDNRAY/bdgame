@@ -41,7 +41,6 @@ export function runBattle(
     }
 
     while (state.phase === 'fighting') {
-        // 系统事件（tick 回血等）不消耗行动计数，不参与 MAX_BATTLE_TIME_MS 限制
         const nextEvent = state.turn.peek()
         if (nextEvent?.type === 'system') {
             if (++systemCount > MAX_SYSTEM_EVENTS) {

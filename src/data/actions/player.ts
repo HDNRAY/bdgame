@@ -315,6 +315,20 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'stat_transfer', stat: 'agility', value: 1, duration: 5000 },
         ],
     },
+    {
+        id: 'rear_naked_choke',
+        name: '裸绞',
+        description: '从背后锁喉，持续绞杀。双方均无法行动，每秒消耗2AP维持。AP耗尽、3秒后或对手挣脱则松脱。',
+        requiredTags: ['unarmed'],
+        apCost: 3,
+        tags: ['unarmed', 'melee', 'debuff'],
+        getRange: () => [0, 1] as [number, number],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1 } },
+            { type: 'add_debuff', buffId: 'choke', stacks: 1, chance: 1 },
+            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.5 },
+        ],
+    },
     // ── 暗器系 ──
     {
         id: 'iron_pellet',
@@ -337,7 +351,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['qi', 'unarmed', 'range'],
         getRange: () => [2, 4],
-        onActionHitChance: (base) => base + 0.3,
+        onActionHitChance: (base) => base + 0.2,
         effects: [
             {
                 type: 'functional_damage',

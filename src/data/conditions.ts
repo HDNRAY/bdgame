@@ -22,6 +22,11 @@ export const CONDITION_PRESETS = [
         build: (): RequiredCondition => ({ type: 'distance_greater_than', meters: 2 }),
     },
     {
+        id: 'distance_lt_1',
+        name: '距离<1m',
+        build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 1 }),
+    },
+    {
         id: 'distance_lt_2',
         name: '距离<2m',
         build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 2 }),

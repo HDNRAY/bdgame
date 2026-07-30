@@ -19,13 +19,15 @@ export const DUOER: OpponentDef = {
         action('blood_droplet'),
         artifact('combat_chip'),
         artifact('marrow_pump'),
+        action('rear_naked_choke'),
         action('straight_punch'),
         action('kick'),
-        // 10
+        // 11
     ],
     actionConfigs: [
         { actionId: 'blood_droplet', triggerId: 'on_opponent_move_away' }, // AI 出招顺序
         { actionId: 'kick', triggerId: 'on_dodge' },
+        { actionId: 'rear_naked_choke', conditionId: 'distance_lt_3' },
     ],
     taunt: () => '对不起……我没得选。',
 }

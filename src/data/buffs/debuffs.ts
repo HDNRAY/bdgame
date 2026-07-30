@@ -271,4 +271,57 @@ export const DEBUFF_DB: BuffDef[] = [
             })
         },
     },
+    // ── 裸绞（窒息） ──
+    {
+        id: 'choke',
+        name: '窒息',
+        description: '颈部被锁，呼吸困难。持续受到绞杀伤害。',
+        tags: ['debuff'],
+        expiry: { type: 'duration', ms: 3000 },
+        stacking: { type: 'none' },
+        tickInterval: 1000,
+        onTickDamage: ({ engine, layer, target: defender }) => {
+            const atkId = layer.sourceId
+            if (!atkId) return 0
+            const atk = engine?.getCharacter(atkId)
+            if (!atk || !atk.isAlive()) {
+                engine?.state.pendingBuffs.delete(`choke::${defender.id}`)
+                return 0
+            }
+
+            // 扣 AP（2/秒）
+            atk.ap = Math.max(0, atk.ap - 2)
+            atk.lastApUpdate = engine!.state.turn.currentTime
+
+            // 刷新对手眩晕（保持锁定）
+            if (!engine?.state.pendingBuffs.has(`stun::${defender.id}`)) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
+                    { self: atk, enemy: defender, engine: engine!, tMs: engine!.state.turn.currentTime },
+                )
+            }
+
+            // 力道挣脱
+            const vicStr = defender.attrs.get('strength')
+            const atkStr = atk.attrs.get('strength')
+            if (vicStr > atkStr && Math.random() < (vicStr - atkStr) * 0.1) {
+                engine!.state.pendingBuffs.delete(`choke::${defender.id}`)
+                engine!.emitLog({
+                    type: 'system',
+                    message: `[绞杀] ${defender.name} 奋力挣脱了束缚！`,
+                    actorId: defender.id,
+                })
+                return 0
+            }
+
+            // AP 耗尽 → 提前结束
+            if (atk.ap <= 0) {
+                engine!.state.pendingBuffs.delete(`choke::${defender.id}`)
+                return 0
+            }
+
+            // 正常 tick 伤害
+            return round1(atk.attrs.get('vitality') * 0.5)
+        },
+    },
 ]

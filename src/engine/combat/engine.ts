@@ -248,9 +248,7 @@ export class BattleEngine {
 
         // 系统事件
         if (e.type === 'system') {
-            this.#handleSystemEvent()
-            // tick_poison/tick_burn 已在 #handleBuffTick 中自行管理生命周期（删除旧 + 按需调度新）
-            // 此处 removeEntry 会误删新调度的 tick，故跳过
+            this.#handleSystemEvent(e.systemEventType!, e.id, e.nextActionAt)
             if (e.systemEventType !== 'tick_poison' && e.systemEventType !== 'tick_burn') {
                 this.state.turn.removeEntry(e.id)
             }
@@ -889,18 +887,16 @@ export class BattleEngine {
     }
 
     /** 处理系统事件（buff 到期、status tick 等） */
-    #handleSystemEvent(): void {
-        const e = this.state.turn.peek()! as TurnEntry & { type: 'system' }
-        if (!e.systemEventType) return
-        const eventId = e.id
+    #handleSystemEvent(systemEventType: string, eventId: string, nextActionAt: number): void {
+        if (!systemEventType) return
 
-        switch (e.systemEventType) {
+        switch (systemEventType) {
             case 'buff_end':
                 this.#handleBuffEnd(eventId)
                 break
             case 'tick_poison':
             case 'tick_burn':
-                this.#handleBuffTick(eventId, e.systemEventType, e.nextActionAt)
+                this.#handleBuffTick(eventId, systemEventType as 'tick_poison' | 'tick_burn', nextActionAt)
                 break
             case 'stun_reset': {
                 const charId = eventId.slice('stun_reset_'.length)
@@ -983,7 +979,7 @@ export class BattleEngine {
                 if (this.state.pendingBuffs.has(key)) {
                     this.state.turn.scheduleSystemEventAt(
                         eventId,
-                        e.nextActionAt + (buffDef.tickInterval ?? 1000),
+                        nextActionAt + (buffDef.tickInterval ?? 1000),
                         'tick_buff',
                     )
                 }
@@ -1004,16 +1000,17 @@ export class BattleEngine {
         const char = this.getCharacter(charId)
         if (!char) return
 
+        // 无论是否继续 tick，先清理残留事件
+        turn.removeEvents(eventId)
+
         if (type === 'tick_poison') {
             const { nextInterval } = tickEngine.onPoisonTick(charId, this)
             if (nextInterval > 0) {
-                turn.removeEvents(eventId)
                 turn.scheduleSystemEventAt(eventId, eventTime + nextInterval, 'tick_poison')
             }
         } else {
             const { nextInterval } = tickEngine.onBurnTick(charId, this)
             if (nextInterval > 0) {
-                turn.removeEvents(eventId)
                 turn.scheduleSystemEventAt(eventId, eventTime + nextInterval, 'tick_burn')
             }
         }
