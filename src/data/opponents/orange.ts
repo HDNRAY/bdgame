@@ -21,6 +21,7 @@ export const ORANGE: OpponentDef = {
         action('blaze_strike'),
         action('sweep_kick'),
         passive('no_light_wisdom'),
+        // 锁链刃
         // 10
     ],
     actionConfigs: [

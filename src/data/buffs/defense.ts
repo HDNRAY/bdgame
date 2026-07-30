@@ -185,10 +185,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'iron_defense',
         name: '铁布衫',
-        description: '所受直伤-20%。',
+        description: '所受直伤-15%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onTakeDamage: ({ final }) => Math.round(final * 0.8 * 10) / 10,
+        onTakeDamage: ({ final }) => Math.round(final * 0.85 * 10) / 10,
     },
     {
         id: 'stone_skin',

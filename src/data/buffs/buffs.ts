@@ -731,35 +731,28 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'guan_zi_zai_yan',
         name: '观自在眼',
-        description: '气血越低，洞察、推演、灵巧越高。',
+        description: '气血越低，洞察、推演越高。',
         tags: [],
         expiry: { type: 'permanent' },
         onHpChange: ({ target: char, state, layer }) => {
             const hpPct = char.hp / char.maxHp
             let ins = 0,
-                wis = 0,
-                dex = 0
-            if (hpPct < 1) {
-                if (hpPct > 0.7) {
-                    ins = 2
-                    wis = 2
-                    dex = 2
-                } else if (hpPct > 0.3) {
-                    ins = 4
-                    wis = 4
-                    dex = 4
+                wis = 0
+            if (hpPct < 0.8) {
+                if (hpPct > 0.4) {
+                    ins = 5
+                    wis = 5
                 } else {
-                    ins = 8
-                    wis = 8
-                    dex = 8
+                    ins = 10
+                    wis = 10
                 }
             }
             const prev = layer.extra as Record<string, number> | undefined
-            if (prev?.ins === ins && prev?.wis === wis && prev?.dex === dex) return
+            if (prev?.ins === ins && prev?.wis === wis) return
             revertBuffMods(layer, char, state)
-            const newMods = applyAttrMods(char, state, { insight: ins, wisdom: wis, dexterity: dex }, '观自在眼')
+            const newMods = applyAttrMods(char, state, { insight: ins, wisdom: wis }, '观自在眼')
             layer.mods = newMods
-            layer.extra = { ins, wis, dex }
+            layer.extra = { ins, wis }
         },
     },
     // ── 气血回溯 ──

@@ -23,7 +23,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'iron_bone',
         name: '铁布衫',
-        description: '铁布衫，所受直伤-20%。',
+        description: '铁布衫，所受直伤-15%。',
         tags: ['qi', 'buff', 'defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'iron_defense' }] }],
     },
@@ -843,7 +843,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'guan_zi_zai_yan',
         name: '观自在眼',
-        description: '心境通明，气血波动中窥见武道真意。气血越低，洞察、推演、灵巧越高。',
+        description: '心境通明，气血波动中窥见武道真意。气血越低，洞察、推演越高。',
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'guan_zi_zai_yan' }] }],
     },
