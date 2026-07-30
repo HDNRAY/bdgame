@@ -16,8 +16,8 @@ export const TALENTS: Talent[] = [
     },
     {
         id: 'zuoyou_hubo',
-        name: '左右互搏',
-        description: '双手各自为战，灵巧过人者可一心二用。',
+        name: '分心错手',
+        description: '一心二用，双手交替出击，灵巧过人者可连续出手。',
         tags: ['talent', 'buff'],
         requireAttrsMin: { dexterity: 18 },
         requireAttrsMax: { wisdom: 4 },

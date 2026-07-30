@@ -334,7 +334,11 @@ export class RogueliteRun implements RogueliteEngine {
             tags: [],
         })
         if (type === 'weapon') {
-            this._state.build.weapon = entityId
+            if (this._eventDef?.id === 'dual_wield_training') {
+                this._state.build.offhand = entityId
+            } else {
+                this._state.build.weapon = entityId
+            }
         }
         this._state.nodeLog.push(`${type}: ${entityId}`)
     }
@@ -391,6 +395,6 @@ export class RogueliteRun implements RogueliteEngine {
         // 层叠顺序：骨架 → 斗炁大会层 → 故事覆写/插入 → 支线填充
         applyTournamentLayer(this._state.nodes)
         applyStoryOverlay(this._state.nodes, this._state.build.story ?? '')
-        fillEmptyNodes(this._state.nodes)
+        fillEmptyNodes(this._state.nodes, this._state)
     }
 }

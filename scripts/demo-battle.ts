@@ -66,7 +66,9 @@ function show(c: Character) {
     console.log(
         `  STR ${a.get('strength')}  VIT ${a.get('vitality')}  AGI ${a.get('agility')}  DEX ${a.get('dexterity')}  INS ${a.get('insight')}  WIS ${a.get('wisdom')}`,
     )
-    console.log(`  HP ${baseHp}  AP ${baseAp}  武器: ${weapon.name}`)
+    const offhand = c.build.offhand ? getWeapon(c.build.offhand) : null
+    console.log(`  HP ${baseHp}  AP ${baseAp}`)
+    console.log(`  主手: ${weapon.name}${offhand ? ` 副手: ${offhand.name}` : ''}`)
     if (c.passiveDefs.length) console.log(`  功法: ${c.passiveDefs.map((p) => p.name).join(', ')}`)
     if (c.artifactDefs.length) console.log(`  奇物: ${c.artifactDefs.map((a) => a.name).join(', ')}`)
     if (c.actions.length) console.log(`  招式: ${c.actions.map((i) => i.name).join(', ')}`)
@@ -77,7 +79,7 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(LIUXIGUA, 33)
+const pBuild = gen(LAYUE, 33)
 const oBuild = gen(JIRAN, 33)
 
 if (N === 1) {

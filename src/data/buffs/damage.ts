@@ -58,16 +58,6 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onCritDamage: ({ layer }) => layer.restoreValue * 0.25,
     },
     {
-        id: 'frost_dex_bonus',
-        name: '春雷',
-        description: '春雷灵巧加成，灵巧增伤。',
-        tags: ['weapon', 'damage'],
-        expiry: { type: 'permanent' },
-        attrMods: { strength: 4, agility: -4 },
-        onDealDamage: ({ final, attacker }) =>
-            Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.5 * 10) / 10) * 10) / 10,
-    },
-    {
         id: 'qi_amplify',
         name: '炁意',
         description: '凝炁玉增幅，炁系招式伤害根据推演加成。',
@@ -298,20 +288,6 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         },
     },
     {
-        id: 'buer_sword',
-        name: '不二剑灵',
-        description: '起手暴击大增但身法略滞，逐回合恢复。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.04,
-        onDodgeChance: ({ layer }) => -(layer.restoreValue * 0.01),
-        onTurnEnd: ({ layer }) => {
-            if (layer.restoreValue > 0) {
-                layer.restoreValue = Math.max(0, layer.restoreValue - 1)
-            }
-        },
-    },
-    {
         id: 'martial_arts_crit',
         name: '武学·破',
         description: '推演出的破绽洞察，每层暴击+1%、爆伤+1%。',
@@ -320,18 +296,5 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         stacking: { type: 'additive', max: 2 },
         onCritChance: ({ layer }) => layer.restoreValue * 0.01,
         onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
-    },
-    {
-        id: 'iron_back_buff',
-        name: '无相',
-        description: '玉环化甲，拳劲透体，伤害穿透。免疫缴械。',
-        tags: ['damage'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        onDisarmChance: () => -1,
-        onDealDamage: ({ final }) => {
-            const pierce = Math.round(final / 3)
-            return { normal: final - pierce, piercing: pierce }
-        },
     },
 ]

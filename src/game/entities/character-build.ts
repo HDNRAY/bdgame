@@ -19,6 +19,8 @@ export interface CharacterBuild {
     baseAttrs: Partial<Record<AttrName, number>>
     /** 武器 ID */
     weapon: string
+    /** 副手武器 ID */
+    offhand?: string
     /** 像素造型 ID */
     spriteId?: string
     /** 非属性奖励列表 */

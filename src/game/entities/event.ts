@@ -1,5 +1,6 @@
 import type { Round } from './round'
 import type { RewardType, RewardEntity } from './reward'
+import type { GameState } from './state'
 
 // ════════════════════════════════════════
 //  事件定义（新系统）
@@ -14,4 +15,6 @@ export interface EventDef {
     rewardType: RewardType
     rewardFilter?: (item: RewardEntity) => boolean
     rounds: Round[]
+    /** 条件检测：返回 false 则该事件不会出现在 fillEmptyNodes 中。 */
+    available?: (state: GameState) => boolean
 }

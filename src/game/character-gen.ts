@@ -6,6 +6,7 @@ import { cultCost } from './cultivation'
 import { checkTalents } from './talent-check'
 import { getArtifact } from '../data/artifacts'
 import { getPassive } from '../data/passives'
+import { getWeapon } from '../data/weapons/weapons'
 
 /** 通用生成器 */
 export function simpleGenerate(
@@ -50,9 +51,16 @@ export function simpleGenerate(
     const rewardCount = Math.round(rewards.length * ratio)
     const picked = rewards.slice(0, rewardCount)
 
-    // 从奖励中找武器，替换初始武器
-    const weaponReward = picked.filter((r) => r.type === 'weapon').pop()
-    const finalWeapon = weaponReward ? weaponReward.id : weapon
+    // 从奖励中找武器：第一个为主武器，第二个为副武器
+    const weaponRewards = picked.filter((r) => r.type === 'weapon')
+    const finalWeapon = weaponRewards[0]?.id ?? weapon
+
+    // 只有单手持握且非御物的武器才能有副手
+    const mainDef = getWeapon(finalWeapon)
+    let offhandWeapon: string | undefined
+    if (mainDef.tags.includes('one_handed') && !mainDef.tags.includes('imperial')) {
+        offhandWeapon = weaponRewards[1]?.id
+    }
 
     // 收集所有已获得的招式 ID（含被动/奇物 grantsActions）
     const pickedActionIds = new Set(picked.filter((r) => r.type === 'action').map((r) => r.id))
@@ -72,6 +80,7 @@ export function simpleGenerate(
         name: def.name,
         story: def.story,
         battleStyle: def.battleStyle,
+        offhand: offhandWeapon,
         weapon: finalWeapon,
         spriteId: def.id,
         baseAttrs: result,

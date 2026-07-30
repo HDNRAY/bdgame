@@ -16,7 +16,7 @@ export const LAYUE: OpponentDef = {
         weapon('fusi_sword'),
         passive('sword_dominion'),
         artifact('wisdom_talisman'),
-        artifact('buer_sword'),
+        weapon('buer_sword'),
         passive('tongtian'),
         artifact('innate_seed'),
         // 10

@@ -328,15 +328,6 @@ export const ARTIFACTS: Artifact[] = [
         ],
     },
     {
-        id: 'buer_sword',
-        name: '不二剑',
-        description: '最快的剑之一，起手暴击大增但身法略滞，逐回合恢复。',
-        tags: ['imperial', 'buff'],
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword', stacks: 20 }] },
-        ],
-    },
-    {
         id: 'gu_tong_body',
         name: '蛊童圣体',
         description: '从小被蛊毒炼就的毒体。拳掌互击时双方各半概率叠毒。',
@@ -537,7 +528,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'tempest',
         name: '暴雨梨花钉',
         description: '机簧发射二十七枚银钉，力道万钧，中者必死无救。从不淬毒。',
-        tags: ['weapon', 'inherent'],
+        tags: ['inherent'],
         grantsActions: ['tempest'],
     },
     // ── 天工锻造品 ──

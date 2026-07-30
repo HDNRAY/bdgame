@@ -67,7 +67,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'fusi_sword',
         name: '弗思剑',
         description: '最快的剑之一，闪避后本能蓄势。',
-        tags: ['pierce', 'slash', 'parry', 'one_handed'],
+        tags: ['pierce', 'slash', 'parry', 'melee', 'one_handed'],
         range: [1, 3],
         triggers: [
             { condition: { type: 'on_dodge' }, actionId: '_fusi_crit_stack' },
@@ -138,6 +138,7 @@ export const WEAPON_DB: WeaponDef[] = [
         tags: ['slash', 'pierce', 'unarmed', 'parry', 'melee', 'one_handed'],
         range: [1, 3],
         grantsActions: ['_alaya_insight'],
+        triggers: [{ condition: { type: 'on_hit' }, actionId: '_alaya_insight' }],
     },
     {
         id: 'dinghai_shen_tie',
@@ -206,6 +207,16 @@ export const WEAPON_DB: WeaponDef[] = [
         tags: ['polearm', 'parry', 'pierce', 'blunt', 'electric'],
         range: [1, 4],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'zhen_bei_ji_buff' }] }],
+    },
+    {
+        id: 'buer_sword',
+        name: '不二剑',
+        description: '最快的剑之一，起手暴击大增但身法略滞，逐回合恢复。',
+        tags: ['pierce', 'slash', 'parry', 'melee', 'one_handed'],
+        range: [1, 3],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword', stacks: 20 }] },
+        ],
     },
 ]
 

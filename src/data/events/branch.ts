@@ -1,4 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
+import { getWeapon } from '../weapons/weapons'
 
 import { CHRONICLE_EVENTS } from './chronicle'
 
@@ -242,6 +243,47 @@ export const XIAOHUA_INSIGHT: EventDef = {
     ],
 }
 
+// ── 双持修习（事件条件：主手为 single_handed 且非御物） ──
+
+/** 双持修习事件：给玩家一把副手武器 */
+export const DUAL_WIELD_EVENT: EventDef = {
+    id: 'dual_wield_training',
+    name: '双持修习',
+    description: '你在街角遇到一位双持高手，他看出你使单手兵器的底子，愿意传授双持之道。',
+    rewardType: 'weapon',
+    rewardFilter: (item) => item.tags.includes('one_handed'),
+    available: (state) => {
+        if (state.build.offhand) return false // 已有副手
+        const weapon = getWeapon(state.build.weapon)
+        return weapon.tags.includes('one_handed') && !weapon.tags.includes('imperial')
+    },
+    rounds: [
+        {
+            id: 'intro',
+            title: '双持修习',
+            description:
+                '「单手兵刃使得不错，但若双持，可更进退自如。」\n\n高手从腰间解下一柄短刃，递到你面前：「试试这个。」',
+            choices: [
+                { id: 'accept', type: 'continue', label: '接过短刃' },
+                { id: '__end__', type: 'continue', label: '婉拒，单手更适合我' },
+            ],
+        },
+        {
+            id: 'accept',
+            title: '获得副手',
+            description:
+                '你接过短刃，试着双手各持一刃挥舞了几下。虽然还不熟练，但确实感到攻守之间多了许多变化。\n\n高手点点头：「慢慢练，双持的关键在于分心错手——让两只手各打各的。」',
+            choices: [],
+        },
+        {
+            id: 'accept_epilogue',
+            title: '分心错手',
+            description: '你收起短刃，向高手道谢。从今往后，你也是一名双持武者了。',
+            choices: [{ id: '__end__', type: 'continue', label: '继续上路' }],
+        },
+    ],
+}
+
 export const BRANCH_EVENTS: EventDef[] = [
     BRANCH_PASSIVE,
     BRANCH_ACTION,
@@ -251,5 +293,6 @@ export const BRANCH_EVENTS: EventDef[] = [
     TIANGONG_WEAPON,
     LIBRARY_EVENT,
     XIAOHUA_INSIGHT,
+    DUAL_WIELD_EVENT,
     ...CHRONICLE_EVENTS,
 ]

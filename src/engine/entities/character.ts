@@ -59,6 +59,8 @@ export class Character {
     #maxTriggerSlots = 0
     /** 武器定义的 clone（含被动修改） */
     weaponDef?: WeaponDef
+    /** 副手武器定义（仅 effects/triggers/grantsActions 生效，不参与战斗） */
+    offhandDef?: WeaponDef
     /** 待应用的 weapon_tag（构造时先记录，武器设置后统一应用） */
     pendingWeaponTags: Tag[] = []
     /** 已解析的奇物/义体列表 */
@@ -174,6 +176,18 @@ export class Character {
             }
             for (const t of activeWeapon.triggers ?? []) this.passiveTriggers.push(t)
             if (activeWeapon.grantsActions) gainedActions.push(...activeWeapon.grantsActions)
+        }
+
+        // 副手武器：只处理 effects/triggers/grantsActions，不处理 tag，不含 range/战斗逻辑
+        if (build.offhand) {
+            const offhand = getWeapon(build.offhand)
+            this.offhandDef = offhand
+            for (const eff of offhand.effects ?? []) {
+                const handler = passiveEffectHandlers[eff.type]
+                if (handler) handler(this, eff)
+            }
+            for (const t of offhand.triggers ?? []) this.passiveTriggers.push(t)
+            if (offhand.grantsActions) gainedActions.push(...offhand.grantsActions)
         }
 
         // 5. 缓存招式

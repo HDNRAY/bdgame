@@ -9,11 +9,13 @@ import { DAMAGE_BUFFS } from './damage'
 import { ActionDefinition } from '../../engine/entities/action'
 import { Tag } from '../../engine/entities/tag'
 import { buffEnhanceActionRange } from './util'
+import { WEAPON_BUFFS } from './weapon'
 
 /** 增益状态 */
 export const BUFF_DB: BuffDef[] = [
     ...DAMAGE_BUFFS,
     ...DEFENSE_BUFFS,
+    ...WEAPON_BUFFS,
     // ── 战斗状态 ──
     {
         id: 'iaijutsu',
@@ -83,21 +85,6 @@ export const BUFF_DB: BuffDef[] = [
         onHitChance: () => 0.5,
     },
     {
-        id: 'overlord_blade',
-        name: '霸刀在手',
-        description: '霸刀在手，身法受限但势不可挡。',
-        tags: ['weapon'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        attrMods: { agility: -6, strength: 6 },
-        onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.4 : 0.2),
-        onParryPenetration: ({ final, raw }) => {
-            const blocked = raw - final
-            const reduced = round1(blocked * 0.4)
-            return raw - reduced
-        },
-    },
-    {
         id: 'overlord_art_buff',
         name: '霸刀刀路',
         description: '霸刀巨刃配合离心力，重器加持，命中+15%。',
@@ -126,8 +113,6 @@ export const BUFF_DB: BuffDef[] = [
             return raw - reduced
         },
     },
-
-    // ── 属性类 ──
     {
         id: 'stat_multiply',
         name: '超越',
@@ -147,8 +132,8 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'zuoyou_hubo',
-        name: '左右互搏',
-        description: '一次行动可使用两次主招式，非辅助招式AP-1。',
+        name: '分心错手',
+        description: '一心二用，交替出手，可连续施展两次攻击。',
         tags: [],
         onActionCost: ({ source }) => {
             const act = source as ActionDefinition
@@ -350,37 +335,6 @@ export const BUFF_DB: BuffDef[] = [
         description: '以力驭剑，重型武器身法负担减半。',
         tags: [],
         expiry: { type: 'permanent' },
-    },
-    {
-        id: 'dark_iron_weight',
-        name: '玄铁剑重',
-        description: '玄铁剑的沉重负担与无锋剑意。身法受限但力道大增，招架只能减免一半伤害。',
-        tags: ['weapon'],
-        expiry: { type: 'permanent' },
-        attrMods: { agility: -10, strength: 6 },
-        onParryPenetration: ({ final, raw }) => {
-            const blocked = raw - final
-            const half = round1(blocked * 0.5)
-            return raw - half
-        },
-    },
-    {
-        id: 'dinghai_pressure',
-        name: '定海',
-        description: '锭海神铁的压制力场，距离越近伤害越高。',
-        tags: ['weapon', 'heavy'],
-        expiry: { type: 'permanent' },
-        attrMods: { agility: -12 },
-        onDealDamage: ({ final, attacker, target, state }) => {
-            const dist = state.position.distance(attacker.id, target.id)
-            const bonus = Math.round(((attacker.attrs.get('strength') * 0.66 * Math.max(0, 6 - dist)) / 5) * 10) / 10
-            return bonus > 0 ? Math.round((final + bonus) * 10) / 10 : final
-        },
-        onParryPenetration: ({ final, raw }) => {
-            const blocked = raw - final
-            const reduced = round1(blocked * 0.6)
-            return raw - reduced
-        },
     },
     {
         id: 'santou_liubi',
@@ -808,40 +762,6 @@ export const BUFF_DB: BuffDef[] = [
             layer.extra = { ins, wis, dex }
         },
     },
-    // ── 镇北戟（千星重铸） ──
-    {
-        id: 'zhen_bei_ji_buff',
-        name: '镇北戟',
-        description: '千星重铸的赛博战戟。击中施加霜冻，被招架施加麻痹，被闪避叠游身。',
-        tags: ['weapon', 'electric', 'polearm'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        onDealDamage: ({ final, attacker, target, engine, state, source }) => {
-            if (engine && source && !source.tags?.includes('internal')) {
-                processActionEffect(
-                    { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 },
-                    { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
-                )
-            }
-            return final
-        },
-        onParried: ({ target, attacker, engine, state }) => {
-            if (engine) {
-                processActionEffect(
-                    { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
-                    { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
-                )
-            }
-        },
-        onDodged: ({ target, engine, state }) => {
-            if (engine) {
-                processActionEffect(
-                    { type: 'add_buff', buffId: 'you_shen', stacks: 1 },
-                    { self: target, enemy: target, engine, tMs: state.turn.currentTime },
-                )
-            }
-        },
-    },
     // ── 气血回溯 ──
     {
         id: 'blood_recovery',
@@ -997,20 +917,6 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, triggered }) => (triggered ? Math.round((final + 15) * 10) / 10 : final),
-    },
-    // ── 引擎铁锤（天工·千星） ──
-    {
-        id: 'engine_hammer_buff',
-        name: '引擎铁锤',
-        description: '天工锻造的电磁锤。maxAP-1，所有伤害附加推演×0.1。',
-        tags: ['weapon', 'electric', 'blunt'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        maxApMod: -1,
-        onDealDamage: ({ final, attacker }) => {
-            const bonus = round1(attacker.attrs.get('wisdom') * 0.1)
-            return final + bonus
-        },
     },
     {
         id: 'qi_electric_buff',

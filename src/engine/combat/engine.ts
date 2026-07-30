@@ -82,9 +82,11 @@ export class BattleEngine {
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o)
         this.emit('battle_start', o, p)
-        // 分别触发武器和每个奇物的 on_equip 效果
+        // 触发所有 on_equip 效果（主手+奇物+副手）
         for (const ch of [p, o]) {
-            processOnEquipEffects(this, ch, [getWeapon(ch.build.weapon), ...ch.artifactDefs], 0)
+            const items = [getWeapon(ch.build.weapon), ...ch.artifactDefs]
+            if (ch.build.offhand) items.push(getWeapon(ch.build.offhand))
+            processOnEquipEffects(this, ch, items, 0)
         }
         // 广播武器变更事件（让被动如行云流水切换架势）
         this.emit('on_weapon_change', p, o)

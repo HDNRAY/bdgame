@@ -1,5 +1,6 @@
 import { getStory } from '../../data/stories/index'
 import { BRANCH_EVENTS } from '../../data/events/branch'
+import type { GameState } from '../entities/state'
 import type { Node } from '../../game/entities/node'
 import type { StoryDef } from '../../game/entities/story'
 
@@ -97,11 +98,14 @@ export function applyStoryOverlay(nodes: Node[], storyId: string): StoryDef | un
  * 第三层：填充所有空节点的 eventIds。
  * 没有故事覆盖的节点，从支线事件池随机选 3 个不同事件。
  */
-export function fillEmptyNodes(nodes: Node[]): void {
+export function fillEmptyNodes(nodes: Node[], state?: GameState): void {
     for (const node of nodes) {
         if (!node.eventIds || node.eventIds.length === 0) {
-            // 打乱后取前 3
-            const shuffled = [...BRANCH_EVENTS].sort(() => Math.random() - 0.5)
+            let pool = [...BRANCH_EVENTS]
+            if (state) {
+                pool = pool.filter((ev) => !ev.available || ev.available(state))
+            }
+            const shuffled = pool.sort(() => Math.random() - 0.5)
             node.eventIds = shuffled.slice(0, 3).map((ev) => ev.id)
         }
     }

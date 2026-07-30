@@ -177,6 +177,7 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     preLines.push(`  # 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m${apInfo}`)
                     break
                 }
+                flushStandby()
                 flush()
                 const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
                 const actorName = fmtName(e.actor, e.snapshot)
