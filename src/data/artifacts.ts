@@ -346,7 +346,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '血祭护腕',
         description: '天工锻造的血祭护腕，每招消耗3%最大气血，化为额外伤害并缓慢恢复。',
         tags: ['buff', 'craft'],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'blood_sacrifice' }] }],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'blood_sacrifice' }] }],
     },
     {
         id: 'wakizashi',

@@ -161,19 +161,19 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'blood_sacrifice',
         name: '血祭',
-        description: '每招消耗3%最大气血，其中50%化为额外伤害，并开始气血回溯5%。',
+        description: '每招消耗2%最大气血，其中50%化为额外伤害，另外50%缓慢回复。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         onAction: ({ source, attacker, engine, state, layer }) => {
             if (!source || attacker.hp <= 0) return
             if (source.tags.includes('pre_action')) return
-            const cost = Math.max(1, Math.round(attacker.maxHp * 0.03 * 10) / 10)
+            const hpCosePercent = 0.02
+            const cost = Math.max(1, round1(attacker.maxHp * hpCosePercent))
             if (attacker.hp <= cost) return
             attacker.takeDamage(cost)
             layer.restoreValue = cost
-            // 追加独立的气血回溯（记录总回复量 = 5% maxHP，分10秒恢复）
             if (engine) {
-                const totalRecovery = Math.round(attacker.maxHp * 0.015 * 10) / 10
+                const totalRecovery = round1(attacker.maxHp * (hpCosePercent / 2))
                 processActionEffect(
                     { type: 'add_buff', buffId: 'blood_recovery', stacks: totalRecovery },
                     { self: attacker, enemy: attacker, engine, tMs: state.turn.currentTime },
@@ -183,7 +183,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onDealDamage: ({ final, layer }) => {
             const cost = layer.restoreValue ?? 0
             if (cost <= 0) return final
-            return Math.round((final + cost * 0.5) * 10) / 10
+            return round1(final + cost * 0.5)
         },
     },
     // ── 千机暴击 ──

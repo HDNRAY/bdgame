@@ -6,7 +6,7 @@ const LAIFENG_ATTRS = { strength: 14, vitality: 8, agility: 20, dexterity: 12, i
 export const LAIFENG: OpponentDef = {
     id: 'laifeng',
     name: '空拳·来风',
-    story: '药屋后人，幼年便失去了味觉。但失去味觉从未困扰过她——她将全部的专注力投入武道，以纯粹的体术和炁劲外放见长，拳法凌厉如风，被誉为「空拳」。',
+    story: '药屋后人，幼年便失去了味觉。但失去味觉从未困扰过他——他将全部的专注力投入武道，以纯粹的体术和炁劲外放见长，拳法凌厉如风，被誉为「空拳」。',
     weapon: 'bare_hands',
     targetAttrs: LAIFENG_ATTRS,
     rewards: [

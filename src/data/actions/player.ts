@@ -240,6 +240,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['unarmed', 'melee'],
         effects: [
+            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
             { type: 'knockback', distance: 1 },
             { type: 'short_dash', maxDistance: 1 },
         ],

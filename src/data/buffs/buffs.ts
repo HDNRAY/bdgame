@@ -704,7 +704,7 @@ export const BUFF_DB: BuffDef[] = [
             let str = 0,
                 agi = 0,
                 dex = 0
-            if (hpPct < 1) {
+            if (hpPct < 0.9) {
                 if (hpPct > 0.7) {
                     str = 2
                     agi = 2
