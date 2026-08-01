@@ -446,6 +446,14 @@ export const ARTIFACTS: Artifact[] = [
         ],
     },
     {
+        id: 'pu_ti_zhu',
+        name: '菩提珠串',
+        description: '静心菩提念珠。推演+4，50%免疫临时失心。',
+        tags: ['buff', 'defense'],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 4 } }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'pu_ti_zhu_buff' }] }],
+    },
+    {
         id: 'combat_armor',
         name: '斗铠',
         description: '百战之铠，非炁伤害减免1点，但身法-2。',

@@ -585,4 +585,19 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             return final
         },
     },
+    // ── 菩提珠（静心） ──
+    {
+        id: 'pu_ti_zhu_buff',
+        name: '菩提静心',
+        description: '静心凝神，50%免疫临时失心。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onReceiveDebuff: (ctx) => {
+            if (ctx.buffId !== 'fumble_chance_temp') return undefined
+            const { success } = calcRoll(0.5)
+            if (success) return 0
+            return undefined
+        },
+    },
 ]

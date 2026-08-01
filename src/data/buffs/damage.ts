@@ -281,10 +281,22 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         description: '暴击时消耗3缠，灵巧×3%暴伤。',
         tags: [],
         expiry: { type: 'permanent' },
-        onCritDamage: ({ attacker }) => {
-            if (attacker.chan < 3) return 0
+        onCritDamage: ({ layer }) => {
+            const bonus = (layer.extra?.bonus as number) ?? 0
+            if (bonus === 0) return 0
+            layer.extra = { ...layer.extra, bonus: 0 }
+            return bonus
+        },
+        onCritical: ({ attacker, engine, layer }) => {
+            if (attacker.chan < 3) return
             attacker.spendChan(3)
-            return Math.round(attacker.attrs.get('dexterity') * 0.03 * 10) / 10
+            const bonus = round1(attacker.attrs.get('dexterity') * 0.03)
+            layer.extra = { ...layer.extra, bonus }
+            engine?.emitLog({
+                type: 'system',
+                message: `[如意劲] ${attacker.name} 消耗3缠，暴伤+${bonus}`,
+                actorId: attacker.id,
+            })
         },
     },
     {
