@@ -1,17 +1,48 @@
-import { useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
-import { ModeSelect } from './ui/screens/ModeSelect/ModeSelect'
-import { SelectionPanel } from './ui/components/SelectionPanel/SelectionPanel'
-import { BuildScreen } from './ui/screens/BuildScreen/BuildScreen'
-import { SettingsScreen } from './ui/screens/SettingsScreen/SettingsScreen'
-import { AboutScreen } from './ui/screens/AboutScreen/AboutScreen'
-import { EncyclopediaScreen } from './ui/screens/EncyclopediaScreen/EncyclopediaScreen'
-import { BattleScreen } from './ui/screens/BattleScreen/BattleScreen'
-import { RogueliteScreen } from './ui/screens/RogueliteScreen/RogueliteScreen'
-import { DevMode } from './ui/screens/DevMode/DevMode'
 import { RotateDevice } from './ui/components/RotateDevice/RotateDevice'
 import { useAppStore } from './ui/stores/app-store'
 import { useSystemTheme } from './ui/hooks/useSystemTheme'
+
+// 按路由懒加载：避免首屏一次性下载全部 screen / 游戏数据 / DevMode
+const ModeSelect = lazy(() => import('./ui/screens/ModeSelect/ModeSelect').then((m) => ({ default: m.ModeSelect })))
+const SelectionPanel = lazy(() =>
+    import('./ui/components/SelectionPanel/SelectionPanel').then((m) => ({ default: m.SelectionPanel })),
+)
+const BuildScreen = lazy(() => import('./ui/screens/BuildScreen/BuildScreen').then((m) => ({ default: m.BuildScreen })))
+const SettingsScreen = lazy(() =>
+    import('./ui/screens/SettingsScreen/SettingsScreen').then((m) => ({ default: m.SettingsScreen })),
+)
+const AboutScreen = lazy(() => import('./ui/screens/AboutScreen/AboutScreen').then((m) => ({ default: m.AboutScreen })))
+const EncyclopediaScreen = lazy(() =>
+    import('./ui/screens/EncyclopediaScreen/EncyclopediaScreen').then((m) => ({ default: m.EncyclopediaScreen })),
+)
+const BattleScreen = lazy(() =>
+    import('./ui/screens/BattleScreen/BattleScreen').then((m) => ({ default: m.BattleScreen })),
+)
+const RogueliteScreen = lazy(() =>
+    import('./ui/screens/RogueliteScreen/RogueliteScreen').then((m) => ({ default: m.RogueliteScreen })),
+)
+const DevMode = lazy(() => import('./ui/screens/DevMode/DevMode').then((m) => ({ default: m.DevMode })))
+
+/** 路由 chunk 加载中的占位 */
+function RouteFallback() {
+    return (
+        <div
+            style={{
+                display: 'flex',
+                height: '100dvh',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--color-bg)',
+                color: 'var(--color-text)',
+                fontFamily: 'var(--font-mono)',
+            }}
+        >
+            加载中…
+        </div>
+    )
+}
 
 /**
  * AppShell — 全局配置注入层
@@ -48,17 +79,19 @@ function App() {
         <HashRouter>
             <AppShell>
                 <RotateDevice />
-                <Routes>
-                    <Route path="/" element={<ModeSelect />} />
-                    <Route path="/select" element={<SelectionPanel />} />
-                    <Route path="/build/:charId" element={<BuildScreen />} />
-                    <Route path="/settings" element={<SettingsScreen />} />
-                    <Route path="/about" element={<AboutScreen />} />
-                    <Route path="/encyclopedia" element={<EncyclopediaScreen />} />
-                    <Route path="/battle" element={<BattleScreen />} />
-                    <Route path="/roguelite" element={<RogueliteScreen />} />
-                    <Route path="/dev" element={<DevMode />} />
-                </Routes>
+                <Suspense fallback={<RouteFallback />}>
+                    <Routes>
+                        <Route path="/" element={<ModeSelect />} />
+                        <Route path="/select" element={<SelectionPanel />} />
+                        <Route path="/build/:charId" element={<BuildScreen />} />
+                        <Route path="/settings" element={<SettingsScreen />} />
+                        <Route path="/about" element={<AboutScreen />} />
+                        <Route path="/encyclopedia" element={<EncyclopediaScreen />} />
+                        <Route path="/battle" element={<BattleScreen />} />
+                        <Route path="/roguelite" element={<RogueliteScreen />} />
+                        <Route path="/dev" element={<DevMode />} />
+                    </Routes>
+                </Suspense>
             </AppShell>
         </HashRouter>
     )

@@ -6,6 +6,21 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
     build: {
         outDir: 'bdgame',
+        chunkSizeWarningLimit: 600, // 拆分后按需放宽警告线
+        rollupOptions: {
+            output: {
+                // React 核心独立成稳定 chunk，配合 PWA 长期缓存，避免每次发布全量重下
+                manualChunks(id) {
+                    if (
+                        id.includes('node_modules/react/') ||
+                        id.includes('node_modules/react-dom/') ||
+                        id.includes('node_modules/scheduler/')
+                    ) {
+                        return 'vendor-react'
+                    }
+                },
+            },
+        },
     },
     base: './',
     plugins: [
