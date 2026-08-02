@@ -23,6 +23,7 @@ export {
 } from './bracket-builder'
 
 export { simulateSingleMatch, simulateGroupRound, simulateKnockoutRound } from './simulator'
+export type { SimulateOptions } from './simulator'
 
 export { selectParticipants } from './participants'
 export type { SelectParticipantsOptions } from './participants'

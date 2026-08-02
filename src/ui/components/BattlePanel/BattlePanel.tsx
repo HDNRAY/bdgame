@@ -12,14 +12,16 @@ import { LogPanel } from '../LogPanel/LogPanel'
 import type { BattleSnapshot } from '../../../engine/combat/types'
 import './BattlePanel.scss'
 
-interface BattlePanelProps {
+export interface BattlePanelProps {
     buildA: CharacterBuild
     buildB: CharacterBuild
     showSidePanels?: boolean
     onBattleEnd?: () => void
+    /** 预计算的回放数据；提供时直接回放该场，不再重新战斗 */
+    initialData?: BattleData
 }
 
-interface BattleData {
+export interface BattleData {
     entries: LogEntry[]
     logLines: string[]
     eventToLine: number[]
@@ -28,12 +30,13 @@ interface BattleData {
     charBInfo: { id: string; name: string; color: string }
 }
 
-export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd }: BattlePanelProps) {
+export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd, initialData }: BattlePanelProps) {
     const [battleKey] = useState(0)
     const battleEndedRef = useRef(false)
 
     // 战斗数据：在 render 阶段计算（同步），通过 battleKey 触发重打
     const battleData: BattleData = useMemo(() => {
+        if (initialData) return initialData
         const a = new Character(buildA)
         const b = new Character(buildB)
         const { engine } = runBattle(a, b, undefined, 6)
@@ -55,7 +58,7 @@ export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd
                 color: '#ff6b6b' as const,
             },
         }
-    }, [buildA, buildB])
+    }, [buildA, buildB, initialData])
 
     const { entries, logLines, eventToLine, snapshots, charAInfo, charBInfo } = battleData
 

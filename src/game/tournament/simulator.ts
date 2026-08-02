@@ -4,27 +4,43 @@
 //  每次只推进一轮（不出循环全算完）。
 // ════════════════════════════════════════
 
-import type { TournamentData, TournamentParticipant, MatchResult, KnockoutRound } from '../entities/tournament'
+import type {
+    TournamentData,
+    TournamentParticipant,
+    MatchResult,
+    KnockoutRound,
+    MatchGame,
+} from '../entities/tournament'
 import { GROUP_MAX_ROUNDS, KNOCKOUT_ROUNDS } from '../entities/tournament'
 import { getGroupRoundMatches, calculateGroupStandings, finalizeGroupStage } from './bracket-builder'
 import { gen, getOpponentDef } from '../../data/opponents/index'
-import { simulateWinRate } from '../../engine/battle-runner'
+import { runBattle, simulateWinRate } from '../../engine/battle-runner'
+import { Character } from '../../engine/entities/character'
+import type { LogEntry } from '../../bridge/replay-engine'
 
 // ────────────────────────────────────────
 //  单场模拟
 // ────────────────────────────────────────
+
+/** 模拟选项 */
+export interface SimulateOptions {
+    /** 捕获每局回放 log（写入 MatchResult.games），DevMode 全量模拟时开启 */
+    captureLogs?: boolean
+}
 
 /**
  * 模拟一场 NPC 之间的比赛。
  * @param participantA - 参赛者 A
  * @param participantB - 参赛者 B
  * @param bestOf - 几局几胜（1=BO1, 3=BO3）
+ * @param opts - 可选；captureLogs 时逐局跑真实战斗并保留回放 log
  * @returns MatchResult
  */
 export function simulateSingleMatch(
     participantA: TournamentParticipant,
     participantB: TournamentParticipant,
     bestOf: number,
+    opts?: SimulateOptions,
 ): MatchResult {
     const defA = getOpponentDef(participantA.id)
     const defB = getOpponentDef(participantB.id)
@@ -36,7 +52,34 @@ export function simulateSingleMatch(
     const buildA = gen(defA, participantA.level)
     const buildB = gen(defB, participantB.level)
 
-    const { aWins, bWins } = simulateWinRate(buildA, buildB, bestOf)
+    let aWins = 0
+    let bWins = 0
+    let games: MatchGame[] | undefined
+
+    if (opts?.captureLogs) {
+        // 逐局跑真实战斗，保留回放数据
+        games = []
+        for (let i = 0; i < bestOf; i++) {
+            const a = new Character(buildA)
+            const b = new Character(buildB)
+            const { winner, engine } = runBattle(a, b, undefined, 6)
+            let gameWinnerId: string | null
+            if (winner === buildA.id) {
+                gameWinnerId = participantA.id
+                aWins++
+            } else if (winner === buildB.id) {
+                gameWinnerId = participantB.id
+                bWins++
+            } else {
+                gameWinnerId = null
+            }
+            games.push({ winnerId: gameWinnerId, logEntries: engine.state.log.getAll() as LogEntry[] })
+        }
+    } else {
+        const stat = simulateWinRate(buildA, buildB, bestOf)
+        aWins = stat.aWins
+        bWins = stat.bWins
+    }
 
     let winnerId: string | null
     let loserId: string | null
@@ -61,6 +104,7 @@ export function simulateSingleMatch(
         scores: [aWins, bWins],
         bestOf,
         isPlayerMatch: false,
+        games,
     }
 }
 
@@ -75,7 +119,7 @@ export function simulateSingleMatch(
  *
  * @returns 新的 TournamentData（不修改原对象）
  */
-export function simulateGroupRound(tournament: TournamentData): TournamentData {
+export function simulateGroupRound(tournament: TournamentData, opts?: SimulateOptions): TournamentData {
     const t = structuredClone(tournament)
     const { groupStage } = t
     const round = groupStage.currentRound
@@ -97,11 +141,12 @@ export function simulateGroupRound(tournament: TournamentData): TournamentData {
             const b = participantsMap.get(match.participantIds[1])
             if (!a || !b) continue
 
-            const result = simulateSingleMatch(a, b, match.bestOf)
+            const result = simulateSingleMatch(a, b, match.bestOf, opts)
             // 更新 match
             match.winnerId = result.winnerId
             match.loserId = result.loserId
             match.scores = result.scores
+            match.games = result.games
 
             // 强制决赛 Boss 获胜（非玩家比赛）
             forceBossWin(match, t.finalBossId, t.playerId)
@@ -139,7 +184,7 @@ export function simulateGroupRound(tournament: TournamentData): TournamentData {
  *
  * @returns 新的 TournamentData（不修改原对象）
  */
-export function simulateKnockoutRound(tournament: TournamentData): TournamentData {
+export function simulateKnockoutRound(tournament: TournamentData, opts?: SimulateOptions): TournamentData {
     const t = structuredClone(tournament)
     const { knockoutStage } = t
     const round = knockoutStage.currentRound
@@ -168,7 +213,7 @@ export function simulateKnockoutRound(tournament: TournamentData): TournamentDat
         const b = participantsMap.get(bId)
         if (!a || !b) continue
 
-        const result = simulateSingleMatch(a, b, 3)
+        const result = simulateSingleMatch(a, b, 3, opts)
 
         // 更新或创建 match
         match.match = result

@@ -3,6 +3,8 @@
 //  不包含任何逻辑，仅供外部引用。
 // ════════════════════════════════════════
 
+import type { LogEntry } from '../../bridge/replay-engine'
+
 // ── 参赛者 ──
 
 export interface TournamentParticipant {
@@ -31,6 +33,16 @@ export interface MatchResult {
     bestOf: number
     /** 是否包含玩家 */
     isPlayerMatch: boolean
+    /** 每局明细（可选）。captureLogs 模拟时填充，用于 DevMode 逐局回放；不进 roguelite 持久化 */
+    games?: MatchGame[]
+}
+
+/** 单局回放数据 */
+export interface MatchGame {
+    /** 本局胜者 participant id，null = 平局 */
+    winnerId: string | null
+    /** 本局 log 条目（引擎完整事件），供回放重建 BattleData */
+    logEntries?: LogEntry[]
 }
 
 // ── 小组赛 ──
