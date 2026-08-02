@@ -4,16 +4,16 @@ import { isBasicAction } from '../../game/roguelite/util'
 
 export const WANDERER_N02_INTRO: EventDef = {
     id: 'wanderer_n02_intro',
-    name: '山洞奇遇',
-    description: '七岁那年你在后山玩耍，偶遇一对隐世夫妇。',
+    name: '遇险获救',
+    description: '七岁那年你和奇岚在青山边缘遇险，被一对隐世夫妇所救。',
     rewardType: 'weapon',
     rewardFilter: (item) => STARTING_WEAPONS.some((w) => w.id === item.id),
     rounds: [
         {
             id: 'intro',
-            title: '后山',
+            title: '遇险',
             description:
-                '七岁那年你在后山玩耍，无意中发现了一个隐蔽的山洞。洞中一对夫妇正在清点行囊——男子背负一柄大剑，女子腰悬双剑。他们见你筋骨不错，便将洞中留下的几件兵器和图谱赠予了你。你后来才知道，他们叫过儿与龙女。',
+                '七岁那年你和奇岚在青山边缘的林地玩耍，一时贪玩跑进了深山，撞上一头不知从哪来的凶兽。眼看就要没命，一道剑光破空而至——你被拎着甩到安全处，抬头才看清那对夫妇：男子背负一柄大剑，女子腰悬双剑。他们见你二人筋骨不错，便将随身几件兵器和图谱赠予了你。你后来才知道，他们叫过儿与龙女。',
             choices: [{ id: 'reward_round', type: 'continue', label: '收下' }],
         },
         { id: 'reward_round', title: '选择兵器', choices: [] },

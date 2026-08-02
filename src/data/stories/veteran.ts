@@ -3,7 +3,7 @@ import type { StoryDef } from '../../game/entities/story'
 export const VETERAN: StoryDef = {
     id: 'veteran',
     name: '军旅退伍',
-    characterName: '退役军人',
+    characterName: '陆斐',
     description: '世代从军。你从小在军营边长大，看惯了操练和号角。',
     overrides: {
         2: 'veteran_n02_intro',

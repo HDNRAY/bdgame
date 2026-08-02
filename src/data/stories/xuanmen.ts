@@ -3,7 +3,7 @@ import type { StoryDef } from '../../game/entities/story'
 export const XUANMEN: StoryDef = {
     id: 'xuanmen',
     name: '玄门子弟',
-    characterName: '弟子',
+    characterName: '玄十 → 玄久',
     description: '御物世家，以炁御器。你从记事起就开始修炼家传功法。',
     overrides: {
         2: 'xuanmen_n02_weapon',

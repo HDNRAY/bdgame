@@ -36,10 +36,12 @@ graph TB
       hys["黑云·小树"]
       xj9["玄九"]
       xm_z["主角（玄十→玄久）"]
+      zqz["玄青宗（旁支）"]
       xj -.->|家主争夺| xm_z
       fq --> xm_z
       hys --> xm_z
       xj9 ---|双胞胎·殒命| xm_z
+      xj -.->|血统不纯·被逐| zqz
     end
   end
 
