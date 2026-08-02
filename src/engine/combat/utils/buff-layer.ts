@@ -100,6 +100,43 @@ export function reduceBleedOnHeal(engine: BattleEngine, charId: string, amount: 
     })
 }
 
+/** 应用一次治疗：回血 + 减流血 + 治疗日志 + 通知所有 buff 的 onReceiveHeal */
+export function applyHeal(
+    engine: BattleEngine,
+    target: Character,
+    amount: number,
+    action?: { id?: string; name?: string },
+): void {
+    if (amount <= 0) return
+    target.heal(amount)
+    reduceBleedOnHeal(engine, target.id, amount)
+    engine.emitLog({
+        type: 'heal',
+        actionId: action?.id ?? '_heal',
+        actionName: action?.name ?? '治疗',
+        sourceId: target.id,
+        targetId: target.id,
+        amount,
+    })
+    // 通知所有 buff 持有者收到治疗
+    for (const [key, layer] of engine.state.pendingBuffs) {
+        const [buffId, charId] = key.split('::')
+        if (charId !== target.id) continue
+        const def = getBuff(buffId)
+        if (def?.onReceiveHeal) {
+            def.onReceiveHeal({
+                final: amount,
+                raw: amount,
+                target,
+                attacker: target,
+                engine,
+                state: engine.state,
+                layer,
+            })
+        }
+    }
+}
+
 /** 检查某人是否有某 buff */
 export function hasBuff(engine: BattleEngine, charId: string, buffId: string): boolean {
     return engine.state.pendingBuffs.has(`${buffId}::${charId}`)

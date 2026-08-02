@@ -65,6 +65,8 @@ export function planMovement(
         for (const inst of attacker.actions) {
             const dashEff = inst.def.effects?.find((e): e is Extract<EffectDef, { type: 'dash' }> => e.type === 'dash')
             if (!dashEff) continue
+            // 缠劲不足的位移招式不纳入规划
+            if (inst.def.chanCost && attacker.chan < inst.def.chanCost) continue
             const { minRange = 0, maxRange = Infinity, targetDist: rawDashTarget } = dashEff
             if (distance < minRange || distance > maxRange) continue
             const dashTarget = rawDashTarget < 0 ? attacker.getMaxActionRange() : rawDashTarget

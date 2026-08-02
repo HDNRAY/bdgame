@@ -25,7 +25,7 @@ import { applyDamage, applyBonusDamage } from './damage'
 import { processHitCheck } from './combat'
 import { processActionEffect } from './action'
 import { tickEngine } from '../tick-engine'
-import { applyAttrMods, reduceBleedOnHeal, applyScaledAttrMods, scheduleBuffEnd } from '../utils/buff-layer'
+import { applyAttrMods, applyScaledAttrMods, scheduleBuffEnd, applyHeal } from '../utils/buff-layer'
 import { BuffDef, getBuff } from '../../../data/buffs'
 
 /** 检查目标是否有罡体免疫（通过 buff 的 super_armor 标签识别） */
@@ -95,34 +95,17 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     heal({ eff, self, engine, action }: EffectCtx) {
         const { value, ratio } = eff as Extract<EffectDef, { type: 'heal' }>
         const amount = calcHealAmount(value, self.maxHp, ratio)
-        self.heal(amount)
-        reduceBleedOnHeal(engine, self.id, amount)
-        engine.emitLog({
-            type: 'heal',
-            actionId: action?.id ?? '_heal',
-            actionName: action?.name ?? '治疗',
-            sourceId: self.id,
-            targetId: self.id,
-            amount,
+        applyHeal(engine, self, amount, action)
+    },
+    functional_heal({ eff, self, enemy, engine, action }: EffectCtx) {
+        const { fn } = eff as Extract<EffectDef, { type: 'functional_heal' }>
+        const amount = fn({
+            self,
+            enemy,
+            state: engine.state,
+            emitLog: (msg) => engine.emitLog({ type: 'system', message: msg, actorId: self.id }),
         })
-        // 通知所有 buff 持有者收到治疗
-        for (const [key, layer] of engine.state.pendingBuffs) {
-            const [buffId, charId] = key.split('::')
-            if (charId !== self.id) continue
-            const def = getBuff(buffId)
-            if (def?.onReceiveHeal) {
-                def.onReceiveHeal({
-                    final: amount,
-                    raw: amount,
-                    target: self,
-                    attacker: self,
-                    engine,
-                    state: engine.state,
-                    layer,
-                    // buffOwnerId: self.id,
-                })
-            }
-        }
+        applyHeal(engine, self, amount, action)
     },
     interrupt({ enemy, engine }: EffectCtx) {
         if (hasCcImmunity(enemy, engine.state)) {

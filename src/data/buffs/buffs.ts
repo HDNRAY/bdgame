@@ -384,7 +384,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['super_armor'],
         expiry: { type: 'permanent' },
         onReceiveDebuff: (ctx) => {
-            if (['stun', 'stagger', 'knockdown', 'fumble_chance'].includes(ctx.buffId)) return 0
+            if (['stun', 'stagger', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
             return undefined
         },
     },
@@ -1069,5 +1069,85 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
+    },
+    // ── 禅子 · 禅修 ──
+    {
+        id: 'chanzi_chan_regen',
+        name: '玄武定',
+        description: '玄武定息，缠劲生生不息，每2秒恢复3点缠劲。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        tickInterval: 2000,
+        onTickHeal: ({ attacker, engine }) => {
+            attacker.addChan(3)
+            engine?.emitLog({
+                type: 'system',
+                message: `[玄武定] ${attacker.name} 缠劲+3（${attacker.chan}层）`,
+                actorId: attacker.id,
+            })
+            return 0
+        },
+    },
+    {
+        id: 'chanzi_stance',
+        name: '金刚不坏',
+        description: '金刚不坏体，反震敌手。受到伤害时反伤10%。',
+        tags: ['buff', 'defense'],
+        expiry: { type: 'duration', ms: 15000 },
+        stacking: { type: 'none' },
+        onTakeDamage: ({ final, attacker, target, engine }) => {
+            if (final <= 0 || !engine || attacker === target) return final
+            const reflectDmg = Math.max(1, Math.round(final * 0.1))
+            attacker.takeDamage(reflectDmg, engine)
+            engine.emitLog({
+                type: 'system',
+                message: `[金刚不坏] ${target.name}反伤${reflectDmg}给${attacker.name}`,
+                actorId: target.id,
+            })
+            return final
+        },
+    },
+    {
+        id: 'jin_zhong_zhao',
+        name: '金钟罩',
+        description: '金钟罩体，罡气护身。吸收30点伤害，免疫硬控；盾未破时每10秒修复1点。',
+        tags: ['super_armor', 'defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onReceiveDebuff: (ctx) => {
+            if (['stun', 'stagger', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
+            return undefined
+        },
+        tickInterval: 10000,
+        onTickHeal: ({ target, engine, layer }) => {
+            if (!layer.extra) layer.extra = {}
+            const cur = (layer.extra.shieldRemaining as number) ?? 30
+            if (cur < 30) {
+                layer.extra.shieldRemaining = Math.min(30, cur + 1)
+                engine?.emitLog({
+                    type: 'system',
+                    message: `[金钟罩] ${target.name} 护盾修复+1（${layer.extra.shieldRemaining}/30）`,
+                    actorId: target.id,
+                })
+            }
+            return 0
+        },
+        onTakeDamage: ({ final, target, engine, layer, state }) => {
+            if (final <= 0) return final
+            if (!layer.extra) layer.extra = {}
+            const remaining = (layer.extra.shieldRemaining as number) ?? 30
+            const absorb = Math.min(remaining, final)
+            layer.extra.shieldRemaining = Math.round((remaining - absorb) * 10) / 10
+            engine?.emitLog({
+                type: 'system',
+                message: `[金钟罩] ${target.name} 吸收${absorb}点（${layer.extra.shieldRemaining}/30）`,
+                actorId: target.id,
+            })
+            if (layer.extra.shieldRemaining <= 0) {
+                state.pendingBuffs.delete(`jin_zhong_zhao::${target.id}`)
+            }
+            return Math.max(0, Math.round((final - absorb) * 10) / 10)
+        },
     },
 ]

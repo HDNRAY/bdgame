@@ -36,6 +36,7 @@ import {
     QIANXING,
     ORANGE,
     JIRAN,
+    CHANZI,
 } from '../src/data/opponents/index'
 import { getWeapon } from '../src/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
@@ -79,7 +80,7 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(HAORAN, 33)
+const pBuild = gen(CHANZI, 33)
 const oBuild = gen(BAMBOO, 33)
 
 if (N === 1) {

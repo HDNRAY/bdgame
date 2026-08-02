@@ -330,6 +330,17 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.5 },
         ],
     },
+    {
+        id: 'ru_lai_shen_zhang',
+        name: '如来神掌',
+        description: '掌含如来真意，掌未至，意已到。距离极远，极难闪避，以根骨与推演之力伤敌。',
+        requiredTags: ['unarmed'],
+        apCost: 5,
+        tags: ['unarmed', 'qi', 'range'],
+        getRange: () => [0, 10] as [number, number],
+        onActionHitChance: () => 0.5,
+        effects: [{ type: 'damage', scaling: { vitality: 0.6, wisdom: 0.6 } }],
+    },
     // ── 暗器系 ──
     {
         id: 'iron_pellet',

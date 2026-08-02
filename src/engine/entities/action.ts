@@ -4,7 +4,8 @@ import type { GameEntity } from './base'
 import type { Tag } from './tag'
 import type { BattleState } from '../combat/types'
 
-export interface FunctionalDamageCtx {
+/** 函数效果上下文（functional_damage / functional_heal 共用） */
+export interface FunctionalEffectCtx {
     self: Character
     enemy: Character
     state: BattleState
@@ -80,7 +81,8 @@ export type EffectDef =
               sourceTags?: string[],
           ) => { skip?: boolean; delta?: number } | null
       }
-    | { type: 'functional_damage'; fn: (ctx: FunctionalDamageCtx) => number; piercing?: number }
+    | { type: 'functional_damage'; fn: (ctx: FunctionalEffectCtx) => number; piercing?: number }
+    | { type: 'functional_heal'; fn: (ctx: FunctionalEffectCtx) => number }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {

@@ -847,4 +847,21 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'guan_zi_zai_yan' }] }],
     },
+    // ── 禅子 · 禅修 ──
+    {
+        id: 'yi_jin_jing',
+        name: '易筋经',
+        description: '佛门易筋洗髓之法，根骨、推演各+4。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'stat_buff', attrs: { vitality: 4, wisdom: 4 } }],
+    },
+    {
+        id: 'chanzi_chan_regen',
+        name: '玄武定',
+        description: '玄武定息，缠劲生生不息，每2秒恢复3点缠劲。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chanzi_chan_regen' }] },
+        ],
+    },
 ]

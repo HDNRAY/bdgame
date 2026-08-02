@@ -802,6 +802,8 @@ export class BattleEngine {
             const cond = getConditionPreset(config.conditionId)
             if (cond && !checkCondition(cond, self, this.state)) return r
         }
+        // 缠劲不足的辅助招不释放（不扣 AP、不扣缠劲）
+        if (inst.def.chanCost && self.chan < inst.def.chanCost) return r
         if (!self.spendAp(inst.apCost)) {
             return r
         }

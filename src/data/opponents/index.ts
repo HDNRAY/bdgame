@@ -1,5 +1,6 @@
 export { ZHANGLIE } from './zhanglie'
 export { LAIFENG } from './laifeng'
+export { CHANZI } from './chanzi'
 export { XUANJI } from './xuanji'
 export { LAYUE } from './layue'
 export { YIDAO } from './yidao'
@@ -38,6 +39,7 @@ import { simpleGenerate } from '../../game/character-gen'
 
 import { ZHANGLIE } from './zhanglie'
 import { LAIFENG } from './laifeng'
+import { CHANZI } from './chanzi'
 import { XUANJI } from './xuanji'
 import { LAYUE } from './layue'
 import { YIDAO } from './yidao'
@@ -92,6 +94,7 @@ export const OPPONENTS: OpponentDef[] = [
     /** 拳掌 */
     QILAN, // 特殊事件调查科
     LAIFENG, // 饮酒结拜
+    CHANZI, // 多林寺 禅修者
     WUZUI, // 饮酒结拜
     SANGYUAN, // 归海楼
     XIAOHUA, // 药屋家 洞察宗师

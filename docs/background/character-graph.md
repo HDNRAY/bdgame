@@ -53,6 +53,11 @@ graph TB
       lf["来风（味觉·空拳）"]
     end
 
+    subgraph DLS["多林寺"]
+      direction TB
+      cz["禅子（禅修者）"]
+    end
+
     subgraph Lj["六绝（青山之巅）"]
       direction TB
       ln["龙女（逸）"]
@@ -87,6 +92,8 @@ graph TB
   hr["浩然·潮生"] -->|常客| jd
   hys -->|常客| jd
   zz -->|送货对账| jd
+  cz -.->|同届师兄弟| lf
+  cz -.->|同届师兄弟| zz
 
   yd -.->|师徒| sy
   lyue["腊月（天生道种）"] -.->|师徒| sect_z["主角（天生道种线）"]

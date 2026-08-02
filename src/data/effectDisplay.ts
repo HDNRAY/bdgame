@@ -147,6 +147,8 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`以巧借力: 灵巧×${eff.ratio} → 力道`]
         case 'functional_damage':
             return ['函数伤害: 视条件而定']
+        case 'functional_heal':
+            return ['函数回复: 视条件而定']
         case 'self_disarm':
             return ['自卸武器']
         case 'copy_best_passive':

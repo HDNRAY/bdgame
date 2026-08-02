@@ -4,6 +4,7 @@ import type { RequiredCondition } from '../game/entities/action-config'
 export const CONDITION_PRESETS = [
     { id: 'always', name: '始终可用', build: (): RequiredCondition => ({ type: 'always' }) },
     { id: 'hp_below_50', name: 'HP<50%', build: (): RequiredCondition => ({ type: 'hp_below', ratio: 0.5 }) },
+    { id: 'hp_below_70', name: 'HP<70%', build: (): RequiredCondition => ({ type: 'hp_below', ratio: 0.7 }) },
     { id: 'hp_above_50', name: 'HP>50%', build: (): RequiredCondition => ({ type: 'hp_above', ratio: 0.5 }) },
     { id: 'hp_above_70', name: 'HP>70%', build: (): RequiredCondition => ({ type: 'hp_above', ratio: 0.7 }) },
     {
