@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef } from 'react'
-import { HashRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { RotateDevice } from './ui/components/RotateDevice/RotateDevice'
 import { useAppStore } from './ui/stores/app-store'
 import { useSystemTheme } from './ui/hooks/useSystemTheme'
@@ -76,7 +76,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
 function App() {
     return (
-        <HashRouter>
+        <BrowserRouter>
             <AppShell>
                 <RotateDevice />
                 <Suspense fallback={<RouteFallback />}>
@@ -93,7 +93,7 @@ function App() {
                     </Routes>
                 </Suspense>
             </AppShell>
-        </HashRouter>
+        </BrowserRouter>
     )
 }
 

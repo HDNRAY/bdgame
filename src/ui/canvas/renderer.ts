@@ -148,7 +148,8 @@ export class CanvasRenderer {
 
         for (const c of chars) {
             const otherPos = chars.find((o) => o.id !== c.id)?.pos ?? 0
-            const facingRight = c.pos < otherPos
+            // 新精灵默认朝左，与旧精灵（默认朝右）相反 → facing 判断取反
+            const facingRight = c.pos > otherPos
             const dim = charDims.get(c.id)!
             const target = this.canvasWidth / 2 + (c.pos - viewOffset) * pxPerUnit - dim.w / 2
             const cur = this.displayPos.get(c.id) ?? target
