@@ -93,8 +93,8 @@ export function gen(def: OpponentDef, n: number): CharacterBuild {
 export const OPPONENTS: OpponentDef[] = [
     /** 拳掌 */
     QILAN, // 特殊事件调查科
-    LAIFENG, // 饮酒结拜
-    CHANZI, // 多林寺 禅修者
+    LAIFENG, // 饮酒结拜 多林寺
+    CHANZI, // 多林寺
     WUZUI, // 饮酒结拜
     SANGYUAN, // 归海楼
     XIAOHUA, // 药屋家 洞察宗师
@@ -110,7 +110,7 @@ export const OPPONENTS: OpponentDef[] = [
     LONGNV, // 六绝之逸
     /** 棍 */
     WUKONG, // 六绝之破
-    BAMBOO, // 宝字堂 特殊事件调查科兼职法医
+    BAMBOO, // 宝字堂 特殊事件调查科兼职法医 多林寺
     DAIXUAN, // 特殊事件调查科科长
     /** 长柄 */
     ZHANGLIE, // 组织(变节卧底)

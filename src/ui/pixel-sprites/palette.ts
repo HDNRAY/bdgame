@@ -2,41 +2,55 @@
 
 import type { Palette } from './types'
 
-/** 默认调色板 — 白底 + 少量彩色点缀 */
+/**
+ * 默认调色板 — 厨师参考图 16 色调色板
+ * 像素索引 1..16 → key '1'..'16'（与 PixelMap 约定一致）
+ * 稀疏 Record，按需扩展，无需预留 256 色
+ */
 export const MONO_PALETTE: Palette = {
     0: 'transparent',
-    1: '#ffffff', // 白 - 肤色/底色
-    2: '#e0e0e0', // 亮灰 - 头发
-    3: '#a0a0a0', // 中灰 - 衣物阴影
-    4: '#c0c0c0', // 浅灰 - 裤子
-    5: '#989898', // 中浅灰 - 瞳孔/鞋子
-    7: '#555555', // 深灰 - 描边轮廓
+    1: '#000000',
+    2: '#f8f7f6',
+    3: '#7e8185',
+    4: '#b71902',
+    5: '#fcc46a',
+    6: '#b9b9b9',
+    7: '#ca7932',
+    8: '#3f4041',
+    9: '#680802',
+    10: '#fdf5a8',
+    11: '#bbb073',
+    12: '#854816',
+    13: '#5e6166',
+    14: '#ef9c53',
+    15: '#9e9fa2',
+    16: '#e0dfdf',
 }
 
 /** 角色完整配色方案 */
 export interface CharacterColors {
-    skin: string // palette 1
-    hair: string // palette 2
-    eyes: string // palette 5
-    accent: string // palette 6（衣物主色）
+    skin: string // palette -1（角色肤色槽）
+    hair: string // palette -2（角色发色槽）
+    eyes: string // palette -5（角色瞳色槽）
+    accent: string // palette -6（角色衣物主色槽）
 }
 
 const DEFAULT_COLORS: CharacterColors = {
-    skin: '#ffffff',
-    hair: '#e0e0e0',
-    eyes: '#989898',
-    accent: '#888888',
+    skin: '#fcc46a',
+    hair: '#4a6741',
+    eyes: '#c0392b',
+    accent: '#ffffff',
 }
 
 /** 角色 ID → 完整配色 */
 export const CHARACTER_COLORS: Record<string, CharacterColors> = {
     // ── default 体型 ──
-    yidao: { skin: '#f5d6c6', hair: '#1a1a2e', eyes: '#c0392b', accent: '#4ecdc4' },
+    yidao: { skin: '#f5d6c6', hair: '#4a6741', eyes: '#c0392b', accent: '#4ecdc4' },
     luhongti: { skin: '#f0c8a0', hair: '#6b1a1a', eyes: '#4a6741', accent: '#ff6b6b' },
     // ── heavy 体型 ──
     zhanglie: { skin: '#e8c4a0', hair: '#2c2c2c', eyes: '#8B4513', accent: '#d4a848' },
     sangyuan: { skin: '#f5d6c6', hair: '#708090', eyes: '#4682B4', accent: '#9b59b6' },
-    baihu: { skin: '#f0e6d3', hair: '#c0c0c0', eyes: '#ff6347', accent: '#ffffff' },
+    baihu: { skin: '#f0e6d3', hair: '#d8d8e0', eyes: '#ff6347', accent: '#ffffff' },
     // ── slender 体型 ──
     laifeng: { skin: '#fce4d6', hair: '#d4a050', eyes: '#8B4513', accent: '#2ecc71' },
     layue: { skin: '#f5f0e8', hair: '#e8e8ff', eyes: '#87CEEB', accent: '#85c1e9' },
@@ -72,9 +86,9 @@ export function buildPalette(charId: string, accentColor: string): Palette {
     const c = CHARACTER_COLORS[charId] ?? DEFAULT_COLORS
     return {
         ...MONO_PALETTE,
-        '1': c.skin,
-        '2': c.hair,
-        '5': c.eyes,
-        '6': c.accent ?? accentColor,
+        '-1': c.skin,
+        '-2': c.hair,
+        '-5': c.eyes,
+        '-6': c.accent ?? accentColor,
     }
 }

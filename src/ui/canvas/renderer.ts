@@ -257,8 +257,8 @@ export class CanvasRenderer {
             for (let x = 0; x < frameData[y].length; x++) {
                 const sx = facingRight ? x : frameData[y].length - 1 - x
                 const idx = frameData[y][sx]
-                const hex = idx.toString(16).toUpperCase()
-                const palColor = sprite.palette[hex] ?? sprite.palette['0']
+                const key = String(idx)
+                const palColor = sprite.palette[key] ?? sprite.palette['0']
                 if (!palColor || palColor === 'transparent') continue
                 g.rect(ox + x * PIXEL, oy + y * PIXEL, PIXEL, PIXEL).fill(palColor)
             }
@@ -296,8 +296,8 @@ export class CanvasRenderer {
             for (let col = 0; col < frameData[row].length; col++) {
                 const sx = facingRight ? col : frameData[row].length - 1 - col
                 const idx = frameData[row][sx]
-                const hex = idx.toString(16).toUpperCase()
-                const palColor = sprite.palette[hex] ?? sprite.palette['0']
+                const key = String(idx)
+                const palColor = sprite.palette[key] ?? sprite.palette['0']
                 if (!palColor || palColor === 'transparent') continue
                 g.rect(x + col * PIXEL, y + row * PIXEL, PIXEL, PIXEL).fill(palColor)
             }

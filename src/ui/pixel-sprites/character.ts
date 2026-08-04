@@ -33,8 +33,9 @@ export function renderAvatarToCanvas(
     const s = scaleOverride ?? avatar.scale
     for (let y = 0; y < avatar.pixels.length; y++) {
         for (let x = 0; x < avatar.pixels[y].length; x++) {
-            const idx = avatar.pixels[y][x].toString(16).toUpperCase()
-            const color = avatar.palette[idx] ?? avatar.palette['0']
+            const idx = avatar.pixels[y][x]
+            const key = String(idx)
+            const color = avatar.palette[key] ?? avatar.palette['0']
             if (!color || color === 'transparent') continue
             ctx.fillStyle = color
             ctx.fillRect(cx + x * s, cy + y * s, s, s)

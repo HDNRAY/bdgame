@@ -61,8 +61,9 @@ export function PixelCanvas({
         if (pixels && palette) {
             for (let y = 0; y < pixels.length; y++) {
                 for (let x = 0; x < pixels[y].length; x++) {
-                    const idx = pixels[y][x].toString(16).toUpperCase()
-                    const color = palette[idx] ?? palette['0']
+                    const idx = pixels[y][x]
+                    const key = String(idx)
+                    const color = palette[key] ?? palette['0']
                     if (!color || color === 'transparent') continue
                     ctx.fillStyle = color
                     ctx.fillRect(x * scale, y * scale, scale, scale)
