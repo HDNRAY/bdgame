@@ -78,7 +78,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'zantetsu',
         name: '斩铁',
         description: '一刀两断，无物不斩。',
-        tags: ['slash', 'parry', 'polearm'],
+        tags: ['slash', 'parry', 'melee', 'one_handed'],
         range: [1, 3],
         triggers: [
             {

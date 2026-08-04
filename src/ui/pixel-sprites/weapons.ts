@@ -46,23 +46,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
             [11, 2, '#e0e0e0'],
         ],
     },
-    twin_swords: {
-        gripX: 8,
-        gripY: 7,
-        pixels: [
-            [5, 4, '#e8e8e8'],
-            [6, 4, '#e8e8e8'],
-            [6, 5, '#d0d0d0'],
-            [7, 5, '#d0d0d0'],
-            [7, 6, '#d0d0d0'],
-            [9, 4, '#e8e8e8'],
-            [10, 4, '#e8e8e8'],
-            [10, 5, '#d0d0d0'],
-            [11, 6, '#d0d0d0'],
-            [5, 7, '#b8860b'],
-            [9, 7, '#b8860b'],
-        ],
-    },
     zantetsu: {
         gripX: 9,
         gripY: 7,

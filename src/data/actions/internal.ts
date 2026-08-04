@@ -99,7 +99,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['trigger', 'internal'],
         target: 'self',
-        maxUses: 1,
         effects: [{ type: 'add_buff', buffId: 'mind_eye' }],
     },
     {

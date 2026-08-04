@@ -104,6 +104,7 @@ export const OPPONENTS: OpponentDef[] = [
     FENGSHUI, // 饮酒结拜
     HAORAN, // 饮酒结拜
     ORANGE, // 归海楼
+    YIDAO, // 归海楼
     /** 双持 */
     LAYUE, // 天生道种师姐
     BAIHU, // 图书馆
@@ -119,7 +120,6 @@ export const OPPONENTS: OpponentDef[] = [
     /** 巨武 */
     LIUXIGUA, // 六绝之闪
     YANGGUO, // 六绝之观
-    YIDAO, // 归海楼
     QIANXING, // 天工坊
     /** 匕首 */
     LUEYING, // 军方
