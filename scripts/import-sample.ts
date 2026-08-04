@@ -72,6 +72,18 @@ function printStats(label: string, rows: number[][], dict: DictEntry[]) {
     }
 }
 
+/** 所有非 0 像素整体向右平移 dx 位（左侧补 0，右侧超出截断） */
+function shiftRows(rows: number[][], dx: number): number[][] {
+    return rows.map((row) => {
+        const shifted = new Array<number>(row.length).fill(0)
+        for (let x = 0; x < row.length; x++) {
+            const nx = x + dx
+            if (nx >= 0 && nx < row.length) shifted[nx] = row[x]
+        }
+        return shifted
+    })
+}
+
 /** 生成 PixelMap 数组文本（保持现有 37+11 换行风格） */
 function emitPixelMap(name: string, rows: number[][]): string[] {
     const lines: string[] = []
@@ -92,13 +104,16 @@ function emitPixelMap(name: string, rows: number[][]): string[] {
 const idle = loadRows(IDLE_SAMPLE)
 const attack = loadRows(ATTACK_SAMPLE)
 
+// idle 帧所有非 0 像素右移 11 位
+const idleShifted = shiftRows(idle.rows, 11)
+
 // 生成 sprites.ts 文本
 const lines: string[] = []
 lines.push("import type { PixelMap } from './types'")
 lines.push('')
 lines.push('type SpriteSet = { idle: PixelMap; attack: PixelMap }')
 lines.push('')
-lines.push(...emitPixelMap('DEFAULT_IDLE', idle.rows))
+lines.push(...emitPixelMap('DEFAULT_IDLE', idleShifted))
 lines.push('')
 lines.push(...emitPixelMap('DEFAULT_ATTACK', attack.rows))
 lines.push('')
@@ -111,5 +126,5 @@ lines.push('')
 writeFileSync(SPRITES_TS, lines.join('\n'))
 console.log('written:', SPRITES_TS)
 
-printStats('idle', idle.rows, idle.dict)
+printStats('idle(右移11)', idleShifted, idle.dict)
 printStats('attack', attack.rows, attack.dict)

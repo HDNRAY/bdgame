@@ -75,8 +75,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+    // dev 无前缀；线上 build（GitHub Pages 子路径）带 /bdgame
+    const basename = import.meta.env.PROD ? '/bdgame' : '/'
     return (
-        <BrowserRouter>
+        <BrowserRouter basename={basename}>
             <AppShell>
                 <RotateDevice />
                 <Suspense fallback={<RouteFallback />}>

@@ -3,7 +3,9 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+    // dev（serve）无前缀；线上 build 带 /bdgame/ 前缀（GitHub Pages 子路径）
+    base: command === 'serve' ? '/' : '/bdgame/',
     build: {
         outDir: 'bdgame',
         chunkSizeWarningLimit: 600, // 拆分后按需放宽警告线
@@ -22,7 +24,6 @@ export default defineConfig({
             },
         },
     },
-    base: './',
     plugins: [
         react(),
         VitePWA({
@@ -46,4 +47,4 @@ export default defineConfig({
             },
         }),
     ],
-})
+}))

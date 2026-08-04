@@ -17,8 +17,8 @@ export function getCharacterAvatar(charId: string, accentColor: string): AvatarD
     const bodyType = getSpriteBodyType(charId)
     const set = SPRITES[bodyType] ?? SPRITES.default
     const palette = buildPalette(charId, accentColor)
-    // 裁取头部区域：行 12~23（头顶→下巴），列 22~33（脸居中）
-    const faceMap = set.idle.slice(12, 24).map((row) => row.slice(22, 34))
+    // 裁取头部区域：行 12~23（头顶→下巴），列 33~44（脸居中；idle 已右移 11 位）
+    const faceMap = set.idle.slice(12, 24).map((row) => row.slice(33, 45))
     return { palette, pixels: faceMap, scale: 4 }
 }
 
