@@ -1,6 +1,5 @@
-import { useMemo, useState } from 'react'
-import { makeCharacterSprite } from '../../pixel-sprites'
-import { PixelCanvas } from '../../components/ui/PixelCanvas/PixelCanvas'
+import { useState } from 'react'
+import { PixelInspector } from './PixelInspector/PixelInspector'
 import { TournamentSim } from './TournamentSim/TournamentSim'
 import './DevMode.scss'
 
@@ -13,7 +12,6 @@ type NavId = (typeof NAV_ITEMS)[number]['id']
 
 export function DevMode() {
     const [activeId, setActiveId] = useState<NavId>('pixel')
-    const sprite = useMemo(() => makeCharacterSprite('yidao', '#4ecdc4'), [])
 
     return (
         <div className="dev-mode">
@@ -32,7 +30,7 @@ export function DevMode() {
                 {activeId === 'pixel' ? (
                     <>
                         <h2>像素图测试</h2>
-                        <PixelCanvas pixels={sprite.frames.idle} palette={sprite.palette} className="dev-mode-canvas" />
+                        <PixelInspector />
                     </>
                 ) : (
                     <TournamentSim />

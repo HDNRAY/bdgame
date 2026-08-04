@@ -1,0 +1,307 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { getCharacterAvatar, makeCharacterSprite } from '../../../pixel-sprites'
+import { CHARACTER_COLORS, CHARACTER_SPRITE_MAP } from '../../../pixel-sprites/palette'
+import { OPPONENTS } from '../../../../data/opponents'
+import { PixelCanvas } from '../../../components/ui/PixelCanvas/PixelCanvas'
+import './PixelInspector.scss'
+
+/** 像素放大倍数：48×48 → 384×384 */
+const SCALE = 8
+/** 头像放大倍数 */
+const AVATAR_SCALE = 4
+
+/** 角色 ID 列表（有配色 + 体型映射的），中文名取自 OpponentDef.name */
+const CHARACTER_IDS = Object.keys(CHARACTER_COLORS).filter((id) => CHARACTER_SPRITE_MAP[id])
+
+/** 角色 ID → 中文名（来自 data/opponents 的 name 字段） */
+const NAME_BY_ID: Record<string, string> = Object.fromEntries(OPPONENTS.map((o) => [o.id, o.name]))
+
+interface PixelInfo {
+    x: number
+    y: number
+    idx: number
+    color: string
+    /** 该颜色在整个精灵中的使用次数 */
+    count: number
+    /** 该颜色占比（0~1） */
+    ratio: number
+}
+
+export function PixelInspector() {
+    const [charId, setCharId] = useState<string>('yidao')
+    const sprite = useMemo(() => makeCharacterSprite(charId, '#4ecdc4'), [charId])
+    const idlePixels = sprite.frames.idle
+    const attackPixels = sprite.frames.attack
+    const palette = sprite.palette
+
+    const avatar = useMemo(() => getCharacterAvatar(charId, '#4ecdc4'), [charId])
+
+    const overlayIdleRef = useRef<HTMLCanvasElement>(null)
+    const overlayAttackRef = useRef<HTMLCanvasElement>(null)
+
+    const [showGrid, setShowGrid] = useState(true)
+    const [hoverIdle, setHoverIdle] = useState<{ x: number; y: number } | null>(null)
+    const [lockedIdle, setLockedIdle] = useState<{ x: number; y: number } | null>(null)
+    const [hoverAttack, setHoverAttack] = useState<{ x: number; y: number } | null>(null)
+    const [lockedAttack, setLockedAttack] = useState<{ x: number; y: number } | null>(null)
+
+    const height = idlePixels.length
+    const width = idlePixels[0].length
+    const bufW = width * SCALE
+    const bufH = height * SCALE
+
+    /** 颜色使用统计（基于 idle 帧） */
+    const colorStats = useMemo(() => {
+        const stats = new Map<number, number>()
+        for (const row of idlePixels) {
+            for (const idx of row) {
+                stats.set(idx, (stats.get(idx) ?? 0) + 1)
+            }
+        }
+        return stats
+    }, [idlePixels])
+
+    const colorAt = (pixels: number[][], x: number, y: number): string => {
+        const idx = pixels[y]?.[x] ?? 0
+        return palette[String(idx)] ?? palette['0'] ?? 'transparent'
+    }
+
+    const infoFor = (pixels: number[][], p: { x: number; y: number } | null): PixelInfo | null => {
+        if (!p) return null
+        const idx = pixels[p.y]?.[p.x] ?? 0
+        const count = colorStats.get(idx) ?? 0
+        const total = width * height
+        return {
+            x: p.x,
+            y: p.y,
+            idx,
+            color: colorAt(pixels, p.x, p.y),
+            count,
+            ratio: total > 0 ? count / total : 0,
+        }
+    }
+
+    const idleInfo = infoFor(idlePixels, lockedIdle ?? hoverIdle)
+    const attackInfo = infoFor(attackPixels, lockedAttack ?? hoverAttack)
+    const activeInfo = idleInfo ?? attackInfo
+
+    /** 将鼠标事件坐标换算为像素坐标 */
+    const toPixel = (e: React.MouseEvent<HTMLCanvasElement>): { x: number; y: number } | null => {
+        const canvas = e.currentTarget
+        const rect = canvas.getBoundingClientRect()
+        const x = Math.floor(((e.clientX - rect.left) / rect.width) * width)
+        const y = Math.floor(((e.clientY - rect.top) / rect.height) * height)
+        if (x < 0 || x >= width || y < 0 || y >= height) return null
+        return { x, y }
+    }
+
+    /** 重绘叠加层：网格 + hover/locked 高亮框 */
+    const drawOverlay = (
+        canvas: HTMLCanvasElement | null,
+        hover: { x: number; y: number } | null,
+        locked: { x: number; y: number } | null,
+    ) => {
+        if (!canvas) return
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+        ctx.clearRect(0, 0, bufW, bufH)
+
+        if (showGrid) {
+            ctx.strokeStyle = 'rgba(128, 128, 128, 0.35)'
+            ctx.lineWidth = 1
+            for (let i = 0; i <= width; i++) {
+                ctx.beginPath()
+                ctx.moveTo(i * SCALE + 0.5, 0)
+                ctx.lineTo(i * SCALE + 0.5, bufH)
+                ctx.stroke()
+            }
+            for (let j = 0; j <= height; j++) {
+                ctx.beginPath()
+                ctx.moveTo(0, j * SCALE + 0.5)
+                ctx.lineTo(bufW, j * SCALE + 0.5)
+                ctx.stroke()
+            }
+        }
+
+        // hover 高亮（虚线）
+        if (hover) {
+            ctx.strokeStyle = '#4ecdc4'
+            ctx.lineWidth = 2
+            ctx.setLineDash([4, 3])
+            ctx.strokeRect(hover.x * SCALE + 1, hover.y * SCALE + 1, SCALE - 2, SCALE - 2)
+            ctx.setLineDash([])
+        }
+        // locked 高亮（实线）
+        if (locked) {
+            ctx.strokeStyle = '#ff6b6b'
+            ctx.lineWidth = 2
+            ctx.strokeRect(locked.x * SCALE + 1, locked.y * SCALE + 1, SCALE - 2, SCALE - 2)
+        }
+    }
+
+    // 网格 / hover / locked 变化时重绘叠加层
+    useEffect(() => {
+        drawOverlay(overlayIdleRef.current, hoverIdle, lockedIdle)
+        drawOverlay(overlayAttackRef.current, hoverAttack, lockedAttack)
+    })
+
+    return (
+        <div className="pixel-inspector">
+            <div className="pixel-inspector-toolbar">
+                <label className="pixel-inspector-select">
+                    角色
+                    <select value={charId} onChange={(e) => setCharId(e.target.value)}>
+                        {CHARACTER_IDS.map((id) => (
+                            <option key={id} value={id}>
+                                {NAME_BY_ID[id] ?? id}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                <label className="pixel-inspector-toggle">
+                    <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} />
+                    显示网格
+                </label>
+                <span className="pixel-inspector-size">
+                    {width}×{height} @ {SCALE}x
+                </span>
+            </div>
+
+            <div className="pixel-inspector-body">
+                <div className="pixel-inspector-frames">
+                    <figure className="pixel-inspector-frame">
+                        <figcaption>idle</figcaption>
+                        <div className="pixel-inspector-canvas-wrap">
+                            <PixelCanvas
+                                pixels={idlePixels}
+                                palette={palette}
+                                scale={SCALE}
+                                className="pixel-inspector-canvas"
+                            />
+                            <canvas
+                                ref={overlayIdleRef}
+                                width={bufW}
+                                height={bufH}
+                                className="pixel-inspector-overlay"
+                                onMouseMove={(e) => setHoverIdle(toPixel(e))}
+                                onMouseLeave={() => setHoverIdle(null)}
+                                onClick={(e) => setLockedIdle(toPixel(e))}
+                                onDoubleClick={() => setLockedIdle(null)}
+                            />
+                        </div>
+                    </figure>
+
+                    <figure className="pixel-inspector-frame">
+                        <figcaption>attack</figcaption>
+                        <div className="pixel-inspector-canvas-wrap">
+                            <PixelCanvas
+                                pixels={attackPixels}
+                                palette={palette}
+                                scale={SCALE}
+                                className="pixel-inspector-canvas"
+                            />
+                            <canvas
+                                ref={overlayAttackRef}
+                                width={bufW}
+                                height={bufH}
+                                className="pixel-inspector-overlay"
+                                onMouseMove={(e) => setHoverAttack(toPixel(e))}
+                                onMouseLeave={() => setHoverAttack(null)}
+                                onClick={(e) => setLockedAttack(toPixel(e))}
+                                onDoubleClick={() => setLockedAttack(null)}
+                            />
+                        </div>
+                    </figure>
+
+                    <figure className="pixel-inspector-frame pixel-inspector-frame--avatar">
+                        <figcaption>avatar</figcaption>
+                        <div className="pixel-inspector-canvas-wrap">
+                            <PixelCanvas
+                                pixels={avatar.pixels}
+                                palette={avatar.palette}
+                                scale={AVATAR_SCALE}
+                                className="pixel-inspector-canvas pixel-inspector-canvas--avatar"
+                            />
+                        </div>
+                    </figure>
+                </div>
+
+                <aside className="pixel-inspector-panel">
+                    <h3 className="pixel-inspector-panel-title">像素信息</h3>
+
+                    {activeInfo ? (
+                        <dl className="pixel-inspector-info">
+                            <div className="pixel-inspector-info-row">
+                                <dt>坐标</dt>
+                                <dd>
+                                    ({activeInfo.x}, {activeInfo.y})
+                                </dd>
+                            </div>
+                            <div className="pixel-inspector-info-row">
+                                <dt>索引</dt>
+                                <dd>
+                                    <code>{activeInfo.idx}</code>
+                                </dd>
+                            </div>
+                            <div className="pixel-inspector-info-row">
+                                <dt>颜色</dt>
+                                <dd className="pixel-inspector-color-cell">
+                                    <span
+                                        className="pixel-inspector-swatch"
+                                        style={{
+                                            background:
+                                                activeInfo.color === 'transparent' ? 'transparent' : activeInfo.color,
+                                        }}
+                                    />
+                                    <code>{activeInfo.color}</code>
+                                </dd>
+                            </div>
+                            <div className="pixel-inspector-info-row">
+                                <dt>使用</dt>
+                                <dd>
+                                    {activeInfo.count} 像素（{(activeInfo.ratio * 100).toFixed(1)}%）
+                                </dd>
+                            </div>
+                        </dl>
+                    ) : (
+                        <p className="pixel-inspector-hint">将鼠标悬停在画布上查看像素信息</p>
+                    )}
+
+                    {(lockedIdle || lockedAttack) && (
+                        <button
+                            className="pixel-inspector-unlock"
+                            onClick={() => {
+                                setLockedIdle(null)
+                                setLockedAttack(null)
+                            }}
+                        >
+                            清除锁定（双击也可）
+                        </button>
+                    )}
+
+                    <h3 className="pixel-inspector-panel-title pixel-inspector-panel-title--stats">颜色统计（idle）</h3>
+                    <ul className="pixel-inspector-stats">
+                        {[...colorStats.entries()]
+                            .sort((a, b) => b[1] - a[1])
+                            .map(([idx, count]) => {
+                                const color = palette[String(idx)] ?? palette['0'] ?? 'transparent'
+                                return (
+                                    <li key={idx} className="pixel-inspector-stats-item">
+                                        <span
+                                            className="pixel-inspector-swatch"
+                                            style={{ background: color === 'transparent' ? 'transparent' : color }}
+                                        />
+                                        <code>{idx}</code>
+                                        <span className="pixel-inspector-stats-hex">{color}</span>
+                                        <span className="pixel-inspector-stats-count">
+                                            {count}（{((count / (width * height)) * 100).toFixed(1)}%）
+                                        </span>
+                                    </li>
+                                )
+                            })}
+                    </ul>
+                </aside>
+            </div>
+        </div>
+    )
+}
