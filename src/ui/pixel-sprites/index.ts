@@ -7,7 +7,7 @@
 
 export type { Palette, PixelMap, PixelSprite, AvatarData, WeaponOverlay } from './types'
 
-export { MONO_PALETTE, CHARACTER_COLORS, CHARACTER_SPRITE_MAP } from './palette'
+export { CHARACTER_COLORS, CHARACTER_SPRITE_MAP } from './palette'
 export type { CharacterColors } from './palette'
 
 export { makeCharacterSprite, getCharacterAvatar, renderAvatarToCanvas } from './character'
