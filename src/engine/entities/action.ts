@@ -56,6 +56,7 @@ export type EffectDef =
     | { type: 'dodge_mod'; value: number }
     | { type: 'parry_mod'; value: number }
     | { type: 'haste'; value?: number; eval?: (char: Character) => number }
+    | { type: 'buff_duration_mult'; eval?: (char: Character) => number }
     | { type: 'attr_floor'; attrs: Partial<Record<AttrName, number>> }
     | { type: 'add_buff'; buffId: string; stacks?: number }
     | { type: 'remove_buff'; buffId: string; stacks?: number }

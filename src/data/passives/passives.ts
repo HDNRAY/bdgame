@@ -182,6 +182,13 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
+        id: 'nei_xi_mian_chang',
+        name: '炁蕴绵长',
+        description: '内息悠长，增益久驻。每点推演使自身 buff 时长+2%。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'buff_duration_mult', eval: (char) => 1 + char.attrs.get('wisdom') * 0.02 }],
+    },
+    {
         id: 'overlord_art',
         name: '霸刀刀法',
         description: '霸刀巨刃配合离心力，每一刀都顺势回旋突进。',

@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive } from '../../engine/util/reward-utils'
 
-const JUNSHI_ATTRS = { strength: 4, vitality: 16, agility: 10, dexterity: 14, insight: 16, wisdom: 20 }
+const JUNSHI_ATTRS = { strength: 4, vitality: 16, agility: 11, dexterity: 14, insight: 17, wisdom: 20 }
 
 export const JUNSHI: OpponentDef = {
     id: 'junshi',

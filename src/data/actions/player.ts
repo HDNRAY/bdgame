@@ -5,15 +5,14 @@ import type { BattleState } from '../../engine/combat/types'
 
 const DEBUFF_IDS = ['frost', 'paralyze', 'bleed', 'poison', 'burn', 'confuse', 'sand_blind'] as const
 
-/** 消耗目标所有减益并返回总层数 */
-function consumeEnemyDebuffs(enemy: Character, state: BattleState): number {
+/** 统计目标所有减益总层数（不消耗） */
+function countEnemyDebuffs(enemy: Character, state: BattleState): number {
     let total = 0
     for (const id of DEBUFF_IDS) {
         const key = `${id}::${enemy.id}`
         const layer = state.pendingBuffs.get(key)
         if (layer && layer.restoreValue > 0) {
             total += layer.restoreValue
-            state.pendingBuffs.delete(key)
         }
     }
     return total
@@ -878,7 +877,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
             { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 },
-            { type: 'damage', scaling: { strength: 0.2, wisdom: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.2, wisdom: 0.3 } },
         ],
     },
     {
@@ -890,13 +889,13 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['polearm', 'pierce', 'burn', 'qi'],
         effects: [
             { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
-            { type: 'damage', scaling: { strength: 0.3, wisdom: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.4, wisdom: 0.2 } },
         ],
     },
     {
         id: 'ru_long',
         name: '如龙',
-        description: '苍龙镇北，如龙出海。消耗目标所有减益状态，每层增伤30%。',
+        description: '苍龙镇北，如龙出海。目标每有1层减益增伤30%（不消耗减益）。',
         requiredTags: ['polearm', 'pierce'],
         apCost: 4,
         chanCost: 20,
@@ -904,9 +903,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             {
                 type: 'functional_damage',
-                fn: ({ enemy, state, self, emitLog }) => {
-                    const totalStacks = consumeEnemyDebuffs(enemy, state)
-                    if (totalStacks > 0) emitLog(`消耗${totalStacks}层减益`)
+                fn: ({ enemy, state, self }) => {
+                    const totalStacks = countEnemyDebuffs(enemy, state)
                     const baseDmg = self.attrs.get('wisdom') * 0.4 + self.attrs.get('strength') * 0.4
                     const mult = 1 + totalStacks * 0.3
                     return Math.round(baseDmg * mult * 10) / 10

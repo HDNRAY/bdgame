@@ -18,9 +18,9 @@ export function simpleGenerate(
 ): CharacterBuild {
     // 修炼点 = 每2节点1次+4
     const cultRewards = Math.floor((n - 1) / 2)
-    // 天生道种：每4节点多1次+4修炼点
+    // 天生道种：固定 +11 修炼点
     const hasInnateSeed = rewards.some((r) => r.id === 'innate_seed')
-    const extraPoints = hasInnateSeed ? Math.floor((n - 1) / 4) * 4 : 0
+    const extraPoints = hasInnateSeed ? 11 : 0
     const total = Math.max(0, cultRewards * 4 + extraPoints)
     const result: Record<string, number> = {}
     for (const a of ALL_ATTRS) result[a] = 3

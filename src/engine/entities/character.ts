@@ -78,6 +78,8 @@ export class Character {
     haste = 0
     /** haste eval 回调列表（构造期收集，getHaste 时求值） */
     hasteCallbacks: Array<(char: Character) => number> = []
+    /** buff 时长倍率回调列表（炁蕴绵长等功法，构造期收集，乘算） */
+    buffDurationCallbacks: Array<(char: Character) => number> = []
     /** 额外暴击率 */
     critChance = 0
     /** 额外暴击伤害倍率 */
@@ -334,6 +336,11 @@ export class Character {
         return this.haste + this.hasteCallbacks.reduce((sum, cb) => sum + cb(this), 0)
     }
 
+    /** buff 时长倍率（炁蕴绵长等功法，乘算，默认 1） */
+    getBuffDurationMult(): number {
+        return this.buffDurationCallbacks.reduce((m, cb) => m * cb(this), 1)
+    }
+
     /** 身法/急速减免后的招式 AP 成本（召唤物不调用此方法，走原价） */
     actionApCost(base: number): number {
         return calcActionCostAfterSpeed(base, this.attrs.get('agility'), this.getHaste())
@@ -514,6 +521,10 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
         const e = eff as Extract<EffectDef, { type: 'haste' }>
         if (e.value) char.haste += e.value
         if (e.eval) char.hasteCallbacks.push(e.eval)
+    },
+    buff_duration_mult(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'buff_duration_mult' }>
+        if (e.eval) char.buffDurationCallbacks.push(e.eval)
     },
     attr_floor(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'attr_floor' }>

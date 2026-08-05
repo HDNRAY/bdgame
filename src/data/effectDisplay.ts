@@ -81,6 +81,8 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`招架率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
         case 'haste':
             return [`急速: +${eff.value}% 行动速度`]
+        case 'buff_duration_mult':
+            return ['增益时长: 随推演提升']
         case 'knockback':
             return [`击退: ${eff.distance}格`]
         case 'dash':
