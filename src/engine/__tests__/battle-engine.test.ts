@@ -71,7 +71,12 @@ describe('BattleEngine', () => {
         })
         const e = new BattleEngine(p, o, 4)
         const plan: EventPlan = () => [{ type: 'attack', actionId: 'iron_pellet' }]
-        e.runEvent(plan)
+        // 半 AP 起手：驱动时间轴直到轮到 p 行动出招
+        for (let i = 0; i < 100; i++) {
+            const self = e.state.turn.peek()
+            e.runEvent(self?.id === p.id ? plan : () => [])
+            if (e.state.log.getAll().some((l) => l.event.type === 'attack_start')) break
+        }
         const logs = e.state.log.getAll()
         const attacks = logs.filter((l) => l.event.type === 'attack_start')
         expect(attacks.length).toBeGreaterThan(0)
@@ -118,7 +123,12 @@ describe('BattleEngine', () => {
         })
         const engine = new BattleEngine(a, b, 1)
         const plan: EventPlan = () => [{ type: 'attack', actionId: 'straight_punch' }]
-        engine.runEvent(plan)
+        // 半 AP 起手：驱动时间轴直到轮到 a 行动出招
+        for (let i = 0; i < 100; i++) {
+            const self = engine.state.turn.peek()
+            engine.runEvent(self?.id === a.id ? plan : () => [])
+            if (engine.state.log.getAll().some((l) => l.event.type === 'attack_start')) break
+        }
         const logs = engine.state.log.getAll()
         const attacks = logs.filter((l) => l.event.type === 'attack_start')
         expect(attacks.length).toBeGreaterThan(0)

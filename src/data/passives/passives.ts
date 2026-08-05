@@ -414,7 +414,7 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff', 'defense'],
         effects: [
             { type: 'dodge_mod', value: 0.08 },
-            { type: 'haste', eval: (char) => char.attrs.get('wisdom') * 10 },
+            { type: 'haste', eval: (char) => char.attrs.get('wisdom') * 8 },
         ],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'min_move_cost' }] }],
     },

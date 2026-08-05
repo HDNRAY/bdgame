@@ -12,6 +12,7 @@ export function canExecuteAction(
     attacker: Character,
     state: BattleState,
     engine?: BattleEngine,
+    opts?: { noDiscount?: boolean },
 ): { ok: boolean; reason?: string } {
     let cost = action.apCost
     for (const [key, layer] of state.pendingBuffs) {
@@ -36,7 +37,7 @@ export function canExecuteAction(
                 }),
         )
     }
-    if (attacker.ap < cost) return { ok: false, reason: 'AP不足' }
+    if (attacker.ap < (opts?.noDiscount ? cost : attacker.actionApCost(cost))) return { ok: false, reason: 'AP不足' }
     if (action.chanCost && attacker.chan < action.chanCost) return { ok: false, reason: '缠劲不足' }
     const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)
     const range = getActionRange(action, weapon.range, attacker)

@@ -117,5 +117,12 @@ export function calcExpectedDamage(
         }
     }
 
-    return { actionId: action.id, rawDamage, expectedDamage: expected, hitChance, canReach, apCost: action.apCost }
+    return {
+        actionId: action.id,
+        rawDamage,
+        expectedDamage: expected,
+        hitChance,
+        canReach,
+        apCost: attacker.actionApCost(action.apCost),
+    }
 }

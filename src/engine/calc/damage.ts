@@ -1,9 +1,9 @@
 import type { AttrName } from '../entities/attributes'
 
 /** 基础前摇（所有角色统一） */
-export const BASE_PRE_DELAY = 600
+export const BASE_PRE_DELAY = 400
 /** 基础硬直（所有角色统一） */
-export const BASE_STUN_TIME = 700
+export const BASE_STUN_TIME = 500
 /** 基础回合间隔（所有角色统一） */
 export const BASE_TURN_INTERVAL = 1200
 
@@ -61,31 +61,17 @@ export function calcMoveApCost(distance: number, agility: number): number {
     return Math.ceil(distance / perAp)
 }
 
-/** 身法因子：前摇/后摇/回合间隔的统一缩放（逻辑斯蒂曲线收敛） */
-export function calcAgilityFactor(agility: number): number {
-    return 0.5 + 1.2 / (1 + Math.exp(agility * 0.2 - 1))
+/** 前摇（毫秒）= (BASE_PRE_DELAY + extraPreDelay) × (1 - 身法/急速减免率) */
+export function calcPreDelayMs(agility: number, extraPreDelay = 0, haste = 0): number {
+    return Math.round((BASE_PRE_DELAY + extraPreDelay) * (1 - calcApCostReduction(agility, haste)))
 }
 
-/** 前摇（毫秒）= (BASE_PRE_DELAY + extraPreDelay) × 身法因子 */
-export function calcPreDelayMs(agility: number, extraPreDelay = 0): number {
-    return Math.round((BASE_PRE_DELAY + extraPreDelay) * calcAgilityFactor(agility))
+/** 后摇（毫秒）= (BASE_STUN_TIME + extraStunTime) × (1 - 身法/急速减免率) */
+export function calcStunMs(agility: number, extraStunTime = 0, haste = 0): number {
+    return Math.round((BASE_STUN_TIME + extraStunTime) * (1 - calcApCostReduction(agility, haste)))
 }
 
-/** 后摇（毫秒）= (BASE_STUN_TIME + extraStunTime) × 身法因子 */
-export function calcStunMs(agility: number, extraStunTime = 0): number {
-    return Math.round((BASE_STUN_TIME + extraStunTime) * calcAgilityFactor(agility))
-}
-
-/** 回合间隔: 基础 + 前后摇受身法影响（逻辑斯蒂曲线收敛，低身法不超过 3s） */
-export function calcTurnInterval(agility: number, extraPreDelay = 0, extraStunTime = 0): number {
-    const agiFactor = calcAgilityFactor(agility)
-    const base = BASE_TURN_INTERVAL
-    const epd = Math.round(BASE_PRE_DELAY + extraPreDelay)
-    const est = Math.round(BASE_STUN_TIME + extraStunTime)
-    return Math.round((base + epd + est) * agiFactor)
-}
-
-/** 召唤物回合间隔: 同人物逻辑，但用推演代替身法，衰减更平缓 */
+/** 召唤物回合间隔: 基础 + 前后摇，用推演代替身法（召唤物不吃身法/急速减免） */
 export function calcSummonInterval(wisdom: number, extraPreDelay = 0, extraStunTime = 0): number {
     const wisFactor = 0.6 + Math.max(0, 0.4 - wisdom * 0.01)
     const base = BASE_TURN_INTERVAL
@@ -134,14 +120,26 @@ export function calcApRegen(ms: number, wisdom: number): number {
 export const ACTION_TIME_BASE = 0.4
 /** 最短耗时 (秒) */
 export const ACTION_TIME_MIN = 0.15
-/** 身法减免系数 */
-export const ACTION_TIME_AGI_FACTOR = 0.02
 
-/** 招式耗时 (毫秒) */
-export function calcActionDurationMs(apCost: number, agility: number): number {
-    const base = apCost * ACTION_TIME_BASE * 1000
-    const agilityMult = 1 / (1 + agility * ACTION_TIME_AGI_FACTOR)
-    return Math.round(Math.max(ACTION_TIME_MIN * 1000, base * agilityMult))
+/** 招式本身固有耗时 (毫秒)：纯 apCost 决定，不受身法/haste 影响 */
+export function calcActionDurationMs(apCost: number): number {
+    return Math.round(Math.max(ACTION_TIME_MIN * 1000, apCost * ACTION_TIME_BASE * 1000))
+}
+
+// ── 身法/急速 AP 消耗减免 ──
+/** 每点身法（或每 10 点急速）的 AP 减免率 */
+export const SPEED_AP_COST_RATE = 0.01
+/** AP 减免率上限 */
+export const SPEED_AP_COST_CAP = 0.4
+
+/** 身法/急速对 AP 消耗的减免率（身法 1 点 = 1%，急速每 10 点 = 1%） */
+export function calcApCostReduction(agility: number, haste: number): number {
+    return Math.min(SPEED_AP_COST_CAP, (agility + haste / 10) * SPEED_AP_COST_RATE)
+}
+
+/** 减免后的招式 AP 成本（最低 1） */
+export function calcActionCostAfterSpeed(apCost: number, agility: number, haste: number): number {
+    return Math.max(1, Math.round(apCost * (1 - calcApCostReduction(agility, haste))))
 }
 
 /** 麻痹到期时恢复的身法/灵巧 */

@@ -4,7 +4,6 @@ import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
 import { getWeapon } from '../../data/weapons/weapons'
 import {
-    calcTurnInterval,
     calcSummonInterval,
     calcApRegen,
     calcApRegenPerSec,
@@ -56,14 +55,14 @@ export class BattleEngine {
 
     /** 战斗开始 */
     init(p: Character, o: Character, d = 4): void {
-        p.resetAp()
-        o.resetAp()
+        // 半 AP 起手：双方从 50% AP 开始回复，谁先回复满谁先动（先手由推演决定）
+        p.ap = p.maxAp * 0.5
+        o.ap = o.maxAp * 0.5
         const log = new BattleLog()
         const tm = new TurnManager()
         const halfDist = d / 2
-        // 初始起手延迟由身法决定：身法越高，起手越快
-        tm.addCharacter(p, Math.round(calcTurnInterval(p.attrs.get('agility')) * 0.4))
-        tm.addCharacter(o, Math.round(calcTurnInterval(o.attrs.get('agility')) * 0.4))
+        tm.addCharacter(p, 0)
+        tm.addCharacter(o, 0)
         this.state = {
             phase: 'fighting',
             characters: [p, o],
@@ -284,13 +283,11 @@ export class BattleEngine {
             return true
         }
 
-        // ── 1. AP 回复（距离上次行动/召唤消耗经过的时间） ──
+        // ── 1. AP 回复（距离上次行动/召唤消耗经过的时间；起手 lastRef=0 也从 0 起计，支撑半 AP 起手） ──
         const lastRef = Math.max(self.lastActionEndMs, self.lastApUpdate)
-        if (lastRef > 0) {
-            const elapsedMs = e.nextActionAt - lastRef
-            if (elapsedMs > 0) {
-                self.ap = Math.min(self.maxAp, self.ap + calcApRegen(elapsedMs, self.attrs.get('wisdom')))
-            }
+        const elapsedMs = e.nextActionAt - lastRef
+        if (elapsedMs > 0) {
+            self.ap = Math.min(self.maxAp, self.ap + calcApRegen(elapsedMs, self.attrs.get('wisdom')))
         }
         self.capAp()
 
@@ -315,7 +312,7 @@ export class BattleEngine {
         let firstActionTime = 0
         for (const cmd of cmds) {
             if (self.ap <= 0 && cmd.type !== 'support') break
-            // 用当前即时身法/急速计算该指令耗时（身法/急速变化只影响下一个招式）
+            // 用当前即时身法/急速计算前后摇与 AP 减免（招式本身耗时不受身法/haste 影响）
             const agility = self.attrs.get('agility')
             const haste = self.getHaste()
             const cost =
@@ -328,17 +325,16 @@ export class BattleEngine {
                 firstActionTime = this.state.turn.currentTime + this.state.actionTimeOffset
             }
             this.state.actionPreOffset = 0
-            // 每招耗时 = 前摇 + 招式本身 + 后摇（attack/support 带前后摇；move 只有移动时长）
-            let cmdDur = Math.max(1, calcActionDurationMs(cost, agility))
+            // 每招耗时 = 招式本身（纯固有） + 前摇 + 后摇（attack/support 带前后摇；move 只有移动时长）
+            let cmdDur = Math.max(1, calcActionDurationMs(cost))
             if (cmd.type !== 'move') {
                 const def = cmd.actionId
                     ? (self.actions.find((a) => a.id === cmd.actionId)?.def ?? getBaseAction(cmd.actionId))
                     : undefined
                 cmdDur +=
-                    calcPreDelayMs(agility, def?.extraPreDelay ?? 0) + calcStunMs(agility, def?.extraStunTime ?? 0)
+                    calcPreDelayMs(agility, def?.extraPreDelay ?? 0, haste) +
+                    calcStunMs(agility, def?.extraStunTime ?? 0, haste)
             }
-            // TODO(haste): 待用户定夺 haste 最终作用方式（现：折进招式耗时，AP 是硬闸门）
-            cmdDur = Math.max(1, cmdDur - haste)
             totalActionDurationMs += cmdDur
             this.execute(cmd, self, enemy)
             this.state.actionTimeOffset += cmdDur
@@ -594,10 +590,7 @@ export class BattleEngine {
             newDistance: p.distance(self.id, enemy.id),
             apCost: ap,
             apRemaining: self.ap,
-            durationMs: Math.max(
-                1,
-                calcActionDurationMs(Math.abs(cmd.bestDistance ?? 0), self.attrs.get('agility')) - self.getHaste(),
-            ),
+            durationMs: Math.max(1, calcActionDurationMs(Math.abs(cmd.bestDistance ?? 0))),
         })
         if (delta < 0) {
             this.emit('on_move_closer', self, enemy)
@@ -628,8 +621,14 @@ export class BattleEngine {
         return r
     }
 
-    /** 统一招式执行 */
-    #executeAction(action: ActionDefinition, self: Character, enemy: Character, triggered = false): ActionResult {
+    /** 统一招式执行（noSpeedDiscount: 召唤物等不吃身法/急速 AP 减免） */
+    #executeAction(
+        action: ActionDefinition,
+        self: Character,
+        enemy: Character,
+        triggered = false,
+        noSpeedDiscount = false,
+    ): ActionResult {
         const r: ActionResult = {
             damage: 0,
             hit: false,
@@ -647,9 +646,10 @@ export class BattleEngine {
         }
         // 验证（触发招式已在 #processEmit 中通过距离/标签/条件检查，且不消耗 AP）
         if (!triggered) {
-            const c = canExecuteAction(action, self, this.state, this)
+            const c = canExecuteAction(action, self, this.state, this, { noDiscount: noSpeedDiscount })
             if (!c.ok) return r
         }
+        let finalCost = action.apCost
         if (!triggered) {
             let cost = action.apCost
             for (const [key, layer] of this.state.pendingBuffs) {
@@ -673,7 +673,8 @@ export class BattleEngine {
                 )
             }
             if (action.chanCost) self.spendChan(action.chanCost)
-            if (!self.spendAp(cost)) return r
+            finalCost = noSpeedDiscount ? cost : self.actionApCost(cost)
+            if (!self.spendAp(finalCost)) return r
         }
         // 消耗限次招式
         const inst = self.actions.find((a) => a.id === action.id)
@@ -687,7 +688,7 @@ export class BattleEngine {
             weapon: weapon.name,
             sourceId: self.id,
             targetId: enemy.id,
-            apCost: action.apCost,
+            apCost: finalCost,
             apRemaining: self.ap,
             triggered,
             indent: this.state.log.indentDepth,
@@ -717,7 +718,11 @@ export class BattleEngine {
         }
         // 前摇推进：attack_start 在 0 处，命中/后续事件落在 +前摇（仅本体招式，触发招式不扩散）
         if (!triggered) {
-            this.state.actionPreOffset = calcPreDelayMs(self.attrs.get('agility'), action.extraPreDelay ?? 0)
+            this.state.actionPreOffset = calcPreDelayMs(
+                self.attrs.get('agility'),
+                action.extraPreDelay ?? 0,
+                self.getHaste(),
+            )
         }
         // 战斗判定
         if (!processHitCheck(action, r, self, enemy, this)) return r
@@ -818,7 +823,7 @@ export class BattleEngine {
         }
         // 缠劲不足的辅助招不释放（不扣 AP、不扣缠劲）
         if (inst.def.chanCost && self.chan < inst.def.chanCost) return r
-        if (!self.spendAp(inst.apCost)) {
+        if (!self.spendAp(self.actionApCost(inst.apCost))) {
             return r
         }
         inst.use()
@@ -888,7 +893,8 @@ export class BattleEngine {
         }
         owner.lastApUpdate = t
         if (owner.ap >= summonAction.apCost) {
-            this.#executeAction(summonAction, owner, enemy)
+            // 召唤物走原价，不吃主人的身法/急速 AP 减免
+            this.#executeAction(summonAction, owner, enemy, false, true)
             const regenPerSec = calcApRegenPerSec(owner.attrs.get('wisdom'))
             apRegenDelay = Math.ceil((summonAction.apCost / regenPerSec) * 1000)
         }

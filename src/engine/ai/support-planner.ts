@@ -43,7 +43,7 @@ export function planSupportActions(
     // 取多个，但同一招式不出现两次
     for (const inst of sorted) {
         if (pickedIds.has(inst.id)) continue
-        if (apRemaining < inst.apCost) continue
+        if (apRemaining < attacker.actionApCost(inst.apCost)) continue
         // 收招阶段跳过 def.canUse 和条件检查（条件在主招执行后才满足，引擎执行时会再验证）
         if (inst.def.canUse && phase === 'pre_action' && !inst.def.canUse(attacker, state)) continue
 
@@ -60,7 +60,7 @@ export function planSupportActions(
 
         cmds.push({ type: 'support', actionId: inst.id })
         pickedIds.add(inst.id)
-        apRemaining -= inst.apCost
+        apRemaining -= attacker.actionApCost(inst.apCost)
     }
 
     return cmds

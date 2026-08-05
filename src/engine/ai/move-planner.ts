@@ -37,6 +37,8 @@ export function planMovement(
     const actionRange = getActionRange(chosenAction, weaponRange, attacker) // short_dash 已计入有效射程，fallback 中不用重复减 freeApproach
     const basePerAp = PositionSystem.apToRange(attacker.attrs.get('agility'))
     const perAp = minMoveCost ? 2 : basePerAp * (1 + moveEfficiency)
+    // 主招减免后成本（身法/急速）
+    const chosenCost = attacker.actionApCost(chosenAction.apCost)
 
     // 目标距离：由攻击风格和对手决定
     const targetDist: number = (() => {
@@ -77,11 +79,13 @@ export function planMovement(
             const dashDist = Math.abs(dashTarget - targetDist)
             if (dashDist >= walkDist) continue // 走路效果一样或更好
             const dashMoveDist = Math.abs(distance - dashTarget)
-            const dashApCost = dashEff.useAp ? Math.max(1, Math.ceil(dashMoveDist * 0.4)) : inst.apCost
+            const dashApCost = dashEff.useAp
+                ? Math.max(1, Math.ceil(dashMoveDist * 0.4))
+                : attacker.actionApCost(inst.apCost)
             const needsExtraMove = dashDist >= 0.5 && (dashTarget < actionRange[0] || dashTarget > actionRange[1])
             const extraMove = needsExtraMove ? Math.ceil(dashDist / perAp) : 0
-            const walkingCost = moveAp + chosenAction.apCost
-            const totalAp = dashApCost + extraMove + chosenAction.apCost
+            const walkingCost = moveAp + chosenCost
+            const totalAp = dashApCost + extraMove + chosenCost
             if (totalAp <= apRemaining && (walkingCost > apRemaining || totalAp <= walkingCost)) {
                 return { delta, apCost: dashApCost, dashActionId: inst.id }
             }
@@ -95,25 +99,21 @@ export function planMovement(
             // 走太多会超出射程，试试少用几格 AP 能否落在范围内
             for (let altAp = moveAp - 1; altAp >= 0; altAp--) {
                 const altPost = distance + (delta > 0 ? 1 : -1) * altAp * perAp
-                if (
-                    altPost >= actionRange[0] &&
-                    altPost <= actionRange[1] &&
-                    altAp + chosenAction.apCost <= apRemaining
-                ) {
+                if (altPost >= actionRange[0] && altPost <= actionRange[1] && altAp + chosenCost <= apRemaining) {
                     return { delta: delta > 0 ? altAp : -altAp, apCost: altAp }
                 }
             }
         }
     }
 
-    if (moveAp + chosenAction.apCost > apRemaining) {
+    if (moveAp + chosenCost > apRemaining) {
         // 理想距离走不到：在招式范围内找最近的可达距离
         if (delta < 0) {
             // 需要靠近：从当前距离往 actionRange[0] 找（只试范围内距离）
             for (let d = Math.min(Math.ceil(distance) - 1, actionRange[1]); d >= actionRange[0]; d--) {
                 const altDelta = d - distance
                 const altMoveAp = Math.ceil(Math.abs(altDelta) / perAp)
-                if (altMoveAp + chosenAction.apCost <= apRemaining) {
+                if (altMoveAp + chosenCost <= apRemaining) {
                     return { delta: altDelta > 0 ? altMoveAp : -altMoveAp, apCost: altMoveAp }
                 }
             }
@@ -122,7 +122,7 @@ export function planMovement(
             for (let d = Math.max(Math.ceil(distance) + 1, actionRange[0]); d <= actionRange[1]; d++) {
                 const altDelta = d - distance
                 const altMoveAp = Math.ceil(Math.abs(altDelta) / perAp)
-                if (altMoveAp + chosenAction.apCost <= apRemaining) {
+                if (altMoveAp + chosenCost <= apRemaining) {
                     return { delta: altDelta > 0 ? altMoveAp : -altMoveAp, apCost: altMoveAp }
                 }
             }

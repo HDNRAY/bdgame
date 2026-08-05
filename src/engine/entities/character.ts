@@ -10,6 +10,7 @@ import type { WeaponDef } from '../../data/weapons/weapons'
 import type { AttackStyle } from '../ai/move-planner'
 import { classifyAttackStyle } from '../ai/move-planner'
 import { calcMaxHp, calcMaxAp } from '../calc/stats'
+import { calcActionCostAfterSpeed } from '../calc/damage'
 import { getAction as getActionDef } from '../../data/actions'
 import { getWeapon } from '../../data/weapons/weapons'
 import { getPassive } from '../../data/passives'
@@ -331,6 +332,11 @@ export class Character {
     /** 实时计算 haste（固定值 + 所有 eval 回调求值） */
     getHaste(): number {
         return this.haste + this.hasteCallbacks.reduce((sum, cb) => sum + cb(this), 0)
+    }
+
+    /** 身法/急速减免后的招式 AP 成本（召唤物不调用此方法，走原价） */
+    actionApCost(base: number): number {
+        return calcActionCostAfterSpeed(base, this.attrs.get('agility'), this.getHaste())
     }
 
     /** 获取所有招式中最远射程（用于 dash targetDist: -1 解析，仅统计非辅助招式） */
