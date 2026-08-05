@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js'
 import type { FrameChar } from '../../bridge/replay-engine'
 import type { BattleEvent } from '../../engine/combat/types'
+import { SPRITE_WIDTH, SPRITE_HEIGHT } from '../pixel-sprites'
 import {
     FLOAT_LIFE,
     FLOAT_DT,
@@ -9,6 +10,7 @@ import {
     TEXT_STACK_V,
     TEXT_STACK_H,
     TEXT_EFFECT_OFFSET,
+    PIXEL,
 } from './constants'
 
 interface FloatEntry {
@@ -54,7 +56,7 @@ export class FloatTextSystem {
 
         const char = chars.find((c) => c.id === data.charId) ?? chars[0]
         const isSelf = data.kind === 'action'
-        const dim = charDims.get(char.id) ?? { w: 48, h: 48 }
+        const dim = charDims.get(char.id) ?? { w: SPRITE_WIDTH * PIXEL, h: SPRITE_HEIGHT * PIXEL }
 
         let ox: number
         let oy: number

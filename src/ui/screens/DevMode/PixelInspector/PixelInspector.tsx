@@ -1,20 +1,31 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getCharacterAvatar, makeCharacterSprite } from '../../../pixel-sprites'
+import {
+    getCharacterAvatar,
+    makeCharacterSprite,
+    WEAPON_OVERLAYS,
+    WEAPON_WIDTH,
+    WEAPON_HEIGHT,
+} from '../../../pixel-sprites'
 import { CHARACTER_COLORS, CHARACTER_SPRITE_MAP } from '../../../pixel-sprites/palette'
 import { OPPONENTS } from '../../../../data/opponents'
 import { PixelCanvas } from '../../../components/ui/PixelCanvas/PixelCanvas'
 import './PixelInspector.scss'
 
-/** 像素放大倍数：48×48 → 384×384 */
+/** 像素放大倍数：角色精灵 → 384×384 */
 const SCALE = 8
 /** 头像放大倍数 */
 const AVATAR_SCALE = 4
+/** 武器单图放大倍数：32×32 → 192×192 */
+const WEAPON_SCALE = 6
 
 /** 角色 ID 列表（有配色 + 体型映射的），中文名取自 OpponentDef.name */
 const CHARACTER_IDS = Object.keys(CHARACTER_COLORS).filter((id) => CHARACTER_SPRITE_MAP[id])
 
 /** 角色 ID → 中文名（来自 data/opponents 的 name 字段） */
 const NAME_BY_ID: Record<string, string> = Object.fromEntries(OPPONENTS.map((o) => [o.id, o.name]))
+
+/** 武器 ID 列表 */
+const WEAPON_IDS = Object.keys(WEAPON_OVERLAYS)
 
 interface PixelInfo {
     x: number
@@ -44,6 +55,37 @@ export function PixelInspector() {
     const [lockedIdle, setLockedIdle] = useState<{ x: number; y: number } | null>(null)
     const [hoverAttack, setHoverAttack] = useState<{ x: number; y: number } | null>(null)
     const [lockedAttack, setLockedAttack] = useState<{ x: number; y: number } | null>(null)
+
+    // ── 武器调试 ──
+    const [weaponId, setWeaponId] = useState<string>('peach_sword')
+    const [compositeWeapon, setCompositeWeapon] = useState(true)
+    const overlay = useMemo(() => WEAPON_OVERLAYS[weaponId] ?? WEAPON_OVERLAYS.bare_hands, [weaponId])
+    // 武器坐标系尺寸（显示整个网格，见 constants.ts）
+    const weaponW = WEAPON_WIDTH
+    const weaponH = WEAPON_HEIGHT
+    // 武器单图：固定网格，像素画在原始坐标（不裁剪、不平移）
+    const weaponViewPixels = useMemo(() => {
+        const arr: number[][] = []
+        for (let y = 0; y < weaponH; y++) {
+            arr.push(new Array<number>(weaponW).fill(0))
+        }
+        const viewPalette: Record<string, string> = { '0': 'transparent' }
+        let next = 1
+        const colorIdx = new Map<string, number>()
+        const paint = (x: number, y: number, color: string) => {
+            if (x < 0 || y < 0 || x >= weaponW || y >= weaponH) return
+            if (!colorIdx.has(color)) {
+                colorIdx.set(color, next)
+                viewPalette[String(next)] = color
+                next++
+            }
+            arr[y][x] = colorIdx.get(color)!
+        }
+        for (const [px, py, color] of overlay.pixels) {
+            paint(px, py, color)
+        }
+        return { pixels: arr, palette: viewPalette }
+    }, [overlay.pixels, weaponH, weaponW])
 
     const height = idlePixels.length
     const width = idlePixels[0].length
@@ -162,6 +204,24 @@ export function PixelInspector() {
                     <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} />
                     显示网格
                 </label>
+                <label className="pixel-inspector-select">
+                    武器
+                    <select value={weaponId} onChange={(e) => setWeaponId(e.target.value)}>
+                        {WEAPON_IDS.map((id) => (
+                            <option key={id} value={id}>
+                                {id}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                <label className="pixel-inspector-toggle">
+                    <input
+                        type="checkbox"
+                        checked={compositeWeapon}
+                        onChange={(e) => setCompositeWeapon(e.target.checked)}
+                    />
+                    合成武器
+                </label>
                 <span className="pixel-inspector-size">
                     {width}×{height} @ {SCALE}x
                 </span>
@@ -176,6 +236,8 @@ export function PixelInspector() {
                                 pixels={idlePixels}
                                 palette={palette}
                                 scale={SCALE}
+                                pose="idle"
+                                overlay={compositeWeapon ? overlay : undefined}
                                 className="pixel-inspector-canvas"
                             />
                             <canvas
@@ -192,12 +254,15 @@ export function PixelInspector() {
                     </figure>
 
                     <figure className="pixel-inspector-frame">
-                        <figcaption>attack</figcaption>
+                        <figcaption>attack（逆时针 45°）</figcaption>
                         <div className="pixel-inspector-canvas-wrap">
                             <PixelCanvas
                                 pixels={attackPixels}
                                 palette={palette}
                                 scale={SCALE}
+                                pose="attack"
+                                angle={-Math.PI / 4}
+                                overlay={compositeWeapon ? overlay : undefined}
                                 className="pixel-inspector-canvas"
                             />
                             <canvas
@@ -221,6 +286,19 @@ export function PixelInspector() {
                                 palette={avatar.palette}
                                 scale={AVATAR_SCALE}
                                 className="pixel-inspector-canvas pixel-inspector-canvas--avatar"
+                            />
+                        </div>
+                        <figcaption className="pixel-inspector-weapon-caption">
+                            weapon · {weaponId}（{weaponW}×{weaponH}，grip {overlay.gripX},{overlay.gripY}
+                            {overlay.grip2X !== undefined ? ` / 2nd ${overlay.grip2X},${overlay.grip2Y}` : ''}）
+                        </figcaption>
+                        <div className="pixel-inspector-canvas-wrap">
+                            <PixelCanvas
+                                pixels={weaponViewPixels.pixels}
+                                palette={weaponViewPixels.palette}
+                                scale={WEAPON_SCALE}
+                                className="pixel-inspector-canvas pixel-inspector-canvas--weapon"
+                                style={{ width: weaponW * WEAPON_SCALE, height: weaponH * WEAPON_SCALE }}
                             />
                         </div>
                     </figure>

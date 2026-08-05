@@ -3,9 +3,10 @@
 import type { PixelSprite, AvatarData } from './types'
 import { getSpriteBodyType, buildPalette } from './palette'
 import { SPRITES } from './sprites'
+import { AVATAR_ROW_START, AVATAR_ROW_END, AVATAR_COL_START, AVATAR_COL_END } from './constants'
 
 /** 获取角色精灵（含完整配色） */
-export function makeCharacterSprite(charId: string, accentColor: string): PixelSprite {
+export function makeCharacterSprite(charId: string, accentColor?: string): PixelSprite {
     const bodyType = getSpriteBodyType(charId)
     const set = SPRITES[bodyType] ?? SPRITES.default
     const palette = buildPalette(charId, accentColor)
@@ -13,12 +14,14 @@ export function makeCharacterSprite(charId: string, accentColor: string): PixelS
 }
 
 /** 获取角色头像 */
-export function getCharacterAvatar(charId: string, accentColor: string): AvatarData {
+export function getCharacterAvatar(charId: string, accentColor?: string): AvatarData {
     const bodyType = getSpriteBodyType(charId)
     const set = SPRITES[bodyType] ?? SPRITES.default
     const palette = buildPalette(charId, accentColor)
-    // 裁取头部区域：行 12~23（头顶→下巴），列 30~41（脸居中；idle 右移11→左移4→右移1）
-    const faceMap = set.idle.slice(12, 24).map((row) => row.slice(30, 42))
+    // 裁取头部区域（行/列范围见 constants.ts）
+    const faceMap = set.idle
+        .slice(AVATAR_ROW_START, AVATAR_ROW_END)
+        .map((row) => row.slice(AVATAR_COL_START, AVATAR_COL_END))
     return { palette, pixels: faceMap, scale: 4 }
 }
 

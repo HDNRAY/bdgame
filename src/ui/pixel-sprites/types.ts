@@ -15,9 +15,14 @@ export interface AvatarData {
 }
 
 export interface WeaponOverlay {
-    pixels: [number, number, string][] // [x, y, color] — 相对于武器原点
-    /** 握柄 X（武器自身坐标），对齐到角色手部 */
+    /** 武器像素 [x, y, color] — 32×32 坐标系，相对武器原点 */
+    pixels: [number, number, string][]
+    /** 第一握柄 X（武器自身坐标），对齐到角色手部 */
     gripX: number
-    /** 握柄 Y */
+    /** 第一握柄 Y */
     gripY: number
+    /** 第二握柄 X（双手武器）— 可选 */
+    grip2X?: number
+    /** 第二握柄 Y — 可选 */
+    grip2Y?: number
 }

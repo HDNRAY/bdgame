@@ -17,20 +17,6 @@ interface SelectionPanelProps {
     onBuild?: (charId: string) => void
 }
 
-const GRID_COLORS = [
-    '#4ecdc4',
-    '#ff6b6b',
-    '#ffe66d',
-    '#2ecc71',
-    '#9b59b6',
-    '#85c1e9',
-    '#f0b27a',
-    '#fff',
-    '#e74c3c',
-    '#f39c12',
-    '#3498db',
-]
-
 type SimState = { status: 'idle' } | { status: 'simulating' } | { status: 'done'; aRate: number; bRate: number }
 
 function simReducer(_: SimState, action: { type: 'start' } | { type: 'done'; aRate: number; bRate: number }): SimState {
@@ -145,7 +131,7 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
                 </div>
 
                 <div className="grid">
-                    {OPPONENTS.map((opp, i) => (
+                    {OPPONENTS.map((opp) => (
                         <button
                             key={opp.id}
                             className={`card ${selectedA?.id === opp.id ? 'selected-a' : ''} ${selectedB?.id === opp.id ? 'selected-b' : ''}`}
@@ -169,7 +155,7 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
                             }}
                         >
                             <div className="card-row">
-                                <OpponentAvatarSprite opponentId={opp.id} color={GRID_COLORS[i]} />
+                                <OpponentAvatarSprite opponentId={opp.id} />
                                 <WeaponIconSprite weaponId={gen(opp, 33).weapon} />
                             </div>
                             <div className="card-meta">
@@ -212,14 +198,14 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
     )
 }
 
-/** 对手小头像 */
-function OpponentAvatarSprite({ opponentId, color }: { opponentId: string; color: string }) {
-    const avatar = useMemo(() => getCharacterAvatar(opponentId, color), [opponentId, color])
+/** 对手小头像（配色由 CHARACTER_COLORS 决定，无需外部 color） */
+function OpponentAvatarSprite({ opponentId }: { opponentId: string }) {
+    const avatar = useMemo(() => getCharacterAvatar(opponentId), [opponentId])
     return <PixelCanvas pixels={avatar.pixels} palette={avatar.palette} scale={4} className="avatar-sprite" />
 }
 
 /** 武器小图标 */
 function WeaponIconSprite({ weaponId }: { weaponId: string }) {
-    const overlay = useMemo(() => getWeaponOverlay(weaponId), [weaponId])
+    const overlay = getWeaponOverlay(weaponId)
     return <PixelCanvas overlay={overlay} className="weapon-icon" />
 }

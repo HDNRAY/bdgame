@@ -113,7 +113,7 @@ export function getSpriteBodyType(charId: string): string {
 }
 
 /** 合并角色配色到调色板 */
-export function buildPalette(charId: string, accentColor: string): Palette {
+export function buildPalette(charId: string, accentColor?: string): Palette {
     const c = CHARACTER_COLORS[charId] ?? DEFAULT_COLORS
     void accentColor
     return {

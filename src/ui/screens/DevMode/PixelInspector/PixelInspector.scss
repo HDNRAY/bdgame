@@ -71,6 +71,16 @@
             width: 192px;
             height: 192px;
         }
+
+        .pixel-inspector-weapon-caption {
+            margin-top: var(--sp-sm);
+        }
+
+        &--avatar .pixel-inspector-canvas--weapon {
+            width: auto;
+            height: auto;
+            border: 1px solid var(--color-border);
+        }
     }
 
     &-canvas-wrap {

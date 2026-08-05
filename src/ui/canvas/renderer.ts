@@ -4,7 +4,7 @@
 
 import * as PIXI from 'pixi.js'
 import type { Frame, FrameChar, LogEntry } from '../../bridge/replay-engine'
-import { makeCharacterSprite, getWeaponOverlay } from '../pixel-sprites'
+import { makeCharacterSprite, getWeaponOverlay, HAND_POINTS, HAND_COVER, SPRITE_WIDTH } from '../pixel-sprites'
 import { FloatTextSystem } from './float-text'
 import {
     PIXEL,
@@ -31,6 +31,7 @@ export class CanvasRenderer {
     private resizeObserver: ResizeObserver | null = null
     private charSprites: Map<string, PIXI.Graphics> = new Map()
     private weaponSprites: Map<string, PIXI.Graphics> = new Map()
+    private handCoverSprites: Map<string, PIXI.Graphics> = new Map()
     private groundGfx: PIXI.Graphics
     private charColors: Map<string, string> = new Map()
     private canvasWidth: number
@@ -105,6 +106,10 @@ export class CanvasRenderer {
         const wg = new PIXI.Graphics()
         this.weaponSprites.set(charId, wg)
         this.container.addChild(wg)
+        // 手部覆盖层 Graphics：在武器之上绘制（人物坐标），制造"握着"效果
+        const cg = new PIXI.Graphics()
+        this.handCoverSprites.set(charId, cg)
+        this.container.addChild(cg)
     }
 
     /** 传入全部事件列表（用于遍历所有事件生成浮动文字，不只 currentEvent） */
@@ -120,7 +125,7 @@ export class CanvasRenderer {
 
         // 根据当前帧精灵数据计算实际尺寸
         const charDims = new Map<string, { w: number; h: number }>()
-        let maxSpriteW = 48
+        let maxSpriteW = SPRITE_WIDTH * PIXEL
         for (const c of chars) {
             const color = this.charColors.get(c.id) ?? '#888'
             const sprite = makeCharacterSprite(c.spriteId, color)
@@ -266,6 +271,7 @@ export class CanvasRenderer {
         }
 
         this.renderWeapon(c, ox, oy, facingRight)
+        this.renderHandCover(c, ox, oy, facingRight, sprite.palette)
 
         const barW = spriteW
         const waitRatio = Math.min(1, Math.max(0, c.waitProgress ?? c.ap / c.maxAp))
@@ -282,9 +288,42 @@ export class CanvasRenderer {
         if (!wg) return
         wg.clear()
         const overlay = getWeaponOverlay(c.weaponId)
+        if (overlay.pixels.length === 0) return
+
+        // 手部握柄位置（按姿势，角色精灵坐标，网格尺寸见 SPRITE_WIDTH×SPRITE_HEIGHT）
+        const hand = HAND_POINTS[c.pose] ?? HAND_POINTS.idle
+        const gripX = overlay.gripX
+        const gripY = overlay.gripY
+
+        // 武器 Graphics：position = 手部，本地坐标已相对握柄（px-gripX, py-gripY），
+        // pivot 保持 (0,0) 使旋转中心 = 握柄（避免双重偏移把武器抬离手部）
+        wg.position.set(ox + hand.x * PIXEL, oy + hand.y * PIXEL)
+        wg.pivot.set(0, 0)
+        wg.rotation = c.pose === 'attack' ? -Math.PI / 4 : 0
+
         for (const [px, py, color] of overlay.pixels) {
-            const fx = facingRight ? px : -px - 1
-            wg.rect(ox + fx * PIXEL, oy + py * PIXEL, PIXEL, PIXEL).fill(color)
+            const fx = facingRight ? px - gripX : -(px - gripX)
+            wg.rect(fx * PIXEL, (py - gripY) * PIXEL, PIXEL, PIXEL).fill(color)
+        }
+    }
+
+    /** 手部覆盖层：在武器之上绘制皮肤色像素（人物坐标，不随武器旋转），制造"握着"效果 */
+    private renderHandCover(
+        c: FrameChar,
+        ox: number,
+        oy: number,
+        facingRight: boolean,
+        palette: Record<string, string>,
+    ): void {
+        const cg = this.handCoverSprites.get(c.id)
+        if (!cg) return
+        cg.clear()
+        const cover = HAND_COVER[c.pose] ?? HAND_COVER.idle
+        const skin = palette['3'] ?? '#f5d6c6'
+        for (const [cx, cy] of cover) {
+            // 覆盖层跟随角色精灵镜像（与角色渲染一致：sx = facingRight ? x : width-1-x）
+            const fx = facingRight ? cx : SPRITE_WIDTH - 1 - cx
+            cg.rect(ox + fx * PIXEL, oy + cy * PIXEL, PIXEL, PIXEL).fill(skin)
         }
     }
 

@@ -1,4 +1,5 @@
 import type { PixelMap } from './types'
+import { SPRITE_WIDTH, SPRITE_HEIGHT, SPRITE_PAD_LEFT } from './constants'
 
 type SpriteSet = { idle: PixelMap; attack: PixelMap }
 
@@ -393,5 +394,24 @@ export const DEFAULT_ATTACK: PixelMap = [
 ]
 
 export const SPRITES: Record<string, SpriteSet> = {
-    default: { idle: DEFAULT_IDLE, attack: DEFAULT_ATTACK },
+    default: { idle: padSprite(DEFAULT_IDLE), attack: padSprite(DEFAULT_ATTACK) },
+}
+
+/** 将精灵数据补齐到 SPRITE_WIDTH×SPRITE_HEIGHT（左侧留白 SPRITE_PAD_LEFT，内容靠右），使画布宽度可随时调整 */
+function padSprite(src: PixelMap): PixelMap {
+    const h = SPRITE_HEIGHT
+    const w = SPRITE_WIDTH
+    const leftPad = Math.max(0, SPRITE_PAD_LEFT)
+    const result: PixelMap = []
+    for (let y = 0; y < h; y++) {
+        const row = src[y] ?? []
+        const rowW = row.length
+        const newRow = new Array<number>(w).fill(0)
+        for (let x = 0; x < w; x++) {
+            const srcX = x - leftPad
+            if (srcX >= 0 && srcX < rowW) newRow[x] = row[srcX]
+        }
+        result.push(newRow)
+    }
+    return result
 }
