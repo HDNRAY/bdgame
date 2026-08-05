@@ -4,11 +4,19 @@
 
 import * as PIXI from 'pixi.js'
 import type { Frame, FrameChar, LogEntry } from '../../bridge/replay-engine'
-import { makeCharacterSprite, getWeaponOverlay, HAND_POINTS, HAND_COVER, SPRITE_WIDTH } from '../pixel-sprites'
+import {
+    makeCharacterSprite,
+    getWeaponOverlay,
+    HAND_POINTS,
+    HAND_COVER,
+    SPRITE_WIDTH,
+    SPRITE_PAD_BOTTOM,
+} from '../pixel-sprites'
 import { FloatTextSystem } from './float-text'
 import {
     PIXEL,
     GROUND_Y,
+    GROUND_MARGIN,
     MAX_MOVE_SPEED,
     GHOST_ALPHA,
     GHOST_DECAY,
@@ -163,7 +171,7 @@ export class CanvasRenderer {
             this.displayPos.set(c.id, newPos)
 
             if (Math.abs(diff) >= MAX_MOVE_SPEED * GHOST_SPAWN_RATIO) {
-                this.spawnGhost(newPos, groundY - dim.h, facingRight, c)
+                this.spawnGhost(newPos, groundY - dim.h + SPRITE_PAD_BOTTOM * PIXEL - GROUND_MARGIN, facingRight, c)
             }
             this.renderChar(c, pxPerUnit, viewOffset, facingRight, groundY, newPos)
         }
@@ -193,15 +201,14 @@ export class CanvasRenderer {
         const leftP = viewOffset - viewUnits / 2
         const rightP = viewOffset + viewUnits / 2
 
-        const leftX = this.canvasWidth / 2 + (leftP - viewOffset) * pxPerUnit
-        const rightX = this.canvasWidth / 2 + (rightP - viewOffset) * pxPerUnit
-        g.moveTo(leftX, groundY).lineTo(rightX, groundY).stroke({ width: 1, color: '#333' })
+        // 地面线铺满整个画布
+        g.moveTo(0, groundY).lineTo(this.canvasWidth, groundY).stroke({ width: 1, color: '#333' })
 
         const startTick = Math.ceil(leftP)
         const endTick = Math.floor(rightP)
         for (let p = startTick; p <= endTick; p++) {
             const tx = this.canvasWidth / 2 + (p - viewOffset) * pxPerUnit
-            if (tx < leftX || tx > rightX) continue
+            if (tx < 0 || tx > this.canvasWidth) continue
             const isMajor = p % 5 === 0
             const tickLen = isMajor ? 5 : 3
             g.moveTo(tx, groundY)
@@ -210,7 +217,7 @@ export class CanvasRenderer {
         }
 
         const cx = this.canvasWidth / 2 + (0 - viewOffset) * pxPerUnit
-        if (cx >= leftX && cx <= rightX) {
+        if (cx >= 0 && cx <= this.canvasWidth) {
             g.moveTo(cx, groundY)
                 .lineTo(cx, groundY + 8)
                 .stroke({ width: 1, color: '#666' })
@@ -225,7 +232,7 @@ export class CanvasRenderer {
         for (let p = startTick; p <= endTick; p++) {
             if (p % 5 !== 0) continue
             const tx = this.canvasWidth / 2 + (p - viewOffset) * pxPerUnit
-            if (tx < leftX || tx > rightX) continue
+            if (tx < 0 || tx > this.canvasWidth) continue
             const label = new PIXI.Text({
                 text: `${p}`,
                 style: { fontFamily: 'monospace', fontSize: FONT_SIZE_TICK, fill: '#555' },
@@ -257,7 +264,8 @@ export class CanvasRenderer {
         const spriteW = frameData[0].length * PIXEL
         const spriteH = frameData.length * PIXEL
         const ox = displayOx ?? this.canvasWidth / 2 + (c.pos - viewOffset) * pxPerUnit - spriteW / 2
-        const oy = groundY - spriteH
+        // 画布底含 SPRITE_PAD_BOTTOM 行空白 → 内容脚底对齐地面（而非画布底），再留 GROUND_MARGIN 间距
+        const oy = groundY - spriteH + SPRITE_PAD_BOTTOM * PIXEL - GROUND_MARGIN
 
         for (let y = 0; y < frameData.length; y++) {
             for (let x = 0; x < frameData[y].length; x++) {
@@ -273,13 +281,18 @@ export class CanvasRenderer {
         this.renderWeapon(c, ox, oy, facingRight)
         this.renderHandCover(c, ox, oy, facingRight, sprite.palette)
 
-        const barW = spriteW
+        // 等待条：竖直「蜡烛」（灰条随等待进度从顶部一点点烧矮），立在人物背后侧，避免与对手重叠
+        const CANDLE_W = 3
+        const CANDLE_H = 40
         const waitRatio = Math.min(1, Math.max(0, c.waitProgress ?? c.ap / c.maxAp))
-        // 等待条：黑色背景 + 灰色缩短条
-        g.rect(ox, groundY + 2, barW, 3).fill({ color: '#000' })
-        const barFill = barW * (1 - waitRatio)
-        if (barFill > 0) {
-            g.rect(ox, groundY + 2, barFill, 3).fill({ color: '#888' })
+        const burn = 1 - waitRatio // 1=刚行动(蜡满) → 0=即将行动(烧尽)
+        const fillH = Math.round(CANDLE_H * burn)
+        const baseY = groundY - GROUND_MARGIN // 蜡烛底座（与人物脚底同水平）
+        // 背后侧：右侧角色背后在右，左侧角色背后在左
+        const candleX = facingRight ? ox + spriteW + 2 : ox - 2 - CANDLE_W
+        if (fillH > 0) {
+            // 蜡体：底部固定，从顶部向下变矮（像蜡烛燃烧）
+            g.rect(candleX, baseY - fillH, CANDLE_W, fillH).fill({ color: '#999' })
         }
     }
 
@@ -297,9 +310,11 @@ export class CanvasRenderer {
 
         // 武器 Graphics：position = 手部，本地坐标已相对握柄（px-gripX, py-gripY），
         // pivot 保持 (0,0) 使旋转中心 = 握柄（避免双重偏移把武器抬离手部）
-        wg.position.set(ox + hand.x * PIXEL, oy + hand.y * PIXEL)
+        // 朝左时手部需水平镜像（与角色精灵按精灵中心翻转一致），否则武器脱手/方向错
+        const handX = facingRight ? hand.x : SPRITE_WIDTH - 1 - hand.x
+        wg.position.set(ox + handX * PIXEL, oy + hand.y * PIXEL)
         wg.pivot.set(0, 0)
-        wg.rotation = c.pose === 'attack' ? -Math.PI / 4 : 0
+        wg.rotation = c.pose === 'attack' ? (facingRight ? -Math.PI / 4 : Math.PI / 4) : 0
 
         for (const [px, py, color] of overlay.pixels) {
             const fx = facingRight ? px - gripX : -(px - gripX)

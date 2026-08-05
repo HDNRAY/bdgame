@@ -6,7 +6,14 @@ export const SPRITE_HEIGHT = 48
  * 角色内容在精灵画布中的水平偏移（左侧留白像素数）。
  * 攻击时武器向左上延伸会超出左边界，故左侧需预留空间（角色内容靠右）。
  */
-export const SPRITE_PAD_LEFT = 13
+export const SPRITE_PAD_LEFT = 11
+
+/**
+ * 角色内容在精灵画布底部的留白（像素行数）。
+ * 画布高 SPRITE_HEIGHT，但实际内容并未填满底部（DEFAULT_IDLE 底部 8 行全 0）。
+ * 战斗渲染时以此把内容脚底对齐地面（oy = groundY - spriteH + SPRITE_PAD_BOTTOM*PIXEL）。
+ */
+export const SPRITE_PAD_BOTTOM = 8
 
 /** 武器叠加层坐标系尺寸（像素）。武器像素坐标基于此网格。 */
 export const WEAPON_WIDTH = 32

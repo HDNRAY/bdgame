@@ -4,6 +4,8 @@ export const PIXEL = 3
 export const VERT_OFFSET = 24
 /** 角色脚底的 Y 坐标 */
 export const GROUND_Y = (ch: number) => ch - VERT_OFFSET
+/** 人物脚底 / 等待条与刻度尺之间的间距（像素） */
+export const GROUND_MARGIN = 3
 
 // ── 移动平滑参数 ──
 export const MAX_MOVE_SPEED = 6

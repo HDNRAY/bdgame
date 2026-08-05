@@ -1,7 +1,8 @@
 import * as PIXI from 'pixi.js'
 import type { FrameChar } from '../../bridge/replay-engine'
 import type { BattleEvent } from '../../engine/combat/types'
-import { SPRITE_WIDTH, SPRITE_HEIGHT } from '../pixel-sprites'
+import { SPRITE_WIDTH, SPRITE_HEIGHT, SPRITE_PAD_BOTTOM } from '../pixel-sprites'
+import { GROUND_MARGIN } from './constants'
 import {
     FLOAT_LIFE,
     FLOAT_DT,
@@ -67,7 +68,8 @@ export class FloatTextSystem {
             const charCenterX = this.container.width / 2 + (char.pos - viewOffset) * pxPerUnit
             const mid = this.container.width / 2
             ox = charCenterX + (charCenterX < mid ? TEXT_EFFECT_OFFSET : -TEXT_EFFECT_OFFSET)
-            oy = groundY - dim.h + 20
+            // 从角色中上部起飘（画布底部留白 SPRITE_PAD_BOTTOM，角色脚底贴地，文字起点随之调整）
+            oy = groundY - dim.h * 0.55 + SPRITE_PAD_BOTTOM * PIXEL - GROUND_MARGIN
         }
 
         // 延迟到执行时才计算位置（此时 this.texts 已包含之前显示的文字）
@@ -123,7 +125,8 @@ export class FloatTextSystem {
             ft.life -= FLOAT_DT
             const fadeStart = ft.maxLife * FLOAT_FADE_START
             if (ft.life > fadeStart) {
-                ft.obj.y -= FLOAT_RISE_SPEED // 前 70% 上浮
+                // 前 70% 上浮，但 clamp 到画布顶内侧，避免飘出可视范围
+                ft.obj.y = Math.max(2, ft.obj.y - FLOAT_RISE_SPEED)
             }
             ft.obj.alpha = ft.life > fadeStart ? 1 : Math.max(0, ft.life / fadeStart) // 后 30% 淡出
             if (ft.life <= 0) {

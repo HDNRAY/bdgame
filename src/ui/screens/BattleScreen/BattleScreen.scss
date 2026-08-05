@@ -5,6 +5,15 @@
     flex-direction: column;
 }
 
+.bs-body {
+    flex: 1;
+    min-height: 0;
+
+    &.narrow {
+        padding: var(--sp-sm);
+    }
+}
+
 .battle-screen-header {
     display: flex;
     align-items: center;
@@ -32,5 +41,113 @@
         color: var(--color-gold);
         font-size: var(--font-lg);
         font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+/* ── 窄屏：浮动角色面板按钮（一个左、一个右） ── */
+.bs-side-fab {
+    position: fixed;
+    left: var(--sp-md);
+    right: var(--sp-md);
+    bottom: var(--sp-md);
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-sm);
+    pointer-events: none;
+
+    .bs-side-fab-btn {
+        pointer-events: auto;
+    }
+}
+
+.bs-side-fab-btn {
+    background: var(--color-bg-panel);
+    color: var(--color-text);
+    border: var(--border-width) solid var(--color-border);
+    padding: var(--sp-xs) var(--sp-md);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-sm);
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+
+    &:hover {
+        color: var(--color-gold);
+        border-color: var(--color-border-hover);
+    }
+}
+
+/* ── 窄屏：角色面板覆盖层（A 从左滑出、B 从右滑出） ── */
+.bs-side-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgb(0 0 0 / 0.5);
+    display: flex;
+
+    &.from-left {
+        justify-content: flex-start;
+    }
+
+    &.from-right {
+        justify-content: flex-end;
+    }
+}
+
+.bs-side-sheet {
+    width: min(22rem, 92vw);
+    height: 100%;
+    background: var(--color-bg-panel);
+    overflow-y: auto;
+    padding: var(--sp-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+}
+
+.bs-side-overlay.from-left .bs-side-sheet {
+    border-right: var(--border-width) solid var(--color-border);
+    animation: bs-side-in-left 0.18s ease-out;
+}
+
+.bs-side-overlay.from-right .bs-side-sheet {
+    border-left: var(--border-width) solid var(--color-border);
+    animation: bs-side-in-right 0.18s ease-out;
+}
+
+@keyframes bs-side-in-left {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes bs-side-in-right {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.bs-side-close {
+    align-self: flex-end;
+    background: transparent;
+    border: none;
+    color: var(--color-text-dim);
+    font-size: var(--font-lg);
+    cursor: pointer;
+    line-height: 1;
+    padding: var(--sp-xxs);
+
+    &:hover {
+        color: var(--color-text-h);
     }
 }

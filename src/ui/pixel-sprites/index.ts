@@ -10,6 +10,8 @@ export type { Palette, PixelMap, PixelSprite, AvatarData, WeaponOverlay } from '
 export {
     SPRITE_WIDTH,
     SPRITE_HEIGHT,
+    SPRITE_PAD_LEFT,
+    SPRITE_PAD_BOTTOM,
     WEAPON_WIDTH,
     WEAPON_HEIGHT,
     AVATAR_ROW_START,

@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback } from 'react'
+import { useState, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import { Character } from '../../../engine/entities/character'
 import { runBattle } from '../../../engine/battle-runner'
@@ -21,6 +21,14 @@ export interface BattlePanelProps {
     initialData?: BattleData
 }
 
+export interface BattlePanelHandle {
+    togglePlay: () => void
+    setSpeed: (s: number) => void
+    seek: (pct: number) => void
+    replay: () => void
+    getState: () => { playing: boolean; speed: number; progress: number; currentTime: number }
+}
+
 export interface BattleData {
     entries: LogEntry[]
     logLines: string[]
@@ -30,7 +38,10 @@ export interface BattleData {
     charBInfo: { id: string; name: string; color: string }
 }
 
-export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd, initialData }: BattlePanelProps) {
+export const BattlePanel = forwardRef<BattlePanelHandle, BattlePanelProps>(function BattlePanel(
+    { buildA, buildB, showSidePanels = true, onBattleEnd, initialData },
+    ref,
+) {
     const [battleKey] = useState(0)
     const battleEndedRef = useRef(false)
 
@@ -99,16 +110,30 @@ export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd
 
     const handleTogglePlay = useCallback(() => animRef.current?.togglePlay(), [])
     const handleChangeSpeed = useCallback((s: number) => animRef.current?.setSpeed(s), [])
-    const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const handleSeekEvent = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect()
         animRef.current?.seek((e.clientX - rect.left) / rect.width)
     }, [])
+    const handleSeekPct = useCallback((pct: number) => animRef.current?.seek(pct), [])
     const handleReplay = useCallback(() => {
         battleEndedRef.current = false
         setCurrentLine(0)
         setPlayState({ playing: true, speed: 1, progress: 0, currentTime: 0 })
         animRef.current?.replay()
     }, [])
+
+    // 暴露播放控制给父组件（用于窄屏抽屉自动暂停/恢复等）
+    useImperativeHandle(
+        ref,
+        () => ({
+            togglePlay: handleTogglePlay,
+            setSpeed: handleChangeSpeed,
+            seek: handleSeekPct,
+            replay: handleReplay,
+            getState: () => playState,
+        }),
+        [handleTogglePlay, handleChangeSpeed, handleSeekPct, handleReplay, playState],
+    )
 
     return (
         <div className="battle-panel-root">
@@ -133,7 +158,7 @@ export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd
                     currentTime={playState.currentTime}
                     onTogglePlay={handleTogglePlay}
                     onChangeSpeed={handleChangeSpeed}
-                    onSeek={handleSeek}
+                    onSeek={handleSeekEvent}
                     onReplay={handleReplay}
                 />
                 {currentSnapshot && (
@@ -157,4 +182,4 @@ export function BattlePanel({ buildA, buildB, showSidePanels = true, onBattleEnd
             )}
         </div>
     )
-}
+})

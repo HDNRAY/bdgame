@@ -7,9 +7,7 @@ import { Character } from '../../../engine/entities/character'
 import { getCharacterAvatar, getWeaponOverlay } from '../../pixel-sprites'
 import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { runBattle } from '../../../engine/battle-runner'
-import { formatBattleLog } from '../../../engine/format-log'
 import { CharacterPanel } from '../CharacterPanel/CharacterPanel'
-import { useAppStore } from '../../stores/app-store'
 import './SelectionPanel.scss'
 
 interface SelectionPanelProps {
@@ -30,7 +28,6 @@ function simReducer(_: SimState, action: { type: 'start' } | { type: 'done'; aRa
 
 export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
     const navigate = useNavigate()
-    const setLastBuilds = useAppStore((s) => s.setLastBuilds)
     const [selectedA, setSelectedA] = useState<OpponentDef | null>(null)
     const [selectedB, setSelectedB] = useState<OpponentDef | null>(null)
     const [sim, dispatch] = useReducer(simReducer, { status: 'idle' })
@@ -69,23 +66,8 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
             onStart(buildA, buildB)
             return
         }
-        // 默认行为：通过 store 启动战斗
-        const a = new Character(buildA)
-        const b = new Character(buildB)
-        const { engine } = runBattle(a, b, undefined, 6)
-        const snapshots = engine.state.log.getAll().map((e) => e.event.snapshot)
-        const { lines: log, eventToLine } = formatBattleLog(engine.state.log)
-        useAppStore.getState().setBattleData({
-            log,
-            chars: { a: engine.state.characters[0], b: engine.state.characters[1] },
-            entries: engine.state.log.getAll(),
-            snapshots,
-            eventToLine,
-        })
-        useAppStore.getState().setCurrentSnapshot(snapshots[0] ?? null)
-        useAppStore.getState().incrementBattleKey()
-        setLastBuilds({ a: buildA, b: buildB })
-        navigate('/battle')
+        // 默认行为：通过 URL 参数启动战斗（刷新/分享不丢失选人）
+        navigate(`/battle?a=${buildA.id}&b=${buildB.id}`)
     }
 
     // 选中角色的 build（用于 BuildPanel）
