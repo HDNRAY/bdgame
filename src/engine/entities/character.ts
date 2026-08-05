@@ -60,8 +60,6 @@ export class Character {
     #maxTriggerSlots = 0
     /** 武器定义的 clone（含被动修改） */
     weaponDef?: WeaponDef
-    /** 副手武器定义（仅 effects/triggers/grantsActions 生效，不参与战斗） */
-    offhandDef?: WeaponDef
     /** 待应用的 weapon_tag（构造时先记录，武器设置后统一应用） */
     pendingWeaponTags: Tag[] = []
     /** 已解析的奇物/义体列表 */
@@ -80,10 +78,6 @@ export class Character {
     hasteCallbacks: Array<(char: Character) => number> = []
     /** buff 时长倍率回调列表（炁蕴绵长等功法，构造期收集，乘算） */
     buffDurationCallbacks: Array<(char: Character) => number> = []
-    /** 额外暴击率 */
-    critChance = 0
-    /** 额外暴击伤害倍率 */
-    critDamageMod = 0
     /** 额外触发槽位（奇物提供） */
     triggerSlotMod = 0
     /** stat_restriction 回调列表 */
@@ -184,7 +178,6 @@ export class Character {
         // 副手武器：只处理 effects/triggers/grantsActions，不处理 tag，不含 range/战斗逻辑
         if (build.offhand) {
             const offhand = getWeapon(build.offhand)
-            this.offhandDef = offhand
             for (const eff of offhand.effects ?? []) {
                 const handler = passiveEffectHandlers[eff.type]
                 if (handler) handler(this, eff)
@@ -263,10 +256,6 @@ export class Character {
     /** 触发槽上限（由推演 + 功法/奇物效果决定） */
     get maxTriggerSlots(): number {
         return this.#maxTriggerSlots
-    }
-
-    get passives(): Passive[] {
-        return this.passiveDefs
     }
 
     /** 应用被动：达标检测 → effects + triggers */
@@ -370,17 +359,6 @@ export class Character {
         })
     }
 
-    /** 运行时添加功法（自爆后获得独臂等），返回是否成功添加 */
-    addPassive(id: string): boolean {
-        if (this.passiveDefs.some((p) => p.id === id)) return false
-        const def = getPassive(id) as Passive | undefined
-        if (!def) return false
-        this.passiveDefs.push(def)
-        this.applyPassive(def)
-        if (def.actionEnhancer) this.#applyActionEnhancer(def.actionEnhancer)
-        return true
-    }
-
     /** 运行时添加奇物 */
     addArtifact(id: string): boolean {
         if (this.artifactDefs.some((a) => a.id === id)) return false
@@ -394,15 +372,6 @@ export class Character {
         for (const t of def.triggers ?? []) this.passiveTriggers.push(t)
         if (def.actionEnhancer) this.#applyActionEnhancer(def.actionEnhancer)
         return true
-    }
-
-    /** 检查是否拥有指定天赋（基于 passiveDefs，构造期/运行时均可用） */
-    hasTalent(id: string): boolean {
-        return this.passiveDefs.some((p) => p.id === id)
-    }
-
-    get artifacts(): Artifact[] {
-        return this.artifactDefs
     }
 
     #actionCache: Action[] = []
@@ -449,11 +418,6 @@ export class Character {
         return this.hp > 0
     }
 
-    /** 重置为满 AP（初始化用） */
-    resetAp(): void {
-        this.ap = this.maxAp
-    }
-
     spendAp(cost: number): boolean {
         if (this.ap < cost) return false
         this.ap -= cost
@@ -476,25 +440,6 @@ export class Character {
         this.chan = Math.max(0, Math.round((this.chan - cost) * 10) / 10)
     }
 
-    toJSON() {
-        return {
-            build: this.build,
-            hp: this.hp,
-            ap: this.ap,
-            lastActionEndMs: this.lastActionEndMs,
-            lastApUpdate: this.lastApUpdate,
-        }
-    }
-
-    static fromJSON(data: ReturnType<Character['toJSON']>): Character {
-        const c = new Character(data.build)
-        c.hp = data.hp
-        c.ap = data.ap
-        c.lastActionEndMs = data.lastActionEndMs
-        c.lastApUpdate = data.lastApUpdate
-        return c
-    }
-
     /** 创建战斗用副本（所有数据独立，不污染原始） */
     cloneForBattle(): Character {
         const c = new Character(this.build)
@@ -503,14 +448,6 @@ export class Character {
         c.lastActionEndMs = 0
         c.lastApUpdate = 0
         return c
-    }
-
-    get snapshot() {
-        return {
-            hp: this.hp,
-            maxHp: this.maxHp,
-            ap: this.ap,
-        }
     }
 }
 
@@ -601,14 +538,6 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     permanent_burn(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'permanent_burn' }>
         char.permanentBurn = (char.permanentBurn ?? 0) + e.value
-    },
-    crit_damage(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'crit_damage' }>
-        if (e.reset) {
-            char.critDamageMod = 0
-        } else {
-            char.critDamageMod += e.value
-        }
     },
     dodge_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>

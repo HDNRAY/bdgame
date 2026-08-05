@@ -73,9 +73,6 @@ describe('Character', () => {
         expect(c.ap).toBe(5)
         expect(c.spendAp(10)).toBe(false)
         expect(c.ap).toBe(5)
-
-        c.resetAp()
-        expect(c.ap).toBe(8)
     })
 
     it('should order actions by actionConfigs', () => {

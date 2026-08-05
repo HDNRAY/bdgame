@@ -50,7 +50,6 @@ export type EffectDef =
     | { type: 'move_efficiency'; value: number }
     | { type: 'permanent_burn'; value: number }
     // 功法/奇物效果
-    | { type: 'crit_damage'; value: number; reset?: boolean }
     | { type: 'last_stand'; ratio: number }
     | { type: 'trigger_slot_mod'; value?: number; fn?: (char: Character) => number }
     | { type: 'dodge_mod'; value: number }

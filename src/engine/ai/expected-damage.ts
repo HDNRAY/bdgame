@@ -55,6 +55,8 @@ export function calcExpectedDamage(
 
     // 2. 收集 buff 修正值（直接累到克隆上）
     let hitMod = 0
+    let critChanceMod = 0
+    let critDamageMod = 0
     for (const [key, layer] of safePendings) {
         const p = key.split('::')
         if (p.length < 2) continue
@@ -66,8 +68,8 @@ export function calcExpectedDamage(
         if (p[1] === safeDef.id && def.onDodgeChance) safeDef.dodgeMod += def.onDodgeChance(ctx)
         if (p[1] === safeAtk.id && def.onHitChance) hitMod += def.onHitChance(ctx)
         if (p[1] === safeDef.id && def.onParryChance) safeDef.parryMod += def.onParryChance(ctx)
-        if (p[1] === safeAtk.id && def.onCritChance) safeAtk.critChance += def.onCritChance(ctx)
-        if (p[1] === safeAtk.id && def.onCritDamage) safeAtk.critDamageMod += def.onCritDamage(ctx)
+        if (p[1] === safeAtk.id && def.onCritChance) critChanceMod += def.onCritChance(ctx)
+        if (p[1] === safeAtk.id && def.onCritDamage) critDamageMod += def.onCritDamage(ctx)
     }
 
     // 3. 命中率
@@ -83,14 +85,14 @@ export function calcExpectedDamage(
     // 4. 招架 + 暴击
     const parryChance =
         calcParryChance(0, safeDef.attrs.get('dexterity'), safeDef.attrs.get('insight')) + safeDef.parryMod
-    const rawCrit = calcCritChance(safeAtk.attrs.get('dexterity'), safeAtk.attrs.get('insight'), safeAtk.critChance)
+    const rawCrit = calcCritChance(safeAtk.attrs.get('dexterity'), safeAtk.attrs.get('insight'), critChanceMod)
     const critChance = action.onActionCritChance?.(rawCrit) ?? rawCrit
 
     // 5. 期望伤害
     let expected =
         hitChance *
         ((1 - parryChance) * rawDamage + parryChance * calcParriedDamage(rawDamage, safeDef.attrs.get('strength')))
-    expected *= 1 + critChance * (0.5 + safeAtk.critDamageMod)
+    expected *= 1 + critChance * (0.5 + critDamageMod)
 
     // 6. onDealDamage 修正
     for (const [key, layer] of safePendings) {

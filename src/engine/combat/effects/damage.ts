@@ -422,7 +422,7 @@ function resolveCrit(
     engine: BattleEngine,
     act: ActionDefinition | undefined,
 ): { isCrit: boolean; final: number } {
-    let bonus = attacker.critChance
+    let bonus = 0
     for (const [key, layer] of engine.state.pendingBuffs) {
         const parts = key.split('::')
         if (parts.length < 2 || parts[1] !== attacker.id) continue
@@ -462,7 +462,7 @@ function resolveCrit(
     const critRoll = calcRoll(critChance)
     const isCrit = critRoll.success
 
-    let critDmgMod = attacker.critDamageMod
+    let critDmgMod = 0
     if (act) {
         for (const [key, layer] of engine.state.pendingBuffs) {
             const parts = key.split('::')

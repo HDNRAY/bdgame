@@ -352,16 +352,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             enemy.capAp()
         }
     },
-    crit_damage({ eff, self, engine, action }: EffectCtx) {
-        const e = eff as Extract<EffectDef, { type: 'crit_damage' }>
-        const label = action?.name || '暴击伤害'
-        self.critDamageMod += e.value
-        engine.emitLog({
-            type: 'system',
-            message: BattleLog.msg(label, self.name, `暴伤+${e.value}`),
-            actorId: self.id,
-        })
-    },
     add_debuff({ eff, self, enemy, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_debuff' }>
         const { success } = calcRoll(e.chance)
