@@ -271,7 +271,7 @@ export class BattleEngine {
 
         // 跳过死亡角色
         if (!self.isAlive()) {
-            this.state.turn.next()
+            this.state.turn.next(e.id)
             this.state.eventActorId = null
             if (enemy.isAlive()) {
                 this.state.log.logDefeat(self.name, enemy.name, this.state.turn.currentTime, this.getSnapshot())
@@ -296,7 +296,7 @@ export class BattleEngine {
             const deficit = self.maxAp - self.ap
             const regenPerSec = calcApRegenPerSec(self.attrs.get('wisdom'))
             const waitMs = Math.ceil((deficit / regenPerSec) * 1000)
-            this.state.turn.next()
+            this.state.turn.next(self.id)
             this.state.turn.scheduleNext({ type: 'character', id: self.id }, waitMs, 0)
             this.state.eventActorId = null
             return true
@@ -363,7 +363,7 @@ export class BattleEngine {
             }
         }
         this.emit('turn_end', self, enemy)
-        this.state.turn.next()
+        this.state.turn.next(self.id)
 
         // ── 4. 计算下次行动的间隔 = 行动耗时 + AP 回复耗时 ──
         const remainingAp = self.ap
@@ -446,6 +446,7 @@ export class BattleEngine {
             if (!inst || !inst.canUse()) continue
 
             if (action.target === 'self') {
+                if (action.canUse && !action.canUse(self, this.state)) continue
                 if (!isInitPhase) this.state.log.indentDepth++
                 for (const eff of action.effects ?? []) {
                     processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered: true })
@@ -898,7 +899,7 @@ export class BattleEngine {
             const regenPerSec = calcApRegenPerSec(owner.attrs.get('wisdom'))
             apRegenDelay = Math.ceil((summonAction.apCost / regenPerSec) * 1000)
         }
-        this.state.turn.next()
+        this.state.turn.next(e.id)
         const interval = calcSummonInterval(
             owner.attrs.get('wisdom'),
             summonAction.extraPreDelay ?? 0,

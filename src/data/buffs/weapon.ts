@@ -65,22 +65,6 @@ export const WEAPON_BUFFS: BuffDef[] = [
             }
             return final
         },
-        onParried: ({ target, attacker, engine, state }) => {
-            if (engine) {
-                processActionEffect(
-                    { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
-                    { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
-                )
-            }
-        },
-        onDodged: ({ target, engine, state }) => {
-            if (engine) {
-                processActionEffect(
-                    { type: 'add_buff', buffId: 'you_shen', stacks: 1 },
-                    { self: target, enemy: target, engine, tMs: state.turn.currentTime },
-                )
-            }
-        },
     },
     {
         id: 'engine_hammer_buff',

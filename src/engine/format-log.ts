@@ -287,6 +287,10 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 result += `造成${e.final.toFixed(1)}`
                 pending!.extra = (pending!.extra ?? '') + `  » ${result}`
                 flush()
+                // 伤害落在攻击开始 + 前摇之后：把"最近 flush 时间"改为伤害实际时间，
+                // 让紧随其后的同刻反应（on_hit 触发的 debuff 如刃炁）inline 贴着攻击行，
+                // 而不是被 standby 推到下一个 block
+                lastFlushMs = ms
                 break
             }
 

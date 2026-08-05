@@ -58,9 +58,15 @@ export class TurnManager {
         return this.queue[0]
     }
 
-    /** 推进到下一行动者 */
-    next(): void {
-        const idx = this.queue.findIndex((e) => e.type === 'character' || e.type === 'summon')
+    /**
+     * 推进到下一行动者：移除当前事件条目（按 id）并把时间推进到它的行动时刻。
+     * 必须传 id 精确移除——若只按"队首第一个 character/summon"移除，
+     * 当前事件执行期间其他角色被提前重排到队首时，会错吃别人的回合导致其永久消失。
+     */
+    next(id?: string): void {
+        const idx = id
+            ? this.queue.findIndex((e) => e.id === id)
+            : this.queue.findIndex((e) => e.type === 'character' || e.type === 'summon')
         if (idx === -1) return
         const current = this.queue.splice(idx, 1)[0]
         this.time = current.nextActionAt

@@ -208,8 +208,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         tags: ['range', 'slash', 'pierce', 'summon'],
         effects: [{ type: 'damage', scaling: { wisdom: 0.5 } }],
-        extraPreDelay: 700,
-        extraStunTime: 1300,
+        extraPreDelay: 1200,
+        extraStunTime: 2000,
     },
     {
         id: '_flying_lion_roar',

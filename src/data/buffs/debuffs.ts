@@ -10,7 +10,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '麻痹',
         description: '身法、灵巧降低。',
         tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 1800 },
+        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 3000 },
         stacking: { type: 'independent' },
         attrMods: { agility: -1, dexterity: -1 },
     },
@@ -19,7 +19,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '迷惑',
         description: '神志不清，推演降低。',
         tags: ['debuff'],
-        expiry: { type: 'duration', ms: 10000 },
+        expiry: { type: 'duration', ms: 12000 },
         stacking: { type: 'additive' },
         attrMods: { wisdom: -1 },
     },
@@ -28,7 +28,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '霜冻',
         description: '身法降低，移动缓慢。',
         tags: ['debuff'],
-        expiry: { type: 'duration', ms: 10000 },
+        expiry: { type: 'duration', ms: 16000 },
         stacking: { type: 'independent' },
         attrMods: { agility: -0.5, dexterity: -0.5 },
     },
@@ -37,7 +37,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '眩晕',
         description: '大幅降低身法、洞察（连续命中递减）。',
         tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 5000 },
+        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 6000 },
         stacking: { type: 'independent' },
     },
     {
@@ -45,7 +45,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '迷眼',
         description: '沙尘入眼，洞察大幅降低。',
         tags: ['debuff'],
-        expiry: { type: 'duration', ms: 5000 },
+        expiry: { type: 'duration', ms: 8000 },
         stacking: { type: 'none' },
         attrMods: { insight: -4 },
     },
@@ -54,7 +54,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '倒地',
         description: '重心不稳，倒地不起，身法大幅降低。',
         tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'agility', multiplier: 2000 },
+        expiry: { type: 'duration_by_attr', attr: 'agility', multiplier: 3000 },
         stacking: { type: 'independent' },
         attrMods: { agility: -4 },
     },
@@ -248,11 +248,16 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'blade_qi',
         name: '刃炁',
-        description: '每层增伤3%。累计10点治疗消一层。',
+        description: '每层增伤，收益随层数递减，最高约40%。累计10点治疗消一层。',
         tags: ['debuff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 81 },
-        onTakeDamage: ({ final, layer }) => Math.round(final * (1 + layer.restoreValue * 0.05) * 10) / 10,
+        stacking: { type: 'additive', max: 20 },
+        onTakeDamage: ({ final, layer }) => {
+            // 收敛增伤：+40% × n/(n+6)，n→∞ 趋近 +40%（前期每层约 5% 递减，不滚雪球）
+            const n = layer.restoreValue
+            const mult = 1 + (0.4 * n) / (n + 6)
+            return Math.round(final * mult * 10) / 10
+        },
         onReceiveHeal: ({ layer, engine, target, final: amount }) => {
             const HEAL_PER_STACK = 10
             const acc = (layer.extra?.healAccumulator as number) ?? 0

@@ -2,7 +2,6 @@ import type { ActionDefinition } from '../entities/action'
 import type { Character } from '../entities/character'
 import type { BattleState } from '../combat/types'
 import { getWeapon } from '../../data/weapons/weapons'
-import { getBuff } from '../../data/buffs'
 import { getActionRange } from '../../data/actions'
 import { BattleEngine } from '../combat/engine'
 
@@ -11,33 +10,14 @@ export function canExecuteAction(
     action: ActionDefinition,
     attacker: Character,
     state: BattleState,
-    engine?: BattleEngine,
+    _engine?: BattleEngine,
     opts?: { noDiscount?: boolean },
 ): { ok: boolean; reason?: string } {
-    let cost = action.apCost
-    for (const [key, layer] of state.pendingBuffs) {
-        const parts = key.split('::')
-        if (parts.length < 2 || parts[1] !== attacker.id) continue
-        const def = getBuff(parts[0])
-        if (!def?.onActionCost) continue
-        const target = state.characters.find((c) => c.id !== attacker.id)
-        if (!target) continue
-        cost = Math.max(
-            1,
-            cost +
-                def.onActionCost({
-                    final: 0,
-                    raw: 0,
-                    attacker,
-                    target,
-                    engine,
-                    state,
-                    layer,
-                    source: action,
-                }),
-        )
-    }
-    if (attacker.ap < (opts?.noDiscount ? cost : attacker.actionApCost(cost))) return { ok: false, reason: 'AP不足' }
+    // 验证用基础成本；onActionCost 折扣只在 #executeAction 扣费时应用一次。
+    // 此处不再重复调用 onActionCost——避免带副作用的钩子（如分心错手的"只减第二招"标记）被验证/扣费两次调用。
+    // 安全：onActionCost 均为负折扣，扣费成本 ≤ 验证成本，AP 够验证则扣费必成功。
+    const cost = opts?.noDiscount ? action.apCost : attacker.actionApCost(action.apCost)
+    if (attacker.ap < cost) return { ok: false, reason: 'AP不足' }
     if (action.chanCost && attacker.chan < action.chanCost) return { ok: false, reason: '缠劲不足' }
     const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)
     const range = getActionRange(action, weapon.range, attacker)

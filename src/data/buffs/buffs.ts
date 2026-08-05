@@ -133,13 +133,19 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'zuoyou_hubo',
         name: '分心错手',
-        description: '一心二用，交替出手，可连续施展两次攻击。',
+        description: '一心二用，交替出手，可连续施展两次攻击。主招正常消耗，连招（第二招起）消耗-1。',
         tags: [],
-        onActionCost: ({ source }) => {
+        onActionCost: ({ layer, source }) => {
             const act = source as ActionDefinition
-            return act && !act.tags.includes('pre_action') && !act.tags.includes('post_action') && act.apCost > 0
-                ? -1
-                : 0
+            if (!act || act.tags.includes('pre_action') || act.tags.includes('post_action') || act.apCost <= 0) return 0
+            // 只减第二招起：本回合首个非辅助招正常消耗，之后每招 -1（onTurnEnd 重置）
+            if (layer.extra?.firstActionDone) return -1
+            if (!layer.extra) layer.extra = {}
+            layer.extra.firstActionDone = true
+            return 0
+        },
+        onTurnEnd: ({ layer }) => {
+            if (layer.extra) layer.extra.firstActionDone = false
         },
         getExtraAttack: () => 1,
     },
@@ -655,13 +661,13 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'adrenaline_rush',
         name: '肾上腺素',
-        description: 'AP恢复速度翻倍，持续15秒。',
+        description: 'AP恢复速度翻倍，持续20秒。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 15000 },
+        expiry: { type: 'duration', ms: 20000 },
         tickInterval: 1000,
-        apRegenPerSec: ({ target }) => Math.max(1, Math.round(Math.max(2, target.attrs.get('wisdom') * 0.2))),
+        apRegenPerSec: ({ target }) => Math.max(1, Math.round(Math.max(2, target.attrs.get('wisdom') * 0.1))),
         onTickHeal: ({ target: char, engine }) => {
-            const regenPerSec = Math.max(2, char.attrs.get('wisdom') * 0.2)
+            const regenPerSec = Math.max(2, char.attrs.get('wisdom') * 0.1)
             const apGain = Math.max(1, Math.round(regenPerSec))
             char.ap = Math.min(char.maxAp, char.ap + apGain)
             engine?.emitLog({
@@ -1056,7 +1062,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '刀马旦',
         description: '入戏状态，力道身法灵巧各+2，招式带炁，射程+1。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 25000 },
+        expiry: { type: 'duration', ms: 45000 },
         stacking: { type: 'none' },
         attrMods: { strength: 2, agility: 2, dexterity: 2 },
         onRuntimeAction: (_ctx, action) => {

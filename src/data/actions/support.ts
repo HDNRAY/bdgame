@@ -223,11 +223,12 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'condense_shield',
         name: '凝炁成盾',
-        description: '凝聚炁息化为护盾，2层炁盾护体。',
+        description: '凝聚炁息化为护盾，2层炁盾护体。已有炁盾时不重复凝聚。',
         requiredTags: [],
         apCost: 2,
         tags: ['imperial', 'qi', 'post_action', 'defense'],
         target: 'self',
+        canUse: (self, state) => !state.pendingBuffs.has(`qi_shield::${self.id}`),
         effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 2 }],
     },
     {

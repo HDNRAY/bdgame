@@ -27,9 +27,9 @@ export function calcBaseDamage(
     return Math.round(damage * 10) / 10
 }
 
-/** 暴击判定: 基础 5% + (dexterity + insight) / 200 + critChanceMod */
+/** 暴击判定: 基础 5% + (灵巧×1.5 + 洞察×1.3) / 200 + critChanceMod（灵巧权重更高） */
 export function calcCritChance(dexterity: number, insight: number, critChanceMod = 0): number {
-    return Math.max(0.05, Math.min(0.95, 0.05 + (dexterity + insight) / 200 + critChanceMod))
+    return Math.max(0.05, Math.min(0.95, 0.05 + (dexterity * 1.5 + insight * 1.3) / 200 + critChanceMod))
 }
 
 /** 最终伤害: base × distanceMult × (暴击? (1.5 + critDamageMod) : 1) */
@@ -39,9 +39,10 @@ export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit
     return Math.max(1, damage)
 }
 
-/** 命中判定: 逻辑斯蒂曲线，自然收敛至 [0,1]，无需 clamp */
+/** 命中判定: 逻辑斯蒂曲线，自然收敛至 [0,1]，无需 clamp
+ *  攻击端：灵巧权重 1.5 > 洞察 1.3（灵巧为攻击主属性）；防御端身法/洞察均 1.0 */
 export function calcHitChance(opts: Record<string, number>): number {
-    const atk = (opts.attackerDexterity ?? 0) / 80 + (opts.attackerInsight ?? 0) / 80
+    const atk = ((opts.attackerDexterity ?? 0) * 1.5 + (opts.attackerInsight ?? 0) * 1.3) / 80
     const def = (opts.defenderAgility ?? 0) / 80 + (opts.defenderInsight ?? 0) / 80
     const dodgeMod = opts.defenderDodgeMod ?? 0
     const net = atk - def - dodgeMod
@@ -71,9 +72,10 @@ export function calcStunMs(agility: number, extraStunTime = 0, haste = 0): numbe
     return Math.round((BASE_STUN_TIME + extraStunTime) * (1 - calcApCostReduction(agility, haste)))
 }
 
-/** 召唤物回合间隔: 基础 + 前后摇，用推演代替身法（召唤物不吃身法/急速减免） */
+/** 召唤物回合间隔: 基础 + 前后摇，用推演代替身法（召唤物不吃身法/急速减免）
+ *  推演收益削弱：每点由 1% → 0.5%（系数 0.01→0.005），防止高推演召唤流频率过快 */
 export function calcSummonInterval(wisdom: number, extraPreDelay = 0, extraStunTime = 0): number {
-    const wisFactor = 0.6 + Math.max(0, 0.4 - wisdom * 0.01)
+    const wisFactor = 0.6 + Math.max(0, 0.4 - wisdom * 0.005)
     const base = BASE_TURN_INTERVAL
     const epd = Math.round(BASE_PRE_DELAY + extraPreDelay)
     const est = Math.round(BASE_STUN_TIME + extraStunTime)
@@ -98,8 +100,8 @@ export function calcSelfDamage(maxHp: number, ratio: number): number {
 }
 
 // ── AP 回复 ──
-/** 每推演每秒回复 AP 基数 */
-export const AP_REGEN_BASE = 0.0625
+/** 每推演每秒回复 AP 基数（削 0.0625→0.05，压低推演对 AP 回复的支配力） */
+export const AP_REGEN_BASE = 0.05
 /** 回复常数项 */
 export const AP_REGEN_CONST = 0.75
 /** 最低回复速度 (AP/s) */

@@ -410,14 +410,14 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'bu_lao_quan',
         name: '不老泉',
-        description: 'AP恢复速度增加，持续15秒。',
+        description: 'AP恢复速度增加，持续20秒。',
         tags: ['defense'],
-        expiry: { type: 'duration', ms: 15000 },
+        expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'none' },
         tickInterval: 1000,
-        apRegenPerSec: ({ target }) => Math.max(1, Math.round(target.attrs.get('wisdom') * 0.2)),
+        apRegenPerSec: ({ target }) => Math.max(1, Math.round(target.attrs.get('wisdom') * 0.1)),
         onTickHeal: ({ target, engine }) => {
-            const apGain = Math.max(1, Math.round(target.attrs.get('wisdom') * 0.2))
+            const apGain = Math.max(1, Math.round(target.attrs.get('wisdom') * 0.1))
             target.ap = Math.min(target.maxAp, target.ap + apGain)
             engine?.emitLog({
                 type: 'system',

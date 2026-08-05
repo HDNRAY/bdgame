@@ -215,7 +215,16 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '姬家世代相传的战戟，曾为守关领袖所用。经千星重铸为赛博战戟，可将使用者的炁转化为冰电之力。',
         tags: ['polearm', 'parry', 'pierce', 'blunt', 'electric'],
         range: [1, 4],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'zhen_bei_ji_buff' }] }],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'zhen_bei_ji_buff' }] },
+            // 攻击被闪避 → 攻击者叠游身（步法追击）
+            { condition: { type: 'on_dodged' }, effects: [{ type: 'add_buff', buffId: 'you_shen', stacks: 1 }] },
+            // 攻击被招架 → 招架方麻痹（电流反噬）
+            {
+                condition: { type: 'on_parried' },
+                effects: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 }],
+            },
+        ],
     },
     {
         id: 'buer_sword',

@@ -45,21 +45,21 @@ describe('calcHitChance', () => {
     it('should be base 80% when equal', () => {
         expect(
             calcHitChance({ attackerDexterity: 10, attackerInsight: 10, defenderAgility: 10, defenderInsight: 10 }),
-        ).toBeCloseTo(0.8)
+        ).toBeCloseTo(0.8895)
     })
 
     it('should increase with higher dexterity and insight', () => {
         const hc = calcHitChance({ attackerDexterity: 18, attackerInsight: 14, defenderAgility: 8, defenderInsight: 6 })
-        expect(hc).toBeCloseTo(0.951)
+        expect(hc).toBeCloseTo(0.984)
     })
 })
 
 describe('calcCritChance', () => {
     it('should scale with dexterity and insight', () => {
-        // 5% + (10+10)/200 = 5% + 10% = 15%
-        expect(calcCritChance(10, 10)).toBeCloseTo(0.15)
-        // 5% + (18+6)/200 = 5% + 12% = 17%
-        expect(calcCritChance(18, 6)).toBeCloseTo(0.17)
+        // 5% + (灵巧×1.5 + 洞察×1.3)/200：10,10 → 5%+14% = 19%
+        expect(calcCritChance(10, 10)).toBeCloseTo(0.19)
+        // 5% + (18×1.5 + 6×1.3)/200 = 5% + 17.4% = 22.4%
+        expect(calcCritChance(18, 6)).toBeCloseTo(0.224)
         // base only
         expect(calcCritChance(0, 0)).toBeCloseTo(0.05)
     })

@@ -71,6 +71,8 @@ export function processHitCheck(
         result: hitResult.success,
     })
     if (!r.hit) {
+        // 未命中无命中帧：前摇偏移归零，让闪避反应（dodged / on_dodged 触发的游身等）落在攻击判定时刻
+        engine.state.actionPreOffset = 0
         engine.emitLog({ type: 'dodged', sourceId: self.id, targetId: enemy.id })
         engine.emit('on_dodged', self, enemy)
         // 防御方 buff onDodged 钩子（缩进一层）
