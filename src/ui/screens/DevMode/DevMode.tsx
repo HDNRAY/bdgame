@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { PixelInspector } from './PixelInspector/PixelInspector'
 import { TournamentSim } from './TournamentSim/TournamentSim'
 import './DevMode.scss'
@@ -10,8 +10,22 @@ const NAV_ITEMS = [
 
 type NavId = (typeof NAV_ITEMS)[number]['id']
 
+/** 当前 tab 是否合法 */
+function isNavId(v: string | null): v is NavId {
+    return NAV_ITEMS.some((item) => item.id === v)
+}
+
 export function DevMode() {
-    const [activeId, setActiveId] = useState<NavId>('pixel')
+    const [searchParams, setSearchParams] = useSearchParams()
+    const tabParam = searchParams.get('tab')
+    const activeId: NavId = isNavId(tabParam) ? tabParam : 'pixel'
+
+    const setActiveId = (id: NavId) => {
+        // 保留 PixelInspector 的 char/weapon 参数，仅更新 tab
+        const next = new URLSearchParams(searchParams)
+        next.set('tab', id)
+        setSearchParams(next, { replace: true })
+    }
 
     return (
         <div className="dev-mode">

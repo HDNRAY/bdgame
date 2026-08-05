@@ -6,7 +6,7 @@ export const SPRITE_HEIGHT = 48
  * 角色内容在精灵画布中的水平偏移（左侧留白像素数）。
  * 攻击时武器向左上延伸会超出左边界，故左侧需预留空间（角色内容靠右）。
  */
-export const SPRITE_PAD_LEFT = 11
+export const SPRITE_PAD_LEFT = 12
 
 /**
  * 角色内容在精灵画布底部的留白（像素行数）。

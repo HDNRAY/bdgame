@@ -7,8 +7,11 @@ import type { Frame, FrameChar, LogEntry } from '../../bridge/replay-engine'
 import {
     makeCharacterSprite,
     getWeaponOverlay,
-    HAND_POINTS,
+    getWeaponAngle,
+    getWeaponHand,
+    resolveWeaponPixels,
     HAND_COVER,
+    LEFT_HAND_COVER,
     SPRITE_WIDTH,
     SPRITE_PAD_BOTTOM,
 } from '../pixel-sprites'
@@ -303,20 +306,20 @@ export class CanvasRenderer {
         const overlay = getWeaponOverlay(c.weaponId)
         if (overlay.pixels.length === 0) return
 
-        // 手部握柄位置（按姿势，角色精灵坐标，网格尺寸见 SPRITE_WIDTH×SPRITE_HEIGHT）
-        const hand = HAND_POINTS[c.pose] ?? HAND_POINTS.idle
+        // 锚定手：单手武器=主手；双手武器=副手（左手，图中右侧）
+        const hand = getWeaponHand(overlay, c.pose)
         const gripX = overlay.gripX
         const gripY = overlay.gripY
 
-        // 武器 Graphics：position = 手部，本地坐标已相对握柄（px-gripX, py-gripY），
-        // pivot 保持 (0,0) 使旋转中心 = 握柄（避免双重偏移把武器抬离手部）
-        // 朝左时手部需水平镜像（与角色精灵按精灵中心翻转一致），否则武器脱手/方向错
+        // 武器 Graphics：position = 锚定手，本地坐标相对主握点（px-gripX, py-gripY），
+        // pivot 保持 (0,0) 使旋转绕锚定手进行（避免双重偏移把武器抬离手部）。
+        // 旋转角度：单手武器 idle=0 / attack=±45°；双手武器绕副手旋转使棍身轴线穿过主手。
         const handX = facingRight ? hand.x : SPRITE_WIDTH - 1 - hand.x
         wg.position.set(ox + handX * PIXEL, oy + hand.y * PIXEL)
         wg.pivot.set(0, 0)
-        wg.rotation = c.pose === 'attack' ? (facingRight ? -Math.PI / 4 : Math.PI / 4) : 0
+        wg.rotation = getWeaponAngle(overlay, c.pose, facingRight)
 
-        for (const [px, py, color] of overlay.pixels) {
+        for (const [px, py, color] of resolveWeaponPixels(overlay)) {
             const fx = facingRight ? px - gripX : -(px - gripX)
             wg.rect(fx * PIXEL, (py - gripY) * PIXEL, PIXEL, PIXEL).fill(color)
         }
@@ -335,10 +338,17 @@ export class CanvasRenderer {
         cg.clear()
         const cover = HAND_COVER[c.pose] ?? HAND_COVER.idle
         const skin = palette['3'] ?? '#f5d6c6'
-        for (const [cx, cy] of cover) {
+        const paint = (cx: number, cy: number) => {
             // 覆盖层跟随角色精灵镜像（与角色渲染一致：sx = facingRight ? x : width-1-x）
             const fx = facingRight ? cx : SPRITE_WIDTH - 1 - cx
             cg.rect(ox + fx * PIXEL, oy + cy * PIXEL, PIXEL, PIXEL).fill(skin)
+        }
+        for (const [cx, cy] of cover) paint(cx, cy)
+        // 双手武器（有 grip2）：额外盖住第二只手（左手）
+        const overlay = getWeaponOverlay(c.weaponId)
+        if (overlay.grip2X !== undefined) {
+            const leftCover = LEFT_HAND_COVER[c.pose] ?? LEFT_HAND_COVER.idle
+            for (const [cx, cy] of leftCover) paint(cx, cy)
         }
     }
 

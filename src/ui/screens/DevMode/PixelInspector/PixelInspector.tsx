@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
     getCharacterAvatar,
     makeCharacterSprite,
     WEAPON_OVERLAYS,
     WEAPON_WIDTH,
     WEAPON_HEIGHT,
+    resolveWeaponPixels,
 } from '../../../pixel-sprites'
 import { CHARACTER_COLORS, CHARACTER_SPRITE_MAP } from '../../../pixel-sprites/palette'
 import { OPPONENTS } from '../../../../data/opponents'
+import { WEAPON_DB } from '../../../../data/weapons/weapons'
+import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { PixelCanvas } from '../../../components/ui/PixelCanvas/PixelCanvas'
 import './PixelInspector.scss'
 
@@ -27,6 +31,11 @@ const NAME_BY_ID: Record<string, string> = Object.fromEntries(OPPONENTS.map((o) 
 /** 武器 ID 列表 */
 const WEAPON_IDS = Object.keys(WEAPON_OVERLAYS)
 
+/** 武器 ID → 中文名（来自 data/weapons，找不到则回退为 id 本身） */
+const WEAPON_NAME: Record<string, string> = Object.fromEntries(
+    [...WEAPON_DB, ...STARTING_WEAPONS].map((w) => [w.id, w.name]),
+)
+
 interface PixelInfo {
     x: number
     y: number
@@ -39,7 +48,23 @@ interface PixelInfo {
 }
 
 export function PixelInspector() {
-    const [charId, setCharId] = useState<string>('yidao')
+    const [searchParams, setSearchParams] = useSearchParams()
+    // 角色 / 武器 状态存于 URL query（刷新/分享不丢失）
+    const charParam = searchParams.get('char')
+    const charId = CHARACTER_IDS.includes(charParam ?? '') ? (charParam as string) : 'yidao'
+    const weaponParam = searchParams.get('weapon')
+    const weaponId = WEAPON_IDS.includes(weaponParam ?? '') ? (weaponParam as string) : 'peach_sword'
+
+    // 更新 URL（仅替换对应 key，保留其它参数如 tab）
+    const patchQuery = (patch: Record<string, string>) => {
+        const next = new URLSearchParams(searchParams)
+        for (const [k, v] of Object.entries(patch)) next.set(k, v)
+        setSearchParams(next, { replace: true })
+    }
+
+    const setCharId = (id: string) => patchQuery({ char: id })
+    const setWeaponId = (id: string) => patchQuery({ weapon: id })
+
     const sprite = useMemo(() => makeCharacterSprite(charId, '#4ecdc4'), [charId])
     const idlePixels = sprite.frames.idle
     const attackPixels = sprite.frames.attack
@@ -57,7 +82,6 @@ export function PixelInspector() {
     const [lockedAttack, setLockedAttack] = useState<{ x: number; y: number } | null>(null)
 
     // ── 武器调试 ──
-    const [weaponId, setWeaponId] = useState<string>('peach_sword')
     const [compositeWeapon, setCompositeWeapon] = useState(true)
     const overlay = useMemo(() => WEAPON_OVERLAYS[weaponId] ?? WEAPON_OVERLAYS.bare_hands, [weaponId])
     // 武器坐标系尺寸（显示整个网格，见 constants.ts）
@@ -81,7 +105,7 @@ export function PixelInspector() {
             }
             arr[y][x] = colorIdx.get(color)!
         }
-        for (const [px, py, color] of overlay.pixels) {
+        for (const [px, py, color] of resolveWeaponPixels(overlay)) {
             paint(px, py, color)
         }
         return { pixels: arr, palette: viewPalette }
@@ -89,8 +113,12 @@ export function PixelInspector() {
 
     const height = idlePixels.length
     const width = idlePixels[0].length
-    const bufW = width * SCALE
-    const bufH = height * SCALE
+    // 与 PixelCanvas 一致的方形画布与居中偏移（内容 60×48 → 方形 60×60，垂直居中 offY=6）
+    const side = Math.max(width, height)
+    const bufW = side * SCALE
+    const bufH = side * SCALE
+    const offX = Math.floor((side - width) / 2)
+    const offY = Math.floor((side - height) / 2)
 
     /** 颜色使用统计（基于 idle 帧） */
     const colorStats = useMemo(() => {
@@ -127,12 +155,12 @@ export function PixelInspector() {
     const attackInfo = infoFor(attackPixels, lockedAttack ?? hoverAttack)
     const activeInfo = idleInfo ?? attackInfo
 
-    /** 将鼠标事件坐标换算为像素坐标 */
+    /** 将鼠标事件坐标换算为像素坐标（考虑画布居中偏移） */
     const toPixel = (e: React.MouseEvent<HTMLCanvasElement>): { x: number; y: number } | null => {
         const canvas = e.currentTarget
         const rect = canvas.getBoundingClientRect()
-        const x = Math.floor(((e.clientX - rect.left) / rect.width) * width)
-        const y = Math.floor(((e.clientY - rect.top) / rect.height) * height)
+        const x = Math.floor(((e.clientX - rect.left) / rect.width) * side) - offX
+        const y = Math.floor(((e.clientY - rect.top) / rect.height) * side) - offY
         if (x < 0 || x >= width || y < 0 || y >= height) return null
         return { x, y }
     }
@@ -153,14 +181,14 @@ export function PixelInspector() {
             ctx.lineWidth = 1
             for (let i = 0; i <= width; i++) {
                 ctx.beginPath()
-                ctx.moveTo(i * SCALE + 0.5, 0)
-                ctx.lineTo(i * SCALE + 0.5, bufH)
+                ctx.moveTo((i + offX) * SCALE + 0.5, 0)
+                ctx.lineTo((i + offX) * SCALE + 0.5, bufH)
                 ctx.stroke()
             }
             for (let j = 0; j <= height; j++) {
                 ctx.beginPath()
-                ctx.moveTo(0, j * SCALE + 0.5)
-                ctx.lineTo(bufW, j * SCALE + 0.5)
+                ctx.moveTo(0, (j + offY) * SCALE + 0.5)
+                ctx.lineTo(bufW, (j + offY) * SCALE + 0.5)
                 ctx.stroke()
             }
         }
@@ -170,14 +198,14 @@ export function PixelInspector() {
             ctx.strokeStyle = '#4ecdc4'
             ctx.lineWidth = 2
             ctx.setLineDash([4, 3])
-            ctx.strokeRect(hover.x * SCALE + 1, hover.y * SCALE + 1, SCALE - 2, SCALE - 2)
+            ctx.strokeRect((hover.x + offX) * SCALE + 1, (hover.y + offY) * SCALE + 1, SCALE - 2, SCALE - 2)
             ctx.setLineDash([])
         }
         // locked 高亮（实线）
         if (locked) {
             ctx.strokeStyle = '#ff6b6b'
             ctx.lineWidth = 2
-            ctx.strokeRect(locked.x * SCALE + 1, locked.y * SCALE + 1, SCALE - 2, SCALE - 2)
+            ctx.strokeRect((locked.x + offX) * SCALE + 1, (locked.y + offY) * SCALE + 1, SCALE - 2, SCALE - 2)
         }
     }
 
@@ -209,7 +237,7 @@ export function PixelInspector() {
                     <select value={weaponId} onChange={(e) => setWeaponId(e.target.value)}>
                         {WEAPON_IDS.map((id) => (
                             <option key={id} value={id}>
-                                {id}
+                                {WEAPON_NAME[id] ?? id}
                             </option>
                         ))}
                     </select>

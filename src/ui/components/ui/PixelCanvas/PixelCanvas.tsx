@@ -1,7 +1,15 @@
 import { useRef, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import type { PixelMap, Palette, WeaponOverlay } from '../../../pixel-sprites'
-import { HAND_POINTS, HAND_COVER, WEAPON_WIDTH, WEAPON_HEIGHT } from '../../../pixel-sprites'
+import {
+    HAND_COVER,
+    LEFT_HAND_COVER,
+    WEAPON_WIDTH,
+    WEAPON_HEIGHT,
+    getWeaponAngle,
+    getWeaponHand,
+    resolveWeaponPixels,
+} from '../../../pixel-sprites'
 
 interface PixelCanvasProps {
     /** PixelMap 数据 — canvas buffer 尺寸自动按 pixels×scale 推导 */
@@ -98,7 +106,8 @@ export function PixelCanvas({
 
             if (hasPixels) {
                 // 合成模式：以角色手部为旋转中心，旋转整张武器图（手部坐标需叠加内容居中偏移）
-                const hand = HAND_POINTS[pose] ?? HAND_POINTS.idle
+                // 锚定手：单手=主手，双手=副手（左手/图中右侧）
+                const hand = getWeaponHand(overlay, pose)
                 const rotPad = Math.ceil(Math.hypot(maxX - minX, maxY - minY))
                 const offW = (maxX - minX + 1 + rotPad * 2) * os
                 const offH = (maxY - minY + 1 + rotPad * 2) * os
@@ -108,24 +117,29 @@ export function PixelCanvas({
                 const offCtx = offscreen.getContext('2d')!
                 offCtx.imageSmoothingEnabled = false
                 // 武器原点 (minX,minY) 画在 (rotPad*os, rotPad*os)
-                for (const [px, py, color] of overlay.pixels) {
+                for (const [px, py, color] of resolveWeaponPixels(overlay)) {
                     offCtx.fillStyle = color
                     offCtx.fillRect((px - minX + rotPad) * os, (py - minY + rotPad) * os, os, os)
                 }
-                // 握柄在离屏中的位置
-                const offGripX = (overlay.gripX - minX + rotPad) * os
-                const offGripY = (overlay.gripY - minY + rotPad) * os
+                // 旋转中心在离屏中的位置：主握点（双手武器锚定副手/左手）
+                const rotX = overlay.gripX
+                const rotY = overlay.gripY
+                const offRotX = (rotX - minX + rotPad) * os
+                const offRotY = (rotY - minY + rotPad) * os
 
                 ctx.save()
                 ctx.translate((hand.x + offX) * scale, (hand.y + offY) * scale)
-                if (angle) ctx.rotate(angle)
+                // 双手武器：角度由 getWeaponAngle 计算（绕副手旋转使棍身穿过主手）；
+                // 单手武器：使用传入的 angle（idle=0，attack=±45°）
+                const effAngle = overlay.grip2X !== undefined ? getWeaponAngle(overlay, pose, true) : (angle ?? 0)
+                if (effAngle) ctx.rotate(effAngle)
                 ctx.imageSmoothingEnabled = false
-                ctx.drawImage(offscreen, -offGripX, -offGripY)
+                ctx.drawImage(offscreen, -offRotX, -offRotY)
                 ctx.restore()
             } else {
                 // 武器图标模式：按完整 32×32 网格 + 原始坐标绘制，保留武器设计时的空白
                 ctx.imageSmoothingEnabled = false
-                for (const [px, py, color] of overlay.pixels) {
+                for (const [px, py, color] of resolveWeaponPixels(overlay)) {
                     ctx.fillStyle = color
                     ctx.fillRect(px * os, py * os, os, os)
                 }
@@ -135,10 +149,17 @@ export function PixelCanvas({
         // 渲染手部覆盖层 — 仅在合成武器时（有角色像素）绘制，人物精灵坐标，用皮肤色盖住握柄
         if (hasPixels && overlay && overlay.pixels.length > 0) {
             const cover = HAND_COVER[pose]
-            if (cover && cover.length > 0) {
-                const skin = palette?.['3'] ?? '#f5d6c6'
-                ctx.fillStyle = skin
+            const skin = palette?.['3'] ?? '#f5d6c6'
+            ctx.fillStyle = skin
+            if (cover) {
                 for (const [cx, cy] of cover) {
+                    ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
+                }
+            }
+            // 双手武器（有 grip2）：额外盖住第二只手（左手）
+            if (overlay.grip2X !== undefined) {
+                const leftCover = LEFT_HAND_COVER[pose] ?? LEFT_HAND_COVER.idle
+                for (const [cx, cy] of leftCover) {
                     ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
                 }
             }
