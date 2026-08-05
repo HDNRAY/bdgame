@@ -5,14 +5,12 @@ import type { WeaponDef } from '../../../data/weapons/weapons'
 import { getBuff } from '../../../data/buffs'
 
 /** 反转旧武器的 stat_buff 效果（御物除外） */
-export function revertWeaponStatBuffs(weapon: WeaponDef | undefined, char: Character, engine: BattleEngine): void {
+export function revertWeaponStatBuffs(weapon: WeaponDef | undefined, char: Character, _engine: BattleEngine): void {
     if (!weapon || weapon.tags.includes('imperial')) return
     for (const eff of weapon.effects ?? []) {
         if (eff.type === 'stat_buff') {
             for (const [attr, value] of Object.entries(eff.attrs)) {
                 char.attrs.modify(attr as AttrName, -value)
-                if (attr === 'agility')
-                    engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
             }
         }
     }
@@ -34,8 +32,6 @@ export function clearWeaponBuffLayers(charId: string, engine: BattleEngine): voi
                 char.capAp()
             } else {
                 char.attrs.modify(attr as AttrName, -(delta as number))
-                if (attr === 'agility')
-                    engine.state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
             }
         }
         engine.state.pendingBuffs.delete(k)

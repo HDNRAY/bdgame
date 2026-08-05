@@ -2,12 +2,13 @@ import type { EffectDef } from '../../entities/action'
 import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../engine'
 import { ATTR_CN, type AttrName } from '../../entities/attributes'
-import { calcBaseDamage, calcHealAmount, calcRoll } from '../../calc/damage'
+import { calcBaseDamage, calcPreDelayMs, calcHealAmount, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../../data/weapons/weapons'
 import { getPassive } from '../../../data/passives'
 import { getAction as getBaseAction } from '../../../data/actions'
 import { getRuntimeAction } from '../../../data/actions'
 import { genAppId } from '../../util/buff-utils'
+import { notifyRegenChanged, affectsApRegen } from '../utils/ap-regen'
 import type { Tag } from '../../entities/tag'
 import {
     scheduleBuffExpiry,
@@ -122,7 +123,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             return
         }
         const { distance } = eff as Extract<EffectDef, { type: 'knockback' }>
-        if (distance > 0) executeMove(self, engine, distance)
+        if (distance > 0) executeMove(self, engine, distance, 0, { blink: true })
     },
     ciyuan_init({ self, engine }: EffectCtx) {
         const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
@@ -338,10 +339,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         self.attrs.modify(attr, actual)
         engine.emitLog({ type: 'stat_change', targetId: enemy.id, attr: e.stat, delta: -actual, label: '汲取' })
-        if (e.stat === 'agility') {
-            engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
-            engine.state.turn.recalcInterval(enemy.id, enemy.attrs.get('agility'), enemy.getHaste())
-        }
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'stat_transfer',
             restoreValue: actual,
@@ -584,6 +581,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             if (buff?.tags.includes('stance')) {
                 engine.emit('on_stance', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
             }
+            if (affectsApRegen(e.buffId)) notifyRegenChanged(engine.state, self)
             return
         }
 
@@ -613,6 +611,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             actorId: self.id,
         })
         engine.state.pendingBuffs.set(key, { restoreValue: stacks, mods })
+        if (affectsApRegen(e.buffId)) notifyRegenChanged(engine.state, self)
         engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
         if (buff?.tags.includes('stance')) {
             engine.emit('on_stance', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
@@ -658,8 +657,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                         if (revertVal !== 0) {
                             self.attrs.modify(attr as AttrName, revertVal)
                             layer.mods[attr] = (layer.mods[attr] ?? 0) + revertVal
-                            if (attr === 'agility')
-                                engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
                         }
                     }
                 }
@@ -670,6 +667,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                         actorId: self.id,
                     })
                 }
+                if (affectsApRegen(e.buffId)) notifyRegenChanged(engine.state, self)
             }
             return
         }
@@ -678,6 +676,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         revertBuffMods(layer, self, engine.state)
         engine.state.pendingBuffs.delete(key)
         engine.state.turn.removeEvents('buff_end_' + key)
+        if (affectsApRegen(e.buffId)) notifyRegenChanged(engine.state, self)
         const buffName = getBuff(e.buffId)?.name ?? e.buffId
         if (e.buffId !== 'disarmed') {
             engine.emitLog({
@@ -690,7 +689,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             })
         }
     },
-    short_dash({ eff, self, engine }: EffectCtx) {
+    short_dash({ eff, self, engine, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'short_dash' }>
         const opponent = engine.getOpponent(self.id)!
         const dist = engine.state.position.distance(self.id, opponent.id)
@@ -700,7 +699,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const maxDash = e.maxDistance ?? 2
         const targetDist = Math.max(0, dist - maxDash)
         const delta = dist - targetDist
-        executeMove(self, engine, -delta)
+        // short_dash 占用前摇窗口：位置在 [0, 前摇] 内平滑插值（不闪烁）
+        const pre = calcPreDelayMs(self.attrs.get('agility'), action?.extraPreDelay ?? 0)
+        executeMove(self, engine, -delta, 0, { durationMs: pre })
     },
     dash({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'dash' }>
@@ -730,9 +731,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 newDistance: p.distance(self.id, opponent.id),
                 apCost,
                 apRemaining: self.ap,
+                blink: true,
             })
         } else {
-            if (moveDist !== 0) executeMove(self, engine, -moveDist)
+            if (moveDist !== 0) executeMove(self, engine, -moveDist, 0, { blink: true })
         }
     },
     disarm({ eff, self, enemy, engine, action }: EffectCtx) {
@@ -888,8 +890,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 if (eff.type === 'stat_buff') {
                     for (const [attr, value] of Object.entries(eff.attrs)) {
                         self.attrs.modify(attr as AttrName, value)
-                        if (attr === 'agility')
-                            engine.state.turn.recalcInterval(self.id, self.attrs.get('agility'), self.getHaste())
                     }
                 }
             }

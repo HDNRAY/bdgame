@@ -415,6 +415,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         expiry: { type: 'duration', ms: 15000 },
         stacking: { type: 'none' },
         tickInterval: 1000,
+        apRegenPerSec: ({ target }) => Math.max(1, Math.round(target.attrs.get('wisdom') * 0.2)),
         onTickHeal: ({ target, engine }) => {
             const apGain = Math.max(1, Math.round(target.attrs.get('wisdom') * 0.2))
             target.ap = Math.min(target.maxAp, target.ap + apGain)

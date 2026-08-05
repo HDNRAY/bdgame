@@ -120,6 +120,8 @@ export class BattleLog {
                     event.apRemaining,
                     tMs,
                     snapshot,
+                    event.durationMs,
+                    event.blink,
                 )
                 break
             case 'dodged':
@@ -202,8 +204,13 @@ export class BattleLog {
         apRemaining: number,
         timelineMs: number,
         snapshot: BattleSnapshot,
+        durationMs?: number,
+        blink?: boolean,
     ): void {
-        this.push({ type: 'move', actor, delta, newDistance, apCost, apRemaining, snapshot }, timelineMs)
+        this.push(
+            { type: 'move', actor, delta, newDistance, apCost, apRemaining, durationMs, blink, snapshot },
+            timelineMs,
+        )
     }
 
     logAttack(

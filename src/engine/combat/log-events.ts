@@ -42,7 +42,18 @@ export type LogEvent =
           amount: number
       }
     | { type: 'heal'; actionId?: string; actionName?: string; sourceId?: string; targetId: string; amount: number }
-    | { type: 'move'; sourceId: string; delta: number; newDistance: number; apCost: number; apRemaining: number }
+    | {
+          type: 'move'
+          sourceId: string
+          delta: number
+          newDistance: number
+          apCost: number
+          apRemaining: number
+          /** 移动耗时（毫秒），回放据此平滑插值 */
+          durationMs?: number
+          /** 瞬移标记（dash 类），回放直接跳不插值 */
+          blink?: boolean
+      }
     | {
           type: 'status_apply'
           actionId: string

@@ -41,11 +41,10 @@ export interface BattleState {
     pendingBuffs: Map<string, BuffLayer>
     lastWinner?: string
     actionCount: number
-    /** 当前执行的招式额外前摇，回合结束时加到下回合间隔 */
-    lastActionExtraDelay: number
-    lastActionExtraStun: number
     /** 当前行动内累计耗时偏移（用于按耗时分散事件时间戳） */
     actionTimeOffset: number
+    /** 当前动作的前摇偏移：attack_start 之后的事件落在 +前摇 */
+    actionPreOffset: number
     /** 防止触发递归 */
     isEmitting: boolean
     /** 最近一次移动的位移量（on_opponent_move 用） */
@@ -101,8 +100,6 @@ export interface BattleSnapshot {
             nextActionAt: number
             scheduledAt: number
             ownerId?: string
-            preDelay?: number
-            stunTime?: number
         }>
     }
     pendingBuffs: [string, BuffLayer][]
@@ -118,6 +115,10 @@ export type BattleEvent =
           newDistance: number
           apCost: number
           apRemaining: number
+          /** 移动耗时（毫秒），回放据此平滑插值 */
+          durationMs?: number
+          /** 瞬移标记（dash 类），回放直接跳不插值 */
+          blink?: boolean
           snapshot: BattleSnapshot
       }
     | {
@@ -176,16 +177,13 @@ interface TurnEntryBase {
 export type TurnEntry =
     | (TurnEntryBase & {
           type: 'character'
-          preDelay?: number
-          stunTime?: number
-          haste?: number
-          lastAgility?: number
+          /** 该次调度的动作时间部分（不含 AP 回满），供 recalcRegenDelay 用 */ actionMs?: number
       })
     | (TurnEntryBase & { type: 'system'; systemEventType: SystemEventType })
     | (TurnEntryBase & { type: 'summon'; ownerId: string })
 
 /** 不含 nextActionAt 的 TurnEntry（用于 scheduleNext） */
 export type TurnEntryTemplate =
-    | { type: 'character'; id: string; preDelay?: number; stunTime?: number; haste?: number }
+    | { type: 'character'; id: string }
     | { type: 'system'; id: string; systemEventType: SystemEventType }
     | { type: 'summon'; id: string; ownerId: string }

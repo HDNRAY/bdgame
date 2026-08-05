@@ -2,7 +2,13 @@ import type { BattleEngine } from '../engine'
 import type { Character } from '../../entities/character'
 
 /** 执行位移并记录日志 */
-export function executeMove(char: Character, engine: BattleEngine, delta: number, apCost = 0): void {
+export function executeMove(
+    char: Character,
+    engine: BattleEngine,
+    delta: number,
+    apCost = 0,
+    opts?: { durationMs?: number; blink?: boolean },
+): void {
     const p = engine.state.position
     const opponent = engine.getOpponent(char.id)!
     // delta < 0 → moveToward (closer), delta > 0 → moveToward with positive (farther)
@@ -16,5 +22,7 @@ export function executeMove(char: Character, engine: BattleEngine, delta: number
         newDistance: p.distance(char.id, opponent.id),
         apCost,
         apRemaining: char.ap,
+        durationMs: opts?.durationMs,
+        blink: opts?.blink,
     })
 }

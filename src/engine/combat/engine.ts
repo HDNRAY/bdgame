@@ -9,6 +9,8 @@ import {
     calcApRegen,
     calcApRegenPerSec,
     calcActionDurationMs,
+    calcPreDelayMs,
+    calcStunMs,
 } from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
 import { getAction as getBaseAction } from '../../data/actions'
@@ -72,9 +74,8 @@ export class BattleEngine {
             eventTime: 0,
             pendingBuffs: new Map(),
             actionCount: 0,
-            lastActionExtraDelay: 0,
-            lastActionExtraStun: 0,
             actionTimeOffset: 0,
+            actionPreOffset: 0,
             isEmitting: false,
             moveDelta: 0,
             triggeredThisChain: null,
@@ -245,6 +246,7 @@ export class BattleEngine {
         this.state.eventActorId = e.type === 'character' ? e.id : null
         this.state.eventTime = e.nextActionAt
         this.state.actionTimeOffset = 0
+        this.state.actionPreOffset = 0
 
         // 系统事件
         if (e.type === 'system') {
@@ -298,10 +300,7 @@ export class BattleEngine {
             const regenPerSec = calcApRegenPerSec(self.attrs.get('wisdom'))
             const waitMs = Math.ceil((deficit / regenPerSec) * 1000)
             this.state.turn.next()
-            this.state.turn.scheduleNext(
-                { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.getHaste() },
-                waitMs,
-            )
+            this.state.turn.scheduleNext({ type: 'character', id: self.id }, waitMs, 0)
             this.state.eventActorId = null
             return true
         }
@@ -316,8 +315,9 @@ export class BattleEngine {
         let firstActionTime = 0
         for (const cmd of cmds) {
             if (self.ap <= 0 && cmd.type !== 'support') break
-            // 用当前即时身法计算该指令耗时
+            // 用当前即时身法/急速计算该指令耗时（身法/急速变化只影响下一个招式）
             const agility = self.attrs.get('agility')
+            const haste = self.getHaste()
             const cost =
                 cmd.type === 'move'
                     ? Math.abs(cmd.bestDistance ?? 0)
@@ -327,10 +327,22 @@ export class BattleEngine {
             if (firstActionTime === 0 && cost > 0) {
                 firstActionTime = this.state.turn.currentTime + this.state.actionTimeOffset
             }
-            const cmdDur = Math.max(1, calcActionDurationMs(cost, agility))
+            this.state.actionPreOffset = 0
+            // 每招耗时 = 前摇 + 招式本身 + 后摇（attack/support 带前后摇；move 只有移动时长）
+            let cmdDur = Math.max(1, calcActionDurationMs(cost, agility))
+            if (cmd.type !== 'move') {
+                const def = cmd.actionId
+                    ? (self.actions.find((a) => a.id === cmd.actionId)?.def ?? getBaseAction(cmd.actionId))
+                    : undefined
+                cmdDur +=
+                    calcPreDelayMs(agility, def?.extraPreDelay ?? 0) + calcStunMs(agility, def?.extraStunTime ?? 0)
+            }
+            // TODO(haste): 待用户定夺 haste 最终作用方式（现：折进招式耗时，AP 是硬闸门）
+            cmdDur = Math.max(1, cmdDur - haste)
             totalActionDurationMs += cmdDur
             this.execute(cmd, self, enemy)
             this.state.actionTimeOffset += cmdDur
+            this.state.actionPreOffset = 0
         }
         if (cmds.length === 0) {
             this.emitLog({ type: 'system', message: BattleLog.plain(self.name, '没有行动'), actorId: self.id })
@@ -369,10 +381,7 @@ export class BattleEngine {
 
         self.lastActionEndMs =
             firstActionTime > 0 ? firstActionTime : this.state.turn.currentTime + totalActionDurationMs
-        this.state.turn.scheduleNext(
-            { type: 'character', id: self.id, preDelay: 0, stunTime: 0, haste: self.getHaste() },
-            totalDelay,
-        )
+        this.state.turn.scheduleNext({ type: 'character', id: self.id }, totalDelay, totalActionDurationMs)
         this.state.eventActorId = null
         return true
     }
@@ -502,7 +511,7 @@ export class BattleEngine {
     /** 发射日志事件（自动附加当前快照和缩进，已按行动耗时偏移时间戳） */
     emitLog(event: LogEvent): void {
         const snap = this.getSnapshot()
-        const tMs = this.state.eventTime + this.state.actionTimeOffset
+        const tMs = this.state.eventTime + this.state.actionTimeOffset + this.state.actionPreOffset
         const enriched = { ...event, snapshot: snap, indent: this.state.log.indentDepth }
         this.state.log.handleLogEvent(enriched, snap, tMs)
         for (const l of this.#logListeners) l(enriched)
@@ -585,6 +594,10 @@ export class BattleEngine {
             newDistance: p.distance(self.id, enemy.id),
             apCost: ap,
             apRemaining: self.ap,
+            durationMs: Math.max(
+                1,
+                calcActionDurationMs(Math.abs(cmd.bestDistance ?? 0), self.attrs.get('agility')) - self.getHaste(),
+            ),
         })
         if (delta < 0) {
             this.emit('on_move_closer', self, enemy)
@@ -609,8 +622,6 @@ export class BattleEngine {
             return this.#emptyResult()
         }
         // 本体招式发出前事件（供对手反制，御物/触发招式不触发）
-        this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
-        this.state.lastActionExtraStun = action.extraStunTime ?? 0
         this.emit('on_pre_action', enemy, self)
         const r = this.#executeAction(action, self, enemy)
         tickEngine.onBleedTrigger(self, this)
@@ -681,8 +692,7 @@ export class BattleEngine {
             triggered,
             indent: this.state.log.indentDepth,
         })
-        this.state.lastActionExtraDelay = action.extraPreDelay ?? 0
-        // buff onAction 钩子（出招即触发，不受命中影响）
+        // buff onAction 钩子（出招即触发，不受命中影响）——前摇窗口内
         for (const [key, layer] of this.state.pendingBuffs) {
             const parts = key.split('::')
             if (parts.length < 2 || parts[1] !== self.id) continue
@@ -699,11 +709,15 @@ export class BattleEngine {
                 source: action,
             })
         }
-        // 不受命中影响的效果先执行（移动、换武、buff 等）
+        // 不受命中影响的效果先执行（移动、换武、buff 等）——前摇窗口内（short_dash 冲刺占用前摇）
         for (const eff of action.effects ?? []) {
             if (isPreHitEffect(eff.type)) {
                 processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered })
             }
+        }
+        // 前摇推进：attack_start 在 0 处，命中/后续事件落在 +前摇（仅本体招式，触发招式不扩散）
+        if (!triggered) {
+            this.state.actionPreOffset = calcPreDelayMs(self.attrs.get('agility'), action.extraPreDelay ?? 0)
         }
         // 战斗判定
         if (!processHitCheck(action, r, self, enemy, this)) return r

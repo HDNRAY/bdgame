@@ -26,7 +26,7 @@ export const TALENTS: Talent[] = [
     {
         id: 'vitality_regen',
         name: '生生不息',
-        description: '根骨强健，每2秒回复1+缺失生命的1%。',
+        description: '根骨强健，每3秒回复1+缺失生命的1%。',
         tags: ['heal', 'talent', 'buff'],
         requireAttrsMin: { vitality: 20 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'vitality_regen' }] }],

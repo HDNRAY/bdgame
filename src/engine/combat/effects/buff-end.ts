@@ -2,6 +2,7 @@ import type { BattleEngine } from '../engine'
 import type { AttrName } from '../../entities/attributes'
 import { getBuff } from '../../../data/buffs'
 import { revertBuffMods } from '../utils'
+import { affectsApRegen, notifyRegenChanged } from '../utils/ap-regen'
 import { ATTR_CN } from '../../entities/attributes'
 import { BattleLog } from '../battle-log'
 
@@ -25,6 +26,7 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
             }
         }
         engine.state.pendingBuffs.delete(buffKey)
+        if (char && affectsApRegen(buffId)) notifyRegenChanged(engine.state, char)
         return
     }
 
@@ -46,8 +48,6 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
             for (const [attr, delta] of Object.entries(layer.mods)) {
                 if (attr === 'maxApMod') continue
                 target.attrs.modify(attr as AttrName, delta)
-                if (attr === 'agility')
-                    engine.state.turn.recalcInterval(target.id, target.attrs.get('agility'), target.getHaste())
             }
         }
     }
@@ -68,4 +68,5 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     }
 
     engine.state.pendingBuffs.delete(buffKey)
+    if (char && affectsApRegen(buffId)) notifyRegenChanged(engine.state, char)
 }

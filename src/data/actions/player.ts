@@ -1022,7 +1022,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     const cost = Math.max(1, Math.round(self.hp * 0.15 * 10) / 10)
                     if (self.hp <= cost) return 0
                     self.takeDamage(cost)
-                    const totalRecovery = Math.round(cost * 10) / 10
+                    // 100% 回复
+                    const totalRecovery = cost
                     const key = `blood_qi_protection::${self.id}`
                     const layer = state.pendingBuffs.get(key)
                     if (layer) layer.restoreValue = totalRecovery

@@ -185,15 +185,15 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'chan_orb_regen',
         name: '凝缠珠·流转',
-        description: '凝缠珠之力流转不息，每2秒恢复3点缠劲。',
+        description: '凝缠珠之力流转不息，每2秒恢复2点缠劲。',
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 2000,
         onTickHeal: ({ attacker, engine }) => {
-            attacker.addChan(3)
+            attacker.addChan(2)
             engine?.emitLog({
                 type: 'system',
-                message: `[凝缠珠] ${attacker.name} 缠劲+3（${attacker.chan}层）`,
+                message: `[凝缠珠] ${attacker.name} 缠劲+2（${attacker.chan}层）`,
                 actorId: attacker.id,
             })
             return 0
@@ -221,7 +221,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '持续恢复生命，血越少恢复越多。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
-        tickInterval: 2000,
+        tickInterval: 3000,
         onTickHeal: ({ target }) => Math.round(10 + (target.maxHp - target.hp) * 0.1) / 10,
     },
     {
@@ -659,6 +659,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff'],
         expiry: { type: 'duration', ms: 15000 },
         tickInterval: 1000,
+        apRegenPerSec: ({ target }) => Math.max(1, Math.round(Math.max(2, target.attrs.get('wisdom') * 0.2))),
         onTickHeal: ({ target: char, engine }) => {
             const regenPerSec = Math.max(2, char.attrs.get('wisdom') * 0.2)
             const apGain = Math.max(1, Math.round(regenPerSec))
@@ -846,6 +847,8 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
         tickInterval: 1000,
+        apRegenPerSec: ({ target, layer }) =>
+            Math.round(calcApRegenPerSec(target.attrs.get('wisdom')) * ((layer.restoreValue ?? 0) * 0.1) * 10) / 10,
         onTickHeal: ({ target, layer }) => {
             const mult = 1 + (layer.restoreValue ?? 0) * 0.1
             const basePerSec = calcApRegenPerSec(target.attrs.get('wisdom'))
@@ -1070,20 +1073,19 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
     },
-    // ── 禅子 · 禅修 ──
     {
         id: 'chanzi_chan_regen',
         name: '玄武定',
-        description: '玄武定息，缠劲生生不息，每2秒恢复3点缠劲。',
+        description: '玄武定息，缠劲生生不息，每2秒恢复2点缠劲。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         tickInterval: 2000,
         onTickHeal: ({ attacker, engine }) => {
-            attacker.addChan(3)
+            attacker.addChan(2)
             engine?.emitLog({
                 type: 'system',
-                message: `[玄武定] ${attacker.name} 缠劲+3（${attacker.chan}层）`,
+                message: `[玄武定] ${attacker.name} 缠劲+2（${attacker.chan}层）`,
                 actorId: attacker.id,
             })
             return 0

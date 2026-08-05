@@ -1,6 +1,5 @@
 import type { Character } from '../entities/character'
 import type { TurnEntry, TurnEntryTemplate, SystemEventType } from './types'
-import { calcTurnInterval } from '../calc/damage'
 
 /** 行动管理器（时间轴） */
 export class TurnManager {
@@ -8,13 +7,12 @@ export class TurnManager {
     private queue: TurnEntry[] = []
 
     /** 将角色加入时间轴 */
-    addCharacter(char: Character, delay = 0): void {
+    addCharacter(_char: Character, delay = 0): void {
         this.queue.push({
             type: 'character',
-            id: char.id,
+            id: _char.id,
             nextActionAt: this.time + delay,
             scheduledAt: this.time,
-            lastAgility: char.attrs.get('agility'),
         })
         this.sort()
     }
@@ -68,50 +66,46 @@ export class TurnManager {
         this.time = current.nextActionAt
     }
 
-    /** 移除指定 entry（用于系统事件，避免 recalcInterval 打乱顺序后误删角色） */
+    /** 移除指定 entry（用于系统事件） */
     removeEntry(id: string): void {
         const idx = this.queue.findIndex((e) => e.id === id)
         if (idx === -1) return
         this.queue.splice(idx, 1)
     }
 
-    /** 行动后重新入队（插入硬直） */
-    scheduleNext(template: TurnEntryTemplate, delay: number): void {
+    /** 行动后重新入队（插入硬直）；actionMs 为该次调度的动作时间部分（不含 AP 回满） */
+    scheduleNext(template: TurnEntryTemplate, delay: number, actionMs?: number): void {
         const entry = this.queue.find((e) => e.id === template.id)
         if (entry) {
             entry.nextActionAt = this.time + delay
             entry.scheduledAt = this.time
-            if (template.type === 'character' && entry.type === 'character') {
-                if (template.preDelay !== undefined) entry.preDelay = template.preDelay
-                if (template.stunTime !== undefined) entry.stunTime = template.stunTime
-                if (template.haste !== undefined) entry.haste = template.haste
+            if (template.type === 'character' && entry.type === 'character' && actionMs !== undefined) {
+                entry.actionMs = actionMs
             }
         } else {
             this.queue.push({
                 ...template,
                 nextActionAt: this.time + delay,
                 scheduledAt: this.time,
+                ...(template.type === 'character' && actionMs !== undefined ? { actionMs } : {}),
             } satisfies TurnEntry)
         }
         this.sort()
     }
 
-    /** 身法变化时按身法变化比例缩放剩余延迟 */
-    recalcInterval(id: string, agility: number, haste?: number): void {
-        const entry = this.queue.find((e) => e.id === id)
-        if (!entry || entry.type !== 'character' || entry.preDelay === undefined) return
-        if (entry === this.queue[0]) return
-
-        const currentHaste = haste ?? entry.haste ?? 0
-        const oldDelay = entry.nextActionAt - entry.scheduledAt
-        const oldAgi = entry.lastAgility ?? agility
-        const oldTi = calcTurnInterval(oldAgi, entry.preDelay, entry.stunTime ?? 0) - currentHaste
-        const newTi = calcTurnInterval(agility, entry.preDelay, entry.stunTime ?? 0) - currentHaste
-        // 按比例缩放，保留 AP 回复耗时部分
-        const scaledDelay = Math.max(100, Math.round(oldDelay * (newTi / oldTi)))
-        entry.nextActionAt = entry.scheduledAt + scaledDelay
-        entry.lastAgility = agility
-        entry.haste = currentHaste
+    /**
+     * AP 回复率变化 → 重算 pending 下次行动时间。
+     * 只动回满部分（动作时间部分不变）；初手等未设 actionMs 的条目跳过。
+     */
+    recalcRegenDelay(id: string, regenPerSec: number, ap: number, maxAp: number): void {
+        const entry = this.queue.find(
+            (e): e is TurnEntry & { type: 'character'; actionMs?: number } => e.id === id && e.type === 'character',
+        )
+        if (!entry || entry === this.queue[0] || entry.actionMs === undefined) return
+        const deficit = Math.max(0, maxAp - ap)
+        const regenMs = Math.ceil((deficit / Math.max(0.001, regenPerSec)) * 1000)
+        // 下次行动 = max(动作完成, 当前时刻起回满)
+        entry.nextActionAt = Math.max(entry.scheduledAt + entry.actionMs, this.time + regenMs)
         this.sort()
     }
 

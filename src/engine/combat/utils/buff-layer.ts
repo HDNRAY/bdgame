@@ -6,6 +6,7 @@ import { getBuff, type BuffDef } from '../../../data/buffs'
 import { BattleLog } from '../battle-log'
 import type { TriggerEvent } from '../../entities/trigger'
 import { calcDebuffDuration, calcBuffDuration } from '../../calc/damage'
+import { notifyRegenChanged } from './ap-regen'
 import { round1 } from '../../util/math'
 
 /** 调度 buff 过期事件 */
@@ -18,7 +19,7 @@ export function scheduleBuffExpiry(engine: BattleEngine, layerKey: string, durat
 }
 
 /**
- * 批量应用属性修正，合并为一条日志，自动触发相关副作用（recalcInterval 等）。
+ * 批量应用属性修正，合并为一条日志。
  * @returns 实际应用的 mods 记录（用于 later reversal）
  */
 export function applyAttrMods(
@@ -56,9 +57,9 @@ export function applyAttrMods(
         const ratio = oldMax > 0 ? char.hp / oldMax : 1
         char.hp = Math.round(char.maxHp * Math.min(ratio, 1))
     }
-    // 身法变化 → 重新计算回合间隔
-    if ('agility' in applied) {
-        state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
+    // 推演变化 → AP 回复率变化，重算该角色下次行动时间
+    if ('wisdom' in applied) {
+        notifyRegenChanged(state, char)
     }
     // 属性变化后封顶 hp/ap
     if (char.hp > char.maxHp) char.hp = char.maxHp
@@ -70,10 +71,12 @@ export function applyAttrMods(
 export function revertBuffMods(layer: BuffLayer | undefined, char: Character, state: BattleState): void {
     if (!layer?.mods) return
     const oldMaxHp = char.maxHp
+    let wisdomChanged = false
     for (const [attr, delta] of Object.entries(layer.mods)) {
         char.attrs.modify(attr as AttrName, -(delta as number))
-        if (attr === 'agility') state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
+        if (attr === 'wisdom') wisdomChanged = true
     }
+    if (wisdomChanged) notifyRegenChanged(state, char)
     // 根骨减少 → 按比例减少血量
     if (oldMaxHp > char.maxHp) {
         char.hp = Math.max(1, Math.round(char.hp * (char.maxHp / oldMaxHp)))
@@ -183,7 +186,6 @@ export function applyScaledAttrMods(
         const rounded = round1(v as number)
         details.push(`${ATTR_CN[attr] ?? attr}${rounded > 0 ? '+' : ''}${rounded}`)
         mods[attr] = rounded
-        if (attr === 'agility') state.turn.recalcInterval(char.id, char.attrs.get('agility'), char.getHaste())
     }
     return { mods, details }
 }

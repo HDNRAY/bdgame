@@ -55,6 +55,8 @@ export interface BuffDef extends GameEntity {
     maxApMod?: number
     /** DOT/tick 间隔（ms） */
     tickInterval?: number
+    /** 每秒额外 AP 回复量（用于 recalcRegenDelay 估算回满时间；返回 0 表示不贡献） */
+    apRegenPerSec?: (ctx: BuffHookCtx) => number
     /** tick 伤害回调 */
     onTickDamage?: (ctx: BuffHookCtx) => number
     /** tick 回复回调 */

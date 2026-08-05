@@ -61,10 +61,24 @@ export function calcMoveApCost(distance: number, agility: number): number {
     return Math.ceil(distance / perAp)
 }
 
+/** 身法因子：前摇/后摇/回合间隔的统一缩放（逻辑斯蒂曲线收敛） */
+export function calcAgilityFactor(agility: number): number {
+    return 0.5 + 1.2 / (1 + Math.exp(agility * 0.2 - 1))
+}
+
+/** 前摇（毫秒）= (BASE_PRE_DELAY + extraPreDelay) × 身法因子 */
+export function calcPreDelayMs(agility: number, extraPreDelay = 0): number {
+    return Math.round((BASE_PRE_DELAY + extraPreDelay) * calcAgilityFactor(agility))
+}
+
+/** 后摇（毫秒）= (BASE_STUN_TIME + extraStunTime) × 身法因子 */
+export function calcStunMs(agility: number, extraStunTime = 0): number {
+    return Math.round((BASE_STUN_TIME + extraStunTime) * calcAgilityFactor(agility))
+}
+
 /** 回合间隔: 基础 + 前后摇受身法影响（逻辑斯蒂曲线收敛，低身法不超过 3s） */
 export function calcTurnInterval(agility: number, extraPreDelay = 0, extraStunTime = 0): number {
-    // 逻辑斯蒂: 收敛至 [0.4, 1.28]，AGI=8→~2s, AGI=20→~1.14s（与原值一致）
-    const agiFactor = 0.5 + 1.2 / (1 + Math.exp(agility * 0.2 - 1))
+    const agiFactor = calcAgilityFactor(agility)
     const base = BASE_TURN_INTERVAL
     const epd = Math.round(BASE_PRE_DELAY + extraPreDelay)
     const est = Math.round(BASE_STUN_TIME + extraStunTime)
