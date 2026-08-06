@@ -7,7 +7,7 @@ import { forEachBuffOf } from '../combat/utils'
 import { PositionSystem } from '../combat/position'
 import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
-import { planMovement, type AttackStyle } from './move-planner'
+import { classifyAttackStyle, planMovement, type AttackStyle } from './move-planner'
 import { planSupportActions } from './support-planner'
 import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
@@ -315,6 +315,39 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         // 估算行动后的实际距离
         const preMoveDist = state.position.distance(self.id, enemy.id)
         const postMoveDist = moveDelta !== 0 ? preMoveDist + perAp * moveAp * (moveDelta > 0 ? 1 : -1) : preMoveDist
+
+        // 远程/中程风筝：已在射程内但没到最远 → 用剩余 AP 尽量移到最远（与 planMovement 的目标距离一致）
+        if ((style === 'ranged' || style === 'mid') && postMoveDist >= mainActionRange[0]) {
+            const enemyStyle: AttackStyle =
+                (enemy.build.battleStyle as AttackStyle) ?? classifyAttackStyle(enemy.weaponDef?.range ?? [0, 2])
+            const kiteToMax =
+                style === 'ranged' ||
+                enemyStyle === 'melee' ||
+                (enemyStyle === 'mid' && weapon.range[1] >= (enemy.weaponDef?.range?.[1] ?? 0))
+            if (kiteToMax && postMoveDist < mainActionRange[1] - 0.5) {
+                const rawAp = Math.ceil((mainActionRange[1] - postMoveDist) / perAp)
+                let apUsed = 0
+                for (let a = rawAp; a >= 1; a--) {
+                    const finalDist = postMoveDist + perAp * a
+                    if (finalDist <= mainActionRange[1] + 0.01) {
+                        apUsed = a
+                        break
+                    }
+                }
+                const existingCost = cmds.reduce((sum, c) => {
+                    if (c.type === 'move') return sum + Math.abs(c.bestDistance ?? 0)
+                    if (c.actionId) {
+                        const inst = self.actions.find((a) => a.id === c.actionId)
+                        return sum + (inst ? self.actionApCost(inst.apCost) : 0)
+                    }
+                    return sum
+                }, 0)
+                if (apUsed > 0 && existingCost + apUsed <= apBudget) {
+                    cmds.push({ type: 'move', bestDistance: apUsed })
+                }
+            }
+        }
+
         // 已在招式射程内 → 不动
         if (postMoveDist >= mainActionRange[0] && postMoveDist <= mainActionRange[1]) {
             // 不操作

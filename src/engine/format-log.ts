@@ -187,7 +187,8 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 const targetName = fmtName(e.target, e.snapshot)
                 const text = `${e.actionName ?? e.weapon}(${e.apCost}AP) → ${targetName}`
                 const prefix = isReaction ? '↳ ' : e.isBonus ? '+ ' : '# '
-                const ap = `  | AP${e.apRemaining.toFixed(1)}`
+                // 招式名括号已含 AP 消耗，末尾不再重复剩余 AP
+                const ap = ''
 
                 if (isReaction) {
                     // 反应招式：弹出直到父帧是前缀，然后压栈
@@ -285,7 +286,10 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 }造成${e.final.toFixed(1)}`
                 const f = popTo(sc)
                 if (f) {
-                    if (!f.inline.includes('未命中') && !f.inline.includes('闪避')) {
+                    // 独立附加伤害（雷法/金光等 buff onAfterDealDamage）→ 归到各自来源行
+                    if (e.bonus) {
+                        f.children.push(`${'  '.repeat(f.depth + 2)}↳ [${e.actionName}] ${resultText}`)
+                    } else if (!f.inline.includes('未命中') && !f.inline.includes('闪避')) {
                         f.inline += `  » ${resultText}`
                     }
                 } else {

@@ -26,15 +26,20 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'dmg_reduce',
         name: '乌铠',
-        description: '消耗AP减免斩/刺/钝伤害。',
+        description: '消耗AP减免拳脚/斩/刺/钝伤害（1AP减免4点，每场最多20次）。',
         tags: ['defense'],
-        onTakeDamage: ({ final, target, source, engine }) => {
+        onTakeDamage: ({ final, target, source, engine, layer }) => {
             if (target.ap < 1 || final <= 4) return final
             const act = source
-            if (!act?.tags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'unarmed')) return final
+            if (!act?.tags?.some((t: Tag) => t === 'slash' || t === 'pierce' || t === 'unarmed' || t === 'blunt'))
+                return final
+            // 每场最多减免 20 次
+            const uses = (layer.extra?.uses as number | undefined) ?? 0
+            if (uses >= 20) return final
             target.spendAp(1)
-            engine?.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免2点`, actorId: target.id })
-            return Math.max(0, Math.round((final - 2) * 10) / 10)
+            layer.extra = { ...(layer.extra ?? {}), uses: uses + 1 }
+            engine?.emitLog({ type: 'system', message: `[乌铠] ${target.name} 消耗1AP减免4点`, actorId: target.id })
+            return Math.max(0, Math.round((final - 4) * 10) / 10)
         },
     },
     {

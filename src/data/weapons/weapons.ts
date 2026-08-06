@@ -202,7 +202,7 @@ export const WEAPON_DB: WeaponDef[] = [
         summon: {
             id: 'hover_drone',
             name: '无人机',
-            maxCount: (wis) => Math.min(3, 1 + Math.round(wis / 6)),
+            maxCount: (wis) => Math.min(5, 1 + Math.round(wis / 4)),
             actionId: '_drone_shot',
         },
     },

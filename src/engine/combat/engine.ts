@@ -720,6 +720,9 @@ export class BattleEngine {
         triggered = false,
     ): void {
         const tMs = this.#tMs
+        // 召唤物攻击不触发被命中反应（on_was_hit，如疾风迅雷的雷闪反击）
+        // 以招式 summon tag 判定（所有召唤招式均带该 tag，覆盖武器/奇物/未来新增）
+        const isSummonAttack = action.tags.includes('summon')
 
         // 效果在招式自身作用域处理（不新增 scope 层；渲染层按 scope 深度 +1 缩进效果行）
         const ignoresParry = action.effects?.some((e) => e.type === 'ignore_parry')
@@ -749,7 +752,8 @@ export class BattleEngine {
         }
 
         this.emit('on_hit', self, enemy)
-        this.emit('on_was_hit', enemy, self)
+        // 召唤物攻击不触发被命中反应
+        if (!isSummonAttack) this.emit('on_was_hit', enemy, self)
         // 按攻击方招式 tag 命中触发
         if (action.tags.includes('melee')) this.emit('on_melee', enemy, self)
         if (action.tags.includes('range')) this.emit('on_range', enemy, self)

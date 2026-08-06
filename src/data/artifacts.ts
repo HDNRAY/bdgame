@@ -204,16 +204,16 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'qi_guard',
         name: '吞炁囊',
-        description: '开局凝聚炁盾，吸收炁招式伤害2点，共21次。',
+        description: '开局凝聚炁盾，吸收炁招式伤害2点，共40次。',
         tags: ['trigger', 'defense', 'qi'],
         triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 21 }] },
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 40 }] },
         ],
     },
     {
         id: 'iron_will',
         name: '乌铠',
-        description: '受到超过5点的斩/刺/钝伤害时，消耗1AP减少3点。',
+        description: '受到超过5点的拳脚/斩/刺/钝伤害时，消耗1AP减少3点。',
         tags: ['trigger', 'defense', 'inherent'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dmg_reduce' }] }],
     },

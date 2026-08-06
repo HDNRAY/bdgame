@@ -154,6 +154,8 @@ export type BattleEvent =
           isParried: boolean
           final: number
           blocked: number
+          /** 独立附加伤害（buff onAfterDealDamage，如雷法/金光） */
+          bonus?: boolean
           snapshot: BattleSnapshot
       }
     | { type: 'defeat'; loser: string; winner: string; snapshot: BattleSnapshot }

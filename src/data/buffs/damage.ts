@@ -134,7 +134,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'golden_light',
         name: '金光',
-        description: '金光咒护体，受伤时消耗1层缠劲减免3点；非御物攻击消耗1层缠劲附加2点伤害。',
+        description: '金光咒护体，受伤时消耗1层缠劲减免2点；非御物攻击消耗1层缠劲附加2点伤害。',
         tags: ['qi', 'defense', 'damage'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, engine }) => {
@@ -142,19 +142,15 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             target.spendChan(1)
             engine?.emitLog({
                 type: 'system',
-                message: `[金光咒] ${target.name} 消耗1层缠劲减免3点（剩${target.chan}层）`,
+                message: `[金光咒] ${target.name} 消耗1层缠劲减免2点（剩${target.chan}层）`,
                 actorId: target.id,
             })
-            return Math.max(0, Math.round((final - 3) * 10) / 10)
+            return Math.max(0, Math.round((final - 2) * 10) / 10)
         },
-        onAfterDealDamage: ({ source, attacker, engine }) => {
+        onAfterDealDamage: ({ source, attacker }) => {
             if (source?.tags?.includes('imperial') || attacker.chan < 1) return 0
             attacker.spendChan(1)
-            engine?.emitLog({
-                type: 'system',
-                message: `[金光咒] ${attacker.name} 消耗1层缠劲，附加2点伤害`,
-                actorId: attacker.id,
-            })
+            // 附加伤害由 bonus_damage 日志行展示（↳ [金光] 造成X），不在此重复打 buff 描述
             return 2
         },
     },

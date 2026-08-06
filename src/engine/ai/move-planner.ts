@@ -118,8 +118,8 @@ export function planMovement(
                 }
             }
         } else {
-            // 需要远离：从当前距离往 actionRange[1] 找（只试范围内距离）
-            for (let d = Math.max(Math.ceil(distance) + 1, actionRange[0]); d <= actionRange[1]; d++) {
+            // 需要远离（风筝）：从远到近找可达距离，尽量拉满风筝距离（最大化与对手间隔）
+            for (let d = actionRange[1]; d >= Math.max(Math.ceil(distance) + 1, actionRange[0]); d--) {
                 const altDelta = d - distance
                 const altMoveAp = Math.ceil(Math.abs(altDelta) / perAp)
                 if (altMoveAp + chosenCost <= apRemaining) {

@@ -174,7 +174,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['range', 'summon'],
         getRange: (_wr, self) => [1, 1 + Math.round((self?.attrs.get('wisdom') ?? 1) / 2)] as [number, number],
         effects: [{ type: 'fixed_damage', value: 3 }],
-        // 无破甲，前后摇比无人机（500/700）更低以补偿
         extraPreDelay: 400,
         extraStunTime: 600,
     },
@@ -185,9 +184,9 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 0,
         tags: ['range', 'summon'],
-        effects: [{ type: 'fixed_damage', value: 2, piercing: 1 }],
+        effects: [{ type: 'fixed_damage', value: 1, piercing: 1 }],
         extraPreDelay: 500,
-        extraStunTime: 700,
+        extraStunTime: 600,
     },
     {
         id: '_silk_shot',

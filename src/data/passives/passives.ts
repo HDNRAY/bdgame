@@ -224,7 +224,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'godspeed',
         name: '疾风迅雷',
-        description: '神经电刺激，闪避后蓄势，被击中时雷闪反击。',
+        description: '神经电刺激，闪避后蓄势；被击中时雷闪反击。',
         tags: ['passive', 'buff', 'electric'],
         triggers: [
             { condition: { type: 'on_dodge' }, effects: [{ type: 'add_buff', buffId: 'thunder_swift', stacks: 1 }] },

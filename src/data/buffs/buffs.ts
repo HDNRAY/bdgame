@@ -1034,7 +1034,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'mingjing_zhishui_buff',
         name: '明镜止水',
-        description: '心如明镜，神清目明。招式AP消耗-20%，但推演降低。',
+        description: '心如明镜，神清目明。招式AP消耗-15%，但推演降低。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -1050,7 +1050,7 @@ export const BUFF_DB: BuffDef[] = [
         onActionCost: ({ source }) => {
             const act = source as ActionDefinition
             if (!act) return 0
-            return -act.apCost * 0.2
+            return -act.apCost * 0.15
         },
     },
     // ── 残影步·虚影 ──

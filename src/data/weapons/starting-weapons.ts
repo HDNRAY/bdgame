@@ -69,7 +69,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         range: [0, 6],
         // 御物耗炁：每秒扣 0.7AP（3 珠）。珠 = 纯伤害中速
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.6 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }] },
         ],
         summon: {
             id: 'orb',

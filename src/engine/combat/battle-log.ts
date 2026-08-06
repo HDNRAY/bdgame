@@ -145,6 +145,7 @@ export class BattleLog {
                     event.isParried,
                     event.final,
                     event.blocked,
+                    event.tags?.includes('bonus_damage'),
                     tMs,
                     snapshot,
                 )
@@ -329,6 +330,7 @@ export class BattleLog {
         isParried: boolean,
         final: number,
         blocked: number,
+        bonus: boolean,
         timelineMs: number,
         snapshot: BattleSnapshot,
     ): void {
@@ -345,6 +347,7 @@ export class BattleLog {
                 isParried,
                 final,
                 blocked,
+                bonus,
                 snapshot,
             },
             timelineMs,
