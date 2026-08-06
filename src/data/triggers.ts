@@ -4,7 +4,8 @@ import type { TriggerCondition } from '../engine/entities/trigger'
 export const TRIGGER_CONDITIONS: TriggerCondition[] = [
     { id: 'on_parry', type: 'on_parry' },
     { id: 'on_dodged', type: 'on_dodged' },
-    { id: 'on_hit', type: 'on_hit' },
+    { id: 'on_summon_hit', type: 'on_summon_hit' },
+    { id: 'on_was_crit', type: 'on_was_crit' },
     {
         id: 'hp_below_30',
         type: 'hp_below',

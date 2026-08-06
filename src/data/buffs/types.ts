@@ -103,6 +103,8 @@ export interface BuffDef extends GameEntity {
     onCritChance?: (ctx: BuffHookCtx) => number
     /** 降低被暴击率钩子（遍历防御方 buff，返回加算值，负=更难被暴击） */
     onCritTakenChance?: (ctx: BuffHookCtx) => number
+    /** 降低被暴击伤害钩子（遍历防御方 buff，返回加算值，负=更难被暴击伤害，如 -0.5 = 爆伤从 1.5 降到 1.0） */
+    onCritTakenDamage?: (ctx: BuffHookCtx) => number
     /** 暴击伤害修正钩子（applyDamage 暴击判定时自动调用，返回加算值） */
     onCritDamage?: (ctx: BuffHookCtx) => number
     /** 暴击伤害后钩子（计算完爆伤后、实施伤害前调用，返回要扣除的伤害量，用于将爆伤转为其他效果）。 */

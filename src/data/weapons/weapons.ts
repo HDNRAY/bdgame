@@ -169,7 +169,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'qianji',
         name: '千机',
         description: '漆黑纳米长棍，可在相似尺寸的固态构造间快速切换——箫、笛、细剑、长短棍、手杖乃至遮阳伞。',
-        tags: ['melee', 'pierce', 'parry', 'slash', 'blunt', 'unarmed', 'one_handed'],
+        tags: ['melee', 'pierce', 'parry', 'slash', 'blunt', 'unarmed', 'polearm', 'one_handed'],
         range: [0, 3],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'qianji_crit' }] }],
     },

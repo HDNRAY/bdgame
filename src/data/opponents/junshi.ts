@@ -25,7 +25,7 @@ export const JUNSHI: OpponentDef = {
     ],
     actionConfigs: [
         { actionId: 'condense_shield', triggerId: 'on_took_damage' },
-        { actionId: 'agility_steal', triggerId: 'on_hit' },
+        { actionId: 'agility_steal', triggerId: 'on_summon_hit' },
         { actionId: 'summon_haste', triggerId: 'on_parried' },
         { actionId: 'restore_ap', triggerId: 'on_dodged' },
     ],

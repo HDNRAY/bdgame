@@ -25,6 +25,6 @@ export const DOCTOR: OpponentDef = {
     ],
     actionConfigs: [
         { actionId: 'scan_analysis', triggerId: 'turn_start' },
-        { actionId: 'summon_haste', triggerId: 'on_hit' },
+        { actionId: 'summon_haste', triggerId: 'on_summon_hit' },
     ],
 }

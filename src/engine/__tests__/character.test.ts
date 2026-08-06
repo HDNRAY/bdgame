@@ -112,7 +112,7 @@ describe('Character', () => {
             [
                 { actionId: 'thrust', triggerId: 'on_dodge' },
                 { actionId: 'jab', triggerId: 'on_parry' },
-                { actionId: 'straight_punch', triggerId: 'on_hit' },
+                { actionId: 'straight_punch', triggerId: 'on_dodged' },
             ],
         )
         // wisdom 4 → floor(4/4)=1 slot

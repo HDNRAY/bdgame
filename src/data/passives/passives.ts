@@ -765,10 +765,12 @@ export const PASSIVES: Passive[] = [
     {
         id: 'ni_zhuan_jing_mai',
         name: '经脉逆转之术',
-        description: '逆转经脉运行，概率抵抗麻痹，降低被暴击率。',
-        tags: ['passive', 'defense'],
+        description: '逆转经脉运行，概率抵抗麻痹，降低被暴击伤害，被暴击时反击。',
+        tags: ['passive', 'defense', 'counter'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ni_zhuan_jing_mai' }] },
+            // 被暴击 → 无 tag 通用招反击（任何武器可用）
+            { condition: { type: 'on_was_crit' }, actionId: '_generic_counter' },
         ],
     },
     {
@@ -786,7 +788,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'enhanced_vision',
         name: '超强感知',
-        description: '失聪后锻炼出的超强视觉与触觉。洞察+2，招架时以敏锐感知进一步化解伤害。',
+        description: '失聪后锻炼出的超强视觉与触觉。洞察+4，招架时以敏锐感知进一步化解伤害。',
         tags: ['passive', 'buff', 'defense'],
         effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
         triggers: [

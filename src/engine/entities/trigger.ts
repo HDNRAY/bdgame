@@ -6,6 +6,8 @@ import type { BattleEngine } from '../combat/engine'
 export type TriggerEvent =
     | 'on_attack'
     | 'on_hit'
+    | 'on_summon_hit'
+    | 'on_was_crit'
     | 'on_dealt_damage'
     | 'on_was_hit'
     | 'on_took_damage'

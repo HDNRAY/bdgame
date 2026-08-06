@@ -479,7 +479,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'ni_zhuan_jing_mai',
         name: '逆转经脉',
-        description: '逆转经脉运行，概率抵抗麻痹，降低被暴击率。',
+        description: '逆转经脉运行，概率抵抗麻痹，降低被暴击伤害。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -488,7 +488,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             const { success } = calcRoll(0.6)
             if (success) return 0
         },
-        onCritTakenChance: () => -0.5,
+        // 减爆伤：暴击伤害倍率 1.5 → 1.0（完全不疼）
+        onCritTakenDamage: () => -0.5,
     },
     {
         id: 'enhanced_vision_buff',

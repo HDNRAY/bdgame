@@ -107,9 +107,20 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'electric', 'internal'],
+        tags: ['trigger', 'electric', 'counter', 'internal'],
         target: 'enemy',
         effects: [{ type: 'damage', scaling: { insight: 0.2 }, base: 2 }],
+    },
+    {
+        // 通用反击（无 tag，任何武器可用）：逆转经脉等被暴击反击直接引用
+        id: '_generic_counter',
+        name: '顺势反击',
+        description: '',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['trigger', 'counter', 'internal'],
+        target: 'enemy',
+        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, base: 1 }],
     },
     {
         id: '_tiger_eye_foresight',

@@ -757,6 +757,8 @@ export class BattleEngine {
         }
 
         this.emit('on_hit', self, enemy)
+        // 召唤物攻击命中 → 专用触发事件（御物流专属，避免 on_hit 被玩家滥用太 op）
+        if (isSummonAttack) this.emit('on_summon_hit', self, enemy)
         // 召唤物攻击不触发被命中反应
         if (!isSummonAttack) this.emit('on_was_hit', enemy, self)
         // 按攻击方招式 tag 命中触发

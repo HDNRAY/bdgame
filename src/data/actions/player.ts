@@ -114,7 +114,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['unarmed', 'stun', 'qi', 'range'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
         ],
         getRange: () => [0, 6],
@@ -493,7 +493,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['melee', 'blunt', 'pierce', 'debuff'],
         effects: [
             { type: 'add_debuff', buffId: 'paralyze', stacks: 3, chance: 1 },
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.3, dexterity: 0.3 } },
         ],
     },
     {
@@ -602,7 +602,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             return 1
         },
         effects: [
-            { type: 'short_dash', maxDistance: 4 },
+            { type: 'short_dash', maxDistance: 3 },
             { type: 'damage', scaling: { strength: 0.6, agility: 0.4, dexterity: 0.4 } },
         ],
     },
@@ -782,9 +782,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'rod_thrust',
         name: '棍戳',
         description: '长棍直戳，力透千钧。',
-        requiredTags: ['polearm'],
+        requiredTags: ['blunt', 'polearm'],
         apCost: 2,
-        tags: ['blunt', 'pierce', 'polearm'],
+        tags: ['blunt', 'polearm'],
         onActionCritChance: (base) => base + 0.2,
         effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
     },

@@ -195,6 +195,8 @@ export function applyDamage({
     if (isCrit && !suppressTriggers) {
         consumeBuffsByTrigger(attacker.id, engine, 'on_crit')
         engine.emit('on_crit', attacker, target)
+        // 被暴击事件（防御方触发，逆转经脉等反击）；召唤物攻击不触发反应
+        if (!act?.tags.includes('summon')) engine.emit('on_was_crit', target, attacker)
         // 攻击方 buff onCritical 钩子（在招式作用域内，渲染层 +1 缩进）
         forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
             if (!def?.onCritical) return
@@ -437,6 +439,20 @@ function resolveCrit(
         forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
             if (def?.onCritDamage)
                 critDmgMod += def.onCritDamage({
+                    final: damage,
+                    raw,
+                    target,
+                    attacker,
+                    engine,
+                    state: engine.state,
+                    layer,
+                    source: act,
+                })
+        })
+        // 防御方减爆伤（负=更难被暴击伤害，如逆转经脉 -0.5 → 爆伤 1.5→1.0）
+        forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
+            if (def?.onCritTakenDamage)
+                critDmgMod += def.onCritTakenDamage({
                     final: damage,
                     raw,
                     target,
