@@ -18,8 +18,8 @@ export const SECT: StoryDef = {
     insertions: [],
     reward: { type: 'artifact', id: 'innate_seed' },
     onNode: (state, idx) => {
-        // 天生道种：每 3 节点 +1 修炼点（2,5,8,11,14,17,20,23,26,29,32 = 11 点）
-        if (idx >= 2 && idx % 3 === 2) {
+        // 天生道种：每 3 节点 +1 修炼点（2,5,8,11,14,17,20,23 = 8 点）
+        if (idx >= 2 && idx % 3 === 2 && idx <= 23) {
             state.unspentPoints += 1
         }
     },

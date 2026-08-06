@@ -2,6 +2,7 @@ import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../../data/weapons/weapons'
 import { getBuff } from '../../data/buffs'
+import { forEachBuffOf } from '../combat/utils'
 import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
 
@@ -82,9 +83,14 @@ function hasActiveBuff(
 ): boolean {
     for (const eff of def.effects ?? []) {
         if (eff.type === 'stat_buff' || eff.type === 'stat_multiply') {
-            for (const [k] of state.pendingBuffs) {
-                if (k.startsWith(`${eff.type}::${attacker.id}`)) return true
-            }
+            let hasBuff = false
+            forEachBuffOf(state.pendingBuffs, attacker.id, (_d, _l, buffId) => {
+                if (buffId === eff.type) {
+                    hasBuff = true
+                    return false
+                }
+            })
+            if (hasBuff) return true
         }
         if (eff.type === 'add_buff' && eff.buffId) {
             const key = `${eff.buffId}::${attacker.id}`

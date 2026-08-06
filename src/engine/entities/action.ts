@@ -42,7 +42,6 @@ export type EffectDef =
     | { type: 'stat_multiply'; stat: string; multiplier: number }
     | { type: 'stat_buff'; attrs: Record<string, number>; duration?: BuffDuration; durationMs?: number }
     | { type: 'restore_ap'; value: number }
-    | { type: 'summon_speed'; value: number }
     | { type: 'stat_transfer'; stat: string; value: number; duration: number }
     // 义体效果
     | { type: 'max_ap_mod'; value: number }

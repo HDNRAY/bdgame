@@ -2,6 +2,7 @@ import type { Character } from '../../entities/character'
 import type { BattleState } from '../types'
 import { calcApRegenPerSec } from '../../calc/damage'
 import { getBuff } from '../../../data/buffs'
+import { forEachBuffOf } from './buff-loop'
 
 /** 该 buff 是否影响 AP 回复（具备 apRegenPerSec 钩子）——能力检查，不认 ID */
 export function affectsApRegen(buffId: string): boolean {
@@ -15,10 +16,7 @@ export function affectsApRegen(buffId: string): boolean {
 export function calcEffectiveApRegenPerSec(state: BattleState, char: Character): number {
     const base = calcApRegenPerSec(char.attrs.get('wisdom'))
     let extra = 0
-    for (const [key, layer] of state.pendingBuffs) {
-        const [buffId, charId] = key.split('::')
-        if (charId !== char.id) continue
-        const def = getBuff(buffId)
+    forEachBuffOf(state.pendingBuffs, char.id, (def, layer) => {
         const contrib = def?.apRegenPerSec?.({
             final: 0,
             raw: 0,
@@ -28,7 +26,7 @@ export function calcEffectiveApRegenPerSec(state: BattleState, char: Character):
             layer,
         })
         if (contrib) extra += contrib
-    }
+    })
     return base + extra
 }
 

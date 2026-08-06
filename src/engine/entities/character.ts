@@ -15,7 +15,7 @@ import { getAction as getActionDef } from '../../data/actions'
 import { getWeapon } from '../../data/weapons/weapons'
 import { getPassive } from '../../data/passives'
 import { getArtifact } from '../../data/artifacts'
-import { getBuff } from '../../data/buffs'
+import { forEachBuffOf } from '../combat/utils'
 import { TRIGGER_CONDITIONS } from '../../data/triggers'
 import { MAX_CHAN } from '../constants'
 import type { BattleEngine } from '../combat/engine'
@@ -397,10 +397,7 @@ export class Character {
 
     /** 触发 onHpChange 钩子 */
     #fireHpChange(engine: BattleEngine): void {
-        for (const [key, layer] of engine.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== this.id) continue
-            const def = getBuff(parts[0])
+        forEachBuffOf(engine.state.pendingBuffs, this.id, (def, layer) => {
             if (def?.onHpChange) {
                 def.onHpChange({
                     final: 0,
@@ -412,7 +409,7 @@ export class Character {
                     layer,
                 })
             }
-        }
+        })
     }
     isAlive(): boolean {
         return this.hp > 0
@@ -502,10 +499,6 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
         char.statRestrictionChecks.push(e.check)
     },
     // 义体效果（构造期执行）
-    max_ap_mod(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'max_ap_mod' }>
-        char.maxApMod += e.value
-    },
     max_hp_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'max_hp_mod' }>
         char.maxHpMod += e.value

@@ -1,6 +1,6 @@
 import type { BattleState } from '../../engine/combat/types'
 import type { Character } from '../../engine/entities/character'
-import { getBuff } from '../../data/buffs'
+import { forEachBuffOf } from '../../engine/combat/utils'
 
 /**
  * 招式的必要条件 — AI 在选择该招式前必须满足的条件
@@ -67,14 +67,16 @@ export function checkCondition(cond: RequiredCondition, self: Character, state: 
             return enemy ? enemy.hp / enemy.maxHp > cond.ratio : false
         case 'enemy_buff_not_active':
             return !state.pendingBuffs.has(`${cond.buffId}::${enemy?.id}`)
-        case 'no_buff_with_tag':
-            for (const [key] of state.pendingBuffs) {
-                const parts = key.split('::')
-                if (parts.length < 2 || parts[1] !== self.id) continue
-                const buff = getBuff(parts[0])
-                if (buff?.tags.includes(cond.tag as import('../../engine/entities/tag').Tag)) return false
-            }
-            return true
+        case 'no_buff_with_tag': {
+            let hasTag = false
+            forEachBuffOf(state.pendingBuffs, self.id, (buff) => {
+                if (buff?.tags.includes(cond.tag as import('../../engine/entities/tag').Tag)) {
+                    hasTag = true
+                    return false
+                }
+            })
+            return !hasTag
+        }
         case 'chan_above':
             return self.chan >= cond.value
     }

@@ -41,10 +41,6 @@ export interface BattleState {
     pendingBuffs: Map<string, BuffLayer>
     lastWinner?: string
     actionCount: number
-    /** 当前行动内累计耗时偏移（用于按耗时分散事件时间戳） */
-    actionTimeOffset: number
-    /** 当前动作的前摇偏移：attack_start 之后的事件落在 +前摇 */
-    actionPreOffset: number
     /** 防止触发递归 */
     isEmitting: boolean
     /** 最近一次移动的位移量（on_opponent_move 用） */
@@ -130,9 +126,9 @@ export type BattleEvent =
           apCost: number
           apRemaining: number
           snapshot: BattleSnapshot
-          indent?: number
           isTriggered?: boolean
           isBonus?: boolean
+          summonName?: string
       }
     | {
           type: 'check_hit'
@@ -161,7 +157,7 @@ export type BattleEvent =
           snapshot: BattleSnapshot
       }
     | { type: 'defeat'; loser: string; winner: string; snapshot: BattleSnapshot }
-    | { type: 'system'; message: string; actor?: string; indent?: number; snapshot: BattleSnapshot }
+    | { type: 'system'; message: string; actor?: string; snapshot: BattleSnapshot }
 
 // ── Turn types ──
 export type SystemEventType = 'buff_end' | 'tick_poison' | 'tick_burn' | 'tick_buff' | 'stun_reset' | 'permanent_burn'
@@ -177,7 +173,6 @@ interface TurnEntryBase {
 export type TurnEntry =
     | (TurnEntryBase & {
           type: 'character'
-          /** 该次调度的动作时间部分（不含 AP 回满），供 recalcRegenDelay 用 */ actionMs?: number
       })
     | (TurnEntryBase & { type: 'system'; systemEventType: SystemEventType })
     | (TurnEntryBase & { type: 'summon'; ownerId: string })

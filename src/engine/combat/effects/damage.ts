@@ -4,8 +4,7 @@ import type { ActionDefinition } from '../../entities/action'
 import type { GameEntity } from '../../entities/base'
 import { calcCritChance, calcFinalDamage, calcParriedDamage, calcParryChance, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../../data/weapons/weapons'
-import { getBuff } from '../../../data/buffs'
-import { consumeBuffsByTrigger } from '../utils'
+import { consumeBuffsByTrigger, forEachBuffOf } from '../utils'
 
 // ── Options 类型 ──
 
@@ -151,11 +150,8 @@ export function applyDamage({
         const damage = afterParry + totalPiercing
         const critDamage = afterCrit + totalPiercing
         let converted = 0
-        for (const [key, layer] of engine.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== attacker.id) continue
-            const def = getBuff(parts[0])
-            if (!def?.onAfterCritDamage) continue
+        forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
+            if (!def?.onAfterCritDamage) return
             converted += def.onAfterCritDamage({
                 damage,
                 critDamage,
@@ -168,7 +164,7 @@ export function applyDamage({
                 layer,
                 source: act,
             })
-        }
+        })
         if (converted > 0) {
             final -= Math.min(converted, critDamage - damage)
         }
@@ -198,13 +194,9 @@ export function applyDamage({
     if (isCrit) {
         consumeBuffsByTrigger(attacker.id, engine, 'on_crit')
         engine.emit('on_crit', attacker, target)
-        // 攻击方 buff onCritical 钩子（缩进一层）
-        engine.state.log.indentDepth++
-        for (const [key, layer] of engine.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== attacker.id) continue
-            const def = getBuff(parts[0])
-            if (!def?.onCritical) continue
+        // 攻击方 buff onCritical 钩子（在招式作用域内，渲染层 +1 缩进）
+        forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
+            if (!def?.onCritical) return
             def.onCritical({
                 final,
                 raw,
@@ -215,16 +207,12 @@ export function applyDamage({
                 layer,
                 source: act,
             })
-        }
-        engine.state.log.indentDepth--
+        })
     }
 
     // ── buff 独立追加伤害（onAfterDealDamage） ──
-    for (const [key, layer] of engine.state.pendingBuffs) {
-        const parts = key.split('::')
-        if (parts.length < 2 || parts[1] !== attacker.id) continue
-        const def = getBuff(parts[0])
-        if (!def?.onAfterDealDamage) continue
+    forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
+        if (!def?.onAfterDealDamage) return
         const ctx = {
             final,
             raw,
@@ -233,7 +221,7 @@ export function applyDamage({
             engine,
             state: engine.state,
             layer,
-            buffOwnerId: parts[1],
+            buffOwnerId: attacker.id,
             source: def,
         }
         const bonusResult = def.onAfterDealDamage(ctx)
@@ -262,7 +250,7 @@ export function applyDamage({
                 labelId: def.id,
             })
         }
-    }
+    })
 }
 
 // ── 招架 ──
@@ -276,13 +264,17 @@ function resolveParry(
     act: ActionDefinition | undefined,
 ): { parried: boolean; final: number } {
     // ── 1. 攻击方能否被招架 ──
-    const cannotBeParried = [...engine.state.pendingBuffs].some(([k]) => {
-        const parts = k.split('::')
-        if (parts.length < 2 || parts[1] !== attacker.id) return false
-        const def = getBuff(parts[0])
-        if (!def?.onCanBeParried) return false
-        return !def.onCanBeParried({ self: attacker, engine })
-    })
+    const cannotBeParried = (() => {
+        let result = false
+        forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def) => {
+            if (!def?.onCanBeParried) return
+            if (!def.onCanBeParried({ self: attacker, engine })) {
+                result = true
+                return false
+            }
+        })
+        return result
+    })()
     // 招式自带无视招架
     const actionIgnoresParry = act?.effects?.some((e) => e.type === 'ignore_parry')
     if (cannotBeParried || actionIgnoresParry) return { parried: false, final: raw }
@@ -292,18 +284,15 @@ function resolveParry(
     const hasParryTag = weapon.tags.includes('parry')
 
     let buffCanParry: boolean | undefined
-    for (const [key] of engine.state.pendingBuffs) {
-        const parts = key.split('::')
-        if (parts.length < 2 || parts[1] !== target.id) continue
-        const def = getBuff(parts[0])
-        if (!def?.onCanParry) continue
+    forEachBuffOf(engine.state.pendingBuffs, target.id, (def) => {
+        if (!def?.onCanParry) return
         const result = def.onCanParry({ self: target, engine })
         if (!result) {
             buffCanParry = false
-            break
+            return false
         }
         buffCanParry = true
-    }
+    })
 
     const canParry = buffCanParry ?? hasParryTag
     if (!canParry) return { parried: false, final: raw }
@@ -314,11 +303,8 @@ function resolveParry(
         pc = pc + target.parryMod
     }
     if (act) {
-        for (const [key, layer] of engine.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== target.id) continue
-            const def = getBuff(parts[0])
-            if (!def?.onParryChance) continue
+        forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
+            if (!def?.onParryChance) return
             const bonus = def.onParryChance({
                 final: raw,
                 raw,
@@ -330,7 +316,7 @@ function resolveParry(
                 source: act,
             })
             pc = pc + bonus
-        }
+        })
     }
 
     // ── 3. 摇奖 ──
@@ -349,13 +335,9 @@ function resolveParry(
     consumeBuffsByTrigger(target.id, engine, 'on_parry')
     engine.emit('on_parry', target, attacker)
     engine.emit('on_parried', attacker, target)
-    // 防御方 buff onParried 钩子（缩进一层）
-    engine.state.log.indentDepth++
-    for (const [key, layer] of engine.state.pendingBuffs) {
-        const parts = key.split('::')
-        if (parts.length < 2 || parts[1] !== target.id) continue
-        const def = getBuff(parts[0])
-        if (!def?.onParried) continue
+    // 防御方 buff onParried 钩子（在招式作用域内，渲染层 +1 缩进）
+    forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
+        if (!def?.onParried) return
         def.onParried({
             final: raw,
             raw,
@@ -366,18 +348,14 @@ function resolveParry(
             state: engine.state,
             source: act,
         })
-    }
-    engine.state.log.indentDepth--
+    })
 
     // ── 5. 伤害减免 ──
     let final = calcParriedDamage(raw, target.attrs.get('strength'))
     if (act) {
         // 目标方 buff 修正招架减伤
-        for (const [key, layer] of engine.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== target.id) continue
-            const def = getBuff(parts[0])
-            if (!def?.onParryReduction) continue
+        forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
+            if (!def?.onParryReduction) return
             final = def.onParryReduction({
                 final,
                 raw,
@@ -388,13 +366,10 @@ function resolveParry(
                 layer,
                 source: act,
             })
-        }
+        })
         // 攻击方 buff 修正招架穿透（如玄铁剑·重剑无锋、霸刀）
-        for (const [key, layer] of engine.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== attacker.id) continue
-            const def = getBuff(parts[0])
-            if (!def?.onParryPenetration) continue
+        forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
+            if (!def?.onParryPenetration) return
             final = def.onParryPenetration({
                 final,
                 raw,
@@ -405,7 +380,7 @@ function resolveParry(
                 layer,
                 source: act,
             })
-        }
+        })
     }
     final = Math.round(final * 10) / 10
     return { parried: true, final }
@@ -423,11 +398,8 @@ function resolveCrit(
     act: ActionDefinition | undefined,
 ): { isCrit: boolean; final: number } {
     let bonus = 0
-    for (const [key, layer] of engine.state.pendingBuffs) {
-        const parts = key.split('::')
-        if (parts.length < 2 || parts[1] !== attacker.id) continue
-        if (!act) break
-        const def = getBuff(parts[0])
+    forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
+        if (!act) return false
         if (def?.onCritChance)
             bonus += def.onCritChance({
                 final: damage,
@@ -439,12 +411,9 @@ function resolveCrit(
                 layer,
                 source: act,
             })
-    }
+    })
     // 遍历防御方 buff，降低被暴击率
-    for (const [key, layer] of engine.state.pendingBuffs) {
-        const parts = key.split('::')
-        if (parts.length < 2 || parts[1] !== target.id) continue
-        const def = getBuff(parts[0])
+    forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
         if (def?.onCritTakenChance)
             bonus += def.onCritTakenChance({
                 final: damage,
@@ -456,7 +425,7 @@ function resolveCrit(
                 layer,
                 source: act,
             })
-    }
+    })
     let critChance = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), bonus)
     if (act?.onActionCritChance) critChance = act.onActionCritChance(critChance)
     const critRoll = calcRoll(critChance)
@@ -464,10 +433,7 @@ function resolveCrit(
 
     let critDmgMod = 0
     if (act) {
-        for (const [key, layer] of engine.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== attacker.id) continue
-            const def = getBuff(parts[0])
+        forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
             if (def?.onCritDamage)
                 critDmgMod += def.onCritDamage({
                     final: damage,
@@ -479,7 +445,7 @@ function resolveCrit(
                     layer,
                     source: act,
                 })
-        }
+        })
         if (act.onActionCritDamage) critDmgMod += act.onActionCritDamage(critDmgMod, engine.state, attacker)
     }
     engine.emitLog({ type: 'check_crit', sourceId: attacker.id, critChance, roll: critRoll.roll, result: isCrit })
@@ -501,12 +467,8 @@ function applyDamageModifiers({
     triggered,
 }: ApplyDamageModifiersOptions): { damage: number; piercing: number } {
     let piercing = 0
-    for (const [key, layer] of engine.state.pendingBuffs) {
-        const parts = key.split('::')
-        if (parts.length < 2) continue
-        if (parts[1] !== target.id && parts[1] !== attacker.id) continue
-        const def = getBuff(parts[0])
-        if (!source) continue
+    forEachBuffOf(engine.state.pendingBuffs, [target.id, attacker.id], (def, layer, _b, _k, ownerId) => {
+        if (!source) return
         const ctx = {
             final,
             raw,
@@ -515,12 +477,12 @@ function applyDamageModifiers({
             engine,
             state: engine.state,
             layer,
-            buffOwnerId: parts[1],
+            buffOwnerId: ownerId,
             source,
             triggered,
         }
         // 独立追加伤害不触发攻击者的 onDealDamage（防止守宫砂等重复计数）
-        if (!bonus && parts[1] === attacker.id && def?.onDealDamage) {
+        if (!bonus && ownerId === attacker.id && def?.onDealDamage) {
             const result = def.onDealDamage(ctx)
             if (typeof result === 'object') {
                 final = result.normal
@@ -529,9 +491,9 @@ function applyDamageModifiers({
                 final = result
             }
         }
-        if (parts[1] === target.id && def?.onTakeDamage) {
+        if (ownerId === target.id && def?.onTakeDamage) {
             final = def.onTakeDamage(ctx)
         }
-    }
+    })
     return { damage: final, piercing }
 }

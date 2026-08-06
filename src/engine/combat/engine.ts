@@ -3,15 +3,9 @@ import { PositionSystem } from './position'
 import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
 import { getWeapon } from '../../data/weapons/weapons'
-import {
-    calcSummonInterval,
-    calcApRegen,
-    calcApRegenPerSec,
-    calcActionDurationMs,
-    calcPreDelayMs,
-    calcStunMs,
-} from '../calc/damage'
+import { calcSummonInterval, calcApRegen, calcActionDurationMs, MIN_TURN_DELAY_MS } from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
+import { calcEffectiveApRegenPerSec } from './utils/ap-regen'
 import { getAction as getBaseAction } from '../../data/actions'
 import { getRuntimeAction } from '../../data/actions'
 import { getBuff } from '../../data/buffs'
@@ -22,7 +16,7 @@ import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
 import { reduceBleedOnHeal } from './utils/buff-layer'
 import { processActionEffect, processHitCheck, processBuffEnd } from './effects'
-import { processOnEquipEffects } from './utils'
+import { processOnEquipEffects, forEachBuffOf } from './utils'
 import { tickEngine } from './tick-engine'
 import type {
     ActionCommand,
@@ -47,7 +41,13 @@ export class BattleEngine {
     state!: BattleState
     #summons = new Map<string, SummonInstance>()
     #logListeners: LogListener[] = []
-    #deferredEmits: { event: TriggerEvent; self: Character; enemy: Character; buffId?: string; indent: number }[] = []
+    #deferredEmits: {
+        event: TriggerEvent
+        self: Character
+        enemy: Character
+        buffId?: string
+        scope: number[]
+    }[] = []
 
     constructor(p: Character, o: Character, d = 4) {
         this.init(p, o, d)
@@ -73,8 +73,6 @@ export class BattleEngine {
             eventTime: 0,
             pendingBuffs: new Map(),
             actionCount: 0,
-            actionTimeOffset: 0,
-            actionPreOffset: 0,
             isEmitting: false,
             moveDelta: 0,
             triggeredThisChain: null,
@@ -244,11 +242,13 @@ export class BattleEngine {
         if (!e) return false
         this.state.eventActorId = e.type === 'character' ? e.id : null
         this.state.eventTime = e.nextActionAt
-        this.state.actionTimeOffset = 0
-        this.state.actionPreOffset = 0
+        // 同步时间游标：处理期间 currentTime 即当前事件时刻（不陈旧）
+        this.state.turn.setTime(e.nextActionAt)
 
         // 系统事件
         if (e.type === 'system') {
+            // 系统事件（buff tick/到期等）：独立重置作用域，避免与上一个招式的反应链粘在一起
+            this.state.log.resetScope(this.state.actionCount)
             this.#handleSystemEvent(e.systemEventType!, e.id, e.nextActionAt)
             if (e.systemEventType !== 'tick_poison' && e.systemEventType !== 'tick_burn') {
                 this.state.turn.removeEntry(e.id)
@@ -258,6 +258,8 @@ export class BattleEngine {
         }
 
         this.state.actionCount++
+        // 每个角色/召唤物回合：重置日志作用域（level0 = 回合号）
+        this.state.log.resetScope(this.state.actionCount)
 
         // 召唤物行动
         if (e.type === 'summon') {
@@ -294,10 +296,10 @@ export class BattleEngine {
         // ── 2. AP 未满 → 等回复满了再行动 ──
         if (self.ap < self.maxAp) {
             const deficit = self.maxAp - self.ap
-            const regenPerSec = calcApRegenPerSec(self.attrs.get('wisdom'))
+            const regenPerSec = calcEffectiveApRegenPerSec(this.state, self)
             const waitMs = Math.ceil((deficit / regenPerSec) * 1000)
             this.state.turn.next(self.id)
-            this.state.turn.scheduleNext({ type: 'character', id: self.id }, waitMs, 0)
+            this.state.turn.scheduleNext({ type: 'character', id: self.id }, waitMs)
             this.state.eventActorId = null
             return true
         }
@@ -306,39 +308,11 @@ export class BattleEngine {
         // 重建召唤物（法球等每回合重新入队）
         this.#initSummons(self)
 
-        // ── 3. AI 决策 + 执行指令 ──
+        // ── 3. AI 决策 + 执行指令（原子回合：回合内瞬间完成，招式不占调度时间） ──
         const cmds = planFn(self, enemy, this.state)
-        let totalActionDurationMs = 0
-        let firstActionTime = 0
         for (const cmd of cmds) {
             if (self.ap <= 0 && cmd.type !== 'support') break
-            // 用当前即时身法/急速计算前后摇与 AP 减免（招式本身耗时不受身法/haste 影响）
-            const agility = self.attrs.get('agility')
-            const haste = self.getHaste()
-            const cost =
-                cmd.type === 'move'
-                    ? Math.abs(cmd.bestDistance ?? 0)
-                    : cmd.actionId
-                      ? (self.actions.find((a) => a.id === cmd.actionId)?.apCost ?? 0)
-                      : 0
-            if (firstActionTime === 0 && cost > 0) {
-                firstActionTime = this.state.turn.currentTime + this.state.actionTimeOffset
-            }
-            this.state.actionPreOffset = 0
-            // 每招耗时 = 招式本身（纯固有） + 前摇 + 后摇（attack/support 带前后摇；move 只有移动时长）
-            let cmdDur = Math.max(1, calcActionDurationMs(cost))
-            if (cmd.type !== 'move') {
-                const def = cmd.actionId
-                    ? (self.actions.find((a) => a.id === cmd.actionId)?.def ?? getBaseAction(cmd.actionId))
-                    : undefined
-                cmdDur +=
-                    calcPreDelayMs(agility, def?.extraPreDelay ?? 0, haste) +
-                    calcStunMs(agility, def?.extraStunTime ?? 0, haste)
-            }
-            totalActionDurationMs += cmdDur
             this.execute(cmd, self, enemy)
-            this.state.actionTimeOffset += cmdDur
-            this.state.actionPreOffset = 0
         }
         if (cmds.length === 0) {
             this.emitLog({ type: 'system', message: BattleLog.plain(self.name, '没有行动'), actorId: self.id })
@@ -346,10 +320,7 @@ export class BattleEngine {
 
         // endEvent
         // ── Buff onTurnEnd 钩子（不依赖命中） ──
-        for (const [key, layer] of this.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== self.id) continue
-            const def = getBuff(parts[0])
+        forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
             if (def?.onTurnEnd) {
                 def.onTurnEnd({
                     final: 0,
@@ -361,37 +332,45 @@ export class BattleEngine {
                     layer,
                 })
             }
-        }
+        })
         this.emit('turn_end', self, enemy)
         this.state.turn.next(self.id)
 
-        // ── 4. 计算下次行动的间隔 = 行动耗时 + AP 回复耗时 ──
+        // ── 4. 下次行动间隔 = AP 回复耗时（身法/haste 减 AP 消耗 → 回复更快 → 攻击频率更高） ──
         const remainingAp = self.ap
-        const regenPerSec = calcApRegenPerSec(self.attrs.get('wisdom'))
+        const regenPerSec = calcEffectiveApRegenPerSec(this.state, self)
         const regenMs = Math.ceil(((self.maxAp - remainingAp) / regenPerSec) * 1000)
-        let totalDelay = totalActionDurationMs + regenMs
+        // 下限 MIN_TURN_DELAY_MS：回合未消耗 AP（regenMs=0）时也保证正延迟，防止同刻无限重入队
+        let totalDelay = Math.max(regenMs, MIN_TURN_DELAY_MS)
         // 没有执行任何指令时最低等待一个完整回复周期（防止死循环）
-        if (totalActionDurationMs === 0) {
+        if (cmds.length === 0) {
             totalDelay = Math.max(totalDelay, Math.ceil((self.maxAp / regenPerSec) * 1000))
         }
 
-        self.lastActionEndMs =
-            firstActionTime > 0 ? firstActionTime : this.state.turn.currentTime + totalActionDurationMs
-        this.state.turn.scheduleNext({ type: 'character', id: self.id }, totalDelay, totalActionDurationMs)
+        // 原子回合：行动瞬间完成于本回合调度时刻
+        self.lastActionEndMs = this.state.eventTime
+        self.lastApUpdate = this.state.eventTime
+        this.state.turn.scheduleNext({ type: 'character', id: self.id }, totalDelay)
         this.state.eventActorId = null
         return true
     }
 
-    /** 触发检测：同一事件链每人每事件最多触发一次，indentDepth 不受 emit 重置 */
+    /** 触发检测：同一事件链每人每事件最多触发一次，scope 不受 emit 重置 */
     emit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
         if (!this.state.triggeredThisChain) this.state.triggeredThisChain = new Set()
         const key = `${self.id}:${event}`
         if (this.state.triggeredThisChain.has(key)) return
         if (this.state.isEmitting) {
-            this.#deferredEmits.push({ event, self, enemy, buffId, indent: this.state.log.indentDepth })
+            this.#deferredEmits.push({
+                event,
+                self,
+                enemy,
+                buffId,
+                scope: [...this.state.log.scopePath],
+            })
             return
         }
-        const savedIndent = this.state.log.indentDepth
+        const savedScope = [...this.state.log.scopePath]
         this.state.isEmitting = true
         this.state.triggeredThisChain.add(key)
         this.#processEmit(event, self, enemy, buffId)
@@ -402,13 +381,13 @@ export class BattleEngine {
             const dKey = `${d.self.id}:${d.event}`
             if (this.state.triggeredThisChain?.has(dKey)) continue
             this.state.triggeredThisChain?.add(dKey)
-            this.state.log.indentDepth = d.indent
+            this.state.log.restoreScope(d.scope)
             this.state.isEmitting = true
             this.#processEmit(d.event, d.self, d.enemy, d.buffId)
             this.state.isEmitting = false
         }
         this.state.triggeredThisChain = null
-        this.state.log.indentDepth = savedIndent
+        this.state.log.restoreScope(savedScope)
     }
 
     #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
@@ -430,11 +409,10 @@ export class BattleEngine {
                 continue
 
             if (slot.effects) {
-                if (!isInitPhase) this.state.log.indentDepth++
+                // 非招式触发效果：在招式自身作用域内处理（不新增 scope 层）
                 for (const eff of slot.effects) {
                     processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs })
                 }
-                if (!isInitPhase) this.state.log.indentDepth--
                 continue
             }
             if (!slot.actionId) continue
@@ -447,11 +425,11 @@ export class BattleEngine {
 
             if (action.target === 'self') {
                 if (action.canUse && !action.canUse(self, this.state)) continue
-                if (!isInitPhase) this.state.log.indentDepth++
+                if (!isInitPhase) this.state.log.enterReaction()
                 for (const eff of action.effects ?? []) {
                     processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered: true })
                 }
-                if (!isInitPhase) this.state.log.indentDepth--
+                if (!isInitPhase) this.state.log.exitReaction()
                 inst.use()
             } else {
                 // 触发招式不消耗 AP（apCost 上限 2 已在前过滤），但仍需距离/标签/条件检测
@@ -464,12 +442,12 @@ export class BattleEngine {
                     if (!hasTag) continue
                 }
                 if (action.canUse && !action.canUse(self, this.state)) continue
-                this.state.log.indentDepth++
+                this.state.log.enterReaction()
                 this.#executeAction(action, self, enemy, true)
                 inst.use()
                 this.emit('on_action_trigger', self, enemy)
                 tickEngine.onBleedTrigger(self, this)
-                this.state.log.indentDepth--
+                this.state.log.exitReaction()
             }
         }
     }
@@ -505,11 +483,11 @@ export class BattleEngine {
         this.#logListeners.push(listener)
     }
 
-    /** 发射日志事件（自动附加当前快照和缩进，已按行动耗时偏移时间戳） */
+    /** 发射日志事件（自动附加当前快照；原子回合下回合内所有事件共享 eventTime，顺序由 scope 定） */
     emitLog(event: LogEvent): void {
         const snap = this.getSnapshot()
-        const tMs = this.state.eventTime + this.state.actionTimeOffset + this.state.actionPreOffset
-        const enriched = { ...event, snapshot: snap, indent: this.state.log.indentDepth }
+        const tMs = this.state.eventTime
+        const enriched = { ...event, snapshot: snap }
         this.state.log.handleLogEvent(enriched, snap, tMs)
         for (const l of this.#logListeners) l(enriched)
     }
@@ -622,14 +600,8 @@ export class BattleEngine {
         return r
     }
 
-    /** 统一招式执行（noSpeedDiscount: 召唤物等不吃身法/急速 AP 减免） */
-    #executeAction(
-        action: ActionDefinition,
-        self: Character,
-        enemy: Character,
-        triggered = false,
-        noSpeedDiscount = false,
-    ): ActionResult {
+    /** 统一招式执行（0 成本招式如御物召唤天然免费，不消耗 AP） */
+    #executeAction(action: ActionDefinition, self: Character, enemy: Character, triggered = false): ActionResult {
         const r: ActionResult = {
             damage: 0,
             hit: false,
@@ -647,17 +619,15 @@ export class BattleEngine {
         }
         // 验证（触发招式已在 #processEmit 中通过距离/标签/条件检查，且不消耗 AP）
         if (!triggered) {
-            const c = canExecuteAction(action, self, this.state, this, { noDiscount: noSpeedDiscount })
+            const c = canExecuteAction(action, self, this.state, this)
             if (!c.ok) return r
         }
         let finalCost = action.apCost
-        if (!triggered) {
+        // 0 成本招式（御物召唤等）跳过 AP 消耗（onActionCost/身法减免/spendAp）
+        if (!triggered && action.apCost > 0) {
             let cost = action.apCost
-            for (const [key, layer] of this.state.pendingBuffs) {
-                const parts = key.split('::')
-                if (parts.length < 2 || parts[1] !== self.id) continue
-                const def = getBuff(parts[0])
-                if (!def?.onActionCost) continue
+            forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
+                if (!def?.onActionCost) return
                 cost = Math.max(
                     1,
                     cost +
@@ -672,16 +642,22 @@ export class BattleEngine {
                             source: action,
                         }),
                 )
-            }
+            })
             if (action.chanCost) self.spendChan(action.chanCost)
-            finalCost = noSpeedDiscount ? cost : self.actionApCost(cost)
+            finalCost = self.actionApCost(cost)
             if (!self.spendAp(finalCost)) return r
         }
         // 消耗限次招式
         const inst = self.actions.find((a) => a.id === action.id)
         if (inst && inst.def.maxUses !== undefined) inst.use()
         this.checkChanOverflow(self.id)
+        // 主招式（非触发）：开一个新的主招式作用域（level1 递增）
+        if (!triggered) this.state.log.beginMainAction()
         const weapon = getWeapon(self.build.weapon)
+        // 召唤物攻击的招式仍用招式名（一剑西来），summonName 仅用于让召唤物回合单独归块（不与主人动作粘一起）
+        const isWeaponSummon = weapon.summon?.actionId === action.id
+        const artSummon = self.artifactDefs.find((a) => a.summon?.actionId === action.id)
+        const summonName = isWeaponSummon ? weapon.summon?.name : artSummon ? artSummon.summon?.name : undefined
         this.emitLog({
             type: 'attack_start',
             actionId: action.id,
@@ -692,14 +668,11 @@ export class BattleEngine {
             apCost: finalCost,
             apRemaining: self.ap,
             triggered,
-            indent: this.state.log.indentDepth,
+            summonName,
         })
         // buff onAction 钩子（出招即触发，不受命中影响）——前摇窗口内
-        for (const [key, layer] of this.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== self.id) continue
-            const def = getBuff(parts[0])
-            if (!def?.onAction) continue
+        forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
+            if (!def?.onAction) return
             def.onAction({
                 final: 0,
                 raw: 0,
@@ -710,20 +683,12 @@ export class BattleEngine {
                 layer,
                 source: action,
             })
-        }
+        })
         // 不受命中影响的效果先执行（移动、换武、buff 等）——前摇窗口内（short_dash 冲刺占用前摇）
         for (const eff of action.effects ?? []) {
             if (isPreHitEffect(eff.type)) {
                 processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered })
             }
-        }
-        // 前摇推进：attack_start 在 0 处，命中/后续事件落在 +前摇（仅本体招式，触发招式不扩散）
-        if (!triggered) {
-            this.state.actionPreOffset = calcPreDelayMs(
-                self.attrs.get('agility'),
-                action.extraPreDelay ?? 0,
-                self.getHaste(),
-            )
         }
         // 战斗判定
         if (!processHitCheck(action, r, self, enemy, this)) return r
@@ -756,7 +721,7 @@ export class BattleEngine {
     ): void {
         const tMs = this.#tMs
 
-        this.state.log.indentDepth++
+        // 效果在招式自身作用域处理（不新增 scope 层；渲染层按 scope 深度 +1 缩进效果行）
         const ignoresParry = action.effects?.some((e) => e.type === 'ignore_parry')
         for (const eff of action.effects ?? []) {
             if (
@@ -769,7 +734,6 @@ export class BattleEngine {
                 processActionEffect(eff, { self, enemy, engine: this, tMs, action, triggered })
             }
         }
-        this.state.log.indentDepth--
         // 立即击败检测：先于所有触发器，防止死亡后继续触发
         if (!enemy.isAlive()) {
             this.emitLog({ type: 'defeat', loserId: enemy.id, winnerId: self.id })
@@ -830,26 +794,17 @@ export class BattleEngine {
         inst.use()
         if (inst.def.chanCost) self.spendChan(inst.def.chanCost)
         this.checkChanOverflow(self.id)
+        // 辅助招式也算主招式作用域
+        this.state.log.beginMainAction()
         this.emitLog({
             type: 'system',
             message: BattleLog.msg(inst.name, self.name, ''),
             actorId: self.id,
         })
-        this.state.log.indentDepth++
         for (const eff of inst.def.effects ?? []) {
             processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action: inst.def })
         }
-        this.state.log.indentDepth--
         return r
-    }
-
-    /** 加速角色所有召唤物（直接修改下次行动时间） */
-    speedUpSummons(ownerId: string, deltaMs: number): void {
-        for (const [id, inst] of this.#summons) {
-            if (inst.ownerId === ownerId) {
-                this.state.turn.modifyTime(id, -deltaMs)
-            }
-        }
     }
 
     /** 处理召唤物回合 */
@@ -883,29 +838,30 @@ export class BattleEngine {
             return true
         }
 
-        // 召唤物消耗主人 AP，按 AP 恢复速度决定下一击间隔
-        let apRegenDelay = 0
-        const t = this.state.turn.currentTime
-        if (owner.lastApUpdate > 0 || owner.lastActionEndMs > 0) {
-            const ref = owner.lastApUpdate > 0 ? owner.lastApUpdate : owner.lastActionEndMs
-            if (t > ref) {
-                owner.ap = Math.min(owner.maxAp, owner.ap + calcApRegen(t - ref, owner.attrs.get('wisdom')))
-            }
-        }
-        owner.lastApUpdate = t
-        if (owner.ap >= summonAction.apCost) {
-            // 召唤物走原价，不吃主人的身法/急速 AP 减免
-            this.#executeAction(summonAction, owner, enemy, false, true)
-            const regenPerSec = calcApRegenPerSec(owner.attrs.get('wisdom'))
-            apRegenDelay = Math.ceil((summonAction.apCost / regenPerSec) * 1000)
-        }
+        // 召唤物免费：apCost=0 不消耗主人 AP（御物武器已通过占用 AP 上限换取免费），纯按 calcSummonInterval 定时开火
+        this.#executeAction(summonAction, owner, enemy)
         this.state.turn.next(e.id)
+        // 御物加速：遍历主人 buff 的 onSummonInterval 钩子，累乘前后摇乘数（不硬编码 buff id）
+        let hasteMult = 1
+        forEachBuffOf(this.state.pendingBuffs, owner.id, (def, layer) => {
+            if (!def?.onSummonInterval) return
+            hasteMult *= def.onSummonInterval({
+                final: 0,
+                raw: 0,
+                attacker: owner,
+                target: enemy,
+                engine: this,
+                state: this.state,
+                layer,
+            })
+        })
         const interval = calcSummonInterval(
             owner.attrs.get('wisdom'),
             summonAction.extraPreDelay ?? 0,
             summonAction.extraStunTime ?? 0,
+            hasteMult,
         )
-        this.state.turn.scheduleNext({ type: 'summon', id: e.id, ownerId: e.ownerId }, Math.max(interval, apRegenDelay))
+        this.state.turn.scheduleNext({ type: 'summon', id: e.id, ownerId: e.ownerId }, interval)
         return true
     }
 
@@ -981,10 +937,7 @@ export class BattleEngine {
                             amount: amt,
                         })
                         // 通知所有 buff 持有者收到治疗
-                        for (const [key, layer] of this.state.pendingBuffs) {
-                            const [buffId, charId] = key.split('::')
-                            if (charId !== char.id) continue
-                            const def = getBuff(buffId)
+                        forEachBuffOf(this.state.pendingBuffs, char.id, (def, layer) => {
                             if (def?.onReceiveHeal) {
                                 def.onReceiveHeal({
                                     final: amt,
@@ -996,7 +949,7 @@ export class BattleEngine {
                                     layer,
                                 })
                             }
-                        }
+                        })
                     }
                 }
                 if (this.state.pendingBuffs.has(key)) {

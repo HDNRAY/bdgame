@@ -125,7 +125,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'stat_transfer',
         name: '汲取',
-        description: '吸取目标属性。',
+        description: '吸取目标属性，最多同时 4 层。',
         tags: ['buff'],
         expiry: { type: 'duration', ms: 1500 },
         stacking: { type: 'independent' },
@@ -164,6 +164,15 @@ export const BUFF_DB: BuffDef[] = [
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
     { id: 'steal_artifact_track', name: '盗亦有道', description: '飞龙探云手的成功率追踪。', tags: [] },
+    {
+        id: 'summon_haste',
+        name: '御物加速',
+        description: '每层召唤物前后摇-5%，上限4层。',
+        tags: ['imperial', 'buff', 'summon'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 4 },
+        onSummonInterval: ({ layer }) => Math.max(0.6, 1 - (layer.restoreValue ?? 0) * 0.05),
+    },
     {
         id: 'spear_guard_stance',
         name: '秋水·守',
@@ -227,7 +236,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '持续恢复生命，血越少恢复越多。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
-        tickInterval: 3000,
+        tickInterval: 2000,
         onTickHeal: ({ target }) => Math.round(10 + (target.maxHp - target.hp) * 0.1) / 10,
     },
     {
@@ -271,9 +280,9 @@ export const BUFF_DB: BuffDef[] = [
         name: '回春',
         description: '剑气如春竹吐纳，生生不息。',
         tags: ['heal', 'buff'],
-        expiry: { type: 'duration', ms: 20000 },
+        expiry: { type: 'duration', ms: 30000 },
         stacking: { type: 'additive', max: 2 },
-        tickInterval: 2000,
+        tickInterval: 3000,
         onTickHeal: ({ layer }) => layer.restoreValue,
     },
     {
@@ -648,14 +657,16 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'sword_enhance_buff',
         name: '灵炁灌注',
-        description: '下次御物伤害+30%。',
+        description: '下次御物伤害+15%，命中+15%。',
         tags: ['imperial', 'buff'],
         expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },
-        onDealDamage: (ctx) => {
-            if (!ctx.attacker.weaponDef?.tags.includes('imperial')) return ctx.final
-            return Math.round(ctx.final * 1.3)
+        // 只加成御物（summon）攻击：按来源招式 tag 判定，避免吃到炁弹等普通招式
+        onDealDamage: ({ final, source }) => {
+            if (!source?.tags?.includes('summon')) return final
+            return Math.round(final * 1.15)
         },
+        onHitChance: ({ source }) => (source?.tags?.includes('summon') ? 0.15 : 0),
     },
     // ── 战术腰包 ──
     {
@@ -1023,7 +1034,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'mingjing_zhishui_buff',
         name: '明镜止水',
-        description: '心如明镜，神清目明。招式省AP但推演降低。',
+        description: '心如明镜，神清目明。招式AP消耗-20%，但推演降低。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -1036,7 +1047,11 @@ export const BUFF_DB: BuffDef[] = [
             }
             return undefined
         },
-        onActionCost: () => -1,
+        onActionCost: ({ source }) => {
+            const act = source as ActionDefinition
+            if (!act) return 0
+            return -act.apCost * 0.2
+        },
     },
     // ── 残影步·虚影 ──
     {

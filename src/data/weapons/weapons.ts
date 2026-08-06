@@ -192,9 +192,13 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'hover_drone',
         name: '浮游无人机',
         description: '一枚悬浮的无人机平台，以炁供能，脑机操控。',
-        tags: ['imperial', 'range', 'pierce'],
+        tags: ['imperial', 'range', 'pierce', 'summon'],
         bound: true,
         range: [0, 6],
+        // 御物耗炁：每秒扣 0.5AP（3 机）。无人机 = 中速破甲流（2伤+破甲1）
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.5 }] },
+        ],
         summon: {
             id: 'hover_drone',
             name: '无人机',

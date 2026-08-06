@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
-const JIRAN_ATTRS = { strength: 14, vitality: 13, agility: 14, dexterity: 14, insight: 15, wisdom: 18 }
+const JIRAN_ATTRS = { strength: 14, vitality: 12, agility: 14, dexterity: 14, insight: 16, wisdom: 16 }
 
 export const JIRAN: OpponentDef = {
     id: 'jiran',

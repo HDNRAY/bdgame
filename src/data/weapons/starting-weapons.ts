@@ -46,9 +46,13 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'floating_silk',
         name: '七根丝',
         description: '一缕以炁御动的柔丝，可远可近，可硬可软，变幻莫测。',
-        tags: ['imperial', 'range', 'pierce'],
+        tags: ['imperial', 'range', 'pierce', 'summon'],
         bound: true,
         range: [0, 6],
+        // 御物耗炁：每秒扣 0.7AP（7 丝）。丝 = 高频触发流：短前后摇、绵密输出、射程 7，每击喂 on_hit
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 1 }] },
+        ],
         summon: {
             id: 'silk',
             name: '游丝',
@@ -60,9 +64,13 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'tri_orb',
         name: '三相珠',
         description: '三颗由炁劲驱动的法珠，环绕主人旋转。',
-        tags: ['imperial', 'parry', 'range'],
+        tags: ['imperial', 'parry', 'range', 'summon'],
         bound: true,
         range: [0, 6],
+        // 御物耗炁：每秒扣 0.7AP（3 珠）。珠 = 纯伤害中速
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.6 }] },
+        ],
         summon: {
             id: 'orb',
             name: '法珠',
@@ -74,9 +82,13 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'fei_jian',
         name: '一柄大剑',
         description: '御剑飞行，剑气纵横。',
-        tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'polearm'],
+        tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'polearm', 'summon'],
         bound: true,
         range: [0, 6],
+        // 御物耗炁：每秒扣 0.5AP（1 剑）。剑 = 慢速重击：单发 WIS×0.5、长前后摇、节奏沉
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }] },
+        ],
         summon: {
             id: 'fei_jian',
             name: '一柄大剑',

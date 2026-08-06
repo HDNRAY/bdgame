@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
-const LAYUE_ATTRS = { strength: 15, vitality: 11, agility: 20, dexterity: 16, insight: 16, wisdom: 4 }
+const LAYUE_ATTRS = { strength: 14, vitality: 10, agility: 20, dexterity: 16, insight: 16, wisdom: 4 }
 
 export const LAYUE: OpponentDef = {
     id: 'layue',

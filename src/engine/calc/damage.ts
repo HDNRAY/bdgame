@@ -1,4 +1,5 @@
 import type { AttrName } from '../entities/attributes'
+import { round1 } from '../util/math'
 
 /** 基础前摇（所有角色统一） */
 export const BASE_PRE_DELAY = 400
@@ -27,9 +28,9 @@ export function calcBaseDamage(
     return Math.round(damage * 10) / 10
 }
 
-/** 暴击判定: 基础 5% + (灵巧×1.5 + 洞察×1.3) / 200 + critChanceMod（灵巧权重更高） */
+/** 暴击判定: 基础 5% + (灵巧×1 + 洞察×1) / 200 + critChanceMod（灵巧:洞察 = 1:1） */
 export function calcCritChance(dexterity: number, insight: number, critChanceMod = 0): number {
-    return Math.max(0.05, Math.min(0.95, 0.05 + (dexterity * 1.5 + insight * 1.3) / 200 + critChanceMod))
+    return Math.max(0.05, Math.min(0.95, 0.05 + (dexterity + insight) / 200 + critChanceMod))
 }
 
 /** 最终伤害: base × distanceMult × (暴击? (1.5 + critDamageMod) : 1) */
@@ -40,9 +41,9 @@ export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit
 }
 
 /** 命中判定: 逻辑斯蒂曲线，自然收敛至 [0,1]，无需 clamp
- *  攻击端：灵巧权重 1.5 > 洞察 1.3（灵巧为攻击主属性）；防御端身法/洞察均 1.0 */
+ *  攻击端：灵巧权重 1.2 > 洞察 1（灵巧为攻击主属性）；防御端身法/洞察均 1.0 */
 export function calcHitChance(opts: Record<string, number>): number {
-    const atk = ((opts.attackerDexterity ?? 0) * 1.5 + (opts.attackerInsight ?? 0) * 1.3) / 80
+    const atk = ((opts.attackerDexterity ?? 0) + (opts.attackerInsight ?? 0) * 0.6) / 80
     const def = (opts.defenderAgility ?? 0) / 80 + (opts.defenderInsight ?? 0) / 80
     const dodgeMod = opts.defenderDodgeMod ?? 0
     const net = atk - def - dodgeMod
@@ -74,12 +75,14 @@ export function calcStunMs(agility: number, extraStunTime = 0, haste = 0): numbe
 
 /** 召唤物回合间隔: 基础 + 前后摇，用推演代替身法（召唤物不吃身法/急速减免）
  *  推演收益削弱：每点由 1% → 0.5%（系数 0.01→0.005），防止高推演召唤流频率过快 */
-export function calcSummonInterval(wisdom: number, extraPreDelay = 0, extraStunTime = 0): number {
+export function calcSummonInterval(wisdom: number, extraPreDelay = 0, extraStunTime = 0, hasteMult = 1): number {
     const wisFactor = 0.6 + Math.max(0, 0.4 - wisdom * 0.005)
     const base = BASE_TURN_INTERVAL
     const epd = Math.round(BASE_PRE_DELAY + extraPreDelay)
     const est = Math.round(BASE_STUN_TIME + extraStunTime)
-    return Math.round((base + epd + est) * wisFactor)
+    // 御物加速：buff onSummonInterval 钩子返回前后摇乘数（<1=加速），保底 60% 防异常
+    const mult = Math.max(0.6, hasteMult)
+    return Math.round((base + (epd + est) * mult) * wisFactor)
 }
 
 /** 招架后伤害减免，默认减免至 40% */
@@ -100,7 +103,7 @@ export function calcSelfDamage(maxHp: number, ratio: number): number {
 }
 
 // ── AP 回复 ──
-/** 每推演每秒回复 AP 基数（削 0.0625→0.05，压低推演对 AP 回复的支配力） */
+/** 每推演每秒回复 AP 基数（0.1→0.05，压低推演对 AP 回复的支配力） */
 export const AP_REGEN_BASE = 0.05
 /** 回复常数项 */
 export const AP_REGEN_CONST = 0.75
@@ -122,6 +125,8 @@ export function calcApRegen(ms: number, wisdom: number): number {
 export const ACTION_TIME_BASE = 0.4
 /** 最短耗时 (秒) */
 export const ACTION_TIME_MIN = 0.15
+/** 原子回合最小行动间隔（毫秒）：回合未消耗 AP 时也保证有正延迟，防止同刻无限重入队 */
+export const MIN_TURN_DELAY_MS = ACTION_TIME_MIN * 1000
 
 /** 招式本身固有耗时 (毫秒)：纯 apCost 决定，不受身法/haste 影响 */
 export function calcActionDurationMs(apCost: number): number {
@@ -139,9 +144,10 @@ export function calcApCostReduction(agility: number, haste: number): number {
     return Math.min(SPEED_AP_COST_CAP, (agility + haste / 10) * SPEED_AP_COST_RATE)
 }
 
-/** 减免后的招式 AP 成本（最低 1） */
+/** 减免后的招式 AP 成本（0 成本招式保持 0；非零成本最低 1；保留 1 位小数，让身法减免/百分比折扣真实生效） */
 export function calcActionCostAfterSpeed(apCost: number, agility: number, haste: number): number {
-    return Math.max(1, Math.round(apCost * (1 - calcApCostReduction(agility, haste))))
+    if (apCost <= 0) return 0
+    return Math.max(1, round1(apCost * (1 - calcApCostReduction(agility, haste))))
 }
 
 /** 麻痹到期时恢复的身法/灵巧 */

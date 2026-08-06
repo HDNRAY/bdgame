@@ -11,6 +11,7 @@ export const HEIYUN: OpponentDef = {
     rewards: [
         passive('spirit_resonance'),
         passive('momentum_mastery'),
+        action('qi_bolt'),
         passive('sword_intent_tempering'),
         passive('drunken_step'),
         passive('sword_dominion'),
@@ -18,7 +19,7 @@ export const HEIYUN: OpponentDef = {
         action('yi_night_fish_dragon'),
         action('ling_qi_guan_zhu'),
         action('condense_shield'),
-        // 9 + 1
+        // 10 + 1
     ],
     actionConfigs: [{ actionId: 'condense_shield', triggerId: 'on_took_damage' }],
 }

@@ -5,7 +5,7 @@ import { ATTR_CN } from '../entities/attributes'
 interface LogEntry {
     id: number
     timelineMs: number
-    event: BattleEvent
+    event: BattleEvent & { scope: number[] }
 }
 
 export class BattleLog {
@@ -39,8 +39,46 @@ export class BattleLog {
 
     private entries: LogEntry[] = []
     private nextId = 0
-    /** 当前缩进层级（由触发链控制） */
-    indentDepth = 0
+    /** 每层作用域兄弟计数（scopePath[d] = 第 d 层当前是第几个子作用域） */
+    private scopeCount: number[] = []
+    /** 当前作用域路径（行动树）：回合.主招式.反应链…（如 [6, 1, 2] = 回合6·招式1·第2个反应） */
+    scopePath: number[] = [0]
+    /** 当前回合内主招式序号 */
+    private mainActionSeq = 0
+    /** 渲染缩进（派生）：主招式(scope 2 层)→0、反应(3 层)→1、子反应(4 层)→2… */
+    get indentDepth(): number {
+        return Math.max(0, this.scopePath.length - 2)
+    }
+
+    /** 新回合：level0 = 回合号 */
+    resetScope(turn: number): void {
+        this.scopeCount = []
+        this.mainActionSeq = 0
+        this.scopePath = [turn]
+    }
+
+    /** 进入一个主招式（level1 递增，重置反应计数） */
+    beginMainAction(): void {
+        this.scopeCount = []
+        this.scopePath = [this.scopePath[0] ?? 0, ++this.mainActionSeq]
+    }
+
+    /** 进入一个反应作用域（反击/触发招式：push 一层） */
+    enterReaction(): void {
+        const depth = this.scopePath.length
+        this.scopeCount[depth] = (this.scopeCount[depth] ?? 0) + 1
+        this.scopePath.push(this.scopeCount[depth])
+    }
+
+    /** 退出反应作用域 */
+    exitReaction(): void {
+        if (this.scopePath.length > 2) this.scopePath.pop()
+    }
+
+    /** 恢复作用域（deferred emit 用） */
+    restoreScope(scope: number[]): void {
+        this.scopePath = [...scope]
+    }
 
     /** 从快照解析 id → 名字 */
     private resolveName(id: string, snapshot: BattleSnapshot): string {
@@ -51,7 +89,7 @@ export class BattleLog {
     }
 
     push(event: BattleEvent, timelineMs: number): void {
-        this.entries.push({ id: this.nextId++, timelineMs, event })
+        this.entries.push({ id: this.nextId++, timelineMs, event: { ...event, scope: [...this.scopePath] } })
     }
 
     /** 从 LogEvent 转换为 BattleEvent 并存储 */
@@ -74,8 +112,8 @@ export class BattleLog {
                     tMs,
                     snapshot,
                     event.actionName,
-                    event.indent,
                     event.triggered,
+                    event.summonName,
                 )
                 break
             case 'check_hit':
@@ -167,7 +205,7 @@ export class BattleLog {
                 const msg = src
                     ? `[${label}] ${src} → ${this.resolveName(event.targetId, snapshot)} +${event.amount.toFixed(1)}HP`
                     : `[${label}] ${this.resolveName(event.targetId, snapshot)} +${event.amount.toFixed(1)}HP`
-                this.push({ type: 'system', message: msg, indent: this.indentDepth, snapshot }, tMs)
+                this.push({ type: 'system', message: msg, snapshot }, tMs)
                 break
             }
             case 'interrupt':
@@ -187,7 +225,7 @@ export class BattleLog {
                 )
                 break
             case 'system':
-                this.logSystem(event.message, tMs, snapshot, event.actorId, event.indent)
+                this.logSystem(event.message, tMs, snapshot, event.actorId)
                 break
         }
     }
@@ -222,8 +260,8 @@ export class BattleLog {
         timelineMs: number,
         snapshot: BattleSnapshot,
         actionName?: string,
-        indent = 0,
         isTriggered = false,
+        summonName?: string,
     ): void {
         this.push(
             {
@@ -235,8 +273,8 @@ export class BattleLog {
                 apRemaining,
                 actionName,
                 snapshot,
-                indent,
                 isTriggered,
+                summonName,
             },
             timelineMs,
         )
@@ -317,8 +355,8 @@ export class BattleLog {
         this.push({ type: 'defeat', loser, winner, snapshot }, timelineMs)
     }
 
-    logSystem(message: string, timelineMs: number, snapshot: BattleSnapshot, actor?: string, indent?: number): void {
-        this.push({ type: 'system', message, actor, indent: indent ?? this.indentDepth, snapshot }, timelineMs)
+    logSystem(message: string, timelineMs: number, snapshot: BattleSnapshot, actor?: string): void {
+        this.push({ type: 'system', message, actor, snapshot }, timelineMs)
     }
 
     /** 属性变化日志，自动映射中文属性名 */
@@ -336,7 +374,7 @@ export class BattleLog {
         const msg = extras
             ? `[${tag}] ${actor} ${cn}${sign}${delta}（${extras}）`
             : `[${tag}] ${actor} ${cn}${sign}${delta}`
-        this.push({ type: 'system', message: msg, indent: this.indentDepth, snapshot }, timelineMs)
+        this.push({ type: 'system', message: msg, snapshot }, timelineMs)
     }
 
     getAll(): LogEntry[] {

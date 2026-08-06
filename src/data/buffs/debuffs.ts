@@ -10,7 +10,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '麻痹',
         description: '身法、灵巧降低。',
         tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2200 },
+        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
         stacking: { type: 'independent' },
         attrMods: { agility: -1, dexterity: -1 },
     },
@@ -37,7 +37,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '眩晕',
         description: '大幅降低身法、洞察（连续命中递减）。',
         tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 4000 },
+        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
         stacking: { type: 'independent' },
     },
     {
@@ -45,7 +45,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '迷眼',
         description: '沙尘入眼，洞察大幅降低。',
         tags: ['debuff'],
-        expiry: { type: 'duration', ms: 8000 },
+        expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
         attrMods: { insight: -4 },
     },
@@ -54,7 +54,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '倒地',
         description: '重心不稳，倒地不起，身法大幅降低。',
         tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'agility', multiplier: 3000 },
+        expiry: { type: 'duration_by_attr', attr: 'agility', multiplier: 2000 },
         stacking: { type: 'independent' },
         attrMods: { agility: -4 },
     },
@@ -179,6 +179,21 @@ export const DEBUFF_DB: BuffDef[] = [
         maxApMod: -1,
     },
     {
+        id: 'yuwu_cost',
+        name: '御物耗炁',
+        description: '以炁御物，每秒消耗内息（AP）。',
+        tags: ['imperial', 'debuff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        tickInterval: 1000,
+        apRegenPerSec: ({ layer }) => -(layer.restoreValue ?? 0),
+        onTickHeal: ({ target, layer }) => {
+            // 每秒扣 AP（返回 0，仅内部扣减，不打 log）
+            target.ap -= Math.min(target.ap, layer.restoreValue ?? 0)
+            return 0
+        },
+    },
+    {
         id: 'permanent_burn',
         name: '过热',
         description: '持续灼烧伤害。',
@@ -248,14 +263,14 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'blade_qi',
         name: '刃炁',
-        description: '每层增伤，收益随层数递减，最高约40%。累计10点治疗消一层。',
+        description: '每层增伤，收益随层数递减，最高约50%。累计10点治疗消一层。',
         tags: ['debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 20 },
         onTakeDamage: ({ final, layer }) => {
-            // 收敛增伤：+40% × n/(n+6)，n→∞ 趋近 +40%（前期每层约 5% 递减，不滚雪球）
+            // 收敛增伤：+50% × n/(n+6)，n→∞ 趋近 +50%（前期每层约 7% 递减，不滚雪球）
             const n = layer.restoreValue
-            const mult = 1 + (0.4 * n) / (n + 6)
+            const mult = 1 + (0.5 * n) / (n + 6)
             return Math.round(final * mult * 10) / 10
         },
         onReceiveHeal: ({ layer, engine, target, final: amount }) => {

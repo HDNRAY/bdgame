@@ -1,5 +1,6 @@
 import type { ActionDefinition } from '../../engine/entities/action'
-import { MAX_CHAN } from '../../engine/constants'
+import { MAX_CHAN, MAX_STAT_TRANSFER_LAYERS } from '../../engine/constants'
+import { forEachBuffOf } from '../../engine/combat/utils'
 
 /**
  * 辅助招式（非战斗直接伤害，含 buff / 位移 / 缴械回复 / 净化等）。
@@ -213,12 +214,12 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'summon_haste',
         name: '御物加速',
-        description: '召唤物加速 100ms。',
+        description: '御物加速，每层召唤物前后摇-5%（上限4层）。',
         requiredTags: ['summon'],
         apCost: 0,
         tags: ['imperial', 'summon', 'pre_action'],
         target: 'self',
-        effects: [{ type: 'summon_speed', value: 100 }],
+        effects: [{ type: 'add_buff', buffId: 'summon_haste', stacks: 1 }],
     },
     {
         id: 'condense_shield',
@@ -234,20 +235,29 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'agility_steal',
         name: '汲灵',
-        description: '命中时 30% 吸取身法 1 点，持续 3 秒。',
+        description: '本体命中时吸取身法 1 点，持续 3 秒。',
         requiredTags: ['summon'],
         apCost: 0,
         tags: ['imperial', 'summon', 'pre_action'],
-        onActionHitChance: () => 0.3,
+        // 必定命中：偷取跟随本体（召唤物）命中触发，不额外滚命中判定
+        onActionHitChance: () => 1,
+        // 汲取已达上限（4层）时不再尝试触发
+        canUse: (self, state) => {
+            let layers = 0
+            forEachBuffOf(state.pendingBuffs, self.id, (_def, _layer, buffId) => {
+                if (buffId === 'stat_transfer') layers++
+            })
+            return layers < MAX_STAT_TRANSFER_LAYERS
+        },
         effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 3000 }],
     },
     {
         id: 'ling_qi_guan_zhu',
         name: '灵炁灌注',
-        description: '将大量炁劲注入御物，下个招式伤害+30%。不可叠加。',
+        description: '将大量炁劲注入御物，下个招式伤害+15%、命中+15%。不可叠加。',
         requiredTags: ['imperial'],
         apCost: 4,
-        tags: ['buff', 'pre_action', 'imperial'],
+        tags: ['buff', 'post_action', 'imperial'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'sword_enhance_buff' }],
     },

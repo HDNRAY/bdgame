@@ -38,8 +38,6 @@ function makeState(char: Character): BattleState {
         eventTime: 0,
         pendingBuffs: new Map(),
         actionCount: 0,
-        actionTimeOffset: 0,
-        actionPreOffset: 0,
         isEmitting: false,
         moveDelta: 0,
         triggeredThisChain: null,

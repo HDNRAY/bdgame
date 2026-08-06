@@ -17,10 +17,12 @@ import {
     executeMove,
     revertWeaponStatBuffs,
     processOnEquipEffects,
+    forEachBuffOf,
 } from '../utils'
 import { pickBestPassives } from '../utils/tag-match'
 import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
+import { MAX_STAT_TRANSFER_LAYERS } from '../../constants'
 import type { BuffLayer, ActionResult } from '../types'
 import { applyDamage, applyBonusDamage } from './damage'
 import { processHitCheck } from './combat'
@@ -30,14 +32,15 @@ import { applyAttrMods, applyScaledAttrMods, scheduleBuffEnd, applyHeal } from '
 import { BuffDef, getBuff } from '../../../data/buffs'
 
 /** 检查目标是否有罡体免疫（通过 buff 的 super_armor 标签识别） */
-function hasCcImmunity(target: { id: string }, state: { pendingBuffs: Map<string, unknown> }): boolean {
-    for (const [key] of state.pendingBuffs) {
-        const [buffId, charId] = key.split('::')
-        if (charId !== target.id) continue
-        const def = getBuff(buffId)
-        if (def?.tags.includes('super_armor')) return true
-    }
-    return false
+function hasCcImmunity(target: { id: string }, pendingBuffs: Map<string, BuffLayer>): boolean {
+    let immune = false
+    forEachBuffOf(pendingBuffs, target.id, (def) => {
+        if (def?.tags.includes('super_armor')) {
+            immune = true
+            return false
+        }
+    })
+    return immune
 }
 
 /** 收集角色身上所有 onBuffApply 上限覆盖，取最大值 */
@@ -67,17 +70,14 @@ function emitPerDebuff(engine: BattleEngine, buffId: string, self: Character, en
 function getBuffMaxOverride(buff: BuffDef, engine: BattleEngine, charId: string): number {
     const raw = buff.stacking?.type === 'additive' ? (buff.stacking.max ?? Infinity) : Infinity
     let override: number | null = null
-    for (const [bk] of engine.state.pendingBuffs) {
-        const parts = bk.split('::')
-        if (parts[1] !== charId) continue
+    forEachBuffOf(engine.state.pendingBuffs, charId, (bDef) => {
         const char = engine.getCharacter(charId)
-        if (!char) continue
-        const bDef = getBuff(parts[0])
+        if (!char) return
         if (bDef?.onBuffApply) {
             const val = bDef.onBuffApply(raw, char, engine)
             if (val > (override ?? 0)) override = val
         }
-    }
+    })
     return override ?? raw
 }
 
@@ -109,7 +109,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         applyHeal(engine, self, amount, action)
     },
     interrupt({ enemy, engine }: EffectCtx) {
-        if (hasCcImmunity(enemy, engine.state)) {
+        if (hasCcImmunity(enemy, engine.state.pendingBuffs)) {
             engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫打断`, actorId: enemy.id })
             return
         }
@@ -118,7 +118,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.emitLog({ type: 'interrupt', sourceId: '', targetId: enemy.id })
     },
     knockback({ eff, self, engine }: EffectCtx) {
-        if (hasCcImmunity(self, engine.state)) {
+        if (hasCcImmunity(self, engine.state.pendingBuffs)) {
             engine.emitLog({ type: 'system', message: `[罡体] ${self.name} 免疫击退`, actorId: self.id })
             return
         }
@@ -316,18 +316,29 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         self.ap = Math.min(self.maxAp, self.ap + e.value)
         engine.emitLog({ type: 'system', message: BattleLog.msg('回气', self.name, `AP+${e.value}`), actorId: self.id })
     },
-    summon_speed({ eff, self, engine }: EffectCtx) {
-        const e = eff as Extract<EffectDef, { type: 'summon_speed' }>
-        engine.speedUpSummons(self.id, e.value)
-        engine.emitLog({
-            type: 'system',
-            message: BattleLog.msg('加速', self.name, `召唤物+${e.value}ms`),
-            actorId: self.id,
-        })
+    max_ap_mod({ eff, self }: EffectCtx) {
+        // 御物武器占用 AP 上限（on_equip 触发）：maxApMod 直接累加，改上限后夹住当前 AP
+        const e = eff as Extract<EffectDef, { type: 'max_ap_mod' }>
+        self.maxApMod += e.value
+        self.capAp()
     },
     stat_transfer({ eff, self, enemy, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'stat_transfer' }>
         const attr = e.stat as AttrName
+        // 汲取层数上限（MAX_STAT_TRANSFER_LAYERS=4）：同一施法者最多同时 4 层，防高频汲灵/北冥无限叠加
+        const max = MAX_STAT_TRANSFER_LAYERS
+        let layers = 0
+        forEachBuffOf(engine.state.pendingBuffs, self.id, (_def, _layer, buffId) => {
+            if (buffId === 'stat_transfer') layers++
+        })
+        if (layers >= max) {
+            engine.emitLog({
+                type: 'system',
+                message: `[汲取] ${self.name} 汲取已达上限（${max}层）`,
+                actorId: self.id,
+            })
+            return
+        }
         const before = enemy.attrs.get(attr)
         enemy.attrs.modify(attr, -e.value)
         // 实际扣减量（可能因属性下限 ATTR_MIN 被夹住而小于请求值）
@@ -366,11 +377,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const stacks = e.stacks ?? 1
 
         // 遍历防御者身上的 buff，触发 onReceiveDebuff 钩子（概率抵抗等）
-        for (const [bk] of engine.state.pendingBuffs) {
-            const [buffId, charId] = bk.split('::')
-            if (charId !== enemy.id) continue
-            const bDef = getBuff(buffId)
-            if (!bDef?.onReceiveDebuff) continue
+        let resisted = false
+        forEachBuffOf(engine.state.pendingBuffs, enemy.id, (bDef) => {
+            if (!bDef?.onReceiveDebuff) return
             const result = bDef.onReceiveDebuff({
                 self: enemy,
                 enemy: self,
@@ -384,9 +393,11 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                     message: `[${bDef.name}] ${enemy.name} 抵抗了${buff?.name ?? st}`,
                     actorId: enemy.id,
                 })
-                return
+                resisted = true
+                return false
             }
-        }
+        })
+        if (resisted) return
 
         const keyBase = `${buff.id}::${enemy.id}`
         const isIndependent = buff?.stacking?.type === 'independent'
@@ -434,12 +445,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             // debuff 自定钩子（设置 extra 数据）
             buff.onDebuffApply?.({ self, enemy, engine, stacks, layer: existing, debuffId: e.buffId })
             // 遍历攻击者的 buff，触发 onDebuffApplied 钩子
-            for (const [bk] of engine.state.pendingBuffs) {
-                const [buffId, charId] = bk.split('::')
-                if (charId !== self.id) continue
-                const bDef = getBuff(buffId)
+            forEachBuffOf(engine.state.pendingBuffs, self.id, (bDef) => {
                 bDef?.onDebuffApplied?.({ self, enemy, engine, stacks, layer: existing, debuffId: e.buffId })
-            }
+            })
             tickEngine.afterApplyDebuff({
                 enemy,
                 engine,
@@ -489,12 +497,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         buff.onDebuffApply?.({ self, enemy, engine, stacks, layer, debuffId: e.buffId })
 
         // 遍历攻击者的 buff，触发 onDebuffApplied 钩子
-        for (const [bk] of engine.state.pendingBuffs) {
-            const [buffId, charId] = bk.split('::')
-            if (charId !== self.id) continue
-            const bDef = getBuff(buffId)
+        forEachBuffOf(engine.state.pendingBuffs, self.id, (bDef) => {
             bDef?.onDebuffApplied?.({ self, enemy, engine, stacks, layer, debuffId: e.buffId })
-        }
+        })
 
         // 后处理（stun/poison/burn 额外逻辑）
         // 传入 layer 引用，让 tick engine 可以直接修改 mods
@@ -516,20 +521,17 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         let replacedStance = false
         let oldStanceName = ''
         if (buff?.tags.includes('stance')) {
-            for (const [key, layer] of engine.state.pendingBuffs) {
-                const [buffId, charId] = key.split('::')
-                if (charId !== self.id) continue
-                if (buffId === e.buffId) continue
-                const existing = getBuff(buffId)
+            forEachBuffOf(engine.state.pendingBuffs, self.id, (existing, layer, buffId, key) => {
+                if (buffId === e.buffId) return
                 if (existing?.tags.includes('stance')) {
                     oldStanceName = existing.name ?? buffId
                     revertBuffMods(layer, self, engine.state)
                     engine.state.pendingBuffs.delete(key)
                     engine.state.turn.removeEvents('buff_end_' + key)
                     replacedStance = true
-                    break
+                    return false
                 }
-            }
+            })
         }
         const isIndependent = buff?.stacking?.type === 'independent'
         const keyBase = `${e.buffId}::${self.id}`
@@ -728,18 +730,15 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
     },
     disarm({ eff, self, enemy, engine, action }: EffectCtx) {
-        if (hasCcImmunity(enemy, engine.state)) {
+        if (hasCcImmunity(enemy, engine.state.pendingBuffs)) {
             engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫缴械`, actorId: enemy.id })
             return
         }
         const e = eff as Extract<EffectDef, { type: 'disarm' }>
         let chance = e.chance ?? 1
         // 防御方 buff 缴械抗性
-        for (const [key, layer] of engine.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== enemy.id) continue
-            const def = getBuff(parts[0])
-            if (!def?.onDisarmChance) continue
+        forEachBuffOf(engine.state.pendingBuffs, enemy.id, (def, layer) => {
+            if (!def?.onDisarmChance) return
             chance += def.onDisarmChance({
                 final: 0,
                 raw: 0,
@@ -750,7 +749,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 layer,
                 source: action,
             })
-        }
+        })
         chance = Math.max(0, Math.min(1, chance))
         if (chance < 1) {
             const { success } = calcRoll(chance)

@@ -2,7 +2,8 @@ import type { BattleEngine } from '../engine'
 import type { Character } from '../../entities/character'
 import { ATTR_CN, type AttrName } from '../../entities/attributes'
 import type { BattleState, BuffLayer } from '../types'
-import { getBuff, type BuffDef } from '../../../data/buffs'
+import type { BuffDef } from '../../../data/buffs'
+import { forEachBuffOf } from './buff-loop'
 import { BattleLog } from '../battle-log'
 import type { TriggerEvent } from '../../entities/trigger'
 import { calcDebuffDuration, calcBuffDuration } from '../../calc/damage'
@@ -122,10 +123,7 @@ export function applyHeal(
         amount,
     })
     // 通知所有 buff 持有者收到治疗
-    for (const [key, layer] of engine.state.pendingBuffs) {
-        const [buffId, charId] = key.split('::')
-        if (charId !== target.id) continue
-        const def = getBuff(buffId)
+    forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
         if (def?.onReceiveHeal) {
             def.onReceiveHeal({
                 final: amount,
@@ -137,7 +135,7 @@ export function applyHeal(
                 layer,
             })
         }
-    }
+    })
 }
 
 /** 检查某人是否有某 buff */
@@ -147,24 +145,22 @@ export function hasBuff(engine: BattleEngine, charId: string, buffId: string): b
 
 /** 检查某人是否有架势 buff（tag 含 'stance'） */
 export function hasNoStance(pendingBuffs: Map<string, unknown>, charId: string): boolean {
-    for (const [key] of pendingBuffs) {
-        const parts = key.split('::')
-        if (parts.length < 2 || parts[1] !== charId) continue
-        const def = getBuff(parts[0])
-        if (def?.tags.includes('stance')) return false
-    }
-    return true
+    let hasStance = false
+    forEachBuffOf(pendingBuffs as Map<string, BuffLayer>, charId, (def) => {
+        if (def?.tags.includes('stance')) {
+            hasStance = true
+            return false
+        }
+    })
+    return !hasStance
 }
 
 /** 根据 trigger 消耗该角色的 consumed buff */
 export function consumeBuffsByTrigger(charId: string, engine: BattleEngine, trigger: TriggerEvent): void {
-    for (const [k] of engine.state.pendingBuffs) {
-        const parts = k.split('::')
-        if (parts.length < 2 || parts[1] !== charId) continue
-        const def = getBuff(parts[0])
-        if (def?.expiry?.type !== 'consumed' || def.expiry.trigger !== trigger) continue
-        engine.state.pendingBuffs.delete(k)
-    }
+    forEachBuffOf(engine.state.pendingBuffs, charId, (def, _layer, _buffId, key) => {
+        if (def?.expiry?.type !== 'consumed' || def.expiry.trigger !== trigger) return
+        engine.state.pendingBuffs.delete(key)
+    })
 }
 
 /** 缩放并应用 attrMods，返回 { mods, details } */

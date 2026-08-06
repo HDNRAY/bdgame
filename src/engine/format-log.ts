@@ -26,11 +26,11 @@ function buildNameMap(snapshot: BattleSnapshot): Map<string, string> {
 }
 
 export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine: number[] } {
-    const all = log.getAll().sort((a, b) => a.timelineMs - b.timelineMs)
+    // 严格按 id（插入序 = 执行序）排序；原子回合下整回合同 timelineMs，排序必须以 id 为准
+    const all = [...log.getAll()].sort((a, b) => a.id - b.id)
     const lines: string[] = []
     // eventToLine[i] = 事件 i 处理完后可见的最后一行索引（含）
     const eventToLine: number[] = []
-    let lastActionKey = ''
     const nameMap = all.length > 0 ? buildNameMap(all[0].event.snapshot) : new Map<string, string>()
     const fmtName = (id: string, snap?: BattleSnapshot): string => {
         let name = id
@@ -68,277 +68,259 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
         return `${kind}${(rate * 100).toFixed(0)}%·${(rollVal * 100).toFixed(0)}%`
     }
 
-    function checkNewEvent(
-        ms: number,
-        actor: string,
-        ap: number,
-        hpStr?: string,
-        dist?: number,
-        actionCount?: number,
-        indent?: number,
-    ) {
-        if (indent && indent > 0) return
-        // 每个招式输出独立标题行（不再按 actionCount 合并）
-        const key = `${ms}_${actor}`
-        if (key === lastActionKey) return
-        if (lastActionKey !== '') lines.push('')
-        lastActionKey = key
-        const hp = hpStr ? ` ${hpStr}` : ''
-        const d = dist !== undefined ? ` ${dist.toFixed(1)}m` : ''
-        const num = (actionCount ?? 0) > 0 ? ` #${actionCount}` : ''
-        if (ap > 0) {
-            lines.push(`── ${t(ms)}${num} ${actor} AP${ap.toFixed(1)}${hp}${d} ──`)
-        } else {
-            lines.push(`── ${t(ms)}${num} ${actor}${hp}${d} ──`)
-        }
+    /** 由作用域推导缩进层级：主招式(2)→0、反应(3)→1、子反应(4)→2… */
+    function scopeIndent(s: number[] | undefined): number {
+        return Math.max(0, (s?.length ?? 2) - 2)
+    }
+    /** frameScope 是否为 eventScope 的前缀（或相等） */
+    function isPrefix(frameScope: number[], eventScope: number[] | undefined): boolean {
+        if (!eventScope || frameScope.length > eventScope.length) return false
+        for (let i = 0; i < frameScope.length; i++) if (frameScope[i] !== eventScope[i]) return false
+        return true
     }
 
-    let pending: {
-        time: number
-        actor: string
+    /** 一个招式帧（攻击/触发招式），children 为其效果行与已完成的子反应行 */
+    interface Frame {
+        scope: number[]
+        depth: number
+        prefix: string
         text: string
-        ap?: string
-        startAp: number
-        hpInfo?: string
-        distance?: number
-        actionCount?: number
-        indent?: number
-        /** 累积的判定文本（命中后追加） */
-        extra?: string
-    } | null = null
-    /** 系统事件缓冲区：攻击判定期间的系统消息暂存到这里，与攻击行一同输出 */
-    let pendingSystemLines: string[] = []
-    /** 前置行缓冲区：攻击判定期间的前置事件（如 dash），在攻击行前输出 */
-    let preLines: string[] = []
-    /** 待输出系统行缓冲区：未命中攻击前的系统消息，在 bar 后输出 */
-    let standbyLines: string[] = []
-    let standbyMs = 0
-    let standbyActorId = ''
-    let standbySnapshot: BattleSnapshot | null = null
-    /** 上一条 flush 的攻击时间戳，用于 post-damage 系统消息 inline 渲染 */
-    let lastFlushMs = -1
-
-    function flushStandby() {
-        if (standbyLines.length === 0) return
-        if (standbySnapshot && standbyActorId) {
-            checkNewEvent(
-                standbyMs,
-                fmtName(standbyActorId, standbySnapshot),
-                0,
-                hpInfo(standbyActorId, standbySnapshot),
-                standbySnapshot.distance,
-                standbySnapshot.actionCount,
-            )
-        }
-        for (const l of standbyLines) lines.push(l)
-        standbyLines = []
-        standbyActorId = ''
-        standbySnapshot = null
+        inline: string
+        ap: string
+        actionName?: string
+        preLines: string[]
+        children: string[]
     }
 
-    function flush() {
-        if (!pending) return
-        lastFlushMs = pending.time
-        checkNewEvent(
-            pending.time,
-            pending.actor,
-            pending.startAp,
-            pending.hpInfo,
-            pending.distance,
-            pending.actionCount,
-            pending.indent,
-        )
-        // 先输出前置行（如 dash 移动）
-        for (const l of preLines) lines.push(l)
-        preLines = []
-        let line = `  ${pending.text}`
-        if (pending.extra) line += pending.extra
-        if (pending.ap) line += `  | ${pending.ap}`
-        // 输出攻击行
-        lines.push(line)
-        // 再输出缓存的系统消息
-        if (pendingSystemLines.length > 0) {
-            for (const sl of pendingSystemLines) lines.push(sl)
-            pendingSystemLines = []
+    const stack: Frame[] = []
+    /** 当前块的去重键（回合_行动者）；反应（scope≥3）不触发换块 */
+    let currentBlockKey = ''
+    /** 击杀奖杯胜者（延迟到末尾输出） */
+    let defeatWinner = ''
+    /** battle_start 头部是否已输出 */
+    let headerShown = false
+
+    /** 渲染一个招式帧为若干行（前摇行 + 招式行 + 效果/子反应行） */
+    function renderFrame(f: Frame): string[] {
+        const out: string[] = []
+        for (const p of f.preLines) out.push(p)
+        // 主招式(depth0)=2空格、反应(depth1)=4空格、子反应(depth2)=6空格…
+        let line = `${'  '.repeat(f.depth + 1)}${f.prefix}${f.text}`
+        if (f.inline) line += f.inline
+        if (f.ap) line += f.ap
+        out.push(line)
+        for (const c of f.children) out.push(c)
+        return out
+    }
+
+    /** 弹出栈顶直至 top.scope 是 scope 的前缀（或栈空）；被弹出的帧渲染后挂到父帧 children */
+    function popTo(scope: number[]): Frame | null {
+        while (stack.length > 0 && !isPrefix(stack[stack.length - 1].scope, scope)) {
+            const f = stack.pop()!
+            const parent = stack.length > 0 ? stack[stack.length - 1] : null
+            const rendered = renderFrame(f)
+            if (parent) parent.children.push(...rendered)
+            else lines.push(...rendered)
         }
-        pending = null
+        return stack.length > 0 ? stack[stack.length - 1] : null
+    }
+
+    /** 关闭当前块：清空剩余栈（通常是主帧） */
+    function closeBlock() {
+        popTo([-1])
+        stack.length = 0
+        currentBlockKey = ''
+    }
+
+    /** 打开块标题 */
+    function openBlock(
+        ms: number,
+        actorId: string,
+        snapshot: BattleSnapshot,
+        opts?: { displayName?: string; useCurrentAp?: boolean },
+    ) {
+        const actorName = opts?.displayName ?? fmtName(actorId, snapshot)
+        if (lines.length > 0) lines.push('')
+        const hp = hpInfo(actorId, snapshot)
+        const d = ` ${snapshot.distance.toFixed(1)}m`
+        const num = snapshot.actionCount > 0 ? ` #${snapshot.actionCount}` : ''
+        const c = snapshot.characters.find((x) => x.id === actorId)
+        // 普通回合显示 maxAp（原子回合=满 AP）；召唤物回合显示主人当前 AP（御物耗炁可见）
+        const apVal = opts?.useCurrentAp ? c?.ap : c?.maxAp
+        const ap = c && apVal && apVal > 0 ? ` AP${apVal.toFixed(1)}` : ''
+        lines.push(`── ${t(ms)}${num} ${actorName}${ap} ${hp}${d} ──`)
+    }
+
+    /** 主级事件（回合级或主招式）→ 按 (回合,行动者) 换块 */
+    function ensureBlock(
+        ms: number,
+        actorId: string | undefined,
+        snapshot: BattleSnapshot | undefined,
+        turn: number,
+        opts?: { displayName?: string; useCurrentAp?: boolean },
+    ) {
+        if (!snapshot || !actorId) return
+        const key = `${turn}_${actorId}_${opts?.displayName ?? ''}`
+        if (key !== currentBlockKey) {
+            closeBlock()
+            currentBlockKey = key
+            openBlock(ms, actorId, snapshot, opts)
+        }
     }
 
     for (let eventIdx = 0; eventIdx < all.length; eventIdx++) {
-        const { timelineMs: ms, event: e } = all[eventIdx]
+        const { event: e, timelineMs: ms } = all[eventIdx]
         const before = lines.length
+        const sc = e.scope ?? []
+
         switch (e.type) {
             case 'battle_start':
-                lines.push(`── ${fmtName(e.actor)} VS ${fmtName(e.opponent)} ──\n`)
-                break
-
-            case 'move': {
-                // pre-hit 阶段的 dash 移动缓存到攻击行前输出
-                if (pending) {
-                    const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
-                    const apInfo = e.apCost > 0 ? `  | AP${e.apRemaining.toFixed(1)}` : ''
-                    preLines.push(`  # 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m${apInfo}`)
-                    break
+                if (!headerShown) {
+                    lines.push(`── ${fmtName(e.actor, e.snapshot)} VS ${fmtName(e.opponent, e.snapshot)} ──`)
+                    headerShown = true
                 }
-                flushStandby()
-                flush()
-                const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
-                const actorName = fmtName(e.actor, e.snapshot)
-                checkNewEvent(
-                    ms,
-                    actorName,
-                    e.apRemaining + e.apCost,
-                    hpInfo(e.actor, e.snapshot),
-                    e.newDistance,
-                    e.snapshot.actionCount,
-                )
-                lines.push(
-                    `  # 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m  | AP${e.apRemaining.toFixed(1)}`,
-                )
                 break
-            }
 
             case 'attack_start': {
-                // 触发招式暂存到系统行，父招式 pending 保留不变
-                if (e.isTriggered && pending && !pending.extra) {
-                    pendingSystemLines.push(
-                        `${'  '.repeat(e.indent ?? 0)}↳ ${e.actionName}(${e.apCost}AP) → ${fmtName(e.target, e.snapshot)}  | AP${e.apRemaining.toFixed(1)}`,
-                    )
-                    break
-                }
-                flushStandby()
-                flush()
-                const actorName = fmtName(e.actor, e.snapshot)
+                const depth = scopeIndent(sc)
+                const isReaction = sc.length >= 3
                 const targetName = fmtName(e.target, e.snapshot)
-                const apCost = e.apCost
-                const prefix = e.isBonus ? '+' : e.isTriggered ? '↳' : '#'
-                const indent = '  '.repeat(e.indent ?? 0)
-                pending = {
-                    time: ms,
-                    actor: actorName,
-                    text: `${indent}${prefix} ${e.actionName ?? e.weapon}(${apCost}AP) → ${targetName}`,
-                    ap: `AP${e.apRemaining.toFixed(1)}`,
-                    startAp: e.apRemaining + apCost,
-                    hpInfo: hpInfo(e.actor, e.snapshot),
-                    distance: e.snapshot.distance,
-                    actionCount: e.snapshot.actionCount,
-                    indent: e.indent ?? 0,
+                const text = `${e.actionName ?? e.weapon}(${e.apCost}AP) → ${targetName}`
+                const prefix = isReaction ? '↳ ' : e.isBonus ? '+ ' : '# '
+                const ap = `  | AP${e.apRemaining.toFixed(1)}`
+
+                if (isReaction) {
+                    // 反应招式：弹出直到父帧是前缀，然后压栈
+                    popTo(sc)
+                    stack.push({
+                        scope: sc,
+                        depth,
+                        prefix,
+                        text,
+                        inline: '',
+                        ap,
+                        actionName: e.actionName,
+                        preLines: [],
+                        children: [],
+                    })
+                } else {
+                    // 主招式：换块 + 压入主帧（召唤物回合用召唤物名归块，与主人动作分开）
+                    const blockOpts = e.summonName
+                        ? { displayName: `「${e.summonName}」`, useCurrentAp: true }
+                        : undefined
+                    ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0, blockOpts)
+                    closeBlock()
+                    currentBlockKey = `${sc[0] ?? 0}_${e.actor}_${e.summonName ?? ''}`
+                    stack.push({
+                        scope: sc,
+                        depth,
+                        prefix,
+                        text,
+                        inline: '',
+                        ap,
+                        actionName: e.actionName,
+                        preLines: [],
+                        children: [],
+                    })
                 }
                 break
             }
 
-            case 'check_hit':
-                if (pending) {
-                    pending.extra = `  ${roll('命中', e.hitChance, e.roll)}`
+            case 'move': {
+                // 移动：回合级（scope 1）或主招式内（scope 2）→ 块内行；更深（dash 冲刺）→ 挂帧前摇行
+                if (sc.length <= 2) {
+                    ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
+                    const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
+                    const apInfo = e.apCost > 0 ? `  | AP${e.apRemaining.toFixed(1)}` : ''
+                    lines.push(`  # 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m${apInfo}`)
+                } else {
+                    const f = popTo(sc)
+                    if (f) {
+                        const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
+                        f.preLines.push(
+                            `${'  '.repeat(f.depth + 1)}# 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m`,
+                        )
+                    }
+                }
+                break
+            }
+
+            case 'check_hit': {
+                const f = popTo(sc)
+                if (f) {
+                    f.inline += `  ${roll('命中', e.hitChance, e.roll)}`
                     if (!e.result) {
-                        pending.extra += '  » 未命中'
-                        pending.ap = undefined
+                        f.inline += '  » 未命中'
+                        f.ap = ''
                     }
                 }
                 break
+            }
 
-            case 'dodge':
-                if (pending) {
-                    // 未命中的情况下不再重复显示闪避
-                    if (!(pending.extra ?? '').includes('未命中')) {
-                        pending.extra = (pending.extra ?? '') + `  » ${fmtName(e.evader)} 闪避`
-                    }
-                    flush()
+            case 'dodge': {
+                const f = popTo(sc)
+                if (f) {
+                    if (!f.inline.includes('未命中')) f.inline += `  » ${fmtName(e.evader, e.snapshot)} 闪避`
                 }
                 break
+            }
 
-            case 'parry':
-                if (pending && e.parryChance != null && e.roll != null) {
-                    pending.extra = (pending.extra ?? '') + `  ${roll('招架', e.parryChance, e.roll)}`
+            case 'parry': {
+                const f = popTo(sc)
+                if (f && e.parryChance != null && e.roll != null) {
+                    f.inline += `  ${roll('招架', e.parryChance, e.roll)}`
                 }
                 break
+            }
 
-            case 'check_crit':
-                if (pending) {
-                    pending.extra = (pending.extra ?? '') + `  ${roll('暴击', e.critChance, e.roll)}`
-                }
+            case 'check_crit': {
+                const f = popTo(sc)
+                if (f) f.inline += `  ${roll('暴击', e.critChance, e.roll)}`
                 break
+            }
 
             case 'damage': {
-                // 如果 pending 不是本体招式（被触发招式覆盖了），暂存到 pendingSystemLines
-                if (!pending || !pending.text.includes(e.actionName)) {
-                    let result = ''
-                    if (e.isParried && e.blocked > 0) result += `格挡${e.blocked.toFixed(1)}  `
-                    result += `造成${e.final.toFixed(1)}`
-                    const label = e.actionName !== '未知' ? `[${e.actionName}] ` : ''
-                    if (pending) {
-                        pendingSystemLines.push(`    ↳ ${label}${result}`)
-                    } else {
-                        lines.push(`    ↳ ${label}${result}`)
+                const resultText = `${
+                    e.isParried && e.blocked > 0 ? `格挡${e.blocked.toFixed(1)}  ` : ''
+                }造成${e.final.toFixed(1)}`
+                const f = popTo(sc)
+                if (f) {
+                    if (!f.inline.includes('未命中') && !f.inline.includes('闪避')) {
+                        f.inline += `  » ${resultText}`
                     }
-                    break
+                } else {
+                    const label = e.actionName !== '未知' ? `[${e.actionName}] ` : ''
+                    lines.push(`    ↳ ${label}${resultText}`)
                 }
-                if (
-                    (pending!.text + (pending!.extra ?? '')).includes('未命中') ||
-                    (pending!.text + (pending!.extra ?? '')).includes('闪避')
-                ) {
-                    flush()
-                    break
-                }
-                let result = ''
-                if (e.isParried && e.blocked > 0) {
-                    result += `格挡${e.blocked.toFixed(1)}  `
-                }
-                result += `造成${e.final.toFixed(1)}`
-                pending!.extra = (pending!.extra ?? '') + `  » ${result}`
-                flush()
-                // 伤害落在攻击开始 + 前摇之后：把"最近 flush 时间"改为伤害实际时间，
-                // 让紧随其后的同刻反应（on_hit 触发的 debuff 如刃炁）inline 贴着攻击行，
-                // 而不是被 standby 推到下一个 block
-                lastFlushMs = ms
                 break
             }
 
             case 'defeat': {
-                flush()
-                // 胜利前先输出缓存的系统消息（如天机重置等）
-                if (standbyLines.length > 0) {
-                    for (const l of standbyLines) lines.push(l)
-                    standbyLines = []
-                    standbyActorId = ''
-                    standbySnapshot = null
-                }
+                // 推迟奖杯到末尾，保证结算事件都在奖杯之前
                 const winnerId = e.winner
-                const winnerName = e.snapshot?.characters.find((c) => c.id === winnerId)?.name ?? winnerId
-                lines.push(`\n🏆 ${winnerName} 获胜！`)
+                defeatWinner = e.snapshot?.characters.find((c) => c.id === winnerId)?.name ?? winnerId
                 break
             }
 
             case 'system': {
-                if (pending) {
-                    // 攻击判定期间：缓存系统消息，等攻击行 flush 时一并输出
-                    const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
-                    const prefix = (e.indent ?? 0) > 0 ? '↳ ' : ''
-                    pendingSystemLines.push(`${indent}${prefix}${e.message}`)
-                    break
+                if (sc.length <= 1) {
+                    // 回合级系统行（战斗开始 buff、架势切换、状态到期等）
+                    ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
+                    const prefix = e.message.startsWith('[') ? '· ' : ''
+                    lines.push(`  ${prefix}${e.message}`)
+                } else {
+                    // 效果行：挂到所属招式帧（缩进 = 帧深度 + 1）
+                    const f = popTo(sc)
+                    if (f) {
+                        f.children.push(`${'  '.repeat(f.depth + 2)}↳ ${e.message}`)
+                    } else {
+                        lines.push(`  · ${e.message}`)
+                    }
                 }
-                // 刚 flush 的攻击后紧随的系统消息（如 on_hit 触发的 debuff），直接 inline 输出
-                if (lastFlushMs === ms) {
-                    const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
-                    const prefix = (e.indent ?? 0) > 0 ? '↳ ' : '· '
-                    lines.push(`${indent}${prefix}${e.message}`)
-                    break
-                }
-                // 不同时间或同级不同角色（如 battle_start 双方独立的 init buff）→ flush
-                if (
-                    standbyLines.length > 0 &&
-                    (ms !== standbyMs || ((e.indent ?? 0) === 0 && e.actor && e.actor !== standbyActorId))
-                )
-                    flushStandby()
-                const indent = '  ' + '  '.repeat(Math.max(0, e.indent ?? 0))
-                const prefix = (e.indent ?? 0) > 0 ? '↳ ' : e.message.startsWith('[') ? '· ' : ''
-                standbyLines.push(`${indent}${prefix}${e.message}`)
-                if (!standbyActorId && e.actor) standbyActorId = e.actor
-                standbyMs = ms
-                if (!standbySnapshot && e.snapshot) standbySnapshot = e.snapshot
                 break
             }
         }
+
         // 记录该事件处理完后可见的最后一行索引
         if (lines.length > before) {
             eventToLine[eventIdx] = lines.length - 1
@@ -350,9 +332,11 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
             eventToLine[i] = i > 0 ? eventToLine[i - 1] : -1
         }
     }
-    flush()
-    // 最后的 flush 可能加了行，更新最后一事件的映射
+    closeBlock()
+    // 击杀奖杯推迟到这里输出（保证所有结算事件都在奖杯之前）
+    if (defeatWinner) {
+        lines.push(`\n🏆 ${defeatWinner} 获胜！`)
+    }
     eventToLine[all.length - 1] = lines.length - 1
-    flushStandby()
     return { lines, eventToLine }
 }

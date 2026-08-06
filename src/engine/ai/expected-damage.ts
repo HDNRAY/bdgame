@@ -3,7 +3,7 @@ import type { ActionDefinition } from '../entities/action'
 import type { BattleState } from '../combat/types'
 import { getActionRange } from '../../data/actions'
 import { calcBaseDamage, calcCritChance, calcHitChance, calcParryChance, calcParriedDamage } from '../calc/damage'
-import { getBuff } from '../../data/buffs'
+import { forEachBuffOf } from '../combat/utils'
 
 export interface DamageEstimate {
     actionId: string
@@ -57,20 +57,17 @@ export function calcExpectedDamage(
     let hitMod = 0
     let critChanceMod = 0
     let critDamageMod = 0
-    for (const [key, layer] of safePendings) {
-        const p = key.split('::')
-        if (p.length < 2) continue
-        const def = getBuff(p[0])
-        if (!def) continue
+    forEachBuffOf(safePendings, [safeAtk.id, safeDef.id], (def, layer, _b, _k, ownerId) => {
+        if (!def) return
         const ctx = { final: 0, raw: 0, target: safeDef, attacker: safeAtk, state: safeState, layer, source: action }
         // onAction 必须在其他钩子之前调用（如抽刀断水需要先算 diff）
-        if (p[1] === safeAtk.id && def.onAction) def.onAction(ctx)
-        if (p[1] === safeDef.id && def.onDodgeChance) safeDef.dodgeMod += def.onDodgeChance(ctx)
-        if (p[1] === safeAtk.id && def.onHitChance) hitMod += def.onHitChance(ctx)
-        if (p[1] === safeDef.id && def.onParryChance) safeDef.parryMod += def.onParryChance(ctx)
-        if (p[1] === safeAtk.id && def.onCritChance) critChanceMod += def.onCritChance(ctx)
-        if (p[1] === safeAtk.id && def.onCritDamage) critDamageMod += def.onCritDamage(ctx)
-    }
+        if (ownerId === safeAtk.id && def.onAction) def.onAction(ctx)
+        if (ownerId === safeDef.id && def.onDodgeChance) safeDef.dodgeMod += def.onDodgeChance(ctx)
+        if (ownerId === safeAtk.id && def.onHitChance) hitMod += def.onHitChance(ctx)
+        if (ownerId === safeDef.id && def.onParryChance) safeDef.parryMod += def.onParryChance(ctx)
+        if (ownerId === safeAtk.id && def.onCritChance) critChanceMod += def.onCritChance(ctx)
+        if (ownerId === safeAtk.id && def.onCritDamage) critDamageMod += def.onCritDamage(ctx)
+    })
 
     // 3. 命中率
     const baseHc = calcHitChance({
@@ -95,11 +92,8 @@ export function calcExpectedDamage(
     expected *= 1 + critChance * (0.5 + critDamageMod)
 
     // 6. onDealDamage 修正
-    for (const [key, layer] of safePendings) {
-        const p = key.split('::')
-        if (p.length < 2 || p[1] !== safeAtk.id) continue
-        const def = getBuff(p[0])
-        if (!def?.onDealDamage) continue
+    forEachBuffOf(safePendings, safeAtk.id, (def, layer) => {
+        if (!def?.onDealDamage) return
         const result = def.onDealDamage({
             final: expected,
             raw: rawDamage,
@@ -110,7 +104,7 @@ export function calcExpectedDamage(
             source: action,
         })
         expected = typeof result === 'object' ? result.normal + (result.piercing ?? 0) : result
-    }
+    })
 
     // 7. piercingRatio
     for (const eff of action.effects ?? []) {

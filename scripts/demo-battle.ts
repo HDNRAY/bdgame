@@ -37,6 +37,8 @@ import {
     ORANGE,
     JIRAN,
     CHANZI,
+    DOCTOR,
+    XIAOHUA,
 } from '../src/data/opponents/index'
 import { getWeapon } from '../src/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
@@ -80,8 +82,8 @@ function show(c: Character) {
 }
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(BAMBOO, 33)
-const oBuild = gen(OTSU, 33)
+const pBuild = gen(SANGYUAN, 33)
+const oBuild = gen(XIAOHUA, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

@@ -14,7 +14,7 @@ export type LogEvent =
           apCost: number
           apRemaining: number
           triggered: boolean
-          indent: number
+          summonName?: string
       }
     | { type: 'check_hit'; sourceId: string; targetId: string; hitChance: number; roll: number; result: boolean }
     | { type: 'check_parry'; sourceId: string; targetId: string; parryChance: number; roll: number; result: boolean }

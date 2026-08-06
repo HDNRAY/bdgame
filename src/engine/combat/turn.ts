@@ -79,39 +79,32 @@ export class TurnManager {
         this.queue.splice(idx, 1)
     }
 
-    /** 行动后重新入队（插入硬直）；actionMs 为该次调度的动作时间部分（不含 AP 回满） */
-    scheduleNext(template: TurnEntryTemplate, delay: number, actionMs?: number): void {
+    /** 行动后重新入队（原子回合：delay 即 AP 回复耗时） */
+    scheduleNext(template: TurnEntryTemplate, delay: number): void {
         const entry = this.queue.find((e) => e.id === template.id)
         if (entry) {
             entry.nextActionAt = this.time + delay
             entry.scheduledAt = this.time
-            if (template.type === 'character' && entry.type === 'character' && actionMs !== undefined) {
-                entry.actionMs = actionMs
-            }
         } else {
             this.queue.push({
                 ...template,
                 nextActionAt: this.time + delay,
                 scheduledAt: this.time,
-                ...(template.type === 'character' && actionMs !== undefined ? { actionMs } : {}),
             } satisfies TurnEntry)
         }
         this.sort()
     }
 
     /**
-     * AP 回复率变化 → 重算 pending 下次行动时间。
-     * 只动回满部分（动作时间部分不变）；初手等未设 actionMs 的条目跳过。
+     * AP 回复率变化 → 重算 pending 下次行动时间（原子回合：纯回复耗时）。
+     * 队首或非 character 条目跳过。
      */
     recalcRegenDelay(id: string, regenPerSec: number, ap: number, maxAp: number): void {
-        const entry = this.queue.find(
-            (e): e is TurnEntry & { type: 'character'; actionMs?: number } => e.id === id && e.type === 'character',
-        )
-        if (!entry || entry === this.queue[0] || entry.actionMs === undefined) return
+        const entry = this.queue.find((e) => e.id === id && e.type === 'character')
+        if (!entry || entry === this.queue[0]) return
         const deficit = Math.max(0, maxAp - ap)
         const regenMs = Math.ceil((deficit / Math.max(0.001, regenPerSec)) * 1000)
-        // 下次行动 = max(动作完成, 当前时刻起回满)
-        entry.nextActionAt = Math.max(entry.scheduledAt + entry.actionMs, this.time + regenMs)
+        entry.nextActionAt = this.time + regenMs
         this.sort()
     }
 
@@ -132,6 +125,11 @@ export class TurnManager {
 
     get currentTime(): number {
         return this.time
+    }
+
+    /** 将时间游标同步到当前事件时刻（runEvent 开头调用，保证处理中 currentTime 不陈旧） */
+    setTime(t: number): void {
+        this.time = t
     }
 
     get entries(): ReadonlyArray<TurnEntry> {

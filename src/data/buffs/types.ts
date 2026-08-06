@@ -81,6 +81,8 @@ export interface BuffDef extends GameEntity {
     onDodgeChance?: (ctx: BuffHookCtx) => number
     /** AP 消耗修正钩子（返回加算值，负=更省，最低1） */
     onActionCost?: (ctx: BuffHookCtx) => number
+    /** 召唤物回合间隔钩子（返回前后摇乘数，<1=加速；御物加速等用） */
+    onSummonInterval?: (ctx: BuffHookCtx) => number
     /** 出招回调（释放任何招式时调用，不受命中影响） */
     onAction?: (ctx: BuffHookCtx) => void
     /** 闪避时回调（防御方成功闪避后调用） */

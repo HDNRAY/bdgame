@@ -133,8 +133,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return ['捡回脱手的武器']
         case 'switch_weapon':
             return [`切换武器: ${eff.weaponId}`]
-        case 'summon_speed':
-            return [`召唤速度: ${eff.value}`]
         case 'stat_transfer':
             return [`属性转移: ${eff.stat} → +${eff.value}`]
         case 'ciyuan_init':

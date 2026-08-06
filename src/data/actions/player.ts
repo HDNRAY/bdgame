@@ -545,7 +545,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 10] as [number, number],
         canUse: (attacker) => attacker.chan >= 50,
         onActionHitChance: () => 1,
-        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 0.8 }, base: 15, piercing: 15 }],
+        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 0.6 }, base: 10, piercing: 10 }],
     },
     {
         id: 'sword_thrust',
@@ -688,7 +688,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['slash', 'burn'],
         getRange: (wr) => [wr[0], wr[1] + 1],
         effects: [
-            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.5, wisdom: 0.2 } },
             { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
         ],
     },
@@ -889,7 +889,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['polearm', 'pierce', 'burn', 'qi'],
         effects: [
             { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
-            { type: 'damage', scaling: { strength: 0.4, wisdom: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.3, wisdom: 0.2 } },
         ],
     },
     {

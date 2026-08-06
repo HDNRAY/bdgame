@@ -94,11 +94,12 @@ export const ARTIFACTS: Artifact[] = [
         name: '便携式核动力炉',
         description: '微型核聚变动力炉，输出炁态能量供炼炁士使用，加速炁的恢复。',
         tags: ['implant', 'inherent'],
-        effects: [
-            { type: 'max_ap_mod', value: 2 },
-            { type: 'permanent_burn', value: 2 },
-        ],
+        effects: [{ type: 'permanent_burn', value: 2 }],
         triggers: [
+            {
+                condition: { type: 'on_equip' },
+                effects: [{ type: 'max_ap_mod', value: 2 }],
+            },
             {
                 condition: { type: 'battle_start' },
                 effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 1 }],
@@ -221,7 +222,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '气海丹',
         description: '拓展气海，AP上限+4。',
         tags: ['buff'],
-        effects: [{ type: 'max_ap_mod', value: 4 }],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'max_ap_mod', value: 4 }] }],
     },
     {
         id: 'qi_amplifier',
@@ -580,8 +581,11 @@ export const ARTIFACTS: Artifact[] = [
         name: '蓄炁瓶',
         description: '天工锻造的炁能储存装置，稳定释放炁能。',
         tags: ['craft', 'buff'],
-        effects: [{ type: 'max_ap_mod', value: 1 }],
         triggers: [
+            {
+                condition: { type: 'on_equip' },
+                effects: [{ type: 'max_ap_mod', value: 1 }],
+            },
             {
                 condition: { type: 'battle_start' },
                 effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 1 }],

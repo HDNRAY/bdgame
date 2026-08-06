@@ -11,12 +11,12 @@ export function canExecuteAction(
     attacker: Character,
     state: BattleState,
     _engine?: BattleEngine,
-    opts?: { noDiscount?: boolean },
 ): { ok: boolean; reason?: string } {
     // 验证用基础成本；onActionCost 折扣只在 #executeAction 扣费时应用一次。
     // 此处不再重复调用 onActionCost——避免带副作用的钩子（如分心错手的"只减第二招"标记）被验证/扣费两次调用。
     // 安全：onActionCost 均为负折扣，扣费成本 ≤ 验证成本，AP 够验证则扣费必成功。
-    const cost = opts?.noDiscount ? action.apCost : attacker.actionApCost(action.apCost)
+    // 0 成本招式（御物召唤等）天然免费：calcActionCostAfterSpeed 对 0 成本返回 0，不校验 AP。
+    const cost = attacker.actionApCost(action.apCost)
     if (attacker.ap < cost) return { ok: false, reason: 'AP不足' }
     if (action.chanCost && attacker.chan < action.chanCost) return { ok: false, reason: '缠劲不足' }
     const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)

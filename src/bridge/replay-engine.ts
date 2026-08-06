@@ -40,7 +40,7 @@ export interface FrameChar {
 export interface LogEntry {
     id: number
     timelineMs: number
-    event: BattleEvent
+    event: BattleEvent & { scope: number[] }
 }
 
 // ── 冻结演出时长（毫秒，1x 速度） ──
@@ -53,6 +53,13 @@ type AttackStartEvent = Extract<BattleEvent, { type: 'attack_start' }>
 /** 命中事件（触发冻结演出） */
 function isDamageEvent(evt: BattleEvent | undefined): evt is Extract<BattleEvent, { type: 'damage' }> {
     return evt?.type === 'damage'
+}
+
+/** scope 前缀匹配（a 是 b 的祖先或相等） */
+function isScopePrefix(a: number[], b: number[]): boolean {
+    if (a.length > b.length) return false
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false
+    return true
 }
 
 // ── ReplayEngine ──
@@ -276,10 +283,19 @@ export class ReplayEngine {
         return lo
     }
 
-    /** 从命中事件向前找到所属的 attack_start（同动作内事件连续） */
+    /** 从命中事件向前找到所属的 attack_start（按 scope 归属，同招式名嵌套也能区分） */
     private findAttackStartIdx(fromIdx: number): number {
+        const dmgScope = this.events[fromIdx]?.event.scope
         for (let i = fromIdx; i >= 0; i--) {
-            if (this.events[i].event.type === 'attack_start') return i
+            const evt = this.events[i].event
+            if (evt.type !== 'attack_start') continue
+            // 命中事件 scope 是 attack_start scope 或其扩展（前缀匹配）
+            const scope = this.events[i].event.scope
+            if (dmgScope && scope) {
+                if (isScopePrefix(scope, dmgScope)) return i
+            } else {
+                return i
+            }
         }
         return -1
     }

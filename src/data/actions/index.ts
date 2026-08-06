@@ -4,7 +4,7 @@ import type { Tag } from '../../engine/entities/tag'
 import type { BattleState } from '../../engine/combat/types'
 import type { BattleEngine } from '../../engine/combat/engine'
 import type { BuffHookCtx, RuntimeAction } from '../buffs/types'
-import { getBuff } from '../buffs'
+import { forEachBuffOf } from '../../engine/combat/utils'
 import { PLAYER_ACTIONS } from './player'
 import { SUPPORT_ACTIONS } from './support'
 import { INTERNAL_ACTIONS } from './internal'
@@ -49,17 +49,15 @@ export function getRuntimeAction(
     state: BattleState,
     engine?: BattleEngine,
 ): ActionDefinition | undefined {
-    let action: ActionDefinition | RuntimeAction | undefined = getAction(actionId)
+    const action: ActionDefinition | RuntimeAction | undefined = getAction(actionId)
     if (!action) return undefined
-    for (const [key, layer] of state.pendingBuffs) {
-        const [buffId, charId] = key.split('::')
-        if (charId !== self.id) continue
-        const buff = getBuff(buffId)
-        if (!buff?.onRuntimeAction) continue
-        action = buff.onRuntimeAction(
+    let cur: ActionDefinition | RuntimeAction = action
+    forEachBuffOf(state.pendingBuffs, self.id, (buff, layer) => {
+        if (!buff?.onRuntimeAction) return
+        cur = buff.onRuntimeAction(
             { final: 0, raw: 0, target: self, attacker: self, engine, state, layer } as BuffHookCtx,
-            action,
+            cur,
         )
-    }
-    return action as ActionDefinition
+    })
+    return cur as ActionDefinition
 }

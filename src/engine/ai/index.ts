@@ -3,7 +3,7 @@ import type { EffectDef } from '../entities/action'
 import { getActionRange, getRuntimeAction } from '../../data/actions'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../../data/weapons/weapons'
-import { getBuff } from '../../data/buffs'
+import { forEachBuffOf } from '../combat/utils'
 import { PositionSystem } from '../combat/position'
 import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
@@ -278,13 +278,10 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
 
     // ── 6. 通用额外攻击（遍历 buff 调 getExtraAttack） ──
     let extraTotal = 0
-    for (const [key] of state.pendingBuffs) {
-        const parts = key.split('::')
-        if (parts.length < 2 || parts[1] !== self.id) continue
-        const def = getBuff(parts[0])
-        if (!def?.getExtraAttack) continue
+    forEachBuffOf(state.pendingBuffs, self.id, (def) => {
+        if (!def?.getExtraAttack) return
         extraTotal += def.getExtraAttack({ source: mainDef2 })
-    }
+    })
     if (extraTotal > 0) {
         let spentExtra =
             moveAp +
@@ -394,13 +391,10 @@ function estimatePlan(
 
     // 计算可触发的额外攻击次数
     let extraTotal = 0
-    for (const [key] of state.pendingBuffs) {
-        const parts = key.split('::')
-        if (parts.length < 2 || parts[1] !== self.id) continue
-        const def = getBuff(parts[0])
-        if (!def?.getExtraAttack) continue
+    forEachBuffOf(state.pendingBuffs, self.id, (def) => {
+        if (!def?.getExtraAttack) return
         extraTotal += def.getExtraAttack({ source: mainInst.def })
-    }
+    })
 
     // 填充额外攻击
     const excludeIds = new Set<string>([mainId])
