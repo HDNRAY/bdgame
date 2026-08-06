@@ -45,11 +45,11 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
                 ? 2
                 : basePerAp * (1 + (self.moveEfficiency ?? 0))
-            const moveToPickupAp = distToDrop > 1 ? Math.ceil((distToDrop - 1) / perAp) : 0
+            const moveToPickupAp = distToDrop > 1 ? PositionSystem.moveApFor(distToDrop - 1, perAp) : 0
             if (moveToPickupAp <= apBudget) {
                 const cmds: ActionCommand[] = []
                 if (moveToPickupAp > 0) {
-                    cmds.push({ type: 'move', bestDistance: -(distToDrop - 1) })
+                    cmds.push({ type: 'move', bestDistance: -moveToPickupAp })
                 }
                 // 找角色的捡武器招式（retrieve_weapon tag）
                 const pickupAction = self.actions.find((a) => a.def.tags.includes('retrieve_weapon'))
@@ -227,12 +227,8 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         if (preCmds.length > 0) return preCmds
         const postCmds = planSupportActions(self, state, apBudget, 'post_action')
         if (postCmds.length > 0) return postCmds
-        // P5: 所有招式都出不了，尽量向理想距离移动
-        const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
-        const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
-        const perAp = minMoveCost ? 2 : basePerAp * (1 + self.moveEfficiency)
-        const bestDist = -(apBudget * perAp)
-        return [{ type: 'move', bestDistance: bestDist }]
+        // P5: 所有招式都出不了，尽量向理想距离移动（bestDistance 语义 = AP，1位小数）
+        return [{ type: 'move', bestDistance: -Math.round(apBudget * 10) / 10 }]
     }
 
     // 验证 mainId 对应招式存在（pickup_weapon 可能不在所有角色 action list 中）
@@ -325,9 +321,10 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                 enemyStyle === 'melee' ||
                 (enemyStyle === 'mid' && weapon.range[1] >= (enemy.weaponDef?.range?.[1] ?? 0))
             if (kiteToMax && postMoveDist < mainActionRange[1] - 0.5) {
-                const rawAp = Math.ceil((mainActionRange[1] - postMoveDist) / perAp)
+                // 1位小数：从大到小试 AP 档（0.1 步进），取能落在射程内的最大档
+                const rawAp = PositionSystem.moveApFor(mainActionRange[1] - postMoveDist, perAp)
                 let apUsed = 0
-                for (let a = rawAp; a >= 1; a--) {
+                for (let a = rawAp; a >= 0.1; a = Math.round((a - 0.1) * 10) / 10) {
                     const finalDist = postMoveDist + perAp * a
                     if (finalDist <= mainActionRange[1] + 0.01) {
                         apUsed = a
@@ -352,12 +349,12 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         if (postMoveDist >= mainActionRange[0] && postMoveDist <= mainActionRange[1]) {
             // 不操作
         } else if (postMoveDist < mainActionRange[0]) {
-            // 太近 → 退到 range[0]
+            // 太近 → 退到 range[0]（1位小数）
             const targetDist = mainActionRange[0]
-            const rawAp = Math.ceil((targetDist - postMoveDist) / perAp)
-            // 防 overshoot：试从 rawAp 往下找，确保最终距离 ≥ range[0]
+            const rawAp = PositionSystem.moveApFor(targetDist - postMoveDist, perAp)
+            // 防 overshoot：试从 rawAp 往下找（0.1 步进），确保最终距离 ≥ range[0]
             let apUsed = 0
-            for (let a = rawAp; a >= 1; a--) {
+            for (let a = rawAp; a >= 0.1; a = Math.round((a - 0.1) * 10) / 10) {
                 const finalDist = postMoveDist + perAp * a
                 if (finalDist >= mainActionRange[0]) {
                     apUsed = a
@@ -376,11 +373,11 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                 cmds.push({ type: 'move', bestDistance: apUsed })
             }
         } else {
-            // 太远 → 进到 range[1]
+            // 太远 → 进到 range[1]（1位小数）
             const targetDist = mainActionRange[1]
-            const rawAp = Math.ceil((postMoveDist - targetDist) / perAp)
+            const rawAp = PositionSystem.moveApFor(postMoveDist - targetDist, perAp)
             let apUsed = 0
-            for (let a = rawAp; a >= 1; a--) {
+            for (let a = rawAp; a >= 0.1; a = Math.round((a - 0.1) * 10) / 10) {
                 const finalDist = postMoveDist - perAp * a
                 if (finalDist <= mainActionRange[1]) {
                     apUsed = a

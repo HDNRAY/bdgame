@@ -610,18 +610,22 @@ export class BattleEngine {
             crit: false,
             distanceDelta: 0,
         }
-        // 失心检查（仅临时失心影响动作成功率）
-        const fcKey = `fumble_chance_temp::${self.id}`
-        const fcLayer = this.state.pendingBuffs.get(fcKey)
-        if (fcLayer && Math.random() < fcLayer.restoreValue * 0.05) {
-            this.emitLog({ type: 'fumble', sourceId: self.id })
-            return r
-        }
         // 验证（触发招式已在 #processEmit 中通过距离/标签/条件检查，且不消耗 AP）
         if (!triggered) {
             const c = canExecuteAction(action, self, this.state, this)
             if (!c.ok) return r
         }
+        // 失心检查（不消耗 AP；失心 = 动作失败，本次出手作废）
+        const fcKey = `fumble_chance_temp::${self.id}`
+        const fcLayer = this.state.pendingBuffs.get(fcKey)
+        if (fcLayer) {
+            const fumbleRate = (fcLayer.extra?.fumbleRate as number | undefined) ?? fcLayer.restoreValue * 0.05
+            if (Math.random() < fumbleRate) {
+                this.emitLog({ type: 'fumble', sourceId: self.id })
+                return r
+            }
+        }
+
         let finalCost = action.apCost
         // 0 成本招式（御物召唤等）跳过 AP 消耗（onActionCost/身法减免/spendAp）
         if (!triggered && action.apCost > 0) {
@@ -651,6 +655,7 @@ export class BattleEngine {
         const inst = self.actions.find((a) => a.id === action.id)
         if (inst && inst.def.maxUses !== undefined) inst.use()
         this.checkChanOverflow(self.id)
+
         // 主招式（非触发）：开一个新的主招式作用域（level1 递增）
         if (!triggered) this.state.log.beginMainAction()
         const weapon = getWeapon(self.build.weapon)
@@ -884,6 +889,11 @@ export class BattleEngine {
             case 'stun_reset': {
                 const charId = eventId.slice('stun_reset_'.length)
                 this.#buffs.delete(`stun_track::${charId}`)
+                break
+            }
+            case 'fumble_reset': {
+                const charId = eventId.slice('fumble_reset_'.length)
+                this.#buffs.delete(`fumble_track::${charId}`)
                 break
             }
             case 'tick_buff': {

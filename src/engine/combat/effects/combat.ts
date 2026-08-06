@@ -12,8 +12,9 @@ export function processHitCheck(
     self: Character,
     enemy: Character,
     engine: BattleEngine,
+    suppressTriggers = false,
 ): boolean {
-    engine.emit('on_attack', self, enemy)
+    if (!suppressTriggers) engine.emit('on_attack', self, enemy)
     let defenderDodgeMod = enemy.dodgeMod
     // 防御方 buff 闪避率修正
     forEachBuffOf(engine.state.pendingBuffs, enemy.id, (def, layer) => {
@@ -66,27 +67,29 @@ export function processHitCheck(
     if (!r.hit) {
         // 事件归属已由 scope 判定；dodge 与 on_dodged 反应随判定基准作用域
         engine.emitLog({ type: 'dodged', sourceId: self.id, targetId: enemy.id })
-        engine.emit('on_dodged', self, enemy)
-        // 防御方 buff onDodged 钩子（在招式作用域内，渲染层 +1 缩进）
-        forEachBuffOf(engine.state.pendingBuffs, enemy.id, (def, layer) => {
-            if (!def?.onDodged) return
-            def.onDodged({
-                final: 0,
-                raw: 0,
-                attacker: self,
-                target: enemy,
-                source: action,
-                engine,
-                state: engine.state,
-                // buffOwnerId: parts[1],
-                layer,
+        if (!suppressTriggers) {
+            engine.emit('on_dodged', self, enemy)
+            // 防御方 buff onDodged 钩子（在招式作用域内，渲染层 +1 缩进）
+            forEachBuffOf(engine.state.pendingBuffs, enemy.id, (def, layer) => {
+                if (!def?.onDodged) return
+                def.onDodged({
+                    final: 0,
+                    raw: 0,
+                    attacker: self,
+                    target: enemy,
+                    source: action,
+                    engine,
+                    state: engine.state,
+                    // buffOwnerId: parts[1],
+                    layer,
+                })
             })
-        })
-        engine.emit('on_dodge', enemy, self)
-        consumeBuffsByTrigger(enemy.id, engine, 'on_dodge')
+            engine.emit('on_dodge', enemy, self)
+            consumeBuffsByTrigger(enemy.id, engine, 'on_dodge')
+        }
         return false
     }
 
-    consumeBuffsByTrigger(self.id, engine, 'on_hit')
+    if (!suppressTriggers) consumeBuffsByTrigger(self.id, engine, 'on_hit')
     return true
 }

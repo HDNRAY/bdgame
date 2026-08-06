@@ -28,6 +28,8 @@ export class TickEngine {
         switch (buffDef.id) {
             case 'stun':
                 return this.#afterApplyStun(enemy, engine, tMs, stacks, layer)
+            case 'fumble_chance_temp':
+                return this.#afterApplyFumble(enemy, engine, stacks, layer)
             case 'poison':
                 return this.#afterApplyPoison(enemy, engine, tMs, layer)
             case 'burn':
@@ -76,6 +78,27 @@ export class TickEngine {
         }
 
         // 眩晕日志已通过 applyAttrMods 输出属性变化，不再重复输出"获得状态"
+    }
+
+    /** 失心连续递减：15秒窗口内链得越密，新叠的层效果越弱；各批贡献累加（不回溯影响已叠层） */
+    #afterApplyFumble(enemy: Character, engine: BattleEngine, stacks: number, layer: BuffLayer): void {
+        const FUMBLE_RESET_WINDOW = 15000
+        const trackKey = `fumble_track::${enemy.id}`
+        const lastData = engine.state.pendingBuffs.get(trackKey)
+        const now = engine.state.turn.currentTime
+        let consecutive = 0
+        if (lastData && now - lastData.restoreValue < FUMBLE_RESET_WINDOW) {
+            consecutive = (lastData.extra?.consecutive as number) ?? 0
+        }
+        consecutive++
+        engine.state.pendingBuffs.set(trackKey, { restoreValue: now, extra: { consecutive } })
+        engine.state.turn.removeEvents(`fumble_reset_${enemy.id}`)
+        engine.state.turn.scheduleSystemEventAt(`fumble_reset_${enemy.id}`, now + FUMBLE_RESET_WINDOW, 'fumble_reset')
+        // 本次新增的层：层数×5%×递减（1/2^(n-1)），与既有累计相加
+        const decay = 1 / Math.pow(2, consecutive - 1)
+        const prev = (layer.extra?.fumbleRate as number | undefined) ?? 0
+        const effectiveRate = Math.round((prev + stacks * 0.05 * decay) * 100) / 100
+        layer.extra = { ...(layer.extra ?? {}), fumbleRate: effectiveRate }
     }
 
     #afterApplyPoison(enemy: Character, engine: BattleEngine, tMs: number, layer: BuffLayer): void {

@@ -186,11 +186,6 @@ export function calcRoll(chance: number): { roll: number; success: boolean } {
     return { roll, success: roll < chance }
 }
 
-/** 麻痹施加时的属性惩罚 */
-export function calcParalyzeAttrPenalty(stacks: number): { agility: number; dexterity: number } {
-    return { agility: -stacks * 1, dexterity: -stacks * 1 }
-}
-
 /** 眩晕属性保留比例：连续次数越高效果越弱 */
 export function calcStunAttrRatio(consecutive: number): number {
     return 1 - 0.9 / Math.pow(2, consecutive - 1)

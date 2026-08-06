@@ -163,7 +163,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 engine,
                 source: action,
                 piercing,
-                suppressTrigger: i < independentHits - 1,
+                suppressTriggers: i < independentHits - 1,
                 triggered,
             })
         }
@@ -189,7 +189,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             applyDamage({ raw, target: enemy, attacker: self, engine, source: action, piercing, triggered })
             return
         }
-        // 多段独立命中判定
+        // 多段独立命中判定（只有最后一段触发触发器，防止一次攻击连触发多次）
         for (let i = 0; i < independentHits; i++) {
             const r: ActionResult = {
                 damage: 0,
@@ -199,7 +199,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 crit: false,
                 distanceDelta: 0,
             }
-            if (!processHitCheck(action!, r, self, enemy, engine)) continue
+            const isLast = i === independentHits - 1
+            if (!processHitCheck(action!, r, self, enemy, engine, !isLast)) continue
             if (r.dodged) continue
             applyDamage({
                 raw,
@@ -208,7 +209,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 engine,
                 source: action,
                 piercing,
-                suppressTrigger: i < independentHits - 1,
+                suppressTriggers: !isLast,
                 triggered,
             })
         }

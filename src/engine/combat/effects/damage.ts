@@ -15,7 +15,8 @@ export interface ApplyDamageOptions {
     engine: BattleEngine
     source?: GameEntity
     piercing?: number
-    suppressTrigger?: boolean
+    /** 多段攻击：除最后一段外抑制所有触发器（on_crit/on_took_damage 等） */
+    suppressTriggers?: boolean
     triggered?: boolean
 }
 
@@ -111,7 +112,7 @@ export function applyDamage({
     engine,
     source,
     piercing = 0,
-    suppressTrigger,
+    suppressTriggers = false,
     triggered,
 }: ApplyDamageOptions): void {
     const act = source as ActionDefinition | undefined
@@ -172,7 +173,7 @@ export function applyDamage({
 
     target.takeDamage(final, engine)
 
-    if (final > 0 && !suppressTrigger) {
+    if (final > 0 && !suppressTriggers) {
         engine.emit('on_dealt_damage', attacker, target)
         engine.emit('on_took_damage', target, attacker)
         consumeBuffsByTrigger(target.id, engine, 'on_took_damage')
@@ -191,7 +192,7 @@ export function applyDamage({
         isParried: parried,
         tags: [],
     })
-    if (isCrit) {
+    if (isCrit && !suppressTriggers) {
         consumeBuffsByTrigger(attacker.id, engine, 'on_crit')
         engine.emit('on_crit', attacker, target)
         // 攻击方 buff onCritical 钩子（在招式作用域内，渲染层 +1 缩进）

@@ -16,12 +16,19 @@ export const TANGROU: OpponentDef = {
         artifact('qi_xin_hai_tang'),
         artifact('poison_coating'),
         passive('dian_xue_passive'),
+        passive('can_ying_bu'),
         passive('fei_hua_shou'),
         action('iron_pellet'),
         action('push_hand'),
         artifact('tempest'),
         artifact('qing_nang_san_bao'),
-        // 10
+        // 11
     ],
-    actionConfigs: [{ actionId: 'push_hand', triggerId: 'on_parry' }],
+    actionConfigs: [
+        { actionId: 'push_hand', triggerId: 'on_parry' },
+        {
+            actionId: 'yin_zhen',
+            triggerId: 'on_dodge',
+        },
+    ],
 }

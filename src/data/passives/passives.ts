@@ -702,7 +702,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'fei_hua_shou',
         name: '飞花手',
-        description: '暗器出手如飞花，可连续追加投掷攻击。',
+        description: '暗器出手如飞花，可连续追加投掷攻击。暗器招式AP消耗-20%。',
         tags: ['buff'],
         requireAttrsMin: { dexterity: 16 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'fei_hua_shou' }] }],

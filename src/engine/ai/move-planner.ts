@@ -57,10 +57,16 @@ export function planMovement(
     })()
 
     const delta = targetDist - distance
-    if (Math.abs(delta) < 0.5) return { delta: 0, apCost: 0 } // 已在范围内
+    // 已在射程内且距理想距离足够近 → 不移动。
+    // 关键：出射程时即使 |delta|<0.5 也必须走回，否则 AI 以为"够得着"而实际
+    // canExecuteAction 的距离判定会失败（如 5.28m > 铁莲子 max 5m），导致整回合空转。
+    if (distance >= actionRange[0] && distance <= actionRange[1] && Math.abs(delta) < 0.5) {
+        return { delta: 0, apCost: 0 }
+    }
 
     const distAbs = Math.abs(delta)
-    const moveAp = Math.ceil(distAbs / perAp)
+    // 移动所需 AP：支持1位小数（0.1 AP 步进），向上取整保证至少到达目标距离
+    const moveAp = PositionSystem.moveApFor(distAbs, perAp)
 
     // 检查是否有更省 AP 的位移招式，在走路检查之前
     {
@@ -80,10 +86,10 @@ export function planMovement(
             if (dashDist >= walkDist) continue // 走路效果一样或更好
             const dashMoveDist = Math.abs(distance - dashTarget)
             const dashApCost = dashEff.useAp
-                ? Math.max(1, Math.ceil(dashMoveDist * 0.4))
+                ? Math.max(1, Math.round(dashMoveDist * 0.4 * 10) / 10)
                 : attacker.actionApCost(inst.apCost)
             const needsExtraMove = dashDist >= 0.5 && (dashTarget < actionRange[0] || dashTarget > actionRange[1])
-            const extraMove = needsExtraMove ? Math.ceil(dashDist / perAp) : 0
+            const extraMove = needsExtraMove ? PositionSystem.moveApFor(dashDist, perAp) : 0
             const walkingCost = moveAp + chosenCost
             const totalAp = dashApCost + extraMove + chosenCost
             if (totalAp <= apRemaining && (walkingCost > apRemaining || totalAp <= walkingCost)) {
@@ -96,43 +102,56 @@ export function planMovement(
     if (moveAp > 0) {
         const postMoveDist = distance + (delta > 0 ? 1 : -1) * moveAp * perAp
         if (postMoveDist < actionRange[0] || postMoveDist > actionRange[1]) {
-            // 走太多会超出射程，试试少用几格 AP 能否落在范围内
-            for (let altAp = moveAp - 1; altAp >= 0; altAp--) {
+            // 走太多会超出射程，试试少用几档 AP（0.1 步进）能否落在范围内
+            for (
+                let altAp = Math.max(0.1, Math.round((moveAp - 0.1) * 10) / 10);
+                altAp >= 0.1;
+                altAp = Math.round((altAp - 0.1) * 10) / 10
+            ) {
                 const altPost = distance + (delta > 0 ? 1 : -1) * altAp * perAp
                 if (altPost >= actionRange[0] && altPost <= actionRange[1] && altAp + chosenCost <= apRemaining) {
-                    return { delta: delta > 0 ? altAp : -altAp, apCost: altAp }
+                    return { delta: Math.round((delta > 0 ? altAp : -altAp) * 10) / 10, apCost: altAp }
                 }
             }
         }
     }
 
     if (moveAp + chosenCost > apRemaining) {
-        // 理想距离走不到：在招式范围内找最近的可达距离
+        // 理想距离走不到：在招式范围内找最近的可达距离（0.1m 分辨率）
         if (delta < 0) {
             // 需要靠近：从当前距离往 actionRange[0] 找（只试范围内距离）
-            for (let d = Math.min(Math.ceil(distance) - 1, actionRange[1]); d >= actionRange[0]; d--) {
+            for (
+                let d = Math.min(Math.round(distance * 10) / 10 - 0.1, actionRange[1]);
+                d >= actionRange[0];
+                d = Math.round((d - 0.1) * 10) / 10
+            ) {
                 const altDelta = d - distance
-                const altMoveAp = Math.ceil(Math.abs(altDelta) / perAp)
+                const altMoveAp = PositionSystem.moveApFor(Math.abs(altDelta), perAp)
                 if (altMoveAp + chosenCost <= apRemaining) {
-                    return { delta: altDelta > 0 ? altMoveAp : -altMoveAp, apCost: altMoveAp }
+                    return { delta: Math.round((altDelta > 0 ? altMoveAp : -altMoveAp) * 10) / 10, apCost: altMoveAp }
                 }
             }
         } else {
             // 需要远离（风筝）：从远到近找可达距离，尽量拉满风筝距离（最大化与对手间隔）
-            for (let d = actionRange[1]; d >= Math.max(Math.ceil(distance) + 1, actionRange[0]); d--) {
+            for (
+                let d = actionRange[1];
+                d >= Math.max(Math.round(distance * 10) / 10 + 0.1, actionRange[0]);
+                d = Math.round((d - 0.1) * 10) / 10
+            ) {
                 const altDelta = d - distance
-                const altMoveAp = Math.ceil(Math.abs(altDelta) / perAp)
+                const altMoveAp = PositionSystem.moveApFor(Math.abs(altDelta), perAp)
                 if (altMoveAp + chosenCost <= apRemaining) {
-                    return { delta: altDelta > 0 ? altMoveAp : -altMoveAp, apCost: altMoveAp }
+                    return { delta: Math.round((altDelta > 0 ? altMoveAp : -altMoveAp) * 10) / 10, apCost: altMoveAp }
                 }
             }
         }
-        // 还是不够：能走多少走多少，下回合再打
+        // 还是不够：能走多少走多少，下回合再打（1位小数）
         if (apRemaining > 0) {
-            return { delta: delta < 0 ? -apRemaining : apRemaining, apCost: apRemaining }
+            const effAp = Math.round(apRemaining * 10) / 10
+            return { delta: Math.round((delta < 0 ? -effAp : effAp) * 10) / 10, apCost: effAp }
         }
         return null
     }
 
-    return { delta: delta > 0 ? moveAp : -moveAp, apCost: moveAp }
+    return { delta: Math.round((delta > 0 ? moveAp : -moveAp) * 10) / 10, apCost: moveAp }
 }

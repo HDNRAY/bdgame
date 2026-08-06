@@ -69,7 +69,7 @@ export class PositionSystem {
         return Math.max(0.5, agility / 20)
     }
 
-    /** 计算移动：从 bestDistance（期望AP）算出实际消耗和位移量
+    /** 计算移动：从 bestDistance（期望AP，支持1位小数）算出实际消耗和位移量
      *  @param moveEff 移动效率倍率（1.2 = +20% 每AP移动距离）
      *  @param minMoveCost 最低移动消耗（固定 2 档/AP）
      */
@@ -80,12 +80,18 @@ export class PositionSystem {
         minMoveCost = false,
     ): { ap: number; delta: number } {
         if (!Number.isFinite(bestDistance) || !Number.isFinite(agility)) return { ap: 0, delta: 0 }
-        const ap = Math.abs(bestDistance)
+        const ap = Math.round(Math.abs(bestDistance) * 10) / 10
         const dir = Math.sign(bestDistance)
         const basePerAp = this.apToRange(agility)
         const perAp = minMoveCost ? 2 : basePerAp * moveEff
         if (!Number.isFinite(perAp)) return { ap: 0, delta: 0 }
         return { ap, delta: dir * perAp * ap }
+    }
+
+    /** 移动指定距离（米）所需 AP：1位小数，向上取整到 0.1，保证至少能走到目标距离 */
+    static moveApFor(distMeters: number, perAp: number): number {
+        if (!Number.isFinite(distMeters) || !Number.isFinite(perAp) || perAp <= 0 || distMeters <= 0) return 0
+        return Math.max(0.1, Math.ceil((distMeters / perAp) * 10) / 10)
     }
 }
 

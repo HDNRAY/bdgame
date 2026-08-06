@@ -90,6 +90,8 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
         actionName?: string
         preLines: string[]
         children: string[]
+        /** 命中判定聚合：单段直接内联，多段渲染为汇总（多少命中/暴击/总伤害） */
+        hits?: { total: number; landed: number; crits: number; damage: number; frags: string[] }
     }
 
     const stack: Frame[] = []
@@ -106,11 +108,46 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
         for (const p of f.preLines) out.push(p)
         // 主招式(depth0)=2空格、反应(depth1)=4空格、子反应(depth2)=6空格…
         let line = `${'  '.repeat(f.depth + 1)}${f.prefix}${f.text}`
+        if (f.hits) {
+            if (f.hits.total <= 1) {
+                line += f.hits.frags[0] ?? ''
+            } else {
+                // 首个 check_hit 是主招整体命中判定（gate），不计入段数
+                const dartTotal = f.hits.total - 1
+                const landed = Math.max(0, f.hits.landed - 1)
+                const missed = dartTotal - landed
+                const crit = f.hits.crits > 0 ? ` 暴击${f.hits.crits}` : ''
+                const miss = missed > 0 ? ` 未中${missed}` : ''
+                line += `  » ${dartTotal}击 命中${landed}${crit} 共${f.hits.damage.toFixed(1)}${miss}`
+            }
+        }
         if (f.inline) line += f.inline
         if (f.ap) line += f.ap
         out.push(line)
         for (const c of f.children) out.push(c)
         return out
+    }
+
+    /**
+     * 向招式帧追加判定文本：多段攻击挂到当前命中段（并聚合暴击/伤害），否则直接内联。
+     * requireNotMiss：当前段已判未命中/闪避时跳过（不追加、不聚合）
+     */
+    function appendJudgement(
+        f: Frame,
+        text: string,
+        opts?: { crit?: boolean; damage?: number; requireNotMiss?: boolean },
+    ): void {
+        if (f.hits && f.hits.frags.length > 0) {
+            const idx = f.hits.frags.length - 1
+            const cur = f.hits.frags[idx]
+            if (opts?.requireNotMiss && (cur.includes('未命中') || cur.includes('闪避'))) return
+            f.hits.frags[idx] = cur + text
+            if (opts?.crit) f.hits.crits++
+            if (opts?.damage) f.hits.damage += opts.damage
+        } else {
+            if (opts?.requireNotMiss && (f.inline.includes('未命中') || f.inline.includes('闪避'))) return
+            f.inline += text
+        }
     }
 
     /** 弹出栈顶直至 top.scope 是 scope 的前缀（或栈空）；被弹出的帧渲染后挂到父帧 children */
@@ -249,34 +286,32 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
             case 'check_hit': {
                 const f = popTo(sc)
                 if (f) {
-                    f.inline += `  ${roll('命中', e.hitChance, e.roll)}`
-                    if (!e.result) {
-                        f.inline += '  » 未命中'
-                        f.ap = ''
-                    }
+                    f.hits ??= { total: 0, landed: 0, crits: 0, damage: 0, frags: [] }
+                    f.hits.total++
+                    f.hits.frags.push(`  ${roll('命中', e.hitChance, e.roll)}${e.result ? '' : '  » 未命中'}`)
+                    if (e.result) f.hits.landed++
+                    else f.ap = ''
                 }
                 break
             }
 
             case 'dodge': {
                 const f = popTo(sc)
-                if (f) {
-                    if (!f.inline.includes('未命中')) f.inline += `  » ${fmtName(e.evader, e.snapshot)} 闪避`
-                }
+                if (f) appendJudgement(f, `  » ${fmtName(e.evader, e.snapshot)} 闪避`, { requireNotMiss: true })
                 break
             }
 
             case 'parry': {
                 const f = popTo(sc)
                 if (f && e.parryChance != null && e.roll != null) {
-                    f.inline += `  ${roll('招架', e.parryChance, e.roll)}`
+                    appendJudgement(f, `  ${roll('招架', e.parryChance, e.roll)}`)
                 }
                 break
             }
 
             case 'check_crit': {
                 const f = popTo(sc)
-                if (f) f.inline += `  ${roll('暴击', e.critChance, e.roll)}`
+                if (f) appendJudgement(f, `  ${roll('暴击', e.critChance, e.roll)}`, { crit: e.result })
                 break
             }
 
@@ -289,8 +324,8 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     // 独立附加伤害（雷法/金光等 buff onAfterDealDamage）→ 归到各自来源行
                     if (e.bonus) {
                         f.children.push(`${'  '.repeat(f.depth + 2)}↳ [${e.actionName}] ${resultText}`)
-                    } else if (!f.inline.includes('未命中') && !f.inline.includes('闪避')) {
-                        f.inline += `  » ${resultText}`
+                    } else {
+                        appendJudgement(f, `  » ${resultText}`, { damage: e.final, requireNotMiss: true })
                     }
                 } else {
                     const label = e.actionName !== '未知' ? `[${e.actionName}] ` : ''

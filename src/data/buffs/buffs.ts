@@ -153,16 +153,22 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'fei_hua_shou',
         name: '飞花手',
-        description: '暗器出手如飞花，可连续追加投掷攻击。',
+        description: '暗器出手如飞花，可连续追加投掷攻击。暗器招式AP消耗-20%。',
         tags: [],
         expiry: { type: 'permanent' },
         getExtraAttack: ({ source }) => {
             if (!source?.tags.includes('thrown')) return 0
             return 2
         },
+        onActionCost: ({ source }) => {
+            const act = source as ActionDefinition
+            if (!act || !act.tags.includes('thrown')) return 0
+            return -act.apCost * 0.2
+        },
     },
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
+    { id: 'fumble_track', name: '失心连续', description: '连续失心计数（15秒窗口）。', tags: [] },
     { id: 'steal_artifact_track', name: '盗亦有道', description: '飞龙探云手的成功率追踪。', tags: [] },
     {
         id: 'summon_haste',
@@ -886,8 +892,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         onAction: ({ source, attacker, target, engine, state }) => {
             if (!source) return
-            if (!source.tags.includes('pierce') && !source.tags.includes('slash') && !source.tags.includes('thrown'))
-                return
+            if (!source.tags.includes('pierce') && !source.tags.includes('slash')) return
             if (engine && Math.random() < 0.2) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },

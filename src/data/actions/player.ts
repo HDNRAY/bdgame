@@ -350,7 +350,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'range', 'thrown'],
         getRange: () => [1, 5] as [number, number],
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.4 }, base: 2 },
+            { type: 'damage', scaling: { dexterity: 0.3, strength: 0.2 }, base: 2 },
             { type: 'knockback', distance: 1 },
         ],
     },
@@ -383,6 +383,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['pierce', 'range', 'thrown'],
         getRange: () => [1, 5] as [number, number],
+        onActionHitChance: (base) => base + 0.1,
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     {
