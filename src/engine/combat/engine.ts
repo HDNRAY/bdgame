@@ -186,6 +186,14 @@ export class BattleEngine {
         }
     }
 
+    /** 快照内息 = 已含「自上次恢复参考点以来」的回复（引擎惰性回复实时化，仅显示用，不改状态） */
+    private snapshotAp(c: Character): number {
+        const lastRef = Math.max(c.lastActionEndMs, c.lastApUpdate)
+        const elapsedMs = Math.max(0, this.state.eventTime - lastRef)
+        const recovered = c.ap + calcApRegen(elapsedMs, c.attrs.get('wisdom'))
+        return Math.min(c.maxAp, recovered)
+    }
+
     getSnapshot(): BattleSnapshot {
         const { characters, turn, pendingBuffs, phase, position } = this.state
         return {
@@ -198,7 +206,7 @@ export class BattleEngine {
                     name: characters[0].name,
                     hp: characters[0].hp,
                     maxHp: characters[0].maxHp,
-                    ap: characters[0].ap,
+                    ap: this.snapshotAp(characters[0]),
                     maxAp: characters[0].maxAp,
                     chan: characters[0].chan,
                     pos: position.get(characters[0].id),
@@ -216,7 +224,7 @@ export class BattleEngine {
                     name: characters[1].name,
                     hp: characters[1].hp,
                     maxHp: characters[1].maxHp,
-                    ap: characters[1].ap,
+                    ap: this.snapshotAp(characters[1]),
                     maxAp: characters[1].maxAp,
                     chan: characters[1].chan,
                     pos: position.get(characters[1].id),
@@ -292,6 +300,9 @@ export class BattleEngine {
             self.ap = Math.min(self.maxAp, self.ap + calcApRegen(elapsedMs, self.attrs.get('wisdom')))
         }
         self.capAp()
+        // AP 已恢复至本回合时刻 → 更新恢复参考点（getSnapshot 叠加回复时不再对行动方双计）
+        self.lastActionEndMs = e.nextActionAt
+        self.lastApUpdate = e.nextActionAt
 
         // ── 2. AP 未满 → 等回复满了再行动 ──
         if (self.ap < self.maxAp) {
@@ -562,6 +573,8 @@ export class BattleEngine {
         }
         const actualDelta = p.moveToward(self.id, enemy.id, delta)
         r.distanceDelta = actualDelta
+        // 主移动也是主行动：需要独立 scope [回合,序号]（否则其反应 scope 长度=2 被 format-log 误判为主行动、开新块）
+        this.state.log.beginMainAction()
         this.emitLog({
             type: 'move',
             sourceId: self.id,
@@ -811,6 +824,7 @@ export class BattleEngine {
             type: 'system',
             message: BattleLog.msg(inst.name, self.name, ''),
             actorId: self.id,
+            apCost: self.actionApCost(inst.apCost),
         })
         for (const eff of inst.def.effects ?? []) {
             processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action: inst.def })

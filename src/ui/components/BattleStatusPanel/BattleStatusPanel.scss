@@ -112,7 +112,8 @@
 
     .bar-fill {
         height: 100%;
-        transition: width 0.3s;
+        /* 回放数据已逐帧插值（60fps），移除 CSS 过渡避免 300ms 滞后追赶造成的「慢后快/最后补速」 */
+        transition: none;
     }
 
     .bar-hp {

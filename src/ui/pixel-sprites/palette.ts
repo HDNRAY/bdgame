@@ -113,12 +113,13 @@ export function getSpriteBodyType(charId: string): string {
 }
 
 /** 合并角色配色到调色板 */
-export function buildPalette(charId: string, accentColor?: string): Palette {
+export function buildPalette(charId: string, accentColor?: string, outlineColor?: string): Palette {
     const c = CHARACTER_COLORS[charId] ?? DEFAULT_COLORS
     void accentColor
     return {
-        ...MONO_PALETTE,
-        // 固定槽位 1=描边 不动；2=发色 3=皮肤 4=瞳色 5=衣物 6=装饰
+        // 槽位 1=描边（light 默认黑 / dark 浅灰，主题化）
+        '1': outlineColor ?? MONO_PALETTE['1'],
+        // 固定槽位 2=发色 3=皮肤 4=瞳色 5=衣物 6=装饰
         '2': c.hair,
         '3': c.skin,
         '4': c.eyes,

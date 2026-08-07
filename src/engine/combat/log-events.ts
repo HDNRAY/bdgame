@@ -76,4 +76,4 @@ export type LogEvent =
     | { type: 'parried'; sourceId: string; targetId: string }
     | { type: 'knockback'; sourceId: string; targetId: string; distance: number }
     | { type: 'cleanse'; sourceId: string; targetId: string; buffIds?: string[] }
-    | { type: 'system'; message: string; actorId?: string; indent?: number }
+    | { type: 'system'; message: string; actorId?: string; indent?: number; apCost?: number }

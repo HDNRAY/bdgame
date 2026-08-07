@@ -26,7 +26,7 @@ export interface BattlePanelHandle {
     setSpeed: (s: number) => void
     seek: (pct: number) => void
     replay: () => void
-    getState: () => { playing: boolean; speed: number; progress: number; currentTime: number }
+    getState: () => { playing: boolean; speed: number; progress: number; currentTime: number; turn: number }
 }
 
 export interface BattleData {
@@ -88,17 +88,27 @@ export const BattlePanel = forwardRef<BattlePanelHandle, BattlePanelProps>(funct
 
     const [currentSnapshot, setCurrentSnapshot] = useState<BattleSnapshot | null>(() => snapshots[0] ?? null)
     const [currentLine, setCurrentLine] = useState(0)
-    const [playState, setPlayState] = useState({ playing: false, speed: 1, progress: 0, currentTime: 0 })
+    const [playState, setPlayState] = useState({ playing: false, speed: 1, progress: 0, currentTime: 0, turn: 0 })
+    // 播放中插值后的内息（跟随动画节奏，供内息条平滑显示）
+    const [charAp, setCharAp] = useState<{ a: number; b: number } | null>(null)
 
     const animRef = useRef<AnimationPanelHandle>(null)
 
     // 帧回调
     const handleFrame = useCallback(
-        (logIndex: number, state: { playing: boolean; speed: number; progress: number; currentTime: number }) => {
+        (
+            logIndex: number,
+            state: { playing: boolean; speed: number; progress: number; currentTime: number; turn: number },
+            chars?: { id: string; ap: number }[],
+        ) => {
             setPlayState(state)
             setCurrentLine(eventToLine[logIndex] ?? logIndex)
             const snap = snapshots[logIndex] ?? null
             if (snap) setCurrentSnapshot(snap)
+
+            if (chars && chars.length >= 2) {
+                setCharAp({ a: chars[0].ap, b: chars[1].ap })
+            }
 
             if (state.progress >= 1 && !battleEndedRef.current) {
                 battleEndedRef.current = true
@@ -118,7 +128,7 @@ export const BattlePanel = forwardRef<BattlePanelHandle, BattlePanelProps>(funct
     const handleReplay = useCallback(() => {
         battleEndedRef.current = false
         setCurrentLine(0)
-        setPlayState({ playing: true, speed: 1, progress: 0, currentTime: 0 })
+        setPlayState({ playing: true, speed: 1, progress: 0, currentTime: 0, turn: 0 })
         animRef.current?.replay()
     }, [])
 
@@ -156,6 +166,7 @@ export const BattlePanel = forwardRef<BattlePanelHandle, BattlePanelProps>(funct
                     speed={playState.speed}
                     progress={playState.progress}
                     currentTime={playState.currentTime}
+                    turn={playState.turn}
                     onTogglePlay={handleTogglePlay}
                     onChangeSpeed={handleChangeSpeed}
                     onSeek={handleSeekEvent}
@@ -166,6 +177,7 @@ export const BattlePanel = forwardRef<BattlePanelHandle, BattlePanelProps>(funct
                         snapshot={currentSnapshot}
                         charAName={charAInfo.name}
                         charBName={charBInfo.name}
+                        ap={charAp ?? undefined}
                     />
                 )}
                 <LogPanel

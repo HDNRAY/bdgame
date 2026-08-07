@@ -159,7 +159,7 @@ export type BattleEvent =
           snapshot: BattleSnapshot
       }
     | { type: 'defeat'; loser: string; winner: string; snapshot: BattleSnapshot }
-    | { type: 'system'; message: string; actor?: string; snapshot: BattleSnapshot }
+    | { type: 'system'; message: string; actor?: string; apCost?: number; snapshot: BattleSnapshot }
 
 // ── Turn types ──
 export type SystemEventType =

@@ -97,6 +97,30 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
     const stack: Frame[] = []
     /** 当前块的去重键（回合_行动者）；反应（scope≥3）不触发换块 */
     let currentBlockKey = ''
+    /** 上一条游离系统行（用于合并「激活 + 获得状态」：同角色紧跟、前一条非「获得状态」时并入） */
+    let lastSys: { idx: number; actor: string } | null = null
+
+    /** 渲染游离/回合级系统行；「获得状态」紧跟同角色激活行时并入前一行（只保留一条，标签可不同如 灵剑+次元刃） */
+    function pushSystemLine(msg: string, line: string) {
+        const label = msg.match(/^\[(.+?)\]/)?.[1]
+        const actor = msg.match(/「([^」]*)」/)?.[1] ?? ''
+        const isBuffApply = msg.includes('获得状态')
+        if (
+            label &&
+            actor &&
+            isBuffApply &&
+            lastSys &&
+            lastSys.idx === lines.length - 1 &&
+            lastSys.actor === actor &&
+            !lines[lastSys.idx].includes('获得状态')
+        ) {
+            const rest = msg.replace(/^\[.+?\]\s*「[^」]*」\s*/, '')
+            lines[lastSys.idx] = `${lines[lastSys.idx]}（${rest}）`
+        } else {
+            lines.push(line)
+            lastSys = label && actor ? { idx: lines.length - 1, actor } : null
+        }
+    }
     /** 击杀奖杯胜者（延迟到末尾输出） */
     let defeatWinner = ''
     /** battle_start 头部是否已输出 */
@@ -346,14 +370,15 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     // 回合级系统行（战斗开始 buff、架势切换、状态到期等）
                     ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
                     const prefix = e.message.startsWith('[') ? '· ' : ''
-                    lines.push(`  ${prefix}${e.message}`)
+                    pushSystemLine(e.message, `  ${prefix}${e.message}`)
                 } else {
                     // 效果行：挂到所属招式帧（缩进 = 帧深度 + 1）
                     const f = popTo(sc)
                     if (f) {
                         f.children.push(`${'  '.repeat(f.depth + 2)}↳ ${e.message}`)
+                        lastSys = null
                     } else {
-                        lines.push(`  · ${e.message}`)
+                        pushSystemLine(e.message, `  · ${e.message}`)
                     }
                 }
                 break

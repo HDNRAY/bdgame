@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react'
-import { ReplayEngine, type LogEntry } from '../../../bridge/replay-engine'
+import { ReplayEngine, type LogEntry, type FrameChar } from '../../../bridge/replay-engine'
 import { CanvasRenderer } from '../../canvas/renderer'
+import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
 import './AnimationPanel.scss'
 
 export interface AnimationPanelHandle {
     togglePlay: () => void
     setSpeed: (s: number) => void
     seek: (pct: number) => void
-    getState: () => { playing: boolean; speed: number; progress: number; currentTime: number }
+    getState: () => { playing: boolean; speed: number; progress: number; currentTime: number; turn: number }
     replay: () => void
 }
 
@@ -17,7 +18,8 @@ interface AnimationPanelProps {
     charB: { id: string; name: string; color: string }
     onFrame?: (
         logIndex: number,
-        playState: { playing: boolean; speed: number; progress: number; currentTime: number },
+        playState: { playing: boolean; speed: number; progress: number; currentTime: number; turn: number },
+        chars?: FrameChar[],
     ) => void
     compact?: boolean
 }
@@ -36,6 +38,14 @@ export const AnimationPanel = forwardRef<AnimationPanelHandle, AnimationPanelPro
     const [progress, setProgress] = useState(0)
     const [currentTime, setCurrentTime] = useState(0)
 
+    // 主题：影响角色描边色
+    const theme = useAppStore((s) => s.uiConfig.theme)
+    const effectiveTheme: 'light' | 'dark' = getEffectiveTheme(theme)
+
+    useEffect(() => {
+        rendererRef.current?.setTheme(effectiveTheme)
+    }, [effectiveTheme])
+
     useEffect(() => {
         const el = canvasRef.current
         if (!el || entries.length === 0) return
@@ -45,6 +55,7 @@ export const AnimationPanel = forwardRef<AnimationPanelHandle, AnimationPanelPro
 
         const renderer = new CanvasRenderer()
         rendererRef.current = renderer
+        renderer.setTheme(effectiveTheme)
         renderer.init(el).then(() => {
             renderer.registerChar(charA.id, charA.name, charA.color)
             renderer.registerChar(charB.id, charB.name, charB.color)
@@ -61,12 +72,17 @@ export const AnimationPanel = forwardRef<AnimationPanelHandle, AnimationPanelPro
 
                 if (f.time >= f.total) setPlaying(false)
 
-                onFrame?.(f.eventIndex, {
-                    playing: f.time < f.total,
-                    speed: speedRef.current,
-                    progress: p,
-                    currentTime: f.time,
-                })
+                onFrame?.(
+                    f.eventIndex,
+                    {
+                        playing: f.time < f.total,
+                        speed: speedRef.current,
+                        progress: p,
+                        currentTime: f.time,
+                        turn: f.turn ?? replay.getCurrentTurn(),
+                    },
+                    f.chars,
+                )
             })
         })
 
@@ -116,15 +132,20 @@ export const AnimationPanel = forwardRef<AnimationPanelHandle, AnimationPanelPro
             togglePlay,
             setSpeed: changeSpeed,
             seek: seekPct,
-            getState: () => ({ playing, speed, progress, currentTime }),
+            getState: () => ({ playing, speed, progress, currentTime, turn: 0 }),
             replay: () => {
                 const replay = engineRef.current
                 if (!replay) return
+                // 先归零并渲染一帧，确保 progressbar 回 0（避免 React 批处理吞掉 seek 归零帧）
                 replay.seek(0)
+                setProgress(0)
+                setCurrentTime(0)
                 if (!replay.isPlaying) {
-                    queueMicrotask(() => {
-                        replay.play(speedRef.current)
-                        setPlaying(true)
+                    requestAnimationFrame(() => {
+                        if (!replay.isPlaying) {
+                            replay.play(speedRef.current)
+                            setPlaying(true)
+                        }
                     })
                 }
             },

@@ -5,6 +5,7 @@ interface ControlsBarProps {
     speed: number
     progress: number
     currentTime: number
+    turn?: number
     onTogglePlay: () => void
     onChangeSpeed: (s: number) => void
     onSeek: (e: React.MouseEvent<HTMLDivElement>) => void
@@ -16,6 +17,7 @@ export function ControlsBar({
     speed,
     progress,
     currentTime,
+    turn,
     onTogglePlay,
     onChangeSpeed,
     onSeek,
@@ -34,6 +36,7 @@ export function ControlsBar({
             <div className="progress" onClick={onSeek}>
                 <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
             </div>
+            {turn !== undefined && turn > 0 && <span className="turn-tag">回合{turn}</span>}
             <span className="timestamp">{(currentTime / 1000).toFixed(1)}s</span>
 
             {onReplay && (

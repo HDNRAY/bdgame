@@ -6,18 +6,18 @@ import { SPRITES } from './sprites'
 import { AVATAR_ROW_START, AVATAR_ROW_END, AVATAR_COL_START, AVATAR_COL_END } from './constants'
 
 /** 获取角色精灵（含完整配色） */
-export function makeCharacterSprite(charId: string, accentColor?: string): PixelSprite {
+export function makeCharacterSprite(charId: string, accentColor?: string, outlineColor?: string): PixelSprite {
     const bodyType = getSpriteBodyType(charId)
     const set = SPRITES[bodyType] ?? SPRITES.default
-    const palette = buildPalette(charId, accentColor)
+    const palette = buildPalette(charId, accentColor, outlineColor)
     return { palette, frames: { ...set } }
 }
 
 /** 获取角色头像 */
-export function getCharacterAvatar(charId: string, accentColor?: string): AvatarData {
+export function getCharacterAvatar(charId: string, accentColor?: string, outlineColor?: string): AvatarData {
     const bodyType = getSpriteBodyType(charId)
     const set = SPRITES[bodyType] ?? SPRITES.default
-    const palette = buildPalette(charId, accentColor)
+    const palette = buildPalette(charId, accentColor, outlineColor)
     // 裁取头部区域（行/列范围见 constants.ts）
     const faceMap = set.idle
         .slice(AVATAR_ROW_START, AVATAR_ROW_END)

@@ -13,7 +13,9 @@ import {
     HAND_COVER,
     LEFT_HAND_COVER,
     SPRITE_WIDTH,
+    SPRITE_HEIGHT,
     SPRITE_PAD_BOTTOM,
+    type PixelSprite,
 } from '../pixel-sprites'
 import { FloatTextSystem } from './float-text'
 import {
@@ -35,6 +37,14 @@ export interface RendererOptions {
     height?: number
 }
 
+/** 描边色：light 黑 / dark 浅灰（与 --color-entity-border 同族） */
+const OUTLINE_LIGHT = '#000000'
+const OUTLINE_DARK = '#c8c8d8'
+
+/** 内息（AP）黄：与 --color-ap 同款 */
+const AP_LIGHT = '#e0c040'
+const AP_DARK = '#ffe66d'
+
 export class CanvasRenderer {
     readonly app: PIXI.Application
     private container: PIXI.Container
@@ -45,6 +55,8 @@ export class CanvasRenderer {
     private handCoverSprites: Map<string, PIXI.Graphics> = new Map()
     private groundGfx: PIXI.Graphics
     private charColors: Map<string, string> = new Map()
+    /** 角色精灵缓存（spriteId+主色+主题描边 → 精灵），避免每帧重复生成 */
+    private spriteCache: Map<string, PixelSprite> = new Map()
     private canvasWidth: number
     private canvasHeight: number
     private tickLabels: PIXI.Text[] = []
@@ -57,6 +69,34 @@ export class CanvasRenderer {
     private floatTexts: FloatTextSystem
     private entries: LogEntry[] = []
     private lastSpawnedIdx = -1
+
+    // ── 主题 ──
+    private theme: 'light' | 'dark' = 'light'
+
+    /** 设置主题（影响描边色） */
+    setTheme(theme: 'light' | 'dark'): void {
+        this.theme = theme
+        this.spriteCache.clear() // 描边色变化 → 精灵重生成
+    }
+
+    /** 取角色精灵（缓存，避免每帧重复生成调色板/精灵对象） */
+    private getSprite(charId: string, color: string): PixelSprite {
+        const key = `${charId}|${color}|${this.theme}`
+        let s = this.spriteCache.get(key)
+        if (!s) {
+            s = makeCharacterSprite(charId, color, this.outlineColor)
+            this.spriteCache.set(key, s)
+        }
+        return s
+    }
+
+    private get outlineColor(): string {
+        return this.theme === 'dark' ? OUTLINE_DARK : OUTLINE_LIGHT
+    }
+
+    private get apColor(): string {
+        return this.theme === 'dark' ? AP_DARK : AP_LIGHT
+    }
 
     constructor(opts: RendererOptions = {}) {
         this.canvasWidth = opts.width ?? 400
@@ -139,7 +179,7 @@ export class CanvasRenderer {
         let maxSpriteW = SPRITE_WIDTH * PIXEL
         for (const c of chars) {
             const color = this.charColors.get(c.id) ?? '#888'
-            const sprite = makeCharacterSprite(c.spriteId, color)
+            const sprite = this.getSprite(c.spriteId, color)
             const frameData = sprite.frames[c.pose] ?? sprite.frames.idle
             const w = (frameData[0]?.length ?? 16) * PIXEL
             const h = frameData.length * PIXEL
@@ -183,7 +223,14 @@ export class CanvasRenderer {
         while (this.lastSpawnedIdx < eventIndex && this.lastSpawnedIdx + 1 < this.entries.length) {
             this.lastSpawnedIdx++
             const entry = this.entries[this.lastSpawnedIdx]
-            this.floatTexts.spawn(entry.event, undefined, chars, pxPerUnit, viewOffset, groundY, charDims)
+            const evt = entry.event
+            // 闪避时不显示「未命中」：check_hit 未命中后紧跟同目标 dodge → 跳过（dodge 会 spawn 闪避）
+            const nextEvt = this.entries[this.lastSpawnedIdx + 1]?.event
+            const willDodge =
+                evt.type === 'check_hit' && !evt.result && nextEvt?.type === 'dodge' && evt.target === nextEvt.evader
+            if (willDodge) continue
+            const actionName = entry.event.type === 'attack_start' ? entry.event.actionName : undefined
+            this.floatTexts.spawn(entry.event, actionName, chars, pxPerUnit, viewOffset, groundY, charDims)
         }
         this.floatTexts.update()
 
@@ -257,7 +304,7 @@ export class CanvasRenderer {
         displayOx?: number,
     ): void {
         const color = this.charColors.get(c.id) ?? '#888'
-        const sprite = makeCharacterSprite(c.spriteId, color)
+        const sprite = this.getSprite(c.spriteId, color)
         const frameData = sprite.frames[c.pose] ?? sprite.frames.idle
         const g = this.charSprites.get(c.id)
         if (!g) return
@@ -284,18 +331,20 @@ export class CanvasRenderer {
         this.renderWeapon(c, ox, oy, facingRight)
         this.renderHandCover(c, ox, oy, facingRight, sprite.palette)
 
-        // 等待条：竖直「蜡烛」（灰条随等待进度从顶部一点点烧矮），立在人物背后侧，避免与对手重叠
+        // 等待条：竖直「蜡烛」（内息黄，随 AP 回复从顶部一点点烧矮），立在人物背后侧，避免与对手重叠
         const CANDLE_W = 3
-        const CANDLE_H = 40
+        // 最高高度：双方统一（按标准画布内容高，剔除底部 SPRITE_PAD_BOTTOM 空白行），保证两蜡烛最高高度一致
+        const CANDLE_H = Math.max(1, (SPRITE_HEIGHT - SPRITE_PAD_BOTTOM) * PIXEL)
         const waitRatio = Math.min(1, Math.max(0, c.waitProgress ?? c.ap / c.maxAp))
         const burn = 1 - waitRatio // 1=刚行动(蜡满) → 0=即将行动(烧尽)
-        const fillH = Math.round(CANDLE_H * burn)
+        // 亚像素高度（不做整像素取整）：燃烧/回复平滑细腻，避免步进感
+        const fillH = CANDLE_H * burn
         const baseY = groundY - GROUND_MARGIN // 蜡烛底座（与人物脚底同水平）
         // 背后侧：右侧角色背后在右，左侧角色背后在左
         const candleX = facingRight ? ox + spriteW + 2 : ox - 2 - CANDLE_W
-        if (fillH > 0) {
-            // 蜡体：底部固定，从顶部向下变矮（像蜡烛燃烧）
-            g.rect(candleX, baseY - fillH, CANDLE_W, fillH).fill({ color: '#999' })
+        if (fillH > 0.5) {
+            // 蜡体：底部固定，从顶部向下变矮（像蜡烛燃烧），颜色 = 内息黄
+            g.rect(candleX, baseY - fillH, CANDLE_W, fillH).fill({ color: this.apColor })
         }
     }
 
@@ -354,7 +403,7 @@ export class CanvasRenderer {
 
     private spawnGhost(x: number, y: number, facingRight: boolean, c: FrameChar): void {
         const color = this.charColors.get(c.id) ?? '#888'
-        const sprite = makeCharacterSprite(c.spriteId, color)
+        const sprite = this.getSprite(c.spriteId, color)
         const frameData = sprite.frames[c.pose] ?? sprite.frames.idle
         const g = new PIXI.Graphics()
         for (let row = 0; row < frameData.length; row++) {

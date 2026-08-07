@@ -147,7 +147,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             }
             engine.emitLog({
                 type: 'system',
-                message: BattleLog.msg('次元刃', self.name, `附刃成功，射程扩展至${newMax}`),
+                message: BattleLog.msg('附炁与刃', self.name, `附炁成功，射程扩展至${newMax}`),
                 actorId: self.id,
             })
         }

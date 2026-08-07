@@ -1,23 +1,32 @@
 /**
- * ReplayEngine — 战斗回放时间轴调度器
+ * ReplayEngine — 战斗回放调度器（Phase 6 回合驱动）
  * 输入 BattleEvent[]，输出逐帧状态 Frame
  *
- * 时间停止演出：命中(damage)处暂停时间轴播放攻击动画（主 0.5s / 触发 0.2s），
- * 纯演出不影响逻辑时间轴；seek 跳过冻结。
+ * 播放模型：
+ * - 时间轴连续推进（等待期照播）；到达某回合（含招式/移动）边界 → 冻结逻辑时间，
+ *   段内依次播放招式/移动/判定（每事件有播放时长），段末 TURN_END_HOLD_MS 停留，
+ *   然后解除冻结继续推进（不跳段）。
+ * - 手动 pause 停 RAF（连动画也停）；resume 从当前事件续播。
+ * - progress = 逻辑时间 + 已累积的回合内演出时间；总时长 = 逻辑总时长 + Σ各回合演出时长。
+ *
+ * 实现：以「显示时间 displayMs」为唯一单调推进变量；通过时间轴单元数组
+ * （advance=逻辑推进 / freeze=回合冻结演出）反推当前帧，天然支持 seek。
  */
 
 import type { BattleEvent, CharacterSnapshot, BattleSnapshot } from '../engine/combat/types'
 
 // ── 帧状态 ──
 export interface Frame {
-    time: number // 当前时间 ms（逻辑时间，冻结期间不前进）
-    total: number // 总时长 ms
+    time: number // 当前显示时间 ms（progress 基准）
+    total: number // 总显示时长 ms
     chars: FrameChar[] // 两个角色
     currentAction?: string // 当前动作名（如 "居合斩"）
     currentEvent?: BattleEvent // 当前正在播放的事件
-    eventIndex: number // 当前事件索引
+    eventIndex: number // 当前事件索引（全局）
     phase: 'idle' | 'fighting' | 'finished'
-    /** 冻结演出进度 0~1（非冻结时为 undefined） */
+    /** 当前回合号（scope[0]） */
+    turn?: number
+    /** 冻结段演出进度 0~1（非冻结时为 undefined） */
     freezeProgress?: number
 }
 
@@ -43,97 +52,215 @@ export interface LogEntry {
     event: BattleEvent & { scope: number[] }
 }
 
-// ── 冻结演出时长（毫秒，1x 速度） ──
-export const ATTACK_FREEZE_MS = 500
-export const TRIGGER_FREEZE_MS = 200
+// ── 播放时长常量（毫秒，1x 速度） ──
+/** 主招式每 1 AP 的播放时长 */
+export const AP_PLAY_MS = 500
+/** 触发招式固定播放时长 */
+export const TRIGGER_PLAY_MS = 500
+/** support（pre/post）最少播放时长 */
+export const SUPPORT_MIN_MS = 500
+/** 其他判定/buff 事件步长 */
+export const SEGMENT_STEP_MS = 120
+/** 回合结束停留 */
+export const TURN_END_HOLD_MS = 200
+/** 结尾缓冲 */
+export const TAIL_MS = 3000
 
 type MoveEvent = Extract<BattleEvent, { type: 'move' }>
-type AttackStartEvent = Extract<BattleEvent, { type: 'attack_start' }>
 
-/** 命中事件（触发冻结演出） */
-function isDamageEvent(evt: BattleEvent | undefined): evt is Extract<BattleEvent, { type: 'damage' }> {
-    return evt?.type === 'damage'
+/** 回合段：按 scope[0] 分组的一个行动回合（含其反应链） */
+interface Segment {
+    turn: number
+    /** 段内事件（保持 id 序） */
+    events: LogEntry[]
+    /** 段首事件逻辑时间 */
+    startMs: number
+    /** 段内总演出时长 = Σ事件时长 + TURN_END_HOLD_MS */
+    playDuration: number
+    /** 段内每事件播放时长 */
+    eventDurs: number[]
+    /** 段内行动者（第一个 attack_start/move 的 actor；无行动段 undefined） */
+    actor?: string
+    /** 行动方该回合结束后剩余内息（段末快照 AP；蜡烛回复基准用） */
+    apEnd?: number
 }
 
-/** scope 前缀匹配（a 是 b 的祖先或相等） */
-function isScopePrefix(a: number[], b: number[]): boolean {
-    if (a.length > b.length) return false
-    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false
-    return true
+/** 时间轴单元：advance=逻辑推进（等待期），freeze=回合冻结演出 */
+interface PlayUnit {
+    kind: 'advance' | 'freeze'
+    displayStart: number
+    displayDur: number
+    /** advance 用：逻辑时间从 logicalStart 走到 logicalEnd */
+    logicalStart?: number
+    logicalEnd?: number
+    /** freeze 用：指向 segments 索引 */
+    segIndex?: number
+}
+
+/** 单事件播放时长（用户规则：主招 AP×500 / 触发 500 / support max(500,AP×500) / move durationMs / 其他 120） */
+function eventPlayMs(evt: BattleEvent): number {
+    switch (evt.type) {
+        case 'attack_start':
+            return evt.isTriggered ? TRIGGER_PLAY_MS : Math.max(SEGMENT_STEP_MS, evt.apCost * AP_PLAY_MS)
+        case 'move':
+            return evt.durationMs ?? SEGMENT_STEP_MS
+        case 'system':
+            // support（pre/post）招式：Phase B 引擎补 apCost；此处按 apCost 判断
+            return 'apCost' in evt && typeof (evt as { apCost?: number }).apCost === 'number'
+                ? Math.max(SUPPORT_MIN_MS, ((evt as { apCost: number }).apCost ?? 0) * AP_PLAY_MS)
+                : SEGMENT_STEP_MS
+        default:
+            return SEGMENT_STEP_MS
+    }
 }
 
 // ── ReplayEngine ──
 export class ReplayEngine {
     private events: LogEntry[]
-    private duration = 0
+    /** 回合段（按 scope[0] 分组） */
+    private segments: Segment[] = []
+    /** 时间轴单元：advance（逻辑推进）/ freeze（回合冻结演出）交错 */
+    private units: PlayUnit[] = []
+    /** 每角色内息回复基准（trough）：{回合显示起点, 该回合结束后剩余内息}，升序；蜡烛 = 相对上一回合消耗的回复进度 */
+    private charTroughs: Map<string, { start: number; value: number }[]> = new Map()
+    /** 首回合前：battle_start 冻结段显示结束 ms */
+    private battleStartEnd = 0
+    /** 各角色开场内息（首回合前 trough 基准） */
+    private baseApByChar: Map<string, number> = new Map()
+    /** 总显示时长 ms = Σadvance 逻辑跨度 + Σfreeze 演出时长 + TAIL_MS */
+    private totalDisplay = 0
+    /** 纯逻辑总时长（最后一个事件 + TAIL_MS，供 advance 段 clamp） */
+    private logicalTotal = 0
     private playing = false
     private speed = 1
-    private currentTime = 0
+    /** 显示时间（单调推进，progress 基准） */
+    private displayMs = 0
     private onFrame?: (frame: Frame) => void
     private rafId = 0
     private lastTick = 0
-    /** 冻结演出状态（非空 = 正在冻结） */
-    private freeze: { startAt: number; duration: number; hitIdx: number; attackIdx: number } | null = null
-    /** 已触发冻结的命中事件索引（防止重复触发） */
-    private lastFrozenHitIdx = -1
-    /** 已冻结过的 attack_start 索引（每个招式只冻结一次） */
-    private lastFrozenAttackIdx = -1
 
     constructor(entries: LogEntry[]) {
         // 稳定排序：系统事件/buff tick 会与角色回合的动作时间戳交错（回合内部事件延伸到下一个调度时间之后），
         // 排序后保证时间轴单调，二分查找才正确；同时间戳保持执行顺序。
         this.events = [...entries].sort((a, b) => a.timelineMs - b.timelineMs)
-        this.duration = this.events.length > 0 ? this.events[this.events.length - 1].timelineMs + 3000 : 0
+        this.logicalTotal = this.events.length > 0 ? this.events[this.events.length - 1].timelineMs + TAIL_MS : 0
+        this.buildSegments()
+        this.buildUnits()
     }
 
-    /** 总时长 ms */
+    /** 按 scope[0] 分组为回合段（段内保持 id 序），并计算每事件播放时长 */
+    private buildSegments(): void {
+        this.segments = []
+        let cur: Segment | null = null
+        for (let i = 0; i < this.events.length; i++) {
+            const e = this.events[i]
+            const turn = e.event.scope?.[0] ?? 0
+            if (!cur || cur.turn !== turn) {
+                cur = { turn, events: [], startMs: e.timelineMs, playDuration: 0, eventDurs: [] }
+                this.segments.push(cur)
+            }
+            cur.events.push(e)
+            const d = eventPlayMs(e.event)
+            cur.eventDurs.push(d)
+            cur.playDuration += d
+        }
+        // 每段末尾 + 回合结束停留
+        for (const seg of this.segments) {
+            seg.playDuration += TURN_END_HOLD_MS
+        }
+        // 预计算段内行动者（第一个 attack_start/move 的 actor）
+        for (const seg of this.segments) {
+            for (const e of seg.events) {
+                const evt = e.event
+                if (evt.type === 'attack_start') {
+                    seg.actor = evt.actor
+                    break
+                }
+                if (evt.type === 'move') {
+                    seg.actor = evt.actor
+                    break
+                }
+            }
+        }
+        // 预计算行动方回合结束后剩余内息（apEnd）：段末快照里行动方的 AP（蜡烛回复基准）
+        for (const seg of this.segments) {
+            if (!seg.actor) continue
+            const lastEvt = seg.events[seg.events.length - 1]
+            const actorSnap = lastEvt?.event.snapshot?.characters.find((x) => x.id === seg.actor)
+            if (actorSnap) seg.apEnd = actorSnap.ap
+        }
+    }
+
+    /** 构建时间轴单元：advance（逻辑等待期）与 freeze（回合演出）交错 */
+    private buildUnits(): void {
+        this.units = []
+        let display = 0
+        let prevLogical = 0
+        for (const seg of this.segments) {
+            // 等待期：上一段末 → 本段首 的逻辑跨度（1:1 显示）
+            if (seg.startMs > prevLogical) {
+                this.units.push({
+                    kind: 'advance',
+                    displayStart: display,
+                    displayDur: seg.startMs - prevLogical,
+                    logicalStart: prevLogical,
+                    logicalEnd: seg.startMs,
+                })
+                display += seg.startMs - prevLogical
+            }
+            // 本段 = freeze（演出时长）
+            this.units.push({
+                kind: 'freeze',
+                displayStart: display,
+                displayDur: seg.playDuration,
+                segIndex: this.segments.indexOf(seg),
+            })
+            // 记录行动方回复基准（trough）：该回合结束后剩余内息 → 等待期蜡烛烧尽基准
+            if (seg.actor && seg.apEnd != null) {
+                const list = this.charTroughs.get(seg.actor) ?? []
+                list.push({ start: display, value: seg.apEnd })
+                this.charTroughs.set(seg.actor, list)
+            }
+
+            display += seg.playDuration
+            prevLogical = seg.events[seg.events.length - 1].timelineMs
+        }
+        // 结尾尾巴
+        this.units.push({
+            kind: 'advance',
+            displayStart: display,
+            displayDur: Math.max(0, this.logicalTotal - prevLogical),
+            logicalStart: prevLogical,
+            logicalEnd: Math.max(prevLogical, this.logicalTotal),
+        })
+        display += Math.max(0, this.logicalTotal - prevLogical)
+        this.totalDisplay = display
+        // 首回合前模型：battle_start 冻结结束 / 各角色开场内息
+        this.battleStartEnd = this.units[0]?.kind === 'freeze' ? this.units[0].displayDur : 0
+        const bsSnap = this.events[this.findEventIndex(0)]?.event.snapshot
+        if (bsSnap) {
+            for (const c of bsSnap.characters) this.baseApByChar.set(c.id, c.ap)
+        }
+    }
+
+    /** 总显示时长 ms */
     get totalDuration(): number {
-        return this.duration
+        return this.totalDisplay
     }
 
-    /** 获取某一时刻的帧状态 */
-    getFrameAt(time: number): Frame {
-        const t = Math.max(0, Math.min(time, this.duration))
-        const idx = this.findEventIndex(t)
+    /** 按显示时间取帧（唯一入口：seek/播放都用 displayMs） */
+    getFrameAt(displayMs: number): Frame {
+        const d = Math.max(0, Math.min(displayMs, this.totalDisplay))
+        const unit = this.findUnit(d)
+        if (!unit) return this.emptyFrame(d)
 
-        // 当前事件及其前后的快照
-        const cur = this.events[idx]
-        const prev = idx > 0 ? this.events[idx - 1] : undefined
-        const next = idx < this.events.length - 1 ? this.events[idx + 1] : undefined
-
-        const snapshot = cur?.event.snapshot ?? prev?.event.snapshot
-        const nextSnapshot = next?.event.snapshot ?? snapshot
-
-        if (!snapshot) {
-            return this.emptyFrame(t)
+        if (unit.kind === 'advance') {
+            const logical = Math.max(0, (unit.logicalStart ?? 0) + (d - unit.displayStart))
+            return this.getLogicalFrame(logical, d, unit)
         }
-
-        // 在两个事件之间插值
-        const ratio = next && cur ? (t - cur.timelineMs) / Math.max(1, next.timelineMs - cur.timelineMs) : 0
-
-        const chars: FrameChar[] = snapshot.characters.map((c, i) =>
-            this.buildFrameChar(c, i, snapshot, nextSnapshot, prev, cur, next, t, ratio),
-        )
-
-        const phase = snapshot.phase
-
-        // 当前显示的动作名
-        let currentAction: string | undefined
-        if (cur?.event.type === 'attack_start') {
-            currentAction = cur.event.actionName
-        } else if (cur?.event.type === 'damage') {
-            currentAction = cur.event.actionName
-        }
-
-        return {
-            time: t,
-            total: this.duration,
-            chars,
-            currentAction,
-            currentEvent: cur?.event,
-            eventIndex: idx,
-            phase,
-        }
+        const seg = this.segments[unit.segIndex!]
+        const elapsed = d - unit.displayStart
+        return this.getSegmentFrame(seg, elapsed, d)
     }
 
     // ── 播放控制 ──
@@ -148,17 +275,13 @@ export class ReplayEngine {
 
     pause(): void {
         this.playing = false
-        this.freeze = null
-        cancelAnimationFrame(this.rafId)
+        if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(this.rafId)
     }
 
-    seek(time: number): void {
-        this.currentTime = Math.max(0, Math.min(time, this.duration))
+    /** seek 到指定显示时间（displayMs） */
+    seek(displayMs: number): void {
+        this.displayMs = Math.max(0, Math.min(displayMs, this.totalDisplay))
         this.lastTick = performance.now()
-        // 拖动跳过冻结演出
-        this.freeze = null
-        this.lastFrozenHitIdx = -1
-        this.lastFrozenAttackIdx = -1
         this.emitFrame()
     }
 
@@ -171,7 +294,27 @@ export class ReplayEngine {
     }
 
     get time(): number {
-        return this.currentTime
+        return this.displayMs
+    }
+
+    /** 当前回合号（所在 freeze 段的 turn；advance 段取最近一段） */
+    getCurrentTurn(): number {
+        const unit = this.findUnit(this.displayMs)
+        if (!unit) return 0
+        if (unit.kind === 'freeze') return this.segments[unit.segIndex!].turn
+        // advance：找该逻辑时间之前最近的 freeze 段
+        for (let i = unit.segIndex ?? this.segments.length - 1; i >= 0; i--) {
+            // advance 单元不记录 segIndex，回退遍历逻辑：用二分找最近段
+        }
+        const logical = (unit.logicalStart ?? 0) + (this.displayMs - unit.displayStart)
+        let lo = 0
+        let hi = this.segments.length - 1
+        while (lo < hi) {
+            const mid = (lo + hi + 1) >> 1
+            if (this.segments[mid].startMs <= logical) lo = mid
+            else hi = mid - 1
+        }
+        return this.segments[lo]?.turn ?? 0
     }
 
     onFrameCallback(cb: (frame: Frame) => void): void {
@@ -188,86 +331,201 @@ export class ReplayEngine {
     private tick = (): void => {
         if (!this.playing) return
         const now = performance.now()
-
-        // 冻结演出中：逻辑时间轴暂停，只推进冻结进度
-        if (this.freeze) {
-            const elapsed = now - this.freeze.startAt
-            if (elapsed >= this.freeze.duration) {
-                this.freeze = null
-                this.lastTick = now
-            } else {
-                this.emitFrame()
-                this.rafId = requestAnimationFrame(this.tick)
-                return
-            }
-        }
-
         const rawDt = (now - this.lastTick) * this.speed
         const dt = Math.min(rawDt, 200) // 限制最大步长防跳跃
         this.lastTick = now
-        this.currentTime = Math.min(this.currentTime + dt, this.duration)
+        this.displayMs = Math.min(this.displayMs + dt, this.totalDisplay)
         this.emitFrame()
 
-        // 命中检测 → 时间停止（冻结演出）
-        const idx = this.findEventIndex(this.currentTime)
-        const evt = this.events[idx]?.event
-        if (evt && isDamageEvent(evt) && idx > this.lastFrozenHitIdx) {
-            const attackIdx = this.findAttackStartIdx(idx)
-            if (attackIdx >= 0 && attackIdx !== this.lastFrozenAttackIdx) {
-                const attack = this.events[attackIdx].event as AttackStartEvent
-                const base = attack.isTriggered ? TRIGGER_FREEZE_MS : ATTACK_FREEZE_MS
-                this.lastFrozenHitIdx = idx
-                this.lastFrozenAttackIdx = attackIdx
-                this.freeze = { startAt: performance.now(), duration: base / this.speed, hitIdx: idx, attackIdx }
-                this.emitFrame()
-            }
-        }
-
-        if (this.currentTime >= this.duration) {
+        if (this.displayMs >= this.totalDisplay) {
             this.playing = false
             return
         }
-        this.rafId = requestAnimationFrame(this.tick)
-    }
-
-    private emitFrame(): void {
-        if (this.freeze) {
-            const progress = Math.min(1, (performance.now() - this.freeze.startAt) / this.freeze.duration)
-            this.onFrame?.(this.getFreezeFrame(progress))
+        if (typeof requestAnimationFrame === 'function') {
+            this.rafId = requestAnimationFrame(this.tick)
         } else {
-            this.onFrame?.(this.getFrameAt(this.currentTime))
+            // 非浏览器环境（node 脚本验证）：直接同步推进一轮后停
+            this.playing = false
         }
     }
 
-    /** 冻结演出帧：时间轴停在命中处，播放攻击动画（持 attack_start 命中前快照） */
-    private getFreezeFrame(progress: number): Frame {
-        const f = this.freeze
-        if (!f) return this.getFrameAt(this.currentTime)
-        const hit = this.events[f.hitIdx]
-        const attack = this.events[f.attackIdx]
-        const snapshot = attack?.event.snapshot ?? hit?.event.snapshot
-        const t = hit?.timelineMs ?? this.currentTime
-        if (!snapshot) return this.getFrameAt(this.currentTime)
+    private emitFrame(): void {
+        this.onFrame?.(this.getFrameAt(this.displayMs))
+    }
 
-        const attackEvt = attack?.event as AttackStartEvent | undefined
-        const actorId = attackEvt?.actor
+    /** 二分查找 displayMs 所在单元 */
+    private findUnit(displayMs: number): PlayUnit | undefined {
+        if (this.units.length === 0) return undefined
+        let lo = 0
+        let hi = this.units.length - 1
+        while (lo < hi) {
+            const mid = (lo + hi + 1) >> 1
+            if (this.units[mid].displayStart <= displayMs) lo = mid
+            else hi = mid - 1
+        }
+        return this.units[lo]
+    }
 
+    /** 逻辑推进帧（advance 单元）：按逻辑时间插值 */
+    private getLogicalFrame(logicalTime: number, displayMs: number, unit?: PlayUnit): Frame {
+        const t = Math.max(0, Math.min(logicalTime, this.logicalTotal))
+        const idx = this.findEventIndex(t)
+
+        const cur = this.events[idx]
+        const prev = idx > 0 ? this.events[idx - 1] : undefined
+        const next = idx < this.events.length - 1 ? this.events[idx + 1] : undefined
+
+        const snapshot = cur?.event.snapshot ?? prev?.event.snapshot
+        const nextSnapshot = next?.event.snapshot ?? snapshot
+
+        if (!snapshot) {
+            return this.emptyFrame(displayMs)
+        }
+
+        const rawRatio = next && cur ? (t - cur.timelineMs) / Math.max(1, next.timelineMs - cur.timelineMs) : 0
+        const ratio = Math.min(1, Math.max(0, rawRatio))
+        // 等待期显示进度（advance 单元内 0→1）：保证回合边界内息恰达目标值（无「瞬间补全」跳变）
+        const dispRatio = unit
+            ? Math.min(1, Math.max(0, (displayMs - (unit.displayStart ?? 0)) / Math.max(1, unit.displayDur ?? 1)))
+            : ratio
+        // 等待期起点/终点快照（unit 边界）→ 内息全程匀速（忽略中间系统事件，避免折点/跳变）
+        let baseSnap = snapshot
+        let endSnap = nextSnapshot
+        let endActorId: string | undefined
+        if (unit) {
+            const startIdx = this.findEventIndex(unit.logicalStart ?? 0)
+            const endIdx = this.findEventIndex(unit.logicalEnd ?? this.logicalTotal)
+            const endEvt = this.events[Math.max(startIdx, endIdx)]
+            baseSnap = this.events[startIdx]?.event.snapshot ?? snapshot
+            endSnap = endEvt?.event.snapshot ?? snapshot
+            const endTurn = endEvt?.event.scope?.[0]
+            if (endTurn != null) endActorId = this.segments.find((s) => s.turn === endTurn)?.actor
+        }
         const chars: FrameChar[] = snapshot.characters.map((c, i) => {
-            const fc = this.buildFrameChar(c, i, snapshot, snapshot, undefined, attack, undefined, t, 0)
-            fc.pose = actorId && c.id === actorId ? 'attack' : 'idle'
-            fc.isActing = actorId === c.id
+            const fc = this.buildFrameChar(c, i, snapshot, nextSnapshot, prev, cur, next, t, ratio)
+            const endChar = endSnap?.characters[i]
+            const baseChar = baseSnap?.characters[i]
+            const targetAp = c.id === endActorId || !endChar ? c.maxAp : endChar.ap
+            const baseAp = baseChar?.ap ?? c.ap
+            fc.ap = baseAp + (targetAp - baseAp) * dispRatio
+            // 蜡烛 = 相对上一回合消耗的回复进度：回合末(apNow=trough)=满、回合开始(apNow=maxAp)=尽、等待期与内息同步
+            const trough = this.troughOf(c.id, displayMs)
+            fc.waitProgress = this.progressOf(fc.ap, c.maxAp, trough)
             return fc
         })
 
+        const phase = snapshot.phase
+        let currentAction: string | undefined
+        if (cur?.event.type === 'attack_start') {
+            currentAction = cur.event.actionName
+        } else if (cur?.event.type === 'damage') {
+            currentAction = cur.event.actionName
+        }
+
         return {
-            time: t,
-            total: this.duration,
+            time: displayMs,
+            total: this.totalDisplay,
             chars,
-            currentAction: attackEvt?.actionName,
-            currentEvent: attackEvt,
-            eventIndex: f.hitIdx,
-            phase: snapshot.phase,
-            freezeProgress: progress,
+            currentAction,
+            currentEvent: cur?.event,
+            eventIndex: idx,
+            phase,
+        }
+    }
+
+    /** 回合冻结帧（freeze 单元）：段内按事件播放时长依次推进 */
+    private getSegmentFrame(seg: Segment, elapsed: number, displayMs: number): Frame {
+        // 定位段内当前事件（按累积播放时长）
+        let cursor = 0
+        let acc = 0
+        while (cursor < seg.eventDurs.length && acc + seg.eventDurs[cursor] < elapsed) {
+            acc += seg.eventDurs[cursor]
+            cursor++
+        }
+        if (cursor >= seg.events.length) cursor = seg.events.length - 1
+
+        const cur = seg.events[cursor]
+        const prev = cursor > 0 ? seg.events[cursor - 1] : undefined
+        const next = cursor < seg.events.length - 1 ? seg.events[cursor + 1] : undefined
+        const snapshot = cur?.event.snapshot ?? prev?.event.snapshot
+        const nextSnapshot = next?.event.snapshot ?? snapshot
+
+        if (!snapshot) {
+            return this.emptyFrame(displayMs)
+        }
+
+        // 段内当前事件窗口内进度（用于姿势/位置插值）
+        const dur = seg.eventDurs[cursor] ?? SEGMENT_STEP_MS
+        const local = Math.min(1, Math.max(0, (elapsed - acc) / Math.max(1, dur)))
+        const t = cur?.timelineMs ?? seg.startMs
+        const ratio = next ? (t - cur.timelineMs) / Math.max(1, next.timelineMs - cur.timelineMs) : 0
+
+        // 段内行动者（buildSegments 预计算；battle_start 等无行动段为 undefined）
+        const segActorId = seg.actor
+
+        const chars: FrameChar[] = snapshot.characters.map((c, i) => {
+            const fc = this.buildFrameChar(c, i, snapshot, nextSnapshot, prev, cur, next, t, ratio)
+            // 冻结演出：当前事件决定姿势
+            const evt = cur?.event
+            if (evt?.type === 'attack_start') {
+                const actorId = evt.actor
+                fc.pose = actorId === c.id ? 'attack' : 'idle'
+                fc.isActing = actorId === c.id
+            } else if (evt?.type === 'damage' && 'target' in evt && evt.target === c.id && local < 0.3) {
+                fc.pose = 'hit'
+            } else if (evt?.type === 'move' && evt.actor === c.id) {
+                fc.pose = 'move'
+            }
+            // 内息：回合演出段逻辑时间冻结。
+            // 行动方：回合开始 = 满内息（已回满触发回合，maxAp 从快照拿）。
+            //  每个动作窗口内 = 该动作「消耗前」的值；动作完成 → 瞬间扣到该动作快照值（动作里扣，含身法衰减）。
+            // 蜡烛 = 相对上一回合消耗的回复进度：回合末(TURN_END_HOLD 显示最终剩余内息)=满、回合开始(满内息)=烧尽。
+            // 非行动方 / 无行动段（battle_start 等）：内息 = 快照（冻结）。
+            // 首回合前（battle_start 冻结段）：内息与蜡烛都冻结（内息=开场值，蜡烛=0），回合结束后才开始回复/燃烧
+            if (displayMs < this.battleStartEnd) {
+                fc.ap = this.baseApByChar.get(c.id) ?? fc.ap
+                fc.waitProgress = 1
+                return fc
+            }
+            if (segActorId === c.id) {
+                const prevEvent = cursor > 0 ? seg.events[cursor - 1] : undefined
+                // 回合结束停留（hold）：显示行动方最终剩余内息（蜡烛回满）
+                if (elapsed >= seg.playDuration - TURN_END_HOLD_MS) {
+                    fc.ap = seg.apEnd ?? c.maxAp
+                } else {
+                    fc.ap = cursor === 0 ? c.maxAp : (prevEvent?.event.snapshot?.characters[i]?.ap ?? c.maxAp)
+                }
+                // 回合内使用内息【不增加】等待条：蜡烛保持烧尽(0)；回合末 hold 才直接回满(100)
+                fc.waitProgress = elapsed >= seg.playDuration - TURN_END_HOLD_MS ? 0 : 1
+            } else {
+                // 非行动方：整段冻结在段首快照（回合期间一切冻结；避免段末系统事件惰性回复造成微漂移）
+                const firstSnap = seg.events[0]?.event.snapshot
+                fc.ap = firstSnap?.characters[i]?.ap ?? c.ap
+                const trough = this.troughOf(c.id, displayMs)
+                fc.waitProgress = this.progressOf(fc.ap, c.maxAp, trough)
+            }
+            return fc
+        })
+
+        const phase = snapshot.phase
+        const curEvt = cur?.event
+        const currentAction =
+            curEvt?.type === 'attack_start'
+                ? curEvt.actionName
+                : curEvt?.type === 'damage'
+                  ? curEvt.actionName
+                  : undefined
+
+        return {
+            time: displayMs,
+            total: this.totalDisplay,
+            chars,
+            currentAction,
+            currentEvent: curEvt,
+            eventIndex: this.events.indexOf(cur!),
+            phase,
+            turn: seg.turn,
+            freezeProgress: Math.min(1, elapsed / Math.max(1, seg.playDuration)),
         }
     }
 
@@ -283,28 +541,43 @@ export class ReplayEngine {
         return lo
     }
 
-    /** 从命中事件向前找到所属的 attack_start（按 scope 归属，同招式名嵌套也能区分） */
-    private findAttackStartIdx(fromIdx: number): number {
-        const dmgScope = this.events[fromIdx]?.event.scope
-        for (let i = fromIdx; i >= 0; i--) {
-            const evt = this.events[i].event
-            if (evt.type !== 'attack_start') continue
-            // 命中事件 scope 是 attack_start scope 或其扩展（前缀匹配）
-            const scope = this.events[i].event.scope
-            if (dmgScope && scope) {
-                if (isScopePrefix(scope, dmgScope)) return i
+    /** 内息回复基准（trough）：当前周期起点内息（上一回合结束后剩余）。首回合前 = 开场内息 */
+    private troughOf(charId: string, displayMs: number): number {
+        const base = this.baseApByChar.get(charId) ?? 0
+        const list = this.charTroughs.get(charId)
+        if (!list || list.length === 0) return base
+        if (displayMs < list[0].start) return base
+        // list 按 start 升序：二分取最后一个 start <= displayMs 的 value
+        let lo = 0
+        let hi = list.length - 1
+        let trough = base
+        while (lo <= hi) {
+            const mid = (lo + hi) >> 1
+            if (list[mid].start <= displayMs) {
+                trough = list[mid].value
+                lo = mid + 1
             } else {
-                return i
+                hi = mid - 1
             }
         }
-        return -1
+        return trough
+    }
+
+    /** 回复进度 waitProgress = 已回复/上一回合消耗量 = (apNow - trough)/(maxAp - trough)；
+     *  回合末(apNow=trough)=0(满)、回合开始(apNow=maxAp)=1(尽)。消耗≈0（trough≥maxAp）时回合开始=尽。 */
+    private progressOf(apNow: number, maxAp: number, trough: number): number {
+        const denom = maxAp - trough
+        if (denom > 0.0001) {
+            return Math.min(1, Math.max(0, (apNow - trough) / denom))
+        }
+        return apNow >= maxAp - 0.0001 ? 1 : 0
     }
 
     /** 构建单个角色的帧状态 */
     private buildFrameChar(
         c: CharacterSnapshot,
         i: number,
-        snapshot: BattleSnapshot | undefined,
+        _snapshot: BattleSnapshot | undefined,
         nextSnapshot: BattleSnapshot | undefined,
         prev: LogEntry | undefined,
         cur: LogEntry | undefined,
@@ -319,17 +592,9 @@ export class ReplayEngine {
         const eased = this.ease(ratio)
         const pos = this.resolvePos(c, prevChar, nextChar, cur, next, t, eased)
 
-        // 直接用最新快照的队列数据 + 当前播放时间 t 计算等待进度
-        const curEntry = snapshot?.turn.queue.find((q) => q.type === 'character' && q.id === c.id)
-        const nextEntry = nextSnapshot?.turn.queue.find((q) => q.type === 'character' && q.id === c.id)
-        const bestEntry = nextEntry ?? curEntry
-        let waitProgress: number
-        if (bestEntry) {
-            const span = bestEntry.nextActionAt - bestEntry.scheduledAt
-            waitProgress = span > 0 ? Math.min(1, Math.max(0, (t - bestEntry.scheduledAt) / span)) : 1
-        } else {
-            waitProgress = c.ap / Math.max(1, c.maxAp)
-        }
+        // 等待进度 = 内息已回复比例（0=刚行动完，1=回满即将行动）
+        // 与内息条同源（同一 AP 插值曲线），燃烧头 burn = 1 - waitProgress → 满=刚行动、尽=将行动
+        const waitProgress = Math.min(1, Math.max(0, apLerp / Math.max(1, c.maxAp)))
 
         // 判断当前帧的行动状态
         const nearEvent = cur && t - cur.timelineMs < 200
@@ -443,7 +708,7 @@ export class ReplayEngine {
     private emptyFrame(time: number): Frame {
         return {
             time,
-            total: this.duration,
+            total: this.totalDisplay,
             chars: [],
             eventIndex: 0,
             phase: 'idle',

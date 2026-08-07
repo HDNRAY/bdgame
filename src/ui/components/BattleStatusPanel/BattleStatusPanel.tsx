@@ -24,9 +24,11 @@ interface BattleStatusPanelProps {
     snapshot: BattleSnapshot
     charAName: string
     charBName: string
+    /** 播放中插值后的内息（跟随动画节奏）；缺省用快照值 */
+    ap?: { a: number; b: number }
 }
 
-export function BattleStatusPanel({ snapshot, charAName, charBName }: BattleStatusPanelProps) {
+export function BattleStatusPanel({ snapshot, charAName, charBName, ap }: BattleStatusPanelProps) {
     const [a, b] = snapshot.characters
     const dist = snapshot.distance
     const isFinished = snapshot.phase === 'finished'
@@ -45,7 +47,9 @@ export function BattleStatusPanel({ snapshot, charAName, charBName }: BattleStat
             <div className="chars">
                 {[a, b].map((c) => {
                     const hpPct = c.maxHp > 0 ? (c.hp / c.maxHp) * 100 : 0
-                    const apPct = c.maxAp > 0 ? (c.ap / c.maxAp) * 100 : 0
+                    // 内息：播放中插值 AP（跟随动画节奏），缺省用快照值
+                    const dispAp = ap ? (c.id === a.id ? ap.a : ap.b) : c.ap
+                    const apPct = c.maxAp > 0 ? (dispAp / c.maxAp) * 100 : 0
                     const buffAttrMods = sumBuffAttrMods(c.buffs)
                     return (
                         <div key={c.id} className="char-col">
@@ -59,7 +63,7 @@ export function BattleStatusPanel({ snapshot, charAName, charBName }: BattleStat
                                 />
                             </div>
                             <div className="hp-text">
-                                <span className="ap-label">内息</span> {c.ap}/{c.maxAp}
+                                <span className="ap-label">内息</span> {dispAp.toFixed(1)}/{c.maxAp}
                             </div>
                             <div className="bar-bg">
                                 <div className="bar-fill bar-ap" style={{ width: `${Math.min(100, apPct)}%` }} />
