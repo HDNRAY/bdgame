@@ -265,12 +265,10 @@ export class BattleEngine {
             return true
         }
 
-        this.state.actionCount++
-        // 每个角色/召唤物回合：重置日志作用域（level0 = 回合号）
-        this.state.log.resetScope(this.state.actionCount)
-
-        // 召唤物行动
+        // 召唤物行动：每次开火算一个行动回合
         if (e.type === 'summon') {
+            this.state.actionCount++
+            this.state.log.resetScope(this.state.actionCount)
             return this.#handleSummonTurn(e)
         }
 
@@ -314,6 +312,10 @@ export class BattleEngine {
             this.state.eventActorId = null
             return true
         }
+
+        // 真正行动 → 连续回合号 +1（AP 未满 reschedule / 死亡跳过不计入）
+        this.state.actionCount++
+        this.state.log.resetScope(this.state.actionCount)
 
         this.emit('turn_start', self, enemy)
         // 重建召唤物（法球等每回合重新入队）
@@ -583,6 +585,7 @@ export class BattleEngine {
             apCost: ap,
             apRemaining: self.ap,
             durationMs: Math.max(1, calcActionDurationMs(Math.abs(cmd.bestDistance ?? 0))),
+            kind: 'move',
         })
         if (delta < 0) {
             this.emit('on_move_closer', self, enemy)
@@ -821,9 +824,11 @@ export class BattleEngine {
         // 辅助招式也算主招式作用域
         this.state.log.beginMainAction()
         this.emitLog({
-            type: 'system',
-            message: BattleLog.msg(inst.name, self.name, ''),
-            actorId: self.id,
+            type: 'support',
+            actionId: inst.id,
+            actionName: inst.name,
+            sourceId: self.id,
+            targetId: self.id,
             apCost: self.actionApCost(inst.apCost),
         })
         for (const eff of inst.def.effects ?? []) {
@@ -959,7 +964,7 @@ export class BattleEngine {
                         char.heal(amt, this)
                         reduceBleedOnHeal(this, char.id, amt, 8)
                         this.emitLog({
-                            type: 'heal',
+                            type: 'heal_over_time',
                             actionId: buffDef.id,
                             actionName: buffDef.name,
                             sourceId: char.id,

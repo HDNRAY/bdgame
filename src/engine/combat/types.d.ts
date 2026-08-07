@@ -115,6 +115,17 @@ export type BattleEvent =
           durationMs?: number
           /** 瞬移标记（dash 类），回放直接跳不插值 */
           blink?: boolean
+          /** 移动类型：普通移动 / 垫步(short_dash) / 瞬移(dash)，format-log 用不同符号 */
+          kind?: 'move' | 'short_dash' | 'dash'
+          snapshot: BattleSnapshot
+      }
+    | {
+          type: 'support'
+          actor: string
+          target: string
+          actionId: string
+          actionName: string
+          apCost: number
           snapshot: BattleSnapshot
       }
     | {
@@ -160,6 +171,38 @@ export type BattleEvent =
       }
     | { type: 'defeat'; loser: string; winner: string; snapshot: BattleSnapshot }
     | { type: 'system'; message: string; actor?: string; apCost?: number; snapshot: BattleSnapshot }
+    | {
+          type: 'damage_over_time'
+          actor: string
+          target: string
+          status: string
+          amount: number
+          snapshot: BattleSnapshot
+      }
+    | {
+          type: 'heal_over_time'
+          actor: string
+          target: string
+          label: string
+          amount: number
+          snapshot: BattleSnapshot
+      }
+    | {
+          type: 'heal'
+          actor: string
+          target: string
+          label: string
+          amount: number
+          snapshot: BattleSnapshot
+      }
+    | {
+          type: 'buff_end'
+          actor: string
+          target: string
+          label: string
+          message: string
+          snapshot: BattleSnapshot
+      }
 
 // ── Turn types ──
 export type SystemEventType =

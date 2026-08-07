@@ -47,7 +47,8 @@ export class StatsTracker {
                 break
             }
 
-            case 'heal': {
+            case 'heal':
+            case 'heal_over_time': {
                 this.totalHeal += event.amount
                 const src = event.sourceId ?? event.targetId
                 const actionLabel = event.actionId ?? '_heal'

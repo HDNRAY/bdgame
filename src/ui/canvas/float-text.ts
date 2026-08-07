@@ -182,6 +182,21 @@ export class FloatTextSystem {
                 return event.result ? null : { text: '未命中', color: '#888', charId: event.target, kind: 'effect' }
             case 'defeat':
                 return { text: '败北', color: '#ff4444', charId: event.loser, kind: 'effect' }
+            case 'damage_over_time':
+                return { text: `-${event.amount.toFixed(1)}`, color: '#ff8844', charId: event.target, kind: 'effect' }
+            case 'heal_over_time':
+                return { text: `+${event.amount.toFixed(1)}`, color: '#4ecdc4', charId: event.target, kind: 'effect' }
+            case 'heal':
+                return { text: `+${event.amount.toFixed(1)}`, color: '#4ecdc4', charId: event.target, kind: 'effect' }
+            case 'buff_end':
+                return event.label
+                    ? {
+                          text: event.label,
+                          color: '#aaa',
+                          charId: event.target,
+                          kind: 'effect',
+                      }
+                    : null
             case 'system':
                 return event.message
                     ? {
@@ -191,6 +206,13 @@ export class FloatTextSystem {
                           kind: 'effect',
                       }
                     : null
+            case 'support':
+                return {
+                    text: event.actionName,
+                    color: '#e0c040',
+                    charId: event.actor,
+                    kind: 'action',
+                }
             case 'battle_start':
                 return { text: '战斗开始', color: '#4ecdc4', charId: event.actor, kind: 'action' }
             default:

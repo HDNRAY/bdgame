@@ -161,17 +161,76 @@ export class BattleLog {
                     snapshot,
                     event.durationMs,
                     event.blink,
+                    event.kind,
+                )
+                break
+            case 'support':
+                this.push(
+                    {
+                        type: 'support',
+                        actor: event.sourceId,
+                        target: event.targetId,
+                        actionId: event.actionId,
+                        actionName: event.actionName,
+                        apCost: event.apCost,
+                        snapshot,
+                    },
+                    tMs,
                 )
                 break
             case 'dodged':
                 this.logDodge(event.sourceId, event.targetId, tMs, snapshot)
                 break
             case 'damage_over_time':
-                this.logSystem(
-                    `[${event.status ?? event.actionName ?? 'DOT'}] ${this.resolveName(event.targetId, snapshot)} 受到 ${event.amount.toFixed(1)} 点伤害`,
+                this.push(
+                    {
+                        type: 'damage_over_time',
+                        actor: event.sourceId ?? event.targetId,
+                        target: event.targetId,
+                        status: event.status ?? event.actionName ?? 'DOT',
+                        amount: event.amount,
+                        snapshot,
+                    },
                     tMs,
-                    snapshot,
-                    event.targetId,
+                )
+                break
+            case 'heal_over_time':
+                this.push(
+                    {
+                        type: 'heal_over_time',
+                        actor: event.sourceId ?? event.targetId,
+                        target: event.targetId,
+                        label: event.actionName ?? '回复',
+                        amount: event.amount,
+                        snapshot,
+                    },
+                    tMs,
+                )
+                break
+            case 'heal':
+                this.push(
+                    {
+                        type: 'heal',
+                        actor: event.sourceId ?? event.targetId,
+                        target: event.targetId,
+                        label: event.actionName ?? '回复',
+                        amount: event.amount,
+                        snapshot,
+                    },
+                    tMs,
+                )
+                break
+            case 'buff_end':
+                this.push(
+                    {
+                        type: 'buff_end',
+                        actor: event.targetId,
+                        target: event.targetId,
+                        label: event.label,
+                        message: event.message ?? '',
+                        snapshot,
+                    },
+                    tMs,
                 )
                 break
             case 'fumble':
@@ -200,15 +259,6 @@ export class BattleLog {
                     snapshot,
                 )
                 break
-            case 'heal': {
-                const src = event.sourceId ? this.resolveName(event.sourceId, snapshot) : undefined
-                const label = event.actionName ?? '回复'
-                const msg = src
-                    ? `[${label}] ${src} → ${this.resolveName(event.targetId, snapshot)} +${event.amount.toFixed(1)}HP`
-                    : `[${label}] ${this.resolveName(event.targetId, snapshot)} +${event.amount.toFixed(1)}HP`
-                this.push({ type: 'system', message: msg, snapshot }, tMs)
-                break
-            }
             case 'interrupt':
                 this.logSystem(
                     `[打断] ${this.resolveName(event.targetId, snapshot)} 被中断`,
@@ -245,9 +295,10 @@ export class BattleLog {
         snapshot: BattleSnapshot,
         durationMs?: number,
         blink?: boolean,
+        kind?: 'move' | 'short_dash' | 'dash',
     ): void {
         this.push(
-            { type: 'move', actor, delta, newDistance, apCost, apRemaining, durationMs, blink, snapshot },
+            { type: 'move', actor, delta, newDistance, apCost, apRemaining, durationMs, blink, kind, snapshot },
             timelineMs,
         )
     }

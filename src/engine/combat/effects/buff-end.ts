@@ -61,9 +61,12 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
             .map(([a, v]) => `${ATTR_CN[a] ?? a}${-(v as number) > 0 ? '+' : ''}${-(v as number)}`)
             .join(', ')
         engine.emitLog({
-            type: 'system',
-            message: `[${expireLabel}] ${BattleLog.name(char.name)} ${details}`,
-            actorId: char.id,
+            type: 'buff_end',
+            buffId,
+            targetId: char.id,
+            label: expireLabel,
+            remaining: 0,
+            message: `${BattleLog.name(char.name)} ${details}`,
         })
     }
 

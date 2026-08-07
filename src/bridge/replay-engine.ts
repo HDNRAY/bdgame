@@ -104,11 +104,11 @@ function eventPlayMs(evt: BattleEvent): number {
             return evt.isTriggered ? TRIGGER_PLAY_MS : Math.max(SEGMENT_STEP_MS, evt.apCost * AP_PLAY_MS)
         case 'move':
             return evt.durationMs ?? SEGMENT_STEP_MS
+        case 'support':
+            // support（pre/post）招式：按实际消耗 AP 定播放时长
+            return Math.max(SUPPORT_MIN_MS, evt.apCost * AP_PLAY_MS)
         case 'system':
-            // support（pre/post）招式：Phase B 引擎补 apCost；此处按 apCost 判断
-            return 'apCost' in evt && typeof (evt as { apCost?: number }).apCost === 'number'
-                ? Math.max(SUPPORT_MIN_MS, ((evt as { apCost: number }).apCost ?? 0) * AP_PLAY_MS)
-                : SEGMENT_STEP_MS
+            return SEGMENT_STEP_MS
         default:
             return SEGMENT_STEP_MS
     }

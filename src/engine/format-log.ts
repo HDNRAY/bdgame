@@ -201,7 +201,6 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
         opts?: { displayName?: string; useCurrentAp?: boolean },
     ) {
         const actorName = opts?.displayName ?? fmtName(actorId, snapshot)
-        if (lines.length > 0) lines.push('')
         const hp = hpInfo(actorId, snapshot)
         const d = ` ${snapshot.distance.toFixed(1)}m`
         const num = snapshot.actionCount > 0 ? ` #${snapshot.actionCount}` : ''
@@ -209,7 +208,7 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
         // 普通回合显示 maxAp（原子回合=满 AP）；召唤物回合显示主人当前 AP（御物耗炁可见）
         const apVal = opts?.useCurrentAp ? c?.ap : c?.maxAp
         const ap = c && apVal && apVal > 0 ? ` AP${apVal.toFixed(1)}` : ''
-        lines.push(`── ${t(ms)}${num} ${actorName}${ap} ${hp}${d} ──`)
+        lines.push(`--- ${t(ms)}${num} ${actorName}${ap} ${hp}${d}`)
     }
 
     /** 主级事件（回合级或主招式）→ 按 (回合,行动者) 换块 */
@@ -237,7 +236,7 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
         switch (e.type) {
             case 'battle_start':
                 if (!headerShown) {
-                    lines.push(`── ${fmtName(e.actor, e.snapshot)} VS ${fmtName(e.opponent, e.snapshot)} ──`)
+                    lines.push(`--- ${fmtName(e.actor, e.snapshot)} VS ${fmtName(e.opponent, e.snapshot)}`)
                     headerShown = true
                 }
                 break
@@ -290,17 +289,19 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
 
             case 'move': {
                 // 移动：回合级（scope 1）或主招式内（scope 2）→ 块内行；更深（dash 冲刺）→ 挂帧前摇行
+                // 符号区分：@ 移动（普通）/ @ 垫步（short_dash）/ @ 瞬移（dash blink）
+                const moveLabel = e.kind === 'short_dash' ? '垫步' : e.kind === 'dash' ? '瞬移' : '移动'
                 if (sc.length <= 2) {
                     ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
                     const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
                     const apInfo = e.apCost > 0 ? `  | AP${e.apRemaining.toFixed(1)}` : ''
-                    lines.push(`  # 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m${apInfo}`)
+                    lines.push(`  @ ${moveLabel}  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m${apInfo}`)
                 } else {
                     const f = popTo(sc)
                     if (f) {
                         const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
                         f.preLines.push(
-                            `${'  '.repeat(f.depth + 1)}# 移动  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m`,
+                            `${'  '.repeat(f.depth + 1)}@ ${moveLabel}  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m`,
                         )
                     }
                 }
@@ -362,6 +363,71 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 // 推迟奖杯到末尾，保证结算事件都在奖杯之前
                 const winnerId = e.winner
                 defeatWinner = e.snapshot?.characters.find((c) => c.id === winnerId)?.name ?? winnerId
+                break
+            }
+
+            // tick 周期事件（回春/毒/灼烧等）：独立带时间行，无回合号、不归属招式帧
+            case 'damage_over_time': {
+                // 先落盘当前块未渲染的帧，避免 tick 行插进块标题与动作行之间
+                closeBlock()
+                const targetName = fmtName(e.target, e.snapshot)
+                lines.push(`··· ${t(ms)} [${e.status}] ${targetName} 受到 ${e.amount.toFixed(1)} 点伤害`)
+                lastSys = null
+                break
+            }
+            case 'heal_over_time': {
+                closeBlock()
+                const targetName = fmtName(e.target, e.snapshot)
+                lines.push(`··· ${t(ms)} [${e.label}] ${targetName} +${e.amount.toFixed(1)}HP`)
+                lastSys = null
+                break
+            }
+            case 'buff_end': {
+                closeBlock()
+                // message 形如 「名字」 属性变化
+                const body = e.message.startsWith('「')
+                    ? e.message
+                    : `「${fmtName(e.target, e.snapshot)}」 ${e.message}`
+                lines.push(`··· ${t(ms)} [${e.label}] ${body}`)
+                lastSys = null
+                break
+            }
+            // 一次性回血（招式效果）：挂帧效果行
+            case 'heal': {
+                const targetName = fmtName(e.target, e.snapshot)
+                const text = `[${e.label}] ${targetName} +${e.amount.toFixed(1)}HP`
+                if (sc.length >= 2) {
+                    const f = popTo(sc)
+                    if (f) {
+                        f.children.push(`${'  '.repeat(f.depth + 2)}↳ ${text}`)
+                        lastSys = null
+                    } else {
+                        lines.push(`  · ${text}`)
+                    }
+                } else {
+                    ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
+                    lines.push(`  · ${text}`)
+                }
+                break
+            }
+
+            case 'support': {
+                // support（pre/post）招式：渲染为 `& 招式名(AP)` 招式帧，后续效果归属其下
+                ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
+                closeBlock()
+                currentBlockKey = `${sc[0] ?? 0}_${e.actor}`
+                stack.push({
+                    scope: sc,
+                    depth: 0,
+                    prefix: '& ',
+                    text: `${e.actionName}(${e.apCost}AP)`,
+                    inline: '',
+                    ap: '',
+                    actionName: e.actionName,
+                    preLines: [],
+                    children: [],
+                })
+                lastSys = null
                 break
             }
 

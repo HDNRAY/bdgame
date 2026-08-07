@@ -7,7 +7,7 @@ export function executeMove(
     engine: BattleEngine,
     delta: number,
     apCost = 0,
-    opts?: { durationMs?: number; blink?: boolean },
+    opts?: { durationMs?: number; blink?: boolean; kind?: 'move' | 'short_dash' | 'dash' },
 ): void {
     const p = engine.state.position
     const opponent = engine.getOpponent(char.id)!
@@ -24,5 +24,6 @@ export function executeMove(
         apRemaining: char.ap,
         durationMs: opts?.durationMs,
         blink: opts?.blink,
+        kind: opts?.kind,
     })
 }

@@ -539,6 +539,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const key = isIndependent ? `${keyBase}::${genAppId(tMs)}` : keyBase
 
         const existing = !isIndependent ? engine.state.pendingBuffs.get(key) : undefined
+        // 不可叠层（none）buff 已存在：幂等跳过，不重复应用/记录（如缠满触发的「极」等 permanent 状态）
+        if (existing && buff?.stacking?.type !== 'additive') {
+            return
+        }
         if (existing && buff?.stacking?.type === 'additive') {
             const max = getBuffMaxOverride(buff!, engine, self.id)
             const newStacks = Math.min(max, existing.restoreValue + (e.stacks ?? 1))
@@ -694,7 +698,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const delta = dist - targetDist
         // short_dash 占用前摇窗口：位置在 [0, 前摇] 内平滑插值（不闪烁）
         const pre = calcPreDelayMs(self.attrs.get('agility'), action?.extraPreDelay ?? 0, self.getHaste())
-        executeMove(self, engine, -delta, 0, { durationMs: pre })
+        executeMove(self, engine, -delta, 0, { durationMs: pre, kind: 'short_dash' })
     },
     dash({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'dash' }>
@@ -725,9 +729,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 apCost,
                 apRemaining: self.ap,
                 blink: true,
+                kind: 'dash',
             })
         } else {
-            if (moveDist !== 0) executeMove(self, engine, -moveDist, 0, { blink: true })
+            if (moveDist !== 0) executeMove(self, engine, -moveDist, 0, { blink: true, kind: 'dash' })
         }
     },
     disarm({ eff, self, enemy, engine, action }: EffectCtx) {
