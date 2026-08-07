@@ -76,14 +76,14 @@ export const WEAPON_DB: WeaponDef[] = [
     },
     {
         id: 'zantetsu',
-        name: '斩铁',
-        description: '一刀两断，无物不斩。',
+        name: '藏锋',
+        description: '锋藏于鞘，出鞘一瞬，无物不斩。',
         tags: ['slash', 'parry', 'melee', 'one_handed'],
         range: [1, 3],
         triggers: [
             {
                 condition: { type: 'on_stance' },
-                actionId: '_zantetsu_mind_eye',
+                actionId: '_cangfeng_mind_eye',
             },
         ],
     },

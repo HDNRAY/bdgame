@@ -162,6 +162,7 @@ export class BattleLog {
                     event.durationMs,
                     event.blink,
                     event.kind,
+                    event.actionName,
                 )
                 break
             case 'support':
@@ -296,9 +297,22 @@ export class BattleLog {
         durationMs?: number,
         blink?: boolean,
         kind?: 'move' | 'short_dash' | 'dash',
+        actionName?: string,
     ): void {
         this.push(
-            { type: 'move', actor, delta, newDistance, apCost, apRemaining, durationMs, blink, kind, snapshot },
+            {
+                type: 'move',
+                actor,
+                delta,
+                newDistance,
+                apCost,
+                apRemaining,
+                durationMs,
+                blink,
+                kind,
+                actionName,
+                snapshot,
+            },
             timelineMs,
         )
     }

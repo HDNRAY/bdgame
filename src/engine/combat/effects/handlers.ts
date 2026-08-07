@@ -700,7 +700,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const pre = calcPreDelayMs(self.attrs.get('agility'), action?.extraPreDelay ?? 0, self.getHaste())
         executeMove(self, engine, -delta, 0, { durationMs: pre, kind: 'short_dash' })
     },
-    dash({ eff, self, engine }: EffectCtx) {
+    dash({ eff, self, engine, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'dash' }>
         const opponent = engine.getOpponent(self.id)!
         const minRange = e.minRange ?? 0
@@ -730,9 +730,11 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 apRemaining: self.ap,
                 blink: true,
                 kind: 'dash',
+                actionName: action?.name,
             })
         } else {
-            if (moveDist !== 0) executeMove(self, engine, -moveDist, 0, { blink: true, kind: 'dash' })
+            if (moveDist !== 0)
+                executeMove(self, engine, -moveDist, 0, { blink: true, kind: 'dash', actionName: action?.name })
         }
     },
     disarm({ eff, self, enemy, engine, action }: EffectCtx) {

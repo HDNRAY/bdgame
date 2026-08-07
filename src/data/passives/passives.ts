@@ -8,7 +8,7 @@ export const PASSIVES: Passive[] = [
         name: '三分归元气',
         description: '全属性提升。濒危时触发「三分归元」，消耗元气大幅回血。',
         tags: ['qi', 'heal', 'buff', 'defense'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2 } }],
+        effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 1, agility: 2, dexterity: 1 } }],
         triggers: [
             {
                 condition: {
@@ -691,6 +691,27 @@ export const PASSIVES: Passive[] = [
         description: '气血越低属性加成越高。力道、身法、灵巧随血量减少而提升。',
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'blood_rage' }] }],
+    },
+    {
+        id: 'gear_shift',
+        name: '挂挡',
+        description: '凝缠劲为内息，运转不息。初始叠1层「挡」，并习得招式「挂」。每层内息回复+0.3/s。',
+        tags: ['passive', 'buff'],
+        grantsActions: ['gear_hang'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'gear_shift_buff', stacks: 1 }],
+            },
+        ],
+    },
+    {
+        id: 'karate',
+        name: '空手道',
+        description: '空手道不打蛮力，讲究拳到脚到、蹬地转腰，把劲凝在最刁钻的打击点上。附赠招式「手刀」。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'stat_buff', attrs: { dexterity: 4 } }],
+        grantsActions: ['hand_blade'],
     },
     {
         id: 'fei_hua_shou',

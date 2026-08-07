@@ -83,15 +83,19 @@ export function planMovement(
             const walkAfter = distance + Math.sign(delta) * moveAp * perAp
             const walkDist = Math.abs(walkAfter - targetDist)
             const dashDist = Math.abs(dashTarget - targetDist)
-            if (dashDist >= walkDist) continue // 走路效果一样或更好
+            // dash 落点必须在主招射程内，否则 dash 后无法出招（planEvent 见 dash 会归零 moveDelta，
+            // 无法补偿额外移动）。射程外 → 拒绝该位移招，让 AI 改用能配合的招式。
+            if (dashTarget < actionRange[0] - 0.001 || dashTarget > actionRange[1] + 0.001) continue
             const dashMoveDist = Math.abs(distance - dashTarget)
             const dashApCost = dashEff.useAp
                 ? Math.max(1, Math.round(dashMoveDist * 0.4 * 10) / 10)
                 : attacker.actionApCost(inst.apCost)
-            const needsExtraMove = dashDist >= 0.5 && (dashTarget < actionRange[0] || dashTarget > actionRange[1])
-            const extraMove = needsExtraMove ? PositionSystem.moveApFor(dashDist, perAp) : 0
+            // 走路落点不比 dash 差 且 走路不更贵（≤ dash+0.5AP）→ 跳过 dash。
+            // 若 dash 明显更省 AP（省 >0.5），即使落点相同/略差也应采用，
+            // 否则省一大截 AP 的位移招（如虎跃）会因落点不如走路精确而永远被跳过。
+            if (dashDist >= walkDist && moveAp <= dashApCost + 0.5) continue
             const walkingCost = moveAp + chosenCost
-            const totalAp = dashApCost + extraMove + chosenCost
+            const totalAp = dashApCost + chosenCost
             if (totalAp <= apRemaining && (walkingCost > apRemaining || totalAp <= walkingCost)) {
                 return { delta, apCost: dashApCost, dashActionId: inst.id }
             }

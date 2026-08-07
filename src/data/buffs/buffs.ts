@@ -884,6 +884,16 @@ export const BUFF_DB: BuffDef[] = [
             return 0
         },
     },
+    // ── 挂挡（固定内息回复） ──
+    {
+        id: 'gear_shift_buff',
+        name: '挡',
+        description: '挂挡蓄劲，内息流转。每层内息回复+0.3/s。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 3 },
+        apRegenPerSec: ({ layer }) => round1((layer.restoreValue ?? 0) * 0.3),
+    },
     // ── 淬毒工具 ──
     {
         id: 'poison_coating',

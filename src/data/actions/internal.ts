@@ -92,8 +92,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'add_buff', buffId: 'iaijutsu' }],
     },
     {
-        id: '_zantetsu_mind_eye',
-        name: '斩铁·心眼',
+        id: '_cangfeng_mind_eye',
+        name: '藏锋·心眼',
         description: '',
         requiredTags: [],
         apCost: 0,

@@ -821,16 +821,21 @@ export class BattleEngine {
         inst.use()
         if (inst.def.chanCost) self.spendChan(inst.def.chanCost)
         this.checkChanOverflow(self.id)
-        // 辅助招式也算主招式作用域
-        this.state.log.beginMainAction()
-        this.emitLog({
-            type: 'support',
-            actionId: inst.id,
-            actionName: inst.name,
-            sourceId: self.id,
-            targetId: self.id,
-            apCost: self.actionApCost(inst.apCost),
-        })
+        // 纯位移型 support（如虎跃）：本质是位移，不发 support 日志（由 dash effect 发 move(kind:'dash') 日志），
+        // 也不建主招 scope（让 move 保持回合级块内行），format-log 渲染为 `@ 虎跃 旧→新m`
+        const isDashOnly = (inst.def.effects ?? []).every((e) => e.type === 'dash')
+        if (!isDashOnly) {
+            // 辅助招式也算主招式作用域
+            this.state.log.beginMainAction()
+            this.emitLog({
+                type: 'support',
+                actionId: inst.id,
+                actionName: inst.name,
+                sourceId: self.id,
+                targetId: self.id,
+                apCost: self.actionApCost(inst.apCost),
+            })
+        }
         for (const eff of inst.def.effects ?? []) {
             processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action: inst.def })
         }

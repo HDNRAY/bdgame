@@ -289,8 +289,16 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
 
             case 'move': {
                 // 移动：回合级（scope 1）或主招式内（scope 2）→ 块内行；更深（dash 冲刺）→ 挂帧前摇行
-                // 符号区分：@ 移动（普通）/ @ 垫步（short_dash）/ @ 瞬移（dash blink）
-                const moveLabel = e.kind === 'short_dash' ? '垫步' : e.kind === 'dash' ? '瞬移' : '移动'
+                // 符号区分：@ 移动（普通）/ @ 垫步（short_dash）/ @ 瞬移（dash blink）；
+                // 纯位移 support（虎跃）走 move(dash) 日志，带 actionName → 用招式名 `@ 虎跃`
+                const moveLabel =
+                    (e.kind === 'dash' || e.kind === 'short_dash') && e.actionName
+                        ? e.actionName
+                        : e.kind === 'short_dash'
+                          ? '垫步'
+                          : e.kind === 'dash'
+                            ? '瞬移'
+                            : '移动'
                 if (sc.length <= 2) {
                     ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
                     const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
@@ -415,7 +423,8 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 // support（pre/post）招式：渲染为 `& 招式名(AP)` 招式帧，后续效果归属其下
                 ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
                 closeBlock()
-                currentBlockKey = `${sc[0] ?? 0}_${e.actor}`
+                // 与 ensureBlock 的 key 格式一致（displayName 空 → 尾随下划线），否则每个 support 后都会强制换块
+                currentBlockKey = `${sc[0] ?? 0}_${e.actor}_`
                 stack.push({
                     scope: sc,
                     depth: 0,

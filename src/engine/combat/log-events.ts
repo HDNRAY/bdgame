@@ -63,6 +63,8 @@ export type LogEvent =
           blink?: boolean
           /** 移动类型：普通移动 / 垫步(short_dash) / 瞬移(dash)，format-log 用不同符号 */
           kind?: 'move' | 'short_dash' | 'dash'
+          /** 位移招式名（如虎跃）：纯位移 support 走 move 日志，format-log 用招式名渲染 `@ 虎跃 旧→新m` */
+          actionName?: string
       }
     | {
           type: 'status_apply'

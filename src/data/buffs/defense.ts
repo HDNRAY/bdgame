@@ -453,10 +453,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'sword_capture',
         name: '无刀取',
-        description: '空手入白刃。招架成功后有50%概率缴械对手。',
+        description: '空手入白刃。招架率+10%，招架成功后有50%概率缴械对手。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onCanParry: () => true,
+        onParryChance: () => 0.1,
         onParried: ({ target, attacker, engine, state }) => {
             if (engine) {
                 processActionEffect(

@@ -7,7 +7,13 @@ export function executeMove(
     engine: BattleEngine,
     delta: number,
     apCost = 0,
-    opts?: { durationMs?: number; blink?: boolean; kind?: 'move' | 'short_dash' | 'dash' },
+    opts?: {
+        durationMs?: number
+        blink?: boolean
+        kind?: 'move' | 'short_dash' | 'dash'
+        /** 位移招式名（如虎跃）：纯位移 support 走 move 日志时携带 */
+        actionName?: string
+    },
 ): void {
     const p = engine.state.position
     const opponent = engine.getOpponent(char.id)!
@@ -25,5 +31,6 @@ export function executeMove(
         durationMs: opts?.durationMs,
         blink: opts?.blink,
         kind: opts?.kind,
+        actionName: opts?.actionName,
     })
 }
