@@ -1,5 +1,4 @@
 import type { Passive } from '../../engine/entities/passive'
-import { hasBuff } from '../../engine/combat/utils'
 import { getWeapon } from '../weapons/weapons'
 import { Tag } from '../../engine/entities/tag'
 
@@ -70,22 +69,16 @@ export const PASSIVES: Passive[] = [
     {
         id: 'dragon_palace_style',
         name: '龙宫院流',
-        description: '龙宫院秘传剑术，招架或闪避后蓄势，叠加居合·势。',
+        description: '龙宫院秘传身法，招架或闪避后蓄势，叠加势。',
         tags: ['passive'],
         triggers: [
             {
-                condition: {
-                    type: 'on_parry',
-                    check: (ctx) => hasBuff(ctx.engine!, ctx.actor.id, 'iaijutsu'),
-                },
-                effects: [{ type: 'add_buff', buffId: 'iaijutsu_focus', stacks: 1 }],
+                condition: { type: 'on_parry' },
+                effects: [{ type: 'add_buff', buffId: 'shi_buff', stacks: 1 }],
             },
             {
-                condition: {
-                    type: 'on_dodge',
-                    check: (ctx) => hasBuff(ctx.engine!, ctx.actor.id, 'iaijutsu'),
-                },
-                effects: [{ type: 'add_buff', buffId: 'iaijutsu_focus', stacks: 1 }],
+                condition: { type: 'on_dodge' },
+                effects: [{ type: 'add_buff', buffId: 'shi_buff', stacks: 1 }],
             },
         ],
     },

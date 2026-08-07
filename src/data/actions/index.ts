@@ -10,19 +10,24 @@ import { SUPPORT_ACTIONS } from './support'
 import { INTERNAL_ACTIONS } from './internal'
 import { QI_SKILLS } from './qi'
 
-/** 合并所有招式 */
-const ALL_ACTIONS: ActionDefinition[] = [...PLAYER_ACTIONS, ...SUPPORT_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS]
+/** 合并所有招式（惰性求值，避免循环依赖导致模块初始化顺序问题） */
+const getALL_ACTIONS = (): ActionDefinition[] => [
+    ...PLAYER_ACTIONS,
+    ...SUPPORT_ACTIONS,
+    ...INTERNAL_ACTIONS,
+    ...QI_SKILLS,
+]
 
 export { PLAYER_ACTIONS, SUPPORT_ACTIONS, INTERNAL_ACTIONS, QI_SKILLS }
 
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {
-    return ALL_ACTIONS.find((a) => a.id === id)
+    return getALL_ACTIONS().find((a) => a.id === id)
 }
 
 /** 按武器标签过滤（空数组招式 = 任意武器可用） */
 export function getActionsByWeapon(weaponTags: Tag[]): ActionDefinition[] {
-    return ALL_ACTIONS.filter((a) => {
+    return getALL_ACTIONS().filter((a) => {
         if (a.requiredTags.length === 0) return true
         return a.requiredTags.some((tag) => weaponTags.includes(tag))
     })

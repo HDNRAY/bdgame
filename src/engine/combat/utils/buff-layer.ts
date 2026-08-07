@@ -138,11 +138,6 @@ export function applyHeal(
     })
 }
 
-/** 检查某人是否有某 buff */
-export function hasBuff(engine: BattleEngine, charId: string, buffId: string): boolean {
-    return engine.state.pendingBuffs.has(`${buffId}::${charId}`)
-}
-
 /** 检查某人是否有架势 buff（tag 含 'stance'） */
 export function hasNoStance(pendingBuffs: Map<string, unknown>, charId: string): boolean {
     let hasStance = false

@@ -19,7 +19,7 @@ export const SANGYUAN: OpponentDef = {
         action('side_kick'),
         action('spinning_kick'),
         artifact('blood_sacrifice_armband'),
-        artifact('headband'),
+        artifact('chan_orb'),
         // 10
     ],
     actionConfigs: [{ actionId: 'blood_droplet', conditionId: 'hp_above_70', triggerId: 'on_opponent_move_away' }],

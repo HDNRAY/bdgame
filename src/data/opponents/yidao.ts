@@ -16,7 +16,7 @@ export const YIDAO: OpponentDef = {
         artifact('wakizashi'),
         passive('human_radar'),
         artifact('tiger_eye'),
-        artifact('chan_orb'),
+        artifact('headband'),
         weapon('zantetsu'),
         passive('extreme'),
         passive('stance_time'),

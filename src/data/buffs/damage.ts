@@ -49,8 +49,8 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         },
     },
     {
-        id: 'iaijutsu_focus',
-        name: '居合·势',
+        id: 'shi_buff',
+        name: '势',
         description: '招架或闪避后蓄势，每层暴击伤害+0.25。',
         tags: ['damage'],
         expiry: { type: 'permanent' },

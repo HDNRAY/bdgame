@@ -194,13 +194,11 @@ export class Character {
             })
             .filter((a): a is Action => a !== null)
 
-        // 5b. 补充触发招式（被动/奇物/actionConfig 引用的内部招式）到缓存，供 maxUses 追踪
+        // 5b. 补充触发招式（被动/奇物/武器/actionConfig 引用的内部招式）到缓存，供 maxUses 追踪
+        // 复用 passiveTriggers（已聚合被动/奇物/主副手武器的 triggers），避免重复遍历各来源
         const triggerActionIds = new Set<string>()
-        for (const p of this.passiveDefs) {
-            for (const t of p.triggers ?? []) if (t.actionId) triggerActionIds.add(t.actionId)
-        }
-        for (const a of this.artifactDefs) {
-            for (const t of a.triggers ?? []) if (t.actionId) triggerActionIds.add(t.actionId)
+        for (const t of this.passiveTriggers) {
+            if (t.actionId) triggerActionIds.add(t.actionId)
         }
         for (const ac of build.actionConfigs ?? []) {
             if (ac.actionId) triggerActionIds.add(ac.actionId)

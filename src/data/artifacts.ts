@@ -336,9 +336,9 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'gu_tong_body' }] }],
     },
     {
-        id: 'headband',
-        name: '旧头巾',
-        description: '师门传下来的头巾，棉纱密实，经年不坏。系上它，气就顺了。',
+        id: 'chan_orb',
+        name: '凝缠珠',
+        description: '禅意内敛，气机沉凝。持有者每2秒恢复2点缠劲。',
         tags: ['buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chan_orb_regen' }] }],
     },
