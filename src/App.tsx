@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { RotateDevice } from './ui/components/RotateDevice/RotateDevice'
 import { useAppStore } from './ui/stores/app-store'
 import { useSystemTheme } from './ui/hooks/useSystemTheme'
+import { NotFound } from './ui/screens/NotFound/NotFound'
 
 // 按路由懒加载：避免首屏一次性下载全部 screen / 游戏数据 / DevMode
 const ModeSelect = lazy(() => import('./ui/screens/ModeSelect/ModeSelect').then((m) => ({ default: m.ModeSelect })))
@@ -77,6 +78,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
 function App() {
     // dev 无前缀；线上 build（GitHub Pages 子路径）带 /bdgame
     const basename = import.meta.env.PROD ? '/bdgame' : '/'
+    // /dev（DevMode）是否开放：由 .env 的 VITE_ENABLE_DEV_MODE 控制（true=开放，含线上部署）
+    const devModeEnabled = import.meta.env.VITE_ENABLE_DEV_MODE === 'true'
     return (
         <BrowserRouter basename={basename}>
             <AppShell>
@@ -91,7 +94,8 @@ function App() {
                         <Route path="/encyclopedia" element={<EncyclopediaScreen />} />
                         <Route path="/battle" element={<BattleScreen />} />
                         <Route path="/roguelite" element={<RogueliteScreen />} />
-                        <Route path="/dev" element={<DevMode />} />
+                        {devModeEnabled && <Route path="/dev" element={<DevMode />} />}
+                        <Route path="*" element={<NotFound />} />
                     </Routes>
                 </Suspense>
             </AppShell>

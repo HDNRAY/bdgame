@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { cpSync } from 'node:fs'
+import path from 'node:path'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
@@ -46,5 +48,14 @@ export default defineConfig(({ command }) => ({
                 ],
             },
         }),
+        {
+            // GitHub Pages 对未知路径回退到 404.html：把 index.html 复制一份，让 React Router 接管深链路由
+            name: 'gh-pages-404-fallback',
+            apply: 'build',
+            closeBundle() {
+                const outDir = path.join(process.cwd(), 'bdgame')
+                cpSync(path.join(outDir, 'index.html'), path.join(outDir, '404.html'))
+            },
+        },
     ],
 }))

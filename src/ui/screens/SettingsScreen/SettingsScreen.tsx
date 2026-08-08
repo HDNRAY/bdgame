@@ -101,7 +101,7 @@ export function SettingsScreen() {
 
             {/* ── 返回 ── */}
             <button className="settings-back" onClick={() => navigate('/')}>
-                ← 返回主菜单
+                返回主菜单
             </button>
         </div>
     )

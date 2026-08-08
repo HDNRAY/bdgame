@@ -68,7 +68,7 @@ export function BattleScreen() {
         <div className="battle-screen-root">
             <div className="battle-screen-header">
                 <button className="bs-header-btn" onClick={() => navigate('/select')}>
-                    ← 返回选人
+                    返回选人
                 </button>
                 <span className="bs-header-title">
                     {buildA.name} vs {buildB.name}

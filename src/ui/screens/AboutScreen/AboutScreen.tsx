@@ -15,7 +15,7 @@ export function AboutScreen() {
                 TypeScript + Vite + React 构建
             </div>
             <button className="about-back-btn" onClick={() => navigate('/')}>
-                ← 返回
+                返回
             </button>
         </div>
     )

@@ -1,0 +1,25 @@
+.not-found {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    height: 100dvh;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+
+    &-title {
+        font-size: 3rem;
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    &-link {
+        color: var(--color-text);
+        border: 1px solid var(--color-text);
+        padding: 8px 24px;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+}

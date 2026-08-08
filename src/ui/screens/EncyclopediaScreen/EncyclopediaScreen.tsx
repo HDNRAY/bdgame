@@ -100,7 +100,7 @@ export function EncyclopediaScreen() {
         <div className="encyclopedia">
             <div className="encyclopedia-header">
                 <button className="encyclopedia-back" onClick={() => navigate('/')}>
-                    ← 返回
+                    返回
                 </button>
                 <span className="encyclopedia-title">图鉴</span>
             </div>
