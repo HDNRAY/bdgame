@@ -16,7 +16,7 @@ export const FENGSHUI: OpponentDef = {
         passive('quick_glance'),
         action('rising_slash'),
         weapon('yanling_blade'),
-        artifact('nv_er_hong'),
+        artifact('zhu_ye_qing'),
         passive('draw_sword_cut_water'),
         action('spinning_slash'),
         artifact('iron_mask'),

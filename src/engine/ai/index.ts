@@ -100,8 +100,15 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         candidates.push(calcExpectedDamage(inst.def, self, enemy, weapon.range, state))
     }
 
+    // 1.5. 前摇辅助（buff/饮酒等）优先预留 AP，先于主招与移动执行
+    const preCmds = planSupportActions(self, state, self.ap, 'pre_action')
+    const preAp = preCmds.reduce(
+        (s, c) => s + self.actionApCost(self.actions.find((a) => a.id === c.actionId)?.apCost ?? 0),
+        0,
+    )
+
     // 2. 分两组：有条件限制的按顺序选，默认的按计划总伤害选
-    const apBudget = self.ap
+    const apBudget = self.ap - preAp
     const configOrder = new Map(self.build.actionConfigs?.map((c, i) => [c.actionId, i]))
     const style: AttackStyle = self.battleStyle
 
@@ -223,7 +230,6 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     }
 
     if (!mainId) {
-        const preCmds = planSupportActions(self, state, apBudget, 'pre_action')
         if (preCmds.length > 0) return preCmds
         const postCmds = planSupportActions(self, state, apBudget, 'post_action')
         if (postCmds.length > 0) return postCmds
@@ -238,17 +244,14 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     }
     const mainDef2 = mainInst.def
 
-    // ── 4. 辅助招式（前摇 → 主招 → 收招） ──
+    // ── 4. 收招辅助（主招之后执行；前摇辅助已在上方预留） ──
     const mainApUsed = moveAp + self.actionApCost(mainDef2.apCost)
-    const preCmds = planSupportActions(self, state, apBudget - mainApUsed, 'pre_action')
-    const preId = preCmds[0]?.actionId
-    const preAp = preId ? self.actionApCost(self.actions.find((a) => a.id === preId)?.apCost ?? 0) : 0
     const postCmds = planSupportActions(
         self,
         state,
-        apBudget - mainApUsed - preAp,
+        apBudget - mainApUsed,
         'post_action',
-        preId ? [preId] : undefined,
+        preCmds.map((c) => c.actionId).filter((x): x is string => !!x),
     )
 
     // ── 5. 组装命令 ──

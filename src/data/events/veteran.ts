@@ -34,21 +34,21 @@ export const VETERAN_N03_INTRO: EventDef = {
 export const VETERAN_START_TRAINING: EventDef = {
     id: 'veteran_start_training',
     name: '正式训练',
-    description: '白月·红提注意到了栅栏边偷看的你。',
+    description: '白山月注意到了栅栏边偷看的你。',
     rewardType: 'action',
     rounds: [
         {
             id: 'intro',
             title: '被发现',
             description:
-                '你被陆红提抓了个正着。她上下打量了你一番，笑了：「小子，有毅力。想学？明天早上卯时，训练场上见。」',
+                '你被白山月抓了个正着。她上下打量了你一番，笑了：「小子，有毅力。想学？明天早上卯时，训练场上见。」',
             choices: [{ id: 'reward_round', type: 'continue', label: '卯时到' }],
         },
         { id: 'reward_round', title: '第一课', choices: [] },
         {
             id: 'epilogue',
-            title: '陆红提的话',
-            description: '陆红提拍了拍你的肩：「底子虽然野，根骨不错。从今天起我就是你的教官。」',
+            title: '白山月的话',
+            description: '白山月拍了拍你的肩：「底子虽然野，根骨不错。从今天起我就是你的教官。」',
             choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],

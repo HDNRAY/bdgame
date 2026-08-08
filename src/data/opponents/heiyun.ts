@@ -9,9 +9,9 @@ export const HEIYUN: OpponentDef = {
     weapon: 'fei_jian',
     targetAttrs: HEIYUN_ATTRS,
     rewards: [
+        action('qi_bolt'),
         passive('spirit_resonance'),
         passive('momentum_mastery'),
-        action('qi_bolt'),
         passive('sword_intent_tempering'),
         passive('drunken_step'),
         passive('sword_dominion'),
@@ -21,5 +21,12 @@ export const HEIYUN: OpponentDef = {
         action('condense_shield'),
         // 10 + 1
     ],
-    actionConfigs: [{ actionId: 'condense_shield', triggerId: 'on_took_damage' }],
+    actionConfigs: [
+        { actionId: 'ling_qi_guan_zhu', conditionId: 'always' },
+        { actionId: 'condense_shield', triggerId: 'on_took_damage' },
+        {
+            actionId: 'qi_bolt',
+            triggerId: 'on_opponent_move_away',
+        },
+    ],
 }

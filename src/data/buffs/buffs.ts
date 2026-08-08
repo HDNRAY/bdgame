@@ -207,19 +207,10 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'chan_orb_regen',
         name: '凝缠珠·流转',
-        description: '凝缠珠之力流转不息，每2秒恢复2点缠劲。',
+        description: '凝缠珠之力流转不息，每秒恢复1点缠劲。',
         tags: [],
         expiry: { type: 'permanent' },
-        tickInterval: 2000,
-        onTickHeal: ({ attacker, engine }) => {
-            attacker.addChan(2)
-            engine?.emitLog({
-                type: 'system',
-                message: `[凝缠珠] ${attacker.name} 缠劲+2（${attacker.chan}层）`,
-                actorId: attacker.id,
-            })
-            return 0
-        },
+        chanRegenPerSec: () => 2,
     },
     {
         id: 'phantom_step',
@@ -682,19 +673,7 @@ export const BUFF_DB: BuffDef[] = [
         description: 'AP恢复速度翻倍，持续20秒。',
         tags: ['buff'],
         expiry: { type: 'duration', ms: 20000 },
-        tickInterval: 1000,
         apRegenPerSec: ({ target }) => Math.max(1, Math.round(Math.max(2, target.attrs.get('wisdom') * 0.1))),
-        onTickHeal: ({ target: char, engine }) => {
-            const regenPerSec = Math.max(2, char.attrs.get('wisdom') * 0.1)
-            const apGain = Math.max(1, Math.round(regenPerSec))
-            char.ap = Math.min(char.maxAp, char.ap + apGain)
-            engine?.emitLog({
-                type: 'system',
-                message: `[肾上腺素] ${char.name} AP +${apGain}`,
-                actorId: char.id,
-            })
-            return 0
-        },
     },
     // ── 弗思剑 ──
     {
@@ -870,19 +849,8 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
-        tickInterval: 1000,
         apRegenPerSec: ({ target, layer }) =>
             Math.round(calcApRegenPerSec(target.attrs.get('wisdom')) * ((layer.restoreValue ?? 0) * 0.1) * 10) / 10,
-        onTickHeal: ({ target, layer }) => {
-            const mult = 1 + (layer.restoreValue ?? 0) * 0.1
-            const basePerSec = calcApRegenPerSec(target.attrs.get('wisdom'))
-            const extra = Math.round(basePerSec * (mult - 1) * 10) / 10
-            if (extra > 0) {
-                target.ap = Math.min(target.maxAp, target.ap + extra)
-                // 加速回复内息就不打log了
-            }
-            return 0
-        },
     },
     // ── 挂挡（固定内息回复） ──
     {
@@ -1113,20 +1081,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'chanzi_chan_regen',
         name: '玄武定',
-        description: '玄武定息，缠劲生生不息，每2秒恢复2点缠劲。',
+        description: '玄武定息，缠劲生生不息，每秒恢复1点缠劲。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        tickInterval: 2000,
-        onTickHeal: ({ attacker, engine }) => {
-            attacker.addChan(2)
-            engine?.emitLog({
-                type: 'system',
-                message: `[玄武定] ${attacker.name} 缠劲+2（${attacker.chan}层）`,
-                actorId: attacker.id,
-            })
-            return 0
-        },
+        chanRegenPerSec: () => 2,
     },
     {
         id: 'chanzi_stance',

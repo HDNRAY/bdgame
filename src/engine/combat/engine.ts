@@ -5,7 +5,8 @@ import { BattleLog } from './battle-log'
 import { getWeapon } from '../../data/weapons/weapons'
 import { calcSummonInterval, calcApRegen, calcActionDurationMs, MIN_TURN_DELAY_MS } from '../calc/damage'
 import { canExecuteAction } from '../calc/action-executor'
-import { calcEffectiveApRegenPerSec } from './utils/ap-regen'
+import { calcEffectiveApRegenPerSec, calcExtraApRegenPerSec } from './utils/ap-regen'
+import { calcEffectiveChanRegenPerSec } from './utils/chan-regen'
 import { getAction as getBaseAction } from '../../data/actions'
 import { getRuntimeAction } from '../../data/actions'
 import { getBuff } from '../../data/buffs'
@@ -102,6 +103,10 @@ export class BattleEngine {
         // 创建召唤物
         this.#initSummons(p)
         this.#initSummons(o)
+
+        // 统一资源回复 tick：AP 额外回复（apRegenPerSec）与缠劲回复（chanRegenPerSec）
+        this.state.turn.scheduleSystemEventAt(`regen_tick_${p.id}`, 1000, 'regen_tick')
+        this.state.turn.scheduleSystemEventAt(`regen_tick_${o.id}`, 1000, 'regen_tick')
     }
 
     /** 为角色创建召唤物（已存在则跳过） */
@@ -1003,6 +1008,35 @@ export class BattleEngine {
                         nextActionAt + (buffDef.tickInterval ?? 1000),
                         'tick_buff',
                     )
+                }
+                break
+            }
+            case 'regen_tick': {
+                const charId = eventId.slice('regen_tick_'.length)
+                const char = this.getCharacter(charId)
+                if (!char || !char.isAlive()) break
+                const extraAp = calcExtraApRegenPerSec(this.state, char)
+                if (extraAp !== 0) {
+                    char.ap = Math.max(0, Math.min(char.maxAp, char.ap + Math.round(extraAp * 10) / 10))
+                    if (extraAp > 0) {
+                        this.emitLog({
+                            type: 'system',
+                            message: `[内息回复] ${char.name} AP +${Math.round(extraAp * 10) / 10}`,
+                            actorId: charId,
+                        })
+                    }
+                }
+                const chanRegen = calcEffectiveChanRegenPerSec(this.state, char)
+                if (chanRegen > 0) {
+                    char.addChan(chanRegen)
+                    this.emitLog({
+                        type: 'system',
+                        message: `[缠劲回复] ${char.name} 缠劲+${Math.round(chanRegen * 10) / 10}（${char.chan}层）`,
+                        actorId: charId,
+                    })
+                }
+                if (this.state.phase === 'fighting') {
+                    this.state.turn.scheduleSystemEventAt(eventId, nextActionAt + 1000, 'regen_tick')
                 }
                 break
             }

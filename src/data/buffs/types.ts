@@ -57,6 +57,8 @@ export interface BuffDef extends GameEntity {
     tickInterval?: number
     /** 每秒额外 AP 回复量（用于 recalcRegenDelay 估算回满时间；返回 0 表示不贡献） */
     apRegenPerSec?: (ctx: BuffHookCtx) => number
+    /** 每秒额外缠劲回复量（由引擎统一 regen_tick 发放；返回 0 表示不贡献） */
+    chanRegenPerSec?: (ctx: BuffHookCtx) => number
     /** tick 伤害回调 */
     onTickDamage?: (ctx: BuffHookCtx) => number
     /** tick 回复回调 */

@@ -185,13 +185,7 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['imperial', 'debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        tickInterval: 1000,
         apRegenPerSec: ({ layer }) => -(layer.restoreValue ?? 0),
-        onTickHeal: ({ target, layer }) => {
-            // 每秒扣 AP（返回 0，仅内部扣减，不打 log）
-            target.ap -= Math.min(target.ap, layer.restoreValue ?? 0)
-            return 0
-        },
     },
     {
         id: 'permanent_burn',

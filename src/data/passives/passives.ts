@@ -650,12 +650,12 @@ export const PASSIVES: Passive[] = [
     {
         id: 'drunken_step',
         name: '醉仙望月步',
-        description: '每次饮酒时，获得15%闪避，持续15秒。',
+        description: '醉态越深，身法越飘忽。每层醉酒获得6%闪避。',
         tags: ['passive', 'defense', 'buff', 'jiu'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'drunken_step_watcher' }],
+                effects: [{ type: 'add_buff', buffId: 'drunken_step' }],
             },
         ],
     },
@@ -695,15 +695,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'gear_shift',
         name: '挂挡',
-        description: '凝缠劲为内息，运转不息。初始叠1层「挡」，并习得招式「挂」。每层内息回复+0.3/s。',
+        description: '凝缠劲为内息，运转不息。习得招式「挂」。每层内息回复+0.3/s。',
         tags: ['passive', 'buff'],
         grantsActions: ['gear_hang'],
-        triggers: [
-            {
-                condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'gear_shift_buff', stacks: 1 }],
-            },
-        ],
     },
     {
         id: 'karate',

@@ -1,8 +1,19 @@
 import { processActionEffect } from '../../engine/combat/effects'
+import { forEachBuffOf } from '../../engine/combat/utils'
 import type { BuffDef } from './types'
 import { Tag } from '../../engine/entities/tag'
 import { round1 } from '../../engine/util/math'
 import { calcRoll } from '../../engine/calc/damage'
+import type { BattleState } from '../../engine/combat/types'
+
+/** 统计角色身上所有醉酒（jiu tag）buff 的层数（含独立叠层各层） */
+function countDrunkLayers(state: BattleState, charId: string): number {
+    let count = 0
+    forEachBuffOf(state.pendingBuffs, charId, (def) => {
+        if (def?.tags?.includes('jiu')) count++
+    })
+    return count
+}
 
 export const DEFENSE_BUFFS: BuffDef[] = [
     {
@@ -367,13 +378,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         },
     },
     {
-        id: 'drunken_dodge',
+        id: 'drunken_step',
         name: '醉仙望月步',
-        description: '闪避+15%。',
+        description: '醉态越深，身法越飘忽。每层醉酒获得6%闪避。',
         tags: ['defense'],
-        expiry: { type: 'duration', ms: 15000 },
+        expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onDodgeChance: () => 0.15,
+        onDodgeChance: ({ state, target }) => 0.06 * countDrunkLayers(state, target.id),
     },
     {
         id: 'blood_qi_protection',
@@ -387,59 +398,41 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         onTickHeal: ({ layer }) => Math.max(0.1, round1(layer.restoreValue / 10)),
     },
     {
-        id: 'drunken_step_watcher',
-        name: '醉仙望月',
-        description: '饮酒后触发，获得15%闪避。',
-        tags: ['defense'],
-        expiry: { type: 'permanent' },
-        onAction: ({ source, target, engine, state }) => {
-            if (!source?.tags.includes('jiu')) return
-            if (engine) {
-                processActionEffect(
-                    { type: 'add_buff', buffId: 'drunken_dodge', stacks: 1 },
-                    { self: target, enemy: target, engine, tMs: state.turn.currentTime },
-                )
-            }
-        },
-    },
-    {
         id: 'zhu_ye_qing',
         name: '竹叶青',
-        description: '每秒回复1%气血，持续10秒。',
-        tags: ['defense'],
-        expiry: { type: 'duration', ms: 10000 },
-        stacking: { type: 'none' },
+        description: '每层每秒回复0.3%最大气血，持续9秒。',
+        tags: ['defense', 'jiu'],
+        expiry: { type: 'duration', ms: 9000 },
+        stacking: { type: 'independent' },
         tickInterval: 1000,
-        onTickHeal: ({ target }) => Math.round(target.maxHp * 0.01 * 10) / 10,
+        onTickHeal: ({ target }) => Math.round(target.maxHp * 0.003 * 10) / 10,
     },
     {
         id: 'bu_lao_quan',
         name: '不老泉',
-        description: 'AP恢复速度增加，持续20秒。',
-        tags: ['defense'],
-        expiry: { type: 'duration', ms: 20000 },
-        stacking: { type: 'none' },
-        tickInterval: 1000,
-        apRegenPerSec: ({ target }) => Math.max(1, Math.round(target.attrs.get('wisdom') * 0.1)),
-        onTickHeal: ({ target, engine }) => {
-            const apGain = Math.max(1, Math.round(target.attrs.get('wisdom') * 0.1))
-            target.ap = Math.min(target.maxAp, target.ap + apGain)
-            engine?.emitLog({
-                type: 'system',
-                message: `[不老泉] ${target.name} AP +${apGain}`,
-                actorId: target.id,
-            })
-            return 0
-        },
+        description: '每层AP恢复+0.3/秒，持续9秒。',
+        tags: ['defense', 'jiu'],
+        expiry: { type: 'duration', ms: 9000 },
+        stacking: { type: 'independent' },
+        apRegenPerSec: () => 0.3,
+    },
+    {
+        id: 'nv_er_hong',
+        name: '女儿红',
+        description: '每层每秒回复1点缠劲，持续9秒。',
+        tags: ['defense', 'jiu'],
+        expiry: { type: 'duration', ms: 9000 },
+        stacking: { type: 'independent' },
+        chanRegenPerSec: () => 1,
     },
     {
         id: 'shao_dao_zi',
         name: '烧刀子',
-        description: '烈酒烧心，暴击率+50%，持续15秒。',
-        tags: ['defense'],
-        expiry: { type: 'duration', ms: 15000 },
-        stacking: { type: 'none' },
-        onCritChance: () => 0.5,
+        description: '每层暴击率+9%，持续9秒。',
+        tags: ['defense', 'jiu'],
+        expiry: { type: 'duration', ms: 9000 },
+        stacking: { type: 'independent' },
+        onCritChance: () => 0.09,
     },
     {
         id: 'po_lang_zhu_zhi_buff',

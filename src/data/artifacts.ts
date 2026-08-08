@@ -338,7 +338,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'chan_orb',
         name: '凝缠珠',
-        description: '禅意内敛，气机沉凝。持有者每2秒恢复2点缠劲。',
+        description: '禅意内敛，气机沉凝。持有者每2秒恢复3点缠劲。',
         tags: ['buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chan_orb_regen' }] }],
     },
@@ -376,66 +376,30 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'nv_er_hong',
         name: '女儿红',
-        description: '温和滋补的黄酒，血量低于70%时自动饮用，回复25点气血。可用2次。',
+        description: '温润醇厚的黄酒，饮后缠劲生生不息。花1AP饮用，每层每秒回复1点缠劲，持续9秒，最多3层。',
         tags: ['jiu'],
         grantsActions: ['_jiu_nv_er_hong'],
-        triggers: [
-            {
-                condition: { type: 'hp_below', check: (ctx) => ctx.actor.hp / ctx.actor.maxHp < 0.7 },
-                actionId: '_jiu_nv_er_hong',
-            },
-        ],
     },
     {
         id: 'zhu_ye_qing',
         name: '竹叶青',
-        description: '翠竹清冽的药酒。气血低于75%时自动饮用，每秒恢复1%最大气血持续10秒。可用3次。',
+        description: '翠竹清冽的药酒，饮后气血缓缓流转。花1AP饮用，每层每秒回复0.3%最大气血，持续9秒，最多3层。',
         tags: ['jiu'],
-        triggers: [
-            {
-                condition: {
-                    type: 'hp_below',
-                    check: (ctx) =>
-                        ctx.actor.hp / ctx.actor.maxHp < 0.75 &&
-                        !ctx.engine?.state.pendingBuffs.has(`zhu_ye_qing::${ctx.actor.id}`),
-                },
-                actionId: '_zhu_ye_qing',
-            },
-        ],
+        grantsActions: ['_zhu_ye_qing'],
     },
     {
         id: 'shao_dao_zi',
         name: '烧刀子',
-        description: '烈酒烧心。气血低于75%时自动饮用，15秒内暴击率+50%。可用3次。',
+        description: '烈酒烧心，饮后暴击率大增。花1AP饮用，每层暴击率+9%，持续9秒，最多3层。',
         tags: ['jiu'],
-        triggers: [
-            {
-                condition: {
-                    type: 'hp_below',
-                    check: (ctx) =>
-                        ctx.actor.hp / ctx.actor.maxHp < 0.75 &&
-                        !ctx.engine?.state.pendingBuffs.has(`shao_dao_zi::${ctx.actor.id}`),
-                },
-                actionId: '_shao_dao_zi',
-            },
-        ],
+        grantsActions: ['_shao_dao_zi'],
     },
     {
         id: 'bu_lao_quan',
         name: '不老泉',
-        description: '养生琼浆。气血低于75%时自动饮用，15秒内AP加速恢复。可用3次。',
+        description: '养生琼浆，饮后内息奔涌。花1AP饮用，每层AP恢复+0.3/秒，持续9秒，最多3层。',
         tags: ['jiu'],
-        triggers: [
-            {
-                condition: {
-                    type: 'hp_below',
-                    check: (ctx) =>
-                        ctx.actor.hp / ctx.actor.maxHp < 0.75 &&
-                        !ctx.engine?.state.pendingBuffs.has(`bu_lao_quan::${ctx.actor.id}`),
-                },
-                actionId: '_bu_lao_quan',
-            },
-        ],
+        grantsActions: ['_bu_lao_quan'],
     },
     {
         id: 'qing_nang_san_bao',

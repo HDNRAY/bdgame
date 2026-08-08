@@ -9,12 +9,8 @@ export function affectsApRegen(buffId: string): boolean {
     return getBuff(buffId)?.apRegenPerSec != null
 }
 
-/**
- * 该角色的有效 AP 回复速度（每秒）：
- * 基础(推演) + 各 buff 的 apRegenPerSec 钩子贡献
- */
-export function calcEffectiveApRegenPerSec(state: BattleState, char: Character): number {
-    const base = calcApRegenPerSec(char.attrs.get('wisdom'))
+/** 该角色来自 buff 的额外 AP 回复速度（每秒，可正可负） */
+export function calcExtraApRegenPerSec(state: BattleState, char: Character): number {
     let extra = 0
     forEachBuffOf(state.pendingBuffs, char.id, (def, layer) => {
         const contrib = def?.apRegenPerSec?.({
@@ -27,7 +23,15 @@ export function calcEffectiveApRegenPerSec(state: BattleState, char: Character):
         })
         if (contrib) extra += contrib
     })
-    return base + extra
+    return extra
+}
+
+/**
+ * 该角色的有效 AP 回复速度（每秒）：
+ * 基础(推演) + 各 buff 的 apRegenPerSec 钩子贡献
+ */
+export function calcEffectiveApRegenPerSec(state: BattleState, char: Character): number {
+    return calcApRegenPerSec(char.attrs.get('wisdom')) + calcExtraApRegenPerSec(state, char)
 }
 
 /**

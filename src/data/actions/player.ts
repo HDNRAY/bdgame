@@ -65,7 +65,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['cripple', 'unarmed', 'melee'],
         effects: [
             { type: 'damage', scaling: { strength: 0.1 } },
-            { type: 'missing_hp_damage', ratio: 0.07 },
+            { type: 'missing_hp_damage', ratio: 0.05 },
         ],
     },
     {
@@ -306,13 +306,13 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'gear_hang',
         name: '挂',
-        description: '凝缠劲为内息，消耗30缠劲，叠一层「挡」，每层内息回复+0.3/s。',
+        description: '凝缠劲为内息，消耗50缠劲，叠一层「挡」，每层内息回复+0.3/s。',
         requiredTags: [],
         apCost: 1,
-        chanCost: 30,
+        chanCost: 50,
         tags: ['buff', 'pre_action'],
         target: 'self',
-        canUse: (attacker) => attacker.chan >= 30,
+        canUse: (attacker) => attacker.chan >= 50,
         effects: [{ type: 'add_buff', buffId: 'gear_shift_buff', stacks: 1 }],
     },
     {

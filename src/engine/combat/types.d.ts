@@ -215,6 +215,7 @@ export type SystemEventType =
     | 'stun_reset'
     | 'fumble_reset'
     | 'permanent_burn'
+    | 'regen_tick'
 
 export type TurnEntryType = 'character' | 'system' | 'summon'
 

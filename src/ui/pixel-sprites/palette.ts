@@ -33,7 +33,7 @@ const DEFAULT_COLORS: CharacterColors = {
 export const CHARACTER_COLORS: Record<string, CharacterColors> = {
     // ── default 体型 ──
     yidao: { skin: '#f5d6c6', hair: '#2a2a3a', eyes: '#b71902', accent: '#8c1d18', decoration: '#d4a848' },
-    luhongti: { skin: '#f0c8a0', hair: '#6b1a1a', eyes: '#4a6741', accent: '#c0392b', decoration: '#f0f0f8' }, // 白月·红提：白月银饰 + 红提衣
+    luhongti: { skin: '#f0c8a0', hair: '#6b1a1a', eyes: '#4a6741', accent: '#c0392b', decoration: '#f0f0f8' }, // 白山月：白月银饰
     // ── heavy 体型 ──
     zhanglie: { skin: '#d8a878', hair: '#2c2c2c', eyes: '#8B4513', accent: '#5d5d5d', decoration: '#a4a4a4' },
     sangyuan: { skin: '#f5d6c6', hair: '#3a3a3a', eyes: '#c0392b', accent: '#ca7932', decoration: '#e8d8a0' }, // 红眼·桑原：红眼
