@@ -35,7 +35,7 @@ export const CHARACTER_COLORS: Record<string, CharacterColors> = {
     yidao: { skin: '#f5d6c6', hair: '#2a2a3a', eyes: '#b71902', accent: '#8c1d18', decoration: '#d4a848' },
     hongti: { skin: '#f0c8a0', hair: '#6b1a1a', eyes: '#4a6741', accent: '#c0392b', decoration: '#f0f0f8' }, // 白山月：白月银饰
     // ── heavy 体型 ──
-    zhanglie: { skin: '#d8a878', hair: '#2c2c2c', eyes: '#8B4513', accent: '#5d5d5d', decoration: '#a4a4a4' },
+    fanglie: { skin: '#d8a878', hair: '#2c2c2c', eyes: '#8B4513', accent: '#5d5d5d', decoration: '#a4a4a4' },
     sangyuan: { skin: '#f5d6c6', hair: '#3a3a3a', eyes: '#c0392b', accent: '#ca7932', decoration: '#e8d8a0' }, // 红眼·桑原：红眼
     baihu: { skin: '#f8f0f0', hair: '#e8e8f0', eyes: '#ff6347', accent: '#f8f8ff', decoration: '#ffb0c0' },
     // ── slender 体型 ──
@@ -64,7 +64,7 @@ export const CHARACTER_COLORS: Record<string, CharacterColors> = {
     qianxing: { skin: '#f0d0b0', hair: '#6a4a2a', eyes: '#7a5a3a', accent: '#9a9a9a', decoration: '#d4a848' }, // 天工·千星：铁灰 + 星金
     fengshui: { skin: '#f0c8a0', hair: '#3a3a5a', eyes: '#4a5a7a', accent: '#3a8a7a', decoration: '#80c8b0' },
     haoran: { skin: '#f5e6d0', hair: '#2a2a4a', eyes: '#3a5a8a', accent: '#4a7ab8', decoration: '#a0c8f0' },
-    duoer: { skin: '#f0e8e0', hair: '#d8c0a0', eyes: '#7a6a5a', accent: '#f0f0f5', decoration: '#d4a848' }, // 圣女·朵儿：圣洁白 + 金
+    duoer: { skin: '#f0e8e0', hair: '#d8c0a0', eyes: '#7a6a5a', accent: '#f0f0f5', decoration: '#d4a848' }, // 圣女·陶朵：圣洁白 + 金
     junshi: { skin: '#f5e6d0', hair: '#2a2a2a', eyes: '#3a3a5a', accent: '#2a2a5a', decoration: '#6a6aa0' },
     ajiu: { skin: '#f0c8a0', hair: '#4a3a2a', eyes: '#5a4a3a', accent: '#6a6a7a', decoration: '#a0a0b0' },
     jiran: { skin: '#f5d6c6', hair: '#3a3a3a', eyes: '#5d4037', accent: '#7a5a3a', decoration: '#c0a080' },
@@ -74,7 +74,7 @@ export const CHARACTER_COLORS: Record<string, CharacterColors> = {
 export const CHARACTER_SPRITE_MAP: Record<string, string> = {
     yidao: 'default',
     hongti: 'default',
-    zhanglie: 'heavy',
+    fanglie: 'heavy',
     sangyuan: 'heavy',
     baihu: 'heavy',
     laifeng: 'slender',

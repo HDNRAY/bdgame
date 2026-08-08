@@ -1,4 +1,4 @@
-export { ZHANGLIE } from './zhanglie'
+export { FANGLIE } from './fanglie'
 export { LAIFENG } from './laifeng'
 export { CHANZI } from './chanzi'
 export { XUANJI } from './xuanji'
@@ -37,7 +37,7 @@ import type { Reward } from '../../game/entities/reward'
 import type { ActionConfig } from '../../game/entities/action-config'
 import { simpleGenerate } from '../../game/character-gen'
 
-import { ZHANGLIE } from './zhanglie'
+import { FANGLIE } from './fanglie'
 import { LAIFENG } from './laifeng'
 import { CHANZI } from './chanzi'
 import { XUANJI } from './xuanji'
@@ -114,7 +114,7 @@ export const OPPONENTS: OpponentDef[] = [
     BAMBOO, // 宝字堂 特殊事件调查科兼职法医 多林寺
     DAIXUAN, // 特殊事件调查科科长
     /** 长柄 */
-    ZHANGLIE, // 组织(变节卧底)
+    FANGLIE, // 组织(变节卧底)
     OTSU, // 归海楼
     JIRAN, // 姬家 天工坊？
     /** 巨武 */

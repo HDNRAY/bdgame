@@ -5,8 +5,8 @@ const DUOER_ATTRS = { strength: 4, vitality: 20, agility: 18, dexterity: 12, ins
 
 export const DUOER: OpponentDef = {
     id: 'duoer',
-    name: '圣女·朵儿',
-    story: '小时候最好的玩伴。后来被招入了**学校修习。二阶段重逢，共处一段时日后，目睹了她的另一面——那个在黑暗里执行任务的朵儿。',
+    name: '圣女·陶朵',
+    story: '小时候最好的玩伴。后来被招入了**学校修习。二阶段重逢，共处一段时日后，目睹了她的另一面——那个在黑暗里执行任务的陶朵。',
     weapon: 'dagger',
     battleStyle: 'melee',
     targetAttrs: DUOER_ATTRS,

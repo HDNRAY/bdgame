@@ -114,18 +114,18 @@ export const SECT_N16_REUNION: EventDef = {
     ],
 }
 
-/** node 19: 追踪朵儿 */
+/** node 19: 追踪陶朵 */
 export const SECT_N19_TRAIL: EventDef = {
     id: 'sect_n19_trail',
     name: '追踪',
-    description: '三年了。你在调查非法义体交易时意外看到了朵儿。',
+    description: '三年了。你在调查非法义体交易时意外看到了陶朵。',
     rewardType: 'points',
     rounds: [
         {
             id: 'scene',
             title: '线索',
             description:
-                '三年了。你一直在天下行走，借调查之名寻找师兄的下落。这天你在隔壁镇查一宗非法义体交易，意外看到了朵儿——三年前那个女人。你听到他们提到"斗炁大会"。你压下冲动，先完成了调查任务。师兄的事，不能急。',
+                '三年了。你一直在天下行走，借调查之名寻找师兄的下落。这天你在隔壁镇查一宗非法义体交易，意外看到了陶朵——三年前那个女人。你听到他们提到"斗炁大会"。你压下冲动，先完成了调查任务。师兄的事，不能急。',
             choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],

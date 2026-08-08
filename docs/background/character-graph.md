@@ -12,15 +12,15 @@ graph TB
       direction TB
       vp["副会长（隐藏Boss）"] --> js["军师"]
       vp --> bs["博士"]
-      js --> de["朵儿"]
+      js --> de["陶朵"]
       js --> aj["阿九"]
-      js --> zl["张烈（卧底·已变节）"]
+      js --> fl["方烈（卧底·已变节）"]
     end
 
     subgraph Mil["军方（斩首部队）"]
       direction TB
       lht["白山月（教官）"] --> ly["掠影"]
-      lht --> zl
+      lht --> fl
     end
 
     subgraph GHL["归海楼"]
@@ -123,7 +123,7 @@ graph TB
   js -.->|招揽| aj
   aj -.->|接近| feud_z["主角（血海深仇线）"]
   aj -.->|下毒| hz["姬仲（上届会长）"]
-  zl -.->|望风| de
+  fl -.->|望风| de
 
   dx ---|调查科同僚| ql
   lyx -.->|图书管理员| bh

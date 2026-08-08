@@ -7,7 +7,7 @@ import { Character } from '../src/engine/entities/character'
 import { calcMaxHp, calcMaxAp } from '../src/engine/calc/stats'
 import {
     gen,
-    ZHANGLIE,
+    FANGLIE,
     LAIFENG,
     XUANJI,
     LAYUE,

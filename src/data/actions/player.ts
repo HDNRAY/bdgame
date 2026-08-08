@@ -911,8 +911,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'fen_cheng',
-        name: '焚城',
-        description: '炁化烈焰，一戟燎原。附加灼烧。',
+        name: '焚河',
+        description: '炁化烈焰，一戟燎河。附加灼烧。',
         requiredTags: ['polearm', 'pierce'],
         apCost: 3,
         tags: ['polearm', 'pierce', 'burn', 'qi'],
