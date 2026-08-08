@@ -655,16 +655,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'sword_enhance_buff',
         name: '灵炁灌注',
-        description: '下次御物伤害+15%，命中+15%。',
+        description: '4秒内伤害+10%，命中+15%。',
         tags: ['imperial', 'buff'],
-        expiry: { type: 'consumed', trigger: 'on_hit' },
+        expiry: { type: 'duration', ms: 4000 },
         stacking: { type: 'none' },
-        // 只加成御物（summon）攻击：按来源招式 tag 判定，避免吃到炁弹等普通招式
-        onDealDamage: ({ final, source }) => {
-            if (!source?.tags?.includes('summon')) return final
-            return Math.round(final * 1.15)
-        },
-        onHitChance: ({ source }) => (source?.tags?.includes('summon') ? 0.15 : 0),
+        onDealDamage: ({ final }) => round1(final * 1.1),
+        onHitChance: () => 0.15,
     },
     // ── 战术腰包 ──
     {
