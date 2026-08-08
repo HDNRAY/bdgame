@@ -571,6 +571,13 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
+        id: 'dan_dao_fa_xuan',
+        name: '单刀法选',
+        description: '单刀法选，诱而击之，惊而取之。闪避后下一击暴击率+30%，不可叠加。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'on_dodge' }, effects: [{ type: 'add_buff', buffId: 'jing_ji' }] }],
+    },
+    {
         id: 'jing_luo_chu_jian',
         name: '经络初鉴',
         description: '熟稔经络，洞察弱点。每点洞察增加1%暴击率。',

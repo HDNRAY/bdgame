@@ -99,7 +99,9 @@ function hasActiveBuff(
             const buffDef = getBuff(eff.buffId)
             if (buffDef?.stacking?.type === 'additive') {
                 const max = buffDef.stacking.max ?? Infinity
-                if (layer.restoreValue < max) continue
+                // additive 满层时：永久 buff 重放无收益（无刷新）→ 拦下避免浪费；
+                // 有时长（duration）buff 满层重放会刷新时长 → 放行（如酒类续饮）
+                if (layer.restoreValue < max || buffDef.expiry?.type !== 'permanent') continue
             }
             return true
         }

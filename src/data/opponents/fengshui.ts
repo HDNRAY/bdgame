@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
-const ATTRS = { strength: 15, vitality: 8, agility: 17, dexterity: 17, insight: 14, wisdom: 4 }
+const ATTRS = { strength: 15, vitality: 12, agility: 16, dexterity: 16, insight: 14, wisdom: 4 }
 
 export const FENGSHUI: OpponentDef = {
     id: 'fengshui',
@@ -18,9 +18,10 @@ export const FENGSHUI: OpponentDef = {
         weapon('yanling_blade'),
         artifact('zhu_ye_qing'),
         passive('draw_sword_cut_water'),
+        passive('dan_dao_fa_xuan'),
         action('spinning_slash'),
         artifact('iron_mask'),
-        // 10
+        // 11
     ],
     actionConfigs: [
         { actionId: 'swift_step' },

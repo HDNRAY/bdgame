@@ -42,6 +42,7 @@ export class BattleEngine {
     state!: BattleState
     #summons = new Map<string, SummonInstance>()
     #logListeners: LogListener[] = []
+    #quiet = false
     #deferredEmits: {
         event: TriggerEvent
         self: Character
@@ -50,7 +51,8 @@ export class BattleEngine {
         scope: number[]
     }[] = []
 
-    constructor(p: Character, o: Character, d = 4) {
+    constructor(p: Character, o: Character, d = 4, quiet = false) {
+        this.#quiet = quiet
         this.init(p, o, d)
     }
 
@@ -503,6 +505,8 @@ export class BattleEngine {
 
     /** 发射日志事件（自动附加当前快照；原子回合下回合内所有事件共享 eventTime，顺序由 scope 定） */
     emitLog(event: LogEvent): void {
+        // 安静模式（批量模拟/比赛）：跳过快照与日志构建，大幅提速
+        if (this.#quiet) return
         const snap = this.getSnapshot()
         const tMs = this.state.eventTime
         const enriched = { ...event, snapshot: snap }
@@ -717,28 +721,10 @@ export class BattleEngine {
             }
         }
         // 战斗判定
-        // 记录本招「开局时」是否已带天机（触发链中途新叠满的天机是命中判定后才出现的，
-        // 若在末尾按 pendingBuffs 无脑检查，会被本招白耗——日志表现为「天机已用（浮游丝）」却毫无强化）
-        const hadTianji = this.state.pendingBuffs.has(`tianji_ready::${self.id}`)
         if (!processHitCheck(action, r, self, enemy, this)) return r
         // 效果应用
         this.#finalizeAttack(action, r, self, enemy, triggered)
-        // 天机消耗：仅当本招带着天机开局才消耗并重置（触发链中途获得的天机留给真正的下一招；
-        // 召唤物攻击（summon）不消耗天机，避免高频 0AP 召唤物浪费必中必暴）
-        if (
-            hadTianji &&
-            !action.tags.includes('pre_action') &&
-            !action.tags.includes('post_action') &&
-            !action.tags.includes('summon')
-        ) {
-            this.state.pendingBuffs.delete(`tianji_ready::${self.id}`)
-            this.state.pendingBuffs.delete(`xuan_ji::${self.id}`)
-            this.emitLog({
-                type: 'system',
-                message: BattleLog.plain(self.name, `天机已用（${action.name}），玄机重置`),
-                actorId: self.id,
-            })
-        }
+        // 天机消耗已由 tianji_ready 自身 onCritical 钩子处理（必中必暴→必然暴击→结算后自删+重置玄机）
         return r
     }
 

@@ -11,6 +11,16 @@ import { Tag } from '../../engine/entities/tag'
 import { buffEnhanceActionRange } from './util'
 import { WEAPON_BUFFS } from './weapon'
 
+/** 是否为「非辅助主招」：天机只对这类招式生效并消耗（召唤物/辅招不吃必中必暴） */
+function isMainMove(source: { tags: readonly string[] } | undefined): boolean {
+    return (
+        !!source &&
+        !source.tags.includes('pre_action') &&
+        !source.tags.includes('post_action') &&
+        !source.tags.includes('summon')
+    )
+}
+
 /** 增益状态 */
 export const BUFF_DB: BuffDef[] = [
     ...DAMAGE_BUFFS,
@@ -50,6 +60,15 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'consumed', trigger: 'on_crit' },
         stacking: { type: 'none' },
         onCritChance: () => 0.25,
+    },
+    {
+        id: 'jing_ji',
+        name: '惊击',
+        description: '闪避后蓄势，下一击暴击率+30%。',
+        tags: ['buff'],
+        expiry: { type: 'consumed', trigger: 'on_crit' },
+        stacking: { type: 'none' },
+        onCritChance: () => 0.3,
     },
     {
         id: 'melee_stance',
@@ -441,9 +460,21 @@ export const BUFF_DB: BuffDef[] = [
         description: '袖里玄机已满，下一招非辅助招式必中、无视招架、必定暴击。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
-        onHitChance: () => 1,
-        onCanBeParried: () => false,
-        onCritChance: () => 1,
+        // 仅对「下一招非辅助主招」生效：召唤物/辅招不吃必中必暴（消耗前不泄漏）
+        onHitChance: ({ source }) => (isMainMove(source) ? 1 : 0),
+        onCanBeParried: ({ source }) => (isMainMove(source) ? false : true),
+        onCritChance: ({ source }) => (isMainMove(source) ? 1 : 0),
+        // 自包含消耗：主招必中必暴 → 必然暴击，暴击结算后删除自身并重置玄机（不再由引擎硬编码）
+        onCritical: ({ attacker, engine, state, source }) => {
+            if (!isMainMove(source)) return
+            state.pendingBuffs.delete(`tianji_ready::${attacker.id}`)
+            state.pendingBuffs.delete(`xuan_ji::${attacker.id}`)
+            engine?.emitLog({
+                type: 'system',
+                message: `[天机] 「${attacker.name}」 天机已用（${(source as ActionDefinition).name}），玄机重置`,
+                actorId: attacker.id,
+            })
+        },
     },
     {
         id: 'spirit_resonance_buff',
@@ -946,10 +977,10 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.006,
-        onDodgeChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.006,
-        onParryChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.006,
-        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.0006,
+        onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.003,
+        onDodgeChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.003,
+        onParryChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.003,
+        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.0005,
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId === 'sand_blind') return 0
             return undefined
@@ -995,7 +1026,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '听劲',
         description: '感知流转，洞察提升。',
         tags: [],
-        expiry: { type: 'duration', ms: 2500 },
+        expiry: { type: 'duration', ms: 1500 },
         stacking: { type: 'additive' },
         attrMods: { insight: 2 },
     },

@@ -271,7 +271,7 @@ function resolveParry(
         let result = false
         forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def) => {
             if (!def?.onCanBeParried) return
-            if (!def.onCanBeParried({ self: attacker, engine })) {
+            if (!def.onCanBeParried({ self: attacker, engine, source: act })) {
                 result = true
                 return false
             }

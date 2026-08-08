@@ -152,9 +152,15 @@ export function hasNoStance(pendingBuffs: Map<string, unknown>, charId: string):
 
 /** 根据 trigger 消耗该角色的 consumed buff */
 export function consumeBuffsByTrigger(charId: string, engine: BattleEngine, trigger: TriggerEvent): void {
-    forEachBuffOf(engine.state.pendingBuffs, charId, (def, _layer, _buffId, key) => {
+    forEachBuffOf(engine.state.pendingBuffs, charId, (def, _layer, buffId, key) => {
         if (def?.expiry?.type !== 'consumed' || def.expiry.trigger !== trigger) return
         engine.state.pendingBuffs.delete(key)
+        // 触发型消耗：记录一条「状态消耗」日志（惊击/心眼/看破 等一次性 buff 被触发消耗）
+        engine.emitLog({
+            type: 'system',
+            message: BattleLog.msg(def.name ?? buffId, engine.getCharacter(charId)?.name ?? charId, '状态消耗'),
+            actorId: charId,
+        })
     })
 }
 

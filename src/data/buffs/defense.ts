@@ -6,11 +6,12 @@ import { round1 } from '../../engine/util/math'
 import { calcRoll } from '../../engine/calc/damage'
 import type { BattleState } from '../../engine/combat/types'
 
-/** 统计角色身上所有醉酒（jiu tag）buff 的层数（含独立叠层各层） */
+/** 统计角色身上所有醉酒（jiu tag）buff 的层数：additive 按 restoreValue 计层，independent 每层计1 */
 function countDrunkLayers(state: BattleState, charId: string): number {
     let count = 0
-    forEachBuffOf(state.pendingBuffs, charId, (def) => {
-        if (def?.tags?.includes('jiu')) count++
+    forEachBuffOf(state.pendingBuffs, charId, (def, layer) => {
+        if (!def?.tags?.includes('jiu')) return
+        count += def.stacking?.type === 'additive' ? (layer.restoreValue ?? 1) : 1
     })
     return count
 }
@@ -400,12 +401,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'zhu_ye_qing',
         name: '竹叶青',
-        description: '每层每秒回复0.3%最大气血，持续9秒。',
+        description: '每3秒回复3点气血，持续9秒。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
-        stacking: { type: 'independent' },
-        tickInterval: 1000,
-        onTickHeal: ({ target }) => Math.round(target.maxHp * 0.003 * 10) / 10,
+        stacking: { type: 'additive', max: 3 },
+        tickInterval: 3000,
+        onTickHeal: () => 3,
     },
     {
         id: 'bu_lao_quan',
@@ -413,8 +414,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '每层AP恢复+0.3/秒，持续9秒。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
-        stacking: { type: 'independent' },
-        apRegenPerSec: () => 0.3,
+        stacking: { type: 'additive', max: 3 },
+        apRegenPerSec: ({ layer }) => 0.3 * (layer.restoreValue ?? 1),
     },
     {
         id: 'nv_er_hong',
@@ -422,8 +423,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '每层每秒回复1点缠劲，持续9秒。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
-        stacking: { type: 'independent' },
-        chanRegenPerSec: () => 1,
+        stacking: { type: 'additive', max: 3 },
+        chanRegenPerSec: ({ layer }) => 1 * (layer.restoreValue ?? 1),
     },
     {
         id: 'shao_dao_zi',
@@ -431,8 +432,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '每层暴击率+9%，持续9秒。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
-        stacking: { type: 'independent' },
-        onCritChance: () => 0.09,
+        stacking: { type: 'additive', max: 3 },
+        onCritChance: ({ layer }) => 0.09 * (layer.restoreValue ?? 1),
     },
     {
         id: 'po_lang_zhu_zhi_buff',

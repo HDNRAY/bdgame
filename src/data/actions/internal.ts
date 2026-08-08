@@ -1,21 +1,5 @@
 import type { ActionDefinition } from '../../engine/entities/action'
-import type { Character } from '../../engine/entities/character'
-import type { BattleState } from '../../engine/combat/types'
-import { hasNoStance, forEachBuffOf } from '../../engine/combat/utils'
-
-/** 酒类独立叠层上限 */
-const WINE_MAX_LAYERS = 3
-
-/** 独立叠层酒：层数满（max）则不可再饮 */
-function maxLayerCanUse(buffId: string) {
-    return (attacker: Character, state: BattleState): boolean => {
-        let count = 0
-        forEachBuffOf(state.pendingBuffs, attacker.id, (_def, _layer, id) => {
-            if (id === buffId) count++
-        })
-        return count < WINE_MAX_LAYERS
-    }
-}
+import { hasNoStance } from '../../engine/combat/utils'
 
 /** 内部招式（被动/天赋触发专用，不直接装备） */
 export const INTERNAL_ACTIONS: ActionDefinition[] = [
@@ -297,7 +281,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['pre_action', 'trigger', 'buff', 'jiu', 'internal'],
         target: 'self',
-        canUse: maxLayerCanUse('nv_er_hong'),
         effects: [{ type: 'add_buff', buffId: 'nv_er_hong' }],
     },
     {
@@ -308,7 +291,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['pre_action', 'trigger', 'buff', 'jiu', 'internal'],
         target: 'self',
-        canUse: maxLayerCanUse('zhu_ye_qing'),
         effects: [{ type: 'add_buff', buffId: 'zhu_ye_qing' }],
     },
     {
@@ -319,7 +301,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['pre_action', 'trigger', 'buff', 'jiu', 'internal'],
         target: 'self',
-        canUse: maxLayerCanUse('shao_dao_zi'),
         effects: [{ type: 'add_buff', buffId: 'shao_dao_zi' }],
     },
     {
@@ -330,7 +311,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['pre_action', 'trigger', 'buff', 'jiu', 'internal'],
         target: 'self',
-        canUse: maxLayerCanUse('bu_lao_quan'),
         effects: [{ type: 'add_buff', buffId: 'bu_lao_quan' }],
     },
     {

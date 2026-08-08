@@ -556,6 +556,11 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 return
             }
             existing.restoreValue = newStacks
+            // 叠层也续时长：additive 递增同样重新计时（与满层刷新一致）
+            if (buff.expiry?.type === 'duration') {
+                engine.state.turn.removeEvents(`buff_end_${key}`)
+                scheduleBuffEnd(engine, key, buff, self)
+            }
             engine.emitLog({
                 type: 'system',
                 message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name)} Lv.${newStacks}${max < Infinity ? `/${max}` : ''}`,
@@ -604,7 +609,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 ? `切换架势: ${oldStanceName} → ${buff?.name ?? e.buffId}`
                 : firstResult.details.length
                   ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${firstResult.details.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`
-                  : `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}`,
+                  : `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`,
             actorId: self.id,
         })
         engine.state.pendingBuffs.set(key, { restoreValue: stacks, mods })

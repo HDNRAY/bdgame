@@ -17,10 +17,11 @@ export function runBattle(
     charB: Character,
     onLog?: (event: LogEvent) => void,
     distance = 4,
+    quiet = false,
 ): { winner: string; engine: BattleEngine } {
     const a = charA.cloneForBattle()
     const b = charB.cloneForBattle()
-    const engine = new BattleEngine(a, b, distance)
+    const engine = new BattleEngine(a, b, distance, quiet)
     if (onLog) engine.onLog(onLog)
     const { state } = engine
     let systemCount = 0

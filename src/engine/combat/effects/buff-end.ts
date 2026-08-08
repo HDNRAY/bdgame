@@ -1,7 +1,7 @@
 import type { BattleEngine } from '../engine'
 import type { AttrName } from '../../entities/attributes'
 import { getBuff } from '../../../data/buffs'
-import { revertBuffMods } from '../utils'
+import { revertBuffMods, forEachBuffOf } from '../utils'
 import { affectsApRegen, notifyRegenChanged } from '../utils/ap-regen'
 import { ATTR_CN } from '../../entities/attributes'
 import { BattleLog } from '../battle-log'
@@ -60,13 +60,23 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
             .filter(([a]) => a !== 'maxApMod')
             .map(([a, v]) => `${ATTR_CN[a] ?? a}${-(v as number) > 0 ? '+' : ''}${-(v as number)}`)
             .join(', ')
+        // 独立叠层：计算本层到期后剩余层数（排除当前 key），供「剩N层」展示
+        const buffDef = getBuff(buffId)
+        let remaining = 0
+        if (buffDef?.stacking?.type === 'independent') {
+            forEachBuffOf(engine.state.pendingBuffs, charId, (_d, _l, id, key) => {
+                if (id === buffId && key !== buffKey) remaining++
+            })
+        }
+        // 无属性变化可展示的 buff（如竹叶青/烧刀子等纯持续效果）到期时给干净「消失」行，避免空行
+        const body = details ? `${BattleLog.name(char.name)} ${details}` : `${BattleLog.name(char.name)} 消失`
         engine.emitLog({
             type: 'buff_end',
             buffId,
             targetId: char.id,
             label: expireLabel,
             remaining: 0,
-            message: `${BattleLog.name(char.name)} ${details}`,
+            message: remaining > 0 ? `${body} · 剩${remaining}层` : body,
         })
     }
 
