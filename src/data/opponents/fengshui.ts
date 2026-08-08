@@ -5,7 +5,7 @@ const ATTRS = { strength: 15, vitality: 8, agility: 17, dexterity: 17, insight: 
 
 export const FENGSHUI: OpponentDef = {
     id: 'fengshui',
-    name: '风水·四娘',
+    name: '风四水',
     story: '短发，黑铁面具只露嘴和下巴，腰悬雁翎刀「惊鸿」。别人问她为啥戴面具，她咧嘴一笑："长得太好看，怕你分心，刀太快怕你看不清。"',
     weapon: 'dagger',
     targetAttrs: ATTRS,
