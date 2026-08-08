@@ -712,14 +712,19 @@ export class BattleEngine {
             }
         }
         // 战斗判定
+        // 记录本招「开局时」是否已带天机（触发链中途新叠满的天机是命中判定后才出现的，
+        // 若在末尾按 pendingBuffs 无脑检查，会被本招白耗——日志表现为「天机已用（浮游丝）」却毫无强化）
+        const hadTianji = this.state.pendingBuffs.has(`tianji_ready::${self.id}`)
         if (!processHitCheck(action, r, self, enemy, this)) return r
         // 效果应用
         this.#finalizeAttack(action, r, self, enemy, triggered)
-        // 天机消耗：非辅助招式执行后，消耗天机并重置玄机层数（放在 hooks 生效之后）
+        // 天机消耗：仅当本招带着天机开局才消耗并重置（触发链中途获得的天机留给真正的下一招；
+        // 召唤物攻击（summon）不消耗天机，避免高频 0AP 召唤物浪费必中必暴）
         if (
-            this.state.pendingBuffs.has(`tianji_ready::${self.id}`) &&
+            hadTianji &&
             !action.tags.includes('pre_action') &&
-            !action.tags.includes('post_action')
+            !action.tags.includes('post_action') &&
+            !action.tags.includes('summon')
         ) {
             this.state.pendingBuffs.delete(`tianji_ready::${self.id}`)
             this.state.pendingBuffs.delete(`xuan_ji::${self.id}`)

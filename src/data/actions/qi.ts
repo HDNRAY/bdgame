@@ -29,7 +29,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '恢复 1 AP。',
         requiredTags: [],
         apCost: 0,
-        chanCost: 5,
+        chanCost: 4,
         tags: ['qi'],
         target: 'self',
         effects: [{ type: 'restore_ap', value: 1 }],

@@ -277,13 +277,13 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'chanzi_stance',
         name: '金刚不坏',
-        description: '金刚不坏体，反震敌手。消耗30层缠劲，15秒内受到伤害时反伤10%。',
+        description: '金刚不坏体，反震敌手。消耗15层缠劲，15秒内受到伤害时反伤10%。',
         requiredTags: [],
         apCost: 2,
-        chanCost: 30,
+        chanCost: 15,
         tags: ['buff', 'qi', 'pre_action'],
         target: 'self',
-        canUse: (attacker) => attacker.chan >= 30,
+        canUse: (attacker) => attacker.chan >= 15,
         effects: [{ type: 'add_buff', buffId: 'chanzi_stance' }],
     },
     {

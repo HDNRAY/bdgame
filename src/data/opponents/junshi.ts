@@ -21,13 +21,14 @@ export const JUNSHI: OpponentDef = {
         action('summon_haste'),
         // 天生道种
         artifact('innate_seed'),
-        // 10 + 1
+        action('wan_fa_gui_yi'),
+        // 11 + 1
     ],
     actionConfigs: [
         { actionId: 'condense_shield', triggerId: 'on_took_damage' },
-        { actionId: 'agility_steal', triggerId: 'on_summon_hit' },
+        { actionId: 'agility_steal', triggerId: 'on_dodged' },
         { actionId: 'summon_haste', triggerId: 'on_parried' },
-        { actionId: 'restore_ap', triggerId: 'on_dodged' },
+        { actionId: 'restore_ap', triggerId: 'on_summon_hit' },
     ],
     taunt: () => '一切都在掌控之中。',
 }

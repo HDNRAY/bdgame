@@ -1,4 +1,5 @@
 import { DMG_PER_POISON_TICK } from '../../engine/constants'
+import { getAction as getBaseAction } from './index'
 import type { ActionDefinition } from '../../engine/entities/action'
 import type { Character } from '../../engine/entities/character'
 import type { BattleState } from '../../engine/combat/types'
@@ -363,8 +364,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 5,
         tags: ['unarmed', 'qi', 'range'],
-        getRange: () => [0, 10] as [number, number],
-        onActionHitChance: () => 0.5,
+        getRange: () => [0, 8] as [number, number],
+        onActionHitChance: () => 0.4,
         effects: [{ type: 'damage', scaling: { vitality: 0.6, wisdom: 0.6 } }],
     },
     // ── 暗器系 ──
@@ -987,6 +988,36 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         canUse: (attacker) => attacker.chan >= 42,
         onActionHitChance: (base) => base + 0.2,
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, independentHits: 5 }],
+    },
+    {
+        id: 'wan_fa_gui_yi',
+        name: '万法归一',
+        description: '御物万法，归一而发。令全部召唤物朝目标倾泻轰击，每击附推演之力。消耗大量缠劲。',
+        requiredTags: ['imperial'],
+        apCost: 5,
+        chanCost: 50,
+        tags: ['imperial', 'range', 'damage'],
+        canUse: (attacker) => attacker.chan >= 50,
+        effects: [
+            {
+                type: 'functional_damage',
+                fn: ({ self }) => {
+                    const summon = self.weaponDef?.summon
+                    if (!summon) return 0
+                    const count = summon.maxCount(self.attrs.get('wisdom'))
+                    const wis = self.attrs.get('wisdom')
+                    // 武器召唤物招式原本单发伤害（fixed_damage.value 或 damage base + wis×scaling）
+                    const act = summon.action ?? getBaseAction(summon.actionId)
+                    const dmgEff = act?.effects?.find((e) => e.type === 'damage' || e.type === 'fixed_damage')
+                    let baseHit = 0
+                    if (dmgEff?.type === 'fixed_damage') baseHit = dmgEff.value
+                    else if (dmgEff?.type === 'damage')
+                        baseHit = (dmgEff.base ?? 0) + wis * (dmgEff.scaling.wisdom ?? 0)
+                    // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
+                    return Math.round((9 + count * (baseHit + wis * 0.2)) * 10) / 10
+                },
+            },
+        ],
     },
     {
         id: 'drone_strike',

@@ -315,7 +315,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     restore_ap({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'restore_ap' }>
         self.ap = Math.min(self.maxAp, self.ap + e.value)
-        engine.emitLog({ type: 'system', message: BattleLog.msg('回气', self.name, `AP+${e.value}`), actorId: self.id })
+        engine.emitLog({ type: 'system', message: BattleLog.msg('回炁', self.name, `AP+${e.value}`), actorId: self.id })
     },
     max_ap_mod({ eff, self }: EffectCtx) {
         // 御物武器占用 AP 上限（on_equip 触发）：maxApMod 直接累加，改上限后夹住当前 AP
