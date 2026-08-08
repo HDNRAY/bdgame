@@ -106,8 +106,8 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'overlord_art_buff',
-        name: '霸刀刀路',
-        description: '霸刀巨刃配合离心力，重器加持，命中+15%。',
+        name: '金刚轮舞',
+        description: '巨刃配合离心力，重器加持，命中+15%。',
         tags: [],
         expiry: { type: 'permanent' },
         onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),

@@ -41,9 +41,9 @@ export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit
 }
 
 /** 命中判定: 逻辑斯蒂曲线，自然收敛至 [0,1]，无需 clamp
- *  攻击端：灵巧权重 1.2 > 洞察 1（灵巧为攻击主属性）；防御端身法/洞察均 1.0 */
+ *  攻击端：灵巧权重 1 > 洞察 0.8（灵巧为攻击主属性）；防御端身法/洞察均 1.0 */
 export function calcHitChance(opts: Record<string, number>): number {
-    const atk = ((opts.attackerDexterity ?? 0) + (opts.attackerInsight ?? 0) * 0.6) / 80
+    const atk = ((opts.attackerDexterity ?? 0) + (opts.attackerInsight ?? 0) * 0.8) / 80
     const def = (opts.defenderAgility ?? 0) / 80 + (opts.defenderInsight ?? 0) / 80
     const dodgeMod = opts.defenderDodgeMod ?? 0
     const net = atk - def - dodgeMod
@@ -54,7 +54,7 @@ export function calcHitChance(opts: Record<string, number>): number {
 
 /** 招架判定: (灵巧 + 洞察) / 80，上限 90% */
 export function calcParryChance(_agility: number, dexterity: number, insight: number): number {
-    return Math.min(0.9, (dexterity + insight) / 80)
+    return Math.min(0.9, (dexterity * 1.1 + insight) / 70)
 }
 
 /** 移动消耗: 移动 1 档需要 AP = 1 / apToRange */

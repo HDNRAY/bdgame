@@ -8,7 +8,7 @@ export { SANGYUAN } from './sangyuan'
 export { BAIHU } from './baihu'
 export { LUEYING } from './lueying'
 export { LIUXIGUA } from './liuxigua'
-export { LUHONGTI } from './luhongti'
+export { HONGTI } from './hongti'
 export { QILAN } from './qilan'
 export { LONGNV } from './longnv'
 export { YANGGUO } from './yangguo'
@@ -47,7 +47,7 @@ import { SANGYUAN } from './sangyuan'
 import { BAIHU } from './baihu'
 import { LUEYING } from './lueying'
 import { LIUXIGUA } from './liuxigua'
-import { LUHONGTI } from './luhongti'
+import { HONGTI } from './hongti'
 import { QILAN } from './qilan'
 import { LONGNV } from './longnv'
 import { YANGGUO } from './yangguo'
@@ -99,7 +99,7 @@ export const OPPONENTS: OpponentDef[] = [
     SANGYUAN, // 归海楼
     XIAOHUA, // 药屋家 洞察宗师
     /** 刀剑 */
-    LUHONGTI, // 军方
+    HONGTI, // 军方
     AJIU, // 组织
     FENGSHUI, // 饮酒结拜
     HAORAN, // 饮酒结拜

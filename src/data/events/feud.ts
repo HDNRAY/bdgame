@@ -59,8 +59,8 @@ export const FEUD_N03_ACTION: EventDef = {
 }
 
 /** 二阶段：白山月试切磋 — 寒暄 → 战斗 → 选功法 → 结束 → 继续 */
-export const FEUD_LUHONGTI_SPAR: EventDef = {
-    id: 'feud_luhongti_spar',
+export const FEUD_HONGTI_SPAR: EventDef = {
+    id: 'feud_hongti_spar',
     name: '白山月的试炼',
     description: '父亲军中旧友白山月找到你，说要试试你的身手。',
     rewardType: 'passive',
@@ -75,7 +75,7 @@ export const FEUD_LUHONGTI_SPAR: EventDef = {
         {
             id: 'combat_round',
             title: '切磋',
-            enemyId: 'luhongti',
+            enemyId: 'hongti',
             choices: [],
         },
         {

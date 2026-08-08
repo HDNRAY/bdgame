@@ -1,13 +1,13 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
-const LUHONGTI_ATTRS = { strength: 10, vitality: 9, agility: 10, dexterity: 9, insight: 16, wisdom: 20 }
+const HONGTI_ATTRS = { strength: 10, vitality: 9, agility: 10, dexterity: 9, insight: 16, wisdom: 20 }
 
-export const LUHONGTI: OpponentDef = {
-    id: 'luhongti',
+export const HONGTI: OpponentDef = {
+    id: 'hongti',
     name: '白山月',
     weapon: 'peach_sword',
-    targetAttrs: LUHONGTI_ATTRS,
+    targetAttrs: HONGTI_ATTRS,
     rewards: [
         action('sword_thrust'),
         passive('inner_power'),

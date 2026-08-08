@@ -61,11 +61,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '崩拳',
         description: '蓄力一击，造成崩劲伤害。',
         requiredTags: ['unarmed'],
-        apCost: 3,
+        apCost: 4,
         tags: ['cripple', 'unarmed', 'melee'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.1 } },
-            { type: 'missing_hp_damage', ratio: 0.05 },
+            { type: 'damage', scaling: { strength: 0.2 } },
+            { type: 'missing_hp_damage', ratio: 0.06 },
         ],
     },
     {

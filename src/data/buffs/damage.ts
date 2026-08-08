@@ -253,13 +253,12 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             if (!source?.tags?.includes('polearm') && !source?.tags?.includes('slash')) return final
             if (attacker.chan < 2) return final
             attacker.spendChan(2)
-            const bonus =
-                Math.round(
-                    (attacker.attrs.get('vitality') * 0.1 +
-                        attacker.attrs.get('agility') * 0.1 +
-                        attacker.attrs.get('dexterity') * 0.1) *
-                        10,
-                ) / 10
+            const bonus = round1(
+                attacker.attrs.get('strength') * 0.1 +
+                    attacker.attrs.get('vitality') * 0.1 +
+                    attacker.attrs.get('agility') * 0.1 +
+                    attacker.attrs.get('dexterity') * 0.1,
+            )
             return Math.round((final + bonus) * 10) / 10
         },
     },

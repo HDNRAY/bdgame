@@ -136,13 +136,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'nuo_yi',
         name: '挪移',
-        description: '以柔克刚，四两拨千斤。你加每点灵巧减少1%所受伤害。',
+        description: '以柔克刚，四两拨千斤。每点灵巧增加1%招架率与1%招架减伤。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, target }) => {
-            const dexReduction = (target.attrs.get('dexterity') - 3) * 0.01
-            return Math.round(final * (1 - dexReduction) * 10) / 10
-        },
+        onParryChance: ({ target }) => target.attrs.get('dexterity') * 0.01,
+        onParryReduction: ({ final, target }) =>
+            Math.max(0, round1(final * (1 - target.attrs.get('dexterity') * 0.01))),
         onCanParry: () => true,
     },
     {
@@ -442,6 +441,24 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onParryReduction: ({ final }) => Math.max(0, Math.round((final - 3) * 10) / 10),
+    },
+    {
+        id: 'bu_dong_ming_wang_buff',
+        name: '不动明王',
+        description: '招架成功时消耗1层缠劲，额外减免3点伤害。缠劲不足时不触发。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onParryReduction: ({ final, target, engine }) => {
+            if (target.chan < 1) return final
+            target.spendChan(1)
+            engine?.emitLog({
+                type: 'system',
+                message: `[不动明王] ${target.name} 招架卸力，消耗1缠减免3点（剩${target.chan}层）`,
+                actorId: target.id,
+            })
+            return Math.max(0, round1(final - 3))
+        },
     },
     // ── 无刀取 ──
     {

@@ -20,8 +20,9 @@ export const OTSU: OpponentDef = {
         weapon('three_section_spear'),
         passive('insight_awareness'),
         passive('spear_stance_mastery'),
+        passive('bu_dong_ming_wang'),
         artifact('synthetic_lung'),
-        // 10
+        // 11
     ],
     actionConfigs: [
         {
