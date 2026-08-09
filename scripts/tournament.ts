@@ -89,7 +89,7 @@ async function main(): Promise<void> {
     }
     process.on('exit', () => writeFileSync(logPath, logLines.join('\n') + '\n', 'utf-8'))
 
-    const N = Math.max(1, parseInt(process.argv[3] ?? '20', 10))
+    const N = Math.max(1, parseInt(process.argv[3] ?? '15', 10))
     const targetId = process.argv[2]
     const filterDef = targetId ? getOpponentDef(targetId) : null
     if (targetId && !filterDef) {

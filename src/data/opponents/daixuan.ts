@@ -9,13 +9,14 @@ export const DAIXUAN: OpponentDef = {
     story: '炼炁名门药屋之后，现任特殊事件调查科科长。曾因某次事件失聪，后以惊人意志锻炼视觉与触觉弥补。佩戴人造耳蜗，集成翻译与通讯模块。处事冷静，少言寡语，但出手极为犀利。武器「千机」为纳米变形棍，自创「落英神剑」以炁寄存印记、五层引爆。',
     weapon: 'qimei_staff',
     targetAttrs: DAIXUAN_ATTRS,
+    battleStyle: 'melee',
     rewards: [
-        action('rod_thrust'),
+        action('flick'),
         passive('ningqi_jue'),
         passive('enhanced_vision'),
         weapon('qianji'),
-        action('flick'),
         action('yu_xiao_jian_fa'),
+        action('rod_thrust'),
         passive('ni_zhuan_jing_mai'),
         action('bi_hai_chao_sheng_qu'),
         artifact('cochlear_implant'),
@@ -24,7 +25,6 @@ export const DAIXUAN: OpponentDef = {
         // 11
     ],
     actionConfigs: [
-        { actionId: 'bi_hai_chao_sheng_qu', conditionId: 'distance_gt_3' },
         { actionId: 'flick', triggerId: 'on_opponent_move_away' },
         { actionId: 'rod_thrust', triggerId: 'on_dodged' },
     ],

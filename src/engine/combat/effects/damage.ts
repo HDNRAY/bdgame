@@ -437,7 +437,7 @@ function resolveCrit(
             })
     })
     let critChance = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), bonus)
-    if (act?.onActionCritChance) critChance = act.onActionCritChance(critChance)
+    if (act?.onActionCritChance) critChance = act.onActionCritChance(critChance, engine.state, attacker)
     const critRoll = calcRoll(critChance)
     const isCrit = critRoll.success
 
@@ -471,7 +471,7 @@ function resolveCrit(
                     source: act,
                 })
         })
-        if (act.onActionCritDamage) critDmgMod += act.onActionCritDamage(critDmgMod, engine.state, attacker)
+        if (act.onActionCritDamage) critDmgMod = act.onActionCritDamage(critDmgMod, engine.state, attacker)
     }
     engine.emitLog({ type: 'check_crit', sourceId: attacker.id, critChance, roll: critRoll.roll, result: isCrit })
     const final = calcFinalDamage(damage, 1, isCrit, critDmgMod)

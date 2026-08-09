@@ -800,7 +800,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'ni_zhuan_jing_mai',
-        name: '经脉逆转之术',
+        name: '移经易脉',
         description: '逆转经脉运行，概率抵抗麻痹，降低被暴击伤害，被暴击时反击。',
         tags: ['passive', 'defense', 'counter'],
         triggers: [
@@ -812,7 +812,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'luo_ying_shen_jian',
         name: '落英神剑',
-        description: '所有伤害的30%寄存于神剑印记内（消耗1缠劲），5层满时爆发2倍伤害。',
+        description: '所有伤害的30%寄存于神剑印内，5层满时爆发2倍伤害。',
         tags: ['passive', 'buff', 'qi'],
         triggers: [
             {

@@ -12,6 +12,7 @@ import { planSupportActions } from './support-planner'
 import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
 import { getAction as getBaseAction } from '../../data/actions'
+import { AI_CHAN_COST_WEIGHT } from '../constants'
 
 /** AI 决策：返回本行动中要执行的一串指令 */
 export function planEvent(self: Character, state: BattleState): ActionCommand[] {
@@ -131,13 +132,17 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     defaultCands.sort((a, b) => {
         const scoreA = estimatePlan(a.actionId, self, state, apBudget, style)
         const scoreB = estimatePlan(b.actionId, self, state, apBudget, style)
+        // 资源效率：伤害 / (AP + 缠×权重)。把缠当成本后，42缠终结技在非终结时不再被“免费”高估
+        const costA = a.apCost + (a.chanCost ?? 0) * AI_CHAN_COST_WEIGHT
+        const costB = b.apCost + (b.chanCost ?? 0) * AI_CHAN_COST_WEIGHT
+        const rateA = costA > 0 ? scoreA / costA : scoreA
+        const rateB = costB > 0 ? scoreB / costB : scoreB
+        if (rateA !== rateB) return rateB - rateA
+        // 效率相同时取总伤害更高的
         if (scoreA !== scoreB) return scoreB - scoreA
         const oa = configOrder.get(a.actionId) ?? 999
         const ob = configOrder.get(b.actionId) ?? 999
         if (oa !== ob) return oa - ob
-        const effA = a.apCost > 0 ? a.expectedDamage / a.apCost : 0
-        const effB = b.apCost > 0 ? b.expectedDamage / b.apCost : 0
-        if (effA !== effB) return effB - effA
         return Math.random() - 0.5
     })
 
@@ -478,14 +483,15 @@ function pickBestSecondary(
         }
         return true
     })
-    // 按 AP 效率排序（伤害/AP），选性价比最高的
+    // 按资源效率排序（伤害 / (AP + 缠×权重)），选性价比最高的
     const scored = sorted.map((inst) => {
         const est = calcExpectedDamage(inst.def, self, enemy, weapon.range, state)
-        return { inst, score: est.apCost > 0 ? est.expectedDamage / est.apCost : 0, apCost: est.apCost }
+        const cost = est.apCost + (est.chanCost ?? 0) * AI_CHAN_COST_WEIGHT
+        return { inst, score: cost > 0 ? est.expectedDamage / cost : 0, cost, apCost: est.apCost }
     })
     scored.sort((a, b) => {
         if (Math.abs(a.score - b.score) > 0.5) return b.score - a.score
-        return b.apCost - a.apCost // 效率相近选消耗高的
+        return b.cost - a.cost // 效率相近选资源消耗高的
     })
     for (const { inst, apCost } of scored) {
         if (apCost > apRemaining) continue

@@ -10,7 +10,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '麻痹',
         description: '身法、灵巧降低。',
         tags: ['debuff'],
-        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
+        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 4000 },
         stacking: { type: 'independent' },
         attrMods: { agility: -1, dexterity: -1 },
     },
@@ -106,8 +106,8 @@ export const DEBUFF_DB: BuffDef[] = [
     },
     {
         id: 'shen_jian_mark',
-        name: '神剑印记',
-        description: '被落英神剑标记，积满5层自动引爆。',
+        name: '神剑印',
+        description: '被落英神剑标，积满5层自动引爆。',
         tags: ['debuff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 5 },
@@ -130,7 +130,7 @@ export const DEBUFF_DB: BuffDef[] = [
             enemy.takeDamage(explosionDmg, engine)
             engine.emitLog({
                 type: 'system',
-                message: `[落英神剑] 神剑印记引爆！寄存${stored}，双倍造成${explosionDmg}点伤害`,
+                message: `[落英神剑] 神剑印引爆！寄存${stored}，双倍造成${explosionDmg}点伤害`,
                 actorId: self.id,
             })
         },
@@ -185,6 +185,15 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff', 'implant'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
+        apRegenPerSec: ({ layer }) => -((layer.restoreValue ?? 0) * 0.1),
+    },
+    {
+        id: 'duan_qi',
+        name: '断炁',
+        description: '封脉断炁，每层AP回复-0.1/s，最多5层。',
+        tags: ['debuff', 'qi'],
+        expiry: { type: 'duration', ms: 8000 },
+        stacking: { type: 'additive', max: 3 },
         apRegenPerSec: ({ layer }) => -((layer.restoreValue ?? 0) * 0.1),
     },
     {

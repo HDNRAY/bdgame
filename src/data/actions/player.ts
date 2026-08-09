@@ -301,7 +301,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'melee'],
         canUse: (attacker) => attacker.chan >= 40,
         onActionCritChance: (base) => base + 0.25,
-        effects: [{ type: 'damage', scaling: { agility: 0.4, strength: 0.6 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.6, agility: 0.4, dexterity: 0.2 } }],
     },
     {
         id: 'gear_hang',
@@ -365,8 +365,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         tags: ['unarmed', 'qi', 'range'],
         getRange: () => [0, 8] as [number, number],
-        onActionHitChance: () => 0.4,
-        effects: [{ type: 'damage', scaling: { vitality: 0.6, wisdom: 0.6 } }],
+        extraPreDelay: 1000,
+        onActionHitChance: (base) => base + 0.2,
+        effects: [{ type: 'damage', scaling: { vitality: 0.5, wisdom: 0.5 } }],
     },
     // ── 暗器系 ──
     {
@@ -518,9 +519,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '玉箫为剑，点穴封脉。',
         requiredTags: ['melee', 'pierce'],
         apCost: 3,
-        tags: ['melee', 'blunt', 'pierce', 'debuff'],
+        tags: ['melee', 'blunt', 'pierce', 'debuff', 'qi'],
         effects: [
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 3, chance: 1 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 1 },
+            { type: 'add_debuff', buffId: 'duan_qi', stacks: 1, chance: 0.5 },
             { type: 'damage', scaling: { strength: 0.3, dexterity: 0.3 } },
         ],
     },
@@ -623,15 +625,16 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         canUse: (attacker) => attacker.chan >= 42,
         tags: ['pierce', 'qi', 'melee'],
         extraPreDelay: 300,
+        onActionCritDamage: (base) => base + 0.3,
         onActionCritChance: (base) => base + 0.5,
-        onActionHitChance: (_base, state, self) => {
+        onActionHitChance: (base, state, self) => {
             const enemy = state.characters.find((c) => c.id !== self.id)
-            if (!enemy || enemy.hp / enemy.maxHp >= 0.35) return _base
+            if (!enemy || enemy.hp / enemy.maxHp >= 0.5) return base
             return 1
         },
         effects: [
             { type: 'short_dash', maxDistance: 3 },
-            { type: 'damage', scaling: { strength: 0.6, agility: 0.4, dexterity: 0.4 } },
+            { type: 'damage', scaling: { strength: 0.6, agility: 0.6, dexterity: 0.6 } },
         ],
     },
     // ── 斩击系 ──

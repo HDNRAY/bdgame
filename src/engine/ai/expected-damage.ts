@@ -12,6 +12,7 @@ export interface DamageEstimate {
     hitChance: number
     canReach: boolean
     apCost: number
+    chanCost: number
 }
 
 /** 计算招式对目标的期望伤害（含全部 buff 钩子） */
@@ -68,6 +69,8 @@ export function calcExpectedDamage(
         if (ownerId === safeAtk.id && def.onCritChance) critChanceMod += def.onCritChance(ctx)
         if (ownerId === safeAtk.id && def.onCritDamage) critDamageMod += def.onCritDamage(ctx)
     })
+    // 招式自带爆伤加成（返回最终爆伤修正，覆盖而非累加）
+    if (action.onActionCritDamage) critDamageMod = action.onActionCritDamage(critDamageMod, state, attacker)
 
     // 3. 命中率
     const baseHc = calcHitChance({
@@ -82,7 +85,7 @@ export function calcExpectedDamage(
     // 4. 招架 + 暴击
     const parryChance = calcParryChance(safeDef.attrs.get('dexterity'), safeDef.attrs.get('insight')) + safeDef.parryMod
     const rawCrit = calcCritChance(safeAtk.attrs.get('dexterity'), safeAtk.attrs.get('insight'), critChanceMod)
-    const critChance = action.onActionCritChance?.(rawCrit) ?? rawCrit
+    const critChance = action.onActionCritChance?.(rawCrit, state, attacker) ?? rawCrit
 
     // 5. 期望伤害
     let expected =
@@ -119,5 +122,6 @@ export function calcExpectedDamage(
         hitChance,
         canReach,
         apCost: attacker.actionApCost(action.apCost),
+        chanCost: action.chanCost ?? 0,
     }
 }

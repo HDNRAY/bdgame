@@ -209,7 +209,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'luo_ying_shen_jian_buff',
         name: '落英神剑',
-        description: '所有伤害的30%寄存于神剑印记（消耗1缠劲），当次伤害只生效70%。',
+        description: '所有伤害的30%寄存于神剑印，当次伤害只生效70%。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -221,8 +221,6 @@ export const DAMAGE_BUFFS: BuffDef[] = [
 
             const stored = round1(damage * 0.3)
             if (stored <= 0) return damage
-
-            ctx.attacker.spendChan(1)
 
             const { state, engine } = ctx
             const markKey = `shen_jian_mark::${ctx.target.id}`

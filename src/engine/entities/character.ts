@@ -382,7 +382,7 @@ export class Character {
         this.hp = Math.max(0, this.hp - amount)
         const dealt = prevHp - this.hp
         if (dealt > 0 && engine) {
-            this.addChan(Math.round(dealt * 0.3 * 10) / 10)
+            this.addChan(Math.round(dealt * 0.6 * 10) / 10)
             engine.checkChanOverflow(this.id)
         }
         if (engine && dealt > 0) this.#fireHpChange(engine)

@@ -9,6 +9,8 @@
         "tour": "tsx scripts/tournament.ts",
         "tour-cli": "tsx scripts/tournament-cli.ts",
         "node": "tsx scripts/node-demo.ts",
+        "reward": "tsx scripts/reward-impact.ts",
+        "reward-types": "tsx scripts/reward-types.ts",
         "build": "tsc -b && vite build",
         "lint": "eslint .",
         "preview": "vite preview",
