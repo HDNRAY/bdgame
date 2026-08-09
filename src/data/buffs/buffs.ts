@@ -610,7 +610,7 @@ export const BUFF_DB: BuffDef[] = [
         onDodgeChance: ({ target }) => {
             const dex = target.attrs.get('dexterity')
             const ins = target.attrs.get('insight')
-            return calcParryChance(0, dex, ins) / 2
+            return calcParryChance(dex, ins) / 2
         },
     },
     {

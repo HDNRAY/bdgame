@@ -80,8 +80,7 @@ export function calcExpectedDamage(
     const hitChance = (action.onActionHitChance?.(baseHc, state, attacker) ?? baseHc) + hitMod
 
     // 4. 招架 + 暴击
-    const parryChance =
-        calcParryChance(0, safeDef.attrs.get('dexterity'), safeDef.attrs.get('insight')) + safeDef.parryMod
+    const parryChance = calcParryChance(safeDef.attrs.get('dexterity'), safeDef.attrs.get('insight')) + safeDef.parryMod
     const rawCrit = calcCritChance(safeAtk.attrs.get('dexterity'), safeAtk.attrs.get('insight'), critChanceMod)
     const critChance = action.onActionCritChance?.(rawCrit) ?? rawCrit
 

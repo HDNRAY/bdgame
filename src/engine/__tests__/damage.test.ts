@@ -4,6 +4,8 @@ import {
     calcFinalDamage,
     calcHitChance,
     calcCritChance,
+    calcBaseCritDamage,
+    CRIT_DAMAGE_BASE,
     calcParryChance,
     calcParriedDamage,
     calcMoveApCost,
@@ -29,11 +31,13 @@ describe('calcFinalDamage', () => {
     })
 
     it('should multiply crit by 1.5', () => {
-        expect(calcFinalDamage(18, 1, true)).toBe(27)
+        // 暴击 = 1 + 基础爆伤 0.5 → 18×1.5=27
+        expect(calcFinalDamage(18, 1, true, CRIT_DAMAGE_BASE)).toBe(27)
     })
 
     it('should multiply distance and crit together', () => {
-        expect(calcFinalDamage(18, 0.7, true)).toBe(18.9) // 18*0.7=12.6, 12.6*1.5=18.9
+        // 18*0.7=12.6, 12.6*(1+0.5)=18.9（critDamageMod 含基础 0.5 爆伤）
+        expect(calcFinalDamage(18, 0.7, true, CRIT_DAMAGE_BASE)).toBe(18.9)
     })
 
     it('should min at 1', () => {
@@ -42,15 +46,15 @@ describe('calcFinalDamage', () => {
 })
 
 describe('calcHitChance', () => {
-    it('should be ~77% when equal', () => {
+    it('should be ~73% when equal', () => {
         expect(
             calcHitChance({ attackerDexterity: 10, attackerInsight: 10, defenderAgility: 10, defenderInsight: 10 }),
-        ).toBeCloseTo(0.7705)
+        ).toBeCloseTo(0.7258)
     })
 
     it('should increase with higher dexterity and insight', () => {
         const hc = calcHitChance({ attackerDexterity: 18, attackerInsight: 14, defenderAgility: 8, defenderInsight: 6 })
-        expect(hc).toBeCloseTo(0.938)
+        expect(hc).toBeCloseTo(0.8858)
     })
 })
 
@@ -65,24 +69,33 @@ describe('calcCritChance', () => {
     })
 })
 
+describe('calcBaseCritDamage', () => {
+    it('含基础 0.5 爆伤 + 每点灵巧(>4) +0.03', () => {
+        expect(calcBaseCritDamage(4)).toBeCloseTo(0.5)
+        expect(calcBaseCritDamage(10)).toBeCloseTo(0.68)
+        expect(calcBaseCritDamage(14)).toBeCloseTo(0.8)
+        expect(calcBaseCritDamage(20)).toBeCloseTo(0.98)
+    })
+})
+
 describe('calcParryChance', () => {
     it('should scale with dexterity and insight', () => {
         // (10*1.1 + 6) / 70 = 17/70 ≈ 0.2429
-        expect(calcParryChance(0, 10, 6)).toBeCloseTo(0.2429)
+        expect(calcParryChance(10, 6)).toBeCloseTo(0.2429)
         // capped at 0.9
-        expect(calcParryChance(40, 40, 40)).toBeCloseTo(0.9)
+        expect(calcParryChance(40, 40)).toBeCloseTo(0.9)
         // (10*1.1 + 10) / 70 = 21/70 = 0.3
-        expect(calcParryChance(10, 10, 10)).toBeCloseTo(0.3)
+        expect(calcParryChance(10, 10)).toBeCloseTo(0.3)
     })
 })
 
 describe('calcParriedDamage', () => {
     it('should reduce damage based on strength', () => {
-        // strength 30 → reduction 30/60 = 50%, damage * 0.5
-        expect(calcParriedDamage(100, 30)).toBeCloseTo(50)
-        // strength 10 → reduction 10/60 ≈ 16.7%, clamped to 20%, damage * 0.8
+        // strength 30 → reduction 30/70 ≈ 42.9%, damage * 0.571
+        expect(calcParriedDamage(100, 30)).toBeCloseTo(57.1)
+        // strength 10 → reduction 10/70 ≈ 14.3%, clamped to 20%, damage * 0.8
         expect(calcParriedDamage(100, 10)).toBeCloseTo(80)
-        // strength 50 → reduction 50/60 ≈ 83.3%, clamped to 60%, damage * 0.4
+        // strength 50 → reduction 50/70 ≈ 71.4%, clamped to 60%, damage * 0.4
         expect(calcParriedDamage(100, 50)).toBeCloseTo(40)
     })
 })

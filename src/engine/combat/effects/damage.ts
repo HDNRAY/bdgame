@@ -2,7 +2,14 @@ import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../engine'
 import type { ActionDefinition } from '../../entities/action'
 import type { GameEntity } from '../../entities/base'
-import { calcCritChance, calcFinalDamage, calcParriedDamage, calcParryChance, calcRoll } from '../../calc/damage'
+import {
+    calcCritChance,
+    calcBaseCritDamage,
+    calcFinalDamage,
+    calcParriedDamage,
+    calcParryChance,
+    calcRoll,
+} from '../../calc/damage'
 import { getWeapon } from '../../../data/weapons/weapons'
 import { consumeBuffsByTrigger, forEachBuffOf } from '../utils'
 
@@ -301,7 +308,7 @@ function resolveParry(
     if (!canParry) return { parried: false, final: raw }
 
     // ── 2. 招架概率 ──
-    let pc = calcParryChance(0, target.attrs.get('dexterity'), target.attrs.get('insight'))
+    let pc = calcParryChance(target.attrs.get('dexterity'), target.attrs.get('insight'))
     if (target.parryMod) {
         pc = pc + target.parryMod
     }
@@ -435,6 +442,7 @@ function resolveCrit(
     const isCrit = critRoll.success
 
     let critDmgMod = 0
+    critDmgMod += calcBaseCritDamage(attacker.attrs.get('dexterity'))
     if (act) {
         forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
             if (def?.onCritDamage)

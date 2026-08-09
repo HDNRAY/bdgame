@@ -33,12 +33,31 @@ export function calcCritChance(dexterity: number, insight: number, critChanceMod
     return Math.max(0.05, Math.min(0.95, 0.05 + (dexterity + insight) / 200 + critChanceMod))
 }
 
-/** 最终伤害: base × distanceMult × (暴击? (1.5 + critDamageMod) : 1) */
+/** 基础暴击伤害加成（额外部分，非暴击=0）：1.0 → 1.5 的 +0.5 */
+export const CRIT_DAMAGE_BASE = 0.5
+/** 灵巧爆伤起算基准：灵巧 >4 才获得额外爆伤 */
+export const CRIT_DMG_DEX_FLOOR = 4
+/** 每点灵巧（>4 基准）的额外爆伤 */
+export const CRIT_DMG_PER_DEX = 0.03
+
+/** 暴击伤害加成（额外部分，叠加在 1.0 之上）= 基础 0.5 + 每点灵巧（>4）+0.03
+ *  灵巧定位=暴击伤害专精，独立于命中/招架/闪避共享公式，不抢洞察/身法的位置 */
+export function calcBaseCritDamage(dexterity: number): number {
+    return CRIT_DAMAGE_BASE + Math.max(0, dexterity - CRIT_DMG_DEX_FLOOR) * CRIT_DMG_PER_DEX
+}
+
+/** 最终伤害: base × distanceMult × (暴击? (1 + critDamageMod) : 1)
+ *  critDamageMod 为额外爆伤（含基础 0.5，由 calcBaseCritDamage + onCritDamage 等 buff 提供） */
 export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit: boolean, critDamageMod = 0): number {
     let damage = Math.round(baseDamage * distanceMult * 10) / 10
-    if (isCrit) damage = Math.round(damage * (1.5 + critDamageMod) * 10) / 10
+    if (isCrit) damage = Math.round(damage * (1 + critDamageMod) * 10) / 10
     return Math.max(1, damage)
 }
+
+/** 命中逻辑斯蒂陡度 k（越大越"一刀切"，越小越平缓） */
+export const HIT_LOGISTIC_K = 5
+/** 命中逻辑斯蒂基准命中（net=0 时的命中率） */
+export const HIT_BASE_CHANCE = 0.75
 
 /** 命中判定: 逻辑斯蒂曲线，自然收敛至 [0,1]，无需 clamp
  *  攻击端：灵巧权重 1 > 洞察 0.8（灵巧为攻击主属性）；防御端身法/洞察均 1.0 */
@@ -47,13 +66,13 @@ export function calcHitChance(opts: Record<string, number>): number {
     const def = (opts.defenderAgility ?? 0) / 80 + (opts.defenderInsight ?? 0) / 80
     const dodgeMod = opts.defenderDodgeMod ?? 0
     const net = atk - def - dodgeMod
-    // 逻辑斯蒂: net=0 → 80%, 陡度 k=7, 收敛
-    const k = 7
-    return 1 / (1 + Math.exp(-k * net - 1.386))
+    // 逻辑斯蒂: net=0 → HIT_BASE_CHANCE，陡度 HIT_LOGISTIC_K
+    const bias = Math.log(1 / HIT_BASE_CHANCE - 1) // net=0 → 命中 = HIT_BASE_CHANCE
+    return 1 / (1 + Math.exp(-HIT_LOGISTIC_K * net + bias))
 }
 
-/** 招架判定: (灵巧 + 洞察) / 80，上限 90% */
-export function calcParryChance(_agility: number, dexterity: number, insight: number): number {
+/** 招架判定: 防守方灵巧×1.1 + 洞察，除以 70，上限 90% */
+export function calcParryChance(dexterity: number, insight: number): number {
     return Math.min(0.9, (dexterity * 1.1 + insight) / 70)
 }
 
@@ -86,9 +105,9 @@ export function calcSummonInterval(wisdom: number, extraPreDelay = 0, extraStunT
 }
 
 /** 招架后伤害减免，默认减免至 40% */
-/** 招架减免: 力道决定减免比例 (减免 20%-60%) */
+/** 招架减免: 力道决定减免比例 (减免 20%-60%，每点力道约 1.43% 减伤) */
 export function calcParriedDamage(finalDamage: number, strength: number): number {
-    const reduction = Math.min(0.6, Math.max(0.2, strength / 60))
+    const reduction = Math.min(0.6, Math.max(0.2, strength / 70))
     return Math.round(finalDamage * (1 - reduction) * 10) / 10
 }
 
@@ -135,7 +154,7 @@ export function calcActionDurationMs(apCost: number): number {
 
 // ── 身法/急速 AP 消耗减免 ──
 /** 每点身法（或每 10 点急速）的 AP 减免率 */
-export const SPEED_AP_COST_RATE = 0.01
+export const SPEED_AP_COST_RATE = 0.012
 /** AP 减免率上限 */
 export const SPEED_AP_COST_CAP = 0.4
 
