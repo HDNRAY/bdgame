@@ -1022,6 +1022,20 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
+        id: 'blood_thorn_earring_buff',
+        name: '血棘·追魂',
+        description: '持枪（刺）攻击暴击率+7%，对流血中目标再+8%。',
+        tags: ['bleed', 'pierce'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onCritChance: ({ source, target, state }) => {
+            let bonus = 0
+            if (source?.tags?.includes('pierce')) bonus += 0.07
+            if (state.pendingBuffs.has(`bleed::${target.id}`)) bonus += 0.08
+            return bonus
+        },
+    },
+    {
         id: 'hearing_insight',
         name: '听劲',
         description: '感知流转，洞察提升。',

@@ -27,6 +27,18 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'iron_defense' }] }],
     },
     {
+        id: 'ji_lie_zhi_lie',
+        name: '极烈之烈',
+        description: '死战不退，受击愈烈。每次受到伤害叠1层「烈」，最多5层，每层暴击率+3%。',
+        tags: ['passive', 'damage'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'ji_lie_zhi_lie_buff' }],
+            },
+        ],
+    },
+    {
         id: 'spirit_resonance',
         name: '灵器共鸣',
         description: '将自身力道转化为召唤物的攻击力。',

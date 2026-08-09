@@ -12,16 +12,17 @@ export const FANGLIE: OpponentDef = {
     rewards: [
         action('pursuit_thrust'),
         passive('iron_bone'),
+        passive('ji_lie_zhi_lie'),
         artifact('hydraulic_leg'),
         artifact('nano_metal_heart'),
         artifact('neural_net'),
         artifact('blood_thorn_ring'),
+        artifact('blood_thorn_earring'),
         action('thrust'),
         weapon('iron_spear'),
         action('rod_sweep'),
         action('return_spear'),
-        // 战场之枪，后续加入加暴击功法
-        // 10
+        // 12
     ],
     actionConfigs: [
         { actionId: 'pursuit_thrust', triggerId: 'on_bleed' },

@@ -158,6 +158,19 @@ export const ARTIFACTS: Artifact[] = [
         ],
     },
     {
+        id: 'blood_thorn_earring',
+        name: '血棘耳环',
+        description: '血棘耳环见血封喉。持枪（刺）攻击暴击率+7%，对流血中目标再+8%。',
+        tags: ['trigger', 'bleed', 'pierce'],
+        requiredTags: ['pierce'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'blood_thorn_earring_buff' }],
+            },
+        ],
+    },
+    {
         id: 'wisdom_talisman',
         name: '通明符',
         description: '开悟通明，额外承载一道触发。',

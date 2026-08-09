@@ -121,6 +121,19 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
     },
     {
+        id: 'ji_lie_zhi_lie_buff',
+        name: '极烈',
+        description: '受击愈烈，每层暴击率+3%，最多5层。',
+        tags: ['damage'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 5 },
+        onTakeDamage: ({ final, layer }) => {
+            layer.restoreValue = Math.min(5, (layer.restoreValue ?? 0) + 1)
+            return final
+        },
+        onCritChance: ({ layer }) => (layer.restoreValue ?? 0) * 0.03,
+    },
+    {
         id: 'tongtian',
         name: '通天大物',
         description: '悟生离死别，所有伤害受推演按AP加成。',
