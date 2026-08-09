@@ -45,6 +45,10 @@ import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
 import { StatsTracker } from '../src/engine/combat/stats-tracker'
 
+// ── 满配对手（n=33） ──
+const pBuild = gen(QIANXING, 33)
+const oBuild = gen(DAIXUAN, 33)
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const logPath = join(__dirname, 'battle-log.txt')
 const logLines: string[] = []
@@ -80,10 +84,6 @@ function show(c: Character) {
             `  触发: ${c.triggers.map((s) => `${s.condition.type}→${s.actionId ?? s.effects?.map((e) => e.type).join(',') ?? '?'}`).join(', ')}`,
         )
 }
-
-// ── 满配对手（n=33） ──
-const pBuild = gen(FANGLIE, 33)
-const oBuild = gen(JIRAN, 33)
 
 if (N === 1) {
     const leftBase = new Character(oBuild)

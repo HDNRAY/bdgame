@@ -179,6 +179,15 @@ export const DEBUFF_DB: BuffDef[] = [
         maxApMod: -1,
     },
     {
+        id: 'energy_drain',
+        name: '耗能',
+        description: '运转耗能，每层AP回复-0.1/s。',
+        tags: ['debuff', 'implant'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive' },
+        apRegenPerSec: ({ layer }) => -((layer.restoreValue ?? 0) * 0.1),
+    },
+    {
         id: 'yuwu_cost',
         name: '御物耗炁',
         description: '以炁御物，每秒消耗内息（AP）。',

@@ -177,11 +177,15 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'engine_hammer',
         name: '引擎铁锤',
-        description: '天工锻造的电磁锤，以炁驱动，雷火交加。',
+        description: '天工锻造的电磁锤，以炁驱动，雷火交加。代价：运转耗能，AP回复-0.1/s。',
         tags: ['blunt', 'electric', 'qi', 'craft', 'polearm'],
-        range: [1, 3],
+        range: [1, 2],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'engine_hammer_buff' }] },
+            {
+                condition: { type: 'on_equip' },
+                effects: [{ type: 'add_buff', buffId: 'energy_drain', stacks: 1 }],
+            },
             {
                 condition: { type: 'on_hit' },
                 effects: [{ type: 'add_debuff', buffId: 'burn', stacks: 1, chance: 0.5 }],

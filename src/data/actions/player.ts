@@ -619,8 +619,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '屏气凝神，以自身炁感知对手炁的流转，瞬间突刺要害。',
         requiredTags: ['pierce'],
         apCost: 5,
-        chanCost: 50,
-        canUse: (attacker) => attacker.chan >= 50,
+        chanCost: 42,
+        canUse: (attacker) => attacker.chan >= 42,
         tags: ['pierce', 'qi', 'melee'],
         extraPreDelay: 300,
         onActionCritChance: (base) => base + 0.5,
@@ -971,9 +971,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['blunt'],
         apCost: 4,
         tags: ['blunt', 'electric', 'melee'],
+        onActionCritChance: (base) => base + 0.1,
         effects: [
             { type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } },
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 1 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
         ],
     },
     // ── 御物系 ──

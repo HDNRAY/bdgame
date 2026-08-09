@@ -34,7 +34,18 @@ const IDX = { str: 0, vit: 1, agi: 2, dex: 3, ins: 4, wis: 5 }
 const HP_MULT = 1000 // 血量放大，保证打满窗口
 
 // ── 引擎公式（直接复用引擎实现，改引擎立即反映） ──
-const baseDamage = (str: number) => calcBaseDamage({ strength: 0.4 }, { strength: str })
+const baseDamage = (str: number) =>
+    calcBaseDamage(
+        { strength: 0.4 },
+        {
+            strength: str,
+            vitality: 0,
+            agility: 0,
+            dexterity: 0,
+            insight: 0,
+            wisdom: 0,
+        },
+    )
 const hitChance = (adex: number, ains: number, bAgi: number, bIns: number) =>
     calcHitChance({ attackerDexterity: adex, attackerInsight: ains, defenderAgility: bAgi, defenderInsight: bIns })
 const parryChance = (bDex: number, bIns: number) => calcParryChance(bDex, bIns)

@@ -73,7 +73,6 @@ export const WEAPON_BUFFS: BuffDef[] = [
         tags: ['weapon', 'electric', 'blunt'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        maxApMod: -1,
         onDealDamage: ({ final, attacker }) => {
             const bonus = round1(attacker.attrs.get('wisdom') * 0.1)
             return final + bonus
