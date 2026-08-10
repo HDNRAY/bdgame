@@ -3,6 +3,7 @@ import { getAction as getBaseAction } from './index'
 import type { ActionDefinition } from '../../engine/entities/action'
 import type { Character } from '../../engine/entities/character'
 import type { BattleState } from '../../engine/combat/types'
+import { round1 } from '../../engine/util/math'
 
 const DEBUFF_IDS = ['frost', 'paralyze', 'bleed', 'poison', 'burn', 'confuse', 'sand_blind'] as const
 
@@ -335,12 +336,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '折梅手',
         description: '折梅之手，拂穴拿脉。吸取对方身法。',
         requiredTags: ['unarmed'],
-        apCost: 2,
+        apCost: 3,
         tags: ['unarmed', 'melee', 'debuff'],
         getRange: () => [0, 1] as [number, number],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
-            { type: 'stat_transfer', stat: 'agility', value: 1, duration: 5000 },
+            { type: 'damage', scaling: { strength: 0.3, dexterity: 0.3 } },
+            { type: 'stat_transfer', stat: 'agility', value: 1, duration: 3000 },
         ],
     },
     {
@@ -716,11 +717,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '烈火',
         description: '以炁化焰，隔空斩击，距离比兵刃更远。',
         requiredTags: ['slash'],
-        apCost: 4,
+        apCost: 3,
         tags: ['slash', 'burn'],
         getRange: (wr) => [wr[0], wr[1] + 1],
         effects: [
-            { type: 'damage', scaling: { strength: 0.5, wisdom: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.4, wisdom: 0.2 } },
             { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
         ],
     },
@@ -1018,7 +1019,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     else if (dmgEff?.type === 'damage')
                         baseHit = (dmgEff.base ?? 0) + wis * (dmgEff.scaling.wisdom ?? 0)
                     // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
-                    return Math.round((9 + count * (baseHit + wis * 0.2)) * 10) / 10
+                    return round1(5 + count * (baseHit + wis * 0.2))
                 },
             },
         ],

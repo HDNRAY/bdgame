@@ -22,5 +22,10 @@ export const WUZUI: OpponentDef = {
         action('hun_yuan_zhang'),
         // 10
     ],
-    actionConfigs: [],
+    actionConfigs: [
+        {
+            actionId: 'ba_gua_you_shen_zhang',
+            triggerId: 'on_dodged',
+        },
+    ],
 }

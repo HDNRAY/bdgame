@@ -1,11 +1,11 @@
 import { OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
-const AJIU_ATTRS = { strength: 14, vitality: 10, agility: 18, dexterity: 16, insight: 14, wisdom: 4 }
+const AJIU_ATTRS = { strength: 14, vitality: 10, agility: 18, dexterity: 14, insight: 16, wisdom: 4 }
 
 export const AJIU: OpponentDef = {
     id: 'ajiu',
-    name: '断刀·阿九',
+    name: '阿九',
     story: '青山镇孤儿院里出来的孩子。没人知道TA的父母是谁，只知道TA那把断刀从不离手。沉默，寡言，但比谁都可靠。',
     weapon: 'peach_sword',
     targetAttrs: AJIU_ATTRS,
@@ -15,19 +15,20 @@ export const AJIU: OpponentDef = {
         action('spirit_sword'),
         passive('shenxing_baibian'),
         action('blaze_strike'),
+        passive('zhu_huo_jue'),
         artifact('titanium_arm'),
         artifact('muscle_boost'),
         action('horizontal_slash'),
         passive('xuannv_sword'),
-        action('guard'),
-        // 10
+        artifact('power_furnace'),
+        // 11
     ],
     actionConfigs: [
-        { actionId: 'spirit_sword' }, // AI 出招顺序
-        { actionId: 'light_slash' }, // AI 出招顺序
-        { actionId: 'blaze_strike' }, // AI 出招顺序
-        { actionId: 'guard' }, // AI 出招顺序
-        { actionId: '_arm_explosion', triggerId: 'hp_below_50' },
+        {
+            actionId: 'light_slash',
+            triggerId: 'on_dodged',
+        },
+        { actionId: '_arm_explosion', conditionId: 'hp_below_50' },
     ],
     taunt: () => '……让开。',
 }

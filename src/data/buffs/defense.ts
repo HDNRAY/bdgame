@@ -233,7 +233,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
         onReceiveDebuff: (ctx) => {
-            if (['stun', 'stagger', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
+            if (['stun', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
             return undefined
         },
     },

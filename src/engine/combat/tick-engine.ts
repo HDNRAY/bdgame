@@ -242,11 +242,24 @@ export class TickEngine {
         entry.restoreValue = stacks - 1
         const char = engine.getCharacter(charId)
         if (!char) return { nextInterval: 0 }
-        char.takeDamage(dmg)
-        // 石肤：灼烧伤害减半
+        // onDebuffTick：遍历目标 buff 修改 DOT 伤害（铸火诀减半等），与 poison/bleed 一致
+        let finalDmg = dmg
+        forEachBuffOf(engine.state.pendingBuffs, charId, (bDef, layer2) => {
+            if (!bDef?.onDebuffTick) return
+            const result = bDef.onDebuffTick({
+                debuffId: 'burn',
+                target: char,
+                damage: finalDmg,
+                engine,
+                layer: layer2,
+            })
+            if (result !== undefined) finalDmg = result
+        })
+        char.takeDamage(finalDmg)
+        // 石肤：灼烧伤害减半（基于最终伤害，可与铸火等叠加）
         if (engine.state.pendingBuffs.has(`stone_skin::${charId}`)) {
-            const halved = Math.round(dmg * 0.5)
-            const diff = dmg - halved
+            const halved = Math.round(finalDmg * 0.5)
+            const diff = finalDmg - halved
             char.hp = Math.min(char.maxHp, char.hp + diff)
             engine.emitLog({
                 type: 'system',

@@ -7,7 +7,6 @@ export type Tag =
     | 'pierce' // 戳刺
     | 'parry' // 可招架
     | 'imperial' // 御物
-    | 'stagger' // 失衡
     | 'paralyze' // 麻痹
     | 'burn' // 灼烧
     | 'poison' // 中毒

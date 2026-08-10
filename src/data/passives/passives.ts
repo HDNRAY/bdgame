@@ -438,6 +438,18 @@ export const PASSIVES: Passive[] = [
         effects: [{ type: 'dex_to_str', ratio: 0.3 }],
     },
     {
+        id: 'zhu_huo_jue',
+        name: '铸火诀',
+        description: '聚炁化火，火中淬炼不伤。自身受到的灼烧伤害减半；施加的灼烧层数+1（推演≥15 时+2）。',
+        tags: ['passive', 'buff', 'qi'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'zhu_huo_jue_buff', stacks: 1 }],
+            },
+        ],
+    },
+    {
         id: 'stone_skin',
         name: '石肤',
         description: '肌肤如岩石般坚硬，所受直伤-10%。免疫灼烧。',

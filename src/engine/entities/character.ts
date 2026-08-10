@@ -19,6 +19,7 @@ import { forEachBuffOf } from '../combat/utils'
 import { TRIGGER_CONDITIONS } from '../../data/triggers'
 import { MAX_CHAN } from '../constants'
 import type { BattleEngine } from '../combat/engine'
+import { round1 } from '../util/math'
 
 export class Character {
     readonly build: CharacterBuild
@@ -381,8 +382,8 @@ export class Character {
         const prevHp = this.hp
         this.hp = Math.max(0, this.hp - amount)
         const dealt = prevHp - this.hp
-        if (dealt > 0 && engine) {
-            this.addChan(Math.round(dealt * 0.6 * 10) / 10)
+        if (dealt > 0.5 && engine) {
+            this.addChan(round1(dealt * 0.6))
             engine.checkChanOverflow(this.id)
         }
         if (engine && dealt > 0) this.#fireHpChange(engine)

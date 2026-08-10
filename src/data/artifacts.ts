@@ -10,7 +10,7 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['implant', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { strength: 3, dexterity: 3 } }],
         grantsActions: ['_arm_explosion'],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 2 }] }],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 1 }] }],
     },
     {
         id: 'hydraulic_leg',
@@ -98,11 +98,11 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [
             {
                 condition: { type: 'on_equip' },
-                effects: [{ type: 'max_ap_mod', value: 2 }],
+                effects: [{ type: 'max_ap_mod', value: 1 }],
             },
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 1 }],
+                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 2 }],
             },
         ],
     },

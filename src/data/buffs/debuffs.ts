@@ -154,7 +154,7 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'overload',
         name: '失重',
-        description: '义体过载，身法下降。',
+        description: '义体过重，身法下降。',
         tags: ['debuff', 'implant'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
@@ -253,6 +253,17 @@ export const DEBUFF_DB: BuffDef[] = [
             })
             return 0
         },
+    },
+    // ── 失血（断臂） ──
+    {
+        id: 'blood_loss',
+        name: '失血',
+        description: '断臂血崩，每2秒失去当前血量的2%（最少1点）。',
+        tags: ['debuff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        tickInterval: 2000,
+        onTickDamage: ({ target }) => Math.max(1, Math.round(target.hp * 0.02 * 10) / 10),
     },
     // ── 烟玉冷却 ──
     {

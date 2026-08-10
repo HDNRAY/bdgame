@@ -336,6 +336,28 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'additive', max: 2 },
         attrMods: { strength: 1, agility: 1, vitality: 1, wisdom: 1, dexterity: 1, insight: 1 },
     },
+    // ── 铸火诀（阿九·聚炁化火） ──
+    {
+        id: 'zhu_huo_jue_buff',
+        name: '铸火',
+        description: '聚炁化火，火中淬炼不伤。自身受到的灼烧伤害减半；施加的灼烧层数提升（推演≥15 时+2，否则+1）。',
+        tags: ['buff', 'qi'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        // 自身受灼烧 tick 减半（过热/永久灼烧走 tick_buff 另一条路径，不受影响）
+        onDebuffTick: ({ debuffId, damage }) => {
+            if (debuffId !== 'burn') return undefined
+            return Math.max(0, round1(damage * 0.5))
+        },
+        // 施加灼烧时直接叠加层数（wis≥15 +2，否则 +1；直接改 restoreValue，无递归）
+        onDebuffApplied: ({ self, enemy, engine, debuffId }) => {
+            if (debuffId !== 'burn') return
+            const extra = self.attrs.get('wisdom') >= 15 ? 2 : 1
+            const key = `burn::${enemy.id}`
+            const layer = engine.state.pendingBuffs.get(key)
+            if (layer) layer.restoreValue += extra
+        },
+    },
     {
         id: 'tide_power',
         name: '潮汐内力',
@@ -416,7 +438,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['super_armor'],
         expiry: { type: 'permanent' },
         onReceiveDebuff: (ctx) => {
-            if (['stun', 'stagger', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
+            if (['stun', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
             return undefined
         },
     },
@@ -657,11 +679,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'you_shen',
         name: '游身',
-        description: '游身步法，敏捷+1、灵巧+1。',
+        description: '游身步法。',
         tags: ['buff'],
         expiry: { type: 'duration', ms: 3000 },
         stacking: { type: 'independent' },
-        attrMods: { agility: 1, dexterity: 1 },
+        attrMods: { agility: 1 },
     },
     {
         id: 'sword_focus',
@@ -1053,7 +1075,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { agility: -4 },
-        onActionCost: () => -1,
+        onActionCost: () => -0.5,
     },
     // ── 明镜止水 ──
     {
@@ -1155,7 +1177,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onReceiveDebuff: (ctx) => {
-            if (['stun', 'stagger', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
+            if (['stun', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
             return undefined
         },
         tickInterval: 10000,
