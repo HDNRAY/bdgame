@@ -273,7 +273,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'ling_qi_guan_zhu',
         name: '灵炁灌注',
-        description: '将大量炁劲注入御物，4秒内伤害+10%、命中+15%。不可叠加。',
+        description: '将大量炁劲注入御物，4秒内伤害+10%、命中+10%。不可叠加。',
         requiredTags: ['imperial'],
         apCost: 1,
         tags: ['buff', 'pre_action', 'imperial'],

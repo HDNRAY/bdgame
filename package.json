@@ -11,6 +11,7 @@
         "node": "tsx scripts/node-demo.ts",
         "reward": "tsx scripts/reward-impact.ts",
         "reward-types": "tsx scripts/reward-types.ts",
+        "c5ap": "tsx scripts/compare-5ap.ts",
         "build": "tsc -b && vite build",
         "lint": "eslint .",
         "preview": "vite preview",

@@ -133,7 +133,7 @@ describe('BattleEngine', () => {
         const attacks = logs.filter((l) => l.event.type === 'attack_start')
         expect(attacks.length).toBeGreaterThan(0)
         if (attacks[0].event.type === 'attack_start') {
-            expect(attacks[0].event.actionName).toBe('正拳')
+            expect(attacks[0].event.actionName).toBe('虚实拳')
         }
     })
 })

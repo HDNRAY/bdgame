@@ -2,11 +2,12 @@
  * 奖励影响分析：对任意角色，逐一摘掉每个奖励，测胜率下降多少 → 找出"哪件奖励影响最大"。
  *
  * 用法:
- *   npx tsx scripts/reward-impact.ts <targetId> [--n 15] [--level 33] [--pool id1,id2,...]
+ *   npx tsx scripts/reward-impact.ts <targetId> [--n 15] [--level 33] [--pool id1,id2,...] [--reward id]
  *
- *   --n     每个对手对战局数（默认 15，越大越准越慢）
- *   --level 生成等级（默认 33，对齐 tournament）
- *   --pool  参考池（逗号分隔的对手 id，默认 = 除目标外的全部对手）
+ *   --n      每个对手对战局数（默认 15，越大越准越慢）
+ *   --level  生成等级（默认 33，对齐 tournament）
+ *   --pool   参考池（逗号分隔的对手 id，默认 = 除目标外的全部对手）
+ *   --reward 只看某个奖励（id），默认测全部奖励
  */
 import { OPPONENTS, getOpponentDef, gen } from '../src/data/opponents'
 import { runBattle } from '../src/engine/battle-runner'
@@ -22,9 +23,12 @@ const argVal = (flag: string, def: string): string => {
 const N = parseInt(argVal('--n', '15'), 10)
 const LEVEL = parseInt(argVal('--level', '33'), 10)
 const poolArg = argVal('--pool', '')
+const rewardArg = argVal('--reward', '')
 
 if (!targetId) {
-    console.error('用法: npx tsx scripts/reward-impact.ts <targetId> [--n 15] [--level 33] [--pool id1,id2]')
+    console.error(
+        '用法: npx tsx scripts/reward-impact.ts <targetId> [--n 15] [--level 33] [--pool id1,id2] [--reward id]',
+    )
     process.exit(1)
 }
 // simpleGenerate 的奖励数量 = round(len * min(1, n/33))：n<33 时摘奖励会改变总数量，
@@ -84,9 +88,14 @@ const full = buildChar(def, LEVEL)
 const fullRate = winRate(full)
 console.log(`【全 kit 胜率】${(fullRate * 100).toFixed(1)}%\n`)
 
-// 逐一摘奖励
+// 逐一摘奖励（--reward 指定时只看单个奖励）
+const targets = def.rewards.filter((r) => !rewardArg || r.id === rewardArg)
+if (targets.length === 0) {
+    console.error(`找不到奖励 ${rewardArg}（${def.name} 的奖励: ${def.rewards.map((x) => x.id).join(', ')}）`)
+    process.exit(1)
+}
 const results: { id: string; name: string; type: string; rate: number; drop: number }[] = []
-for (const r of def.rewards) {
+for (const r of targets) {
     const variant: OpponentDef = { ...def, rewards: def.rewards.filter((x) => x.id !== r.id) }
     const vChar = buildChar(variant, LEVEL)
     const rate = winRate(vChar)

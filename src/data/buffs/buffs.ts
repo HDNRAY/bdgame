@@ -341,8 +341,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '缠劲充盈，周身劲力流转。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 2 },
-        attrMods: { strength: 1, agility: 1, vitality: 1, wisdom: 1, dexterity: 1, insight: 1 },
+        stacking: { type: 'additive', max: 1 },
+        attrMods: { strength: 2, agility: 2, vitality: 2, wisdom: 2, dexterity: 2, insight: 2 },
     },
     // ── 铸火诀（阿九·聚炁化火） ──
     {
@@ -370,7 +370,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'wan_xiang_jian_yi_buff',
         name: '万象剑意',
-        description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+4%。',
+        description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+3%。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -382,7 +382,7 @@ export const BUFF_DB: BuffDef[] = [
                 if (def.expiry?.type === 'permanent') return
                 layers += layer.restoreValue ?? 1
             })
-            return round1(layers * 0.04)
+            return round1(layers * 0.03)
         },
     },
     {
@@ -736,12 +736,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'sword_enhance_buff',
         name: '灵炁灌注',
-        description: '4秒内伤害+10%，命中+15%。',
+        description: '4秒内伤害+10%，命中+10%。',
         tags: ['imperial', 'buff'],
         expiry: { type: 'duration', ms: 4000 },
         stacking: { type: 'none' },
         onDealDamage: ({ final }) => round1(final * 1.1),
-        onHitChance: () => 0.15,
+        onHitChance: () => 0.1,
     },
     // ── 战术腰包 ──
     {

@@ -286,14 +286,14 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'blade_qi',
         name: '刃炁',
-        description: '每层增伤，收益随层数递减，最高约50%。累计10点治疗消一层。',
+        description: '每层增伤，收益随层数递减，最高约40%。累计10点治疗消一层。',
         tags: ['debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 20 },
         onTakeDamage: ({ final, layer }) => {
-            // 收敛增伤：+50% × n/(n+6)，n→∞ 趋近 +50%（前期每层约 7% 递减，不滚雪球）
+            // 收敛增伤：+40% × n/(n+6)，n→∞ 趋近 +40%（前期每层约 7% 递减，不滚雪球）
             const n = layer.restoreValue
-            const mult = 1 + (0.5 * n) / (n + 6)
+            const mult = 1 + (0.4 * n) / (n + 6)
             return Math.round(final * mult * 10) / 10
         },
         onReceiveHeal: ({ layer, engine, target, final: amount }) => {

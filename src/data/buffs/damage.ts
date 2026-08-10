@@ -318,14 +318,15 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'blood_thorn_suppress',
         name: '血棘·压制',
-        description: '暴击时向创口渡入棘炁，额外伤害转化为流血。',
+        description: '暴击时向创口渡入棘炁，爆伤按6:1转化为流血（约5次行动回本，之后小赚）。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onAfterCritDamage: ({ damage, critDamage, attacker, target, engine, state }) => {
             if (!engine) return 0
             const extraDamage = critDamage - damage
-            const bleedStacks = Math.max(1, Math.floor(extraDamage / 5))
+            // 公平兑换 + 微赚：6 点爆伤 → 1 层流血（1.5伤/层/行动），敌方约5次行动回本、6次起小赚
+            const bleedStacks = Math.max(1, Math.round(extraDamage / 6))
             processActionEffect(
                 { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },
                 { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },

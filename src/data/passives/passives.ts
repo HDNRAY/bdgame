@@ -487,9 +487,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'frost_step',
         name: '踏雪',
-        description: '踏雪如履平地，身法轻灵，移动效率+50%。',
+        description: '踏雪如履平地，身法轻灵，移动效率+40%。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'move_efficiency', value: 0.5 }],
+        effects: [{ type: 'move_efficiency', value: 0.4 }],
     },
     {
         id: 'yuxin_sword_mastery',
@@ -653,12 +653,12 @@ export const PASSIVES: Passive[] = [
     {
         id: 'jiu_yang_shen_gong',
         name: '九阳神功',
-        description: '九阳真气护体，AP恢复速度提升至1.5倍。',
+        description: '九阳真气护体，AP恢复速度提升至130%。',
         tags: ['passive', 'buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 5 }],
+                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 3 }],
             },
         ],
     },

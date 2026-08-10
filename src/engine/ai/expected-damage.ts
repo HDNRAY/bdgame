@@ -82,8 +82,11 @@ export function calcExpectedDamage(
     })
     const hitChance = (action.onActionHitChance?.(baseHc, state, attacker) ?? baseHc) + hitMod
 
-    // 4. 招架 + 暴击
-    const parryChance = calcParryChance(safeDef.attrs.get('dexterity'), safeDef.attrs.get('insight')) + safeDef.parryMod
+    // 4. 招架 + 暴击（带 ignore_parry 效果的招式无视招架 → 招架率归零）
+    const hasIgnoreParry = (action.effects ?? []).some((e) => e.type === 'ignore_parry')
+    const parryChance = hasIgnoreParry
+        ? 0
+        : calcParryChance(safeDef.attrs.get('dexterity'), safeDef.attrs.get('insight')) + safeDef.parryMod
     const rawCrit = calcCritChance(safeAtk.attrs.get('dexterity'), safeAtk.attrs.get('insight'), critChanceMod)
     const critChance = action.onActionCritChance?.(rawCrit, state, attacker) ?? rawCrit
 

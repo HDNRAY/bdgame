@@ -19,7 +19,6 @@ export type Tag =
     | 'fixed_damage' // 固定伤害
     | 'self_damage' // 自伤
     | 'knockback' // 击退
-    | 'cripple' // 崩劲
     | 'implant' // 义体
     | 'heal' // 回复
     | 'buff' // 增益
