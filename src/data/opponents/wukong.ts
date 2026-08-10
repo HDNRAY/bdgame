@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
-const WUKONG_ATTRS = { strength: 20, vitality: 10, agility: 13, dexterity: 16, insight: 10, wisdom: 5 }
+const WUKONG_ATTRS = { strength: 20, vitality: 10, agility: 14, dexterity: 16, insight: 10, wisdom: 4 }
 
 export const WUKONG: OpponentDef = {
     id: 'wukong',
@@ -22,13 +22,5 @@ export const WUKONG: OpponentDef = {
         weapon('dinghai_shen_tie'),
         // 10
     ],
-    actionConfigs: [
-        { actionId: 'rod_thrust' }, // AI 出招顺序
-        { actionId: 'rod_cleave' }, // AI 出招顺序
-        { actionId: 'rod_sweep' },
-        { actionId: 'stand_rod_kick' }, // AI 出招顺序
-        { actionId: 'santou_liubi' }, // AI 出招顺序
-        { actionId: 'jindou' }, // AI 出招顺序
-        { actionId: 'stand_rod_kick', triggerId: 'on_parried' },
-    ],
+    actionConfigs: [{ actionId: 'stand_rod_kick', triggerId: 'on_parried' }],
 }

@@ -126,11 +126,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onDodgeChance: ({ attacker }) => {
-            return attacker.attrs.get('agility') * 0.002
+        onDodgeChance: ({ target }) => {
+            return target.attrs.get('agility') * 0.002
         },
-        onParryChance: ({ attacker }) => {
-            return attacker.attrs.get('dexterity') * 0.002
+        onParryChance: ({ target }) => {
+            return target.attrs.get('dexterity') * 0.002
         },
     },
     {
@@ -220,9 +220,9 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '灵巧转化为远程招架率。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onParryChance: ({ attacker, source }) => {
+        onParryChance: ({ target, source }) => {
             if (!source?.tags.includes('range')) return 0
-            return attacker.attrs.get('dexterity') * 0.02
+            return target.attrs.get('dexterity') * 0.02
         },
     },
     {

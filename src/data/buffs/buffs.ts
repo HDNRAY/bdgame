@@ -669,7 +669,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['slash'],
         description: '交替使用斩击可叠加增伤；紧接重复上一招不归零、只是不再叠加，连打同一招会逐渐回落。',
         stacking: { type: 'none' },
-        // 层数 = 最近 3 招窗口里与当前不同的招式数（上限3，×1.2^层）；紧接重复（diff=0）保持层数不归零
+        // 层数 = 最近 3 招窗口里与当前不同的招式数（上限3，×1.1^层）；紧接重复（diff=0）保持层数不归零
         // 窗口模型让 AI 有动机保持窗口多样（连打会掉层），比 streak 模型更不会只主用单招
         onAction: ({ source, layer }) => {
             if (!source || !source.tags.includes('slash')) return
@@ -687,7 +687,7 @@ export const BUFF_DB: BuffDef[] = [
             if (!source || !source.tags.includes('slash')) return final
             const diff = layer.restoreValue ?? 0
             if (diff === 0) return final
-            const mult = 1.2 ** diff
+            const mult = 1.1 ** diff
             if (engine) {
                 const pct = Math.round((mult - 1) * 100)
                 engine.emitLog({ type: 'system', message: `[抽刀断水] ${diff}层·+${pct}%`, actorId: attacker.id })
@@ -1018,8 +1018,8 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.003,
-        onDodgeChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.003,
-        onParryChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.003,
+        onDodgeChance: ({ target }) => target.attrs.get('wisdom') * 0.003,
+        onParryChance: ({ target }) => target.attrs.get('wisdom') * 0.003,
         onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.0005,
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId === 'sand_blind') return 0
