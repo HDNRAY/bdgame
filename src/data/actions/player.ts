@@ -70,7 +70,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'melee'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
-            { type: 'missing_hp_damage', ratio: 0.25 },
+            { type: 'missing_hp_damage', ratio: 0.2 },
         ],
     },
     {
@@ -160,7 +160,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         canUse: (attacker) => attacker.chan >= 18,
         tags: ['unarmed', 'melee'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'damage', scaling: { strength: 0.2 } },
             { type: 'self_missing_hp_damage', ratio: 0.2 },
             { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
