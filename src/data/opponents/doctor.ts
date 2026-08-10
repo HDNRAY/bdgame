@@ -18,13 +18,13 @@ export const DOCTOR: OpponentDef = {
         action('summon_haste'),
         artifact('power_furnace'),
         artifact('mechanical_eye'),
-        action('scan_analysis'),
+        action('drone_paralyze'),
         artifact('combat_armor'),
         passive('wheelchair_lightness'),
         // 10
     ],
     actionConfigs: [
-        { actionId: 'scan_analysis', triggerId: 'turn_start' },
-        { actionId: 'summon_haste', triggerId: 'on_summon_hit' },
+        { actionId: 'drone_paralyze', triggerId: 'on_summon_hit' },
+        { actionId: 'summon_haste', triggerId: 'on_dodged' },
     ],
 }

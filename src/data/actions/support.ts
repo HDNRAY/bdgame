@@ -214,7 +214,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'summon_haste',
         name: '御物加速',
-        description: '御物加速，每层召唤物前后摇-5%（上限4层）。',
+        description: '御物加速，召唤物开火更快（叠1层，上限4层）。',
         requiredTags: ['summon'],
         apCost: 0,
         tags: ['imperial', 'summon', 'pre_action'],
@@ -250,6 +250,17 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             return layers < MAX_STAT_TRANSFER_LAYERS
         },
         effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 3000 }],
+    },
+    {
+        id: 'drone_paralyze',
+        name: '无人机麻痹',
+        description: '召唤物命中时50%概率附加1层麻痹。',
+        requiredTags: ['summon'],
+        apCost: 0,
+        tags: ['imperial', 'summon', 'pre_action'],
+        // 必定命中：跟随召唤物命中触发，不额外滚命中判定
+        onActionHitChance: () => 1,
+        effects: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 }],
     },
     {
         id: 'ling_qi_guan_zhu',

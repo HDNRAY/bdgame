@@ -16,7 +16,7 @@ export const HEIYUN: OpponentDef = {
         passive('drunken_step'),
         passive('sword_dominion'),
         artifact('zhu_ye_qing'),
-        action('yi_night_fish_dragon'),
+        action('one_nigh_dance'),
         action('ling_qi_guan_zhu'),
         action('condense_shield'),
         // 10 + 1

@@ -193,7 +193,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'summon_haste',
         name: '御物加速',
-        description: '每层召唤物前后摇-5%，上限4层。',
+        description: '御物加速，召唤物开火更快，每层开火间隔缩短（上限4层）。',
         tags: ['imperial', 'buff', 'summon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 4 },

@@ -983,16 +983,16 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     // ── 御物系 ──
     {
-        id: 'yi_night_fish_dragon',
+        id: 'one_nigh_dance',
         name: '一夜鱼龙舞',
-        description: '大剑一分为五，五剑齐发。',
+        description: '大剑一分为五，五剑齐舞。',
         requiredTags: ['imperial'],
         apCost: 5,
         chanCost: 42,
         tags: ['range', 'slash', 'pierce'],
         canUse: (attacker) => attacker.chan >= 42,
         onActionHitChance: (base) => base + 0.2,
-        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 1, independentHits: 5 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 2, independentHits: 5 }],
     },
     {
         id: 'wan_fa_gui_yi',
@@ -1000,9 +1000,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '御物万法，归一而发。令全部召唤物朝目标倾泻轰击，每击附推演之力。消耗大量缠劲。',
         requiredTags: ['imperial'],
         apCost: 5,
-        chanCost: 50,
+        chanCost: 27,
         tags: ['imperial', 'range', 'damage'],
-        canUse: (attacker) => attacker.chan >= 50,
+        canUse: (attacker) => attacker.chan >= 27,
         effects: [
             {
                 type: 'functional_damage',
@@ -1019,7 +1019,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     else if (dmgEff?.type === 'damage')
                         baseHit = (dmgEff.base ?? 0) + wis * (dmgEff.scaling.wisdom ?? 0)
                     // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
-                    return round1(5 + count * (baseHit + wis * 0.2))
+                    return round1(3 + count * (baseHit + wis * 0.1))
                 },
             },
         ],

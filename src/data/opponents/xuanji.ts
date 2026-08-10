@@ -22,9 +22,9 @@ export const XUANJI: OpponentDef = {
         // 10 + 1
     ],
     actionConfigs: [
-        { actionId: 'qi_bolt' },
-        { actionId: 'restore_ap', triggerId: 'on_parry' },
-        { actionId: 'summon_haste', triggerId: 'on_dodge' },
-        { actionId: 'agility_steal', triggerId: 'on_summon_hit' },
+        { actionId: 'qi_bolt', triggerId: 'on_opponent_move_closer' },
+        { actionId: 'restore_ap', triggerId: 'on_summon_hit' },
+        { actionId: 'summon_haste', triggerId: 'on_dodged' },
+        { actionId: 'agility_steal', triggerId: 'on_parried' },
     ],
 }

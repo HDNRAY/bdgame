@@ -445,6 +445,11 @@ export class BattleEngine {
 
             if (action.target === 'self') {
                 if (action.canUse && !action.canUse(self, this.state)) continue
+                // 触发招式不扣 AP，但要扣缠劲（缠不足则本次触发作废）
+                if (action.chanCost) {
+                    if (self.chan < action.chanCost) continue
+                    self.spendChan(action.chanCost)
+                }
                 if (!isInitPhase) this.state.log.enterReaction()
                 for (const eff of action.effects ?? []) {
                     processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered: true })
@@ -651,6 +656,11 @@ export class BattleEngine {
             }
         }
 
+        // 缠劲消耗独立于 AP 门槛：0 成本招式（restore_ap 等）与触发招式同样扣缠；缠不足则作废
+        if (action.chanCost) {
+            if (self.chan < action.chanCost) return r
+            self.spendChan(action.chanCost)
+        }
         let finalCost = action.apCost
         // 0 成本招式（御物召唤等）跳过 AP 消耗（onActionCost/身法减免/spendAp）
         if (!triggered && action.apCost > 0) {
@@ -672,7 +682,6 @@ export class BattleEngine {
                         }),
                 )
             })
-            if (action.chanCost) self.spendChan(action.chanCost)
             finalCost = self.actionApCost(cost)
             if (!self.spendAp(finalCost)) return r
         }

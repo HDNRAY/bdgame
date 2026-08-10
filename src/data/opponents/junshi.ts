@@ -19,9 +19,9 @@ export const JUNSHI: OpponentDef = {
         action('condense_shield'),
         action('agility_steal'),
         action('summon_haste'),
+        action('wan_fa_gui_yi'),
         // 天生道种
         artifact('innate_seed'),
-        action('wan_fa_gui_yi'),
         // 11 + 1
     ],
     actionConfigs: [
