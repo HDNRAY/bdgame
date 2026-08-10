@@ -201,8 +201,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'debuff'],
         getRange: () => [0, 1] as [number, number],
         effects: [
-            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1, wisdom: 0.1 } },
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 9, chance: 1 },
+            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 7, chance: 1 },
         ],
     },
     {
@@ -238,7 +238,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         chanCost: 15,
         tags: ['unarmed', 'qi'],
         canUse: (attacker) => attacker.chan >= 15,
-        effects: [{ type: 'damage', scaling: { strength: 0.4, wisdom: 0.6 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.8, wisdom: 0.8 } }],
     },
     {
         id: 'push_hand',
@@ -261,12 +261,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['unarmed', 'slash'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
             {
                 type: 'add_debuff',
-                buffId: 'paralyze',
+                buffId: 'stun',
                 stacks: 1,
-                chance: 0.7,
+                chance: 0.3,
             },
         ],
     },
@@ -340,7 +340,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 1] as [number, number],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
-            { type: 'damage', scaling: { wisdom: 0.6, strength: 0.4 }, piercingRatio: 0.5 },
+            { type: 'damage', scaling: { wisdom: 0.6, strength: 0.6 }, piercingRatio: 0.5 },
         ],
     },
     {
@@ -447,9 +447,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['range', 'thrown', 'paralyze', 'debuff', 'pierce'],
         getRange: () => [1, 6] as [number, number],
         effects: [
-            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.4 },
-            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.3 },
+            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.5 },
         ],
     },
     {
@@ -629,7 +629,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['bleed', 'pierce'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'damage', scaling: { strength: 0.3 } },
             { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.3 },
         ],
     },
@@ -738,7 +738,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['slash', 'burn'],
         getRange: (wr) => [wr[0], wr[1] + 1],
         effects: [
-            { type: 'damage', scaling: { strength: 0.4, wisdom: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.4, wisdom: 0.1 } },
             { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
         ],
     },
@@ -1049,7 +1049,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['imperial'],
         apCost: 2,
         tags: ['range', 'pierce', 'summon'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.3 } }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.4 }, piercing: 1 }],
     },
     {
         id: 'drone_barrage',
@@ -1058,7 +1058,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['imperial'],
         apCost: 4,
         tags: ['range', 'pierce', 'summon'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, independentHits: 5, piercing: 1 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.1 }, independentHits: 5, piercing: 1 }],
     },
     {
         id: 'scan_analysis',

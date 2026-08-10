@@ -353,8 +353,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['range', 'slash', 'pierce'],
         getRange: () => [2, 4] as [number, number],
-        onActionHitChance: (base) => base + 0.2,
-        onActionCritChance: (base) => base + 0.2,
+        onActionHitChance: (base) => base + 0.1,
+        onActionCritChance: (base) => base + 0.1,
         effects: [{ type: 'damage', scaling: { agility: 0.2, dexterity: 0.2 } }],
     },
     // ── 战术腰包 ──
