@@ -922,7 +922,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['polearm', 'pierce', 'burn', 'qi'],
         effects: [
             { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
-            { type: 'damage', scaling: { strength: 0.3, wisdom: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.3, dexterity: 0.2 } },
         ],
     },
     {

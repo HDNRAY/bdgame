@@ -810,13 +810,13 @@ export const BUFF_DB: BuffDef[] = [
             const hpPct = char.hp / char.maxHp
             let ins = 0,
                 wis = 0
-            if (hpPct < 0.8) {
-                if (hpPct > 0.4) {
-                    ins = 5
-                    wis = 5
+            if (hpPct < 0.7) {
+                if (hpPct > 0.3) {
+                    ins = 4
+                    wis = 4
                 } else {
-                    ins = 10
-                    wis = 10
+                    ins = 8
+                    wis = 8
                 }
             }
             const prev = layer.extra as Record<string, number> | undefined
@@ -1098,14 +1098,15 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'dao_ma_dan',
         name: '刀马旦',
-        description: '入戏状态，力道身法灵巧各+2，招式带炁，射程+1。',
+        description: '入戏状态，力道身法灵巧各+1，招式带炁，AP恢复+10%。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 45000 },
+        expiry: { type: 'duration', ms: 25000 },
         stacking: { type: 'none' },
-        attrMods: { strength: 2, agility: 2, dexterity: 2 },
+        attrMods: { strength: 1, agility: 1, dexterity: 1 },
+        apRegenPerSec: ({ target }) => Math.round(calcApRegenPerSec(target.attrs.get('wisdom')) * 0.1 * 10) / 10,
         onRuntimeAction: (_ctx, action) => {
             const tags: Tag[] = action.tags.includes('qi') ? action.tags : [...action.tags, 'qi']
-            return buffEnhanceActionRange({ ...action, tags }, 1)
+            return { ...action, tags }
         },
     },
     {

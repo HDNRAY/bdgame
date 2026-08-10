@@ -136,12 +136,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'nuo_yi',
         name: '挪移',
-        description: '以柔克刚，四两拨千斤。每点灵巧增加1%招架率与1%招架减伤。',
+        description: '以柔克刚，四两拨千斤。每点灵巧增加0.6%招架率与0.6%招架减伤。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onParryChance: ({ target }) => target.attrs.get('dexterity') * 0.01,
+        onParryChance: ({ target }) => target.attrs.get('dexterity') * 0.006,
         onParryReduction: ({ final, target }) =>
-            Math.max(0, round1(final * (1 - target.attrs.get('dexterity') * 0.01))),
+            Math.max(0, round1(final * (1 - target.attrs.get('dexterity') * 0.006))),
         onCanParry: () => true,
     },
     {
@@ -472,7 +472,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         onParried: ({ target, attacker, engine, state }) => {
             if (engine) {
                 processActionEffect(
-                    { type: 'disarm', chance: 0.5 },
+                    { type: 'disarm', chance: 0.3 },
                     { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
                 )
             }

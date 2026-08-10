@@ -16,11 +16,12 @@ export const YIDAO: OpponentDef = {
         artifact('wakizashi'),
         passive('human_radar'),
         artifact('tiger_eye'),
-        artifact('headband'),
         weapon('zantetsu'),
         passive('extreme'),
         passive('stance_time'),
-        // 10
+        artifact('chan_orb'),
+        action('dian_bu'),
+        // 11
     ],
     actionConfigs: [{ actionId: 'resheath', conditionId: 'no_stance' }],
 }
