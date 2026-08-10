@@ -132,7 +132,20 @@ function buildRow(a: ActionDefinition, rawAp: number, label?: string) {
     const buff = buffValue(a)
     const debuff = debuffValue(a)
     const score = Math.round((efficiency + distanceBonus + dashBonus + buff + debuff + exec) * 100) / 100
-    return { a, label: label ?? a.name, est, efficiency, rangeMax, hasDash, distanceBonus, dashBonus, buff, debuff, exec, score }
+    return {
+        a,
+        label: label ?? a.name,
+        est,
+        efficiency,
+        rangeMax,
+        hasDash,
+        distanceBonus,
+        dashBonus,
+        buff,
+        debuff,
+        exec,
+        score,
+    }
 }
 
 // ── 入口：按 CLI 参数选档 ──
@@ -174,6 +187,8 @@ for (const { label, est, efficiency, distanceBonus, dashBonus, buff, debuff, exe
 }
 console.table(tableData)
 console.log(
-    '注：期望伤=引擎 calcExpectedDamage；含残血/破甲；距离=射程>4每档+0.05；位移=带位移+0.25；buff=add_buff每层×' + BUFF_VALUE + '；debuff=层×几率×权重；exec=25%斩杀档提升',
+    '注：期望伤=引擎 calcExpectedDamage；含残血/破甲；距离=射程>4每档+0.05；位移=带位移+0.25；buff=add_buff每层×' +
+        BUFF_VALUE +
+        '；debuff=层×几率×权重；exec=25%斩杀档提升',
 )
 console.log(`缠权重可用参数覆盖：npx tsx scripts/compare-ap.ts ${AP_COST} 1`)

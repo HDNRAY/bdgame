@@ -630,7 +630,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['bleed', 'pierce'],
         effects: [
             { type: 'damage', scaling: { strength: 0.3 } },
-            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.3 },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.2 },
         ],
     },
     {
