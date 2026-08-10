@@ -5,7 +5,7 @@ const ATTRS = { strength: 15, vitality: 12, agility: 16, dexterity: 16, insight:
 
 export const FENGSHUI: OpponentDef = {
     id: 'fengshui',
-    name: '风四水',
+    name: '风似水',
     story: '短发，黑铁面具只露嘴和下巴，腰悬雁翎刀「惊鸿」。别人问她为啥戴面具，她咧嘴一笑："长得太好看，怕你分心，刀太快怕你看不清。"',
     weapon: 'dagger',
     targetAttrs: ATTRS,
@@ -16,20 +16,13 @@ export const FENGSHUI: OpponentDef = {
         passive('quick_glance'),
         action('rising_slash'),
         weapon('yanling_blade'),
-        artifact('zhu_ye_qing'),
+        artifact('nv_er_hong'),
         passive('draw_sword_cut_water'),
         passive('dan_dao_fa_xuan'),
         action('spinning_slash'),
         artifact('iron_mask'),
         // 11
     ],
-    actionConfigs: [
-        { actionId: 'swift_step' },
-        { actionId: 'horizontal_slash' },
-        { actionId: 'spinning_slash' },
-        { actionId: 'rising_slash' },
-        { actionId: 'follow_the_current' },
-        { actionId: 'swift_step', triggerId: 'on_opponent_move_away' },
-    ],
+    actionConfigs: [{ actionId: 'rising_slash', triggerId: 'on_dodged' }],
     taunt: () => '看什么看？没见过漂亮姑娘打架？',
 }

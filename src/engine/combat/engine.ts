@@ -440,6 +440,8 @@ export class BattleEngine {
             if (!action) continue
             // 触发器招式 AP 上限（防止高消耗大招白嫖）
             if (action.apCost > 2) continue
+            // 位移招不当作触发：否则对手每次移动都白嫖一次位移+buff（过于廉价/假）
+            if (action.tags.includes('move')) continue
             const inst = self.actions.find((a) => a.id === slot.actionId)
             if (!inst || !inst.canUse()) continue
 
@@ -826,12 +828,13 @@ export class BattleEngine {
         inst.use()
         if (inst.def.chanCost) self.spendChan(inst.def.chanCost)
         this.checkChanOverflow(self.id)
-        // 纯位移型 support（如虎跃）：本质是位移，不发 support 日志（由 dash effect 发 move(kind:'dash') 日志），
+        // 纯位移型 support（如虎跃/魅影步）：本质是位移，不发 support 日志（由 dash effect 发 move(kind:'dash') 日志），
         // 也不建主招 scope（让 move 保持回合级块内行），format-log 渲染为 `@ 虎跃 旧→新m`
-        const isDashOnly = (inst.def.effects ?? []).every((e) => e.type === 'dash')
-        if (!isDashOnly) {
-            // 辅助招式也算主招式作用域
-            this.state.log.beginMainAction()
+        // 判定用 move 标签而非"全为 dash 效果"：魅影步(dash+自buff)、云步(dash+自buff) 等纯位移招也归此类
+        // 辅助招都开主招 scope；纯位移招（move 标签）不发 support 日志（由 dash effect 发 @ 移动行），
+        // 但同样有独立作用域，其 buff 效果可正确归组到位移招下
+        this.state.log.beginMainAction()
+        if (!inst.def.tags.includes('move')) {
             this.emitLog({
                 type: 'support',
                 actionId: inst.id,

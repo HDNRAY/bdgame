@@ -94,46 +94,54 @@ function debuffValue(a: ActionDefinition): number {
 }
 
 // 归一：所有招式统一判断范围是否够到距离 4
-const rows = [...PLAYER_ACTIONS, ...INTERNAL_ACTIONS]
-    .filter((a) => a.apCost === 5)
-    .map((a) => {
-        // 万法归一按 4 召唤物估（挂合成御物武器）；其余用基准角色
-        const useSummon = a.id === 'wan_fa_gui_yi'
-        const effAtk = useSummon ? wanfaAtk : atk
-        const effRange: [number, number] = useSummon ? WANFA_SUMMON_WEAPON.range : weaponRange
-        const est = calcExpectedDamage(a, effAtk, def, effRange, state)
-        // 效率 = 期望伤 / (折前AP + 缠权重×缠消耗)
-        const resource = RAW_AP + CHAN_WEIGHT * est.chanCost
-        const efficiency = resource > 0 ? Math.round((est.expectedDamage / resource) * 100) / 100 : 0
-        // 25% 血斩杀档：双方降到 25% 血重算，期望伤提升部分折算成 exec 加分（越残越强的招吃得到）
-        atk.hp = Math.round(atk.maxHp * EXEC_PCT * 10) / 10
-        def.hp = Math.round(def.maxHp * EXEC_PCT * 10) / 10
-        const est25 = calcExpectedDamage(a, effAtk, def, effRange, state)
-        atk.hp = Math.round(atk.maxHp * HP_PCT * 10) / 10
-        def.hp = Math.round(def.maxHp * HP_PCT * 10) / 10
-        const eff25 = resource > 0 ? Math.round((est25.expectedDamage / resource) * 100) / 100 : 0
-        const exec = Math.max(0, Math.round((eff25 - efficiency) * 100) / 100)
-        // 加分（用静态射程：招式自身getRange或武器射程，不含dash，避免与位移重复计分）：射程按超出4米每档+0.05；带位移(short_dash/dash) +0.25
-        const staticRange = a.getRange?.(weaponRange, atk) ?? weaponRange
-        const rangeMax = staticRange[1]
-        const hasDash = (a.effects ?? []).some((e) => e.type === 'short_dash' || e.type === 'dash')
-        const rangeBonus = Math.max(0, Math.round((rangeMax - 4) * RANGE_BONUS_PER_STEP * 100)) / 100
-        const dashBonus = hasDash ? DASH_BONUS : 0
-        const bonus = Math.round((rangeBonus + dashBonus) * 100) / 100
-        const debuff = debuffValue(a)
-        const score = Math.round((efficiency + bonus + debuff + exec) * 100) / 100
-        return { a, est, efficiency, rangeMax, hasDash, bonus, debuff, exec, score }
-    })
-    .sort((x, y) => y.score - x.score)
+// buildRow：算单行效率/斩杀/加分/debuff/总分（rawAp = 该招折前 AP）
+function buildRow(a: ActionDefinition, rawAp: number) {
+    // 万法归一按 4 召唤物估（挂合成御物武器）；其余用基准角色
+    const useSummon = a.id === 'wan_fa_gui_yi'
+    const effAtk = useSummon ? wanfaAtk : atk
+    const effRange: [number, number] = useSummon ? WANFA_SUMMON_WEAPON.range : weaponRange
+    const est = calcExpectedDamage(a, effAtk, def, effRange, state)
+    // 效率 = 期望伤 / (折前AP + 缠权重×缠消耗)
+    const resource = rawAp + CHAN_WEIGHT * est.chanCost
+    const efficiency = resource > 0 ? Math.round((est.expectedDamage / resource) * 100) / 100 : 0
+    // 25% 血斩杀档：双方降到 25% 血重算，期望伤提升部分折算成 exec 加分（越残越强的招吃得到）
+    atk.hp = Math.round(atk.maxHp * EXEC_PCT * 10) / 10
+    def.hp = Math.round(def.maxHp * EXEC_PCT * 10) / 10
+    const est25 = calcExpectedDamage(a, effAtk, def, effRange, state)
+    atk.hp = Math.round(atk.maxHp * HP_PCT * 10) / 10
+    def.hp = Math.round(def.maxHp * HP_PCT * 10) / 10
+    const eff25 = resource > 0 ? Math.round((est25.expectedDamage / resource) * 100) / 100 : 0
+    const exec = Math.max(0, Math.round((eff25 - efficiency) * 100) / 100)
+    // 加分（用静态射程：招式自身getRange或武器射程，不含dash，避免与位移重复计分）：射程按超出4米每档+0.05；带位移(short_dash/dash) +0.25
+    const staticRange = a.getRange?.(weaponRange, atk) ?? weaponRange
+    const rangeMax = staticRange[1]
+    const hasDash = (a.effects ?? []).some((e) => e.type === 'short_dash' || e.type === 'dash')
+    const rangeBonus = Math.max(0, Math.round((rangeMax - 4) * RANGE_BONUS_PER_STEP * 100)) / 100
+    const dashBonus = hasDash ? DASH_BONUS : 0
+    const bonus = Math.round((rangeBonus + dashBonus) * 100) / 100
+    const debuff = debuffValue(a)
+    const score = Math.round((efficiency + bonus + debuff + exec) * 100) / 100
+    return { a, est, efficiency, rangeMax, hasDash, bonus, debuff, exec, score }
+}
+
+// 顺水推舟（4AP 终结技）硬编码纳入对比：保持 4AP，折前成本 = 4
+const SHUN_SHUI_RAW_AP = 4
+const shunShui = PLAYER_ACTIONS.find((a) => a.id === 'follow_the_current')
+
+const rows = [
+    ...PLAYER_ACTIONS.filter((a) => a.apCost === 5).map((a) => buildRow(a, RAW_AP)),
+    ...INTERNAL_ACTIONS.filter((a) => a.apCost === 5).map((a) => buildRow(a, RAW_AP)),
+    ...(shunShui ? [buildRow(shunShui, SHUN_SHUI_RAW_AP)] : []),
+].sort((x, y) => y.score - x.score)
 
 console.log('双方全属性15 · 缠50 · 满AP · 49%血(斩杀档25%) · 距离4')
 console.log(`甲 HP ${atk.hp}/${atk.maxHp} AP${atk.maxAp} 缠${atk.chan} | 乙 HP ${def.hp}/${def.maxHp}`)
 console.log(
-    `效率 = 期望伤 / (折前AP 5 + 缠权重 ${CHAN_WEIGHT} × 缠)；调整效率 = 效率 + 加分(射程/位移) + debuff(层×几率×权重) + exec(25%血斩杀档提升)`,
+    `效率 = 期望伤 / (折前AP + 缠权重 ${CHAN_WEIGHT} × 缠)；5AP招折前AP=5，顺水推舟=4AP特例；调整效率 = 效率 + 加分(射程/位移) + debuff(层×几率×权重) + exec(25%血斩杀档提升)`,
 )
 console.table(
     rows.map(({ a, est, efficiency, bonus, debuff, exec, score }) => ({
-        招式: a.name,
+        招式: a.id === 'follow_the_current' ? '顺水推舟·4AP' : a.name,
         缠: est.chanCost,
         期望伤: Math.round(est.expectedDamage * 10) / 10,
         效率: efficiency,

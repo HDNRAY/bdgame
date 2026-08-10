@@ -351,6 +351,8 @@ function SortableRow({
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
     const actionDef = getAction(ac.actionId)
+    // 位移招式只能设条件、不能作为触发招式（与引擎护栏一致）
+    const isMove = actionDef?.tags.includes('move') ?? false
 
     return (
         <div ref={setNodeRef} style={style} className="cp-row">
@@ -376,8 +378,9 @@ function SortableRow({
             </span>
             <span className="cp-col-trig">
                 <select
-                    value={ac.triggerId ?? ''}
-                    disabled={disabled}
+                    value={isMove ? '' : (ac.triggerId ?? '')}
+                    disabled={disabled || isMove}
+                    title={isMove ? '位移招式不能设为触发招式' : undefined}
                     onChange={(e) => onUpdate(index, { triggerId: e.target.value || undefined })}
                 >
                     <option value="">—</option>

@@ -303,7 +303,24 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
                     const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
                     const apInfo = e.apCost > 0 ? `  | AP${e.apRemaining.toFixed(1)}` : ''
-                    lines.push(`  @ ${moveLabel}  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m${apInfo}`)
+                    // 独立位移招（魅影步/虎跃等，scope=[turn,N] 且无父帧）→ 建帧，其 buff 效果经帧机制挂其下（↳ [魅影]）
+                    const isStandaloneMove =
+                        !!e.actionName && sc.length === 2 && stack.every((f) => !isPrefix(f.scope, sc))
+                    if (isStandaloneMove) {
+                        stack.push({
+                            scope: sc,
+                            depth: scopeIndent(sc),
+                            prefix: '@ ',
+                            text: `${moveLabel}  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m`,
+                            inline: apInfo,
+                            ap: '',
+                            actionName: e.actionName,
+                            preLines: [],
+                            children: [],
+                        })
+                    } else {
+                        lines.push(`  @ ${moveLabel}  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m${apInfo}`)
+                    }
                 } else {
                     const f = popTo(sc)
                     if (f) {

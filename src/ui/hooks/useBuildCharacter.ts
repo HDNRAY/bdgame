@@ -6,6 +6,7 @@ import type { ActionConfig } from '../../game/entities/action-config'
 import type { AttrName } from '../../engine/entities/attributes'
 import { Character } from '../../engine/entities/character'
 import { ALL_ATTRS } from '../../engine/entities/attributes'
+import { getAction } from '../../data/actions'
 import { checkTalents } from '../../game/talent-check'
 
 /** 每级属性消耗的修炼点 */
@@ -132,7 +133,12 @@ export function useBuildCharacter(
 
     function updateAction(index: number, patch: Partial<ActionConfig>) {
         setActionConfigs((draft) => {
-            Object.assign(draft[index], patch)
+            const ac = draft[index]
+            Object.assign(ac, patch)
+            // 位移招式只能设条件、不能作为触发招式（与引擎护栏一致）
+            if (ac.triggerId && getAction(ac.actionId)?.tags.includes('move')) {
+                ac.triggerId = undefined
+            }
         })
     }
 

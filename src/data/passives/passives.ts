@@ -600,7 +600,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'draw_sword_cut_water',
         name: '抽刀断水',
-        description: '抽刀断水水更流。交替使用不同斩击招式可叠加增伤，重复使用同一招则重置。',
+        description: '抽刀断水水更流。交替使用不同斩击招式可叠加增伤，重复使用同一招不归零、只是不再叠加。',
         tags: ['qi', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'draw_sword_combo_buff' }] },

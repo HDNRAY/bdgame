@@ -768,11 +768,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '借对方之势，顺水推舟，反击要害。',
         requiredTags: ['slash'],
         apCost: 4,
-        chanCost: 30,
+        chanCost: 15,
         tags: ['slash'],
-        canUse: (attacker) => attacker.chan >= 30,
+        canUse: (attacker) => attacker.chan >= 15,
         onActionCritChance: (base) => base + 0.3,
-        onActionHitChance: (base) => base + 0.2,
+        onActionHitChance: () => 1,
         effects: [
             { type: 'damage', scaling: { agility: 0.6, dexterity: 0.6 } },
             {

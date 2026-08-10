@@ -667,25 +667,25 @@ export const BUFF_DB: BuffDef[] = [
         id: 'draw_sword_combo_buff',
         name: '抽刀断水',
         tags: ['slash'],
-        description: '交替使用斩击可叠加增伤。',
+        description: '交替使用斩击可叠加增伤；紧接重复上一招不归零、只是不再叠加，连打同一招会逐渐回落。',
         stacking: { type: 'none' },
-        // 出招即记录到队列（滚动窗口，永远保留最近3招）
+        // 层数 = 最近 3 招窗口里与当前不同的招式数（上限3，×1.2^层）；紧接重复（diff=0）保持层数不归零
+        // 窗口模型让 AI 有动机保持窗口多样（连打会掉层），比 streak 模型更不会只主用单招
         onAction: ({ source, layer }) => {
             if (!source || !source.tags.includes('slash')) return
             layer.extra = layer.extra ?? {}
             const queue = (layer.extra.slashIds as string[]) ?? []
-            // push 前算 diff：已有队列里有多少不同 ID
             const diff = queue.filter((id) => id !== source.id).length
-            layer.restoreValue = diff
-            // 再入队
+            if (diff > 0) layer.restoreValue = diff
+            // diff === 0（紧接重复）→ 保持 restoreValue，不归零
             queue.push(source.id)
             if (queue.length > 3) queue.shift()
             layer.extra.slashIds = queue
         },
-        // 命中后直接用存好的 diff
+        // 命中后按当前层数加成
         onDealDamage: ({ final, source, layer, attacker, engine }) => {
             if (!source || !source.tags.includes('slash')) return final
-            const diff = layer.restoreValue
+            const diff = layer.restoreValue ?? 0
             if (diff === 0) return final
             const mult = 1.2 ** diff
             if (engine) {

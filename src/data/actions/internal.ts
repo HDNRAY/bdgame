@@ -287,6 +287,16 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'add_buff', buffId: 'nv_er_hong' }],
     },
     {
+        id: '_jiu_ba_wang_zui',
+        name: '霸王醉',
+        description: '',
+        requiredTags: [],
+        apCost: 1,
+        tags: ['pre_action', 'trigger', 'buff', 'jiu', 'internal'],
+        target: 'self',
+        effects: [{ type: 'add_buff', buffId: 'ba_wang_zui' }],
+    },
+    {
         id: '_zhu_ye_qing',
         name: '竹叶青',
         description: '',

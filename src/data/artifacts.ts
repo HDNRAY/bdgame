@@ -398,9 +398,16 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'nv_er_hong',
         name: '女儿红',
-        description: '温润醇厚的黄酒，饮后缠劲生生不息。花1AP饮用，每层每秒回复1点缠劲，持续9秒，最多3层。',
+        description: '温润醇厚的黄酒，饮后气血奔涌。花1AP饮用，每秒回复1.5点气血，持续4秒，最多3层。',
         tags: ['jiu'],
         grantsActions: ['_jiu_nv_er_hong'],
+    },
+    {
+        id: 'ba_wang_zui',
+        name: '霸王醉',
+        description: '烈酒入喉，缠劲熊熊。花1AP饮用，每层每秒回复1点缠劲，持续9秒，最多3层。',
+        tags: ['jiu'],
+        grantsActions: ['_jiu_ba_wang_zui'],
     },
     {
         id: 'zhu_ye_qing',
