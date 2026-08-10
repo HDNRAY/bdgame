@@ -1,5 +1,5 @@
 import { processActionEffect } from '../../engine/combat/effects'
-import { revertBuffMods } from '../../engine/combat/utils'
+import { forEachBuffOf, revertBuffMods } from '../../engine/combat/utils'
 import { applyAttrMods } from '../../engine/combat/utils/buff-layer'
 import { calcParryChance, calcApRegenPerSec, calcRoll } from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
@@ -356,6 +356,25 @@ export const BUFF_DB: BuffDef[] = [
             const key = `burn::${enemy.id}`
             const layer = engine.state.pendingBuffs.get(key)
             if (layer) layer.restoreValue += extra
+        },
+    },
+    // ── 万象剑意（浩然·剑意拟万象） ──
+    {
+        id: 'wan_xiang_jian_yi_buff',
+        name: '万象剑意',
+        description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+4%。',
+        tags: ['buff', 'qi'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onCritDamage: ({ attacker, state }) => {
+            let layers = 0
+            forEachBuffOf(state.pendingBuffs, attacker.id, (def, layer) => {
+                if (!def) return
+                if (def.tags?.includes('debuff')) return
+                if (def.expiry?.type === 'permanent') return
+                layers += layer.restoreValue ?? 1
+            })
+            return round1(layers * 0.04)
         },
     },
     {
@@ -954,16 +973,6 @@ export const BUFF_DB: BuffDef[] = [
         onHitChance: ({ layer }) => layer.restoreValue * 0.03,
         onCritChance: ({ layer }) => layer.restoreValue * 0.03,
     },
-    // ── 无招胜有招 ──
-    {
-        id: 'no_way_win_buff',
-        name: '无招胜有招',
-        description: '触发招式伤害+15。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        onDealDamage: ({ final, triggered }) => (triggered ? Math.round((final + 15) * 10) / 10 : final),
-    },
     {
         id: 'qi_electric_buff',
         name: '炁电转换',
@@ -1022,39 +1031,6 @@ export const BUFF_DB: BuffDef[] = [
                 { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
                 { self, enemy, engine, tMs: engine.state.turn.currentTime },
             )
-        },
-    },
-    // ── 血棘戒（爆伤转流血） ──
-    {
-        id: 'blood_thorn_suppress',
-        name: '血棘·压制',
-        description: '暴击时向创口渡入棘炁，额外伤害转化为流血。',
-        tags: [],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        onAfterCritDamage: ({ damage, critDamage, attacker, target, engine, state }) => {
-            if (!engine) return 0
-            const extraDamage = critDamage - damage
-            const bleedStacks = Math.max(1, Math.floor(extraDamage / 5))
-            processActionEffect(
-                { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },
-                { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
-            )
-            return extraDamage
-        },
-    },
-    {
-        id: 'blood_thorn_earring_buff',
-        name: '血棘·追魂',
-        description: '持枪（刺）攻击暴击率+7%，对流血中目标再+8%。',
-        tags: ['bleed', 'pierce'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        onCritChance: ({ source, target, state }) => {
-            let bonus = 0
-            if (source?.tags?.includes('pierce')) bonus += 0.07
-            if (state.pendingBuffs.has(`bleed::${target.id}`)) bonus += 0.08
-            return bonus
         },
     },
     {
@@ -1149,66 +1125,5 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         chanRegenPerSec: () => 2,
-    },
-    {
-        id: 'chanzi_stance',
-        name: '金刚不坏',
-        description: '金刚不坏体，反震敌手。受到伤害时反伤10%。',
-        tags: ['buff', 'defense'],
-        expiry: { type: 'duration', ms: 15000 },
-        stacking: { type: 'none' },
-        onTakeDamage: ({ final, attacker, target, engine }) => {
-            if (final <= 0 || !engine || attacker === target) return final
-            const reflectDmg = Math.max(1, Math.round(final * 0.1))
-            attacker.takeDamage(reflectDmg, engine)
-            engine.emitLog({
-                type: 'system',
-                message: `[金刚不坏] ${target.name}反伤${reflectDmg}给${attacker.name}`,
-                actorId: target.id,
-            })
-            return final
-        },
-    },
-    {
-        id: 'jin_zhong_zhao',
-        name: '金钟罩',
-        description: '金钟罩体，罡气护身。吸收30点伤害，免疫硬控；盾未破时每10秒修复1点。',
-        tags: ['super_armor', 'defense'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        onReceiveDebuff: (ctx) => {
-            if (['stun', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
-            return undefined
-        },
-        tickInterval: 10000,
-        onTickHeal: ({ target, engine, layer }) => {
-            if (!layer.extra) layer.extra = {}
-            const cur = (layer.extra.shieldRemaining as number) ?? 30
-            if (cur < 30) {
-                layer.extra.shieldRemaining = Math.min(30, cur + 1)
-                engine?.emitLog({
-                    type: 'system',
-                    message: `[金钟罩] ${target.name} 护盾修复+1（${layer.extra.shieldRemaining}/30）`,
-                    actorId: target.id,
-                })
-            }
-            return 0
-        },
-        onTakeDamage: ({ final, target, engine, layer, state }) => {
-            if (final <= 0) return final
-            if (!layer.extra) layer.extra = {}
-            const remaining = (layer.extra.shieldRemaining as number) ?? 30
-            const absorb = Math.min(remaining, final)
-            layer.extra.shieldRemaining = Math.round((remaining - absorb) * 10) / 10
-            engine?.emitLog({
-                type: 'system',
-                message: `[金钟罩] ${target.name} 吸收${absorb}点（${layer.extra.shieldRemaining}/30）`,
-                actorId: target.id,
-            })
-            if (layer.extra.shieldRemaining <= 0) {
-                state.pendingBuffs.delete(`jin_zhong_zhao::${target.id}`)
-            }
-            return Math.max(0, Math.round((final - absorb) * 10) / 10)
-        },
     },
 ]

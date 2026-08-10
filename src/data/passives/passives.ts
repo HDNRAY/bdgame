@@ -450,6 +450,18 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
+        id: 'wan_xiang_jian_yi',
+        name: '万象剑意',
+        description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+4%。',
+        tags: ['passive', 'buff', 'qi'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'wan_xiang_jian_yi_buff', stacks: 1 }],
+            },
+        ],
+    },
+    {
         id: 'stone_skin',
         name: '石肤',
         description: '肌肤如岩石般坚硬，所受直伤-10%。免疫灼烧。',

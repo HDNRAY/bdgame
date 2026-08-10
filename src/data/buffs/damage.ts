@@ -315,4 +315,45 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onCritChance: ({ layer }) => layer.restoreValue * 0.01,
         onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
     },
+    {
+        id: 'blood_thorn_suppress',
+        name: '血棘·压制',
+        description: '暴击时向创口渡入棘炁，额外伤害转化为流血。',
+        tags: ['damage'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onAfterCritDamage: ({ damage, critDamage, attacker, target, engine, state }) => {
+            if (!engine) return 0
+            const extraDamage = critDamage - damage
+            const bleedStacks = Math.max(1, Math.floor(extraDamage / 5))
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },
+                { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
+            )
+            return extraDamage
+        },
+    },
+    {
+        id: 'blood_thorn_earring_buff',
+        name: '血棘·追魂',
+        description: '持枪（刺）攻击暴击率+7%，对流血中目标再+8%。',
+        tags: ['bleed', 'pierce', 'damage'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onCritChance: ({ source, target, state }) => {
+            let bonus = 0
+            if (source?.tags?.includes('pierce')) bonus += 0.07
+            if (state.pendingBuffs.has(`bleed::${target.id}`)) bonus += 0.08
+            return bonus
+        },
+    },
+    {
+        id: 'no_way_win_buff',
+        name: '无招胜有招',
+        description: '触发招式伤害+15。',
+        tags: ['damage'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final, triggered }) => (triggered ? Math.round((final + 15) * 10) / 10 : final),
+    },
 ]

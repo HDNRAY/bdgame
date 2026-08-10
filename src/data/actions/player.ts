@@ -992,7 +992,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['range', 'slash', 'pierce'],
         canUse: (attacker) => attacker.chan >= 42,
         onActionHitChance: (base) => base + 0.2,
-        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, independentHits: 5 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 1, independentHits: 5 }],
     },
     {
         id: 'wan_fa_gui_yi',

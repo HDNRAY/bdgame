@@ -6,7 +6,7 @@ const ATTRS = { strength: 14, vitality: 12, agility: 14, dexterity: 14, insight:
 export const HAORAN: OpponentDef = {
     id: 'haoran',
     name: '宁浩然',
-    story: '持剑道士，讲究又不讲究。会元素剑法，以炁化为意象。',
+    story: '持剑道士，讲究又不讲究。以炁催动剑意，剑意化为万象。',
     battleStyle: 'mid',
     weapon: 'peach_sword',
     targetAttrs: ATTRS,
@@ -20,8 +20,9 @@ export const HAORAN: OpponentDef = {
         action('fall_to_azure_sword'),
         artifact('qi_amplifier'),
         passive('jiu_yang_shen_gong'),
-        artifact('nv_er_hong'),
-        // 10
+        artifact('shao_dao_zi'),
+        passive('wan_xiang_jian_yi'),
+        // 11
     ],
     actionConfigs: [
         {
