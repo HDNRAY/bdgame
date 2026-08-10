@@ -131,7 +131,7 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '玄铁重剑',
         description: '与身同高的玄铁巨剑，重六十四斤，无锋无刃。大巧不工，以力破万法。',
         tags: ['heavy', 'blunt', 'slash', 'pierce', 'parry', 'polearm'],
-        requireAttrsMin: { strength: 12, agility: 11 },
+        requireAttrsMin: { strength: 10, agility: 11 },
         range: [1, 4],
         triggers: [
             {

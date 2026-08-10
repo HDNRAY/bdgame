@@ -62,8 +62,8 @@ graph TB
 
     subgraph Lj["六绝（青山之巅）"]
       direction TB
-      ln["龙女（逸）"]
-      ge["过儿（观）"]
+      ln["龙语仙（逸）"]
+      ge["杨之改（观）"]
       sw["孙悟（破）"]
       xg["西瓜（闪）"]
       xx["寻香（悟）"]

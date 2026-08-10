@@ -5,7 +5,7 @@ const YANGGUO_ATTRS = { strength: 10, vitality: 10, agility: 14, dexterity: 14, 
 
 export const YANGGUO: OpponentDef = {
     id: 'yangguo',
-    name: '西狂·过儿',
+    name: '杨之改',
     weapon: 'peach_sword',
     targetAttrs: YANGGUO_ATTRS,
     rewards: [
@@ -19,7 +19,8 @@ export const YANGGUO: OpponentDef = {
         passive('tide_inner_power'),
         action('flick'),
         action('desolate_palm'),
-        // 10
+        artifact('jiu_yin_zhen_jing'),
+        // 11
     ],
     actionConfigs: [
         { actionId: 'desolate_palm' }, // AI 出招顺序

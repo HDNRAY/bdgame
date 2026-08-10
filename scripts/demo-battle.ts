@@ -46,17 +46,21 @@ import { formatBattleLog } from '../src/engine/format-log'
 import { StatsTracker } from '../src/engine/combat/stats-tracker'
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(YIDAO, 33)
-const oBuild = gen(SANGYUAN, 33)
+const pBuild = gen(YANGGUO, 33)
+const oBuild = gen(AJIU, 33)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const logPath = join(__dirname, 'battle-log.txt')
 const logLines: string[] = []
+// console 只显示胜负与伤害占比；log 文件保留全部内容（含单局完整战斗日志）
+let consoleOnly = false
 const origLog = console.log
+// 仅控制台输出（不进 log 文件）：用于胜负等摘要行，保证文件内容不变
+const consoleOnlyLog = (...args: unknown[]): void => origLog(...args)
 console.log = (...args) => {
     const line = args.map((a) => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))).join(' ')
     logLines.push(line)
-    origLog(...args)
+    if (consoleOnly) origLog(...args)
 }
 process.on('exit', () => writeFileSync(logPath, logLines.join('\n') + '\n', 'utf-8'))
 
@@ -92,11 +96,16 @@ if (N === 1) {
     show(leftBase)
     console.log('')
     const stats = new StatsTracker()
-    const { engine } = runBattle(leftBase, rightBase, (e) => stats.handle(e))
+    const { winner, engine } = runBattle(leftBase, rightBase, (e) => stats.handle(e))
     for (const line of formatBattleLog(engine.state.log).lines) console.log(line)
     const charNames = { [leftBase.id]: leftBase.name, [rightBase.id]: rightBase.name }
+    const winName = winner === leftBase.id ? leftBase.name : winner === rightBase.id ? rightBase.name : '平局'
+    consoleOnlyLog(`\n── 胜负 ──`)
+    consoleOnlyLog(`  ${winName}`)
+    consoleOnly = true
     console.log('\n── 伤害占比 ──')
     for (const line of stats.format(charNames)) console.log(line)
+    consoleOnly = false
 } else {
     let leftWins = 0,
         rightWins = 0

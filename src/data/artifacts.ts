@@ -356,6 +356,15 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chan_orb_regen' }] }],
     },
     {
+        id: 'jiu_yin_zhen_jing',
+        name: '九阴真经',
+        description: '古墓石壁遗刻，夜夜观读，字字入心。以洞察悟缠劲，每秒按洞察回复缠劲。',
+        tags: ['buff', 'qi'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'jiu_yin_zhen_jing_buff' }] },
+        ],
+    },
+    {
         id: 'blood_sacrifice_armband',
         name: '血祭护腕',
         description: '天工锻造的血祭护腕，每招消耗3%最大气血，化为额外伤害并缓慢恢复。',

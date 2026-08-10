@@ -232,6 +232,14 @@ export const BUFF_DB: BuffDef[] = [
         chanRegenPerSec: () => 2,
     },
     {
+        id: 'jiu_yin_zhen_jing_buff',
+        name: '九阴',
+        description: '以洞察悟缠劲，每秒按洞察回复缠劲。',
+        tags: ['qi'],
+        expiry: { type: 'permanent' },
+        chanRegenPerSec: ({ target }) => round1(target.attrs.get('insight') * 0.1),
+    },
+    {
         id: 'phantom_step',
         name: '魅影',
         description: '身法+1，持续5秒。可独立叠加。',
@@ -405,9 +413,10 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'heavy_training',
         name: '玄铁剑法',
-        description: '以力驭剑，重型武器身法负担减半。',
+        description: '以力驭剑，化繁为简。重型武器身法负担减半，招式AP消耗-0.4（最低1）。',
         tags: [],
         expiry: { type: 'permanent' },
+        onActionCost: () => -0.4,
     },
     {
         id: 'santou_liubi',
