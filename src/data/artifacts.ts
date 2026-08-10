@@ -149,6 +149,39 @@ export const ARTIFACTS: Artifact[] = [
         },
     },
     {
+        id: 'fen_shen_qiu',
+        name: '分身球',
+        description:
+            '拔下毫毛化成的毛球，掷出后化作数个分身协战。分身以本体棍招出击，伤害仅为本体两成，命中暴击按自身属性结算，数量由根骨决定（最多3个）；每维持一个分身每秒消耗0.05点内息，并占用1点内息上限。',
+        tags: ['summon'],
+        summon: {
+            id: 'fen_shen_qiu',
+            name: '毫毛分身',
+            maxCount: (self) => Math.max(1, Math.min(3, Math.ceil(self.attrs.get('vitality') / 5))),
+            actionId: '_fen_shen_shot',
+        },
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'max_ap_mod', value: -1 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'fen_shen_cost' }] },
+        ],
+    },
+    {
+        id: 'pu_ti_tou_huan',
+        name: '菩提头环',
+        description: '菩提枝编成的头环，澄澈心念。推演+4，50%免疫推演降低。',
+        tags: ['buff', 'defense'],
+        effects: [
+            { type: 'stat_buff', attrs: { wisdom: 4 } },
+            {
+                type: 'stat_restriction',
+                check: (_char, attr, _cur, delta) => {
+                    if (attr === 'wisdom' && delta < 0 && Math.random() < 0.5) return { skip: true }
+                    return null
+                },
+            },
+        ],
+    },
+    {
         id: 'blood_thorn_ring',
         name: '血棘戒',
         description: '暴击时向创口渡入棘炁，引发持续流血。暴击的额外伤害转为流血层数。',

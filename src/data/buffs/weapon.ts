@@ -40,7 +40,9 @@ export const WEAPON_BUFFS: BuffDef[] = [
         tags: ['weapon', 'heavy'],
         expiry: { type: 'permanent' },
         attrMods: { agility: -12 },
-        onDealDamage: ({ final, attacker, target, state }) => {
+        onDealDamage: ({ final, attacker, target, state, source }) => {
+            // 召唤物（分身等）不吃本体武器的距离加成
+            if (source?.tags?.includes('summon')) return final
             const dist = state.position.distance(attacker.id, target.id)
             const bonus = Math.round(((attacker.attrs.get('strength') * 0.66 * Math.max(0, 6 - dist)) / 5) * 10) / 10
             return bonus > 0 ? Math.round((final + bonus) * 10) / 10 : final

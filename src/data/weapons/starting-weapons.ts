@@ -56,7 +56,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         summon: {
             id: 'silk',
             name: '游丝',
-            maxCount: (wis) => Math.min(7, 1 + Math.round(wis / 2)),
+            maxCount: (self) => Math.min(7, 1 + Math.round(self.attrs.get('wisdom') / 2)),
             actionId: '_silk_shot',
         },
     },

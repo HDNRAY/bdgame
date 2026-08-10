@@ -46,8 +46,8 @@ import { formatBattleLog } from '../src/engine/format-log'
 import { StatsTracker } from '../src/engine/combat/stats-tracker'
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(FENGSHUI, 33)
-const oBuild = gen(DAIXUAN, 33)
+const pBuild = gen(WUKONG, 33)
+const oBuild = gen(HONGTI, 33)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const logPath = join(__dirname, 'battle-log.txt')
@@ -124,6 +124,8 @@ if (N === 1) {
     }
     const lr = ((leftWins / N) * 100).toFixed(1)
     const rr = ((rightWins / N) * 100).toFixed(1)
+    // N>1 时 console.log 默认被劫持只进文件；这里临时开 consoleOnly 让统计结果同时打到终端
+    consoleOnly = true
     console.log(`\n📊 ${N} 场统计`)
     console.log(`  ${oBuild.name}: ${leftWins} 胜 (${lr}%)  平均残血 ${((leftHp / N) * 100).toFixed(1)}%`)
     console.log(`  ${pBuild.name}: ${rightWins} 胜 (${rr}%)  平均残血 ${((rightHp / N) * 100).toFixed(1)}%`)
@@ -131,4 +133,5 @@ if (N === 1) {
     const charNames = { [leftId]: oBuild.name, [rightId]: pBuild.name }
     console.log('\n── 伤害占比 ──')
     for (const line of stats.format(charNames)) console.log(line)
+    consoleOnly = false
 }

@@ -1,4 +1,5 @@
 import type { WeaponDef } from '../../../data/weapons/weapons'
+import type { Character } from '../../../engine/entities/character'
 import { getAction } from '../../../data/actions'
 import { TagList } from '../ui/TagList/TagList'
 import { EffectList } from '../ui/EffectList/EffectList'
@@ -8,6 +9,9 @@ import { EntityItem } from '../ui/EntityItem/EntityItem'
 interface WeaponTooltipProps {
     weapon: WeaponDef
 }
+
+/** 召唤物数量预览：以任意属性 20 的演示角色展示「最多 N 个」 */
+const MAX_SUMMON_DEMO = { attrs: { get: () => 20 } } as unknown as Character
 
 /** 武器 tooltip 内容 */
 export function WeaponTooltip({ weapon }: WeaponTooltipProps) {
@@ -44,7 +48,7 @@ export function WeaponTooltip({ weapon }: WeaponTooltipProps) {
                 <div className="tt-extra" style={{ marginTop: 'var(--sp-xxs)' }}>
                     <div className="tt-label">召唤: {weapon.summon.name}</div>
                     <div className="tt-extra-dim" style={{ marginBottom: 'var(--sp-xxs)' }}>
-                        最多 {weapon.summon.maxCount(20)} 个
+                        最多 {weapon.summon.maxCount(MAX_SUMMON_DEMO)} 个
                     </div>
                     <div className="tt-flex-wrap" style={{ alignItems: 'center', marginTop: 'var(--sp-xxs)' }}>
                         <span className="tt-label">招式:</span>

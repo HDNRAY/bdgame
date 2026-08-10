@@ -1,11 +1,12 @@
 /** 召唤物定义（武器/功法/奇物携带此字段来召唤物体） */
 import type { ActionDefinition } from './action'
+import type { Character } from './character'
 
 export interface SummonDef {
     id: string
     name: string
     /** 最大召唤数量，根据使用者属性动态计算 */
-    maxCount: (wis: number) => number
+    maxCount: (self: Character) => number
     /** 召唤物使用的招式 ID */
     actionId: string
     /** 构造期解析的动作副本（引擎优先使用） */

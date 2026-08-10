@@ -206,6 +206,15 @@ export const DEBUFF_DB: BuffDef[] = [
         apRegenPerSec: ({ layer }) => -(layer.restoreValue ?? 0),
     },
     {
+        id: 'fen_shen_cost',
+        name: '分身耗炁',
+        description: '以炁维持毫毛分身，每个分身每秒消耗0.05点内息。',
+        tags: ['summon', 'debuff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        apRegenPerSec: ({ target }) => -0.05 * Math.max(1, Math.min(3, Math.ceil(target.attrs.get('vitality') / 4))),
+    },
+    {
         id: 'permanent_burn',
         name: '过热',
         description: '持续灼烧伤害。',

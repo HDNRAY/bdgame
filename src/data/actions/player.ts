@@ -834,17 +834,18 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['blunt', 'polearm'],
         apCost: 2,
         tags: ['blunt', 'polearm'],
-        onActionCritChance: (base) => base + 0.2,
-        effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
+        onActionCritChance: (base) => base + 0.05,
+        effects: [{ type: 'damage', scaling: { strength: 0.3, dexterity: 0.1 } }],
     },
     {
         id: 'rod_cleave',
         name: '棍劈',
         description: '高举过顶，一棍劈下，势不可挡。',
         requiredTags: ['polearm'],
-        apCost: 4,
-        tags: ['blunt'],
-        effects: [{ type: 'damage', scaling: { strength: 0.9 } }],
+        apCost: 2,
+        tags: ['blunt', 'polearm'],
+        onActionHitChance: (base) => base + 0.1,
+        effects: [{ type: 'damage', scaling: { strength: 0.3, vitality: 0.1 } }],
     },
     {
         id: 'rod_sweep',
@@ -900,11 +901,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '立棍踢',
         description: '以棍撑地，凌空一脚。',
         requiredTags: ['polearm'],
-        apCost: 3,
+        apCost: 2,
         tags: ['blunt', 'polearm'],
-        getRange: () => [3, 3] as [number, number],
+        getRange: () => [2, 3],
         effects: [
-            { type: 'damage', scaling: { strength: 0.3, agility: 0.3 } },
+            { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
         ],
     },
@@ -1026,7 +1027,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                 fn: ({ self }) => {
                     const summon = self.weaponDef?.summon
                     if (!summon) return 0
-                    const count = summon.maxCount(self.attrs.get('wisdom'))
+                    const count = summon.maxCount(self)
                     const wis = self.attrs.get('wisdom')
                     // 武器召唤物招式原本单发伤害（fixed_damage.value 或 damage base + wis×scaling）
                     const act = summon.action ?? getBaseAction(summon.actionId)

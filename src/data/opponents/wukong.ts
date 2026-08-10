@@ -5,7 +5,7 @@ const WUKONG_ATTRS = { strength: 20, vitality: 10, agility: 14, dexterity: 16, i
 
 export const WUKONG: OpponentDef = {
     id: 'wukong',
-    name: '天命·孙悟',
+    name: '孙悟',
     battleStyle: 'melee',
     weapon: 'qimei_staff',
     targetAttrs: WUKONG_ATTRS,
@@ -20,7 +20,12 @@ export const WUKONG: OpponentDef = {
         action('santou_liubi'),
         action('jindou'),
         weapon('dinghai_shen_tie'),
-        // 10
+        artifact('fen_shen_qiu'),
+        artifact('pu_ti_tou_huan'),
+        // 12
     ],
-    actionConfigs: [{ actionId: 'stand_rod_kick', triggerId: 'on_parried' }],
+    actionConfigs: [
+        { actionId: 'stand_rod_kick', triggerId: 'on_dodged' },
+        // { actionId: 'rod_thrust', triggerId: 'on_parried' },
+    ],
 }

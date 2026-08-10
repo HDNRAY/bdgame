@@ -228,6 +228,15 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         extraStunTime: 900,
     },
     {
+        id: '_fen_shen_shot',
+        name: '分身棍击',
+        description: '毫毛分身的攻击，仅继承本体三成的力道。',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['summon', 'blunt', 'polearm'],
+        effects: [{ type: 'damage', scaling: { strength: 0.3 } }],
+    },
+    {
         id: '_flying_lion_roar',
         name: '飞狮吼',
         description: '',

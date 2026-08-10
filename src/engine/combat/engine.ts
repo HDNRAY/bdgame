@@ -125,7 +125,7 @@ export class BattleEngine {
         if (!sd) return
         const action = sd.action ?? getBaseAction(sd.actionId)
         const preDelay = action?.extraPreDelay ?? 0
-        for (let i = 0; i < sd.maxCount(self.attrs.get('wisdom')); i++) {
+        for (let i = 0; i < sd.maxCount(self); i++) {
             const sid = `${sd.id}_${self.id}_${i}`
             if (this.state.turn.entries.some((e) => e.id === sid)) continue
             const inst: SummonInstance = {
