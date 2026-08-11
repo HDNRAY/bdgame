@@ -141,7 +141,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['pre_action', 'retrieve_weapon'],
         target: 'self',
-        canUse: (attacker, state) => !state.pendingBuffs.has('overlord_blade::' + attacker.id),
+        canUse: (attacker, state) => state.pendingBuffs.has('disarmed::' + attacker.id),
         effects: [{ type: 'short_dash', maxDistance: 2 }, { type: 'retrieve_weapon' }],
     },
     {

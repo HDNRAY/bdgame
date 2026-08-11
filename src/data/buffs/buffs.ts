@@ -489,16 +489,16 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'tide_power',
         name: '潮汐内力',
-        description: '内力如潮汐涨落，力道和身法之间每2秒挪移1点。',
+        description: '内力如潮汐涨落，力道和身法之间每2秒挪移1点（最多4点）。',
         tags: [],
         expiry: { type: 'permanent' },
-        attrMods: { strength: 5, agility: 0 },
+        attrMods: { strength: 4, agility: 0 },
         tickInterval: 2000,
         onTickHeal: ({ attacker: char, engine, state, layer }) => {
             const current = layer.restoreValue ?? 0
-            const next = current >= 5 ? 0 : current + 1
+            const next = current >= 4 ? 0 : current + 1
             revertBuffMods(layer, char, state)
-            const str = 5 - next
+            const str = 4 - next
             const agi = next
             const newMods = applyAttrMods(char, state, { strength: str, agility: agi }, '潮汐内力')
             layer.mods = newMods
@@ -513,11 +513,11 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'heavy_training',
-        name: '玄铁剑法',
-        description: '以力驭剑，化繁为简。重型武器身法负担减半，招式AP消耗-0.4（最低1）。',
+        name: '玄剑',
+        description: '以力驭剑，化繁为简。重型武器身法负担减半，招式AP消耗-0.2（最低1）。',
         tags: [],
         expiry: { type: 'permanent' },
-        onActionCost: () => -0.4,
+        onActionCost: () => -0.2,
     },
     {
         id: 'santou_liubi',

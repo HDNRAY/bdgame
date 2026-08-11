@@ -71,6 +71,8 @@ export function describeEffect(eff: EffectDef): string[] {
             return ['窃取对手一件奇物']
         case 'self_damage':
             return [`自伤: 当前HP×${eff.ratio}`]
+        case 'self_hp_cost':
+            return [`消耗当前气血${(eff.ratio * 100).toFixed(0)}%`]
         case 'cleanse':
             return eff.buffIds && eff.buffIds.length > 0 ? [`净化: ${eff.buffIds.join(', ')}`] : ['净化所有负面状态']
         case 'dodge_mod':
@@ -146,7 +148,7 @@ export function describeEffect(eff: EffectDef): string[] {
         case 'functional_heal':
             return ['函数回复: 视条件而定']
         case 'self_disarm':
-            return ['自卸武器']
+            return [eff.dropAt === 'opponent' ? '自卸武器（兵器飞向对手）' : '自卸武器']
         case 'copy_best_passive':
             return ['复制对手功法']
         case 'stat_ratio': {

@@ -282,7 +282,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'stance_time',
         name: '转换时刻',
-        description: '进入架势时罡气护体，2秒内免疫眩晕、击退、打断、缴械、击倒。',
+        description: '进入架势时罡气护体，5秒内免疫眩晕、击退、打断、缴械、击倒，并减伤10%。',
         tags: ['buff', 'defense'],
         triggers: [
             {
@@ -395,8 +395,20 @@ export const PASSIVES: Passive[] = [
     {
         id: 'tide_inner_power',
         name: '潮汐内力',
-        description: '内力如潮汐般涨落，每回合交替以力道或身法驱动招式。',
+        description: '内力如潮汐般涨落，每回合交替以力道或身法驱动招式。身法惩罚一律减半，且身法不为负。',
         tags: ['passive', 'buff', 'qi'],
+        effects: [
+            {
+                type: 'stat_restriction',
+                check: (_char, attr, cur, delta) => {
+                    if (attr !== 'agility' || delta >= 0) return null
+                    // 无论来源一律减半，但最终身法不为负
+                    const after = cur + delta / 2
+                    const clamped = Math.max(after, 0)
+                    return { delta: Math.round((clamped - cur) * 10) / 10 }
+                },
+            },
+        ],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tide_power', stacks: 0 }] },
         ],

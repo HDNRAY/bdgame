@@ -35,6 +35,9 @@ function makeChar(id: string, name: string): Character {
 const atk = makeChar('A', '甲')
 const def = makeChar('B', '乙')
 const weaponRange = getWeapon(WEAPON_ID).range
+// 基准武器模拟为重型（heavy）：燎天势等按重型武器加成的招式在对比中体现
+const baseWeapon = getWeapon(WEAPON_ID)
+atk.weaponDef = { ...baseWeapon, tags: [...baseWeapon.tags, 'heavy'] }
 
 // 万法归一：fn 依赖 weaponDef.summon，无召唤物时估算为 0 → 挂合成御物武器按 4 个飞剑召唤物估
 const WANFA_SUMMON_WEAPON: WeaponDef = {
@@ -70,6 +73,8 @@ const RANGE_BONUS_PER_STEP = 0.05
 const DASH_BONUS = 0.25
 /** 增益（add_buff）每层价值分 */
 const BUFF_VALUE = 0.3
+/** 自缴械惩罚（self_disarm：丢武器，重度自伤） */
+const SELF_DISARM_PENALTY = 1
 
 // debuff 价值：每层 × 几率 × 权重，折算进总分（效率点口径）。
 // DoT(burn/poison/bleed) 引擎已把 stacks×3 计入期望伤，权重从低避免重复；控制类 debuff 权重高。
@@ -132,7 +137,8 @@ function buildRow(a: ActionDefinition, rawAp: number, label?: string) {
     const dashBonus = hasDash ? DASH_BONUS : 0
     const buff = buffValue(a)
     const debuff = debuffValue(a)
-    const score = Math.round((efficiency + distanceBonus + dashBonus + buff + debuff + exec) * 100) / 100
+    const selfDisarm = (a.effects ?? []).some((e) => e.type === 'self_disarm') ? SELF_DISARM_PENALTY : 0
+    const score = Math.round((efficiency + distanceBonus + dashBonus + buff + debuff + exec - selfDisarm) * 100) / 100
     return {
         a,
         label: label ?? a.name,
@@ -145,6 +151,7 @@ function buildRow(a: ActionDefinition, rawAp: number, label?: string) {
         buff,
         debuff,
         exec,
+        selfDisarm,
         score,
     }
 }
@@ -174,7 +181,7 @@ console.log(
     `效率 = 期望伤 / (折前AP + 缠权重 ${CHAN_WEIGHT} × 缠)；${AP_COST}AP招折前AP=${AP_COST}${extraNote}；得分 = 效率 + 距离(射程>4每档+0.05) + 位移(+0.25) + buff(每层${BUFF_VALUE}) + debuff(层×几率×权重) + exec(25%斩杀档)`,
 )
 const tableData: Record<string, Record<string, string | number>> = {}
-for (const { label, est, efficiency, distanceBonus, dashBonus, buff, debuff, exec, score } of rows) {
+for (const { label, est, efficiency, distanceBonus, dashBonus, buff, debuff, exec, selfDisarm, score } of rows) {
     tableData[label] = {
         缠: est.chanCost,
         期望伤: Math.round(est.expectedDamage * 10) / 10,
@@ -184,6 +191,7 @@ for (const { label, est, efficiency, distanceBonus, dashBonus, buff, debuff, exe
         buff: buff > 0 ? `+${buff.toFixed(2)}` : '—',
         debuff: debuff > 0 ? `+${debuff.toFixed(2)}` : '—',
         exec: exec > 0 ? `+${exec.toFixed(2)}` : '—',
+        自缴: selfDisarm > 0 ? `-${selfDisarm.toFixed(2)}` : '—',
         得分: score,
     }
 }
@@ -191,6 +199,7 @@ console.table(tableData)
 console.log(
     '注：期望伤=引擎 calcExpectedDamage；含残血/破甲；距离=射程>4每档+0.05；位移=带位移+0.25；buff=add_buff每层×' +
         BUFF_VALUE +
-        '；debuff=层×几率×权重；exec=25%斩杀档提升',
+        '；debuff=层×几率×权重；exec=25%斩杀档提升；自缴=self_disarm -' +
+        SELF_DISARM_PENALTY,
 )
 console.log(`缠权重可用参数覆盖：npx tsx scripts/compare-ap.ts ${AP_COST} 1`)

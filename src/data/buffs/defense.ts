@@ -228,10 +228,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'stance_armor',
         name: '罡体',
-        description: '刚体护身，免疫眩晕、击退、打断、缴械、击倒。',
+        description: '刚体护身，免疫眩晕、击退、打断、缴械、击倒，并减伤10%。',
         tags: ['super_armor', 'defense'],
         expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
+        onTakeDamage: ({ final }) => round1(final * 0.9),
         onReceiveDebuff: (ctx) => {
             if (['stun', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
             return undefined

@@ -244,6 +244,18 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             tags: ['self_damage'],
         })
     },
+    self_hp_cost({ eff, self, engine }: EffectCtx) {
+        // 血引类：按当前气血比例扣（pre-hit，miss 也耗血）
+        const { ratio } = eff as Extract<EffectDef, { type: 'self_hp_cost' }>
+        const cost = Math.round(self.hp * ratio)
+        if (cost <= 0) return
+        self.takeDamage(cost)
+        engine.emitLog({
+            type: 'system',
+            message: `[操血] ${BattleLog.name(self.name)} 消耗${cost}气血`,
+            actorId: self.id,
+        })
+    },
     missing_hp_damage({ eff, self, enemy, engine, action, triggered }: EffectCtx) {
         const { ratio } = eff as Extract<EffectDef, { type: 'missing_hp_damage' }>
         const dmg = Math.round((enemy.maxHp - enemy.hp) * ratio)
@@ -607,7 +619,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 真假无用等 onStackGain：additive 首次叠层也扣资源（缠不够则本次不叠）
         const appliedStacks =
             buff?.stacking?.type === 'additive' ? applyStackGainCost(engine, self, e.buffId, stacks) : stacks
-        if (appliedStacks <= 0) return
+        // additive 叠层被 onStackGain 拦截（0）时跳过；非 additive 的 stacks:0（tide_power/七十二变等 tick 循环 buff）仍需建层
+        if (appliedStacks <= 0 && buff?.stacking?.type === 'additive') return
         const firstResult = applyScaledAttrMods(buff!, appliedStacks, self, engine.state)
         const mods: Record<string, number> = { ...firstResult.mods }
         if (buff?.maxApMod) {
@@ -794,7 +807,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const key = `disarmed::${enemy.id}`
         if (engine.state.pendingBuffs.has(key)) return
 
-        // 记录掉落位置
+        // 记录掉落位置（缴对手武器掉原地）
         const dropPosition = engine.state.position.get(enemy.id)
         revertWeaponStatBuffs(oldWeapon, enemy, engine)
         clearWeaponBuffLayers(enemy.id, engine)
@@ -809,7 +822,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.emit('on_disarm', self, enemy)
         engine.emit('on_disarmed', enemy, self)
     },
-    self_disarm({ self, engine, action }: EffectCtx) {
+    self_disarm({ self, engine, action, eff }: EffectCtx) {
         const oldWeapon = self.weaponDef ?? getWeapon(self.build.weapon)
         if (oldWeapon.id === 'bare_hands') return
         if (oldWeapon.tags.includes('imperial')) return
@@ -817,7 +830,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         // 保存原始武器信息
         const originalWeapon = oldWeapon.id
-        const dropPosition = engine.state.position.get(self.id)
+        // self_disarm 声明 dropAt:'opponent'（燎天势顺势脱手）：武器飞向对手所在位置；默认掉自己脚边
+        const e = eff as Extract<EffectDef, { type: 'self_disarm' }>
+        const opponent = engine.getOpponent(self.id)
+        const dropPosition =
+            e.dropAt === 'opponent' && opponent
+                ? engine.state.position.get(opponent.id)
+                : engine.state.position.get(self.id)
 
         // 换空手（复用已有 handler）
         processActionEffect(
@@ -837,7 +856,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             actorId: self.id,
         })
 
-        const opponent = engine.getOpponent(self.id)
         engine.emit('on_disarm', self, self)
         if (opponent) {
             engine.emit('on_disarmed', self, opponent)

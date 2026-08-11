@@ -406,15 +406,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [2, 4],
         onActionHitChance: (base) => base + 0.2,
         effects: [
-            {
-                type: 'functional_damage',
-                fn: ({ self }) => {
-                    const cost = Math.round(self.hp * 0.1)
-                    if (cost <= 0) return 0
-                    self.takeDamage(cost)
-                    return Math.round(cost * 0.5)
-                },
-            },
+            // 血引：以血为引，先耗10%当前气血（不受命中影响，miss 也耗血）
+            { type: 'self_hp_cost', ratio: 0.1 },
+            // 血凝成滴射出，造成当前气血5%的伤害（≈所耗之血一半，命中后结算）
+            { type: 'functional_damage', fn: ({ self }) => round1(self.hp * 0.05) },
         ],
     },
     {
@@ -722,13 +717,18 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '离心之势已然极致，顺势脱手。刀如流星，消耗缠劲灌注刀意。',
         requiredTags: ['slash'],
         apCost: 5,
-        chanCost: 20,
+        chanCost: 18,
         tags: ['slash', 'range'],
         getRange: () => [0, 8],
-        canUse: (attacker) => attacker.chan >= 20,
+        canUse: (attacker) => attacker.chan >= 18,
+        onActionHitChance: (base) => base + 0.2,
         effects: [
-            { type: 'damage', scaling: { strength: 0.6, agility: 0.6, dexterity: 0.6 }, base: 20 },
-            { type: 'self_disarm' },
+            // 基础10 + 力/身/巧 scaling（命中结算）
+            { type: 'damage', scaling: { strength: 0.7, agility: 0.7, dexterity: 0.6 }, base: 10 },
+            // 持重型武器（素铁霸刀）时，命中的那一刀额外 +10
+            { type: 'functional_damage', fn: ({ self }) => (self.weaponDef?.tags.includes('heavy') ? 10 : 0) },
+            // 顺势脱手：霸刀如流星飞向对手，落在对手所在位置
+            { type: 'self_disarm', dropAt: 'opponent' },
         ],
     },
     {

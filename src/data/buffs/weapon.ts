@@ -11,7 +11,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { agility: -6, strength: 6 },
-        onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.4 : 0.2),
+        onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.5 : 0.2),
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
             const reduced = round1(blocked * 0.4)
