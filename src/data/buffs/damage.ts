@@ -325,19 +325,23 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'blood_thorn_suppress',
         name: '血棘·压制',
-        description: '暴击时向创口渡入棘炁，爆伤按 7:1 转化为流血。',
+        description: '暴击时向创口渡入棘炁，爆伤按 10:1 转化为流血。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onAfterCritDamage: ({ damage, critDamage, attacker, target, engine, state }) => {
-            if (!engine) return 0
-            const extraDamage = critDamage - damage
-            const bleedStacks = Math.max(1, Math.round(extraDamage / 7))
-            processActionEffect(
-                { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },
-                { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
-            )
-            return extraDamage
+        // 血棘戒：priority 最高 → 最后结算，读到的 final 是其他钩子处理后的完整伤害
+        priority: 99,
+        onAfterCritDamage: ({ damage, final, attacker, target, engine, state }) => {
+            const extraDamage = final - damage
+            const bleedStacks = Math.max(1, Math.round(extraDamage / 10))
+            if (engine) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },
+                    { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
+                )
+            }
+            // 返回全量 = 没暴击的值：多出的爆伤按 10:1 全转流血，本次不再造成暴击伤害
+            return damage
         },
     },
     {

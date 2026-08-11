@@ -2,6 +2,8 @@ import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../engine'
 import type { ActionDefinition } from '../../entities/action'
 import type { GameEntity } from '../../entities/base'
+import type { BuffDef } from '../../../data/buffs/types'
+import type { BuffLayer } from '../types'
 import {
     calcCritChance,
     calcBaseCritDamage,
@@ -153,17 +155,23 @@ export function applyDamage({
         }
     }
 
-    // onAfterCritDamage 钩子：暴击后、实施伤害前，可将部分爆伤转为其他效果
+    // onAfterCritDamage 钩子：暴击后、实施伤害前，可将爆伤转为其他效果
+    // 返回全量：钩子返回本次暴击应造成的完整伤害，引擎以该值覆盖（按 priority 升序链式，final 传入当前值）
     if (isCrit) {
         const damage = afterParry + totalPiercing
         const critDamage = afterCrit + totalPiercing
-        let converted = 0
+        let finalCrit = critDamage
+        const critHooks: { def: BuffDef; layer: BuffLayer }[] = []
         forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
             if (!def?.onAfterCritDamage) return
-            converted += def.onAfterCritDamage({
+            critHooks.push({ def, layer })
+        })
+        critHooks.sort((a, b) => (a.def.priority ?? 0) - (b.def.priority ?? 0))
+        for (const { def, layer } of critHooks) {
+            finalCrit = def.onAfterCritDamage!({
                 damage,
                 critDamage,
-                final: critDamage,
+                final: finalCrit,
                 raw,
                 target,
                 attacker,
@@ -172,10 +180,8 @@ export function applyDamage({
                 layer,
                 source: act,
             })
-        })
-        if (converted > 0) {
-            final -= Math.min(converted, critDamage - damage)
         }
+        final = finalCrit + piercingRatioTotal
     }
 
     target.takeDamage(final, engine)

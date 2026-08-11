@@ -234,7 +234,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 0,
         tags: ['summon', 'blunt', 'polearm'],
-        effects: [{ type: 'damage', scaling: { strength: 0.3 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.25 } }],
     },
     {
         id: '_flying_lion_roar',

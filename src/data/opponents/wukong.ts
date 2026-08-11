@@ -24,8 +24,5 @@ export const WUKONG: OpponentDef = {
         artifact('pu_ti_tou_huan'),
         // 12
     ],
-    actionConfigs: [
-        { actionId: 'stand_rod_kick', triggerId: 'on_dodged' },
-        // { actionId: 'rod_thrust', triggerId: 'on_parried' },
-    ],
+    actionConfigs: [{ actionId: 'stand_rod_kick', triggerId: 'on_dodged' }],
 }

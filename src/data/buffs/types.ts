@@ -50,6 +50,8 @@ export interface BuffDef extends GameEntity {
     expiry?: BuffExpiry
     /** 叠层行为 */
     stacking?: BuffStacking
+    /** 同类型钩子处理优先级（默认 0，越小越先执行；用于 onAfterCritDamage 等「返回全量覆盖」钩子，保证某 buff 最后/最先处理） */
+    priority?: number
     /** 每层属性修正 */
     attrMods?: Record<string, number>
     /** 每层最大 AP 修正 */
@@ -110,7 +112,7 @@ export interface BuffDef extends GameEntity {
     onCritTakenDamage?: (ctx: BuffHookCtx) => number
     /** 暴击伤害修正钩子（applyDamage 暴击判定时自动调用，返回加算值） */
     onCritDamage?: (ctx: BuffHookCtx) => number
-    /** 暴击伤害后钩子（计算完爆伤后、实施伤害前调用，返回要扣除的伤害量，用于将爆伤转为其他效果）。 */
+    /** 暴击伤害后钩子（计算完爆伤后、实施伤害前调用，返回本次暴击应造成的完整伤害量，引擎以该值覆盖；返回 damage 保留非暴击部分，返回 0 完全转为其他效果）。多个此类钩子按 priority 升序链式执行，priority 大者最后，可读取前序结算后的 final。 */
     onAfterCritDamage?: (ctx: AfterCritDamageCtx) => number
     /** 回合结束回调（turn_end 时调用，不依赖命中） */
     onTurnEnd?: (ctx: BuffHookCtx) => void
@@ -173,4 +175,5 @@ export interface AfterCritDamageCtx extends BuffHookCtx {
     damage: number
     /** 暴击加成后的完整伤害 */
     critDamage: number
+    /** 当前覆盖值：多钩子链式时传入上一钩子返回的全量，首个等于 critDamage（继承自 BuffHookCtx.final） */
 }
