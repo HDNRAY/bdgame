@@ -794,13 +794,13 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'thunder_storm',
         name: '雷蛇',
-        description: '引天雷入体，爆发万钧雷光。需要20层[缠]才可释放。',
+        description: '以炁化雷，电蛇出击，麻痹对手。',
         requiredTags: [],
-        apCost: 6,
+        apCost: 5,
         tags: ['electric', 'stun'],
         getRange: () => [0, 3] as [number, number],
-        chanCost: 20,
-        canUse: (attacker) => attacker.chan >= 20,
+        chanCost: 18,
+        canUse: (attacker) => attacker.chan >= 18,
         effects: [
             { type: 'damage', scaling: { wisdom: 1.2 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
@@ -969,13 +969,14 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'dao_ma_dan',
         name: '刀马旦',
-        description: '入戏。消耗50缠劲进入刀马旦状态，持续25秒。期间力道身法灵巧各+2，招式带炁，射程+1。',
+        description: '入戏。消耗30缠劲进入刀马旦状态，持续15秒。期间力道身法灵巧各+1，招式带炁，回复内息与气血。',
         requiredTags: ['polearm'],
         apCost: 3,
-        chanCost: 50,
+        chanCost: 30,
         tags: ['buff', 'pre_action', 'qi'],
         target: 'self',
-        maxUses: 1,
+        // 入戏中不能重复释放（有 buff 时禁用）
+        canUse: (attacker, state) => !state.pendingBuffs.has(`dao_ma_dan::${attacker.id}`),
         effects: [{ type: 'add_buff', buffId: 'dao_ma_dan' }],
     },
     // ── 钝器系 ──

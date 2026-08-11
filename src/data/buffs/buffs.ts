@@ -1236,12 +1236,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'dao_ma_dan',
         name: '刀马旦',
-        description: '入戏状态，力道身法灵巧各+1，招式带炁，AP恢复+10%。',
+        description: '入戏状态，力道身法灵巧各+1，招式带炁，AP恢复+10%，并持续回复气血。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 25000 },
+        expiry: { type: 'duration', ms: 15000 },
         stacking: { type: 'none' },
         attrMods: { strength: 1, agility: 1, dexterity: 1 },
         apRegenPerSec: ({ target }) => Math.round(calcApRegenPerSec(target.attrs.get('wisdom')) * 0.1 * 10) / 10,
+        tickInterval: 2000,
+        onTickHeal: () => 2,
         onRuntimeAction: (_ctx, action) => {
             const tags: Tag[] = action.tags.includes('qi') ? action.tags : [...action.tags, 'qi']
             return { ...action, tags }

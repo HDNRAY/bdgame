@@ -325,7 +325,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'blood_thorn_suppress',
         name: '血棘·压制',
-        description: '暴击时向创口渡入棘炁，爆伤按 10:1 转化为流血。',
+        description: '暴击时向创口渡入棘炁，爆伤按 12:1 转化为流血。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -333,7 +333,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         priority: 99,
         onAfterCritDamage: ({ damage, final, attacker, target, engine, state }) => {
             const extraDamage = final - damage
-            const bleedStacks = Math.max(1, Math.round(extraDamage / 10))
+            const bleedStacks = Math.max(1, Math.round(extraDamage / 12))
             if (engine) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },

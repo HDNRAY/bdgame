@@ -473,7 +473,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'hua_gun',
-        name: '花棍',
+        name: '舞花棍',
         description: '以灵巧驾驭长兵，棍花如屏，可格挡远程攻击。灵巧越高招架远程越强。',
         tags: ['passive', 'defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hua_gun_parry' }] }],

@@ -216,13 +216,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     },
     {
         id: 'hua_gun_parry',
-        name: '花棍',
+        name: '舞花棍',
         description: '灵巧转化为远程招架率。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onParryChance: ({ target, source }) => {
             const dex = target.attrs.get('dexterity')
-            if (!source?.tags.includes('range')) return dex
+            if (!source?.tags.includes('range')) return dex * 0.01
             return dex * 0.02
         },
     },
