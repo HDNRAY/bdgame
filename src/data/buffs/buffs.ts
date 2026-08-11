@@ -454,13 +454,13 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         // 自身受灼烧 tick 减半（过热/永久灼烧走 tick_buff 另一条路径，不受影响）
-        onDebuffTick: ({ debuffId, damage }) => {
-            if (debuffId !== 'burn') return undefined
+        onDebuffTick: ({ buffId, damage }) => {
+            if (buffId !== 'burn') return undefined
             return Math.max(0, round1(damage * 0.5))
         },
         // 施加灼烧时直接叠加层数（wis≥15 +2，否则 +1；直接改 restoreValue，无递归）
-        onDebuffApplied: ({ self, enemy, engine, debuffId }) => {
-            if (debuffId !== 'burn') return
+        onDebuffApplied: ({ self, enemy, engine, buffId }) => {
+            if (buffId !== 'burn') return
             const extra = self.attrs.get('wisdom') >= 15 ? 2 : 1
             const key = `burn::${enemy.id}`
             const layer = engine.state.pendingBuffs.get(key)
@@ -1026,8 +1026,9 @@ export const BUFF_DB: BuffDef[] = [
         description: '所有施加的中毒伤害翻倍。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDebuffApplied: ({ layer, debuffId }) => {
-            if (debuffId === 'poison' && layer.extra) layer.extra.poisonMult = 2
+        onDebuffApplied: ({ layer, buffId }) => {
+            if (!layer || buffId !== 'poison') return
+            if (layer.extra) layer.extra.poisonMult = 2
         },
     },
     // ── 内息澎湃（AP回复倍率） ──
@@ -1077,8 +1078,8 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onDebuffApplied: ({ debuffId, self, enemy, engine }) => {
-            if (debuffId !== 'poison' || !engine) return
+        onDebuffApplied: ({ buffId, self, enemy, engine }) => {
+            if (buffId !== 'poison' || !engine) return
             processActionEffect(
                 { type: 'add_debuff', buffId: 'weakness', stacks: 1, chance: 1 },
                 { self, enemy, engine, tMs: engine.state.turn.currentTime },
@@ -1162,8 +1163,8 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onDebuffApplied: ({ debuffId, self, enemy, engine }) => {
-            if (debuffId !== 'poison' || !engine) return
+        onDebuffApplied: ({ buffId, self, enemy, engine }) => {
+            if (buffId !== 'poison' || !engine) return
             processActionEffect(
                 { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
                 { self, enemy, engine, tMs: engine.state.turn.currentTime },

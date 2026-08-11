@@ -177,7 +177,7 @@ export class TickEngine {
         forEachBuffOf(engine.state.pendingBuffs, charId, (bDef, layer2) => {
             if (!bDef?.onDebuffTick) return
             const result = bDef.onDebuffTick({
-                debuffId: 'poison',
+                buffId: 'poison',
                 target: char,
                 damage: finalDmg,
                 engine,
@@ -247,7 +247,7 @@ export class TickEngine {
         forEachBuffOf(engine.state.pendingBuffs, charId, (bDef, layer2) => {
             if (!bDef?.onDebuffTick) return
             const result = bDef.onDebuffTick({
-                debuffId: 'burn',
+                buffId: 'burn',
                 target: char,
                 damage: finalDmg,
                 engine,
@@ -303,7 +303,7 @@ export class TickEngine {
             forEachBuffOf(engine.state.pendingBuffs, owner.id, (bDef, layer2) => {
                 if (!bDef?.onDebuffTick) return
                 const result = bDef.onDebuffTick({
-                    debuffId: 'bleed',
+                    buffId: 'bleed',
                     target: owner,
                     damage: finalDmg,
                     engine,

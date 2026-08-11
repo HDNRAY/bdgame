@@ -131,7 +131,7 @@ export interface BuffDef extends GameEntity {
     /** 攻击者施加 debuff 时回调（遍历攻击者身上的 buff 调用） */
     onDebuffApplied?: (ctx: DebuffApplyCtx) => void
     /** 自身受到 debuff 时回调（返回 0=完全抵抗，>0=削减到该层数，undefined=不干预） */
-    onReceiveDebuff?: (ctx: ReceiveDebuffCtx) => number | undefined
+    onReceiveDebuff?: (ctx: DebuffApplyCtx) => number | undefined
     /** 运行时招式修正（每次 getRuntimeAction 时链式调用，可用于改 tags/range 等） */
     onRuntimeAction?: (ctx: BuffHookCtx, action: RuntimeAction) => RuntimeAction
     /** 额外攻击钩子（返回额外攻击次数，AI 自动循环调用 pickBestSecondary） */
@@ -140,24 +140,17 @@ export interface BuffDef extends GameEntity {
     logFormat?: (layer: BuffLayer, targetName: string) => string | undefined
 }
 
-/** onDebuffApply 钩子上下文 */
+/** debuff 事件上下文（onDebuffApply / onDebuffApplied / onReceiveDebuff 共用） */
 export interface DebuffApplyCtx {
     self: Character
     enemy: Character
     engine: BattleEngine
+    /** 本次 debuff 层数 */
     stacks: number
-    layer: BuffLayer
-    /** 被应用的 debuff ID */
-    debuffId?: string
-}
-
-/** onReceiveDebuff 钩子上下文 */
-export interface ReceiveDebuffCtx {
-    self: Character
-    enemy: Character
-    engine: BattleEngine
+    /** debuff ID */
     buffId: string
-    stacks: number
+    /** debuff 的层数据（onReceiveDebuff 在施加前调用，无 layer） */
+    layer?: BuffLayer
 }
 
 /** onStackGain 钩子上下文 */
@@ -174,7 +167,7 @@ export interface StackGainCtx {
 /** DOT tick 回调上下文（onDebuffTick） */
 export interface DebuffTickCtx {
     /** 正在 tick 的 DOT debuff ID（'burn'/'poison'/'bleed'） */
-    debuffId: string
+    buffId: string
     /** 受害者 */
     target: Character
     /** 本次 tick 的原始伤害值（可修改） */

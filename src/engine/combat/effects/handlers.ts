@@ -456,10 +456,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             engine.emit('on_debuff', enemy, self)
             emitPerDebuff(engine, e.buffId, self, enemy)
             // debuff 自定钩子（设置 extra 数据）
-            buff.onDebuffApply?.({ self, enemy, engine, stacks, layer: existing, debuffId: e.buffId })
+            buff.onDebuffApply?.({ self, enemy, engine, stacks, layer: existing, buffId: e.buffId })
             // 遍历攻击者的 buff，触发 onDebuffApplied 钩子
             forEachBuffOf(engine.state.pendingBuffs, self.id, (bDef) => {
-                bDef?.onDebuffApplied?.({ self, enemy, engine, stacks, layer: existing, debuffId: e.buffId })
+                bDef?.onDebuffApplied?.({ self, enemy, engine, stacks, layer: existing, buffId: e.buffId })
             })
             tickEngine.afterApplyDebuff({
                 enemy,
@@ -507,11 +507,11 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         emitPerDebuff(engine, e.buffId, self, enemy)
 
         // debuff 自定钩子（设置 extra 数据）
-        buff.onDebuffApply?.({ self, enemy, engine, stacks, layer, debuffId: e.buffId })
+        buff.onDebuffApply?.({ self, enemy, engine, stacks, layer, buffId: e.buffId })
 
         // 遍历攻击者的 buff，触发 onDebuffApplied 钩子
         forEachBuffOf(engine.state.pendingBuffs, self.id, (bDef) => {
-            bDef?.onDebuffApplied?.({ self, enemy, engine, stacks, layer, debuffId: e.buffId })
+            bDef?.onDebuffApplied?.({ self, enemy, engine, stacks, layer, buffId: e.buffId })
         })
 
         // 后处理（stun/poison/burn 额外逻辑）
