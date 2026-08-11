@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive } from '../../engine/util/reward-utils'
+import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
 const JUNSHI_ATTRS = { strength: 4, vitality: 16, agility: 10, dexterity: 14, insight: 16, wisdom: 20 }
 
@@ -20,9 +20,10 @@ export const JUNSHI: OpponentDef = {
         action('agility_steal'),
         action('summon_haste'),
         action('wan_fa_gui_yi'),
+        weapon('floating_silk'),
         // 天生道种
         artifact('innate_seed'),
-        // 11 + 1
+        // 12
     ],
     actionConfigs: [
         { actionId: 'condense_shield', triggerId: 'on_took_damage' },

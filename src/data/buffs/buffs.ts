@@ -592,12 +592,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yuxin_sword_mastery',
         name: '真假无用',
-        description: '双剑合璧，所有可叠层 buff 上限翻倍，但每次叠层消耗1缠。',
+        description: '所有可叠层 buff 上限翻倍，但每次叠层消耗2缠。',
         tags: [],
         expiry: { type: 'permanent' },
         onBuffApply: (raw) => raw * 2,
         onStackGain: ({ char, delta, engine }) => {
-            const cost = delta * 1
+            const cost = delta * 2
             if (char.chan < cost) return 0
             char.spendChan(cost)
             engine?.emitLog({

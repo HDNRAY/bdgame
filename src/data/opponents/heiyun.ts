@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive } from '../../engine/util/reward-utils'
+import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
 const HEIYUN_ATTRS = { strength: 8, vitality: 14, agility: 12, dexterity: 12, insight: 14, wisdom: 18 }
 
@@ -19,7 +19,8 @@ export const HEIYUN: OpponentDef = {
         action('one_night_dance'),
         action('ling_qi_guan_zhu'),
         action('condense_shield'),
-        // 10 + 1
+        weapon('fei_jian'),
+        // 11
     ],
     actionConfigs: [
         { actionId: 'ling_qi_guan_zhu', conditionId: 'always' },

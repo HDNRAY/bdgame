@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact } from '../../engine/util/reward-utils'
+import { action, artifact, weapon } from '../../engine/util/reward-utils'
 
 const XUANJI_ATTRS = { strength: 6, vitality: 10, agility: 12, dexterity: 15, insight: 15, wisdom: 18 }
 
@@ -20,7 +20,8 @@ export const XUANJI: OpponentDef = {
         action('restore_ap'),
         action('summon_haste'),
         action('agility_steal'),
-        // 10 + 1
+        weapon('tri_orb'),
+        // 11
     ],
     actionConfigs: [
         { actionId: 'qi_blade', triggerId: 'on_opponent_move_closer' },

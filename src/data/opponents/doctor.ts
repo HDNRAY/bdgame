@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive } from '../../engine/util/reward-utils'
+import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
 const DOCTOR_ATTRS = { strength: 4, vitality: 10, agility: 6, dexterity: 18, insight: 16, wisdom: 18 }
 
@@ -21,7 +21,8 @@ export const DOCTOR: OpponentDef = {
         action('drone_paralyze'),
         artifact('combat_armor'),
         passive('wheelchair_lightness'),
-        // 10
+        weapon('hover_drone'),
+        // 11
     ],
     actionConfigs: [
         { actionId: 'drone_paralyze', triggerId: 'on_summon_hit' },
