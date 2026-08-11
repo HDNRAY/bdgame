@@ -59,14 +59,14 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_dominion' }] }],
     },
     {
-        id: 'nine_deaths',
-        name: '九死剑诀',
-        description: '虽九死而不悔，伤势越重，剑意越强。',
+        id: 'last_sword',
+        name: '绝剑诀',
+        description: '绝境之剑，伤势越重，剑意越强。',
         tags: ['qi', 'damage'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'last_stand', stacks: 0.3 }],
+                effects: [{ type: 'add_buff', buffId: 'last_stand', stacks: 0.2 }],
             },
         ],
     },

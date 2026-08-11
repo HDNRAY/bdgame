@@ -7,14 +7,15 @@ import { round1 } from '../../engine/util/math'
 export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'last_stand',
-        name: '九死剑诀',
-        description: '损失血量增伤。',
+        name: '绝剑',
+        description: '损失血量越多，暴击伤害越高。',
         tags: ['damage'],
-        onDealDamage: ({ final, attacker, layer }) => {
+        onCritDamage: ({ attacker, layer }) => {
             const ratio = layer.restoreValue
-            if (ratio <= 0 || attacker.hp >= attacker.maxHp) return final
+            if (ratio <= 0 || attacker.hp >= attacker.maxHp) return 0
             const missingRatio = 1 - attacker.hp / attacker.maxHp
-            return Math.round(final * (1 + missingRatio * ratio) * 10) / 10
+            // 残血爆伤：残血越多暴击越痛（九死·加很多）
+            return round1(missingRatio * ratio * 10)
         },
     },
     {
@@ -123,12 +124,12 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'ji_lie_zhi_lie_buff',
         name: '极烈',
-        description: '受击愈烈，每层暴击率+3%，最多5层。',
+        description: '受击愈烈，每层暴击率+3%，最多7层。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 5 },
+        stacking: { type: 'additive', max: 7 },
         onTakeDamage: ({ final, layer }) => {
-            layer.restoreValue = Math.min(5, (layer.restoreValue ?? 0) + 1)
+            layer.restoreValue = Math.min(7, (layer.restoreValue ?? 0) + 1)
             return final
         },
         onCritChance: ({ layer }) => (layer.restoreValue ?? 0) * 0.03,
@@ -136,12 +137,18 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'tongtian',
         name: '通天大物',
-        description: '悟生离死别，所有伤害受推演按AP加成。',
+        description: '悟生离死别，攻击命中时有概率令对手不幸缠身。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, source }) => {
-            const bonus = attacker.attrs.get('wisdom') * ((source as ActionDefinition)?.apCost ?? 1) * 0.1
-            return Math.round((final + bonus) * 10) / 10
+        onDealDamage: ({ final, attacker, target, engine, state }) => {
+            // 攻击造成伤害时概率上「不幸」（降敌命中/闪避/招架/暴击）
+            if (engine && Math.random() < 0.3) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'bu_xing', stacks: 1, chance: 1 },
+                    { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
+                )
+            }
+            return final
         },
     },
     {

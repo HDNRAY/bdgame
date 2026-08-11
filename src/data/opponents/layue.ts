@@ -10,7 +10,7 @@ export const LAYUE: OpponentDef = {
     targetAttrs: LAYUE_ATTRS,
     rewards: [
         action('cun_mang'),
-        passive('nine_deaths'),
+        passive('last_sword'),
         action('nine_deaths_strike'),
         passive('sword_intent_tempering'),
         weapon('fusi_sword'),
@@ -19,11 +19,9 @@ export const LAYUE: OpponentDef = {
         weapon('buer_sword'),
         passive('tongtian'),
         artifact('innate_seed'),
-        // 10
+        action('cang_niao_jian_fa'),
+        // 剑丸
+        // 11
     ],
-    actionConfigs: [
-        { actionId: 'nine_deaths_strike' }, // AI 出招顺序
-        { actionId: 'nine_deaths_strike', triggerId: 'on_opponent_move_away' },
-        { actionId: 'cun_mang', triggerId: 'on_parried' },
-    ],
+    actionConfigs: [{ actionId: 'cun_mang', triggerId: 'on_parried' }],
 }

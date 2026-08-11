@@ -105,16 +105,10 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'buer_sword',
         name: '不二剑灵',
-        description: '起手暴击大增但身法略滞，逐回合恢复。',
+        description: '最快的剑之一，出剑必中要害，暴击率+15%。',
         tags: ['weapon', 'damage'],
         expiry: { type: 'permanent' },
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.1,
-        onDodgeChance: ({ layer }) => -(layer.restoreValue * 0.01),
-        onTurnEnd: ({ layer }) => {
-            if (layer.restoreValue > 0) {
-                layer.restoreValue = Math.max(0, layer.restoreValue - 1)
-            }
-        },
+        onCritChance: () => 0.15,
     },
     {
         id: 'iron_back_buff',

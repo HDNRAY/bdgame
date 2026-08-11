@@ -66,13 +66,10 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'fusi_sword',
         name: '弗思剑',
-        description: '最快的剑之一，闪避后本能蓄势。',
+        description: '最快的剑之一，闪避后身随意动，回复内息。',
         tags: ['pierce', 'slash', 'parry', 'melee', 'one_handed'],
         range: [1, 3],
-        triggers: [
-            { condition: { type: 'on_dodge' }, actionId: '_fusi_crit_stack' },
-            { condition: { type: 'on_crit' }, actionId: '_fusi_reset' },
-        ],
+        triggers: [{ condition: { type: 'on_dodge' }, effects: [{ type: 'restore_ap', value: 0.5 }] }],
     },
     {
         id: 'zantetsu',

@@ -1121,11 +1121,25 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'sword_dominion',
         name: '御剑诀',
-        description: '以炁御剑，剑随意动。延长攻击距离。',
+        description: '以炁御剑，剑随意动。延长攻击距离，招式附加内息伤害。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
+        onDealDamage: ({ final, source }) => {
+            // 固定附加：每点招式 AP 成本 +2 伤害（不关联推演）
+            const ap = (source as ActionDefinition | undefined)?.apCost ?? 0
+            return final + ap
+        },
+    },
+    {
+        id: 'cang_niao_buff',
+        name: '苍鸟',
+        description: '苍鸟掠空，内息流转。AP回复+0.5/s。',
+        tags: ['buff', 'qi'],
+        expiry: { type: 'duration', ms: 9000 },
+        stacking: { type: 'none' },
+        apRegenPerSec: () => 0.5,
     },
     {
         id: 'chanzi_chan_regen',

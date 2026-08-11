@@ -376,4 +376,16 @@ export const DEBUFF_DB: BuffDef[] = [
             return round1(atk.attrs.get('vitality') * 0.5)
         },
     },
+    {
+        id: 'bu_xing',
+        name: '不幸',
+        description: '厄运缠身，命中、闪避、招架、暴击-4%。',
+        tags: ['debuff'],
+        expiry: { type: 'duration', ms: 7000 },
+        stacking: { type: 'none' },
+        onHitChance: () => -0.04,
+        onDodgeChance: () => -0.04,
+        onParryChance: () => -0.04,
+        onCritChance: () => -0.04,
+    },
 ]
