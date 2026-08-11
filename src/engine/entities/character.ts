@@ -69,8 +69,6 @@ export class Character {
     maxApMod = 0
     maxHpMod = 0
 
-    /** 移动效率倍率（0.2 = +20% 每AP移动距离） */
-    moveEfficiency = 0
     /** 战斗风格（构建时按武器自动决定，不走 build.battleStyle fallback） */
     battleStyle: AttackStyle
     /** 身法相关独立加速（凌波微步等） */
@@ -501,10 +499,6 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
     max_hp_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'max_hp_mod' }>
         char.maxHpMod += e.value
-    },
-    move_efficiency(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'move_efficiency' }>
-        char.moveEfficiency += e.value
     },
     trigger_slot_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'trigger_slot_mod' }>

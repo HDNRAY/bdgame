@@ -86,6 +86,8 @@ export interface BuffDef extends GameEntity {
     onDodgeChance?: (ctx: BuffHookCtx) => number
     /** AP 消耗修正钩子（返回加算值，负=更省，最低1） */
     onActionCost?: (ctx: BuffHookCtx) => number
+    /** 移动效率修正钩子（返回加算值，0.1 = +10% 每AP移动距离；buff 持有者移动时调用） */
+    onMoveEfficiency?: (ctx: BuffHookCtx) => number
     /** 召唤物回合间隔钩子（返回前后摇乘数，<1=加速；御物加速等用） */
     onSummonInterval?: (ctx: BuffHookCtx) => number
     /** 出招回调（释放任何招式时调用，不受命中影响） */
@@ -118,6 +120,8 @@ export interface BuffDef extends GameEntity {
     onTurnEnd?: (ctx: BuffHookCtx) => void
     /** 层数上限覆盖钩子（raw=原始 max，返回覆盖后的新上限） */
     onBuffApply?: (raw: number, char: Character, engine: BattleEngine) => number
+    /** 自身任意可叠层（additive）buff 叠层时回调（返回实际允许新增的层数，0=拦截叠层；可用于扣资源） */
+    onStackGain?: (ctx: StackGainCtx) => number
     /** 收到治疗时回调（所有治疗路径，含 tick heal） */
     onReceiveHeal?: (ctx: BuffHookCtx) => void
     /** 气血变化时回调（任意 hp 变更，含伤害与治疗） */
@@ -154,6 +158,17 @@ export interface ReceiveDebuffCtx {
     engine: BattleEngine
     buffId: string
     stacks: number
+}
+
+/** onStackGain 钩子上下文 */
+export interface StackGainCtx {
+    /** 叠层 buff 持有者 */
+    char: Character
+    /** 正在叠层的 buff ID */
+    buffId: string
+    /** 本次新增层数（已按上限截断，钩子可改为更小值） */
+    delta: number
+    engine: BattleEngine
 }
 
 /** DOT tick 回调上下文（onDebuffTick） */

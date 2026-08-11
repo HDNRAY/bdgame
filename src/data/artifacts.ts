@@ -17,8 +17,13 @@ export const ARTIFACTS: Artifact[] = [
         name: '液压腿',
         description: '液压驱动义腿，爆发力惊人。所有招式附带短距冲刺。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'move_efficiency', value: 0.2 }],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 1 }] }],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 1 }] },
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'hydraulic_leg_speed', stacks: 1 }],
+            },
+        ],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
             return { ...def, effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])] }
@@ -598,8 +603,13 @@ export const ARTIFACTS: Artifact[] = [
         name: '喷气式机动装置',
         description: '天工锻造的喷气推进装置，大幅提升移动能力，免疫击倒。',
         tags: ['craft', 'buff'],
-        effects: [{ type: 'move_efficiency', value: 0.2 }],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rocket_boost' }] }],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rocket_boost' }] },
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'jet_drive_speed', stacks: 1 }],
+            },
+        ],
     },
     // ── 能量护盾 ──
     {

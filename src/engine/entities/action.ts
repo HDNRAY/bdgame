@@ -46,7 +46,6 @@ export type EffectDef =
     // 义体效果
     | { type: 'max_ap_mod'; value: number }
     | { type: 'max_hp_mod'; value: number }
-    | { type: 'move_efficiency'; value: number }
     | { type: 'permanent_burn'; value: number }
     // 功法/奇物效果
     | { type: 'last_stand'; ratio: number }

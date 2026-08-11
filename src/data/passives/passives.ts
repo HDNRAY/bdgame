@@ -469,14 +469,19 @@ export const PASSIVES: Passive[] = [
     {
         id: 'frost_step',
         name: '踏雪',
-        description: '踏雪如履平地，身法轻灵，移动效率+40%。',
+        description: '踏雪如履平地，身法轻灵，移动效率+30%。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'move_efficiency', value: 0.4 }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'frost_step_speed', stacks: 1 }],
+            },
+        ],
     },
     {
         id: 'yuxin_sword_mastery',
         name: '真假无用剑法',
-        description: '双剑合璧，刚柔并济。所有可叠层 buff 上限+2。',
+        description: '双剑合璧，刚柔并济。所有可叠层 buff 上限翻倍，但每次叠层消耗1缠。',
         tags: ['qi', 'passive', 'buff'],
         requireAttrsMin: {},
         triggers: [
@@ -745,7 +750,12 @@ export const PASSIVES: Passive[] = [
         name: '轮椅轻功',
         description: '秘传轮椅术，以炁驱轮，如履平地。移动效率+30%。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'move_efficiency', value: 0.3 }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'wheelchair_speed', stacks: 1 }],
+            },
+        ],
     },
     {
         id: 'sekai_heroism',
@@ -891,8 +901,11 @@ export const PASSIVES: Passive[] = [
         name: '残影步',
         description: '步法如残影，移动时留下虚影迷惑对手。移动效率提升，每次移动叠加闪避。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'move_efficiency', value: 0.2 }],
         triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'can_ying_bu_speed', stacks: 1 }],
+            },
             { condition: { type: 'on_move_away' }, effects: [{ type: 'add_buff', buffId: 'xu_ying', stacks: 1 }] },
             { condition: { type: 'on_move_closer' }, effects: [{ type: 'add_buff', buffId: 'xu_ying', stacks: 1 }] },
         ],

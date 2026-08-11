@@ -81,6 +81,18 @@ function getBuffMaxOverride(buff: BuffDef, engine: BattleEngine, charId: string)
     return override ?? raw
 }
 
+/** 收集角色身上所有 onStackGain 限制，取最小允许的 delta（0=拦截叠层） */
+function applyStackGainCost(engine: BattleEngine, char: Character, buffId: string, delta: number): number {
+    let allowed = delta
+    forEachBuffOf(engine.state.pendingBuffs, char.id, (bDef) => {
+        if (bDef?.onStackGain) {
+            const v = bDef.onStackGain({ char, buffId, delta: allowed, engine })
+            if (v < allowed) allowed = v
+        }
+    })
+    return Math.max(0, Math.floor(allowed))
+}
+
 export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     cleanse({ eff, self, engine }: EffectCtx) {
         const { buffIds } = eff as Extract<EffectDef, { type: 'cleanse' }>
@@ -555,7 +567,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 }
                 return
             }
-            existing.restoreValue = newStacks
+            // 真假无用等 onStackGain：每叠一层扣资源（缠不够则本次不叠）
+            const allowed = applyStackGainCost(engine, self, e.buffId, delta)
+            if (allowed <= 0) return
+            existing.restoreValue += allowed
             // 叠层也续时长：additive 递增同样重新计时（与满层刷新一致）
             if (buff.expiry?.type === 'duration') {
                 engine.state.turn.removeEvents(`buff_end_${key}`)
@@ -563,21 +578,21 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             }
             engine.emitLog({
                 type: 'system',
-                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name)} Lv.${newStacks}${max < Infinity ? `/${max}` : ''}`,
+                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name)} Lv.${existing.restoreValue}${max < Infinity ? `/${max}` : ''}`,
                 actorId: self.id,
             })
             // 再应用 attrMods
-            if (delta > 0) {
-                const result = applyScaledAttrMods(buff!, delta, self, engine.state)
+            if (allowed > 0) {
+                const result = applyScaledAttrMods(buff!, allowed, self, engine.state)
                 if (!existing.mods) existing.mods = {}
                 for (const [attr, v] of Object.entries(result.mods)) {
                     existing.mods[attr] = (existing.mods[attr] ?? 0) + (v as number)
                 }
             }
-            if (buff?.maxApMod && delta > 0) {
-                self.maxApMod += buff.maxApMod * delta
+            if (buff?.maxApMod && allowed > 0) {
+                self.maxApMod += buff.maxApMod * allowed
                 if (!existing.mods) existing.mods = {}
-                existing.mods.maxApMod = (existing.mods.maxApMod ?? 0) + buff.maxApMod * delta
+                existing.mods.maxApMod = (existing.mods.maxApMod ?? 0) + buff.maxApMod * allowed
             }
             engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
             if (buff?.tags.includes('stance')) {
@@ -588,15 +603,19 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
 
         // 首次应用
-        const firstResult = applyScaledAttrMods(buff!, e.stacks ?? 1, self, engine.state)
+        const stacks = e.stacks ?? 1
+        // 真假无用等 onStackGain：additive 首次叠层也扣资源（缠不够则本次不叠）
+        const appliedStacks =
+            buff?.stacking?.type === 'additive' ? applyStackGainCost(engine, self, e.buffId, stacks) : stacks
+        if (appliedStacks <= 0) return
+        const firstResult = applyScaledAttrMods(buff!, appliedStacks, self, engine.state)
         const mods: Record<string, number> = { ...firstResult.mods }
         if (buff?.maxApMod) {
             self.maxApMod += buff.maxApMod
             mods.maxApMod = buff.maxApMod
         }
-        const stacks = e.stacks ?? 1
         // independent 叠层统计当前总层数
-        let totalStacks = stacks
+        let totalStacks = appliedStacks
         if (buff?.stacking?.type === 'independent') {
             const prefix = `${e.buffId}::${self.id}::`
             for (const k of engine.state.pendingBuffs.keys()) {
@@ -608,11 +627,11 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             message: replacedStance
                 ? `切换架势: ${oldStanceName} → ${buff?.name ?? e.buffId}`
                 : firstResult.details.length
-                  ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${firstResult.details.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`
-                  : `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)}${buff?.stacking?.type === 'additive' ? ` Lv.${stacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`,
+                  ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${firstResult.details.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${appliedStacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`
+                  : `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)}${buff?.stacking?.type === 'additive' ? ` Lv.${appliedStacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`,
             actorId: self.id,
         })
-        engine.state.pendingBuffs.set(key, { restoreValue: stacks, mods })
+        engine.state.pendingBuffs.set(key, { restoreValue: appliedStacks, mods })
         if (affectsApRegen(e.buffId)) notifyRegenChanged(engine.state, self)
         engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
         if (buff?.tags.includes('stance')) {

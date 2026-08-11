@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive } from '../../engine/util/reward-utils'
+import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
 const LONGNV_ATTRS = { strength: 16, vitality: 10, agility: 15, dexterity: 18, insight: 12, wisdom: 4 }
 
@@ -20,8 +20,10 @@ export const LONGNV: OpponentDef = {
         artifact('golden_bell_rope'),
         passive('yuxin_sword_mastery'),
         action('yufeng_needle'),
-        // 君子剑和淑女剑
-        // 10
+        weapon('ganjiang_sword'),
+        weapon('moxie_sword'),
+        // 干将莫邪（千星融古剑，双剑合璧）
+        // 12
     ],
-    actionConfigs: [{ actionId: 'yufeng_needle', conditionId: 'distance_gt_4', triggerId: 'on_opponent_move_away' }],
+    actionConfigs: [{ actionId: 'yufeng_needle', triggerId: 'on_opponent_move_away' }],
 }

@@ -241,6 +241,22 @@ export const WEAPON_DB: WeaponDef[] = [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword', stacks: 20 }] },
         ],
     },
+    {
+        id: 'ganjiang_sword',
+        name: '干将',
+        description: '千星融两柄古剑所铸，注入现代科技，以炁驱动。雄剑追星，迅捷无匹。',
+        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed'],
+        range: [1, 3],
+        triggers: [{ condition: { type: 'on_hit' }, effects: [{ type: 'add_buff', buffId: 'zhuixing', stacks: 1 }] }],
+    },
+    {
+        id: 'moxie_sword',
+        name: '莫邪',
+        description: '千星融两柄古剑所铸，注入现代科技，以炁驱动。雌剑回息，内息自生。',
+        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed'],
+        range: [1, 3],
+        triggers: [{ condition: { type: 'on_hit' }, effects: [{ type: 'add_buff', buffId: 'huixi', stacks: 1 }] }],
+    },
 ]
 
 // ── 运行时武器查找表 ──

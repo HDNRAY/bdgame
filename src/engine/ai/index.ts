@@ -3,7 +3,7 @@ import type { EffectDef } from '../entities/action'
 import { getActionRange, getRuntimeAction } from '../../data/actions'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../../data/weapons/weapons'
-import { forEachBuffOf } from '../combat/utils'
+import { forEachBuffOf, calcExtraMoveEfficiency } from '../combat/utils'
 import { PositionSystem } from '../combat/position'
 import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
@@ -45,7 +45,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
             const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
                 ? 2
-                : basePerAp * (1 + (self.moveEfficiency ?? 0))
+                : basePerAp * (1 + calcExtraMoveEfficiency(state, self))
             const moveToPickupAp = distToDrop > 1 ? PositionSystem.moveApFor(distToDrop - 1, perAp) : 0
             if (moveToPickupAp <= apBudget) {
                 const cmds: ActionCommand[] = []
@@ -174,7 +174,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                         mainDef,
                         apBudget,
                         minMoveCost,
-                        self.moveEfficiency,
+                        calcExtraMoveEfficiency(state, self),
                     )
                     if (plan && plan.apCost + est.apCost <= apBudget) {
                         mainId = est.actionId
@@ -210,7 +210,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             mainDef,
             apBudget,
             minMoveCost,
-            self.moveEfficiency,
+            calcExtraMoveEfficiency(state, self),
         )
         if (plan && plan.apCost + est.apCost <= apBudget) {
             mainId = est.actionId
@@ -315,7 +315,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
         const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
             ? 2
-            : basePerAp * (1 + (self.moveEfficiency ?? 0))
+            : basePerAp * (1 + calcExtraMoveEfficiency(state, self))
         // 估算行动后的实际距离
         const preMoveDist = state.position.distance(self.id, enemy.id)
         const postMoveDist = moveDelta !== 0 ? preMoveDist + perAp * moveAp * (moveDelta > 0 ? 1 : -1) : preMoveDist

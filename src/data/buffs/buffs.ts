@@ -267,6 +267,71 @@ export const BUFF_DB: BuffDef[] = [
             return 0
         },
     },
+    // ── 移动效率（统一 buff 实现，onMoveEfficiency 每层加算） ──
+    {
+        id: 'hydraulic_leg_speed',
+        name: '液压腿',
+        description: '液压驱动，爆发力惊人。移动效率+20%。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 1 },
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.2,
+    },
+    {
+        id: 'jet_drive_speed',
+        name: '喷气机动',
+        description: '喷气推进，移动效率+20%。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 1 },
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.2,
+    },
+    {
+        id: 'frost_step_speed',
+        name: '踏雪',
+        description: '踏雪如履平地，移动效率+30%。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 1 },
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.3,
+    },
+    {
+        id: 'wheelchair_speed',
+        name: '轮椅轻功',
+        description: '以炁驱轮，如履平地。移动效率+30%。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 1 },
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.3,
+    },
+    {
+        id: 'can_ying_bu_speed',
+        name: '残影步',
+        description: '步法如残影，移动效率+20%。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 1 },
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.2,
+    },
+    // ── 干将/莫邪（千星融古剑，双剑合璧） ──
+    {
+        id: 'zhuixing',
+        name: '追星',
+        description: '千星雄剑，以炁驱动。命中叠1层，每层移动效率+5%。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 2 },
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 0) * 0.05,
+    },
+    {
+        id: 'huixi',
+        name: '回息',
+        description: '千星雌剑，以炁驱动。命中叠1层，每层AP回复+0.2/s。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 2 },
+        apRegenPerSec: ({ layer }) => (layer.restoreValue ?? 0) * 0.2,
+    },
     {
         id: 'jiu_yin_zhen_jing_buff',
         name: '九阴',
@@ -527,10 +592,21 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yuxin_sword_mastery',
         name: '真假无用',
-        description: '双剑合璧，可叠层 buff 上限+2。',
+        description: '双剑合璧，所有可叠层 buff 上限翻倍，但每次叠层消耗1缠。',
         tags: [],
         expiry: { type: 'permanent' },
         onBuffApply: (raw) => raw * 2,
+        onStackGain: ({ char, delta, engine }) => {
+            const cost = delta * 1
+            if (char.chan < cost) return 0
+            char.spendChan(cost)
+            engine?.emitLog({
+                type: 'system',
+                message: `[真假无用] ${char.name} 叠层消耗${cost}缠`,
+                actorId: char.id,
+            })
+            return delta
+        },
     },
     {
         id: 'xuan_ji',

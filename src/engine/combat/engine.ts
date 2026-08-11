@@ -17,7 +17,7 @@ import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
 import { reduceBleedOnHeal } from './utils/buff-layer'
 import { processActionEffect, processHitCheck, processBuffEnd } from './effects'
-import { processOnEquipEffects, forEachBuffOf } from './utils'
+import { processOnEquipEffects, forEachBuffOf, calcExtraMoveEfficiency } from './utils'
 import { tickEngine } from './tick-engine'
 import type {
     ActionCommand,
@@ -582,7 +582,7 @@ export class BattleEngine {
         const { ap, delta } = PositionSystem.calcMovement(
             cmd.bestDistance ?? 0,
             self.attrs.get('agility'),
-            1 + self.moveEfficiency,
+            1 + calcExtraMoveEfficiency(this.state, self),
             this.state.pendingBuffs.has(`min_move_cost::${self.id}`),
         )
         if (!self.spendAp(ap)) {

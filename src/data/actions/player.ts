@@ -504,8 +504,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'cang_niao_jian_fa',
-        name: '苍鸟剑法',
-        description: '苍鸟掠空，剑如电驰。消耗15层缠劲，9秒内内息回复+0.5/s。',
+        name: '苍鸟诀',
+        description: '苍鸟掠空，身如电驰。消耗15层缠劲，9秒内内息回复+0.5/s。',
         requiredTags: [],
         apCost: 1,
         chanCost: 15,
