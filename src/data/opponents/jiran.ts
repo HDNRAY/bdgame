@@ -21,10 +21,10 @@ export const JIRAN: OpponentDef = {
         weapon('zhen_bei_ji'),
         action('ru_long'),
         action('dao_ma_dan'),
-        // action('yun_bu'), // 不用更强，有机会看
+        action('yun_bu'), // 不用更强，有机会看
 
         artifact('innate_seed'),
-        // 11
+        // 12
     ],
     actionConfigs: [
         {

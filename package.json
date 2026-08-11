@@ -10,7 +10,7 @@
         "tour-cli": "tsx scripts/tournament-cli.ts",
         "node": "tsx scripts/node-demo.ts",
         "reward": "tsx scripts/reward-impact.ts",
-        "reward-types": "tsx scripts/reward-types.ts",
+        "rt": "tsx scripts/reward-types.ts",
         "c2ap": "tsx scripts/compare-ap.ts 2",
         "c3ap": "tsx scripts/compare-ap.ts 3",
         "c4ap": "tsx scripts/compare-ap.ts 4",

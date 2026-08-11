@@ -221,8 +221,9 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onParryChance: ({ target, source }) => {
-            if (!source?.tags.includes('range')) return 0
-            return target.attrs.get('dexterity') * 0.02
+            const dex = target.attrs.get('dexterity')
+            if (!source?.tags.includes('range')) return dex
+            return dex * 0.02
         },
     },
     {

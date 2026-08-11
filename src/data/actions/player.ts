@@ -1,24 +1,8 @@
 import { DMG_PER_POISON_TICK } from '../../engine/constants'
 import { getAction as getBaseAction } from './index'
 import type { ActionDefinition } from '../../engine/entities/action'
-import type { Character } from '../../engine/entities/character'
-import type { BattleState } from '../../engine/combat/types'
+import { forEachBuffOf } from '../../engine/combat/utils'
 import { round1 } from '../../engine/util/math'
-
-const DEBUFF_IDS = ['frost', 'paralyze', 'bleed', 'poison', 'burn', 'confuse', 'sand_blind'] as const
-
-/** 统计目标所有减益总层数（不消耗） */
-function countEnemyDebuffs(enemy: Character, state: BattleState): number {
-    let total = 0
-    for (const id of DEBUFF_IDS) {
-        const key = `${id}::${enemy.id}`
-        const layer = state.pendingBuffs.get(key)
-        if (layer && layer.restoreValue > 0) {
-            total += layer.restoreValue
-        }
-    }
-    return total
-}
 
 /**
  * 公开招式（玩家可装备）
@@ -933,14 +917,14 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'yi_dian_han_mang',
         name: '一点寒芒',
-        description: '寒芒一点，枪出如龙。刺入瞬间寒意迸发，附加寒锋与霜冻。',
+        description: '寒芒一点。刺入瞬间寒意迸发，附加寒锋与霜冻。',
         requiredTags: ['polearm', 'pierce'],
         apCost: 3,
         tags: ['polearm', 'pierce', 'buff', 'qi'],
         effects: [
             { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
             { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 },
-            { type: 'damage', scaling: { strength: 0.2, wisdom: 0.3 } },
+            { type: 'damage', scaling: { strength: 0.3, wisdom: 0.3 } },
         ],
     },
     {
@@ -958,7 +942,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'ru_long',
         name: '如龙',
-        description: '苍龙镇北，如龙出海。目标每有1层减益增伤30%（不消耗减益）。',
+        description: '苍龙镇北，如龙出海。自身有n层增益时造成基础伤害×n（上限5层）。',
         requiredTags: ['polearm', 'pierce'],
         apCost: 4,
         chanCost: 20,
@@ -966,11 +950,18 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             {
                 type: 'functional_damage',
-                fn: ({ enemy, state, self }) => {
-                    const totalStacks = countEnemyDebuffs(enemy, state)
-                    const baseDmg = self.attrs.get('wisdom') * 0.4 + self.attrs.get('strength') * 0.4
-                    const mult = 1 + totalStacks * 0.3
-                    return Math.round(baseDmg * mult * 10) / 10
+                fn: ({ state, self }) => {
+                    // 统计自身非永久增益总层数（不含 debuff/永久状态），上限 5
+                    let layers = 0
+                    forEachBuffOf(state.pendingBuffs, self.id, (def, layer) => {
+                        if (!def) return
+                        if (def.tags?.includes('debuff')) return
+                        if (def.expiry?.type === 'permanent') return
+                        layers += layer.restoreValue ?? 1
+                    })
+                    const n = Math.min(5, layers)
+                    const baseDmg = self.attrs.get('wisdom') * 0.2 + self.attrs.get('strength') * 0.2
+                    return Math.round(baseDmg * n * 10) / 10
                 },
             },
         ],

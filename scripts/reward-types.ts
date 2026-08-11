@@ -34,8 +34,8 @@ const pad = (s: string, n: number) => s.padEnd(n, '　')
 
 console.log(pad('角色', 14) + pad('武器', 6) + pad('招式', 6) + pad('功法', 6) + pad('奇物', 6) + '合计')
 console.log('─'.repeat(46))
-// 默认按招式数降序
-for (const r of rows.sort((a, b) => b.action - a.action || b.total - a.total)) {
+// 默认按合计降序
+for (const r of rows.sort((a, b) => b.total - a.total || b.action - a.action)) {
     console.log(
         `${pad(r.name, 14)}${pad(String(r.weapon), 6)}${pad(String(r.action), 6)}${pad(String(r.passive), 6)}${pad(String(r.artifact), 6)}${r.total}`,
     )
