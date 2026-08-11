@@ -305,6 +305,15 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'poison_coating' }] }],
     },
     {
+        id: 'shixiang_ruanjin_san',
+        name: '十香软筋散',
+        description: '无色无味之毒，中者筋骨酥软。每次中毒时叠加一层虚弱。',
+        tags: ['poison', 'debuff', 'trigger'],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'shixiang_ruanjin_san' }] },
+        ],
+    },
+    {
         id: 'western_poison',
         name: '西域奇毒',
         description: '剧毒入体，麻痹神经。每次中毒时叠加一层麻痹。',

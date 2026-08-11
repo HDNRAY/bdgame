@@ -281,12 +281,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
                 !source?.tags?.includes('qi') &&
                 !source?.tags?.includes('range')
             ) {
-                attacker.takeDamage(1)
-                engine?.emitLog({
-                    type: 'system',
-                    message: `[软猬甲] ${target.name} 刺伤 ${attacker.name}，反伤2点`,
-                    actorId: target.id,
-                })
+                // attacker.takeDamage(1)
+                // engine?.emitLog({
+                //     type: 'system',
+                //     message: `[软猬甲] ${target.name} 刺伤 ${attacker.name}，反伤1点`,
+                //     actorId: target.id,
+                // })
                 const bleedKey = `bleed::${attacker.id}`
                 const existing = state.pendingBuffs.get(bleedKey)
                 if (existing) {
@@ -495,8 +495,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '每点洞察+1%招架率、+1%闪避率。',
         tags: [],
         expiry: { type: 'permanent' },
-        onParryChance: ({ attacker }) => attacker.attrs.get('insight') * 0.005,
-        onDodgeChance: ({ attacker }) => attacker.attrs.get('insight') * 0.005,
+        onParryChance: ({ target }) => target.attrs.get('insight') * 0.005,
+        onDodgeChance: ({ target }) => target.attrs.get('insight') * 0.005,
     },
     {
         id: 'ni_zhuan_jing_mai',

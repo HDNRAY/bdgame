@@ -213,7 +213,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['unarmed', 'debuff'],
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.1, strength: 0.2, agility: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.1, agility: 0.1, dexterity: 0.1 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.3 },
         ],
     },
@@ -694,8 +694,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['bleed', 'debuff'],
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.2 } },
-            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.5 },
+            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.3 },
         ],
     },
     {

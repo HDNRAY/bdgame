@@ -8,10 +8,12 @@ export const LUEYING: OpponentDef = {
     name: '掠影·无名',
     weapon: 'dagger',
     targetAttrs: LUEYING_ATTRS,
+    battleStyle: 'melee',
     rewards: [
         action('gash'),
         passive('ordinary_training'),
         artifact('poison_coating'),
+        artifact('shixiang_ruanjin_san'),
         artifact('western_poison'),
         artifact('soft_hedgehog_mail'),
         artifact('braid_blade'),
@@ -19,10 +21,9 @@ export const LUEYING: OpponentDef = {
         action('kick'),
         action('dart_throw'),
         action('sand_throw'),
-        // 10
+        // 11
     ],
     actionConfigs: [
-        { actionId: 'gash' }, // AI 出招顺序
         { actionId: 'sand_throw', triggerId: 'on_dodged' },
         { actionId: 'dart_throw', triggerId: 'on_dodge' },
         { actionId: 'gash', triggerId: 'on_parry' },

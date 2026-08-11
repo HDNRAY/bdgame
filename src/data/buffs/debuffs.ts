@@ -388,4 +388,13 @@ export const DEBUFF_DB: BuffDef[] = [
         onParryChance: () => -0.04,
         onCritChance: () => -0.04,
     },
+    {
+        id: 'weakness',
+        name: '虚弱',
+        description: '气力不济，力道、推演降低。',
+        tags: ['debuff'],
+        expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 4000 },
+        stacking: { type: 'independent' },
+        attrMods: { strength: -1, wisdom: -1 },
+    },
 ]

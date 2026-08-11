@@ -949,12 +949,28 @@ export const BUFF_DB: BuffDef[] = [
         onAction: ({ source, attacker, target, engine, state }) => {
             if (!source) return
             if (!source.tags.includes('pierce') && !source.tags.includes('slash')) return
-            if (engine && Math.random() < 0.2) {
+            if (engine && Math.random() < 0.3) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }
+        },
+    },
+    // ── 十香软筋散（毒→虚弱） ──
+    {
+        id: 'shixiang_ruanjin_san',
+        name: '十香软筋散',
+        description: '中者筋骨酥软，每次中毒时叠加一层虚弱。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDebuffApplied: ({ debuffId, self, enemy, engine }) => {
+            if (debuffId !== 'poison' || !engine) return
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'weakness', stacks: 1, chance: 1 },
+                { self, enemy, engine, tMs: engine.state.turn.currentTime },
+            )
         },
     },
     // ── 扫描分析 ──
