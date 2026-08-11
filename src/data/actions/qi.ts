@@ -24,6 +24,19 @@ export const QI_SKILLS: ActionDefinition[] = [
         getRange: () => [2, 6],
     },
     {
+        id: 'qi_blade',
+        name: '炁刃',
+        description: '凝炁成刃，近身斩击。无视招架，一半伤害穿透。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['qi', 'melee', 'slash', 'pierce'],
+        getRange: () => [0, 2],
+        effects: [
+            { type: 'ignore_parry' },
+            { type: 'damage', scaling: { wisdom: 0.2, dexterity: 0.1 }, piercingRatio: 0.4 },
+        ],
+    },
+    {
         id: 'restore_ap',
         name: '回炁',
         description: '恢复 1 AP。',

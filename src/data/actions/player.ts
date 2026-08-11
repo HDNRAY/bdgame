@@ -153,11 +153,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'desolate_palm',
         name: '黯然销魂掌',
-        description: '黯然销魂者，唯别而已矣。心中悲愤越深，掌力越强。消耗18层缠劲，重掌蕴含黯然之意，令对手心神不宁。',
+        description: '黯然销魂者，唯别而已矣。心中悲愤越深，掌力越强。重掌蕴含黯然之意，令对手心神不宁。',
         requiredTags: ['unarmed'],
         apCost: 5,
-        chanCost: 18,
-        canUse: (attacker) => attacker.chan >= 18,
+        chanCost: 20,
+        canUse: (attacker) => attacker.chan >= 20,
         tags: ['unarmed', 'melee'],
         effects: [
             { type: 'damage', scaling: { strength: 0.2 } },
@@ -174,7 +174,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'melee', 'debuff'],
         getRange: () => [0, 1] as [number, number],
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.4 } },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
             { type: 'disarm', chance: 0.4 },
         ],
     },

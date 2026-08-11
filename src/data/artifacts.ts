@@ -139,7 +139,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'flying_lion',
         name: '飞狮',
-        description: '飞狮奇物，每约 10 秒自动释放一次狮吼功。',
+        description: '飞狮奇物，自动释放狮吼功。',
         tags: ['summon', 'imperial'],
         summon: {
             id: 'flying_lion',
@@ -259,16 +259,9 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'iron_will',
         name: '乌铠',
-        description: '受到超过5点的拳脚/斩/刺/钝伤害时，消耗1AP减少3点。',
+        description: '受到超过5点的拳脚/斩/刺/钝伤害时，消耗1AP减少4点。',
         tags: ['trigger', 'defense', 'inherent'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dmg_reduce' }] }],
-    },
-    {
-        id: 'ap_boost',
-        name: '气海丹',
-        description: '拓展气海，AP上限+4。',
-        tags: ['buff'],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'max_ap_mod', value: 4 }] }],
     },
     {
         id: 'qi_amplifier',
@@ -498,6 +491,14 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_armor_def' }] },
         ],
+    },
+    {
+        id: 'ju_chan_fa_yi',
+        name: '聚缠法衣',
+        description: '玄门法衣（御物），每5秒吸收整12的缠劲（余数保留），每12缠化为力道、身法、灵巧、推演+2，持续5秒。',
+        tags: ['craft', 'buff', 'qi'],
+        requiredTags: ['imperial'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ju_chan_fa_yi' }] }],
     },
     {
         id: 'braid_blade',

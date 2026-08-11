@@ -248,8 +248,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
             { type: 'damage', scaling: { wisdom: 0.3 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
         ],
-        extraPreDelay: 4000,
-        extraStunTime: 5000,
+        extraPreDelay: 2000,
+        extraStunTime: 3000,
     },
     {
         id: '_lingbo_insight_step',

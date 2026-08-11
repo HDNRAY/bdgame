@@ -7,6 +7,7 @@ import { getWeapon } from '../src/data/weapons/weapons'
 import type { WeaponDef } from '../src/data/weapons/weapons'
 import { PLAYER_ACTIONS } from '../src/data/actions/player'
 import { INTERNAL_ACTIONS } from '../src/data/actions/internal'
+import { QI_SKILLS } from '../src/data/actions/qi'
 import { calcExpectedDamage } from '../src/engine/ai/expected-damage'
 import type { BattleState } from '../src/engine/combat/types'
 import { MAX_CHAN, AI_CHAN_COST_WEIGHT } from '../src/engine/constants'
@@ -162,6 +163,7 @@ if (AP_COST === 5) {
 const rows = [
     ...PLAYER_ACTIONS.filter((a) => a.apCost === AP_COST && !isSupport(a)).map((a) => buildRow(a, AP_COST)),
     ...INTERNAL_ACTIONS.filter((a) => a.apCost === AP_COST && !isSupport(a)).map((a) => buildRow(a, AP_COST)),
+    ...QI_SKILLS.filter((a) => a.apCost === AP_COST && !isSupport(a)).map((a) => buildRow(a, AP_COST)),
     ...extra.map(({ action, rawAp, label }) => buildRow(action, rawAp, label)),
 ].sort((x, y) => y.score - x.score)
 

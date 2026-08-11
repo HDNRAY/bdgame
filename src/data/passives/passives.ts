@@ -109,24 +109,6 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
-        id: 'qi_edge',
-        name: '炁刃',
-        description: '以炁凝刃，刀剑延长斩击距离，蕴含炁劲。slash招式AP+1，范围+2，附加推演伤害。',
-        tags: ['passive', 'qi'],
-        actionEnhancer: (def) => {
-            if (!def.tags.includes('slash')) return def
-            return {
-                ...def,
-                apCost: def.apCost + 1,
-                getRange: (wr) => [wr[0], Math.min(10, wr[1] + 1)] as [number, number],
-                effects: (def.effects ?? []).map((e) => {
-                    if (e.type === 'damage') return { ...e, scaling: { ...e.scaling, wisdom: 0.2 } }
-                    return e
-                }),
-            }
-        },
-    },
-    {
         id: 'human_radar',
         name: '人体雷达',
         description: '获得居合时锁定目标，下次近距离攻击命中+0.5。',

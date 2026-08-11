@@ -231,6 +231,42 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         chanRegenPerSec: () => 2,
     },
+    // ── 聚缠法衣（缠劲→力/身/巧/推演爆发） ──
+    {
+        id: 'ju_chan_fa_yi',
+        name: '聚缠法衣',
+        description: '每5秒吸收整12的缠劲（余数保留），每12缠化为力道、身法、灵巧、推演+2，持续5秒。',
+        tags: ['buff', 'qi'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        tickInterval: 6000,
+        onTickHeal: ({ target, engine }) => {
+            const chanPerStack = 8
+            const chan = target.chan
+            if (chan <= 0) return 0
+            // 只吸收整 chanPerStack 缠，余数保留到下一周期（如 26.2 缠只吸 24，留 2.2）
+            const absorb = Math.floor(chan / chanPerStack) * chanPerStack
+            if (absorb <= 0) return 0
+            target.spendChan(absorb)
+            const bonus = (absorb / chanPerStack) * 2
+            if (bonus > 0 && engine) {
+                processActionEffect(
+                    {
+                        type: 'stat_buff',
+                        attrs: { strength: bonus, agility: bonus, dexterity: bonus, wisdom: bonus },
+                        durationMs: 6000,
+                    },
+                    { self: target, enemy: target, engine, tMs: engine.state.turn.currentTime },
+                )
+            }
+            engine?.emitLog({
+                type: 'system',
+                message: `[聚缠法衣] ${target.name} 吸收${absorb}缠，力/身/巧/推演+${bonus}（5s）`,
+                actorId: target.id,
+            })
+            return 0
+        },
+    },
     {
         id: 'jiu_yin_zhen_jing_buff',
         name: '九阴',
