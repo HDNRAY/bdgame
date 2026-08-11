@@ -20,7 +20,8 @@ export const XIAOHUA: OpponentDef = {
         action('three_inch_light'),
         weapon('iron_back_hand'),
         passive('mingjing_zhishui'),
-        // 10
+        action('wrist_strike'),
+        // 11
     ],
     actionConfigs: [
         {
@@ -30,6 +31,10 @@ export const XIAOHUA: OpponentDef = {
         {
             actionId: 'zhemei_shou',
             triggerId: 'on_parried',
+        },
+        {
+            actionId: 'wrist_strike',
+            triggerId: 'on_dodge',
         },
     ],
 }
