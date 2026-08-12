@@ -150,7 +150,7 @@ export const PASSIVES: Passive[] = [
         id: 'ordinary_training',
         name: '平平无奇的锻炼',
         description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
-        tags: ['passive', 'defense'],
+        tags: ['passive', 'defense', 'inherent'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ordinary_training' }] },
         ],
@@ -250,9 +250,9 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'zoldyck_art',
-        name: '揍敌客秘法',
-        description: '揍敌客家族世代相传的暗杀术，雷电锻体，免疫麻痹并减免雷系伤害。',
-        tags: ['passive', 'buff', 'electric'],
+        name: '周氏秘法',
+        description: '周氏秘法，雷电锻体，免疫麻痹并减免雷系伤害。',
+        tags: ['passive', 'buff', 'electric', 'inherent'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -868,6 +868,19 @@ export const PASSIVES: Passive[] = [
             {
                 condition: { type: 'battle_start' },
                 effects: [{ type: 'add_buff', buffId: 'qi_electric_buff' }],
+            },
+        ],
+    },
+    // ── 千锤百炼（天工·千星·特性） ──
+    {
+        id: 'qian_chui_bai_lian',
+        name: '千锤百炼',
+        description: '千锤百炼，水火不侵。所受灼烧伤害-30%；以根骨化力道（根骨每4点力道+1）。',
+        tags: ['passive', 'buff', 'defense', 'inherent'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'qian_chui_bai_lian_buff' }],
             },
         ],
     },

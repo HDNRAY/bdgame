@@ -124,7 +124,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         id: 'ordinary_training',
         name: '平平无奇的锻炼',
         description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
-        tags: ['defense'],
+        tags: ['defense', 'inherent'],
         expiry: { type: 'permanent' },
         onDodgeChance: ({ target }) => {
             return target.attrs.get('agility') * 0.002
@@ -524,44 +524,28 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         stacking: { type: 'none' },
         onParryReduction: ({ final, target }) => Math.max(0, round1(final - target.attrs.get('insight') * 0.1)),
     },
-    // ── 能量护盾 ──
+    // ── 能量护盾（缠劲化盾：1缠吸1伤，直伤最多吸收三分之一，缠不足按比例吸收） ──
     {
         id: 'energy_shield_buff',
         name: '能量护盾',
-        description: '吸收6点以下伤害，共50点。AP上限-1。',
+        description: '缠劲化盾，直伤最多吸收三分之一（1缠:1伤，缠不足按比例吸收）。',
         tags: ['buff', 'craft', 'defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        maxApMod: -1,
-        onTakeDamage: ({ final, target, engine, layer }) => {
+        // 只走直伤（onTakeDamage）；DoT 不触发
+        onTakeDamage: ({ final, target, engine }) => {
             if (final <= 0 || !engine) return final
-            if (!layer.extra) layer.extra = { absorbed: 0 }
-            const prev = (layer.extra.absorbed as number) ?? 0
-            const remaining = 50 - prev
-            if (remaining <= 0) return final
-            const absorb = Math.min(6, final, remaining)
-            const overflow = final - absorb
-            const newVal = prev + absorb
-            layer.extra.absorbed = newVal
-            if (newVal >= 50) {
-                engine.emitLog({
-                    type: 'system',
-                    message: `[能量护盾] 耗尽！吸收${absorb}点（50/50）${overflow > 0 ? `，溢出${overflow}点` : ''}`,
-                    actorId: target.id,
-                })
-                if (layer.mods?.maxApMod) {
-                    target.maxApMod -= layer.mods.maxApMod as number
-                    target.capAp()
-                }
-                engine.state.pendingBuffs.delete(`energy_shield_buff::${target.id}`)
-                return overflow > 0 ? overflow : 0
-            }
+            const maxAbsorb = Math.floor(final / 3) // 最多吸收三分之一（向下取整：2伤→0不吸）
+            const chanAbsorb = round1(target.chan) // 1缠:1伤，缠越多能吸越多
+            const absorb = Math.min(maxAbsorb, chanAbsorb)
+            if (absorb <= 0) return final
+            target.spendChan(absorb)
             engine.emitLog({
                 type: 'system',
-                message: `[能量护盾] 吸收${absorb}点（${Math.round(newVal * 10) / 10}/50）`,
+                message: `[能量护盾] ${target.name} 缠化盾吸收${absorb}点（耗缠${absorb}，剩${target.chan}）`,
                 actorId: target.id,
             })
-            return Math.max(0, Math.round(overflow * 10) / 10)
+            return Math.max(0, round1(final - absorb))
         },
     },
     {

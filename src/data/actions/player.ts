@@ -479,7 +479,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 4,
         tags: ['pierce'],
-        effects: [{ type: 'damage', scaling: { strength: 0.4, agility: 0.4 }, piercingRatio: 0.1 }],
+        effects: [{ type: 'damage', scaling: { strength: 0.4, agility: 0.4 }, piercingRatio: 0.2 }],
     },
     {
         id: 'cang_niao_jian_fa',

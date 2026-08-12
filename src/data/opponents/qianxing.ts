@@ -27,7 +27,9 @@ export const QIANXING: OpponentDef = {
         passive('qi_electric_conversion'),
         action('flash'),
         artifact('qi_battery'),
-        // 10
+        passive('cang_niao_jian_fa'),
+        passive('qian_chui_bai_lian'),
+        // 12
     ],
     actionConfigs: [
         {

@@ -615,7 +615,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'energy_shield',
         name: '能量护盾',
-        description: '天工锻造的能量护盾发生器，AP上限-1，完全吸收6点以下伤害，共50点。耗尽后解除限制。',
+        description: '天工锻造的能量护盾发生器，以缠化盾：直伤最多吸收三分之一（1缠:1伤，缠不足按比例吸收）。',
         tags: ['craft', 'defense'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'energy_shield_buff' }] },

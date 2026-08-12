@@ -8,6 +8,19 @@
     background: var(--color-bg);
     font-family: var(--font-mono);
 
+    // 隐藏 dev 入口：右上角透明热区（看不见，点击进 /dev）
+    &-dev {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 3rem;
+        height: 3rem;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        z-index: 10;
+    }
+
     &-title {
         font-family: var(--font-cursive);
         font-size: var(--font-title);
