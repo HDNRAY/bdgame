@@ -47,7 +47,7 @@ import { StatsTracker } from '../src/engine/combat/stats-tracker'
 
 // ── 满配对手（n=33） ──
 const pBuild = gen(WUZUI, 33)
-const oBuild = gen(XUANJI, 33)
+const oBuild = gen(LAIFENG, 33)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const logPath = join(__dirname, 'battle-log.txt')

@@ -164,7 +164,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'eighteen_palms',
-        name: '十八掌',
+        name: '飞龙在天',
         description: '消耗18层缠劲，刚柔并济的掌法。',
         requiredTags: ['unarmed'],
         apCost: 5,
@@ -172,9 +172,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 4],
         chanCost: 18,
         canUse: (attacker) => attacker.chan >= 18,
-        onActionHitChance: (base) => base - 0.1,
-        onActionCritChance: (base) => base + 0.1,
-        effects: [{ type: 'damage', scaling: { strength: 0.1, wisdom: 0.1 }, independentHits: 18 }],
+        onActionHitChance: (base) => base + 0.4,
+        onActionCritChance: (base) => base + 0.4,
+        effects: [{ type: 'damage', scaling: { strength: 0.9, wisdom: 0.9 } }],
     },
     {
         id: 'dian_xue',
