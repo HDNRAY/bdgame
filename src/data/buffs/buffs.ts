@@ -21,6 +21,15 @@ function isMainMove(source: { tags: readonly string[] } | undefined): boolean {
     )
 }
 
+/** 招式段数：取 damage/fixed_damage 效果的 independentHits（默认 1）。御剑诀/灵器共鸣按段均摊 AP——多段招每段只吃到「AP÷段数」的平加 */
+function actionHits(source: ActionDefinition | undefined): number {
+    let hits = 1
+    for (const e of source?.effects ?? []) {
+        if (e.type === 'damage' || e.type === 'fixed_damage') hits = Math.max(hits, e.independentHits ?? 1)
+    }
+    return hits
+}
+
 /** 增益状态 */
 export const BUFF_DB: BuffDef[] = [
     ...DAMAGE_BUFFS,
@@ -271,11 +280,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'hydraulic_leg_speed',
         name: '液压腿',
-        description: '液压驱动，爆发力惊人。移动效率+20%。',
+        description: '液压驱动，爆发力惊人。移动效率+30%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 1 },
-        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.2,
+        stacking: { type: 'none' },
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.3,
     },
     {
         id: 'jet_drive_speed',
@@ -283,7 +292,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '喷气推进，移动效率+20%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 1 },
+        stacking: { type: 'none' },
         onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.2,
     },
     {
@@ -292,7 +301,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '踏雪如履平地，移动效率+30%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 1 },
+        stacking: { type: 'none' },
         onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.3,
     },
     {
@@ -301,7 +310,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '以炁驱轮，如履平地。移动效率+30%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 1 },
+        stacking: { type: 'none' },
         onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.3,
     },
     {
@@ -310,7 +319,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '步法如残影，移动效率+20%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 1 },
+        stacking: { type: 'none' },
         onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.2,
     },
     // ── 干将/莫邪（千星融古剑，双剑合璧） ──
@@ -641,13 +650,22 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'spirit_resonance_buff',
         name: '灵器共鸣',
-        description: '将自身力道转化为召唤物的攻击力。',
+        description: '将自身三分之一力道（向下取整）转化给召唤物，按召唤物数量平分；召唤物技能招按命中段数平分。',
         tags: ['summon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onDealDamage: ({ final, source, layer }) => {
+        onDealDamage: ({ final, attacker, source, layer }) => {
             if (!source?.tags?.includes('summon')) return final
-            const bonus = ((source as ActionDefinition).apCost ?? 0) * layer.restoreValue
+            // 三分之一力道（向下取整）为固定池：召唤武器招按召唤物数量平分，召唤物技能招（如一夜鱼龙舞）按段数平分
+            const poolStr = Math.floor(attacker.attrs.get('strength') / 3)
+            if (poolStr <= 0) return final
+            const summon = attacker.weaponDef?.summon
+            const divisor =
+                summon && summon.actionId === source.id
+                    ? summon.maxCount(attacker)
+                    : actionHits(source as ActionDefinition)
+            const perHit = round1(poolStr / divisor)
+            const bonus = perHit * layer.restoreValue
             return Math.round((final + bonus) * 10) / 10
         },
     },
@@ -1258,9 +1276,33 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
         onDealDamage: ({ final, source }) => {
-            // 固定附加：每点招式 AP 成本 +2 伤害（不关联推演）
-            const ap = (source as ActionDefinition | undefined)?.apCost ?? 0
-            return final + ap
+            // 固定附加：招式 AP 均摊到每段（5段AP5 → 每段+1），整招合计恰好 +AP；0AP 召唤物招按 1AP 计
+            const ap = Math.max(1, (source as ActionDefinition | undefined)?.apCost ?? 0)
+            return final + ap / actionHits(source as ActionDefinition)
+        },
+    },
+    // ── 刃炁大师（攻击侧：持刃攻击令对手叠刃炁） ──
+    {
+        id: 'momentum_mastery_buff',
+        name: '刃炁大师',
+        description: '斩刺伤害令对手叠刃炁。',
+        tags: ['slash'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final, source, attacker, target, engine, state }) => {
+            if (!engine || !source) return final
+            // 炁招（炁弹/炁刃）：按招式自身 tag 判断是否带刃——炁刃带 slash 可叠，炁弹不带不叠
+            const qiMove = source.tags.includes('qi_action')
+            const ok = qiMove
+                ? source.tags.includes('slash') || source.tags.includes('pierce')
+                : (attacker.weaponDef?.tags.includes('slash') ?? false)
+            if (ok) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'blade_qi', stacks: 1, chance: 1 },
+                    { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
+                )
+            }
+            return final
         },
     },
     {

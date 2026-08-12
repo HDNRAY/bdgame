@@ -19,6 +19,7 @@ export const QILAN: OpponentDef = {
         passive('qiti_source'), // 炁体源流
         artifact('cinnabar_mole'), // 守宫砂
         action('thunder_storm'),
+        // 残影步，流风回雪
         // 10
     ],
     actionConfigs: [

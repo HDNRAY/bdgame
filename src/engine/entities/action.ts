@@ -37,7 +37,7 @@ export type EffectDef =
     | { type: 'interrupt' }
     | { type: 'knockback'; distance: number }
     | { type: 'dash'; minRange?: number; maxRange?: number; targetDist: number; useAp?: boolean }
-    | { type: 'cleanse'; buffIds?: string[] }
+    | { type: 'cleanse'; buffIds?: string[]; allDebuffs?: boolean; perDebuffStacks?: number }
     // 自效果（无需命中判定，总是生效）
     | { type: 'heal'; value: number; ratio?: number }
     | { type: 'stat_multiply'; stat: string; multiplier: number }

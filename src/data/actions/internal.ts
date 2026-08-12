@@ -63,7 +63,9 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         target: 'self',
         maxUses: 1,
         effects: [
-            { type: 'add_buff', buffId: 'qi_shield', stacks: 10 },
+            // 每种 debuff 减 2 层（additive 减层数，independent 每种消 2 层），不清除干净
+            { type: 'cleanse', allDebuffs: true, perDebuffStacks: 2 },
+            { type: 'add_buff', buffId: 'qi_shield', stacks: 4 },
             {
                 type: 'stat_buff',
                 attrs: { wisdom: -12, strength: 4, agility: 4, dexterity: 4, vitality: 4, insight: 4 },

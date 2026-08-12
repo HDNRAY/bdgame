@@ -273,7 +273,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '召唤物命中时50%概率附加1层麻痹。',
         requiredTags: ['summon'],
         apCost: 0,
-        tags: ['imperial', 'summon', 'pre_action'],
+        tags: ['imperial', 'summon'],
         // 必定命中：跟随召唤物命中触发，不额外滚命中判定
         onActionHitChance: () => 1,
         effects: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 }],

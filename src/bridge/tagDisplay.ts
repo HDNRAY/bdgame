@@ -57,6 +57,7 @@ export const TAG_CN: Record<Tag, string> = {
     super_armor: '罡体',
     jiu: '酒',
     craft: '天工',
+    qi_action: '炁招',
 }
 
 /** Tag → 颜色 */
@@ -114,6 +115,7 @@ export const TAG_COLOR: Record<Tag, string> = {
     internal: '#95a5a6',
     jiu: '#f3121d',
     craft: '#920217',
+    qi_action: '#f1c40f',
     one_handed: '#13f168',
     two_handed: '#5d4037',
 }

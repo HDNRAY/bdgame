@@ -163,8 +163,8 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'damage', 'debuff', 'slash'],
         triggers: [
             {
-                condition: { type: 'on_hit', check: (ctx) => ctx.actor.weaponDef?.tags.includes('slash') ?? false },
-                effects: [{ type: 'add_debuff', buffId: 'blade_qi', stacks: 1, chance: 1 }],
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'momentum_mastery_buff' }],
             },
         ],
     },
@@ -486,7 +486,7 @@ export const PASSIVES: Passive[] = [
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'frost_step_speed', stacks: 1 }],
+                effects: [{ type: 'add_buff', buffId: 'frost_step_speed' }],
             },
         ],
     },
@@ -765,7 +765,7 @@ export const PASSIVES: Passive[] = [
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'wheelchair_speed', stacks: 1 }],
+                effects: [{ type: 'add_buff', buffId: 'wheelchair_speed' }],
             },
         ],
     },
@@ -916,7 +916,7 @@ export const PASSIVES: Passive[] = [
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'can_ying_bu_speed', stacks: 1 }],
+                effects: [{ type: 'add_buff', buffId: 'can_ying_bu_speed' }],
             },
             { condition: { type: 'on_move_away' }, effects: [{ type: 'add_buff', buffId: 'xu_ying', stacks: 1 }] },
             { condition: { type: 'on_move_closer' }, effects: [{ type: 'add_buff', buffId: 'xu_ying', stacks: 1 }] },

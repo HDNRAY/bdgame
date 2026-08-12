@@ -95,15 +95,38 @@ function applyStackGainCost(engine: BattleEngine, char: Character, buffId: strin
 
 export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     cleanse({ eff, self, engine }: EffectCtx) {
-        const { buffIds } = eff as Extract<EffectDef, { type: 'cleanse' }>
+        const { buffIds, allDebuffs, perDebuffStacks } = eff as Extract<EffectDef, { type: 'cleanse' }>
         const targets = buffIds ?? ['paralyze', 'poison']
-        for (const [k] of engine.state.pendingBuffs) {
+        // perDebuffStacks：每类 debuff 减 N 层（additive 减 restoreValue；independent 每种独立计数移除 N 层；其余整体清除）
+        const left = new Map<string, number>()
+        for (const [k, layer] of engine.state.pendingBuffs) {
             const [prefix] = k.split('::')
-            if (targets.includes(prefix)) {
+            const matches = allDebuffs ? (getBuff(prefix)?.tags?.includes('debuff') ?? false) : targets.includes(prefix)
+            if (!matches) continue
+            if (perDebuffStacks && perDebuffStacks > 0) {
+                const def = getBuff(prefix)
+                if (def?.stacking?.type === 'additive') {
+                    layer.restoreValue -= perDebuffStacks
+                    if (layer.restoreValue <= 0) engine.state.pendingBuffs.delete(k)
+                } else if (def?.stacking?.type === 'independent') {
+                    const remain = left.get(prefix) ?? perDebuffStacks
+                    if (remain > 0) {
+                        engine.state.pendingBuffs.delete(k)
+                        left.set(prefix, remain - 1)
+                    }
+                } else {
+                    engine.state.pendingBuffs.delete(k)
+                }
+            } else {
                 engine.state.pendingBuffs.delete(k)
             }
         }
-        engine.emitLog({ type: 'cleanse', sourceId: self.id, targetId: self.id, buffIds: targets })
+        engine.emitLog({
+            type: 'cleanse',
+            sourceId: self.id,
+            targetId: self.id,
+            buffIds: allDebuffs ? undefined : targets,
+        })
     },
     heal({ eff, self, engine, action }: EffectCtx) {
         const { value, ratio } = eff as Extract<EffectDef, { type: 'heal' }>

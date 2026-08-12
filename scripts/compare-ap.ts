@@ -75,6 +75,16 @@ const DASH_BONUS = 0.25
 const BUFF_VALUE = 0.3
 /** 自缴械惩罚（self_disarm：丢武器，重度自伤） */
 const SELF_DISARM_PENALTY = 1
+/** 多段加分：independentHits 每多一段 +0.25，封顶 +2（5段+1.0；多段=每次触发机会/受击反馈/灵器共鸣等，实打实的价值，与斩杀共列） */
+const MULTIHIT_PER_EXTRA = 0.25
+const MULTIHIT_CAP = 2
+function multiHitBonus(a: ActionDefinition): number {
+    let hits = 1
+    for (const e of a.effects ?? []) {
+        if (e.type === 'damage' || e.type === 'fixed_damage') hits = Math.max(hits, e.independentHits ?? 1)
+    }
+    return hits > 1 ? Math.min(MULTIHIT_CAP, Math.round((hits - 1) * MULTIHIT_PER_EXTRA * 100) / 100) : 0
+}
 
 // debuff 价值：每层 × 几率 × 权重，折算进总分（效率点口径）。
 // DoT(burn/poison/bleed) 引擎已把 stacks×3 计入期望伤，权重从低避免重复；控制类 debuff 权重高。
@@ -118,8 +128,9 @@ function buildRow(a: ActionDefinition, rawAp: number, label?: string) {
     const effAtk = useSummon ? wanfaAtk : atk
     const effRange: [number, number] = useSummon ? WANFA_SUMMON_WEAPON.range : weaponRange
     const est = calcExpectedDamage(a, effAtk, def, effRange, state)
-    // 效率 = 期望伤 / (折前AP + 缠权重×缠消耗)
-    const resource = rawAp + CHAN_WEIGHT * est.chanCost
+    // 效率 = 期望伤 / (折前AP + 缠权重×缠消耗)；基准满缠 → 缠消耗打 0.8 折（AP 回缠多属溢出，忽略）
+    const netChan = est.chanCost * 0.8
+    const resource = rawAp + CHAN_WEIGHT * netChan
     const efficiency = resource > 0 ? Math.round((est.expectedDamage / resource) * 100) / 100 : 0
     // 25% 血斩杀档：双方降到 25% 血重算，期望伤提升部分折算成 exec 加分（越残越强的招吃得到）
     atk.hp = Math.round(atk.maxHp * EXEC_PCT * 10) / 10
@@ -138,7 +149,13 @@ function buildRow(a: ActionDefinition, rawAp: number, label?: string) {
     const buff = buffValue(a)
     const debuff = debuffValue(a)
     const selfDisarm = (a.effects ?? []).some((e) => e.type === 'self_disarm') ? SELF_DISARM_PENALTY : 0
-    const score = Math.round((efficiency + distanceBonus + dashBonus + buff + debuff + exec - selfDisarm) * 100) / 100
+    // 多段加分并入斩杀列（exec + 多段）；距离+位移、buff+debuff 各自并成一列展示
+    const multiHit = multiHitBonus(a)
+    const execTotal = Math.round((exec + multiHit) * 100) / 100
+    const distanceDash = Math.round((distanceBonus + dashBonus) * 100) / 100
+    const buffDebuff = Math.round((buff + debuff) * 100) / 100
+    const score =
+        Math.round((efficiency + distanceBonus + dashBonus + buff + debuff + execTotal - selfDisarm) * 100) / 100
     return {
         a,
         label: label ?? a.name,
@@ -150,7 +167,9 @@ function buildRow(a: ActionDefinition, rawAp: number, label?: string) {
         dashBonus,
         buff,
         debuff,
-        exec,
+        distanceDash,
+        buffDebuff,
+        exec: execTotal,
         selfDisarm,
         score,
     }
@@ -178,28 +197,30 @@ console.log('双方全属性15 · 缠50 · 满AP · 49%血(斩杀档25%) · 距�
 console.log(`甲 HP ${atk.hp}/${atk.maxHp} AP${atk.maxAp} 缠${atk.chan} | 乙 HP ${def.hp}/${def.maxHp}`)
 const extraNote = extra.length > 0 ? `；额外纳入 ${extra.map((e) => `${e.label}(${e.rawAp}AP)`).join('/')}` : ''
 console.log(
-    `效率 = 期望伤 / (折前AP + 缠权重 ${CHAN_WEIGHT} × 缠)；${AP_COST}AP招折前AP=${AP_COST}${extraNote}；得分 = 效率 + 距离(射程>4每档+0.05) + 位移(+0.25) + buff(每层${BUFF_VALUE}) + debuff(层×几率×权重) + exec(25%斩杀档)`,
+    `效率 = 期望伤 / (折前AP + 缠权重 ${CHAN_WEIGHT} × 缠)；${AP_COST}AP招折前AP=${AP_COST}${extraNote}；得分 = 效率 + 距离/位移(射程>4每档+0.05 + 位移+0.25) + buff/debuff(add_buff每层${BUFF_VALUE} + debuff层×几率×权重) + 斩杀/多段(25%斩杀档提升 + 多段每段+${MULTIHIT_PER_EXTRA}封顶${MULTIHIT_CAP})`,
 )
 const tableData: Record<string, Record<string, string | number>> = {}
-for (const { label, est, efficiency, distanceBonus, dashBonus, buff, debuff, exec, selfDisarm, score } of rows) {
+for (const { label, est, efficiency, distanceDash, buffDebuff, exec, selfDisarm, score } of rows) {
     tableData[label] = {
         缠: est.chanCost,
         期望伤: Math.round(est.expectedDamage * 10) / 10,
         效率: efficiency,
-        距离: distanceBonus > 0 ? `+${distanceBonus.toFixed(2)}` : '—',
-        位移: dashBonus > 0 ? `+${dashBonus.toFixed(2)}` : '—',
-        buff: buff > 0 ? `+${buff.toFixed(2)}` : '—',
-        debuff: debuff > 0 ? `+${debuff.toFixed(2)}` : '—',
-        exec: exec > 0 ? `+${exec.toFixed(2)}` : '—',
+        '距离/位移': distanceDash > 0 ? `+${distanceDash.toFixed(2)}` : '—',
+        'buff/debuff': buffDebuff > 0 ? `+${buffDebuff.toFixed(2)}` : '—',
+        '斩杀/多段': exec > 0 ? `+${exec.toFixed(2)}` : '—',
         自缴: selfDisarm > 0 ? `-${selfDisarm.toFixed(2)}` : '—',
         得分: score,
     }
 }
 console.table(tableData)
 console.log(
-    '注：期望伤=引擎 calcExpectedDamage；含残血/破甲；距离=射程>4每档+0.05；位移=带位移+0.25；buff=add_buff每层×' +
+    '注：期望伤=引擎 calcExpectedDamage；含残血/破甲；距离/位移=射程>4每档+0.05+带位移+0.25；buff/debuff=add_buff每层×' +
         BUFF_VALUE +
-        '；debuff=层×几率×权重；exec=25%斩杀档提升；自缴=self_disarm -' +
+        '+debuff层×几率×权重；斩杀/多段=25%斩杀档提升+多段(每段+' +
+        MULTIHIT_PER_EXTRA +
+        '封顶' +
+        MULTIHIT_CAP +
+        ')；自缴=self_disarm -' +
         SELF_DISARM_PENALTY,
 )
 console.log(`缠权重可用参数覆盖：npx tsx scripts/compare-ap.ts ${AP_COST} 1`)

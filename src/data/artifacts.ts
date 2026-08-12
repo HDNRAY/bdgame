@@ -21,7 +21,7 @@ export const ARTIFACTS: Artifact[] = [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 1 }] },
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'hydraulic_leg_speed', stacks: 1 }],
+                effects: [{ type: 'add_buff', buffId: 'hydraulic_leg_speed' }],
             },
         ],
         actionEnhancer: (def) => {
@@ -607,7 +607,7 @@ export const ARTIFACTS: Artifact[] = [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rocket_boost' }] },
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'jet_drive_speed', stacks: 1 }],
+                effects: [{ type: 'add_buff', buffId: 'jet_drive_speed' }],
             },
         ],
     },

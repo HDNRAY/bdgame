@@ -57,3 +57,4 @@ export type Tag =
     | 'super_armor' // 罡体
     | 'jiu' // 酒
     | 'craft' // 锻造品（天工出品，无副作用的人造装备）
+    | 'qi_action' // 炁招（纯炁凝聚、按招式自身 tag 判定是否带刃的招式，如炁弹/炁刃）

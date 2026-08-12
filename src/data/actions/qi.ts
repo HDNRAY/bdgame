@@ -18,7 +18,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '凝聚炁劲远程攻击。',
         requiredTags: [],
         apCost: 2,
-        tags: ['qi', 'range'],
+        tags: ['qi', 'range', 'qi_action'],
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 2.4 }],
         extraPreDelay: 200,
         getRange: () => [2, 6],
@@ -29,7 +29,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '凝炁成刃，近身斩击。无视招架，一半伤害穿透。',
         requiredTags: [],
         apCost: 2,
-        tags: ['qi', 'melee', 'slash', 'pierce'],
+        tags: ['qi', 'melee', 'slash', 'pierce', 'qi_action'],
         getRange: () => [0, 2],
         effects: [
             { type: 'ignore_parry' },

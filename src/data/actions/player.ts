@@ -572,7 +572,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'fall_to_azure_sword',
         name: '碧落剑法',
-        description: '上穷碧落下黄泉，一剑既出，无可遁逃。目标气血低于30%时必定暴击。',
+        description: '上穷碧落下黄泉，一剑既出，无可遁逃。目标气血低于30%时暴击增加。',
         requiredTags: ['pierce', 'melee'],
         apCost: 5,
         chanCost: 50,
@@ -708,7 +708,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         onActionHitChance: (base) => base + 0.2,
         effects: [
             // 基础10 + 力/身/巧 scaling（命中结算）
-            { type: 'damage', scaling: { strength: 0.7, agility: 0.7, dexterity: 0.6 }, base: 10 },
+            { type: 'damage', scaling: { strength: 0.7, agility: 0.6, dexterity: 0.6 }, base: 10 },
             // 持重型武器（素铁霸刀）时，命中的那一刀额外 +10
             { type: 'functional_damage', fn: ({ self }) => (self.weaponDef?.tags.includes('heavy') ? 10 : 0) },
             // 顺势脱手：霸刀如流星飞向对手，落在对手所在位置
@@ -798,11 +798,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 5,
         tags: ['electric', 'stun'],
-        getRange: () => [0, 3] as [number, number],
+        getRange: () => [0, 4] as [number, number],
         chanCost: 18,
         canUse: (attacker) => attacker.chan >= 18,
         effects: [
-            { type: 'damage', scaling: { wisdom: 1.2 } },
+            { type: 'damage', scaling: { wisdom: 1.9 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
             { type: 'ignore_parry' },
         ],
@@ -1007,11 +1007,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'one_night_dance',
         name: '一夜鱼龙舞',
-        description: '大剑一分为五，五剑齐舞。',
+        description: '御物万法，鱼龙起舞。消耗大量缠劲，连续发出5次攻击。',
         requiredTags: ['imperial'],
         apCost: 5,
         chanCost: 30,
-        tags: ['range', 'slash', 'pierce'],
+        tags: ['range', 'summon'],
         canUse: (attacker) => attacker.chan >= 30,
         onActionHitChance: (base) => base + 0.2,
         effects: [{ type: 'damage', scaling: { wisdom: 0.4 }, base: 2, independentHits: 5 }],
@@ -1062,7 +1062,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['imperial'],
         apCost: 4,
         tags: ['range', 'pierce', 'summon'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.1 }, independentHits: 5, piercing: 1 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, independentHits: 5, piercing: 1 }],
     },
     {
         id: 'scan_analysis',
