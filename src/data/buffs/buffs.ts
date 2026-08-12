@@ -873,7 +873,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff'],
         expiry: { type: 'duration', ms: 3000 },
         stacking: { type: 'independent' },
-        attrMods: { agility: 1 },
+        attrMods: { agility: 1, dexterity: 1 },
     },
     {
         id: 'sword_focus',

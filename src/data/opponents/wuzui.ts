@@ -20,12 +20,13 @@ export const WUZUI: OpponentDef = {
         passive('zui_quan'),
         artifact('hui_xiang_dou'),
         action('hun_yuan_zhang'),
-        // 10
+        artifact('ba_wang_zui'),
+        // 11
     ],
     actionConfigs: [
         {
             actionId: 'ba_gua_you_shen_zhang',
-            triggerId: 'on_dodged',
+            triggerId: 'on_dodge',
         },
     ],
 }

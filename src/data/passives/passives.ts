@@ -640,7 +640,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'zui_quan',
         name: '醉拳',
-        description: '醉态蹒跚，步法诡谲。徒手招式附带短距冲刺，闪避率+8%。',
+        description: '醉态蹒跚，步法诡谲。徒手招式附带短距冲刺，身法化闪避；有酒劲buff时闪避额外+25%。',
         tags: ['passive', 'buff', 'jiu'],
         actionEnhancer: (def) => {
             if (!def.tags?.includes('unarmed') || !def.effects?.some((e) => e.type === 'damage')) return def
@@ -671,7 +671,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'qian_kun_da_nuo_yi',
-        name: '乾坤大挪移',
+        name: '醉里乾坤',
         description: '醉态中身体不受控制地晃动，受击时15%概率将所受伤害全额反弹。',
         tags: ['passive', 'defense'],
         triggers: [

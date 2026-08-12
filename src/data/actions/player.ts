@@ -219,10 +219,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '混元一气，蕴含炁劲的掌法。',
         requiredTags: ['unarmed'],
         apCost: 4,
-        chanCost: 15,
+        chanCost: 12,
         tags: ['unarmed', 'qi'],
-        canUse: (attacker) => attacker.chan >= 15,
-        effects: [{ type: 'damage', scaling: { strength: 0.8, wisdom: 0.8 } }],
+        canUse: (attacker) => attacker.chan >= 12,
+        effects: [{ type: 'damage', scaling: { strength: 0.7, vitality: 0.7, wisdom: 0.4 } }],
     },
     {
         id: 'push_hand',
@@ -299,18 +299,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.8, agility: 0.6, dexterity: 0.4 } },
         ],
-    },
-    {
-        id: 'gear_hang',
-        name: '挂',
-        description: '凝缠劲为内息，消耗50缠劲，叠一层「挡」，每层内息回复+0.3/s。',
-        requiredTags: [],
-        apCost: 1,
-        chanCost: 50,
-        tags: ['buff', 'pre_action'],
-        target: 'self',
-        canUse: (attacker) => attacker.chan >= 50,
-        effects: [{ type: 'add_buff', buffId: 'gear_shift_buff', stacks: 1 }],
     },
     {
         id: 'three_inch_light',
@@ -480,18 +468,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['pierce'],
         effects: [{ type: 'damage', scaling: { strength: 0.4, agility: 0.4 }, piercingRatio: 0.2 }],
-    },
-    {
-        id: 'cang_niao_jian_fa',
-        name: '苍鸟诀',
-        description: '苍鸟掠空，身如电驰。消耗15层缠劲，9秒内内息回复+0.5/s。',
-        requiredTags: [],
-        apCost: 1,
-        chanCost: 15,
-        tags: ['buff', 'pre_action', 'qi'],
-        target: 'self',
-        canUse: (attacker) => attacker.chan >= 15,
-        effects: [{ type: 'add_buff', buffId: 'cang_niao_buff' }],
     },
     {
         id: 'quanzhen_sword',
@@ -808,20 +784,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         ],
         onActionHitChance: (base) => base + 0.25,
     },
-    {
-        id: 'flash',
-        name: '闪光',
-        description: '以炁激发强光致盲对手，范围广，效果显著。',
-        requiredTags: [],
-        apCost: 2,
-        tags: ['debuff', 'pre_action', 'electric'],
-        getRange: () => [1, 5] as [number, number],
-        canUse: (attacker, state) => {
-            const enemy = state.characters.find((c) => c.id !== attacker.id)
-            return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
-        },
-        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 1 }],
-    },
     // ── 枪棍系 ──
     {
         id: 'rod_thrust',
@@ -967,19 +929,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             },
         ],
     },
-    {
-        id: 'dao_ma_dan',
-        name: '刀马旦',
-        description: '入戏。消耗30缠劲进入刀马旦状态，持续15秒。期间力道身法灵巧各+1，招式带炁，回复内息与气血。',
-        requiredTags: ['polearm'],
-        apCost: 3,
-        chanCost: 30,
-        tags: ['buff', 'pre_action', 'qi'],
-        target: 'self',
-        // 入戏中不能重复释放（有 buff 时禁用）
-        canUse: (attacker, state) => !state.pendingBuffs.has(`dao_ma_dan::${attacker.id}`),
-        effects: [{ type: 'add_buff', buffId: 'dao_ma_dan' }],
-    },
     // ── 钝器系 ──
     {
         id: 'hammer_swing',
@@ -1079,58 +1028,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                 buffId: 'bleed',
                 stacks: 5,
                 chance: 0.6,
-            },
-        ],
-    },
-    {
-        id: 'scan_analysis',
-        name: '扫描分析',
-        description: '无人机扫描对手，分析战斗数据，提升命中与暴击。',
-        requiredTags: ['imperial'],
-        apCost: 1,
-        tags: ['pre_action', 'buff', 'summon'],
-        target: 'self',
-        maxUses: 3,
-        effects: [{ type: 'add_buff', buffId: 'scan_analysis', stacks: 1 }],
-    },
-    // ── 特殊系 ──
-    {
-        id: 'wan_liu_gui_zong',
-        name: '归宗式',
-        description: '万流归宗之势，完全招架远程攻击。',
-        requiredTags: ['unarmed'],
-        apCost: 1,
-        tags: ['defense', 'unarmed', 'post_action', 'stance'],
-        canUse: (attacker) => attacker.chan >= 2,
-        effects: [{ type: 'add_buff', buffId: 'wan_liu_gui_zong' }],
-    },
-    {
-        id: 'blood_qi_protection',
-        name: '血炁护体',
-        description: '释放15%当前气血换取护体真气，减伤10%并持续恢复10秒。已有buff时不可重复使用。',
-        requiredTags: ['unarmed'],
-        apCost: 0,
-        tags: ['pre_action', 'buff'],
-        target: 'self',
-        canUse: (attacker, state) => {
-            if (state.pendingBuffs.has(`blood_qi_protection::${attacker.id}`)) return false
-            return true
-        },
-        effects: [
-            { type: 'add_buff', buffId: 'blood_qi_protection' },
-            {
-                type: 'functional_damage',
-                fn: ({ self, state }) => {
-                    const cost = Math.max(1, Math.round(self.hp * 0.15 * 10) / 10)
-                    if (self.hp <= cost) return 0
-                    self.takeDamage(cost)
-                    // 100% 回复
-                    const totalRecovery = cost
-                    const key = `blood_qi_protection::${self.id}`
-                    const layer = state.pendingBuffs.get(key)
-                    if (layer) layer.restoreValue = totalRecovery
-                    return 0
-                },
             },
         ],
     },

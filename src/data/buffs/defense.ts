@@ -83,7 +83,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         id: 'wan_liu_gui_zong',
         name: '归宗',
         description: '完全招架远程攻击。',
-        tags: ['defense', 'stance'],
+        tags: ['defense'],
         expiry: { type: 'duration', ms: 5000 },
         onParryChance: ({ source }) => {
             if (!source?.tags.includes('range')) return 0
@@ -341,27 +341,32 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'zui_quan_dodge',
         name: '醉步',
-        description: '醉态蹒跚，闪避率+5%。',
+        description: '醉态蹒跚，以身为步。每点身法+0.8%闪避；有酒劲buff时闪避额外+25%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onDodgeChance: () => 0.05,
+        onDodgeChance: ({ target, state }) => {
+            const base = target.attrs.get('agility') * 0.008
+            // 身上有带 jiu tag 的 buff（烧刀子/女儿红/霸王醉等）时闪避额外+25%
+            const hasJiu = countDrunkLayers(state, target.id) > 0
+            return hasJiu ? base * 1.25 : base
+        },
     },
     {
         id: 'qian_kun_fan_tan',
         name: '乾坤大挪移',
-        description: '受伤时25%概率消耗2缠反弹最多30点伤害，自身仅承受剩余伤害。',
+        description: '受伤时15%概率消耗等量缠劲（1缠:1伤）反弹最多7点伤害，自身仅承受剩余伤害。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, attacker, target, engine }) => {
-            if (attacker === target || Math.random() >= 0.25) return final
-            if (target.chan < 2) return final
-            const reflectDmg = Math.min(Math.round(final), 30)
+            if (attacker === target || Math.random() >= 0.15) return final
+            const reflectDmg = Math.min(Math.round(final), 7)
             if (reflectDmg <= 0) return final
-            target.spendChan(2)
+            if (target.chan < reflectDmg) return final
+            target.spendChan(reflectDmg)
             attacker.takeDamage?.(reflectDmg)
             engine?.emitLog({
                 type: 'system',
-                message: `[乾坤大挪移] ${target.name} 消耗2缠反弹 ${reflectDmg} 点伤害给 ${attacker.name}，自承 ${round1(final - reflectDmg)} 点`,
+                message: `[乾坤大挪移] ${target.name} 消耗${reflectDmg}缠反弹 ${reflectDmg} 点伤害给 ${attacker.name}，自承 ${round1(final - reflectDmg)} 点`,
                 actorId: target.id,
             })
             return round1(final - reflectDmg)
@@ -573,7 +578,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'hun_yuan_gong_buff',
         name: '混元炁',
-        description: '混元护体，近身受到超过8点或炁伤害时反伤并击退对手。',
+        description:
+            '混元护体，近身受到超过8点或炁伤害时反伤所受伤害的一半（缠耗为反伤的一半），自身仍承受全额伤害并击退对手。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -585,7 +591,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             const isQiHit = source?.tags.includes('qi') ?? false
             if (!isHeavyHit && !isQiHit) return final
 
-            const reflectDmg = Math.max(1, Math.round(target.attrs.get('wisdom') * 0.4))
+            // 反伤所受伤害的一半，缠耗为反伤的一半（即所受伤害的 1/4），缠不足则不反伤
+            const reflectDmg = Math.max(1, Math.round(final * 0.5))
+            const chanCost = Math.max(1, Math.round(reflectDmg * 0.5))
+            if (target.chan < chanCost) return final
+            target.spendChan(chanCost)
             attacker.takeDamage(reflectDmg, engine)
             processActionEffect(
                 { type: 'knockback', distance: 1 },
@@ -593,7 +603,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             )
             engine.emitLog({
                 type: 'system',
-                message: `[混元炁] ${target.name}反伤${reflectDmg}并击退${attacker.name}`,
+                message: `[混元炁] ${target.name}消耗${chanCost}缠反伤${reflectDmg}并击退${attacker.name}（自承${round1(final)}）`,
                 actorId: target.id,
             })
             return final
