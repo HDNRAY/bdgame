@@ -442,6 +442,27 @@ export class BattleEngine {
             if (action.apCost > 2) continue
             // 位移招不当作触发：否则对手每次移动都白嫖一次位移+buff（过于廉价/假）
             if (action.tags.includes('move')) continue
+            // 触发招式判定钩子：任一 buff 的 canTriggerAction 返回 false 则本次触发招式不执行（如觉醒后不再触发）
+            let allowTrigger = true
+            forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
+                if (!def?.canTriggerAction) return
+                if (
+                    !def.canTriggerAction({
+                        final: 0,
+                        raw: 0,
+                        target: enemy,
+                        attacker: self,
+                        engine: this,
+                        state: this.state,
+                        layer,
+                        source: action,
+                    })
+                ) {
+                    allowTrigger = false
+                    return false
+                }
+            })
+            if (!allowTrigger) continue
             const inst = self.actions.find((a) => a.id === slot.actionId)
             if (!inst || !inst.canUse()) continue
 

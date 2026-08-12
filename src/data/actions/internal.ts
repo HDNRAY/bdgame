@@ -63,12 +63,15 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         target: 'self',
         maxUses: 1,
         effects: [
-            // 每种 debuff 减 2 层（additive 减层数，independent 每种消 2 层），不清除干净
-            { type: 'cleanse', allDebuffs: true, perDebuffStacks: 2 },
-            { type: 'add_buff', buffId: 'qi_shield', stacks: 4 },
+            // 每种 debuff 减 1 层（additive 减层数，independent 每种消 1 层），不清除干净
+            { type: 'cleanse', allDebuffs: true, perDebuffStacks: 1 },
+            { type: 'add_buff', buffId: 'qi_shield', stacks: 10 },
+            // 觉醒状态：不再触发招式（canTriggerAction 钩子拦截）
+            { type: 'add_buff', buffId: 'qiti_awaken_buff' },
             {
+                // 六维各 +2（AP 回复不降，灵巧/洞察↑ 雷法收益照吃）
                 type: 'stat_buff',
-                attrs: { wisdom: -12, strength: 4, agility: 4, dexterity: 4, vitality: 4, insight: 4 },
+                attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2, insight: 2, wisdom: 2 },
             },
         ],
     },
@@ -111,7 +114,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['trigger', 'electric', 'counter', 'internal'],
         target: 'enemy',
-        effects: [{ type: 'damage', scaling: { insight: 0.2 }, base: 2 }],
+        effects: [{ type: 'damage', scaling: { insight: 0.2 }, piercing: 1 }],
     },
     {
         // 通用反击（无 tag，任何武器可用）：逆转经脉等被暴击反击直接引用

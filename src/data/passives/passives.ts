@@ -266,14 +266,13 @@ export const PASSIVES: Passive[] = [
     {
         id: 'qiti_source',
         name: '炁体源流',
-        description: '八奇技之一，濒危时炁体护体吸收炁伤害，并将炁转化为力量、身法和灵巧。',
+        description: '濒危时炁体护体吸收炁伤害，并将炁转化为力量、身法和灵巧。',
         tags: ['passive', 'buff', 'qi'],
-        requireAttrsMin: { wisdom: 14 },
         triggers: [
             {
                 condition: {
                     type: 'hp_below',
-                    check: (ctx) => ctx.actor.hp / ctx.actor.maxHp < 0.25,
+                    check: (ctx) => ctx.actor.hp / ctx.actor.maxHp < 0.2,
                 },
                 actionId: '_qiti_awaken',
             },
@@ -582,7 +581,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'no_parry_style',
         name: '流风回雪',
-        description: '飘飖兮若流风之回雪。不招架，只闪避，将招架率转化为等额的闪避率。',
+        description: '飘飖兮若流风之回雪。不招架，只闪避，将招架率转化为闪避率。',
         tags: ['qi', 'buff', 'defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_parry_buff' }] }],
     },

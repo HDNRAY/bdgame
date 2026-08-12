@@ -138,6 +138,8 @@ export interface BuffDef extends GameEntity {
     getExtraAttack?: (ctx: { source: GameEntity }) => number
     /** 自定义日志格式（覆盖默认的"获得状态"消息，返回整个消息体，不含 [BuffName] 前缀） */
     logFormat?: (layer: BuffLayer, targetName: string) => string | undefined
+    /** 触发招式判定钩子（返回 false 则本次触发招式不执行；attacker=触发者，target=目标，source=触发招式，可自由做条件，如觉醒后不再触发） */
+    canTriggerAction?: (ctx: BuffHookCtx) => boolean
 }
 
 /** debuff 事件上下文（onDebuffApply / onDebuffApplied / onReceiveDebuff 共用） */

@@ -783,14 +783,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'no_parry_buff',
         name: '流风回雪',
-        description: '招架率转化为等额闪避率。',
+        description: '招架率转化为闪避率。',
         tags: [],
         stacking: { type: 'none' },
         onCanParry: () => false,
         onDodgeChance: ({ target }) => {
             const dex = target.attrs.get('dexterity')
             const ins = target.attrs.get('insight')
-            return calcParryChance(dex, ins) / 2
+            return calcParryChance(dex, ins) / 3
         },
     },
     {
@@ -1304,6 +1304,16 @@ export const BUFF_DB: BuffDef[] = [
             }
             return final
         },
+    },
+    // ── 炁体源流·觉醒（六维激涌，但不再触发招式） ──
+    {
+        id: 'qiti_awaken_buff',
+        name: '炁体源流·觉醒',
+        description: '六维激涌，觉醒后不再触发招式。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        canTriggerAction: () => false,
     },
     {
         id: 'cang_niao_buff',

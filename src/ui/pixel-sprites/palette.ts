@@ -64,7 +64,7 @@ export const CHARACTER_COLORS: Record<string, CharacterColors> = {
     qianxing: { skin: '#f0d0b0', hair: '#6a4a2a', eyes: '#7a5a3a', accent: '#9a9a9a', decoration: '#d4a848' }, // 天工·千星：铁灰 + 星金
     fengshui: { skin: '#f0c8a0', hair: '#3a3a5a', eyes: '#4a5a7a', accent: '#3a8a7a', decoration: '#80c8b0' },
     haoran: { skin: '#f5e6d0', hair: '#2a2a4a', eyes: '#3a5a8a', accent: '#4a7ab8', decoration: '#a0c8f0' },
-    duoer: { skin: '#f0e8e0', hair: '#d8c0a0', eyes: '#7a6a5a', accent: '#f0f0f5', decoration: '#d4a848' }, // 圣女·陶朵：圣洁白 + 金
+    duoer: { skin: '#f0e8e0', hair: '#d8c0a0', eyes: '#7a6a5a', accent: '#f0f0f5', decoration: '#d4a848' }, // 陶朵：圣洁白 + 金
     junshi: { skin: '#f5e6d0', hair: '#2a2a2a', eyes: '#3a3a5a', accent: '#2a2a5a', decoration: '#6a6aa0' },
     ajiu: { skin: '#f0c8a0', hair: '#4a3a2a', eyes: '#5a4a3a', accent: '#6a6a7a', decoration: '#a0a0b0' },
     jiran: { skin: '#f5d6c6', hair: '#3a3a3a', eyes: '#5d4037', accent: '#7a5a3a', decoration: '#c0a080' },
