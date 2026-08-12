@@ -178,7 +178,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
             { type: 'fixed_damage', value: 25 },
             { type: 'add_debuff', buffId: 'burn', stacks: 8, chance: 1 },
             // 失血挂到自己身上（add_buff 走 self 目标），灼烧打对手（add_debuff 走 enemy）
-            { type: 'add_buff', buffId: 'blood_loss', stacks: 1 },
+            { type: 'add_buff', buffId: 'blood_loss', stacks: 4 },
             { type: 'add_buff', buffId: 'one_arm_buff' },
             { type: 'remove_buff', buffId: 'overload' },
         ],

@@ -402,13 +402,13 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'chanzi_heal',
         name: '甘露',
-        description: '禅心化露，回气疗伤。消耗1AP、20层缠劲，回复当前血量的5%（最少5点）。',
+        description: '禅心化露，回气疗伤。消耗1AP、10层缠劲，回复当前血量的5%（最少5点）。',
         requiredTags: [],
         apCost: 1,
-        chanCost: 20,
+        chanCost: 10,
         tags: ['heal', 'qi', 'pre_action'],
         target: 'self',
-        canUse: (attacker) => attacker.chan >= 20,
+        canUse: (attacker) => attacker.chan >= 10,
         effects: [{ type: 'functional_heal', fn: ({ self }) => Math.max(5, Math.round(self.hp * 0.05)) }],
     },
     {

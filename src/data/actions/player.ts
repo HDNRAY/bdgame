@@ -350,7 +350,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         tags: ['unarmed', 'qi', 'range'],
         getRange: () => [0, 8] as [number, number],
-        extraPreDelay: 1000,
         onActionHitChance: (base) => base + 0.2,
         effects: [{ type: 'damage', scaling: { strength: 0.4, vitality: 0.4, wisdom: 0.4 } }],
     },

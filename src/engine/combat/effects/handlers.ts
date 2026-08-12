@@ -495,7 +495,15 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             engine.emit('on_debuff', enemy, self)
             emitPerDebuff(engine, e.buffId, self, enemy)
             // debuff 自定钩子（设置 extra 数据）
-            buff.onDebuffApply?.({ self, enemy, engine, state: engine.state, stacks, layer: existing, buffId: e.buffId })
+            buff.onDebuffApply?.({
+                self,
+                enemy,
+                engine,
+                state: engine.state,
+                stacks,
+                layer: existing,
+                buffId: e.buffId,
+            })
             // 遍历攻击者的 buff，触发 onDebuffApplied 钩子
             forEachBuffOf(engine.state.pendingBuffs, self.id, (bDef) => {
                 bDef?.onDebuffApplied?.({

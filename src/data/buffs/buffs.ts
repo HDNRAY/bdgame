@@ -553,10 +553,10 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'heavy_training',
         name: '玄剑',
-        description: '以力驭剑，化繁为简。重型武器身法负担减半，招式AP消耗-0.2（最低1）。',
+        description: '以力驭剑，化繁为简。重型武器身法负担减半，招式AP消耗-0.1。',
         tags: [],
         expiry: { type: 'permanent' },
-        onActionCost: () => -0.2,
+        onActionCost: () => -0.1,
     },
     {
         id: 'santou_liubi',
@@ -1237,7 +1237,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { agility: -4 },
-        onActionCost: () => -0.5,
+        onActionCost: () => -1,
     },
     // ── 明镜止水 ──
     {
@@ -1362,5 +1362,16 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         chanRegenPerSec: () => 2,
+    },
+    // ── 禅心慧眼（禅子·推演化命中暴击） ──
+    {
+        id: 'chan_xin_hui_yan_buff',
+        name: '禅心慧眼',
+        description: '禅心通明，慧眼洞悉破绽。以推演窥破对手招式轨迹，每点推演+0.5%命中、+0.2%暴击。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.005,
+        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.002,
     },
 ]

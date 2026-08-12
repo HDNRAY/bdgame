@@ -21,7 +21,8 @@ export const CHANZI: OpponentDef = {
         action('ru_lai_shen_zhang'),
         action('deng_ping_du_shui'),
         artifact('pu_ti_zhu'),
-        // 10
+        passive('chan_xin_hui_yan'),
+        // 11
     ],
     actionConfigs: [
         { actionId: 'jin_zhong_zhao' },

@@ -376,14 +376,14 @@ export const PASSIVES: Passive[] = [
         id: 'dark_iron_sword_art',
         name: '玄剑秘册',
         description:
-            '玄门流落在外的秘籍，虽无玄门血脉，亦可以炁御物。无法精巧控制武器，但可降低重武器对修炼者身法的负面影响，并使其可以短暂使用拳脚攻击。招式化繁为简，AP消耗-0.4。',
+            '玄门流落在外的秘籍，虽无玄门血脉，亦可以炁御物。无法精巧控制武器，但可降低重武器对修炼者身法的负面影响，并使其可以短暂使用拳脚攻击。招式化繁为简，AP消耗-0.1。',
         tags: ['passive', 'buff', 'heavy'],
         effects: [
             {
                 type: 'stat_restriction',
                 check: (_char, attr, _cur, delta, sourceTags) => {
                     if (attr === 'agility' && delta < 0 && sourceTags?.includes('weapon'))
-                        return { delta: Math.round(delta / 2) }
+                        return { delta: Math.round(delta * 0.6) }
                     return null
                 },
             },
@@ -394,15 +394,15 @@ export const PASSIVES: Passive[] = [
     {
         id: 'tide_inner_power',
         name: '潮汐内力',
-        description: '内力如潮汐般涨落，每回合交替以力道或身法驱动招式。身法惩罚一律减半，且身法不为负。',
+        description: '内力如潮汐般涨落，每回合交替以力道或身法驱动招式。身法惩罚一律减免4成，且身法不为负。',
         tags: ['passive', 'buff', 'qi'],
         effects: [
             {
                 type: 'stat_restriction',
                 check: (_char, attr, cur, delta) => {
                     if (attr !== 'agility' || delta >= 0) return null
-                    // 无论来源一律减半，但最终身法不为负
-                    const after = cur + delta / 2
+                    // 无论来源一律减免 4 成（保留 6 成），但最终身法不为负
+                    const after = cur + delta * 0.6
                     const clamped = Math.max(after, 0)
                     return { delta: Math.round((clamped - cur) * 10) / 10 }
                 },
@@ -946,9 +946,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yi_jin_jing',
         name: '易筋经',
-        description: '佛门易筋洗髓之法，根骨、推演各+4。',
+        description: '佛门易筋洗髓之法，根骨、推演各+3。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'stat_buff', attrs: { vitality: 4, wisdom: 4 } }],
+        effects: [{ type: 'stat_buff', attrs: { vitality: 3, wisdom: 3 } }],
     },
     {
         id: 'chanzi_chan_regen',
@@ -957,6 +957,19 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chanzi_chan_regen' }] },
+        ],
+    },
+    // ── 禅心慧眼（禅子·推演化命中暴击） ──
+    {
+        id: 'chan_xin_hui_yan',
+        name: '禅心慧眼',
+        description: '禅心通明，慧眼洞悉破绽。以推演窥破对手招式轨迹，推演化为命中与暴击。',
+        tags: ['passive', 'buff', 'qi'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'chan_xin_hui_yan_buff' }],
+            },
         ],
     },
 ]
