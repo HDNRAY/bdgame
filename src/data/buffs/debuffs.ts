@@ -229,38 +229,13 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'oil_coating',
         name: '泼油',
-        description: '浑身浇满油，灼烧层数翻倍。',
+        description: '浑身浇满油，整场灼烧伤害翻倍。',
         tags: ['debuff'],
         expiry: { type: 'permanent' },
-        // 泼油时身上有灼烧 → 已有层数翻倍
-        onDebuffApply: ({ enemy, engine }) => {
-            if (!engine) return
-            const burnKey = `burn::${enemy.id}`
-            const burnLayer = engine.state.pendingBuffs.get(burnKey)
-            if (burnLayer) {
-                burnLayer.restoreValue *= 2
-                engine.emitLog({
-                    type: 'system',
-                    message: `[泼油] 灼烧层数翻倍！→${burnLayer.restoreValue}`,
-                    actorId: enemy.id,
-                })
-            }
-        },
-        // 灼烧时身上有泼油 → 抵抗并重新应用翻倍层数
-        onReceiveDebuff: (ctx) => {
-            if (ctx.buffId !== 'burn') return
-            if (!ctx.engine) return
-            ctx.engine.state.pendingBuffs.delete(`oil_coating::${ctx.self.id}`)
-            processActionEffect(
-                { type: 'add_debuff', buffId: 'burn', stacks: ctx.stacks * 2, chance: 1 },
-                { self: ctx.enemy, enemy: ctx.self, engine: ctx.engine, tMs: ctx.engine.state.turn.currentTime },
-            )
-            ctx.engine.emitLog({
-                type: 'system',
-                message: `[泼油] 灼烧层数翻倍！${ctx.stacks}→${ctx.stacks * 2}`,
-                actorId: ctx.self.id,
-            })
-            return 0
+        // 常驻：灼烧 tick 伤害翻倍（油不消耗；与铸火诀/千锤百炼同一 onDebuffTick 数据钩子）
+        onDebuffTick: ({ buffId, damage }) => {
+            if (buffId !== 'burn') return undefined
+            return Math.max(0, round1(damage * 2))
         },
     },
     // ── 失血（断臂） ──

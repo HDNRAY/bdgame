@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive } from '../../engine/util/reward-utils'
+import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
 const ATTRS = { strength: 12, vitality: 10, agility: 16, dexterity: 16, insight: 10, wisdom: 14 }
 
@@ -8,7 +8,7 @@ export const ORANGE: OpponentDef = {
     name: '橘子会',
     story: '橘子真的妹妹。从小修习忍术，成年后发现自己对真正的功夫由衷地向往，而自己的天赋无法发挥姐姐那种近乎本能的作战方式，到处寻找适合自身的功法，直到她遇到药屋小花，目前跟随其学习无明之明。',
     battleStyle: 'mid',
-    weapon: 'ninja_sword',
+    weapon: 'dagger',
     targetAttrs: ATTRS,
     rewards: [
         action('light_slash'),
@@ -21,8 +21,9 @@ export const ORANGE: OpponentDef = {
         action('blaze_strike'),
         action('sweep_kick'),
         passive('no_light_wisdom'),
+        weapon('ninja_sword'),
         // 锁链刃
-        // 10
+        // 11
     ],
     actionConfigs: [
         { actionId: 'light_slash', triggerId: 'on_dodged' },

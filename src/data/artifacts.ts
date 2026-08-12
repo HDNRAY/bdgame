@@ -642,10 +642,15 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'ninja_tool_kit',
         name: '忍者工具包',
-        description: '多功能忍者工具包，内含撒菱、泼油和烟玉。',
+        description: '多功能忍者工具包。开局向对手泼油（整场灼烧伤害翻倍），内含撒菱与烟玉。',
         tags: ['craft', 'debuff'],
-        grantsActions: ['_caltrops', '_oil_splash', '_smoke_bomb'],
-        triggers: [],
+        grantsActions: ['_caltrops', '_smoke_bomb'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_debuff', buffId: 'oil_coating', stacks: 1, chance: 1 }],
+            },
+        ],
     },
 ]
 

@@ -1,6 +1,6 @@
 import type { Character } from '../entities/character'
 import type { ActionDefinition } from '../entities/action'
-import type { BattleState } from '../combat/types'
+import type { BattleState, BuffLayer } from '../combat/types'
 import { getActionRange } from '../../data/actions'
 import {
     calcBaseDamage,
@@ -21,6 +21,25 @@ export interface DamageEstimate {
     canReach: boolean
     apCost: number
     chanCost: number
+}
+
+/**
+ * 模拟 DOT tick 的 onDebuffTick 钩子链（对齐 tick-engine 真实路径）。
+ * 遍历目标身上所有带 onDebuffTick 的 buff，链式修正单跳伤害（泼油×2 / 铸火×0.5 / 千锤百炼×0.7 等自动生效）。
+ */
+function applyDotTickHooks(
+    pendings: Map<string, BuffLayer>,
+    target: Character,
+    buffId: 'burn' | 'poison' | 'bleed',
+    damage: number,
+): number {
+    let final = damage
+    forEachBuffOf(pendings, target.id, (def, layer) => {
+        if (!def?.onDebuffTick) return
+        const result = def.onDebuffTick({ buffId, target, damage: final, layer })
+        if (result !== undefined) final = result
+    })
+    return final
 }
 
 /** 计算招式对目标的期望伤害（含全部 buff 钩子） */
@@ -61,15 +80,22 @@ export function calcExpectedDamage(
         }
         if (eff.type === 'add_debuff') {
             // DoT 期望按真实伤害模型估 × 命中后独立施加减益的概率（此前统一 stacks×3 低估灼烧/中毒，且漏乘 chance 高估低概率毒）
-            if (eff.buffId === 'burn')
-                rawDamage += eff.stacks * (eff.stacks + 1) * (eff.chance ?? 1) // 衰减灼烧：2N + … + 2 = N(N+1)
-            else if (eff.buffId === 'poison')
-                rawDamage +=
-                    eff.stacks *
-                    calcPoisonTicksPerStack(safeDef.attrs.get('wisdom')) *
-                    DMG_PER_POISON_TICK *
-                    (eff.chance ?? 1)
-            else if (eff.buffId === 'bleed') rawDamage += eff.stacks * 3 * (eff.chance ?? 1) // 流血按 ~2 次触发估
+            if (eff.buffId === 'burn') {
+                // 真实衰减灼烧：N 层逐跳 2N, 2(N-1), …, 2，每跳过目标 onDebuffTick 钩子（泼油×2/铸火×0.5 等自动生效）
+                const n = Math.round(eff.stacks * (eff.chance ?? 1))
+                for (let k = n; k >= 1; k--) {
+                    rawDamage += applyDotTickHooks(safePendings, safeDef, 'burn', 2 * k)
+                }
+            } else if (eff.buffId === 'poison') {
+                const stacks = eff.stacks * (eff.chance ?? 1)
+                const ticks = calcPoisonTicksPerStack(safeDef.attrs.get('wisdom'))
+                for (let i = 0; i < ticks; i++) {
+                    rawDamage += applyDotTickHooks(safePendings, safeDef, 'poison', stacks * DMG_PER_POISON_TICK)
+                }
+            } else if (eff.buffId === 'bleed') {
+                // 流血按 ~2 次触发估，每跳走 onDebuffTick 钩子
+                rawDamage += applyDotTickHooks(safePendings, safeDef, 'bleed', eff.stacks * 3 * (eff.chance ?? 1))
+            }
         }
     }
 

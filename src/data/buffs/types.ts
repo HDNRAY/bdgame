@@ -174,7 +174,8 @@ export interface DebuffTickCtx {
     target: Character
     /** 本次 tick 的原始伤害值（可修改） */
     damage: number
-    engine: BattleEngine
+    /** 引擎（AI 估算等无引擎上下文下可省略；现有钩子均不依赖） */
+    engine?: BattleEngine
     /** DOT 的 buff 层数据 */
     layer: BuffLayer
 }

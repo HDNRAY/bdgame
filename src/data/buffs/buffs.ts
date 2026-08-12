@@ -947,12 +947,12 @@ export const BUFF_DB: BuffDef[] = [
             let str = 0,
                 agi = 0,
                 dex = 0
-            if (hpPct < 0.9) {
-                if (hpPct > 0.7) {
+            if (hpPct < 0.75) {
+                if (hpPct > 0.5) {
                     str = 2
                     agi = 2
                     dex = 2
-                } else if (hpPct > 0.3) {
+                } else if (hpPct > 0.25) {
                     str = 4
                     agi = 4
                     dex = 4

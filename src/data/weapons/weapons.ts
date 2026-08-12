@@ -209,10 +209,11 @@ export const WEAPON_DB: WeaponDef[] = [
     },
     {
         id: 'ninja_sword',
-        name: '极乐',
-        description: '忍者短刀，轻便灵活，可藏于袖中。',
+        name: '风切',
+        description: '忍者短刀，轻如风，快过影。可藏于袖中，出手极速。',
         tags: ['slash', 'pierce', 'parry', 'melee', 'unarmed', 'one_handed'],
         range: [0, 2],
+        effects: [{ type: 'haste', value: 80 }],
     },
     {
         id: 'zhen_bei_ji',
