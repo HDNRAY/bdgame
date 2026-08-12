@@ -412,7 +412,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
     // ── 春翁 ──
     {
         id: '_spear_throw',
-        name: '枪出如龙',
+        name: '左右插花',
         description: '',
         requiredTags: ['polearm'],
         apCost: 2,

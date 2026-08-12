@@ -79,13 +79,13 @@ describe('rewardPool', () => {
         })
 
         it('属性达标时返回 true', () => {
-            const reward = rewardPool.getPool('passive').find((r) => r.id === 'qiti_source')!
-            expect(rewardPool.meetsRequirements(reward, { wisdom: 16 })).toBe(true)
+            const reward = rewardPool.getPool('passive').find((r) => r.id === 'fei_hua_shou')!
+            expect(rewardPool.meetsRequirements(reward, { dexterity: 16 })).toBe(true)
         })
 
         it('属性不足时返回 false', () => {
-            const reward = rewardPool.getPool('passive').find((r) => r.id === 'qiti_source')!
-            expect(rewardPool.meetsRequirements(reward, { wisdom: 10 })).toBe(false)
+            const reward = rewardPool.getPool('passive').find((r) => r.id === 'fei_hua_shou')!
+            expect(rewardPool.meetsRequirements(reward, { dexterity: 10 })).toBe(false)
         })
     })
 

@@ -111,7 +111,7 @@ export class TickEngine {
         if (engine.state.pendingBuffs.has(`poison_resist::${enemy.id}`)) {
             dmg = Math.round(dmg * 0.3 * 10) / 10
         }
-        enemy.takeDamage(dmg)
+        enemy.takeDamage(dmg, engine)
         const buffName = getBuff('poison')?.name ?? '中毒'
         engine.emitLog({
             type: 'system',
@@ -185,7 +185,7 @@ export class TickEngine {
             })
             if (result !== undefined) finalDmg = result
         })
-        char.takeDamage(finalDmg)
+        char.takeDamage(finalDmg, engine)
 
         const buffName = getBuff('poison')?.name ?? '中毒'
         engine.emitLog({
@@ -255,7 +255,7 @@ export class TickEngine {
             })
             if (result !== undefined) finalDmg = result
         })
-        char.takeDamage(finalDmg)
+        char.takeDamage(finalDmg, engine)
         // 石肤：灼烧伤害减半（基于最终伤害，可与铸火等叠加）
         if (engine.state.pendingBuffs.has(`stone_skin::${charId}`)) {
             const halved = Math.round(finalDmg * 0.5)
@@ -311,7 +311,7 @@ export class TickEngine {
                 })
                 if (result !== undefined) finalDmg = result
             })
-            owner.takeDamage(finalDmg)
+            owner.takeDamage(finalDmg, engine)
             const bt = ((entry.extra?.bleedTriggerCount as number) ?? 0) + 1
             entry.extra = { ...entry.extra, bleedTriggerCount: bt }
             if (bt >= 5) {

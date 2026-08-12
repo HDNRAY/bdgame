@@ -55,7 +55,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         tags: ['qi', 'debuff', 'range'],
         getRange: () => [1, 3],
         effects: [
-            { type: 'damage', scaling: { strength: 0.1, wisdom: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.2, wisdom: 0.2 } },
             { type: 'disarm', chance: 0.3 },
         ],
     },

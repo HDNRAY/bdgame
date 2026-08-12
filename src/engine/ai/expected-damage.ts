@@ -2,7 +2,15 @@ import type { Character } from '../entities/character'
 import type { ActionDefinition } from '../entities/action'
 import type { BattleState } from '../combat/types'
 import { getActionRange } from '../../data/actions'
-import { calcBaseDamage, calcCritChance, calcHitChance, calcParryChance, calcParriedDamage } from '../calc/damage'
+import {
+    calcBaseDamage,
+    calcCritChance,
+    calcHitChance,
+    calcParryChance,
+    calcParriedDamage,
+    calcPoisonTicksPerStack,
+} from '../calc/damage'
+import { DMG_PER_POISON_TICK } from '../constants'
 import { forEachBuffOf } from '../combat/utils'
 
 export interface DamageEstimate {
@@ -51,7 +59,18 @@ export function calcExpectedDamage(
                 emitLog: () => {},
             })
         }
-        if (eff.type === 'add_debuff' && ['burn', 'poison', 'bleed'].includes(eff.buffId)) rawDamage += eff.stacks * 3
+        if (eff.type === 'add_debuff') {
+            // DoT 期望按真实伤害模型估 × 命中后独立施加减益的概率（此前统一 stacks×3 低估灼烧/中毒，且漏乘 chance 高估低概率毒）
+            if (eff.buffId === 'burn')
+                rawDamage += eff.stacks * (eff.stacks + 1) * (eff.chance ?? 1) // 衰减灼烧：2N + … + 2 = N(N+1)
+            else if (eff.buffId === 'poison')
+                rawDamage +=
+                    eff.stacks *
+                    calcPoisonTicksPerStack(safeDef.attrs.get('wisdom')) *
+                    DMG_PER_POISON_TICK *
+                    (eff.chance ?? 1)
+            else if (eff.buffId === 'bleed') rawDamage += eff.stacks * 3 * (eff.chance ?? 1) // 流血按 ~2 次触发估
+        }
     }
 
     // 2. 收集 buff 修正值（直接累到克隆上）

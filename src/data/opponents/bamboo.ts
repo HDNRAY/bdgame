@@ -22,7 +22,8 @@ export const BAMBOO: OpponentDef = {
         action('po_lang_gun_fa'),
         weapon('po_lang_zhu_zhi'),
         artifact('pu_ti_zhu'),
-        // 11
+        passive('hua_gun'),
+        // 12
     ],
     actionConfigs: [
         { actionId: 'rod_lift', triggerId: 'on_parried' },

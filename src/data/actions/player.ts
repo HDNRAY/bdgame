@@ -158,8 +158,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'melee', 'debuff'],
         getRange: () => [0, 1] as [number, number],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
-            { type: 'disarm', chance: 0.4 },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
+            { type: 'disarm', chance: 0.2 },
         ],
     },
     {
@@ -734,8 +734,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['slash', 'burn'],
         getRange: (wr) => [wr[0], wr[1] + 1],
         effects: [
-            { type: 'damage', scaling: { strength: 0.4, wisdom: 0.1 } },
-            { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
+            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'add_debuff', buffId: 'burn', stacks: 3, chance: 0.7 },
         ],
     },
     {
@@ -912,7 +912,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 4,
         tags: ['blunt', 'polearm'],
-        effects: [{ type: 'damage', scaling: { strength: 0.5, dexterity: 0.5 } }],
+        onActionCritChance: () => 1,
+        effects: [{ type: 'damage', scaling: { strength: 0.5, agility: 0.1, vitality: 0.1, dexterity: 0.1 } }],
     },
     {
         id: 'yi_dian_han_mang',
