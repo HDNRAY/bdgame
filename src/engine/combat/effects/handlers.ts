@@ -413,16 +413,19 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     },
     add_debuff({ eff, self, enemy, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_debuff' }>
-        const { success } = calcRoll(e.chance)
-        if (!success) return
+        // 每层独立判定概率：roll stacks 次，成功次数=总叠层（stacks:5/chance:0.8 → 0~5 分布，期望 5×0.8）
+        const rollCount = e.stacks ?? 1
+        let stacks = 0
+        for (let i = 0; i < rollCount; i++) {
+            if (calcRoll(e.chance).success) stacks++
+        }
+        if (stacks <= 0) return
 
         const buff = getBuff(e.buffId)
         if (!buff) return
 
         const st = e.buffId
         // 罡体免疫（已由各 buff 的 onReceiveDebuff 接管）
-
-        const stacks = e.stacks ?? 1
 
         // 遍历防御者身上的 buff，触发 onReceiveDebuff 钩子（概率抵抗等）
         let resisted = false

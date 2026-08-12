@@ -1053,16 +1053,33 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['imperial'],
         apCost: 2,
         tags: ['range', 'pierce', 'summon'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.4 }, piercing: 1 }],
+        effects: [
+            { type: 'damage', scaling: { wisdom: 0.3 }, piercing: 1 },
+            {
+                type: 'add_debuff',
+                buffId: 'bleed',
+                stacks: 1,
+                chance: 0.4,
+            },
+        ],
     },
     {
         id: 'drone_barrage',
         name: '无人机弹幕',
-        description: '无人机集群弹幕扫射。',
+        description: '无人机集群弹幕扫射。5段射击，每段60%概率叠1层流血。',
         requiredTags: ['imperial'],
-        apCost: 4,
+        apCost: 5,
+        chanCost: 30,
         tags: ['range', 'pierce', 'summon'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, independentHits: 5, piercing: 1 }],
+        effects: [
+            { type: 'damage', scaling: { wisdom: 0.38 }, independentHits: 5, piercing: 2 },
+            {
+                type: 'add_debuff',
+                buffId: 'bleed',
+                stacks: 5,
+                chance: 0.6,
+            },
+        ],
     },
     {
         id: 'scan_analysis',
