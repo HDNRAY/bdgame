@@ -42,6 +42,28 @@ function applyDotTickHooks(
     return final
 }
 
+/**
+ * 模拟施加 debuff 时攻击者的 onDebuffApplied 钩子（对齐 handlers.ts 真实路径）。
+ * 遍历攻击者身上所有带 onDebuffApplied 的 buff，作用于克隆 layer——层数/倍率修正（铸火+层、七心海棠毒翻倍）自动生效；
+ * 副作用型钩子（十香软筋散/西域奇毒挂 debuff）因无 engine 直接跳过，不会污染真实状态。
+ */
+function applyDebuffAppliedHooks(
+    pendings: Map<string, BuffLayer>,
+    attacker: Character,
+    defender: Character,
+    buffId: 'burn' | 'poison',
+    stacks: number,
+    state: BattleState,
+): BuffLayer {
+    // 克隆 layer 供钩子修正（真实路径传入的是刚施加/叠加的 burn/poison 层数据）
+    const layer: BuffLayer = { restoreValue: stacks, extra: {} }
+    forEachBuffOf(pendings, attacker.id, (def) => {
+        if (!def?.onDebuffApplied) return
+        def.onDebuffApplied({ self: attacker, enemy: defender, buffId, stacks, layer, state })
+    })
+    return layer
+}
+
 /** 计算招式对目标的期望伤害（含全部 buff 钩子） */
 export function calcExpectedDamage(
     action: ActionDefinition,
@@ -81,16 +103,28 @@ export function calcExpectedDamage(
         if (eff.type === 'add_debuff') {
             // DoT 期望按真实伤害模型估 × 命中后独立施加减益的概率（此前统一 stacks×3 低估灼烧/中毒，且漏乘 chance 高估低概率毒）
             if (eff.buffId === 'burn') {
+                // 命中期望层数（chance 独立 roll 后实际叠加的层数）
+                const hitStacks = Math.round(eff.stacks * (eff.chance ?? 1))
+                // 攻击者 onDebuffApplied（铸火诀 WIS≥15 +2 否则 +1 等）作用于克隆层
+                const appliedLayer = applyDebuffAppliedHooks(safePendings, safeAtk, safeDef, 'burn', hitStacks, safeState)
+                const n = appliedLayer.restoreValue
                 // 真实衰减灼烧：N 层逐跳 2N, 2(N-1), …, 2，每跳过目标 onDebuffTick 钩子（泼油×2/铸火×0.5 等自动生效）
-                const n = Math.round(eff.stacks * (eff.chance ?? 1))
                 for (let k = n; k >= 1; k--) {
                     rawDamage += applyDotTickHooks(safePendings, safeDef, 'burn', 2 * k)
                 }
             } else if (eff.buffId === 'poison') {
                 const stacks = eff.stacks * (eff.chance ?? 1)
+                // 七心海棠等 onDebuffApplied 设 poisonMult=2（作用于克隆 layer，不改真实）
+                const appliedLayer = applyDebuffAppliedHooks(safePendings, safeAtk, safeDef, 'poison', stacks, safeState)
+                const mult = (appliedLayer.extra?.poisonMult as number | undefined) ?? 1
                 const ticks = calcPoisonTicksPerStack(safeDef.attrs.get('wisdom'))
                 for (let i = 0; i < ticks; i++) {
-                    rawDamage += applyDotTickHooks(safePendings, safeDef, 'poison', stacks * DMG_PER_POISON_TICK)
+                    rawDamage += applyDotTickHooks(
+                        safePendings,
+                        safeDef,
+                        'poison',
+                        stacks * DMG_PER_POISON_TICK * mult,
+                    )
                 }
             } else if (eff.buffId === 'bleed') {
                 // 流血按 ~2 次触发估，每跳走 onDebuffTick 钩子

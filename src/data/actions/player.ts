@@ -29,7 +29,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'stun'],
         getRange: () => [0, 2],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1, wisdom: 0.1 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.2 },
         ],
     },

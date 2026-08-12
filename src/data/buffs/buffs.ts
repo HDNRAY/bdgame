@@ -467,13 +467,11 @@ export const BUFF_DB: BuffDef[] = [
             if (buffId !== 'burn') return undefined
             return Math.max(0, round1(damage * 0.5))
         },
-        // 施加灼烧时直接叠加层数（wis≥15 +2，否则 +1；直接改 restoreValue，无递归）
-        onDebuffApplied: ({ self, enemy, engine, buffId }) => {
-            if (buffId !== 'burn') return
+        // 施加灼烧时直接叠加层数（wis≥15 +2，否则 +1；直接改 layer.restoreValue，无递归，不依赖 engine）
+        onDebuffApplied: ({ layer, self, buffId }) => {
+            if (buffId !== 'burn' || !layer) return
             const extra = self.attrs.get('wisdom') >= 15 ? 2 : 1
-            const key = `burn::${enemy.id}`
-            const layer = engine.state.pendingBuffs.get(key)
-            if (layer) layer.restoreValue += extra
+            layer.restoreValue += extra
         },
     },
     // ── 千锤百炼（天工·千星·特性：灼烧-30%，根骨化力道） ──

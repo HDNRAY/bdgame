@@ -117,7 +117,7 @@ export const DEBUFF_DB: BuffDef[] = [
             return stored ? `${base}（累计寄存${stored}）` : base
         },
         onDebuffApply: ({ self, enemy, engine, layer }) => {
-            if (!layer || layer.restoreValue < 5) return
+            if (!engine || !layer || layer.restoreValue < 5) return
             // 5层满 → 引爆
             const stored = (layer.extra?.stored as number) ?? 0
             const explosionDmg = round1(stored * 2)

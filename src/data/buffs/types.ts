@@ -146,7 +146,10 @@ export interface BuffDef extends GameEntity {
 export interface DebuffApplyCtx {
     self: Character
     enemy: Character
-    engine: BattleEngine
+    /** 引擎（AI 估算等无引擎上下文下可省略；副作用型钩子如十香软筋散因 !engine 自动跳过） */
+    engine?: BattleEngine
+    /** 战斗状态（AI 估算时为克隆的 safeState） */
+    state: BattleState
     /** 本次 debuff 层数 */
     stacks: number
     /** debuff ID */
