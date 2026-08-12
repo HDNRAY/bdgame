@@ -263,7 +263,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'wolf_hunting_buff',
         name: '狼狩',
-        description: '善用自重、惯性与借力造成额外伤害。',
+        description: '善用自重、惯性与借力造成额外伤害。消耗2层缠劲。',
         tags: ['buff', 'damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },

@@ -8,7 +8,7 @@ export const OTSU: OpponentDef = {
     name: '橘子真',
     story: '归海楼弟子，枪术惊世却无争强之心。三节枪使得出神入化，可在守势与攻势间自如切换。她出手从来不是为了自己——有人需要她赢，她便赢。',
     battleStyle: 'melee',
-    weapon: 'long_spear',
+    weapon: 'three_section_spear',
     targetAttrs: OTSU_ATTRS,
     rewards: [
         action('light_slash'),
@@ -16,7 +16,7 @@ export const OTSU: OpponentDef = {
         passive('combat_instinct'),
         passive('wolf_hunting'),
         action('rising_slash'),
-        action('spinning_slash'),
+        action('horizontal_slash'),
         weapon('three_section_spear'),
         passive('insight_awareness'),
         passive('spear_stance_mastery'),
@@ -26,20 +26,24 @@ export const OTSU: OpponentDef = {
     ],
     actionConfigs: [
         {
-            actionId: '_spear_throw',
+            actionId: '_luo_yue',
             triggerId: 'on_opponent_move_away',
         },
         {
-            actionId: 'spinning_slash',
-            triggerId: 'on_opponent_move_closer',
+            actionId: '_chuan_yun',
+            triggerId: 'on_parried',
         },
         {
-            actionId: 'light_slash',
-            triggerId: 'on_parried',
+            actionId: 'horizontal_slash',
+            triggerId: 'on_dodge',
         },
         {
             actionId: 'rising_slash',
             triggerId: 'on_parry',
+        },
+        {
+            actionId: 'light_slash',
+            triggerId: 'on_dodged',
         },
     ],
 }

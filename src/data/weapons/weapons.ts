@@ -34,10 +34,10 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'three_section_spear',
         name: '春翁',
-        description: '三段式机关枪，通过旋转接口切换形态。',
+        description: '三段式机关枪，通过旋转接口切换形态。近身可绕开招架，甩出如鞭远斩。',
         tags: ['pierce', 'parry', 'polearm', 'slash'],
         range: [1, 3],
-        grantsActions: ['_spear_throw'],
+        grantsActions: ['_chuan_yun', '_luo_yue'],
     },
     {
         id: 'iron_back_hand',

@@ -62,7 +62,7 @@ export function simpleGenerate(
         offhandWeapon = weaponRewards[1]?.id
     }
 
-    // 收集所有已获得的招式 ID（含被动/奇物 grantsActions）
+    // 收集所有已获得的招式 ID（含被动/奇物/武器 grantsActions）
     const pickedActionIds = new Set(picked.filter((r) => r.type === 'action').map((r) => r.id))
     for (const r of picked) {
         if (r.type === 'artifact') {
@@ -72,6 +72,11 @@ export function simpleGenerate(
             const def = getPassive(r.id)
             if (def?.grantsActions) for (const aId of def.grantsActions) pickedActionIds.add(aId)
         }
+    }
+    // 武器 grantsActions 也纳入（主手 + 副手），否则武器授予的招式对应的 actionConfig 会被过滤掉
+    for (const wId of [finalWeapon, offhandWeapon].filter(Boolean)) {
+        const wDef = getWeapon(wId as string)
+        if (wDef?.grantsActions) for (const aId of wDef.grantsActions) pickedActionIds.add(aId)
     }
     const filteredConfigs = actionConfigs?.filter((ac) => pickedActionIds.has(ac.actionId))
 

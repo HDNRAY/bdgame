@@ -497,9 +497,9 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     },
     // ── 料敌机先 ──
     {
-        id: 'combat_instinct',
+        id: 'insight_awareness',
         name: '料敌机先',
-        description: '每点洞察+1%招架率、+1%闪避率。',
+        description: '每点洞察+0.5%招架率、+0.5%闪避率。',
         tags: [],
         expiry: { type: 'permanent' },
         onParryChance: ({ target }) => target.attrs.get('insight') * 0.005,

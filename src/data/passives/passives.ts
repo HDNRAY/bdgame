@@ -771,9 +771,20 @@ export const PASSIVES: Passive[] = [
     {
         id: 'sekai_heroism',
         name: '舍得心法',
-        description: '舍得心法，有舍有得。以根骨换取极致的速度与感知。根骨-2，身法+2、灵巧+2、洞察+2。',
+        description: '舍得心法，有舍有得。以根骨换取极致的速度与感知。根骨-2，力道+2、身法+2、灵巧+2、洞察+2。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'stat_buff', attrs: { vitality: -2, agility: 2, dexterity: 2, insight: 2 } }],
+        effects: [
+            {
+                type: 'stat_buff',
+                attrs: {
+                    vitality: -2,
+                    strength: 2,
+                    agility: 2,
+                    dexterity: 2,
+                    insight: 2,
+                },
+            },
+        ],
     },
     {
         id: 'combat_instinct',
@@ -787,13 +798,15 @@ export const PASSIVES: Passive[] = [
         name: '先觉功',
         description: '先觉者，未战而先胜。以洞察预判对手攻势，洞察越高招架率与闪避率越高。',
         tags: ['passive', 'buff'],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_instinct' }] }],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'insight_awareness' }] },
+        ],
     },
     {
         id: 'wolf_hunting',
         name: '苍狼劲',
         description:
-            '取苍狼猎杀之势，借体重、惯性与旋力增伤。polearm/slash招式附加（根骨×0.1+身法×0.1+灵巧×0.1）额外伤害。',
+            '取苍狼猎杀之势，借体重、惯性与旋力增伤。polearm/slash招式消耗3缠，附加（根骨×0.1+身法×0.1+灵巧×0.1）额外伤害。',
         tags: ['passive', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'wolf_hunting_buff' }] },

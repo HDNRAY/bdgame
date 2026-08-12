@@ -66,7 +66,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '合成肺叶',
         description: '纳米材料合成的仿生肺叶，替换病变肺组织，焕活根骨。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { vitality: 3 } }],
+        effects: [{ type: 'stat_buff', attrs: { vitality: 4 } }],
     },
     {
         id: 'neural_net',

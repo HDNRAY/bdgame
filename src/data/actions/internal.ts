@@ -411,20 +411,28 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
     },
     // ── 春翁 ──
     {
-        id: '_spear_throw',
-        name: '左右插花',
-        description: '',
+        id: '_chuan_yun',
+        name: '穿云',
+        description: '三节枪近身缠卷，绕过盾牌与招架，直击要害。',
         requiredTags: ['polearm'],
         apCost: 2,
-        tags: ['pierce', 'range', 'polearm'],
-        getRange: () => [2, 4] as [number, number],
+        tags: ['pierce', 'polearm', 'slash'],
         effects: [
             {
-                type: 'short_dash',
-                maxDistance: 1,
+                type: 'ignore_parry',
             },
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
         ],
+    },
+    {
+        id: '_luo_yue',
+        name: '落月',
+        description: '三节枪如鞭般甩出，凌空斩下。',
+        requiredTags: ['polearm'],
+        apCost: 2,
+        tags: ['slash', 'range', 'polearm'],
+        getRange: () => [3, 4] as [number, number],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     // ── 阿赖耶识 ──
     {

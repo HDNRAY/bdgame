@@ -15,6 +15,7 @@ import {
     revertBuffMods,
     clearWeaponBuffLayers,
     executeMove,
+    emitMoveEvents,
     revertWeaponStatBuffs,
     processOnEquipEffects,
     forEachBuffOf,
@@ -801,6 +802,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             self.spendAp(apCost)
             const p = engine.state.position
             const actualDelta = p.moveToward(self.id, opponent.id, -moveDist)
+            emitMoveEvents(engine, self, opponent, actualDelta)
             engine.emitLog({
                 type: 'move',
                 sourceId: self.id,

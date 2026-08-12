@@ -2,6 +2,6 @@ export { scheduleBuffExpiry, revertBuffMods, consumeBuffsByTrigger, hasNoStance 
 export { forEachBuffOf } from './buff-loop'
 export { calcExtraMoveEfficiency } from './move-efficiency'
 export { revertWeaponStatBuffs, clearWeaponBuffLayers } from './weapon'
-export { executeMove } from './move'
+export { executeMove, emitMoveEvents } from './move'
 export { countTags, pickBestPassives } from './tag-match'
 export { processOnEquipEffects } from './equip'
