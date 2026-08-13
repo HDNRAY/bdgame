@@ -469,10 +469,7 @@ export class BattleEngine {
             if (action.target === 'self') {
                 if (action.canUse && !action.canUse(self, this.state)) continue
                 // 触发招式不扣 AP，但要扣缠劲（缠不足则本次触发作废）
-                if (action.chanCost) {
-                    if (self.chan < action.chanCost) continue
-                    self.spendChan(action.chanCost)
-                }
+                if (action.chanCost && !self.spendChan(action.chanCost)) continue
                 if (!isInitPhase) this.state.log.enterReaction()
                 for (const eff of action.effects ?? []) {
                     processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered: true })
@@ -680,10 +677,7 @@ export class BattleEngine {
         }
 
         // 缠劲消耗独立于 AP 门槛：0 成本招式（restore_ap 等）与触发招式同样扣缠；缠不足则作废
-        if (action.chanCost) {
-            if (self.chan < action.chanCost) return r
-            self.spendChan(action.chanCost)
-        }
+        if (action.chanCost && !self.spendChan(action.chanCost)) return r
         let finalCost = action.apCost
         // 0 成本招式（御物召唤等）跳过 AP 消耗（onActionCost/身法减免/spendAp）
         if (!triggered && action.apCost > 0) {
@@ -842,12 +836,11 @@ export class BattleEngine {
             if (cond && !checkCondition(cond, self, this.state)) return r
         }
         // 缠劲不足的辅助招不释放（不扣 AP、不扣缠劲）
-        if (inst.def.chanCost && self.chan < inst.def.chanCost) return r
+        if (inst.def.chanCost && !self.spendChan(inst.def.chanCost)) return r
         if (!self.spendAp(self.actionApCost(inst.apCost))) {
             return r
         }
         inst.use()
-        if (inst.def.chanCost) self.spendChan(inst.def.chanCost)
         this.checkChanOverflow(self.id)
         // 纯位移型 support（如虎跃/魅影步）：本质是位移，不发 support 日志（由 dash effect 发 move(kind:'dash') 日志），
         // 也不建主招 scope（让 move 保持回合级块内行），format-log 渲染为 `@ 虎跃 旧→新m`

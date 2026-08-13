@@ -637,8 +637,7 @@ export const BUFF_DB: BuffDef[] = [
         onBuffApply: (raw) => raw * 2,
         onStackGain: ({ char, delta, engine }) => {
             const cost = delta * 2
-            if (char.chan < cost) return 0
-            char.spendChan(cost)
+            if (!char.spendChan(cost)) return 0
             engine?.emitLog({
                 type: 'system',
                 message: `[真假无用] ${char.name} 叠层消耗${cost}缠`,

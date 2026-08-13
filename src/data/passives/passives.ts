@@ -523,7 +523,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yedi_lightness',
         name: '夜帝轻功',
-        description: '夜帝亲传轻功，雁迥掠影，来去如风。',
+        description: '夜帝亲传轻功，雁迥李雪影，来去如风。',
         tags: ['passive', 'buff'],
         effects: [],
         grantsActions: ['yan_hui', 'yan_fan'],

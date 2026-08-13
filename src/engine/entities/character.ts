@@ -429,9 +429,11 @@ export class Character {
         this.chan = Math.min(MAX_CHAN, Math.round((this.chan + amount) * 10) / 10)
     }
 
-    /** 消耗缠劲（不低于0） */
-    spendChan(cost: number): void {
-        this.chan = Math.max(0, Math.round((this.chan - cost) * 10) / 10)
+    /** 消耗缠劲（不足则返回 false 不扣，与 spendAp 一致） */
+    spendChan(cost: number): boolean {
+        if (this.chan < cost) return false
+        this.chan = Math.round((this.chan - cost) * 10) / 10
+        return true
     }
 
     /** 创建战斗用副本（所有数据独立，不污染原始） */

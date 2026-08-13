@@ -5,7 +5,7 @@ const XUANJI_ATTRS = { strength: 6, vitality: 10, agility: 12, dexterity: 15, in
 
 export const XUANJI: OpponentDef = {
     id: 'xuanji',
-    name: '御物·玄机',
+    name: '玄机',
     weapon: 'tri_orb',
     targetAttrs: XUANJI_ATTRS,
     rewards: [

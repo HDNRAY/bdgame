@@ -113,12 +113,13 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'nineteen_stops',
         name: '十九停',
-        description: '每次出手叠一层，但层数越高越易失手（叠不上）。每层命中+1%、暴击+1%、暴伤+1%，最多19层。',
+        description:
+            '每次出手消耗2缠劲（无论命中与否）并叠一层，但层数越高越易失手（叠不上）。每层命中+1%、暴击+1%、暴伤+1%，最多19层。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 19 },
-        // 出招即叠一层（onAction 不受命中影响），但层数越高越易叠失败
-        onAction: ({ layer }) => {
+        onAction: ({ attacker, layer }) => {
+            if (!attacker.spendChan(2)) return
             const stacks = layer.restoreValue ?? 0
             if (Math.random() < (stacks / 19) ** 2 * 0.95) return
             layer.restoreValue = Math.min(19, stacks + 1)
@@ -164,8 +165,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         tags: ['qi', 'defense', 'damage'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, engine }) => {
-            if (target.chan <= 0) return final
-            target.spendChan(1)
+            if (!target.spendChan(1)) return final
             engine?.emitLog({
                 type: 'system',
                 message: `[金光咒] ${target.name} 消耗1层缠劲减免2点（剩${target.chan}层）`,
@@ -174,8 +174,8 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             return Math.max(0, Math.round((final - 2) * 10) / 10)
         },
         onAfterDealDamage: ({ source, attacker }) => {
-            if (source?.tags?.includes('imperial') || attacker.chan < 1) return 0
-            attacker.spendChan(1)
+            if (source?.tags?.includes('imperial')) return 0
+            if (!attacker.spendChan(1)) return 0
             // 附加伤害由 bonus_damage 日志行展示（↳ [金光] 造成X），不在此重复打 buff 描述
             return 2
         },
@@ -275,8 +275,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         stacking: { type: 'none' },
         onDealDamage: ({ final, attacker, source }) => {
             if (!source?.tags?.includes('polearm') && !source?.tags?.includes('slash')) return final
-            if (attacker.chan < 2) return final
-            attacker.spendChan(2)
+            if (!attacker.spendChan(2)) return final
             const bonus = round1(
                 attacker.attrs.get('strength') * 0.1 +
                     attacker.attrs.get('vitality') * 0.1 +
@@ -307,8 +306,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             return bonus
         },
         onCritical: ({ attacker, engine, layer }) => {
-            if (attacker.chan < 3) return
-            attacker.spendChan(3)
+            if (!attacker.spendChan(3)) return
             const bonus = round1(attacker.attrs.get('dexterity') * 0.03)
             layer.extra = { ...layer.extra, bonus }
             engine?.emitLog({
@@ -325,8 +323,8 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
-        onCritChance: ({ layer }) => layer.restoreValue * 0.01,
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
+        onCritChance: ({ layer }) => layer.restoreValue * 0.02,
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.02,
     },
     {
         id: 'blood_thorn_suppress',

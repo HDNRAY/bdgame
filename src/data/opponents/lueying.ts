@@ -5,7 +5,7 @@ const LUEYING_ATTRS = { strength: 6, vitality: 10, agility: 16, dexterity: 16, i
 
 export const LUEYING: OpponentDef = {
     id: 'lueying',
-    name: '掠影·无名',
+    name: '李雪影',
     weapon: 'dagger',
     targetAttrs: LUEYING_ATTRS,
     battleStyle: 'melee',

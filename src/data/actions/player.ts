@@ -156,7 +156,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'melee', 'debuff'],
-        getRange: () => [0, 1] as [number, number],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
             { type: 'disarm', chance: 0.2 },
@@ -183,7 +182,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'debuff'],
-        getRange: () => [0, 1] as [number, number],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 7, chance: 1 },
@@ -312,7 +310,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         chanCost: 20,
         canUse: (attacker) => attacker.chan >= 20,
         tags: ['unarmed', 'qi', 'pierce'],
-        getRange: () => [0, 1] as [number, number],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
             { type: 'damage', scaling: { wisdom: 0.6, strength: 0.6 }, piercingRatio: 0.5 },

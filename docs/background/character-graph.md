@@ -19,7 +19,7 @@ graph TB
 
     subgraph Mil["军方（斩首部队）"]
       direction TB
-      lht["白山月（教官）"] --> ly["掠影"]
+      lht["白山月（教官）"] --> ly["李雪影"]
       lht --> fl
     end
 

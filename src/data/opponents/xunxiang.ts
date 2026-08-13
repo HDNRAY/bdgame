@@ -5,7 +5,7 @@ const XUNXIANG_ATTRS = { strength: 4, vitality: 6, agility: 16, dexterity: 14, i
 
 export const XUNXIANG: OpponentDef = {
     id: 'xunxiang',
-    name: '小凤·寻香',
+    name: '凤寻香',
     battleStyle: 'ranged',
     weapon: 'bare_hands',
     targetAttrs: XUNXIANG_ATTRS,

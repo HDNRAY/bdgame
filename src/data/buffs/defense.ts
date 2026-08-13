@@ -261,8 +261,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, engine }) => {
-            if (target.chan <= 0) return final
-            target.spendChan(1)
+            if (!target.spendChan(1)) return final
             engine?.emitLog({
                 type: 'system',
                 message: `[袖里] ${target.name} 消耗1层缠劲减免3点（剩${target.chan}层）`,
@@ -361,8 +360,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             if (attacker === target || Math.random() >= 0.1) return final
             const reflectDmg = Math.min(Math.round(final), 8)
             if (reflectDmg <= 0) return final
-            if (target.chan < reflectDmg) return final
-            target.spendChan(reflectDmg)
+            if (!target.spendChan(reflectDmg)) return final
             attacker.takeDamage?.(reflectDmg)
             engine?.emitLog({
                 type: 'system',
@@ -467,8 +465,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onParryReduction: ({ final, target, engine }) => {
-            if (target.chan < 1) return final
-            target.spendChan(1)
+            if (!target.spendChan(1)) return final
             engine?.emitLog({
                 type: 'system',
                 message: `[不动明王] ${target.name} 招架卸力，消耗1缠减免3点（剩${target.chan}层）`,
@@ -560,8 +557,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
-        onDodgeChance: ({ layer }) => layer.restoreValue * 0.01,
-        onParryChance: ({ layer }) => layer.restoreValue * 0.01,
+        onDodgeChance: ({ layer }) => layer.restoreValue * 0.02,
+        onParryChance: ({ layer }) => layer.restoreValue * 0.02,
     },
     {
         id: 'rocket_boost',
@@ -594,8 +591,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             // 反伤所受伤害的一半，缠耗为反伤的一半（即所受伤害的 1/4），缠不足则不反伤
             const reflectDmg = Math.max(1, Math.round(final * 0.5))
             const chanCost = Math.max(1, Math.round(reflectDmg * 0.5))
-            if (target.chan < chanCost) return final
-            target.spendChan(chanCost)
+            if (!target.spendChan(chanCost)) return final
             attacker.takeDamage(reflectDmg, engine)
             processActionEffect(
                 { type: 'knockback', distance: 1 },

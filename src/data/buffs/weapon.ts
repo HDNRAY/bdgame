@@ -98,7 +98,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         tags: ['weapon', 'damage'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker }) => {
-            const bonus = round1(attacker.attrs.get('dexterity') * 0.15)
+            const bonus = round1(attacker.attrs.get('dexterity') * 0.14)
             return final + bonus
         },
     },

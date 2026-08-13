@@ -20,9 +20,8 @@ export const LONGNV: OpponentDef = {
         artifact('golden_bell_rope'),
         passive('yuxin_sword_mastery'),
         action('yufeng_needle'),
-        weapon('ganjiang_sword'),
         weapon('moxie_sword'),
-        // 干将莫邪（千星融古剑，双剑合璧）
+        weapon('ganjiang_sword'),
         // 12
     ],
     actionConfigs: [{ actionId: 'yufeng_needle', triggerId: 'on_opponent_move_away' }],
