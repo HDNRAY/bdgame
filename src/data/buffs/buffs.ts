@@ -892,7 +892,7 @@ export const BUFF_DB: BuffDef[] = [
             return final
         },
     },
-    // ── 探云手小树 ──
+    // ── 小树 ──
     {
         id: 'sword_enhance_buff',
         name: '灵炁灌注',

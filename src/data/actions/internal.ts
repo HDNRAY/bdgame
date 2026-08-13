@@ -1,5 +1,6 @@
 import type { ActionDefinition } from '../../engine/entities/action'
 import { hasNoStance } from '../../engine/combat/utils'
+import { round1 } from '../../engine/util/math'
 
 /** 内部招式（被动/天赋触发专用，不直接装备） */
 export const INTERNAL_ACTIONS: ActionDefinition[] = [
@@ -210,12 +211,22 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
     {
         id: '_silk_shot',
         name: '浮游丝',
-        description: '',
+        description: '丝随距离收紧，越近越利。',
         requiredTags: [],
         apCost: 0,
         tags: ['range', 'pierce', 'summon'],
         getRange: () => [0, 7],
-        effects: [{ type: 'fixed_damage', value: 1 }],
+        effects: [
+            {
+                // 距离越近伤害越高：贴身 = 1 + 推演×0.1，满射程 7 = 基础 1（丝刃随敌我距离收紧）
+                type: 'functional_damage',
+                fn: ({ self, enemy, state }) => {
+                    const dist = state.position.distance(self.id, enemy.id)
+                    const close = Math.max(0, 8 - dist) / 7
+                    return round1(1 + self.attrs.get('wisdom') * 0.1 * close)
+                },
+            },
+        ],
         // 七根丝高频：短前后摇 → 约 2.5s 一轮，定位频率/触发流（每击触发 on_hit）
         extraPreDelay: 400,
         extraStunTime: 600,

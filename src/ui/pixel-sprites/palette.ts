@@ -53,7 +53,7 @@ export const CHARACTER_COLORS: Record<string, CharacterColors> = {
     wukong: { skin: '#e8a878', hair: '#a06030', eyes: '#d4500a', accent: '#e8a030', decoration: '#f0d060' },
     xunxiang: { skin: '#fce4d6', hair: '#5a1a2a', eyes: '#8a4a5a', accent: '#d86a8a', decoration: '#f0a0c0' },
     wuzui: { skin: '#e8c0a0', hair: '#5a4a3a', eyes: '#6a5a4a', accent: '#8a5a3a', decoration: '#c0a080' },
-    heiyun: { skin: '#d8a880', hair: '#1a1a1a', eyes: '#3a3a3a', accent: '#2a2a2a', decoration: '#4a7a4a' }, // 探云手小树：黑云 + 树绿点缀
+    heiyun: { skin: '#d8a880', hair: '#1a1a1a', eyes: '#3a3a3a', accent: '#2a2a2a', decoration: '#4a7a4a' }, // 小树：黑云 + 树绿点缀
     bamboo: { skin: '#f0c8a0', hair: '#2a5a2a', eyes: '#3a6a3a', accent: '#4a7a4a', decoration: '#80b060' },
     tangrou: { skin: '#fce4d6', hair: '#4a2a1a', eyes: '#6a4a3a', accent: '#e0a0a8', decoration: '#f0c8d0' },
     doctor: { skin: '#f8f0e8', hair: '#c8c8c8', eyes: '#5a7a9a', accent: '#e8e8e8', decoration: '#a0c8e8' },

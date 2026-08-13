@@ -286,22 +286,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'add_buff', buffId: 'santou_liubi', stacks: 2 }],
     },
     {
-        id: 'nineteen_stops',
-        name: '十九停',
-        description: '停一息，蓄势一分。每层命中+3%、暴击+2%、暴伤+1%，但层数越高越易失手。',
-        requiredTags: [],
-        apCost: 1,
-        tags: ['buff', 'post_action'],
-        effects: [{ type: 'add_buff', buffId: 'nineteen_stops', stacks: 1 }],
-        maxUses: 19,
-        canUse: (attacker, state) => {
-            const key = `nineteen_stops::${attacker.id}`
-            const layer = state.pendingBuffs.get(key)
-            const stacks = layer?.restoreValue ?? 0
-            return Math.random() >= (stacks / 19) ** 2 * 0.95
-        },
-    },
-    {
         id: 'steal_artifact',
         name: '探云手',
         description: '神偷绝技，偷取对手一件奇物。初始80%成功，成功后概率减半。',

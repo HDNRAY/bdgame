@@ -145,6 +145,19 @@ export const PASSIVES: Passive[] = [
             },
         ],
     },
+    {
+        id: 'nineteen_stops',
+        name: '十九停',
+        description: '每次出手叠一层「十九停」，每层命中+3%、暴击+2%、暴伤+1%，最多19层。',
+        tags: ['passive', 'buff', 'damage'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                // 靠 onAction hook 叠层的 additive buff 需以 stacks:1 建层（stacks:0 会被 add_buff 跳过）
+                effects: [{ type: 'add_buff', buffId: 'nineteen_stops', stacks: 1 }],
+            },
+        ],
+    },
 
     {
         id: 'ordinary_training',

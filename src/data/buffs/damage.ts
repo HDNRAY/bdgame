@@ -113,12 +113,18 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'nineteen_stops',
         name: '十九停',
-        description: '每层命中+3%、暴击+2%、暴伤+1%。',
+        description: '每次出手叠一层，但层数越高越易失手（叠不上）。每层命中+1%、暴击+1%、暴伤+1%，最多19层。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 19 },
-        onHitChance: ({ layer }) => layer.restoreValue * 0.03,
-        onCritChance: ({ layer }) => layer.restoreValue * 0.02,
+        // 出招即叠一层（onAction 不受命中影响），但层数越高越易叠失败
+        onAction: ({ layer }) => {
+            const stacks = layer.restoreValue ?? 0
+            if (Math.random() < (stacks / 19) ** 2 * 0.95) return
+            layer.restoreValue = Math.min(19, stacks + 1)
+        },
+        onHitChance: ({ layer }) => layer.restoreValue * 0.01,
+        onCritChance: ({ layer }) => layer.restoreValue * 0.01,
         onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
     },
     {

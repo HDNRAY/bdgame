@@ -341,32 +341,32 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'zui_quan_dodge',
         name: '醉步',
-        description: '醉态蹒跚，以身为步。每点身法+0.8%闪避；有酒劲buff时闪避额外+25%。',
+        description: '醉态蹒跚，以身为步。每点身法+0.6%闪避；有酒劲buff时闪避额外+20%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onDodgeChance: ({ target, state }) => {
-            const base = target.attrs.get('agility') * 0.008
+            const base = target.attrs.get('agility') * 0.006
             // 身上有带 jiu tag 的 buff（烧刀子/女儿红/霸王醉等）时闪避额外+25%
             const hasJiu = countDrunkLayers(state, target.id) > 0
-            return hasJiu ? base * 1.25 : base
+            return hasJiu ? base * 1.2 : base
         },
     },
     {
         id: 'qian_kun_fan_tan',
-        name: '乾坤大挪移',
-        description: '受伤时15%概率消耗等量缠劲（1缠:1伤）反弹最多7点伤害，自身仅承受剩余伤害。',
+        name: '醉里乾坤',
+        description: '受伤时10%概率消耗等量缠劲（1缠:1伤）反弹最多8点伤害，自身仅承受剩余伤害。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, attacker, target, engine }) => {
-            if (attacker === target || Math.random() >= 0.15) return final
-            const reflectDmg = Math.min(Math.round(final), 7)
+            if (attacker === target || Math.random() >= 0.1) return final
+            const reflectDmg = Math.min(Math.round(final), 8)
             if (reflectDmg <= 0) return final
             if (target.chan < reflectDmg) return final
             target.spendChan(reflectDmg)
             attacker.takeDamage?.(reflectDmg)
             engine?.emitLog({
                 type: 'system',
-                message: `[乾坤大挪移] ${target.name} 消耗${reflectDmg}缠反弹 ${reflectDmg} 点伤害给 ${attacker.name}，自承 ${round1(final - reflectDmg)} 点`,
+                message: `[醉里乾坤] ${target.name} 消耗${reflectDmg}缠反弹 ${reflectDmg} 点伤害给 ${attacker.name}，自承 ${round1(final - reflectDmg)} 点`,
                 actorId: target.id,
             })
             return round1(final - reflectDmg)

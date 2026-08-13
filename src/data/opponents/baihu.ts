@@ -20,7 +20,7 @@ export const BAIHU: OpponentDef = {
         action('guard'),
         artifact('frost_silk_robe'),
         weapon('chun_lei'),
-        action('nineteen_stops'),
+        passive('nineteen_stops'),
         // 听潮九剑
         // 11
     ],

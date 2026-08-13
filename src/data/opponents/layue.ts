@@ -5,9 +5,10 @@ const LAYUE_ATTRS = { strength: 14, vitality: 10, agility: 20, dexterity: 16, in
 
 export const LAYUE: OpponentDef = {
     id: 'layue',
-    name: '什么·腊月',
+    name: '赵越',
     weapon: 'peach_sword',
     targetAttrs: LAYUE_ATTRS,
+    battleStyle: 'mid',
     rewards: [
         action('cun_mang'),
         passive('last_sword'),
@@ -23,5 +24,5 @@ export const LAYUE: OpponentDef = {
         // 剑丸
         // 11
     ],
-    actionConfigs: [{ actionId: 'cun_mang', triggerId: 'on_parried' }],
+    actionConfigs: [{ actionId: 'cun_mang', triggerId: 'on_dodged' }],
 }

@@ -114,10 +114,10 @@ export const BOSS_JUNSHI: EventDef = {
     ],
 }
 
-/** node 15: 归海楼 — 探云手小树 */
+/** node 15: 归海楼 — 小树 */
 export const XUANMEN_N15_HEISHU: EventDef = {
     id: 'xuanmen_n15_heishu',
-    name: '探云手小树',
+    name: '小树',
     description: '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔。',
     rewardType: 'points',
     rounds: [
@@ -125,7 +125,7 @@ export const XUANMEN_N15_HEISHU: EventDef = {
             id: 'scene',
             title: '重逢',
             description:
-                '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔——探云手小树。他看着你，忽然笑了：「其实，你根本不需要杀他。手刃血亲，不过是玄门为了更好地拿捏后代编出来的说辞。我知道了这秘密，才离开的。」话音未落，他转身再次远去。',
+                '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔——小树。他看着你，忽然笑了：「其实，你根本不需要杀他。手刃血亲，不过是玄门为了更好地拿捏后代编出来的说辞。我知道了这秘密，才离开的。」话音未落，他转身再次远去。',
             choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],
@@ -135,7 +135,7 @@ export const XUANMEN_N15_HEISHU: EventDef = {
 export const XUANMEN_N16_CONFRONT: EventDef = {
     id: 'xuanmen_n16_confront',
     name: '质问',
-    description: '你连夜赶回家中，质问父亲关于探云手小树所说的一切。',
+    description: '你连夜赶回家中，质问父亲关于小树所说的一切。',
     rewardType: 'points',
     rounds: [
         {

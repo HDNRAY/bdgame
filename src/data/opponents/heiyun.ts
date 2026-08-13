@@ -5,7 +5,7 @@ const HEIYUN_ATTRS = { strength: 8, vitality: 14, agility: 12, dexterity: 12, in
 
 export const HEIYUN: OpponentDef = {
     id: 'heiyun',
-    name: '探云手小树',
+    name: '小树',
     weapon: 'fei_jian',
     targetAttrs: HEIYUN_ATTRS,
     rewards: [
