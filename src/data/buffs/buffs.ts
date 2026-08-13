@@ -326,11 +326,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'zhuixing',
         name: '追星',
-        description: '千星雄剑，以炁驱动。命中叠1层，每层移动效率+5%。',
+        description: '千星雄剑，以炁驱动。命中叠1层，每层移动效率+10%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
-        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 0) * 0.05,
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 0) * 0.1,
     },
     {
         id: 'huixi',
@@ -705,7 +705,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '剧毒吐纳，每5秒释放毒素。血量越少，毒雾越烈。',
         tags: [],
         expiry: { type: 'permanent' },
-        tickInterval: 5000,
+        tickInterval: 3000,
         onTickDamage: ({ attacker: self, engine }) => {
             if (!engine) return 0
             const target = engine.getOpponent(self.id)

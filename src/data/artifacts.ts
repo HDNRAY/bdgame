@@ -285,9 +285,9 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'frost_silk_robe',
         name: '冰蚕衣',
-        description: '冰蚕丝织就的软甲，遇寒愈坚。招架率+15%；招架后以寒气反噬对手。',
+        description: '冰蚕丝织就的软甲，遇寒愈坚。招架率+12%；招架后以寒气反噬对手。',
         tags: ['defense', 'inherent'],
-        effects: [{ type: 'parry_mod', value: 0.15 }],
+        effects: [{ type: 'parry_mod', value: 0.12 }],
         triggers: [
             {
                 condition: { type: 'on_parry' },
@@ -529,8 +529,10 @@ export const ARTIFACTS: Artifact[] = [
                 actionId: '_field_dressing',
             },
             {
+                // 受害者侧事件：被施加毒且层数≥4 时自动解毒（on_debuff 带 buffId 过滤，区别于攻击方侧的 on_poison）
                 condition: {
-                    type: 'on_poison',
+                    type: 'on_debuff',
+                    buffId: 'poison',
                     check: (ctx) => {
                         const key = `poison::${ctx.actor.id}`
                         const layer = ctx.engine?.state.pendingBuffs.get(key)

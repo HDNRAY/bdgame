@@ -12,6 +12,10 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 4000 },
         stacking: { type: 'independent' },
+        // 施加时广播 on_paralyze，驱动攻击方触发器
+        onDebuffApply: ({ self, enemy, engine }) => {
+            engine?.emit('on_paralyze', self, enemy)
+        },
         attrMods: { agility: -1, dexterity: -1 },
     },
     {
@@ -39,6 +43,10 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'duration_by_attr', attr: 'vitality', multiplier: 2000 },
         stacking: { type: 'independent' },
+        // 施加时广播 on_stun，驱动攻击方触发器
+        onDebuffApply: ({ self, enemy, engine }) => {
+            engine?.emit('on_stun', self, enemy)
+        },
     },
     {
         id: 'sand_blind',
@@ -47,6 +55,10 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
+        // 施加时广播 on_sand_blind，驱动攻击方触发器
+        onDebuffApply: ({ self, enemy, engine }) => {
+            engine?.emit('on_sand_blind', self, enemy)
+        },
         attrMods: { insight: -4 },
     },
     {
@@ -65,6 +77,10 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
+        // 施加时广播 on_burn，驱动攻击方触发器
+        onDebuffApply: ({ self, enemy, engine }) => {
+            engine?.emit('on_burn', self, enemy)
+        },
     },
     {
         id: 'poison',
@@ -73,11 +89,13 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
-        onDebuffApply: ({ self, enemy, stacks, layer }) => {
+        // 施加时广播 on_poison，驱动攻击方触发器（如 on_poison 触发槽）
+        onDebuffApply: ({ self, enemy, engine, stacks, layer }) => {
             if (!layer) {
                 console.error('onDebuffApply: layer is undefined', self, enemy, stacks)
                 return
             }
+            engine?.emit('on_poison', self, enemy)
             const ticksPerStack = calcPoisonTicksPerStack(enemy.attrs.get('wisdom'))
             const existing: number[] = (layer.extra?.remainingTicks as number[]) ?? []
             for (let i = 0; i < stacks; i++) existing.push(ticksPerStack)
@@ -91,7 +109,9 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
-        onDebuffApply: ({ layer }) => {
+        // 施加时广播 on_bleed，驱动攻击方触发器（如方烈·追击枪）
+        onDebuffApply: ({ self, enemy, engine, layer }) => {
+            engine?.emit('on_bleed', self, enemy)
             if (!layer) return
             layer.extra = { ...layer.extra, bleedTriggerCount: 0 }
         },

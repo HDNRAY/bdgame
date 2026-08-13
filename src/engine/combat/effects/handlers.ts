@@ -29,7 +29,8 @@ import { applyDamage, applyBonusDamage } from './damage'
 import { processHitCheck } from './combat'
 import { processActionEffect } from './action'
 import { tickEngine } from '../tick-engine'
-import { applyAttrMods, applyScaledAttrMods, scheduleBuffEnd, applyHeal } from '../utils/buff-layer'
+import { applyAttrMods, scheduleBuffEnd, applyHeal } from '../utils/buff-layer'
+import { applyBuffLayer, partialRevertMods } from '../utils/buff-apply'
 import { BuffDef, getBuff } from '../../../data/buffs'
 
 /** 检查目标是否有罡体免疫（通过 buff 的 super_armor 标签识别） */
@@ -44,28 +45,55 @@ function hasCcImmunity(target: { id: string }, pendingBuffs: Map<string, BuffLay
     return immune
 }
 
-/** 收集角色身上所有 onBuffApply 上限覆盖，取最大值 */
-function emitPerDebuff(engine: BattleEngine, buffId: string, self: Character, enemy: Character): void {
-    switch (buffId) {
-        case 'poison':
-            engine.emit('on_poison', self, enemy)
-            break
-        case 'burn':
-            engine.emit('on_burn', self, enemy)
-            break
-        case 'bleed':
-            engine.emit('on_bleed', self, enemy)
-            break
-        case 'stun':
-            engine.emit('on_stun', self, enemy)
-            break
-        case 'paralyze':
-            engine.emit('on_paralyze', self, enemy)
-            break
-        case 'sand_blind':
-            engine.emit('on_sand_blind', self, enemy)
-            break
-    }
+/** 施加 debuff 后的统一收尾：广播 on_debuff、触发自定钩子与 tick 引擎 */
+function finishDebuffApply(ctx: {
+    engine: BattleEngine
+    buffId: string
+    buff: BuffDef
+    self: Character
+    enemy: Character
+    stacks: number
+    layer: BuffLayer
+    layerKey: string
+    tMs: number
+}): void {
+    const { engine, buffId, buff, self, enemy, stacks, layer, layerKey, tMs } = ctx
+    // 受害者侧广播（携带 buffId 供 condition.buffId 过滤，如战术腰包「中毒≥4 自动解毒」）
+    engine.emit('on_debuff', enemy, self, buffId)
+    // debuff 自定钩子（设置 extra 数据）
+    buff.onDebuffApply?.({ self, enemy, engine, state: engine.state, stacks, layer, buffId })
+    // 攻击者施加 debuff 时回调（遍历攻击者身上的 buff，如血棘·压制对流血目标追击）
+    forEachBuffOf(engine.state.pendingBuffs, self.id, (bDef) => {
+        bDef?.onDebuffApplied?.({ self, enemy, engine, state: engine.state, stacks, layer, buffId })
+    })
+    // 后处理（stun/poison/burn 额外逻辑），传入 layer 引用，让 tick engine 可以直接修改 mods
+    tickEngine.afterApplyDebuff({ enemy, engine, tMs, buffDef: buff, stacks, layerKey, layer })
+}
+
+/** 遍历防御方 buff，检查 onReceiveDebuff 钩子是否完全抵抗本次 debuff */
+function isDebuffResisted(
+    engine: BattleEngine,
+    buff: BuffDef,
+    buffId: string,
+    stacks: number,
+    self: Character,
+    enemy: Character,
+): boolean {
+    let resisted = false
+    forEachBuffOf(engine.state.pendingBuffs, enemy.id, (bDef) => {
+        if (!bDef?.onReceiveDebuff) return
+        const result = bDef.onReceiveDebuff({ self: enemy, enemy: self, engine, state: engine.state, buffId, stacks })
+        if (result === 0) {
+            engine.emitLog({
+                type: 'system',
+                message: `[${bDef.name}] ${enemy.name} 抵抗了${buff.name ?? buffId}`,
+                actorId: enemy.id,
+            })
+            resisted = true
+            return false
+        }
+    })
+    return resisted
 }
 
 function getBuffMaxOverride(buff: BuffDef, engine: BattleEngine, charId: string): number {
@@ -414,6 +442,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     },
     add_debuff({ eff, self, enemy, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_debuff' }>
+        const buff = getBuff(e.buffId)
+        if (!buff) return
+
         // 每层独立判定概率：roll stacks 次，成功次数=总叠层（stacks:5/chance:0.8 → 0~5 分布，期望 5×0.8）
         const rollCount = e.stacks ?? 1
         let stacks = 0
@@ -422,174 +453,70 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
         if (stacks <= 0) return
 
-        const buff = getBuff(e.buffId)
-        if (!buff) return
+        // 防御方 buff 的 onReceiveDebuff 钩子（概率抵抗等）→ 完全抵抗则本次作废
+        if (isDebuffResisted(engine, buff, e.buffId, stacks, self, enemy)) return
 
-        const st = e.buffId
-        // 罡体免疫（已由各 buff 的 onReceiveDebuff 接管）
-
-        // 遍历防御者身上的 buff，触发 onReceiveDebuff 钩子（概率抵抗等）
-        let resisted = false
-        forEachBuffOf(engine.state.pendingBuffs, enemy.id, (bDef) => {
-            if (!bDef?.onReceiveDebuff) return
-            const result = bDef.onReceiveDebuff({
-                self: enemy,
-                enemy: self,
-                engine,
-                state: engine.state,
-                buffId: st,
-                stacks,
-            })
-            if (result === 0) {
-                engine.emitLog({
-                    type: 'system',
-                    message: `[${bDef.name}] ${enemy.name} 抵抗了${buff?.name ?? st}`,
-                    actorId: enemy.id,
-                })
-                resisted = true
-                return false
-            }
-        })
-        if (resisted) return
-
-        const keyBase = `${buff.id}::${enemy.id}`
-        const isIndependent = buff?.stacking?.type === 'independent'
-        // independent 叠层使用 appId 后缀，每次应用独立生效
-        const key = isIndependent ? `${keyBase}::${genAppId(tMs)}` : keyBase
-        const existing = !isIndependent ? engine.state.pendingBuffs.get(key) : undefined
-
-        if (existing && buff?.stacking?.type === 'additive') {
-            const max = buff?.stacking?.max ?? Infinity
-            const newVal = Math.min(existing.restoreValue + stacks, max)
-            const delta = newVal - existing.restoreValue
-            if (delta <= 0) {
-                // 已达上限，仍刷新持续时间
-                engine.state.turn.removeEvents(`buff_end_${key}`)
-                scheduleBuffEnd(engine, key, buff!, enemy)
-                return
-            }
-            existing.restoreValue = newVal
-            const result = applyScaledAttrMods(buff!, delta, enemy, engine.state)
-            if (!existing.mods) existing.mods = {}
-            for (const [attr, v] of Object.entries(result.mods)) {
-                existing.mods[attr] = (existing.mods[attr] ?? 0) + (v as number)
-            }
-            // 刷新 expiry
-            engine.state.turn.removeEvents(`buff_end_${key}`)
-            scheduleBuffEnd(engine, key, buff!, enemy)
-            const applyMsg = buff?.logFormat?.(existing, enemy.name)
-            if (applyMsg) {
-                engine.emitLog({
-                    type: 'system',
-                    message: `[${buff?.name ?? e.buffId}] ${applyMsg}`,
-                    actorId: enemy.id,
-                })
-            } else {
-                engine.emitLog({
-                    type: 'system',
-                    message: result.details.length
-                        ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name)} Lv.${existing.restoreValue}（${result.details.join(', ')}）`
-                        : `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name)} Lv.${existing.restoreValue}`,
-                    actorId: enemy.id,
-                })
-            }
-            engine.emit('on_debuff', enemy, self)
-            emitPerDebuff(engine, e.buffId, self, enemy)
-            // debuff 自定钩子（设置 extra 数据）
-            buff.onDebuffApply?.({
-                self,
-                enemy,
-                engine,
-                state: engine.state,
-                stacks,
-                layer: existing,
-                buffId: e.buffId,
-            })
-            // 遍历攻击者的 buff，触发 onDebuffApplied 钩子
-            forEachBuffOf(engine.state.pendingBuffs, self.id, (bDef) => {
-                bDef?.onDebuffApplied?.({
-                    self,
-                    enemy,
-                    engine,
-                    state: engine.state,
-                    stacks,
-                    layer: existing,
-                    buffId: e.buffId,
-                })
-            })
-            tickEngine.afterApplyDebuff({
-                enemy,
-                engine,
-                tMs,
-                buffDef: buff,
-                stacks,
-                layerKey: key,
-                layer: existing,
-            })
-            return
-        }
-
-        // 'none' 叠层 — 已有则跳过（如 sand_blind 不可叠加）
-        if (existing && buff?.stacking?.type === 'none') {
-            engine.emitLog({ type: 'system', message: `[${buff.name}] ${enemy.name} 已存在`, actorId: enemy.id })
-            return
-        }
-
-        // 首次应用（independent/none/additive 首次均走此路径）
-        const capped = buff?.stacking?.type === 'additive' ? Math.min(stacks, buff.stacking.max ?? Infinity) : stacks
-        const firstResult = applyScaledAttrMods(buff!, capped, enemy, engine.state)
-        // stun 的 attrMods 在 afterApplyDebuff 中由 applyAttrMods 输出属性日志，此处不重复
-        const stackLabel = capped > 1 ? ` ×${capped}` : ''
-        const layer: BuffLayer = { restoreValue: capped, mods: firstResult.mods, sourceId: self.id }
-        if (e.buffId !== 'stun') {
-            const applyMsg = buff?.logFormat?.(layer, enemy.name)
-            const msg = applyMsg
-                ? `[${buff?.name ?? e.buffId}] ${applyMsg}`
-                : firstResult.details.length
-                  ? `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel} ${firstResult.details.join(', ')}`
-                  : `${BattleLog.buffApply(buff?.name ?? e.buffId, enemy.name, buff?.description)}${stackLabel}`
-            engine.emitLog({
-                type: 'system',
-                message: msg,
-                actorId: enemy.id,
-            })
-        }
-        engine.state.pendingBuffs.set(key, layer)
-
-        // 调度 expiry
-        scheduleBuffEnd(engine, key, buff!, enemy)
-
-        engine.emit('on_debuff', enemy, self)
-        emitPerDebuff(engine, e.buffId, self, enemy)
-
-        // debuff 自定钩子（设置 extra 数据）
-        buff.onDebuffApply?.({ self, enemy, engine, state: engine.state, stacks, layer, buffId: e.buffId })
-
-        // 遍历攻击者的 buff，触发 onDebuffApplied 钩子
-        forEachBuffOf(engine.state.pendingBuffs, self.id, (bDef) => {
-            bDef?.onDebuffApplied?.({ self, enemy, engine, state: engine.state, stacks, layer, buffId: e.buffId })
-        })
-
-        // 后处理（stun/poison/burn 额外逻辑）
-        // 传入 layer 引用，让 tick engine 可以直接修改 mods
-        tickEngine.afterApplyDebuff({
-            enemy,
-            engine,
-            tMs,
-            buffDef: buff,
+        // 统一核心：叠层/建层、上限、属性缩放、过期调度全部在此完成
+        const r = applyBuffLayer(engine, {
+            buff,
+            target: enemy,
             stacks,
-            layerKey: key,
-            layer,
+            tMs,
+            sourceId: self.id,
+            max: buff.stacking?.type === 'additive' ? (buff.stacking.max ?? Infinity) : Infinity,
+            capFirstApply: true,
+        })
+
+        // 不可叠层已存在 → 记「已存在」；已达上限/被拦截 → 静默
+        if (r.noop) {
+            if (r.noop === 'none_exists') {
+                engine.emitLog({ type: 'system', message: `[${buff.name}] ${enemy.name} 已存在`, actorId: enemy.id })
+            }
+            return
+        }
+
+        // 日志（stun 的 attrMods 由 afterApplyDebuff 输出，此处不重复）
+        if (e.buffId !== 'stun') {
+            const layer = r.layer!
+            const stackLabel = r.added > 1 ? ` ×${r.added}` : ''
+            const applyMsg = buff.logFormat?.(layer, enemy.name)
+            const base = `[${buff.name ?? e.buffId}] `
+            const msg = r.created
+                ? applyMsg
+                    ? `${base}${applyMsg}`
+                    : r.modsDetails.length
+                      ? `${BattleLog.buffApply(buff.name ?? e.buffId, enemy.name, buff.description)}${stackLabel} ${r.modsDetails.join(', ')}`
+                      : `${BattleLog.buffApply(buff.name ?? e.buffId, enemy.name, buff.description)}${stackLabel}`
+                : applyMsg
+                  ? `${base}${applyMsg}`
+                  : r.modsDetails.length
+                    ? `${BattleLog.buffApply(buff.name ?? e.buffId, enemy.name)} Lv.${layer.restoreValue}（${r.modsDetails.join(', ')}）`
+                    : `${BattleLog.buffApply(buff.name ?? e.buffId, enemy.name)} Lv.${layer.restoreValue}`
+            engine.emitLog({ type: 'system', message: msg, actorId: enemy.id })
+        }
+
+        // 统一收尾：广播 on_debuff + 自定钩子（数据内声明，如 bleed 广播 on_bleed）+ tick 引擎
+        finishDebuffApply({
+            engine,
+            buffId: e.buffId,
+            buff,
+            self,
+            enemy,
+            stacks,
+            layer: r.layer!,
+            layerKey: r.key,
+            tMs,
         })
     },
     add_buff({ eff, self, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_buff' }>
         const buff = getBuff(e.buffId)
+        if (!buff) return
 
-        // ── Stance auto-replace: if another stance exists, remove it silently ──
+        // 架势自动替换：新架势静默覆盖旧架势（回退旧属性、移除旧层）
         let replacedStance = false
         let oldStanceName = ''
-        if (buff?.tags.includes('stance')) {
+        if (buff.tags?.includes('stance')) {
             forEachBuffOf(engine.state.pendingBuffs, self.id, (existing, layer, buffId, key) => {
                 if (buffId === e.buffId) return
                 if (existing?.tags.includes('stance')) {
@@ -602,116 +529,40 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 }
             })
         }
-        const isIndependent = buff?.stacking?.type === 'independent'
-        const keyBase = `${e.buffId}::${self.id}`
-        const key = isIndependent ? `${keyBase}::${genAppId(tMs)}` : keyBase
 
-        const existing = !isIndependent ? engine.state.pendingBuffs.get(key) : undefined
-        // 不可叠层（none）buff 已存在：幂等跳过，不重复应用/记录（如缠满触发的「极」等 permanent 状态）
-        if (existing && buff?.stacking?.type !== 'additive') {
-            return
-        }
-        if (existing && buff?.stacking?.type === 'additive') {
-            const max = getBuffMaxOverride(buff!, engine, self.id)
-            const newStacks = Math.min(max, existing.restoreValue + (e.stacks ?? 1))
-            const delta = newStacks - existing.restoreValue
-            if (delta <= 0) {
-                // 已达上限，仍刷新持续时间
-                if (buff.expiry?.type === 'duration') {
-                    engine.state.turn.removeEvents(`buff_end_${key}`)
-                    scheduleBuffEnd(engine, key, buff, self)
-                }
-                return
-            }
-            // 真假无用等 onStackGain：每叠一层扣资源（缠不够则本次不叠）
-            const allowed = applyStackGainCost(engine, self, e.buffId, delta)
-            if (allowed <= 0) return
-            existing.restoreValue += allowed
-            // 叠层也续时长：additive 递增同样重新计时（与满层刷新一致）
-            if (buff.expiry?.type === 'duration') {
-                engine.state.turn.removeEvents(`buff_end_${key}`)
-                scheduleBuffEnd(engine, key, buff, self)
-            }
-            engine.emitLog({
-                type: 'system',
-                message: `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name)} Lv.${existing.restoreValue}${max < Infinity ? `/${max}` : ''}`,
-                actorId: self.id,
-            })
-            // 再应用 attrMods
-            if (allowed > 0) {
-                const result = applyScaledAttrMods(buff!, allowed, self, engine.state)
-                if (!existing.mods) existing.mods = {}
-                for (const [attr, v] of Object.entries(result.mods)) {
-                    existing.mods[attr] = (existing.mods[attr] ?? 0) + (v as number)
-                }
-            }
-            if (buff?.maxApMod && allowed > 0) {
-                self.maxApMod += buff.maxApMod * allowed
-                if (!existing.mods) existing.mods = {}
-                existing.mods.maxApMod = (existing.mods.maxApMod ?? 0) + buff.maxApMod * allowed
-            }
-            engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
-            if (buff?.tags.includes('stance')) {
-                engine.emit('on_stance', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
-            }
-            if (affectsApRegen(e.buffId)) notifyRegenChanged(engine.state, self)
-            return
-        }
+        // 统一核心：叠层/建层、上限覆盖(onBuffApply)、资源门槛(onStackGain)、属性缩放全部在此完成
+        const r = applyBuffLayer(engine, {
+            buff,
+            target: self,
+            stacks: e.stacks ?? 1,
+            tMs,
+            max: getBuffMaxOverride(buff, engine, self.id),
+            stackGate: (delta) => applyStackGainCost(engine, self, e.buffId, delta),
+            // 保留历史行为：additive 首次建层不按上限截断（如 zhou stacks:2 > max:1）
+            capFirstApply: false,
+        })
+        // 幂等（none 已存在）/ 已达上限 / 资源不足 → 静默
+        if (r.noop) return
 
-        // 首次应用
-        const stacks = e.stacks ?? 1
-        // 真假无用等 onStackGain：additive 首次叠层也扣资源（缠不够则本次不叠）
-        const appliedStacks =
-            buff?.stacking?.type === 'additive' ? applyStackGainCost(engine, self, e.buffId, stacks) : stacks
-        // additive 叠层被 onStackGain 拦截（0）时跳过；非 additive 的 stacks:0（tide_power/七十二变等 tick 循环 buff）仍需建层
-        if (appliedStacks <= 0 && buff?.stacking?.type === 'additive') return
-        const firstResult = applyScaledAttrMods(buff!, appliedStacks, self, engine.state)
-        const mods: Record<string, number> = { ...firstResult.mods }
-        if (buff?.maxApMod) {
-            self.maxApMod += buff.maxApMod
-            mods.maxApMod = buff.maxApMod
-        }
-        // independent 叠层统计当前总层数
-        let totalStacks = appliedStacks
-        if (buff?.stacking?.type === 'independent') {
-            const prefix = `${e.buffId}::${self.id}::`
-            for (const k of engine.state.pendingBuffs.keys()) {
-                if (k.startsWith(prefix)) totalStacks++
-            }
-        }
+        // 日志
+        const label = buff.name ?? e.buffId
         engine.emitLog({
             type: 'system',
-            message: replacedStance
-                ? `切换架势: ${oldStanceName} → ${buff?.name ?? e.buffId}`
-                : firstResult.details.length
-                  ? `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)} ${firstResult.details.join(', ')}${buff?.stacking?.type === 'additive' ? ` Lv.${appliedStacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`
-                  : `${BattleLog.buffApply(buff?.name ?? e.buffId, self.name, buff?.description)}${buff?.stacking?.type === 'additive' ? ` Lv.${appliedStacks}${buff?.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff?.stacking?.type === 'independent' ? ` 第${totalStacks}层` : ''}`,
+            message: r.created
+                ? replacedStance
+                    ? `切换架势: ${oldStanceName} → ${label}`
+                    : r.modsDetails.length
+                      ? `${BattleLog.buffApply(label, self.name, buff.description)} ${r.modsDetails.join(', ')}${buff.stacking?.type === 'additive' ? ` Lv.${r.added}${buff.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff.stacking?.type === 'independent' ? ` 第${r.totalIndependent}层` : ''}`
+                      : `${BattleLog.buffApply(label, self.name, buff.description)}${buff.stacking?.type === 'additive' ? ` Lv.${r.added}${buff.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff.stacking?.type === 'independent' ? ` 第${r.totalIndependent}层` : ''}`
+                : `${BattleLog.buffApply(label, self.name)} Lv.${r.layer!.restoreValue}${r.max < Infinity ? `/${r.max}` : ''}`,
             actorId: self.id,
         })
-        engine.state.pendingBuffs.set(key, { restoreValue: appliedStacks, mods })
+
+        // 事件广播 + 资源回复重算
+        const opponent = engine.state.characters.find((c) => c.id !== self.id)!
+        engine.emit('on_buff', self, opponent, e.buffId)
+        if (buff.tags?.includes('stance')) engine.emit('on_stance', self, opponent, e.buffId)
         if (affectsApRegen(e.buffId)) notifyRegenChanged(engine.state, self)
-        engine.emit('on_buff', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
-        if (buff?.tags.includes('stance')) {
-            engine.emit('on_stance', self, engine.state.characters.find((c) => c.id !== self.id)!, e.buffId)
-        }
-        scheduleBuffEnd(engine, key, buff!, self)
-        if (buff?.tags.includes('super_armor')) {
-            for (const id of ['stun', 'knockdown', 'disarmed']) {
-                const ck = `${id}::${self.id}`
-                if (engine.state.pendingBuffs.has(ck)) {
-                    engine.state.pendingBuffs.delete(ck)
-                    engine.state.turn.removeEvents('buff_end_' + ck)
-                }
-            }
-        }
-        if (buff?.tickInterval) {
-            engine.state.turn.removeEvents(`tick_buff_${key}`)
-            engine.state.turn.scheduleSystemEventAt(
-                `tick_buff_${key}`,
-                engine.state.turn.currentTime + buff.tickInterval,
-                'tick_buff',
-            )
-        }
     },
     remove_buff({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'remove_buff' }>
@@ -726,22 +577,12 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 delta = buff.onBeforeModify(delta, { character: self, engine })
             }
             if (delta < 0) {
-                layer.restoreValue += delta
-                // 部分移除时按比例回退 attrMods
-                if (buff?.attrMods && layer.mods) {
-                    const ratio = Math.abs(delta) / (layer.restoreValue - delta)
-                    for (const [attr, val] of Object.entries(buff.attrMods)) {
-                        const revertVal = Math.round((val as number) * delta * ratio)
-                        if (revertVal !== 0) {
-                            self.attrs.modify(attr as AttrName, revertVal)
-                            layer.mods[attr] = (layer.mods[attr] ?? 0) + revertVal
-                        }
-                    }
-                }
+                // 部分移除：按实际累积 mods 比例回退属性
+                partialRevertMods(layer, -delta, self)
                 if (e.buffId !== 'disarmed') {
                     engine.emitLog({
                         type: 'system',
-                        message: `${getBuff(e.buffId)?.name ?? e.buffId} ${self.name} ${Math.abs(delta)}层→${layer.restoreValue}层`,
+                        message: `${getBuff(e.buffId)?.name ?? e.buffId} ${self.name} ${-delta}层→${layer.restoreValue}层`,
                         actorId: self.id,
                     })
                 }

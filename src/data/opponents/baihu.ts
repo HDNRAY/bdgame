@@ -25,10 +25,10 @@ export const BAIHU: OpponentDef = {
         // 11
     ],
     actionConfigs: [
-        { actionId: 'light_slash', triggerId: 'on_dodged' },
         {
             actionId: 'rising_slash',
             triggerId: 'on_parry',
         },
+        { actionId: 'light_slash', triggerId: 'on_dodged' },
     ],
 }

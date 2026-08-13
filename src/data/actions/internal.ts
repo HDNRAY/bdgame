@@ -394,7 +394,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['trigger', 'internal'],
         target: 'self',
         maxUses: 1,
-        effects: [{ type: 'cleanse', buffIds: ['poison'] }],
+        // 只解 2 层毒（perDebuffStacks:2）：避免一次清空全部毒层把毒系对手彻底掐死，又保留一定的解毒价值
+        effects: [{ type: 'cleanse', buffIds: ['poison'], perDebuffStacks: 2 }],
     },
     {
         id: '_adrenaline_shot',

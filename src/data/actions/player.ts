@@ -417,7 +417,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.4 },
-            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
         ],
     },
     {
