@@ -29,7 +29,7 @@ export const XUANMEN_N02_WEAPON: EventDef = {
                     description: '一缕以炁御动的柔丝，可远可近，可硬可软，变幻莫测。',
                 },
                 { id: 'tri_orb', type: 'weapon', label: '三相珠', description: '三颗由炁劲驱动的法珠，环绕主人旋转。' },
-                { id: 'fei_jian', type: 'weapon', label: '一柄大剑', description: '御剑飞行，剑气纵横。' },
+                { id: 'fei_jian', type: 'weapon', label: '黑云剑', description: '御剑飞行，剑气纵横。' },
             ],
         },
         {
@@ -114,10 +114,10 @@ export const BOSS_JUNSHI: EventDef = {
     ],
 }
 
-/** node 15: 归海楼 — 黑云·小树 */
+/** node 15: 归海楼 — 探云手小树 */
 export const XUANMEN_N15_HEISHU: EventDef = {
     id: 'xuanmen_n15_heishu',
-    name: '黑云·小树',
+    name: '探云手小树',
     description: '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔。',
     rewardType: 'points',
     rounds: [
@@ -125,7 +125,7 @@ export const XUANMEN_N15_HEISHU: EventDef = {
             id: 'scene',
             title: '重逢',
             description:
-                '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔——黑云·小树。他看着你，忽然笑了：「其实，你根本不需要杀他。手刃血亲，不过是玄门为了更好地拿捏后代编出来的说辞。我知道了这秘密，才离开的。」话音未落，他转身再次远去。',
+                '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔——探云手小树。他看着你，忽然笑了：「其实，你根本不需要杀他。手刃血亲，不过是玄门为了更好地拿捏后代编出来的说辞。我知道了这秘密，才离开的。」话音未落，他转身再次远去。',
             choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],
@@ -135,7 +135,7 @@ export const XUANMEN_N15_HEISHU: EventDef = {
 export const XUANMEN_N16_CONFRONT: EventDef = {
     id: 'xuanmen_n16_confront',
     name: '质问',
-    description: '你连夜赶回家中，质问父亲关于黑云·小树所说的一切。',
+    description: '你连夜赶回家中，质问父亲关于探云手小树所说的一切。',
     rewardType: 'points',
     rounds: [
         {

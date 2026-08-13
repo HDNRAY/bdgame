@@ -76,17 +76,22 @@ export function planMovement(
             // 缠劲不足的位移招式不纳入规划
             if (inst.def.chanCost && attacker.chan < inst.def.chanCost) continue
             const { minRange = 0, maxRange = Infinity, targetDist: rawDashTarget } = dashEff
-            if (distance < minRange || distance > maxRange) continue
             const dashTarget = rawDashTarget < 0 ? attacker.getMaxActionRange() : rawDashTarget
             if (dashTarget < 0) continue
-            // dash 后距离变为 dashTarget，检查是否比走路更接近 targetDist
+            // maxRange = 最大位移距离：期望位移被 maxRange 截断（可能落不到 dashTarget）
+            const desiredTravel = distance - dashTarget
+            const travel = Math.sign(desiredTravel) * Math.min(Math.abs(desiredTravel), maxRange)
+            // 期望位移不足最小要求 → 该位移招不适用
+            if (Math.abs(desiredTravel) < minRange || travel === 0) continue
+            const dashLandDist = distance - travel
+            // dash 后实际距离，检查是否比走路更接近 targetDist
             const walkAfter = distance + Math.sign(delta) * moveAp * perAp
             const walkDist = Math.abs(walkAfter - targetDist)
-            const dashDist = Math.abs(dashTarget - targetDist)
+            const dashDist = Math.abs(dashLandDist - targetDist)
             // dash 落点必须在主招射程内，否则 dash 后无法出招（planEvent 见 dash 会归零 moveDelta，
             // 无法补偿额外移动）。射程外 → 拒绝该位移招，让 AI 改用能配合的招式。
-            if (dashTarget < actionRange[0] - 0.001 || dashTarget > actionRange[1] + 0.001) continue
-            const dashMoveDist = Math.abs(distance - dashTarget)
+            if (dashLandDist < actionRange[0] - 0.001 || dashLandDist > actionRange[1] + 0.001) continue
+            const dashMoveDist = Math.abs(travel)
             const dashApCost = dashEff.useAp
                 ? Math.max(1, Math.round(dashMoveDist * 0.4 * 10) / 10)
                 : attacker.actionApCost(inst.apCost)

@@ -784,24 +784,30 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     dash({ eff, self, engine, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'dash' }>
         const opponent = engine.getOpponent(self.id)!
-        const minRange = e.minRange ?? 0
-        const maxRange = e.maxRange ?? Infinity
         const dist = engine.state.position.distance(self.id, opponent.id)
-        if (dist < minRange || dist > maxRange) {
+        // maxRange = 最大位移距离（朝 targetDist 位移，最多 maxRange 米），不再是对手距离门槛
+        const minTravel = e.minRange ?? 0
+        const maxTravel = e.maxRange ?? Infinity
+        const targetDist = e.targetDist < 0 ? self.getMaxActionRange() : e.targetDist
+        // 期望位移（正=靠近，负=远离）
+        const desired = dist - targetDist
+        if (desired === 0) return
+        // 期望位移不足最小要求 → 本次位移作废（如虎跃需至少 2m 才跳）
+        if (Math.abs(desired) < minTravel) {
             engine.emitLog({ type: 'system', message: BattleLog.plain(self.name, '距离不合适'), actorId: self.id })
             return
         }
-        const targetDist = e.targetDist < 0 ? self.getMaxActionRange() : e.targetDist
-        const moveDist = dist - targetDist
+        // 实际位移 = 朝目标方向，最多 maxTravel
+        const travel = Math.sign(desired) * Math.min(Math.abs(desired), maxTravel)
         if (e.useAp) {
-            const apCost = Math.max(1, Math.ceil(Math.abs(moveDist) * 0.4))
+            const apCost = Math.max(1, Math.ceil(Math.abs(travel) * 0.4))
             if (self.ap < apCost) {
                 // engine.emitLog({ type: 'system', message: `${self.name} AP不足`, actorId: self.id })
                 return
             }
             self.spendAp(apCost)
             const p = engine.state.position
-            const actualDelta = p.moveToward(self.id, opponent.id, -moveDist)
+            const actualDelta = p.moveToward(self.id, opponent.id, -travel)
             emitMoveEvents(engine, self, opponent, actualDelta)
             engine.emitLog({
                 type: 'move',
@@ -815,8 +821,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 actionName: action?.name,
             })
         } else {
-            if (moveDist !== 0)
-                executeMove(self, engine, -moveDist, 0, { blink: true, kind: 'dash', actionName: action?.name })
+            if (travel !== 0)
+                executeMove(self, engine, -travel, 0, { blink: true, kind: 'dash', actionName: action?.name })
         }
     },
     disarm({ eff, self, enemy, engine, action }: EffectCtx) {
@@ -914,7 +920,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 找对手可偷的奇物（非 inherent）
         const stealable = enemy.artifactDefs.filter((a) => !a.tags.includes('inherent'))
         if (stealable.length === 0) {
-            engine.emitLog({ type: 'system', message: `[飞龙探云手] 对手无可偷取奇物`, actorId: self.id })
+            engine.emitLog({ type: 'system', message: `[探云手] 对手无可偷取奇物`, actorId: self.id })
             return
         }
         // 成功概率
@@ -925,7 +931,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         if (!success) {
             engine.emitLog({
                 type: 'system',
-                message: `[飞龙探云手] 失手！(${Math.round(chance * 100)}%)`,
+                message: `[探云手] 失手！(${Math.round(chance * 100)}%)`,
                 actorId: self.id,
             })
             return
@@ -945,7 +951,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.state.pendingBuffs.set(trackKey, { restoreValue: chance / 2 })
         engine.emitLog({
             type: 'system',
-            message: `[飞龙探云手] 得手！偷取了「${target.name}」（下次${Math.round((chance / 2) * 100)}%）`,
+            message: `[探云手] 得手！偷取了「${target.name}」（下次${Math.round((chance / 2) * 100)}%）`,
             actorId: self.id,
         })
     },

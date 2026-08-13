@@ -20,6 +20,7 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
     },
     { id: 'on_dodge', type: 'on_dodge' },
     { id: 'turn_start', type: 'turn_start' },
+    { id: 'on_turn_start', type: 'turn_start' },
     { id: 'on_attack', type: 'on_attack' },
     { id: 'on_dealt_damage', type: 'on_dealt_damage' },
     { id: 'on_was_hit', type: 'on_was_hit' },

@@ -241,7 +241,20 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     }
 
     if (!mainId) {
-        if (preCmds.length > 0) return preCmds
+        if (preCmds.length > 0) {
+            // 前摇辅助照放，但仍要往理想距离移动：否则射程外只放 buff 原地空转
+            // （如姬然 6m 外只放刀马旦不位移，白费回合）。位移类 preCmd（云步等）
+            // 在射程外必然失败（距离不合适），丢掉它改用走路逼近。
+            if (apBudget > 0) {
+                const nonMovePre = preCmds.filter((c) => {
+                    const a = self.actions.find((x) => x.id === c.actionId)
+                    return !(a?.def.tags.includes('move') ?? false)
+                })
+                const moveCmd: ActionCommand = { type: 'move', bestDistance: -Math.round(apBudget * 10) / 10 }
+                return nonMovePre.length > 0 ? [...nonMovePre, moveCmd] : [moveCmd]
+            }
+            return preCmds
+        }
         const postCmds = planSupportActions(self, state, apBudget, 'post_action')
         if (postCmds.length > 0) return postCmds
         // P5: 所有招式都出不了，尽量向理想距离移动（bestDistance 语义 = AP，1位小数）
@@ -269,12 +282,15 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const cmds: ActionCommand[] = [...preCmds]
 
     if (dashActionId) {
-        // 位移招式有 support 标签的用 support 指令（跳过战斗判定）
-        const dashInst = self.actions.find((a) => a.id === dashActionId)
-        if (dashInst?.def.tags.includes('pre_action') || dashInst?.def.tags.includes('post_action')) {
-            cmds.push({ type: 'support', actionId: dashActionId })
-        } else {
-            cmds.push({ type: 'attack', actionId: dashActionId })
+        // 位移招已在 preCmds 里（如云步既当 pre_action 又被 move-planner 选中）→ 去重，避免执行两次
+        if (!preCmds.some((c) => c.actionId === dashActionId)) {
+            // 位移招式有 support 标签的用 support 指令（跳过战斗判定）
+            const dashInst = self.actions.find((a) => a.id === dashActionId)
+            if (dashInst?.def.tags.includes('pre_action') || dashInst?.def.tags.includes('post_action')) {
+                cmds.push({ type: 'support', actionId: dashActionId })
+            } else {
+                cmds.push({ type: 'attack', actionId: dashActionId })
+            }
         }
         // dash 已处理位移，moveDelta 归零避免重复移动
         moveDelta = 0

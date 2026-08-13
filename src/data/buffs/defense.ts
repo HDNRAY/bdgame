@@ -242,10 +242,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'lingxi_finger',
         name: '灵犀一指',
-        description: '灵犀一指，空手可格挡兵刃，招架时缴械对手，灵巧+4。',
+        description: '灵犀一指，空手可格挡兵刃，招架时缴械对手，灵巧+3。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        attrMods: { dexterity: 4 },
+        attrMods: { dexterity: 3 },
         onCanParry: () => true,
         onParried: ({ target, attacker, engine, state }) => {
             processActionEffect(

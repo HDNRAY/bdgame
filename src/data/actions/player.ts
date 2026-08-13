@@ -436,7 +436,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['range', 'pierce', 'slash', 'thrown'],
         getRange: () => [1, 6],
-        effects: [{ type: 'fixed_damage', value: 18 }],
+        effects: [{ type: 'fixed_damage', value: 16 }],
     },
     {
         id: 'sheng_si_fu',

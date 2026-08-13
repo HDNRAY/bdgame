@@ -85,8 +85,13 @@ export function describeEffect(eff: EffectDef): string[] {
             return ['增益时长: 随推演提升']
         case 'knockback':
             return [`击退: ${eff.distance}格`]
-        case 'dash':
-            return [`冲刺: 移动到距离目标${eff.targetDist}格的位置`]
+        case 'dash': {
+            const target = eff.targetDist < 0 ? '最大射程' : `距离目标${eff.targetDist}格`
+            const travel = eff.maxRange !== undefined ? `最多位移${eff.maxRange}格` : ''
+            const min = eff.minRange !== undefined ? `至少${eff.minRange}格` : ''
+            const ap = eff.useAp ? '，AP随距离消耗' : ''
+            return [`冲刺: ${travel}${min ? `（${min}）` : ''}${ap}，朝${target}移动`]
+        }
         case 'short_dash':
             return [`短距冲刺: 最多${eff.maxDistance ?? 3}格`]
         case 'disarm':

@@ -198,7 +198,7 @@ export const BUFF_DB: BuffDef[] = [
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
     { id: 'fumble_track', name: '失心连续', description: '连续失心计数（15秒窗口）。', tags: [] },
-    { id: 'steal_artifact_track', name: '盗亦有道', description: '飞龙探云手的成功率追踪。', tags: [] },
+    { id: 'steal_artifact_track', name: '盗亦有道', description: '探云手的成功率追踪。', tags: [] },
     {
         id: 'summon_haste',
         name: '御物加速',
@@ -892,7 +892,7 @@ export const BUFF_DB: BuffDef[] = [
             return final
         },
     },
-    // ── 黑云·小树 ──
+    // ── 探云手小树 ──
     {
         id: 'sword_enhance_buff',
         name: '灵炁灌注',

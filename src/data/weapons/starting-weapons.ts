@@ -80,7 +80,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
     },
     {
         id: 'fei_jian',
-        name: '一柄大剑',
+        name: '黑云剑',
         description: '御剑飞行，剑气纵横。',
         tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'polearm', 'summon'],
         bound: true,
@@ -91,7 +91,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         ],
         summon: {
             id: 'fei_jian',
-            name: '一柄大剑',
+            name: '黑云剑',
             maxCount: () => 1,
             actionId: '_fei_jian_shot',
         },

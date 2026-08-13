@@ -36,6 +36,8 @@ export type EffectDef =
     | { type: 'ignore_parry' }
     | { type: 'interrupt' }
     | { type: 'knockback'; distance: number }
+    // dash：位移到 targetDist（目标距离，<0=最大射程）。maxRange=最大位移距离（朝目标位移最多 maxRange 米），
+    // minRange=最小位移距离（期望位移不足则作废）。useAp=AP 随实际位移量消耗（0.4/m）。
     | { type: 'dash'; minRange?: number; maxRange?: number; targetDist: number; useAp?: boolean }
     | { type: 'cleanse'; buffIds?: string[]; allDebuffs?: boolean; perDebuffStacks?: number }
     // 自效果（无需命中判定，总是生效）
