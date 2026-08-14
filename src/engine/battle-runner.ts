@@ -61,6 +61,10 @@ export function runBattle(
     let winner: string
     if (alive.length === 1) {
         winner = alive[0].id
+    } else if (state.lastWinner) {
+        // 引擎的击败检测已裁定胜者（lastWinner 存角色名）——即使赢家随后也倒下，仍认该胜者，避免同归误判平局
+        const lw = state.characters.find((c) => c.name === state.lastWinner)
+        winner = lw ? lw.id : '平局'
     } else {
         // 按剩余 HP 百分比决胜（精确到小数点后1位）
         const pcts = state.characters.map((c) => Math.round((c.hp / c.maxHp) * 1000) / 10)

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useAppStore, getEffectiveTheme } from '../../../stores/app-store'
 import {
     getCharacterAvatar,
+    getSpriteOutlineColor,
     getWeaponPoseConfig,
     makeCharacterSprite,
     WEAPON_OVERLAYS,
@@ -23,6 +24,8 @@ const SCALE = 6
 const AVATAR_SCALE = 4
 /** 武器单图放大倍数：32×32 → 192×192 */
 const WEAPON_SCALE = 6
+/** 头像/武器显示尺寸：两个并排 ≈ 一个动作帧宽（SCALE×60 = 360） */
+const AVATAR_WEAPON_SIZE = 176
 
 /** 角色 ID 列表（有配色 + 体型映射的），中文名取自 OpponentDef.name */
 const CHARACTER_IDS = Object.keys(CHARACTER_COLORS).filter((id) => CHARACTER_SPRITE_MAP[id])
@@ -67,9 +70,9 @@ export function PixelInspector() {
     const setCharId = (id: string) => patchQuery({ char: id })
     const setWeaponId = (id: string) => patchQuery({ weapon: id })
 
-    // 深色主题下描边用白色，浅色用黑色
+    // 描边色按主题取常量（深色=浅灰，不用纯白）
     const themeMode = useAppStore((s) => s.uiConfig.theme)
-    const outlineColor = getEffectiveTheme(themeMode) === 'dark' ? '#ffffff' : '#000000'
+    const outlineColor = getSpriteOutlineColor(getEffectiveTheme(themeMode))
 
     const sprite = useMemo(() => makeCharacterSprite(charId, '#4ecdc4', outlineColor), [charId, outlineColor])
     const palette = sprite.palette
@@ -308,28 +311,30 @@ export function PixelInspector() {
                         </figure>
                     ))}
                     <figure className="pixel-inspector-frame pixel-inspector-frame--avatar">
-                        <figcaption>avatar</figcaption>
-                        <div className="pixel-inspector-canvas-wrap">
-                            <PixelCanvas
-                                pixels={avatar.pixels}
-                                palette={avatar.palette}
-                                scale={AVATAR_SCALE}
-                                className="pixel-inspector-canvas pixel-inspector-canvas--avatar"
-                            />
+                        <figcaption>avatar / weapon</figcaption>
+                        <div className="pixel-inspector-avatar-row">
+                            <div className="pixel-inspector-canvas-wrap">
+                                <PixelCanvas
+                                    pixels={avatar.pixels}
+                                    palette={avatar.palette}
+                                    scale={AVATAR_SCALE}
+                                    className="pixel-inspector-canvas pixel-inspector-canvas--avatar"
+                                />
+                            </div>
+                            <div className="pixel-inspector-canvas-wrap">
+                                <PixelCanvas
+                                    pixels={weaponViewPixels.pixels}
+                                    palette={weaponViewPixels.palette}
+                                    scale={WEAPON_SCALE}
+                                    className="pixel-inspector-canvas pixel-inspector-canvas--weapon"
+                                    style={{ width: AVATAR_WEAPON_SIZE, height: AVATAR_WEAPON_SIZE }}
+                                />
+                            </div>
                         </div>
                         <figcaption className="pixel-inspector-weapon-caption">
                             weapon · {weaponId}（{weaponW}×{weaponH}，grip {idlePose.gripX},{idlePose.gripY}
                             {idlePose.grip2X !== undefined ? ` / 2nd ${idlePose.grip2X},${idlePose.grip2Y}` : ''}）
                         </figcaption>
-                        <div className="pixel-inspector-canvas-wrap">
-                            <PixelCanvas
-                                pixels={weaponViewPixels.pixels}
-                                palette={weaponViewPixels.palette}
-                                scale={WEAPON_SCALE}
-                                className="pixel-inspector-canvas pixel-inspector-canvas--weapon"
-                                style={{ width: weaponW * WEAPON_SCALE, height: weaponH * WEAPON_SCALE }}
-                            />
-                        </div>
                     </figure>
                 </div>
 

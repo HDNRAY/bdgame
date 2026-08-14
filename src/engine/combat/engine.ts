@@ -411,6 +411,8 @@ export class BattleEngine {
     }
 
     #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
+        // 死亡角色不再触发任何招式（先于一切触发处理）
+        if (!self.isAlive()) return
         const { moveDelta, position } = this.state
         const isInitPhase =
             event === 'battle_start' || event === 'turn_start' || event === 'on_equip' || event === 'turn_end'
@@ -781,16 +783,17 @@ export class BattleEngine {
             }
         }
         // 立即击败检测：先于所有触发器，防止死亡后继续触发
+        // 同归时也记 lastWinner（先击杀者胜）：即使攻击方/被击方随后也倒下，仍认本回合先击杀的一方
         if (!enemy.isAlive()) {
             this.emitLog({ type: 'defeat', loserId: enemy.id, winnerId: self.id })
             this.state.phase = 'finished'
-            if (self.isAlive()) this.state.lastWinner = self.name
+            this.state.lastWinner = self.name
             return
         }
         if (!self.isAlive()) {
             this.emitLog({ type: 'defeat', loserId: self.id, winnerId: enemy.id })
             this.state.phase = 'finished'
-            if (enemy.isAlive()) this.state.lastWinner = enemy.name
+            this.state.lastWinner = enemy.name
             return
         }
 

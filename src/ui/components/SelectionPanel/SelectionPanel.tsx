@@ -4,7 +4,7 @@ import { OPPONENTS, gen } from '../../../data/opponents/index'
 import type { OpponentDef } from '../../../data/opponents/index'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import { Character } from '../../../engine/entities/character'
-import { getCharacterAvatar, getWeaponOverlay } from '../../pixel-sprites'
+import { getCharacterAvatar, getSpriteOutlineColor, getWeaponOverlay } from '../../pixel-sprites'
 import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
 import { runBattle } from '../../../engine/battle-runner'
@@ -184,7 +184,7 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
 /** 对手小头像（配色由 CHARACTER_COLORS 决定，无需外部 color） */
 function OpponentAvatarSprite({ opponentId }: { opponentId: string }) {
     const themeMode = useAppStore((s) => s.uiConfig.theme)
-    const outlineColor = getEffectiveTheme(themeMode) === 'dark' ? '#c8c8d8' : '#000000'
+    const outlineColor = getSpriteOutlineColor(getEffectiveTheme(themeMode))
     const avatar = useMemo(() => getCharacterAvatar(opponentId, undefined, outlineColor), [opponentId, outlineColor])
     return <PixelCanvas pixels={avatar.pixels} palette={avatar.palette} scale={4} className="avatar-sprite" />
 }

@@ -6,6 +6,7 @@ import * as PIXI from 'pixi.js'
 import type { Frame, FrameChar, LogEntry } from '../../bridge/replay-engine'
 import {
     makeCharacterSprite,
+    getSpriteOutlineColor,
     getWeaponOverlay,
     getWeaponPoseConfig,
     getWeaponAngle,
@@ -37,10 +38,6 @@ export interface RendererOptions {
     width?: number
     height?: number
 }
-
-/** 描边色：light 黑 / dark 浅灰（与 --color-entity-border 同族） */
-const OUTLINE_LIGHT = '#000000'
-const OUTLINE_DARK = '#c8c8d8'
 
 /** 内息（AP）黄：与 --color-ap 同款 */
 const AP_LIGHT = '#e0c040'
@@ -92,7 +89,7 @@ export class CanvasRenderer {
     }
 
     private get outlineColor(): string {
-        return this.theme === 'dark' ? OUTLINE_DARK : OUTLINE_LIGHT
+        return getSpriteOutlineColor(this.theme)
     }
 
     private get apColor(): string {

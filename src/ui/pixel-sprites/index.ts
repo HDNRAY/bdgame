@@ -28,7 +28,8 @@ export {
     AVATAR_COL_END,
 } from './constants'
 
-export { CHARACTER_COLORS, CHARACTER_SPRITE_MAP } from './palette'
+export { CHARACTER_COLORS, CHARACTER_SPRITE_MAP, getSpriteOutlineColor } from './palette'
+export { SPRITE_OUTLINE_LIGHT, SPRITE_OUTLINE_DARK } from './palette'
 export type { CharacterColors } from './palette'
 
 export { makeCharacterSprite, getCharacterAvatar, renderAvatarToCanvas } from './character'

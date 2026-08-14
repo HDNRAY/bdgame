@@ -67,19 +67,24 @@
             font-family: var(--font-mono);
         }
 
-        &--avatar .pixel-inspector-canvas {
-            width: 192px;
-            height: 192px;
+        &--avatar {
+            .pixel-inspector-avatar-row {
+                display: flex;
+                gap: var(--sp-sm);
+            }
+
+            .pixel-inspector-canvas {
+                width: 176px;
+                height: 176px;
+            }
+
+            .pixel-inspector-canvas--weapon {
+                border: 1px solid var(--color-border);
+            }
         }
 
         .pixel-inspector-weapon-caption {
             margin-top: var(--sp-sm);
-        }
-
-        &--avatar .pixel-inspector-canvas--weapon {
-            width: auto;
-            height: auto;
-            border: 1px solid var(--color-border);
         }
     }
 

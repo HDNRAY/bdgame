@@ -12,6 +12,15 @@ const MONO_PALETTE: Palette = {
     1: '#000000', // 描边
 }
 
+/** 角色描边色（主题化）：浅色=黑，深色=浅灰（不用纯白，避免与白色背景/角色冲突） */
+export const SPRITE_OUTLINE_LIGHT = '#000000'
+export const SPRITE_OUTLINE_DARK = '#c8c8d8'
+
+/** 按主题取角色描边色 */
+export function getSpriteOutlineColor(theme: 'light' | 'dark'): string {
+    return theme === 'dark' ? SPRITE_OUTLINE_DARK : SPRITE_OUTLINE_LIGHT
+}
+
 /** 角色完整配色方案 */
 export interface CharacterColors {
     skin: string // 皮肤色

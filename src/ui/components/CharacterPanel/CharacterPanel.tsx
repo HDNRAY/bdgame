@@ -13,7 +13,7 @@ import { CONDITION_PRESETS } from '../../../data/conditions'
 import { TRIGGER_CONDITIONS } from '../../../data/triggers'
 import { getTriggerConditionName } from '../../../bridge/triggerDisplay'
 import type { AttrName } from '../../../engine/entities/attributes'
-import { getCharacterAvatar, getWeaponOverlay } from '../../../ui/pixel-sprites'
+import { getCharacterAvatar, getSpriteOutlineColor, getWeaponOverlay } from '../../../ui/pixel-sprites'
 import { useBuildCharacter, cultCost } from '../../hooks/useBuildCharacter'
 import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
 import { BattleStyleSelector } from './BattleStyleSelector'
@@ -79,7 +79,7 @@ export function CharacterPanel({
 
     // 头像描边随主题（dark = 浅灰）
     const themeMode = useAppStore((s) => s.uiConfig.theme)
-    const outlineColor = getEffectiveTheme(themeMode) === 'dark' ? '#c8c8d8' : '#000000'
+    const outlineColor = getSpriteOutlineColor(getEffectiveTheme(themeMode))
 
     // Build 模式状态管理
     const {

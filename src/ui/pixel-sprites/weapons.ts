@@ -6,7 +6,7 @@ import { SPRITE_PAD_LEFT } from './constants'
 export const HAND_POINTS: Record<string, { x: number; y: number }> = {
     idle: { x: 30 + SPRITE_PAD_LEFT, y: 32 },
     attack: { x: 16 + SPRITE_PAD_LEFT, y: 29 },
-    dodge: { x: 33 + SPRITE_PAD_LEFT, y: 32 },
+    dodge: { x: 32 + SPRITE_PAD_LEFT, y: 32 }, // 左移 1 格
     parry: { x: 28 + SPRITE_PAD_LEFT, y: 19 },
 }
 
@@ -17,7 +17,7 @@ export const HAND_POINTS: Record<string, { x: number; y: number }> = {
 export const OTHER_HAND_POINT: Record<string, { x: number; y: number }> = {
     idle: { x: 52.5, y: 31.5 },
     attack: { x: 42, y: 25.5 },
-    dodge: { x: 55.5, y: 31.5 },
+    dodge: { x: 54.5, y: 31.5 }, // 左移 1 格
     parry: { x: 45 + SPRITE_PAD_LEFT, y: 19 },
 }
 
@@ -38,10 +38,10 @@ export const HAND_COVER: Record<string, [number, number][]> = {
         [17 + SPRITE_PAD_LEFT, 28],
     ],
     dodge: [
+        [32 + SPRITE_PAD_LEFT, 31],
         [33 + SPRITE_PAD_LEFT, 31],
-        [34 + SPRITE_PAD_LEFT, 31],
+        [32 + SPRITE_PAD_LEFT, 32],
         [33 + SPRITE_PAD_LEFT, 32],
-        [34 + SPRITE_PAD_LEFT, 32],
     ],
     parry: [
         [28 + SPRITE_PAD_LEFT, 19],
@@ -70,10 +70,10 @@ export const LEFT_HAND_COVER: Record<string, [number, number][]> = {
         [43, 26],
     ],
     dodge: [
+        [54, 31],
         [55, 31],
-        [56, 31],
+        [54, 32],
         [55, 32],
-        [56, 32],
     ],
     parry: [
         [44 + SPRITE_PAD_LEFT, 19],
@@ -429,7 +429,7 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             gripX: 9,
             gripY: 22,
             noHandCover: true,
-            handX: 41, // 锚点左挪 4（HAND_POINTS.dodge x=45）
+            handX: 40, // 锚点左挪 4（HAND_POINTS.dodge x=44），随整体再左移 1
             handY: 32,
             angle: (-37 * Math.PI) / 180, // 与 idle 一致
         },
