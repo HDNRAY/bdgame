@@ -149,7 +149,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, target, engine, state }) => {
             // 攻击造成伤害时概率上「不幸」（降敌命中/闪避/招架/暴击）
-            if (engine && Math.random() < 0.3) {
+            if (engine && Math.random() < 0.5) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'bu_xing', stacks: 1, chance: 1 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },

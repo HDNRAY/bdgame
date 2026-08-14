@@ -764,10 +764,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             engine.emitLog({ type: 'system', message: `[探云手] 对手无可偷取奇物`, actorId: self.id })
             return
         }
-        // 成功概率
+        // 成功概率（初始 60%，成功后减半）
         const trackKey = `steal_artifact_track::${self.id}`
         const track = engine.state.pendingBuffs.get(trackKey)
-        const chance = track?.restoreValue ?? 0.8
+        const chance = track?.restoreValue ?? 0.6
         const { success } = calcRoll(chance)
         if (!success) {
             engine.emitLog({

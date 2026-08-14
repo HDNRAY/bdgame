@@ -199,9 +199,9 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'dash', minRange: 1, maxRange: 8, targetDist: 1 }],
     },
     {
-        id: 'yan_hui',
-        name: '雁迴',
-        description: '如雁迴旋，瞬移至对手身后。',
+        id: 'feng_hui',
+        name: '凤迴',
+        description: '如凤迴旋，瞬移至对手身后。',
         requiredTags: [],
         apCost: 1,
         tags: ['move', 'pre_action'],
@@ -210,9 +210,9 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'dash', maxRange: 8, targetDist: 0, useAp: true }],
     },
     {
-        id: 'yan_fan',
-        name: '雁反',
-        description: '如雁反转，瞬移拉开距离。',
+        id: 'feng_fan',
+        name: '凤反',
+        description: '如凤反转，瞬移拉开距离。',
         requiredTags: [],
         apCost: 1,
         tags: ['move', 'pre_action'],
@@ -288,12 +288,17 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'steal_artifact',
         name: '探云手',
-        description: '神偷绝技，偷取对手一件奇物。初始80%成功，成功后概率减半。',
+        description: '神偷绝技，偷取对手一件奇物。初始60%成功，成功后概率减半。',
         requiredTags: [],
-        apCost: 2,
+        apCost: 1,
         tags: [],
         target: 'enemy',
         getRange: () => [0, 5],
+        // 对手无可偷奇物时不触发/不释放，避免 turn_start 每回合白烧 AP
+        canUse: (attacker, state) => {
+            const enemy = state.characters.find((c) => c.id !== attacker.id)
+            return !!enemy && enemy.artifactDefs.some((a) => !a.tags.includes('inherent'))
+        },
         effects: [{ type: 'steal_artifact' }],
     },
     {

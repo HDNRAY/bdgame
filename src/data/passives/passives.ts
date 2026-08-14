@@ -521,12 +521,12 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lingxi_finger' }] }],
     },
     {
-        id: 'yedi_lightness',
-        name: '夜帝轻功',
-        description: '夜帝亲传轻功，雁迥李雪影，来去如风。',
+        id: 'feng_wu_jiu_tian',
+        name: '凤舞九天',
+        description: '凤舞九天，翩若惊鸿，来去如风。',
         tags: ['passive', 'buff'],
         effects: [],
-        grantsActions: ['yan_hui', 'yan_fan'],
+        grantsActions: ['feng_hui', 'feng_fan'],
     },
     {
         id: 'beiming',
@@ -768,6 +768,14 @@ export const PASSIVES: Passive[] = [
         tags: ['buff'],
         requireAttrsMin: { dexterity: 16 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'fei_hua_shou' }] }],
+    },
+    {
+        id: 'lian_da_mi_jue',
+        name: '练打秘诀',
+        description: '暗器出手附灵巧加成：灵巧×0.1；消耗1缠劲则提升至灵巧×0.2。',
+        tags: ['buff'],
+        requireAttrsMin: { dexterity: 16 },
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lian_da_mi_jue' }] }],
     },
     {
         id: 'wheelchair_lightness',

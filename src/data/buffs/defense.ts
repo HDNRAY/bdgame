@@ -325,7 +325,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'sword_intent_tempering',
         name: '剑意淬体',
-        description: '剑意淬炼肉身，slash/pierce伤害减免20%，单次受伤不超过最大生命的25%。',
+        description: '剑意淬炼肉身，slash/pierce伤害减免20%，单次受伤不超过最大生命的15%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, source }) => {
@@ -333,7 +333,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             if (source?.tags?.includes('slash') || source?.tags?.includes('pierce')) {
                 dmg = Math.round(dmg * 0.8 * 10) / 10
             }
-            const cap = Math.round(target.maxHp * 0.25 * 10) / 10
+            const cap = Math.round(target.maxHp * 0.15 * 10) / 10
             return Math.min(dmg, cap)
         },
     },

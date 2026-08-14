@@ -13,22 +13,22 @@ export const XUNXIANG: OpponentDef = {
         action('push_palm'),
         action('throwing_knife'),
         passive('lingxi_finger'),
-        passive('yedi_lightness'),
+        passive('feng_wu_jiu_tian'),
         action('steal_artifact'),
         action('deadly_knife'),
-        action('wrist_strike'),
+        action('dian_xue'),
         passive('li_wu_xu_fa'),
         passive('dian_xue_passive'),
         action('push_hand'),
-        // 扇子
-        // 10
+        passive('no_way_win'),
+        // 内功？
+        // 11
     ],
     actionConfigs: [
-        { actionId: 'wrist_strike' }, // AI 出招顺序
-        { actionId: 'throwing_knife', triggerId: 'on_dodged' }, // AI 出招顺序
+        { actionId: 'dian_xue', triggerId: 'on_dodge' },
+        { actionId: 'throwing_knife', triggerId: 'on_dodged' },
         { actionId: 'push_hand', triggerId: 'on_parry' },
         { actionId: 'push_palm', triggerId: 'on_opponent_move_closer' },
-        { actionId: 'deadly_knife' }, // AI 出招顺序
         { actionId: 'steal_artifact', triggerId: 'on_turn_start' },
     ],
 }

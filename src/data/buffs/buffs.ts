@@ -195,6 +195,19 @@ export const BUFF_DB: BuffDef[] = [
             return -act.apCost * 0.2
         },
     },
+    // ── 练打秘诀 ──
+    {
+        id: 'lian_da_mi_jue',
+        name: '练打秘诀',
+        description: '暗器出手附灵巧加成：灵巧×0.1；消耗1缠劲则提升至灵巧×0.2。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        onDealDamage: ({ final, attacker, source }) => {
+            if (!source?.tags?.includes('thrown')) return final
+            const ratio = attacker.spendChan(1) ? 0.2 : 0.1
+            return round1(final + attacker.attrs.get('dexterity') * ratio)
+        },
+    },
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
     { id: 'fumble_track', name: '失心连续', description: '连续失心计数（15秒窗口）。', tags: [] },
@@ -1206,14 +1219,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'western_poison_buff',
         name: '西域奇毒',
-        description: '剧毒入体，麻痹神经。每次中毒时叠加一层麻痹。',
+        description: '剧毒入体，麻痹神经。每次中毒时叠加2层麻痹。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDebuffApplied: ({ buffId, self, enemy, engine }) => {
             if (buffId !== 'poison' || !engine) return
             processActionEffect(
-                { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
+                { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 1 },
                 { self, enemy, engine, tMs: engine.state.turn.currentTime },
             )
         },

@@ -314,7 +314,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'western_poison',
         name: '西域奇毒',
-        description: '剧毒入体，麻痹神经。每次中毒时叠加一层麻痹。',
+        description: '剧毒入体，麻痹神经。每次中毒时叠加麻痹。',
         tags: ['debuff', 'poison', 'trigger', 'paralyze'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'western_poison_buff' }] },
