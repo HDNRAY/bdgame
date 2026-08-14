@@ -41,7 +41,8 @@ export function planSupportActions(
                 const enemy = state.characters.find((c) => c.id !== attacker.id)
                 if (!enemy) return false
                 const dist = state.position.distance(attacker.id, enemy.id)
-                const dashTarget = (dashEff.targetDist ?? 0) < 0 ? attacker.getMaxActionRange() : dashEff.targetDist
+                const dashTarget =
+                    (dashEff.targetDist ?? 0) < 0 ? attacker.getMaxActionRange(state) : dashEff.targetDist
                 const desiredTravel = Math.abs(dist - dashTarget)
                 const minTravel = dashEff.minRange ?? 0
                 if (desiredTravel < minTravel || desiredTravel === 0) return false

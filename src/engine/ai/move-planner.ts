@@ -2,6 +2,7 @@ import type { Character } from '../entities/character'
 import type { ActionDefinition, EffectDef } from '../entities/action'
 import { getActionRange } from '../../data/actions'
 import { PositionSystem } from '../combat/position'
+import type { BattleState } from '../combat/types'
 
 export type AttackStyle = 'melee' | 'mid' | 'ranged'
 
@@ -33,8 +34,9 @@ export function planMovement(
     apRemaining: number,
     minMoveCost = false,
     moveEfficiency = 0,
+    state?: BattleState,
 ): MovePlan | null {
-    const actionRange = getActionRange(chosenAction, weaponRange, attacker) // short_dash 已计入有效射程，fallback 中不用重复减 freeApproach
+    const actionRange = getActionRange(chosenAction, weaponRange, attacker) // short_dash 已计入有效射程，fallback 中不用重复减 freeApproach（chosenAction 由调用方保证已是运行时版本）
     const basePerAp = PositionSystem.apToRange(attacker.attrs.get('agility'))
     const perAp = minMoveCost ? 2 : basePerAp * (1 + moveEfficiency)
     // 主招减免后成本（身法/急速）
@@ -76,7 +78,7 @@ export function planMovement(
             // 缠劲不足的位移招式不纳入规划
             if (inst.def.chanCost && attacker.chan < inst.def.chanCost) continue
             const { minRange = 0, maxRange = Infinity, targetDist: rawDashTarget } = dashEff
-            const dashTarget = rawDashTarget < 0 ? attacker.getMaxActionRange() : rawDashTarget
+            const dashTarget = rawDashTarget < 0 ? attacker.getMaxActionRange(state) : rawDashTarget
             if (dashTarget < 0) continue
             // maxRange = 最大位移距离：期望位移被 maxRange 截断（可能落不到 dashTarget）
             const desiredTravel = distance - dashTarget

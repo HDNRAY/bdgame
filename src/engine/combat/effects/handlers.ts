@@ -629,7 +629,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // maxRange = 最大位移距离（朝 targetDist 位移，最多 maxRange 米），不再是对手距离门槛
         const minTravel = e.minRange ?? 0
         const maxTravel = e.maxRange ?? Infinity
-        const targetDist = e.targetDist < 0 ? self.getMaxActionRange() : e.targetDist
+        const targetDist = e.targetDist < 0 ? self.getMaxActionRange(engine.state) : e.targetDist
         // 期望位移（正=靠近，负=远离）
         const desired = dist - targetDist
         if (desired === 0) return

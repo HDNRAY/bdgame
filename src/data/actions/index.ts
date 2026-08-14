@@ -33,7 +33,7 @@ export function getActionsByWeapon(weaponTags: Tag[]): ActionDefinition[] {
     })
 }
 
-/** 获取招式有效射程（考虑 getRange、short_dash 延伸） */
+/** 获取招式有效射程（考虑 getRange、short_dash 延伸；buff 距离修正由调用方用 getRuntimeAction 先行叠加） */
 export function getActionRange(
     action: ActionDefinition,
     weaponRange: [number, number],
@@ -47,16 +47,16 @@ export function getActionRange(
     return [base[0], Math.min(10, base[1] + (shortDash.maxDistance ?? 2))]
 }
 
-/** 运行时招式（考虑角色身上 buff 的 onRuntimeAction 修正） */
+/** 运行时招式（考虑角色身上 buff 的 onRuntimeAction 修正；优先用角色实际持有的招式定义，保留 actionEnhancer 增强如液压腿短冲刺） */
 export function getRuntimeAction(
     actionId: string,
     self: Character,
     state: BattleState,
     engine?: BattleEngine,
 ): ActionDefinition | undefined {
-    const action: ActionDefinition | RuntimeAction | undefined = getAction(actionId)
-    if (!action) return undefined
-    let cur: ActionDefinition | RuntimeAction = action
+    const base = self.actions.find((a) => a.id === actionId)?.def ?? getAction(actionId)
+    if (!base) return undefined
+    let cur: ActionDefinition | RuntimeAction = base
     forEachBuffOf(state.pendingBuffs, self.id, (buff, layer) => {
         if (!buff?.onRuntimeAction) return
         cur = buff.onRuntimeAction(

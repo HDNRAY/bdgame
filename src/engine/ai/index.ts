@@ -163,11 +163,13 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         if (apBudget < est.apCost) return true
         const mainDef = self.actions.find((a) => a.id === est.actionId)?.def
         if (!mainDef) return true
+        // 距离计算用运行时招式（叠加 buff 的 onRuntimeAction 距离修正，如御剑诀）
+        const runtimeMain = getRuntimeAction(mainDef.id, self, state) ?? mainDef
         const e = enemy!
         if (est.canReach) {
             let planRejected = false
             if (style === 'ranged' || style === 'mid') {
-                const actionRange = getActionRange(mainDef, weapon.range, self)
+                const actionRange = getActionRange(runtimeMain, weapon.range, self)
                 const idealDist = actionRange[1]
                 if (Math.abs(distance - idealDist) >= 0.5) {
                     const minMoveCost = state.pendingBuffs.has(`min_move_cost::${self.id}`)
@@ -177,10 +179,11 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                         distance,
                         style,
                         weapon.range,
-                        mainDef,
+                        runtimeMain,
                         apBudget,
                         minMoveCost,
                         calcExtraMoveEfficiency(state, self),
+                        state,
                     )
                     if (plan && plan.apCost + est.apCost <= apBudget) {
                         mainId = est.actionId
@@ -213,7 +216,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             distance,
             style,
             weapon.range,
-            mainDef,
+            runtimeMain,
             apBudget,
             minMoveCost,
             calcExtraMoveEfficiency(state, self),
@@ -332,7 +335,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     }
 
     // ── 7. 行动后走位（只在招式射程外才走） ──
-    const mainActionRange = getActionRange(mainDef2, weapon.range, self)
+    const mainActionRange = getActionRange(getRuntimeAction(mainDef2.id, self, state) ?? mainDef2, weapon.range, self)
     if (enemy) {
         const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
         const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)

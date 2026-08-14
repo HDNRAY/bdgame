@@ -1,7 +1,7 @@
 import type { Character } from '../entities/character'
 import type { ActionDefinition } from '../entities/action'
 import type { BattleState, BuffLayer } from '../combat/types'
-import { getActionRange } from '../../data/actions'
+import { getActionRange, getRuntimeAction } from '../../data/actions'
 import {
     calcBaseDamage,
     calcCritChance,
@@ -79,7 +79,9 @@ export function calcExpectedDamage(
     const safeState = { ...state, pendingBuffs: safePendings }
 
     const distance = state.position.distance(safeAtk.id, safeDef.id)
-    const actionRange = getActionRange(action, weaponRange, safeAtk)
+    // getRuntimeAction 需访问真实 Character 的 actions（safeAtk 是 Object.create 原型 clone 无法访问私有字段），
+    // 传原始 attacker 只读取；state 用 clone 的 safeState 保证不污染真实 buff
+    const actionRange = getActionRange(getRuntimeAction(action.id, attacker, safeState) ?? action, weaponRange, safeAtk)
     const canReach = distance >= actionRange[0] && distance <= actionRange[1]
 
     // 1. 基础伤害

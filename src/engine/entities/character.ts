@@ -19,6 +19,8 @@ import { forEachBuffOf } from '../combat/utils'
 import { TRIGGER_CONDITIONS } from '../../data/triggers'
 import { MAX_CHAN } from '../constants'
 import type { BattleEngine } from '../combat/engine'
+import type { BattleState } from '../combat/types'
+import type { BuffHookCtx, RuntimeAction } from '../../data/buffs/types'
 import { round1 } from '../util/math'
 
 export class Character {
@@ -332,14 +334,32 @@ export class Character {
         return calcActionCostAfterSpeed(base, this.attrs.get('agility'), this.getHaste())
     }
 
-    /** 获取所有招式中最远射程（用于 dash targetDist: -1 解析，仅统计非辅助招式） */
-    getMaxActionRange(): number {
+    /** 获取所有招式中最远射程（用于 dash targetDist: -1 解析，仅统计非辅助招式；传 state 时叠加 buff 的 onRuntimeAction 距离修正，如御剑诀） */
+    getMaxActionRange(state?: BattleState): number {
         const weapon = this.weaponDef ?? getWeapon(this.build.weapon)
         return Math.max(
             ...this.actions
                 .filter((a) => !a.def.tags.includes('pre_action') && !a.def.tags.includes('post_action'))
                 .map((a) => {
-                    const r = a.def.getRange?.(weapon.range, this) ?? weapon.range
+                    let def: ActionDefinition | RuntimeAction = a.def
+                    if (state) {
+                        forEachBuffOf(state.pendingBuffs, this.id, (buff, layer) => {
+                            if (!buff?.onRuntimeAction) return
+                            def = buff.onRuntimeAction(
+                                {
+                                    final: 0,
+                                    raw: 0,
+                                    target: this,
+                                    attacker: this,
+                                    engine: undefined,
+                                    state,
+                                    layer,
+                                } as BuffHookCtx,
+                                def,
+                            )
+                        })
+                    }
+                    const r = def.getRange?.(weapon.range, this) ?? weapon.range
                     return r[1]
                 }),
         )

@@ -127,10 +127,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense', 'inherent'],
         expiry: { type: 'permanent' },
         onDodgeChance: ({ target }) => {
-            return target.attrs.get('agility') * 0.002
+            return target.attrs.get('agility') * 0.004
         },
         onParryChance: ({ target }) => {
-            return target.attrs.get('dexterity') * 0.002
+            return target.attrs.get('dexterity') * 0.004
         },
     },
     {
