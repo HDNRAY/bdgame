@@ -282,12 +282,6 @@ export const DEFENSE_BUFFS: BuffDef[] = [
                 !source?.tags?.includes('qi') &&
                 !source?.tags?.includes('range')
             ) {
-                // attacker.takeDamage(1)
-                // engine?.emitLog({
-                //     type: 'system',
-                //     message: `[软猬甲] ${target.name} 刺伤 ${attacker.name}，反伤1点`,
-                //     actorId: target.id,
-                // })
                 const bleedKey = `bleed::${attacker.id}`
                 const existing = state.pendingBuffs.get(bleedKey)
                 if (existing) {

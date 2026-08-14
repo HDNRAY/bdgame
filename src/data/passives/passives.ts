@@ -206,9 +206,12 @@ export const PASSIVES: Passive[] = [
     {
         id: 'inner_power',
         name: '归元劲',
-        description: '内力深厚。每点推演提升全属性。',
+        description: '内力深厚。每点推演提升全属性。持续运转消耗内息，每秒消耗 推演×0.008 点AP。',
         tags: ['passive', 'buff'],
         effects: [{ type: 'wisdom_stat_buff', ratio: 0.1, attrs: ['strength', 'vitality', 'agility', 'dexterity'] }],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'inner_power_cost' }] },
+        ],
     },
 
     {
@@ -372,7 +375,7 @@ export const PASSIVES: Passive[] = [
             return {
                 ...def,
                 tags: [...new Set<Tag>([...def.tags, 'pierce'])],
-                extraPreDelay: (def.extraPreDelay ?? 0) - 100,
+                // extraPreDelay: (def.extraPreDelay ?? 0) - 100,
                 effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])],
             }
         },

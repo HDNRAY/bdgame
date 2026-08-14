@@ -78,8 +78,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         description: '白猿授剑，灵巧化为剑势，附加灵巧×0.1伤害。',
         tags: ['pierce', 'slash', 'damage'],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker }) =>
-            Math.round((final + Math.round(attacker.attrs.get('dexterity') * 0.1 * 10) / 10) * 10) / 10,
+        onDealDamage: ({ final, attacker }) => round1(final + attacker.attrs.get('dexterity') * 0.1),
     },
     {
         id: 'thunder_bonus',

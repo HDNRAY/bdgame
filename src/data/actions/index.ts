@@ -54,7 +54,11 @@ export function getRuntimeAction(
     state: BattleState,
     engine?: BattleEngine,
 ): ActionDefinition | undefined {
-    const base = self.actions.find((a) => a.id === actionId)?.def ?? getAction(actionId)
+    // 优先查角色惰性缓存（base + actionEnhancer + buff 修正），O(1)
+    const cached = self.getRuntimeActions(state).get(actionId)
+    if (cached) return cached
+    // 不在角色招式表（内部/触发招式）：全局定义 + buff 修正（保持旧行为）
+    const base = getAction(actionId)
     if (!base) return undefined
     let cur: ActionDefinition | RuntimeAction = base
     forEachBuffOf(state.pendingBuffs, self.id, (buff, layer) => {

@@ -334,31 +334,36 @@ export class Character {
         return calcActionCostAfterSpeed(base, this.attrs.get('agility'), this.getHaste())
     }
 
+    /** 惰性缓存的运行时招式表（base + actionEnhancer + 所有 onRuntimeAction buff 修正，如御剑诀+2距离） */
+    private _runtimeActionCache?: Map<string, ActionDefinition>
+    /** 构建/取该角色所有招式的运行时版本（onRuntimeAction buff 全为 permanent、战斗内不变 → 一次构建后 O(1) 查表） */
+    getRuntimeActions(state: BattleState): Map<string, ActionDefinition> {
+        if (this._runtimeActionCache) return this._runtimeActionCache
+        const map = new Map<string, ActionDefinition>()
+        for (const a of this.actions) {
+            let cur: ActionDefinition | RuntimeAction = a.def
+            forEachBuffOf(state.pendingBuffs, this.id, (buff, layer) => {
+                if (!buff?.onRuntimeAction) return
+                cur = buff.onRuntimeAction(
+                    { final: 0, raw: 0, target: this, attacker: this, engine: undefined, state, layer } as BuffHookCtx,
+                    cur,
+                )
+            })
+            map.set(a.id, cur as ActionDefinition)
+        }
+        this._runtimeActionCache = map
+        return map
+    }
+
     /** 获取所有招式中最远射程（用于 dash targetDist: -1 解析，仅统计非辅助招式；传 state 时叠加 buff 的 onRuntimeAction 距离修正，如御剑诀） */
     getMaxActionRange(state?: BattleState): number {
         const weapon = this.weaponDef ?? getWeapon(this.build.weapon)
+        const map = state ? this.getRuntimeActions(state) : undefined
         return Math.max(
             ...this.actions
                 .filter((a) => !a.def.tags.includes('pre_action') && !a.def.tags.includes('post_action'))
                 .map((a) => {
-                    let def: ActionDefinition | RuntimeAction = a.def
-                    if (state) {
-                        forEachBuffOf(state.pendingBuffs, this.id, (buff, layer) => {
-                            if (!buff?.onRuntimeAction) return
-                            def = buff.onRuntimeAction(
-                                {
-                                    final: 0,
-                                    raw: 0,
-                                    target: this,
-                                    attacker: this,
-                                    engine: undefined,
-                                    state,
-                                    layer,
-                                } as BuffHookCtx,
-                                def,
-                            )
-                        })
-                    }
+                    const def = map?.get(a.id) ?? a.def
                     const r = def.getRange?.(weapon.range, this) ?? weapon.range
                     return r[1]
                 }),

@@ -46,8 +46,8 @@ import { formatBattleLog } from '../src/engine/format-log'
 import { StatsTracker } from '../src/engine/combat/stats-tracker'
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(LAYUE, 33)
-const oBuild = gen(BAIHU, 33)
+const pBuild = gen(LUEYING, 33)
+const oBuild = gen(HONGTI, 33)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const logPath = join(__dirname, 'battle-log.txt')

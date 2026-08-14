@@ -11,7 +11,7 @@ import {
     calcPoisonTicksPerStack,
 } from '../calc/damage'
 import { DMG_PER_POISON_TICK } from '../constants'
-import { forEachBuffOf } from '../combat/utils'
+import { cloneBuffsFor, forEachBuffOf } from '../combat/utils'
 
 export interface DamageEstimate {
     actionId: string
@@ -75,7 +75,8 @@ export function calcExpectedDamage(
     // 克隆可变参数（钩子篡改只影响克隆，不影响原件）
     const safeAtk = Object.create(attacker) as Character
     const safeDef = Object.create(defender) as Character
-    const safePendings = new Map([...state.pendingBuffs].map(([k, v]) => [k, structuredClone(v)]))
+    // 只克隆两个角色的 layer（钩子只读写它们）+ 轻量浅克隆，替代 structuredClone 全量深拷贝（热路径 ~44% 开销）
+    const safePendings = cloneBuffsFor(state.pendingBuffs, [safeAtk.id, safeDef.id])
     const safeState = { ...state, pendingBuffs: safePendings }
 
     const distance = state.position.distance(safeAtk.id, safeDef.id)

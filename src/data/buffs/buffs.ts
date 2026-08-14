@@ -208,6 +208,16 @@ export const BUFF_DB: BuffDef[] = [
             return round1(final + attacker.attrs.get('dexterity') * ratio)
         },
     },
+    // ── 归元劲代价 ──
+    {
+        id: 'inner_power_cost',
+        name: '归元劲·内耗',
+        description: '内力浑厚亦需运转维持，每秒消耗 推演×0.008 点AP。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        apRegenPerSec: ({ target }) => -round1(target.attrs.get('wisdom') * 0.008),
+    },
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
     { id: 'fumble_track', name: '失心连续', description: '连续失心计数（15秒窗口）。', tags: [] },
@@ -1219,14 +1229,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'western_poison_buff',
         name: '西域奇毒',
-        description: '剧毒入体，麻痹神经。每次中毒时叠加2层麻痹。',
+        description: '剧毒入体，麻痹神经。每次中毒时叠加3层麻痹。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDebuffApplied: ({ buffId, self, enemy, engine }) => {
             if (buffId !== 'poison' || !engine) return
             processActionEffect(
-                { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 1 },
+                { type: 'add_debuff', buffId: 'paralyze', stacks: 3, chance: 1 },
                 { self, enemy, engine, tMs: engine.state.turn.currentTime },
             )
         },
