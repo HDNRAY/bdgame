@@ -75,7 +75,13 @@ export function runBattle(
             winner = state.characters[1].id
             engine.emitLog({ type: 'defeat', loserId: state.characters[0].id, winnerId: state.characters[1].id })
         } else {
-            winner = '平局'
+            // 最终兜底：同归且无战斗胜者（如双方被 DoT 同刻烧死）时，按最大血量决胜——更肉的一方视为更持久；
+            // 血量相同取先手方。保证任何情况都有确定性胜者，彻底消除平局。
+            const [c0, c1] = state.characters
+            const winnerChar = c0.maxHp >= c1.maxHp ? c0 : c1
+            const loserChar = winnerChar === c0 ? c1 : c0
+            winner = winnerChar.id
+            engine.emitLog({ type: 'defeat', loserId: loserChar.id, winnerId: winnerChar.id })
         }
     }
     return { winner, engine }
