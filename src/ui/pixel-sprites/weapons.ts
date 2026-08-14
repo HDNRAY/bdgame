@@ -1,11 +1,13 @@
 /** 武器叠加层 */
 
-import type { WeaponOverlay } from './types'
+import type { WeaponOverlay, WeaponPoseConfig } from './types'
 import { SPRITE_PAD_LEFT } from './constants'
 /** 各姿势右手握柄位置（角色精灵坐标，网格尺寸见 constants.ts SPRITE_WIDTH×SPRITE_HEIGHT） */
 export const HAND_POINTS: Record<string, { x: number; y: number }> = {
     idle: { x: 30 + SPRITE_PAD_LEFT, y: 32 },
     attack: { x: 16 + SPRITE_PAD_LEFT, y: 29 },
+    dodge: { x: 33 + SPRITE_PAD_LEFT, y: 32 },
+    parry: { x: 28 + SPRITE_PAD_LEFT, y: 19 },
 }
 
 /**
@@ -15,6 +17,8 @@ export const HAND_POINTS: Record<string, { x: number; y: number }> = {
 export const OTHER_HAND_POINT: Record<string, { x: number; y: number }> = {
     idle: { x: 52.5, y: 31.5 },
     attack: { x: 42, y: 25.5 },
+    dodge: { x: 55.5, y: 31.5 },
+    parry: { x: 45 + SPRITE_PAD_LEFT, y: 19 },
 }
 
 /** 各姿势手部覆盖像素（人物精灵坐标）— 用角色皮肤色绘制在握柄上方，制造"握着"效果 */
@@ -32,6 +36,18 @@ export const HAND_COVER: Record<string, [number, number][]> = {
         [15 + SPRITE_PAD_LEFT, 28],
         [16 + SPRITE_PAD_LEFT, 28],
         [17 + SPRITE_PAD_LEFT, 28],
+    ],
+    dodge: [
+        [33 + SPRITE_PAD_LEFT, 31],
+        [34 + SPRITE_PAD_LEFT, 31],
+        [33 + SPRITE_PAD_LEFT, 32],
+        [34 + SPRITE_PAD_LEFT, 32],
+    ],
+    parry: [
+        [28 + SPRITE_PAD_LEFT, 19],
+        [29 + SPRITE_PAD_LEFT, 19],
+        [28 + SPRITE_PAD_LEFT, 20],
+        [29 + SPRITE_PAD_LEFT, 20],
     ],
 }
 
@@ -53,21 +69,29 @@ export const LEFT_HAND_COVER: Record<string, [number, number][]> = {
         [42, 26],
         [43, 26],
     ],
+    dodge: [
+        [55, 31],
+        [56, 31],
+        [55, 32],
+        [56, 32],
+    ],
+    parry: [
+        [44 + SPRITE_PAD_LEFT, 19],
+        [45 + SPRITE_PAD_LEFT, 19],
+        [44 + SPRITE_PAD_LEFT, 20],
+        [45 + SPRITE_PAD_LEFT, 20],
+    ],
 }
 
 export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
-    bare_hands: { pixels: [], gripX: 0, gripY: 0 },
+    bare_hands: { pixels: [] },
     fist: {
-        gripX: 8,
-        gripY: 0,
         pixels: [
             [8, 0, '#ffd700'],
             [9, 0, '#ffd700'],
         ],
     },
     sword: {
-        gripX: 8,
-        gripY: 7,
         pixels: [
             [8, 3, '#e8e8e8'],
             [9, 3, '#e8e8e8'],
@@ -81,8 +105,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     spear: {
-        gripX: 10,
-        gripY: 6,
         pixels: [
             [10, 3, '#996633'],
             [10, 4, '#996633'],
@@ -95,8 +117,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     zantetsu: {
-        gripX: 9,
-        gripY: 7,
         pixels: [
             [9, 0, '#3a3a3a'],
             [10, 1, '#3a3a3a'],
@@ -112,8 +132,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     ciyuan_blade: {
-        gripX: 8,
-        gripY: 7,
         pixels: [
             [7, 2, '#b366ff'],
             [8, 3, '#b366ff'],
@@ -126,8 +144,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     overlord_blade: {
-        gripX: 9,
-        gripY: 7,
         pixels: [
             [9, 1, '#ff5555'],
             [10, 2, '#ff5555'],
@@ -142,26 +158,49 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     tri_orb: {
-        gripX: 7,
-        gripY: 6,
         pixels: [
-            [9, 3, '#ff6b6b'],
-            [10, 3, '#ff6b6b'],
-            [9, 4, '#ff6b6b'],
-            [10, 4, '#e74c3c'],
-            [2, 7, '#5dade2'],
-            [3, 7, '#5dade2'],
-            [2, 8, '#5dade2'],
-            [3, 8, '#3498db'],
-            [11, 7, '#52d273'],
-            [12, 7, '#52d273'],
-            [11, 8, '#52d273'],
-            [12, 8, '#2ecc71'],
+            // 上珠（白）— 偏白渐变，高光→底色→阴影
+            [15, 4, '#f2f2f2'],
+            [16, 4, '#dfdfdf'],
+            [14, 5, '#f2f2f2'],
+            [15, 5, '#dfdfdf'],
+            [16, 5, '#dfdfdf'],
+            [17, 5, '#c2c2c2'],
+            [14, 6, '#dfdfdf'],
+            [15, 6, '#dfdfdf'],
+            [16, 6, '#dfdfdf'],
+            [17, 6, '#c2c2c2'],
+            [15, 7, '#dfdfdf'],
+            [16, 7, '#c2c2c2'],
+            // 左下珠（灰）— 中灰渐变
+            [5, 22, '#d4d4d4'],
+            [6, 22, '#a3a3a3'],
+            [4, 23, '#d4d4d4'],
+            [5, 23, '#a3a3a3'],
+            [6, 23, '#a3a3a3'],
+            [7, 23, '#6f6f6f'],
+            [4, 24, '#a3a3a3'],
+            [5, 24, '#a3a3a3'],
+            [6, 24, '#a3a3a3'],
+            [7, 24, '#6f6f6f'],
+            [5, 25, '#a3a3a3'],
+            [6, 25, '#6f6f6f'],
+            // 右下珠（黑）— 偏黑渐变
+            [25, 22, '#7a7a7a'],
+            [26, 22, '#4d4d4d'],
+            [24, 23, '#7a7a7a'],
+            [25, 23, '#4d4d4d'],
+            [26, 23, '#4d4d4d'],
+            [27, 23, '#262626'],
+            [24, 24, '#4d4d4d'],
+            [25, 24, '#4d4d4d'],
+            [26, 24, '#4d4d4d'],
+            [27, 24, '#262626'],
+            [25, 25, '#4d4d4d'],
+            [26, 25, '#262626'],
         ],
     },
     xiu_dong: {
-        gripX: 8,
-        gripY: 7,
         pixels: [
             [5, 4, '#a8d8ff'],
             [6, 4, '#a8d8ff'],
@@ -172,8 +211,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     chun_lei: {
-        gripX: 8,
-        gripY: 7,
         pixels: [
             [5, 4, '#a8d8ff'],
             [6, 4, '#a8d8ff'],
@@ -187,8 +224,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     heshan_sword: {
-        gripX: 8,
-        gripY: 7,
         pixels: [
             [8, 3, '#ffb366'],
             [9, 3, '#ffb366'],
@@ -200,8 +235,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     dagger: {
-        gripX: 8,
-        gripY: -3,
         pixels: [
             [7, -2, '#d8d8d8'],
             [8, -1, '#d8d8d8'],
@@ -211,8 +244,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     iron_spear: {
-        gripX: 10,
-        gripY: -3,
         pixels: [
             [10, -6, '#996633'],
             [10, -5, '#996633'],
@@ -226,8 +257,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
     },
     // ── 32×32 坐标系（剑尖/棍尖朝左上，握柄在右下）──
     peach_sword: {
-        gripX: 24,
-        gripY: 24,
         palette: {
             '0': '#e8b078', // 剑身 亮
             '1': '#dba870', // 剑身 暗
@@ -303,10 +332,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     qimei_staff: {
-        gripX: 7,
-        gripY: 7,
-        grip2X: 24,
-        grip2Y: 24,
         palette: {
             '0': '#9a6d33', // 棍身 亮
             '1': '#6e441a', // 棍身 暗
@@ -370,7 +395,65 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
     },
 }
 
-/** 根据武器 ID 获取叠加层 */
+/** 全部姿势名 */
+export const POSE_NAMES = ['idle', 'attack', 'dodge', 'parry', 'hit'] as const
+
+/** 生成所有姿势同一握持配置的便捷函数 — 特定姿势需单独调整时再覆盖该 key */
+function makePoses(base: WeaponPoseConfig): Record<string, WeaponPoseConfig> {
+    const out: Record<string, WeaponPoseConfig> = {}
+    for (const p of POSE_NAMES) out[p] = { ...base }
+    return out
+}
+
+/** 每武器·每姿势握持配置 — 独立于武器美术。未覆盖字段回落全局 HAND_POINTS / 自动角度规则 */
+export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
+    bare_hands: makePoses({ gripX: 0, gripY: 0 }),
+    fist: makePoses({ gripX: 8, gripY: 0 }),
+    sword: makePoses({ gripX: 8, gripY: 7 }),
+    spear: makePoses({ gripX: 10, gripY: 6 }),
+    zantetsu: makePoses({ gripX: 9, gripY: 7 }),
+    ciyuan_blade: makePoses({ gripX: 8, gripY: 7 }),
+    overlord_blade: makePoses({ gripX: 9, gripY: 7 }),
+    tri_orb: {
+        ...makePoses({ gripX: 9, gripY: 22, noHandCover: true }),
+        idle: { gripX: 9, gripY: 22, noHandCover: true, angle: (-37 * Math.PI) / 180 }, // 逆时针 37°
+        attack: {
+            gripX: 9,
+            gripY: 22,
+            noHandCover: true,
+            handX: 20, // 锚点左挪 20（HAND_POINTS.attack x=28）
+            handY: 32,
+            angle: (-80 * Math.PI) / 180, // 逆时针 45°
+        },
+        dodge: {
+            gripX: 9,
+            gripY: 22,
+            noHandCover: true,
+            handX: 41, // 锚点左挪 4（HAND_POINTS.dodge x=45）
+            handY: 32,
+            angle: (-37 * Math.PI) / 180, // 与 idle 一致
+        },
+        hit: { gripX: 9, gripY: 22, noHandCover: true, angle: (-37 * Math.PI) / 180 }, // 与 idle 一致
+    },
+    xiu_dong: makePoses({ gripX: 8, gripY: 7 }),
+    chun_lei: makePoses({ gripX: 8, gripY: 7 }),
+    heshan_sword: makePoses({ gripX: 8, gripY: 7 }),
+    dagger: makePoses({ gripX: 8, gripY: -3 }),
+    iron_spear: makePoses({ gripX: 10, gripY: -3 }),
+    peach_sword: makePoses({ gripX: 24, gripY: 24 }),
+    qimei_staff: makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
+}
+
+/** 未登记武器的兜底配置 */
+const DEFAULT_POSE: WeaponPoseConfig = { gripX: 0, gripY: 0 }
+
+/** 获取武器在某姿势的握持配置（该姿势未定义时回落 idle；武器未登记时兜底 grip 0,0） */
+export function getWeaponPoseConfig(weaponId: string, pose: string): WeaponPoseConfig {
+    const set = WEAPON_POSES[weaponId]
+    return set?.[pose] ?? set?.idle ?? DEFAULT_POSE
+}
+
+/** 根据武器 ID 获取叠加层（纯美术） */
 export function getWeaponOverlay(weaponId: string): WeaponOverlay {
     return WEAPON_OVERLAYS[weaponId] ?? WEAPON_OVERLAYS.bare_hands
 }
@@ -403,31 +486,44 @@ function getDualHandPoints(pose: string): { anchor: { x: number; y: number }; ta
     }
 }
 
-/** 武器锚定手：单手武器锚定主手；双手武器锚定副手（左手，图中右侧） */
-export function getWeaponHand(overlay: WeaponOverlay, pose: string): { x: number; y: number } {
-    if (overlay.grip2X !== undefined && overlay.grip2Y !== undefined) {
-        return getDualHandPoints(pose).anchor
+/**
+ * 武器锚定手位置：
+ * - 姿势配置显式给了 handX/handY → 直接用
+ * - 否则按 anchorHand（默认：单手=主手，双手=副手）查全局手部表
+ */
+export function getWeaponHand(weaponId: string, pose: string): { x: number; y: number } {
+    const cfg = getWeaponPoseConfig(weaponId, pose)
+    if (cfg.handX !== undefined && cfg.handY !== undefined) {
+        return { x: cfg.handX, y: cfg.handY }
     }
+    const dual = cfg.grip2X !== undefined && cfg.grip2Y !== undefined
+    const useOff = cfg.anchorHand === 'off' || (cfg.anchorHand === undefined && dual)
+    if (useOff) return getDualHandPoints(pose).anchor
     return HAND_POINTS[pose] ?? HAND_POINTS.idle
 }
 
 /**
  * 计算武器在给定姿势/朝向上的旋转角度（弧度）。
+ * - 姿势配置显式给了 angle → 直接用（朝左取负镜像）
  * - 单手武器（无 grip2）：idle=0，attack=±45°（按朝向倾斜），锚定主手。
  * - 双手武器（有 grip2）：主握点锚定副手（左手），旋转使棍身轴线穿过主手（右手），
  *   角度 = 副手→主手连线方向角 − 武器轴线（主握点→第二握点）方向角。
  *   朝左时人物与武器水平镜像，需用镜像后的方向重新计算。
  */
-export function getWeaponAngle(overlay: WeaponOverlay, pose: string, facingRight: boolean): number {
-    if (overlay.grip2X === undefined || overlay.grip2Y === undefined) {
+export function getWeaponAngle(weaponId: string, pose: string, facingRight: boolean): number {
+    const cfg = getWeaponPoseConfig(weaponId, pose)
+    if (cfg.angle !== undefined) {
+        return facingRight ? cfg.angle : -cfg.angle
+    }
+    if (cfg.grip2X === undefined || cfg.grip2Y === undefined) {
         if (pose !== 'attack') return 0
         return facingRight ? -Math.PI / 4 : Math.PI / 4
     }
     const { anchor, target } = getDualHandPoints(pose) // 锚点 = 副手（左手），目标 = 主手（右手）
     const dx = target.x - anchor.x
     const dy = target.y - anchor.y
-    const wdx = overlay.grip2X - overlay.gripX
-    const wdy = overlay.grip2Y - overlay.gripY
+    const wdx = cfg.grip2X - cfg.gripX
+    const wdy = cfg.grip2Y - cfg.gripY
     if (facingRight) return Math.atan2(dy, dx) - Math.atan2(wdy, wdx)
     // 朝左：武器本地 x 镜像为 -wdx，锚点/目标 x 亦镜像为 -dx
     return Math.atan2(dy, -dx) - Math.atan2(wdy, -wdx)

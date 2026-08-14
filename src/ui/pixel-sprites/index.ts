@@ -5,7 +5,15 @@
  *   import { makeCharacterSprite, getWeaponOverlay } from '../pixel-sprites'
  */
 
-export type { Palette, PixelMap, PixelSprite, AvatarData, WeaponOverlay, WeaponPixelColor } from './types'
+export type {
+    Palette,
+    PixelMap,
+    PixelSprite,
+    AvatarData,
+    WeaponOverlay,
+    WeaponPixelColor,
+    WeaponPoseConfig,
+} from './types'
 
 export {
     SPRITE_WIDTH,
@@ -30,8 +38,11 @@ export {
     HAND_COVER,
     LEFT_HAND_COVER,
     OTHER_HAND_POINT,
+    POSE_NAMES,
     WEAPON_OVERLAYS,
+    WEAPON_POSES,
     getWeaponOverlay,
+    getWeaponPoseConfig,
     getWeaponPixelColor,
     resolveWeaponPixels,
     getWeaponAngle,

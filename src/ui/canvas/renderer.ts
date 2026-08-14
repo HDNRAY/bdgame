@@ -7,6 +7,7 @@ import type { Frame, FrameChar, LogEntry } from '../../bridge/replay-engine'
 import {
     makeCharacterSprite,
     getWeaponOverlay,
+    getWeaponPoseConfig,
     getWeaponAngle,
     getWeaponHand,
     resolveWeaponPixels,
@@ -355,10 +356,11 @@ export class CanvasRenderer {
         const overlay = getWeaponOverlay(c.weaponId)
         if (overlay.pixels.length === 0) return
 
-        // 锚定手：单手武器=主手；双手武器=副手（左手，图中右侧）
-        const hand = getWeaponHand(overlay, c.pose)
-        const gripX = overlay.gripX
-        const gripY = overlay.gripY
+        // 握持行为（grip/角度/锚定手）按武器+姿势查配置
+        const poseConfig = getWeaponPoseConfig(c.weaponId, c.pose)
+        const hand = getWeaponHand(c.weaponId, c.pose)
+        const gripX = poseConfig.gripX
+        const gripY = poseConfig.gripY
 
         // 武器 Graphics：position = 锚定手，本地坐标相对主握点（px-gripX, py-gripY），
         // pivot 保持 (0,0) 使旋转绕锚定手进行（避免双重偏移把武器抬离手部）。
@@ -366,7 +368,7 @@ export class CanvasRenderer {
         const handX = facingRight ? hand.x : SPRITE_WIDTH - 1 - hand.x
         wg.position.set(ox + handX * PIXEL, oy + hand.y * PIXEL)
         wg.pivot.set(0, 0)
-        wg.rotation = getWeaponAngle(overlay, c.pose, facingRight)
+        wg.rotation = getWeaponAngle(c.weaponId, c.pose, facingRight)
 
         for (const [px, py, color] of resolveWeaponPixels(overlay)) {
             const fx = facingRight ? px - gripX : -(px - gripX)
@@ -385,6 +387,9 @@ export class CanvasRenderer {
         const cg = this.handCoverSprites.get(c.id)
         if (!cg) return
         cg.clear()
+        // 握持行为按武器+姿势查配置：漂浮类武器（如三相珠）无握柄手部覆盖
+        const poseConfig = getWeaponPoseConfig(c.weaponId, c.pose)
+        if (poseConfig.noHandCover) return
         const cover = HAND_COVER[c.pose] ?? HAND_COVER.idle
         const skin = palette['3'] ?? '#f5d6c6'
         const paint = (cx: number, cy: number) => {
@@ -394,8 +399,7 @@ export class CanvasRenderer {
         }
         for (const [cx, cy] of cover) paint(cx, cy)
         // 双手武器（有 grip2）：额外盖住第二只手（左手）
-        const overlay = getWeaponOverlay(c.weaponId)
-        if (overlay.grip2X !== undefined) {
+        if (poseConfig.grip2X !== undefined) {
             const leftCover = LEFT_HAND_COVER[c.pose] ?? LEFT_HAND_COVER.idle
             for (const [cx, cy] of leftCover) paint(cx, cy)
         }

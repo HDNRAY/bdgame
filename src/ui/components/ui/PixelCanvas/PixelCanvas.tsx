@@ -3,11 +3,13 @@ import type { CSSProperties } from 'react'
 import type { PixelMap, Palette, WeaponOverlay } from '../../../pixel-sprites'
 import {
     HAND_COVER,
+    HAND_POINTS,
     LEFT_HAND_COVER,
     WEAPON_WIDTH,
     WEAPON_HEIGHT,
     getWeaponAngle,
     getWeaponHand,
+    getWeaponPoseConfig,
     resolveWeaponPixels,
 } from '../../../pixel-sprites'
 
@@ -22,8 +24,10 @@ interface PixelCanvasProps {
     overlay?: WeaponOverlay
     /** 叠加层放大倍数（默认与 scale 相同，无 pixels 时默认 3） */
     overlayScale?: number
+    /** 武器 ID — 合成模式按 武器+姿势 查握持配置（grip/角度/锚定手） */
+    weaponId?: string
     /** 角色姿势（用于查找手部位置），默认 'idle' */
-    pose?: 'idle' | 'attack'
+    pose?: string
     /** 旋转角度（弧度），武器绕握柄旋转后叠加 */
     angle?: number
     /** CSS 类名 — 显示尺寸由 CSS 控制 */
@@ -38,6 +42,7 @@ export function PixelCanvas({
     scale = 1,
     overlay,
     overlayScale: osProp,
+    weaponId,
     pose = 'idle',
     angle,
     className,
@@ -80,6 +85,9 @@ export function PixelCanvas({
 
         ctx.clearRect(0, 0, bufW, bufH)
 
+        // 握持行为配置（合成模式按 武器+姿势 查表；图标模式无意义）
+        const poseConfig = weaponId ? getWeaponPoseConfig(weaponId, pose) : undefined
+
         // 渲染像素图（居中）
         if (pixels && palette) {
             for (let y = 0; y < pixels.length; y++) {
@@ -107,7 +115,9 @@ export function PixelCanvas({
             if (hasPixels) {
                 // 合成模式：以角色手部为旋转中心，旋转整张武器图（手部坐标需叠加内容居中偏移）
                 // 锚定手：单手=主手，双手=副手（左手/图中右侧）
-                const hand = getWeaponHand(overlay, pose)
+                const hand = weaponId ? getWeaponHand(weaponId, pose) : (HAND_POINTS[pose] ?? HAND_POINTS.idle)
+                const gripX = poseConfig?.gripX ?? 0
+                const gripY = poseConfig?.gripY ?? 0
                 const rotPad = Math.ceil(Math.hypot(maxX - minX, maxY - minY))
                 const offW = (maxX - minX + 1 + rotPad * 2) * os
                 const offH = (maxY - minY + 1 + rotPad * 2) * os
@@ -122,16 +132,19 @@ export function PixelCanvas({
                     offCtx.fillRect((px - minX + rotPad) * os, (py - minY + rotPad) * os, os, os)
                 }
                 // 旋转中心在离屏中的位置：主握点（双手武器锚定副手/左手）
-                const rotX = overlay.gripX
-                const rotY = overlay.gripY
+                const rotX = gripX
+                const rotY = gripY
                 const offRotX = (rotX - minX + rotPad) * os
                 const offRotY = (rotY - minY + rotPad) * os
 
                 ctx.save()
                 ctx.translate((hand.x + offX) * scale, (hand.y + offY) * scale)
-                // 双手武器：角度由 getWeaponAngle 计算（绕副手旋转使棍身穿过主手）；
-                // 单手武器：使用传入的 angle（idle=0，attack=±45°）
-                const effAngle = overlay.grip2X !== undefined ? getWeaponAngle(overlay, pose, true) : (angle ?? 0)
+                // 配置了 angle / 双手武器：由 getWeaponAngle 计算（如三相珠 idle 倾斜）；
+                // 其余单手武器：使用传入的 angle（idle=0，attack=±45°）
+                const effAngle =
+                    weaponId && (poseConfig?.grip2X !== undefined || poseConfig?.angle !== undefined)
+                        ? getWeaponAngle(weaponId, pose, true)
+                        : (angle ?? 0)
                 if (effAngle) ctx.rotate(effAngle)
                 ctx.imageSmoothingEnabled = false
                 ctx.drawImage(offscreen, -offRotX, -offRotY)
@@ -146,8 +159,8 @@ export function PixelCanvas({
             }
         }
 
-        // 渲染手部覆盖层 — 仅在合成武器时（有角色像素）绘制，人物精灵坐标，用皮肤色盖住握柄
-        if (hasPixels && overlay && overlay.pixels.length > 0) {
+        // 渲染手部覆盖层 — 仅在合成武器时（有角色像素）绘制，人物精灵坐标，用皮肤色盖住握柄（漂浮类武器跳过）
+        if (hasPixels && overlay && overlay.pixels.length > 0 && !(poseConfig?.noHandCover ?? false)) {
             const cover = HAND_COVER[pose]
             const skin = palette?.['3'] ?? '#f5d6c6'
             ctx.fillStyle = skin
@@ -157,14 +170,14 @@ export function PixelCanvas({
                 }
             }
             // 双手武器（有 grip2）：额外盖住第二只手（左手）
-            if (overlay.grip2X !== undefined) {
+            if (poseConfig?.grip2X !== undefined) {
                 const leftCover = LEFT_HAND_COVER[pose] ?? LEFT_HAND_COVER.idle
                 for (const [cx, cy] of leftCover) {
                     ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
                 }
             }
         }
-    }, [bufW, bufH, pixels, palette, scale, overlay, os, pose, angle, offX, offY, hasPixels])
+    }, [bufW, bufH, pixels, palette, scale, overlay, os, weaponId, pose, angle, offX, offY, hasPixels])
 
     return <canvas ref={ref} width={bufW} height={bufH} className={className} style={style} />
 }

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useAppStore, getEffectiveTheme } from '../../../stores/app-store'
 import {
     getCharacterAvatar,
+    getWeaponPoseConfig,
     makeCharacterSprite,
     WEAPON_OVERLAYS,
     WEAPON_WIDTH,
@@ -15,8 +17,8 @@ import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { PixelCanvas } from '../../../components/ui/PixelCanvas/PixelCanvas'
 import './PixelInspector.scss'
 
-/** 像素放大倍数：角色精灵 → 384×384 */
-const SCALE = 8
+/** 像素放大倍数：角色精灵（多动作并排展示，稍缩小便于容纳） */
+const SCALE = 6
 /** 头像放大倍数 */
 const AVATAR_SCALE = 4
 /** 武器单图放大倍数：32×32 → 192×192 */
@@ -65,25 +67,29 @@ export function PixelInspector() {
     const setCharId = (id: string) => patchQuery({ char: id })
     const setWeaponId = (id: string) => patchQuery({ weapon: id })
 
-    const sprite = useMemo(() => makeCharacterSprite(charId, '#4ecdc4'), [charId])
-    const idlePixels = sprite.frames.idle
-    const attackPixels = sprite.frames.attack
+    // 深色主题下描边用白色，浅色用黑色
+    const themeMode = useAppStore((s) => s.uiConfig.theme)
+    const outlineColor = getEffectiveTheme(themeMode) === 'dark' ? '#ffffff' : '#000000'
+
+    const sprite = useMemo(() => makeCharacterSprite(charId, '#4ecdc4', outlineColor), [charId, outlineColor])
     const palette = sprite.palette
+    const idlePixels = sprite.frames.idle
+    /** 全部动作帧（idle / attack / hit / …），按插入顺序展示 */
+    const frames = useMemo(() => Object.entries(sprite.frames), [sprite])
 
-    const avatar = useMemo(() => getCharacterAvatar(charId, '#4ecdc4'), [charId])
+    const avatar = useMemo(() => getCharacterAvatar(charId, '#4ecdc4', outlineColor), [charId, outlineColor])
 
-    const overlayIdleRef = useRef<HTMLCanvasElement>(null)
-    const overlayAttackRef = useRef<HTMLCanvasElement>(null)
+    /** 各姿势叠加层 canvas ref / hover / locked（按姿势名索引） */
+    const overlayRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
 
     const [showGrid, setShowGrid] = useState(true)
-    const [hoverIdle, setHoverIdle] = useState<{ x: number; y: number } | null>(null)
-    const [lockedIdle, setLockedIdle] = useState<{ x: number; y: number } | null>(null)
-    const [hoverAttack, setHoverAttack] = useState<{ x: number; y: number } | null>(null)
-    const [lockedAttack, setLockedAttack] = useState<{ x: number; y: number } | null>(null)
+    const [hover, setHover] = useState<Record<string, { x: number; y: number } | null>>({})
+    const [locked, setLocked] = useState<Record<string, { x: number; y: number } | null>>({})
 
     // ── 武器调试 ──
     const [compositeWeapon, setCompositeWeapon] = useState(true)
     const overlay = useMemo(() => WEAPON_OVERLAYS[weaponId] ?? WEAPON_OVERLAYS.bare_hands, [weaponId])
+    const idlePose = useMemo(() => getWeaponPoseConfig(weaponId, 'idle'), [weaponId])
     // 武器坐标系尺寸（显示整个网格，见 constants.ts）
     const weaponW = WEAPON_WIDTH
     const weaponH = WEAPON_HEIGHT
@@ -151,9 +157,15 @@ export function PixelInspector() {
         }
     }
 
-    const idleInfo = infoFor(idlePixels, lockedIdle ?? hoverIdle)
-    const attackInfo = infoFor(attackPixels, lockedAttack ?? hoverAttack)
-    const activeInfo = idleInfo ?? attackInfo
+    /** 当前有 hover/locked 的那一帧的信息（按帧顺序取第一个） */
+    let activeInfo: PixelInfo | null = null
+    for (const [name, pixels] of frames) {
+        const p = locked[name] ?? hover[name]
+        if (p) {
+            activeInfo = infoFor(pixels, p)
+            break
+        }
+    }
 
     /** 将鼠标事件坐标换算为像素坐标（考虑画布居中偏移） */
     const toPixel = (e: React.MouseEvent<HTMLCanvasElement>): { x: number; y: number } | null => {
@@ -185,10 +197,11 @@ export function PixelInspector() {
                 ctx.lineTo((i + offX) * SCALE + 0.5, bufH)
                 ctx.stroke()
             }
-            for (let j = 0; j <= height; j++) {
+            // 横线铺满整个方形画布（含上下留白），避免上下缺横线
+            for (let j = 0; j <= side; j++) {
                 ctx.beginPath()
-                ctx.moveTo(0, (j + offY) * SCALE + 0.5)
-                ctx.lineTo(bufW, (j + offY) * SCALE + 0.5)
+                ctx.moveTo(0, j * SCALE + 0.5)
+                ctx.lineTo(bufW, j * SCALE + 0.5)
                 ctx.stroke()
             }
         }
@@ -211,8 +224,9 @@ export function PixelInspector() {
 
     // 网格 / hover / locked 变化时重绘叠加层
     useEffect(() => {
-        drawOverlay(overlayIdleRef.current, hoverIdle, lockedIdle)
-        drawOverlay(overlayAttackRef.current, hoverAttack, lockedAttack)
+        for (const [name] of frames) {
+            drawOverlay(overlayRefs.current[name] ?? null, hover[name] ?? null, locked[name] ?? null)
+        }
     })
 
     return (
@@ -257,55 +271,42 @@ export function PixelInspector() {
 
             <div className="pixel-inspector-body">
                 <div className="pixel-inspector-frames">
-                    <figure className="pixel-inspector-frame">
-                        <figcaption>idle</figcaption>
-                        <div className="pixel-inspector-canvas-wrap">
-                            <PixelCanvas
-                                pixels={idlePixels}
-                                palette={palette}
-                                scale={SCALE}
-                                pose="idle"
-                                overlay={compositeWeapon ? overlay : undefined}
-                                className="pixel-inspector-canvas"
-                            />
-                            <canvas
-                                ref={overlayIdleRef}
-                                width={bufW}
-                                height={bufH}
-                                className="pixel-inspector-overlay"
-                                onMouseMove={(e) => setHoverIdle(toPixel(e))}
-                                onMouseLeave={() => setHoverIdle(null)}
-                                onClick={(e) => setLockedIdle(toPixel(e))}
-                                onDoubleClick={() => setLockedIdle(null)}
-                            />
-                        </div>
-                    </figure>
-
-                    <figure className="pixel-inspector-frame">
-                        <figcaption>attack（逆时针 45°）</figcaption>
-                        <div className="pixel-inspector-canvas-wrap">
-                            <PixelCanvas
-                                pixels={attackPixels}
-                                palette={palette}
-                                scale={SCALE}
-                                pose="attack"
-                                angle={-Math.PI / 4}
-                                overlay={compositeWeapon ? overlay : undefined}
-                                className="pixel-inspector-canvas"
-                            />
-                            <canvas
-                                ref={overlayAttackRef}
-                                width={bufW}
-                                height={bufH}
-                                className="pixel-inspector-overlay"
-                                onMouseMove={(e) => setHoverAttack(toPixel(e))}
-                                onMouseLeave={() => setHoverAttack(null)}
-                                onClick={(e) => setLockedAttack(toPixel(e))}
-                                onDoubleClick={() => setLockedAttack(null)}
-                            />
-                        </div>
-                    </figure>
-
+                    {frames.map(([name, pixels]) => (
+                        <figure key={name} className="pixel-inspector-frame">
+                            <figcaption>{name}</figcaption>
+                            <div className="pixel-inspector-canvas-wrap">
+                                <PixelCanvas
+                                    pixels={pixels}
+                                    palette={palette}
+                                    scale={SCALE}
+                                    pose={name}
+                                    weaponId={compositeWeapon ? weaponId : undefined}
+                                    angle={name === 'attack' ? -Math.PI / 4 : undefined}
+                                    overlay={compositeWeapon ? overlay : undefined}
+                                    className="pixel-inspector-canvas"
+                                />
+                                <canvas
+                                    ref={(el) => {
+                                        overlayRefs.current[name] = el
+                                    }}
+                                    width={bufW}
+                                    height={bufH}
+                                    className="pixel-inspector-overlay"
+                                    onMouseMove={(e) => {
+                                        // 同步读取坐标：e.currentTarget 在事件处理结束/异步 setState 时会被清空
+                                        const p = toPixel(e)
+                                        setHover((prev) => ({ ...prev, [name]: p }))
+                                    }}
+                                    onMouseLeave={() => setHover((prev) => ({ ...prev, [name]: null }))}
+                                    onClick={(e) => {
+                                        const p = toPixel(e)
+                                        setLocked((prev) => ({ ...prev, [name]: p }))
+                                    }}
+                                    onDoubleClick={() => setLocked((prev) => ({ ...prev, [name]: null }))}
+                                />
+                            </div>
+                        </figure>
+                    ))}
                     <figure className="pixel-inspector-frame pixel-inspector-frame--avatar">
                         <figcaption>avatar</figcaption>
                         <div className="pixel-inspector-canvas-wrap">
@@ -317,8 +318,8 @@ export function PixelInspector() {
                             />
                         </div>
                         <figcaption className="pixel-inspector-weapon-caption">
-                            weapon · {weaponId}（{weaponW}×{weaponH}，grip {overlay.gripX},{overlay.gripY}
-                            {overlay.grip2X !== undefined ? ` / 2nd ${overlay.grip2X},${overlay.grip2Y}` : ''}）
+                            weapon · {weaponId}（{weaponW}×{weaponH}，grip {idlePose.gripX},{idlePose.gripY}
+                            {idlePose.grip2X !== undefined ? ` / 2nd ${idlePose.grip2X},${idlePose.grip2Y}` : ''}）
                         </figcaption>
                         <div className="pixel-inspector-canvas-wrap">
                             <PixelCanvas
@@ -373,14 +374,8 @@ export function PixelInspector() {
                         <p className="pixel-inspector-hint">将鼠标悬停在画布上查看像素信息</p>
                     )}
 
-                    {(lockedIdle || lockedAttack) && (
-                        <button
-                            className="pixel-inspector-unlock"
-                            onClick={() => {
-                                setLockedIdle(null)
-                                setLockedAttack(null)
-                            }}
-                        >
+                    {Object.values(locked).some(Boolean) && (
+                        <button className="pixel-inspector-unlock" onClick={() => setLocked({})}>
                             清除锁定（双击也可）
                         </button>
                     )}
