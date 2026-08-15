@@ -1,18 +1,17 @@
 import type { EventDef } from '../../game/entities/event'
-import { isNonImperialStartingWeapon, isWeaponLinkedAction } from '../../game/roguelite/util'
+import { N2_WEAPON_CHOICES, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  天生道种 — 自定义事件
 // ════════════════════════════════════════
 
-/** node 2: 选兵器 → 叙事 → 选兵器 → 告诫 → 继续 */
+/** node 2: 选兵器（藏兵阁，固定 5 选 1） */
 export const SECT_N02_WEAPON: EventDef = {
     id: 'sect_n02_weapon',
     name: '选兵器',
     description: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。三件法器微微发光，等你伸手。',
-    rewardType: 'weapon',
-    // 藏兵阁法器皆为寻常兵刃，不含御物（玄门血统限定）
-    rewardFilter: isNonImperialStartingWeapon,
+    placement: [{ nodes: [2], when: storyWhen('sect') }],
+    reward: { kind: 'fixed', choices: N2_WEAPON_CHOICES },
     rounds: [
         {
             id: 'intro',
@@ -20,11 +19,7 @@ export const SECT_N02_WEAPON: EventDef = {
             description: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。三件法器微微发光，等你伸手。',
             choices: [{ id: 'reward_round', type: 'continue', label: '伸手' }],
         },
-        {
-            id: 'reward_round',
-            title: '选择法器',
-            choices: [],
-        },
+        { id: 'reward_round', title: '选择法器', choices: [] },
         {
             id: 'epilogue',
             title: '掌门的话',
@@ -35,14 +30,13 @@ export const SECT_N02_WEAPON: EventDef = {
     ],
 }
 
-/** node 3: 腊月来教你和师兄 → 选招式 → 劝勉 → 继续 */
+/** node 3: 选招式（与兵器同源的 2AP 招式） */
 export const SECT_N03_ACTION: EventDef = {
     id: 'sect_n03_action',
     name: '选招式',
     description: '入门后腊月师姐负责带你和师兄。她翻了翻你们的根骨记录，丢过来三门基础功法让你们挑。',
-    rewardType: 'action',
-    // 所悟招式必与 n2 所选兵器同源（2AP，requiredTags 与兵器 tags 匹配）
-    rewardFilter: isWeaponLinkedAction,
+    placement: [{ nodes: [3], when: storyWhen('sect') }],
+    reward: { kind: 'item', pool: 'action', apMax: 2, noPrePost: true, requireTags: true },
     rounds: [
         {
             id: 'intro',
@@ -50,11 +44,7 @@ export const SECT_N03_ACTION: EventDef = {
             description: '入门后腊月师姐负责带你和师兄。她翻了翻你们的根骨记录，丢过来三门基础功法让你们挑。',
             choices: [{ id: 'reward_round', type: 'continue', label: '挑选' }],
         },
-        {
-            id: 'reward_round',
-            title: '选择功法',
-            choices: [],
-        },
+        { id: 'reward_round', title: '选择功法', choices: [] },
         {
             id: 'epilogue',
             title: '腊月的话',
@@ -69,7 +59,8 @@ export const SECT_N11_TRAGEDY: EventDef = {
     id: 'sect_n11_tragedy',
     name: '师兄弟对决',
     description: '宗门大比，你与师兄站在擂台两端。',
-    rewardType: 'points',
+    placement: [{ nodes: [11], when: storyWhen('sect') }],
+    reward: { kind: 'points' },
     rounds: [
         {
             id: 'intro',
@@ -103,7 +94,8 @@ export const SECT_N16_REUNION: EventDef = {
     id: 'sect_n16_reunion',
     name: '重逢',
     description: '九年了。你在比武大会台下人群中看到了师兄的身影。',
-    rewardType: 'points',
+    placement: [{ nodes: [16], when: storyWhen('sect') }],
+    reward: { kind: 'points' },
     rounds: [
         {
             id: 'scene',
@@ -126,7 +118,8 @@ export const SECT_N19_TRAIL: EventDef = {
     id: 'sect_n19_trail',
     name: '追踪',
     description: '三年了。你在调查非法义体交易时意外看到了陶朵。',
-    rewardType: 'points',
+    placement: [{ nodes: [19], when: storyWhen('sect') }],
+    reward: { kind: 'points' },
     rounds: [
         {
             id: 'scene',
@@ -140,23 +133,6 @@ export const SECT_N19_TRAIL: EventDef = {
             title: '沉住气',
             description: '你回到住处，把今晚看到的每一张脸都记了下来。',
             choices: [],
-        },
-    ],
-}
-
-/** node 22: 斗炁大会前夕 */
-export const SECT_N22_TOURNAMENT: EventDef = {
-    id: 'sect_n22_tournament',
-    name: '斗炁大会',
-    description: '斗炁大会在即，各路高手云集。你知道组织一定会派人渗透。',
-    rewardType: 'points',
-    rounds: [
-        {
-            id: 'scene',
-            title: '前夕',
-            description:
-                '斗炁大会在即，各路高手云集。你知道组织一定会派人渗透，也许师兄也在其中。你握紧拳头——是时候了断了。',
-            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],
 }

@@ -1,6 +1,6 @@
 // ════════════════════════════════════════
 //  斗炁大会 — 通用事件定义（工厂函数）
-//  所有事件的 enemyId 由 processTournament 动态设 flags 提供。
+//  所有事件的 enemyId 由 processTournament 动态设置。
 //  小组赛（n23/26/27/28）给奖励；淘汰赛 + 决赛（n29/30/31/33）无奖励。
 // ════════════════════════════════════════
 
@@ -25,7 +25,8 @@ type TournamentEventId = (typeof TOURNAMENT_EVENT_IDS)[number]
 interface TournamentEventMeta {
     title: string
     description: string
-    rewardType: 'points' | 'heal'
+    /** 放置节点（1-based） */
+    nodes: number[]
     /** 淘汰赛/决赛：无奖励（生死局没有战利品） */
     noReward: boolean
 }
@@ -34,49 +35,49 @@ const EVENT_META: Record<TournamentEventId, TournamentEventMeta> = {
     tournament_open: {
         title: '斗炁大会开幕',
         description: '群雄齐聚，会场人声鼎沸。你握紧兵器，走入赛场。三十二名高手，只有一个能站到最后。',
-        rewardType: 'points',
+        nodes: [23],
         noReward: false,
     },
     tournament_group_r1: {
         title: '小组赛·第一轮',
         description: '小组赛第一场。你的对手已经站在擂台上了。',
-        rewardType: 'points',
+        nodes: [26],
         noReward: false,
     },
     tournament_group_r2: {
         title: '小组赛·第二轮',
         description: '小组赛第二场。连胜还是背水一战，全看这一局。',
-        rewardType: 'points',
+        nodes: [27],
         noReward: false,
     },
     tournament_group_r3: {
-        title: '小组赛·第三轮',
-        description: '小组赛最后一场。赢则出线在望，输则可能淘汰。',
-        rewardType: 'points',
+        title: '小组赛收官',
+        description: '小组赛最后一场打完，出线名单已定。你在名单上找到了自己的名字——下一场，就是淘汰赛。',
+        nodes: [28],
         noReward: false,
     },
     tournament_knockout_16: {
         title: '十六强赛',
         description: '淘汰赛开始。一场定胜负，没有回头路。',
-        rewardType: 'points',
+        nodes: [29],
         noReward: true,
     },
     tournament_knockout_8: {
         title: '八强赛',
         description: '只剩下八个人了。每一场都是硬仗。',
-        rewardType: 'points',
+        nodes: [30],
         noReward: true,
     },
     tournament_knockout_4: {
         title: '半决赛',
         description: '四强争锋。再赢两场，就是冠军。',
-        rewardType: 'points',
+        nodes: [31],
         noReward: true,
     },
     tournament_final: {
         title: '决赛',
         description: '最终决战。擂台上，你的对手已经就位。这一战，决定谁是这一届斗炁大会的冠军。',
-        rewardType: 'points',
+        nodes: [33],
         noReward: true,
     },
 }
@@ -101,9 +102,9 @@ function makeTournamentEvent(id: TournamentEventId): EventDef {
         id,
         name: meta.title,
         description: meta.description,
-        rewardType: meta.rewardType,
+        placement: [{ nodes: meta.nodes }],
+        reward: meta.noReward ? { kind: 'none' } : { kind: 'points' },
         rounds,
-        noReward: meta.noReward,
     }
 }
 

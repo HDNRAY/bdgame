@@ -28,4 +28,4 @@ export type { SimulateOptions } from './simulator'
 export { selectParticipants } from './participants'
 export type { SelectParticipantsOptions } from './participants'
 
-export { processTournament } from './integration'
+export { processTournament, recordPlayerMatchResult, isTournamentEliminated } from './integration'

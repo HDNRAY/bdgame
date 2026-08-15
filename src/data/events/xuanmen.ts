@@ -1,15 +1,16 @@
 import type { EventDef } from '../../game/entities/event'
+import { storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  玄门 — 自定义事件
 // ════════════════════════════════════════
 
-/** node 2: 祖祠选御物 → 三件固定法器 → 父亲的话 → 继续 */
+/** node 2: 祖祠选御物 → 三件固定法器（御物血统限定，仅玄门可选） */
 export const XUANMEN_N02_WEAPON: EventDef = {
     id: 'xuanmen_n02_weapon',
     name: '选兵器',
     description: '你六岁那年，父亲将你叫到祖祠前。三件家族御物悬浮在炁阵中。',
-    rewardType: 'weapon',
+    placement: [{ nodes: [2], when: storyWhen('xuanmen') }],
     rounds: [
         {
             id: 'intro',
@@ -42,12 +43,13 @@ export const XUANMEN_N02_WEAPON: EventDef = {
     ],
 }
 
-/** node 3: 库房选奇物 → 叙事 → 选奇物 → 继续 */
+/** node 3: 库房选奇物 */
 export const XUANMEN_N03_START: EventDef = {
     id: 'xuanmen_n03_start',
     name: '选奇物',
     description: '招式已随御物附赠，父亲翻出家传库房，让你先择一件趁手的奇物傍身。',
-    rewardType: 'artifact',
+    placement: [{ nodes: [3], when: storyWhen('xuanmen') }],
+    reward: { kind: 'item', pool: 'artifact' },
     rounds: [
         {
             id: 'intro',
@@ -55,11 +57,7 @@ export const XUANMEN_N03_START: EventDef = {
             description: '招式已随御物附赠，父亲翻出家传库房，让你先择一件趁手的奇物傍身。',
             choices: [{ id: 'reward_round', type: 'continue', label: '挑选' }],
         },
-        {
-            id: 'reward_round',
-            title: '选择奇物',
-            choices: [],
-        },
+        { id: 'reward_round', title: '选择奇物', choices: [] },
         {
             id: 'epilogue',
             title: '父亲的叮嘱',
@@ -74,7 +72,8 @@ export const XUANMEN_N09_SECRET: EventDef = {
     id: 'xuanmen_n09_secret',
     name: '家传密辛',
     description: '那晚，父亲把你叫到书房，说出了埋藏多年的家族密辛。',
-    rewardType: 'points',
+    placement: [{ nodes: [9], when: storyWhen('xuanmen') }],
+    reward: { kind: 'points' },
     rounds: [
         {
             id: 'scene',
@@ -92,12 +91,13 @@ export const XUANMEN_N09_SECRET: EventDef = {
     ],
 }
 
-/** node 11: Boss 战 — 一个兄弟（军师） */
+/** node 11: Boss 战 — 一个兄弟 */
 export const BOSS_JUNSHI: EventDef = {
     id: 'boss_junshi',
     name: '一个兄弟',
     description: '十岁那年，你与「一个兄弟」对峙于祖祠之前。',
-    rewardType: 'action',
+    placement: [{ nodes: [11], when: storyWhen('xuanmen') }],
+    reward: { kind: 'item', pool: 'action' },
     rounds: [
         {
             id: 'intro',
@@ -125,7 +125,8 @@ export const XUANMEN_N15_HEISHU: EventDef = {
     id: 'xuanmen_n15_heishu',
     name: '小树',
     description: '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔。',
-    rewardType: 'points',
+    placement: [{ nodes: [15], when: storyWhen('xuanmen') }],
+    reward: { kind: 'points' },
     rounds: [
         {
             id: 'scene',
@@ -148,7 +149,8 @@ export const XUANMEN_N16_CONFRONT: EventDef = {
     id: 'xuanmen_n16_confront',
     name: '质问',
     description: '你连夜赶回家中，质问父亲关于小树所说的一切。',
-    rewardType: 'points',
+    placement: [{ nodes: [16], when: storyWhen('xuanmen') }],
+    reward: { kind: 'points' },
     rounds: [
         {
             id: 'scene',

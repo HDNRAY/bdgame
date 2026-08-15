@@ -1,27 +1,27 @@
 import type { EventDef } from '../../game/entities/event'
-import { isNonImperialStartingWeapon, isWeaponLinkedAction } from '../../game/roguelite/util'
+import { N2_WEAPON_CHOICES, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  血海深仇 — 自定义事件
 // ════════════════════════════════════════
 
-/** node 2: 选兵器 → 叙事 → 选奖励 → 告诫 → 继续 */
+/** node 2: 选兵器（父亲遗物，固定 5 选 1；空手 → 修炼点） */
 export const FEUD_N02_WEAPON: EventDef = {
     id: 'feud_n02_weapon',
     name: '选兵器',
     description:
-        '那年你六岁。会长姬仲从家里找出你父亲遗留的三件兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
-    rewardType: 'weapon',
-    // 父亲遗物皆为寻常兵刃，不含御物（玄门血统限定）
-    rewardFilter: isNonImperialStartingWeapon,
+        '那年你六岁。会长姬仲从家里找出你父亲遗留的兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
+    placement: [{ nodes: [2], when: storyWhen('feud') }],
+    reward: { kind: 'fixed', choices: N2_WEAPON_CHOICES },
     rounds: [
         {
             id: 'intro',
             title: '父亲的遗物',
             description:
-                '那年你六岁。会长姬仲从家里找出你父亲遗留的三件兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
-            choices: [],
+                '那年你六岁。会长姬仲从家里找出你父亲遗留的兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '挑选' }],
         },
+        { id: 'reward_round', title: '选择兵器', choices: [] },
         {
             id: 'epilogue',
             title: '父亲的叮嘱',
@@ -32,23 +32,23 @@ export const FEUD_N02_WEAPON: EventDef = {
     ],
 }
 
-/** node 3: 选招式 → 叙事 → 选奖励 → 告诫 → 继续 */
+/** node 3: 选招式（与兵器同源的 2AP 招式） */
 export const FEUD_N03_ACTION: EventDef = {
     id: 'feud_n03_action',
     name: '选招式',
     description:
         '会长教你的是炼炁协会的基础功法，循序渐进，很是耐心。但你修炼时眼神总是很凶，好像要把仇恨都煅进骨子里。',
-    rewardType: 'action',
-    // 所悟招式必与 n2 所选兵器同源（2AP，requiredTags 与兵器 tags 匹配）
-    rewardFilter: isWeaponLinkedAction,
+    placement: [{ nodes: [3], when: storyWhen('feud') }],
+    reward: { kind: 'item', pool: 'action', apMax: 2, noPrePost: true, requireTags: true },
     rounds: [
         {
             id: 'intro',
             title: '修炼',
             description:
                 '会长教你的是炼炁协会的基础功法，循序渐进，很是耐心。但你修炼时眼神总是很凶，好像要把仇恨都煅进骨子里。',
-            choices: [],
+            choices: [{ id: 'reward_round', type: 'continue', label: '练功' }],
         },
+        { id: 'reward_round', title: '选择功法', choices: [] },
         {
             id: 'epilogue',
             title: '会长的告诫',
@@ -59,12 +59,13 @@ export const FEUD_N03_ACTION: EventDef = {
     ],
 }
 
-/** 二阶段：白山月试切磋 — 寒暄 → 战斗 → 选功法 → 结束 → 继续 */
+/** 二阶段：白山月试切磋（战斗 → 功法） */
 export const FEUD_HONGTI_SPAR: EventDef = {
     id: 'feud_hongti_spar',
     name: '白山月的试炼',
     description: '父亲军中旧友白山月找到你，说要试试你的身手。',
-    rewardType: 'passive',
+    placement: [{ nodes: [12], when: storyWhen('feud') }],
+    reward: { kind: 'item', pool: 'passive' },
     rounds: [
         {
             id: 'greeting',
@@ -89,12 +90,13 @@ export const FEUD_HONGTI_SPAR: EventDef = {
     ],
 }
 
-/** node 22: Boss 战 — 阿九 — 叙事 → 战斗 → 修炼点 → 结束 */
+/** node 22: Boss 战 — 阿九（守门人） */
 export const BOSS_AJIU: EventDef = {
     id: 'boss_ajiu',
     name: '阿九',
     description: '阿九站在巷口，等你。她知道你会来。',
-    rewardType: 'points',
+    placement: [{ nodes: [22], when: storyWhen('feud') }],
+    reward: { kind: 'points' },
     rounds: [
         {
             id: 'intro',
@@ -109,7 +111,7 @@ export const BOSS_AJIU: EventDef = {
             enemyId: 'ajiu',
             description:
                 '你拔出兵器。阿九没有动。她只是站在那里，看着你——眼神里没有恐惧，没有抵抗，只有一种说不清的平静。她缓缓抬起义体手臂，让你看清它。',
-            choices: [],
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
         {
             id: 'reward_round',

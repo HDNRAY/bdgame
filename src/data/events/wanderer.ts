@@ -1,13 +1,17 @@
 import type { EventDef } from '../../game/entities/event'
-import { isNonImperialStartingWeapon, isWeaponLinkedAction } from '../../game/roguelite/util'
+import { N2_WEAPON_CHOICES, storyWhen } from './layout'
 
+// ════════════════════════════════════════
+//  奇遇流 — 自定义事件
+// ════════════════════════════════════════
+
+/** node 2: 遇险获救，隐世夫妇赠器（固定 5 选 1；御物血统限定不出） */
 export const WANDERER_N02_INTRO: EventDef = {
     id: 'wanderer_n02_intro',
     name: '遇险获救',
     description: '七岁那年你和奇岚在青山边缘遇险，被一对隐世夫妇所救。',
-    rewardType: 'weapon',
-    // 隐世夫妇赠器皆为寻常兵刃，不含御物（玄门血统限定）
-    rewardFilter: isNonImperialStartingWeapon,
+    placement: [{ nodes: [2], when: storyWhen('wanderer') }],
+    reward: { kind: 'fixed', choices: N2_WEAPON_CHOICES },
     rounds: [
         {
             id: 'intro',
@@ -27,13 +31,13 @@ export const WANDERER_N02_INTRO: EventDef = {
     ],
 }
 
+/** node 3: 悟道（与兵器同源的 2AP 招式） */
 export const WANDERER_N03_INTRO: EventDef = {
     id: 'wanderer_n03_intro',
     name: '悟道',
     description: '杨之改和龙语仙留下的图谱在你脑海中挥之不去。',
-    rewardType: 'action',
-    // 所悟招式必与 n2 所选兵器同源（2AP，requiredTags 与兵器 tags 匹配）
-    rewardFilter: isWeaponLinkedAction,
+    placement: [{ nodes: [3], when: storyWhen('wanderer') }],
+    reward: { kind: 'item', pool: 'action', apMax: 2, noPrePost: true, requireTags: true },
     rounds: [
         {
             id: 'intro',

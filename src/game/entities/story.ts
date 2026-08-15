@@ -1,31 +1,17 @@
-import type { GameState } from './state'
-import type { RewardType } from './reward'
+import type { Effect } from './effect'
 
 // ════════════════════════════════════════
-//  故事定义（新系统）
-//  玩家在 node 1 选完背景后，故事将 overrides 和 insertions 叠加到地图上。
+//  故事定义（元数据 + 出身 + 开局奖励效果）
+//  故事线的事件节点不再写在 StoryDef 上——由各事件自己的 placement + when(story==X) 声明。
 // ════════════════════════════════════════
 
-/** 在某个范围内随机插入一个事件。 */
-export interface EventInsertion {
-    eventId: string
-    /** 插入范围 [min, max]（1-based，含两端）。叠加时随机选一个位置。 */
-    range: [number, number]
-}
-
-/** 故事定义 */
 export interface StoryDef {
     id: string
     name: string
     characterName: string
     description: string
-    /** { 节点编号: 事件ID }。覆盖该节点的 eventIds 为该事件。
-     *  节点 1 为出身事件（n1 选择出身的选项/场景），由引擎读取但不覆盖 pick_story 节点。 */
-    overrides: Record<number, string>
-    /** 随机插入列表。叠加时一次性定死。 */
-    insertions: EventInsertion[]
-    /** 选择故事后立即获得的奖励。 */
-    reward?: { type: RewardType; id: string }
-    /** 进入每个节点时调用。故事可以在此修改 GameState。 */
-    onNode?: (state: GameState, nodeIndex: number) => void
+    /** n1 出身选项的出身事件 ID（如 origin_xuanmen）。 */
+    originEventId: string
+    /** 选择该故事时立即执行的效果（激活故事 flag + 开局奖励 + 决赛 Boss 等）。 */
+    reward: Effect[]
 }

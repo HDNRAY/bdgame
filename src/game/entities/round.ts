@@ -1,4 +1,7 @@
 import type { RewardEntity } from './reward'
+import type { RewardSpec } from './reward-spec'
+import type { Effect } from './effect'
+import type { When } from './condition'
 
 // ════════════════════════════════════════
 //  常量
@@ -23,12 +26,12 @@ export interface Choice {
 
     /** 选项类型。引擎据此决定处理逻辑。
      *
-     *  - 'event'     : 从 3 个事件中挑一个执行。
+     *  - 'event'     : 开始该事件。
      *  - 'weapon'    : 给武器奖励，结束事件，推进到下一节点。
      *  - 'action'    : 给招式奖励，结束事件，推进到下一节点。
      *  - 'passive'   : 给功法奖励，结束事件，推进到下一节点。
      *  - 'artifact'  : 给奇物奖励，结束事件，推进到下一节点。
-     *  - 'points'    : 加修炼点，结束事件，推进到下一节点。
+     *  - 'points'    : 加修炼点（计入 16 次预算），结束事件，推进到下一节点。
      *  - 'heal'      : 恢复伤势，结束事件，推进到下一节点。
      *  - 'continue'  : 推进到 id 对应轮次。id === END_EVENT 时结束事件。 */
     type: 'event' | 'weapon' | 'action' | 'passive' | 'artifact' | 'points' | 'heal' | 'continue'
@@ -39,19 +42,22 @@ export interface Choice {
     /** 补充说明。选填。 */
     description?: string
 
-    /** 选择后要设置的旗标。逐条合并到 GameState.flags。示例：{ helped_stranger: true }。 */
-    setFlags?: Record<string, boolean>
+    /** 选择后执行的效果（写 flag / 给奖励 / 加点…），替代旧 setFlags 与一切引擎特判。 */
+    effects?: Effect[]
+
+    /** 武器奖励挂载槽位（默认主手；副手奖励用）。 */
+    slot?: 'main' | 'offhand'
+
+    /** 选项出现条件（flag 表达式）：不满足则该选项不显示。 */
+    when?: When
 }
 
 // ════════════════════════════════════════
 //  Round — 一轮交互
-//  一个节点包含多轮（选事件 → 战斗 → 奖励选择）。
-//  引擎推进后追加到 state.rounds 末尾。推进到下一节点时 rounds 清空，新节点重新累计。
 // ════════════════════════════════════════
 
 export interface Round {
-    /** 轮次 ID。在同一事件的轮次范围内唯一。
-     *  continue 选择用此值做跳转目标。引擎自动生成格式 'round_0'，自定义轮次可用 'help_stranger'。 */
+    /** 轮次 ID。continue 选择用此值做跳转目标。 */
     id: string
 
     /** 本轮标题。 */
@@ -70,12 +76,18 @@ export interface Round {
     /** 本轮的选项。至少 1 项。 */
     choices: Choice[]
 
-    /** 敌人 ID。有值→战斗轮，引擎自动执行战斗。 */
+    /** 固定敌人 ID。有值→战斗轮，引擎自动执行战斗。 */
     enemyId?: string
+
+    /** 随机敌人池（enemyId 缺省时从池中随机挑一个）。通用 Boss 用此表达"未指定则随机"。 */
+    enemyPool?: string[]
 
     /** Boss 剧情名。覆盖敌人默认名字。 */
     bossName?: string
 
-    /** 轮次级奖励过滤器。在事件级 rewardFilter 之后追加过滤，所有过滤通过后再随机抽 3 个。 */
+    /** 轮次级奖励规格（覆盖事件级 reward）。 */
+    reward?: RewardSpec
+
+    /** 轮次级奖励过滤器。 */
     rewardFilter?: (item: RewardEntity) => boolean
 }

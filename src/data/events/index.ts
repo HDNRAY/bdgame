@@ -31,8 +31,10 @@ import {
     DUAL_WIELD_EVENT,
     WATERFALL_EPIPHANY,
     MEMORY_WITHIN_MEMORY,
+    LIBRARY_JOB,
+    TIANGONG_JOB,
 } from './branch'
-import { CHRONICLE_GUIHAILOU, CHRONICLE_BAR_KILLING, CHRONICLE_SIX_DUEL, CHRONICLE_SWORD_BROTHERS } from './chronicle'
+import { CHRONICLE_GUIHAILOU, CHRONICLE_BAR_KILLING, CHRONICLE_SIX_DUEL, CHRONICLE_SWORD_BROTHERS, CHRONICLE_TAVERN_ENCOUNTER } from './chronicle'
 import { TOURNAMENT_EVENT_MAP } from './tournament'
 import { ORIGIN_EVENTS } from './origins'
 
@@ -75,11 +77,14 @@ const REGISTRY: Record<string, EventDef> = {
     [CHRONICLE_BAR_KILLING.id]: CHRONICLE_BAR_KILLING,
     [CHRONICLE_SIX_DUEL.id]: CHRONICLE_SIX_DUEL,
     [CHRONICLE_SWORD_BROTHERS.id]: CHRONICLE_SWORD_BROTHERS,
+    [CHRONICLE_TAVERN_ENCOUNTER.id]: CHRONICLE_TAVERN_ENCOUNTER,
     [XIAOHUA_INSIGHT.id]: XIAOHUA_INSIGHT,
     [LIBRARY_EVENT.id]: LIBRARY_EVENT,
     [DUAL_WIELD_EVENT.id]: DUAL_WIELD_EVENT,
     [WATERFALL_EPIPHANY.id]: WATERFALL_EPIPHANY,
     [MEMORY_WITHIN_MEMORY.id]: MEMORY_WITHIN_MEMORY,
+    [LIBRARY_JOB.id]: LIBRARY_JOB,
+    [TIANGONG_JOB.id]: TIANGONG_JOB,
     ...TOURNAMENT_EVENT_MAP,
     ...Object.fromEntries(ORIGIN_EVENTS.map((ev) => [ev.id, ev])),
 }
@@ -87,3 +92,6 @@ const REGISTRY: Record<string, EventDef> = {
 export function getEvent(id: string): EventDef | undefined {
     return REGISTRY[id]
 }
+
+/** 全部事件（地图构建用：聚合 placement 生成 33 个节点槽）。 */
+export const ALL_EVENTS: EventDef[] = Object.values(REGISTRY)

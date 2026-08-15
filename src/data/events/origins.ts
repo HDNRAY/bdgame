@@ -13,7 +13,6 @@ export const ORIGIN_XUANMEN: EventDef = {
     id: 'origin_xuanmen',
     name: '你出自玄门',
     description: '玄门，青山镇最古老的宗门之一，血脉中拥有以炁御物的能力。',
-    rewardType: 'points',
     rounds: [
         {
             id: 'scene',
@@ -30,7 +29,6 @@ export const ORIGIN_SECT: EventDef = {
     id: 'origin_sect',
     name: '你是玄青宗的道种',
     description: '百年一遇的根骨，自幼与师兄一同入玄青宗山门修行。',
-    rewardType: 'points',
     rounds: [
         {
             id: 'scene',
@@ -47,7 +45,6 @@ export const ORIGIN_VETERAN: EventDef = {
     id: 'origin_veteran',
     name: '你生在军营边',
     description: '父亲是军人，战死了。',
-    rewardType: 'points',
     rounds: [
         {
             id: 'scene',
@@ -64,7 +61,6 @@ export const ORIGIN_WANDERER: EventDef = {
     id: 'origin_wanderer',
     name: '你是巷子里长大的孤儿',
     description: '你和陶朵、奇岚都是孤儿，一起在镇子的巷子里长大。',
-    rewardType: 'points',
     rounds: [
         {
             id: 'scene',
@@ -81,7 +77,6 @@ export const ORIGIN_FEUD: EventDef = {
     id: 'origin_feud',
     name: '你是林家最后的血脉',
     description: '林家世代反对义体研究。',
-    rewardType: 'points',
     rounds: [
         {
             id: 'scene',

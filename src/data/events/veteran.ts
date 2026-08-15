@@ -1,14 +1,17 @@
 import type { EventDef } from '../../game/entities/event'
-import { isNonImperialStartingWeapon, isWeaponLinkedAction } from '../../game/roguelite/util'
+import { N2_WEAPON_CHOICES, storyWhen } from './layout'
 
-/** node 2: 挑兵器 → 叙事 → 选兵器 → 收好 → 继续 */
+// ════════════════════════════════════════
+//  军旅退伍 — 自定义事件
+// ════════════════════════════════════════
+
+/** node 2: 挑兵器（军械架，固定 5 选 1） */
 export const VETERAN_N02_WEAPON: EventDef = {
     id: 'veteran_n02_weapon',
     name: '挑兵器',
     description: '你从小扒在训练场边偷看，老兵们操练的家伙事，你一件件都认得。',
-    rewardType: 'weapon',
-    // 军械堆里的家伙事皆为寻常兵刃，不含御物（玄门血统限定）
-    rewardFilter: isNonImperialStartingWeapon,
+    placement: [{ nodes: [2], when: storyWhen('veteran') }],
+    reward: { kind: 'fixed', choices: N2_WEAPON_CHOICES },
     rounds: [
         {
             id: 'intro',
@@ -27,13 +30,13 @@ export const VETERAN_N02_WEAPON: EventDef = {
     ],
 }
 
+/** node 3: 偷学把式（与兵器同源的 2AP 招式） */
 export const VETERAN_N03_INTRO: EventDef = {
     id: 'veteran_n03_intro',
     name: '偷学',
     description: '你照着小校场上老兵们练的把式偷偷模仿。',
-    rewardType: 'action',
-    // 摸索出的路数必与 n2 所选兵器同源（2AP，requiredTags 与兵器 tags 匹配）
-    rewardFilter: isWeaponLinkedAction,
+    placement: [{ nodes: [3], when: storyWhen('veteran') }],
+    reward: { kind: 'item', pool: 'action', apMax: 2, noPrePost: true, requireTags: true },
     rounds: [
         {
             id: 'scene',
@@ -50,11 +53,13 @@ export const VETERAN_N03_INTRO: EventDef = {
     ],
 }
 
+/** node 4: 被发现（白山月指点 → 招式） */
 export const VETERAN_START_TRAINING: EventDef = {
     id: 'veteran_start_training',
     name: '正式训练',
     description: '白山月注意到了栅栏边偷看的你。',
-    rewardType: 'action',
+    placement: [{ nodes: [4], when: storyWhen('veteran') }],
+    reward: { kind: 'item', pool: 'action' },
     rounds: [
         {
             id: 'intro',
@@ -73,11 +78,13 @@ export const VETERAN_START_TRAINING: EventDef = {
     ],
 }
 
+/** node 5: 正规训练 */
 export const VETERAN_N05_FORMAL: EventDef = {
     id: 'veteran_n05_formal',
     name: '正规训练',
     description: '年月如梭。十四岁那年，你正式成为军营的勤杂。',
-    rewardType: 'points',
+    placement: [{ nodes: [5], when: storyWhen('veteran') }],
+    reward: { kind: 'points' },
     rounds: [
         {
             id: 'scene',
@@ -94,11 +101,13 @@ export const VETERAN_N05_FORMAL: EventDef = {
     ],
 }
 
+/** node 6: 入伍 */
 export const VETERAN_N06_ENLIST: EventDef = {
     id: 'veteran_n06_enlist',
     name: '入伍',
     description: '十六岁，你正式入伍。',
-    rewardType: 'points',
+    placement: [{ nodes: [6], when: storyWhen('veteran') }],
+    reward: { kind: 'points' },
     rounds: [
         {
             id: 'scene',
@@ -115,11 +124,13 @@ export const VETERAN_N06_ENLIST: EventDef = {
     ],
 }
 
+/** node 8: 军旅分岔路（选择写 flag，后续事件按 flag 分支） */
 export const VETERAN_N08_PATH_CHOICE: EventDef = {
     id: 'veteran_n08_path_choice',
     name: '军旅分岔路',
     description: '部队生涯也走到了岔路口。',
-    rewardType: 'points',
+    placement: [{ nodes: [8], when: storyWhen('veteran') }],
+    reward: { kind: 'points' },
     rounds: [
         {
             id: 'choice',
@@ -131,14 +142,14 @@ export const VETERAN_N08_PATH_CHOICE: EventDef = {
                     type: 'continue',
                     label: '接受秘密任务',
                     description: '被选入特别行动组，以卧底身份渗透可疑组织',
-                    setFlags: { veteran_undercover: true },
+                    effects: [{ kind: 'setMany', flags: { veteran_undercover: true } }],
                 },
                 {
                     id: 'reward_round',
                     type: 'continue',
                     label: '正常服役退伍',
                     description: '按部就班地服役，期满后退伍返乡',
-                    setFlags: { veteran_normal: true },
+                    effects: [{ kind: 'setMany', flags: { veteran_normal: true } }],
                 },
             ],
         },

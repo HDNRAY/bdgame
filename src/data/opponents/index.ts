@@ -138,3 +138,8 @@ export const OPPONENTS: OpponentDef[] = [
 export function getOpponentDef(id: string): OpponentDef | undefined {
     return OPPONENTS.find((o) => o.id === id)
 }
+
+/** 随机挑一个对手（通用 Boss 未指定敌人时使用）；可选限定池。 */
+export function pickRandomOpponentId(pool: string[] = OPPONENTS.map((o) => o.id)): string {
+    return pool[Math.floor(Math.random() * pool.length)] ?? ''
+}
