@@ -1,11 +1,13 @@
 import { useSearchParams } from 'react-router-dom'
 import { PixelInspector } from './PixelInspector/PixelInspector'
 import { TournamentSim } from './TournamentSim/TournamentSim'
+import { ActionCompare } from './ActionCompare/ActionCompare'
 import './DevMode.scss'
 
 const NAV_ITEMS = [
     { id: 'pixel', label: '像素图测试' },
     { id: 'tournament', label: '大会模拟' },
+    { id: 'ap', label: '招式对比' },
 ] as const
 
 type NavId = (typeof NAV_ITEMS)[number]['id']
@@ -46,8 +48,10 @@ export function DevMode() {
                         <h2>像素图测试</h2>
                         <PixelInspector />
                     </>
-                ) : (
+                ) : activeId === 'tournament' ? (
                     <TournamentSim />
+                ) : (
+                    <ActionCompare />
                 )}
             </main>
         </div>

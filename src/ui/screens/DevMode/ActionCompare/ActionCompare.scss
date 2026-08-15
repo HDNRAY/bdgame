@@ -1,0 +1,95 @@
+.ac {
+    padding: var(--sp-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+    max-width: 1100px;
+
+    &-controls {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--sp-sm);
+    }
+
+    &-label {
+        font-size: var(--font-sm);
+        color: var(--color-text-dim);
+    }
+
+    &-label-chan {
+        margin-left: var(--sp-lg);
+    }
+
+    &-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        font-size: var(--font-sm);
+        cursor: pointer;
+        user-select: none;
+
+        input {
+            accent-color: var(--color-accent);
+        }
+
+        &-on {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+    }
+
+    &-chan-input {
+        width: 80px;
+        padding: 4px 8px;
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-mono);
+    }
+
+    &-note {
+        font-size: var(--font-xs);
+        color: var(--color-text-dim);
+        line-height: 1.6;
+    }
+
+    &-table {
+        border-collapse: collapse;
+        font-size: var(--font-xs);
+
+        th,
+        td {
+            padding: 6px 10px;
+            border: var(--border-width) solid var(--color-border);
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        th {
+            background: var(--color-bg-raised);
+            color: var(--color-text-dim);
+            font-weight: normal;
+        }
+
+        .ac-name {
+            text-align: left;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ac-score {
+            color: var(--color-accent);
+            font-weight: bold;
+        }
+
+        tbody tr:hover {
+            background: var(--color-bg-raised);
+        }
+    }
+}
