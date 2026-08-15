@@ -17,4 +17,6 @@ export interface EventDef {
     rounds: Round[]
     /** 条件检测：返回 false 则该事件不会出现在 fillEmptyNodes 中。 */
     available?: (state: GameState) => boolean
+    /** 无奖励事件（如淘汰赛）。true 时引擎不生成奖励轮，直接给「继续」选项。 */
+    noReward?: boolean
 }

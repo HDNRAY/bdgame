@@ -1,6 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
-import { isBasicAction } from '../../game/roguelite/util'
+import { isNonImperialStartingWeapon, isWeaponLinkedAction } from '../../game/roguelite/util'
 
 // ════════════════════════════════════════
 //  血海深仇 — 自定义事件
@@ -13,7 +12,8 @@ export const FEUD_N02_WEAPON: EventDef = {
     description:
         '那年你六岁。会长姬仲从家里找出你父亲遗留的三件兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
     rewardType: 'weapon',
-    rewardFilter: (item) => STARTING_WEAPONS.some((w) => w.id === item.id),
+    // 父亲遗物皆为寻常兵刃，不含御物（玄门血统限定）
+    rewardFilter: isNonImperialStartingWeapon,
     rounds: [
         {
             id: 'intro',
@@ -39,7 +39,8 @@ export const FEUD_N03_ACTION: EventDef = {
     description:
         '会长教你的是炼炁协会的基础功法，循序渐进，很是耐心。但你修炼时眼神总是很凶，好像要把仇恨都煅进骨子里。',
     rewardType: 'action',
-    rewardFilter: isBasicAction,
+    // 所悟招式必与 n2 所选兵器同源（2AP，requiredTags 与兵器 tags 匹配）
+    rewardFilter: isWeaponLinkedAction,
     rounds: [
         {
             id: 'intro',

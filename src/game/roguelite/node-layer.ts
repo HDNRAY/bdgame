@@ -67,6 +67,7 @@ export function applyStoryOverlay(nodes: Node[], storyId: string): StoryDef | un
     if (story.overrides) {
         for (const [key, value] of Object.entries(story.overrides)) {
             const idx = parseInt(key) - 1
+            if (idx === 0) continue // n1 始终是出身选择（pick_story），出身事件由引擎在选中后启动
             if (idx >= 0 && idx < nodes.length) {
                 nodes[idx].eventIds = [value]
             }

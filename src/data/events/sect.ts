@@ -1,6 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
-import { isBasicAction } from '../../game/roguelite/util'
+import { isNonImperialStartingWeapon, isWeaponLinkedAction } from '../../game/roguelite/util'
 
 // ════════════════════════════════════════
 //  天生道种 — 自定义事件
@@ -12,7 +11,8 @@ export const SECT_N02_WEAPON: EventDef = {
     name: '选兵器',
     description: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。三件法器微微发光，等你伸手。',
     rewardType: 'weapon',
-    rewardFilter: (item) => STARTING_WEAPONS.some((w) => w.id === item.id),
+    // 藏兵阁法器皆为寻常兵刃，不含御物（玄门血统限定）
+    rewardFilter: isNonImperialStartingWeapon,
     rounds: [
         {
             id: 'intro',
@@ -41,7 +41,8 @@ export const SECT_N03_ACTION: EventDef = {
     name: '选招式',
     description: '入门后腊月师姐负责带你和师兄。她翻了翻你们的根骨记录，丢过来三门基础功法让你们挑。',
     rewardType: 'action',
-    rewardFilter: isBasicAction,
+    // 所悟招式必与 n2 所选兵器同源（2AP，requiredTags 与兵器 tags 匹配）
+    rewardFilter: isWeaponLinkedAction,
     rounds: [
         {
             id: 'intro',
@@ -109,7 +110,13 @@ export const SECT_N16_REUNION: EventDef = {
             title: '惊鸿一瞥',
             description:
                 '九年了。你代表宗门参加比武大会，台下人群中闪过一个熟悉的身影——师兄！你追出三里地，却被一个用毒的女人拦住。待你逼退她，师兄早已不见。毒入经脉的剧痛让你清醒：他还活着，但已经不是你的师兄了。这份执念，从这一刻开始。',
-            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
+        },
+        {
+            id: 'reward_round',
+            title: '执念',
+            description: '你握紧拳，把这份执念咽进肚子里。',
+            choices: [],
         },
     ],
 }
@@ -126,7 +133,13 @@ export const SECT_N19_TRAIL: EventDef = {
             title: '线索',
             description:
                 '三年了。你一直在天下行走，借调查之名寻找师兄的下落。这天你在隔壁镇查一宗非法义体交易，意外看到了陶朵——三年前那个女人。你听到他们提到"斗炁大会"。你压下冲动，先完成了调查任务。师兄的事，不能急。',
-            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
+        },
+        {
+            id: 'reward_round',
+            title: '沉住气',
+            description: '你回到住处，把今晚看到的每一张脸都记了下来。',
+            choices: [],
         },
     ],
 }

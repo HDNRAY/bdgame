@@ -2,10 +2,14 @@ import { STORIES, getStory } from '../../data/stories/index'
 import { getEvent } from '../../data/events/index'
 import { buildSkeleton, applyStoryOverlay, fillEmptyNodes, applyTournamentLayer } from './node-layer'
 import { processTournament, TOURNAMENT_EVENT_IDS } from '../tournament/integration'
-import { CULT_REWARD } from '../entities/reward'
+import { CULT_REWARD, MAX_POINTS_REWARDS } from '../entities/reward'
 import { generateRewardChoices } from './reward-gen'
 import { rewardPool } from './reward-pool'
-import { pickRandom } from './util'
+import { pickRandom, resolveQuotaRewardType, countRewardOpportunities } from './util'
+import { getArtifact } from '../../data/artifacts'
+import { getPassive } from '../../data/passives'
+import { WEAPON_DB } from '../../data/weapons/weapons'
+import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
 import { END_EVENT, type Round } from '../../game/entities/round'
 import { Character } from '../../engine/entities/character'
 import { gen, getOpponentDef } from '../../data/opponents/index'
@@ -13,6 +17,7 @@ import { runBattle } from '../../engine/battle-runner'
 import type { GameState, RogueliteEngine } from '../../engine/entities/engine'
 import type { RewardType } from '../../game/entities/reward'
 import type { EventDef } from '../../game/entities/event'
+import type { StoryDef } from '../../game/entities/story'
 import type { CharacterBuild } from '../../game/entities/character-build'
 import type { Tag } from '../../engine/entities/tag'
 
@@ -20,6 +25,8 @@ export class RogueliteRun implements RogueliteEngine {
     private _listeners = new Set<(state: GameState) => void>()
     private _state: GameState
     private _eventDef: EventDef | null = null
+    /** 出身事件进行中：结束后回到 pick_story 的奖励轮，而不是推进到下一节点。 */
+    private _pendingOrigin = false
 
     constructor() {
         this._state = {
@@ -52,9 +59,41 @@ export class RogueliteRun implements RogueliteEngine {
 
         switch (choice.type) {
             case 'event':
+                if (this._eventDef?.id === 'pick_story') {
+                    // 选择出身：记录故事 → 叠加地图 → 进入该故事的出身事件
+                    const picked = this._storyByOriginEvent(choice.id)
+                    if (picked) {
+                        this._state.build.story = picked.id
+                        this._applyStoryOverlay()
+                        if (picked.onNode) picked.onNode(this._state, this._state.nodeIndex)
+                        this._pendingOrigin = true
+                    }
+                }
                 this._startEvent(choice.id)
                 break
             case 'weapon':
+                if (choice.id === 'bare_hands') {
+                    // 赤手空拳：不给武器（默认即空手），改为 +4 修炼点
+                    // 已达 16 次修炼点上限时不再加点（选空手不突破预算）
+                    if (this._state.rewardBudget.pointsGiven < MAX_POINTS_REWARDS) {
+                        this._state.unspentPoints += CULT_REWARD.points
+                        this._state.rewardBudget.pointsGiven++
+                        this._state.nodeLog.push('赤手空拳：+4 修炼点')
+                    } else {
+                        this._state.nodeLog.push('赤手空拳（修炼已到瓶颈）')
+                    }
+                    this._state.build.rewards.push({
+                        id: 'bare_hands',
+                        name: '赤手空拳',
+                        type: 'weapon',
+                        description: '',
+                        tags: [],
+                    })
+                } else {
+                    this._grantReward(choice.id, choice.type)
+                }
+                this._advanceRound()
+                break
             case 'action':
             case 'passive':
             case 'artifact':
@@ -62,9 +101,14 @@ export class RogueliteRun implements RogueliteEngine {
                 this._advanceRound()
                 break
             case 'points':
-                this._state.unspentPoints += CULT_REWARD.points
-                this._state.rewardBudget.pointsGiven++
-                this._state.nodeLog.push(CULT_REWARD.log)
+                if (this._state.rewardBudget.pointsGiven < MAX_POINTS_REWARDS) {
+                    this._state.unspentPoints += CULT_REWARD.points
+                    this._state.rewardBudget.pointsGiven++
+                    this._state.nodeLog.push(CULT_REWARD.log)
+                } else {
+                    // 硬上限：已达 16 次修炼点，本次不给点
+                    this._state.nodeLog.push('已达修炼点上限')
+                }
                 this._advanceRound()
                 break
             case 'heal':
@@ -230,26 +274,34 @@ export class RogueliteRun implements RogueliteEngine {
         const ev = this._eventDef
         if (!ev) return
 
-        // pick_story: 从 STORIES 随机抽
+        // pick_story: 从 STORIES 随机抽 3 个，选项即各故事 overrides[1] 的出身事件
         if (ev.id === 'pick_story') {
             if (round.id === 'pick') {
                 const stories = pickRandom(STORIES, 3)
-                round.choices = stories.map((s) => ({
-                    id: s.id,
-                    type: 'continue' as const,
-                    label: s.name,
-                    description: s.description,
-                }))
+                round.choices = stories.map((s) => {
+                    const originId = s.overrides[1]
+                    const originEv = originId ? getEvent(originId) : undefined
+                    return {
+                        id: originId ?? s.id,
+                        type: 'event' as const,
+                        label: originEv?.name ?? s.name,
+                        description: originEv?.description,
+                    }
+                })
                 return
             }
             if (round.id === 'reward_show') {
                 const story = getStory(this._state.build.story)
                 round.choices = []
                 if (story?.reward) {
+                    const rewardName =
+                        story.reward.type === 'points'
+                            ? CULT_REWARD.label
+                            : getRewardName(story.reward.type, story.reward.id)
                     round.choices.push({
                         id: story.reward.id,
                         type: story.reward.type,
-                        label: story.reward.type === 'points' ? CULT_REWARD.label : story.reward.id,
+                        label: rewardName,
                     })
                 }
                 return
@@ -261,17 +313,17 @@ export class RogueliteRun implements RogueliteEngine {
         const exclude = this._state.build.rewards.map((r) => (typeof r === 'string' ? r : r.id))
         const playerTags = this._derivePlayerTags()
 
-        // 奖励预算：按概率决定当前轮次是否强转为修炼点
-        let budgetType = ev.rewardType
-        const { nodeIndex, rewardBudget } = this._state
-        if (nodeIndex !== 32 && rewardBudget.pointsGiven < 16) {
-            const remaining = 31 - nodeIndex
-            if (remaining > 0) {
-                const prob = (16 - rewardBudget.pointsGiven) / remaining
-                if (Math.random() < prob) {
-                    budgetType = 'points'
-                }
-            }
+        // 动态修炼点配额：按「还需 / 剩余机会」决定本轮给修炼点还是实体奖励。
+        // 落后就多出修炼点、给多了就少出；快来不及达到 16 次时强制给修炼点（不给 3 选 1）。
+        const budgetType = resolveQuotaRewardType(
+            this._state.nodeIndex,
+            this._state.rewardBudget.pointsGiven,
+            ev.rewardType,
+            countRewardOpportunities(this._state.nodes, this._state.nodeIndex),
+        )
+        if (budgetType === 'none') {
+            round.choices = [{ id: END_EVENT, type: 'continue', label: '继续' }]
+            return
         }
 
         round.choices = generateRewardChoices(budgetType, playerTags, (r) => {
@@ -310,12 +362,18 @@ export class RogueliteRun implements RogueliteEngine {
         this._state.injury += injuryGained
     }
 
-    /** 从已有奖励中推导玩家 tags */
+    /** 从已有奖励 + 已装备武器推导玩家 tags */
     private _derivePlayerTags(): Tag[] {
         const tags = new Set<Tag>()
         for (const r of this._state.build.rewards) {
             const pool = rewardPool.getPool(r.type as RewardType)
             const def = pool.find((d) => d.id === r.id)
+            if (def?.tags) def.tags.forEach((t) => tags.add(t))
+        }
+        // 已装备的主/副手武器 tags 也纳入（赤手空拳走 points 路径时不在 rewards 中，靠这里补上）
+        const allWeapons = [...WEAPON_DB, ...STARTING_WEAPONS]
+        for (const wId of [this._state.build.weapon, this._state.build.offhand].filter(Boolean)) {
+            const def = allWeapons.find((w) => w.id === wId)
             if (def?.tags) def.tags.forEach((t) => tags.add(t))
         }
         return [...tags]
@@ -371,6 +429,16 @@ export class RogueliteRun implements RogueliteEngine {
     }
 
     private _finishEvent(): void {
+        // 出身事件结束：回到 pick_story 的奖励轮（结算开局奖励），再进入下一节点
+        if (this._pendingOrigin) {
+            this._pendingOrigin = false
+            this._eventDef = getEvent('pick_story') ?? this._eventDef
+            if (this._eventDef && this._eventDef.rounds.length > 1) {
+                this._state.roundIdx = 1
+                this._pushRound(this._eventDef.rounds[1])
+                return
+            }
+        }
         this._advanceToNextNode()
     }
 
@@ -397,4 +465,17 @@ export class RogueliteRun implements RogueliteEngine {
         applyStoryOverlay(this._state.nodes, this._state.build.story ?? '')
         fillEmptyNodes(this._state.nodes, this._state)
     }
+
+    /** 按出身事件 ID 找对应的故事线（n1 选择出身时用，出身事件定义在故事 overrides[1]）。 */
+    private _storyByOriginEvent(eventId: string): StoryDef | undefined {
+        return STORIES.find((s) => s.overrides[1] === eventId)
+    }
+}
+
+/** 开局奖励（story.reward）的显示名。奇物/功法可能带 inherent 标签，不在普通奖励池中，需直接查数据源。 */
+function getRewardName(type: RewardType, id: string): string {
+    if (type === 'artifact') return getArtifact(id)?.name ?? id
+    if (type === 'passive') return getPassive(id)?.name ?? id
+    const pool = rewardPool.getPool(type)
+    return pool.find((d) => d.id === id)?.name ?? id
 }

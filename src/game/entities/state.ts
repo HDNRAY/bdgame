@@ -35,9 +35,14 @@ export interface GameState {
     /** 斗炁大会赛程数据。有值→处于斗炁大会阶段。 */
     tournamentData?: TournamentData
 
-    /** 奖励预算：已给的修炼点次数。用于动态调概率，保证约 16/32。 */
-    rewardBudget: { pointsGiven: number }
+    /** 奖励预算：已给的修炼点次数。动态配额据此决定是否/多大概率给修炼点（上限 16 次）。 */
+    rewardBudget: RewardBudget
 
     /** 是否已结束。 */
     finished: boolean
+}
+
+/** 修炼点配额状态：已发放的 +4 修炼点次数（上限 MAX_POINTS_REWARDS）。 */
+export interface RewardBudget {
+    pointsGiven: number
 }

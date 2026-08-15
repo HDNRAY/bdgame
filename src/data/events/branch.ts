@@ -1,5 +1,6 @@
 import type { EventDef } from '../../game/entities/event'
 import { getWeapon } from '../weapons/weapons'
+import { STARTING_WEAPONS } from '../weapons/starting-weapons'
 
 import { CHRONICLE_EVENTS } from './chronicle'
 
@@ -109,6 +110,8 @@ export const TIANGONG_WEAPON: EventDef = {
     name: '天工坊',
     description: '斗炁大会即将开始，你在街上看到了天工坊的招牌。千星正靠在门口擦一把新出炉的兵器。',
     rewardType: 'weapon',
+    // 天工坊只打造坊中名器：不出起始武器（街边货），不出御物（玄门血统限定，池本身已排除）
+    rewardFilter: (item) => !STARTING_WEAPONS.some((w) => w.id === item.id),
     rounds: [
         {
             id: 'intro',
@@ -284,6 +287,109 @@ export const DUAL_WIELD_EVENT: EventDef = {
     ],
 }
 
+// ── 漱玉峰瀑布顿悟（4/5AP 绝技） ──
+
+/** 去青山漱玉峰的瀑布下观水悟招，获得 4AP/5AP 绝技 */
+export const WATERFALL_EPIPHANY: EventDef = {
+    id: 'waterfall_epiphany',
+    name: '漱玉峰瀑布',
+    description: '青山偏南有一座小峰，峰腰悬着一道瀑布。传说曾有人在瀑布下悟出绝技。',
+    rewardType: 'action',
+    rewardFilter: (item) => {
+        if (!('apCost' in item)) return false
+        return item.apCost >= 4 && !item.tags.includes('pre_action') && !item.tags.includes('post_action')
+    },
+    rounds: [
+        {
+            id: 'climb',
+            title: '上山',
+            description:
+                '你沿着山溪往上走。水声由远及近，等它大到整座山都在响的时候，瀑布到了——漱玉峰，峰腰一道白练，常年水雾弥漫。',
+            choices: [{ id: 'watch', type: 'continue', label: '走近瀑布' }],
+        },
+        {
+            id: 'watch',
+            title: '观水',
+            description:
+                '你盘坐在瀑布下的青石上。水势千年不变，又每一刻都不同。你盯着那道水幕，渐渐忘了时间——忘了自己是在看水，还是在看招。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '静心观悟' }],
+        },
+        {
+            id: 'reward_round',
+            title: '顿悟',
+            description: '一道明悟落进心里。你站起身，浑身湿透，却觉得通体轻快。',
+            choices: [],
+        },
+        {
+            id: 'descend',
+            title: '下山',
+            description: '你沿原路下山。那道水幕还在落，像什么都没发生过。',
+            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+        },
+    ],
+}
+
+// ── 回忆中的回忆（固有功法） ──
+
+/** 固有功法三选一（inherent 被动，普通奖励池排除，仅本事件可获得） */
+export const MEMORY_REWARDS = [
+    {
+        id: 'one_arm',
+        label: '独臂',
+        description: '总有断臂之人不喜义体。运劲更凝练，招式消耗降低 1AP（最低 1），无法双持。',
+    },
+    {
+        id: 'ningqi_jue',
+        label: '凝炁诀',
+        description: '药屋家传呼吸法，以炁劲贯通全身，所有招式带炁，全属性 +1。',
+    },
+    {
+        id: 'ordinary_training',
+        label: '平平无奇的锻炼',
+        description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
+    },
+] as const
+
+/** 第一阶段靠前节点的"回忆中的回忆"：梦中借别人的一生，醒来功法烙进记忆 */
+export const MEMORY_WITHIN_MEMORY: EventDef = {
+    id: 'memory_within_memory',
+    name: '回忆中的回忆',
+    description: '你做了一个奇怪的梦：梦里你不是你，是另一个人。',
+    rewardType: 'passive',
+    rounds: [
+        {
+            id: 'fall_asleep',
+            title: '入梦',
+            description: '你睡下了。先是黑，然后有了光。',
+            choices: [{ id: 'dream', type: 'continue', label: '继续睡' }],
+        },
+        {
+            id: 'dream',
+            title: '别人的一段人生',
+            description:
+                '你借一双陌生的眼睛，活了一小段人生。看不清脸，记不住名字，只有身体记得——练过的那门功法，刻进了骨头里。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '跟着练' }],
+        },
+        {
+            id: 'reward_round',
+            title: '选择功法',
+            description: '你抓住那道记忆。三选一，只能带走一门。',
+            choices: MEMORY_REWARDS.map((r) => ({
+                id: r.id,
+                type: 'passive' as const,
+                label: r.label,
+                description: r.description,
+            })),
+        },
+        {
+            id: 'wake',
+            title: '醒来',
+            description: '你坐起来，天刚亮。梦已经忘了大半，但功法还在。',
+            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+        },
+    ],
+}
+
 export const BRANCH_EVENTS: EventDef[] = [
     BRANCH_PASSIVE,
     BRANCH_ACTION,
@@ -294,5 +400,6 @@ export const BRANCH_EVENTS: EventDef[] = [
     LIBRARY_EVENT,
     XIAOHUA_INSIGHT,
     DUAL_WIELD_EVENT,
+    WATERFALL_EPIPHANY,
     ...CHRONICLE_EVENTS,
 ]

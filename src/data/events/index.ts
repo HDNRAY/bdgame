@@ -11,7 +11,7 @@ import {
     XUANMEN_N16_CONFRONT,
 } from './xuanmen'
 import {
-    VETERAN_N02_INTRO,
+    VETERAN_N02_WEAPON,
     VETERAN_N03_INTRO,
     VETERAN_START_TRAINING,
     VETERAN_N05_FORMAL,
@@ -29,9 +29,12 @@ import {
     LIBRARY_EVENT,
     XIAOHUA_INSIGHT,
     DUAL_WIELD_EVENT,
+    WATERFALL_EPIPHANY,
+    MEMORY_WITHIN_MEMORY,
 } from './branch'
 import { CHRONICLE_GUIHAILOU, CHRONICLE_BAR_KILLING, CHRONICLE_SIX_DUEL, CHRONICLE_SWORD_BROTHERS } from './chronicle'
 import { TOURNAMENT_EVENT_MAP } from './tournament'
+import { ORIGIN_EVENTS } from './origins'
 
 const REGISTRY: Record<string, EventDef> = {
     [PICK_STORY.id]: PICK_STORY,
@@ -54,7 +57,7 @@ const REGISTRY: Record<string, EventDef> = {
     [BOSS_JUNSHI.id]: BOSS_JUNSHI,
     [XUANMEN_N15_HEISHU.id]: XUANMEN_N15_HEISHU,
     [XUANMEN_N16_CONFRONT.id]: XUANMEN_N16_CONFRONT,
-    [VETERAN_N02_INTRO.id]: VETERAN_N02_INTRO,
+    [VETERAN_N02_WEAPON.id]: VETERAN_N02_WEAPON,
     [VETERAN_N03_INTRO.id]: VETERAN_N03_INTRO,
     [VETERAN_START_TRAINING.id]: VETERAN_START_TRAINING,
     [VETERAN_N05_FORMAL.id]: VETERAN_N05_FORMAL,
@@ -75,7 +78,10 @@ const REGISTRY: Record<string, EventDef> = {
     [XIAOHUA_INSIGHT.id]: XIAOHUA_INSIGHT,
     [LIBRARY_EVENT.id]: LIBRARY_EVENT,
     [DUAL_WIELD_EVENT.id]: DUAL_WIELD_EVENT,
+    [WATERFALL_EPIPHANY.id]: WATERFALL_EPIPHANY,
+    [MEMORY_WITHIN_MEMORY.id]: MEMORY_WITHIN_MEMORY,
     ...TOURNAMENT_EVENT_MAP,
+    ...Object.fromEntries(ORIGIN_EVENTS.map((ev) => [ev.id, ev])),
 }
 
 export function getEvent(id: string): EventDef | undefined {

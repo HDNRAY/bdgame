@@ -23,3 +23,6 @@ export const CULT_REWARD = {
     log: '+4 修炼点',
     points: 4,
 } as const
+
+/** 全局修炼点奖励上限：整局最多给 16 次 +4 修炼点（含 n1 开局、选空手等）。 */
+export const MAX_POINTS_REWARDS = 16

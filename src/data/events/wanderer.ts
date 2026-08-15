@@ -1,13 +1,13 @@
 import type { EventDef } from '../../game/entities/event'
-import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
-import { isBasicAction } from '../../game/roguelite/util'
+import { isNonImperialStartingWeapon, isWeaponLinkedAction } from '../../game/roguelite/util'
 
 export const WANDERER_N02_INTRO: EventDef = {
     id: 'wanderer_n02_intro',
     name: '遇险获救',
     description: '七岁那年你和奇岚在青山边缘遇险，被一对隐世夫妇所救。',
     rewardType: 'weapon',
-    rewardFilter: (item) => STARTING_WEAPONS.some((w) => w.id === item.id),
+    // 隐世夫妇赠器皆为寻常兵刃，不含御物（玄门血统限定）
+    rewardFilter: isNonImperialStartingWeapon,
     rounds: [
         {
             id: 'intro',
@@ -32,7 +32,8 @@ export const WANDERER_N03_INTRO: EventDef = {
     name: '悟道',
     description: '杨之改和龙语仙留下的图谱在你脑海中挥之不去。',
     rewardType: 'action',
-    rewardFilter: isBasicAction,
+    // 所悟招式必与 n2 所选兵器同源（2AP，requiredTags 与兵器 tags 匹配）
+    rewardFilter: isWeaponLinkedAction,
     rounds: [
         {
             id: 'intro',

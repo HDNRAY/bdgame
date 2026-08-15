@@ -6,13 +6,13 @@ import type { EventDef } from '../../game/entities/event'
 
 export const PICK_STORY: EventDef = {
     id: 'pick_story',
-    name: '选择出身',
-    description: '选择一个你的出身背景。',
+    name: '你从哪里来',
+    description: '在开始之前，先说说你的来历。',
     rewardType: 'points',
     rounds: [
         {
             id: 'pick',
-            title: '选择出身',
+            title: '你从哪里来',
             choices: [],
         },
         {

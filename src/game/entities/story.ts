@@ -19,7 +19,8 @@ export interface StoryDef {
     name: string
     characterName: string
     description: string
-    /** { 节点编号: 事件ID }。覆盖该节点的 eventIds 为该事件。 */
+    /** { 节点编号: 事件ID }。覆盖该节点的 eventIds 为该事件。
+     *  节点 1 为出身事件（n1 选择出身的选项/场景），由引擎读取但不覆盖 pick_story 节点。 */
     overrides: Record<number, string>
     /** 随机插入列表。叠加时一次性定死。 */
     insertions: EventInsertion[]

@@ -81,7 +81,13 @@ export const XUANMEN_N09_SECRET: EventDef = {
             title: '书房',
             description:
                 '那晚，父亲把你叫到书房，说出了埋藏多年的家族密辛：「我族之人，唯有亲手斩断一缕血亲之情，方能真正驭使御物。你十岁那年，会有一场生死之斗——好好准备。」',
-            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+            choices: [{ id: 'reward_round', type: 'continue', label: '记住' }],
+        },
+        {
+            id: 'reward_round',
+            title: '夜不能寐',
+            description: '那晚你第一次知道，有些路，从出生那天就注定了。',
+            choices: [],
         },
     ],
 }
@@ -126,7 +132,13 @@ export const XUANMEN_N15_HEISHU: EventDef = {
             title: '重逢',
             description:
                 '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔——小树。他看着你，忽然笑了：「其实，你根本不需要杀他。手刃血亲，不过是玄门为了更好地拿捏后代编出来的说辞。我知道了这秘密，才离开的。」话音未落，他转身再次远去。',
-            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+            choices: [{ id: 'reward_round', type: 'continue', label: '追上去' }],
+        },
+        {
+            id: 'reward_round',
+            title: '追不上的背影',
+            description: '你追了两步，又停住了。有些答案，只能回家问。',
+            choices: [],
         },
     ],
 }
@@ -143,7 +155,13 @@ export const XUANMEN_N16_CONFRONT: EventDef = {
             title: '对质',
             description:
                 '你连夜赶回家中，质问父亲。他沉默良久，终于承认：「此事……属实。但你若真想改变什么，眼下先证明你的实力。有了实力，我们再谈。」',
-            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
+        },
+        {
+            id: 'reward_round',
+            title: '实力',
+            description: '你不再追问。你只是练得更狠了。',
+            choices: [],
         },
     ],
 }

@@ -1,16 +1,27 @@
 import type { EventDef } from '../../game/entities/event'
+import { isNonImperialStartingWeapon, isWeaponLinkedAction } from '../../game/roguelite/util'
 
-export const VETERAN_N02_INTRO: EventDef = {
-    id: 'veteran_n02_intro',
-    name: '偷看训练',
-    description: '你天天扒在军营训练场的栅栏边偷看。',
-    rewardType: 'points',
+/** node 2: 挑兵器 → 叙事 → 选兵器 → 收好 → 继续 */
+export const VETERAN_N02_WEAPON: EventDef = {
+    id: 'veteran_n02_weapon',
+    name: '挑兵器',
+    description: '你从小扒在训练场边偷看，老兵们操练的家伙事，你一件件都认得。',
+    rewardType: 'weapon',
+    // 军械堆里的家伙事皆为寻常兵刃，不含御物（玄门血统限定）
+    rewardFilter: isNonImperialStartingWeapon,
     rounds: [
         {
-            id: 'scene',
-            title: '栅栏边',
+            id: 'intro',
+            title: '兵器架',
             description:
-                '你天天扒在军营训练场的栅栏边偷看，晚上趁没人时捡根木棍自己比划。时间长了，居然也让你学了个七七八八。',
+                '训练场的兵器架就摆在墙根，夜里没人收。你趁黑摸进去，借着月光一件件摸过去——老兵们说，兵器认人，摸到哪件，哪件就是你的。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '挑一件' }],
+        },
+        { id: 'reward_round', title: '选择兵器', choices: [] },
+        {
+            id: 'epilogue',
+            title: '收好',
+            description: '你把兵器裹进破布里藏好。从那天起，栅栏缝里多了一双偷偷比划的眼睛。',
             choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],
@@ -20,13 +31,21 @@ export const VETERAN_N03_INTRO: EventDef = {
     id: 'veteran_n03_intro',
     name: '偷学',
     description: '你照着小校场上老兵们练的把式偷偷模仿。',
-    rewardType: 'points',
+    rewardType: 'action',
+    // 摸索出的路数必与 n2 所选兵器同源（2AP，requiredTags 与兵器 tags 匹配）
+    rewardFilter: isWeaponLinkedAction,
     rounds: [
         {
             id: 'scene',
             title: '学艺',
             description: '你照着小校场上老兵们练的把式偷偷模仿，一来二去，竟也摸索出了几招自己的路数。',
-            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续练' }],
+        },
+        {
+            id: 'reward_round',
+            title: '小有所成',
+            description: '你把那几招比划给墙角的木桩看。木桩没说话，但你知道，成了。',
+            choices: [],
         },
     ],
 }
@@ -64,7 +83,13 @@ export const VETERAN_N05_FORMAL: EventDef = {
             id: 'scene',
             title: '成长',
             description: '年月如梭。十四岁那年，你正式成为军营的勤杂，开始接受正规训练。',
-            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
+        },
+        {
+            id: 'reward_round',
+            title: '第一次操练',
+            description: '你站进队伍里，第一次没人把你当小孩。',
+            choices: [],
         },
     ],
 }
@@ -79,7 +104,13 @@ export const VETERAN_N06_ENLIST: EventDef = {
             id: 'scene',
             title: '新兵',
             description: '十六岁，你正式入伍。多年的苦练终于派上用场，你在新兵训练中脱颖而出。',
-            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
+        },
+        {
+            id: 'reward_round',
+            title: '授衔',
+            description: '班长把军衔别上你衣领的时候，你想起了死在战场上的父亲。',
+            choices: [],
         },
     ],
 }
@@ -96,20 +127,26 @@ export const VETERAN_N08_PATH_CHOICE: EventDef = {
             description: '经过多年军营打磨，你已经成为一名出色的士兵。但接下来怎么走，需要你自己决定。',
             choices: [
                 {
-                    id: 'undercover',
+                    id: 'reward_round',
                     type: 'continue',
                     label: '接受秘密任务',
                     description: '被选入特别行动组，以卧底身份渗透可疑组织',
                     setFlags: { veteran_undercover: true },
                 },
                 {
-                    id: 'normal',
+                    id: 'reward_round',
                     type: 'continue',
                     label: '正常服役退伍',
                     description: '按部就班地服役，期满后退伍返乡',
                     setFlags: { veteran_normal: true },
                 },
             ],
+        },
+        {
+            id: 'reward_round',
+            title: '新路',
+            description: '无论哪条路，你都不会回头。',
+            choices: [],
         },
     ],
 }
