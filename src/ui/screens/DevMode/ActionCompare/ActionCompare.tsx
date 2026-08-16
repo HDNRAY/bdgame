@@ -84,11 +84,16 @@ interface Row {
     chan: number
     damage: number
     efficiency: number
-    distanceDash: number
-    buffDebuff: number
-    control: number
-    exec: number
-    selfPenalty: number
+    distance: number // 射程加分（射程>4 每档）
+    dash: number // 位移加分
+    buff: number
+    debuff: number
+    disarm: number
+    knockback: number
+    exec: number // 斩杀（25% 斩杀档提升）
+    multihit: number
+    selfDisarm: number
+    selfHpCost: number
     score: number
 }
 
@@ -148,10 +153,11 @@ function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
             if (w > 0) debuff += (e.stacks ?? 1) * (e.chance ?? 1) * w
         }
     }
-    let control = 0
+    let disarm = 0
+    let knockback = 0
     for (const e of a.effects ?? []) {
-        if (e.type === 'disarm') control += (e.chance ?? 1) * DISARM_WEIGHT
-        if (e.type === 'knockback') control += e.distance * KNOCKBACK_PER_DIST
+        if (e.type === 'disarm') disarm += (e.chance ?? 1) * DISARM_WEIGHT
+        if (e.type === 'knockback') knockback += e.distance * KNOCKBACK_PER_DIST
     }
     let hits = 1
     for (const e of a.effects ?? []) {
@@ -166,12 +172,10 @@ function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
     const selfHpCost = Math.round(selfRatio * SELF_HP_COST_WEIGHT * 100) / 100
 
     const execTotal = Math.round((exec + multiHit) * 100) / 100
-    const distanceDash = Math.round((distanceBonus + dashBonus) * 100) / 100
-    const buffDebuff = Math.round((buff + debuff) * 100) / 100
-    const selfPenalty = Math.round((selfDisarm + selfHpCost) * 100) / 100
     const score =
         Math.round(
-            (efficiency + distanceBonus + dashBonus + buff + debuff + control + execTotal - selfPenalty) * 100,
+            (efficiency + distanceBonus + dashBonus + buff + debuff + disarm + knockback + execTotal - selfDisarm - selfHpCost) *
+                100,
         ) / 100
 
     return {
@@ -180,11 +184,16 @@ function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
         chan: Math.round(est.chanCost * 10) / 10,
         damage: Math.round(est.expectedDamage * 10) / 10,
         efficiency,
-        distanceDash,
-        buffDebuff,
-        control: Math.round(control * 100) / 100,
+        distance: distanceBonus,
+        dash: dashBonus,
+        buff: Math.round(buff * 100) / 100,
+        debuff: Math.round(debuff * 100) / 100,
+        disarm: Math.round(disarm * 100) / 100,
+        knockback: Math.round(knockback * 100) / 100,
         exec: execTotal,
-        selfPenalty,
+        multihit: multiHit,
+        selfDisarm,
+        selfHpCost,
         score,
     }
 }
@@ -234,9 +243,9 @@ export function ActionCompare() {
             </div>
             <p className="ac-note">
                 双方全属性 15 · 缠 50 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。
-                效率 = 期望伤 /（折前AP + 缠权重×缠消耗）；得分 = 效率 + 距/移（射程{">"}4 每档+0.05 + 位移+0.25）
-                + buff/debuff（add_buff 每层×0.3 + debuff 层×几率×权重）+ 缴/击（缴械×0.4 + 击退距离×0.2）
-                + 斩/多（25% 斩杀档提升 + 多段每段+0.25 封顶+2）− 自伤（自缴械−1 + 自耗血比例×10）。
+                效率 = 期望伤 /（折前AP + 缠权重×缠消耗）；得分 = 效率 + 射程（{">"}4 每档+0.05）+ 位移（+0.25）
+                + buff（add_buff 每层×0.3）+ debuff（层×几率×权重）+ 缴械（×0.4）+ 击退（距离×0.2）
+                + 斩杀（25% 斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）− 自耗血（比例×10）。
             </p>
             {rows.length === 0 ? (
                 <p className="ac-note">请至少勾选一个 AP 档。</p>
@@ -249,11 +258,16 @@ export function ActionCompare() {
                             <th>缠</th>
                             <th>期望伤</th>
                             <th>效率</th>
-                            <th>距/移</th>
+                            <th>射程</th>
+                            <th>位移</th>
                             <th>buff</th>
-                            <th>缴/击</th>
-                            <th>斩/多</th>
-                            <th>自伤</th>
+                            <th>debuff</th>
+                            <th>缴械</th>
+                            <th>击退</th>
+                            <th>斩杀</th>
+                            <th>多段</th>
+                            <th>自缴械</th>
+                            <th>自耗血</th>
                             <th>得分</th>
                         </tr>
                     </thead>
@@ -265,11 +279,16 @@ export function ActionCompare() {
                                 <td>{r.chan}</td>
                                 <td>{r.damage}</td>
                                 <td>{r.efficiency}</td>
-                                <td>{fmt(r.distanceDash, true)}</td>
-                                <td>{fmt(r.buffDebuff, true)}</td>
-                                <td>{fmt(r.control, true)}</td>
+                                <td>{fmt(r.distance, true)}</td>
+                                <td>{fmt(r.dash, true)}</td>
+                                <td>{fmt(r.buff, true)}</td>
+                                <td>{fmt(r.debuff, true)}</td>
+                                <td>{fmt(r.disarm, true)}</td>
+                                <td>{fmt(r.knockback, true)}</td>
                                 <td>{fmt(r.exec, true)}</td>
-                                <td>{fmt(r.selfPenalty)}</td>
+                                <td>{fmt(r.multihit, true)}</td>
+                                <td>{fmt(r.selfDisarm)}</td>
+                                <td>{fmt(r.selfHpCost)}</td>
                                 <td className="ac-score">{r.score}</td>
                             </tr>
                         ))}
