@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { storyWhen } from './layout'
+import { STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  玄门 — 自定义事件
@@ -91,25 +91,26 @@ export const XUANMEN_N09_SECRET: EventDef = {
     ],
 }
 
-/** node 11: Boss 战 — 一个兄弟 */
+/** node 11: Boss 战 — 孪生姐姐玄九（生死斗；build 复用 junshi 的 gen(11)，仅换名） */
 export const BOSS_JUNSHI: EventDef = {
     id: 'boss_junshi',
-    name: '一个兄弟',
-    description: '十岁那年，你与「一个兄弟」对峙于祖祠之前。',
+    name: '生死斗',
+    description: '十岁那年，你与孪生姐姐玄九对峙于祖祠之前。',
     placement: [{ nodes: [11], when: storyWhen('xuanmen') }],
     reward: { kind: 'item', pool: 'action' },
     rounds: [
         {
             id: 'intro',
             title: '祖祠对决',
-            description: '十岁那年，你与「一个兄弟」对峙于祖祠之前。谁都没有退路。',
+            description:
+                '十岁那年，你与孪生姐姐玄九对峙于祖祠之前。玄门有一条历代传下的规矩——双胞胎，只能留一个。谁都没有退路。',
             choices: [{ id: 'combat_round', type: 'continue', label: '迎战' }],
         },
         {
             id: 'combat_round',
             title: '生死斗',
             enemyId: 'junshi',
-            bossName: '一个兄弟',
+            bossName: '玄九',
             choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
         {
@@ -163,6 +164,89 @@ export const XUANMEN_N16_CONFRONT: EventDef = {
             id: 'reward_round',
             title: '实力',
             description: '你不再追问。你只是练得更狠了。',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
+//  一阶段中段（n4-7）渲染池：玄门的日子
+//  从 n4 起主角已 7-8 岁；渲染池 3 选 1 候选，每局各至多一次，可空缺。
+// ════════════════════════════════════════
+
+/** node 4-7 渲染池：与玄九一起长大（为 n11 生死斗铺垫） */
+export const XUANMEN_RENDER_TWINS: EventDef = {
+    id: 'xuanmen_render_twins',
+    name: '一起长大',
+    description: '你和玄九，生来就是两个人。',
+    placement: [
+        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('xuanmen', 'xuanmen_render_twins_done') },
+    ],
+    effects: [{ kind: 'set', flag: 'xuanmen_render_twins_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '双子',
+            description: '你和玄九一起练功，一起挨罚。她总比你早半刻钟睁开眼，比你多练半炷香。父亲从不让你们同台——「各有各的路。」他说。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '并肩' }],
+        },
+        {
+            id: 'reward_round',
+            title: '背影',
+            description: '你走在她身后，看着她的背影。你从没想过，有一天你们只能留一个。',
+            choices: [],
+        },
+    ],
+}
+
+/** node 4-7 渲染池：御物初习（呼应 n2 所选御物） */
+export const XUANMEN_RENDER_YUWU: EventDef = {
+    id: 'xuanmen_render_yuwu',
+    name: '御物初习',
+    description: '御物认主，父亲说，靠的是心。',
+    placement: [
+        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('xuanmen', 'xuanmen_render_yuwu_done') },
+    ],
+    effects: [{ kind: 'set', flag: 'xuanmen_render_yuwu_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '祖祠',
+            description: '父亲带你到祖祠，让你以炁感应。三件御物悬在炁阵里，你伸出手，其中一件微微一亮——它认得你。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '触碰' }],
+        },
+        {
+            id: 'reward_round',
+            title: '认主',
+            description: '指尖触到御物的那一刻，你心里忽然静了。父亲在身后说：「御物即手足。莫要辱没了它。」',
+            choices: [],
+        },
+    ],
+}
+
+/** node 4-7 渲染池：祖训阴影 */
+export const XUANMEN_RENDER_ZUXUN: EventDef = {
+    id: 'xuanmen_render_zuxun',
+    name: '祖训',
+    description: '那条祖训，你小时候只当它是句怪话。',
+    placement: [
+        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('xuanmen', 'xuanmen_render_zuxun_done') },
+    ],
+    effects: [{ kind: 'set', flag: 'xuanmen_render_zuxun_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '怪话',
+            description: '祠堂里的规矩一条条刻在墙上。你小时候识字不全，指着其中一条问父亲：「双胞胎只能留一个，是什么意思？」父亲没答，只是看了你一眼。那一眼，你记了很多年。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '没再问' }],
+        },
+        {
+            id: 'reward_round',
+            title: '那一眼',
+            description: '你后来懂了那一眼的意思。懂了之后，你更想装作不懂。',
             choices: [],
         },
     ],

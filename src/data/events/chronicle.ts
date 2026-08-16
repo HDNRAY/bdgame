@@ -1,16 +1,14 @@
 import type { EventDef } from '../../game/entities/event'
-import { POOL_NODES } from './layout'
+import { STAGE2_POOL } from './layout'
 
-/** 通用编年史池放置（fallback）。 */
-const POOL_PLACEMENT = [{ nodes: POOL_NODES, fallback: true, weight: 1 }]
-
-/** 第一阶段节点（旧回忆：n4-n21）。喝酒结拜链与回忆事件都在这一阶段。 */
-const FIRST_STAGE_NODES = [4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+/** 四支线链：第二阶段（n12-21）3 选 1 池事件，顺序由 flag 链强制（前一个 done 才出现下一个）。
+ *  喝酒结拜（偶遇→结拜）→ 青山论剑 → 酒吧杀人 → 归海楼研讨会。
+ *  青山论剑排在酒吧杀人之前：奇遇流里六绝观战正是与陶朵重逢的笔墨，重逢在前、黑暗面在后。
+ *  支线可空缺（玩家不选 3 选 1 就不推进），无兜底。 */
+const STAGE2_PLACEMENT = [{ nodes: STAGE2_POOL, fallback: true, weight: 1 }]
 
 // ════════════════════════════════════════
-//  喝酒结拜链（两段式，flag 门控）
-//  第一段：酒馆偶遇——碰到来风/酒鬼（得酒 set got_wine）才会解锁第二段。
-//  第二段：喝酒结拜学酒功（when: got_wine，没得酒永远不会出现）。
+//  四支线链（flag 门控，顺序一致）
 // ════════════════════════════════════════
 
 /** 酒馆偶遇（得酒） */
@@ -18,7 +16,12 @@ export const CHRONICLE_TAVERN_ENCOUNTER: EventDef = {
     id: 'chronicle_tavern_encounter',
     name: '酒馆偶遇',
     description: '你在九朵桃花酒吧独酌，抬眼看见门口走进来一个人。',
-    placement: [{ nodes: FIRST_STAGE_NODES, fallback: true, weight: 1 }],
+    placement: [
+        {
+            ...STAGE2_PLACEMENT[0],
+            when: { '!': { var: 'flags.got_wine' } },
+        },
+    ],
     rounds: [
         {
             id: 'scene',
@@ -39,7 +42,18 @@ export const CHRONICLE_GUIHAILOU: EventDef = {
     id: 'chronicle_guihailou',
     name: '归海楼比武大会',
     description: '归海楼广发英雄帖，各派齐聚切磋。你以散人身份受邀观战。',
-    placement: POOL_PLACEMENT,
+    placement: [
+        {
+            ...STAGE2_PLACEMENT[0],
+            when: {
+                and: [
+                    { '==': [{ var: 'flags.bar_done' }, true] },
+                    { '!': { var: 'flags.guihailou_done' } },
+                ],
+            },
+        },
+    ],
+    effects: [{ kind: 'set', flag: 'guihailou_done', to: true }],
     reward: { kind: 'item', pool: 'action' },
     rounds: [
         {
@@ -70,38 +84,24 @@ export const CHRONICLE_GUIHAILOU: EventDef = {
     ],
 }
 
-/** 九朵桃花酒吧杀人事件（支线版 — 目击/听闻） */
-export const CHRONICLE_BAR_KILLING: EventDef = {
-    id: 'chronicle_bar_killing',
-    name: '九朵桃花之夜',
-    description: '杏花街的九朵桃花酒吧出了事——有人死了。',
-    placement: POOL_PLACEMENT,
-    reward: { kind: 'points' },
-    rounds: [
-        {
-            id: 'heard',
-            title: '传闻',
-            description:
-                '你在街上听说九朵桃花酒吧昨晚出了事。有人被杀，凶手消失得无影无踪。酒吧照常营业，但吧台后面那排药酒瓶少了几瓶——有人说是飞虎·竹子送的跌打酒，也有人说是别的什么东西。你路过宝字堂药铺时，看见里面碾药的姑娘神情有些恍惚。',
-            choices: [{ id: 'investigate', type: 'continue', label: '打听详情' }],
-        },
-        {
-            id: 'investigate',
-            title: '线索',
-            description:
-                '街坊们议论纷纷，但没有人说得清真相。你只打听到死者是个外来人，平时不怎么露面。据说陶朵那晚在店里，但第二天照常开门，像什么都没发生过。',
-            choices: [{ id: 'reward', type: 'continue', label: '记在心里' }],
-        },
-        { id: 'reward', title: '警觉', choices: [] },
-    ],
-}
-
-/** 青山之巅·六绝比武 */
+/** 青山之巅·六绝比武（排在酒吧杀人之前；奇遇流走主线版，不在此池） */
 export const CHRONICLE_SIX_DUEL: EventDef = {
     id: 'chronicle_six_duel',
     name: '青山之巅·六绝',
     description: '青山绝顶，六位绝世高手约定比武。你有幸旁观了这一盛事。',
-    placement: POOL_PLACEMENT,
+    placement: [
+        {
+            ...STAGE2_PLACEMENT[0],
+            when: {
+                and: [
+                    { '==': [{ var: 'flags.sworn_done' }, true] },
+                    { '!': { var: 'flags.six_done' } },
+                    { '!': { '==': [{ var: 'flags.story' }, 'wanderer'] } },
+                ],
+            },
+        },
+    ],
+    effects: [{ kind: 'set', flag: 'six_done', to: true }],
     reward: { kind: 'item', pool: 'action' },
     rounds: [
         {
@@ -122,6 +122,44 @@ export const CHRONICLE_SIX_DUEL: EventDef = {
     ],
 }
 
+/** 九朵桃花酒吧杀人事件（支线版 — 目击/听闻；青山论剑在前；奇遇流走主线版，不在此池） */
+export const CHRONICLE_BAR_KILLING: EventDef = {
+    id: 'chronicle_bar_killing',
+    name: '九朵桃花之夜',
+    description: '杏花街的九朵桃花酒吧出了事——有人死了。',
+    placement: [
+        {
+            ...STAGE2_PLACEMENT[0],
+            when: {
+                and: [
+                    { '==': [{ var: 'flags.six_done' }, true] },
+                    { '!': { var: 'flags.bar_done' } },
+                    { '!': { '==': [{ var: 'flags.story' }, 'wanderer'] } },
+                ],
+            },
+        },
+    ],
+    effects: [{ kind: 'set', flag: 'bar_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'heard',
+            title: '传闻',
+            description:
+                '你在街上听说九朵桃花酒吧昨晚出了事。有人被杀，凶手消失得无影无踪。酒吧照常营业，但吧台后面那排药酒瓶少了几瓶——有人说是飞虎·竹子送的跌打酒，也有人说是别的什么东西。你路过宝字堂药铺时，看见里面碾药的姑娘神情有些恍惚。',
+            choices: [{ id: 'investigate', type: 'continue', label: '打听详情' }],
+        },
+        {
+            id: 'investigate',
+            title: '线索',
+            description:
+                '街坊们议论纷纷，但没有人说得清真相。你只打听到死者是个外来人，平时不怎么露面。据说陶朵那晚在店里，但第二天照常开门，像什么都没发生过。',
+            choices: [{ id: 'reward', type: 'continue', label: '记在心里' }],
+        },
+        { id: 'reward', title: '警觉', choices: [] },
+    ],
+}
+
 /** 喝酒结拜（学酒功）：需先在酒馆偶遇得酒（got_wine）才会出现 */
 export const CHRONICLE_SWORD_BROTHERS: EventDef = {
     id: 'chronicle_sworn_brothers',
@@ -129,9 +167,7 @@ export const CHRONICLE_SWORD_BROTHERS: EventDef = {
     description: '你在九朵桃花酒吧遇到一群豪爽之人，喝到兴起，结为兄弟。',
     placement: [
         {
-            nodes: FIRST_STAGE_NODES,
-            fallback: true,
-            weight: 1,
+            ...STAGE2_PLACEMENT[0],
             when: {
                 and: [
                     { '==': [{ var: 'flags.got_wine' }, true] },

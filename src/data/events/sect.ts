@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { N2_WEAPON_CHOICES, storyWhen } from './layout'
+import { N2_WEAPON_CHOICES, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  天生道种 — 自定义事件
@@ -132,6 +132,89 @@ export const SECT_N19_TRAIL: EventDef = {
             id: 'reward_round',
             title: '沉住气',
             description: '你回到住处，把今晚看到的每一张脸都记了下来。',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
+//  一阶段中段（n4-7）渲染池：宗门日子
+//  从 n4 起主角已 7-8 岁；渲染池 3 选 1 候选，每局各至多一次，可空缺。
+// ════════════════════════════════════════
+
+/** node 4-7 渲染池：师兄照顾（为 n11 师兄弟对决铺垫） */
+export const SECT_RENDER_SHIXIONG: EventDef = {
+    id: 'sect_render_shixiong',
+    name: '师兄照顾',
+    description: '师兄总是先你一步，把路走一遍。',
+    placement: [
+        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('sect', 'sect_render_shixiong_done') },
+    ],
+    effects: [{ kind: 'set', flag: 'sect_render_shixiong_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '喂招',
+            description: '师兄陪你喂招，总让着你半招，等你差一点够到他衣角的时候，再假装失手。「快了。」他说。你信了。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '再练' }],
+        },
+        {
+            id: 'reward_round',
+            title: '衣角',
+            description: '很多年后你才知道，他从没失过手。他只是想先把那条路，自己走一遍。',
+            choices: [],
+        },
+    ],
+}
+
+/** node 4-7 渲染池：腊月师姐 */
+export const SECT_RENDER_LAYUE: EventDef = {
+    id: 'sect_render_layue',
+    name: '腊月师姐',
+    description: '腊月师姐凶得很，山门上下都怕她。',
+    placement: [
+        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('sect', 'sect_render_layue_done') },
+    ],
+    effects: [{ kind: 'set', flag: 'sect_render_layue_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '罚站',
+            description: '你偷懒被腊月师姐逮住，罚在殿外站了一炷香。末了她扔给你一个馒头：「站够了？站够了明天卯时，不许迟到。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '接过馒头' }],
+        },
+        {
+            id: 'reward_round',
+            title: '馒头',
+            description: '馒头是热的。你后来才知道，那是她省下的晚饭。',
+            choices: [],
+        },
+    ],
+}
+
+/** node 4-7 渲染池：山门早课 */
+export const SECT_RENDER_MEN: EventDef = {
+    id: 'sect_render_men',
+    name: '山门早课',
+    description: '山门的早课，从寅时的钟声开始。',
+    placement: [
+        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('sect', 'sect_render_men_done') },
+    ],
+    effects: [{ kind: 'set', flag: 'sect_render_men_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '钟声',
+            description: '寅时的钟声一响，全山门的弟子都往演武场跑。你裹着单衣混在队伍里，呵出的白气混着松香——山里的日子，苦，但安稳。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '跟上队伍' }],
+        },
+        {
+            id: 'reward_round',
+            title: '松香',
+            description: '你跟着师兄师姐们打完一套拳，天边刚泛起鱼肚白。师父站在台阶上，看了你们一眼，没说话。',
             choices: [],
         },
     ],

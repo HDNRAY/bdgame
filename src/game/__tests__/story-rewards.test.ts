@@ -333,6 +333,54 @@ describe('喝酒结拜链（两段式 flag 门控）', () => {
     })
 })
 
+describe('四支线链与天工坊两段（flag 门控，顺序一致）', () => {
+    function cand(node: number, id: string) {
+        const specs = buildNodeSpecs(ALL_EVENTS)
+        return specs[node - 1].candidates.find((c) => c.eventId === id)
+    }
+
+    it('酒馆偶遇 → 结拜 → 青山论剑 → 酒吧杀人 → 归海楼（顺序强制）', () => {
+        const enc = cand(13, 'chronicle_tavern_encounter')!
+        expect(enc).toBeDefined()
+        expect(evaluateWhen(enc.when, { flags: {} })).toBe(true) // 链首，无前置
+        expect(evaluateWhen(enc.when, { flags: { got_wine: true } })).toBe(false) // 已得酒 → 不再出
+
+        const sworn = cand(13, 'chronicle_sworn_brothers')!
+        expect(evaluateWhen(sworn.when, { flags: { got_wine: true } })).toBe(true)
+        expect(evaluateWhen(sworn.when, { flags: {} })).toBe(false)
+
+        // 青山论剑排在酒吧杀人之前（奇遇流里六绝观战=与陶朵重逢的笔墨）
+        const six = cand(14, 'chronicle_six_duel')!
+        expect(evaluateWhen(six.when, { flags: { sworn_done: true, story: 'feud' } })).toBe(true)
+        expect(evaluateWhen(six.when, { flags: {} })).toBe(false) // 没结拜 → 青山论剑不出
+        expect(evaluateWhen(six.when, { flags: { sworn_done: true, story: 'wanderer' } })).toBe(false) // 奇遇流走主线版
+
+        const bar = cand(14, 'chronicle_bar_killing')!
+        expect(evaluateWhen(bar.when, { flags: { six_done: true, story: 'feud' } })).toBe(true)
+        expect(evaluateWhen(bar.when, { flags: { sworn_done: true, story: 'feud' } })).toBe(false) // 需先过青山论剑
+        expect(evaluateWhen(bar.when, { flags: {} })).toBe(false) // 没观六绝 → 酒吧杀人不出
+    })
+
+    it('归海楼在酒吧杀人之后解锁', () => {
+        expect(evaluateWhen(cand(15, 'chronicle_guihailou')!.when, { flags: { bar_done: true } })).toBe(true)
+        expect(evaluateWhen(cand(15, 'chronicle_guihailou')!.when, { flags: { six_done: true } })).toBe(false)
+    })
+
+    it('天工坊第一次在第一阶段末；第二次（副手）需先去天工坊+单手+未选独臂', () => {
+        const t1 = cand(9, 'tiangong_weapon')!
+        expect(t1).toBeDefined()
+        expect(evaluateWhen(t1.when, { flags: {} })).toBe(true)
+        expect(evaluateWhen(t1.when, { flags: { tiangong_done: true } })).toBe(false)
+
+        const t2 = cand(24, 'tiangong_offhand')!
+        expect(t2).toBeDefined()
+        expect(evaluateWhen(t2.when, { flags: { tiangong_done: true, weapon_one_handed: true } })).toBe(true)
+        expect(evaluateWhen(t2.when, { flags: { tiangong_done: true, weapon_one_handed: true, one_arm: true } })).toBe(false)
+        expect(evaluateWhen(t2.when, { flags: { weapon_one_handed: true } })).toBe(false) // 没去过天工坊
+        expect(evaluateWhen(t2.when, { flags: { tiangong_done: true } })).toBe(false) // 不是单手
+    })
+})
+
 describe('n1 出身选择', () => {
     it('选项为各故事的出身事件，文案场景化、不用故事线名', () => {
         const run = new RogueliteRun()

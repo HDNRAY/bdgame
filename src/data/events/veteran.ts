@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { N2_WEAPON_CHOICES, storyWhen } from './layout'
+import { N2_WEAPON_CHOICES, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  军旅退伍 — 自定义事件
@@ -157,6 +157,37 @@ export const VETERAN_N08_PATH_CHOICE: EventDef = {
             id: 'reward_round',
             title: '新路',
             description: '无论哪条路，你都不会回头。',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
+//  一阶段中段渲染池：同袍（军旅 n4-6 已有主线，n7 是第一个池节点）
+//  军旅节奏与其他线不同（n5 起已十四岁上下），渲染事件按军营时间线写。
+// ════════════════════════════════════════
+
+/** node 7 渲染池：老柴（伙房老兵，教你认兵器） */
+export const VETERAN_RENDER_LAOCHAI: EventDef = {
+    id: 'veteran_render_laochai',
+    name: '同袍',
+    description: '老柴是伙房的老兵，什么都知道一点。',
+    placement: [
+        { nodes: [7], fallback: true, weight: 2, when: storyRenderWhen('veteran', 'veteran_render_laochai_done') },
+    ],
+    effects: [{ kind: 'set', flag: 'veteran_render_laochai_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '伙房',
+            description: '你偷学被逮住那天，是老柴替你打了圆场。他往你手里塞了块烤饼：「想学？先把身子骨养壮。晚上来伙房，我教你认兵器。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '晚上到' }],
+        },
+        {
+            id: 'reward_round',
+            title: '认兵器',
+            description: '伙房油灯下，老柴把军营里的家伙事一件件摆开，教你认、教你使。末了他叹了口气：「能不上战场，就别上战场。」',
             choices: [],
         },
     ],

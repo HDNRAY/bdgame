@@ -6,7 +6,7 @@ const JIRAN_ATTRS = { strength: 14, vitality: 12, agility: 14, dexterity: 14, in
 export const JIRAN: OpponentDef = {
     id: 'jiran',
     name: '姬然',
-    story: '姬家后人，会长姬仲的孙女。每年寒暑假回青山镇修炼三个月，天生道种，哪怕只修三个月也不输同龄人。',
+    story: '姬家后人，会长姬仲的孙女。父亲没什么天分、很早就离开了青山镇；姬然有天分，每年寒暑假回青山镇修炼三个月，哪怕只修三个月也不输同龄人。长大后回到青山镇，与千星共创天工坊。',
     battleStyle: 'mid',
     weapon: 'long_spear',
     targetAttrs: JIRAN_ATTRS,

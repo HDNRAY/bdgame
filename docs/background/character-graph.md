@@ -50,7 +50,7 @@ graph TB
     direction TB
     subgraph Yao["药屋"]
       direction TB
-      dx["黛玄（听觉·调查科）"]
+      dx["黛玄（听觉·调查科科长·药屋领军）"]
       xh["小花（视觉·拳掌宗师）"]
       lf["来风（味觉·空拳）"]
     end
@@ -79,8 +79,9 @@ graph TB
     subgraph Other["其他场所"]
       direction TB
       qx["千星（天工坊）"]
-      lyx["龙语仙（图书馆管理员）"]
-      bh["南宫狐儿（图书馆常客）"]
+      jr["姬然（姬仲孙女·天工坊）"]
+      lyx["龙语仙（图书馆馆长）"]
+      bh["南宫狐儿（图书馆管理员）"]
       tr["唐柔（宝字堂学徒）"]
       jd["九朵桃花酒吧"]
     end

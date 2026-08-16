@@ -1,6 +1,6 @@
 import type { EventDef } from '../../game/entities/event'
 import type { When } from '../../game/entities/condition'
-import { POOL_NODES, storyWhen } from './layout'
+import { POOL_NODES, STAGE1_END, STAGE3_PRE } from './layout'
 import { WEAPON_DB } from '../weapons/weapons'
 import { STARTING_WEAPONS } from '../weapons/starting-weapons'
 
@@ -99,12 +99,15 @@ export const BRANCH_HEAL: EventDef = {
     ],
 }
 
-/** 去天工坊找千星打造武器（只出坊中名器，不出起始武器/御物；天生道种线固定 n25） */
+/** 去天工坊找千星打造武器（第一次：第一阶段快结束时出现，3 选 1 池事件，每局至多一次） */
 export const TIANGONG_WEAPON: EventDef = {
     id: 'tiangong_weapon',
     name: '天工坊',
-    description: '斗炁大会即将开始，你在街上看到了天工坊的招牌。千星正靠在门口擦一把新出炉的兵器。',
-    placement: [{ nodes: [25], when: storyWhen('sect') }, ...POOL_PLACEMENT],
+    description: '第一阶段快结束时，你在街上看到了天工坊的招牌。千星正靠在门口擦一把新出炉的兵器。',
+    placement: [
+        { nodes: STAGE1_END, fallback: true, weight: 1, when: { '!': { var: 'flags.tiangong_done' } } },
+    ],
+    effects: [{ kind: 'set', flag: 'tiangong_done', to: true }],
     reward: { kind: 'item', pool: 'weapon', excludeIds: STARTING_WEAPON_IDS },
     rounds: [
         {
@@ -132,18 +135,56 @@ export const TIANGONG_WEAPON: EventDef = {
     ],
 }
 
-/** 斗炁图书馆（所有故事固定 n24）：龙语仙（防御）/ 白狐（攻击） */
+/** 天工坊第二次（副手）：第一阶段去过天工坊 + 单手武器 + 未选独臂 → 第三阶段开打前出现 */
+export const TIANGONG_OFFHAND: EventDef = {
+    id: 'tiangong_offhand',
+    name: '天工坊·副手',
+    description: '千星看见你腰间的兵器，扬了扬下巴：「单手的？正好，给你打件副手家伙。」',
+    placement: [
+        {
+            nodes: STAGE3_PRE,
+            fallback: true,
+            weight: 1,
+            when: {
+                and: [
+                    { '==': [{ var: 'flags.tiangong_done' }, true] },
+                    { '==': [{ var: 'flags.weapon_one_handed' }, true] },
+                    { '!': { var: 'flags.one_arm' } },
+                    { '!': { var: 'flags.has_offhand' } },
+                ],
+            },
+        },
+    ],
+    effects: [{ kind: 'set', flag: 'has_offhand', to: true }],
+    rounds: [
+        {
+            id: 'intro',
+            title: '天工坊·副手',
+            description:
+                '千星在炉边翻找了一阵，把几件单手家伙摊在台面上：「挑一件当副手。双持的路子，讲究分心错手——慢慢练。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '挑一件' }],
+        },
+        {
+            id: 'reward_round',
+            title: '选择副手',
+            reward: { kind: 'fixed', choices: OFFHAND_CHOICES },
+            choices: [],
+        },
+    ],
+}
+
+/** 斗炁图书馆（池事件·3 选 1）：龙语仙（防御）/ 白狐（攻击） */
 export const LIBRARY_EVENT: EventDef = {
     id: 'douqi_library',
     name: '斗炁图书馆',
     description: '你在街角发现了一座古朴的图书馆，檐下匾额写着「斗炁图书馆」四个字。',
-    placement: [{ nodes: [24] }],
+    placement: POOL_PLACEMENT,
     rounds: [
         {
             id: 'intro',
             title: '斗炁图书馆',
             description:
-                '你推开木门，一股书卷气扑面而来。柜台后一名龙角少女正悠闲地翻着书，见你进来便抬眼一笑："新面孔嘛，随便看。"\n\n角落的蒲团上，一只白狐蜷着尾巴，专心致志地盯着一本泛黄的古籍，尾巴尖时不时抖一下，完全没注意到你。',
+                '你推开木门，一股书卷气扑面而来。柜台后——图书馆馆长龙语仙——正悠闲地翻着书，见你进来便抬眼一笑："新面孔嘛，随便看。"\n\n角落的蒲团上，一只白狐蜷着尾巴，专心致志地盯着一本泛黄的古籍，尾巴尖时不时抖一下，完全没注意到你。',
             choices: [
                 { id: 'dragon_reward', type: 'continue', label: '找龙语仙请教防御功法' },
                 { id: 'fox_reward', type: 'continue', label: '找白狐请教攻击功法' },
@@ -154,7 +195,7 @@ export const LIBRARY_EVENT: EventDef = {
             id: 'dragon_reward',
             title: '龙语仙的推荐',
             description:
-                '"防御功法是吧？" 龙语仙放下书，走到一排书架前，指尖划过书脊，"这几本适合你——好好练，别出去让人揍得鼻青脸肿，丢我的人。"',
+                '"防御功法是吧？" 龙语仙——也是这家图书馆的馆长——放下书，走到一排书架前，指尖划过书脊，"这几本适合你——好好练，别出去让人揍得鼻青脸肿，丢我的人。"',
             reward: { kind: 'item', pool: 'passive', includeTags: ['defense'] },
             choices: [],
         },
@@ -324,17 +365,25 @@ export const WATERFALL_EPIPHANY: EventDef = {
 }
 
 // ── 回忆中的回忆（旧回忆：忽然想起自己的身世） ──
-//  第一阶段（旧回忆）靠后位置（n12-21）的普通三选一池事件：非必出，出了也只是池中一个候选。
+//  第一阶段中段（n4-7）的普通三选一池事件：非必出，出了也只是池中一个候选。
+//  放在天工坊（n8-10）之前；从 n4 起主角已 7-8 岁，回忆的正是这段童年。
 //  不是梦——是回忆自己真实的身世：独臂（年少被狼咬断手臂）/ 药屋旁支·凝炁诀（玄门不出现）/ 周家后人·周氏秘法。
 //  每局至多出现一次（memory_done 门控）。
 
 /** 固有功法三选一（inherent 被动，普通奖励池排除，仅本事件可获得） */
-export const MEMORY_REWARDS: { id: string; label: string; description: string; when?: When }[] = [
+export const MEMORY_REWARDS: {
+    id: string
+    label: string
+    description: string
+    when?: When
+    effects?: import('../../game/entities/effect').Effect[]
+}[] = [
     {
         id: 'one_arm',
         label: '独臂',
         description:
             '你想起那年青山边缘的狼群。你五岁，被它们拖进了林子——命捡回来了，左手没了。从那时起，你只用一只手练武。招式消耗降低 1AP（最低 1），无法双持。',
+        effects: [{ kind: 'set', flag: 'one_arm', to: true }],
     },
     {
         id: 'ningqi_jue',
@@ -357,7 +406,12 @@ export const MEMORY_WITHIN_MEMORY: EventDef = {
     name: '回忆中的回忆',
     description: '你忽然想起一段被遗忘的身世。',
     placement: [
-        { nodes: [12, 13, 14, 15, 16, 17, 18, 19, 20, 21], fallback: true, when: { '!': { var: 'flags.memory_done' } } },
+        {
+            nodes: [4, 5, 6, 7],
+            fallback: true,
+            weight: 1,
+            when: { '!': { var: 'flags.memory_done' } },
+        },
     ],
     effects: [{ kind: 'set', flag: 'memory_done', to: true }],
     rounds: [
@@ -385,6 +439,7 @@ export const MEMORY_WITHIN_MEMORY: EventDef = {
                 label: r.label,
                 description: r.description,
                 when: r.when,
+                effects: r.effects,
             })),
         },
         {
