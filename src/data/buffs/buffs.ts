@@ -1208,6 +1208,22 @@ export const BUFF_DB: BuffDef[] = [
             return 0
         },
     },
+    {
+        id: 'special_forces_dagger',
+        name: '特种兵匕首',
+        description: '耗1缠劲，追加1点电伤、1点穿透电伤，并使目标麻痹1层。',
+        tags: ['electric', 'damage'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onAfterDealDamage: ({ attacker, target, engine, state }) => {
+            if (!attacker.spendChan(1)) return 0
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
+                { self: attacker, enemy: target, engine: engine!, tMs: state.turn.currentTime },
+            )
+            return { normal: 1, piercing: 1 }
+        },
+    },
     // ── 无明之明 ──
     {
         id: 'no_light_buff',

@@ -56,6 +56,16 @@ export const WEAPON_DB: WeaponDef[] = [
         triggers: [{ condition: { type: 'on_opponent_move_away' }, actionId: '_shuai_ren' }],
     },
     {
+        id: 'special_forces_dagger',
+        name: '特种兵匕首',
+        description: '军方特制电击匕首。耗1缠劲，追加电伤并麻痹目标。',
+        tags: ['pierce', 'unarmed', 'parry', 'slash', 'melee', 'one_handed', 'electric'],
+        range: [0, 2],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'special_forces_dagger' }] },
+        ],
+    },
+    {
         id: 'iron_spear',
         name: '铁枪·破军',
         description: '丈二铁枪，势大力沉。',

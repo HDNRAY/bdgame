@@ -376,14 +376,14 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
     // ── 战术腰包 ──
     {
         id: '_field_dressing',
-        name: '战地包扎',
+        name: '止血针',
         description: '',
         requiredTags: [],
         apCost: 0,
         tags: ['trigger', 'heal', 'internal'],
         target: 'self',
         maxUses: 1,
-        effects: [{ type: 'heal', value: 25 }],
+        effects: [{ type: 'cleanse', buffIds: ['bleed'], perDebuffStacks: 2 }],
     },
     {
         id: '_detox_shot',

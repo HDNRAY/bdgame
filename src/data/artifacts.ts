@@ -517,14 +517,19 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'tactical_pouch',
         name: '战术腰包',
-        description: '多功能战术腰包，内含战地包扎、解毒针、肾上腺素针。',
+        description: '多功能战术腰包，内含止血针、解毒针、肾上腺素针。',
         tags: ['trigger', 'heal'],
         grantsActions: ['_field_dressing', '_detox_shot', '_adrenaline_shot'],
         triggers: [
             {
                 condition: {
-                    type: 'hp_below',
-                    check: (ctx) => ctx.actor.hp / ctx.actor.maxHp < 0.7,
+                    type: 'on_debuff',
+                    buffId: 'bleed',
+                    check: (ctx) => {
+                        const key = `bleed::${ctx.actor.id}`
+                        const layer = ctx.engine?.state.pendingBuffs.get(key)
+                        return (layer?.restoreValue ?? 0) >= 4
+                    },
                 },
                 actionId: '_field_dressing',
             },
