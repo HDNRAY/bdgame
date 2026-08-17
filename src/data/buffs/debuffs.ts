@@ -1,6 +1,6 @@
 import type { BuffDef } from './types'
 import { processActionEffect } from '../../engine/combat/effects'
-import { calcPoisonTicksPerStack } from '../../engine/calc/damage'
+import { calcApRegenPerSec, calcPoisonTicksPerStack } from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
 
 /** 减益状态 */
@@ -223,7 +223,11 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['imperial', 'debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        apRegenPerSec: ({ layer }) => -(layer.restoreValue ?? 0),
+        // 御物耗炁：扣减不超过当前 AP 回复速度的 2/3 —— 低属性也能用御物（只是慢），净回复恒为正，绝无负回复卡死
+        apRegenPerSec: ({ target, layer }) => {
+            const base = calcApRegenPerSec(target.attrs.get('wisdom'))
+            return -Math.min(layer.restoreValue ?? 0, (2 / 3) * base)
+        },
     },
     {
         id: 'fen_shen_cost',

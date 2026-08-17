@@ -99,6 +99,37 @@ describe('血海深仇 n12 加入调查科', () => {
     })
 })
 
+describe('归海楼研讨会（天生道种/玄门主线）', () => {
+    it('道种 n14 与桑原切磋、n15 表演赛（非 fallback 直接开始）', () => {
+        const res14 = resolveNode(specs[13], { story: 'sect' })
+        expect(res14.mode).toBe('direct')
+        if (res14.mode === 'direct') expect(res14.eventId).toBe('sect_guihailou_arrive')
+        expect(getEvent('sect_guihailou_arrive')?.effects).toEqual([{ kind: 'set', flag: 'guihailou_done', to: true }])
+
+        const res15 = resolveNode(specs[14], { story: 'sect' })
+        expect(res15.mode).toBe('direct')
+        if (res15.mode === 'direct') expect(res15.eventId).toBe('sect_guihailou_show')
+    })
+
+    it('玄门 n14 归海楼参会（n15 小树在归海楼重逢）', () => {
+        const res14 = resolveNode(specs[13], { story: 'xuanmen' })
+        expect(res14.mode).toBe('direct')
+        if (res14.mode === 'direct') expect(res14.eventId).toBe('xuanmen_guihailou')
+        expect(getEvent('xuanmen_guihailou')?.effects).toEqual([{ kind: 'set', flag: 'guihailou_done', to: true }])
+        const res15 = resolveNode(specs[14], { story: 'xuanmen' })
+        expect(res15.mode).toBe('direct')
+        if (res15.mode === 'direct') expect(res15.eventId).toBe('xuanmen_n15_heishu')
+    })
+
+    it('共享池版归海楼为道种/玄门让位，其他线正常', () => {
+        const when = getEvent('chronicle_guihailou')?.placement?.[0]?.when
+        expect(when).toBeDefined()
+        expect(evaluateWhen(when, { flags: { bar_done: true, story: 'sect' } })).toBe(false)
+        expect(evaluateWhen(when, { flags: { bar_done: true, story: 'xuanmen' } })).toBe(false)
+        expect(evaluateWhen(when, { flags: { bar_done: true, story: 'veteran' } })).toBe(true)
+    })
+})
+
 describe('一阶段中段（n4-7）渲染池', () => {
     const renderEvents: { story: string; ids: string[] }[] = [
         { story: 'feud', ids: ['feud_render_manor', 'feud_render_qinggong', 'feud_render_baishan'] },

@@ -312,7 +312,8 @@ export class BattleEngine {
         // ── 2. AP 未满 → 等回复满了再行动 ──
         if (self.ap < self.maxAp) {
             const deficit = self.maxAp - self.ap
-            const regenPerSec = calcEffectiveApRegenPerSec(this.state, self)
+            // 净回复下限 0.001：御物耗炁等把净回复压到 ≤0 时，等待时间必须仍为正（否则负延迟 → 时间倒退死循环）
+            const regenPerSec = Math.max(0.001, calcEffectiveApRegenPerSec(this.state, self))
             const waitMs = Math.ceil((deficit / regenPerSec) * 1000)
             this.state.turn.next(self.id)
             this.state.turn.scheduleNext({ type: 'character', id: self.id }, waitMs)

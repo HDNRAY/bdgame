@@ -170,6 +170,36 @@ export const XUANMEN_N16_CONFRONT: EventDef = {
 }
 
 // ════════════════════════════════════════
+//  归海楼研讨会（xuanmen 主线）：n14 代表家族赴归海楼切磋交流
+//  （n15 小树重逢即在归海楼比武大会上）；共享池版已为玄门让位。
+// ════════════════════════════════════════
+
+/** node 14: 主线·归海楼·参会——玄门弟子代表家族赴归海楼切磋交流 */
+export const XUANMEN_GUIHAILOU: EventDef = {
+    id: 'xuanmen_guihailou',
+    name: '归海楼·参会',
+    description: '归海楼广发英雄帖，各派齐聚。玄门也在受邀之列。',
+    placement: [{ nodes: [14], when: storyWhen('xuanmen') }],
+    effects: [{ kind: 'set', flag: 'guihailou_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'arrive',
+            title: '归海楼',
+            description:
+                '父亲让你代表玄门赴归海楼之约。山门前人声鼎沸，各派弟子都在。你依礼入场，与几派弟子切磋了几场，不落下风。观众席一角，军师与博士正低声交谈——以"观摩"为名，收集战斗数据。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '收手' }],
+        },
+        {
+            id: 'reward_round',
+            title: '留意',
+            description: '你多看了那两人一眼，又扫了一遍满场的面孔。归海楼此行，你记下了很多人。',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
 //  一阶段中段（n4-7）渲染池：玄门的日子
 //  从 n4 起主角已 7-8 岁；渲染池 3 选 1 候选，每局各至多一次，可空缺。
 // ════════════════════════════════════════

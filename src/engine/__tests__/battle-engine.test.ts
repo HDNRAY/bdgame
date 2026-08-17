@@ -1,8 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { BattleEngine } from '../combat/engine'
 import type { EventPlan } from '../combat/types'
+import type { BattleState } from '../combat/types'
 import { runBattle } from '../battle-runner'
 import { Character } from '../entities/character'
+import { getBuff } from '../../data/buffs'
+import type { BuffHookCtx } from '../../data/buffs/types'
+import type { BuffLayer } from '../../engine/combat/types'
+import { gen, getOpponentDef } from '../../data/opponents/index'
 
 function makeChar(
     id: string,
@@ -135,5 +140,51 @@ describe('BattleEngine', () => {
         if (attacks[0].event.type === 'attack_start') {
             expect(attacks[0].event.actionName).toBe('虚实拳')
         }
+    })
+})
+
+describe('御物耗炁上限与低属性战斗终止（回归：净 AP 回复为负 → 时间倒退死循环）', () => {
+    function yuwuCtx(wisdom: number, restoreValue: number) {
+        const target = new Character({
+            id: 't',
+            name: 't',
+            story: 'balanced',
+            weapon: 'floating_silk',
+            baseAttrs: { strength: 3, vitality: 3, agility: 3, dexterity: 3, insight: 3, wisdom },
+            rewards: [],
+        })
+        const ctx = {
+            final: 0,
+            raw: 0,
+            target,
+            attacker: target,
+            state: {} as BattleState,
+            layer: { restoreValue } as BuffLayer,
+        }
+        return ctx as unknown as BuffHookCtx
+    }
+
+    it('御物耗炁扣减 ≤ 2/3 基础 AP 回复，净回复恒为正', () => {
+        const hook = getBuff('yuwu_cost')!.apRegenPerSec!
+        // 低推演（wis=3，基础 0.9）：0.7 被压到 0.6 → 净 +0.3
+        const lowDrain = hook(yuwuCtx(3, 0.7))
+        expect(lowDrain).toBeCloseTo(-0.6)
+        expect(lowDrain + 0.9).toBeGreaterThan(0)
+        // 高推演（wis=20，基础 1.75）：0.7 未触顶 → 净 +1.05
+        expect(hook(yuwuCtx(20, 0.7))).toBeCloseTo(-0.7)
+    })
+
+    it('低属性御物 vs junshi 的战斗必须正常终止（不卡死）', () => {
+        const p = new Character({
+            id: 'player',
+            name: '玄十',
+            story: 'xuanmen',
+            weapon: 'floating_silk',
+            baseAttrs: { strength: 3, vitality: 3, agility: 3, dexterity: 3, insight: 3, wisdom: 3 },
+            rewards: [],
+        })
+        const enemy = new Character(gen(getOpponentDef('junshi')!, 11))
+        const { winner } = runBattle(p, enemy)
+        expect(['player', 'junshi', '平局']).toContain(winner)
     })
 })

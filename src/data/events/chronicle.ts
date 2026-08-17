@@ -37,7 +37,7 @@ export const CHRONICLE_TAVERN_ENCOUNTER: EventDef = {
     ],
 }
 
-/** 归海楼比武大会（支线版 — 非玄门线玩家） */
+/** 归海楼比武大会（支线版 — 散人观战；天生道种/玄门走主线版，不在此池） */
 export const CHRONICLE_GUIHAILOU: EventDef = {
     id: 'chronicle_guihailou',
     name: '归海楼比武大会',
@@ -49,6 +49,8 @@ export const CHRONICLE_GUIHAILOU: EventDef = {
                 and: [
                     { '==': [{ var: 'flags.bar_done' }, true] },
                     { '!': { var: 'flags.guihailou_done' } },
+                    { '!': { '==': [{ var: 'flags.story' }, 'sect'] } },
+                    { '!': { '==': [{ var: 'flags.story' }, 'xuanmen'] } },
                 ],
             },
         },

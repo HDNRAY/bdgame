@@ -138,6 +138,62 @@ export const SECT_N19_TRAIL: EventDef = {
 }
 
 // ════════════════════════════════════════
+//  归海楼研讨会（sect 主线）：n14 抵达切磋（桑原）、n15 表演赛（一刀 vs 腊月师姐）
+//  归海楼对天生道种/玄门是主线段，共享池版已为这两线让位。
+// ════════════════════════════════════════
+
+/** node 14: 主线·归海楼·切磋——与桑原切磋；斗篷人里有一个身形像师兄 */
+export const SECT_GUIHAILOU_ARRIVE: EventDef = {
+    id: 'sect_guihailou_arrive',
+    name: '归海楼·切磋',
+    description: '归海楼广发英雄帖，宗门派你前往。',
+    placement: [{ nodes: [14], when: storyWhen('sect') }],
+    effects: [{ kind: 'set', flag: 'guihailou_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'arrive',
+            title: '抵达归海楼',
+            description:
+                '归海楼山门前人声鼎沸。你递上宗门名帖，小厮领你入座。台上桑原正在与人切磋，刀光剑影。观众席一角，两个身着斗篷的人正在低声交谈——其中一个的身形，让你想起师兄。你摇了摇头。师兄已经不在了。',
+            choices: [{ id: 'combat_round', type: 'continue', label: '下场切磋' }],
+        },
+        {
+            id: 'combat_round',
+            title: '切磋桑原',
+            enemyId: 'sangyuan',
+            description: '你跃上擂台，朝桑原抱拳。他眯起眼，笑了：「有意思。来吧。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
+        },
+        { id: 'reward_round', title: '收获', choices: [] },
+    ],
+}
+
+/** node 15: 主线·归海楼·表演赛——观看一刀 vs 腊月师姐 */
+export const SECT_GUIHAILOU_SHOW: EventDef = {
+    id: 'sect_guihailou_show',
+    name: '归海楼·表演赛',
+    description: '归海楼掌门一刀亲自下场，与腊月师姐表演。',
+    placement: [{ nodes: [15], when: storyWhen('sect') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'watch',
+            title: '表演赛',
+            description:
+                '归海楼掌门一刀亲自下场，与腊月师姐表演。剑气纵横，满座喝彩。你坐在席上，看得心头发热——那是山门之外的路数，你从没见过的走法。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '鼓掌' }],
+        },
+        {
+            id: 'reward_round',
+            title: '回程',
+            description: '散场后腊月师姐找到你，敲了敲你的脑袋：「看傻了？回去把今天的路数默一遍，明早考你。」',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
 //  一阶段中段（n4-7）渲染池：宗门日子
 //  从 n4 起主角已 7-8 岁；渲染池 3 选 1 候选，每局各至多一次，可空缺。
 // ════════════════════════════════════════

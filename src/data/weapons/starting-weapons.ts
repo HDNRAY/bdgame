@@ -49,7 +49,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         tags: ['imperial', 'range', 'pierce', 'summon'],
         bound: true,
         range: [0, 6],
-        // 御物耗炁：每秒扣 0.7AP（7 丝）。丝 = 高频触发流：短前后摇、绵密输出、射程 7，每击喂 on_hit
+        // 御物耗炁：每秒扣 1AP（7 丝）。丝 = 高频触发流：短前后摇、绵密输出、射程 7，每击喂 on_hit
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 1 }] },
         ],

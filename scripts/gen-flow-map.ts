@@ -62,8 +62,8 @@ const REMARKS: Record<number, string> = {
     9: '成长池（玄门 = 家传密辛）',
     11: '一阶段Boss（道种 = 师兄弟对决 / 玄门 = 玄九生死斗，其余随机对手）',
     12: '支线链/回忆池（血海 = 加入调查科）',
-    14: '支线链/回忆池（奇遇 = 青山之巅·六绝·与陶朵重逢）',
-    15: '支线链/回忆池（玄门 = 小树）',
+    14: '支线链/回忆池（奇遇 = 青山之巅·六绝·与陶朵重逢；道种/玄门 = 归海楼）',
+    15: '支线链/回忆池（道种 = 归海楼·表演赛；玄门 = 小树）',
     16: '支线链/回忆池（奇遇 = 九朵桃花之夜·后门；道种 = 重逢 / 玄门 = 质问）',
     18: '支线链/回忆池（奇遇 = 恩师问话）',
     19: '支线链/回忆池（道种 = 追踪）',
@@ -104,12 +104,16 @@ function chainFlagsAt(storyId: string, n: number): Record<string, boolean> {
 }
 
 /** 池节点单元格：链· → 特· → Boss/守门人 → 通用池。
- *  各线渲染池事件只在本故事列展示；共享链的青山论剑/酒吧杀人已为奇遇流让位给主线版，也不在奇遇流列展示；
+ *  各线渲染池事件只在本故事列展示；
+ *  共享链的青山论剑/酒吧杀人已为奇遇流让位、归海楼已为天生道种/玄门让位（各自走主线版）；
  *  其余按放置展示（不按临时 flag 过滤）。 */
 function poolCell(index: number, storyId: string): string {
     const cands = specs[index].candidates.filter((c) => {
         if (!c.fallback) return false
         if (storyId === 'wanderer' && (c.eventId === 'chronicle_bar_killing' || c.eventId === 'chronicle_six_duel')) {
+            return false
+        }
+        if ((storyId === 'sect' || storyId === 'xuanmen') && c.eventId === 'chronicle_guihailou') {
             return false
         }
         const renderStory = renderStoryOf(c.eventId)
@@ -176,7 +180,7 @@ const lines: string[] = []
 lines.push('# 流程地图 · 故事线 × 节点 & 事件清单', '')
 lines.push('> 依据当前游戏数据自动生成。阶段分界：第一阶段 n1-11 / 第二阶段 n12-22 / 第三阶段 n23-33。')
 lines.push('> 图例：`主线·`=故事线专属（固定节点）；`链·`=四支线链事件（flag 门控，按序解锁）；`特·`=具名池事件（受 flag 门控：每局一次/单手武器等）；`通用池`=通用支线池（branch_*）；`Boss`/`守门人`=通用 Boss（未指定敌人时随机）。')
-lines.push('> 池事件均为 3 选 1 候选：可空缺、无兜底。四支线链顺序：酒馆偶遇 → 酒逢知己（结拜）→ 青山之巅·六绝 → 九朵桃花之夜（酒吧杀人）→ 归海楼比武大会。', '')
+lines.push('> 池事件均为 3 选 1 候选：可空缺、无兜底。四支线链顺序：酒馆偶遇 → 酒逢知己（结拜）→ 青山之巅·六绝 → 九朵桃花之夜（酒吧杀人）→ 归海楼比武大会（归海楼对天生道种/玄门是主线，不在池中）。', '')
 
 // ── 表 1 ──
 lines.push('## 表 1 · 故事线 × 节点', '')
