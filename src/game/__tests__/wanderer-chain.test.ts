@@ -130,6 +130,52 @@ describe('归海楼研讨会（天生道种/玄门主线）', () => {
     })
 })
 
+describe('故事线补充节点（文档有→游戏有）', () => {
+    const directAt = (node: number, story: string, extra: Record<string, string | number | boolean> = {}) =>
+        resolveNode(specs[node - 1], { story, ...extra })
+
+    it('道种 n7 走火入魔 / n9 约定下山', () => {
+        expect(directAt(7, 'sect')).toEqual({ mode: 'direct', eventId: 'sect_n07_qi_deviation' })
+        expect(directAt(9, 'sect')).toEqual({ mode: 'direct', eventId: 'sect_n09_promise' })
+    })
+
+    it('军旅 n16 兄弟之死按分支渲染（卧底/退伍互斥）', () => {
+        const ev = getEvent('veteran_n16_brother_death')!
+        const branch = ev.rounds.find((r) => r.id === 'scene')!.choices
+        expect(branch.filter((c) => evaluateWhen(c.when, { flags: { veteran_undercover: true } })).map((c) => c.id)).toEqual(['undercover'])
+        expect(branch.filter((c) => evaluateWhen(c.when, { flags: { veteran_normal: true } })).map((c) => c.id)).toEqual(['normal'])
+        expect(branch.filter((c) => evaluateWhen(c.when, { flags: {} }))).toHaveLength(0) // 未走分岔 → 无分支（n8 必选其一）
+        expect(directAt(16, 'veteran')).toEqual({ mode: 'direct', eventId: 'veteran_n16_brother_death' })
+        expect(directAt(17, 'veteran')).toEqual({ mode: 'direct', eventId: 'veteran_n17_trail' })
+        expect(directAt(19, 'veteran')).toEqual({ mode: 'direct', eventId: 'veteran_n19_lixueying' })
+    })
+
+    it('血海 阿九弧线：n13 到来 → n14 现场勘查（写 bar_done）→ n15 相处 → n18 真相 → n21 挣扎 → n32 白山月', () => {
+        expect(directAt(13, 'feud')).toEqual({ mode: 'direct', eventId: 'feud_n13_ajiu_arrive' })
+        expect(directAt(14, 'feud')).toEqual({ mode: 'direct', eventId: 'feud_n14_crime_scene' })
+        expect(getEvent('feud_n14_crime_scene')?.effects).toEqual([{ kind: 'set', flag: 'bar_done', to: true }])
+        expect(directAt(15, 'feud')).toEqual({ mode: 'direct', eventId: 'feud_n15_ajiu_time' })
+        expect(directAt(18, 'feud')).toEqual({ mode: 'direct', eventId: 'feud_n18_truth' })
+        expect(directAt(21, 'feud')).toEqual({ mode: 'direct', eventId: 'feud_n21_struggle' })
+        expect(directAt(32, 'feud')).toEqual({ mode: 'direct', eventId: 'feud_n32_baishan' })
+        // 大会节点不被血海占用
+        expect(candidateAt('feud_n32_baishan', 30)).toBeUndefined() // n31 半决赛
+    })
+
+    it('玄门 n6 结识小树 / n12 取名 / n13 家族内斗 / n17 河边修炼 / n21 决定参赛', () => {
+        expect(directAt(6, 'xuanmen')).toEqual({ mode: 'direct', eventId: 'xuanmen_n06_shushu' })
+        expect(directAt(12, 'xuanmen')).toEqual({ mode: 'direct', eventId: 'xuanmen_n12_naming' })
+        expect(directAt(13, 'xuanmen')).toEqual({ mode: 'direct', eventId: 'xuanmen_n13_clan' })
+        expect(directAt(17, 'xuanmen')).toEqual({ mode: 'direct', eventId: 'xuanmen_n17_river' })
+        expect(directAt(21, 'xuanmen')).toEqual({ mode: 'direct', eventId: 'xuanmen_n21_enter' })
+    })
+
+    it('奇遇 n15 与陶朵相处（six_done 门控）', () => {
+        expect(resolveNode(specs[14], { story: 'wanderer' }).mode).toBe('choice') // 未观六绝 → 池候选
+        expect(directAt(15, 'wanderer', { six_done: true })).toEqual({ mode: 'direct', eventId: 'wanderer_n15_time' })
+    })
+})
+
 describe('一阶段中段（n4-7）渲染池', () => {
     const renderEvents: { story: string; ids: string[] }[] = [
         { story: 'feud', ids: ['feud_render_manor', 'feud_render_qinggong', 'feud_render_baishan'] },

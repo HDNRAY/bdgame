@@ -67,6 +67,106 @@ export const XUANMEN_N03_START: EventDef = {
     ],
 }
 
+// ════════════════════════════════════════
+//  第二阶段主线（xuanmen）：n6 结识小树 → n12 取名玄久 → n13 家族内斗
+//  → n17 河边修炼 → n21 决定参赛
+// ════════════════════════════════════════
+
+/** node 6: 主线·结识小树——旁系叔叔，相谈甚欢（为 n15 归海楼重逢铺垫） */
+export const XUANMEN_N06_SHUSHU: EventDef = {
+    id: 'xuanmen_n06_shushu',
+    name: '结识小树',
+    description: '族里有个旁系叔叔，大家叫他小树。',
+    placement: [{ nodes: [6], when: storyWhen('xuanmen') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '小树',
+            description:
+                '族里有个旁系叔叔，辈分上是父亲的弟弟，大家叫他小树。他不常来祖宅，来了也总待在角落里喝茶。那天他看见你在练御物，难得开了口：「手别绷那么紧，御物讲究心神合一，不是使蛮劲。」你缠着他问了一下午，他讲了很多外面的事。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '记下' }],
+        },
+        { id: 'reward_round', title: '后来', description: '后来他离开了家，再没回来。你很久之后才知道他为什么走。', choices: [] },
+    ],
+}
+
+/** node 12: 主线·取名玄久——用一年接受现实，纪念姐姐 */
+export const XUANMEN_N12_NAMING: EventDef = {
+    id: 'xuanmen_n12_naming',
+    name: '取名',
+    description: '你用了一年时间接受现实。',
+    placement: [{ nodes: [12], when: storyWhen('xuanmen') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '玄久',
+            description:
+                '生死斗之后，你用了一年时间接受现实。然后你站在祖祠前，给自己取了一个名字：玄久。久，不是九。父亲听到这个名字时，沉默了一会儿，没有阻止。他知道你在纪念谁。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '记下' }],
+        },
+        { id: 'reward_round', title: '久', description: '久，不是九。但念起来，是一样的。', choices: [] },
+    ],
+}
+
+/** node 13: 主线·家族内斗——门主之位，暗流涌动 */
+export const XUANMEN_N13_CLAN: EventDef = {
+    id: 'xuanmen_n13_clan',
+    name: '家族内斗',
+    description: '家主之位，不是只有一条命才能换。',
+    placement: [{ nodes: [13], when: storyWhen('xuanmen') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '暗流',
+            description:
+                '大伯玄机是现任门主。族里明里尊他，暗里各房都盯着那把椅子——有人拉拢你，有人试探你父亲。你渐渐看清：玄门的规矩，不只是双胞胎那一条。家业越大，人心越散。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '留意' }],
+        },
+        { id: 'reward_round', title: '记下', description: '你把每一张脸都记了下来。总有一天用得上。', choices: [] },
+    ],
+}
+
+/** node 17: 主线·河边修炼——远离祖宅的安静地方 */
+export const XUANMEN_N17_RIVER: EventDef = {
+    id: 'xuanmen_n17_river',
+    name: '河边修炼',
+    description: '你常在镇外的河边修炼。水声大，心静。',
+    placement: [{ nodes: [17], when: storyWhen('xuanmen') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '河边',
+            description:
+                '你常在镇外的河边修炼。水声盖过杂念，御物反而更稳。你在水里放了几片叶子，以炁御动它们逆流而上——一片，两片，三片。河边的日子，是你最像自己的日子。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '收功' }],
+        },
+        { id: 'reward_round', title: '收功', description: '你收回御物。河水继续流，像什么都没发生过。', choices: [] },
+    ],
+}
+
+/** node 21: 主线·决定参赛——斗炁大会开幕，你要去 */
+export const XUANMEN_N21_ENTER: EventDef = {
+    id: 'xuanmen_n21_enter',
+    name: '决定参赛',
+    description: '斗炁大会开幕的消息传遍了青山镇。',
+    placement: [{ nodes: [21], when: storyWhen('xuanmen') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '报名',
+            description:
+                '斗炁大会开幕的消息传遍了青山镇。各派都派人参赛——这是扬名立万的机会，也是各房角力的新战场。你收拾好御物，去报了名。父亲没拦你，只说了句：「别丢玄门的脸。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '报名' }],
+        },
+        { id: 'reward_round', title: '出发', description: '你握紧御物。这一次，你要凭自己的名字站在擂台上。', choices: [] },
+    ],
+}
+
 /** node 9: 家族密辛 */
 export const XUANMEN_N09_SECRET: EventDef = {
     id: 'xuanmen_n09_secret',

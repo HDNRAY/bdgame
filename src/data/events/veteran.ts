@@ -192,3 +192,103 @@ export const VETERAN_RENDER_LAOCHAI: EventDef = {
         },
     ],
 }
+
+// ════════════════════════════════════════
+//  第二阶段主线（veteran）：n16 兄弟之死（卧底/退伍两分支）→ n17 追查 → n19 李雪影
+//  n8 军旅分岔路已写 veteran_undercover / veteran_normal，此处按分支渲染。
+// ════════════════════════════════════════
+
+/** node 16: 主线·兄弟之死——老柴（卧底线）/ 柴哥（退伍线）被组织清理 */
+export const VETERAN_N16_BROTHER_DEATH: EventDef = {
+    id: 'veteran_n16_brother_death',
+    name: '兄弟之死',
+    description: '碰头点，你没等到人。',
+    placement: [{ nodes: [16], when: storyWhen('veteran') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '碰头点',
+            description: '你按约定时间到碰头点，人没来。等了一夜，还是没来。你顺着所有能想到的地方找过去，最后在一条巷子里找到了他。',
+            choices: [
+                {
+                    id: 'undercover',
+                    type: 'continue',
+                    label: '卧底线',
+                    when: { '==': [{ var: 'flags.veteran_undercover' }, true] },
+                    description: '老柴已经查到了组织与 2074 年林家灭门有关的间接证据，还没来得及上报，被灭口。',
+                },
+                {
+                    id: 'normal',
+                    type: 'continue',
+                    label: '退伍线',
+                    when: { '==': [{ var: 'flags.veteran_normal' }, true] },
+                    description: '柴哥是军方卧底，被组织清理了。他跟你一样接了任务，只是没告诉你。',
+                },
+            ],
+        },
+        {
+            id: 'undercover',
+            title: '老柴',
+            description:
+                '他躺在巷子里，手还握着腰间的传讯器——没来得及发出去。他身上没有证件、没有身份标识，像一片被清理干净的垃圾。你不能收尸。不能打听。不能表现出任何异样。你是卧底。你回到住处，把自己关在厕所里，对着马桶吐了很久，然后擦干嘴，给自己加装了第一件义体——组织给的"诚意"。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '记下' }],
+        },
+        {
+            id: 'normal',
+            title: '柴哥',
+            description:
+                '你辗转打听到他失踪前经常去九朵桃花，似乎在调查什么。后来你从白山月那里得知：柴哥是军方卧底，被组织清理了。他怕你担心，想自己搞定。他没等到收网那天。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '记下' }],
+        },
+        {
+            id: 'reward_round',
+            title: '从那以后',
+            description: '他死在巷子里的那天，你心里有什么东西也跟着死了。从那以后，你不再怕死。你只怕报不了仇。',
+            choices: [],
+        },
+    ],
+}
+
+/** node 17: 主线·追查——无论哪条路，追查兄弟死因 */
+export const VETERAN_N17_TRAIL: EventDef = {
+    id: 'veteran_n17_trail',
+    name: '追查',
+    description: '你开始查他到底是被谁出卖的。',
+    placement: [{ nodes: [17], when: storyWhen('veteran') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '线索',
+            description:
+                '卧底线：老柴的死让你更深入组织内部。你一面获取信任，一面暗中查他是被谁出卖的。退伍线：柴哥的死让你重新联系上军方——他们一直在查组织的活动，柴哥是他们的人。两条路的终点是一样的：你要在斗炁大会上，跟组织的人做个了断。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续查' }],
+        },
+        { id: 'reward_round', title: '名单', description: '你把经手过的人都记了下来。总有一个名字，会自己浮出来。', choices: [] },
+    ],
+}
+
+/** node 19: 主线·李雪影——军方斥候提供线索 */
+export const VETERAN_N19_LIXUEYING: EventDef = {
+    id: 'veteran_n19_lixueying',
+    name: '李雪影',
+    description: '一个自称李雪影的人找上了你。',
+    placement: [{ nodes: [19], when: storyWhen('veteran') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '斥候',
+            description:
+                '李雪影——军方斥候，白山月手下，你兄弟的战友。他告诉你更多关于组织渗透的线索：「组织里有军方的人，但已经叛变了。你们这些被发现的卧底，几乎都是被他出卖的。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '记下' }],
+        },
+        {
+            id: 'reward_round',
+            title: '名字',
+            description: '「叛变的人是谁？」你没问出口。你知道迟早会查到的。斗炁大会见。',
+            choices: [],
+        },
+    ],
+}

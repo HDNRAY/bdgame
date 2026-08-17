@@ -129,6 +129,158 @@ export const BOSS_AJIU: EventDef = {
 }
 
 // ════════════════════════════════════════
+//  第二阶段主线（feud · 阿九弧线，为 n22 守门人铺垫）：
+//  n13 阿九到来 → n14 九朵桃花现场勘查（写 bar_done）→ n15 与阿九相处
+//  → n18 发现真相（义体手/学校）→ n21 内心挣扎 → n31 白山月
+// ════════════════════════════════════════
+
+/** node 13: 主线·阿九到来——会长身边多了个新来的姑娘 */
+export const FEUD_N13_AJIU_ARRIVE: EventDef = {
+    id: 'feud_n13_ajiu_arrive',
+    name: '阿九到来',
+    description: '会长身边多了个新来的姑娘，叫阿九。',
+    placement: [{ nodes: [13], when: storyWhen('feud') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '新来的',
+            description:
+                '会长身边多了个新来的姑娘，叫阿九。做事稳当，话不多，笑起来很温柔。据说她以前在寄宿学校，毕业没多久，被安排来负责会长的起居。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '没在意' }],
+        },
+        { id: 'reward_round', title: '后来', description: '你没太在意。特殊事件调查科的事够多了。', choices: [] },
+    ],
+}
+
+/** node 14: 主线·九朵桃花现场勘查——奇岚到场、竹子验尸、纸屑残片（写 bar_done） */
+export const FEUD_N14_CRIME_SCENE: EventDef = {
+    id: 'feud_n14_crime_scene',
+    name: '九朵桃花·现场',
+    description: '你接到消息赶到九朵桃花时，奇岚已经到了。',
+    placement: [{ nodes: [14], when: storyWhen('feud') }],
+    effects: [{ kind: 'set', flag: 'bar_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '后院',
+            description: '「后院。死者是军方的人。」奇岚朝你点了点头。竹子蹲在尸体旁边，翻了翻伤口，站起来说：「心脏暴毙。」但你看他的眼神——他不信。',
+            choices: [{ id: 'evidence', type: 'continue', label: '检查衣物' }],
+        },
+        {
+            id: 'evidence',
+            title: '纸屑',
+            description:
+                '你检查了死者的衣物。内衬夹层里有一叠被烧过的纸屑——据奇岚说，他翻进后院时陶朵正在烧东西，被他吓了一跳，剩下的碎纸掉在地上。你拼了拼，勉强认出几个零散的字："2074"……半个"木"字偏旁……"义"……"火"。',
+            choices: [{ id: 'question', type: 'continue', label: '收好' }],
+        },
+        {
+            id: 'question',
+            title: '盘问',
+            description:
+                '你把纸屑收好，没有声张。你盘问了现场的人。陶朵说她什么也没看见。方烈说他一直在门口没进来。来风说他路过。证物已经碳化了，上不了台面。但你已经不需要更多了。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '收队' }],
+        },
+        { id: 'reward_round', title: '锁定', description: '你锁定了嫌疑人。剩下的，只是时间问题。', choices: [] },
+    ],
+}
+
+/** node 15: 主线·与阿九相处——日久生情 */
+export const FEUD_N15_AJIU_TIME: EventDef = {
+    id: 'feud_n15_ajiu_time',
+    name: '与阿九相处',
+    description: '阿九在会长府的院子等你。',
+    placement: [{ nodes: [15], when: storyWhen('feud') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '院子',
+            description:
+                '你在会长府的院子里练功，阿九端着茶站在廊下看。日子久了，她会在你练完功的时候递上帕子，会记住你不吃辣，会把你随口说过的一句话记在心里。你开始习惯她的存在。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '接过茶' }],
+        },
+        { id: 'reward_round', title: '习惯', description: '习惯，是件危险的事。你后来才明白。', choices: [] },
+    ],
+}
+
+/** node 18: 主线·发现真相——阿九与组织有关联（学校+义体手） */
+export const FEUD_N18_TRUTH: EventDef = {
+    id: 'feud_n18_truth',
+    name: '发现真相',
+    description: '你无意中看到了阿九的右手。',
+    placement: [{ nodes: [18], when: storyWhen('feud') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '义体手',
+            description:
+                '阿九帮你倒茶时，袖口滑落，露出右手——金属的关节，义体。你见过这种义体，是组织研发部的制式。还有，你查过她的档案：寄宿学校，青山第二寄宿学校——组织招揽孤儿的那所。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '没问' }],
+        },
+        {
+            id: 'reward_round',
+            title: '压着',
+            description: '你什么都没问。但你知道，会长身边这个姑娘，和组织脱不开干系。',
+            choices: [],
+        },
+    ],
+}
+
+/** node 21: 主线·内心挣扎——告诉会长，还是不告诉 */
+export const FEUD_N21_STRUGGLE: EventDef = {
+    id: 'feud_n21_struggle',
+    name: '内心挣扎',
+    description: '你坐在调查科的院子里，一坐就是一夜。',
+    placement: [{ nodes: [21], when: storyWhen('feud') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '一夜',
+            description:
+                '告诉会长？他是你的养父，是他把你从废墟里抱出来的。阿九是组织的人——可阿九把会长照顾得那么好，她笑起来那么真。你手里的证据，一封匿名信就能交出去。你坐了一夜，信写了又撕，撕了又写。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '先放着' }],
+        },
+        { id: 'reward_round', title: '先放着', description: '你决定再等等。有些答案，你会亲自去要。', choices: [] },
+    ],
+}
+
+/** node 32: 主线·白山月——决赛前，父亲军中旧友拦路试炼，赠功法 */
+export const FEUD_N32_BAISHAN: EventDef = {
+    id: 'feud_n32_baishan',
+    name: '白山月',
+    description: '一名腰悬唐刀的女子拦住你的去路。',
+    placement: [{ nodes: [32], when: storyWhen('feud') }],
+    reward: { kind: 'item', pool: 'passive' },
+    rounds: [
+        {
+            id: 'greeting',
+            title: '旧友',
+            description:
+                '一名腰悬唐刀的女子拦住你的去路。她上下打量了你一番，笑道：「你就是老陆的儿子？我叫白山月，曾与你父亲并肩作战。让我看看他教了你些什么。」',
+            choices: [{ id: 'combat_round', type: 'continue', label: '迎战' }],
+        },
+        {
+            id: 'combat_round',
+            title: '切磋',
+            enemyId: 'hongti',
+            description: '唐刀出鞘，快如闪电。你全力以赴，仍被她的气势压了一头——但你接住了。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '收招' }],
+        },
+        {
+            id: 'reward_round',
+            title: '见面礼',
+            description:
+                '白山月收回唐刀，满意地点了点头：「底子不错，有你父亲当年的风范。这门功法你拿去练，算是我的见面礼。若有事，随时可来找我。」说罢她转身离去，身影很快消失在街角。',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
 //  一阶段中段（n4-7）渲染池：会长府的日子
 //  从 n4 起主角已 7-8 岁；渲染池 3 选 1 候选，每局各至多一次，可空缺。
 // ════════════════════════════════════════

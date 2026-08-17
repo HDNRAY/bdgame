@@ -138,6 +138,52 @@ export const SECT_N19_TRAIL: EventDef = {
 }
 
 // ════════════════════════════════════════
+//  一阶段中段主线（sect）：n7 走火入魔（师兄相救）、n9 约定下山
+// ════════════════════════════════════════
+
+/** node 7: 主线·走火入魔——炁逆冲，师兄渡炁相救（为 n11 决斗铺垫） */
+export const SECT_N07_QI_DEVIATION: EventDef = {
+    id: 'sect_n07_qi_deviation',
+    name: '走火入魔',
+    description: '修炼出了岔子。炁在经脉里逆冲，你疼得蜷在地上。',
+    placement: [{ nodes: [7], when: storyWhen('sect') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '岔子',
+            description: '修炼出了岔子。炁在经脉里逆冲，你疼得蜷在地上，意识开始模糊。恍惚中有人按住你的手——师兄。他把自己的炁渡进你体内，一点点把乱窜的炁压回去。',
+            choices: [{ id: 'aftermath', type: 'continue', label: '醒来' }],
+        },
+        {
+            id: 'aftermath',
+            title: '腊月的检查',
+            description: '腊月师姐赶到时，最危险的时段已经过去了。她检查了你的经脉，松了口气，看了师兄一眼：「你做的？」师兄没回答，只是说：「没事了。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
+        },
+        { id: 'reward_round', title: '记下', description: '你记下了那只按住你的手。有师兄在，你从不觉得会出事。', choices: [] },
+    ],
+}
+
+/** node 9: 主线·约定——一起下山闯荡 */
+export const SECT_N09_PROMISE: EventDef = {
+    id: 'sect_n09_promise',
+    name: '约定',
+    description: '他看着星空说：「等修炼有成，我们一起下山闯荡。」',
+    placement: [{ nodes: [9], when: storyWhen('sect') }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '星空',
+            description: '收功之后，你和师兄并排坐在演武场的台阶上。他看着星空说：「等修炼有成，我们一起下山闯荡。」「好。」你回答。你没有问去哪。他在就行。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '点头' }],
+        },
+        { id: 'reward_round', title: '后来', description: '后来山门起了火，师兄被带走。你很多年没再看过星星。', choices: [] },
+    ],
+}
+
+// ════════════════════════════════════════
 //  归海楼研讨会（sect 主线）：n14 抵达切磋（桑原）、n15 表演赛（一刀 vs 腊月师姐）
 //  归海楼对天生道种/玄门是主线段，共享池版已为这两线让位。
 // ════════════════════════════════════════

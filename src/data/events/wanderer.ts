@@ -142,6 +142,35 @@ export const WANDERER_SIX: EventDef = {
     ],
 }
 
+/** node 15: 主线·与陶朵相处——重逢后的喝酒聊天（酒吧杀人前的最后好时光） */
+export const WANDERER_N15_TIME: EventDef = {
+    id: 'wanderer_n15_time',
+    name: '与陶朵相处',
+    description: '陶朵说，晚上来店里，请你喝酒。',
+    placement: [
+        {
+            nodes: [15],
+            when: { and: [storyWhen('wanderer'), { '==': [{ var: 'flags.six_done' }, true] }] },
+        },
+    ],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '九朵桃花',
+            description:
+                '晚上你到九朵桃花，陶朵已经备好了酒。她给你倒了一杯，自己端着一杯慢慢喝。你们聊小时候的镇子，聊那台售货机，聊奇岚的雷法——都是些旧事，可她说起来眼睛亮亮的，像那些年她一直都在。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '碰杯' }],
+        },
+        {
+            id: 'reward_round',
+            title: '散场',
+            description: '散场时她送你到门口：「改天再来。」你点头。那段时间，你几乎快忘了她失踪过。',
+            choices: [],
+        },
+    ],
+}
+
 /** node 16: 主线·九朵桃花之夜——备礼去后门找陶朵，看到蛛丝马迹但不愿相信，被方烈赶走 */
 export const WANDERER_BAR: EventDef = {
     id: 'wanderer_bar',
