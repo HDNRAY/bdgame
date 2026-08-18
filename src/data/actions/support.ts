@@ -229,8 +229,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['move', 'pre_action'],
         target: 'self',
         effects: [
-            // maxRange 6：近战/中程角色被风筝到 5-6m 时也能闪进射程出手（原 3m 在射程外必失败）
-            { type: 'dash', maxRange: 6, targetDist: -1 },
+            { type: 'dash', maxRange: 4, targetDist: -1 },
             { type: 'add_buff', buffId: 'yun_bu_foresight', stacks: 1 },
         ],
     },

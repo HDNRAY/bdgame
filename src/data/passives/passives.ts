@@ -170,7 +170,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'momentum_mastery',
-        name: '刃炁大师',
+        name: '刃炁精通',
         requiredTags: ['slash'],
         description: '刃炁入体，每层受到伤害+5%。受到治疗时减少一层（累计10点治疗消一层）。',
         tags: ['passive', 'damage', 'debuff', 'slash'],

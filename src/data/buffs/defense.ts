@@ -418,9 +418,9 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'nv_er_hong',
         name: '女儿红',
-        description: '每秒回复1.5点气血，持续4秒。',
+        description: '每秒回复1.5点气血，持续5秒。',
         tags: ['defense', 'jiu'],
-        expiry: { type: 'duration', ms: 4000 },
+        expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'additive', max: 3 },
         tickInterval: 1000,
         onTickHeal: () => 1.5,

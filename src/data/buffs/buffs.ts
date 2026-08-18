@@ -1349,10 +1349,10 @@ export const BUFF_DB: BuffDef[] = [
             return final + ap / actionHits(source as ActionDefinition)
         },
     },
-    // ── 刃炁大师（攻击侧：持刃攻击令对手叠刃炁） ──
+    // ── 刃炁精通（攻击侧：持刃攻击令对手叠刃炁） ──
     {
         id: 'momentum_mastery_buff',
-        name: '刃炁大师',
+        name: '刃炁精通',
         description: '斩刺伤害令对手叠刃炁。',
         tags: ['slash'],
         expiry: { type: 'permanent' },

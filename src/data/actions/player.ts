@@ -903,16 +903,16 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'ru_long',
         name: '如龙',
-        description: '苍龙镇北，如龙出海。自身有n层增益时造成基础伤害×n（上限5层）。',
+        description: '苍龙镇北，如龙出海。',
         requiredTags: ['polearm', 'pierce'],
         apCost: 4,
-        chanCost: 20,
+        chanCost: 24,
         tags: ['polearm', 'pierce', 'qi', 'damage'],
         effects: [
             {
                 type: 'functional_damage',
                 fn: ({ state, self }) => {
-                    // 统计自身非永久增益总层数（不含 debuff/永久状态），上限 5
+                    // 统计自身非永久增益总层数（不含 debuff/永久状态）
                     let layers = 0
                     forEachBuffOf(state.pendingBuffs, self.id, (def, layer) => {
                         if (!def) return
@@ -920,9 +920,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                         if (def.expiry?.type === 'permanent') return
                         layers += layer.restoreValue ?? 1
                     })
-                    const n = Math.min(5, layers)
-                    const baseDmg = self.attrs.get('wisdom') * 0.2 + self.attrs.get('strength') * 0.2
-                    return Math.round(baseDmg * n * 10) / 10
+                    return round1(self.attrs.get('strength') * 0.2 + self.attrs.get('wisdom') * 0.2 * layers)
                 },
             },
         ],

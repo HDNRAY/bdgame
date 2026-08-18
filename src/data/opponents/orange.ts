@@ -22,8 +22,9 @@ export const ORANGE: OpponentDef = {
         action('sweep_kick'),
         passive('no_light_wisdom'),
         weapon('ninja_sword'),
+        passive('momentum_mastery'),
         // 锁链刃
-        // 11
+        // 12
     ],
     actionConfigs: [
         { actionId: 'light_slash', triggerId: 'on_dodged' },

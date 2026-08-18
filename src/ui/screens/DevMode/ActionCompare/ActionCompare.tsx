@@ -37,9 +37,9 @@ const DEBUFF_WEIGHT: Record<string, number> = {
     fumble_chance_temp: 0.3,
     duan_qi: 0.2,
     frost: 0.15,
-    burn: 0.1,
-    poison: 0.1,
-    bleed: 0.1,
+    // burn: 0.1,
+    // poison: 0.1,
+    // bleed: 0.1,
 }
 const DISARM_WEIGHT = 0.4
 const KNOCKBACK_PER_DIST = 0.2
@@ -174,7 +174,16 @@ function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
     const execTotal = Math.round((exec + multiHit) * 100) / 100
     const score =
         Math.round(
-            (efficiency + distanceBonus + dashBonus + buff + debuff + disarm + knockback + execTotal - selfDisarm - selfHpCost) *
+            (efficiency +
+                distanceBonus +
+                dashBonus +
+                buff +
+                debuff +
+                disarm +
+                knockback +
+                execTotal -
+                selfDisarm -
+                selfHpCost) *
                 100,
         ) / 100
 
@@ -206,6 +215,7 @@ const fmt = (v: number, plus = false): string => {
 export function ActionCompare() {
     const [selected, setSelected] = useState<number[]>([2, 3, 4, 5])
     const [chanWeight, setChanWeight] = useState<number>(AI_CHAN_COST_WEIGHT)
+    const [search, setSearch] = useState('')
 
     const toggleAp = (ap: number) => {
         setSelected((prev) => (prev.includes(ap) ? prev.filter((x) => x !== ap) : [...prev, ap].sort((a, b) => a - b)))
@@ -214,12 +224,17 @@ export function ActionCompare() {
     const rows = useMemo<Row[]>(() => {
         if (selected.length === 0) return []
         const isSupport = (a: ActionDefinition) => a.tags.includes('pre_action') || a.tags.includes('post_action')
+        const query = search.trim().toLocaleLowerCase()
         const all = [...PLAYER_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS]
         return all
-            .filter((a) => selected.includes(a.apCost) && !isSupport(a))
+            .filter((a) => {
+                if (!selected.includes(a.apCost) || isSupport(a)) return false
+                if (!query) return true
+                return [a.name, a.id, ...a.tags].some((value) => value.toLocaleLowerCase().includes(query))
+            })
             .map((a) => buildRow(a, a.apCost, chanWeight))
             .sort((x, y) => y.score - x.score)
-    }, [selected, chanWeight])
+    }, [selected, chanWeight, search])
 
     return (
         <div className="ac">
@@ -240,12 +255,23 @@ export function ActionCompare() {
                     value={chanWeight}
                     onChange={(e) => setChanWeight(Number(e.target.value) || 0)}
                 />
+                <label className="ac-label ac-search-label" htmlFor="action-compare-search">
+                    搜索：
+                </label>
+                <input
+                    id="action-compare-search"
+                    className="ac-search-input"
+                    type="search"
+                    value={search}
+                    placeholder="名称 / ID / 标签"
+                    onChange={(e) => setSearch(e.target.value)}
+                />
             </div>
             <p className="ac-note">
-                双方全属性 15 · 缠 50 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。
-                效率 = 期望伤 /（折前AP + 缠权重×缠消耗）；得分 = 效率 + 射程（{">"}4 每档+0.05）+ 位移（+0.25）
-                + buff（add_buff 每层×0.3）+ debuff（层×几率×权重）+ 缴械（×0.4）+ 击退（距离×0.2）
-                + 斩杀（25% 斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）− 自耗血（比例×10）。
+                双方全属性 15 · 缠 50 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。 效率
+                = 期望伤 /（折前AP + 缠权重×缠消耗）；得分 = 效率 + 射程（{'>'}4 每档+0.05）+ 位移（+0.25） +
+                buff（add_buff 每层×0.3）+ debuff（层×几率×权重）+ 缴械（×0.4）+ 击退（距离×0.2） + 斩杀（25%
+                斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）− 自耗血（比例×10）。
             </p>
             {rows.length === 0 ? (
                 <p className="ac-note">请至少勾选一个 AP 档。</p>
