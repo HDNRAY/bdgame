@@ -16,6 +16,7 @@ import { calcExpectedDamage } from '../../../../engine/ai/expected-damage'
 import type { BattleState } from '../../../../engine/combat/types'
 import { MAX_CHAN, AI_CHAN_COST_WEIGHT } from '../../../../engine/constants'
 import type { ActionDefinition } from '../../../../engine/entities/action'
+import { EntityItem } from '../../../components/ui/EntityItem/EntityItem'
 import './ActionCompare.scss'
 
 const ATTRS = { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 }
@@ -79,6 +80,7 @@ function makeChar(id: string, name: string): Character {
 }
 
 interface Row {
+    action: ActionDefinition
     label: string
     ap: number
     chan: number
@@ -188,6 +190,7 @@ function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
         ) / 100
 
     return {
+        action: a,
         label: a.name,
         ap: a.apCost,
         chan: Math.round(est.chanCost * 10) / 10,
@@ -300,7 +303,9 @@ export function ActionCompare() {
                     <tbody>
                         {rows.map((r) => (
                             <tr key={r.label}>
-                                <td className="ac-name">{r.label}</td>
+                                <td className="ac-name">
+                                    <EntityItem entity={r.action} type="action" />
+                                </td>
                                 <td>{r.ap}</td>
                                 <td>{r.chan}</td>
                                 <td>{r.damage}</td>
