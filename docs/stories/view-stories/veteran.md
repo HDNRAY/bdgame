@@ -1,4 +1,4 @@
-# 军旅退伍
+# 夜行者（军旅退伍）
 
 > 故事 ID: `veteran` | 角色名: 陆斐
 > 关联文档: `docs/character-relations.md`, `docs/story.md`

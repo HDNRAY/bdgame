@@ -66,7 +66,7 @@ export const WANDERER_N03_INTRO: EventDef = {
 /** node 12: 主线·酒逢知己——必遇来风，结拜（写 got_wine/sworn_done，得酒功） */
 export const WANDERER_SWORD: EventDef = {
     id: 'wanderer_sworn',
-    name: '酒逢知己',
+    name: '九朵桃花结义',
     description: '九朵桃花酒吧。你独酌，酒过三巡，门帘一掀，进来一个人。',
     placement: [
         {
@@ -101,7 +101,7 @@ export const WANDERER_SWORD: EventDef = {
 /** node 14: 主线·青山之巅·六绝——与陶朵重逢同往观战（六绝含恩师杨之改/龙语仙） */
 export const WANDERER_SIX: EventDef = {
     id: 'wanderer_six_duel',
-    name: '青山之巅·六绝',
+    name: '青山之巅论剑',
     description: '青山绝顶，六位高手比武。陶朵说，一起去看看。',
     placement: [
         {
@@ -174,7 +174,7 @@ export const WANDERER_N15_TIME: EventDef = {
 /** node 16: 主线·九朵桃花之夜——备礼去后门找陶朵，看到蛛丝马迹但不愿相信，被方烈赶走 */
 export const WANDERER_BAR: EventDef = {
     id: 'wanderer_bar',
-    name: '九朵桃花之夜',
+    name: '九朵桃花酒吧杀人事件',
     description: '你备了礼物，想从后门溜进去给陶朵一个惊喜。',
     placement: [
         {

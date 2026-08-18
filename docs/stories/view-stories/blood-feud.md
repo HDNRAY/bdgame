@@ -1,4 +1,4 @@
-# 血海深仇
+# 断刀（血海深仇）
 
 > 故事 ID: `feud` | 角色名: 林晚风
 > 关联文档: `docs/character-relations.md`, `docs/story.md`, `docs/hidden-boss-timeline.md`

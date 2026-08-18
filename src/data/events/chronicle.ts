@@ -14,7 +14,7 @@ const STAGE2_PLACEMENT = [{ nodes: STAGE2_POOL, fallback: true, weight: 1 }]
 /** 酒馆偶遇（得酒） */
 export const CHRONICLE_TAVERN_ENCOUNTER: EventDef = {
     id: 'chronicle_tavern_encounter',
-    name: '酒馆偶遇',
+    name: '路见不平',
     description: '你在九朵桃花酒吧独酌，抬眼看见门口走进来一个人。',
     placement: [
         {
@@ -40,7 +40,7 @@ export const CHRONICLE_TAVERN_ENCOUNTER: EventDef = {
 /** 归海楼比武大会（支线版 — 散人观战；天生道种/玄门走主线版，不在此池） */
 export const CHRONICLE_GUIHAILOU: EventDef = {
     id: 'chronicle_guihailou',
-    name: '归海楼比武大会',
+    name: '归海楼研讨会',
     description: '归海楼广发英雄帖，各派齐聚切磋。你以散人身份受邀观战。',
     placement: [
         {
@@ -89,7 +89,7 @@ export const CHRONICLE_GUIHAILOU: EventDef = {
 /** 青山之巅·六绝比武（排在酒吧杀人之前；奇遇流走主线版，不在此池） */
 export const CHRONICLE_SIX_DUEL: EventDef = {
     id: 'chronicle_six_duel',
-    name: '青山之巅·六绝',
+    name: '青山之巅论剑',
     description: '青山绝顶，六位绝世高手约定比武。你有幸旁观了这一盛事。',
     placement: [
         {
@@ -127,7 +127,7 @@ export const CHRONICLE_SIX_DUEL: EventDef = {
 /** 九朵桃花酒吧杀人事件（支线版 — 目击/听闻；青山论剑在前；奇遇流走主线版，不在此池） */
 export const CHRONICLE_BAR_KILLING: EventDef = {
     id: 'chronicle_bar_killing',
-    name: '九朵桃花之夜',
+    name: '九朵桃花酒吧杀人事件',
     description: '杏花街的九朵桃花酒吧出了事——有人死了。',
     placement: [
         {
@@ -165,7 +165,7 @@ export const CHRONICLE_BAR_KILLING: EventDef = {
 /** 喝酒结拜（学酒功）：需先在酒馆偶遇得酒（got_wine）才会出现 */
 export const CHRONICLE_SWORD_BROTHERS: EventDef = {
     id: 'chronicle_sworn_brothers',
-    name: '酒逢知己',
+    name: '九朵桃花结义',
     description: '你在九朵桃花酒吧遇到一群豪爽之人，喝到兴起，结为兄弟。',
     placement: [
         {

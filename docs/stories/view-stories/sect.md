@@ -1,4 +1,4 @@
-# 天生道种
+# 少年行（天生道种）
 
 > 故事 ID: `sect` | 角色名: 苏念
 > 关联文档: `docs/character-relations.md`, `docs/story.md`

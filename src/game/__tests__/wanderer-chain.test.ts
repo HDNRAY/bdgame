@@ -11,7 +11,7 @@ function candidateAt(eventId: string, index: number) {
     return specs[index].candidates.find((c) => c.eventId === eventId)
 }
 
-describe('奇遇流主线链（第二阶段必遇）', () => {
+describe('朝花夕拾主线链（第二阶段必遇）', () => {
     const wanderer = (
         extra: Record<string, string | number | boolean> = {},
     ): { flags: Record<string, string | number | boolean> } => ({
@@ -83,7 +83,7 @@ describe('奇遇流主线链（第二阶段必遇）', () => {
     })
 })
 
-describe('血海深仇 n12 加入调查科', () => {
+describe('断刀 n12 加入调查科', () => {
     it('n12 非 fallback 主线：加入调查科（feud 专属）', () => {
         const res = resolveNode(specs[11], { story: 'feud' })
         expect(res.mode).toBe('direct')
@@ -99,7 +99,7 @@ describe('血海深仇 n12 加入调查科', () => {
     })
 })
 
-describe('归海楼研讨会（天生道种/玄门主线）', () => {
+describe('归海楼研讨会（少年行/双生祭主线）', () => {
     it('道种 n14 与桑原切磋、n15 表演赛（非 fallback 直接开始）', () => {
         const res14 = resolveNode(specs[13], { story: 'sect' })
         expect(res14.mode).toBe('direct')
@@ -244,7 +244,7 @@ describe('多林寺问禅（禅子）', () => {
         expect(rewardRound?.reward).toEqual({ kind: 'item', pool: 'passive', ids: ['mingjing_zhishui'] })
     })
 
-    it('血海深仇线（未结拜）→ 竹子同事的对话 → 招式', () => {
+    it('断刀线（未结拜）→ 竹子同事的对话 → 招式', () => {
         const choices = branchChoices().filter((c) => evaluateWhen(c.when, { flags: { story: 'feud' } }))
         expect(choices.map((c) => c.id)).toEqual(['feud_reward'])
         const rewardRound = CHANZI_MEDITATION.rounds.find((r) => r.id === 'feud_reward')

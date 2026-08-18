@@ -1,4 +1,4 @@
-# 玄门子弟
+# 双生祭（玄门子弟）
 
 > 故事 ID: `xuanmen` | 角色名: 玄十 → 玄久
 > 关联文档: `docs/character-relations.md`, `docs/story.md`, `docs/the-thing.md`
