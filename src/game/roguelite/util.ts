@@ -28,11 +28,18 @@ export function isWeaponBasicAction(item: RewardEntity, weaponTags: Tag[]): bool
     return item.requiredTags.some((t) => weaponTags.includes(t))
 }
 
-/** 淘汰赛 + 决赛节点（无奖励） */
-export const NO_REWARD_NODES = new Set<number>([29, 30, 31, 33])
+/** 淘汰赛 + 决赛节点（无奖励）；n23 开幕的奖励为轮次级固定功法（不走修炼点配额） */
+export const NO_REWARD_NODES = new Set<number>([23, 29, 30, 31, 33])
 
 /** 不参与修炼点配额的非淘汰赛节点：n2/n3 必为实体奖励（选武器/选招式） */
 export const FIXED_ITEM_NODES = new Set<number>([2, 3])
+
+/** 败场伤势按阶段：一阶段 10 / 二阶段 15 / 三阶段 0（大会输了直接淘汰，伤势不再累积） */
+export function injuryForNode(nodeIndex: number): number {
+    if (nodeIndex <= 11) return 10
+    if (nodeIndex <= 22) return 15
+    return 0
+}
 
 /**
  * 统计从 fromIndex 起到 33 号节点为止，还可能发放修炼点的节点槽数（含当前节点）。

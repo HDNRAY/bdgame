@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
+import { SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  玄门 — 自定义事件
@@ -377,6 +377,48 @@ export const XUANMEN_RENDER_ZUXUN: EventDef = {
             id: 'reward_round',
             title: '那一眼',
             description: '你后来懂了那一眼的意思。懂了之后，你更想装作不懂。',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
+//  二阶段切磋池（n10-21，3 选 1，可空缺）：堂兄玄七试探（御物比斗）
+// ════════════════════════════════════════
+
+/** node 10-21 切磋池：玄七（堂兄，家族内斗背景下试探你的深浅；御物） */
+export const XUANMEN_SPAR_XUANQI: EventDef = {
+    id: 'xuanmen_spar_xuanqi',
+    name: '切磋·玄七',
+    description: '堂兄玄七拦下你：「族里都在传你的事。让我看看，是不是真的。」',
+    placement: [
+        {
+            range: SPAR_RANGE,
+            fallback: true,
+            weight: 2,
+            when: storyRenderWhen('xuanmen', 'xuanmen_spar_xuanqi_done'),
+        },
+    ],
+    effects: [{ kind: 'set', flag: 'xuanmen_spar_xuanqi_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '拦路',
+            description: '玄七是堂兄，嫡系一脉的子弟，御物使得比你熟。他拦下你，语气里带着试探：「族里都在传你的事。手底下见真章吧。」',
+            choices: [{ id: 'combat_round', type: 'continue', label: '比一场' }],
+        },
+        {
+            id: 'combat_round',
+            title: '御物比斗',
+            enemyId: 'heiyun',
+            description: '两件御物在祖宅外的空地上交缠碰撞。玄七出手狠辣，你也毫不相让。最后他收手，眯起眼：「有点意思。族里那些人，你小心。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '收招' }],
+        },
+        {
+            id: 'reward_round',
+            title: '试探',
+            description: '这一场比试，你明白了什么叫树大招风。家族内斗的刀，迟早会架到你脖子上。',
             choices: [],
         },
     ],

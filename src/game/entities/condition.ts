@@ -12,9 +12,11 @@ import { LogicEngine } from 'json-logic-engine'
 /** json-logic 表达式（标准 JSON 对象）。 */
 export type When = Record<string, unknown>
 
-/** 求值上下文：条件统一读 flags（唯一的叙事状态）。 */
+/** 求值上下文：条件统一读 flags（唯一的叙事状态）+ 上一场战斗结果（可选，result.won 胜负分支用）。 */
 export interface FlagContext {
     flags: Record<string, boolean | string | number>
+    /** 上一场战斗结果（赢了进奖励轮 / 输了进失败轮） */
+    result?: { won: boolean }
 }
 
 const _engine = new LogicEngine()

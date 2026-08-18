@@ -71,14 +71,14 @@ describe('完整肉鸽流程（战斗 mock，Math.random 固定保证确定性�
         expect(state.tournamentData?.knockoutStage.championId).toBe('player')
     })
 
-    it('全败 → 伤势满 100 → game over（未走完）', () => {
+    it('全败 → 大会被淘汰 → game over（三阶段败场不再累积伤势，淘汰优先）', () => {
         battle.playerWins = false
         const run = new RogueliteRun()
         const state = driveToEnd(run)
 
         expect(state.finished).toBe(true)
-        expect(state.injury).toBeGreaterThanOrEqual(100)
         expect(state.nodeIndex).toBeLessThan(34)
+        expect(state.tournamentData?.phase).not.toBe('finished') // 未夺冠
     })
 })
 

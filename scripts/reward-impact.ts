@@ -34,7 +34,7 @@ if (!targetId) {
 // simpleGenerate 的奖励数量 = round(len * min(1, n/33))：n<33 时摘奖励会改变总数量，
 // 且 slice 顺位变化会让后面的奖励顶进来，A/B 失真。仅在 n>=33（全额发放）下才准确。
 if (LEVEL < 33) {
-    console.warn(`⚠️  level=${LEVEL}<33：simpleGenerate 按比例发放奖励，摘一件会改变总数与顺位，结果仅供参考`)
+    console.warn(`[提示] level=${LEVEL}<33：simpleGenerate 按比例发放奖励，摘一件会改变总数与顺位，结果仅供参考`)
 }
 
 const def = getOpponentDef(targetId)

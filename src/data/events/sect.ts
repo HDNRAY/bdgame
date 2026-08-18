@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { N2_WEAPON_CHOICES, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
+import { N2_WEAPON_CHOICES, SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  天生道种 — 自定义事件
@@ -317,6 +317,48 @@ export const SECT_RENDER_MEN: EventDef = {
             id: 'reward_round',
             title: '松香',
             description: '你跟着师兄师姐们打完一套拳，天边刚泛起鱼肚白。师父站在台阶上，看了你们一眼，没说话。',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
+//  二阶段切磋池（n10-21，3 选 1，可空缺）：下山历练遇同门方青切磋
+// ════════════════════════════════════════
+
+/** node 10-21 切磋池：方青（同门弟子，下山历练切磋印证） */
+export const SECT_SPAR_FANGQING: EventDef = {
+    id: 'sect_spar_fangqing',
+    name: '切磋·方青',
+    description: '下山历练，在山道上遇上了同门的方青。',
+    placement: [
+        {
+            range: SPAR_RANGE,
+            fallback: true,
+            weight: 2,
+            when: storyRenderWhen('sect', 'sect_spar_fangqing_done'),
+        },
+    ],
+    effects: [{ kind: 'set', flag: 'sect_spar_fangqing_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '山道',
+            description: '方青是同门里和你走得近的弟子。下山历练的路上碰见，他非要跟你比一场：「师兄/师妹，让我看看你这两年长进了多少。」',
+            choices: [{ id: 'combat_round', type: 'continue', label: '切磋' }],
+        },
+        {
+            id: 'combat_round',
+            title: '切磋',
+            enemyId: 'otsu',
+            description: '你俩在山道空地上过了几十招，点到为止。方青收手，喘着气笑：「行啊，山门没白待。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '收招' }],
+        },
+        {
+            id: 'reward_round',
+            title: '印证',
+            description: '同门过招，最能照出自己。你把刚才的路数在心里过了一遍，又记下几处。',
             choices: [],
         },
     ],

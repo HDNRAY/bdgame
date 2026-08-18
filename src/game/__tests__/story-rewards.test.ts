@@ -87,10 +87,10 @@ describe('修炼点动态配额', () => {
         }
     })
 
-    it('机会数统计：地图上可发修炼点的节点槽 = 26（32 − 淘汰赛 4 − n2/n3）', () => {
+    it('机会数统计：地图上可发修炼点的节点槽 = 25（32 − 淘汰赛 4 − n2/n3 − n23 开幕）', () => {
         for (const s of STORIES) {
             const state = pickStory(s.id)
-            expect(countRewardOpportunities(state.nodes, 2), `${s.id} 的机会数不对`).toBe(26)
+            expect(countRewardOpportunities(state.nodes, 2), `${s.id} 的机会数不对`).toBe(25)
         }
     })
 })
@@ -108,7 +108,7 @@ describe('淘汰赛无奖励', () => {
     )
 
     it('小组赛事件有奖励轮', () => {
-        for (const id of ['tournament_open', 'tournament_group_r1', 'tournament_group_r2', 'tournament_group_r3']) {
+        for (const id of ['tournament_group_r1', 'tournament_group_r2', 'tournament_group_r3']) {
             const ev = getEvent(id)!
             expect(ev.reward?.kind).not.toBe('none')
             expect(ev.rounds.some((r) => r.id === 'reward_round')).toBe(true)

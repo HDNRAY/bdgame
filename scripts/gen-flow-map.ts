@@ -40,7 +40,7 @@ const BRANCH_IDS = new Set(['branch_passive', 'branch_action', 'branch_artifact'
 
 /** 大会节点（非故事线，单独成行） */
 const TOURNAMENT_NODES: Record<number, string> = {
-    23: '斗炁大会开幕',
+    23: '斗炁大会开幕（含各线热身赛：赢→前辈授艺，输→无奖励）',
     26: '小组赛·第一轮',
     27: '小组赛·第二轮',
     28: '小组赛收官',
@@ -82,17 +82,17 @@ function nameOf(id: string): string {
     return getEvent(id)?.name ?? id
 }
 
-/** 渲染池事件 → 所属故事线（事件 ID 前缀） */
-const RENDER_PREFIXES: [string, string][] = [
-    ['feud_render_', 'feud'],
-    ['sect_render_', 'sect'],
-    ['xuanmen_render_', 'xuanmen'],
-    ['wanderer_render_', 'wanderer'],
-    ['veteran_render_', 'veteran'],
+/** 故事线专属 fallback 事件 → 所属故事线（事件 ID 前缀；渲染池、切磋等） */
+const STORY_PREFIXES: [string, string][] = [
+    ['feud_', 'feud'],
+    ['sect_', 'sect'],
+    ['xuanmen_', 'xuanmen'],
+    ['wanderer_', 'wanderer'],
+    ['veteran_', 'veteran'],
 ]
 
-function renderStoryOf(id: string): string | undefined {
-    for (const [prefix, story] of RENDER_PREFIXES) if (id.startsWith(prefix)) return story
+function storyOf(id: string): string | undefined {
+    for (const [prefix, story] of STORY_PREFIXES) if (id.startsWith(prefix)) return story
     return undefined
 }
 
@@ -120,8 +120,12 @@ function poolCell(index: number, storyId: string): string {
         if ((storyId === 'sect' || storyId === 'xuanmen') && c.eventId === 'chronicle_guihailou') {
             return false
         }
-        const renderStory = renderStoryOf(c.eventId)
-        if (renderStory) return renderStory === storyId
+        // 玄门御物不涉天工坊
+        if (storyId === 'xuanmen' && (c.eventId === 'tiangong_weapon' || c.eventId === 'tiangong_offhand')) {
+            return false
+        }
+        const story = storyOf(c.eventId)
+        if (story) return story === storyId
         return true
     })
     const chain = CHAIN_ORDER.filter((id) => cands.some((c) => c.eventId === id)).map((id) => `链·${nameOf(id)}`)
@@ -208,7 +212,7 @@ const sorted = [...ALL_EVENTS].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 
 for (const ev of sorted) {
     const nodes = possibleNodes(ev)
     const nodesText = nodes.length > 0 ? nodes.join(', ') : '—（仅被引用）'
-    const chronicle = ev.id.startsWith('chronicle_') ? '✅' : '—'
+    const chronicle = ev.id.startsWith('chronicle_') ? '是' : '—'
     lines.push(`| \`${ev.id}\` | ${ev.name} | ${typeOf(ev.id)} | ${chronicle} | ${nodesText} |`)
 }
 lines.push('')

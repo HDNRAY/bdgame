@@ -4,7 +4,7 @@ import { buildNodeSpecs, resolveNode } from './map-builder'
 import { processTournament, recordPlayerMatchResult, isTournamentEliminated, TOURNAMENT_EVENT_IDS } from '../tournament/integration'
 import { CULT_REWARD, MAX_POINTS_REWARDS } from '../entities/reward'
 import { rewardPool } from './reward-pool'
-import { pickRandom, resolveQuotaRewardType, countRewardOpportunities } from './util'
+import { pickRandom, resolveQuotaRewardType, countRewardOpportunities, injuryForNode } from './util'
 import { WEAPON_DB } from '../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
 import { END_EVENT, type Round, type Choice } from '../../game/entities/round'
@@ -25,6 +25,10 @@ export class RogueliteRun implements RogueliteEngine {
     private _listeners = new Set<(state: GameState) => void>()
     private _state: GameState
     private _eventDef: EventDef | null = null
+    /** 上一场战斗结果（胜负分支：下一轮次可读 result.won） */
+    private _lastCombatResult: { won: boolean } | undefined = undefined
+    /** 大会对手（processTournament 产出）：注入到 id 为 match/group_r0 的战斗轮 */
+    private _pendingTournamentEnemy: string | undefined = undefined
 
     constructor() {
         this._state = {
@@ -40,6 +44,7 @@ export class RogueliteRun implements RogueliteEngine {
             tournamentData: undefined,
             finished: false,
         }
+        this._syncInjuryFlag()
         this._enterNode()
     }
 
@@ -83,6 +88,7 @@ export class RogueliteRun implements RogueliteEngine {
                 break
             case 'heal':
                 this._state.injury = Math.max(0, this._state.injury - 15)
+                this._syncInjuryFlag()
                 this._state.nodeLog.push('恢复 15 伤势')
                 this._advanceRound()
                 break
@@ -144,6 +150,12 @@ export class RogueliteRun implements RogueliteEngine {
         // build/flags/nodeLog 是引用，直接生效；原始值同步回状态
         this._state.unspentPoints = ctx.unspentPoints
         this._state.injury = ctx.injury
+        this._syncInjuryFlag()
+    }
+
+    /** 伤势同步为 flag（when 条件唯一数据源是 flags，医馆等按伤势门控的事件读它） */
+    private _syncInjuryFlag(): void {
+        this._state.flags['injury'] = this._state.injury
     }
 
     private _grantPoints(n: number): void {
@@ -182,7 +194,7 @@ export class RogueliteRun implements RogueliteEngine {
                     id: o.eventId,
                     type: 'event' as const,
                     label: o.label,
-                    description: o.description,
+                    description: this._hintFor(o.eventId, o.description),
                 })),
             })
         } else {
@@ -191,11 +203,26 @@ export class RogueliteRun implements RogueliteEngine {
         }
     }
 
+    /** 池选项提示：按事件是否含战斗 / 奖励类型，在描述里追加「（将进行战斗）」「（+修炼点）」等标记 */
+    private _hintFor(eventId: string, base?: string): string {
+        const ev = getEvent(eventId)
+        const hints: string[] = []
+        if (ev?.rounds.some((r) => r.enemyId || r.enemyPool)) hints.push('将进行战斗')
+        const kind = ev?.reward?.kind
+        if (kind === 'points') hints.push('+修炼点')
+        else if (kind === 'item') hints.push('奖励功法/招式')
+        else if (kind === 'heal') hints.push('疗伤')
+        const suffix = hints.length > 0 ? `（${hints.join(' · ')}）` : ''
+        return base ? `${base}${suffix}` : suffix || '继续'
+    }
+
     // ── 内部：开始事件 ──
 
     private _startEvent(eventId: string): void {
         // 斗炁大会事件：先处理赛程再启动事件
-        let tournamentEnemyId: string | undefined
+        // 对手注入改为挂起，_pushRound 遇到 id 为 match/group_r0 的战斗轮时注入
+        // （n23 开幕有热身赛：小组赛 r0 在热身后打，不能被注入到开幕剧情轮）
+        this._pendingTournamentEnemy = undefined
         if (TOURNAMENT_EVENT_IDS.has(eventId)) {
             const bossId = this._state.flags['tournament_final_boss'] as string | undefined
             const result = processTournament(this._state.tournamentData, eventId, bossId)
@@ -204,7 +231,7 @@ export class RogueliteRun implements RogueliteEngine {
                 this._state.finished = true
                 return
             }
-            tournamentEnemyId = result.opponentId
+            this._pendingTournamentEnemy = result.opponentId
         }
 
         const ev = getEvent(eventId)
@@ -220,9 +247,7 @@ export class RogueliteRun implements RogueliteEngine {
         this._applyEffects(ev.effects)
 
         if (ev.rounds && ev.rounds.length > 0) {
-            const round = { ...ev.rounds[0], choices: [...ev.rounds[0].choices] }
-            if (tournamentEnemyId) round.enemyId = tournamentEnemyId
-            this._pushRound(round)
+            this._pushRound({ ...ev.rounds[0], choices: [...ev.rounds[0].choices] })
             return
         }
 
@@ -240,15 +265,24 @@ export class RogueliteRun implements RogueliteEngine {
 
     private _pushRound(round: Round): void {
         const copy = { ...round, choices: [...round.choices] }
+        // 大会对手注入：遇到 match（各场次）/ group_r0（n23 小组赛 r0）战斗轮时挂入
+        if (this._pendingTournamentEnemy && (copy.id === 'match' || copy.id === 'group_r0')) {
+            copy.enemyId = this._pendingTournamentEnemy
+            this._pendingTournamentEnemy = undefined
+        }
         if (round.choices.length === 0 && this._eventDef) {
             this._fillRewardChoices(copy)
         }
-        // 条件选项：按当前 flags 过滤（如玄门不出现药屋旁支记忆）
-        copy.choices = copy.choices.filter((c) => evaluateWhen(c.when, { flags: this._state.flags }))
+        // 条件选项：按当前 flags + 上一场战斗结果过滤（热身赛胜负分支用 result.won）
+        const whenCtx = { flags: this._state.flags, result: this._lastCombatResult }
+        copy.choices = copy.choices.filter((c) => evaluateWhen(c.when, whenCtx))
         const enemyId = copy.enemyId ?? (copy.enemyPool ? pickRandomOpponentId(copy.enemyPool) : undefined)
         if (enemyId) {
             copy.enemyId = enemyId
             this._executeCombat(copy)
+            this._lastCombatResult = { won: copy.result?.won ?? false }
+        } else {
+            this._lastCombatResult = undefined
         }
         // rewardFilter 是函数，只在填奖励时用；存进 state 后 structuredClone 无法克隆函数
         delete copy.rewardFilter
@@ -373,7 +407,7 @@ export class RogueliteRun implements RogueliteEngine {
 
         const { winner } = runBattle(player, enemy)
         const lost = winner === enemy.id
-        const injuryGained = lost ? 20 : 0
+        const injuryGained = lost ? injuryForNode(this._state.nodeIndex) : 0
 
         round.result = {
             won: !lost,
@@ -382,9 +416,16 @@ export class RogueliteRun implements RogueliteEngine {
         }
 
         this._state.injury += injuryGained
+        this._syncInjuryFlag()
 
         // 斗炁大会：把真实战斗结果写回赛程（决定晋级/出线/夺冠），决赛落败即淘汰
-        if (this._eventDef && TOURNAMENT_EVENT_IDS.has(this._eventDef.id) && this._state.tournamentData) {
+        // 只记录正式场次（match / group_r0）——n23 的热身赛不计胜负
+        if (
+            this._eventDef &&
+            TOURNAMENT_EVENT_IDS.has(this._eventDef.id) &&
+            (round.id === 'match' || round.id === 'group_r0') &&
+            this._state.tournamentData
+        ) {
             this._state.tournamentData = recordPlayerMatchResult(this._state.tournamentData, !lost)
             if (isTournamentEliminated(this._state.tournamentData)) {
                 this._state.finished = true
@@ -412,6 +453,11 @@ export class RogueliteRun implements RogueliteEngine {
     // ── 内部：给奖励 ──
 
     private _grantReward(entityId: string, type: RewardType, slot: 'main' | 'offhand' = 'main'): void {
+        // 去重：已拥有的奖励不再重复给（热身授艺的功法可能在普通池里已有）
+        if (this._state.build.rewards.some((r) => r.id === entityId)) {
+            this._state.nodeLog.push(`已拥有 ${entityId}，跳过`)
+            return
+        }
         this._state.build.rewards.push({
             id: entityId,
             name: entityId,

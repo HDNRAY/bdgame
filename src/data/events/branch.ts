@@ -84,28 +84,52 @@ export const BRANCH_POINTS: EventDef = {
 
 export const BRANCH_HEAL: EventDef = {
     id: 'branch_heal',
-    name: '去医馆治疗',
-    description: '你前往镇上医馆，请老医师为你调理伤势。',
-    placement: POOL_PLACEMENT,
+    name: '宝字堂',
+    description: '你推门走进宝字堂，药香扑面而来。',
+    // 医馆条件化：仅在第二阶段（n22 前）、伤势 ≥50 时出现；第三阶段大会期间不出现
+    placement: [
+        {
+            nodes: [4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
+            fallback: true,
+            weight: 1,
+            when: { '>=': [{ var: 'flags.injury' }, 50] },
+        },
+    ],
     reward: { kind: 'heal' },
     rounds: [
         {
             id: 'clinic',
-            title: '医馆',
-            description: '你前往镇上医馆，请老医师为你调理伤势。',
+            title: '宝字堂',
+            description:
+                '你推门走进宝字堂。柜台后，唐柔正在碾药，抬头看了你一眼：「伤得不轻啊。」里间帘子一掀，竹子走出来，搭了搭你的脉：「坐下。骨头没事，内伤得养。」',
             choices: [{ id: 'reward', type: 'continue', label: '接受治疗' }],
         },
-        { id: 'reward', title: '疗伤', choices: [] },
+        {
+            id: 'reward',
+            title: '疗伤',
+            description: '唐柔递上一碗药，你一口气灌了下去。竹子又开了两剂：「回去按时吃。伤没好利索前，别逞强。」',
+            choices: [],
+        },
     ],
 }
 
-/** 去天工坊找千星打造武器（第一次：第一阶段快结束时出现，3 选 1 池事件，每局至多一次） */
+/** 去天工坊找千星打造武器（第一次：第一阶段快结束时出现，3 选 1 池事件，每局至多一次；玄门御物从小蕴养，不涉天工坊） */
 export const TIANGONG_WEAPON: EventDef = {
     id: 'tiangong_weapon',
     name: '天工坊',
     description: '第一阶段快结束时，你在街上看到了天工坊的招牌。千星正靠在门口擦一把新出炉的兵器。',
     placement: [
-        { nodes: STAGE1_END, fallback: true, weight: 1, when: { '!': { var: 'flags.tiangong_done' } } },
+        {
+            nodes: STAGE1_END,
+            fallback: true,
+            weight: 1,
+            when: {
+                and: [
+                    { '!': { var: 'flags.tiangong_done' } },
+                    { '!': { '==': [{ var: 'flags.story' }, 'xuanmen'] } },
+                ],
+            },
+        },
     ],
     effects: [{ kind: 'set', flag: 'tiangong_done', to: true }],
     reward: { kind: 'item', pool: 'weapon', excludeIds: STARTING_WEAPON_IDS },
@@ -135,7 +159,7 @@ export const TIANGONG_WEAPON: EventDef = {
     ],
 }
 
-/** 天工坊第二次（副手）：第一阶段去过天工坊 + 单手武器 + 未选独臂 → 第三阶段开打前出现 */
+/** 天工坊第二次（副手）：第一阶段去过天工坊 + 单手武器 + 未选独臂 → 第三阶段开打前出现（玄门御物无副手，不出现） */
 export const TIANGONG_OFFHAND: EventDef = {
     id: 'tiangong_offhand',
     name: '天工坊·副手',
@@ -151,6 +175,7 @@ export const TIANGONG_OFFHAND: EventDef = {
                     { '==': [{ var: 'flags.weapon_one_handed' }, true] },
                     { '!': { var: 'flags.one_arm' } },
                     { '!': { var: 'flags.has_offhand' } },
+                    { '!': { '==': [{ var: 'flags.story' }, 'xuanmen'] } },
                 ],
             },
         },

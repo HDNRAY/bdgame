@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { N2_WEAPON_CHOICES, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
+import { N2_WEAPON_CHOICES, SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  奇遇流 — 自定义事件
@@ -359,6 +359,48 @@ export const WANDERER_RENDER_QILAN: EventDef = {
             id: 'reward_round',
             title: '后来',
             description: '后来他被调查部部长相中，进了协会。走的那天他拍了拍你的肩：「照顾好自己。陶朵的事，我迟早查清楚。」',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
+//  二阶段切磋池（n10-21，3 选 1，可空缺）：与发小奇岚切磋
+// ════════════════════════════════════════
+
+/** node 10-21 切磋池：奇岚（发小，雷法——呼应"你从没赢过他"） */
+export const WANDERER_SPAR_QILAN: EventDef = {
+    id: 'wanderer_spar_qilan',
+    name: '切磋·奇岚',
+    description: '奇岚在巷口等你，说要跟你比一场。',
+    placement: [
+        {
+            range: SPAR_RANGE,
+            fallback: true,
+            weight: 2,
+            when: storyRenderWhen('wanderer', 'wanderer_spar_qilan_done'),
+        },
+    ],
+    effects: [{ kind: 'set', flag: 'wanderer_spar_qilan_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '巷口',
+            description: '奇岚在巷口等你，手里转着一枚铜钱：「小时候你从没赢过我。现在呢？」你笑了笑：「现在试试。」',
+            choices: [{ id: 'combat_round', type: 'continue', label: '比一场' }],
+        },
+        {
+            id: 'combat_round',
+            title: '比试',
+            enemyId: 'qilan',
+            description: '他的雷法还是那么快。你全力以赴，终于在他手底下多撑了几招。奇岚收手，眼里有赞许：「有长进，小子。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '收招' }],
+        },
+        {
+            id: 'reward_round',
+            title: '还是没赢',
+            description: '你还是没赢过他。但这一次，你差得不远了。奇岚拍了拍你的肩：「陶朵的事，我迟早查清楚。你等着。」',
             choices: [],
         },
     ],

@@ -31,6 +31,9 @@ export const STAGE3_PRE = [24, 25]
 /** 一阶段中段渲染池节点（n4-7；从 n4 起主角已 7-8 岁。天工坊 n8-10 之前） */
 export const STAGE1_MID = [4, 5, 6, 7]
 
+/** 二阶段切磋池节点范围（n10-21：同辈切磋，3 选 1 池候选，可空缺） */
+export const SPAR_RANGE: [number, number] = [10, 21]
+
 /** 故事激活条件：when 表达式 { "==": [{var:"flags.story"}, id] }。 */
 export function storyWhen(id: string): When {
     return { '==': [{ var: 'flags.story' }, id] }

@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { N2_WEAPON_CHOICES, storyRenderWhen, storyWhen } from './layout'
+import { N2_WEAPON_CHOICES, SPAR_RANGE, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  军旅退伍 — 自定义事件
@@ -288,6 +288,48 @@ export const VETERAN_N19_LIXUEYING: EventDef = {
             id: 'reward_round',
             title: '名字',
             description: '「叛变的人是谁？」你没问出口。你知道迟早会查到的。斗炁大会见。',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
+//  二阶段切磋池（n10-21，3 选 1，可空缺）：军营与斥候李雪影过招
+// ════════════════════════════════════════
+
+/** node 10-21 切磋池：李雪影（军方斥候，白山月手下——n19 提供线索前先交手认识） */
+export const VETERAN_SPAR_LIXUEYING: EventDef = {
+    id: 'veteran_spar_lixueying',
+    name: '切磋·李雪影',
+    description: '校场上，斥候李雪影朝你勾了勾手。',
+    placement: [
+        {
+            range: SPAR_RANGE,
+            fallback: true,
+            weight: 2,
+            when: storyRenderWhen('veteran', 'veteran_spar_lixueying_done'),
+        },
+    ],
+    effects: [{ kind: 'set', flag: 'veteran_spar_lixueying_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '校场',
+            description: '李雪影是白山月手下的斥候，话少，手快。他在校场上拦下你：「过两招。斥候的身手，你早晚用得上。」',
+            choices: [{ id: 'combat_round', type: 'continue', label: '过招' }],
+        },
+        {
+            id: 'combat_round',
+            title: '过招',
+            enemyId: 'lueying',
+            description: '他的路子飘忽，专走你防不住的角度。几轮下来，你吃了不少苦头，也学了不少。',
+            choices: [{ id: 'reward_round', type: 'continue', label: '收手' }],
+        },
+        {
+            id: 'reward_round',
+            title: '领教',
+            description: '李雪影点点头：「不错。以后有事，可以来找我。」你没多想这句话——直到后来你才明白它的分量。',
             choices: [],
         },
     ],

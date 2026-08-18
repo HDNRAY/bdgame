@@ -93,7 +93,7 @@ async function main(): Promise<void> {
     const targetId = process.argv[2]
     const filterDef = targetId ? getOpponentDef(targetId) : null
     if (targetId && !filterDef) {
-        console.error(`❌ 未找到角色: ${targetId}`)
+        console.error(`[未找到角色]: ${targetId}`)
         process.exit(1)
     }
 
@@ -216,12 +216,12 @@ async function main(): Promise<void> {
 
 if (IS_WORKER) {
     workerMain().catch((e) => {
-        console.error('❌ worker 失败:', e)
+        console.error('[worker 失败]:', e)
         process.exit(1)
     })
 } else {
     main().catch((e) => {
-        console.error('❌ 运行失败:', e)
+        console.error('[运行失败]:', e)
         process.exit(1)
     })
 }

@@ -7,6 +7,8 @@ Tech stack: TypeScript + Vite 6 + React 19 + Zustand + CSS Modules + Canvas API.
 
 **编写/修改任何叙事文本（事件文案、故事线、角色背景、设定文档）之前，必须先读 `docs/writing-style.md`**，并按其中规则写作（白描、短句、「」对话、时间锚点、节点结构）。参考文档：`docs/background/town-settings.md`（世界观）、`docs/background/character-relations.md`（角色关联）、`docs/stories/`（各故事线）。
 
+**禁止 emoji**：所有文本（事件文案、UI 文案、角色/故事设定文档、设计文档）一律不得出现 emoji/表情符号（如 ✅❌⚠️🔥⚔💀）。需要"已完成/未完成"类标记时用文字（「已」「未」「是」「否」）代替。
+
 ## RTK (token-saving command compression)
 
 RTK is installed on this machine. When running shell commands via `bash`, **always prefix with `rtk`** where supported to reduce token cost and save on API usage:

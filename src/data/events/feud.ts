@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { N2_WEAPON_CHOICES, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
+import { N2_WEAPON_CHOICES, SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  血海深仇 — 自定义事件
@@ -358,6 +358,48 @@ export const FEUD_RENDER_BAISHAN: EventDef = {
             id: 'reward_round',
             title: '唐刀',
             description: '她腰间的唐刀从来不拔给你看。临走她拍拍你的头：「练好了，哪天我考考你。」',
+            choices: [],
+        },
+    ],
+}
+
+// ════════════════════════════════════════
+//  二阶段切磋池（n10-21，3 选 1，可空缺）：调查科与同期生奇岚切磋
+// ════════════════════════════════════════
+
+/** node 10-21 切磋池：奇岚（调查科同期生，一起训练） */
+export const FEUD_SPAR_QILAN: EventDef = {
+    id: 'feud_spar_qilan',
+    name: '切磋·奇岚',
+    description: '调查科的训练场上，奇岚朝你勾了勾手。',
+    placement: [
+        {
+            range: SPAR_RANGE,
+            fallback: true,
+            weight: 2,
+            when: storyRenderWhen('feud', 'feud_spar_qilan_done'),
+        },
+    ],
+    effects: [{ kind: 'set', flag: 'feud_spar_qilan_done', to: true }],
+    reward: { kind: 'points' },
+    rounds: [
+        {
+            id: 'scene',
+            title: '训练场',
+            description: '奇岚是同期生里最难缠的一个，雷法又快又狠。他站在训练场中央：「闲着也是闲着，过两招。」',
+            choices: [{ id: 'combat_round', type: 'continue', label: '过两招' }],
+        },
+        {
+            id: 'combat_round',
+            title: '对练',
+            enemyId: 'qilan',
+            description: '他的雷法打得你头皮发麻，但你也在交手中学到了怎么抓他的空隙。奇岚收手：「不错，下次办案一起。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '收招' }],
+        },
+        {
+            id: 'reward_round',
+            title: '同期',
+            description: '同期生之间，交情都是打出来的。你记住了一个道理：查案靠眼，也靠这一身本事。',
             choices: [],
         },
     ],
