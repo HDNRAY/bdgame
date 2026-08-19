@@ -7,7 +7,8 @@ export const HAND_POINTS: Record<string, { x: number; y: number }> = {
     idle: { x: 30 + SPRITE_PAD_LEFT, y: 32 },
     attack: { x: 16 + SPRITE_PAD_LEFT, y: 29 },
     dodge: { x: 32 + SPRITE_PAD_LEFT, y: 32 }, // 左移 1 格
-    parry: { x: 28 + SPRITE_PAD_LEFT, y: 19 },
+    // 招架：主手（右手）在面前抬起握拳，位于脸部高度（DEFAULT_PARRY 皮肤像素 29-30,23-24 中心）
+    parry: { x: 29.5 + SPRITE_PAD_LEFT, y: 23.5 },
 }
 
 /**
@@ -18,7 +19,8 @@ export const OTHER_HAND_POINT: Record<string, { x: number; y: number }> = {
     idle: { x: 52.5, y: 31.5 },
     attack: { x: 42, y: 25.5 },
     dodge: { x: 54.5, y: 31.5 }, // 左移 1 格
-    parry: { x: 45 + SPRITE_PAD_LEFT, y: 19 },
+    // 招架：副手（左手）在腰间握持（DEFAULT_PARRY 皮肤像素 39-41,27 / 40-41,28 中心）
+    parry: { x: 40 + SPRITE_PAD_LEFT, y: 27.5 },
 }
 
 /** 各姿势手部覆盖像素（人物精灵坐标）— 用角色皮肤色绘制在握柄上方，制造"握着"效果 */
@@ -44,10 +46,11 @@ export const HAND_COVER: Record<string, [number, number][]> = {
         [33 + SPRITE_PAD_LEFT, 32],
     ],
     parry: [
-        [28 + SPRITE_PAD_LEFT, 19],
-        [29 + SPRITE_PAD_LEFT, 19],
-        [28 + SPRITE_PAD_LEFT, 20],
-        [29 + SPRITE_PAD_LEFT, 20],
+        // 主手：面前抬起握拳（DEFAULT_PARRY 皮肤像素 29-30,23-24）
+        [29 + SPRITE_PAD_LEFT, 23],
+        [30 + SPRITE_PAD_LEFT, 23],
+        [29 + SPRITE_PAD_LEFT, 24],
+        [30 + SPRITE_PAD_LEFT, 24],
     ],
 }
 
@@ -76,46 +79,17 @@ export const LEFT_HAND_COVER: Record<string, [number, number][]> = {
         [55, 32],
     ],
     parry: [
-        [44 + SPRITE_PAD_LEFT, 19],
-        [45 + SPRITE_PAD_LEFT, 19],
-        [44 + SPRITE_PAD_LEFT, 20],
-        [45 + SPRITE_PAD_LEFT, 20],
+        // 副手：腰间握持（DEFAULT_PARRY 皮肤像素 39-41,27 / 40-41,28）
+        [39 + SPRITE_PAD_LEFT, 27],
+        [40 + SPRITE_PAD_LEFT, 27],
+        [41 + SPRITE_PAD_LEFT, 27],
+        [40 + SPRITE_PAD_LEFT, 28],
+        [41 + SPRITE_PAD_LEFT, 28],
     ],
 }
 
 export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
     bare_hands: { pixels: [] },
-    fist: {
-        pixels: [
-            [8, 0, '#ffd700'],
-            [9, 0, '#ffd700'],
-        ],
-    },
-    sword: {
-        pixels: [
-            [8, 3, '#e8e8e8'],
-            [9, 3, '#e8e8e8'],
-            [9, 4, '#d0d0d0'],
-            [10, 4, '#e8e8e8'],
-            [10, 5, '#d0d0d0'],
-            [11, 6, '#d0d0d0'],
-            [7, 7, '#b8860b'],
-            [8, 7, '#daa520'],
-            [9, 7, '#b8860b'],
-        ],
-    },
-    spear: {
-        pixels: [
-            [10, 3, '#996633'],
-            [10, 4, '#996633'],
-            [10, 5, '#996633'],
-            [10, 6, '#996633'],
-            [10, 7, '#996633'],
-            [9, 2, '#e0e0e0'],
-            [10, 2, '#e0e0e0'],
-            [11, 2, '#e0e0e0'],
-        ],
-    },
     zantetsu: {
         pixels: [
             [9, 0, '#3a3a3a'],
@@ -407,10 +381,8 @@ function makePoses(base: WeaponPoseConfig): Record<string, WeaponPoseConfig> {
 
 /** 每武器·每姿势握持配置 — 独立于武器美术。未覆盖字段回落全局 HAND_POINTS / 自动角度规则 */
 export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
+    // 每个武器独立设定（哪怕同类型也不共享），便于逐武器微调 grip/角度/锚定手
     bare_hands: makePoses({ gripX: 0, gripY: 0 }),
-    fist: makePoses({ gripX: 8, gripY: 0 }),
-    sword: makePoses({ gripX: 8, gripY: 7 }),
-    spear: makePoses({ gripX: 10, gripY: 6 }),
     zantetsu: makePoses({ gripX: 9, gripY: 7 }),
     ciyuan_blade: makePoses({ gripX: 8, gripY: 7 }),
     overlord_blade: makePoses({ gripX: 9, gripY: 7 }),
@@ -440,7 +412,11 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
     heshan_sword: makePoses({ gripX: 8, gripY: 7 }),
     dagger: makePoses({ gripX: 8, gripY: -3 }),
     iron_spear: makePoses({ gripX: 10, gripY: -3 }),
-    peach_sword: makePoses({ gripX: 24, gripY: 24 }),
+    // 桃木剑：单手剑。招架时主手锚定（面前抬手），剑身旋转斜穿副手（腰间握持），只给主手遮罩
+    peach_sword: {
+        ...makePoses({ gripX: 24, gripY: 24 }),
+        parry: { gripX: 24, gripY: 24, angle: 2.6857 }, // 剑尖朝右下斜下（穿过副手）
+    },
     qimei_staff: makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
 }
 
