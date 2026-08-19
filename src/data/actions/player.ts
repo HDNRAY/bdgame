@@ -378,7 +378,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             // 血引：以血为引，先耗10%当前气血（不受命中影响，miss 也耗血）
             { type: 'self_hp_cost', ratio: 0.1 },
             // 血凝成滴射出，造成当前气血5%的伤害（≈所耗之血一半，命中后结算）
-            { type: 'functional_damage', fn: ({ self }) => round1(self.hp * 0.05), note: '按当前气血的 5% 造成伤害（所耗之血的一半）' },
+            {
+                type: 'functional_damage',
+                fn: ({ self }) => round1(self.hp * 0.05),
+                note: '按当前气血的 5% 造成伤害（所耗之血的一半）',
+            },
         ],
     },
     {
@@ -559,7 +563,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             return base + extra
         },
         hookNotes: { hitChance: '必中' },
-        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 0.8 }, base: 24 }],
+        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1.2 }, base: 24 }],
     },
     {
         id: 'sword_thrust',
@@ -614,7 +618,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             if (!enemy || enemy.hp / enemy.maxHp >= 0.5) return base
             return 1
         },
-        hookNotes: { critChance: '+50%', critDamage: '+30%' , hitChance: '目标气血低于 50% 时必中' },
+        hookNotes: { critChance: '+50%', critDamage: '+30%', hitChance: '目标气血低于 50% 时必中' },
         effects: [
             { type: 'short_dash', maxDistance: 3 },
             { type: 'damage', scaling: { strength: 0.7, agility: 0.7, dexterity: 0.7 } },
@@ -684,7 +688,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             // 基础10 + 力/身/巧 scaling（命中结算）
             { type: 'damage', scaling: { strength: 0.7, agility: 0.6, dexterity: 0.6 }, base: 10 },
             // 持重型武器（素铁霸刀）时，命中的那一刀额外 +10
-            { type: 'functional_damage', fn: ({ self }) => (self.weaponDef?.tags.includes('heavy') ? 10 : 0), note: '持重型武器时这一刀额外 +10' },
+            {
+                type: 'functional_damage',
+                fn: ({ self }) => (self.weaponDef?.tags.includes('heavy') ? 10 : 0),
+                note: '持重型武器时这一刀额外 +10',
+            },
             // 顺势脱手：霸刀如流星飞向对手，落在对手所在位置
             { type: 'self_disarm', dropAt: 'opponent' },
         ],
@@ -1074,7 +1082,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     const remainingTicks: number[] = (layer.extra?.remainingTicks as number[]) ?? []
                     const totalRemaining = remainingTicks.reduce((s, t) => s + t, 0)
                     state.pendingBuffs.delete(poisonKey)
-                    const AMPLIFY = 1
+                    const AMPLIFY = 4
                     return totalRemaining * DMG_PER_POISON_TICK * AMPLIFY
                 },
                 note: '引爆目标剩余的全部中毒伤害',

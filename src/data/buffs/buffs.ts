@@ -222,6 +222,7 @@ export const BUFF_DB: BuffDef[] = [
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
     { id: 'fumble_track', name: '失心连续', description: '连续失心计数（15秒窗口）。', tags: [] },
     { id: 'steal_artifact_track', name: '盗亦有道', description: '探云手的成功率追踪。', tags: [] },
+    { id: 'venom_gland_insight', name: '毒腺催化', description: '毒腺催化潜能，洞察提升。', tags: [] },
     {
         id: 'summon_haste',
         name: '御物加速',
@@ -542,7 +543,8 @@ export const BUFF_DB: BuffDef[] = [
             forEachBuffOf(state.pendingBuffs, attacker.id, (def, layer) => {
                 if (!def) return
                 if (def.tags?.includes('debuff')) return
-                if (def.expiry?.type === 'permanent') return
+                // 无 expiry 的是内部追踪 buff（stun_track 等计数器），非正式增益，不计入
+                if (!def.expiry || def.expiry.type === 'permanent') return
                 layers += layer.restoreValue ?? 1
             })
             return round1(layers * 0.03)
@@ -724,7 +726,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yu_du_shu',
         name: '剧毒吐纳',
-        description: '剧毒吐纳，每5秒释放毒素。血量越少，毒雾越烈。',
+        description: '剧毒吐纳，每3秒释放毒素。血量越少，毒雾越烈。',
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 3000,
@@ -734,18 +736,15 @@ export const BUFF_DB: BuffDef[] = [
             if (!target) return 0
             const tMs = engine.state.turn.currentTime
             const hpRatio = self.hp / self.maxHp
-            const debuffChance = Math.min(1, Math.max(0, (0.8 - hpRatio) * 0.3))
+            const debuffChance = Math.min(1, Math.max(0, (0.95 - hpRatio) * 0.3))
 
             processActionEffect(
                 { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: debuffChance * 0.5 },
                 { self, enemy: target, engine, tMs },
             )
+            const poisonStacks = hpRatio < 0.5 ? 2 : 1
             processActionEffect(
-                { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: debuffChance },
-                { self, enemy: target, engine, tMs },
-            )
-            processActionEffect(
-                { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 1 },
+                { type: 'add_debuff', buffId: 'poison', stacks: poisonStacks, chance: debuffChance },
                 { self, enemy: target, engine, tMs },
             )
 
@@ -755,9 +754,19 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'gu_tong_body',
         name: '蛊童圣体',
-        description: '从小被炼的毒体，拳脚互传毒。',
+        description: '从小被炼的毒体，拳脚互传毒；每次出招自身蓄毒，毒体不惧自身毒素。',
         tags: [],
         expiry: { type: 'permanent' },
+        // 每次出招自身蓄毒（毒体蕴毒，供毒腺消耗）
+        onAction: ({ attacker, engine, state }) => {
+            if (!engine) return
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
+                { self: attacker, enemy: attacker, engine, tMs: state.turn.currentTime },
+            )
+        },
+        // 毒体对自身毒素减免75%（承受25%）
+        onDebuffTick: ({ buffId, damage }) => (buffId === 'poison' ? round1(damage * 0.25) : undefined),
         onDealDamage: ({ final, target, attacker, engine, source }) => {
             if (source?.tags?.includes('unarmed') && Math.random() < 0.4) {
                 attacker.spendAp(1)
@@ -773,19 +782,82 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
+        id: 'shi_gu_buff',
+        name: '蚀蛊',
+        description: '自幼炼蛊，毒入敌体自行繁衍。你施加的中毒每跳有20%概率加深1层。',
+        tags: ['poison'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        // 施加毒时给目标挂「繁衍」标记（自毒不繁衍，避免自身毒层失控）
+        onDebuffApplied: ({ self, enemy, engine, state, buffId }) => {
+            if (buffId !== 'poison' || !engine || self.id === enemy.id) return
+            const key = `shi_gu_deepen::${enemy.id}`
+            const mark = state.pendingBuffs.get(key)
+            if (mark) {
+                mark.extra = { sourceId: self.id }
+                return
+            }
+            state.pendingBuffs.set(key, { restoreValue: 1, extra: { sourceId: self.id } })
+        },
+    },
+    // 目标身上的繁衍标记：毒 tick 时概率加深（蚀蛊）
+    {
+        id: 'shi_gu_deepen',
+        name: '蚀蛊·繁衍',
+        description: '蛊毒入体自行繁衍，中毒每跳有概率加深。',
+        tags: ['poison'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDebuffTick: ({ buffId, target, engine, layer }) => {
+            if (buffId !== 'poison' || !engine) return undefined
+            const now = engine.state.eventTime
+            // 同一 tick 事件只加深一次（防止叠加层→立即结算→再叠的连环爆炸）
+            if (layer.extra?.lastTick === now) return undefined
+            if (Math.random() >= 0.15) return undefined
+            const sourceId = (layer.extra?.sourceId as string) ?? target.id
+            const atk = engine.getCharacter(sourceId)
+            if (!atk || !atk.isAlive()) return undefined
+            layer.extra = { ...(layer.extra ?? {}), lastTick: now }
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
+                { self: atk, enemy: target, engine, tMs: engine.state.turn.currentTime },
+            )
+            return undefined
+        },
+    },
+    {
+        id: 'yi_ma_xin_yuan',
+        name: '意马心猿',
+        description: '凝神聚气，命中+5%；命中时25%令对手迷惑（推演降低）。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onHitChance: () => 0.05,
+        onDealDamage: ({ final, attacker, target, engine, state }) => {
+            if (engine) {
+                processActionEffect(
+                    { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 0.25 },
+                    { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
+                )
+            }
+            return final
+        },
+    },
+    {
         id: 'venom_gland',
         name: '毒腺',
-        description: '每10秒消耗4层自身毒素，获得1点洞察，持续30秒。不满4层时不触发。',
+        description: '每10秒消耗3层自身毒素，获得1点洞察，持续30秒。不满3层时不触发。',
         tags: [],
         expiry: { type: 'permanent' },
         tickInterval: 10000,
         onTickHeal: ({ attacker: self, engine, state }) => {
             const poisonKey = `poison::${self.id}`
             const poisonLayer = state.pendingBuffs.get(poisonKey)
-            if (!poisonLayer || poisonLayer.restoreValue < 4) return 0
-            poisonLayer.restoreValue -= 4
+            if (!poisonLayer || poisonLayer.restoreValue < 3) return 0
+            poisonLayer.restoreValue -= 3
             if (poisonLayer.restoreValue <= 0) {
                 state.pendingBuffs.delete(poisonKey)
+                state.turn.removeEvents(`tick_poison_${self.id}`)
             }
             const now = state.turn.currentTime
             const appId = `${now}_${Math.random().toString(36).slice(2, 6)}`
@@ -795,7 +867,7 @@ export const BUFF_DB: BuffDef[] = [
             state.turn.scheduleSystemEventAt(`buff_end_${key}`, now + 30000, 'buff_end')
             engine?.emitLog({
                 type: 'system',
-                message: `[毒腺] ${self.name} 消耗4层毒，洞察+1（30s）`,
+                message: `[毒腺] ${self.name} 消耗3层毒，洞察+1（30s）`,
                 actorId: self.id,
             })
             return 0
@@ -1287,8 +1359,7 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         attrMods: { wisdom: -2 },
         onReceiveDebuff: (ctx) => {
-            if (ctx.buffId === 'confuse') return 0
-            if (ctx.buffId === 'fumble_chance_temp') {
+            if (ctx.buffId === 'fumble_chance_temp' || ctx.buffId === 'confuse') {
                 const { success } = calcRoll(0.6)
                 if (success) return 0
             }

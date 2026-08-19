@@ -111,14 +111,27 @@ export class TickEngine {
         if (engine.state.pendingBuffs.has(`poison_resist::${enemy.id}`)) {
             dmg = Math.round(dmg * 0.3 * 10) / 10
         }
-        enemy.takeDamage(dmg, engine)
+        // onDebuffTick：遍历目标 buff 修改 DOT 伤害（与 onPoisonTick 一致，毒体/铸火等免疫生效）
+        let finalDmg = dmg
+        forEachBuffOf(engine.state.pendingBuffs, enemy.id, (bDef, layer2) => {
+            if (!bDef?.onDebuffTick) return
+            const result = bDef.onDebuffTick({
+                buffId: 'poison',
+                target: enemy,
+                damage: finalDmg,
+                engine,
+                layer: layer2,
+            })
+            if (result !== undefined) finalDmg = result
+        })
+        enemy.takeDamage(finalDmg, engine)
         const buffName = getBuff('poison')?.name ?? '中毒'
         engine.emitLog({
             type: 'system',
             message: BattleLog.msg(
                 buffName,
                 enemy.name,
-                `${stacks}层×${DMG_PER_POISON_TICK}${mult > 1 ? `×${mult}` : ''}=${dmg}伤害`,
+                `${stacks}层×${DMG_PER_POISON_TICK}${mult > 1 ? `×${mult}` : ''}=${finalDmg}伤害`,
             ),
             actorId: enemy.id,
         })
@@ -195,7 +208,7 @@ export class TickEngine {
             sourceId: (entry.sourceId as string) ?? '?',
             targetId: char.id,
             status: buffName,
-            amount: dmg,
+            amount: round1(finalDmg),
         })
         if (dmg > 0) {
             engine.emit('on_took_damage', char, char)

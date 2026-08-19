@@ -114,7 +114,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'venom_gland',
         name: '毒腺',
-        description: '每10秒消耗4层自身毒素，获得1点洞察，持续30秒。不满4层时不触发。',
+        description: '每10秒消耗3层自身毒素，获得1点洞察，持续30秒。不满3层时不触发。',
         tags: ['implant', 'inherent', 'poison'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'venom_gland' }] }],
     },
@@ -387,6 +387,13 @@ export const ARTIFACTS: Artifact[] = [
         description: '从小被蛊毒炼就的毒体。拳掌互击时双方各半概率叠毒。',
         tags: ['inherent', 'poison'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'gu_tong_body' }] }],
+    },
+    {
+        id: 'shi_gu',
+        name: '蚀蛊',
+        description: '自幼炼蛊，毒入敌体自行繁衍蚀骨。你施加的中毒每跳有20%概率加深1层。',
+        tags: ['inherent', 'poison'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'shi_gu_buff' }] }],
     },
     {
         id: 'chan_orb',

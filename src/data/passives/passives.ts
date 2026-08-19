@@ -588,6 +588,13 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yu_du_shu' }] }],
     },
     {
+        id: 'yi_ma_xin_yuan',
+        name: '意马心猿',
+        description: '心猿意马，劲力扰神。凝神聚气提升命中，命中时令对手心神被扰。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yi_ma_xin_yuan' }] }],
+    },
+    {
         id: 'tongtian',
         name: '通天录',
         description: '悟生离死别，所有伤害受推演按AP加成。',

@@ -340,8 +340,11 @@ export const DEBUFF_DB: BuffDef[] = [
                 return 0
             }
 
-            // 扣 AP（2/秒）
-            atk.ap = Math.max(0, atk.ap - 2)
+            // 本秒伤害：只要绞杀仍存在就先结算（含松脱那一秒）
+            const dmg = round1(atk.attrs.get('vitality') * 0.5)
+
+            // 扣 AP（1/秒）
+            atk.ap = Math.max(0, atk.ap - 1)
             atk.lastApUpdate = engine!.state.turn.currentTime
 
             // 刷新对手眩晕（保持锁定）
@@ -352,7 +355,7 @@ export const DEBUFF_DB: BuffDef[] = [
                 )
             }
 
-            // 力道挣脱
+            // 力道挣脱 → 松脱但仍结算本秒伤害
             const vicStr = defender.attrs.get('strength')
             const atkStr = atk.attrs.get('strength')
             if (vicStr > atkStr && Math.random() < (vicStr - atkStr) * 0.1) {
@@ -362,17 +365,16 @@ export const DEBUFF_DB: BuffDef[] = [
                     message: `[绞杀] ${defender.name} 奋力挣脱了束缚！`,
                     actorId: defender.id,
                 })
-                return 0
+                return dmg
             }
 
-            // AP 耗尽 → 提前结束
+            // AP 耗尽 → 松脱但仍结算本秒伤害
             if (atk.ap <= 0) {
                 engine!.state.pendingBuffs.delete(`choke::${defender.id}`)
-                return 0
+                return dmg
             }
 
-            // 正常 tick 伤害
-            return round1(atk.attrs.get('vitality') * 0.5)
+            return dmg
         },
     },
     {

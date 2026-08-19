@@ -11,23 +11,25 @@ export const DUOER: OpponentDef = {
     battleStyle: 'melee',
     targetAttrs: DUOER_ATTRS,
     rewards: [
+        action('ba_gua_you_shen_zhang'),
         artifact('gu_tong_body'),
         passive('yu_du_shu'),
-        action('palm_strike'),
         artifact('venom_gland'),
-        action('poison_detonate'),
+        artifact('shi_gu'),
+        passive('yi_ma_xin_yuan'),
         action('blood_droplet'),
         artifact('combat_chip'),
         artifact('marrow_pump'),
+        action('blood_qi_protection'),
         action('rear_naked_choke'),
-        action('straight_punch'),
+        action('poison_detonate'),
         action('kick'),
-        // 11
+        // 13
     ],
     actionConfigs: [
         { actionId: 'blood_droplet', triggerId: 'on_opponent_move_away' }, // AI 出招顺序
         { actionId: 'kick', triggerId: 'on_dodge' },
-        { actionId: 'rear_naked_choke', conditionId: 'distance_lt_3' },
+        { actionId: 'rear_naked_choke', conditionId: 'distance_lt_2' },
     ],
     taunt: () => '对不起……我没得选。',
 }
