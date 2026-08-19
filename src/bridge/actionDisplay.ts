@@ -55,7 +55,7 @@ export function describeActionNotes(action: ActionDefinition, remainingUses?: nu
         const staticRange = evalStaticRange(action)
         if (staticRange) extra.push(`范围 ${staticRange[0]}-${staticRange[1]}`)
     }
-    if (action.maxUses !== undefined) extra.push(`上限 ${action.maxUses}次`)
+    if (action.maxUses !== undefined) extra.push(`可用 ${action.maxUses} 次`)
     if (remainingUses !== undefined && isFinite(remainingUses)) extra.push(`剩余 ${remainingUses}次`)
     if (action.requiredTags && action.requiredTags.length > 0) extra.push(`需: ${action.requiredTags.join('/')}`)
     if (action.requireAttrsMin) {
