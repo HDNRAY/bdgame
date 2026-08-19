@@ -13,6 +13,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         extraStunTime: 1000,
         tags: ['move', 'slash'],
         canUse: (attacker, state) => state.pendingBuffs.has('iaijutsu::' + attacker.id),
+        hookNotes: { canUse: '居合架势中才可释放' },
         effects: [
             { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 1.6 } },
@@ -28,6 +29,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['buff', 'post_action'],
         target: 'self',
         canUse: (attacker, state) => hasNoStance(state.pendingBuffs, attacker.id),
+        hookNotes: { canUse: '无架势时才可纳刀' },
         effects: [{ type: 'add_buff', buffId: 'iaijutsu' }],
     },
     {
@@ -175,6 +177,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         target: 'enemy',
         maxUses: 1,
         getRange: () => [0, 5] as [number, number],
+        hookNotes: { hitChance: '必中' },
         effects: [
             { type: 'fixed_damage', value: 25 },
             { type: 'add_debuff', buffId: 'burn', stacks: 8, chance: 1 },
@@ -193,6 +196,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['range', 'summon'],
         getRange: (_wr, self) => [1, 1 + Math.round((self?.attrs.get('wisdom') ?? 1) / 2)] as [number, number],
+        hookNotes: { range: '1 至 1+推演/2' },
         effects: [{ type: 'fixed_damage', value: 3 }],
         extraPreDelay: 400,
         extraStunTime: 600,
@@ -225,6 +229,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
                     const close = Math.max(0, 8 - dist) / 7
                     return round1(1 + self.attrs.get('wisdom') * 0.1 * close)
                 },
+                note: '距离越近伤害越高（贴身最高）',
             },
         ],
         // 七根丝高频：短前后摇 → 约 2.5s 一轮，定位频率/触发流（每击触发 on_hit）
@@ -299,6 +304,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['pre_action', 'buff'],
         target: 'self',
         canUse: (attacker, state) => !state.pendingBuffs.has('bean_buff::' + attacker.id),
+        hookNotes: { canUse: '已有豆子增益时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'bean_buff' }],
     },
     {
@@ -371,6 +377,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         getRange: () => [2, 4] as [number, number],
         onActionHitChance: (base) => base + 0.1,
         onActionCritChance: (base) => base + 0.1,
+        hookNotes: { hitChance: '+10%', critChance: '+10%' },
         effects: [{ type: 'damage', scaling: { agility: 0.2, dexterity: 0.2 } }],
     },
     // ── 战术腰包 ──
@@ -418,6 +425,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['pierce', 'range', 'thrown'],
         getRange: () => [1, 6] as [number, number],
         onActionHitChance: (base) => base + 0.1,
+        hookNotes: { hitChance: '+10%' },
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 3, independentHits: 27, piercing: 2 }],
         maxUses: 1,
     },
@@ -471,6 +479,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
             { type: 'add_buff', buffId: 'caltrops_cd' },
         ],
         canUse: (attacker, state) => !state.pendingBuffs.has(`caltrops_cd::${attacker.id}`),
+        hookNotes: { canUse: '冷却中不可用' },
     },
     {
         id: '_oil_splash',
@@ -490,6 +499,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['debuff', 'post_action', 'internal'],
         canUse: (attacker, state) => !state.pendingBuffs.has(`smoke_bomb_cd::${attacker.id}`),
+        hookNotes: { canUse: '冷却中不可用' },
         effects: [
             { type: 'add_buff', buffId: 'smoke_bomb_cd' },
             { type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 1 },

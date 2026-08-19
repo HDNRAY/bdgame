@@ -82,8 +82,8 @@ export type EffectDef =
               sourceTags?: string[],
           ) => { skip?: boolean; delta?: number } | null
       }
-    | { type: 'functional_damage'; fn: (ctx: FunctionalEffectCtx) => number; piercing?: number }
-    | { type: 'functional_heal'; fn: (ctx: FunctionalEffectCtx) => number }
+    | { type: 'functional_damage'; fn: (ctx: FunctionalEffectCtx) => number; piercing?: number; note?: string }
+    | { type: 'functional_heal'; fn: (ctx: FunctionalEffectCtx) => number; note?: string }
 
 /** 招式定义 —— 纯数据 */
 export interface ActionDefinition extends GameEntity {
@@ -102,6 +102,17 @@ export interface ActionDefinition extends GameEntity {
     maxUses?: number
     /** 自定义释放条件（返回 false 则不可使用） */
     canUse?: (attacker: Character, state: BattleState) => boolean
+    /**
+     * 各 hooks 的说明（tooltip 显示用；hitChance/critChance/critDamage 只写数值如 '+25%'，
+     * canUse/range 写短句如 '需缠劲≥18'/'依武器而定且+1'）。缺省该字段时 tooltip 兜底提示"随战斗变化"。
+     */
+    hookNotes?: {
+        hitChance?: string
+        critChance?: string
+        critDamage?: string
+        canUse?: string
+        range?: string
+    }
     extraPreDelay?: number
     extraStunTime?: number
     /**

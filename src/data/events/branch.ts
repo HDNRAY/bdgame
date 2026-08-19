@@ -6,10 +6,14 @@ import { STARTING_WEAPONS } from '../weapons/starting-weapons'
 
 const STARTING_WEAPON_IDS = STARTING_WEAPONS.map((w) => w.id)
 
-/** 双持副手候选（单手非御物坊中名器）。 */
-const OFFHAND_CHOICES = WEAPON_DB.filter((w) => w.tags.includes('one_handed') && !w.tags.includes('imperial')).map(
-    (w) => ({ id: w.id, label: w.name, description: w.description, slot: 'offhand' as const }),
-)
+/** 天工坊副手候选：固定 3 把轻短刃（选项保持 3 个，移动端友好） */
+const OFFHAND_WEAPON_IDS = ['special_forces_dagger', 'chun_lei', 'yanling_blade']
+const OFFHAND_CHOICES = WEAPON_DB.filter((w) => OFFHAND_WEAPON_IDS.includes(w.id)).map((w) => ({
+    id: w.id,
+    label: w.name,
+    description: w.description,
+    slot: 'offhand' as const,
+}))
 
 /** 通用支线池放置（fallback：未被故事/固定事件占据的节点槽都可出现）。 */
 const POOL_PLACEMENT = [{ nodes: POOL_NODES, fallback: true, weight: 1 }]

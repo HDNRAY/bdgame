@@ -18,6 +18,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'guard_up' }],
         canUse: (attacker, state) => !state.pendingBuffs.has(`guard_up::${attacker.id}`),
+        hookNotes: { canUse: '已有听潮状态时不可重复' },
     },
     {
         id: 'wind_hear',
@@ -29,6 +30,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'wind_hear_buff' }],
         canUse: (attacker, state) => !state.pendingBuffs.has(`wind_hear_buff::${attacker.id}`),
+        hookNotes: { canUse: '已有听风状态时不可重复' },
     },
     {
         id: 'wan_liu_gui_zong',
@@ -46,6 +48,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             const rangeWeapon = enemy.weaponDef?.tags.includes('range') ?? false
             return hasRangeAction || rangeWeapon
         },
+        hookNotes: { canUse: '仅对手有远程手段时才招架' },
         effects: [{ type: 'add_buff', buffId: 'wan_liu_gui_zong' }],
     },
     {
@@ -60,6 +63,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             if (state.pendingBuffs.has(`blood_qi_protection::${attacker.id}`)) return false
             return true
         },
+        hookNotes: { canUse: '已有护体时不可重复' },
         effects: [
             { type: 'add_buff', buffId: 'blood_qi_protection' },
             {
@@ -75,6 +79,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
                     if (layer) layer.restoreValue = totalRecovery
                     return 0
                 },
+                note: '消耗当前气血 15% 转为护体（血太少则无法发动）',
             },
         ],
     },
@@ -87,7 +92,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         chanCost: 50,
         tags: ['buff', 'pre_action'],
         target: 'self',
-        canUse: (attacker) => attacker.chan >= 50,
         effects: [{ type: 'add_buff', buffId: 'gear_shift_buff', stacks: 1 }],
     },
     {
@@ -99,7 +103,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         chanCost: 15,
         tags: ['buff', 'pre_action', 'qi'],
         target: 'self',
-        canUse: (attacker) => attacker.chan >= 15,
         effects: [{ type: 'add_buff', buffId: 'cang_niao_buff' }],
     },
     {
@@ -124,6 +127,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             const enemy = state.characters.find((c) => c.id !== attacker.id)
             return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
         },
+        hookNotes: { canUse: '对手已致盲时不可重复' },
         effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 1 }],
     },
     {
@@ -137,6 +141,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         target: 'self',
         // 入戏中不能重复释放（有 buff 时禁用）
         canUse: (attacker, state) => !state.pendingBuffs.has(`dao_ma_dan::${attacker.id}`),
+        hookNotes: { canUse: '已入戏时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'dao_ma_dan' }],
     },
     {
@@ -174,6 +179,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         target: 'self',
         getRange: () => [2, 6] as [number, number],
         canUse: (attacker) => attacker.attrs.get('strength') >= 10,
+        hookNotes: { canUse: '被卸械时才能使用' },
         effects: [{ type: 'dash', minRange: 2, maxRange: 6, targetDist: 1 }],
     },
     {
@@ -196,6 +202,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         target: 'self',
         getRange: () => [1, 8] as [number, number],
         canUse: (attacker) => attacker.attrs.get('agility') >= 10,
+        hookNotes: { canUse: '被卸械时才能使用' },
         effects: [{ type: 'dash', minRange: 1, maxRange: 8, targetDist: 1 }],
     },
     {
@@ -252,6 +259,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['pre_action', 'retrieve_weapon'],
         target: 'self',
         canUse: (attacker, state) => state.pendingBuffs.has('disarmed::' + attacker.id),
+        hookNotes: { canUse: '被卸械时才能拾刀' },
         effects: [{ type: 'short_dash', maxDistance: 2 }, { type: 'retrieve_weapon' }],
     },
     {
@@ -270,6 +278,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             if (dropPos === undefined) return true
             return Math.abs(state.position.get(attacker.id) - dropPos) <= 1
         },
+        hookNotes: { canUse: '被卸械时才能拾起' },
         effects: [{ type: 'retrieve_weapon' }],
     },
     {
@@ -281,7 +290,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['buff', 'pre_action'],
         target: 'self',
         chanCost: MAX_CHAN,
-        canUse: (attacker) => attacker.chan >= MAX_CHAN,
         effects: [{ type: 'add_buff', buffId: 'santou_liubi', stacks: 2 }],
     },
     {
@@ -298,6 +306,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             const enemy = state.characters.find((c) => c.id !== attacker.id)
             return !!enemy && enemy.artifactDefs.some((a) => !a.tags.includes('inherent'))
         },
+        hookNotes: { canUse: '对手持有奇物时才可窃取' },
         effects: [{ type: 'steal_artifact' }],
     },
     {
@@ -312,6 +321,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             const enemy = state.characters.find((c) => c.id !== attacker.id)
             return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
         },
+        hookNotes: { canUse: '对手已致盲时不可重复' },
         effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 1 }],
     },
     {
@@ -323,6 +333,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['buff', 'pre_action', 'qi'],
         target: 'self',
         canUse: (_attacker, state) => !state.pendingBuffs.has('ciyuan_blade::' + _attacker.id),
+        hookNotes: { canUse: '已凝出灵剑时不可重复' },
         effects: [{ type: 'ciyuan_init' }, { type: 'add_buff', buffId: 'ciyuan_blade' }],
     },
     // ── 御物系 ──
@@ -345,6 +356,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['imperial', 'qi', 'post_action', 'defense'],
         target: 'self',
         canUse: (self, state) => !state.pendingBuffs.has(`qi_shield::${self.id}`),
+        hookNotes: { canUse: '已有炁盾时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 2 }],
     },
     {
@@ -364,6 +376,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             })
             return layers < MAX_STAT_TRANSFER_LAYERS
         },
+        hookNotes: { hitChance: '必中' },
         effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 3000 }],
     },
     {
@@ -375,6 +388,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['imperial', 'summon'],
         // 必定命中：跟随召唤物命中触发，不额外滚命中判定
         onActionHitChance: () => 1,
+        hookNotes: { hitChance: '必中' },
         effects: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 }],
     },
     {
@@ -397,8 +411,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         chanCost: 10,
         tags: ['heal', 'qi', 'pre_action'],
         target: 'self',
-        canUse: (attacker) => attacker.chan >= 10,
-        effects: [{ type: 'functional_heal', fn: ({ self }) => Math.max(5, Math.round(self.hp * 0.05)) }],
+        effects: [{ type: 'functional_heal', fn: ({ self }) => Math.max(5, Math.round(self.hp * 0.05)), note: '回复当前血量 5%（最少 5 点）' }],
     },
     {
         id: 'chanzi_stance',
@@ -409,7 +422,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         chanCost: 15,
         tags: ['buff', 'qi', 'pre_action'],
         target: 'self',
-        canUse: (attacker) => attacker.chan >= 15,
         effects: [{ type: 'add_buff', buffId: 'chanzi_stance' }],
     },
     {
@@ -422,6 +434,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['defense', 'buff', 'pre_action'],
         target: 'self',
         canUse: (attacker, state) => !state.pendingBuffs.has(`jin_zhong_zhao::${attacker.id}`),
+        hookNotes: { canUse: '已有金钟罩时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'jin_zhong_zhao' }],
     },
     {
@@ -434,7 +447,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['move', 'pre_action'],
         target: 'self',
         getRange: () => [0, 12] as [number, number],
-        canUse: (attacker) => attacker.chan >= 3,
         effects: [{ type: 'dash', maxRange: 4, targetDist: 0 }],
     },
 ]

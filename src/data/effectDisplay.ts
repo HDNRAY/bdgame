@@ -29,10 +29,16 @@ export function describeEffect(eff: EffectDef): string[] {
             const s = fmtScaling(eff.scaling, eff.base)
             const parts = [`伤害: ${s}`]
             if (eff.piercingRatio) parts.push(`穿透${(eff.piercingRatio * 100).toFixed(0)}%`)
+            if (eff.piercing) parts.push(`穿透 ${eff.piercing}`)
+            if (eff.independentHits) parts.push(`独立命中 ${eff.independentHits} 段`)
             return parts
         }
-        case 'fixed_damage':
-            return [`固定伤害: ${eff.value}`]
+        case 'fixed_damage': {
+            const parts = [`固定伤害: ${eff.value}`]
+            if (eff.piercing) parts.push(`穿透 ${eff.piercing}`)
+            if (eff.independentHits) parts.push(`独立命中 ${eff.independentHits} 段`)
+            return parts
+        }
         case 'heal':
             return eff.ratio ? [`回复: ${eff.value} + 最大HP×${(eff.ratio * 100).toFixed(0)}%`] : [`回复: ${eff.value}`]
         case 'add_debuff': {
@@ -149,9 +155,9 @@ export function describeEffect(eff: EffectDef): string[] {
         case 'dex_to_str':
             return [`以巧借力: 灵巧×${eff.ratio} → 力道`]
         case 'functional_damage':
-            return ['函数伤害: 视条件而定']
+            return eff.note ? [eff.note] : ['函数伤害: 视条件而定']
         case 'functional_heal':
-            return ['函数回复: 视条件而定']
+            return eff.note ? [eff.note] : ['函数回复: 视条件而定']
         case 'self_disarm':
             return [eff.dropAt === 'opponent' ? '自卸武器（兵器飞向对手）' : '自卸武器']
         case 'copy_best_passive':

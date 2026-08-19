@@ -312,9 +312,11 @@ export class RogueliteRun implements RogueliteEngine {
         // 奖励规格：轮次级优先
         const spec: RewardSpec | undefined = round.reward ?? ev.reward
 
-        // 固定奖励（如 n2 选武器、回忆三选一）——不走配额
+        // 固定奖励（如 n2 选武器、回忆三选一）——不走配额；选项超过 3 个时随机抽 3（n2 兵器 5 抽 3，空手随机出现）
         if (spec?.kind === 'fixed') {
-            round.choices = spec.choices.map(
+            const pool = spec.choices
+            const picked = pool.length > 3 ? pickRandom(pool, 3) : pool
+            round.choices = picked.map(
                 (c): Choice => ({
                     id: c.id,
                     type: (c.type ?? 'weapon') === 'points' ? 'points' : 'weapon',

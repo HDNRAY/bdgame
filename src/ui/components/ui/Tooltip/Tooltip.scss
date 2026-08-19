@@ -94,6 +94,13 @@
         color: var(--color-ap);
         font-size: var(--font-md);
         font-weight: bold;
+        white-space: nowrap;
+
+        .tt-chan-cost {
+            color: var(--color-text-dim);
+            font-size: var(--font-md);
+            font-weight: bold;
+        }
     }
 
     .tt-label {

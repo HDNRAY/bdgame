@@ -1,10 +1,31 @@
 import { useState } from 'react'
 import type { Round } from '../../../game/entities/round'
-import { getEntity, isEntityType } from '../../../bridge/entity-tooltip'
-import { EntityItem } from '../ui/EntityItem/EntityItem'
+import { getEntity, isEntityType, type EntityDef, type EntityType } from '../../../bridge/entity-tooltip'
 import { useTypewriter } from '../../hooks/useTypewriter'
 import { useAppStore } from '../../stores/app-store'
+import { WeaponTooltip } from '../tooltip-contents/WeaponTooltip'
+import { ActionTooltip } from '../tooltip-contents/ActionTooltip'
+import { PassiveTooltip } from '../tooltip-contents/PassiveTooltip'
+import { ArtifactTooltip } from '../tooltip-contents/ArtifactTooltip'
+import type { WeaponDef } from '../../../data/weapons/weapons'
+import type { ActionDefinition, Artifact, Passive } from '../../../engine'
 import './RoundCard.scss'
+
+/** 实体详情内联块：把 tooltip 内容直接铺在选项卡里（移动端无 hover，内容必须可见） */
+function EntityDetails({ entity, type }: { entity: EntityDef; type: EntityType }) {
+    switch (type) {
+        case 'weapon':
+            return <WeaponTooltip weapon={entity as WeaponDef} />
+        case 'action':
+            return <ActionTooltip action={entity as ActionDefinition} />
+        case 'passive':
+            return <PassiveTooltip passive={entity as Passive} />
+        case 'artifact':
+            return <ArtifactTooltip artifact={entity as Artifact} />
+        default:
+            return null
+    }
+}
 
 function ChoiceButton({
     choice,
@@ -19,15 +40,22 @@ function ChoiceButton({
 }) {
     const entity = isEntityType(choice.type) ? (getEntity(choice.id, choice.type) ?? null) : null
     const eType = isEntityType(choice.type) ? choice.type : null
+    // 实体选项：内联详情已含实体描述，外部 choice.description 若与之相同则去重（保留叙事类附加描述）
+    const descDup = !!entity && !!choice.description && choice.description === entity.description
 
     return (
         <div className={`rc-choice${selected ? ' rc-choice-selected' : ''}`} onClick={() => onSelect(index)}>
             {entity && eType ? (
-                <EntityItem entity={entity} type={eType} />
+                <div className="rc-entity">
+                    <span className="rc-label">{entity.name}</span>
+                    <div className="rc-entity-details">
+                        <EntityDetails entity={entity} type={eType} />
+                    </div>
+                </div>
             ) : (
                 <span className="rc-label">{choice.label}</span>
             )}
-            {choice.description && <span className="rc-desc-text">{choice.description}</span>}
+            {!descDup && choice.description && <span className="rc-desc-text">{choice.description}</span>}
         </div>
     )
 }

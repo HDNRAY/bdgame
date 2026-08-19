@@ -50,7 +50,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 5,
         chanCost: 18,
-        canUse: (attacker) => attacker.chan >= 18,
         tags: ['unarmed', 'melee'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
@@ -141,7 +140,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 5,
         chanCost: 20,
-        canUse: (attacker) => attacker.chan >= 20,
         tags: ['unarmed', 'melee'],
         effects: [
             { type: 'damage', scaling: { strength: 0.2 } },
@@ -170,9 +168,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'melee', 'qi'],
         getRange: () => [0, 4],
         chanCost: 18,
-        canUse: (attacker) => attacker.chan >= 18,
         onActionHitChance: (base) => base + 0.25,
         onActionCritChance: (base) => base + 0.2,
+        hookNotes: { hitChance: '+25%', critChance: '+20%' },
         effects: [{ type: 'damage', scaling: { strength: 0.6, agility: 0.6, wisdom: 0.6 } }],
     },
     {
@@ -219,10 +217,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         chanCost: 30,
         tags: ['unarmed', 'qi'],
-        canUse: (attacker) => attacker.chan >= 30,
         onActionHitChance: (base) => base + 0.1,
         onActionCritChance: (base) => base + 0.2,
         onActionCritDamage: (base) => base + 0.2,
+        hookNotes: { hitChance: '+10%', critChance: '+20%', critDamage: '+20%' },
         effects: [{ type: 'damage', scaling: { strength: 0.8, vitality: 0.8, wisdom: 0.8 } }],
     },
     {
@@ -292,10 +290,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         chanCost: 16,
         tags: ['unarmed', 'melee'],
-        canUse: (attacker) => attacker.chan >= 16,
         onActionCritDamage: (base) => base + 0.2,
         onActionCritChance: (base) => base + 0.2,
         onActionHitChance: (base) => base + 0.2,
+        hookNotes: { hitChance: '+20%', critChance: '+20%', critDamage: '+20%' },
         effects: [
             { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.8, agility: 0.6, dexterity: 0.4 } },
@@ -308,7 +306,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 4,
         chanCost: 20,
-        canUse: (attacker) => attacker.chan >= 20,
         tags: ['unarmed', 'qi', 'pierce'],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
@@ -350,6 +347,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'qi', 'range'],
         getRange: () => [0, 8] as [number, number],
         onActionHitChance: (base) => base + 0.2,
+        hookNotes: { hitChance: '+20%' },
         effects: [{ type: 'damage', scaling: { strength: 0.4, vitality: 0.4, wisdom: 0.4 } }],
     },
     // ── 暗器系 ──
@@ -375,11 +373,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['qi', 'unarmed', 'range'],
         getRange: () => [2, 4],
         onActionHitChance: (base) => base + 0.2,
+        hookNotes: { hitChance: '+20%' },
         effects: [
             // 血引：以血为引，先耗10%当前气血（不受命中影响，miss 也耗血）
             { type: 'self_hp_cost', ratio: 0.1 },
             // 血凝成滴射出，造成当前气血5%的伤害（≈所耗之血一半，命中后结算）
-            { type: 'functional_damage', fn: ({ self }) => round1(self.hp * 0.05) },
+            { type: 'functional_damage', fn: ({ self }) => round1(self.hp * 0.05), note: '按当前气血的 5% 造成伤害（所耗之血的一半）' },
         ],
     },
     {
@@ -391,6 +390,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['pierce', 'range', 'thrown'],
         getRange: () => [1, 5] as [number, number],
         onActionHitChance: (base) => base + 0.1,
+        hookNotes: { hitChance: '+10%' },
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     {
@@ -552,13 +552,13 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         chanCost: 50,
         tags: ['pierce', 'qi', 'range'],
         getRange: () => [0, 10] as [number, number],
-        canUse: (attacker) => attacker.chan >= 50,
         onActionHitChance: () => 1,
         onActionCritChance: (base, state, self) => {
             const enemy = state.characters.find((c) => c.id !== self.id)
             const extra = !enemy || enemy.hp / enemy.maxHp >= 0.3 ? 0 : 0.5
             return base + extra
         },
+        hookNotes: { hitChance: '必中' },
         effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 0.8 }, base: 24 }],
     },
     {
@@ -605,7 +605,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 5,
         chanCost: 35,
-        canUse: (attacker) => attacker.chan >= 35,
         tags: ['pierce', 'qi', 'melee'],
         extraPreDelay: 300,
         onActionCritDamage: (base) => base + 0.3,
@@ -615,6 +614,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             if (!enemy || enemy.hp / enemy.maxHp >= 0.5) return base
             return 1
         },
+        hookNotes: { critChance: '+50%', critDamage: '+30%' , hitChance: '目标气血低于 50% 时必中' },
         effects: [
             { type: 'short_dash', maxDistance: 3 },
             { type: 'damage', scaling: { strength: 0.7, agility: 0.7, dexterity: 0.7 } },
@@ -678,13 +678,13 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         chanCost: 18,
         tags: ['slash', 'range'],
         getRange: () => [0, 8],
-        canUse: (attacker) => attacker.chan >= 18,
         onActionHitChance: (base) => base + 0.2,
+        hookNotes: { hitChance: '+20%' },
         effects: [
             // 基础10 + 力/身/巧 scaling（命中结算）
             { type: 'damage', scaling: { strength: 0.7, agility: 0.6, dexterity: 0.6 }, base: 10 },
             // 持重型武器（素铁霸刀）时，命中的那一刀额外 +10
-            { type: 'functional_damage', fn: ({ self }) => (self.weaponDef?.tags.includes('heavy') ? 10 : 0) },
+            { type: 'functional_damage', fn: ({ self }) => (self.weaponDef?.tags.includes('heavy') ? 10 : 0), note: '持重型武器时这一刀额外 +10' },
             // 顺势脱手：霸刀如流星飞向对手，落在对手所在位置
             { type: 'self_disarm', dropAt: 'opponent' },
         ],
@@ -697,6 +697,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['slash', 'qi'],
         getRange: (wr) => [wr[0], wr[1] + 1],
+        hookNotes: { range: '武器范围 +1' },
         effects: [{ type: 'damage', scaling: { strength: 0.2, wisdom: 0.2 } }],
     },
     {
@@ -707,6 +708,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         tags: ['slash', 'burn'],
         getRange: (wr) => [wr[0], wr[1] + 1],
+        hookNotes: { range: '武器范围 +1' },
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_debuff', buffId: 'burn', stacks: 3, chance: 0.7 },
@@ -720,6 +722,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['slash'],
         onActionHitChance: (base) => base + 0.1,
+        hookNotes: { hitChance: '+10%' },
         effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 } }],
     },
     {
@@ -730,6 +733,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['slash'],
         onActionCritChance: (base) => base + 0.1,
+        hookNotes: { critChance: '+10%' },
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     {
@@ -740,9 +744,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         chanCost: 15,
         tags: ['slash'],
-        canUse: (attacker) => attacker.chan >= 15,
         onActionCritChance: (base) => base + 0.3,
         onActionHitChance: () => 1,
+        hookNotes: { critChance: '+30%', hitChance: '必中' },
         effects: [
             { type: 'damage', scaling: { agility: 0.6, dexterity: 0.6 } },
             {
@@ -760,6 +764,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['electric', 'debuff', 'qi'],
         getRange: () => [1, 3] as [number, number],
         onActionHitChance: (base) => base + 0.2,
+        hookNotes: { hitChance: '+20%' },
         effects: [
             { type: 'damage', scaling: { wisdom: 0.3 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 },
@@ -774,7 +779,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['electric', 'stun'],
         getRange: () => [0, 4] as [number, number],
         chanCost: 18,
-        canUse: (attacker) => attacker.chan >= 18,
+        hookNotes: { hitChance: '+25%' },
         effects: [
             { type: 'damage', scaling: { wisdom: 1.9 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
@@ -791,6 +796,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['blunt', 'polearm'],
         onActionCritChance: (base) => base + 0.05,
+        hookNotes: { critChance: '+5%' },
         effects: [{ type: 'damage', scaling: { strength: 0.3, dexterity: 0.1 } }],
     },
     {
@@ -801,6 +807,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['blunt', 'polearm'],
         onActionHitChance: (base) => base + 0.1,
+        hookNotes: { hitChance: '+10%' },
         effects: [{ type: 'damage', scaling: { strength: 0.3, vitality: 0.1 } }],
     },
     {
@@ -837,9 +844,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         chanCost: 20,
         tags: ['polearm', 'pierce'],
         getRange: () => [4, 4],
-        canUse: (attacker) => attacker.chan >= 20,
         onActionHitChance: (base) => base + 0.5,
         onActionCritChance: (base) => base + 0.5,
+        hookNotes: { hitChance: '+50%', critChance: '+50%' },
         effects: [{ type: 'damage', scaling: { strength: 0.8, dexterity: 0.4, agility: 0.4 } }],
     },
     {
@@ -850,6 +857,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['blunt', 'polearm'],
         onActionHitChance: (base) => base + 0.15,
+        hookNotes: { hitChance: '+15%' },
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     {
@@ -873,6 +881,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['blunt', 'polearm'],
         onActionCritChance: () => 1,
+        hookNotes: { critChance: '必中' },
         effects: [{ type: 'damage', scaling: { strength: 0.5, agility: 0.1, vitality: 0.1, dexterity: 0.1 } }],
     },
     {
@@ -922,6 +931,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     })
                     return round1(self.attrs.get('strength') * 0.2 + self.attrs.get('wisdom') * 0.2 * layers)
                 },
+                note: '按自身非永久增益总层数增伤（力×0.2 + 智×0.2×层数）',
             },
         ],
     },
@@ -934,6 +944,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['blunt', 'melee'],
         onActionCritChance: (base) => base + 0.1,
+        hookNotes: { critChance: '+10%' },
         effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
     },
     {
@@ -944,6 +955,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['blunt', 'electric', 'melee'],
         onActionCritChance: (base) => base + 0.1,
+        hookNotes: { critChance: '+10%' },
         effects: [
             { type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
@@ -958,8 +970,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         chanCost: 30,
         tags: ['range', 'summon'],
-        canUse: (attacker) => attacker.chan >= 30,
         onActionHitChance: (base) => base + 0.2,
+        hookNotes: { hitChance: '+20%' },
         effects: [{ type: 'damage', scaling: { wisdom: 0.4 }, base: 2, independentHits: 5 }],
     },
     {
@@ -970,7 +982,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         chanCost: 27,
         tags: ['imperial', 'range', 'damage'],
-        canUse: (attacker) => attacker.chan >= 27,
         effects: [
             {
                 type: 'functional_damage',
@@ -989,6 +1000,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
                     return round1(3 + count * (baseHit + wis * 0.1))
                 },
+                note: '按当前召唤物数量倾泻伤害（基础 3 + 数量×(单发+推演附伤)）',
             },
         ],
     },
@@ -1048,10 +1060,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 5,
         chanCost: 30,
-        canUse: (attacker) => attacker.chan >= 30,
         tags: ['poison', 'qi'],
         getRange: () => [0, 10],
         onActionHitChance: () => 1,
+        hookNotes: { hitChance: '必中' },
         effects: [
             {
                 type: 'functional_damage',
@@ -1065,6 +1077,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     const AMPLIFY = 1
                     return totalRemaining * DMG_PER_POISON_TICK * AMPLIFY
                 },
+                note: '引爆目标剩余的全部中毒伤害',
             },
         ],
     },
