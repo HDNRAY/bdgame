@@ -7,78 +7,102 @@ import { STARTING_WEAPONS } from '../weapons/starting-weapons'
 const STARTING_WEAPON_IDS = STARTING_WEAPONS.map((w) => w.id)
 
 /** 双持副手候选（单手非御物坊中名器）。 */
-const OFFHAND_CHOICES = WEAPON_DB.filter(
-    (w) => w.tags.includes('one_handed') && !w.tags.includes('imperial'),
-).map((w) => ({ id: w.id, label: w.name, description: w.description, slot: 'offhand' as const }))
+const OFFHAND_CHOICES = WEAPON_DB.filter((w) => w.tags.includes('one_handed') && !w.tags.includes('imperial')).map(
+    (w) => ({ id: w.id, label: w.name, description: w.description, slot: 'offhand' as const }),
+)
 
 /** 通用支线池放置（fallback：未被故事/固定事件占据的节点槽都可出现）。 */
 const POOL_PLACEMENT = [{ nodes: POOL_NODES, fallback: true, weight: 1 }]
 
 export const BRANCH_PASSIVE: EventDef = {
     id: 'branch_passive',
-    name: '深山发现炼炁秘籍',
-    description: '你在深山中意外发现一本古老的炼炁秘籍，若能参透，实力必将大增。',
+    name: '逛旧货摊',
+    description: '街角的旧货摊堆着没人要的东西。你蹲下去翻。',
     placement: POOL_PLACEMENT,
     reward: { kind: 'item', pool: 'passive' },
     rounds: [
         {
             id: 'discover',
-            title: '奇遇',
-            description: '你在深山中意外发现一本古老的炼炁秘籍，若能参透，实力必将大增。',
-            choices: [{ id: 'reward', type: 'continue', label: '参悟秘籍' }],
+            title: '旧货摊',
+            description:
+                '街角的旧货摊，摊主躺在折叠椅上看全息剧。你蹲下去翻——旧义体零件、断线的耳机、吃灰的充电宝。最底下压着一块灵核芯片，壳裂了，插口还亮着。',
+            choices: [{ id: 'reward', type: 'continue', label: '读卡' }],
         },
-        { id: 'reward', title: '参悟', choices: [] },
+        {
+            id: 'reward',
+            title: '读卡',
+            description: '你把芯片插进腕上的读卡器。里面有一段没删干净的功法。',
+            choices: [],
+        },
     ],
 }
 
 export const BRANCH_ACTION: EventDef = {
     id: 'branch_action',
-    name: '在家打磨套路',
-    description: '你回到家中，细细打磨自己的招式套路，去芜存菁。',
+    name: '自助训练房',
+    description: '镇上的自助训练房，投一枚硬币，全息陪练陪你过招。',
     placement: POOL_PLACEMENT,
     reward: { kind: 'item', pool: 'action' },
     rounds: [
         {
             id: 'practice',
-            title: '打磨',
-            description: '你回到家中，细细打磨自己的招式套路，去芜存菁。',
-            choices: [{ id: 'reward', type: 'continue', label: '继续打磨' }],
+            title: '训练房',
+            description:
+                '镇上的自助训练房，扫码进，按小时计费。隔音舱里地板磨得发亮，墙上一张褪色的训练说明。你投币，全息陪练从地上升起来，跟你过了几十招。',
+            choices: [{ id: 'reward', type: 'continue', label: '继续练' }],
         },
-        { id: 'reward', title: '新招', choices: [] },
+        {
+            id: 'reward',
+            title: '新招',
+            description: '散场时你把新琢磨出来的路数，在脑子里又过了一遍。',
+            choices: [],
+        },
     ],
 }
 
 export const BRANCH_ARTIFACT: EventDef = {
     id: 'branch_artifact',
-    name: '做任务获得奖励',
-    description: '你完成了一项委托，雇主给予了丰厚的报酬。',
+    name: '接一单',
+    description: '黑市留言板上贴着一张没人接的单子。跑一趟，报酬是一件奇物。',
     placement: POOL_PLACEMENT,
     reward: { kind: 'item', pool: 'artifact' },
     rounds: [
         {
             id: 'quest',
-            title: '任务完成',
-            description: '你完成了一项委托，雇主给予了丰厚的报酬。',
-            choices: [{ id: 'reward', type: 'continue', label: '领取报酬' }],
+            title: '跑一趟',
+            description:
+                '镇外黑市的留言板，全息纸片一页页翻。大多数是收废铁、找人的活。你揭了一张最不起眼的——送一件东西到东城。货不重，路不近。',
+            choices: [{ id: 'reward', type: 'continue', label: '跑一趟' }],
         },
-        { id: 'reward', title: '报酬', choices: [] },
+        {
+            id: 'reward',
+            title: '报酬',
+            description: '对方付的不是钱。他把一件旧物件递给你，说是祖上传下来的，如今用不上了。',
+            choices: [],
+        },
     ],
 }
 
 export const BRANCH_POINTS: EventDef = {
     id: 'branch_points',
-    name: '瀑布打坐',
-    description: '你寻到一处瀑布，在轰鸣的水声中静心打坐，感悟天地灵气。',
+    name: '废弃信号塔',
+    description: '镇外有一座废弃的信号塔。夜里没人，你在塔下打坐。',
     placement: POOL_PLACEMENT,
     reward: { kind: 'points' },
     rounds: [
         {
             id: 'meditate',
-            title: '打坐',
-            description: '你寻到一处瀑布，在轰鸣的水声中静心打坐，感悟天地灵气。',
-            choices: [{ id: 'reward', type: 'continue', label: '继续打坐' }],
+            title: '塔下',
+            description:
+                '镇外那座废弃的信号塔，塔身锈了半截，基座长满草。夜里没人，只有风从钢架间穿过。你在塔下打坐，把游离的炁一丝丝收进经脉。没人管，也没人收钱。',
+            choices: [{ id: 'reward', type: 'continue', label: '打坐' }],
         },
-        { id: 'reward', title: '感悟', choices: [] },
+        {
+            id: 'reward',
+            title: '天亮',
+            description: '等天边泛白，你起身。浑身酸痛，但经脉里的炁又厚了一层。',
+            choices: [],
+        },
     ],
 }
 
@@ -124,10 +148,7 @@ export const TIANGONG_WEAPON: EventDef = {
             fallback: true,
             weight: 1,
             when: {
-                and: [
-                    { '!': { var: 'flags.tiangong_done' } },
-                    { '!': { '==': [{ var: 'flags.story' }, 'xuanmen'] } },
-                ],
+                and: [{ '!': { var: 'flags.tiangong_done' } }, { '!': { '==': [{ var: 'flags.story' }, 'xuanmen'] } }],
             },
         },
     ],
@@ -257,13 +278,7 @@ export const XIAOHUA_INSIGHT: EventDef = {
     reward: {
         kind: 'item',
         pool: 'passive',
-        ids: [
-            'combat_instinct',
-            'insight_awareness',
-            'hearing_power',
-            'mingjing_zhishui',
-            'enhanced_vision',
-        ],
+        ids: ['combat_instinct', 'insight_awareness', 'hearing_power', 'mingjing_zhishui', 'enhanced_vision'],
     },
     rounds: [
         {
@@ -300,53 +315,6 @@ export const XIAOHUA_INSIGHT: EventDef = {
             choices: [{ id: 'reward', type: 'continue', label: '细细体会' }],
         },
         { id: 'reward', title: '收获', choices: [] },
-    ],
-}
-
-// ── 双持修习（条件：单手武器且未获副手；效果：获得副手） ──
-
-/** 双持修习事件：给玩家一把副手武器 */
-export const DUAL_WIELD_EVENT: EventDef = {
-    id: 'dual_wield_training',
-    name: '双持修习',
-    description: '你在街角遇到一位双持高手，他看出你使单手兵器的底子，愿意传授双持之道。',
-    placement: [
-        {
-            nodes: POOL_NODES,
-            fallback: true,
-            when: {
-                and: [
-                    { '==': [{ var: 'flags.weapon_one_handed' }, true] },
-                    { '!': { var: 'flags.has_offhand' } },
-                ],
-            },
-        },
-    ],
-    rounds: [
-        {
-            id: 'intro',
-            title: '双持修习',
-            description:
-                '「单手兵刃使得不错，但若双持，可更进退自如。」\n\n高手从腰间解下一柄短刃，递到你面前：「试试这个。」',
-            choices: [
-                { id: 'accept', type: 'continue', label: '接过短刃' },
-                { id: '__end__', type: 'continue', label: '婉拒，单手更适合我' },
-            ],
-        },
-        {
-            id: 'accept',
-            title: '获得副手',
-            description:
-                '你接过短刃，试着双手各持一刃挥舞了几下。虽然还不熟练，但确实感到攻守之间多了许多变化。\n\n高手点点头：「慢慢练，双持的关键在于分心错手——让两只手各打各的。」',
-            reward: { kind: 'fixed', choices: OFFHAND_CHOICES },
-            choices: [],
-        },
-        {
-            id: 'accept_epilogue',
-            title: '分心错手',
-            description: '你收起短刃，向高手道谢。从今往后，你也是一名双持武者了。',
-            choices: [{ id: '__end__', type: 'continue', label: '继续上路' }],
-        },
     ],
 }
 
@@ -450,8 +418,7 @@ export const MEMORY_WITHIN_MEMORY: EventDef = {
         {
             id: 'heritage',
             title: '身世',
-            description:
-                '你顺着那段记忆往下想。有些事你小时候忘了，现在想起来了——有些事，不是别人，就是你自己的。',
+            description: '你顺着那段记忆往下想。有些事你小时候忘了，现在想起来了——有些事，不是别人，就是你自己的。',
             choices: [{ id: 'reward_round', type: 'continue', label: '记起来' }],
         },
         {
@@ -483,7 +450,12 @@ export const LIBRARY_JOB: EventDef = {
     name: '图书馆打工',
     description: '龙语仙抱着一摞比你人还高的书，正发愁。',
     placement: [
-        { nodes: POOL_NODES, fallback: true, weight: 1, when: { '!': { var: 'flags.library_job_done' } } },
+        {
+            nodes: [4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
+            fallback: true,
+            weight: 1,
+            when: { '!': { var: 'flags.library_job_done' } },
+        },
     ],
     effects: [{ kind: 'set', flag: 'library_job_done', to: true }],
     rounds: [
@@ -524,7 +496,12 @@ export const TIANGONG_JOB: EventDef = {
     name: '天工坊打工',
     description: '千星正抡着电磁锤，炉火把半个铺子映得通红。',
     placement: [
-        { nodes: POOL_NODES, fallback: true, weight: 1, when: { '!': { var: 'flags.tiangong_job_done' } } },
+        {
+            nodes: [12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
+            fallback: true,
+            weight: 1,
+            when: { '!': { var: 'flags.tiangong_job_done' } },
+        },
     ],
     effects: [{ kind: 'set', flag: 'tiangong_job_done', to: true }],
     rounds: [
@@ -558,4 +535,3 @@ export const TIANGONG_JOB: EventDef = {
         },
     ],
 }
-
