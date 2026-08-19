@@ -1,7 +1,12 @@
 import { STORIES } from '../../data/stories/index'
 import { getEvent, ALL_EVENTS } from '../../data/events/index'
 import { buildNodeSpecs, resolveNode } from './map-builder'
-import { processTournament, recordPlayerMatchResult, isTournamentEliminated, TOURNAMENT_EVENT_IDS } from '../tournament/integration'
+import {
+    processTournament,
+    recordPlayerMatchResult,
+    isTournamentEliminated,
+    TOURNAMENT_EVENT_IDS,
+} from '../tournament/integration'
 import { CULT_REWARD, MAX_POINTS_REWARDS } from '../entities/reward'
 import { rewardPool } from './reward-pool'
 import { pickRandom, resolveQuotaRewardType, countRewardOpportunities, injuryForNode } from './util'
@@ -175,14 +180,10 @@ export class RogueliteRun implements RogueliteEngine {
         this._eventDef = null
         this._state.roundIdx = 0
 
-        const resolution = resolveNode(
-            this._state.nodes[this._state.nodeIndex - 1],
-            this._state.flags,
-            (id) => {
-                const ev = getEvent(id)
-                return { label: ev?.name ?? id, description: ev?.description }
-            },
-        )
+        const resolution = resolveNode(this._state.nodes[this._state.nodeIndex - 1], this._state.flags, (id) => {
+            const ev = getEvent(id)
+            return { label: ev?.name ?? id, description: ev?.description }
+        })
         if (resolution.mode === 'direct') {
             this._startEvent(resolution.eventId)
         } else if (resolution.mode === 'choice') {
@@ -341,7 +342,9 @@ export class RogueliteRun implements RogueliteEngine {
             countRewardOpportunities(this._state.nodes, this._state.nodeIndex),
         )
         if (quota === 'points') {
-            round.choices = [{ id: CULT_REWARD.id, type: 'points', label: CULT_REWARD.label, description: CULT_REWARD.description }]
+            round.choices = [
+                { id: CULT_REWARD.id, type: 'points', label: CULT_REWARD.label, description: CULT_REWARD.description },
+            ]
             return
         }
 
@@ -380,6 +383,14 @@ export class RogueliteRun implements RogueliteEngine {
             // 招式 requiredTags ∩ 玩家 tags（武器关联是通用机制）
             if (r.requiredTags && r.requiredTags.length > 0) {
                 if (!r.requiredTags.some((t) => playerTags.includes(t))) return false
+            }
+            // 武器属性门槛：力量/身法不足则拿不起（素铁霸刀需力10/身9 等），前期天工坊不给扛不动的重兵
+            if (
+                poolType === 'weapon' &&
+                r.requireAttrsMin &&
+                !rewardPool.meetsRequirements(r, { ...this._state.build.baseAttrs } as Record<string, number>)
+            ) {
+                return false
             }
             if (round.rewardFilter && !round.rewardFilter(r)) return false
             return true
@@ -476,7 +487,9 @@ export class RogueliteRun implements RogueliteEngine {
             // 装备 → flag 同步（武器标签是通用机制，供 when 条件读取）
             const allWeapons = [...WEAPON_DB, ...STARTING_WEAPONS]
             const def = allWeapons.find((w) => w.id === entityId)
-            this._state.flags['weapon_one_handed'] = Boolean(def?.tags.includes('one_handed') && !def?.tags.includes('imperial'))
+            this._state.flags['weapon_one_handed'] = Boolean(
+                def?.tags.includes('one_handed') && !def?.tags.includes('imperial'),
+            )
             if (slot === 'offhand') this._state.flags['has_offhand'] = true
         }
         this._state.nodeLog.push(`${type}: ${entityId}`)

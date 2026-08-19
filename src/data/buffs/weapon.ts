@@ -10,7 +10,6 @@ export const WEAPON_BUFFS: BuffDef[] = [
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        attrMods: { agility: -6, strength: 6 },
         onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.5 : 0.2),
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
@@ -24,7 +23,6 @@ export const WEAPON_BUFFS: BuffDef[] = [
         description: '玄铁剑的沉重负担与无锋剑意。身法受限但力道大增，命中+10%，暴击+10%，招架只能减免一半伤害。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
-        attrMods: { agility: -10, strength: 6 },
         onHitChance: () => 0.1,
         onCritChance: () => 0.1,
         onParryPenetration: ({ final, raw }) => {
@@ -39,7 +37,6 @@ export const WEAPON_BUFFS: BuffDef[] = [
         description: '锭海神铁的压制力场，距离越近伤害越高。',
         tags: ['weapon', 'heavy'],
         expiry: { type: 'permanent' },
-        attrMods: { agility: -12 },
         onDealDamage: ({ final, attacker, target, state, source }) => {
             // 召唤物（分身等）不吃本体武器的距离加成
             if (source?.tags?.includes('summon')) return final

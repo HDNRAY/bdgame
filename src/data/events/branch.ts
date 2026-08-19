@@ -145,10 +145,19 @@ export const BRANCH_HEAL: EventDef = {
 export const TIANGONG_WEAPON: EventDef = {
     id: 'tiangong_weapon',
     name: '天工坊',
-    description: '第一阶段快结束时，你在街上看到了天工坊的招牌。千星正靠在门口擦一把新出炉的兵器。',
+    description: '街角的天工坊炉火正旺，千星靠在门口，擦一把新出炉的兵器。',
     placement: [
         {
             nodes: STAGE1_END,
+            fallback: true,
+            weight: 1,
+            when: {
+                and: [{ '!': { var: 'flags.tiangong_done' } }, { '!': { '==': [{ var: 'flags.story' }, 'xuanmen'] } }],
+            },
+        },
+        // 第一阶段没去天工坊 → 第三阶段开打前还可作为「第一次」出现（非副手；副手要求已去过）
+        {
+            nodes: STAGE3_PRE,
             fallback: true,
             weight: 1,
             when: {
@@ -165,9 +174,16 @@ export const TIANGONG_WEAPON: EventDef = {
             description:
                 '斗炁大会即将开始，你在街上看到了天工坊的招牌。千星正靠在门口擦一把新出炉的兵器，看到你便扬了扬下巴：「哟，来了？这次进了决赛圈，要不要换件趁手的家伙？」',
             choices: [
-                { id: 'reward_round', type: 'continue', label: '去天工坊看看' },
+                { id: 'showcase', type: 'continue', label: '去天工坊看看' },
                 { id: 'training', type: 'continue', label: '不去，在家修炼' },
             ],
+        },
+        {
+            id: 'showcase',
+            title: '挑兵器',
+            description:
+                '千星把你领到材料柜前。柜里的兵器泛着淡淡的炁光，长短不一，各有用处。\n\n他抬了抬下巴，点了点角落几件大家伙——重剑、巨刃、长枪。「那几件先别惦记。要力道、要身法，你现在的底子，扛不动，也挥不开。先挑你使得动的。」',
+            choices: [{ id: 'reward_round', type: 'continue', label: '挑一件趁手的' }],
         },
         {
             id: 'reward_round',

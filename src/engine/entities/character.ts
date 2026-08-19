@@ -170,7 +170,7 @@ export class Character {
             const activeWeapon = this.weaponDef ?? weapon
             for (const eff of activeWeapon.effects ?? []) {
                 const handler = passiveEffectHandlers[eff.type]
-                if (handler) handler(this, eff)
+                if (handler) handler(this, eff, ['weapon'])
             }
             for (const t of activeWeapon.triggers ?? []) this.passiveTriggers.push(t)
             if (activeWeapon.grantsActions) gainedActions.push(...activeWeapon.grantsActions)
@@ -181,7 +181,7 @@ export class Character {
             const offhand = getWeapon(build.offhand)
             for (const eff of offhand.effects ?? []) {
                 const handler = passiveEffectHandlers[eff.type]
-                if (handler) handler(this, eff)
+                if (handler) handler(this, eff, ['weapon'])
             }
             for (const t of offhand.triggers ?? []) this.passiveTriggers.push(t)
             if (offhand.grantsActions) gainedActions.push(...offhand.grantsActions)
@@ -474,7 +474,7 @@ export class Character {
 
 // ── 被动效果分发表（构造期执行，无战斗上下文） ──
 
-const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) => void> = {
+const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef, sourceTags?: string[]) => void> = {
     haste(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'haste' }>
         if (e.value) char.haste += e.value
@@ -490,13 +490,13 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef) =>
             char.attrs.minValues[attr as AttrName] = value
         }
     },
-    stat_buff(char, eff) {
+    stat_buff(char, eff, sourceTags) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
         for (const [attr, value] of Object.entries(e.attrs)) {
             let delta = value as number
             for (const check of char.statRestrictionChecks ?? []) {
                 const cur = char.attrs.get(attr as AttrName)
-                const result = check(char, attr, cur, delta)
+                const result = check(char, attr, cur, delta, sourceTags)
                 if (!result) continue
                 if (result.skip) {
                     delta = 0

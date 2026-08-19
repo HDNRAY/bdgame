@@ -828,7 +828,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yi_ma_xin_yuan',
         name: '意马心猿',
-        description: '凝神聚气，命中+5%；命中时25%令对手迷惑（推演降低）。',
+        description: '凝神聚气，命中+5%；命中时15%令对手迷惑（推演降低）。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -836,7 +836,7 @@ export const BUFF_DB: BuffDef[] = [
         onDealDamage: ({ final, attacker, target, engine, state }) => {
             if (engine) {
                 processActionEffect(
-                    { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 0.25 },
+                    { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 0.15 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }

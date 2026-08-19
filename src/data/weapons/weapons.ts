@@ -70,7 +70,8 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '铁枪·破军',
         description: '丈二铁枪，势大力沉。',
         tags: ['pierce', 'parry', 'polearm'],
-        effects: [{ type: 'stat_buff', attrs: { agility: -2, strength: 2 } }],
+        effects: [{ type: 'stat_buff', attrs: { agility: -2, strength: 6 } }],
+        requireAttrsMin: { strength: 6 },
         range: [1, 4],
     },
     {
@@ -108,6 +109,7 @@ export const WEAPON_DB: WeaponDef[] = [
         tags: ['slash', 'parry', 'frost', 'melee', 'heavy', 'one_handed'],
         range: [1, 3],
         effects: [{ type: 'stat_buff', attrs: { agility: -4, strength: 4 } }],
+        requireAttrsMin: { strength: 8, agility: 7 },
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'xiu_dong_buff' }] }],
     },
     {
@@ -123,7 +125,7 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '素铁霸刀',
         description: '与身同高的巨刃，离心力驱动，势不可挡。',
         tags: ['slash', 'parry', 'polearm', 'heavy'],
-        effects: [],
+        effects: [{ type: 'stat_buff', attrs: { agility: -6, strength: 6 } }],
         requireAttrsMin: { strength: 10, agility: 9 },
         range: [1, 4],
         triggers: [
@@ -138,7 +140,8 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '玄铁重剑',
         description: '与身同高的玄铁巨剑，重六十四斤，无锋无刃。大巧不工，以力破万法。',
         tags: ['heavy', 'blunt', 'slash', 'pierce', 'parry', 'polearm'],
-        requireAttrsMin: { strength: 10, agility: 11 },
+        effects: [{ type: 'stat_buff', attrs: { agility: -8, strength: 6 } }],
+        requireAttrsMin: { strength: 12, agility: 11 },
         range: [1, 4],
         triggers: [
             {
@@ -162,6 +165,8 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '对传说中兵器的仿制品。由天外陨铁打造，由使用者的炁激活，伸缩自如。',
         tags: ['parry', 'polearm', 'heavy'],
         range: [1, 6],
+        effects: [{ type: 'stat_buff', attrs: { agility: -10 } }],
+        requireAttrsMin: { strength: 10 },
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dinghai_pressure' }] }],
     },
     {

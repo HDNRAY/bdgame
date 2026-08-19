@@ -1,0 +1,97 @@
+.wc {
+    padding: var(--sp-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+    max-width: none;
+
+    &-controls {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--sp-sm);
+    }
+
+    &-label {
+        font-size: var(--font-sm);
+        color: var(--color-text-dim);
+    }
+
+    &-search-label {
+        margin-left: var(--sp-lg);
+    }
+
+    &-chan-input {
+        width: 80px;
+        padding: 4px 8px;
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-mono);
+    }
+
+    &-search-input {
+        width: 180px;
+        padding: 4px 8px;
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-mono);
+    }
+
+    &-note {
+        font-size: var(--font-xs);
+        color: var(--color-text-dim);
+        line-height: 1.6;
+    }
+
+    &-table {
+        border-collapse: collapse;
+        font-size: var(--font-xs);
+
+        th,
+        td {
+            padding: 6px 10px;
+            border: var(--border-width) solid var(--color-border);
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        th {
+            background: var(--color-bg-raised);
+            color: var(--color-text-dim);
+            font-weight: normal;
+        }
+
+        .wc-name {
+            text-align: left;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .wc-score {
+            color: var(--color-accent);
+            font-weight: bold;
+        }
+
+        .wc-delta {
+            color: var(--color-success, #2ecc71);
+        }
+
+        .wc-delta-neg {
+            color: var(--color-danger);
+        }
+
+        tbody tr:hover {
+            background: var(--color-bg-raised);
+        }
+    }
+}
+
+.wc-dim {
+    color: var(--color-text-dim);
+    font-size: 0.85em;
+}
