@@ -317,9 +317,12 @@ describe('add_debuff', () => {
         const { engine, a, b } = makeFixture()
         apply(engine, { type: 'add_debuff', buffId: 'confuse', stacks: 2, chance: 1 }, a)
 
-        expect(layer(engine, 'confuse', 'b')!.restoreValue).toBe(2)
+        // confuse 为 independent 叠层（key 带 appId 后缀）
+        const keys = layerKeys(engine, 'confuse::b::')
+        expect(keys.length).toBe(1)
+        expect(engine.state.pendingBuffs.get(keys[0])!.restoreValue).toBe(2)
         expect(b.attrs.get('wisdom')).toBe(8) // 10 - 2
-        expect(hasSystemEvent(engine, 'buff_end_confuse::b')).toBe(true)
+        expect(hasSystemEvent(engine, `buff_end_${keys[0]}`)).toBe(true)
     })
 
     it('records the attacker as sourceId', () => {

@@ -289,19 +289,23 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
 
             case 'move': {
                 // 移动：回合级（scope 1）或主招式内（scope 2）→ 块内行；更深（dash 冲刺）→ 挂帧前摇行
-                // 符号区分：@ 移动（普通）/ @ 垫步（short_dash）/ @ 瞬移（dash blink）；
+                // 符号区分：@ 移动（普通）/ @ 垫步（short_dash）/ @ 瞬移（dash blink）/ @ 前移（反应触发的靠近）；
                 // 纯位移 support（虎跃）走 move(dash) 日志，带 actionName → 用招式名 `@ 虎跃`
+                // 反应作用域（闪避/招架/反击，scope≥3）内的 short_dash 是「闪避后前移」类（如听风式），与主招垫步区分
+                // delta 是场地方向带符号位移（靠近可为正/负，取决于站位），用「移动后距离变小」判定前移更稳
+                const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
                 const moveLabel =
                     (e.kind === 'dash' || e.kind === 'short_dash') && e.actionName
                         ? e.actionName
-                        : e.kind === 'short_dash'
-                          ? '垫步'
-                          : e.kind === 'dash'
-                            ? '瞬移'
-                            : '移动'
+                        : e.kind === 'short_dash' && sc.length >= 3 && e.newDistance < oldDist
+                          ? '前移'
+                          : e.kind === 'short_dash'
+                            ? '垫步'
+                            : e.kind === 'dash'
+                              ? '瞬移'
+                              : '移动'
                 if (sc.length <= 2) {
                     ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
-                    const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
                     const apInfo = e.apCost > 0 ? `  | AP${e.apRemaining.toFixed(1)}` : ''
                     // 独立位移招（魅影步/虎跃等，scope=[turn,N] 且无父帧）→ 建帧，其 buff 效果经帧机制挂其下（↳ [魅影]）
                     const isStandaloneMove =
@@ -324,7 +328,6 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 } else {
                     const f = popTo(sc)
                     if (f) {
-                        const oldDist = calcOldDist(e.delta, e.snapshot, e.actor)
                         f.preLines.push(
                             `${'  '.repeat(f.depth + 1)}@ ${moveLabel}  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m`,
                         )
@@ -391,24 +394,24 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 break
             }
 
-            // tick 周期事件（回春/毒/灼烧等）：独立带时间行，无回合号、不归属招式帧
+            // tick 周期事件（回春/毒/灼烧等）：独立带时间行，无回合号、不归属招式帧。
+            // 用 popTo 落盘当前帧（避免行插进招式行中间），但保留块上下文（后续同块行不被隔开）。
             case 'damage_over_time': {
-                // 先落盘当前块未渲染的帧，避免 tick 行插进块标题与动作行之间
-                closeBlock()
+                popTo(sc.length >= 2 ? sc : [sc[0] ?? 0, 0])
                 const targetName = fmtName(e.target, e.snapshot)
                 lines.push(`··· ${t(ms)} [${e.status}] ${targetName} 受到 ${e.amount.toFixed(1)} 点伤害`)
                 lastSys = null
                 break
             }
             case 'heal_over_time': {
-                closeBlock()
+                popTo(sc.length >= 2 ? sc : [sc[0] ?? 0, 0])
                 const targetName = fmtName(e.target, e.snapshot)
                 lines.push(`··· ${t(ms)} [${e.label}] ${targetName} +${e.amount.toFixed(1)}HP`)
                 lastSys = null
                 break
             }
             case 'buff_end': {
-                closeBlock()
+                popTo(sc.length >= 2 ? sc : [sc[0] ?? 0, 0])
                 // message 形如 「名字」 属性变化
                 const body = e.message.startsWith('「')
                     ? e.message

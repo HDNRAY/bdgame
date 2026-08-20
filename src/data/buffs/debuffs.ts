@@ -23,8 +23,8 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '迷惑',
         description: '神志不清，推演降低。',
         tags: ['debuff'],
-        expiry: { type: 'duration', ms: 10000 },
-        stacking: { type: 'additive' },
+        expiry: { type: 'duration', ms: 5000 },
+        stacking: { type: 'independent' },
         attrMods: { wisdom: -1 },
     },
     {

@@ -9,9 +9,11 @@ import { PLAYER_ACTIONS } from './player'
 import { SUPPORT_ACTIONS } from './support'
 import { INTERNAL_ACTIONS } from './internal'
 import { QI_SKILLS } from './qi'
+import { UNARMED_ACTIONS } from './unarmed'
 
 /** 合并所有招式（惰性求值，避免循环依赖导致模块初始化顺序问题） */
 const getALL_ACTIONS = (): ActionDefinition[] => [
+    ...UNARMED_ACTIONS,
     ...PLAYER_ACTIONS,
     ...SUPPORT_ACTIONS,
     ...INTERNAL_ACTIONS,

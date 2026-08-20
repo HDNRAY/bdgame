@@ -36,7 +36,7 @@ export function applyAttrMods(
         let delta = value
         const cur = char.attrs.get(attr as AttrName)
         for (const check of char.statRestrictionChecks ?? []) {
-            const result = check(char, attr, cur, delta, sourceTags)
+            const result = check(char, attr, cur, delta, sourceTags, state)
             if (!result) continue
             if (result.skip) {
                 delta = 0

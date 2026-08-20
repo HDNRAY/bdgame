@@ -28,6 +28,10 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
     const distance = state.position.distance(self.id, enemy.id)
 
+    // 拾起兵器（0AP）：若本回合捡到武器，记录指令与移动 AP，待 preCmds 定义后合并（同回合继续攻击）
+    let pickupCmdsOuter: ActionCommand[] = []
+    let pickupMoveAp = 0
+
     // ── 0. 缴械优先：先捡武器再考虑攻击 ──
     const disarmedKey = `disarmed::${self.id}`
     const disarmedLayer = state.pendingBuffs.get(disarmedKey)
@@ -54,19 +58,21 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                 : basePerAp * (1 + calcExtraMoveEfficiency(state, self))
             const moveToPickupAp = distToDrop > 1 ? PositionSystem.moveApFor(distToDrop - 1, perAp) : 0
             if (moveToPickupAp <= apBudget) {
-                const cmds: ActionCommand[] = []
+                // 拾起兵器（0AP）后不提前 return——同回合继续正常 AI（移动+攻击都做完）
+                const pickupCmds: ActionCommand[] = []
                 if (moveToPickupAp > 0) {
-                    cmds.push({ type: 'move', bestDistance: -moveToPickupAp })
+                    pickupCmds.push({ type: 'move', bestDistance: -moveToPickupAp })
                 }
                 // 找角色的捡武器招式（retrieve_weapon tag）
                 const pickupAction = self.actions.find((a) => a.def.tags.includes('retrieve_weapon'))
                 if (pickupAction) {
-                    cmds.push({ type: 'support', actionId: pickupAction.id })
+                    pickupCmds.push({ type: 'support', actionId: pickupAction.id })
                 }
-                return cmds // 先去捡武器，下回合再攻击
-            }
-            // AP 不够走到掉落点：能走多少走多少
-            if (apBudget > 0) {
+                // 存到外层变量，等 preCmds 定义后合并（捡完武器后同回合继续攻击）
+                pickupCmdsOuter = pickupCmds
+                pickupMoveAp = moveToPickupAp
+            } else if (apBudget > 0) {
+                // AP 不够走到掉落点：能走多少走多少
                 return [{ type: 'move', bestDistance: -apBudget }]
             }
         }
@@ -113,9 +119,13 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
         (s, c) => s + self.actionApCost(self.actions.find((a) => a.id === c.actionId)?.apCost ?? 0),
         0,
     )
+    // 拾起兵器（0AP）并入前摇指令开头（先捡武器，再执行其他前摇/主招/移动）
+    if (pickupCmdsOuter.length > 0) {
+        preCmds.unshift(...pickupCmdsOuter)
+    }
 
     // 2. 分两组：有条件限制的按顺序选，默认的按计划总伤害选
-    const apBudget = self.ap - preAp
+    const apBudget = self.ap - preAp - pickupMoveAp
     const configOrder = new Map(self.build.actionConfigs?.map((c, i) => [c.actionId, i]))
     const style: AttackStyle = self.battleStyle
 

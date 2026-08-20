@@ -546,6 +546,13 @@ export class BattleEngine {
         return this.state.characters.find((c) => c.id === id)
     }
 
+    #notifyApSpent(char: Character, amount: number): void {
+        if (amount <= 0) return
+        forEachBuffOf(this.state.pendingBuffs, char.id, (def, layer) => {
+            def?.onApSpent?.({ self: char, amount, engine: this, state: this.state, layer })
+        })
+    }
+
     getOpponent(id: string): Character | undefined {
         return this.state.characters.find((c) => c.id !== id)
     }
@@ -610,6 +617,7 @@ export class BattleEngine {
             // this.emitLog({ type: 'system', message: BattleLog.plain(self.name, 'AP不足 无法移动'), actorId: self.id })
             return r
         }
+        this.#notifyApSpent(self, ap)
         const actualDelta = p.moveToward(self.id, enemy.id, delta)
         r.distanceDelta = actualDelta
         // 主移动也是主行动：需要独立 scope [回合,序号]（否则其反应 scope 长度=2 被 format-log 误判为主行动、开新块）
@@ -704,6 +712,7 @@ export class BattleEngine {
             })
             finalCost = self.actionApCost(cost)
             if (!self.spendAp(finalCost)) return r
+            this.#notifyApSpent(self, finalCost)
         }
         // 消耗限次招式
         const inst = self.actions.find((a) => a.id === action.id)
@@ -841,9 +850,11 @@ export class BattleEngine {
         }
         // 缠劲不足的辅助招不释放（不扣 AP、不扣缠劲）
         if (inst.def.chanCost && !self.spendChan(inst.def.chanCost)) return r
-        if (!self.spendAp(self.actionApCost(inst.apCost))) {
+        const supportApCost = self.actionApCost(inst.apCost)
+        if (!self.spendAp(supportApCost)) {
             return r
         }
+        this.#notifyApSpent(self, supportApCost)
         inst.use()
         this.checkChanOverflow(self.id)
         // 纯位移型 support（如虎跃/魅影步）：本质是位移，不发 support 日志（由 dash effect 发 move(kind:'dash') 日志），

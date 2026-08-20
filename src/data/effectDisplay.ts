@@ -162,10 +162,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [eff.dropAt === 'opponent' ? '自卸武器（兵器飞向对手）' : '自卸武器']
         case 'copy_best_passive':
             return ['复制对手功法']
-        case 'stat_ratio': {
-            const parts = Object.entries(eff.attrs).map(([k, v]) => `${ATTR_CN[k] ?? k}×${v}`)
-            return [`属性比率: ${parts.join(', ')}`]
-        }
         case 'weapon_tag':
             return [`武器标签: ${eff.tag}`]
         case 'stat_restriction':

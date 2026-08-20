@@ -11,7 +11,7 @@ export const CHANZI: OpponentDef = {
     weapon: 'bare_hands',
     targetAttrs: CHANZI_ATTRS,
     rewards: [
-        action('palm_strike'),
+        action('liu_yang_zhang'),
         passive('yi_jin_jing'),
         action('qinlong_gong'),
         passive('chanzi_chan_regen'),
@@ -28,7 +28,7 @@ export const CHANZI: OpponentDef = {
         { actionId: 'jin_zhong_zhao' },
         { actionId: 'chanzi_heal', conditionId: 'hp_below_70' },
         { actionId: 'ru_lai_shen_zhang' },
-        { actionId: 'palm_strike', triggerId: 'on_parried' },
+        { actionId: 'liu_yang_zhang', triggerId: 'on_parried' },
         { actionId: 'qinlong_gong', triggerId: 'on_dodge' },
     ],
 }

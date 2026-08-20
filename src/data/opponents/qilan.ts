@@ -9,7 +9,7 @@ export const QILAN: OpponentDef = {
     weapon: 'bare_hands',
     targetAttrs: QILAN_ATTRS,
     rewards: [
-        action('palm_strike'),
+        action('liu_yang_zhang'),
         passive('godspeed'),
         passive('thunder_art'),
         action('electric_yoyo'),
@@ -28,7 +28,7 @@ export const QILAN: OpponentDef = {
             triggerId: 'on_opponent_move_away',
         },
         {
-            actionId: 'palm_strike',
+            actionId: 'liu_yang_zhang',
             triggerId: 'on_dodged',
         },
     ],

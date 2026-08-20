@@ -29,6 +29,8 @@ export interface BuffHookCtx {
     source?: GameEntity
     /** 是否为触发招式执行的伤害 */
     triggered?: boolean
+    /** 本次实际扣除的 AP（onAction 钩子提供；其余回调恒为 undefined） */
+    apCost?: number
 }
 
 /** 消耗方式 */
@@ -72,8 +74,6 @@ export interface BuffDef extends GameEntity {
     onAfterDealDamage?: (ctx: BuffHookCtx) => number | { normal: number; piercing: number }
     /** 受击伤害修正（buff 持有者受到伤害时调用） */
     onTakeDamage?: (ctx: BuffHookCtx) => number
-    /** 层数变更前回调（返回实际 delta，0=拦截变更） */
-    onBeforeModify?: (delta: number, ctx: { character: Character; engine: BattleEngine }) => number
     /** 招架率修正钩子（applyDamage 招架判定前自动调用，返回加算值） */
     onParryChance?: (ctx: BuffHookCtx) => number
     /** 招架减伤修正钩子（防御方 buff，applyDamage 招架成功后自动调用） */
@@ -86,6 +86,14 @@ export interface BuffDef extends GameEntity {
     onDodgeChance?: (ctx: BuffHookCtx) => number
     /** AP 消耗修正钩子（返回加算值，负=更省，最低1） */
     onActionCost?: (ctx: BuffHookCtx) => number
+    /** AP 成功扣除后的通知钩子 */
+    onApSpent?: (ctx: {
+        self: Character
+        amount: number
+        engine: BattleEngine
+        state: BattleState
+        layer: BuffLayer
+    }) => void
     /** 移动效率修正钩子（返回加算值，0.1 = +10% 每AP移动距离；buff 持有者移动时调用） */
     onMoveEfficiency?: (ctx: BuffHookCtx) => number
     /** 召唤物回合间隔钩子（返回前后摇乘数，<1=加速；御物加速等用） */

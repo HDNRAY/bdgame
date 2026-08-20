@@ -243,7 +243,7 @@ export const PASSIVES: Passive[] = [
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
             if (!def.tags.includes('unarmed')) return def
-            const chance = Math.min(0.8, def.apCost * 0.15)
+            const chance = Math.min(0.8, def.apCost * 0.05)
             // 如果招式已有麻痹效果，合并概率（加法）
             const idx = def.effects!.findIndex(
                 (e): e is Extract<typeof e, { type: 'add_debuff' }> =>
@@ -499,7 +499,6 @@ export const PASSIVES: Passive[] = [
         name: '灵犀一指',
         description: '空手入白刃，招架时缴械。',
         tags: ['passive', 'buff', 'defense'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 1, dexterity: 3 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lingxi_finger' }] }],
     },
     {
@@ -913,8 +912,26 @@ export const PASSIVES: Passive[] = [
         name: '无明之明',
         description: '完全失去视觉，重新构建感知体系。推演也影响命中、闪避、招架与暴击。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'stat_ratio', attrs: { insight: 0.5 } }],
+        effects: [{ type: 'stat_buff', attrs: { insight: -4 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_light_buff' }] }],
+    },
+    {
+        id: 'ru_shen_zuo_zhao',
+        name: '入神坐照',
+        description: '神意澄明。累计消耗AP，分四档提升洞察；神照圆满后，洞察减益不能动摇心神。',
+        tags: ['passive', 'buff', 'qi'],
+        effects: [
+            {
+                type: 'stat_restriction',
+                check: (char, attr, _cur, delta, _src, state) => {
+                    if (attr !== 'insight' || delta >= 0) return null
+                    const layer = state?.pendingBuffs.get(`shen_zhao::${char.id}`)
+                    if ((layer?.extra?.stage as number | undefined) === 4) return { skip: true }
+                    return null
+                },
+            },
+        ],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'shen_zhao' }] }],
     },
     // ── 听劲 ──
     {

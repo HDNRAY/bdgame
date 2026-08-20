@@ -26,6 +26,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '听风辩位，身随意动。提升闪避率，闪避后顺势前移。',
         requiredTags: [],
         apCost: 1,
+        chanCost: 3,
         tags: ['buff', 'defense', 'post_action'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'wind_hear_buff' }],
@@ -38,6 +39,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '万流归宗之势，完全招架远程攻击。仅对远程对手使用。',
         requiredTags: ['unarmed'],
         apCost: 1,
+        chanCost: 2,
         tags: ['defense', 'unarmed', 'post_action'],
         canUse: (attacker, state) => {
             if (attacker.chan < 2) return false
@@ -411,7 +413,13 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         chanCost: 10,
         tags: ['heal', 'qi', 'pre_action'],
         target: 'self',
-        effects: [{ type: 'functional_heal', fn: ({ self }) => Math.max(5, Math.round(self.hp * 0.05)), note: '回复当前血量 5%（最少 5 点）' }],
+        effects: [
+            {
+                type: 'functional_heal',
+                fn: ({ self }) => Math.max(5, Math.round(self.hp * 0.05)),
+                note: '回复当前血量 5%（最少 5 点）',
+            },
+        ],
     },
     {
         id: 'chanzi_stance',

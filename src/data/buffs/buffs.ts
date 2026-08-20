@@ -963,7 +963,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '游身',
         description: '游身步法。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 3000 },
+        expiry: { type: 'duration', ms: 2500 },
         stacking: { type: 'independent' },
         attrMods: { agility: 1, dexterity: 1 },
     },
@@ -1313,6 +1313,35 @@ export const BUFF_DB: BuffDef[] = [
             return undefined
         },
     },
+    {
+        id: 'shen_zhao',
+        name: '神照',
+        description: '入神坐照。累计消耗AP分四档提升洞察（+2、+4、+6、+6）；满4档后免疫所有洞察减益。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onBuffApplied: ({ layer }) => {
+            layer.restoreValue = 0
+            layer.extra = { stage: 0 }
+        },
+        onApSpent: ({ self, amount, engine, state, layer }) => {
+            const total = (layer.restoreValue ?? 0) + amount
+            const stage = Math.min(4, Math.floor(total / 25))
+            const previous = (layer.extra?.stage as number | undefined) ?? 0
+            layer.restoreValue = total
+            if (stage <= previous) return
+            const stageValues = [0, 2, 4, 6, 6]
+            const gained = stageValues[stage] - stageValues[previous]
+            const mods = applyAttrMods(self, state, { insight: gained }, '神照')
+            layer.mods = { ...(layer.mods ?? {}), ...mods }
+            layer.extra = { ...(layer.extra ?? {}), stage }
+            engine.emitLog({
+                type: 'system',
+                message: `[神照] ${self.name} 洞察+${gained}（${stage}/4）`,
+                actorId: self.id,
+            })
+        },
+    },
     // ── 西域奇毒 ──
     {
         id: 'western_poison_buff',
@@ -1335,7 +1364,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '感知流转，洞察提升。',
         tags: [],
         expiry: { type: 'duration', ms: 1500 },
-        stacking: { type: 'additive' },
+        stacking: { type: 'additive', max: 2 },
         attrMods: { insight: 2 },
     },
     // ── 独臂 ──

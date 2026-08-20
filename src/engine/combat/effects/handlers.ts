@@ -571,11 +571,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         if (!layer) return
 
         if (e.stacks != null && layer.restoreValue > e.stacks) {
-            let delta = -e.stacks
-            const buff = getBuff(e.buffId)
-            if (buff?.onBeforeModify) {
-                delta = buff.onBeforeModify(delta, { character: self, engine })
-            }
+            const delta = -e.stacks
             if (delta < 0) {
                 // 部分移除：按实际累积 mods 比例回退属性
                 partialRevertMods(layer, -delta, self)

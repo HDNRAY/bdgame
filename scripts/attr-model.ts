@@ -14,7 +14,7 @@ import { MAX_CHAN } from '../src/engine/constants'
 /**
  * 属性价值模型（2026-08-09）
  *
- * 场景：1v1 对砍，两人都只有一招（消耗2AP、造成 0.4×力道 伤害），6 属性初始全 L。
+ * 场景：1v1 对砍，两人都只有一招（消耗3AP、造成 0.3×力道 + 0.1×身法 + 0.1×灵巧 + 0.1×推演 伤害），6 属性初始全 L。
  * 不考虑距离/移动/辅助招。概率全部取期望（不抽样）。
  *
  * 所有公式（命中/招架/暴击/AP/缠/气血）直接 import 引擎真实实现
@@ -34,16 +34,16 @@ const IDX = { str: 0, vit: 1, agi: 2, dex: 3, ins: 4, wis: 5 }
 const HP_MULT = 1000 // 血量放大，保证打满窗口
 
 // ── 引擎公式（直接复用引擎实现，改引擎立即反映） ──
-const baseDamage = (str: number) =>
+const baseDamage = (attrs: number[]) =>
     calcBaseDamage(
-        { strength: 0.4 },
+        { strength: 0.3, agility: 0.1, dexterity: 0.1, wisdom: 0.1 },
         {
-            strength: str,
+            strength: attrs[IDX.str],
             vitality: 0,
-            agility: 0,
-            dexterity: 0,
+            agility: attrs[IDX.agi],
+            dexterity: attrs[IDX.dex],
             insight: 0,
-            wisdom: 0,
+            wisdom: attrs[IDX.wis],
         },
     )
 const hitChance = (adex: number, ains: number, bAgi: number, bIns: number) =>
@@ -51,14 +51,14 @@ const hitChance = (adex: number, ains: number, bAgi: number, bIns: number) =>
 const parryChance = (bDex: number, bIns: number) => calcParryChance(bDex, bIns)
 const parriedDmg = (base: number, bStr: number) => calcParriedDamage(base, bStr)
 const critChance = (adex: number, ains: number) => calcCritChance(adex, ains)
-const apCostOf = (agi: number) => calcActionCostAfterSpeed(2, agi, 0)
+const apCostOf = (agi: number) => calcActionCostAfterSpeed(3, agi, 0)
 const apRegenOf = (wis: number) => calcApRegenPerSec(wis)
 const maxHpOf = (vit: number) => calcMaxHp(vit)
 const maxApOf = (vit: number) => calcMaxAp(vit)
 
 /** 单次命中的期望伤害：A 打 B（属性已含周加成） */
 function expHit(a: number[], b: number[]): number {
-    const base = baseDamage(a[IDX.str])
+    const base = baseDamage(a)
     const hit = hitChance(a[IDX.dex], a[IDX.ins], b[IDX.agi], b[IDX.ins])
     const parry = parryChance(b[IDX.dex], b[IDX.ins])
     const pd = parriedDmg(base, b[IDX.str])
