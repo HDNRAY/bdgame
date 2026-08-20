@@ -178,7 +178,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         stacking: { type: 'none' },
         onDisarmChance: () => -1,
         onDealDamage: ({ final }) => {
-            const pierce = Math.round(final / 3)
+            const pierce = round1(final / 3)
             return { normal: final - pierce, piercing: pierce }
         },
     },
