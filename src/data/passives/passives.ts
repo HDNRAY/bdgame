@@ -392,38 +392,17 @@ export const PASSIVES: Passive[] = [
         id: 'dark_iron_sword_art',
         name: '玄剑秘册',
         description:
-            '玄门流落在外的秘籍，虽无玄门血脉，亦可以炁御物。无法精巧控制武器，但可降低重武器对修炼者身法的负面影响，并使其可以短暂使用拳脚攻击。招式化繁为简，AP消耗-0.1。',
+            '玄门流落在外的秘籍，虽无玄门血脉，亦可以炁御物。无法精巧控制武器，但可化解重器的身法负担（固定-2），并使其可以短暂使用拳脚攻击。招式化繁为简，AP消耗-0.1。',
         tags: ['passive', 'buff', 'heavy'],
-        effects: [
-            {
-                type: 'stat_restriction',
-                check: (_char, attr, _cur, delta, sourceTags) => {
-                    if (attr === 'agility' && delta < 0 && sourceTags?.includes('weapon'))
-                        return { delta: Math.round(delta * 0.6) }
-                    return null
-                },
-            },
-            { type: 'weapon_tag', tag: 'unarmed' },
-        ],
+        effects: [{ type: 'weapon_tag', tag: 'unarmed' }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'heavy_training' }] }],
     },
     {
         id: 'tide_inner_power',
-        name: '潮汐内力',
-        description: '内力如潮汐般涨落，每回合交替以力道或身法驱动招式。身法惩罚一律减免4成，且身法不为负。',
+        name: '潮汐炁功',
+        description: '炁如潮汐般涨落，每回合交替以力道或身法驱动招式。可化解重器的身法负担（固定-2）。',
         tags: ['passive', 'buff', 'qi'],
-        effects: [
-            {
-                type: 'stat_restriction',
-                check: (_char, attr, cur, delta) => {
-                    if (attr !== 'agility' || delta >= 0) return null
-                    // 无论来源一律减免 4 成（保留 6 成），但最终身法不为负
-                    const after = cur + delta * 0.6
-                    const clamped = Math.max(after, 0)
-                    return { delta: Math.round((clamped - cur) * 10) / 10 }
-                },
-            },
-        ],
+        effects: [],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tide_power', stacks: 0 }] },
         ],

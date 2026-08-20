@@ -384,14 +384,6 @@ export class RogueliteRun implements RogueliteEngine {
             if (r.requiredTags && r.requiredTags.length > 0) {
                 if (!r.requiredTags.some((t) => playerTags.includes(t))) return false
             }
-            // 武器属性门槛：力量/身法不足则拿不起（素铁霸刀需力10/身9 等），前期天工坊不给扛不动的重兵
-            if (
-                poolType === 'weapon' &&
-                r.requireAttrsMin &&
-                !rewardPool.meetsRequirements(r, { ...this._state.build.baseAttrs } as Record<string, number>)
-            ) {
-                return false
-            }
             if (round.rewardFilter && !round.rewardFilter(r)) return false
             return true
         })

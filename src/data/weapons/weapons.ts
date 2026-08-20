@@ -68,11 +68,13 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'iron_spear',
         name: '铁枪·破军',
-        description: '丈二铁枪，势大力沉。',
-        tags: ['pierce', 'parry', 'polearm'],
-        effects: [{ type: 'stat_buff', attrs: { agility: -2, strength: 6 } }],
-        requireAttrsMin: { strength: 6 },
+        description: '丈二铁枪，势大力沉。出枪迅猛，暴击更盛。',
+        tags: ['pierce', 'parry', 'polearm', 'heavy'],
         range: [1, 4],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 6 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'po_jun_buff' }] },
+        ],
     },
     {
         id: 'fusi_sword',
@@ -105,12 +107,13 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'xiu_dong',
         name: '绣冬',
-        description: '绣冬长三尺二寸，势沉力猛。暴击率提升，暴击后剑意凝寒，锋芒更盛。',
+        description: '绣冬长三尺二寸，势沉力猛。力道化为锋芒，越重越利。',
         tags: ['slash', 'parry', 'frost', 'melee', 'heavy', 'one_handed'],
         range: [1, 3],
-        effects: [{ type: 'stat_buff', attrs: { agility: -4, strength: 4 } }],
-        requireAttrsMin: { strength: 8, agility: 7 },
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'xiu_dong_buff' }] }],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 10 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'xiu_dong_buff' }] },
+        ],
     },
     {
         id: 'chun_lei',
@@ -125,14 +128,10 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '素铁霸刀',
         description: '与身同高的巨刃，离心力驱动，势不可挡。',
         tags: ['slash', 'parry', 'polearm', 'heavy'],
-        effects: [{ type: 'stat_buff', attrs: { agility: -6, strength: 6 } }],
-        requireAttrsMin: { strength: 10, agility: 9 },
         range: [1, 4],
         triggers: [
-            {
-                condition: { type: 'on_equip' },
-                effects: [{ type: 'add_buff', buffId: 'overlord_blade' }],
-            },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 14 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overlord_blade' }] },
         ],
     },
     {
@@ -140,14 +139,10 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '玄铁重剑',
         description: '与身同高的玄铁巨剑，重六十四斤，无锋无刃。大巧不工，以力破万法。',
         tags: ['heavy', 'blunt', 'slash', 'pierce', 'parry', 'polearm'],
-        effects: [{ type: 'stat_buff', attrs: { agility: -8, strength: 6 } }],
-        requireAttrsMin: { strength: 12, agility: 11 },
         range: [1, 4],
         triggers: [
-            {
-                condition: { type: 'on_equip' },
-                effects: [{ type: 'add_buff', buffId: 'dark_iron_weight' }],
-            },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 14 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dark_iron_weight' }] },
         ],
     },
     {
@@ -165,9 +160,10 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '对传说中兵器的仿制品。由天外陨铁打造，由使用者的炁激活，伸缩自如。',
         tags: ['parry', 'polearm', 'heavy'],
         range: [1, 6],
-        effects: [{ type: 'stat_buff', attrs: { agility: -10 } }],
-        requireAttrsMin: { strength: 10 },
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dinghai_pressure' }] }],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 16 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dinghai_pressure' }] },
+        ],
     },
     {
         id: 'yanling_blade',
@@ -234,9 +230,10 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'zhen_bei_ji',
         name: '镇北戟',
         description: '姬家世代相传的战戟，曾为守关领袖所用。经千星重铸为赛博战戟，可将使用者的炁转化为冰电之力。',
-        tags: ['polearm', 'parry', 'pierce', 'blunt', 'electric'],
+        tags: ['polearm', 'parry', 'pierce', 'blunt', 'electric', 'heavy'],
         range: [1, 4],
         triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 10 }] },
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'zhen_bei_ji_buff' }] },
             // 攻击被闪避 → 攻击者叠游身（步法追击）
             { condition: { type: 'on_dodged' }, effects: [{ type: 'add_buff', buffId: 'you_shen', stacks: 1 }] },

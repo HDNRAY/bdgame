@@ -554,7 +554,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'tide_power',
         name: '潮汐内力',
         description: '内力如潮汐涨落，力道和身法之间每2秒挪移1点（最多4点）。',
-        tags: [],
+        tags: ['heavy_reduce'],
         expiry: { type: 'permanent' },
         attrMods: { strength: 4, agility: 0 },
         tickInterval: 2000,
@@ -578,8 +578,8 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'heavy_training',
         name: '玄剑',
-        description: '以力驭剑，化繁为简。重型武器身法负担减半，招式AP消耗-0.1。',
-        tags: [],
+        description: '以力驭剑，化繁为简。重器身法负担-2，招式AP消耗-0.1。',
+        tags: ['heavy_reduce'],
         expiry: { type: 'permanent' },
         onActionCost: () => -0.1,
     },
@@ -1346,7 +1346,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        attrMods: { agility: -4 },
+        attrMods: { agility: -2 },
         onActionCost: () => -1,
     },
     // ── 明镜止水 ──

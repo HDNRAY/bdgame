@@ -178,6 +178,9 @@ export function applyBuffLayer(engine: BattleEngine, opts: ApplyBuffLayerOptions
     if (sourceId) layer.sourceId = sourceId
     applyMaxApMod(target, layer, buff, 1) // 首次建层按 ×1（与既有 add_buff 行为一致）
     state.pendingBuffs.set(key, layer)
+    if (buff.onBuffApplied) {
+        buff.onBuffApplied({ self: target, engine, state, layer, buffId: buff.id })
+    }
     scheduleBuffEnd(engine, key, buff, target)
     if (buff.tags?.includes('super_armor')) clearCcOnSuperArmor(engine, target.id)
     scheduleBuffTick(engine, key, buff)

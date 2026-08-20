@@ -29,6 +29,7 @@ export type Tag =
     | 'frost' // 霜冻
     | 'polearm' // 长柄
     | 'heavy' // 巨型双手
+    | 'heavy_reduce' // 化解重器负担（玄剑/潮汐，重器负担计算用）
     | 'sand_blind' // 迷眼
     | 'knockdown' // 倒地
     | 'pre_action' // 前摇

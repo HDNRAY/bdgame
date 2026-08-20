@@ -18,7 +18,7 @@ export const ARTIFACTS: Artifact[] = [
         description: '液压驱动义腿，爆发力惊人。所有招式附带短距冲刺。',
         tags: ['implant', 'inherent'],
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 1 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 2 }] },
             {
                 condition: { type: 'battle_start' },
                 effects: [{ type: 'add_buff', buffId: 'hydraulic_leg_speed' }],

@@ -1,34 +1,83 @@
 import { processActionEffect } from '../../engine/combat/effects'
 import { round1 } from '../../engine/util/math'
+import type { Character } from '../../engine/entities/character'
+import type { BattleState } from '../../engine/combat/types'
+import { forEachBuffOf, revertBuffMods } from '../../engine/combat/utils'
+import { applyAttrMods } from '../../engine/combat/utils/buff-layer'
 import { BuffDef } from './types'
+
+/** 重器负担：力量不足按差值扣身法；身上带 heavy_reduce 标记的 buff（玄剑/潮汐）各减 2 点 */
+function calcHeavyPenalty(char: Character, tier: number, state: BattleState): number {
+    // 实际力道 = 角色当前力量（重武器自身不提供力量，战斗 buff 的力量变化会反映到这里）
+    const realStr = char.attrs.get('strength')
+    const diff = Math.max(0, tier - realStr)
+    let reduce = 0
+    forEachBuffOf(state.pendingBuffs, char.id, (def) => {
+        if (def?.tags?.includes('heavy_reduce')) reduce += 2
+    })
+    return Math.max(0, diff - reduce)
+}
 
 export const WEAPON_BUFFS: BuffDef[] = [
     {
+        id: 'heavy_load',
+        name: '重器负担',
+        description: '力量不足以驾驭重器，身法受限。力量每差1点身法-1；玄剑/潮汐可化解部分负担。',
+        tags: ['weapon'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        // 首次建层即初始化惩罚（restoreValue 即力道档位）；战斗中力道变化由 onTurnEnd 按当前力量重算
+        onBuffApplied: ({ self: char, state, layer }) => {
+            const tier = layer.restoreValue ?? 0
+            layer.extra = { inited: true, tier }
+            const pen = calcHeavyPenalty(char, tier, state)
+            if (pen > 0) {
+                const mods = applyAttrMods(char, state, { agility: -pen }, '重器负担')
+                layer.mods = mods
+            }
+        },
+        // 战斗中力道变化（血战到底/七十二变等）在回合末刷新惩罚
+        onTurnEnd: ({ attacker: char, state, layer }) => {
+            if (!layer.extra?.inited) return
+            const tier = (layer.extra.tier as number) ?? 0
+            const pen = calcHeavyPenalty(char, tier, state)
+            const current = Math.abs((layer.mods?.agility as number) ?? 0)
+            if (current === pen) return
+            if (current > 0) revertBuffMods(layer, char, state)
+            if (pen > 0) {
+                const mods = applyAttrMods(char, state, { agility: -pen }, '重器负担')
+                layer.mods = mods
+            } else {
+                layer.mods = undefined
+            }
+        },
+    },
+    {
         id: 'overlord_blade',
         name: '霸刀在手',
-        description: '霸刀在手，身法受限但势不可挡。',
+        description: '离心力驱动的巨刃，势不可挡。近战招架率+20%，远程+50%，招架减免减半。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.5 : 0.2),
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const reduced = round1(blocked * 0.4)
+            const reduced = round1(blocked * 0.5)
             return raw - reduced
         },
     },
     {
         id: 'dark_iron_weight',
         name: '玄铁剑重',
-        description: '玄铁剑的沉重负担与无锋剑意。身法受限但力道大增，命中+10%，暴击+10%，招架只能减免一半伤害。',
+        description: '玄铁重剑，无锋无刃。命中+15%，暴击+10%，招架减免减半。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
-        onHitChance: () => 0.1,
+        onHitChance: () => 0.15,
         onCritChance: () => 0.1,
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const half = round1(blocked * 0.5)
-            return raw - half
+            const kept = round1(blocked * 0.4)
+            return raw - kept
         },
     },
     {
@@ -82,11 +131,24 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'xiu_dong_buff',
         name: '绣冬',
-        description: '势沉力猛，暴击率提升。',
+        description: '势沉力猛，力道化为锋芒。力道×0.14 附加伤害。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onCritChance: () => 0.15,
+        onDealDamage: ({ final, attacker }) => {
+            const bonus = round1(attacker.attrs.get('strength') * 0.14)
+            return final + bonus
+        },
+    },
+    {
+        id: 'po_jun_buff',
+        name: '破军',
+        description: '丈二铁枪，势大力沉。暴击率+5%，暴击伤害+10%。',
+        tags: ['weapon', 'pierce'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onCritChance: () => 0.05,
+        onCritDamage: () => 0.1,
     },
     {
         id: 'chun_lei_buff',

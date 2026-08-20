@@ -120,6 +120,8 @@ export interface BuffDef extends GameEntity {
     onTurnEnd?: (ctx: BuffHookCtx) => void
     /** 层数上限覆盖钩子（raw=原始 max，返回覆盖后的新上限） */
     onBuffApply?: (raw: number, char: Character, engine: BattleEngine) => number
+    /** buff/debuff 首次建层后回调（一次性初始化 extra/层数据；叠层不触发） */
+    onBuffApplied?: (ctx: BuffAppliedCtx) => void
     /** 自身任意可叠层（additive）buff 叠层时回调（返回实际允许新增的层数，0=拦截叠层；可用于扣资源） */
     onStackGain?: (ctx: StackGainCtx) => number
     /** 收到治疗时回调（所有治疗路径，含 tick heal） */
@@ -140,6 +142,18 @@ export interface BuffDef extends GameEntity {
     logFormat?: (layer: BuffLayer, targetName: string) => string | undefined
     /** 触发招式判定钩子（返回 false 则本次触发招式不执行；attacker=触发者，target=目标，source=触发招式，可自由做条件，如觉醒后不再触发） */
     canTriggerAction?: (ctx: BuffHookCtx) => boolean
+}
+
+/** onBuffApplied 钩子上下文（首次建层后调用） */
+export interface BuffAppliedCtx {
+    /** buff 持有者（add_buff=self，add_debuff=enemy） */
+    self: Character
+    engine: BattleEngine
+    /** 战斗状态 */
+    state: BattleState
+    /** 本次层数据（restoreValue=层数/档位） */
+    layer: BuffLayer
+    buffId: string
 }
 
 /** debuff 事件上下文（onDebuffApply / onDebuffApplied / onReceiveDebuff 共用） */
