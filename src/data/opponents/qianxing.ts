@@ -22,14 +22,15 @@ export const QIANXING: OpponentDef = {
         artifact('tactical_goggles'),
         artifact('nano_exoskeleton'),
         artifact('jet_drive'),
-        action('hammer_smash'),
+        action('thunder_strike'),
         artifact('energy_shield'),
         passive('qi_electric_conversion'),
         action('flash'),
         artifact('qi_battery'),
-        passive('cang_niao_jian_fa'),
+        action('cang_niao_jian_fa'),
         passive('qian_chui_bai_lian'),
-        // 12
+        artifact('ci_magnetic_coil'),
+        // 13
     ],
     actionConfigs: [
         {

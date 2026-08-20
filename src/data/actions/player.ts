@@ -108,7 +108,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['range', 'thrown', 'qi'],
         getRange: () => [1, 5] as [number, number],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.5 }, piercing: 12 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.5 }, piercing: 10 }],
     },
     // ── 穿刺系 ──
     {
@@ -615,17 +615,15 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'damage', scaling: { strength: 0.4 } }],
     },
     {
-        id: 'hammer_smash',
-        name: '重锤',
-        description: '高举铁锤雷霆砸下，附带电击。',
+        id: 'thunder_strike',
+        name: '雷霆一击',
+        description: '高举铁锤，雷霆万钧砸下，电光四溢。',
         requiredTags: ['blunt'],
         apCost: 4,
         tags: ['blunt', 'electric', 'melee'],
-        onActionCritChance: (base) => base + 0.1,
-        hookNotes: { critChance: '+10%' },
         effects: [
-            { type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } },
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
+            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.2 }, base: 2 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.8 },
         ],
     },
     // ── 御物系 ──

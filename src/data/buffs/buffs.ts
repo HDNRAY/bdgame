@@ -1296,6 +1296,24 @@ export const BUFF_DB: BuffDef[] = [
             return { normal: 1, piercing: 1 }
         },
     },
+    // ── 磁暴线圈（天工·千星·电系增幅） ──
+    {
+        id: 'ci_magnetic_coil_buff',
+        name: '磁暴线圈',
+        description: '电磁增幅线圈缠绕兵刃。电系招式伤害+15%；施加的麻痹层数翻倍。',
+        tags: ['craft', 'electric'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final, source }) => {
+            if (!source?.tags?.includes('electric')) return final
+            return Math.round(final * 1.15 * 10) / 10
+        },
+        // 施加麻痹时层数翻倍（同铸火诀放大灼烧：independent 每层独立，×2 各层）
+        onDebuffApplied: ({ buffId, layer }) => {
+            if (buffId !== 'paralyze' || !layer) return
+            layer.restoreValue = (layer.restoreValue ?? 0) * 2
+        },
+    },
     // ── 无明之明 ──
     {
         id: 'no_light_buff',

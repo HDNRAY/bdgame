@@ -618,10 +618,12 @@ export const ARTIFACTS: Artifact[] = [
         description: '天工锻造的喷气推进装置，大幅提升移动能力，免疫击倒。',
         tags: ['craft', 'buff'],
         triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rocket_boost' }] },
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'jet_drive_speed' }],
+                effects: [
+                    { type: 'add_buff', buffId: 'rocket_boost' },
+                    { type: 'add_buff', buffId: 'jet_drive_speed' },
+                ],
             },
         ],
     },
@@ -649,6 +651,19 @@ export const ARTIFACTS: Artifact[] = [
             {
                 condition: { type: 'battle_start' },
                 effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 1 }],
+            },
+        ],
+    },
+    // ── 磁暴线圈 ──
+    {
+        id: 'ci_magnetic_coil',
+        name: '磁暴线圈',
+        description: '天工锻造的电磁增幅线圈，缠绕兵刃。电系招式伤害+15%，施加的麻痹层数翻倍。',
+        tags: ['craft', 'electric', 'buff'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'ci_magnetic_coil_buff' }],
             },
         ],
     },
