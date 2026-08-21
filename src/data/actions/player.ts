@@ -411,9 +411,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         chanCost: 15,
         tags: ['slash'],
-        onActionCritChance: (base) => base + 0.3,
+        onActionCritChance: (base) => base + 0.2,
         onActionHitChance: () => 1,
-        hookNotes: { critChance: '+30%', hitChance: '必中' },
+        hookNotes: { critChance: '+20%', hitChance: '必中' },
         effects: [
             { type: 'damage', scaling: { agility: 0.6, dexterity: 0.6 } },
             {

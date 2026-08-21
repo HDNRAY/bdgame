@@ -120,14 +120,16 @@ function buffValue(a: ActionDefinition): number {
     return Math.round(v * 100) / 100
 }
 
-// 控制价值：disarm 缴械按 100% 概率权重折算；knockback 击退按每距离计
+// 控制价值：disarm 缴械按 100% 概率权重折算；knockback 击退按每距离计；stat_transfer 汲取按每属性点计
 const DISARM_WEIGHT = 0.4
 const KNOCKBACK_PER_DIST = 0.2
+const STAT_TRANSFER_VALUE = 1.5
 function controlValue(a: ActionDefinition): number {
     let v = 0
     for (const e of a.effects ?? []) {
         if (e.type === 'disarm') v += (e.chance ?? 1) * DISARM_WEIGHT
         if (e.type === 'knockback') v += e.distance * KNOCKBACK_PER_DIST
+        if (e.type === 'stat_transfer') v += (e.value ?? 1) * STAT_TRANSFER_VALUE
     }
     return Math.round(v * 100) / 100
 }

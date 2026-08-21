@@ -149,11 +149,9 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'melee'],
-        onActionHitChance: (base) => base + 0.1,
-        hookNotes: { hitChance: '+10%' },
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
-            { type: 'stat_transfer', stat: 'dexterity', value: 1, duration: 4000 },
+            { type: 'stat_transfer', stat: 'dexterity', value: 1, duration: 3000 },
         ],
     },
     {

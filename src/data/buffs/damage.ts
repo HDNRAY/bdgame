@@ -285,12 +285,32 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         },
     },
     {
-        id: 'quick_glance_buff',
-        name: '匆匆一瞥',
-        description: '暴击伤害提升。',
+        id: 'bai_ju_guo_xi_buff',
+        name: '白驹过隙',
+        description: '距对手3米内，每点身法+2%暴击伤害。',
         tags: ['buff', 'damage'],
         stacking: { type: 'none' },
-        onCritDamage: () => 0.25,
+        onCritDamage: ({ attacker, target, state }) => {
+            if (!state || !target) return 0
+            if (state.position.distance(attacker.id, target.id) > 3) return 0
+            return round1(attacker.attrs.get('agility') * 0.02)
+        },
+    },
+    {
+        id: 'chou_dao_duan_shui_buff',
+        name: '抽刀断水',
+        description: '暴击时对方气息一滞，AP-1，且回复重新起算。',
+        tags: ['buff', 'damage'],
+        stacking: { type: 'none' },
+        onCritical: ({ attacker, target, engine, state }) => {
+            if (!target || !engine) return
+            target.reduceAp(1, state.turn.currentTime)
+            engine.emitLog({
+                type: 'system',
+                message: `[抽刀断水] 「${target.name}」 气息一滞，AP-1`,
+                actorId: attacker.id,
+            })
+        },
     },
     {
         id: 'ru_yi_jin',

@@ -919,9 +919,9 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'draw_sword_combo_buff',
-        name: '抽刀断水',
+        name: '云龙三现',
         tags: ['slash'],
-        description: '交替使用斩击可叠加增伤；紧接重复上一招不归零、只是不再叠加，连打同一招会逐渐回落。',
+        description: '龙游云中，见首不见尾。交替使用斩击可叠加增伤（至多3层）；紧接重复上一招不归零、只是不再叠加，连打同一招会逐渐回落。',
         stacking: { type: 'none' },
         // 层数 = 最近 3 招窗口里与当前不同的招式数（上限3，×1.1^层）；紧接重复（diff=0）保持层数不归零
         // 窗口模型让 AI 有动机保持窗口多样（连打会掉层），比 streak 模型更不会只主用单招
@@ -944,7 +944,7 @@ export const BUFF_DB: BuffDef[] = [
             const mult = 1.1 ** diff
             if (engine) {
                 const pct = Math.round((mult - 1) * 100)
-                engine.emitLog({ type: 'system', message: `[抽刀断水] ${diff}层·+${pct}%`, actorId: attacker.id })
+                engine.emitLog({ type: 'system', message: `[云龙三现] ${diff}层·+${pct}%`, actorId: attacker.id })
             }
             return final * mult
         },

@@ -445,6 +445,17 @@ export class Character {
         return true
     }
 
+    /** 纯扣 AP（不产生缠劲）：被打断/破气类效果用（裸绞、抽刀断水等）。
+     *  扣"对方 AP"必须走这里，禁止直接改 this.ap —— 直接用 spendAp 会误送缠劲（addChan）。
+     *  @param nowMs 当前时刻（引擎时间）：传入则同步重置 AP 回复参考点 lastApUpdate，
+     *  让被扣的 AP 从此刻重新开始攒（否则上次行动以来的惰性回复会立刻把扣掉的补回来）。 */
+    reduceAp(amount: number, nowMs?: number): number {
+        const actual = Math.min(amount, this.ap)
+        this.ap = Math.max(0, this.ap - actual)
+        if (nowMs !== undefined) this.lastApUpdate = nowMs
+        return actual
+    }
+
     /** 封顶当前 AP 不超过 maxAp（属性变动后调用） */
     capAp(): void {
         if (this.ap > this.maxAp) this.ap = this.maxAp

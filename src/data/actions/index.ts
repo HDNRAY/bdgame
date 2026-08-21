@@ -11,25 +11,29 @@ import { INTERNAL_ACTIONS } from './internal'
 import { QI_SKILLS } from './qi'
 import { UNARMED_ACTIONS } from './unarmed'
 
-/** 合并所有招式（惰性求值，避免循环依赖导致模块初始化顺序问题） */
-const getALL_ACTIONS = (): ActionDefinition[] => [
-    ...UNARMED_ACTIONS,
-    ...PLAYER_ACTIONS,
-    ...SUPPORT_ACTIONS,
-    ...INTERNAL_ACTIONS,
-    ...QI_SKILLS,
-]
+/** 合并所有招式 → id 索引（惰性构建一次，后续查找 O(1)；避免循环依赖导致模块初始化顺序问题） */
+let _actionCache: Map<string, ActionDefinition> | null = null
+function getAllActionMap(): Map<string, ActionDefinition> {
+    if (!_actionCache) {
+        _actionCache = new Map(
+            [...UNARMED_ACTIONS, ...PLAYER_ACTIONS, ...SUPPORT_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS].map(
+                (a) => [a.id, a] as const,
+            ),
+        )
+    }
+    return _actionCache
+}
 
 export { PLAYER_ACTIONS, SUPPORT_ACTIONS, INTERNAL_ACTIONS, QI_SKILLS }
 
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {
-    return getALL_ACTIONS().find((a) => a.id === id)
+    return getAllActionMap().get(id)
 }
 
 /** 按武器标签过滤（空数组招式 = 任意武器可用） */
 export function getActionsByWeapon(weaponTags: Tag[]): ActionDefinition[] {
-    return getALL_ACTIONS().filter((a) => {
+    return [...getAllActionMap().values()].filter((a) => {
         if (a.requiredTags.length === 0) return true
         return a.requiredTags.some((tag) => weaponTags.includes(tag))
     })

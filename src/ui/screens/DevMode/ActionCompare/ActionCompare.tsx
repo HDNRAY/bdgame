@@ -12,6 +12,7 @@ import { getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
 import { PLAYER_ACTIONS } from '../../../../data/actions/player'
 import { INTERNAL_ACTIONS } from '../../../../data/actions/internal'
 import { QI_SKILLS } from '../../../../data/actions/qi'
+import { UNARMED_ACTIONS } from '../../../../data/actions/unarmed'
 import { calcExpectedDamage } from '../../../../engine/ai/expected-damage'
 import type { BattleState } from '../../../../engine/combat/types'
 import { MAX_CHAN, AI_CHAN_COST_WEIGHT } from '../../../../engine/constants'
@@ -45,6 +46,8 @@ const DEBUFF_WEIGHT: Record<string, number> = {
 const DISARM_WEIGHT = 0.4
 const KNOCKBACK_PER_DIST = 0.2
 const SELF_HP_COST_WEIGHT = 10
+/** 汲取（stat_transfer）：己方 +X 属性（按 1分/点）+ 对方 -X 属性（按 0.5分/点），暂时性效果合并折半 */
+const STAT_TRANSFER_VALUE = 1.5
 
 const HP_PCT = 0.49
 const EXEC_PCT = 0.25
@@ -92,6 +95,7 @@ interface Row {
     debuff: number
     disarm: number
     knockback: number
+    transfer: number // 汲取（stat_transfer）：己方+属性、对方-属性
     exec: number // 斩杀（25% 斩杀档提升）
     multihit: number
     selfDisarm: number
@@ -157,9 +161,11 @@ function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
     }
     let disarm = 0
     let knockback = 0
+    let transfer = 0
     for (const e of a.effects ?? []) {
         if (e.type === 'disarm') disarm += (e.chance ?? 1) * DISARM_WEIGHT
         if (e.type === 'knockback') knockback += e.distance * KNOCKBACK_PER_DIST
+        if (e.type === 'stat_transfer') transfer += (e.value ?? 1) * STAT_TRANSFER_VALUE
     }
     let hits = 1
     for (const e of a.effects ?? []) {
@@ -183,6 +189,7 @@ function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
                 debuff +
                 disarm +
                 knockback +
+                transfer +
                 execTotal -
                 selfDisarm -
                 selfHpCost) *
@@ -202,6 +209,7 @@ function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
         debuff: Math.round(debuff * 100) / 100,
         disarm: Math.round(disarm * 100) / 100,
         knockback: Math.round(knockback * 100) / 100,
+        transfer: Math.round(transfer * 100) / 100,
         exec: execTotal,
         multihit: multiHit,
         selfDisarm,
@@ -228,7 +236,7 @@ export function ActionCompare() {
         if (selected.length === 0) return []
         const isSupport = (a: ActionDefinition) => a.tags.includes('pre_action') || a.tags.includes('post_action')
         const query = search.trim().toLocaleLowerCase()
-        const all = [...PLAYER_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS]
+        const all = [...UNARMED_ACTIONS, ...PLAYER_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS]
         return all
             .filter((a) => {
                 if (!selected.includes(a.apCost) || isSupport(a)) return false
@@ -273,8 +281,9 @@ export function ActionCompare() {
             <p className="ac-note">
                 双方全属性 15 · 缠 50 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。 效率
                 = 期望伤 /（折前AP + 缠权重×缠消耗）；得分 = 效率 + 射程（{'>'}4 每档+0.05）+ 位移（+0.25） +
-                buff（add_buff 每层×0.3）+ debuff（层×几率×权重）+ 缴械（×0.4）+ 击退（距离×0.2） + 斩杀（25%
-                斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）− 自耗血（比例×10）。
+                buff（add_buff 每层×0.3）+ debuff（层×几率×权重）+ 缴械（×0.4）+ 击退（距离×0.2） + 汲取
+                （stat_transfer 每点×1.5）+ 斩杀（25% 斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）−
+                自耗血（比例×10）。
             </p>
             {rows.length === 0 ? (
                 <p className="ac-note">请至少勾选一个 AP 档。</p>
@@ -293,6 +302,7 @@ export function ActionCompare() {
                             <th>debuff</th>
                             <th>缴械</th>
                             <th>击退</th>
+                            <th>汲取</th>
                             <th>斩杀</th>
                             <th>多段</th>
                             <th>自缴械</th>
@@ -316,6 +326,7 @@ export function ActionCompare() {
                                 <td>{fmt(r.debuff, true)}</td>
                                 <td>{fmt(r.disarm, true)}</td>
                                 <td>{fmt(r.knockback, true)}</td>
+                                <td>{fmt(r.transfer, true)}</td>
                                 <td>{fmt(r.exec, true)}</td>
                                 <td>{fmt(r.multihit, true)}</td>
                                 <td>{fmt(r.selfDisarm)}</td>

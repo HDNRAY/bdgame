@@ -70,7 +70,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense', 'stance'],
         expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
-        onDodgeChance: () => 0.2,
+        onDodgeChance: () => 0.15,
         onDodged: ({ target, attacker, engine, state }) => {
             if (!engine) return
             processActionEffect(

@@ -343,9 +343,8 @@ export const DEBUFF_DB: BuffDef[] = [
             // 本秒伤害：只要绞杀仍存在就先结算（含松脱那一秒）
             const dmg = round1(atk.attrs.get('vitality') * 0.5)
 
-            // 扣 AP（1/秒）
-            atk.ap = Math.max(0, atk.ap - 1)
-            atk.lastApUpdate = engine!.state.turn.currentTime
+            // 扣 AP（1/秒）——纯扣不给缠，走 reduceAp；传入当前时刻重置对方回复参考点（被扣的 AP 重新开始攒）
+            atk.reduceAp(1, engine!.state.turn.currentTime)
 
             // 刷新对手眩晕（保持锁定）
             if (!engine?.state.pendingBuffs.has(`stun::${defender.id}`)) {

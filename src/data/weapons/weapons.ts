@@ -188,7 +188,7 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '引擎铁锤',
         description: '天工锻造的电磁锤，以炁驱动，雷火交加。代价：运转耗能，AP回复-0.1/s。',
         tags: ['blunt', 'electric', 'qi', 'craft', 'polearm'],
-        range: [1, 2],
+        range: [0, 2],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -199,7 +199,7 @@ export const WEAPON_DB: WeaponDef[] = [
             },
             {
                 condition: { type: 'on_hit' },
-                effects: [{ type: 'add_debuff', buffId: 'burn', stacks: 1, chance: 0.5 }],
+                effects: [{ type: 'add_debuff', buffId: 'burn', stacks: 1, chance: 0.8 }],
             },
         ],
     },

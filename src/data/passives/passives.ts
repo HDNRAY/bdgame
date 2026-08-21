@@ -587,19 +587,9 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_parry_buff' }] }],
     },
     {
-        id: 'quick_glance',
-        name: '匆匆一瞥',
-        description: '惊鸿一瞥，杀机已至。提升暴击伤害，附带招式「顺水推舟」。',
-        tags: ['qi', 'buff'],
-        grantsActions: ['follow_the_current'],
-        triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'quick_glance_buff' }] },
-        ],
-    },
-    {
         id: 'draw_sword_cut_water',
-        name: '抽刀断水',
-        description: '抽刀断水水更流。交替使用不同斩击招式可叠加增伤，重复使用同一招不归零、只是不再叠加。',
+        name: '云龙三现',
+        description: '云龙三现。龙游云中，见首不见尾。交替使用不同斩击招式可叠加增伤（至多3层），重复同一招不归零、只是不再叠加。',
         tags: ['qi', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'draw_sword_combo_buff' }] },
@@ -611,6 +601,26 @@ export const PASSIVES: Passive[] = [
         description: '单刀法选，诱而击之，惊而取之。闪避后下一击暴击率+30%，不可叠加。',
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'on_dodge' }, effects: [{ type: 'add_buff', buffId: 'jing_ji' }] }],
+    },
+    // ── 白驹过隙（由「匆匆一瞥」拆分而来：身法→爆伤，3米内） ──
+    {
+        id: 'bai_ju_guo_xi',
+        name: '白驹过隙',
+        description: '白驹过隙，匆匆一瞥，距对手3米内，每点身法+2%暴击伤害。',
+        tags: ['qi', 'buff'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'bai_ju_guo_xi_buff' }] },
+        ],
+    },
+    // ── 抽刀断水（暴击破气：打断对方 AP 与回复，纯扣不给缠） ──
+    {
+        id: 'chou_dao_duan_shui',
+        name: '抽刀断水',
+        description: '抽刀断水。刀落，水断。暴击时对方气息一滞，AP-1，回复重新起算。',
+        tags: ['qi', 'buff'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chou_dao_duan_shui_buff' }] },
+        ],
     },
     {
         id: 'jing_luo_chu_jian',

@@ -119,7 +119,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'engine_hammer_buff',
         name: '引擎铁锤',
-        description: '天工锻造的电磁锤。maxAP-1，所有伤害附加推演×0.1。',
+        description: '天工锻造的电磁锤。所有伤害附加推演×0.1。',
         tags: ['weapon', 'electric', 'blunt'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
