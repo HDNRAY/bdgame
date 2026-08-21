@@ -172,7 +172,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '薄刃轻刀，雁翎般轻灵。',
         tags: ['slash', 'parry', 'melee', 'one_handed'],
         range: [0, 2],
-        effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 1, strength: 1 } }],
+        effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 2, strength: 1 } }],
     },
     {
         id: 'qianji',
@@ -190,10 +190,12 @@ export const WEAPON_DB: WeaponDef[] = [
         tags: ['blunt', 'electric', 'qi', 'craft', 'polearm'],
         range: [1, 2],
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'engine_hammer_buff' }] },
             {
                 condition: { type: 'on_equip' },
-                effects: [{ type: 'add_buff', buffId: 'energy_drain', stacks: 1 }],
+                effects: [
+                    { type: 'add_buff', buffId: 'engine_hammer_buff' },
+                    { type: 'add_buff', buffId: 'energy_drain', stacks: 1 },
+                ],
             },
             {
                 condition: { type: 'on_hit' },

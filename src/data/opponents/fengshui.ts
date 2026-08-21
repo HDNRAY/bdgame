@@ -10,17 +10,17 @@ export const FENGSHUI: OpponentDef = {
     weapon: 'dagger',
     targetAttrs: ATTRS,
     rewards: [
-        action('horizontal_slash'),
-        passive('no_parry_style'),
-        action('swift_step'),
-        passive('quick_glance'),
-        action('rising_slash'),
-        weapon('yanling_blade'),
-        artifact('nv_er_hong'),
-        passive('draw_sword_cut_water'),
-        passive('dan_dao_fa_xuan'),
-        action('spinning_slash'),
-        artifact('iron_mask'),
+        action('horizontal_slash'), // 横斩
+        passive('no_parry_style'), // 招架转闪避
+        action('swift_step'), // 位移+身法buff
+        passive('quick_glance'), // 爆伤+耗缠大招
+        action('rising_slash'), // 挑斩
+        weapon('yanling_blade'), // 雁翎刀 1身法 1力道 2灵巧
+        artifact('nv_er_hong'), // hot酒
+        passive('draw_sword_cut_water'), // 不同招式连击增伤buff
+        passive('dan_dao_fa_xuan'), // 闪避后加暴击率
+        action('spinning_slash'), // 旋斩
+        artifact('iron_mask'), // 奇物 3洞察 2推演
         // 11
     ],
     actionConfigs: [{ actionId: 'rising_slash', triggerId: 'on_dodged' }],

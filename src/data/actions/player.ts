@@ -620,7 +620,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '高举铁锤，雷霆万钧砸下，电光四溢。',
         requiredTags: ['blunt'],
         apCost: 4,
-        tags: ['blunt', 'electric', 'melee'],
+        tags: ['blunt', 'electric'],
         effects: [
             { type: 'damage', scaling: { strength: 0.6, wisdom: 0.2 }, base: 2 },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.8 },

@@ -249,7 +249,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         onCanParry: () => true,
         onParried: ({ target, attacker, engine, state }) => {
             processActionEffect(
-                { type: 'disarm', chance: 0.4 },
+                { type: 'disarm', chance: 0.3 },
                 { self: target, enemy: attacker, engine: engine!, tMs: state.turn.currentTime },
             )
         },
