@@ -12,13 +12,8 @@ import { planSupportActions } from './support-planner'
 import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
 import { getAction as getBaseAction } from '../../data/actions'
-import { AI_CHAN_COST_WEIGHT, MAX_CHAN } from '../constants'
-
-/** rate 用的缠劲「机会成本」：缠满（达上限）时缠不值钱，缠消耗打 0.8 折。
- *  花 AP 回缠在缠充足/满缠下大多是溢出（无用），忽略不计 */
-function chanOpportunityCost(self: Character, chanCost: number): number {
-    return self.chan >= MAX_CHAN ? chanCost * 0.8 : chanCost
-}
+import { chanOpportunityCost } from '../calc/chan-value'
+import { AI_CHAN_COST_WEIGHT } from '../constants'
 
 /** AI 决策：返回本行动中要执行的一串指令 */
 export function planEvent(self: Character, state: BattleState): ActionCommand[] {
@@ -116,7 +111,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     // 1.5. 前摇辅助（buff/饮酒等）优先预留 AP，先于主招与移动执行
     const preCmds = planSupportActions(self, state, self.ap, 'pre_action')
     const preAp = preCmds.reduce(
-        (s, c) => s + self.actionApCost(self.actions.find((a) => a.id === c.actionId)?.apCost ?? 0),
+        (s, c) => s + self.actionApCost(self.actions.find((a) => a.id === c.actionId)?.apCost ?? 0, state),
         0,
     )
     // 拾起兵器（0AP）并入前摇指令开头（先捡武器，再执行其他前摇/主招/移动）
@@ -282,7 +277,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const mainDef2 = mainInst.def
 
     // ── 4. 收招辅助（主招之后执行；前摇辅助已在上方预留） ──
-    const mainApUsed = moveAp + self.actionApCost(mainDef2.apCost)
+    const mainApUsed = moveAp + self.actionApCost(mainDef2.apCost, state)
     const postCmds = planSupportActions(
         self,
         state,
@@ -324,14 +319,14 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     if (extraTotal > 0) {
         let spentExtra =
             moveAp +
-            self.actionApCost(mainDef2.apCost) +
+            self.actionApCost(mainDef2.apCost, state) +
             preCmds.reduce((s, c) => {
                 const inst = self.actions.find((a) => a.id === c.actionId)
-                return s + (inst ? self.actionApCost(inst.apCost) : 0)
+                return s + (inst ? self.actionApCost(inst.apCost, state) : 0)
             }, 0) +
             postCmds.reduce((s, c) => {
                 const inst = self.actions.find((a) => a.id === c.actionId)
-                return s + (inst ? self.actionApCost(inst.apCost) : 0)
+                return s + (inst ? self.actionApCost(inst.apCost, state) : 0)
             }, 0)
         for (let i = 0; i < extraTotal; i++) {
             const remaining = apBudget - spentExtra
@@ -340,7 +335,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             if (!second) break
             cmds.push({ type: 'attack', actionId: second })
             const inst = self.actions.find((a) => a.id === second)
-            if (inst) spentExtra += self.actionApCost(inst.def.apCost)
+            if (inst) spentExtra += self.actionApCost(inst.def.apCost, state)
         }
     }
 
@@ -378,7 +373,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                     if (c.type === 'move') return sum + Math.abs(c.bestDistance ?? 0)
                     if (c.actionId) {
                         const inst = self.actions.find((a) => a.id === c.actionId)
-                        return sum + (inst ? self.actionApCost(inst.apCost) : 0)
+                        return sum + (inst ? self.actionApCost(inst.apCost, state) : 0)
                     }
                     return sum
                 }, 0)
@@ -408,7 +403,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                 if (c.type === 'move') return sum + Math.abs(c.bestDistance ?? 0)
                 if (c.actionId) {
                     const inst = self.actions.find((a) => a.id === c.actionId)
-                    return sum + (inst ? self.actionApCost(inst.apCost) : 0)
+                    return sum + (inst ? self.actionApCost(inst.apCost, state) : 0)
                 }
                 return sum
             }, 0)
@@ -431,7 +426,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
                 if (c.type === 'move') return sum + Math.abs(c.bestDistance ?? 0)
                 if (c.actionId) {
                     const inst = self.actions.find((a) => a.id === c.actionId)
-                    return sum + (inst ? self.actionApCost(inst.apCost) : 0)
+                    return sum + (inst ? self.actionApCost(inst.apCost, state) : 0)
                 }
                 return sum
             }, 0)
@@ -479,7 +474,7 @@ function estimatePlan(
             const secondDef = getRuntimeAction(id, self, state) ?? getBaseAction(id)
             if (secondDef) {
                 total += calcExpectedDamage(secondDef, self, enemy, weapon.range, state).expectedDamage
-                remaining -= self.actionApCost(secondDef.apCost)
+                remaining -= self.actionApCost(secondDef.apCost, state)
                 excludeIds.add(id)
             }
         }

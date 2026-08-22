@@ -15,7 +15,7 @@ import { getAction as getActionDef } from '../../data/actions'
 import { getWeapon } from '../../data/weapons/weapons'
 import { getPassive } from '../../data/passives'
 import { getArtifact } from '../../data/artifacts'
-import { forEachBuffOf } from '../combat/utils'
+import { forEachBuffOf, calcExtraHaste } from '../combat/utils'
 import { TRIGGER_CONDITIONS } from '../../data/triggers'
 import { MAX_CHAN } from '../constants'
 import type { BattleEngine } from '../combat/engine'
@@ -320,9 +320,11 @@ export class Character {
         return this.build.actionConfigs?.find((c) => c.actionId === actionId)
     }
 
-    /** 实时计算 haste（固定值 + 所有 eval 回调求值） */
-    getHaste(): number {
-        return this.haste + this.hasteCallbacks.reduce((sum, cb) => sum + cb(this), 0)
+    /** 实时计算 haste（固定值 + 所有 eval 回调求值 + buff onHaste 钩子；传 state 才计入 buff 急速） */
+    getHaste(state?: BattleState): number {
+        let h = this.haste + this.hasteCallbacks.reduce((sum, cb) => sum + cb(this), 0)
+        if (state) h += calcExtraHaste(state, this)
+        return h
     }
 
     /** buff 时长倍率（炁蕴绵长等功法，乘算，默认 1） */
@@ -330,9 +332,9 @@ export class Character {
         return this.buffDurationCallbacks.reduce((m, cb) => m * cb(this), 1)
     }
 
-    /** 身法/急速减免后的招式 AP 成本（召唤物不调用此方法，走原价） */
-    actionApCost(base: number): number {
-        return calcActionCostAfterSpeed(base, this.attrs.get('agility'), this.getHaste())
+    /** 身法/急速减免后的招式 AP 成本（召唤物不调用此方法，走原价；传 state 计入 buff onHaste 急速） */
+    actionApCost(base: number, state?: BattleState): number {
+        return calcActionCostAfterSpeed(base, this.attrs.get('agility'), this.getHaste(state))
     }
 
     /** 惰性缓存的运行时招式表（base + actionEnhancer + 所有 onRuntimeAction buff 修正，如御剑诀+2距离） */
@@ -407,7 +409,7 @@ export class Character {
         this.hp = Math.max(0, this.hp - amount)
         const dealt = prevHp - this.hp
         if (dealt > 0.5 && engine) {
-            this.addChan(round1(dealt * 0.6))
+            this.addChan(round1(dealt * 0.5))
             engine.checkChanOverflow(this.id)
         }
         if (engine && dealt > 0) this.#fireHpChange(engine)

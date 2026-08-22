@@ -96,6 +96,8 @@ export interface BuffDef extends GameEntity {
     }) => void
     /** 移动效率修正钩子（返回加算值，0.1 = +10% 每AP移动距离；buff 持有者移动时调用） */
     onMoveEfficiency?: (ctx: BuffHookCtx) => number
+    /** 急速修正钩子（返回加算值，1 = +1 急速；buff 持有者计算 AP 成本/行动前摇时调用，如追星叠层加速） */
+    onHaste?: (ctx: BuffHookCtx) => number
     /** 召唤物回合间隔钩子（返回前后摇乘数，<1=加速；御物加速等用） */
     onSummonInterval?: (ctx: BuffHookCtx) => number
     /** 出招回调（释放任何招式时调用，不受命中影响） */

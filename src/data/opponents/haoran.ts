@@ -22,7 +22,8 @@ export const HAORAN: OpponentDef = {
         passive('jiu_yang_shen_gong'),
         artifact('shao_dao_zi'),
         passive('wan_xiang_jian_yi'),
-        // 11
+        action('cang_niao_jian_fa'),
+        // 12
     ],
     actionConfigs: [
         {

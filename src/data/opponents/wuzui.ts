@@ -21,11 +21,16 @@ export const WUZUI: OpponentDef = {
         artifact('hui_xiang_dou'),
         action('hun_yuan_zhang'),
         artifact('ba_wang_zui'),
-        // 11
+        action('duan_bei_shou'), // 端杯手：醉酒层数加命中
+        // 12
     ],
     actionConfigs: [
         {
             actionId: 'qi_bolt',
+            triggerId: 'on_dodged',
+        },
+        {
+            actionId: 'duan_bei_shou',
             triggerId: 'on_dodge',
         },
     ],

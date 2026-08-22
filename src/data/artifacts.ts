@@ -610,7 +610,9 @@ export const ARTIFACTS: Artifact[] = [
         description: '天工锻造的纳米外骨骼，增强力量与机动性。',
         tags: ['craft', 'buff'],
         effects: [{ type: 'stat_buff', attrs: { strength: 3, agility: 3 } }],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'ap_drain', stacks: 1 }] }],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'energy_drain', stacks: 1 }] },
+        ],
     },
     {
         id: 'jet_drive',

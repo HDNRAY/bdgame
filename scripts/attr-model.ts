@@ -20,7 +20,7 @@ import { MAX_CHAN } from '../src/engine/constants'
  * 所有公式（命中/招架/暴击/AP/缠/气血）直接 import 引擎真实实现
  * （src/engine/calc/damage.ts、stats.ts、constants.ts）——改引擎公式，模型立即反映。
  * 事件循环复刻 engine.ts 原子回合：AP 满才行动、行动瞬间完成、
- * 下次行动 = (maxAp−剩余AP)/回复速率；缠劲 = 花AP+消耗量 + 受击30%伤害量；
+ * 下次行动 = (maxAp−剩余AP)/回复速率；缠劲 = 花AP+消耗量 + 受击50%伤害量；
  * ≥30缠「周」+1全属性（模型只算 1 层，忽略 50 缠的 2 层周）。
  *
  * 用法：npx tsx scripts/attr-model.ts
@@ -141,7 +141,7 @@ function simulate(
         fa.dealt += dmg
         fb.taken += dmg
         // 受击方回缠（30%伤害量）
-        fb.chan = Math.min(MAX_CHAN, round1(fb.chan + dmg * 0.3 + (fb as unknown as { cpd: number }).cpd))
+        fb.chan = Math.min(MAX_CHAN, round1(fb.chan + dmg * 0.5 + (fb as unknown as { cpd: number }).cpd))
         applyZhou(fb)
         // 攻方花 AP（+缠 = 消耗量）
         const cost = apCostOf(effAttrs(fa)[IDX.agi])
@@ -192,7 +192,7 @@ function deathMatch(a: Fighter, b: Fighter, maxSec = 300): { netHp: number; time
         fb.hp -= dmg
         fa.dealt += dmg
         fb.taken += dmg
-        fb.chan = Math.min(MAX_CHAN, round1(fb.chan + dmg * 0.3))
+        fb.chan = Math.min(MAX_CHAN, round1(fb.chan + dmg * 0.5))
         applyZhou(fb)
         const cost = apCostOf(effAttrs(fa)[IDX.agi])
         fa.ap -= cost

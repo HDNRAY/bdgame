@@ -1,4 +1,5 @@
 import { ActionDefinition } from '../buffs/types'
+import { countDrunkLayers } from '../../engine/combat/utils'
 
 export const UNARMED_ACTIONS: ActionDefinition[] = [
     // ── 拳掌系 ──
@@ -173,10 +174,12 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '蓄力一击，造成崩劲伤害。',
         requiredTags: ['unarmed'],
         apCost: 5,
-        chanCost: 18,
+        chanCost: 20,
         tags: ['unarmed', 'melee'],
+        onActionCritChance: (base) => base + 0.15,
+        hookNotes: { critChance: '+15%' },
         effects: [
-            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'missing_hp_damage', ratio: 0.2 },
         ],
     },
@@ -236,15 +239,15 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
     {
         id: 'eighteen_palms',
         name: '飞龙在天',
-        description: '消耗18层缠劲，刚柔并济的掌法。',
+        description: '十八掌之首，力道化为锋芒。',
         requiredTags: ['unarmed'],
-        apCost: 5,
+        apCost: 4,
         tags: ['unarmed', 'melee', 'qi'],
         getRange: () => [0, 4],
         chanCost: 18,
-        onActionHitChance: (base) => base + 0.25,
-        onActionCritChance: (base) => base + 0.2,
-        hookNotes: { hitChance: '+25%', critChance: '+20%' },
+        onActionHitChance: (base) => base + 0.2,
+        onActionCritChance: (base) => base + 0.1,
+        hookNotes: { hitChance: '+20%', critChance: '+10%' },
         effects: [{ type: 'damage', scaling: { strength: 0.6, agility: 0.6, wisdom: 0.6 } }],
     },
     {
@@ -256,9 +259,8 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         chanCost: 30,
         tags: ['unarmed', 'qi'],
         onActionHitChance: (base) => base + 0.1,
-        onActionCritChance: (base) => base + 0.2,
-        onActionCritDamage: (base) => base + 0.2,
-        hookNotes: { hitChance: '+10%', critChance: '+20%', critDamage: '+20%' },
+        onActionCritChance: (base) => base + 0.1,
+        hookNotes: { hitChance: '+10%', critChance: '+10%' },
         effects: [{ type: 'damage', scaling: { strength: 0.8, vitality: 0.8, wisdom: 0.8 } }],
     },
     {
@@ -293,10 +295,10 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
     {
         id: 'spinning_kick',
         name: '回旋踢',
-        description: '旋身突进，一记高难度腿法。需要16层缠劲。',
+        description: '旋身突进，一记高难度腿法。',
         requiredTags: ['unarmed'],
         apCost: 5,
-        chanCost: 16,
+        chanCost: 32,
         tags: ['unarmed', 'melee'],
         onActionCritDamage: (base) => base + 0.2,
         onActionCritChance: (base) => base + 0.2,
@@ -317,7 +319,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'qi', 'pierce'],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
-            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.6, agility: 0.2 }, piercingRatio: 0.5 },
+            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.6, agility: 0.4 }, piercingRatio: 0.6 },
         ],
     },
     {
@@ -345,5 +347,16 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         onActionHitChance: (base) => base + 0.2,
         hookNotes: { hitChance: '+20%' },
         effects: [{ type: 'damage', scaling: { strength: 0.4, vitality: 0.4, wisdom: 0.4 } }],
+    },
+    {
+        id: 'duan_bei_shou',
+        name: '端杯手',
+        description: '醉到深处，端杯的手比眼还准。每层醉酒提升命中。',
+        requiredTags: ['unarmed'],
+        apCost: 2,
+        tags: ['unarmed', 'melee', 'jiu'],
+        onActionHitChance: (base, state, self) => base + countDrunkLayers(state, self.id) * 0.04,
+        hookNotes: { hitChance: '每层醉酒+4%' },
+        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.1, dexterity: 0.1 } }],
     },
 ]

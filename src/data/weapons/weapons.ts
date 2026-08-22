@@ -103,7 +103,7 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '次元刃',
         description: '以炁凝成的无形之刃。',
         tags: ['slash', 'parry', 'dual_wield', 'qi', 'melee', 'one_handed'],
-        range: [1, 3],
+        range: [1, 4],
     },
     {
         id: 'xiu_dong',
@@ -186,7 +186,7 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'engine_hammer',
         name: '引擎铁锤',
-        description: '天工锻造的电磁锤，以炁驱动，雷火交加。代价：运转耗能，AP回复-0.1/s。',
+        description: '天工锻造的电磁锤，以炁驱动，雷火交加。代价：运转耗能，AP回复-0.06/s。',
         tags: ['blunt', 'electric', 'qi', 'craft', 'polearm'],
         range: [0, 2],
         triggers: [
@@ -194,7 +194,7 @@ export const WEAPON_DB: WeaponDef[] = [
                 condition: { type: 'on_equip' },
                 effects: [
                     { type: 'add_buff', buffId: 'engine_hammer_buff' },
-                    { type: 'add_buff', buffId: 'energy_drain', stacks: 1 },
+                    { type: 'add_buff', buffId: 'energy_drain', stacks: 0.6 },
                 ],
             },
             {

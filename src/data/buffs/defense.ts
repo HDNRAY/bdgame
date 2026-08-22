@@ -1,20 +1,9 @@
 import { processActionEffect } from '../../engine/combat/effects'
-import { forEachBuffOf } from '../../engine/combat/utils'
+import { countDrunkLayers } from '../../engine/combat/utils'
 import type { BuffDef } from './types'
 import { Tag } from '../../engine/entities/tag'
 import { round1 } from '../../engine/util/math'
 import { calcRoll } from '../../engine/calc/damage'
-import type { BattleState } from '../../engine/combat/types'
-
-/** 统计角色身上所有醉酒（jiu tag）buff 的层数：additive 按 restoreValue 计层，independent 每层计1 */
-function countDrunkLayers(state: BattleState, charId: string): number {
-    let count = 0
-    forEachBuffOf(state.pendingBuffs, charId, (def, layer) => {
-        if (!def?.tags?.includes('jiu')) return
-        count += def.stacking?.type === 'additive' ? (layer.restoreValue ?? 1) : 1
-    })
-    return count
-}
 
 export const DEFENSE_BUFFS: BuffDef[] = [
     {
@@ -82,13 +71,46 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'wan_liu_gui_zong',
         name: '归宗',
-        description: '完全招架远程攻击。',
+        description: '完全招架远程攻击；窗口内未招架远程则叠1层灵巧（归宗·蓄，上限4层）。',
         tags: ['defense'],
         expiry: { type: 'duration', ms: 5000 },
         onParryChance: ({ source }) => {
             if (!source?.tags.includes('range')) return 0
             return 1
         },
+        // 成功招架远程 → 标记本窗口已招架（回合结算时不叠层）
+        onParried: ({ layer }) => {
+            layer.extra = { ...(layer.extra ?? {}), parriedWindow: true }
+        },
+        // 回合结算：本窗口未招架远程 → 叠 1 层「归宗·蓄」（灵巧+1/层，上限4）；每窗口最多结算一次
+        onTurnEnd: ({ attacker, engine, state, layer }) => {
+            if (layer.extra?.windowSettled) return
+            layer.extra = { ...(layer.extra ?? {}), windowSettled: true }
+            if (layer.extra.parriedWindow) return
+            const key = `wan_liu_insight::${attacker.id}`
+            const cur = state.pendingBuffs.get(key)
+            const stacks = (cur?.restoreValue ?? 0) + 1
+            if (stacks > 4) return
+            if (!engine) return
+            processActionEffect(
+                { type: 'add_buff', buffId: 'wan_liu_insight', stacks: 1 },
+                {
+                    self: attacker,
+                    enemy: state.characters.find((c) => c.id !== attacker.id)!,
+                    engine,
+                    tMs: state.turn.currentTime,
+                },
+            )
+        },
+    },
+    {
+        id: 'wan_liu_insight',
+        name: '归宗·蓄',
+        description: '归宗蓄势，灵巧+1。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 4 },
+        attrMods: { dexterity: 1 },
     },
     {
         id: 'ranged_dodge',
@@ -347,15 +369,30 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'qian_kun_fan_tan',
         name: '醉里乾坤',
-        description: '受伤时10%概率消耗等量缠劲（1缠:1伤）反弹最多8点伤害，自身仅承受剩余伤害。',
+        description: '受伤时10%概率消耗等量缠劲（1缠:1伤）反弹最多4+醉酒层数的伤害，自身仅承受剩余伤害。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onTakeDamage: ({ final, attacker, target, engine }) => {
+        onTakeDamage: ({ final, attacker, target, engine, state }) => {
             if (attacker === target || Math.random() >= 0.1) return final
-            const reflectDmg = Math.min(Math.round(final), 8)
+            const drunkLevel = countDrunkLayers(state, target.id)
+            const reflectDmg = Math.min(Math.round(final), 4 + drunkLevel)
             if (reflectDmg <= 0) return final
             if (!target.spendChan(reflectDmg)) return final
             attacker.takeDamage?.(reflectDmg)
+            // 反伤补发 damage 事件，计入伤害统计（不走修正管道，避免反伤递归）
+            engine?.emitLog({
+                type: 'damage',
+                actionId: 'qian_kun_fan_tan',
+                actionName: '醉里乾坤·反弹',
+                sourceId: target.id,
+                targetId: attacker.id,
+                base: reflectDmg,
+                final: reflectDmg,
+                blocked: 0,
+                isCrit: false,
+                isParried: false,
+                tags: ['bonus_damage'],
+            })
             engine?.emitLog({
                 type: 'system',
                 message: `[醉里乾坤] ${target.name} 消耗${reflectDmg}缠反弹 ${reflectDmg} 点伤害给 ${attacker.name}，自承 ${round1(final - reflectDmg)} 点`,
@@ -520,18 +557,17 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         stacking: { type: 'none' },
         onParryReduction: ({ final, target }) => Math.max(0, round1(final - target.attrs.get('insight') * 0.1)),
     },
-    // ── 能量护盾（缠劲化盾：1缠吸1伤，直伤最多吸收三分之一，缠不足按比例吸收） ──
     {
         id: 'energy_shield_buff',
         name: '能量护盾',
-        description: '缠劲化盾，直伤最多吸收三分之一（1缠:1伤，缠不足按比例吸收）。',
+        description: '缠劲化盾，直伤最多吸收30%（1缠:1伤，缠不足按比例吸收）。',
         tags: ['buff', 'craft', 'defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         // 只走直伤（onTakeDamage）；DoT 不触发
         onTakeDamage: ({ final, target, engine }) => {
             if (final <= 0 || !engine) return final
-            const maxAbsorb = Math.floor(final / 3) // 最多吸收三分之一（向下取整：2伤→0不吸）
+            const maxAbsorb = Math.floor(final * 0.3) // 最多吸收30%（向下取整：2伤→0不吸）
             const chanAbsorb = round1(target.chan) // 1缠:1伤，缠越多能吸越多
             const absorb = Math.min(maxAbsorb, chanAbsorb)
             if (absorb <= 0) return final
@@ -587,6 +623,20 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             const chanCost = Math.max(1, Math.round(reflectDmg * 0.5))
             if (!target.spendChan(chanCost)) return final
             attacker.takeDamage(reflectDmg, engine)
+            // 反伤补发 damage 事件，计入伤害统计
+            engine.emitLog({
+                type: 'damage',
+                actionId: 'hun_yuan_gong',
+                actionName: '混元炁·反伤',
+                sourceId: target.id,
+                targetId: attacker.id,
+                base: reflectDmg,
+                final: reflectDmg,
+                blocked: 0,
+                isCrit: false,
+                isParried: false,
+                tags: ['bonus_damage'],
+            })
             processActionEffect(
                 { type: 'knockback', distance: 1 },
                 { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
@@ -625,6 +675,20 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             if (final <= 0 || !engine || attacker === target) return final
             const reflectDmg = Math.max(1, Math.round(final * 0.1))
             attacker.takeDamage(reflectDmg, engine)
+            // 反伤补发 damage 事件，计入伤害统计
+            engine.emitLog({
+                type: 'damage',
+                actionId: 'chanzi_stance',
+                actionName: '金刚不坏·反震',
+                sourceId: target.id,
+                targetId: attacker.id,
+                base: reflectDmg,
+                final: reflectDmg,
+                blocked: 0,
+                isCrit: false,
+                isParried: false,
+                tags: ['bonus_damage'],
+            })
             engine.emitLog({
                 type: 'system',
                 message: `[金刚不坏] ${target.name}反伤${reflectDmg}给${attacker.name}`,

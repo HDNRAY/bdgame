@@ -198,3 +198,37 @@ export const CHRONICLE_SWORD_BROTHERS: EventDef = {
         { id: 'reward', title: '结拜之礼', choices: [] },
     ],
 }
+
+/** 结拜后 · 向酒友讨教酒功（可多次出现；奖励池酒 tag 优先，不足补普通）
+ *  事件奖励：酒系功法/奇物（jiu tag），与结拜本身的学酒互为补充——结拜是入门的酒，讨教是深造的更多酒。 */
+export const CHRONICLE_WINE_TUTOR: EventDef = {
+    id: 'chronicle_wine_tutor',
+    name: '向酒友讨教',
+    description: '结拜的兄弟里，酒鬼·无志的酒道最深。你去找他讨教。',
+    placement: [
+        {
+            nodes: STAGE2_POOL,
+            fallback: true,
+            weight: 1,
+            when: { '==': [{ var: 'flags.sworn_done' }, true] },
+        },
+    ],
+    reward: { kind: 'item', pool: 'passive', includeTags: ['jiu'] },
+    rounds: [
+        {
+            id: 'tavern',
+            title: '九朵桃花',
+            description:
+                '你在九朵桃花酒吧门口撞见无志，他正靠着墙根晒太阳，怀里抱着个酒葫芦，眯着眼打量你。\n\n「哟，兄弟来了。」他晃了晃葫芦，「来得正好，昨儿个新弄的桂花酿，尝尝？」',
+            choices: [{ id: 'drink', type: 'continue', label: '坐下喝两杯' }],
+        },
+        {
+            id: 'drink',
+            title: '酒话',
+            description:
+                '酒过三巡，无志的话多了起来。他说酒有酒性，人有人的喝法——有人喝酒壮胆，有人喝酒装傻，还有人喝酒是为了记住不该忘的事。\n\n「你问酒道？酒道不在酒里，在端杯的手上。」他醉眼朦胧，却一字一句，「手稳，酒就稳。手不稳，再好的酒也是白灌。」',
+            choices: [{ id: 'reward', type: 'continue', label: '道谢' }],
+        },
+        { id: 'reward', title: '有所悟', choices: [] },
+    ],
+}

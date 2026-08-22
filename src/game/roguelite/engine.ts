@@ -369,11 +369,11 @@ export class RogueliteRun implements RogueliteEngine {
         round: Round,
     ): Choice[] {
         const source = rewardPool.getPool(poolType)
-        const items = source.filter((r) => {
+        // 通用过滤（始终生效）：排除已有/ids/ap范围/招式武器关联/自定义 filter
+        const passGeneral = (r: RewardEntity): boolean => {
             if (exclude.includes(r.id)) return false
             if (spec.kind === 'item') {
                 if (spec.ids && !spec.ids.includes(r.id)) return false
-                if (spec.includeTags && !spec.includeTags.some((t) => r.tags.includes(t as Tag))) return false
                 if (spec.excludeTags && spec.excludeTags.some((t) => r.tags.includes(t as Tag))) return false
                 if (spec.apMin !== undefined && 'apCost' in r && r.apCost < spec.apMin) return false
                 if (spec.apMax !== undefined && 'apCost' in r && r.apCost > spec.apMax) return false
@@ -386,7 +386,18 @@ export class RogueliteRun implements RogueliteEngine {
             }
             if (round.rewardFilter && !round.rewardFilter(r)) return false
             return true
-        })
+        }
+        // 标签过滤：includeTags 优先筛出标签候选；不足 3 个时用普通池补足（学特定类型功法事件如酒功/洞察共用）
+        const passTags = (r: RewardEntity): boolean => {
+            if (spec.kind !== 'item' || !spec.includeTags) return true
+            return spec.includeTags.some((t) => r.tags.includes(t as Tag))
+        }
+
+        const general = source.filter(passGeneral)
+        const tagged = general.filter(passTags)
+        const items = spec.kind === 'item' && spec.includeTags
+            ? [...tagged, ...general.filter((r) => !tagged.includes(r))]
+            : general.filter(passTags)
         if (items.length === 0) {
             // 池被过滤为空（如已拥有全部候选）→ 无奖励直接继续，不卡死
             return [{ id: END_EVENT, type: 'continue', label: '继续' }]

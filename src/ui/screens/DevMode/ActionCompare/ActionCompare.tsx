@@ -9,13 +9,15 @@
 import { useMemo, useState } from 'react'
 import { Character } from '../../../../engine/entities/character'
 import { getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
+import { getBuff } from '../../../../data/buffs'
 import { PLAYER_ACTIONS } from '../../../../data/actions/player'
 import { INTERNAL_ACTIONS } from '../../../../data/actions/internal'
 import { QI_SKILLS } from '../../../../data/actions/qi'
 import { UNARMED_ACTIONS } from '../../../../data/actions/unarmed'
 import { calcExpectedDamage } from '../../../../engine/ai/expected-damage'
 import type { BattleState } from '../../../../engine/combat/types'
-import { MAX_CHAN, AI_CHAN_COST_WEIGHT } from '../../../../engine/constants'
+import { MAX_CHAN } from '../../../../engine/constants'
+import { calcChanCostInAp } from '../../../../engine/calc/chan-value'
 import type { ActionDefinition } from '../../../../engine/entities/action'
 import { EntityItem } from '../../../components/ui/EntityItem/EntityItem'
 import './ActionCompare.scss'
@@ -27,7 +29,10 @@ const ALL_AP = [0, 1, 2, 3, 4, 5]
 // 加分/惩罚系数（与 compare-ap.ts 一致）
 const RANGE_BONUS_PER_STEP = 0.05
 const DASH_BONUS = 0.25
-const BUFF_VALUE = 0.3
+/** 属性型 add_buff：按属性点价值计（对齐 stat_transfer 的 1分/点） */
+const BUFF_ATTR_VALUE = 1.0
+/** 非属性型 add_buff：兜底值 */
+const BUFF_FLAT_VALUE = 0.3
 const SELF_DISARM_PENALTY = 1
 const MULTIHIT_PER_EXTRA = 0.25
 const MULTIHIT_CAP = 2
@@ -103,8 +108,8 @@ interface Row {
     score: number
 }
 
-/** 单行：算效率/斩杀/加分/debuff/总分 */
-function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
+/** 单行：算效率/斩杀/加分/debuff/总分（chanNow = 基准缠劲，缠成本按阈值感知模型折算） */
+function buildRow(a: ActionDefinition, rawAp: number, chanNow: number): Row {
     const atk = makeChar('A', '甲')
     const def = makeChar('B', '乙')
     const baseWeapon = getWeapon(WEAPON_ID)
@@ -128,8 +133,8 @@ function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
     } as never
 
     const est = calcExpectedDamage(a, effAtk, def, effRange, state)
-    const netChan = est.chanCost * 0.8
-    const resource = rawAp + chanWeight * netChan
+    const chanCost = calcChanCostInAp(chanNow, est.chanCost)
+    const resource = rawAp + chanCost
     const efficiency = resource > 0 ? Math.round((est.expectedDamage / resource) * 100) / 100 : 0
 
     // 25% 斩杀档
@@ -150,7 +155,13 @@ function buildRow(a: ActionDefinition, rawAp: number, chanWeight: number): Row {
 
     let buff = 0
     for (const e of a.effects ?? []) {
-        if (e.type === 'add_buff') buff += (e.stacks ?? 1) * BUFF_VALUE
+        if (e.type !== 'add_buff') continue
+        // 属性型 buff（attrMods）按属性点价值计（对齐 stat_transfer 的 1分/点口径）；
+        // 非属性 buff 用兜底值
+        const def = getBuff(e.buffId)
+        const attrs = def?.attrMods
+        const attrSum = attrs ? Object.values(attrs).reduce((s, x) => s + (x as number), 0) : 0
+        buff += (e.stacks ?? 1) * (attrSum > 0 ? attrSum * BUFF_ATTR_VALUE : BUFF_FLAT_VALUE)
     }
     let debuff = 0
     for (const e of a.effects ?? []) {
@@ -225,7 +236,7 @@ const fmt = (v: number, plus = false): string => {
 
 export function ActionCompare() {
     const [selected, setSelected] = useState<number[]>([2, 3, 4, 5])
-    const [chanWeight, setChanWeight] = useState<number>(AI_CHAN_COST_WEIGHT)
+    const [chanNow, setChanNow] = useState<number>(35)
     const [search, setSearch] = useState('')
 
     const toggleAp = (ap: number) => {
@@ -243,9 +254,9 @@ export function ActionCompare() {
                 if (!query) return true
                 return [a.name, a.id, ...a.tags].some((value) => value.toLocaleLowerCase().includes(query))
             })
-            .map((a) => buildRow(a, a.apCost, chanWeight))
+            .map((a) => buildRow(a, a.apCost, chanNow))
             .sort((x, y) => y.score - x.score)
-    }, [selected, chanWeight, search])
+    }, [selected, chanNow, search])
 
     return (
         <div className="ac">
@@ -258,14 +269,17 @@ export function ActionCompare() {
                         {ap}AP
                     </label>
                 ))}
-                <span className="ac-label ac-label-chan">缠权重：</span>
+                <span className="ac-label ac-label-chan">基准缠劲：</span>
                 <input
                     className="ac-chan-input"
-                    type="number"
-                    step={0.1}
-                    value={chanWeight}
-                    onChange={(e) => setChanWeight(Number(e.target.value) || 0)}
+                    type="range"
+                    min={0}
+                    max={50}
+                    step={1}
+                    value={chanNow}
+                    onChange={(e) => setChanNow(Number(e.target.value))}
                 />
+                <span className="ac-chan-value">{chanNow}</span>
                 <label className="ac-label ac-search-label" htmlFor="action-compare-search">
                     搜索：
                 </label>
@@ -279,11 +293,12 @@ export function ActionCompare() {
                 />
             </div>
             <p className="ac-note">
-                双方全属性 15 · 缠 50 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。 效率
-                = 期望伤 /（折前AP + 缠权重×缠消耗）；得分 = 效率 + 射程（{'>'}4 每档+0.05）+ 位移（+0.25） +
-                buff（add_buff 每层×0.3）+ debuff（层×几率×权重）+ 缴械（×0.4）+ 击退（距离×0.2） + 汲取
-                （stat_transfer 每点×1.5）+ 斩杀（25% 斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）−
-                自耗血（比例×10）。
+                双方全属性 15 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。 效率
+                = 期望伤 /（折前AP + 缠成本）；缠成本按阈值感知模型折算（基准缠劲可调，默认 35：缠越满越便宜，
+                跌破 30/50 丢「周」buff 加重成本）。得分 = 效率 + 射程（{'>'}4 每档+0.05）+ 位移（+0.25） +
+                buff（属性型按属性点×1.0，非属性型每层×0.3）+ debuff（层×几率×权重）+ 缴械（×0.4）+ 击退
+                （距离×0.2） + 汲取（stat_transfer 每点×1.5）+ 斩杀（25% 斩杀档提升）+ 多段（每段+0.25 封顶+2）−
+                自缴械（−1）− 自耗血（比例×10）。
             </p>
             {rows.length === 0 ? (
                 <p className="ac-note">请至少勾选一个 AP 档。</p>

@@ -36,21 +36,16 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'wan_liu_gui_zong',
         name: '归宗式',
-        description: '万流归宗之势，完全招架远程攻击。仅对远程对手使用。',
+        description: '万流归宗之势，完全招架远程攻击；未招架远程时叠1层灵巧。每场最多4次。',
         requiredTags: ['unarmed'],
         apCost: 1,
-        chanCost: 2,
         tags: ['defense', 'unarmed', 'post_action'],
+        maxUses: 4,
         canUse: (attacker, state) => {
-            if (attacker.chan < 2) return false
-            // 归宗式只招架带 range 标签的攻击，对手无远程手段时不必浪费 1AP+2缠
-            const enemy = state.characters.find((c) => c.id !== attacker.id)
-            if (!enemy) return false
-            const hasRangeAction = enemy.actions.some((a) => a.def.tags.includes('range'))
-            const rangeWeapon = enemy.weaponDef?.tags.includes('range') ?? false
-            return hasRangeAction || rangeWeapon
+            // 已有归宗状态时不可重复（避免连续刷层吃AP）
+            return !state.pendingBuffs.has(`wan_liu_gui_zong::${attacker.id}`)
         },
-        hookNotes: { canUse: '仅对手有远程手段时才招架' },
+        hookNotes: { canUse: '已有归宗状态时不可重复；每场最多4次' },
         effects: [{ type: 'add_buff', buffId: 'wan_liu_gui_zong' }],
     },
     {
@@ -112,10 +107,10 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         name: '净化',
         description: '破除一切负面效果，恢复自身状态。',
         requiredTags: [],
-        apCost: 2,
+        apCost: 0,
+        chanCost: 1,
         tags: ['cleanse', 'pre_action'],
-        effects: [{ type: 'cleanse' }],
-        maxUses: 1,
+        effects: [{ type: 'cleanse', allDebuffs: true, perDebuffStacks: 1 }],
     },
     {
         id: 'flash',

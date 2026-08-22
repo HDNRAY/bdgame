@@ -8,7 +8,7 @@ export const PASSIVES: Passive[] = [
         name: '三分归元气',
         description: '全属性提升。濒危时触发「三分归元」，消耗元气大幅回血。',
         tags: ['qi', 'heal', 'buff', 'defense'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 1, agility: 2, dexterity: 1 } }],
+        effects: [{ type: 'stat_buff', attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1 } }],
         triggers: [
             {
                 condition: {
@@ -486,8 +486,8 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'yuxin_sword_mastery',
-        name: '真假无用剑法',
-        description: '双剑合璧，刚柔并济。所有可叠层 buff 上限翻倍，但每次叠层消耗1缠。',
+        name: '真假无用心经',
+        description: '真假无用，虚实可辨。所有可叠层 buff 上限翻倍，但每次叠层消耗1缠。',
         tags: ['qi', 'passive', 'buff'],
         requireAttrsMin: {},
         triggers: [
@@ -589,7 +589,8 @@ export const PASSIVES: Passive[] = [
     {
         id: 'draw_sword_cut_water',
         name: '云龙三现',
-        description: '云龙三现。龙游云中，见首不见尾。交替使用不同斩击招式可叠加增伤（至多3层），重复同一招不归零、只是不再叠加。',
+        description:
+            '云龙三现。龙游云中，见首不见尾。交替使用不同斩击招式可叠加增伤（至多3层），重复同一招不归零、只是不再叠加。',
         tags: ['qi', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'draw_sword_combo_buff' }] },
@@ -651,7 +652,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'zui_quan',
         name: '醉拳',
-        description: '醉态蹒跚，步法诡谲。徒手招式附带短距冲刺，身法化闪避；有酒劲buff时闪避额外+25%。',
+        description: '醉态蹒跚，步法诡谲。徒手招式附带短距冲刺，身法化闪避；有酒劲buff时闪避额外增加。',
         tags: ['passive', 'buff', 'jiu'],
         actionEnhancer: (def) => {
             if (!def.tags?.includes('unarmed') || !def.effects?.some((e) => e.type === 'damage')) return def
@@ -662,12 +663,12 @@ export const PASSIVES: Passive[] = [
     {
         id: 'jiu_yang_shen_gong',
         name: '九阳神功',
-        description: '九阳真气护体，AP恢复速度提升至130%。',
+        description: '九阳真气护体，AP恢复速度提升至125%。',
         tags: ['passive', 'buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 3 }],
+                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 2.5 }],
             },
         ],
     },
@@ -683,8 +684,8 @@ export const PASSIVES: Passive[] = [
     {
         id: 'qian_kun_da_nuo_yi',
         name: '醉里乾坤',
-        description: '醉态中身体不受控制地晃动，受击时15%概率将所受伤害全额反弹。',
-        tags: ['passive', 'defense'],
+        description: '醉态中，体内炁流波动，受击时有概率反弹伤害。醉酒越深，反弹越高。',
+        tags: ['passive', 'defense', 'jiu'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -996,9 +997,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yi_jin_jing',
         name: '易筋经',
-        description: '佛门易筋洗髓之法，根骨、推演各+3。',
+        description: '佛门易筋洗髓之法，根骨+2，推演+3。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'stat_buff', attrs: { vitality: 3, wisdom: 3 } }],
+        effects: [{ type: 'stat_buff', attrs: { vitality: 2, wisdom: 3 } }],
     },
     {
         id: 'chanzi_chan_regen',

@@ -175,9 +175,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         tags: ['pierce', 'melee', 'buff', 'qi'],
         effects: [
-            { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 0.8 },
             { type: 'add_buff', buffId: 'thunder_swift', stacks: 1 },
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.3 } },
+            { type: 'damage', scaling: { strength: 0.3, dexterity: 0.3 } },
         ],
     },
     {
@@ -188,9 +188,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         tags: ['pierce', 'melee', 'buff', 'qi'],
         effects: [
-            { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.6 },
+            { type: 'add_debuff', buffId: 'frost', stacks: 2, chance: 0.8 },
             { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
-            { type: 'damage', scaling: { agility: 0.3, dexterity: 0.2 } },
+            { type: 'damage', scaling: { agility: 0.3, dexterity: 0.3 } },
         ],
     },
     {
@@ -203,7 +203,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [1, 5] as [number, number],
         effects: [
             { type: 'add_buff', buffId: 'bamboo_regen', stacks: 1 },
-            { type: 'damage', scaling: { wisdom: 0.3, dexterity: 0.2 } },
+            { type: 'damage', scaling: { wisdom: 0.3, dexterity: 0.3 } },
         ],
     },
     {
@@ -411,9 +411,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         chanCost: 15,
         tags: ['slash'],
-        onActionCritChance: (base) => base + 0.2,
+        onActionCritChance: (base) => base + 0.1,
         onActionHitChance: () => 1,
-        hookNotes: { critChance: '+20%', hitChance: '必中' },
+        hookNotes: { critChance: '+10%', hitChance: '必中' },
         effects: [
             { type: 'damage', scaling: { agility: 0.6, dexterity: 0.6 } },
             {

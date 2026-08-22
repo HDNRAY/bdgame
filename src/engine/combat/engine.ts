@@ -710,7 +710,7 @@ export class BattleEngine {
                         }),
                 )
             })
-            finalCost = self.actionApCost(cost)
+            finalCost = self.actionApCost(cost, this.state)
             if (!self.spendAp(finalCost)) return r
             this.#notifyApSpent(self, finalCost)
         }
@@ -850,7 +850,7 @@ export class BattleEngine {
         }
         // 缠劲不足的辅助招不释放（不扣 AP、不扣缠劲）
         if (inst.def.chanCost && !self.spendChan(inst.def.chanCost)) return r
-        const supportApCost = self.actionApCost(inst.apCost)
+        const supportApCost = self.actionApCost(inst.apCost, this.state)
         if (!self.spendAp(supportApCost)) {
             return r
         }
@@ -870,7 +870,7 @@ export class BattleEngine {
                 actionName: inst.name,
                 sourceId: self.id,
                 targetId: self.id,
-                apCost: self.actionApCost(inst.apCost),
+                apCost: self.actionApCost(inst.apCost, this.state),
             })
         }
         for (const eff of inst.def.effects ?? []) {

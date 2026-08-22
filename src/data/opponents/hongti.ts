@@ -24,9 +24,7 @@ export const HONGTI: OpponentDef = {
         // 12
     ],
     actionConfigs: [
-        { actionId: 'sword_thrust' }, // AI 出招顺序
-        { actionId: 'crushing_blow' }, // AI 出招顺序
-        { actionId: 'push_palm', triggerId: 'was_hit' },
+        { actionId: 'push_palm', triggerId: 'on_parried' },
         { actionId: 'wrist_strike', triggerId: 'on_dodge' },
         { actionId: 'light_slash', triggerId: 'on_dodged' },
         { actionId: 'qi_bolt', triggerId: 'on_opponent_move_away', conditionId: 'distance_gt_4' },

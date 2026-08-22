@@ -138,7 +138,7 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const reduced = round1(blocked * 0.3)
+            const reduced = round1(blocked * 0.8)
             return raw - reduced
         },
     },
@@ -350,11 +350,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'zhuixing',
         name: '追星',
-        description: '千星雄剑，以炁驱动。命中叠1层，每层移动效率+10%。',
+        description: '千星雄剑，以炁驱动。命中叠1层，每层急速+10,移动效率+10%，最多2层。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 0) * 0.1,
+        onHaste: ({ layer }) => (layer.restoreValue ?? 0) * 10,
     },
     {
         id: 'huixi',
@@ -421,7 +422,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '迅雷',
         description: '迅雷之势，灵巧+1，洞察+1。最多2层。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 20000 },
+        expiry: { type: 'duration', ms: 30000 },
         stacking: { type: 'additive', max: 2 },
         attrMods: { dexterity: 1, insight: 1 },
     },
@@ -430,7 +431,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '寒锋',
         description: '剑意凛冽，剑气浸骨。每层伤害+8%。最多2层。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 20000 },
+        expiry: { type: 'duration', ms: 30000 },
         stacking: { type: 'additive', max: 2 },
         onDealDamage: ({ final, layer }) => Math.round(final * (1 + layer.restoreValue * 0.08) * 10) / 10,
     },
@@ -441,7 +442,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['heal', 'buff'],
         expiry: { type: 'duration', ms: 30000 },
         stacking: { type: 'additive', max: 2 },
-        tickInterval: 3000,
+        tickInterval: 2000,
         onTickHeal: ({ layer }) => layer.restoreValue,
     },
     {
@@ -534,7 +535,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'wan_xiang_jian_yi_buff',
         name: '万象剑意',
-        description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+3%。',
+        description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+4%。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -547,7 +548,7 @@ export const BUFF_DB: BuffDef[] = [
                 if (!def.expiry || def.expiry.type === 'permanent') return
                 layers += layer.restoreValue ?? 1
             })
-            return round1(layers * 0.03)
+            return round1(layers * 0.04)
         },
     },
     {
@@ -828,11 +829,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yi_ma_xin_yuan',
         name: '意马心猿',
-        description: '凝神聚气，命中+5%；命中时15%令对手迷惑（推演降低）。',
+        description: '凝神聚气，命中时15%令对手迷惑。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onHitChance: () => 0.05,
+        // onHitChance: () => 0.05,
         onDealDamage: ({ final, attacker, target, engine, state }) => {
             if (engine) {
                 processActionEffect(
@@ -921,7 +922,8 @@ export const BUFF_DB: BuffDef[] = [
         id: 'draw_sword_combo_buff',
         name: '云龙三现',
         tags: ['slash'],
-        description: '龙游云中，见首不见尾。交替使用斩击可叠加增伤（至多3层）；紧接重复上一招不归零、只是不再叠加，连打同一招会逐渐回落。',
+        description:
+            '龙游云中，见首不见尾。交替使用斩击可叠加增伤（至多3层）；紧接重复上一招不归零、只是不再叠加，连打同一招会逐渐回落。',
         stacking: { type: 'none' },
         // 层数 = 最近 3 招窗口里与当前不同的招式数（上限3，×1.1^层）；紧接重复（diff=0）保持层数不归零
         // 窗口模型让 AI 有动机保持窗口多样（连打会掉层），比 streak 模型更不会只主用单招
@@ -1182,7 +1184,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
         apRegenPerSec: ({ target, layer }) =>
-            Math.round(calcApRegenPerSec(target.attrs.get('wisdom')) * ((layer.restoreValue ?? 0) * 0.1) * 10) / 10,
+            round1(calcApRegenPerSec(target.attrs.get('wisdom')) * ((layer.restoreValue ?? 0) * 0.1)),
     },
     // ── 挂挡（固定内息回复） ──
     {

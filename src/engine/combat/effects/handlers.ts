@@ -615,7 +615,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const targetDist = Math.max(0, dist - maxDash)
         const delta = dist - targetDist
         // short_dash 占用前摇窗口：位置在 [0, 前摇] 内平滑插值（不闪烁）
-        const pre = calcPreDelayMs(self.attrs.get('agility'), action?.extraPreDelay ?? 0, self.getHaste())
+        const pre = calcPreDelayMs(self.attrs.get('agility'), action?.extraPreDelay ?? 0, self.getHaste(engine.state))
         executeMove(self, engine, -delta, 0, { durationMs: pre, kind: 'short_dash' })
     },
     dash({ eff, self, engine, action }: EffectCtx) {

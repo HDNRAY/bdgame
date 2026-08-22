@@ -40,7 +40,7 @@ export function planMovement(
     const basePerAp = PositionSystem.apToRange(attacker.attrs.get('agility'))
     const perAp = minMoveCost ? 2 : basePerAp * (1 + moveEfficiency)
     // 主招减免后成本（身法/急速）
-    const chosenCost = attacker.actionApCost(chosenAction.apCost)
+    const chosenCost = attacker.actionApCost(chosenAction.apCost, state)
 
     // 目标距离：由攻击风格和对手决定
     const targetDist: number = (() => {
@@ -96,7 +96,7 @@ export function planMovement(
             const dashMoveDist = Math.abs(travel)
             const dashApCost = dashEff.useAp
                 ? Math.max(1, Math.round(dashMoveDist * 0.4 * 10) / 10)
-                : attacker.actionApCost(inst.apCost)
+                : attacker.actionApCost(inst.apCost, state)
             // 走路落点不比 dash 差 且 走路不更贵（≤ dash+0.5AP）→ 跳过 dash。
             // 若 dash 明显更省 AP（省 >0.5），即使落点相同/略差也应采用，
             // 否则省一大截 AP 的位移招（如虎跃）会因落点不如走路精确而永远被跳过。
