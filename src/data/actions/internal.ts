@@ -181,8 +181,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'fixed_damage', value: 25 },
             { type: 'add_debuff', buffId: 'burn', stacks: 8, chance: 1 },
-            // 失血挂到自己身上（add_buff 走 self 目标），灼烧打对手（add_debuff 走 enemy）
-            { type: 'add_buff', buffId: 'blood_loss', stacks: 4 },
+            { type: 'add_buff', buffId: 'blood_loss' },
             { type: 'add_buff', buffId: 'one_arm_buff' },
             { type: 'remove_buff', buffId: 'overload' },
         ],
@@ -197,7 +196,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['range', 'summon'],
         getRange: (_wr, self) => [1, 1 + Math.round((self?.attrs.get('wisdom') ?? 1) / 2)] as [number, number],
         hookNotes: { range: '1 至 1+推演/2' },
-        effects: [{ type: 'fixed_damage', value: 3 }],
+        effects: [{ type: 'fixed_damage', value: 3, piercing: 1 }],
         extraPreDelay: 400,
         extraStunTime: 600,
     },
@@ -474,8 +473,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['debuff', 'post_action', 'internal'],
         effects: [
-            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.6 },
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 2, chance: 0.6 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.8 },
             { type: 'add_buff', buffId: 'caltrops_cd' },
         ],
         canUse: (attacker, state) => !state.pendingBuffs.has(`caltrops_cd::${attacker.id}`),

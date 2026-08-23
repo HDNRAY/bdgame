@@ -206,7 +206,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'inner_power',
         name: '归元劲',
-        description: '内力深厚。每点推演提升全属性。持续运转消耗内息，每秒消耗 推演×0.008 点AP。',
+        description: '内力深厚。每点推演提升全属性。持续运转消耗内息，每秒消耗 0.1 点AP。',
         tags: ['passive', 'buff'],
         effects: [{ type: 'wisdom_stat_buff', ratio: 0.1, attrs: ['strength', 'vitality', 'agility', 'dexterity'] }],
         triggers: [
@@ -599,7 +599,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'dan_dao_fa_xuan',
         name: '单刀法选',
-        description: '单刀法选，诱而击之，惊而取之。闪避后下一击暴击率+30%，不可叠加。',
+        description: '单刀法选，诱而击之，惊而取之。闪避后下一击暴击率增加，不可叠加。',
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'on_dodge' }, effects: [{ type: 'add_buff', buffId: 'jing_ji' }] }],
     },
@@ -840,7 +840,16 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_way_win_buff' }] }],
     },
     {
-        id: 'spear_stance_mastery',
+        id: 'ling_long_xin_qiao',
+        name: '玲珑心窍',
+        description: '心窍玲珑，算尽对手每寸动作。每点推演增加1%暴击率。',
+        tags: ['passive', 'buff', 'inherent'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ling_long_xin_qiao_buff' }] },
+        ],
+    },
+    {
+        id: 'autumn_water',
         name: '秋水论',
         description: '秋水时至，百川灌河。攻守转换如流水，出招前切攻势，收招后切守势。',
         tags: ['passive', 'buff'],
@@ -997,9 +1006,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yi_jin_jing',
         name: '易筋经',
-        description: '佛门易筋洗髓之法，根骨+2，推演+3。',
+        description: '佛门易筋洗髓之法，根骨+3，推演+3。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'stat_buff', attrs: { vitality: 2, wisdom: 3 } }],
+        effects: [{ type: 'stat_buff', attrs: { vitality: 3, wisdom: 3 } }],
     },
     {
         id: 'chanzi_chan_regen',

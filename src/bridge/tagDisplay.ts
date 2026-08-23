@@ -51,7 +51,7 @@ export const TAG_CN: Record<Tag, string> = {
     bonus_damage: '附加伤害',
     dual_wield: '双持',
     range_up: '加射程',
-    inherent: '固有',
+    inherent: '特性',
     weapon: '武器',
     thrown: '暗器',
     super_armor: '罡体',

@@ -68,8 +68,8 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             const isQi = source?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (!isQi) return final
             const wis = attacker.attrs.get('wisdom')
-            const mult = wis <= 4 ? 1.1 : wis >= 20 ? 1.3 : 1.1 + (wis - 4) * 0.0125
-            return Math.round(final * mult * 10) / 10
+            const mult = 1.1 + (wis - 3) / 170
+            return round1(final * mult)
         },
     },
     {
@@ -384,10 +384,20 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'no_way_win_buff',
         name: '无招胜有招',
-        description: '触发招式伤害+15。',
+        description: '触发招式伤害+20%。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onDealDamage: ({ final, triggered }) => (triggered ? Math.round((final + 15) * 10) / 10 : final),
+        priority: 99,
+        onDealDamage: ({ final, triggered }) => (triggered ? round1(final * 1.2) : final),
+    },
+    {
+        id: 'ling_long_xin_qiao_buff',
+        name: '玲珑心窍',
+        description: '心窍玲珑，算尽对手每寸动作。每点推演+1%暴击率。',
+        tags: ['damage'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.01,
     },
 ]

@@ -19,10 +19,11 @@ export const OTSU: OpponentDef = {
         action('horizontal_slash'),
         weapon('three_section_spear'),
         passive('insight_awareness'),
-        passive('spear_stance_mastery'),
+        passive('autumn_water'),
         passive('bu_dong_ming_wang'),
         artifact('synthetic_lung'),
-        // 11
+        passive('no_way_win'),
+        // 12
     ],
     actionConfigs: [
         {

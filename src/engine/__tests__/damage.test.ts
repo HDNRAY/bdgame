@@ -102,10 +102,10 @@ describe('calcParriedDamage', () => {
 
 describe('calcMoveApCost', () => {
     it('should cost 1 AP per range at dex 20', () => {
-        expect(calcMoveApCost(2, 20)).toBe(2)
+        expect(calcMoveApCost(2, 20)).toBe(3) // ceil(2 / (0.4 + 20/40)) = ceil(2/0.9) = 3
     })
 
     it('should cost more at low dex', () => {
-        expect(calcMoveApCost(1, 10)).toBe(2) // ceil(1/0.5)
+        expect(calcMoveApCost(1, 10)).toBe(2) // ceil(1 / (0.4 + 10/40)) = ceil(1/0.65) = 2
     })
 })

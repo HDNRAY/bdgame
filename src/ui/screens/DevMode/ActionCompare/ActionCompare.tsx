@@ -174,6 +174,11 @@ function buildRow(a: ActionDefinition, rawAp: number, chanNow: number): Row {
     for (const e of a.effects ?? []) {
         if (e.type === 'self_hp_cost' || e.type === 'self_damage') selfRatio += e.ratio
     }
+    // 自爆等把失血（blood_loss）挂到自己身上：每秒扣2%当前血（最少1点），按典型剩余12s折算扣血比例
+    // 累计扣血 = 1 - 0.98^12 ≈ 22% 血量（指数衰减），经 SELF_HP_COST_WEIGHT 折算成自伤分
+    for (const e of a.effects ?? []) {
+        if (e.type === 'add_buff' && e.buffId === 'blood_loss') selfRatio += 0.22 // 失血每秒2%×12s≈22%
+    }
     const selfDisarm = (a.effects ?? []).some((e) => e.type === 'self_disarm') ? SELF_DISARM_PENALTY : 0
     const selfHpCost = Math.round(selfRatio * SELF_HP_COST_WEIGHT * 100) / 100
 

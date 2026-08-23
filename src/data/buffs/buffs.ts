@@ -73,11 +73,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'jing_ji',
         name: '惊击',
-        description: '闪避后蓄势，下一击暴击率+30%。',
+        description: '闪避后蓄势，下一击暴击率+25%。',
         tags: ['buff'],
         expiry: { type: 'consumed', trigger: 'on_crit' },
         stacking: { type: 'none' },
-        onCritChance: () => 0.3,
+        onCritChance: () => 0.25,
     },
     {
         id: 'melee_stance',
@@ -212,11 +212,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'inner_power_cost',
         name: '归元劲·内耗',
-        description: '内力浑厚亦需运转维持，每秒消耗 推演×0.008 点AP。',
+        description: '内力浑厚亦需运转维持，每秒消耗 0.1 点AP。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        apRegenPerSec: ({ target }) => -round1(target.attrs.get('wisdom') * 0.008),
+        apRegenPerSec: () => -0.1,
     },
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
@@ -492,7 +492,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'zhu_huo_jue_buff',
         name: '铸火',
-        description: '聚炁化火，火中淬炼不伤。自身受到的灼烧伤害减半；施加的灼烧层数提升（推演≥15 时+2，否则+1）。',
+        description: '聚炁化火，火中淬炼不伤。自身受到的灼烧伤害减半；施加的灼烧层数提升1层。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -501,11 +501,9 @@ export const BUFF_DB: BuffDef[] = [
             if (buffId !== 'burn') return undefined
             return Math.max(0, round1(damage * 0.5))
         },
-        // 施加灼烧时直接叠加层数（wis≥15 +2，否则 +1；直接改 layer.restoreValue，无递归，不依赖 engine）
-        onDebuffApplied: ({ layer, self, buffId }) => {
+        onDebuffApplied: ({ layer, buffId }) => {
             if (buffId !== 'burn' || !layer) return
-            const extra = self.attrs.get('wisdom') >= 15 ? 2 : 1
-            layer.restoreValue += extra
+            layer.restoreValue += 1
         },
     },
     // ── 千锤百炼（天工·千星·特性：灼烧-30%，根骨化力道） ──
@@ -917,7 +915,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'no_parry_buff',
         name: '流风回雪',
-        description: '招架率转化为闪避率。',
+        description: '招架率的1/3转化为闪避率。',
         tags: [],
         stacking: { type: 'none' },
         onCanParry: () => false,
@@ -1055,7 +1053,7 @@ export const BUFF_DB: BuffDef[] = [
                     str = 2
                     agi = 2
                     dex = 2
-                } else if (hpPct > 0.25) {
+                } else if (hpPct > 0.2) {
                     str = 4
                     agi = 4
                     dex = 4
@@ -1086,11 +1084,11 @@ export const BUFF_DB: BuffDef[] = [
                 wis = 0
             if (hpPct < 0.7) {
                 if (hpPct > 0.3) {
-                    ins = 4
-                    wis = 4
+                    ins = 3
+                    wis = 3
                 } else {
-                    ins = 8
-                    wis = 8
+                    ins = 6
+                    wis = 6
                 }
             }
             const prev = layer.extra as Record<string, number> | undefined

@@ -166,11 +166,11 @@ describe('御物耗炁上限与低属性战斗终止（回归：净 AP 回复为
 
     it('御物耗炁扣减 ≤ 2/3 基础 AP 回复，净回复恒为正', () => {
         const hook = getBuff('yuwu_cost')!.apRegenPerSec!
-        // 低推演（wis=3，基础 0.9）：0.7 被压到 0.6 → 净 +0.3
+        // 低推演（wis=3，基础 3×0.04+0.75=0.87）：0.7 被压到 2/3×0.87≈0.58 → 净 +0.29
         const lowDrain = hook(yuwuCtx(3, 0.7))
-        expect(lowDrain).toBeCloseTo(-0.6)
-        expect(lowDrain + 0.9).toBeGreaterThan(0)
-        // 高推演（wis=20，基础 1.75）：0.7 未触顶 → 净 +1.05
+        expect(lowDrain).toBeCloseTo(-0.58)
+        expect(lowDrain + 0.87).toBeGreaterThan(0)
+        // 高推演（wis=20，基础 20×0.04+0.75=1.55）：0.7 未触顶 → 净 +0.85
         expect(hook(yuwuCtx(20, 0.7))).toBeCloseTo(-0.7)
     })
 

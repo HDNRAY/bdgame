@@ -178,9 +178,25 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'melee'],
         onActionCritChance: (base) => base + 0.15,
         hookNotes: { critChance: '+15%' },
+        getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'missing_hp_damage', ratio: 0.2 },
+        ],
+    },
+    {
+        id: 'desolate_palm',
+        name: '黯然销魂掌',
+        description: '黯然销魂者，唯别而已矣。心中悲愤越深，掌力越强。重掌蕴含黯然之意，令对手心神不宁。',
+        requiredTags: ['unarmed'],
+        apCost: 5,
+        chanCost: 20,
+        tags: ['unarmed', 'melee'],
+        getRange: () => [0, 4],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.2 } },
+            { type: 'self_missing_hp_damage', ratio: 0.2 },
+            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
     },
     {
@@ -220,20 +236,6 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { vitality: 0.2, dexterity: 0.2, strength: 0.2 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.8 },
-        ],
-    },
-    {
-        id: 'desolate_palm',
-        name: '黯然销魂掌',
-        description: '黯然销魂者，唯别而已矣。心中悲愤越深，掌力越强。重掌蕴含黯然之意，令对手心神不宁。',
-        requiredTags: ['unarmed'],
-        apCost: 5,
-        chanCost: 20,
-        tags: ['unarmed', 'melee'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.2 } },
-            { type: 'self_missing_hp_damage', ratio: 0.2 },
-            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
     },
     {

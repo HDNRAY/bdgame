@@ -325,7 +325,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '他山之石',
         description: '现代搏击技巧总汇。博采众长，洞察入微。',
         tags: ['buff'],
-        effects: [{ type: 'stat_buff', attrs: { insight: 1, dexterity: 2, wisdom: 2 } }],
+        effects: [{ type: 'stat_buff', attrs: { insight: 2, dexterity: 1, wisdom: 2 } }],
     },
     {
         id: 'cinnabar_mole',

@@ -15,7 +15,7 @@ export const HONGTI: OpponentDef = {
         artifact('other_mountain'),
         passive('tai_chi_mastery'),
         passive('yue_nv_sword'),
-        action('light_slash'),
+        action('qi_slash'),
         action('push_palm'),
         action('wrist_strike'), // 点腕
         action('crushing_blow'), // 崩拳
@@ -24,9 +24,9 @@ export const HONGTI: OpponentDef = {
         // 12
     ],
     actionConfigs: [
-        { actionId: 'push_palm', triggerId: 'on_parried' },
-        { actionId: 'wrist_strike', triggerId: 'on_dodge' },
-        { actionId: 'light_slash', triggerId: 'on_dodged' },
+        { actionId: 'push_palm', triggerId: 'on_parry' },
+        { actionId: 'wrist_strike', triggerId: 'on_dodged' },
+        { actionId: 'qi_slash', triggerId: 'on_dodge' },
         { actionId: 'qi_bolt', triggerId: 'on_opponent_move_away', conditionId: 'distance_gt_4' },
         { actionId: 'break_formation', triggerId: 'on_debuff' },
     ],

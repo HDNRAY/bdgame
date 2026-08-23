@@ -88,7 +88,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['range', 'pierce', 'slash', 'thrown'],
         getRange: () => [1, 6],
-        effects: [{ type: 'fixed_damage', value: 7 }],
+        effects: [
+            {
+                type: 'ignore_parry',
+            },
+            { type: 'fixed_damage', value: 7 },
+        ],
     },
     {
         id: 'deadly_knife',
@@ -98,7 +103,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['range', 'pierce', 'slash', 'thrown'],
         getRange: () => [1, 6],
-        effects: [{ type: 'fixed_damage', value: 16 }],
+        effects: [
+            {
+                type: 'ignore_parry',
+            },
+            { type: 'fixed_damage', value: 14 },
+        ],
     },
     {
         id: 'sheng_si_fu',
@@ -243,9 +253,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 2,
         tags: ['pierce'],
-        extraPreDelay: -200,
         effects: [
-            { type: 'short_dash', maxDistance: 1 },
+            { type: 'short_dash', maxDistance: 2 },
             { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
         ],
     },

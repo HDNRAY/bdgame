@@ -29,6 +29,7 @@ export const JIRAN: OpponentDef = {
     actionConfigs: [
         {
             actionId: 'yi_dian_han_mang',
+            triggerId: 'on_dodge',
             conditionId: 'chill_blade_lt_2',
         },
         {

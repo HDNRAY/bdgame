@@ -443,10 +443,10 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'deng_ping_du_shui',
         name: '登萍度水',
-        description: '身轻如萍，踏水无痕。消耗3层缠劲，位移至对手身前。',
+        description: '身轻如萍，踏水无痕。消耗2层缠劲，位移至对手身前。',
         requiredTags: [],
         apCost: 0,
-        chanCost: 3,
+        chanCost: 2,
         tags: ['move', 'pre_action'],
         target: 'self',
         getRange: () => [0, 12] as [number, number],

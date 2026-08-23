@@ -19,12 +19,11 @@ export const ORANGE: OpponentDef = {
         action('sand_throw'),
         artifact('ninja_tool_kit'),
         action('blaze_strike'),
-        action('sweep_kick'),
         passive('no_light_wisdom'),
         weapon('ninja_sword'),
         passive('momentum_mastery'),
         // 锁链刃
-        // 12
+        // 11
     ],
     actionConfigs: [
         { actionId: 'light_slash', triggerId: 'on_dodged' },

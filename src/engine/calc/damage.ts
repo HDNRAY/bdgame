@@ -1,5 +1,6 @@
 import type { AttrName } from '../entities/attributes'
 import { round1 } from '../util/math'
+import { MOVE_BASE, MOVE_RATE } from '../constants'
 
 /** 基础前摇（所有角色统一） */
 export const BASE_PRE_DELAY = 400
@@ -76,9 +77,9 @@ export function calcParryChance(dexterity: number, insight: number): number {
     return Math.min(0.9, (dexterity * 1.1 + insight) / 70)
 }
 
-/** 移动消耗: 移动 1 档需要 AP = 1 / apToRange */
+/** 移动消耗: 移动 1 档需要 AP = 1 / apToRange（加性公式 MOVE_BASE + 身法/MOVE_RATE，与 PositionSystem 同源） */
 export function calcMoveApCost(distance: number, agility: number): number {
-    const perAp = Math.max(0.5, agility / 20)
+    const perAp = MOVE_BASE + agility / MOVE_RATE
     return Math.ceil(distance / perAp)
 }
 
@@ -122,8 +123,8 @@ export function calcSelfDamage(maxHp: number, ratio: number): number {
 }
 
 // ── AP 回复 ──
-/** 每推演每秒回复 AP 基数（0.1→0.05，压低推演对 AP 回复的支配力） */
-export const AP_REGEN_BASE = 0.05
+/** 每推演每秒回复 AP 基数（0.1→0.05→0.045→0.04，进一步压低推演对 AP 回复的支配力） */
+export const AP_REGEN_BASE = 0.04
 /** 回复常数项 */
 export const AP_REGEN_CONST = 0.75
 /** 最低回复速度 (AP/s) */
@@ -147,14 +148,14 @@ export const ACTION_TIME_MIN = 0.15
 /** 原子回合最小行动间隔（毫秒）：回合未消耗 AP 时也保证有正延迟，防止同刻无限重入队 */
 export const MIN_TURN_DELAY_MS = ACTION_TIME_MIN * 1000
 
-/** 招式本身固有耗时 (毫秒)：纯 apCost 决定，不受身法/haste 影响 */
+/** 招式本身特性耗时 (毫秒)：纯 apCost 决定，不受身法/haste 影响 */
 export function calcActionDurationMs(apCost: number): number {
     return Math.round(Math.max(ACTION_TIME_MIN * 1000, apCost * ACTION_TIME_BASE * 1000))
 }
 
 // ── 身法/急速 AP 消耗减免 ──
 /** 每点身法（或每 10 点急速）的 AP 减免率 */
-export const SPEED_AP_COST_RATE = 0.012
+export const SPEED_AP_COST_RATE = 0.01
 /** AP 减免率上限 */
 export const SPEED_AP_COST_CAP = 0.4
 

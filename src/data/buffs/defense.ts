@@ -527,11 +527,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'insight_awareness',
         name: '料敌机先',
-        description: '每点洞察+0.5%招架率、+0.5%闪避率。',
+        description: '每点洞察+0.4%招架率、+0.4%闪避率。',
         tags: [],
         expiry: { type: 'permanent' },
-        onParryChance: ({ target }) => target.attrs.get('insight') * 0.005,
-        onDodgeChance: ({ target }) => target.attrs.get('insight') * 0.005,
+        onParryChance: ({ target }) => target.attrs.get('insight') * 0.004,
+        onDodgeChance: ({ target }) => target.attrs.get('insight') * 0.004,
     },
     {
         id: 'ni_zhuan_jing_mai',
@@ -667,13 +667,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'chanzi_stance',
         name: '金刚不坏',
-        description: '金刚不坏体，反震敌手。受到伤害时反伤10%。',
+        description: '金刚不坏体，反震敌手。受到伤害时反伤15%。',
         tags: ['buff', 'defense'],
         expiry: { type: 'duration', ms: 15000 },
         stacking: { type: 'none' },
         onTakeDamage: ({ final, attacker, target, engine }) => {
             if (final <= 0 || !engine || attacker === target) return final
-            const reflectDmg = Math.max(1, Math.round(final * 0.1))
+            const reflectDmg = Math.max(1, Math.round(final * 0.15))
             attacker.takeDamage(reflectDmg, engine)
             // 反伤补发 damage 事件，计入伤害统计
             engine.emitLog({
@@ -700,7 +700,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'jin_zhong_zhao',
         name: '金钟罩',
-        description: '金钟罩体，罡气护身。吸收30点伤害，免疫硬控；盾未破时每10秒修复1点。',
+        description: '金钟罩体，罡气护身。吸收30点伤害，免疫硬控；盾未破时每5秒修复2点。',
         tags: ['super_armor', 'defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -708,15 +708,15 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             if (['stun', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
             return undefined
         },
-        tickInterval: 10000,
+        tickInterval: 5000,
         onTickHeal: ({ target, engine, layer }) => {
             if (!layer.extra) layer.extra = {}
             const cur = (layer.extra.shieldRemaining as number) ?? 30
             if (cur < 30) {
-                layer.extra.shieldRemaining = Math.min(30, cur + 1)
+                layer.extra.shieldRemaining = Math.min(30, cur + 2)
                 engine?.emitLog({
                     type: 'system',
-                    message: `[金钟罩] ${target.name} 护盾修复+1（${layer.extra.shieldRemaining}/30）`,
+                    message: `[金钟罩] ${target.name} 护盾修复+2（${layer.extra.shieldRemaining}/30）`,
                     actorId: target.id,
                 })
             }

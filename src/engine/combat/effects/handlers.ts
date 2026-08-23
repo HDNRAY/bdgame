@@ -746,7 +746,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const enemy = engine.getOpponent(self.id)
         if (!enemy) return
         // 找对手可偷的奇物（非 inherent）
-        const stealable = enemy.artifactDefs.filter((a) => !a.tags.includes('inherent'))
+        const stealable = enemy.artifactDefs.filter(
+            (a) => !a.tags.includes('inherent') && !a.tags.includes('implant') && !a.tags.includes('imperial'),
+        )
         if (stealable.length === 0) {
             engine.emitLog({ type: 'system', message: `[探云手] 对手无可偷取奇物`, actorId: self.id })
             return

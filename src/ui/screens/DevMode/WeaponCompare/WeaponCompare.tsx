@@ -195,7 +195,7 @@ function calcSummonScore(weapon: WeaponDef): { count: number; perSummon: number;
     return { count, perSummon: Math.round(perSummon * 10) / 10, total }
 }
 
-/** 御物耗炁扣分：按 AP 回复被压掉的比例折算（召唤物 0AP 不吃 AP，扣分只反映失去的普攻 AP 机会） */
+/** 御物耗炁/耗能扣分：按 AP 回复被压掉的比例折算（召唤物 0AP 不吃 AP，扣分只反映失去的普攻 AP 机会） */
 function calcYuwuCost(weapon: WeaponDef): { apPerSec: number; score: number } {
     let apPerSec = 0
     for (const t of weapon.triggers ?? []) {
@@ -203,6 +203,10 @@ function calcYuwuCost(weapon: WeaponDef): { apPerSec: number; score: number } {
         for (const eff of t.effects ?? []) {
             if (eff.type === 'add_buff' && eff.buffId === 'yuwu_cost') {
                 apPerSec += eff.stacks ?? 0
+            }
+            // energy_drain：每层 AP 回复 -0.1/s（引擎口径），折算成 AP/s
+            if (eff.type === 'add_buff' && eff.buffId === 'energy_drain') {
+                apPerSec += (eff.stacks ?? 0) * 0.1
             }
         }
     }

@@ -52,9 +52,9 @@ describe('PositionSystem', () => {
     })
 
     it('should calculate movement per AP', () => {
-        expect(PositionSystem.apToRange(10)).toBe(0.5)
-        expect(PositionSystem.apToRange(20)).toBe(1)
-        expect(PositionSystem.apToRange(40)).toBe(2)
+        expect(PositionSystem.apToRange(10)).toBe(0.65) // 0.4 + 10/40
+        expect(PositionSystem.apToRange(20)).toBe(0.9) // 0.4 + 20/40
+        expect(PositionSystem.apToRange(40)).toBe(1.4) // 0.4 + 40/40
     })
 
     it('should clone correctly', () => {

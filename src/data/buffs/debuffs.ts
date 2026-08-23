@@ -266,11 +266,11 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'blood_loss',
         name: '失血',
-        description: '断臂血崩，每2秒失去当前血量的2%（最少1点）。',
+        description: '断臂血崩，每1秒失去当前血量的2%（最少1点）。',
         tags: ['debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        tickInterval: 2000,
+        tickInterval: 1000,
         onTickDamage: ({ target }) => Math.max(1, Math.round(target.hp * 0.02 * 10) / 10),
     },
     // ── 烟玉冷却 ──

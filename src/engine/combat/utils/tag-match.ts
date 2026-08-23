@@ -20,7 +20,7 @@ export function pickBestPassives(self: Character, enemy: Character, count: numbe
     const selfTags = countTags(self)
     const candidates = enemy.passiveDefs.filter((p) => {
         if (self.passiveDefs.some((sp) => sp.id === p.id)) return false
-        // 固有标签的功法不可复制
+        // 特性标签的功法不可复制
         if (p.tags.includes('inherent')) return false
         // 天赋需要属性达标才能偷
         if ('requireAttrsMin' in p) {

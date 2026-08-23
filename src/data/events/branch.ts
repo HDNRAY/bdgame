@@ -383,7 +383,7 @@ export const WATERFALL_EPIPHANY: EventDef = {
 //  不是梦——是回忆自己真实的身世：独臂（年少被狼咬断手臂）/ 药屋旁支·凝炁诀（玄门不出现）/ 周家后人·周氏秘法。
 //  每局至多出现一次（memory_done 门控）。
 
-/** 固有功法三选一（inherent 被动，普通奖励池排除，仅本事件可获得） */
+/** 特性功法三选一（inherent 被动，普通奖励池排除，仅本事件可获得） */
 export const MEMORY_REWARDS: {
     id: string
     label: string
@@ -462,7 +462,7 @@ export const MEMORY_WITHIN_MEMORY: EventDef = {
         },
     ],
 }
-// ── 打工（特殊事件：固有功法由打工获得，每局至多一次） ──
+// ── 打工（特殊事件：特性功法由打工获得，每局至多一次） ──
 
 /** 图书馆打工：帮龙语仙整理书卷 → 活武学宝典 */
 export const LIBRARY_JOB: EventDef = {

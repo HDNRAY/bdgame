@@ -1,6 +1,6 @@
 /** 根据体质计算最大 HP */
 export function calcMaxHp(vitality: number): number {
-    return 20 + vitality * 18
+    return 60 + vitality * 16
 }
 
 /** 根据体质计算最大 AP */

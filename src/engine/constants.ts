@@ -12,3 +12,8 @@ export const MAX_STAT_TRANSFER_LAYERS = 4
 
 /** 每层毒每 tick 伤害 */
 export const DMG_PER_POISON_TICK = 1
+
+/** 每 AP 移动距离的加性公式：MOVE_BASE + 身法 / MOVE_RATE。
+ *  基础 0.4m 保证低身法也能移动；身法边际 0.025m/点（旧 max(0.5, agi/20) 的 1/20=0.05 减半）。 */
+export const MOVE_BASE = 0.4
+export const MOVE_RATE = 40

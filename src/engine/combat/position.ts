@@ -1,3 +1,5 @@
+import { MOVE_BASE, MOVE_RATE } from '../constants'
+
 /** 位置系统：大范围坐标，0 为中线 */
 export const POS_MIN = -1000
 export const POS_MAX = 1000
@@ -64,9 +66,10 @@ export class PositionSystem {
         return clone
     }
 
-    /** 根据身法计算每点 AP 能移动的档位: agi / 20 */
+    /** 根据身法计算每点 AP 能移动的档位：加性公式 = 基础 0.4 + 身法/40。
+     *  基础保证低身法也能移动；身法边际 0.025m/点（旧 1/20=0.05，身法对移速影响减半）。 */
     static apToRange(agility: number): number {
-        return Math.max(0.5, agility / 20)
+        return MOVE_BASE + agility / MOVE_RATE
     }
 
     /** 计算移动：从 bestDistance（期望AP，支持1位小数）算出实际消耗和位移量

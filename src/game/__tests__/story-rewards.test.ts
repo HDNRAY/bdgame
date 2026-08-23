@@ -5,7 +5,12 @@ import { getEvent, ALL_EVENTS } from '../../data/events/index'
 import { STORIES } from '../../data/stories/index'
 import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
 import { rewardPool } from '../roguelite/reward-pool'
-import { isWeaponBasicAction, resolveQuotaRewardType, countRewardOpportunities, NO_REWARD_NODES } from '../roguelite/util'
+import {
+    isWeaponBasicAction,
+    resolveQuotaRewardType,
+    countRewardOpportunities,
+    NO_REWARD_NODES,
+} from '../roguelite/util'
 import { MAX_POINTS_REWARDS } from '../entities/reward'
 import { TIANGONG_WEAPON, MEMORY_WITHIN_MEMORY, WATERFALL_EPIPHANY } from '../../data/events/branch'
 import { buildNodeSpecs } from '../roguelite/map-builder'
@@ -183,7 +188,9 @@ describe('n2 武器 / n3 招式', () => {
                 const action = rewardPool.getPool('action').find((a) => a.id === c.id)
                 expect(action).toBeDefined()
                 if (action) {
-                    expect(isWeaponBasicAction(action, weaponTags), `${c.id} 与武器 ${weaponChoice.id} 不匹配`).toBe(true)
+                    expect(isWeaponBasicAction(action, weaponTags), `${c.id} 与武器 ${weaponChoice.id} 不匹配`).toBe(
+                        true,
+                    )
                 }
             }
             return
@@ -249,12 +256,10 @@ describe('打工事件（特殊固定奖励）', () => {
         expect(lib.rounds.find((r) => r.id === 'reward_round')!.choices.map((c) => c.id)).toEqual([
             'martial_arts_archive',
         ])
-        expect(tg.rounds.find((r) => r.id === 'reward_round')!.choices.map((c) => c.id)).toEqual([
-            'qian_chui_bai_lian',
-        ])
+        expect(tg.rounds.find((r) => r.id === 'reward_round')!.choices.map((c) => c.id)).toEqual(['qian_chui_bai_lian'])
     })
 
-    it('两个固有功法被排除出普通奖励池（仅打工事件可获得）', () => {
+    it('两个特性功法被排除出普通奖励池（仅打工事件可获得）', () => {
         const ids = rewardPool.getPool('passive').map((p) => p.id)
         expect(ids).not.toContain('martial_arts_archive')
         expect(ids).not.toContain('qian_chui_bai_lian')
@@ -269,7 +274,7 @@ describe('打工事件（特殊固定奖励）', () => {
 })
 
 describe('回忆中的回忆', () => {
-    it('固定三选一固有功法（独臂/药屋旁支·凝炁诀/周家后人·周氏秘法）', () => {
+    it('固定三选一特性功法（独臂/药屋旁支·凝炁诀/周家后人·周氏秘法）', () => {
         const rewardRound = MEMORY_WITHIN_MEMORY.rounds.find((r) => r.id === 'reward_round')!
         const ids = rewardRound.choices.map((c) => c.id)
         expect(ids).toEqual(['one_arm', 'ningqi_jue', 'zoldyck_art'])
@@ -303,7 +308,7 @@ describe('回忆中的回忆', () => {
         expect(visible.map((c) => c.id)).toEqual(['one_arm', 'zoldyck_art'])
     })
 
-    it('固有功法被排除出普通奖励池（仅回忆事件可获得）', () => {
+    it('特性功法被排除出普通奖励池（仅回忆事件可获得）', () => {
         const pool = rewardPool.getPool('passive')
         const ids = pool.map((p) => p.id)
         for (const id of ['one_arm', 'ningqi_jue', 'zoldyck_art']) {
@@ -375,7 +380,9 @@ describe('四支线链与天工坊两段（flag 门控，顺序一致）', () =>
         const t2 = cand(24, 'tiangong_offhand')!
         expect(t2).toBeDefined()
         expect(evaluateWhen(t2.when, { flags: { tiangong_done: true, weapon_one_handed: true } })).toBe(true)
-        expect(evaluateWhen(t2.when, { flags: { tiangong_done: true, weapon_one_handed: true, one_arm: true } })).toBe(false)
+        expect(evaluateWhen(t2.when, { flags: { tiangong_done: true, weapon_one_handed: true, one_arm: true } })).toBe(
+            false,
+        )
         expect(evaluateWhen(t2.when, { flags: { weapon_one_handed: true } })).toBe(false) // 没去过天工坊
         expect(evaluateWhen(t2.when, { flags: { tiangong_done: true } })).toBe(false) // 不是单手
     })
