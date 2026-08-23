@@ -34,7 +34,6 @@ export type EffectDef =
     | { type: 'self_damage'; ratio: number }
     | { type: 'self_hp_cost'; ratio: number }
     | { type: 'ignore_parry' }
-    | { type: 'interrupt' }
     | { type: 'knockback'; distance: number }
     // dash：位移到 targetDist（目标距离，<0=最大射程）。maxRange=最大位移距离（朝目标位移最多 maxRange 米），
     // minRange=最小位移距离（期望位移不足则作废）。useAp=AP 随实际位移量消耗（0.4/m）。

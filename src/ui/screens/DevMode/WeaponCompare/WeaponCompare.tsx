@@ -100,7 +100,10 @@ function makeBenchChar(id: string, name: string, weapon: WeaponDef, pendingBuffs
 }
 
 /** 基准测量：基准招式在四档距离下的期望伤（射程外的档记 0） */
-function calcBenchmark(weapon: WeaponDef, pendingBuffs: Map<string, BuffLayer>): { perDistance: number[]; reachableTiers: number } {
+function calcBenchmark(
+    weapon: WeaponDef,
+    pendingBuffs: Map<string, BuffLayer>,
+): { perDistance: number[]; reachableTiers: number } {
     const atk = makeBenchChar('A', '甲', weapon, pendingBuffs)
     const def = makeBenchChar('B', '乙', getWeapon(DEFENDER_WEAPON), pendingBuffs)
     const perDistance = BENCH_DISTANCES.map((d) => {
@@ -223,13 +226,15 @@ const TRIGGER_RATE: Record<string, number> = {
     on_move_away: 0.3,
     on_move_closer: 0.3,
     on_opponent_move_closer: 0.3,
+    // on_crit = 命中率(0.713) × 暴击率(0.20) = 0.143：必须先命中才能判定暴击
+    on_crit: 0.713 * 0.2,
 }
 
 /** DoT 类 debuff 的期望伤当量（全 15 环境一轮 DoT 总伤害） */
 const DEBUFF_DOT_DMG: Record<string, number> = {
-    burn: 12,
-    poison: 10,
-    bleed: 10,
+    burn: 8,
+    poison: 8,
+    bleed: 8,
     frost: 4,
     stun: 8,
     paralyze: 8,
@@ -275,8 +280,11 @@ function calcTriggerScore(weapon: WeaponDef): number {
                 value += (eff.stacks ?? 1) * (eff.chance ?? 1) * (DEBUFF_DOT_DMG[eff.buffId] ?? 0)
         }
         // 单次攻击视角：触发概率 × 效果价值（不乘攻击次数——纯一次攻击的期望）
-        let p = 1 // 默认触发概率
+        // 命中类（on_hit/on_crit）按基准率；防御反应（on_dodge/on_parry）用自身率；
+        // 被命中侧反应（on_was_hit/on_dodged/on_parried）跟 on_hit 率；其余（on_attack 等）视为必然
+        let p = 1 // 默认触发概率（表外条件视为必然）
         if (cond === 'on_hit') p = TRIGGER_RATE.on_hit
+        else if (cond === 'on_crit') p = TRIGGER_RATE.on_crit
         else if (cond === 'on_dodge' || cond === 'on_parry') p = rate
         else if (cond === 'on_was_hit' || cond === 'on_dodged' || cond === 'on_parried') p = TRIGGER_RATE.on_hit
         total += Math.round(p * value * 10) / 10
@@ -336,9 +344,7 @@ function calcWeaponScore(weapon: WeaponDef): WeaponScore {
     const trigger = calcTriggerScore(weapon)
     // 御物武器：召唤物输出替代普攻期望伤（召唤物是它的攻击方式），耗炁扣分
     const damagePart = summon.total > 0 ? summon.total + yuwu.score : damage.avg
-    const total = Math.round(
-        (attr.score + damagePart + distance.score + grant + tag.score + trigger) * 10,
-    ) / 10
+    const total = Math.round((attr.score + damagePart + distance.score + grant + tag.score + trigger) * 10) / 10
     return { damage, attr, summon, yuwu, distance, grant, tag, trigger, total }
 }
 
@@ -355,7 +361,9 @@ export function WeaponCompare() {
         return getAllWeapons()
             .map((w) => ({ weapon: w, score: calcWeaponScore(w) }))
             .filter(({ weapon }) =>
-                query ? [weapon.name, weapon.id, ...weapon.tags].some((v) => v.toLocaleLowerCase().includes(query)) : true,
+                query
+                    ? [weapon.name, weapon.id, ...weapon.tags].some((v) => v.toLocaleLowerCase().includes(query))
+                    : true,
             )
             .sort((a, b) => b.score.total - a.score.total)
     }, [search])
@@ -377,9 +385,9 @@ export function WeaponCompare() {
                 />
             </div>
             <p className="wc-note">
-                双方全属性 15 · 同一招式基准挥击（伤害吃全部属性、系数一致）。属性分 = Σ 属性增减 × 1（1 点
-                = 1 分，可为负）；伤害分 = 真实属性下基准招式可及档平均期望伤（绝对量）；距离分 = 可及档数 ×
-                固定值；召唤分 = 御物召唤物输出（0AP 免费）；触发分 = 触发概率 × 效果价值；授招/标签分 = 配招面加分。
+                双方全属性 15 · 同一招式基准挥击（伤害吃全部属性、系数一致）。属性分 = Σ 属性增减 × 1（1 点 = 1
+                分，可为负）；伤害分 = 真实属性下基准招式可及档平均期望伤（绝对量）；距离分 = 可及档数 × 固定值；召唤分
+                = 御物召唤物输出（0AP 免费）；触发分 = 触发概率 × 效果价值；授招/标签分 = 配招面加分。
             </p>
             <table className="wc-table">
                 <thead>
@@ -402,15 +410,42 @@ export function WeaponCompare() {
                             <td className="wc-name">
                                 <EntityItem entity={weapon} type="weapon" />
                             </td>
-                            <td className={score.attr.score < 0 ? 'wc-delta-neg' : score.attr.score > 0 ? 'wc-delta' : undefined}>
-                                {score.attr.score === 0 ? '—' : score.attr.score > 0 ? `+${score.attr.score}` : score.attr.score}
+                            <td
+                                className={
+                                    score.attr.score < 0
+                                        ? 'wc-delta-neg'
+                                        : score.attr.score > 0
+                                          ? 'wc-delta'
+                                          : undefined
+                                }
+                            >
+                                {score.attr.score === 0
+                                    ? '—'
+                                    : score.attr.score > 0
+                                      ? `+${score.attr.score}`
+                                      : score.attr.score}
                             </td>
-                            <td className={score.damage.delta !== 0 ? (score.damage.delta > 0 ? 'wc-delta' : 'wc-delta-neg') : undefined}>
-                                {score.damage.delta === 0 ? '—' : score.damage.delta > 0 ? `+${score.damage.delta}` : score.damage.delta}
+                            <td
+                                className={
+                                    score.damage.delta !== 0
+                                        ? score.damage.delta > 0
+                                            ? 'wc-delta'
+                                            : 'wc-delta-neg'
+                                        : undefined
+                                }
+                            >
+                                {score.damage.delta === 0
+                                    ? '—'
+                                    : score.damage.delta > 0
+                                      ? `+${score.damage.delta}`
+                                      : score.damage.delta}
                             </td>
                             <td>{score.summon.total > 0 ? score.summon.total : '—'}</td>
                             <td className="wc-delta-neg">{score.yuwu.apPerSec > 0 ? score.yuwu.score : '—'}</td>
-                            <td>{score.distance.score}<span className="wc-dim">（跨{score.distance.span}）</span></td>
+                            <td>
+                                {score.distance.score}
+                                <span className="wc-dim">（跨{score.distance.span}）</span>
+                            </td>
                             <td>{score.grant > 0 ? score.grant : '—'}</td>
                             <td>{score.tag.count > 0 ? `${score.tag.score}(${score.tag.count})` : '—'}</td>
                             <td>{score.trigger !== 0 ? score.trigger : '—'}</td>

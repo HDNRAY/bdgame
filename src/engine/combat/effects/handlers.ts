@@ -172,15 +172,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         })
         applyHeal(engine, self, amount, action)
     },
-    interrupt({ enemy, engine }: EffectCtx) {
-        if (hasCcImmunity(enemy, engine.state.pendingBuffs)) {
-            engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫打断`, actorId: enemy.id })
-            return
-        }
-        const INTERRUPT_DELAY = 1000
-        engine.state.turn.modifyTime(enemy.id, INTERRUPT_DELAY)
-        engine.emitLog({ type: 'interrupt', sourceId: '', targetId: enemy.id })
-    },
     knockback({ eff, self, engine }: EffectCtx) {
         if (hasCcImmunity(self, engine.state.pendingBuffs)) {
             engine.emitLog({ type: 'system', message: `[罡体] ${self.name} 免疫击退`, actorId: self.id })

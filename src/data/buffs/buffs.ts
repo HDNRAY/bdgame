@@ -138,7 +138,7 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const reduced = round1(blocked * 0.8)
+            const reduced = round1(blocked * 0.4)
             return raw - reduced
         },
     },
@@ -444,6 +444,15 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'additive', max: 2 },
         tickInterval: 2000,
         onTickHeal: ({ layer }) => layer.restoreValue,
+    },
+    {
+        id: 'yun_yin',
+        name: '云隐',
+        description: '剑气化云，身形隐没。每层闪避+8%。最多2层。',
+        tags: ['buff'],
+        expiry: { type: 'duration', ms: 30000 },
+        stacking: { type: 'additive', max: 2 },
+        onDodgeChance: ({ layer }) => (layer.restoreValue ?? 0) * 0.08,
     },
     {
         id: 'herb_pouch',

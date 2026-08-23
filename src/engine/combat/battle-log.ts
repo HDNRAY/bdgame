@@ -260,14 +260,6 @@ export class BattleLog {
                     snapshot,
                 )
                 break
-            case 'interrupt':
-                this.logSystem(
-                    `[打断] ${this.resolveName(event.targetId, snapshot)} 被中断`,
-                    tMs,
-                    snapshot,
-                    event.targetId,
-                )
-                break
             case 'cleanse':
                 this.logSystem(
                     `[净化] ${this.resolveName(event.targetId, snapshot)} 清除了负面效果`,

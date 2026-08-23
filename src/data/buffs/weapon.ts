@@ -1,4 +1,3 @@
-import { processActionEffect } from '../../engine/combat/effects'
 import { round1 } from '../../engine/util/math'
 import type { Character } from '../../engine/entities/character'
 import type { BattleState } from '../../engine/combat/types'
@@ -97,23 +96,6 @@ export const WEAPON_BUFFS: BuffDef[] = [
             const blocked = raw - final
             const reduced = round1(blocked * 0.6)
             return raw - reduced
-        },
-    },
-    {
-        id: 'zhen_bei_ji_buff',
-        name: '镇北戟',
-        description: '千星重铸的赛博战戟。击中施加霜冻，被招架施加麻痹，被闪避叠游身。',
-        tags: ['weapon', 'electric', 'polearm'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        onDealDamage: ({ final, attacker, target, engine, state, source }) => {
-            if (engine && source && !source.tags?.includes('internal')) {
-                processActionEffect(
-                    { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 },
-                    { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
-                )
-            }
-            return final
         },
     },
     {

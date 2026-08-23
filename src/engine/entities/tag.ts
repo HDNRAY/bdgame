@@ -10,7 +10,6 @@ export type Tag =
     | 'paralyze' // 麻痹
     | 'burn' // 灼烧
     | 'poison' // 中毒
-    | 'interrupt' // 打断
     | 'stun' // 眩晕
     | 'cleanse' // 净化
     | 'bleed' // 流血

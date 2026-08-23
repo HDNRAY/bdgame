@@ -232,12 +232,13 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'zhen_bei_ji',
         name: '镇北戟',
-        description: '姬家世代相传的战戟，曾为守关领袖所用。经千星重铸为赛博战戟，可将使用者的炁转化为冰电之力。',
+        description: '姬家世代相传的战戟，曾为守关领袖所用。经千星重铸为赛博战戟，可将使用者的炁转化为冰电之力。暴击时冰封对手。',
         tags: ['polearm', 'parry', 'pierce', 'blunt', 'electric', 'heavy'],
         range: [1, 4],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 10 }] },
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'zhen_bei_ji_buff' }] },
+            // 暴击时施加霜冻（冰封）
+            { condition: { type: 'on_crit' }, effects: [{ type: 'add_debuff', buffId: 'frost', stacks: 3, chance: 1 }] },
             // 攻击被闪避 → 攻击者叠游身（步法追击）
             { condition: { type: 'on_dodged' }, effects: [{ type: 'add_buff', buffId: 'you_shen', stacks: 1 }] },
             // 攻击被招架 → 招架方麻痹（电流反噬）

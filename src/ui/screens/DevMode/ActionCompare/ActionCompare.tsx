@@ -9,7 +9,7 @@
 import { useMemo, useState } from 'react'
 import { Character } from '../../../../engine/entities/character'
 import { getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
-import { getBuff } from '../../../../data/buffs'
+import { sumBuffScore, BUFF_SCORE_NOTE } from '../compare-utils'
 import { PLAYER_ACTIONS } from '../../../../data/actions/player'
 import { INTERNAL_ACTIONS } from '../../../../data/actions/internal'
 import { QI_SKILLS } from '../../../../data/actions/qi'
@@ -29,10 +29,6 @@ const ALL_AP = [0, 1, 2, 3, 4, 5]
 // 加分/惩罚系数（与 compare-ap.ts 一致）
 const RANGE_BONUS_PER_STEP = 0.05
 const DASH_BONUS = 0.25
-/** 属性型 add_buff：按属性点价值计（对齐 stat_transfer 的 1分/点） */
-const BUFF_ATTR_VALUE = 1.0
-/** 非属性型 add_buff：兜底值 */
-const BUFF_FLAT_VALUE = 0.3
 const SELF_DISARM_PENALTY = 1
 const MULTIHIT_PER_EXTRA = 0.25
 const MULTIHIT_CAP = 2
@@ -153,16 +149,7 @@ function buildRow(a: ActionDefinition, rawAp: number, chanNow: number): Row {
     const distanceBonus = Math.max(0, Math.round((rangeMax - 4) * RANGE_BONUS_PER_STEP * 100)) / 100
     const dashBonus = hasDash ? DASH_BONUS : 0
 
-    let buff = 0
-    for (const e of a.effects ?? []) {
-        if (e.type !== 'add_buff') continue
-        // 属性型 buff（attrMods）按属性点价值计（对齐 stat_transfer 的 1分/点口径）；
-        // 非属性 buff 用兜底值
-        const def = getBuff(e.buffId)
-        const attrs = def?.attrMods
-        const attrSum = attrs ? Object.values(attrs).reduce((s, x) => s + (x as number), 0) : 0
-        buff += (e.stacks ?? 1) * (attrSum > 0 ? attrSum * BUFF_ATTR_VALUE : BUFF_FLAT_VALUE)
-    }
+    const buff = sumBuffScore(a.effects)
     let debuff = 0
     for (const e of a.effects ?? []) {
         if (e.type === 'add_debuff') {
@@ -296,7 +283,7 @@ export function ActionCompare() {
                 双方全属性 15 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。 效率
                 = 期望伤 /（折前AP + 缠成本）；缠成本按阈值感知模型折算（基准缠劲可调，默认 35：缠越满越便宜，
                 跌破 30/50 丢「周」buff 加重成本）。得分 = 效率 + 射程（{'>'}4 每档+0.05）+ 位移（+0.25） +
-                buff（属性型按属性点×1.0，非属性型每层×0.3）+ debuff（层×几率×权重）+ 缴械（×0.4）+ 击退
+                {BUFF_SCORE_NOTE} + debuff（层×几率×权重）+ 缴械（×0.4）+ 击退
                 （距离×0.2） + 汲取（stat_transfer 每点×1.5）+ 斩杀（25% 斩杀档提升）+ 多段（每段+0.25 封顶+2）−
                 自缴械（−1）− 自耗血（比例×10）。
             </p>

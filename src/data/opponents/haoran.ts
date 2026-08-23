@@ -6,30 +6,25 @@ const ATTRS = { strength: 14, vitality: 12, agility: 14, dexterity: 14, insight:
 export const HAORAN: OpponentDef = {
     id: 'haoran',
     name: '宁浩然',
-    story: '持剑道士，讲究又不讲究。以炁催动剑意，剑意化为万象。',
+    story: '持剑书生。以炁催动剑意，剑意化为万象。',
     battleStyle: 'mid',
     weapon: 'peach_sword',
     targetAttrs: ATTRS,
     rewards: [
-        action('qi_slash'),
+        action('swift_thunder_sword'),
         passive('inner_power'),
         action('spirit_sword'),
-        action('swift_thunder_sword'),
         action('blowing_snow_sword'),
         action('spring_bamboo_sword'),
+        action('cloud_hidden_sword'),
         action('fall_to_azure_sword'),
         artifact('qi_amplifier'),
         passive('jiu_yang_shen_gong'),
         artifact('shao_dao_zi'),
         passive('wan_xiang_jian_yi'),
-        action('cang_niao_jian_fa'),
-        // 12
+        // 11
     ],
     actionConfigs: [
-        {
-            actionId: 'qi_slash',
-            triggerId: 'on_dodged',
-        },
         {
             actionId: 'fall_to_azure_sword',
             conditionId: 'always',
@@ -41,10 +36,17 @@ export const HAORAN: OpponentDef = {
         {
             actionId: 'swift_thunder_sword',
             conditionId: 'thunder_swift_lt_2',
+            triggerId: 'on_parried',
         },
         {
             actionId: 'blowing_snow_sword',
             conditionId: 'chill_blade_lt_2',
+            triggerId: 'on_dodged',
+        },
+        {
+            actionId: 'cloud_hidden_sword',
+            conditionId: 'yun_yin_lt_2',
+            triggerId: 'on_dodge',
         },
     ],
     taunt: () => '道法自然，剑亦自然。',

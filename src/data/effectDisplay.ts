@@ -102,8 +102,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`短距冲刺: 最多${eff.maxDistance ?? 3}格`]
         case 'disarm':
             return ['卸除武器']
-        case 'interrupt':
-            return ['打断']
         case 'ignore_parry':
             return ['无视招架']
         case 'trigger_slot_mod':

@@ -324,7 +324,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'spirit_sword',
         name: '灵剑',
-        description: '凝炁为刃，剑气可化鞭化枪。',
+        description: '凝炁为刃，剑炁可穿透防御。',
         requiredTags: [],
         apCost: 0,
         tags: ['buff', 'pre_action', 'qi'],

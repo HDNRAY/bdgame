@@ -93,6 +93,11 @@ export const CONDITION_PRESETS = [
         build: (): RequiredCondition => ({ type: 'buff_stacks_below', buffId: 'thunder_swift', maxStacks: 2 }),
     },
     {
+        id: 'yun_yin_lt_2',
+        name: '云隐<2层',
+        build: (): RequiredCondition => ({ type: 'buff_stacks_below', buffId: 'yun_yin', maxStacks: 2 }),
+    },
+    {
         id: 'chan_ge_30',
         name: '缠劲≥30',
         build: (): RequiredCondition => ({ type: 'chan_above', value: 30 }),

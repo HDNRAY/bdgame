@@ -4,7 +4,7 @@
 /// 双方：全属性 15，缠 50，满 AP，49% 血，距离 4
 import { Character } from '../src/engine/entities/character'
 import { getWeapon } from '../src/data/weapons/weapons'
-import { getBuff } from '../src/data/buffs'
+import { sumBuffScore, BUFF_SCORE_NOTE } from '../src/ui/screens/DevMode/compare-utils'
 import type { WeaponDef } from '../src/data/weapons/weapons'
 import { PLAYER_ACTIONS } from '../src/data/actions/player'
 import { INTERNAL_ACTIONS } from '../src/data/actions/internal'
@@ -73,9 +73,6 @@ const EXEC_PCT = 0.25 // 斩杀档双方血量（残血/斩杀/低血必中必�
 // 加分系数（可调）：射程每超出 4 米 +RANGE_BONUS_PER_STEP；带位移 +DASH_BONUS
 const RANGE_BONUS_PER_STEP = 0.05
 const DASH_BONUS = 0.25
-/** 增益（add_buff）评分：属性型按属性点×1.0（对齐 stat_transfer 口径），非属性型每层×0.3 */
-const BUFF_ATTR_VALUE = 1.0
-const BUFF_FLAT_VALUE = 0.3
 /** 自缴械惩罚（self_disarm：丢武器，重度自伤） */
 const SELF_DISARM_PENALTY = 1
 /** 多段加分：independentHits 每多一段 +0.25，封顶 +2（5段+1.0；多段=每次触发机会/受击反馈/灵器共鸣等，实打实的价值，与斩杀共列） */
@@ -114,17 +111,9 @@ function debuffValue(a: ActionDefinition): number {
     return Math.round(v * 100) / 100
 }
 
-// 增益价值：add_buff 属性型按属性点×1.0，非属性型每层×0.3（独立列，不进期望伤）
+// 增益价值：add_buff 按能力分类计价（属性×1.0/伤害0.8/暴击0.9/闪避0.6/治疗0.6/招架0.5/减伤0.5/回复0.5，纯标记0）
 function buffValue(a: ActionDefinition): number {
-    let v = 0
-    for (const e of a.effects ?? []) {
-        if (e.type !== 'add_buff') continue
-        const def = getBuff(e.buffId)
-        const attrs = def?.attrMods
-        const attrSum = attrs ? Object.values(attrs).reduce((s, x) => s + (x as number), 0) : 0
-        v += (e.stacks ?? 1) * (attrSum > 0 ? attrSum * BUFF_ATTR_VALUE : BUFF_FLAT_VALUE)
-    }
-    return Math.round(v * 100) / 100
+    return sumBuffScore(a.effects)
 }
 
 // 控制价值：disarm 缴械按 100% 概率权重折算；knockback 击退按每距离计；stat_transfer 汲取按每属性点计
@@ -236,7 +225,7 @@ console.log('双方全属性15 · 缠50 · 满AP · 49%血(斩杀档25%) · 距�
 console.log(`甲 HP ${atk.hp}/${atk.maxHp} AP${atk.maxAp} 缠${atk.chan} | 乙 HP ${def.hp}/${def.maxHp}`)
 const extraNote = extra.length > 0 ? `；额外纳入 ${extra.map((e) => `${e.label}(${e.rawAp}AP)`).join('/')}` : ''
 console.log(
-    `效率 = 期望伤 / (折前AP + 缠成本)；${AP_COST}AP招折前AP=${AP_COST}${extraNote}；基准缠劲=${CHAN_NOW}（阈值感知模型）；得分 = 效率 + 距离/位移(射程>4每档+0.05 + 位移+0.25) + buff/debuff(属性型buff按属性点×${BUFF_ATTR_VALUE}、非属性每层×${BUFF_FLAT_VALUE} + debuff层×几率×权重) + 缴械/击退(disarm概率×${DISARM_WEIGHT} + knockback距离×${KNOCKBACK_PER_DIST}) + 斩杀/多段(25%斩杀档提升 + 多段每段+${MULTIHIT_PER_EXTRA}封顶${MULTIHIT_CAP}) - 自伤(自缴械${SELF_DISARM_PENALTY} + 自耗血比例×${SELF_HP_COST_WEIGHT})`,
+    `效率 = 期望伤 / (折前AP + 缠成本)；${AP_COST}AP招折前AP=${AP_COST}${extraNote}；基准缠劲=${CHAN_NOW}（阈值感知模型）；得分 = 效率 + 距离/位移(射程>4每档+0.05 + 位移+0.25) + buff/debuff(${BUFF_SCORE_NOTE} + debuff层×几率×权重) + 缴械/击退(disarm概率×${DISARM_WEIGHT} + knockback距离×${KNOCKBACK_PER_DIST}) + 斩杀/多段(25%斩杀档提升 + 多段每段+${MULTIHIT_PER_EXTRA}封顶${MULTIHIT_CAP}) - 自伤(自缴械${SELF_DISARM_PENALTY} + 自耗血比例×${SELF_HP_COST_WEIGHT})`,
 )
 const tableData: Record<string, Record<string, string | number>> = {}
 for (const { label, est, efficiency, distanceDash, buffDebuff, control, exec, selfPenalty, score } of rows) {
@@ -254,10 +243,8 @@ for (const { label, est, efficiency, distanceDash, buffDebuff, control, exec, se
 }
 console.table(tableData)
 console.log(
-    '注：期望伤=引擎 calcExpectedDamage；含残血/破甲；距离/位移=射程>4每档+0.05+带位移+0.25；buff/debuff=属性型buff按属性点×' +
-        BUFF_ATTR_VALUE +
-        '、非属性每层×' +
-        BUFF_FLAT_VALUE +
+    '注：期望伤=引擎 calcExpectedDamage；含残血/破甲；距离/位移=射程>4每档+0.05+带位移+0.25；buff/debuff=' +
+        BUFF_SCORE_NOTE +
         '+debuff层×几率×权重；缴械/击退=disarm概率×' +
         DISARM_WEIGHT +
         '+knockback距离×' +
