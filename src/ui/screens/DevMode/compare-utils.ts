@@ -1,7 +1,7 @@
 import type { EffectDef } from '../../../engine/entities/action'
 
 /**
- * compare 工具（ActionCompare / compare-ap / WeaponCompare）共用的评分 util。
+ * compare 工具（ActionCompare / WeaponCompare）共用的评分 util。
  * 暂时放这里，以后需要再挪公共层。
  */
 

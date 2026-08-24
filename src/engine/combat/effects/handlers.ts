@@ -168,6 +168,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             self,
             enemy,
             state: engine.state,
+            engine,
             emitLog: (msg) => engine.emitLog({ type: 'system', message: msg, actorId: self.id }),
         })
         applyHeal(engine, self, amount, action)
@@ -229,6 +230,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             self,
             enemy,
             state: engine.state,
+            engine,
             emitLog: (msg) => engine.emitLog({ type: 'system', message: msg, actorId: self.id }),
         })
         if (dmg > 0) {
@@ -272,7 +274,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     self_damage({ eff, self, engine }: EffectCtx) {
         const { ratio } = eff as Extract<EffectDef, { type: 'self_damage' }>
         const dmg = Math.round(self.maxHp * ratio)
-        self.takeDamage(dmg)
+        // spendHp：自伤触发 onHpChange（血战到底等联动），但不回缠
+        self.spendHp(dmg, engine)
         engine.emitLog({
             type: 'damage',
             actionId: '_self_damage',
@@ -292,7 +295,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const { ratio } = eff as Extract<EffectDef, { type: 'self_hp_cost' }>
         const cost = Math.round(self.hp * ratio)
         if (cost <= 0) return
-        self.takeDamage(cost)
+        // spendHp：卖血触发 onHpChange（血战到底联动），但不回缠（自伤不走受击回缠）
+        self.spendHp(cost, engine)
         engine.emitLog({
             type: 'system',
             message: `[操血] ${BattleLog.name(self.name)} 消耗${cost}气血`,

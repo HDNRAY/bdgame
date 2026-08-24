@@ -183,21 +183,22 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'blood_sacrifice',
         name: '血祭',
-        description: '每招消耗2%最大气血，其中50%化为额外伤害，另外50%缓慢回复。',
+        description: '每招消耗1%最大气血，造成等额额外伤害，并缓慢回复等额气血。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         onAction: ({ source, attacker, engine, state, layer }) => {
             if (!source || attacker.hp <= 0) return
             if (source.tags.includes('pre_action') || source.tags.includes('post_action')) return
-            const hpCostPercent = 0.02
+            const hpCostPercent = 0.01
             const cost = Math.max(1, round1(attacker.maxHp * hpCostPercent))
             if (attacker.hp <= cost) return
-            attacker.takeDamage(cost)
+            // spendHp：卖血触发 onHpChange（血战到底联动），但不回缠（自伤不走受击回缠）
+            attacker.spendHp(cost, engine)
             layer.restoreValue = cost
             if (engine) {
-                const totalRecovery = round1(attacker.maxHp * hpCostPercent * 0.6)
+                // 回血 = 消耗的气血（满额回溯，5 秒分跳）
                 processActionEffect(
-                    { type: 'add_buff', buffId: 'blood_recovery', stacks: totalRecovery },
+                    { type: 'add_buff', buffId: 'blood_recovery', stacks: cost },
                     { self: attacker, enemy: attacker, engine, tMs: state.turn.currentTime },
                 )
             }
@@ -205,7 +206,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onDealDamage: ({ final, layer }) => {
             const cost = layer.restoreValue ?? 0
             if (cost <= 0) return final
-            return round1(final + cost * 0.6)
+            return round1(final + cost)
         },
     },
     // ── 千机暴击 ──
@@ -274,7 +275,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, attacker, source }) => {
-            if (!source?.tags?.includes('polearm') && !source?.tags?.includes('slash')) return final
+            if (source?.tags?.includes('summon') || source?.tags?.includes('imperial')) return final
             if (!attacker.spendChan(2)) return final
             const bonus = round1(
                 attacker.attrs.get('strength') * 0.1 +
@@ -282,7 +283,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
                     attacker.attrs.get('agility') * 0.1 +
                     attacker.attrs.get('dexterity') * 0.1,
             )
-            return Math.round((final + bonus) * 10) / 10
+            return round1(final + bonus)
         },
     },
     {

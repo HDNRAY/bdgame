@@ -758,10 +758,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'karate',
         name: '空手道',
-        description: '空手道不打蛮力，讲究拳到脚到、蹬地转腰，把劲凝在最刁钻的打击点上。附赠招式「手刀」。',
+        description: '空手道不打蛮力，讲究拳到脚到、蹬地转腰，把劲凝在最刁钻的打击点上。空手拳脚伤害+10%，招式AP-0.5。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'stat_buff', attrs: { dexterity: 4 } }],
-        grantsActions: ['hand_blade'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'karate' }] }],
     },
     {
         id: 'fei_hua_shou',
@@ -838,7 +837,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'no_way_win',
         name: '无招胜有招',
-        description: '不拘泥一板一眼的招式，任何触发招式伤害+15%。',
+        description: '不拘泥一板一眼的招式，任何触发招式伤害+20%。',
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_way_win_buff' }] }],
     },

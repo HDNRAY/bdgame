@@ -11,6 +11,7 @@ export const SANGYUAN: OpponentDef = {
     targetAttrs: ATTRS,
     battleStyle: 'melee',
     rewards: [
+        action('hand_blade'),
         passive('karate'),
         action('blood_qi_protection'),
         passive('blood_rage'),
@@ -22,10 +23,9 @@ export const SANGYUAN: OpponentDef = {
         action('spinning_kick'),
         passive('gear_shift'),
         artifact('chan_orb'),
-        // 11
+        // 12
     ],
     actionConfigs: [
-        { actionId: 'blood_droplet', conditionId: 'hp_above_70' },
         {
             actionId: 'hand_blade',
             triggerId: 'on_dodged',

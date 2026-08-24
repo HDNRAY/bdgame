@@ -158,6 +158,8 @@ export function calcExpectedDamage(
     let hitMod = 0
     let critChanceMod = 0
     let critDamageMod = 0
+    let critTakenChanceMod = 0
+    let critTakenDamageMod = 0
     forEachBuffOf(safePendings, [safeAtk.id, safeDef.id], (def, layer, _b, _k, ownerId) => {
         if (!def) return
         const ctx = { final: 0, raw: 0, target: safeDef, attacker: safeAtk, state: safeState, layer, source: action }
@@ -168,6 +170,9 @@ export function calcExpectedDamage(
         if (ownerId === safeDef.id && def.onParryChance) safeDef.parryMod += def.onParryChance(ctx)
         if (ownerId === safeAtk.id && def.onCritChance) critChanceMod += def.onCritChance(ctx)
         if (ownerId === safeAtk.id && def.onCritDamage) critDamageMod += def.onCritDamage(ctx)
+        // 防御方降被暴击率/被爆伤（逆转经脉、百纳珠等）
+        if (ownerId === safeDef.id && def.onCritTakenChance) critTakenChanceMod += def.onCritTakenChance(ctx)
+        if (ownerId === safeDef.id && def.onCritTakenDamage) critTakenDamageMod += def.onCritTakenDamage(ctx)
     })
     // 招式自带爆伤加成（返回最终爆伤修正，覆盖而非累加）
     if (action.onActionCritDamage) critDamageMod = action.onActionCritDamage(critDamageMod, state, attacker)
@@ -187,14 +192,47 @@ export function calcExpectedDamage(
     const parryChance = hasIgnoreParry
         ? 0
         : calcParryChance(safeDef.attrs.get('dexterity'), safeDef.attrs.get('insight')) + safeDef.parryMod
-    const rawCrit = calcCritChance(safeAtk.attrs.get('dexterity'), safeAtk.attrs.get('insight'), critChanceMod)
+    // 防御方降被暴击率修正暴击率（引擎 resolveCrit 中 onCritTakenChance 同向累加）
+    const rawCrit = calcCritChance(
+        safeAtk.attrs.get('dexterity'),
+        safeAtk.attrs.get('insight'),
+        critChanceMod + critTakenChanceMod,
+    )
     const critChance = action.onActionCritChance?.(rawCrit, state, attacker) ?? rawCrit
 
     // 5. 期望伤害
+    // 招架段：先按裸招架减伤算，再叠加防御方 onParryReduction 与攻击方 onParryPenetration（引擎同序）
+    let parriedDamage = calcParriedDamage(rawDamage, safeDef.attrs.get('strength'))
+    forEachBuffOf(safePendings, safeDef.id, (def, layer) => {
+        if (!def?.onParryReduction) return
+        parriedDamage = def.onParryReduction({
+            final: parriedDamage,
+            raw: rawDamage,
+            target: safeDef,
+            attacker: safeAtk,
+            state: safeState,
+            layer,
+            source: action,
+        })
+    })
+    forEachBuffOf(safePendings, safeAtk.id, (def, layer) => {
+        if (!def?.onParryPenetration) return
+        parriedDamage = def.onParryPenetration({
+            final: parriedDamage,
+            raw: rawDamage,
+            target: safeDef,
+            attacker: safeAtk,
+            state: safeState,
+            layer,
+            source: action,
+        })
+    })
+    parriedDamage = Math.round(parriedDamage * 10) / 10
     let expected =
         hitChance *
-        ((1 - parryChance) * rawDamage + parryChance * calcParriedDamage(rawDamage, safeDef.attrs.get('strength')))
-    expected *= 1 + critChance * (0.5 + critDamageMod)
+        ((1 - parryChance) * rawDamage + parryChance * parriedDamage)
+    // 防御方降被爆伤（逆转经脉 -0.5 等）：0.5 + critDamageMod + critTakenDamageMod
+    expected *= 1 + critChance * (0.5 + critDamageMod + critTakenDamageMod)
 
     // 6. onDealDamage 修正
     forEachBuffOf(safePendings, safeAtk.id, (def, layer) => {

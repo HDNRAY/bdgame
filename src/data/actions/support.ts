@@ -65,10 +65,11 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             { type: 'add_buff', buffId: 'blood_qi_protection' },
             {
                 type: 'functional_damage',
-                fn: ({ self, state }) => {
+                fn: ({ self, state, engine }) => {
                     const cost = Math.max(1, Math.round(self.hp * 0.15 * 10) / 10)
                     if (self.hp <= cost) return 0
-                    self.takeDamage(cost)
+                    // spendHp：卖血触发 onHpChange（血战到底联动），但不回缠
+                    self.spendHp(cost, engine)
                     // 100% 回复
                     const totalRecovery = cost
                     const key = `blood_qi_protection::${self.id}`
@@ -171,13 +172,13 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         name: '虎跃',
         description: '猛虎跃涧，瞬间近身。范围2~6m。需力道≥10。',
         requiredTags: [],
-        apCost: 1,
+        apCost: 2,
         tags: ['move', 'pre_action'],
         target: 'self',
         getRange: () => [2, 6] as [number, number],
         canUse: (attacker) => attacker.attrs.get('strength') >= 10,
-        hookNotes: { canUse: '被卸械时才能使用' },
-        effects: [{ type: 'dash', minRange: 2, maxRange: 6, targetDist: 1 }],
+        hookNotes: { canUse: '力道不足时不可使用' },
+        effects: [{ type: 'dash', minRange: 2, maxRange: 6, targetDist: 0 }],
     },
     {
         id: 'lightning_speed',

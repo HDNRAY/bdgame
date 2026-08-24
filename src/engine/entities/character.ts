@@ -414,6 +414,13 @@ export class Character {
         }
         if (engine && dealt > 0) this.#fireHpChange(engine)
     }
+    /** 自伤：扣血但不触发受击回缠（takeDamage 的 addChan 是"被打回气"，自伤不应享受），
+     *  仍触发 onHpChange（血战到底等随血量变化的 buff 联动）。血祭/血滴子/血炁护体等卖血用。 */
+    spendHp(amount: number, engine?: BattleEngine): void {
+        const prevHp = this.hp
+        this.hp = Math.max(0, this.hp - amount)
+        if (engine && prevHp - this.hp > 0) this.#fireHpChange(engine)
+    }
     heal(amount: number, engine?: BattleEngine): void {
         const prevHp = this.hp
         this.hp = Math.min(this.maxHp, this.hp + amount)

@@ -3,12 +3,15 @@ import type { Character } from './character'
 import type { GameEntity } from './base'
 import type { Tag } from './tag'
 import type { BattleState } from '../combat/types'
+import type { BattleEngine } from '../combat/engine'
 
 /** 函数效果上下文（functional_damage / functional_heal 共用） */
 export interface FunctionalEffectCtx {
     self: Character
     enemy: Character
     state: BattleState
+    /** 战斗引擎（供 fn 内自伤等操作触发 onHpChange/onReceiveHeal 联动） */
+    engine?: BattleEngine
     /** 在招式行后追加一行日志 */
     emitLog: (msg: string) => void
 }

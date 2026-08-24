@@ -195,6 +195,24 @@ export const BUFF_DB: BuffDef[] = [
             return -act.apCost * 0.2
         },
     },
+    // ── 空手道（桑原·拳到脚到） ──
+    {
+        id: 'karate',
+        name: '空手道',
+        description: '空手道不打蛮力，把劲凝在最刁钻的打击点上。空手拳脚伤害+10%。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final, source }) => {
+            if (!source?.tags.includes('unarmed')) return final
+            return round1(final * 1.1)
+        },
+        onActionCost: ({ source }) => {
+            const act = source as ActionDefinition
+            if (!act || !act.tags.includes('unarmed')) return 0
+            return -0.5
+        },
+    },
     // ── 练打秘诀 ──
     {
         id: 'lian_da_mi_jue',
@@ -262,7 +280,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '凝缠珠之力流转不息，每秒恢复1点缠劲。',
         tags: [],
         expiry: { type: 'permanent' },
-        chanRegenPerSec: () => 2,
+        chanRegenPerSec: () => 1,
     },
     // ── 聚缠法衣（缠劲→力/身/巧/推演爆发） ──
     {
@@ -1048,21 +1066,16 @@ export const BUFF_DB: BuffDef[] = [
             let str = 0,
                 agi = 0,
                 dex = 0
-            if (hpPct < 0.75) {
-                if (hpPct > 0.5) {
-                    str = 2
-                    agi = 2
-                    dex = 2
-                } else if (hpPct > 0.2) {
-                    str = 4
-                    agi = 4
-                    dex = 4
-                } else {
-                    str = 8
-                    agi = 8
-                    dex = 8
-                }
+            if (hpPct < 0.3) {
+                str = 4
+                agi = 4
+                dex = 4
+            } else if (hpPct < 0.7) {
+                str = 2
+                agi = 2
+                dex = 2
             }
+
             const prev = layer.extra as Record<string, number> | undefined
             if (prev?.str === str && prev?.agi === agi && prev?.dex === dex) return
             revertBuffMods(layer, char, state)
@@ -1082,14 +1095,12 @@ export const BUFF_DB: BuffDef[] = [
             const hpPct = char.hp / char.maxHp
             let ins = 0,
                 wis = 0
-            if (hpPct < 0.7) {
-                if (hpPct > 0.3) {
-                    ins = 3
-                    wis = 3
-                } else {
-                    ins = 6
-                    wis = 6
-                }
+            if (hpPct < 0.3) {
+                ins = 6
+                wis = 6
+            } else if (hpPct < 0.7) {
+                ins = 3
+                wis = 3
             }
             const prev = layer.extra as Record<string, number> | undefined
             if (prev?.ins === ins && prev?.wis === wis) return

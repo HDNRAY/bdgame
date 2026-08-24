@@ -12,7 +12,7 @@ import { MAX_CHAN, AI_CHAN_COST_WEIGHT } from '../constants'
  *   - 阈值惩罚：仅当「现有缠 ≥30 且花完跌破 30」才触发——丢周 buff 的持续收益折算成一次性 AP 成本；
  *     满缠（50）花少量缠不跌破 30 时无惩罚
  *
- * compare 工具（ActionCompare/compare-ap/WeaponCompare）与 AI 决策共用此函数，
+ * compare 工具（ActionCompare / WeaponCompare）与 AI 决策共用此函数，
  * 保证面板口径 = 引擎口径。
  */
 export function calcChanCostInAp(chan: number, chanCost: number): number {

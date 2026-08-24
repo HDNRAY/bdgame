@@ -171,11 +171,11 @@ export const ARTIFACTS: Artifact[] = [
         id: 'fen_shen_qiu',
         name: '分身球',
         description:
-            '拔下毫毛化成的毛球，掷出后化作数个分身协战。分身以本体棍招出击，伤害仅为本体两成，命中暴击按自身属性结算，数量由根骨决定（最多3个）；每维持一个分身每秒消耗0.05点内息，并占用1点内息上限。',
+            '携带分身球，会生成分身。分身以本体棍招出击，伤害仅为本体两成，命中暴击按自身属性结算，数量由根骨决定（最多3个）；每维持一个分身每秒消耗0.05点内息，并占用1点内息上限。',
         tags: ['summon'],
         summon: {
             id: 'fen_shen_qiu',
-            name: '毫毛分身',
+            name: '分身',
             maxCount: (self) => Math.max(1, Math.min(3, Math.ceil(self.attrs.get('vitality') / 5))),
             actionId: '_fen_shen_shot',
         },
@@ -412,7 +412,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'chan_orb',
         name: '凝缠珠',
-        description: '禅意内敛，气机沉凝。持有者每2秒恢复3点缠劲。',
+        description: '禅意内敛，气机沉凝。持有者每秒恢复1点缠劲。',
         tags: ['buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chan_orb_regen' }] }],
     },
@@ -428,7 +428,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'blood_sacrifice_armband',
         name: '血祭护腕',
-        description: '天工锻造的血祭护腕，每招消耗3%最大气血，化为额外伤害并缓慢恢复。',
+        description: '天工锻造的血祭护腕，每招消耗气血化为等额额外伤害，并缓慢回复。',
         tags: ['buff', 'craft'],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'blood_sacrifice' }] }],
     },

@@ -465,20 +465,20 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'ba_wang_zui',
         name: '霸王醉',
-        description: '每层每秒回复1点缠劲，持续9秒。',
+        description: '每层每秒回复0.5点缠劲，持续9秒。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
         stacking: { type: 'additive', max: 3 },
-        chanRegenPerSec: ({ layer }) => 1 * (layer.restoreValue ?? 1),
+        chanRegenPerSec: ({ layer }) => 0.5 * (layer.restoreValue ?? 1),
     },
     {
         id: 'shao_dao_zi',
         name: '烧刀子',
-        description: '每层暴击率+9%，持续9秒。',
+        description: '每层暴击率+7%，持续9秒。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
         stacking: { type: 'additive', max: 3 },
-        onCritChance: ({ layer }) => 0.09 * (layer.restoreValue ?? 1),
+        onCritChance: ({ layer }) => 0.07 * (layer.restoreValue ?? 1),
     },
     {
         id: 'po_lang_zhu_zhi_buff',
@@ -509,7 +509,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'sword_capture',
         name: '无刀取',
-        description: '空手入白刃。招架率+10%，招架成功后有50%概率缴械对手。',
+        description: '空手入白刃。招架率+10%，招架成功后有25%概率缴械对手。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onCanParry: () => true,
@@ -517,7 +517,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         onParried: ({ target, attacker, engine, state }) => {
             if (engine) {
                 processActionEffect(
-                    { type: 'disarm', chance: 0.3 },
+                    { type: 'disarm', chance: 0.25 },
                     { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
                 )
             }

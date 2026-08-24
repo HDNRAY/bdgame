@@ -1,9 +1,8 @@
 // ════════════════════════════════════════
 //  ActionCompare — 招式 AP 档横向对比（DevMode）
-//  移植 scripts/compare-ap.ts：
 //    - AP 成本为多选过滤（选中几档就对比几档，0-5AP 可任意勾选）
 //    - 不再特例"顺水推舟"——选中 4AP 自然包含它（它是 4AP 招式）
-//  口径与脚本一致：全属性 15 · 缠 50 · 满 AP · 49% 血(斩杀档 25%) · 距离 4
+//  口径：全属性 15 · 缠 50 · 满 AP · 49% 血(斩杀档 25%) · 距离 4
 // ════════════════════════════════════════
 
 import { useMemo } from 'react'
@@ -27,7 +26,7 @@ const ATTRS = { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight:
 const WEAPON_ID = 'po_lang_zhu_zhi' // 无属性加成，射程 [1,4]
 const ALL_AP = [0, 1, 2, 3, 4, 5]
 
-// 加分/惩罚系数（与 compare-ap.ts 一致）
+// 加分/惩罚系数
 const RANGE_BONUS_PER_STEP = 0.2
 const DASH_BONUS = 0.25
 const SELF_DISARM_PENALTY = 1

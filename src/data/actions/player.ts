@@ -265,7 +265,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 4,
         tags: ['bleed', 'pierce'],
-        onActionHitChance: (base) => base + 0.1,
+        onActionHitChance: (base) => base + 0.15,
         effects: [
             { type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } },
             {
@@ -284,7 +284,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['bleed', 'pierce'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.3 } },
+            { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.2 },
         ],
     },
