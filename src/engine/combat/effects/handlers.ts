@@ -159,7 +159,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     },
     heal({ eff, self, engine, action }: EffectCtx) {
         const { value, ratio } = eff as Extract<EffectDef, { type: 'heal' }>
-        const amount = calcHealAmount(value, self.maxHp, ratio)
+        const amount = calcHealAmount({ baseValue: value, maxHp: self.maxHp, ratio })
         applyHeal(engine, self, amount, action)
     },
     functional_heal({ eff, self, enemy, engine, action }: EffectCtx) {

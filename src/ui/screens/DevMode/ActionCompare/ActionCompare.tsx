@@ -40,10 +40,11 @@ const DEBUFF_WEIGHT: Record<string, number> = {
     sand_blind: 0.3,
     fumble_chance_temp: 0.3,
     duan_qi: 0.2,
+    confuse: 0.2,
     frost: 0.15,
-    // burn: 0.1,
-    // poison: 0.1,
-    // bleed: 0.1,
+    burn: 0.1,
+    poison: 0.1,
+    bleed: 0.1,
 }
 const DISARM_WEIGHT = 0.4
 const KNOCKBACK_PER_DIST = 0.2

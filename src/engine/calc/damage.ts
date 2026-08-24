@@ -175,8 +175,10 @@ export function calcParalyzeAttrRestore(stacks: number): { agility: number; dext
 }
 
 /** 回复量：固定值 + 最大HP百分比 */
-export function calcHealAmount(baseValue: number, maxHp: number, ratio?: number): number {
-    return (baseValue || 0) + (ratio ? Math.round(maxHp * ratio) : 0)
+export function calcHealAmount(
+    opts: { baseValue?: number; maxHp: number; ratio?: number },
+): number {
+    return (opts.baseValue ?? 0) + (opts.ratio ? Math.round(opts.maxHp * opts.ratio) : 0)
 }
 
 /** buff 时长：基于属性 × 系数 */

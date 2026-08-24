@@ -108,8 +108,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`触发槽 ${eff.value && eff.value > 0 ? '+' : ''}${eff.value ?? '?'}`]
         case 'permanent_burn':
             return [`永久灼烧: ${eff.value}层`]
-        case 'last_stand':
-            return [`死战: HP低于${(eff.ratio * 100).toFixed(0)}%时触发`]
         case 'attr_floor': {
             const parts = Object.entries(eff.attrs).map(([k, v]) => `${ATTR_CN[k] ?? k}≥${v}`)
             return [`属性下限: ${parts.join(', ')}`]
