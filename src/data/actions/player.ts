@@ -225,7 +225,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['pierce', 'melee'],
         effects: [
             { type: 'add_buff', buffId: 'yun_yin', stacks: 1 },
-            { type: 'damage', scaling: { wisdom: 0.2, agility: 0.15 } },
+            { type: 'damage', scaling: { wisdom: 0.15, agility: 0.15 } },
         ],
     },
     {
@@ -265,8 +265,16 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 4,
         tags: ['bleed', 'pierce'],
-        onActionHitChance: (base) => base + 0.2,
-        effects: [{ type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } }],
+        onActionHitChance: (base) => base + 0.1,
+        effects: [
+            { type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } },
+            {
+                type: 'add_debuff',
+                buffId: 'bleed',
+                stacks: 1,
+                chance: 0.3,
+            },
+        ],
     },
     {
         id: 'pursuit_thrust',

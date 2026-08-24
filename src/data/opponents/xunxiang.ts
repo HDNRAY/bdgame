@@ -21,7 +21,7 @@ export const XUNXIANG: OpponentDef = {
         passive('dian_xue_passive'),
         action('push_hand'),
         passive('no_way_win'),
-        passive('ling_long_xin_qiao'), // 玲珑心窍：每点推演+1%暴击率
+        passive('ling_long_xin_qiao'),
         // 12
     ],
     actionConfigs: [

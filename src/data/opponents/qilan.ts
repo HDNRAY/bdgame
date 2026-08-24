@@ -20,6 +20,7 @@ export const QILAN: OpponentDef = {
         artifact('cinnabar_mole'), // 守宫砂
         action('thunder_storm'),
         passive('no_parry_style'),
+        // 白虎定，闪避回缠
         // 11
     ],
     actionConfigs: [
