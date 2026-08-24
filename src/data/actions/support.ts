@@ -95,7 +95,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'cang_niao_jian_fa',
         name: '苍鸟诀',
-        description: '苍鸟掠空，身如电驰。消耗15层缠劲，9秒内内息回复+0.5/s。',
+        description: '苍鸟掠空，身如电驰。消耗15层缠劲，12秒内内息回复+0.5/s。',
         requiredTags: [],
         apCost: 1,
         chanCost: 15,
@@ -436,7 +436,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'jin_zhong_zhao',
         name: '金钟罩',
-        description: '金钟罩体，罡气护身。获得30点护盾与罡体，盾未破时每10秒修复1点。',
+        description: '金钟罩体，罡气护身。获得30点护盾与罡体，盾未破时每5秒修复1点。',
         requiredTags: [],
         apCost: 2,
         maxUses: 1,

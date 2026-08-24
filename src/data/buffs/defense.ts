@@ -341,15 +341,15 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'sword_intent_tempering',
         name: '剑意淬体',
-        description: '剑意淬炼肉身，slash/pierce伤害减免20%，单次受伤不超过最大生命的15%。',
-        tags: ['defense'],
+        description: '剑意淬炼肉身，slash/pierce伤害减免20%，单次受伤不超过最大生命的10%。',
+        tags: ['defense', 'inherent'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, source }) => {
             let dmg = final
             if (source?.tags?.includes('slash') || source?.tags?.includes('pierce')) {
                 dmg = Math.round(dmg * 0.8 * 10) / 10
             }
-            const cap = Math.round(target.maxHp * 0.15 * 10) / 10
+            const cap = round1(target.maxHp * 0.1)
             return Math.min(dmg, cap)
         },
     },
@@ -700,7 +700,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'jin_zhong_zhao',
         name: '金钟罩',
-        description: '金钟罩体，罡气护身。吸收30点伤害，免疫硬控；盾未破时每5秒修复2点。',
+        description: '金钟罩体，罡气护身。吸收30点伤害，免疫硬控；盾未破时每5秒修复1点。',
         tags: ['super_armor', 'defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -713,10 +713,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             if (!layer.extra) layer.extra = {}
             const cur = (layer.extra.shieldRemaining as number) ?? 30
             if (cur < 30) {
-                layer.extra.shieldRemaining = Math.min(30, cur + 2)
+                layer.extra.shieldRemaining = Math.min(30, cur + 1)
                 engine?.emitLog({
                     type: 'system',
-                    message: `[金钟罩] ${target.name} 护盾修复+2（${layer.extra.shieldRemaining}/30）`,
+                    message: `[金钟罩] ${target.name} 护盾修复+1（${layer.extra.shieldRemaining}/30）`,
                     actorId: target.id,
                 })
             }

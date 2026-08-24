@@ -368,12 +368,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'zhuixing',
         name: '追星',
-        description: '千星雄剑，以炁驱动。命中叠1层，每层急速+10,移动效率+10%，最多2层。',
+        description: '千星雄剑，以炁驱动。命中叠1层，每层急速+20,移动效率+10%，最多2层。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 0) * 0.1,
-        onHaste: ({ layer }) => (layer.restoreValue ?? 0) * 10,
+        onHaste: ({ layer }) => (layer.restoreValue ?? 0) * 20,
     },
     {
         id: 'huixi',
@@ -1033,16 +1033,6 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'duration', ms: 20000 },
         apRegenPerSec: ({ target }) => Math.max(1, Math.round(Math.max(2, target.attrs.get('wisdom') * 0.1))),
     },
-    // ── 弗思剑 ──
-    {
-        id: 'fusi_crit_stack',
-        name: '弗思·蓄势',
-        description: '闪避后本能蓄势，每层暴击率+3%。',
-        tags: ['buff'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'additive' },
-        onCritChance: ({ layer }) => layer.restoreValue * 0.03,
-    },
     // ── 浮游眼 ──
     {
         id: 'floating_eye_buff',
@@ -1491,7 +1481,6 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
         onDealDamage: ({ final, source }) => {
-            // 固定附加：招式 AP 均摊到每段（5段AP5 → 每段+1），整招合计恰好 +AP；0AP 召唤物招按 1AP 计
             const ap = Math.max(1, (source as ActionDefinition | undefined)?.apCost ?? 0)
             return final + ap / actionHits(source as ActionDefinition)
         },
@@ -1535,7 +1524,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '苍鸟',
         description: '苍鸟掠空，内息流转。AP回复+0.5/s。',
         tags: ['buff', 'qi'],
-        expiry: { type: 'duration', ms: 9000 },
+        expiry: { type: 'duration', ms: 12000 },
         stacking: { type: 'none' },
         apRegenPerSec: () => 0.5,
     },

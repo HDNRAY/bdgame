@@ -14,15 +14,19 @@ export const LAYUE: OpponentDef = {
         passive('last_sword'),
         action('nine_deaths_strike'),
         passive('sword_intent_tempering'),
+        weapon('buer_sword'),
+        action('cloud_hidden_sword'),
         weapon('fusi_sword'),
         passive('sword_dominion'),
         artifact('wisdom_talisman'),
-        weapon('buer_sword'),
         passive('tongtian'),
         artifact('innate_seed'),
         action('cang_niao_jian_fa'),
         // 剑丸
-        // 11
+        // 12
     ],
-    actionConfigs: [{ actionId: 'cun_mang', triggerId: 'on_dodged' }],
+    actionConfigs: [
+        { actionId: 'cun_mang', triggerId: 'on_dodged' },
+        { actionId: 'cloud_hidden_sword', triggerId: 'on_dodge' },
+    ],
 }

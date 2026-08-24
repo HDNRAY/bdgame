@@ -25,6 +25,8 @@ export function planSupportActions(
             if (!inst.def.tags.includes(phase)) return false
             if (!inst.canUse()) return false
             if (blacklist?.includes(inst.id)) return false
+            // 缠劲不够的辅助招（挂需 50 缠等）引擎会跳过，别占用计划 AP
+            if (inst.def.chanCost && attacker.chan < inst.def.chanCost) return false
             // 检查武器标签兼容性
             if (inst.def.requiredTags.length > 0) {
                 const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)

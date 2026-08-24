@@ -21,7 +21,7 @@ export const XUANJI: OpponentDef = {
         action('summon_haste'),
         action('agility_steal'),
         weapon('tri_orb'),
-        // 11
+        // 12
     ],
     actionConfigs: [
         { actionId: 'qi_blade', triggerId: 'on_opponent_move_closer' },

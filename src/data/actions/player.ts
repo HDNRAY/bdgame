@@ -77,7 +77,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.4 },
-            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
+            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.5 },
         ],
     },
     {
@@ -148,7 +148,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['pierce', 'melee', 'buff'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.35 } },
+            { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_buff', buffId: 'gentle_stance', stacks: 1 },
         ],
     },
@@ -160,7 +160,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['pierce', 'melee', 'buff'],
         effects: [
-            { type: 'damage', scaling: { agility: 0.35 } },
+            { type: 'damage', scaling: { agility: 0.4 } },
             { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 },
         ],
     },
@@ -254,7 +254,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['pierce'],
         effects: [
-            { type: 'short_dash', maxDistance: 2 },
+            { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
         ],
     },
@@ -561,7 +561,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 2,
         tags: ['blunt', 'polearm'],
-        getRange: () => [2, 3],
+        getRange: () => [1, 3],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },

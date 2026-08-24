@@ -36,7 +36,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, wisdom: 0.1 } },
-            { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 0.3 },
+            { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 0.2 },
         ],
     },
     {
