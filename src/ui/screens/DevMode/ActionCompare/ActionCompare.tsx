@@ -6,7 +6,8 @@
 //  口径与脚本一致：全属性 15 · 缠 50 · 满 AP · 49% 血(斩杀档 25%) · 距离 4
 // ════════════════════════════════════════
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Character } from '../../../../engine/entities/character'
 import { getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
 import { sumBuffScore, BUFF_SCORE_NOTE } from '../compare-utils'
@@ -27,7 +28,7 @@ const WEAPON_ID = 'po_lang_zhu_zhi' // 无属性加成，射程 [1,4]
 const ALL_AP = [0, 1, 2, 3, 4, 5]
 
 // 加分/惩罚系数（与 compare-ap.ts 一致）
-const RANGE_BONUS_PER_STEP = 0.05
+const RANGE_BONUS_PER_STEP = 0.2
 const DASH_BONUS = 0.25
 const SELF_DISARM_PENALTY = 1
 const MULTIHIT_PER_EXTRA = 0.25
@@ -227,22 +228,48 @@ const fmt = (v: number, plus = false): string => {
 }
 
 export function ActionCompare() {
-    const [selected, setSelected] = useState<number[]>([2, 3, 4, 5])
-    const [chanNow, setChanNow] = useState<number>(35)
-    const [search, setSearch] = useState('')
+    // 状态持久化到 URL（?ap=2,3,4,5&chan=35&q=…），HMR 重挂载/切 tab 后从 URL 恢复，不丢过滤条件
+    const [searchParams, setSearchParams] = useSearchParams()
+
+    const selected: number[] = useMemo(() => {
+        const raw = searchParams.get('ap')
+        if (!raw) return []
+        return raw
+            .split(',')
+            .map((s) => Number(s))
+            .filter((n) => ALL_AP.includes(n))
+    }, [searchParams])
+
+    const chanNow: number = useMemo(() => {
+        const raw = Number(searchParams.get('chan') ?? 35)
+        return Number.isFinite(raw) ? Math.min(MAX_CHAN, Math.max(0, raw)) : 35
+    }, [searchParams])
+
+    const search: string = searchParams.get('q') ?? ''
+
+    const patchParams = (patch: Record<string, string | null>) => {
+        const next = new URLSearchParams(searchParams)
+        for (const [k, v] of Object.entries(patch)) {
+            if (v === null || v === '') next.delete(k)
+            else next.set(k, v)
+        }
+        setSearchParams(next, { replace: true })
+    }
 
     const toggleAp = (ap: number) => {
-        setSelected((prev) => (prev.includes(ap) ? prev.filter((x) => x !== ap) : [...prev, ap].sort((a, b) => a - b)))
+        const next = selected.includes(ap) ? selected.filter((x) => x !== ap) : [...selected, ap].sort((a, b) => a - b)
+        patchParams({ ap: next.length > 0 ? next.join(',') : null })
     }
 
     const rows = useMemo<Row[]>(() => {
-        if (selected.length === 0) return []
         const isSupport = (a: ActionDefinition) => a.tags.includes('pre_action') || a.tags.includes('post_action')
         const query = search.trim().toLocaleLowerCase()
         const all = [...UNARMED_ACTIONS, ...PLAYER_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS]
         return all
             .filter((a) => {
-                if (!selected.includes(a.apCost) || isSupport(a)) return false
+                // 不选任何 AP 档 = 显示全部（不做 AP 过滤）
+                if (selected.length > 0 && !selected.includes(a.apCost)) return false
+                if (isSupport(a)) return false
                 if (!query) return true
                 return [a.name, a.id, ...a.tags].some((value) => value.toLocaleLowerCase().includes(query))
             })
@@ -269,7 +296,7 @@ export function ActionCompare() {
                     max={50}
                     step={1}
                     value={chanNow}
-                    onChange={(e) => setChanNow(Number(e.target.value))}
+                    onChange={(e) => patchParams({ chan: e.target.value })}
                 />
                 <span className="ac-chan-value">{chanNow}</span>
                 <label className="ac-label ac-search-label" htmlFor="action-compare-search">
@@ -281,19 +308,19 @@ export function ActionCompare() {
                     type="search"
                     value={search}
                     placeholder="名称 / ID / 标签"
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => patchParams({ q: e.target.value || null })}
                 />
             </div>
             <p className="ac-note">
                 双方全属性 15 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。 效率
                 = 期望伤 /（折前AP + 缠成本）；缠成本按阈值感知模型折算（基准缠劲可调，默认 35：缠越满越便宜，
-                跌破 30/50 丢「周」buff 加重成本）。得分 = 效率 + 射程（{'>'}4 每档+0.05）+ 位移（+0.25） +
+                跌破 30/50 丢「周」buff 加重成本）。得分 = 效率 + 射程（{'>'}4 每档+0.2）+ 位移（+0.25） +
                 {BUFF_SCORE_NOTE} + debuff（层×几率×权重）+ 缴械（×0.4）+ 击退
                 （距离×0.2） + 汲取（stat_transfer 每点×1.5）+ 斩杀（25% 斩杀档提升）+ 多段（每段+0.25 封顶+2）−
                 自缴械（−1）− 自耗血（比例×10）。
             </p>
             {rows.length === 0 ? (
-                <p className="ac-note">请至少勾选一个 AP 档。</p>
+                <p className="ac-note">无匹配招式（搜索无结果）。</p>
             ) : (
                 <table className="ac-table">
                     <thead>

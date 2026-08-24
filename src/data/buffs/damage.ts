@@ -130,7 +130,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'ji_lie_zhi_lie_buff',
         name: '极烈',
-        description: '受击愈烈，每层暴击率+3%，最多7层。',
+        description: '受击愈烈，每层暴击率+2%, 暴击伤害+3%，最多7层。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 7 },
@@ -138,7 +138,8 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             layer.restoreValue = Math.min(7, (layer.restoreValue ?? 0) + 1)
             return final
         },
-        onCritChance: ({ layer }) => (layer.restoreValue ?? 0) * 0.03,
+        onCritChance: ({ layer }) => (layer.restoreValue ?? 0) * 0.02,
+        onCritDamage: ({ layer }) => (layer.restoreValue ?? 0) * 0.03,
     },
     {
         id: 'tongtian',
@@ -315,24 +316,21 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'ru_yi_jin',
         name: '如意劲',
-        description: '暴击时消耗3缠，灵巧×3%暴伤。',
+        description: '暴击时消耗3缠，灵巧×2%暴伤。',
         tags: [],
         expiry: { type: 'permanent' },
-        onCritDamage: ({ layer }) => {
-            const bonus = (layer.extra?.bonus as number) ?? 0
-            if (bonus === 0) return 0
-            layer.extra = { ...layer.extra, bonus: 0 }
-            return bonus
-        },
-        onCritical: ({ attacker, engine, layer }) => {
-            if (!attacker.spendChan(3)) return
-            const bonus = round1(attacker.attrs.get('dexterity') * 0.03)
-            layer.extra = { ...layer.extra, bonus }
+        // 用 onAfterCritDamage：暴击结算前扣缠并立即生效。
+        // 不能用 onCritDamage/onCritical 组合——引擎先跑 onCritDamage（读 bonus）再跑 onCritical（写 bonus），
+        // 会导致本次暴击白扣 3 缠、加成落到下一次暴击（且不暴击则永久白耗）。
+        onAfterCritDamage: ({ final, attacker, engine }) => {
+            if (!attacker.spendChan(3)) return final
+            const bonus = round1(attacker.attrs.get('dexterity') * 0.02)
             engine?.emitLog({
                 type: 'system',
                 message: `[如意劲] ${attacker.name} 消耗3缠，暴伤+${bonus}`,
                 actorId: attacker.id,
             })
+            return round1(final * (1 + bonus))
         },
     },
     {
@@ -348,7 +346,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'blood_thorn_suppress',
         name: '血棘·压制',
-        description: '暴击时向创口渡入棘炁，爆伤按 12:1 转化为流血。',
+        description: '暴击时向创口渡入棘炁，爆伤按 8:1 转化为流血。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -356,7 +354,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         priority: 99,
         onAfterCritDamage: ({ damage, final, attacker, target, engine, state }) => {
             const extraDamage = final - damage
-            const bleedStacks = Math.max(1, Math.round(extraDamage / 12))
+            const bleedStacks = Math.max(1, Math.round(extraDamage / 8))
             if (engine) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },

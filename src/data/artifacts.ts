@@ -133,6 +133,20 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['implant', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { insight: 4, wisdom: 1 } }],
     },
+    {
+        id: 'doctor_chip',
+        name: '战斗芯片·改',
+        description: '博士特制的战斗分析芯片，推演+4，回合开始时有概率叠加战斗数据。',
+        tags: ['implant', 'inherent'],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 4 } }],
+        triggers: [
+            {
+                condition: { type: 'on_equip' },
+                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 2 }],
+            },
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_chip' }] },
+        ],
+    },
     // imperial
     {
         id: 'floating_eye',
@@ -495,6 +509,13 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'pu_ti_zhu_buff' }] }],
     },
     {
+        id: 'bai_na_zhu',
+        name: '百纳珠',
+        description: '百家愿力凝成的念珠，心定则刀兵不伤。被暴击伤害降低30%。',
+        tags: ['defense'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'bai_na_zhu_buff' }] }],
+    },
+    {
         id: 'combat_armor',
         name: '斗铠',
         description: '百战之铠，非炁伤害减免1点，但身法-2。',
@@ -572,20 +593,6 @@ export const ARTIFACTS: Artifact[] = [
                 condition: { type: 'on_equip' },
                 effects: [{ type: 'add_buff', buffId: 'qi_xin_hai_tang' }],
             },
-        ],
-    },
-    {
-        id: 'doctor_chip',
-        name: '战斗芯片·改',
-        description: '博士特制的战斗分析芯片，推演+4，回合开始时有概率叠加战斗数据。',
-        tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 4 } }],
-        triggers: [
-            {
-                condition: { type: 'on_equip' },
-                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 1 }],
-            },
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_chip' }] },
         ],
     },
     {

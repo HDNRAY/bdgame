@@ -52,7 +52,8 @@ export function calcBaseCritDamage(dexterity: number): number {
 export function calcFinalDamage(baseDamage: number, distanceMult: number, isCrit: boolean, critDamageMod = 0): number {
     let damage = Math.round(baseDamage * distanceMult * 10) / 10
     if (isCrit) damage = Math.round(damage * (1 + critDamageMod) * 10) / 10
-    return Math.max(1, damage)
+    // 保底1仅对「原本就命中」的伤害生效：被减伤/吸收降到 0 的伤害保持 0，不抬回
+    return damage > 0 ? Math.max(1, damage) : 0
 }
 
 /** 命中逻辑斯蒂陡度 k（越大越"一刀切"，越小越平缓） */
@@ -124,15 +125,13 @@ export function calcSelfDamage(maxHp: number, ratio: number): number {
 
 // ── AP 回复 ──
 /** 每推演每秒回复 AP 基数（0.1→0.05→0.045→0.04，进一步压低推演对 AP 回复的支配力） */
-export const AP_REGEN_BASE = 0.04
+const AP_REGEN_BASE = 0.04
 /** 回复常数项 */
-export const AP_REGEN_CONST = 0.75
-/** 最低回复速度 (AP/s) */
-export const AP_REGEN_MIN = 0.8
+const AP_REGEN_CONST = 0.75
 
 /** 每秒 AP 回复量 */
 export function calcApRegenPerSec(wisdom: number): number {
-    return Math.max(AP_REGEN_MIN, wisdom * AP_REGEN_BASE + AP_REGEN_CONST)
+    return wisdom * AP_REGEN_BASE + AP_REGEN_CONST
 }
 
 /** 给定毫秒回复多少 AP */
@@ -177,7 +176,7 @@ export function calcParalyzeAttrRestore(stacks: number): { agility: number; dext
 
 /** 回复量：固定值 + 最大HP百分比 */
 export function calcHealAmount(baseValue: number, maxHp: number, ratio?: number): number {
-    return baseValue + (ratio ? Math.round(maxHp * ratio) : 0)
+    return (baseValue || 0) + (ratio ? Math.round(maxHp * ratio) : 0)
 }
 
 /** buff 时长：基于属性 × 系数 */

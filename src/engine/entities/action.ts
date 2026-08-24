@@ -40,7 +40,7 @@ export type EffectDef =
     | { type: 'dash'; minRange?: number; maxRange?: number; targetDist: number; useAp?: boolean }
     | { type: 'cleanse'; buffIds?: string[]; allDebuffs?: boolean; perDebuffStacks?: number }
     // 自效果（无需命中判定，总是生效）
-    | { type: 'heal'; value: number; ratio?: number }
+    | { type: 'heal'; value?: number; ratio?: number }
     | { type: 'stat_multiply'; stat: string; multiplier: number }
     | { type: 'stat_buff'; attrs: Record<string, number>; duration?: BuffDuration; durationMs?: number }
     | { type: 'restore_ap'; value: number }
@@ -50,7 +50,6 @@ export type EffectDef =
     | { type: 'max_hp_mod'; value: number }
     | { type: 'permanent_burn'; value: number }
     // 功法/奇物效果
-    | { type: 'last_stand'; ratio: number }
     | { type: 'trigger_slot_mod'; value?: number; fn?: (char: Character) => number }
     | { type: 'dodge_mod'; value: number }
     | { type: 'parry_mod'; value: number }

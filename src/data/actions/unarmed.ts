@@ -344,11 +344,12 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '掌含如来真意，掌未至，意已到。距离极远，极难闪避，以根骨与推演之力伤敌。',
         requiredTags: ['unarmed'],
         apCost: 5,
+        chanCost: 10,
         tags: ['unarmed', 'qi', 'range'],
         getRange: () => [0, 8] as [number, number],
         onActionHitChance: (base) => base + 0.2,
         hookNotes: { hitChance: '+20%' },
-        effects: [{ type: 'damage', scaling: { strength: 0.4, vitality: 0.4, wisdom: 0.4 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.5, vitality: 0.5, wisdom: 0.5 } }],
     },
     {
         id: 'duan_bei_shou',

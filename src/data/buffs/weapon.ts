@@ -130,7 +130,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onCritChance: () => 0.05,
-        onCritDamage: () => 0.1,
+        onCritDamage: () => 0.2,
     },
     {
         id: 'chun_lei_buff',

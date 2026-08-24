@@ -185,7 +185,6 @@ export function applyDamage({
     }
 
     target.takeDamage(final, engine)
-
     if (final > 0 && !suppressTriggers) {
         engine.emit('on_dealt_damage', attacker, target)
         engine.emit('on_took_damage', target, attacker)

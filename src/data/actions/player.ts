@@ -244,7 +244,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             return base + extra
         },
         hookNotes: { hitChance: '必中', critChance: '目标气血低于 30% 时暴击+30%' },
-        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1 }, base: 24 }],
+        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1 }, base: 20 }],
     },
     {
         id: 'sword_thrust',
@@ -265,10 +265,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 4,
         tags: ['bleed', 'pierce'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } },
-            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.5 },
-        ],
+        onActionHitChance: (base) => base + 0.2,
+        effects: [{ type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } }],
     },
     {
         id: 'pursuit_thrust',
@@ -483,8 +481,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['blunt', 'polearm'],
         apCost: 2,
         tags: ['blunt', 'polearm'],
-        onActionCritChance: (base) => base + 0.05,
-        hookNotes: { critChance: '+5%' },
+        onActionCritChance: (base) => base + 0.03,
+        hookNotes: { critChance: '+3%' },
         effects: [{ type: 'damage', scaling: { strength: 0.3, dexterity: 0.1 } }],
     },
     {
@@ -503,10 +501,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '横扫',
         description: '横扫千军，造成失衡。',
         requiredTags: ['polearm'],
-        apCost: 3,
+        apCost: 2,
         tags: ['blunt', 'knockdown', 'polearm'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'damage', scaling: { strength: 0.35 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
         ],
     },
@@ -526,16 +524,16 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'return_spear',
         name: '回马枪',
-        description: '佯装撤退，回首一枪。需要20层缠劲。',
+        description: '佯装撤退，回首一枪。需要38层缠劲。',
         requiredTags: ['polearm'],
         apCost: 5,
-        chanCost: 20,
+        chanCost: 38,
         tags: ['polearm', 'pierce'],
         getRange: () => [4, 4],
-        onActionHitChance: (base) => base + 0.5,
-        onActionCritChance: (base) => base + 0.5,
-        hookNotes: { hitChance: '+50%', critChance: '+50%' },
-        effects: [{ type: 'damage', scaling: { strength: 0.8, dexterity: 0.4, agility: 0.4 } }],
+        onActionHitChance: (base) => base + 0.3,
+        onActionCritChance: (base) => base + 0.3,
+        hookNotes: { hitChance: '+30%', critChance: '+30%' },
+        effects: [{ type: 'damage', scaling: { strength: 1, dexterity: 0.6, agility: 0.6 } }],
     },
     {
         id: 'rod_lift',
@@ -569,7 +567,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['blunt', 'polearm'],
         onActionCritChance: () => 1,
-        hookNotes: { critChance: '必中' },
+        hookNotes: { critChance: '必爆' },
         effects: [{ type: 'damage', scaling: { strength: 0.5, agility: 0.1, vitality: 0.1, dexterity: 0.1 } }],
     },
     {
@@ -663,7 +661,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'wan_fa_gui_yi',
         name: '万法归一',
-        description: '御物万法，归一而发。令全部召唤物朝目标倾泻轰击，每击附推演之力。消耗大量缠劲。',
+        description: '御物万法，归一而发。令全部召唤物朝目标倾泻轰击，每击附推演之力。',
         requiredTags: ['imperial'],
         apCost: 5,
         chanCost: 27,
@@ -684,9 +682,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     else if (dmgEff?.type === 'damage')
                         baseHit = (dmgEff.base ?? 0) + wis * (dmgEff.scaling.wisdom ?? 0)
                     // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
-                    return round1(3 + count * (baseHit + wis * 0.1))
+                    return round1(count * (baseHit + wis * 0.15))
                 },
-                note: '按当前召唤物数量倾泻伤害（基础 3 + 数量×(单发+推演附伤)）',
+                note: '按当前召唤物数量倾泻伤害（数量 × (单发 + wis * 0.15附伤)）',
             },
         ],
     },

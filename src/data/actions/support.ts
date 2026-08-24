@@ -386,7 +386,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         // 必定命中：跟随召唤物命中触发，不额外滚命中判定
         onActionHitChance: () => 1,
         hookNotes: { hitChance: '必中' },
-        effects: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 }],
+        effects: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.4 }],
     },
     {
         id: 'ling_qi_guan_zhu',
@@ -402,29 +402,34 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'chanzi_heal',
         name: '甘露',
-        description: '禅心化露，回气疗伤。消耗1AP、10层缠劲，回复当前血量的5%（最少5点）。',
+        description: '禅心化露，回气疗伤。消耗1AP、10层缠劲，回复当前血量的5%，当血量高于100时可用。',
         requiredTags: [],
         apCost: 1,
         chanCost: 10,
         tags: ['heal', 'qi', 'pre_action'],
         target: 'self',
+        canUse: (self) => {
+            return self.hp > 100
+        },
         effects: [
             {
                 type: 'functional_heal',
-                fn: ({ self }) => Math.max(5, Math.round(self.hp * 0.05)),
-                note: '回复当前血量 5%（最少 5 点）',
+                fn: ({ self }) => Math.round(self.hp * 0.05),
+                note: '回复当前血量 8%',
             },
         ],
     },
     {
         id: 'chanzi_stance',
         name: '金刚不坏',
-        description: '金刚不坏体，反震敌手。消耗15层缠劲，15秒内受到伤害时反伤10%。',
+        description: '金刚不坏体，反震敌手。消耗10层缠劲，15秒内受到伤害时反伤10%。',
         requiredTags: [],
-        apCost: 2,
-        chanCost: 15,
+        apCost: 1,
+        chanCost: 10,
         tags: ['buff', 'qi', 'pre_action'],
         target: 'self',
+        canUse: (attacker, state) => !state.pendingBuffs.has(`chanzi_stance::${attacker.id}`),
+        hookNotes: { canUse: '已有金刚不坏时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'chanzi_stance' }],
     },
     {

@@ -6,10 +6,13 @@ export const PASSIVES: Passive[] = [
     {
         id: 'forge',
         name: '三分归元气',
-        description: '全属性提升。濒危时触发「三分归元」，消耗元气大幅回血。',
+        description: '元气充盈，全属性提升。濒危时触发「三分归元」，消耗元气大幅回血。',
         tags: ['qi', 'heal', 'buff', 'defense'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1 } }],
         triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'sangui_yuanqi' }],
+            },
             {
                 condition: {
                     type: 'hp_below',
@@ -778,8 +781,8 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'wheelchair_lightness',
-        name: '轮椅轻功',
-        description: '秘传轮椅术，以炁驱轮，如履平地。移动效率+30%。',
+        name: '悬浮座椅',
+        description: '悬浮座椅，以炁驱动。移动效率+25%。',
         tags: ['passive', 'buff'],
         triggers: [
             {
@@ -1006,9 +1009,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yi_jin_jing',
         name: '易筋经',
-        description: '佛门易筋洗髓之法，根骨+3，推演+3。',
+        description: '佛门易筋洗髓之法，根骨+2，推演+2。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'stat_buff', attrs: { vitality: 3, wisdom: 3 } }],
+        effects: [{ type: 'stat_buff', attrs: { vitality: 2, wisdom: 2 } }],
     },
     {
         id: 'chanzi_chan_regen',
@@ -1017,6 +1020,30 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chanzi_chan_regen' }] },
+        ],
+    },
+    {
+        id: 'chan_ding',
+        name: '朱雀定',
+        description: '朱雀定息，以火炼炁。受击回复2点缠劲。',
+        tags: ['passive', 'buff', 'defense'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'chan_ding_buff' }],
+            },
+        ],
+    },
+    {
+        id: 'qing_long_ding',
+        name: '青龙定',
+        description: '青龙定息，龙吟贯耳。暴击时回复缠劲。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'qing_long_ding_buff' }],
+            },
         ],
     },
     // ── 禅心慧眼（禅子·推演化命中暴击） ──

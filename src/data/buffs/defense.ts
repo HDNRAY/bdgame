@@ -739,4 +739,50 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             return Math.max(0, Math.round((final - absorb) * 10) / 10)
         },
     },
+    // ── 朱雀定（禅子·挨打回缠功法） ──
+    {
+        id: 'chan_ding_buff',
+        name: '朱雀定',
+        description: '朱雀定息，以火炼炁。受击回复2点缠劲。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onTakeDamage: ({ final, target, engine }) => {
+            if (final <= 0) return final
+            target.addChan(2)
+            engine?.emitLog({
+                type: 'system',
+                message: `[朱雀定] ${target.name} 受击化炁，缠劲+2`,
+                actorId: target.id,
+            })
+            return final
+        },
+    },
+    // ── 青龙定（方烈·暴击回缠功法） ──
+    {
+        id: 'qing_long_ding_buff',
+        name: '青龙定',
+        description: '青龙定息，龙吟贯耳。暴击时回复5点缠劲。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onCritical: ({ attacker, engine }) => {
+            attacker.addChan(5)
+            engine?.emitLog({
+                type: 'system',
+                message: `[青龙定] ${attacker.name} 龙吟贯耳，缠劲+5`,
+                actorId: attacker.id,
+            })
+        },
+    },
+    // ── 百纳珠（禅子·爆伤减免奇物） ──
+    {
+        id: 'bai_na_zhu_buff',
+        name: '百纳珠',
+        description: '百家愿力凝珠，心定则刀兵不伤。被暴击伤害降低30%。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onCritTakenDamage: () => -0.3,
+    },
 ]

@@ -20,13 +20,10 @@ export const FANGLIE: OpponentDef = {
         artifact('blood_thorn_earring'),
         action('thrust'),
         weapon('iron_spear'),
-        action('rod_sweep'),
         action('return_spear'),
+        passive('qing_long_ding'),
         // 12
     ],
-    actionConfigs: [
-        { actionId: 'pursuit_thrust', triggerId: 'on_bleed' },
-        // { actionId: 'rod_sweep', triggerId: 'on_melee' },
-    ],
+    actionConfigs: [{ actionId: 'pursuit_thrust', triggerId: 'on_bleed' }],
     taunt: () => '别怨我。各为其主。',
 }

@@ -22,7 +22,9 @@ export const DOCTOR: OpponentDef = {
         artifact('combat_armor'),
         passive('wheelchair_lightness'),
         weapon('hover_drone'),
-        // 11
+        artifact('neural_net'),
+        artifact('cochlear_implant'),
+        // 13
     ],
     actionConfigs: [
         { actionId: 'drone_paralyze', triggerId: 'on_summon_hit' },

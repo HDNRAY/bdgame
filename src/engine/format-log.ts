@@ -396,10 +396,22 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
 
             // tick 周期事件（回春/毒/灼烧等）：独立带时间行，无回合号、不归属招式帧。
             // 用 popTo 落盘当前帧（避免行插进招式行中间），但保留块上下文（后续同块行不被隔开）。
+            // 招式帧作用域内触发的（scope≥2，如攻击附带的流血伤害）：挂到当前帧 children，保持执行时序，
+            // 否则会 push 到 lines 顶部、跑到攻击帧之前（无人机攻击的流血伤害曾渲染错位）。
             case 'damage_over_time': {
-                popTo(sc.length >= 2 ? sc : [sc[0] ?? 0, 0])
                 const targetName = fmtName(e.target, e.snapshot)
-                lines.push(`··· ${t(ms)} [${e.status}] ${targetName} 受到 ${e.amount.toFixed(1)} 点伤害`)
+                const text = `[${e.status}] ${targetName} 受到 ${e.amount.toFixed(1)} 点伤害`
+                if (sc.length >= 2) {
+                    const f = popTo(sc)
+                    if (f) {
+                        f.children.push(`${'  '.repeat(f.depth + 2)}↳ ${text}`)
+                    } else {
+                        lines.push(`··· ${t(ms)} ${text}`)
+                    }
+                } else {
+                    popTo([sc[0] ?? 0, 0])
+                    lines.push(`··· ${t(ms)} ${text}`)
+                }
                 lastSys = null
                 break
             }

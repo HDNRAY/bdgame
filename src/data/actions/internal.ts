@@ -42,8 +42,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         target: 'self',
         maxUses: 1,
         effects: [
-            { type: 'heal', value: 3, ratio: 0.25 },
-            { type: 'stat_buff', attrs: { strength: -1, vitality: -1, agility: -1, dexterity: -1 } },
+            { type: 'heal', ratio: 0.2 },
+            { type: 'remove_buff', buffId: 'sangui_yuanqi' },
         ],
     },
     {

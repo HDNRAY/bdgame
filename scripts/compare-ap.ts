@@ -71,7 +71,7 @@ const CHAN_NOW = Number(process.argv[3] ?? 35)
 const HP_PCT = 0.49 // 基准测试双方血量
 const EXEC_PCT = 0.25 // 斩杀档双方血量（残血/斩杀/低血必中必暴类招式会在这档涨）
 // 加分系数（可调）：射程每超出 4 米 +RANGE_BONUS_PER_STEP；带位移 +DASH_BONUS
-const RANGE_BONUS_PER_STEP = 0.05
+const RANGE_BONUS_PER_STEP = 0.2
 const DASH_BONUS = 0.25
 /** 自缴械惩罚（self_disarm：丢武器，重度自伤） */
 const SELF_DISARM_PENALTY = 1
@@ -166,7 +166,7 @@ function buildRow(a: ActionDefinition, rawAp: number, label?: string) {
     def.hp = Math.round(def.maxHp * HP_PCT * 10) / 10
     const eff25 = resource > 0 ? Math.round((est25.expectedDamage / resource) * 100) / 100 : 0
     const exec = Math.max(0, Math.round((eff25 - efficiency) * 100) / 100)
-    // 加分（用静态射程：招式自身getRange或武器射程，不含dash，避免与位移重复计分）：射程按超出4米每档+0.05；带位移(short_dash/dash) +0.25
+    // 加分（用静态射程：招式自身getRange或武器射程，不含dash，避免与位移重复计分）：射程按超出4米每档+0.2；带位移(short_dash/dash) +0.25
     const staticRange = a.getRange?.(weaponRange, atk) ?? weaponRange
     const rangeMax = staticRange[1]
     const hasDash = (a.effects ?? []).some((e) => e.type === 'short_dash' || e.type === 'dash')
@@ -230,7 +230,7 @@ console.log('双方全属性15 · 缠50 · 满AP · 49%血(斩杀档25%) · 距�
 console.log(`甲 HP ${atk.hp}/${atk.maxHp} AP${atk.maxAp} 缠${atk.chan} | 乙 HP ${def.hp}/${def.maxHp}`)
 const extraNote = extra.length > 0 ? `；额外纳入 ${extra.map((e) => `${e.label}(${e.rawAp}AP)`).join('/')}` : ''
 console.log(
-    `效率 = 期望伤 / (折前AP + 缠成本)；${AP_COST}AP招折前AP=${AP_COST}${extraNote}；基准缠劲=${CHAN_NOW}（阈值感知模型）；得分 = 效率 + 距离/位移(射程>4每档+0.05 + 位移+0.25) + buff/debuff(${BUFF_SCORE_NOTE} + debuff层×几率×权重) + 缴械/击退(disarm概率×${DISARM_WEIGHT} + knockback距离×${KNOCKBACK_PER_DIST}) + 斩杀/多段(25%斩杀档提升 + 多段每段+${MULTIHIT_PER_EXTRA}封顶${MULTIHIT_CAP}) - 自伤(自缴械${SELF_DISARM_PENALTY} + 自耗血比例×${SELF_HP_COST_WEIGHT})`,
+    `效率 = 期望伤 / (折前AP + 缠成本)；${AP_COST}AP招折前AP=${AP_COST}${extraNote}；基准缠劲=${CHAN_NOW}（阈值感知模型）；得分 = 效率 + 距离/位移(射程>4每档+0.2 + 位移+0.25) + buff/debuff(${BUFF_SCORE_NOTE} + debuff层×几率×权重) + 缴械/击退(disarm概率×${DISARM_WEIGHT} + knockback距离×${KNOCKBACK_PER_DIST}) + 斩杀/多段(25%斩杀档提升 + 多段每段+${MULTIHIT_PER_EXTRA}封顶${MULTIHIT_CAP}) - 自伤(自缴械${SELF_DISARM_PENALTY} + 自耗血比例×${SELF_HP_COST_WEIGHT})`,
 )
 const tableData: Record<string, Record<string, string | number>> = {}
 for (const { label, est, efficiency, distanceDash, buffDebuff, control, exec, selfPenalty, score } of rows) {
@@ -248,7 +248,7 @@ for (const { label, est, efficiency, distanceDash, buffDebuff, control, exec, se
 }
 console.table(tableData)
 console.log(
-    '注：期望伤=引擎 calcExpectedDamage；含残血/破甲；距离/位移=射程>4每档+0.05+带位移+0.25；buff/debuff=' +
+    '注：期望伤=引擎 calcExpectedDamage；含残血/破甲；距离/位移=射程>4每档+0.2+带位移+0.25；buff/debuff=' +
         BUFF_SCORE_NOTE +
         '+debuff层×几率×权重；缴械/击退=disarm概率×' +
         DISARM_WEIGHT +

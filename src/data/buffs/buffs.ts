@@ -330,12 +330,12 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'wheelchair_speed',
-        name: '轮椅轻功',
-        description: '以炁驱轮，如履平地。移动效率+30%。',
+        name: '悬浮座椅',
+        description: '悬浮座椅，以炁驱动。移动效率+25%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.3,
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.25,
     },
     {
         id: 'can_ying_bu_speed',
@@ -1119,6 +1119,16 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         onCritChance: ({ attacker }) => Math.max(0, attacker.attrs.get('insight') * 0.01),
     },
+    // ── 三分归元·元气（来风·三分归元气被动） ──
+    {
+        id: 'sangui_yuanqi',
+        name: '元气',
+        description: '元气充盈，力道、身法、灵巧、洞察+1。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        attrMods: { strength: 1, agility: 1, dexterity: 1, insight: 1 },
+    },
     // ── 青囊三卷 ──
     {
         id: 'qing_nang_san_juan',
@@ -1257,7 +1267,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 3 },
         onTurnEnd: ({ layer }) => {
-            if (Math.random() < 0.4) layer.restoreValue = Math.min(3, (layer.restoreValue ?? 0) + 1)
+            if (Math.random() < 0.3) layer.restoreValue = Math.min(3, (layer.restoreValue ?? 0) + 1)
         },
         onHitChance: ({ layer }) => layer.restoreValue * 0.03,
         onCritChance: ({ layer }) => layer.restoreValue * 0.03,
@@ -1525,7 +1535,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        chanRegenPerSec: () => 2,
+        chanRegenPerSec: () => 1,
     },
     // ── 禅心慧眼（禅子·推演化命中暴击） ──
     {

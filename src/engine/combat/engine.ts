@@ -677,11 +677,16 @@ export class BattleEngine {
             if (!c.ok) return r
         }
         // 失心检查（不消耗 AP；失心 = 动作失败，本次出手作废）
-        const fcKey = `fumble_chance_temp::${self.id}`
-        const fcLayer = this.state.pendingBuffs.get(fcKey)
-        if (fcLayer) {
-            const fumbleRate = (fcLayer.extra?.fumbleRate as number | undefined) ?? fcLayer.restoreValue * 0.05
-            if (Math.random() < fumbleRate) {
+        // 永久失心（义体副作用，fumble_chance）：固定按层数×5% 判定
+        // 临时失心（失心，fumble_chance_temp）：走递减后的 fumbleRate（链得越密效果越弱）
+        const fcPermLayer = this.state.pendingBuffs.get(`fumble_chance::${self.id}`)
+        const fcTempLayer = this.state.pendingBuffs.get(`fumble_chance_temp::${self.id}`)
+        if (fcPermLayer || fcTempLayer) {
+            const permRate = fcPermLayer ? fcPermLayer.restoreValue * 0.05 : 0
+            const tempRate = fcTempLayer
+                ? (fcTempLayer.extra?.fumbleRate as number | undefined) ?? fcTempLayer.restoreValue * 0.05
+                : 0
+            if (Math.random() < permRate + tempRate) {
                 this.emitLog({ type: 'fumble', sourceId: self.id })
                 return r
             }

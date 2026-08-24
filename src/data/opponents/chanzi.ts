@@ -22,7 +22,9 @@ export const CHANZI: OpponentDef = {
         action('deng_ping_du_shui'),
         artifact('pu_ti_zhu'),
         passive('chan_xin_hui_yan'),
-        // 11
+        passive('chan_ding'),
+        artifact('bai_na_zhu'),
+        // 13
     ],
     actionConfigs: [
         { actionId: 'jin_zhong_zhao' },
