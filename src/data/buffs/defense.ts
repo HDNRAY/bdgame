@@ -156,7 +156,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         },
     },
     {
-        id: 'nuo_yi',
+        id: 'tai_chi',
         name: '挪移',
         description: '以柔克刚，四两拨千斤。每点灵巧增加0.6%招架率与0.6%招架减伤。',
         tags: ['defense'],

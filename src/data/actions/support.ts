@@ -240,8 +240,8 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'dian_bu',
-        name: '垫步',
-        description: '垫步调整站位，回到最佳攻击距离。',
+        name: '瞬步',
+        description: '瞬步调整站位，回到最佳攻击距离。',
         requiredTags: [],
         apCost: 0,
         tags: ['move', 'pre_action'],

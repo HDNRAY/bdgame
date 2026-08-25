@@ -34,7 +34,7 @@ const DEFENDER_WEAPON = 'po_lang_zhu_zhi'
 /** 四档距离：覆盖 拳套[0-2] / 刀剑[1-3] / 长柄[1-4] / 御物[0-6] 的射程分水岭 */
 const BENCH_DISTANCES = [0, 2, 4, 6]
 /** 每单位射程跨度的加分（射程广度，按 range 跨度计） */
-const DISTANCE_SCORE_PER_UNIT = 0.5
+const DISTANCE_SCORE_PER_UNIT = 0.75 // 射程分 ×1.5
 /** 每个 tag 的固定加分（配招面广度，1 个 tag 1 分） */
 const TAG_SCORE_PER_TAG = 1
 /** 御物耗炁扣分权重：AP 回复被压掉比例 × 此权重（召唤物 0AP 不吃 AP，只反映失去的普攻机会） */

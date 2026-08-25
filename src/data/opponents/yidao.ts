@@ -7,7 +7,7 @@ export const YIDAO: OpponentDef = {
     id: 'yidao',
     name: '居合·一刀',
     weapon: 'peach_sword',
-    battleStyle: 'mid',
+    battleStyle: 'melee',
     targetAttrs: YIDAO_ATTRS,
     rewards: [
         action('qi_slash'),

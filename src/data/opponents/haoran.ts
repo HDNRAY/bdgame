@@ -32,7 +32,7 @@ export const HAORAN: OpponentDef = {
         },
         {
             actionId: 'spring_bamboo_sword',
-            conditionId: 'bamboo_regen_lt_2',
+            conditionId: 'hp_below_70',
         },
         {
             actionId: 'swift_thunder_sword',
@@ -40,14 +40,14 @@ export const HAORAN: OpponentDef = {
             triggerId: 'on_parried',
         },
         {
-            actionId: 'blowing_snow_sword',
-            conditionId: 'chill_blade_lt_2',
-            triggerId: 'on_dodged',
-        },
-        {
             actionId: 'cloud_hidden_sword',
             conditionId: 'yun_yin_lt_2',
             triggerId: 'on_dodge',
+        },
+        {
+            actionId: 'blowing_snow_sword',
+            conditionId: 'chill_blade_lt_2',
+            triggerId: 'on_dodged',
         },
     ],
     taunt: () => '道法自然，剑亦自然。',

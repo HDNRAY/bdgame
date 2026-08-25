@@ -5,7 +5,7 @@
 //  口径：全属性 15 · 缠 50 · 满 AP · 49% 血(斩杀档 25%) · 距离 4
 // ════════════════════════════════════════
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Character } from '../../../../engine/entities/character'
 import { getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
@@ -27,7 +27,7 @@ const WEAPON_ID = 'po_lang_zhu_zhi' // 无属性加成，射程 [1,4]
 const ALL_AP = [0, 1, 2, 3, 4, 5]
 
 // 加分/惩罚系数
-const RANGE_BONUS_PER_STEP = 0.2
+const RANGE_BONUS_PER_STEP = 0.3 // 射程分 ×1.5（远程招的射程价值更突出）
 const DASH_BONUS = 0.25
 const SELF_DISARM_PENALTY = 1
 const MULTIHIT_PER_EXTRA = 0.25
@@ -245,7 +245,12 @@ export function ActionCompare() {
         return Number.isFinite(raw) ? Math.min(MAX_CHAN, Math.max(0, raw)) : 35
     }, [searchParams])
 
-    const search: string = searchParams.get('q') ?? ''
+    // 搜索词：本地 state 实时输入（IME 组合不被 URL 重渲染打断——受控 value 直接绑 URL 时，
+    // 中文输入每键触发 setSearchParams 重渲染，组合中的拼音被 URL 旧值覆盖 → 输入即消失），
+    // 失焦（blur）时才写回 URL（保留 ?q= 持久化/HMR 恢复；输入过程中不写 URL）
+    const [searchInput, setSearchInput] = useState(() => searchParams.get('q') ?? '')
+    const search: string = searchInput
+    const commitSearch = (v: string) => patchParams({ q: v || null })
 
     const patchParams = (patch: Record<string, string | null>) => {
         const next = new URLSearchParams(searchParams)
@@ -308,7 +313,8 @@ export function ActionCompare() {
                     type="search"
                     value={search}
                     placeholder="名称 / ID / 标签"
-                    onChange={(e) => patchParams({ q: e.target.value || null })}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onBlur={(e) => commitSearch(e.target.value)}
                 />
             </div>
             <p className="ac-note">

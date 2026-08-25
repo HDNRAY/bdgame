@@ -220,12 +220,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'tai_chi_mastery',
         name: '太极',
-        description: '太极圆满，以柔克刚。每点灵巧提升招架率与招架减伤。空手可招架。招架后可顺势推掌。',
-        tags: ['passive', 'counter', 'defense'],
-        triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'nuo_yi' }] },
-            { condition: { type: 'on_parry' }, actionId: 'push_palm' },
-        ],
+        description: '太极圆满，以柔克刚。每点灵巧提升招架率与招架减伤。空手可招架。',
+        tags: ['passive', 'defense'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tai_chi' }] }],
     },
     {
         id: 'godspeed',

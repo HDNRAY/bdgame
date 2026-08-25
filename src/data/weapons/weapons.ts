@@ -149,7 +149,7 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'heshan_sword',
         name: '阿赖耶识',
-        description: '一把触及识海的唐刀，可同时使用拳掌功夫。命中后窃取对手 1 点洞察，持续 3 秒。',
+        description: '一把触及识海的唐刀，可同时使用拳掌功夫。命中后窃取对手 1 点洞察，持续 5 秒。',
         tags: ['slash', 'pierce', 'unarmed', 'parry', 'melee', 'one_handed'],
         range: [1, 3],
         grantsActions: ['_alaya_insight'],

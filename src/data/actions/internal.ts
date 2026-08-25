@@ -442,7 +442,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['trigger', 'internal'],
         target: 'self',
-        effects: [{ type: 'stat_transfer', stat: 'insight', value: 1, duration: 3000 }],
+        effects: [{ type: 'stat_transfer', stat: 'insight', value: 1, duration: 5000 }],
     },
     // ── 忍者工具包 ──
     {

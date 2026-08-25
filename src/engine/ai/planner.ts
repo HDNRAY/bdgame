@@ -295,7 +295,9 @@ export function keyDistances(
     const rangeMins = ranges.map(([lo]) => lo)
     const maxRange = Math.max(...rangeMaxes)
     const minRange = Math.min(...rangeMins)
-    // 贴脸点：本体招下限与召唤物射程下限取大（贴脸 = 攻击距离下限，不是 0）
+    // 贴脸点：本体招下限与召唤物射程下限取大（贴脸 = 攻击距离下限，不是 0）。
+    // 注意：不在此处 +short_dash——垫步只在攻击时距离超出武器射程才发生且距离动态
+    // （min(距离, maxDistance)），移动补偿放在 generatePlans 的 planMove 里统一处理
     const meleePoint = summonMin !== null ? Math.max(minRange, summonMin) : minRange
 
     // 可攻击区间 [meleePoint, maxRange] 内 4 点：最小 / 1/3 / 2/3 / 最大
@@ -389,6 +391,17 @@ export function generatePlans(
     // 连发数（分心错手 +1、飞花手暗器 +2）决定本回合总招数上限：主招 1 + 连发 N
     const extraN = maxExtraAttack(self)
     const totalHitsMax = 1 + extraN
+    // 候选招的最大 short_dash（霸刀刀法给所有 slash 招 +2m 垫步等）：攻击时若距离超出武器射程
+    // 会再垫步靠近（实际 = min(距离, maxDistance)），移动目标可补偿该距离省裸身移动
+    const maxDash = Math.max(
+        0,
+        ...candidates.map((a) => {
+            const dash = a.effects?.find(
+                (e): e is Extract<EffectDef, { type: 'short_dash' }> => e.type === 'short_dash',
+            )
+            return dash?.maxDistance ?? 0
+        }),
+    )
     // 落点偏好（对手风格）：对手近战 → 风筝（偏最远）；对手远程 → 贴脸（偏最近）。
     // 仅作评分加权（"首选"），AP 不足时仍会自然选可行侧。目标区间 [meleePoint, maxRange]
     const enemyStyle: AttackStyle =
@@ -419,19 +432,27 @@ export function generatePlans(
         // 移动：当前 → target（优先位移招式，如虎跃/筋斗；否则走路）。
         // acceptableRange = 候选招射程并集：dash 落点落入任一候选招射程即可（big_leap 贴脸也能用）。
         // target == 当前距离时无需移动（站桩打，如大津 4m 落月），planMove 返回 null 是合法的空移动。
+        // 攻击招自带 short_dash（霸刀刀法等）：攻击时若距离超出武器射程会再垫步靠近（实际 = min(距离, maxDistance)），
+        // 所以移动目标可以比 target 更远 maxDash——走到 target+maxDash（不超当前距离），攻击垫步后落到 target 附近，
+        // 省 maxDash 米裸身移动。无 short_dash 招时 maxDash=0，行为不变。
         const needMove = Math.abs(current - target) >= 0.05
         let movePlan: MovePlan | null = null
         let moveAp = 0
         if (needMove) {
-            movePlan = planMove(self, state, current, target, apBudget - seg1Ap, allCandRange)
+            const moveTarget = Math.min(current, target + maxDash)
+            movePlan = planMove(self, state, current, moveTarget, apBudget - seg1Ap, allCandRange)
             if (!movePlan) continue
             moveAp = movePlan.apCost
         }
         if (seg1Ap + moveAp > apBudget + 1e-9) continue
 
-        // 段2：真实落点处能打（引擎 ceil 取整过冲/欠冲，落点 ≠ target，按 landDist 评估）。
-        // 段2 容量 = 总招数上限 − 段1 已用
-        const seg2Dist = movePlan ? movePlan.landDist : current
+        // 段2：按「垫步后的实际位置」评估——移动落点 landDist 处攻击，若超出武器射程会垫步靠近
+        // （引擎：dist > weapon.range[1] 才垫步，垫步 = min(dist, maxDash)），实际打的位置更近。
+        // 引擎 ceil 取整过冲/欠冲，落点 ≠ target，用真实落点与垫步修正后的位置评估
+        let seg2Dist = movePlan ? movePlan.landDist : current
+        if (maxDash > 0 && seg2Dist > weapon.range[1]) {
+            seg2Dist = Math.max(0, seg2Dist - Math.min(seg2Dist, maxDash))
+        }
         const seg2Budget = apBudget - seg1Ap - moveAp
         const seg2Max = totalHitsMax - seg1.actions.length
         const exclude = new Set<string>(seg1.actions.map((a) => a.id))

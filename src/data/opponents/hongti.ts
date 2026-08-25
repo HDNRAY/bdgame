@@ -6,7 +6,7 @@ const HONGTI_ATTRS = { strength: 10, vitality: 10, agility: 10, dexterity: 10, i
 export const HONGTI: OpponentDef = {
     id: 'hongti',
     name: '白山月',
-    weapon: 'peach_sword',
+    weapon: 'dagger',
     targetAttrs: HONGTI_ATTRS,
     rewards: [
         action('sword_thrust'),

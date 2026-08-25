@@ -244,7 +244,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             return base + extra
         },
         hookNotes: { hitChance: '必中', critChance: '目标气血低于 30% 时暴击+30%' },
-        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1 }, base: 20 }],
+        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1 }, base: 10 }],
     },
     {
         id: 'sword_thrust',
@@ -357,7 +357,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 4,
         tags: ['slash'],
-        effects: [{ type: 'damage', scaling: { strength: 0.4, agility: 0.4 }, base: 4 }],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, base: 4, independentHits: 2 }],
     },
     {
         id: 'sky_burner',
@@ -365,7 +365,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '离心之势已然极致，顺势脱手。刀如流星，消耗缠劲灌注刀意。',
         requiredTags: ['slash'],
         apCost: 5,
-        chanCost: 18,
+        chanCost: 24,
         tags: ['slash', 'range'],
         getRange: () => [0, 8],
         onActionHitChance: (base) => base + 0.2,

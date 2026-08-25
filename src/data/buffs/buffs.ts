@@ -116,10 +116,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'overlord_art_buff',
         name: '金刚轮舞',
-        description: '巨刃配合离心力，重器加持，命中+15%。',
+        description: '巨刃配合离心力，重器加持，命中+15%。否则暴击+15%。',
         tags: [],
         expiry: { type: 'permanent' },
         onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),
+        onCritChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),
     },
     {
         id: 'li_wu_xu_fa',
@@ -560,7 +561,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'wan_xiang_jian_yi_buff',
         name: '万象剑意',
-        description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+4%。',
+        description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+5%。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -573,7 +574,7 @@ export const BUFF_DB: BuffDef[] = [
                 if (!def.expiry || def.expiry.type === 'permanent') return
                 layers += layer.restoreValue ?? 1
             })
-            return round1(layers * 0.04)
+            return round1(layers * 0.05)
         },
     },
     {
@@ -1499,7 +1500,7 @@ export const BUFF_DB: BuffDef[] = [
             const qiMove = source.tags.includes('qi_action')
             const ok = qiMove
                 ? source.tags.includes('slash') || source.tags.includes('pierce')
-                : (attacker.weaponDef?.tags.includes('slash') ?? false)
+                : !!attacker.weaponDef?.tags.includes('slash')
             if (ok) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'blade_qi', stacks: 1, chance: 1 },
