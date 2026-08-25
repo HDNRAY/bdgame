@@ -22,7 +22,7 @@ export const BAIHU: OpponentDef = {
         weapon('chun_lei'),
         passive('nineteen_stops'),
         // 听潮九剑
-        // 11
+        // 12
     ],
     actionConfigs: [
         {

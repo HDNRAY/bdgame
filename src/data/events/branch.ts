@@ -464,7 +464,7 @@ export const MEMORY_WITHIN_MEMORY: EventDef = {
 }
 // ── 打工（特殊事件：特性功法由打工获得，每局至多一次） ──
 
-/** 图书馆打工：帮龙语仙整理书卷 → 活武学宝典 */
+/** 图书馆打工：帮龙语仙整理书卷 → 活武学宝典上 */
 export const LIBRARY_JOB: EventDef = {
     id: 'library_job',
     name: '图书馆打工',
@@ -502,7 +502,7 @@ export const LIBRARY_JOB: EventDef = {
                 {
                     id: 'martial_arts_archive',
                     type: 'passive',
-                    label: '活武学宝典',
+                    label: '活武学宝典上',
                     description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
                 },
             ],

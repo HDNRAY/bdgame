@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, passive, artifact } from '../../engine/util/reward-utils'
 
-const CHANZI_ATTRS = { strength: 16, vitality: 16, wisdom: 16, agility: 9, dexterity: 8, insight: 11 }
+const CHANZI_ATTRS = { strength: 16, vitality: 16, agility: 9, dexterity: 8, insight: 11, wisdom: 16 }
 
 export const CHANZI: OpponentDef = {
     id: 'chanzi',

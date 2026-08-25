@@ -127,7 +127,7 @@ export function describeEffect(eff: EffectDef): string[] {
                 extra = ' (允许招架)'
             } else if (buff?.tickInterval && buff.onTickHeal) {
                 extra = ` (每${buff.tickInterval / 1000}秒触发)`
-            } else if (buff?.onDealDamage || buff?.onTakeDamage || buff?.onTickDamage) {
+            } else if (buff?.onDealDamage || buff?.onTakeDamage || buff?.onTickDamage || buff?.onAbsorb || buff?.onPostCritDamage) {
                 extra = buff.description && buff.description !== name ? ` — ${buff.description}` : ''
             } else if (buff?.description && buff.description !== name) {
                 extra = ` — ${buff.description}`
@@ -144,12 +144,11 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`属性转移: ${eff.stat} → +${eff.value}`]
         case 'ciyuan_init':
             return ['次元初始化']
-        case 'wisdom_stat_buff': {
-            const names = eff.attrs.map((a) => ATTR_CN[a] ?? a).join('、')
-            return [`推演加成: 推演×${eff.ratio} 加到 ${names}`]
+        case 'attr_convert': {
+            const src = ATTR_CN[eff.from] ?? eff.from
+            const names = eff.to.map((a) => ATTR_CN[a] ?? a).join('、')
+            return [`属性转化: ${src}×${eff.ratio} → ${names}`]
         }
-        case 'dex_to_str':
-            return [`以巧借力: 灵巧×${eff.ratio} → 力道`]
         case 'functional_damage':
             return eff.note ? [eff.note] : ['函数伤害: 视条件而定']
         case 'functional_heal':

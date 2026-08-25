@@ -71,8 +71,8 @@ export const WEAPON_BUFFS: BuffDef[] = [
         description: '玄铁重剑，无锋无刃。命中+15%，暴击+10%，招架减免减半。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
-        onHitChance: () => 0.15,
-        onCritChance: () => 0.1,
+        onHitChance: () => 0.1,
+        onCritChance: () => 0.2,
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
             const kept = round1(blocked * 0.4)
@@ -102,7 +102,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         id: 'engine_hammer_buff',
         name: '引擎铁锤',
         description: '天工锻造的电磁锤。所有伤害附加推演×0.1。',
-        tags: ['weapon', 'electric', 'blunt'],
+        tags: ['weapon', 'electric', 'blunt', 'heavy'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, attacker }) => {
@@ -113,12 +113,12 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'xiu_dong_buff',
         name: '绣冬',
-        description: '势沉力猛，力道化为锋芒。力道×0.14 附加伤害。',
+        description: '势沉力猛，力道化为锋芒。力道×0.2 附加伤害。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, attacker }) => {
-            const bonus = round1(attacker.attrs.get('strength') * 0.14)
+            const bonus = round1(attacker.attrs.get('strength') * 0.2)
             return final + bonus
         },
     },
@@ -159,9 +159,10 @@ export const WEAPON_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDisarmChance: () => -1,
-        onDealDamage: ({ final }) => {
+        // 暴击结算后拆出 50% 穿透：基于含爆伤的伤害拆 → 穿透吃爆伤，且无视招架/减伤/吸收
+        onPostCritDamage: ({ final }) => {
             const pierce = round1(final / 2)
-            return { normal: final - pierce, piercing: pierce }
+            return { normal: round1(final - pierce), piercing: pierce }
         },
     },
 ]

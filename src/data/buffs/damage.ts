@@ -10,18 +10,16 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         name: '绝剑',
         description: '损失血量越多，暴击伤害越高。',
         tags: ['damage'],
-        onCritDamage: ({ attacker, layer }) => {
-            const ratio = layer.restoreValue
-            if (ratio <= 0 || attacker.hp >= attacker.maxHp) return 0
+        onCritDamage: ({ attacker }) => {
+            const ratio = 0.1
             const missingRatio = 1 - attacker.hp / attacker.maxHp
-            // 残血爆伤：残血越多暴击越痛（九死·加很多）
             return round1(missingRatio * ratio * 10)
         },
     },
     {
         id: 'extreme',
         name: '极',
-        description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+2%暴伤。',
+        description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+3%暴伤。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         onCritChance: ({ source, attacker, layer, engine }) => {
@@ -31,7 +29,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             }
             const chan = attacker.chan
             attacker.spendChan(chan)
-            layer.restoreValue = chan * 0.02
+            layer.restoreValue = chan * 0.03
             engine?.emitLog({
                 type: 'system',
                 message: `[极] ${attacker.name} 极意绽放，缠劲尽散`,
@@ -46,17 +44,17 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             const key = `extreme::${attacker.id}`
             state.pendingBuffs.delete(key)
             state.turn.removeEvents(`buff_end_${key}`)
-            return bonus * 2
+            return bonus
         },
     },
     {
         id: 'shi_buff',
         name: '势',
-        description: '招架或闪避后蓄势，每层暴击伤害+0.25。',
+        description: '招架或闪避后蓄势，每层暴击伤害+15%。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 3 },
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.25,
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.15,
     },
     {
         id: 'qi_amplify',
@@ -292,13 +290,13 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'bai_ju_guo_xi_buff',
         name: '白驹过隙',
-        description: '距对手3米内，每点身法+2%暴击伤害。',
+        description: '距对手3米内，每点身法+3%暴击伤害。',
         tags: ['buff', 'damage'],
         stacking: { type: 'none' },
         onCritDamage: ({ attacker, target, state }) => {
             if (!state || !target) return 0
             if (state.position.distance(attacker.id, target.id) > 3) return 0
-            return round1(attacker.attrs.get('agility') * 0.02)
+            return round1(attacker.attrs.get('agility') * 0.03)
         },
     },
     {
@@ -320,7 +318,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'ru_yi_jin',
         name: '如意劲',
-        description: '暴击时消耗3缠，灵巧×2%暴伤。',
+        description: '暴击时消耗3缠，灵巧×3%暴伤。',
         tags: [],
         expiry: { type: 'permanent' },
         // 用 onAfterCritDamage：暴击结算前扣缠并立即生效。
@@ -328,7 +326,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         // 会导致本次暴击白扣 3 缠、加成落到下一次暴击（且不暴击则永久白耗）。
         onAfterCritDamage: ({ final, attacker, engine }) => {
             if (!attacker.spendChan(3)) return final
-            const bonus = round1(attacker.attrs.get('dexterity') * 0.02)
+            const bonus = round1(attacker.attrs.get('dexterity') * 0.03)
             engine?.emitLog({
                 type: 'system',
                 message: `[如意劲] ${attacker.name} 消耗3缠，暴伤+${bonus}`,
@@ -340,17 +338,17 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'martial_arts_crit',
         name: '武学·破',
-        description: '推演出的破绽洞察，每层暴击+1%、爆伤+1%。',
+        description: '推演出的破绽洞察，每层暴击+2%、爆伤+5%。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         onCritChance: ({ layer }) => layer.restoreValue * 0.02,
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.02,
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.05,
     },
     {
         id: 'blood_thorn_suppress',
         name: '血棘·压制',
-        description: '暴击时向创口渡入棘炁，爆伤按 8:1 转化为流血。',
+        description: '暴击时向创口渡入棘炁，爆伤按 10:1 转化为流血。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -358,7 +356,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         priority: 99,
         onAfterCritDamage: ({ damage, final, attacker, target, engine, state }) => {
             const extraDamage = final - damage
-            const bleedStacks = Math.max(1, Math.round(extraDamage / 8))
+            const bleedStacks = Math.max(1, Math.round(extraDamage / 10))
             if (engine) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },
@@ -401,5 +399,21 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.01,
+    },
+    {
+        id: 'yi_dian_po_xiao_buff',
+        name: '一点破晓',
+        description: '刺击招式伤害的50%转为穿透。',
+        tags: ['damage', 'pierce'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        // 每次命中都拆 50% 穿透：基于结算后伤害拆（暴击时含爆伤，穿透吃爆伤），穿透部分无视招架/减伤/吸收
+        onPostCritDamage: ({ final, source }) => {
+            // pierce 判断：仅招式标签（非刺击招式不触发）
+            const isPierce = source?.tags?.includes('pierce')
+            if (!isPierce) return final
+            const pierce = round1(final * 0.5)
+            return { normal: round1(final - pierce), piercing: pierce }
+        },
     },
 ]

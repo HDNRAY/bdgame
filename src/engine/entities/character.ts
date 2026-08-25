@@ -547,16 +547,11 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef, so
             char.triggerSlotMod += e.value ?? 0
         }
     },
-    dex_to_str(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'dex_to_str' }>
-        const bonus = Math.floor(char.attrs.get('dexterity') * e.ratio)
-        char.attrs.modify('strength', bonus)
-    },
-    wisdom_stat_buff(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'wisdom_stat_buff' }>
-        const wis = char.attrs.get('wisdom')
-        for (const attr of e.attrs) {
-            const delta = Math.round(wis * e.ratio)
+    attr_convert(char, eff) {
+        const e = eff as Extract<EffectDef, { type: 'attr_convert' }>
+        const src = char.attrs.get(e.from)
+        const delta = e.mode === 'floor' ? Math.floor(src * e.ratio) : Math.round(src * e.ratio)
+        for (const attr of e.to) {
             char.attrs.modify(attr as AttrName, delta)
         }
     },

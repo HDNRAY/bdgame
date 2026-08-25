@@ -30,9 +30,9 @@ function mc(
 
 describe('calcMaxHp', () => {
     it('should calculate HP correctly', () => {
-        expect(calcMaxHp(10)).toBe(220) // 60 + 10×16
-        expect(calcMaxHp(20)).toBe(380) // 60 + 20×16
-        expect(calcMaxHp(30)).toBe(540) // 60 + 30×16
+        expect(calcMaxHp(10)).toBe(240) // 80 + 10×16
+        expect(calcMaxHp(20)).toBe(400) // 80 + 20×16
+        expect(calcMaxHp(30)).toBe(560) // 80 + 30×16
     })
 })
 

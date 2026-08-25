@@ -260,44 +260,87 @@ export function calcExpectedDamage(
         }
     })
 
-    // 招架段：先按裸招架减伤算，再叠加防御方 onParryReduction 与攻击方 onParryPenetration（引擎同序）
-    let parriedDamage = calcParriedDamage(buffed, safeDef.attrs.get('strength'))
-    forEachBuffOf(safePendings, safeDef.id, (def, layer) => {
-        if (!def?.onParryReduction) return
-        parriedDamage = def.onParryReduction({
-            final: parriedDamage,
-            raw: buffed,
-            target: safeDef,
-            attacker: safeAtk,
-            state: safeState,
-            layer,
-            source: action,
+    // 招架段：先按裸招架减伤算，再叠加防御方 onParryReduction 与攻击方 onParryPenetration（引擎同序）。
+    // 引擎顺序：暴击+爆伤 → onAfterCritDamage → 穿透拆出 → 招架（只作用于 non-pierce 部分）。
+    // 穿透部分无视招架，故招架混合只对 normal 分支（非暴击）与 critNormal 分支（暴击的 non-pierce 部分）做。
+    // 穿透比例 = 招式 piercingRatio + 攻击方 onPostCritDamage 拆出比例，加算上限 100%（总伤害不膨胀，穿透是结算方式）。
+    // 注：eval 按用户口径不算防御方减伤/吸收（onTakeDamage/onAbsorb），招架概率仍算。
+    const parriedOf = (x: number): number => {
+        let pd = calcParriedDamage(x, safeDef.attrs.get('strength'))
+        forEachBuffOf(safePendings, safeDef.id, (def, layer) => {
+            if (!def?.onParryReduction) return
+            pd = def.onParryReduction({
+                final: pd,
+                raw: x,
+                target: safeDef,
+                attacker: safeAtk,
+                state: safeState,
+                layer,
+                source: action,
+            })
         })
-    })
-    forEachBuffOf(safePendings, safeAtk.id, (def, layer) => {
-        if (!def?.onParryPenetration) return
-        parriedDamage = def.onParryPenetration({
-            final: parriedDamage,
-            raw: buffed,
-            target: safeDef,
-            attacker: safeAtk,
-            state: safeState,
-            layer,
-            source: action,
+        forEachBuffOf(safePendings, safeAtk.id, (def, layer) => {
+            if (!def?.onParryPenetration) return
+            pd = def.onParryPenetration({
+                final: pd,
+                raw: x,
+                target: safeDef,
+                attacker: safeAtk,
+                state: safeState,
+                layer,
+                source: action,
+            })
         })
-    })
-    parriedDamage = Math.round(parriedDamage * 10) / 10
-    // 命中条件下的普通分支（招架混合）
-    const normalBranch = (1 - parryChance) * buffed + parryChance * parriedDamage
-    // 暴击分支：普通分支 × 爆伤（0.5 + 攻击方爆伤 - 防御方降被爆伤），再走攻击方 onAfterCritDamage 链
+        return Math.round(pd * 10) / 10
+    }
+    const mixParry = (x: number): number => (1 - parryChance) * x + parryChance * parriedOf(x)
+
+    // 招式自带百分比穿透比例（如三寸光 50%）
+    let actionPierceRatio = 0
+    for (const eff of action.effects ?? []) {
+        if (eff.type === 'damage' && eff.piercingRatio) {
+            actionPierceRatio += eff.piercingRatio
+        }
+    }
+    /** 对某分支伤害做穿透拆分：返回 { normal, pierce }，穿透比例加算、上限 100% */
+    const splitPierce = (base: number): { normal: number; pierce: number } => {
+        let pierceRatio = actionPierceRatio
+        forEachBuffOf(safePendings, safeAtk.id, (def, layer) => {
+            if (!def?.onPostCritDamage) return
+            const r = def.onPostCritDamage({
+                final: base,
+                raw: rawDamage,
+                target: safeDef,
+                attacker: safeAtk,
+                state: safeState,
+                layer,
+                source: action,
+            })
+            if (typeof r === 'object') {
+                const total = r.normal + (r.piercing ?? 0)
+                if (total > 0) pierceRatio += (r.piercing ?? 0) / total
+            } else {
+                base = r
+            }
+        })
+        pierceRatio = Math.min(1, pierceRatio)
+        return { normal: Math.round(base * (1 - pierceRatio) * 10) / 10, pierce: Math.round(base * pierceRatio * 10) / 10 }
+    }
+
+    // 普通分支（非暴击）：裸伤 → 穿透拆分（穿透部分无视招架）
+    const np = splitPierce(buffed)
+    const normalBranch = mixParry(np.normal) + np.pierce
+
+    // 暴击分支：基于裸伤 × 爆伤（引擎 resolveCrit 传入裸伤，不再乘招架混合后的普通分支），
+    // 再走攻击方 onAfterCritDamage 链，最后穿透拆分
     // （引擎 applyDamage：暴击时按 priority 升序链式覆盖——如意劲耗3缠加爆伤、血棘·压制爆伤转流血）
-    let critBranch = normalBranch * (1 + 0.5 + critDamageMod + critTakenDamageMod)
+    let critFinal = buffed * (1 + 0.5 + critDamageMod + critTakenDamageMod)
     critHooks.sort((a, b) => (a.def.priority ?? 0) - (b.def.priority ?? 0))
     for (const { def, layer } of critHooks) {
-        critBranch = def.onAfterCritDamage!({
-            damage: normalBranch,
-            critDamage: critBranch,
-            final: critBranch,
+        critFinal = def.onAfterCritDamage!({
+            damage: buffed,
+            critDamage: critFinal,
+            final: critFinal,
             raw: rawDamage,
             target: safeDef,
             attacker: safeAtk,
@@ -306,16 +349,11 @@ export function calcExpectedDamage(
             source: action,
         })
     }
+    const cp = splitPierce(critFinal)
+    const critBranch = mixParry(cp.normal) + cp.pierce
     let condFinal = (1 - critChance) * normalBranch + critChance * critBranch
-    // 穿透伤害无视招架/暴击最后加
+    // 增伤阶段 buff 拆出的穿透（onDealDamage 返回对象）无视招架/暴击最后加
     condFinal += buffPiercing
-
-    // 6. piercingRatio（引擎按暴击后伤害计算）
-    for (const eff of action.effects ?? []) {
-        if (eff.type === 'damage' && eff.piercingRatio) {
-            condFinal += Math.round(condFinal * eff.piercingRatio)
-        }
-    }
 
     // 命中率只决定能否造成伤害（引擎 calcRoll：p>1 必中、p<0 必失 → clamp [0,1]）
     const expected = Math.min(1, Math.max(0, hitChance)) * condFinal

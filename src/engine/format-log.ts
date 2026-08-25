@@ -468,6 +468,11 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                     preLines: [],
                     children: [],
                 })
+                // 立即渲染 support 帧：帧默认延迟到下一个主级事件（移动/攻击）才 flush，
+                // 而移动是即时输出 → support 会被渲染到后续移动之后（执行序是 support 在前）。
+                // 立即 flush 后，support 的效果行（system）挂块级（`  · 效果`）紧跟在 & 行后
+                const sf = stack.pop()!
+                lines.push(...renderFrame(sf))
                 lastSys = null
                 break
             }

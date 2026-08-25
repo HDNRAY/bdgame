@@ -116,11 +116,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'overlord_art_buff',
         name: '金刚轮舞',
-        description: '巨刃配合离心力，重器加持，命中+15%。否则暴击+15%。',
+        description: '巨刃配合离心力，重器加持，命中+15%。否则暴击+25%。',
         tags: [],
         expiry: { type: 'permanent' },
         onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),
-        onCritChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),
+        onCritChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.25 : 0),
     },
     {
         id: 'li_wu_xu_fa',
@@ -359,22 +359,22 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'can_ying_bu_speed',
         name: '残影步',
-        description: '步法如残影，移动效率+20%。',
+        description: '步法如残影，移动效率+15%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.2,
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.15,
     },
     // ── 干将/莫邪（千星融古剑，双剑合璧） ──
     {
         id: 'zhuixing',
         name: '追星',
-        description: '千星雄剑，以炁驱动。命中叠1层，每层急速+20,移动效率+10%，最多2层。',
+        description: '千星雄剑，以炁驱动。命中叠1层，每层急速+40,移动效率+10%，最多2层。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 0) * 0.1,
-        onHaste: ({ layer }) => (layer.restoreValue ?? 0) * 20,
+        onHaste: ({ layer }) => (layer.restoreValue ?? 0) * 40,
     },
     {
         id: 'huixi',
@@ -949,7 +949,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '云龙三现',
         tags: ['slash'],
         description:
-            '龙游云中，见首不见尾。交替使用斩击可叠加增伤（至多3层）；紧接重复上一招不归零、只是不再叠加，连打同一招会逐渐回落。',
+            '龙游云中，见首不见尾。交替使用斩击可叠加增伤（至多3层）；紧接重复上一招不归零、只是不再叠加，连打同一招会逐渐回落。每层附加身法+灵巧伤害。',
         stacking: { type: 'none' },
         // 层数 = 最近 3 招窗口里与当前不同的招式数（上限3，×1.1^层）；紧接重复（diff=0）保持层数不归零
         // 窗口模型让 AI 有动机保持窗口多样（连打会掉层），比 streak 模型更不会只主用单招
@@ -964,17 +964,17 @@ export const BUFF_DB: BuffDef[] = [
             if (queue.length > 3) queue.shift()
             layer.extra.slashIds = queue
         },
-        // 命中后按当前层数加成
+        // 命中后按当前层数附加身法+灵巧伤害
         onDealDamage: ({ final, source, layer, attacker, engine }) => {
             if (!source || !source.tags.includes('slash')) return final
             const diff = layer.restoreValue ?? 0
             if (diff === 0) return final
-            const mult = 1.1 ** diff
+            // 每层附加 (身法+灵巧)×0.1 伤害
+            const bonus = round1((attacker.attrs.get('agility') + attacker.attrs.get('dexterity')) * 0.03 * diff)
             if (engine) {
-                const pct = Math.round((mult - 1) * 100)
-                engine.emitLog({ type: 'system', message: `[云龙三现] ${diff}层·+${pct}%`, actorId: attacker.id })
+                engine.emitLog({ type: 'system', message: `[云龙三现] ${diff}层·+${bonus}伤害`, actorId: attacker.id })
             }
-            return final * mult
+            return round1(final + bonus)
         },
     },
     {
@@ -1445,8 +1445,19 @@ export const BUFF_DB: BuffDef[] = [
         description: '残影步带出的虚影，身法飘忽。',
         tags: ['buff'],
         expiry: { type: 'duration', ms: 5000 },
-        stacking: { type: 'additive' },
+        stacking: { type: 'additive', max: 3 },
         onDodgeChance: ({ layer }) => layer.restoreValue * 0.05,
+    },
+    // ── 八卦棍法·八卦步 ──
+    {
+        id: 'ba_gua_bu',
+        name: '八卦步',
+        description: '走位踏出的八卦步，身法飘忽，伺机而动。',
+        tags: ['buff'],
+        expiry: { type: 'duration', ms: 5000 },
+        stacking: { type: 'additive', max: 3 },
+        onDodgeChance: ({ layer }) => layer.restoreValue * 0.05,
+        onCritChance: ({ layer }) => layer.restoreValue * 0.05,
     },
     {
         id: 'yun_bu_foresight',
@@ -1483,7 +1494,7 @@ export const BUFF_DB: BuffDef[] = [
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
         onDealDamage: ({ final, source }) => {
             const ap = Math.max(1, (source as ActionDefinition | undefined)?.apCost ?? 0)
-            return final + ap / actionHits(source as ActionDefinition)
+            return final + round1(ap / actionHits(source as ActionDefinition))
         },
     },
     // ── 刃炁精通（攻击侧：持刃攻击令对手叠刃炁） ──

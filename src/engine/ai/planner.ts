@@ -433,13 +433,15 @@ export function generatePlans(
         // acceptableRange = 候选招射程并集：dash 落点落入任一候选招射程即可（big_leap 贴脸也能用）。
         // target == 当前距离时无需移动（站桩打，如大津 4m 落月），planMove 返回 null 是合法的空移动。
         // 攻击招自带 short_dash（霸刀刀法等）：攻击时若距离超出武器射程会再垫步靠近（实际 = min(距离, maxDistance)），
-        // 所以移动目标可以比 target 更远 maxDash——走到 target+maxDash（不超当前距离），攻击垫步后落到 target 附近，
-        // 省 maxDash 米裸身移动。无 short_dash 招时 maxDash=0，行为不变。
+        // 所以靠近移动（target < current）时可以少走 maxDash——走到 target+maxDash（不超当前距离），
+        // 攻击垫步后落到 target 附近，省 maxDash 米裸身移动。退向 target（贴脸 target > current）时垫步
+        // 方向相反用不上，直接走到 target。无 short_dash 招时 maxDash=0，行为不变。
         const needMove = Math.abs(current - target) >= 0.05
         let movePlan: MovePlan | null = null
         let moveAp = 0
         if (needMove) {
-            const moveTarget = Math.min(current, target + maxDash)
+            const moveTarget =
+                target < current ? Math.max(target, Math.min(current, target + maxDash)) : target
             movePlan = planMove(self, state, current, moveTarget, apBudget - seg1Ap, allCandRange)
             if (!movePlan) continue
             moveAp = movePlan.apCost

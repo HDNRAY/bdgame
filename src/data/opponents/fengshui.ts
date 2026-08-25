@@ -17,7 +17,7 @@ export const FENGSHUI: OpponentDef = {
         action('rising_slash'), // 挑斩
         weapon('yanling_blade'), // 雁翎刀 1身法 1力道 2灵巧
         artifact('nv_er_hong'), // hot酒
-        passive('draw_sword_cut_water'), // 云龙三现：不同招式连击增伤buff
+        passive('yun_long_san_xian'), // 云龙三现：不同招式连击增伤buff
         passive('dan_dao_fa_xuan'), // 闪避后加暴击率
         action('spinning_slash'), // 旋斩
         artifact('iron_mask'), // 奇物 3洞察 2推演

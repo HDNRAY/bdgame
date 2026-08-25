@@ -69,7 +69,7 @@ export const PASSIVES: Passive[] = [
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'last_stand', stacks: 0.2 }],
+                effects: [{ type: 'add_buff', buffId: 'last_stand' }],
             },
         ],
     },
@@ -207,11 +207,29 @@ export const PASSIVES: Passive[] = [
         },
     },
     {
+        id: 'yu_yang_shi_ba_shi',
+        name: '渔阳十八势',
+        description: '利用灵活的身法，寻找并感知对方。身法转化感知。',
+        tags: ['passive', 'buff'],
+        effects: [{ type: 'attr_convert', from: 'agility', to: ['insight'], ratio: 0.3 }],
+    },
+    {
+        id: 'yi_dian_po_xiao',
+        name: '一点破晓',
+        description: '刺击以点破面，劲力透体。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yi_dian_po_xiao_buff' }] },
+        ],
+    },
+    {
         id: 'inner_power',
         name: '归元劲',
         description: '内力深厚。每点推演提升全属性。持续运转消耗内息，每秒消耗 0.1 点AP。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'wisdom_stat_buff', ratio: 0.1, attrs: ['strength', 'vitality', 'agility', 'dexterity'] }],
+        effects: [
+            { type: 'attr_convert', from: 'wisdom', to: ['strength', 'vitality', 'agility', 'dexterity'], ratio: 0.1 },
+        ],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'inner_power_cost' }] },
         ],
@@ -423,7 +441,7 @@ export const PASSIVES: Passive[] = [
         name: '玄女剑法',
         description: '独臂神尼所创上乘剑法，以巧借力、以奇制胜，灵巧化为力道。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'dex_to_str', ratio: 0.3 }],
+        effects: [{ type: 'attr_convert', from: 'dexterity', to: ['strength'], ratio: 0.3, mode: 'floor' }],
     },
     {
         id: 'zhu_huo_jue',
@@ -440,12 +458,12 @@ export const PASSIVES: Passive[] = [
     {
         id: 'wan_xiang_jian_yi',
         name: '万象剑意',
-        description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+4%。',
+        description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+5%。',
         tags: ['passive', 'buff', 'qi'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'wan_xiang_jian_yi_buff', stacks: 1 }],
+                effects: [{ type: 'add_buff', buffId: 'wan_xiang_jian_yi_buff' }],
             },
         ],
     },
@@ -538,7 +556,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'martial_arts_archive',
-        name: '活武学宝典',
+        name: '活武学宝典上',
         description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
         tags: ['passive', 'buff', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { insight: 2 } }],
@@ -587,10 +605,10 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_parry_buff' }] }],
     },
     {
-        id: 'draw_sword_cut_water',
+        id: 'yun_long_san_xian',
         name: '云龙三现',
         description:
-            '云龙三现。龙游云中，见首不见尾。交替使用不同斩击招式可叠加增伤（至多3层），重复同一招不归零、只是不再叠加。',
+            '云龙三现。龙游云中，见首不见尾。交替使用不同斩击招式可叠加增伤（至多3层），重复同一招不归零、只是不再叠加。每层附加身法+灵巧伤害。',
         tags: ['qi', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'draw_sword_combo_buff' }] },
@@ -991,6 +1009,17 @@ export const PASSIVES: Passive[] = [
             },
             { condition: { type: 'on_move_away' }, effects: [{ type: 'add_buff', buffId: 'xu_ying', stacks: 1 }] },
             { condition: { type: 'on_move_closer' }, effects: [{ type: 'add_buff', buffId: 'xu_ying', stacks: 1 }] },
+        ],
+    },
+    // ── 八卦棍法（竹子） ──
+    {
+        id: 'ba_gua_gun_fa',
+        name: '八卦棍法',
+        description: '棍打一片，人走八卦。每次移动叠一层八卦步，增加闪避和暴击率。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            { condition: { type: 'on_move_away' }, effects: [{ type: 'add_buff', buffId: 'ba_gua_bu', stacks: 1 }] },
+            { condition: { type: 'on_move_closer' }, effects: [{ type: 'add_buff', buffId: 'ba_gua_bu', stacks: 1 }] },
         ],
     },
     // ── 姬然 ──

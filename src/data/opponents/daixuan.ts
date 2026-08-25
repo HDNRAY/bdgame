@@ -11,22 +11,21 @@ export const DAIXUAN: OpponentDef = {
     targetAttrs: DAIXUAN_ATTRS,
     battleStyle: 'melee',
     rewards: [
-        action('flick'),
+        action('yu_xiao_jian_fa'),
         passive('ningqi_jue'),
         passive('enhanced_vision'),
         weapon('qianji'),
-        action('yu_xiao_jian_fa'),
-        action('rod_thrust'),
+        action('flick'),
         passive('ni_zhuan_jing_mai'),
         action('bi_hai_chao_sheng_qu'),
         artifact('cochlear_implant'),
         passive('luo_ying_shen_jian'),
         action('yi_hui'),
-        // 11
+        // 10
     ],
     actionConfigs: [
         { actionId: 'flick', triggerId: 'on_opponent_move_away' },
-        { actionId: 'rod_thrust', triggerId: 'on_dodged' },
+        { actionId: 'yu_xiao_jian_fa', triggerId: 'on_dodge' },
     ],
     taunt: () => '……',
 }

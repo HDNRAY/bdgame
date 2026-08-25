@@ -11,7 +11,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         name: '炁盾',
         description: '吸收炁招式伤害，每次2点。',
         tags: ['defense'],
-        onTakeDamage: ({ final, target, engine, source, layer, state }) => {
+        onAbsorb: ({ final, target, engine, source, layer, state }) => {
             if (!source?.tags?.includes('qi') || final <= 0 || layer.restoreValue <= 0) return final
             const absorb = Math.min(2, final)
             layer.restoreValue--
@@ -115,12 +115,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'ranged_dodge',
         name: '斗笠掩踪',
-        description: '距离≥5m时闪避+15%。',
+        description: '距离≥4m时闪避+20%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onDodgeChance: ({ attacker, target, state }) => {
             const dist = state.position.distance(target.id, attacker.id)
-            return dist >= 5 ? 0.15 : 0
+            return dist >= 4 ? 0.2 : 0
         },
     },
     {
@@ -486,7 +486,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '招架后减免3点伤害。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onParryReduction: ({ final }) => Math.max(0, Math.round((final - 3) * 10) / 10),
+        onParryReduction: ({ final }) => Math.max(0, round1(final - 3)),
     },
     {
         id: 'bu_dong_ming_wang_buff',
@@ -564,8 +564,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['buff', 'craft', 'defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        // 只走直伤（onTakeDamage）；DoT 不触发
-        onTakeDamage: ({ final, target, engine }) => {
+        // 只走直伤（onAbsorb）；DoT 不触发
+        onAbsorb: ({ final, target, engine }) => {
             if (final <= 0 || !engine) return final
             const maxAbsorb = Math.floor(final * 0.3) // 最多吸收30%（向下取整：2伤→0不吸）
             const chanAbsorb = round1(target.chan) // 1缠:1伤，缠越多能吸越多
@@ -722,7 +722,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             }
             return 0
         },
-        onTakeDamage: ({ final, target, engine, layer, state }) => {
+        onAbsorb: ({ final, target, engine, layer, state }) => {
             if (final <= 0) return final
             if (!layer.extra) layer.extra = {}
             const remaining = (layer.extra.shieldRemaining as number) ?? 30

@@ -73,8 +73,8 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['unarmed', 'move'],
         effects: [
-            { type: 'short_dash', maxDistance: 2 },
-            { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
+            { type: 'short_dash', maxDistance: 3 },
+            { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1, dexterity: 0.1 } },
         ],
     },
     {
@@ -260,9 +260,9 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         chanCost: 30,
         tags: ['unarmed', 'qi'],
-        onActionHitChance: (base) => base + 0.1,
+        onActionHitChance: (base) => base + 0.05,
         onActionCritChance: (base) => base + 0.1,
-        hookNotes: { hitChance: '+10%', critChance: '+10%' },
+        hookNotes: { hitChance: '+5%', critChance: '+10%' },
         effects: [{ type: 'damage', scaling: { strength: 0.8, vitality: 0.8, wisdom: 0.8 } }],
     },
     {
@@ -321,7 +321,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'qi', 'pierce'],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
-            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.6, agility: 0.4 }, piercingRatio: 0.6 },
+            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.6, agility: 0.4 }, piercingRatio: 0.5 },
         ],
     },
     {

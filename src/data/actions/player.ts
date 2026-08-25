@@ -73,11 +73,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['range', 'thrown', 'paralyze', 'debuff', 'pierce'],
-        getRange: () => [1, 6] as [number, number],
+        getRange: () => [2, 6] as [number, number],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.4 },
-            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.6 },
         ],
     },
     {
@@ -169,12 +169,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '玉箫剑法',
         description: '玉箫为剑，点穴封脉。',
         requiredTags: ['melee', 'pierce'],
-        apCost: 3,
+        apCost: 2,
         tags: ['melee', 'blunt', 'pierce', 'debuff'],
         effects: [
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 1 },
             { type: 'add_debuff', buffId: 'duan_qi', stacks: 1, chance: 0.5 },
-            { type: 'damage', scaling: { strength: 0.3, dexterity: 0.3 } },
+            { type: 'damage', scaling: { strength: 0.18, dexterity: 0.18 } },
         ],
     },
     {
@@ -238,11 +238,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['pierce', 'range'],
         getRange: () => [0, 10] as [number, number],
         onActionHitChance: () => 1,
-        onActionCritChance: (base, state, self) => {
-            const enemy = state.characters.find((c) => c.id !== self.id)
-            const extra = !enemy || enemy.hp / enemy.maxHp >= 0.3 ? 0 : 0.3
-            return base + extra
-        },
         hookNotes: { hitChance: '必中', critChance: '目标气血低于 30% 时暴击+30%' },
         effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1 }, base: 10 }],
     },
@@ -296,15 +291,14 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         chanCost: 35,
         tags: ['pierce', 'qi', 'melee'],
-        extraPreDelay: 300,
         onActionCritDamage: (base) => base + 0.3,
-        onActionCritChance: (base) => base + 0.5,
+        onActionCritChance: (base) => base + 0.3,
         onActionHitChance: (base, state, self) => {
             const enemy = state.characters.find((c) => c.id !== self.id)
             if (!enemy || enemy.hp / enemy.maxHp >= 0.5) return base
             return 1
         },
-        hookNotes: { critChance: '+50%', critDamage: '+30%', hitChance: '目标气血低于 50% 时必中' },
+        hookNotes: { critChance: '+30%', critDamage: '+30%', hitChance: '目标气血低于 50% 时必中' },
         effects: [
             { type: 'short_dash', maxDistance: 3 },
             { type: 'damage', scaling: { strength: 0.7, agility: 0.7, dexterity: 0.7 } },
@@ -325,9 +319,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '蓄力斩',
         description: '蓄力一击，势大力沉。',
         requiredTags: ['slash'],
-        apCost: 5,
+        apCost: 4,
+        chanCost: 10,
         tags: ['slash'],
-        effects: [{ type: 'damage', scaling: { strength: 1.2 } }],
+        effects: [{ type: 'damage', scaling: { strength: 1.5, dexterity: 0.2, agility: 0.2 } }],
     },
     {
         id: 'gash',
@@ -436,11 +431,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '借对方之势，顺水推舟，反击要害。',
         requiredTags: ['slash'],
         apCost: 4,
-        chanCost: 15,
+        chanCost: 20,
         tags: ['slash'],
-        onActionCritChance: (base) => base + 0.1,
-        onActionHitChance: () => 1,
-        hookNotes: { critChance: '+10%', hitChance: '必中' },
+        onActionCritChance: (base) => base + 0.3,
+        onActionHitChance: (base) => base + 0.5,
+        hookNotes: { critChance: '+30%', hitChance: '+50%' },
         effects: [
             { type: 'damage', scaling: { agility: 0.6, dexterity: 0.6 } },
             {
@@ -489,8 +484,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['blunt', 'polearm'],
         apCost: 2,
         tags: ['blunt', 'polearm'],
-        onActionCritChance: (base) => base + 0.03,
-        hookNotes: { critChance: '+3%' },
+        onActionCritChance: (base) => base + 0.05,
+        hookNotes: { critChance: '+5%' },
         effects: [{ type: 'damage', scaling: { strength: 0.3, dexterity: 0.1 } }],
     },
     {
@@ -500,9 +495,20 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 2,
         tags: ['blunt', 'polearm'],
-        onActionHitChance: (base) => base + 0.1,
-        hookNotes: { hitChance: '+10%' },
+        onActionHitChance: (base) => base + 0.05,
+        hookNotes: { hitChance: '+5%' },
         effects: [{ type: 'damage', scaling: { strength: 0.3, vitality: 0.1 } }],
+    },
+    {
+        id: 'rod_lift',
+        name: '棍挑',
+        description: '竹棍一挑，破敌防势，降低对手闪避。',
+        requiredTags: ['polearm'],
+        apCost: 2,
+        tags: ['blunt', 'polearm'],
+        onActionCritDamage: (base) => base + 0.2,
+        hookNotes: { critDamage: '+20%' },
+        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     {
         id: 'rod_sweep',
@@ -510,7 +516,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '横扫千军，造成失衡。',
         requiredTags: ['polearm'],
         apCost: 2,
-        tags: ['blunt', 'knockdown', 'polearm'],
+        tags: ['knockdown', 'polearm'],
         effects: [
             { type: 'damage', scaling: { strength: 0.35 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
@@ -537,22 +543,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         chanCost: 38,
         tags: ['polearm', 'pierce'],
-        getRange: () => [4, 4],
+        getRange: () => [3, 4],
         onActionHitChance: (base) => base + 0.3,
         onActionCritChance: (base) => base + 0.3,
         hookNotes: { hitChance: '+30%', critChance: '+30%' },
         effects: [{ type: 'damage', scaling: { strength: 1, dexterity: 0.6, agility: 0.6 } }],
-    },
-    {
-        id: 'rod_lift',
-        name: '棍挑',
-        description: '竹棍一挑，破敌防势，降低对手招架闪避。',
-        requiredTags: ['polearm'],
-        apCost: 2,
-        tags: ['blunt', 'polearm'],
-        onActionHitChance: (base) => base + 0.15,
-        hookNotes: { hitChance: '+15%' },
-        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     {
         id: 'stand_rod_kick',
@@ -727,7 +722,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                 type: 'add_debuff',
                 buffId: 'bleed',
                 stacks: 5,
-                chance: 0.6,
+                chance: 0.4,
             },
         ],
     },

@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive } from '../../engine/util/reward-utils'
 
-const ATTRS = { strength: 14, vitality: 12, agility: 14, dexterity: 14, insight: 14, wisdom: 14 }
+const ATTRS = { strength: 12, vitality: 12, agility: 14, dexterity: 14, insight: 14, wisdom: 15 }
 
 export const HAORAN: OpponentDef = {
     id: 'haoran',
@@ -23,7 +23,8 @@ export const HAORAN: OpponentDef = {
         artifact('shao_dao_zi'),
         passive('wan_xiang_jian_yi'),
         passive('ling_long_xin_qiao'),
-        // 12
+        passive('yi_dian_po_xiao'),
+        // 13
     ],
     actionConfigs: [
         {

@@ -14,6 +14,7 @@ import {
 } from '../../calc/damage'
 import { getWeapon } from '../../../data/weapons/weapons'
 import { consumeBuffsByTrigger, forEachBuffOf } from '../utils'
+import { round1 } from '../../util/math'
 
 // ── Options 类型 ──
 
@@ -48,7 +49,6 @@ interface ApplyDamageModifiersOptions {
     engine: BattleEngine
     raw: number
     source?: GameEntity
-    bonus?: boolean
     triggered?: boolean
 }
 
@@ -76,20 +76,10 @@ export function applyBonusDamage({
         target.takeDamage(piercing, engine)
     }
 
-    // 普通追加伤害（走修正管道）
+    // 普通追加伤害（走减伤→吸收阶段；独立伤害跳过暴击/招架/命中）
     let final = 0
     if (raw > 0) {
-        const modResult = applyDamageModifiers({
-            final: raw,
-            target,
-            attacker,
-            engine,
-            raw,
-            source,
-            bonus: true,
-            triggered,
-        })
-        final = modResult.damage
+        final = applyDefenseStages(raw, target, attacker, engine, raw, source, triggered)
         target.takeDamage(final, engine)
     }
 
@@ -113,7 +103,7 @@ export function applyBonusDamage({
 
 // ── 伤害管道 ──
 
-/** 应用伤害（含招架判定） */
+/** 应用伤害（含暴击判定；结算顺序：暴击+爆伤 → 穿透拆出 → 招架 → 减伤 → 吸收 → 扣血） */
 export function applyDamage({
     raw,
     target,
@@ -125,7 +115,7 @@ export function applyDamage({
     triggered,
 }: ApplyDamageOptions): void {
     const act = source as ActionDefinition | undefined
-    // 增伤效果在招架前计算
+    // ① 增伤效果（攻击方 onDealDamage）在暴击前计算
     const { damage: buffed, piercing: buffPiercing } = applyDamageModifiers({
         final: raw,
         target,
@@ -135,31 +125,15 @@ export function applyDamage({
         source,
         triggered,
     })
-    const totalPiercing = piercing + buffPiercing
-    const { parried, final: afterParry } = resolveParry(buffed, target, attacker, engine, act)
-    const blocked = buffed - afterParry
-    const { isCrit, final: afterCrit } = resolveCrit(afterParry, buffed, target, attacker, engine, act)
-    let final = afterCrit + totalPiercing
+    // ② 暴击判定 + 爆伤（基于增伤后裸伤，不再受招架/减伤削减）
+    const { isCrit, final: afterCrit } = resolveCrit(buffed, buffed, target, attacker, engine, act)
 
-    // 百分比穿透（按暴击后伤害计算）
-    let piercingRatioTotal = 0
-    if (act) {
-        for (const eff of act.effects ?? []) {
-            if (eff.type === 'damage' && eff.piercingRatio) {
-                const p = Math.max(1, Math.round(final * eff.piercingRatio))
-                piercingRatioTotal += p
-            }
-        }
-        if (piercingRatioTotal > 0) {
-            final += piercingRatioTotal
-        }
-    }
-
-    // onAfterCritDamage 钩子：暴击后、实施伤害前，可将爆伤转为其他效果
+    // onAfterCritDamage 钩子：暴击后、穿透拆出前，可将爆伤转为其他效果
     // 返回全量：钩子返回本次暴击应造成的完整伤害，引擎以该值覆盖（按 priority 升序链式，final 传入当前值）
+    let critFinal = afterCrit
     if (isCrit) {
-        const damage = afterParry + totalPiercing
-        const critDamage = afterCrit + totalPiercing
+        const damage = buffed
+        const critDamage = afterCrit
         let finalCrit = critDamage
         const critHooks: { def: BuffDef; layer: BuffLayer }[] = []
         forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
@@ -181,8 +155,57 @@ export function applyDamage({
                 source: act,
             })
         }
-        final = finalCrit + piercingRatioTotal
+        critFinal = finalCrit
     }
+
+    // ③ 暴击结算后伤害修正（招架前）：攻击方 onPostCritDamage 在此生效。
+    //    返回 number 整体覆盖（可增伤/转化）；返回 {normal,piercing} 表示把伤害拆出穿透，
+    //    引擎取其比例（piercing/(normal+piercing)）与招式 piercingRatio 加算，上限 100%——
+    //    穿透是「结算方式」而非「伤害加成」：总伤害不膨胀，穿透部分无视招架/减伤/吸收。
+    let base = critFinal
+    let pierceRatio = 0
+    // 招式自带百分比穿透（如三寸光 50%）
+    if (act) {
+        for (const eff of act.effects ?? []) {
+            if (eff.type === 'damage' && eff.piercingRatio) {
+                pierceRatio += eff.piercingRatio
+            }
+        }
+    }
+    // 攻击方 buff 穿透钩子：每个钩子基于当前 base 返回拆分，引擎反推其穿透比例（加算）
+    forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
+        if (!def?.onPostCritDamage) return
+        const r = def.onPostCritDamage({
+            final: base,
+            raw,
+            target,
+            attacker,
+            engine,
+            state: engine.state,
+            layer,
+            source: act,
+        })
+        if (typeof r === 'object') {
+            const total = r.normal + (r.piercing ?? 0)
+            if (total > 0) pierceRatio += (r.piercing ?? 0) / total
+        } else {
+            base = r
+        }
+    })
+    pierceRatio = Math.min(1, pierceRatio)
+    // 一次性拆分：穿透 = base × ratio（无视招架/减伤/吸收），普通 = 剩余部分
+    const normalFinal = round1(base * (1 - pierceRatio))
+    const totalPiercing = round1(base * pierceRatio) + piercing + buffPiercing
+
+    // ④ 招架（仅作用于非穿透部分）
+    const { parried, final: afterParry } = resolveParry(normalFinal, target, attacker, engine, act)
+    const blocked = normalFinal - afterParry
+
+    // ⑤ 减伤 → ⑥ 吸收（防御方 onTakeDamage 减伤/反伤回缠，再 onAbsorb 护盾池，最后结算）
+    let final = applyDefenseStages(afterParry, target, attacker, engine, raw, act, triggered)
+
+    // 穿透部分无视招架/减伤/吸收，最后并入
+    final += totalPiercing
 
     target.takeDamage(final, engine)
     if (final > 0 && !suppressTriggers) {
@@ -485,7 +508,7 @@ function resolveCrit(
 
 // ── 通用伤害修正 ──
 
-/** 遍历双方 buff 的伤害修正钩子，自动修正伤害 */
+/** 遍历攻击方 buff 的增伤钩子（onDealDamage，暴击前结算） */
 function applyDamageModifiers({
     final,
     target,
@@ -493,11 +516,10 @@ function applyDamageModifiers({
     engine,
     raw,
     source,
-    bonus = false,
     triggered,
 }: ApplyDamageModifiersOptions): { damage: number; piercing: number } {
     let piercing = 0
-    forEachBuffOf(engine.state.pendingBuffs, [target.id, attacker.id], (def, layer, _b, _k, ownerId) => {
+    forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
         if (!source) return
         const ctx = {
             final,
@@ -507,12 +529,11 @@ function applyDamageModifiers({
             engine,
             state: engine.state,
             layer,
-            buffOwnerId: ownerId,
+            buffOwnerId: attacker.id,
             source,
             triggered,
         }
-        // 独立追加伤害不触发攻击者的 onDealDamage（防止守宫砂等重复计数）
-        if (!bonus && ownerId === attacker.id && def?.onDealDamage) {
+        if (def?.onDealDamage) {
             const result = def.onDealDamage(ctx)
             if (typeof result === 'object') {
                 final = result.normal
@@ -521,9 +542,49 @@ function applyDamageModifiers({
                 final = result
             }
         }
-        if (ownerId === target.id && def?.onTakeDamage) {
-            final = def.onTakeDamage(ctx)
-        }
     })
     return { damage: final, piercing }
+}
+
+/** 防御阶段：减伤（onTakeDamage）→ 吸收（onAbsorb），供追加伤害复用 */
+function applyDefenseStages(
+    final: number,
+    target: Character,
+    attacker: Character,
+    engine: BattleEngine,
+    raw: number,
+    source?: GameEntity,
+    triggered?: boolean,
+): number {
+    // 减伤
+    forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
+        if (!def?.onTakeDamage) return
+        final = def.onTakeDamage({
+            final,
+            raw,
+            target,
+            attacker,
+            engine,
+            state: engine.state,
+            layer,
+            source,
+            triggered,
+        })
+    })
+    // 吸收
+    forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
+        if (!def?.onAbsorb) return
+        final = def.onAbsorb({
+            final,
+            raw,
+            target,
+            attacker,
+            engine,
+            state: engine.state,
+            layer,
+            source,
+            triggered,
+        })
+    })
+    return final
 }

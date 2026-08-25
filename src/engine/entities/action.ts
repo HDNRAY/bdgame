@@ -67,10 +67,9 @@ export type EffectDef =
     | { type: 'short_dash'; maxDistance?: number }
     | { type: 'disarm'; chance?: number }
     | { type: 'self_disarm'; dropAt?: 'ground' | 'opponent' }
-    | { type: 'wisdom_stat_buff'; ratio: number; attrs: AttrName[] }
+    | { type: 'attr_convert'; from: AttrName; to: AttrName[]; ratio: number; mode?: 'round' | 'floor' }
     | { type: 'copy_best_passive' }
     | { type: 'steal_artifact' }
-    | { type: 'dex_to_str'; ratio: number }
     | { type: 'weapon_tag'; tag: Tag }
     | {
           type: 'stat_restriction'

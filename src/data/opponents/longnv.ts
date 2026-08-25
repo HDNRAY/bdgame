@@ -22,6 +22,7 @@ export const LONGNV: OpponentDef = {
         action('yufeng_needle'),
         weapon('moxie_sword'),
         weapon('ganjiang_sword'),
+        // 活武学宝典下 所有奖励的tag数 * 5% 增伤，还是3%。 上限30%
         // 12
     ],
     actionConfigs: [{ actionId: 'yufeng_needle', triggerId: 'on_opponent_move_away' }],

@@ -14,14 +14,24 @@ export const QI_SKILLS: ActionDefinition[] = [
     },
     {
         id: 'qi_bolt',
-        name: '炁弹',
-        description: '凝聚炁劲远程攻击。',
+        name: '元炁弹',
+        description: '凝聚炁劲远程攻击。剑路雄劲。',
         requiredTags: [],
         apCost: 2,
         tags: ['qi', 'range', 'qi_action'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 2.4 }],
-        extraPreDelay: 200,
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 2.8 }],
         getRange: () => [2, 6],
+    },
+    {
+        id: 'qi_bolt_2',
+        name: '贰炁弹',
+        description: '凝聚炁劲远程攻击。巧妙灵活，难以捉摸。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['qi', 'range', 'qi_action'],
+        onActionHitChance: (base) => base + 0.2,
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 1.5 }],
+        getRange: () => [1, 6],
     },
     {
         id: 'qi_blade',
@@ -33,7 +43,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         getRange: () => [0, 2],
         effects: [
             { type: 'ignore_parry' },
-            { type: 'damage', scaling: { wisdom: 0.2, dexterity: 0.1 }, piercingRatio: 0.4 },
+            { type: 'damage', scaling: { wisdom: 0.3, dexterity: 0.1 }, piercingRatio: 0.4 },
         ],
     },
     {

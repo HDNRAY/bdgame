@@ -72,8 +72,10 @@ export interface BuffDef extends GameEntity {
     onDealDamage?: (ctx: BuffHookCtx) => number | { normal: number; piercing: number }
     /** 造成伤害后追加独立伤害（返回 >0 则额外调 applyBonusDamage） */
     onAfterDealDamage?: (ctx: BuffHookCtx) => number | { normal: number; piercing: number }
-    /** 受击伤害修正（buff 持有者受到伤害时调用） */
+    /** 受击伤害修正（buff 持有者受到伤害时调用；减伤阶段，招架后结算，含反伤/回缠类） */
     onTakeDamage?: (ctx: BuffHookCtx) => number
+    /** 护盾吸收（buff 持有者受到伤害时调用；吸收阶段，减伤后、最终扣血前结算。金钟罩/炁盾/能量护盾等护盾池专用） */
+    onAbsorb?: (ctx: BuffHookCtx) => number
     /** 招架率修正钩子（applyDamage 招架判定前自动调用，返回加算值） */
     onParryChance?: (ctx: BuffHookCtx) => number
     /** 招架减伤修正钩子（防御方 buff，applyDamage 招架成功后自动调用） */
@@ -126,6 +128,10 @@ export interface BuffDef extends GameEntity {
     onCritDamage?: (ctx: BuffHookCtx) => number
     /** 暴击伤害后钩子（计算完爆伤后、实施伤害前调用，返回本次暴击应造成的完整伤害量，引擎以该值覆盖；返回 damage 保留非暴击部分，返回 0 完全转为其他效果）。多个此类钩子按 priority 升序链式执行，priority 大者最后，可读取前序结算后的 final。 */
     onAfterCritDamage?: (ctx: AfterCritDamageCtx) => number
+    /** 暴击结算后伤害修正钩子（攻击方 buff，暴击/爆伤后、招架/减伤/吸收前调用）：
+     *  对含爆伤的最终伤害做修正——返回 number 则整体覆盖该伤害（可增伤/转化），
+     *  返回 { normal, piercing } 则把伤害拆成普通+穿透两部分（穿透吃爆伤且无视后续招架/减伤/吸收，如无相、一点破晓类效果）。 */
+    onPostCritDamage?: (ctx: BuffHookCtx) => number | { normal: number; piercing: number }
     /** 回合结束回调（turn_end 时调用，不依赖命中） */
     onTurnEnd?: (ctx: BuffHookCtx) => void
     /** 层数上限覆盖钩子（raw=原始 max，返回覆盖后的新上限） */

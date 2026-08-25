@@ -22,6 +22,7 @@ export const WUKONG: OpponentDef = {
         weapon('dinghai_shen_tie'),
         artifact('fen_shen_qiu'),
         artifact('pu_ti_tou_huan'),
+        // 疯魔棍法 刚猛迅捷 威力大
         // 12
     ],
     actionConfigs: [{ actionId: 'stand_rod_kick', triggerId: 'on_dodged' }],

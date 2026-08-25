@@ -250,7 +250,7 @@ describe('漱玉峰瀑布顿悟', () => {
 })
 
 describe('打工事件（特殊固定奖励）', () => {
-    it('图书馆打工 → 活武学宝典；天工坊打工 → 千锤百炼', () => {
+    it('图书馆打工 → 活武学宝典上；天工坊打工 → 千锤百炼', () => {
         const lib = getEvent('library_job')!
         const tg = getEvent('tiangong_job')!
         expect(lib.rounds.find((r) => r.id === 'reward_round')!.choices.map((c) => c.id)).toEqual([
@@ -265,7 +265,7 @@ describe('打工事件（特殊固定奖励）', () => {
         expect(ids).not.toContain('qian_chui_bai_lian')
     })
 
-    it('活武学宝典不再属于 xiaohua 固定奖励', () => {
+    it('活武学宝典上不再属于 xiaohua 固定奖励', () => {
         const ev = getEvent('xiaohua_insight')!
         if (ev.reward?.kind === 'item') {
             expect(ev.reward.ids).not.toContain('martial_arts_archive')

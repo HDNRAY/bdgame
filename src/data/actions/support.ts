@@ -13,7 +13,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         name: '听潮式',
         description: '凝神防守，如潮汐般稳固。大幅提升招架率。',
         requiredTags: ['parry'],
-        apCost: 2,
+        apCost: 1,
         tags: ['buff', 'defense', 'post_action'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'guard_up' }],
@@ -118,7 +118,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         name: '闪光',
         description: '以炁激发强光致盲对手，范围广，效果显著。',
         requiredTags: [],
-        apCost: 2,
+        apCost: 1,
         tags: ['debuff', 'pre_action', 'electric'],
         getRange: () => [1, 5] as [number, number],
         canUse: (attacker, state) => {
@@ -126,7 +126,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
         },
         hookNotes: { canUse: '对手已致盲时不可重复' },
-        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 1 }],
+        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 0.5 }],
     },
     {
         id: 'dao_ma_dan',

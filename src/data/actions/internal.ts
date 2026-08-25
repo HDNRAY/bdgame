@@ -10,13 +10,12 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '拔刀一瞬，电光石火。',
         requiredTags: ['slash'],
         apCost: 5,
-        extraStunTime: 1000,
         tags: ['move', 'slash'],
         canUse: (attacker, state) => state.pendingBuffs.has('iaijutsu::' + attacker.id),
         hookNotes: { canUse: '居合架势中才可释放' },
         effects: [
             { type: 'short_dash', maxDistance: 1 },
-            { type: 'damage', scaling: { strength: 1.6 } },
+            { type: 'damage', scaling: { strength: 2 } },
             { type: 'remove_buff', buffId: 'iaijutsu' },
         ],
     },
@@ -201,12 +200,17 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 7],
         effects: [
             {
+                type: 'fixed_damage',
+                value: 1,
+                piercing: 1,
+            },
+            {
                 // 距离越近伤害越高：贴身 = 1 + 推演×0.1，满射程 7 = 基础 1（丝刃随敌我距离收紧）
                 type: 'functional_damage',
                 fn: ({ self, enemy, state }) => {
                     const dist = state.position.distance(self.id, enemy.id)
                     const close = Math.max(0, 8 - dist) / 7
-                    return round1(1 + self.attrs.get('wisdom') * 0.1 * close)
+                    return round1(self.attrs.get('wisdom') * 0.1 * close)
                 },
                 note: '距离越近伤害越高（贴身最高）',
             },
@@ -270,7 +274,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'range'],
         getRange: () => [2, 5] as [number, number],
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.3 } },
+            { type: 'damage', scaling: { dexterity: 0.4 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
         ],
     },
@@ -354,9 +358,9 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['range', 'slash', 'pierce', 'internal'],
         getRange: () => [2, 4] as [number, number],
-        onActionHitChance: (base) => base + 0.1,
+        onActionHitChance: (base) => base + 0.05,
         onActionCritChance: (base) => base + 0.1,
-        hookNotes: { hitChance: '+10%', critChance: '+10%' },
+        hookNotes: { hitChance: '+5%', critChance: '+10%' },
         effects: [{ type: 'damage', scaling: { agility: 0.2, dexterity: 0.2 } }],
     },
     // ── 战术腰包 ──
@@ -420,7 +424,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
             {
                 type: 'ignore_parry',
             },
-            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.15, dexterity: 0.2 } },
         ],
     },
     {
