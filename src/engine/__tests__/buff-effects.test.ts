@@ -265,15 +265,15 @@ describe('add_debuff', () => {
 
     it('additive debuff stacks up to max', () => {
         const { engine, a } = makeFixture()
-        apply(engine, { type: 'add_debuff', buffId: 'shen_jian_mark', stacks: 2, chance: 1 }, a)
-        apply(engine, { type: 'add_debuff', buffId: 'shen_jian_mark', stacks: 2, chance: 1 }, a)
-        apply(engine, { type: 'add_debuff', buffId: 'shen_jian_mark', stacks: 2, chance: 1 }, a)
-        expect(layer(engine, 'shen_jian_mark', 'b')!.restoreValue).toBe(5) // max:5 封顶
+        apply(engine, { type: 'add_debuff', buffId: 'duan_qi', stacks: 2, chance: 1 }, a)
+        apply(engine, { type: 'add_debuff', buffId: 'duan_qi', stacks: 2, chance: 1 }, a)
+        apply(engine, { type: 'add_debuff', buffId: 'duan_qi', stacks: 2, chance: 1 }, a)
+        expect(layer(engine, 'duan_qi', 'b')!.restoreValue).toBe(3) // max:3 封顶
     })
     it('add_debuff first apply caps additive at max', () => {
         const { engine, a } = makeFixture()
-        apply(engine, { type: 'add_debuff', buffId: 'shen_jian_mark', stacks: 6, chance: 1 }, a)
-        expect(layer(engine, 'shen_jian_mark', 'b')!.restoreValue).toBe(5) // max:5 封顶
+        apply(engine, { type: 'add_debuff', buffId: 'duan_qi', stacks: 6, chance: 1 }, a)
+        expect(layer(engine, 'duan_qi', 'b')!.restoreValue).toBe(3) // max:3 封顶
     })
     it('re-applying a none-stacking debuff is skipped', () => {
         const { engine, a, b } = makeFixture()

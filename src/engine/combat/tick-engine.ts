@@ -107,11 +107,9 @@ export class TickEngine {
         }
         const stacks = layer.restoreValue ?? 0
         const mult = (layer.extra?.poisonMult as number) ?? 1
-        let dmg = stacks * DMG_PER_POISON_TICK * mult
-        if (engine.state.pendingBuffs.has(`poison_resist::${enemy.id}`)) {
-            dmg = Math.round(dmg * 0.3 * 10) / 10
-        }
-        // onDebuffTick：遍历目标 buff 修改 DOT 伤害（与 onPoisonTick 一致，毒体/铸火等免疫生效）
+        const dmg = stacks * DMG_PER_POISON_TICK * mult
+        // 毒抗（poison_resist 等）由目标 buff 的 onDebuffTick 钩子处理（下方统一遍历）
+        // onDebuffTick：遍历目标 buff 修改 DOT 伤害（与 onPoisonTick 一致，毒体/铸火/蛇毒不侵等生效）
         let finalDmg = dmg
         forEachBuffOf(engine.state.pendingBuffs, enemy.id, (bDef, layer2) => {
             if (!bDef?.onDebuffTick) return
@@ -179,12 +177,10 @@ export class TickEngine {
 
         const stacks = entry.restoreValue
         const mult = (entry.extra?.poisonMult as number) ?? 1
-        let dmg = stacks * DMG_PER_POISON_TICK * mult
-        if (engine.state.pendingBuffs.has(`poison_resist::${charId}`)) {
-            dmg = round1(dmg * 0.4)
-        }
+        const dmg = stacks * DMG_PER_POISON_TICK * mult
         const char = engine.getCharacter(charId)
         if (!char) return { nextInterval: 0 }
+        // 毒抗（poison_resist 等）由目标 buff 的 onDebuffTick 钩子处理（下方统一遍历）
         // onDebuffTick：遍历目标 buff 修改 DOT 伤害
         let finalDmg = dmg
         forEachBuffOf(engine.state.pendingBuffs, charId, (bDef, layer2) => {

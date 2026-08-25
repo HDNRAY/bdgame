@@ -10,7 +10,7 @@ export const WUZUI: OpponentDef = {
     weapon: 'bare_hands',
     targetAttrs: WUZUI_ATTRS,
     rewards: [
-        action('qi_bolt'),
+        action('qi_bolt_2'),
         passive('shenxing_baibian'),
         passive('jiu_yang_shen_gong'),
         passive('hun_yuan_gong'),
@@ -26,7 +26,7 @@ export const WUZUI: OpponentDef = {
     ],
     actionConfigs: [
         {
-            actionId: 'qi_bolt',
+            actionId: 'qi_bolt_2',
             triggerId: 'on_dodged',
         },
         {

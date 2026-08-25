@@ -22,7 +22,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'stun'],
         getRange: () => [0, 2],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1, wisdom: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.2 },
         ],
     },
@@ -47,8 +47,8 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['unarmed', 'stun', 'qi', 'range'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
-            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.5 },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
+            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.4 },
         ],
         getRange: () => [0, 6],
     },
@@ -85,8 +85,8 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['unarmed', 'melee', 'debuff'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
-            { type: 'disarm', chance: 0.2 },
+            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
+            { type: 'disarm', chance: 0.6 },
         ],
     },
     {
@@ -180,7 +180,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         hookNotes: { critChance: '+15%' },
         getRange: () => [0, 2],
         effects: [
-            { type: 'damage', scaling: { strength: 0.6 } },
+            { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'missing_hp_damage', ratio: 0.2 },
         ],
     },
@@ -321,13 +321,13 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'qi', 'pierce'],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
-            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.6, agility: 0.4 }, piercingRatio: 0.5 },
+            { type: 'damage', scaling: { strength: 0.8, wisdom: 0.8, agility: 0.4 }, piercingRatio: 0.5 },
         ],
     },
     {
         id: 'rear_naked_choke',
         name: '裸绞',
-        description: '从背后锁喉，持续绞杀。双方均无法行动，每秒消耗2AP维持。AP耗尽、3秒后或对手挣脱则松脱。',
+        description: '从背后锁喉，持续绞杀。双方均无法行动。',
         requiredTags: ['unarmed'],
         apCost: 3,
         tags: ['unarmed', 'melee', 'debuff'],

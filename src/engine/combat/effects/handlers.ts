@@ -603,9 +603,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const e = eff as Extract<EffectDef, { type: 'short_dash' }>
         const opponent = engine.getOpponent(self.id)!
         const dist = engine.state.position.distance(self.id, opponent.id)
-        // 如果已在武器有效射程内，或比最小射程还近（太近了冲也没用），不冲刺
-        const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
-        if (weapon.range && dist <= weapon.range[1]) return
+        // 触发招式（闪避/招架反击等）带 short_dash = 冲过去打：总是冲近贴脸，不做"已在射程内"判断
+        // 主招式 short_dash：若已在武器有效射程内（太近了冲也没用），不冲刺
+        const isTriggered = action?.tags?.includes('trigger')
+        if (!isTriggered) {
+            const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
+            if (weapon.range && dist <= weapon.range[1]) return
+        }
         const maxDash = e.maxDistance ?? 2
         const targetDist = Math.max(0, dist - maxDash)
         const delta = dist - targetDist

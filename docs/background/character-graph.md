@@ -51,7 +51,7 @@ graph TB
     subgraph Yao["药屋"]
       direction TB
       dx["黛玄（听觉·调查科科长·药屋领军）"]
-      xh["小花（视觉·拳掌宗师）"]
+      xh["花大师（视觉·拳掌宗师）"]
       lf["来风（味觉·空拳）"]
     end
 

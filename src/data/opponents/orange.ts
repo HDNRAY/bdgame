@@ -6,7 +6,7 @@ const ATTRS = { strength: 12, vitality: 10, agility: 16, dexterity: 16, insight:
 export const ORANGE: OpponentDef = {
     id: 'orange',
     name: '橘子会',
-    story: '橘子真的妹妹。从小修习忍术，成年后发现自己对真正的功夫由衷地向往，而自己的天赋无法发挥姐姐那种近乎本能的作战方式，到处寻找适合自身的功法，直到她遇到药屋小花，目前跟随其学习无明之明。',
+    story: '橘子真的妹妹。从小修习忍术，成年后发现自己对真正的功夫由衷地向往，而自己的天赋无法发挥姐姐那种近乎本能的作战方式，到处寻找适合自身的功法，直到她遇到花大师，目前跟随其学习无明之明。',
     battleStyle: 'mid',
     weapon: 'dagger',
     targetAttrs: ATTRS,

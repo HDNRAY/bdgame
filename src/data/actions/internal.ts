@@ -107,7 +107,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['trigger', 'counter', 'internal'],
         target: 'enemy',
-        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, base: 1 }],
+        effects: [{ type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } }],
     },
     {
         id: '_tiger_eye_foresight',
@@ -507,5 +507,28 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['trigger', 'internal'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'spear_break_stance' }],
+    },
+    {
+        // 灵鳌步触发招式：闪避后借势冲撞。施法距离 0-0（本身无射程），dash 3 延伸有效射程 [0,3]；
+        // canUse 限距离 >2m（太近无需撞）；上限由 getActionRange（dash 够不够得到）负责
+        id: '_ling_ao_chong',
+        name: '灵鳌冲',
+        description: '闪避后借势冲向对手，撞出钝击并麻痹。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['trigger', 'internal', 'unarmed', 'blunt', 'melee'],
+        target: 'enemy',
+        getRange: () => [0, 0],
+        canUse: (attacker, state) => {
+            const enemy = state.characters.find((c) => c.id !== attacker.id)
+            if (!enemy) return false
+            return state.position.distance(attacker.id, enemy.id) > 2
+        },
+        hookNotes: { canUse: '距离大于2m时触发' },
+        effects: [
+            { type: 'short_dash', maxDistance: 3 },
+            { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1 } },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 },
+        ],
     },
 ]

@@ -127,32 +127,13 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'shen_jian_mark',
         name: '神剑印',
-        description: '被落英神剑标，积满5层自动引爆。',
+        description: '被落英神剑标记，寄存伤害。暴击时引爆。',
         tags: ['debuff', 'qi'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 5 },
+        stacking: { type: 'none' },
         logFormat: (layer, targetName) => {
             const stored = layer.extra?.stored as number | undefined
-            const base = `「${targetName}」 获得状态 Lv.${layer.restoreValue}`
-            return stored ? `${base}（累计寄存${stored}）` : base
-        },
-        onDebuffApply: ({ self, enemy, engine, layer }) => {
-            if (!engine || !layer || layer.restoreValue < 5) return
-            // 5层满 → 引爆
-            const stored = (layer.extra?.stored as number) ?? 0
-            const explosionDmg = round1(stored * 2)
-            if (explosionDmg <= 0) return
-
-            // 清除印记
-            engine.state.pendingBuffs.delete(`shen_jian_mark::${enemy.id}`)
-
-            // 直接扣血 + 单行汇总（避免 applyDamage 产生额外日志）
-            enemy.takeDamage(explosionDmg, engine)
-            engine.emitLog({
-                type: 'system',
-                message: `[落英神剑] 神剑印引爆！寄存${stored}，双倍造成${explosionDmg}点伤害`,
-                actorId: self.id,
-            })
+            return stored ? `「${targetName}」 获得状态（累计寄存${stored}）` : `「${targetName}」 获得状态`
         },
     },
     {
@@ -328,7 +309,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '窒息',
         description: '颈部被锁，呼吸困难。持续受到绞杀伤害。',
         tags: ['debuff'],
-        expiry: { type: 'duration', ms: 3000 },
+        expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
         tickInterval: 1000,
         onTickDamage: ({ engine, layer, target: defender }) => {

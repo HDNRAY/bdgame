@@ -410,7 +410,7 @@ export const PASSIVES: Passive[] = [
         id: 'dark_iron_sword_art',
         name: '玄剑秘册',
         description:
-            '玄门流落在外的秘籍，虽无玄门血脉，亦可以炁御物。无法精巧控制武器，但可化解重器的身法负担（固定-2），并使其可以短暂使用拳脚攻击。招式化繁为简，AP消耗-0.1。',
+            '玄门流落在外的秘籍，虽无玄门血脉，亦可以炁御物。无法精巧御物，但可减少重器的身法负担，并以剑意施展手上功夫。',
         tags: ['passive', 'buff', 'heavy'],
         effects: [{ type: 'weapon_tag', tag: 'unarmed' }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'heavy_training' }] }],
@@ -542,7 +542,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'golden_light',
         name: '金光咒',
-        description: '金光护体，AP上限-1；受伤时消耗1层缠劲减免3点；非御物攻击消耗1层缠劲附加2点伤害。',
+        description: '金光护体，AP上限-1。',
         tags: ['passive', 'buff', 'defense', 'qi'],
         triggers: [
             {
@@ -551,19 +551,6 @@ export const PASSIVES: Passive[] = [
                     { type: 'max_ap_mod', value: -1 },
                     { type: 'add_buff', buffId: 'golden_light' },
                 ],
-            },
-        ],
-    },
-    {
-        id: 'martial_arts_archive',
-        name: '活武学宝典上',
-        description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
-        tags: ['passive', 'buff', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { insight: 2 } }],
-        triggers: [
-            {
-                condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'martial_arts_archive' }],
             },
         ],
     },
@@ -896,9 +883,16 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
+        id: 'ling_ao_bu',
+        name: '灵鳌步',
+        description: '灵鳌踏浪，借势而进。闪避后冲向对手，撞出钝击并麻痹。',
+        tags: ['passive', 'buff', 'unarmed'],
+        triggers: [{ condition: { type: 'on_dodge' }, actionId: '_ling_ao_chong' }],
+    },
+    {
         id: 'luo_ying_shen_jian',
         name: '落英神剑',
-        description: '所有伤害的30%寄存于神剑印内，5层满时爆发2倍伤害。',
+        description: '所有伤害的30%寄存于神剑印内，暴击时引爆造成双倍伤害。',
         tags: ['passive', 'buff', 'qi'],
         triggers: [
             {
@@ -1014,8 +1008,8 @@ export const PASSIVES: Passive[] = [
     // ── 八卦棍法（竹子） ──
     {
         id: 'ba_gua_gun_fa',
-        name: '八卦棍法',
-        description: '棍打一片，人走八卦。每次移动叠一层八卦步，增加闪避和暴击率。',
+        name: '奇门八卦',
+        description: '奇门八卦步法。每次移动叠一层八卦步，增加闪避和暴击率。',
         tags: ['passive', 'buff'],
         triggers: [
             { condition: { type: 'on_move_away' }, effects: [{ type: 'add_buff', buffId: 'ba_gua_bu', stacks: 1 }] },

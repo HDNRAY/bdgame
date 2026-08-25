@@ -289,11 +289,11 @@ export const LIBRARY_EVENT: EventDef = {
     ],
 }
 
-/** 药屋 — 小花指教洞察/推演（固定几个功法里选） */
+/** 药屋 — 花大师指教洞察/推演（固定几个功法里选） */
 export const XIAOHUA_INSIGHT: EventDef = {
     id: 'xiaohua_insight',
     name: '药屋问心',
-    description: '你去药屋拜访小花，想请教洞察与推演之道。',
+    description: '你去药屋拜访花大师，想请教洞察与推演之道。',
     placement: POOL_PLACEMENT,
     reward: {
         kind: 'item',
@@ -305,18 +305,18 @@ export const XIAOHUA_INSIGHT: EventDef = {
             id: 'intro',
             title: '药屋',
             description:
-                '你推门走进药屋，小花正背对着你碾药。她没有回头，只是安静地说了一句：「来了？」\n\n你说明来意——想请教洞察与推演的心法。小花停下手中的活，沉默了片刻。\n\n「洞察和推演……」她转过身来，明明双目失明，你却感到她"看"了你一眼。「想学可以，先让我看看你的底子。」',
+                '你推门走进药屋，花大师正背对着你碾药。她没有回头，只是安静地说了一句：「来了？」\n\n你说明来意——想请教洞察与推演的心法。花大师停下手中的活，沉默了片刻。\n\n「洞察和推演……」她转过身来，明明双目失明，你却感到她"看"了你一眼。「想学可以，先让我看看你的底子。」',
             choices: [
-                { id: 'fight_xiaohua', type: 'continue', label: '请小花亲自指点' },
+                { id: 'fight_xiaohua', type: 'continue', label: '请花大师亲自指点' },
                 { id: 'fight_orange', type: 'continue', label: '请橘子会代为切磋' },
             ],
         },
         {
             id: 'fight_xiaohua',
-            title: '小花亲自下场',
+            title: '花大师亲自下场',
             enemyId: 'xiaohua',
             description:
-                '小花缓缓起身：「好，我亲自来会会你。」\n\n她每一步都精准地踏在你的气机之上。你意识到——这不是普通的切磋，这是她用「无明之明」在"看"你。',
+                '花大师缓缓起身：「好，我亲自来会会你。」\n\n她每一步都精准地踏在你的气机之上。你意识到——这不是普通的切磋，这是她用「无明之明」在"看"你。',
             choices: [{ id: 'aftermath', type: 'continue', label: '聆听指点' }],
         },
         {
@@ -324,14 +324,14 @@ export const XIAOHUA_INSIGHT: EventDef = {
             title: '橘子会迎战',
             enemyId: 'orange',
             description:
-                '小花轻轻一笑：「那让橘子会陪你走几招。」\n\n橘子会从里屋走出，朝你抱拳一礼。小花退到一旁，侧耳倾听——她要通过橘子会的交手来"看"你的路数。',
+                '花大师轻轻一笑：「那让橘子会陪你走几招。」\n\n橘子会从里屋走出，朝你抱拳一礼。花大师退到一旁，侧耳倾听——她要通过橘子会的交手来"看"你的路数。',
             choices: [{ id: 'aftermath', type: 'continue', label: '聆听指点' }],
         },
         {
             id: 'aftermath',
-            title: '小花的指点',
+            title: '花大师的指点',
             description:
-                '（战斗过后）小花沉默了一会儿，然后缓缓开口，从你最基础的感知方式讲起——如何区分"看"和"察"、如何用推演补洞察之不足、如何在混沌中抓住那一线先机。\n\n橘子会在旁认真听着，不时点头。你感觉到，这番指点让你的感知之道豁然开朗。',
+                '（战斗过后）花大师沉默了一会儿，然后缓缓开口，从你最基础的感知方式讲起——如何区分"看"和"察"、如何用推演补洞察之不足、如何在混沌中抓住那一线先机。\n\n橘子会在旁认真听着，不时点头。你感觉到，这番指点让你的感知之道豁然开朗。',
             choices: [{ id: 'reward', type: 'continue', label: '细细体会' }],
         },
         { id: 'reward', title: '收获', choices: [] },
@@ -464,7 +464,7 @@ export const MEMORY_WITHIN_MEMORY: EventDef = {
 }
 // ── 打工（特殊事件：特性功法由打工获得，每局至多一次） ──
 
-/** 图书馆打工：帮龙语仙整理书卷 → 活武学宝典上 */
+/** 图书馆打工：帮龙语仙整理书卷 → 武学宝典上/下/他山之石 三选一 */
 export const LIBRARY_JOB: EventDef = {
     id: 'library_job',
     name: '图书馆打工',
@@ -501,9 +501,21 @@ export const LIBRARY_JOB: EventDef = {
             choices: [
                 {
                     id: 'martial_arts_archive',
-                    type: 'passive',
-                    label: '活武学宝典上',
+                    type: 'artifact',
+                    label: '武学宝典上',
                     description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
+                },
+                {
+                    id: 'wuxue_baodian_xia',
+                    type: 'artifact',
+                    label: '武学宝典下',
+                    description: '通晓天下武学路数。每有1个奖励标签，伤害+1%、受到伤害-1%，上限各10%。',
+                },
+                {
+                    id: 'other_mountain',
+                    type: 'artifact',
+                    label: '他山之石',
+                    description: '现代搏击技巧总汇。博采众长，洞察入微。',
                 },
             ],
         },

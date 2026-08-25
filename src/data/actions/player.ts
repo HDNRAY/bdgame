@@ -75,9 +75,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['range', 'thrown', 'paralyze', 'debuff', 'pierce'],
         getRange: () => [2, 6] as [number, number],
         effects: [
-            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 },
-            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.6 },
+            // { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
+            { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
         ],
     },
     {
@@ -168,13 +168,13 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         id: 'yu_xiao_jian_fa',
         name: '玉箫剑法',
         description: '玉箫为剑，点穴封脉。',
-        requiredTags: ['melee', 'pierce'],
+        requiredTags: ['melee'],
         apCost: 2,
         tags: ['melee', 'blunt', 'pierce', 'debuff'],
         effects: [
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 1 },
             { type: 'add_debuff', buffId: 'duan_qi', stacks: 1, chance: 0.5 },
-            { type: 'damage', scaling: { strength: 0.18, dexterity: 0.18 } },
+            { type: 'damage', scaling: { strength: 0.15, dexterity: 0.15 } },
         ],
     },
     {
@@ -360,14 +360,14 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '离心之势已然极致，顺势脱手。刀如流星，消耗缠劲灌注刀意。',
         requiredTags: ['slash'],
         apCost: 5,
-        chanCost: 24,
+        chanCost: 22,
         tags: ['slash', 'range'],
         getRange: () => [0, 8],
-        onActionHitChance: (base) => base + 0.2,
-        hookNotes: { hitChance: '+20%' },
+        onActionHitChance: (base) => base + 0.1,
+        hookNotes: { hitChance: '+10%' },
         effects: [
             // 基础10 + 力/身/巧 scaling（命中结算）
-            { type: 'damage', scaling: { strength: 0.7, agility: 0.6, dexterity: 0.6 }, base: 10 },
+            { type: 'damage', scaling: { strength: 0.6, agility: 0.6, dexterity: 0.6 }, base: 10 },
             // 持重型武器（素铁霸刀）时，命中的那一刀额外 +10
             {
                 type: 'functional_damage',
@@ -733,10 +733,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 3,
         tags: ['qi', 'range', 'debuff'],
-        getRange: () => [0, 10],
+        getRange: () => [0, 9],
         effects: [
             { type: 'ignore_parry' },
-            { type: 'damage', scaling: { dexterity: 0.3, wisdom: 0.3 } },
+            { type: 'damage', scaling: { dexterity: 0.2, wisdom: 0.2 } },
             { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
     },

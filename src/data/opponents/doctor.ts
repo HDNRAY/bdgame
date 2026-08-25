@@ -29,5 +29,6 @@ export const DOCTOR: OpponentDef = {
     actionConfigs: [
         { actionId: 'drone_paralyze', triggerId: 'on_summon_hit' },
         { actionId: 'summon_haste', triggerId: 'on_dodged' },
+        { actionId: 'drone_strike', triggerId: 'on_parried' },
     ],
 }

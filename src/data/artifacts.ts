@@ -131,7 +131,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '人造耳蜗',
         description: '听觉植入装置，集成翻译与通讯模块。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { insight: 4, wisdom: 1 } }],
+        effects: [{ type: 'stat_buff', attrs: { insight: 3, wisdom: 1 } }],
     },
     {
         id: 'doctor_chip',
@@ -190,7 +190,7 @@ export const ARTIFACTS: Artifact[] = [
         description: '菩提枝编成的头环，澄澈心念。推演+4，50%免疫推演降低。',
         tags: ['buff', 'defense'],
         effects: [
-            { type: 'stat_buff', attrs: { wisdom: 4 } },
+            { type: 'stat_buff', attrs: { wisdom: 3 } },
             {
                 type: 'stat_restriction',
                 check: (_char, attr, _cur, delta) => {
@@ -339,7 +339,16 @@ export const ARTIFACTS: Artifact[] = [
         name: '他山之石',
         description: '现代搏击技巧总汇。博采众长，洞察入微。',
         tags: ['buff'],
-        effects: [{ type: 'stat_buff', attrs: { insight: 2, dexterity: 1, wisdom: 2 } }],
+        effects: [{ type: 'stat_buff', attrs: { dexterity: 1, insight: 2, wisdom: 2 } }],
+    },
+    {
+        id: 'yao_xin_shi',
+        name: '药心石',
+        description: '药屋世代相传的护心石，危急时凝炁护心。',
+        tags: ['craft', 'defense'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yao_xin_shi_buff' }] },
+        ],
     },
     {
         id: 'cinnabar_mole',
@@ -366,7 +375,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'snake_gall',
         name: '蛇胆',
-        description: '普斯曲蛇的蛇胆，强筋健骨。力道+2，根骨+2，毒抗+70%。',
+        description: '普斯曲蛇的蛇胆，强筋健骨。力道+2，根骨+2。',
         tags: ['buff', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'poison_resist' }] }],
@@ -505,7 +514,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '菩提珠串',
         description: '静心菩提念珠。推演+4，50%免疫临时失心。',
         tags: ['buff', 'defense'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 4 } }],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 3 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'pu_ti_zhu_buff' }] }],
     },
     {
@@ -687,6 +696,32 @@ export const ARTIFACTS: Artifact[] = [
             {
                 condition: { type: 'battle_start' },
                 effects: [{ type: 'add_debuff', buffId: 'oil_coating', stacks: 1, chance: 1 }],
+            },
+        ],
+    },
+    // ── 武学宝典上（通晓天下武学，闪/招→叠暴击；暴击→叠闪/招） ──
+    {
+        id: 'martial_arts_archive',
+        name: '武学宝典上',
+        description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
+        tags: ['buff'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'martial_arts_archive' }],
+            },
+        ],
+    },
+    // ── 武学宝典下（通晓天下武学路数，奖励标签越多越强） ──
+    {
+        id: 'wuxue_baodian_xia',
+        name: '武学宝典下',
+        description: '通晓天下武学路数。每有1个奖励标签，伤害+1%、受到伤害-1%，上限各10%。',
+        tags: ['buff'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'wuxue_baodian_xia' }],
             },
         ],
     },

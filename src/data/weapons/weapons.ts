@@ -46,7 +46,7 @@ export const WEAPON_DB: WeaponDef[] = [
         tags: ['unarmed', 'parry'],
         range: [0, 2],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'iron_back_buff' }] }],
-        effects: [{ type: 'stat_buff', attrs: { agility: 2, dexterity: 1 } }],
+        effects: [{ type: 'stat_buff', attrs: { agility: 2 } }],
     },
     {
         id: 'broken_blade',
@@ -227,7 +227,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '忍者短刀，轻如风，快过影。可藏于袖中，出手极速。',
         tags: ['slash', 'pierce', 'parry', 'melee', 'unarmed', 'one_handed'],
         range: [0, 2],
-        effects: [{ type: 'haste', value: 80 }],
+        effects: [{ type: 'haste', value: 120 }],
     },
     {
         id: 'zhen_bei_ji',

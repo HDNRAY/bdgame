@@ -7,7 +7,7 @@ import { calcSummonInterval, calcApRegen, calcActionDurationMs, MIN_TURN_DELAY_M
 import { canExecuteAction } from '../calc/action-executor'
 import { calcEffectiveApRegenPerSec, calcExtraApRegenPerSec } from './utils/ap-regen'
 import { calcEffectiveChanRegenPerSec } from './utils/chan-regen'
-import { getAction as getBaseAction } from '../../data/actions'
+import { getAction as getBaseAction, getActionRange } from '../../data/actions'
 import { getRuntimeAction } from '../../data/actions'
 import { getBuff } from '../../data/buffs'
 import { checkCondition } from '../../game/entities/action-config'
@@ -482,14 +482,17 @@ export class BattleEngine {
             } else {
                 // 触发招式不消耗 AP（apCost 上限 2 已在前过滤），但仍需距离/标签/条件检测
                 const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
-                const range: [number, number] = action.getRange?.(weapon.range, self) ?? weapon.range
+                // ① canUse 检查（如灵鳌冲 距离 >2m 才触发，太近无需撞）
+                if (action.canUse && !action.canUse(self, this.state)) continue
+                // ② 距离检查：用 getActionRange（含 short_dash 延伸）——"dash 能打够"才算够得到。
+                //    灵鳌冲 getRange[0,0] + dash3 → 有效 [0,3]，3m 外够不到不触发。
+                const range: [number, number] = getActionRange(action, weapon.range, self)
                 const dist = this.state.position.distance(self.id, enemy.id)
                 if (dist < range[0] || dist > range[1]) continue
                 if (action.requiredTags.length > 0) {
                     const hasTag = action.requiredTags.some((tag) => weapon.tags.includes(tag))
                     if (!hasTag) continue
                 }
-                if (action.canUse && !action.canUse(self, this.state)) continue
                 this.state.log.enterReaction()
                 this.#executeAction(action, self, enemy, true)
                 inst.use()

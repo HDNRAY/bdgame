@@ -161,7 +161,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         onDisarmChance: () => -1,
         // 暴击结算后拆出 50% 穿透：基于含爆伤的伤害拆 → 穿透吃爆伤，且无视招架/减伤/吸收
         onPostCritDamage: ({ final }) => {
-            const pierce = round1(final / 2)
+            const pierce = round1(final * 0.4)
             return { normal: round1(final - pierce), piercing: pierce }
         },
     },

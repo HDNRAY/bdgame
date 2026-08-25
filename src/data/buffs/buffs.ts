@@ -10,6 +10,34 @@ import { ActionDefinition } from '../../engine/entities/action'
 import { Tag } from '../../engine/entities/tag'
 import { buffEnhanceActionRange } from './util'
 import { WEAPON_BUFFS } from './weapon'
+import type { Character } from '../../engine/entities/character'
+import { getPassive } from '../passives'
+import { getArtifact } from '../artifacts'
+import { getAction as getActionDef } from '../actions'
+import { getWeapon } from '../weapons/weapons'
+
+/** 统计角色所有奖励（功法/奇物/招式/武器）的标签总数（去重；只算 build.rewards，克隆安全） */
+function countRewardTags(char: Character): number {
+    const set = new Set<string>()
+    for (const r of char.build.rewards ?? []) {
+        if (r.type === 'passive') {
+            const p = getPassive(r.id)
+            for (const t of p?.tags ?? []) set.add(t)
+        } else if (r.type === 'artifact') {
+            const a = getArtifact(r.id)
+            for (const t of a?.tags ?? []) set.add(t)
+        } else if (r.type === 'action') {
+            const act = getActionDef(r.id)
+            for (const t of act?.tags ?? []) set.add(t)
+        } else if (r.type === 'weapon') {
+            const w = getWeapon(r.id)
+            for (const t of w?.tags ?? []) set.add(t)
+        }
+    }
+    // 初始武器也算（build.weapon）
+    for (const t of getWeapon(char.build.weapon)?.tags ?? []) set.add(t)
+    return set.size
+}
 
 /** 是否为「非辅助主招」：天机只对这类招式生效并消耗（召唤物/辅招不吃必中必暴） */
 function isMainMove(source: { tags: readonly string[] } | undefined): boolean {
@@ -902,7 +930,7 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'martial_arts_archive',
-        name: '武学活宝典',
+        name: '武学宝典上',
         description: '通晓天下武学，以推演预判。闪避/招架→武学·破+1层；暴击→武学·避+1层。',
         tags: [],
         expiry: { type: 'permanent' },
@@ -929,6 +957,25 @@ export const BUFF_DB: BuffDef[] = [
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }
+        },
+    },
+    {
+        id: 'wuxue_baodian_xia',
+        name: '武学宝典下',
+        description: '通晓天下武学路数。每有1个奖励标签，伤害+1%、受到伤害-1%，上限各10%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        // 每 tag +1% 伤害（上限 10%）
+        onDealDamage: ({ final, attacker }) => {
+            const pct = Math.min(0.1, countRewardTags(attacker) * 0.01)
+            if (pct <= 0) return final
+            return round1(final * (1 + pct))
+        },
+        // 每 tag -1% 受到伤害（上限 10%）
+        onTakeDamage: ({ final, target }) => {
+            const pct = Math.min(0.1, countRewardTags(target) * 0.01)
+            if (pct <= 0) return final
+            return round1(final * (1 - pct))
         },
     },
     {
@@ -1344,9 +1391,9 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.003,
-        onDodgeChance: ({ target }) => target.attrs.get('wisdom') * 0.003,
-        onParryChance: ({ target }) => target.attrs.get('wisdom') * 0.003,
-        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.0005,
+        onDodgeChance: ({ target }) => target.attrs.get('wisdom') * 0.005,
+        onParryChance: ({ target }) => target.attrs.get('wisdom') * 0.005,
+        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.005,
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId === 'sand_blind') return 0
             return undefined
@@ -1438,7 +1485,6 @@ export const BUFF_DB: BuffDef[] = [
             return -act.apCost * 0.1
         },
     },
-    // ── 残影步·虚影 ──
     {
         id: 'xu_ying',
         name: '虚影',
@@ -1448,13 +1494,12 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'additive', max: 3 },
         onDodgeChance: ({ layer }) => layer.restoreValue * 0.05,
     },
-    // ── 八卦棍法·八卦步 ──
     {
         id: 'ba_gua_bu',
-        name: '八卦步',
+        name: '八卦',
         description: '走位踏出的八卦步，身法飘忽，伺机而动。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 5000 },
+        expiry: { type: 'duration', ms: 10000 },
         stacking: { type: 'additive', max: 3 },
         onDodgeChance: ({ layer }) => layer.restoreValue * 0.05,
         onCritChance: ({ layer }) => layer.restoreValue * 0.05,

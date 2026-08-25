@@ -250,11 +250,13 @@ describe('漱玉峰瀑布顿悟', () => {
 })
 
 describe('打工事件（特殊固定奖励）', () => {
-    it('图书馆打工 → 活武学宝典上；天工坊打工 → 千锤百炼', () => {
+    it('图书馆打工 → 武学宝典上/下/他山之石 三选一；天工坊打工 → 千锤百炼', () => {
         const lib = getEvent('library_job')!
         const tg = getEvent('tiangong_job')!
         expect(lib.rounds.find((r) => r.id === 'reward_round')!.choices.map((c) => c.id)).toEqual([
             'martial_arts_archive',
+            'wuxue_baodian_xia',
+            'other_mountain',
         ])
         expect(tg.rounds.find((r) => r.id === 'reward_round')!.choices.map((c) => c.id)).toEqual(['qian_chui_bai_lian'])
     })
@@ -265,7 +267,10 @@ describe('打工事件（特殊固定奖励）', () => {
         expect(ids).not.toContain('qian_chui_bai_lian')
     })
 
-    it('活武学宝典上不再属于 xiaohua 固定奖励', () => {
+    it('武学宝典上/下为奇物奖励（不在功法池），且不属于 xiaohua 固定奖励', () => {
+        // 武学宝典上/下是奇物，不在功法池
+        const passiveIds = rewardPool.getPool('passive').map((p) => p.id)
+        expect(passiveIds).not.toContain('wuxue_baodian_xia')
         const ev = getEvent('xiaohua_insight')!
         if (ev.reward?.kind === 'item') {
             expect(ev.reward.ids).not.toContain('martial_arts_archive')

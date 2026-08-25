@@ -161,9 +161,9 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '以柔克刚，四两拨千斤。每点灵巧增加0.6%招架率与0.6%招架减伤。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onParryChance: ({ target }) => target.attrs.get('dexterity') * 0.006,
+        onParryChance: ({ target }) => target.attrs.get('dexterity') * 0.005,
         onParryReduction: ({ final, target }) =>
-            Math.max(0, round1(final * (1 - target.attrs.get('dexterity') * 0.006))),
+            Math.max(0, round1(final * (1 - target.attrs.get('dexterity') * 0.005))),
         onCanParry: () => true,
     },
     {
@@ -216,9 +216,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'poison_resist',
         name: '蛇毒不侵',
-        description: '毒抗+60%。',
+        description: '毒抗+50%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
+        // 毒伤 DOT 减免 50%（承受 50%）；与其他 onDebuffTick 钩子链式叠加
+        onDebuffTick: ({ buffId, damage }) => (buffId === 'poison' ? round1(damage * 0.5) : undefined),
     },
     {
         id: 'iron_defense',
@@ -550,12 +552,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     },
     {
         id: 'enhanced_vision_buff',
-        name: '超强视觉·听劲',
+        name: '超强视觉',
         description: '触觉敏锐，招架时洞察化解。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onParryReduction: ({ final, target }) => Math.max(0, round1(final - target.attrs.get('insight') * 0.1)),
+        onParryReduction: ({ final, target }) => round1(final - target.attrs.get('insight') * 0.1),
     },
     {
         id: 'energy_shield_buff',
@@ -784,5 +786,36 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onCritTakenDamage: () => -0.3,
+    },
+    // ── 药心石（药屋家主信物：每5秒自动防御1次，减免3点） ──
+    {
+        id: 'yao_xin_shi_buff',
+        name: '药心石',
+        description: '药屋世代相传的护心石，危急时凝炁护心。每3秒自动防御1次，减免3点伤害；持续耗炁0.1AP/s。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        apRegenPerSec: () => -0.1,
+        // 5 秒冷却窗口：tick 重置可用；受击时若可用则减免 3 点（伤害≤3 → 归零）
+        tickInterval: 3000,
+        onTickHeal: ({ layer }) => {
+            layer.extra = { ...(layer.extra ?? {}), ready: true }
+            return 0
+        },
+        onBuffApplied: ({ layer }) => {
+            layer.extra = { ...(layer.extra ?? {}), ready: true }
+        },
+        onTakeDamage: ({ final, target, engine, layer }) => {
+            const ready = layer.extra?.ready ?? false
+            if (!ready || final <= 0) return final
+            layer.extra = { ...(layer.extra ?? {}), ready: false }
+            const reduced = round1(final - 3)
+            engine?.emitLog({
+                type: 'system',
+                message: `[药心石] ${target.name} 凝炁护心，减免3点（剩${reduced}）`,
+                actorId: target.id,
+            })
+            return reduced
+        },
     },
 ]

@@ -6,7 +6,7 @@ const DAIXUAN_ATTRS = { strength: 14, vitality: 10, agility: 14, dexterity: 16, 
 export const DAIXUAN: OpponentDef = {
     id: 'daixuan',
     name: '药屋黛玄',
-    story: '炼炁名门药屋之后，现任特殊事件调查科科长。曾因某次事件失聪，后以惊人意志锻炼视觉与触觉弥补。佩戴人造耳蜗，集成翻译与通讯模块。处事冷静，少言寡语，但出手极为犀利。武器「千机」为纳米变形棍，自创「落英神剑」以炁寄存印记、五层引爆。',
+    story: '炼炁名门药屋之后，现任特殊事件调查科科长。曾因某次事件失聪，后以惊人意志锻炼视觉与触觉弥补。佩戴人造耳蜗，集成翻译与通讯模块。处事冷静，少言寡语，但出手极为犀利。武器「千机」为纳米变形棍，自创「落英神剑」以炁寄存印记、暴击引爆。',
     weapon: 'qimei_staff',
     targetAttrs: DAIXUAN_ATTRS,
     battleStyle: 'melee',
@@ -21,11 +21,14 @@ export const DAIXUAN: OpponentDef = {
         artifact('cochlear_implant'),
         passive('luo_ying_shen_jian'),
         action('yi_hui'),
-        // 10
+        passive('ling_ao_bu'),
+        artifact('yao_xin_shi'),
+        artifact('other_mountain'),
+        // 13
     ],
     actionConfigs: [
         { actionId: 'flick', triggerId: 'on_opponent_move_away' },
-        { actionId: 'yu_xiao_jian_fa', triggerId: 'on_dodge' },
+        { actionId: 'yu_xiao_jian_fa', triggerId: 'on_parry' },
     ],
     taunt: () => '……',
 }

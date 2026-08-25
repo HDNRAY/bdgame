@@ -172,7 +172,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
                 message: `[金光咒] ${target.name} 消耗1层缠劲减免2点（剩${target.chan}层）`,
                 actorId: target.id,
             })
-            return Math.max(0, Math.round((final - 2) * 10) / 10)
+            return round1(final - 2)
         },
         onAfterDealDamage: ({ source, attacker }) => {
             if (source?.tags?.includes('imperial')) return 0
@@ -214,17 +214,17 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'qianji_crit',
         name: '千机·千变',
-        description: '千机百变，暴击伤害+50%。',
+        description: '千机百变，暴击伤害+30%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onCritDamage: () => 0.5,
+        onCritDamage: () => 0.3,
     },
     // ── 落英神剑（炁伤寄存印记） ──
     {
         id: 'luo_ying_shen_jian_buff',
         name: '落英神剑',
-        description: '所有伤害的30%寄存于神剑印，当次伤害只生效70%。',
+        description: '所有伤害的20%寄存于神剑印，当次伤害只生效80%。暴击时引爆神剑印，造成双倍寄存伤害。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -234,7 +234,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             if (ctx.triggered) return damage
             if (ctx.attacker.chan < 1) return damage
 
-            const stored = round1(damage * 0.3)
+            const stored = round1(damage * 0.2)
             if (stored <= 0) return damage
 
             const { state, engine } = ctx
@@ -254,18 +254,26 @@ export const DAMAGE_BUFFS: BuffDef[] = [
                 if (!layer.extra) layer.extra = {}
                 const prevStored = (layer.extra.stored as number) ?? 0
                 layer.extra.stored = round1(prevStored + stored)
-
-                // 已有印记时叠层（触发 onDebuffApply 检查满层引爆）
-                // 寄存信息已由 shen_jian_mark.logFormat 在"获得状态"日志中合并输出
-                if (engine && layer.restoreValue < 5) {
-                    processActionEffect(
-                        { type: 'add_debuff', buffId: 'shen_jian_mark', stacks: 1, chance: 1 },
-                        { self: ctx.attacker, enemy: ctx.target, engine, tMs: state.turn.currentTime },
-                    )
-                }
             }
 
             return round1(damage - stored)
+        },
+        // 暴击时引爆神剑印：造成寄存伤害的双倍，清空印记
+        onCritical: ({ attacker, target, engine, state }) => {
+            if (!engine) return
+            const markKey = `shen_jian_mark::${target.id}`
+            const layer = state.pendingBuffs.get(markKey)
+            if (!layer) return
+            const stored = (layer.extra?.stored as number) ?? 0
+            if (stored <= 0) return
+            state.pendingBuffs.delete(markKey)
+            const explosionDmg = round1(stored * 2)
+            target.takeDamage(explosionDmg, engine)
+            engine.emitLog({
+                type: 'system',
+                message: `[落英神剑] 暴击引爆神剑印！寄存${stored}，双倍造成${explosionDmg}点伤害`,
+                actorId: attacker.id,
+            })
         },
     },
     {
