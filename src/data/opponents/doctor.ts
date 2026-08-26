@@ -11,11 +11,11 @@ export const DOCTOR: OpponentDef = {
     weapon: 'hover_drone',
     targetAttrs: DOCTOR_ATTRS,
     rewards: [
+        action('summon_haste'),
         artifact('doctor_chip'),
         artifact('sonic_generator'),
-        artifact('floating_eye'),
+        artifact('synthetic_lung'),
         action('wan_fa_gui_yi'),
-        action('summon_haste'),
         artifact('power_furnace'),
         artifact('mechanical_eye'),
         action('drone_paralyze'),

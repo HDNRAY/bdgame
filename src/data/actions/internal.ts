@@ -351,7 +351,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['slash'],
         getRange: () => [2, 4] as [number, number],
-        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } }],
     },
     {
         id: '_braid_blade',
@@ -528,5 +528,16 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
             { type: 'damage', scaling: { wisdom: 0.2 } },
             { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
+    },
+    {
+        // 太上御法：召唤物命中时微量回血
+        id: '_tai_shang_heal',
+        name: '太上御法·回炁',
+        description: '',
+        requiredTags: [],
+        apCost: 0,
+        tags: ['trigger', 'heal', 'internal'],
+        target: 'self',
+        effects: [{ type: 'heal', value: 1 }],
     },
 ]

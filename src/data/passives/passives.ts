@@ -200,8 +200,8 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'overlord_art',
-        name: '霸刀刀法',
-        description: '霸刀巨刃配合离心力，每一刀都顺势回旋突进。',
+        name: '轮舞月斩',
+        description: '长兵轮转，如月之轮舞。每一刀都顺势回旋突进。',
         tags: ['passive', 'damage'],
         effects: [],
         grantsActions: ['retrieve_blade'],
@@ -614,6 +614,14 @@ export const PASSIVES: Passive[] = [
         description: '单刀法选，诱而击之，惊而取之。闪避后下一击暴击率增加，不可叠加。',
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'on_dodge' }, effects: [{ type: 'add_buff', buffId: 'jing_ji' }] }],
+    },
+    {
+        // 太上御法（玄门祖传）：召唤物命中时微量回血
+        id: 'tai_shang_yu_fa',
+        name: '太上御法',
+        description: '玄门祖传御法。御物命中时，回炁养身，回复1点气血。',
+        tags: ['passive', 'buff', 'qi'],
+        triggers: [{ condition: { type: 'on_summon_hit' }, actionId: '_tai_shang_heal' }],
     },
     // ── 白驹过隙（由「匆匆一瞥」拆分而来：身法→爆伤，3米内） ──
     {
@@ -1079,7 +1087,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'ku_chan_shen_gong',
         name: '枯蝉神功',
-        description: '枯蝉锁血。受到致死伤害时无效那一次伤害（可用1次）；此后免疫一切持续伤害，且无法被治疗。',
+        description: '枯蝉锁血。受到致死伤害时无效那一次伤害，耗尽自身缠劲；此后免疫一切持续伤害，且无法被治疗。',
         tags: ['passive', 'buff'],
         triggers: [
             {

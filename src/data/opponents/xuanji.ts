@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, weapon } from '../../engine/util/reward-utils'
+import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
 const XUANJI_ATTRS = { strength: 6, vitality: 10, agility: 12, dexterity: 15, insight: 15, wisdom: 18 }
 
@@ -12,7 +12,7 @@ export const XUANJI: OpponentDef = {
         action('qi_blade'),
         artifact('qi_amplifier'),
         artifact('floating_eye'),
-        artifact('qi_guard'), // 改成非qi吸收1点，qi吸收2点
+        artifact('qi_guard'),
         artifact('iron_will'),
         artifact('qi_battery'),
         artifact('ju_chan_fa_yi'),
@@ -21,7 +21,8 @@ export const XUANJI: OpponentDef = {
         action('summon_haste'),
         action('agility_steal'),
         weapon('tri_orb'),
-        // 12
+        passive('tai_shang_yu_fa'),
+        // 13
     ],
     actionConfigs: [
         { actionId: 'qi_blade', triggerId: 'on_opponent_move_closer' },

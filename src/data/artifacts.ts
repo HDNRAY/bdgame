@@ -73,7 +73,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '合成肺叶',
         description: '纳米材料合成的仿生肺叶，替换病变肺组织，焕活根骨。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { vitality: 4 } }],
+        effects: [{ type: 'stat_buff', attrs: { vitality: 2, strength: 1, agility: 1 } }],
     },
     {
         id: 'neural_net',
@@ -114,7 +114,7 @@ export const ARTIFACTS: Artifact[] = [
             },
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 2 }],
+                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 3 }],
             },
         ],
     },
@@ -549,7 +549,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'ju_chan_fa_yi',
         name: '聚缠法衣',
-        description: '玄门法衣（御物），每5秒吸收整12的缠劲（余数保留），每12缠化为力道、身法、灵巧、推演+2，持续5秒。',
+        description: '玄门法衣，吸收缠劲，增加施法者属性。',
         tags: ['craft', 'buff', 'qi'],
         requiredTags: ['imperial'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ju_chan_fa_yi' }] }],
@@ -676,7 +676,7 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [
             {
                 condition: { type: 'on_equip' },
-                effects: [{ type: 'max_ap_mod', value: 1 }],
+                effects: [{ type: 'max_ap_mod', value: -1 }],
             },
             {
                 condition: { type: 'battle_start' },

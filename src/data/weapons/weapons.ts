@@ -264,9 +264,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '最快的剑之一，起手暴击大增但身法略滞，逐回合恢复。',
         tags: ['pierce', 'slash', 'parry', 'melee', 'one_handed'],
         range: [1, 3],
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword', stacks: 20 }] },
-        ],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword' }] }],
     },
     {
         id: 'ganjiang_sword',

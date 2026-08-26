@@ -400,7 +400,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         hookNotes: { range: '武器范围 +1' },
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
-            { type: 'add_debuff', buffId: 'burn', stacks: 3, chance: 0.6 },
+            { type: 'add_debuff', buffId: 'burn', stacks: 3, chance: 0.5 },
         ],
     },
     {
@@ -724,7 +724,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     const remainingTicks: number[] = (layer.extra?.remainingTicks as number[]) ?? []
                     const totalRemaining = remainingTicks.reduce((s, t) => s + t, 0)
                     state.pendingBuffs.delete(poisonKey)
-                    const AMPLIFY = 4
+                    const AMPLIFY = 3.5
                     return totalRemaining * DMG_PER_POISON_TICK * AMPLIFY
                 },
                 note: '引爆目标剩余的全部中毒伤害',

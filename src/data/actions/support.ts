@@ -49,6 +49,20 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'add_buff', buffId: 'wan_liu_gui_zong' }],
     },
     {
+        // 无想剑：一刀既出，迅如雷，凛如冰，刀至极致，一击定胜负。强化下一招的命中与爆伤。
+        id: 'wu_xiang_jian',
+        name: '无想剑',
+        description: '一刀既出，迅如雷，凛如冰，刀至极致，一击便可定胜负。',
+        requiredTags: [],
+        apCost: 1,
+        // chanCost: 10,
+        tags: ['pre_action', 'buff'],
+        target: 'self',
+        canUse: (attacker, state) => !state.pendingBuffs.has(`wu_xiang::${attacker.id}`),
+        hookNotes: { canUse: '已有无想状态时不可重复' },
+        effects: [{ type: 'add_buff', buffId: 'wu_xiang' }],
+    },
+    {
         id: 'blood_qi_protection',
         name: '血炁护体',
         description: '释放15%当前气血换取护体真气，减伤10%并持续恢复10秒。已有buff时不可重复使用。',

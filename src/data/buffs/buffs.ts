@@ -143,8 +143,8 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'overlord_art_buff',
-        name: '金刚轮舞',
-        description: '巨刃配合离心力，重器加持，命中+15%。否则暴击+25%。',
+        name: '轮舞月斩',
+        description: '长兵轮转如月，重器加持命中+15%；否则暴击+25%。',
         tags: [],
         expiry: { type: 'permanent' },
         onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),
@@ -326,7 +326,7 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         tickInterval: 6000,
         onTickHeal: ({ target, engine }) => {
-            const chanPerStack = 8
+            const chanPerStack = 12
             const chan = target.chan
             if (chan <= 0) return 0
             // 只吸收整 chanPerStack 缠，余数保留到下一周期（如 26.2 缠只吸 24，留 2.2）
@@ -758,6 +758,26 @@ export const BUFF_DB: BuffDef[] = [
             engine?.emitLog({
                 type: 'system',
                 message: `[天机] 「${attacker.name}」 天机已用（${(source as ActionDefinition).name}），玄机重置`,
+                actorId: attacker.id,
+            })
+        },
+    },
+    {
+        // 无想（无想剑强化下一招）：主招命中+10%、爆伤+50%，暴击后消散
+        id: 'wu_xiang',
+        name: '无想',
+        description: '一刀既出，迅如雷，凛如冰。下一招暴击+10%、暴击伤害+70%，暴击后消散。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        // 仅对主招生效（召唤物/辅招不吃，与 onCritical 自删判断一致）
+        onCritChance: ({ source }) => (isMainMove(source) ? 0.1 : 0),
+        onCritDamage: ({ source }) => (isMainMove(source) ? 0.7 : 0),
+        onCritical: ({ attacker, engine, state, source }) => {
+            if (!isMainMove(source)) return
+            state.pendingBuffs.delete(`wu_xiang::${attacker.id}`)
+            engine?.emitLog({
+                type: 'system',
+                message: `[无想] 「${attacker.name}」 一刀已出，无想消散`,
                 actorId: attacker.id,
             })
         },
@@ -1615,16 +1635,18 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'ku_chan',
         name: '枯蝉',
-        description: '枯蝉锁血。受到致死伤害时无效那一次伤害（可用1次），随后蜕壳。',
+        description: '枯蝉锁血。受到致死伤害时无效那一次伤害，随后蜕壳。',
         tags: ['buff', 'defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        // 锁血：onTakeDamage 阶段（扣血前）判断是否致死——是则返回 0 无效本次伤害，消耗次数并蜕壳
+        // 锁血：onTakeDamage 阶段（扣血前）判断是否致死——是则返回 0 无效本次伤害，消耗次数、耗尽缠劲并蜕壳
         onTakeDamage: ({ final, target, layer, engine, state }) => {
             if (final <= 0 || (layer.restoreValue ?? 0) <= 0) return final
             // 本次伤害会致死（伤害 ≥ 当前气血）→ 锁血
             if (final < target.hp) return final
             layer.restoreValue = 0
+            // 消耗自身所有缠劲（枯蝉蜕壳，缠劲尽散）
+            if (target.chan > 0) target.spendChan(target.chan)
             // 蜕壳：移除枯蝉，挂「枯蝉蜕壳」（免疫DOT + 禁疗）
             state.pendingBuffs.delete(`ku_chan::${target.id}`)
             if (engine) {
@@ -1634,7 +1656,7 @@ export const BUFF_DB: BuffDef[] = [
                 )
                 engine.emitLog({
                     type: 'system',
-                    message: `[枯蝉] ${target.name} 锁血！无效本次伤害`,
+                    message: `[枯蝉] ${target.name} 锁血！缠劲尽散，无效本次伤害`,
                     actorId: target.id,
                 })
             }

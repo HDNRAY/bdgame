@@ -17,14 +17,14 @@ export const OTSU: OpponentDef = {
         passive('wolf_hunting'),
         action('rising_slash'),
         weapon('three_section_spear'),
+        passive('overlord_art'),
         passive('insight_awareness'),
         passive('autumn_water'),
         passive('bu_dong_ming_wang'),
         artifact('synthetic_lung'),
         passive('no_way_win'),
-        action('cang_niao_jian_fa'),
-        // 白虎定？
-        // 12
+        action('wu_xiang_jian'),
+        // 13
     ],
     actionConfigs: [
         {
