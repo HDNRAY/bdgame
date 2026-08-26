@@ -5,7 +5,7 @@
  * 再补移动。每一步只看局部，导致：
  *   1. melee 有远程招（如大津·落月）时，AI 贪"当前能打"站远打低效远程，错过
  *      "落月起手 → 移动贴近 → 近战连发"的高伤害组合。
- *   2. 连发（分心错手/飞花手 getExtraAttack）与移动脱节，从不联合规划。
+ *   2. 连发（分心错手/漫天花雨 getExtraAttack）与移动脱节，从不联合规划。
  *   3. 移动目标按风格硬编码（melee 必贴脸），不考虑"省 AP 给连发"。
  *
  * 新模型：对每个关键移动落点，生成「段1(移动前打) → 移动 → 段2(移动后打) → 收尾移动」
@@ -83,11 +83,7 @@ function pickActions(
 
     // 该距离够得到、缠劲够、未被排除的候选
     const candidates = pool.filter(
-        (a) =>
-            dist >= a.range[0] &&
-            dist <= a.range[1] &&
-            self.chan >= a.chanCost &&
-            !exclude.has(a.id),
+        (a) => dist >= a.range[0] && dist <= a.range[1] && self.chan >= a.chanCost && !exclude.has(a.id),
     )
     // 按 dist 实时评估伤害（命中/招架/距离修正随距离变化，不能复用当前距离的评估）
     const scored = candidates
@@ -197,9 +193,7 @@ export function planMove(
     // 遍历位移招式（dash/short_dash），找一个能接近目标且更省 AP 的
     let bestDash: MovePlan | null = null
     for (const inst of self.actions) {
-        const dashEff = inst.def.effects?.find(
-            (e): e is Extract<EffectDef, { type: 'dash' }> => e.type === 'dash',
-        )
+        const dashEff = inst.def.effects?.find((e): e is Extract<EffectDef, { type: 'dash' }> => e.type === 'dash')
         if (!dashEff) continue
         if (inst.def.chanCost && self.chan < inst.def.chanCost) continue
         if (inst.def.canUse && !inst.def.canUse(self, state)) continue
@@ -224,9 +218,7 @@ export function planMove(
         if (walkAp <= dashAp + 0.5) continue
         const isSupport = inst.def.tags.includes('pre_action') || inst.def.tags.includes('post_action')
         bestDash = {
-            cmd: isSupport
-                ? { type: 'support', actionId: inst.id }
-                : { type: 'attack', actionId: inst.id },
+            cmd: isSupport ? { type: 'support', actionId: inst.id } : { type: 'attack', actionId: inst.id },
             apCost: dashAp,
             dashActionId: inst.id,
             landDist,
@@ -272,11 +264,7 @@ function summonMinRange(self: Character): number | null {
  * 对手近战→风筝走最远、对手远程→贴脸走最近）。落点由 AP 预算自然筛选（走太远 AP 不够的计划
  * 评分低/被拒），中间点覆盖"移动成本 vs 剩余攻击 AP"的折中。
  */
-export function keyDistances(
-    self: Character,
-    state: BattleState,
-    candidates: ActionDefinition[],
-): number[] {
+export function keyDistances(self: Character, state: BattleState, candidates: ActionDefinition[]): number[] {
     const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
     const enemy = state.characters.find((c) => c.id !== self.id)
     const current = enemy ? state.position.distance(self.id, enemy.id) : 4
@@ -370,12 +358,12 @@ export function generatePlans(
     if (summonMin !== null) allCandRange[0] = Math.max(allCandRange[0], summonMin)
 
     // 连发上限：取所有 getExtraAttack 钩子对任意招式的最大连发数
-    // （分心错手 +1、飞花手暗器 +2；保守取 max，段2 容量 = 1 主招 + 连发数）
+    // （分心错手 +1、漫天花雨暗器 +2；保守取 max，段2 容量 = 1 主招 + 连发数）
     const maxExtraAttack = (self2: Character): number => {
         let n = 0
         forEachBuffOf(state.pendingBuffs, self2.id, (def) => {
             if (!def?.getExtraAttack) return
-            // 用池子里任意招试（分心错手无条件、飞花手看 thrown tag——取最大可能值）
+            // 用池子里任意招试（分心错手无条件、漫天花雨看 thrown tag——取最大可能值）
             let best = 0
             for (const c of pool) {
                 const v = def.getExtraAttack({ source: c.def })
@@ -388,7 +376,7 @@ export function generatePlans(
 
     const plans: ActionPlan[] = []
     const targetDists = keyDistances(self, state, candidates)
-    // 连发数（分心错手 +1、飞花手暗器 +2）决定本回合总招数上限：主招 1 + 连发 N
+    // 连发数（分心错手 +1、漫天花雨暗器 +2）决定本回合总招数上限：主招 1 + 连发 N
     const extraN = maxExtraAttack(self)
     const totalHitsMax = 1 + extraN
     // 候选招的最大 short_dash（霸刀刀法给所有 slash 招 +2m 垫步等）：攻击时若距离超出武器射程
@@ -440,8 +428,7 @@ export function generatePlans(
         let movePlan: MovePlan | null = null
         let moveAp = 0
         if (needMove) {
-            const moveTarget =
-                target < current ? Math.max(target, Math.min(current, target + maxDash)) : target
+            const moveTarget = target < current ? Math.max(target, Math.min(current, target + maxDash)) : target
             movePlan = planMove(self, state, current, moveTarget, apBudget - seg1Ap, allCandRange)
             if (!movePlan) continue
             moveAp = movePlan.apCost
@@ -481,7 +468,8 @@ export function generatePlans(
         // 伤害 = 段1 + 段2；缠劲成本 = 段1+段2 总消耗按既有公式一次性折算（阈值跌破 30 只看总消耗）
         const totalDamage = seg1.totalDamage + seg2.totalDamage
         if (totalDamage <= 0) continue
-        const totalChanCost = seg1.actions.reduce((s, a) => s + a.chanCost, 0) + seg2.actions.reduce((s, a) => s + a.chanCost, 0)
+        const totalChanCost =
+            seg1.actions.reduce((s, a) => s + a.chanCost, 0) + seg2.actions.reduce((s, a) => s + a.chanCost, 0)
         const totalChan = calcChanCostInAp(self.chan, totalChanCost)
         const totalCost = totalApWithTail + totalChan
         const score = totalCost > 0 ? (totalDamage / totalCost) * prefMult : 0

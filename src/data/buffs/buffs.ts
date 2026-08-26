@@ -207,10 +207,10 @@ export const BUFF_DB: BuffDef[] = [
         },
         getExtraAttack: () => 1,
     },
-    // ── 飞花手 ──
+    // ── 漫天花雨 ──
     {
         id: 'fei_hua_shou',
-        name: '飞花手',
+        name: '漫天花雨',
         description: '暗器出手如飞花，可连续追加投掷攻击。暗器招式AP消耗-20%。',
         tags: [],
         expiry: { type: 'permanent' },
@@ -1604,5 +1604,51 @@ export const BUFF_DB: BuffDef[] = [
         stacking: { type: 'none' },
         onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.005,
         onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.002,
+    },
+    // ── 枯蝉（阿九·锁血：致死伤害无效1次，触发后蜕壳） ──
+    {
+        id: 'ku_chan',
+        name: '枯蝉',
+        description: '枯蝉锁血。受到致死伤害时无效那一次伤害（可用1次），随后蜕壳。',
+        tags: ['buff', 'defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        // 锁血：onTakeDamage 阶段（扣血前）判断是否致死——是则返回 0 无效本次伤害，消耗次数并蜕壳
+        onTakeDamage: ({ final, target, layer, engine, state }) => {
+            if (final <= 0 || (layer.restoreValue ?? 0) <= 0) return final
+            // 本次伤害会致死（伤害 ≥ 当前气血）→ 锁血
+            if (final < target.hp) return final
+            layer.restoreValue = 0
+            // 蜕壳：移除枯蝉，挂「枯蝉蜕壳」（免疫DOT + 禁疗）
+            state.pendingBuffs.delete(`ku_chan::${target.id}`)
+            if (engine) {
+                processActionEffect(
+                    { type: 'add_buff', buffId: 'ku_chan_tuo_ke' },
+                    { self: target, enemy: target, engine, tMs: state.turn.currentTime },
+                )
+                engine.emitLog({
+                    type: 'system',
+                    message: `[枯蝉] ${target.name} 锁血！无效本次伤害`,
+                    actorId: target.id,
+                })
+            }
+            return 0
+        },
+    },
+    // ── 枯蝉蜕壳（锁血后：免疫一切DOT + 禁疗） ──
+    {
+        id: 'ku_chan_tuo_ke',
+        name: '枯蝉蜕壳',
+        description: '枯蝉蜕壳，只余空壳。免疫一切持续伤害，且无法被治疗。',
+        tags: ['buff', 'defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        // 免疫一切 DOT（poison/burn/bleed）
+        onDebuffTick: ({ buffId }) => (buffId === 'poison' || buffId === 'burn' || buffId === 'bleed' ? 0 : undefined),
+        // 禁疗（onReceiveHeal 在回血后触发，反向扣回抵消治疗）
+        onReceiveHeal: ({ target, final: amount }) => {
+            if (amount <= 0) return
+            target.hp = Math.max(0, target.hp - amount)
+        },
     },
 ]

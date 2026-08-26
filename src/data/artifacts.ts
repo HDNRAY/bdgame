@@ -8,7 +8,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '钛合金臂',
         description: '重型钛合金义肢，力大无穷。可飞向对手自爆。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 3, dexterity: 3 } }],
+        effects: [{ type: 'stat_buff', attrs: { strength: 2, dexterity: 2 } }],
         grantsActions: ['_arm_explosion'],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 1 }] }],
     },
@@ -52,7 +52,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '肌肉强化针',
         description: '肌肉强化注射剂，代价是身体负担。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { strength: 4, agility: 4 } }],
+        effects: [{ type: 'stat_buff', attrs: { strength: 5, agility: 5 } }],
         triggers: [
             {
                 condition: { type: 'on_equip' },

@@ -158,7 +158,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 5] as [number, number],
         hookNotes: { hitChance: '必中' },
         effects: [
-            { type: 'damage', fixed: 25 },
+            { type: 'damage', fixed: 15 },
             { type: 'add_debuff', buffId: 'burn', stacks: 8, chance: 1 },
             { type: 'add_buff', buffId: 'blood_loss' },
             { type: 'add_buff', buffId: 'one_arm_buff' },

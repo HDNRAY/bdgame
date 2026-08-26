@@ -53,7 +53,7 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '断刀',
         description: '一把残损的断刀。加装锁链，免疫缴械。',
         tags: ['slash', 'parry', 'melee', 'one_handed'],
-        range: [1, 2],
+        range: [0, 2],
         triggers: [{ condition: { type: 'on_opponent_move_away' }, actionId: '_shuai_ren' }],
     },
     {

@@ -6,26 +6,26 @@ const AJIU_ATTRS = { strength: 14, vitality: 10, agility: 18, dexterity: 14, ins
 export const AJIU: OpponentDef = {
     id: 'ajiu',
     name: '阿九',
-    story: '青山镇孤儿院里出来的孩子。没人知道TA的父母是谁，只知道TA那把断刀从不离手。沉默，寡言，但比谁都可靠。',
     weapon: 'peach_sword',
     targetAttrs: AJIU_ATTRS,
     rewards: [
-        action('light_slash'),
+        action('horizontal_slash'),
         weapon('broken_blade'),
         action('spirit_sword'),
         passive('shenxing_baibian'),
         action('blaze_strike'),
         passive('zhu_huo_jue'),
         artifact('titanium_arm'),
+        action('iron_pellet'),
         artifact('muscle_boost'),
-        action('horizontal_slash'),
         passive('xuannv_sword'),
         artifact('power_furnace'),
-        // 11
+        passive('ku_chan_shen_gong'),
+        // 12
     ],
     actionConfigs: [
         {
-            actionId: 'light_slash',
+            actionId: 'iron_pellet',
             triggerId: 'on_dodged',
         },
         { actionId: '_arm_explosion', conditionId: 'hp_below_50' },

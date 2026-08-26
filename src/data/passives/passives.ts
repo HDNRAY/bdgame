@@ -446,7 +446,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'zhu_huo_jue',
         name: '铸火诀',
-        description: '聚炁化火，火中淬炼不伤。自身受到的灼烧伤害减半；施加的灼烧层数+1（推演≥15 时+2）。',
+        description: '聚炁化火，火中淬炼不伤。',
         tags: ['passive', 'buff', 'qi'],
         triggers: [
             {
@@ -766,7 +766,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'fei_hua_shou',
-        name: '飞花手',
+        name: '漫天花雨',
         description: '暗器出手如飞花，可连续追加投掷攻击。暗器招式AP消耗-20%。',
         tags: ['buff'],
         requireAttrsMin: { dexterity: 16 },
@@ -1075,6 +1075,19 @@ export const PASSIVES: Passive[] = [
             {
                 condition: { type: 'battle_start' },
                 effects: [{ type: 'add_buff', buffId: 'chan_xin_hui_yan_buff' }],
+            },
+        ],
+    },
+    // ── 枯蝉神功（阿九·锁血） ──
+    {
+        id: 'ku_chan_shen_gong',
+        name: '枯蝉神功',
+        description: '枯蝉锁血。受到致死伤害时无效那一次伤害（可用1次）；此后免疫一切持续伤害，且无法被治疗。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'ku_chan', stacks: 1 }],
             },
         ],
     },

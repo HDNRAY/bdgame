@@ -15,11 +15,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '铁莲子',
         description: '指间弹出铁莲子，钝击伤穴。',
         requiredTags: [],
-        apCost: 3,
+        apCost: 2,
         tags: ['blunt', 'range', 'thrown'],
         getRange: () => [1, 5] as [number, number],
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.3, strength: 0.2 }, fixed: 2 },
+            { type: 'damage', scaling: { dexterity: 0.2, strength: 0.1 }, fixed: 2 },
             { type: 'knockback', distance: 1 },
         ],
     },
@@ -400,7 +400,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         hookNotes: { range: '武器范围 +1' },
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
-            { type: 'add_debuff', buffId: 'burn', stacks: 3, chance: 0.7 },
+            { type: 'add_debuff', buffId: 'burn', stacks: 3, chance: 0.6 },
         ],
     },
     {
@@ -681,8 +681,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     const act = summon.action ?? getBaseAction(summon.actionId)
                     const dmgEff = act?.effects?.find((e) => e.type === 'damage')
                     let baseHit = 0
-                    if (dmgEff?.type === 'damage')
-                        baseHit = (dmgEff.fixed ?? 0) + wis * (dmgEff.scaling?.wisdom ?? 0)
+                    if (dmgEff?.type === 'damage') baseHit = (dmgEff.fixed ?? 0) + wis * (dmgEff.scaling?.wisdom ?? 0)
                     // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
                     return round1(count * (baseHit + wis * 0.15))
                 },

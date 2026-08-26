@@ -23,5 +23,11 @@ export const YIDAO: OpponentDef = {
         action('dian_bu'),
         // 11
     ],
-    actionConfigs: [{ actionId: 'resheath', conditionId: 'no_stance' }],
+    actionConfigs: [
+        { actionId: 'resheath', conditionId: 'no_stance' },
+        {
+            actionId: 'qi_slash',
+            triggerId: 'on_dodge',
+        },
+    ],
 }
