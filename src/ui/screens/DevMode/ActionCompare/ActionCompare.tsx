@@ -168,7 +168,7 @@ function buildRow(a: ActionDefinition, rawAp: number, chanNow: number): Row {
     }
     let hits = 1
     for (const e of a.effects ?? []) {
-        if (e.type === 'damage' || e.type === 'fixed_damage') hits = Math.max(hits, e.independentHits ?? 1)
+        if (e.type === 'damage') hits = Math.max(hits, e.independentHits ?? 1)
     }
     const multiHit = hits > 1 ? Math.min(MULTIHIT_CAP, Math.round((hits - 1) * MULTIHIT_PER_EXTRA * 100) / 100) : 0
     let selfRatio = 0
@@ -318,12 +318,11 @@ export function ActionCompare() {
                 />
             </div>
             <p className="ac-note">
-                双方全属性 15 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。 效率
-                = 期望伤 /（折前AP + 缠成本）；缠成本按阈值感知模型折算（基准缠劲可调，默认 35：缠越满越便宜，
-                跌破 30/50 丢「周」buff 加重成本）。得分 = 效率 + 射程（{'>'}4 每档+0.2）+ 位移（+0.25） +
-                {BUFF_SCORE_NOTE} + debuff（层×几率×权重）+ 缴械（×0.4）+ 击退
-                （距离×0.2） + 汲取（stat_transfer 每点×1.5）+ 斩杀（25% 斩杀档提升）+ 多段（每段+0.25 封顶+2）−
-                自缴械（−1）− 自耗血（比例×10）。
+                双方全属性 15 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。 效率 =
+                期望伤 /（折前AP + 缠成本）；缠成本按阈值感知模型折算（基准缠劲可调，默认 35：缠越满越便宜， 跌破 30/50
+                丢「周」buff 加重成本）。得分 = 效率 + 射程（{'>'}4 每档+0.2）+ 位移（+0.25） +{BUFF_SCORE_NOTE} +
+                debuff（层×几率×权重）+ 缴械（×0.4）+ 击退 （距离×0.2） + 汲取（stat_transfer 每点×1.5）+ 斩杀（25%
+                斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）− 自耗血（比例×10）。
             </p>
             {rows.length === 0 ? (
                 <p className="ac-note">无匹配招式（搜索无结果）。</p>

@@ -209,21 +209,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
         engine.state.pendingBuffs.set(`ciyuan_blade::${self.id}`, { restoreValue: 1 })
     },
-    fixed_damage({ eff, self, enemy, engine, action, triggered }: EffectCtx) {
-        const { value, independentHits = 1, piercing = 0 } = eff as Extract<EffectDef, { type: 'fixed_damage' }>
-        for (let i = 0; i < independentHits; i++) {
-            applyDamage({
-                raw: value,
-                target: enemy,
-                attacker: self,
-                engine,
-                source: action,
-                piercing,
-                suppressTriggers: i < independentHits - 1,
-                triggered,
-            })
-        }
-    },
     functional_damage({ eff, self, enemy, engine, action, triggered }: EffectCtx) {
         const { fn, piercing = 0 } = eff as Extract<EffectDef, { type: 'functional_damage' }>
         const dmg = fn({
@@ -238,9 +223,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
     },
     damage({ eff, self, enemy, engine, action, triggered }: EffectCtx) {
-        const { scaling, independentHits = 1, piercing = 0 } = eff as Extract<EffectDef, { type: 'damage' }>
-        const base = (eff as Extract<EffectDef, { type: 'damage' }>).base ?? 0
-        const raw = calcBaseDamage(scaling, self.attrs.getAll(), base)
+        const { scaling, fixed = 0, independentHits = 1, piercing = 0 } = eff as Extract<EffectDef, { type: 'damage' }>
+        // 固定伤害 + 属性缩放（可叠加；纯固定伤害无 scaling）
+        const raw = (scaling ? calcBaseDamage(scaling, self.attrs.getAll(), 0) : 0) + fixed
         if (raw <= 0) return
         if (independentHits <= 1) {
             applyDamage({ raw, target: enemy, attacker: self, engine, source: action, piercing, triggered })

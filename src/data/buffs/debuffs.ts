@@ -309,7 +309,7 @@ export const DEBUFF_DB: BuffDef[] = [
         name: '窒息',
         description: '颈部被锁，呼吸困难。持续受到绞杀伤害。',
         tags: ['debuff'],
-        expiry: { type: 'duration', ms: 5000 },
+        expiry: { type: 'duration', ms: 3000 },
         stacking: { type: 'none' },
         tickInterval: 1000,
         onTickDamage: ({ engine, layer, target: defender }) => {
@@ -322,10 +322,10 @@ export const DEBUFF_DB: BuffDef[] = [
             }
 
             // 本秒伤害：只要绞杀仍存在就先结算（含松脱那一秒）
-            const dmg = round1(atk.attrs.get('vitality') * 0.5)
+            const dmg = round1(atk.attrs.get('strength') * 0.2 + atk.attrs.get('vitality') * 0.1)
 
-            // 扣 AP（1/秒）——纯扣不给缠，走 reduceAp；传入当前时刻重置对方回复参考点（被扣的 AP 重新开始攒）
-            atk.reduceAp(1, engine!.state.turn.currentTime)
+            // 扣 AP（1/秒)
+            atk.spendAp(1)
 
             // 刷新对手眩晕（保持锁定）
             if (!engine?.state.pendingBuffs.has(`stun::${defender.id}`)) {

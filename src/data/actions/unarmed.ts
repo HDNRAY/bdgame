@@ -329,7 +329,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         name: '裸绞',
         description: '从背后锁喉，持续绞杀。双方均无法行动。',
         requiredTags: ['unarmed'],
-        apCost: 3,
+        apCost: 2,
         tags: ['unarmed', 'melee', 'debuff'],
         getRange: () => [0, 1] as [number, number],
         effects: [

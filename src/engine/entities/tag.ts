@@ -15,7 +15,6 @@ export type Tag =
     | 'bleed' // 流血
     | 'counter' // 反击
     | 'ignore_parry' // 无视招架
-    | 'fixed_damage' // 固定伤害
     | 'self_damage' // 自伤
     | 'knockback' // 击退
     | 'implant' // 义体

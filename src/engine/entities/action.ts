@@ -24,13 +24,14 @@ export type EffectDef =
     // 战斗效果（需要命中判定）
     | {
           type: 'damage'
-          scaling: Partial<Record<AttrName, number>>
-          base?: number
+          /** 属性缩放（可选；缺省 = 纯固定伤害） */
+          scaling?: Partial<Record<AttrName, number>>
+          /** 固定伤害（与 scaling 可叠加） */
+          fixed?: number
           independentHits?: number
           piercing?: number
           piercingRatio?: number
       }
-    | { type: 'fixed_damage'; value: number; independentHits?: number; piercing?: number }
     | { type: 'add_debuff'; buffId: string; stacks: number; chance: number }
     | { type: 'missing_hp_damage'; ratio: number }
     | { type: 'self_missing_hp_damage'; ratio: number }

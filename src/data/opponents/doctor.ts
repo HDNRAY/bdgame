@@ -24,6 +24,10 @@ export const DOCTOR: OpponentDef = {
         weapon('hover_drone'),
         artifact('neural_net'),
         artifact('cochlear_implant'),
+        // 悬浮座椅改奇物
+        // 无人机改无人环（不再是设计攻击），数量改成2个，仿上官金虹。
+        // 无人机攻击招式，改成奇物人造发生器，带招式，音波攻击，效果类似碧海潮生曲
+        // 无人机弹幕，换成万法归一
         // 13
     ],
     actionConfigs: [

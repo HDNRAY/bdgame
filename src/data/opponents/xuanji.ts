@@ -12,7 +12,7 @@ export const XUANJI: OpponentDef = {
         action('qi_blade'),
         artifact('qi_amplifier'),
         artifact('floating_eye'),
-        artifact('qi_guard'),
+        artifact('qi_guard'), // 改成非qi吸收1点，qi吸收2点
         artifact('iron_will'),
         artifact('qi_battery'),
         artifact('ju_chan_fa_yi'),

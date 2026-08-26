@@ -49,11 +49,11 @@ function isMainMove(source: { tags: readonly string[] } | undefined): boolean {
     )
 }
 
-/** 招式段数：取 damage/fixed_damage 效果的 independentHits（默认 1）。御剑诀/灵器共鸣按段均摊 AP——多段招每段只吃到「AP÷段数」的平加 */
+/** 招式段数：取 damage 效果的 independentHits（默认 1）。御剑诀/灵器共鸣按段均摊 AP——多段招每段只吃到「AP÷段数」的平加 */
 function actionHits(source: ActionDefinition | undefined): number {
     let hits = 1
     for (const e of source?.effects ?? []) {
-        if (e.type === 'damage' || e.type === 'fixed_damage') hits = Math.max(hits, e.independentHits ?? 1)
+        if (e.type === 'damage') hits = Math.max(hits, e.independentHits ?? 1)
     }
     return hits
 }
@@ -1085,12 +1085,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'floating_eye_buff',
         name: '浮游眼',
-        description: '洞察流转，预判对手。洞察+4，暴击率+5%。',
+        description: '洞察流转，预判对手。洞察+4，暴击率+10%。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { insight: 4 },
-        onCritChance: () => 0.05,
+        onCritChance: () => 0.1,
     },
     // ── 血战到底 ──
     {

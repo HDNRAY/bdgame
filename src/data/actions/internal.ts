@@ -158,7 +158,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 5] as [number, number],
         hookNotes: { hitChance: '必中' },
         effects: [
-            { type: 'fixed_damage', value: 25 },
+            { type: 'damage', fixed: 25 },
             { type: 'add_debuff', buffId: 'burn', stacks: 8, chance: 1 },
             { type: 'add_buff', buffId: 'blood_loss' },
             { type: 'add_buff', buffId: 'one_arm_buff' },
@@ -175,7 +175,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         tags: ['range', 'summon'],
         getRange: (_wr, self) => [0, 1 + Math.round((self?.attrs.get('wisdom') ?? 1) / 2)] as [number, number],
         hookNotes: { range: '1 至 1+推演/2' },
-        effects: [{ type: 'fixed_damage', value: 3, piercing: 1 }],
+        effects: [{ type: 'damage', fixed: 3, piercing: 1 }],
         extraPreDelay: 400,
         extraStunTime: 600,
     },
@@ -186,7 +186,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 0,
         tags: ['range', 'summon'],
-        effects: [{ type: 'fixed_damage', value: 1, piercing: 1 }],
+        effects: [{ type: 'damage', fixed: 1, piercing: 1 }],
         extraPreDelay: 500,
         extraStunTime: 600,
     },
@@ -200,8 +200,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 7],
         effects: [
             {
-                type: 'fixed_damage',
-                value: 1,
+                type: 'damage',
+                fixed: 1,
                 piercing: 1,
             },
             {
@@ -226,7 +226,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 0,
         tags: ['range', 'slash', 'pierce', 'summon'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.5 }, base: 5 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.5 }, fixed: 5 }],
         // 单剑重击：长前后摇 → 约 4s 一轮，大动作可读、节奏沉
         extraPreDelay: 600,
         extraStunTime: 900,
@@ -409,7 +409,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         getRange: () => [1, 6] as [number, number],
         onActionHitChance: (base) => base + 0.1,
         hookNotes: { hitChance: '+10%' },
-        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 3, independentHits: 27, piercing: 2 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, fixed: 3, independentHits: 27, piercing: 2 }],
         maxUses: 1,
     },
     // ── 春翁 ──

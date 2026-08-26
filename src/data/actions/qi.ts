@@ -19,7 +19,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['qi', 'range', 'qi_action'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 2.8 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, fixed: 2.8 }],
         getRange: () => [2, 6],
     },
     {
@@ -30,7 +30,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         apCost: 2,
         tags: ['qi', 'range', 'qi_action'],
         onActionHitChance: (base) => base + 0.2,
-        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, base: 1.5 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, fixed: 1.5 }],
         getRange: () => [1, 6],
     },
     {

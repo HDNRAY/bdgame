@@ -19,7 +19,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'range', 'thrown'],
         getRange: () => [1, 5] as [number, number],
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.3, strength: 0.2 }, base: 2 },
+            { type: 'damage', scaling: { dexterity: 0.3, strength: 0.2 }, fixed: 2 },
             { type: 'knockback', distance: 1 },
         ],
     },
@@ -39,8 +39,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             // 血凝成滴射出，造成当前气血5%的伤害（≈所耗之血一半，命中后结算）
             {
                 type: 'functional_damage',
-                fn: ({ self }) => round1(self.hp * 0.05),
-                note: '按当前气血的 5% 造成伤害（所耗之血的一半）',
+                fn: ({ self }) => round1(self.hp * 0.1),
+                note: '按所耗气血造成伤害',
             },
         ],
     },
@@ -64,7 +64,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['slash', 'range', 'thrown'],
         getRange: () => [1, 6],
-        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 }, base: 1 }],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 }, fixed: 1 }],
     },
     {
         id: 'yufeng_needle',
@@ -92,7 +92,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             {
                 type: 'ignore_parry',
             },
-            { type: 'fixed_damage', value: 7 },
+            { type: 'damage', fixed: 7 },
         ],
     },
     {
@@ -107,7 +107,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             {
                 type: 'ignore_parry',
             },
-            { type: 'fixed_damage', value: 14 },
+            { type: 'damage', fixed: 14 },
         ],
     },
     {
@@ -172,9 +172,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['melee', 'blunt', 'pierce', 'debuff'],
         effects: [
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 1 },
-            { type: 'add_debuff', buffId: 'duan_qi', stacks: 1, chance: 0.5 },
-            { type: 'damage', scaling: { strength: 0.15, dexterity: 0.15 } },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
+            { type: 'add_debuff', buffId: 'duan_qi', stacks: 1, chance: 0.4 },
+            { type: 'damage', scaling: { strength: 0.18, dexterity: 0.18 } },
         ],
     },
     {
@@ -239,7 +239,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 10] as [number, number],
         onActionHitChance: () => 1,
         hookNotes: { hitChance: '必中', critChance: '目标气血低于 30% 时暴击+30%' },
-        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1 }, base: 10 }],
+        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1 }, fixed: 10 }],
     },
     {
         id: 'sword_thrust',
@@ -343,7 +343,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 2,
         tags: ['slash'],
-        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, base: 1 }],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, fixed: 1 }],
     },
     {
         id: 'cyclone_slash',
@@ -352,7 +352,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 4,
         tags: ['slash'],
-        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, base: 4, independentHits: 2 }],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, fixed: 4, independentHits: 2 }],
     },
     {
         id: 'sky_burner',
@@ -367,7 +367,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         hookNotes: { hitChance: '+10%' },
         effects: [
             // 基础10 + 力/身/巧 scaling（命中结算）
-            { type: 'damage', scaling: { strength: 0.6, agility: 0.6, dexterity: 0.6 }, base: 10 },
+            { type: 'damage', scaling: { strength: 0.6, agility: 0.6, dexterity: 0.6 }, fixed: 10 },
             // 持重型武器（素铁霸刀）时，命中的那一刀额外 +10
             {
                 type: 'functional_damage',
@@ -644,7 +644,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['blunt', 'electric'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.2 }, base: 2 },
+            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.2 }, fixed: 2 },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.8 },
         ],
     },
@@ -659,7 +659,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['range', 'summon'],
         onActionHitChance: (base) => base + 0.2,
         hookNotes: { hitChance: '+20%' },
-        effects: [{ type: 'damage', scaling: { wisdom: 0.4 }, base: 2, independentHits: 5 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.4 }, fixed: 2, independentHits: 5 }],
     },
     {
         id: 'wan_fa_gui_yi',
@@ -677,13 +677,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     if (!summon) return 0
                     const count = summon.maxCount(self)
                     const wis = self.attrs.get('wisdom')
-                    // 武器召唤物招式原本单发伤害（fixed_damage.value 或 damage base + wis×scaling）
+                    // 武器召唤物招式原本单发伤害（damage fixed 或 fixed + wis×scaling）
                     const act = summon.action ?? getBaseAction(summon.actionId)
-                    const dmgEff = act?.effects?.find((e) => e.type === 'damage' || e.type === 'fixed_damage')
+                    const dmgEff = act?.effects?.find((e) => e.type === 'damage')
                     let baseHit = 0
-                    if (dmgEff?.type === 'fixed_damage') baseHit = dmgEff.value
-                    else if (dmgEff?.type === 'damage')
-                        baseHit = (dmgEff.base ?? 0) + wis * (dmgEff.scaling.wisdom ?? 0)
+                    if (dmgEff?.type === 'damage')
+                        baseHit = (dmgEff.fixed ?? 0) + wis * (dmgEff.scaling?.wisdom ?? 0)
                     // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
                     return round1(count * (baseHit + wis * 0.15))
                 },
@@ -699,12 +698,12 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['range', 'pierce', 'summon'],
         effects: [
-            { type: 'damage', scaling: { wisdom: 0.3 }, piercing: 1 },
+            { type: 'damage', scaling: {}, fixed: 8 },
             {
                 type: 'add_debuff',
                 buffId: 'bleed',
                 stacks: 1,
-                chance: 0.4,
+                chance: 0.2,
             },
         ],
     },

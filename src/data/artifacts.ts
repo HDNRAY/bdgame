@@ -18,10 +18,12 @@ export const ARTIFACTS: Artifact[] = [
         description: '液压驱动义腿，爆发力惊人。所有招式附带短距冲刺。',
         tags: ['implant', 'inherent'],
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 2 }] },
             {
-                condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'hydraulic_leg_speed' }],
+                condition: { type: 'on_equip' },
+                effects: [
+                    { type: 'add_buff', buffId: 'overload', stacks: 2 },
+                    { type: 'add_buff', buffId: 'hydraulic_leg_speed' },
+                ],
             },
         ],
         actionEnhancer: (def) => {
@@ -36,8 +38,13 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['implant', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dark_room_sense' }] },
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'ap_drain', stacks: 1 }] },
+            {
+                condition: { type: 'on_equip' },
+                effects: [
+                    { type: 'add_buff', buffId: 'dark_room_sense' },
+                    { type: 'add_buff', buffId: 'ap_drain', stacks: 1 },
+                ],
+            },
         ],
     },
     {
@@ -86,7 +93,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '战斗芯片',
         description: '战术辅助芯片，大幅提升推演。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 6 } }],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 5 } }],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -138,7 +145,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '战斗芯片·改',
         description: '博士特制的战斗分析芯片，推演+4，回合开始时有概率叠加战斗数据。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 4 } }],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 2 } }],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -374,10 +381,18 @@ export const ARTIFACTS: Artifact[] = [
     },
     {
         id: 'snake_gall',
-        name: '蛇胆',
+        name: '菩斯曲蛇胆',
         description: '普斯曲蛇的蛇胆，强筋健骨。力道+2，根骨+2。',
         tags: ['buff', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2 } }],
+        // triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'poison_resist' }] }],
+    },
+    {
+        id: 'frog_gall',
+        name: '莽牯朱蛤',
+        description: '万毒之王，莽牯朱蛤，百毒不侵。灵巧+1，身法+1。',
+        tags: ['buff', 'inherent'],
+        effects: [{ type: 'stat_buff', attrs: { dexterity: 1, agility: 1 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'poison_resist' }] }],
     },
     {

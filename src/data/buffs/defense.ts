@@ -21,7 +21,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
                 actorId: target.id,
             })
             if (layer.restoreValue <= 0) state.pendingBuffs.delete(`qi_shield::${target.id}`)
-            return Math.max(0, Math.round((final - absorb) * 10) / 10)
+            return round1(final - absorb)
         },
     },
     {
@@ -544,11 +544,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         stacking: { type: 'none' },
         onReceiveDebuff: ({ buffId }) => {
             if (buffId !== 'paralyze') return
-            const { success } = calcRoll(0.6)
+            const { success } = calcRoll(0.7)
             if (success) return 0
         },
-        // 减爆伤：暴击伤害倍率 1.5 → 1.0（完全不疼）
-        onCritTakenDamage: () => -0.5,
+        onCritTakenDamage: () => -0.3,
     },
     {
         id: 'enhanced_vision_buff',

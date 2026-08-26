@@ -791,7 +791,7 @@ export class BattleEngine {
         const ignoresParry = action.effects?.some((e) => e.type === 'ignore_parry')
         for (const eff of action.effects ?? []) {
             if (
-                (eff.type === 'add_debuff' || eff.type === 'damage' || eff.type === 'fixed_damage') &&
+                (eff.type === 'add_debuff' || eff.type === 'damage') &&
                 r.hit &&
                 (ignoresParry || !r.dodged)
             ) {

@@ -26,15 +26,11 @@ export function describeEffect(eff: EffectDef): string[] {
     const effType: string = eff.type
     switch (eff.type) {
         case 'damage': {
-            const s = fmtScaling(eff.scaling, eff.base)
-            const parts = [`伤害: ${s}`]
+            const parts: string[] = []
+            if (eff.fixed) parts.push(`固定伤害: ${eff.fixed}`)
+            if (eff.scaling && Object.keys(eff.scaling).length > 0) parts.push(`伤害: ${fmtScaling(eff.scaling)}`)
+            if (parts.length === 0) parts.push('伤害')
             if (eff.piercingRatio) parts.push(`穿透${(eff.piercingRatio * 100).toFixed(0)}%`)
-            if (eff.piercing) parts.push(`穿透 ${eff.piercing}`)
-            if (eff.independentHits) parts.push(`独立命中 ${eff.independentHits} 段`)
-            return parts
-        }
-        case 'fixed_damage': {
-            const parts = [`固定伤害: ${eff.value}`]
             if (eff.piercing) parts.push(`穿透 ${eff.piercing}`)
             if (eff.independentHits) parts.push(`独立命中 ${eff.independentHits} 段`)
             return parts
