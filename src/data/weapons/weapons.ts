@@ -89,7 +89,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'zantetsu',
         name: '藏锋',
         description: '锋藏于鞘，出鞘一瞬，无物不斩。',
-        tags: ['slash', 'parry', 'melee', 'one_handed'],
+        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed'],
         range: [1, 3],
         triggers: [
             {
@@ -205,20 +205,20 @@ export const WEAPON_DB: WeaponDef[] = [
     },
     {
         id: 'hover_drone',
-        name: '浮游无人机',
-        description: '一枚悬浮的无人机平台，以炁供能，脑机操控。',
-        tags: ['imperial', 'range', 'pierce', 'summon'],
+        name: '无人环',
+        description: '以炁供能的浮空圆环，脑机操控。环身沉重，撞出钝击。',
+        tags: ['imperial', 'range', 'blunt', 'summon'],
         bound: true,
         range: [0, 6],
-        // 御物耗炁：每秒扣 0.5AP（3 机）。无人机 = 中速破甲流（2伤+破甲1）
+        // 御物耗炁：每秒扣 0.5AP（5 环）。无人环 = 中速钝击流（1伤 + 30%麻痹），无穿透
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.5 }] },
         ],
         summon: {
             id: 'hover_drone',
-            name: '无人机',
+            name: '无人环',
             maxCount: (self) => Math.min(5, 1 + Math.round(self.attrs.get('wisdom') / 4)),
-            actionId: '_drone_shot',
+            actionId: '_huan_shot',
         },
     },
     {

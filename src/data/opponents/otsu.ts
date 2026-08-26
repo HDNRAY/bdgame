@@ -16,13 +16,14 @@ export const OTSU: OpponentDef = {
         passive('combat_instinct'),
         passive('wolf_hunting'),
         action('rising_slash'),
-        action('horizontal_slash'),
         weapon('three_section_spear'),
         passive('insight_awareness'),
         passive('autumn_water'),
         passive('bu_dong_ming_wang'),
         artifact('synthetic_lung'),
         passive('no_way_win'),
+        action('cang_niao_jian_fa'),
+        // 白虎定？
         // 12
     ],
     actionConfigs: [
@@ -32,10 +33,6 @@ export const OTSU: OpponentDef = {
         },
         {
             actionId: '_chuan_yun',
-            triggerId: 'on_parried',
-        },
-        {
-            actionId: 'horizontal_slash',
             triggerId: 'on_dodge',
         },
         {

@@ -392,12 +392,12 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'no_way_win_buff',
         name: '无招胜有招',
-        description: '触发招式伤害+20%。',
+        description: '触发招式伤害+25%。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         priority: 99,
-        onDealDamage: ({ final, triggered }) => (triggered ? round1(final * 1.2) : final),
+        onDealDamage: ({ final, triggered }) => (triggered ? round1(final * 1.25) : final),
     },
     {
         id: 'ling_long_xin_qiao_buff',

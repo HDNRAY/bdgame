@@ -134,12 +134,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'circle',
         name: '圆',
-        description: '锁定目标，洞察+2，对4AP及以上招式命中+30%。',
+        description: '锁定目标，洞察+2，对4AP及以上招式命中+25%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { insight: 2 },
-        onHitChance: ({ source }) => (((source as ActionDefinition | undefined)?.apCost ?? 0) >= 4 ? 0.3 : 0),
+        onHitChance: ({ source }) => (((source as ActionDefinition | undefined)?.apCost ?? 0) >= 4 ? 0.25 : 0),
     },
     {
         id: 'overlord_art_buff',
@@ -280,25 +280,30 @@ export const BUFF_DB: BuffDef[] = [
         onSummonInterval: ({ layer }) => Math.max(0.6, 1 - (layer.restoreValue ?? 0) * 0.05),
     },
     {
-        id: 'spear_guard_stance',
-        name: '秋水·守',
-        description: '秋水之势，以静制动。招架率+10%。',
-        tags: ['stance'],
+        // 秋水论·盈虚（灵巧/洞察潮汐） ──
+        id: 'autumn_water_tide',
+        name: '秋水·盈虚',
+        description: '秋水时至，盈虚消长。灵巧与洞察之间每2秒挪移1点（最多4点），移动效率+10%。',
+        tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        onParryChance: () => 0.1,
-    },
-    {
-        id: 'spear_break_stance',
-        name: '秋水·攻',
-        description: '秋水之势，以流破坚。削弱对手招架。',
-        tags: ['stance'],
-        expiry: { type: 'permanent' },
-        stacking: { type: 'none' },
-        onParryPenetration: ({ final, raw }) => {
-            const blocked = raw - final
-            const half = round1(blocked * 0.2)
-            return raw - half
+        attrMods: { dexterity: 4, insight: 0 },
+        onMoveEfficiency: () => 0.1,
+        tickInterval: 2000,
+        onTickHeal: ({ attacker: char, engine, state, layer }) => {
+            const current = layer.restoreValue ?? 0
+            const next = current >= 4 ? 0 : current + 1
+            revertBuffMods(layer, char, state)
+            const dex = 4 - next
+            const ins = next
+            const newMods = applyAttrMods(char, state, { dexterity: dex, insight: ins }, '秋水·盈虚')
+            layer.mods = newMods
+            layer.restoreValue = next
+            engine?.emitLog({
+                type: 'system',
+                message: `[秋水·盈虚] ${char.name} 灵巧${dex} 洞察${ins}`,
+                actorId: char.id,
+            })
+            return 0
         },
     },
 
@@ -378,11 +383,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'wheelchair_speed',
         name: '悬浮座椅',
-        description: '悬浮座椅，以炁驱动。移动效率+25%。',
+        description: '悬浮座椅，以炁驱动。移动效率+20%，身法+2。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.25,
+        attrMods: { agility: 2 },
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.2,
     },
     {
         id: 'can_ying_bu_speed',
@@ -1065,12 +1071,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'sword_enhance_buff',
         name: '灵炁灌注',
-        description: '4秒内伤害+10%，命中+10%。',
+        description: '4秒内伤害+10%，命中+5%。',
         tags: ['imperial', 'buff'],
         expiry: { type: 'duration', ms: 4000 },
         stacking: { type: 'none' },
         onDealDamage: ({ final }) => round1(final * 1.1),
-        onHitChance: () => 0.1,
+        onHitChance: () => 0.05,
     },
     // ── 战术腰包 ──
     {
@@ -1316,7 +1322,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 3 },
         onTurnEnd: ({ layer }) => {
-            if (Math.random() < 0.3) layer.restoreValue = Math.min(3, (layer.restoreValue ?? 0) + 1)
+            if (Math.random() < 0.5) layer.restoreValue = Math.min(3, (layer.restoreValue ?? 0) + 1)
         },
         onHitChance: ({ layer }) => layer.restoreValue * 0.03,
         onCritChance: ({ layer }) => layer.restoreValue * 0.03,
@@ -1581,7 +1587,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '苍鸟',
         description: '苍鸟掠空，内息流转。AP回复+0.5/s。',
         tags: ['buff', 'qi'],
-        expiry: { type: 'duration', ms: 12000 },
+        expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'none' },
         apRegenPerSec: () => 0.5,
     },

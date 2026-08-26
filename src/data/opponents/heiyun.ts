@@ -19,9 +19,10 @@ export const HEIYUN: OpponentDef = {
         passive('sword_dominion'),
         artifact('zhu_ye_qing'),
         action('one_night_dance'),
+        artifact('floating_eye'),
 
         weapon('fei_jian'),
-        // 11
+        // 12
     ],
     actionConfigs: [
         { actionId: 'ling_qi_guan_zhu', conditionId: 'always' },

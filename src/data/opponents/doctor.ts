@@ -1,5 +1,5 @@
 import { type OpponentDef } from '.'
-import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
+import { action, artifact, weapon } from '../../engine/util/reward-utils'
 
 const DOCTOR_ATTRS = { strength: 4, vitality: 10, agility: 6, dexterity: 18, insight: 16, wisdom: 18 }
 
@@ -12,27 +12,23 @@ export const DOCTOR: OpponentDef = {
     targetAttrs: DOCTOR_ATTRS,
     rewards: [
         artifact('doctor_chip'),
-        action('drone_strike'),
+        artifact('sonic_generator'),
         artifact('floating_eye'),
-        action('drone_barrage'),
+        action('wan_fa_gui_yi'),
         action('summon_haste'),
         artifact('power_furnace'),
         artifact('mechanical_eye'),
         action('drone_paralyze'),
         artifact('combat_armor'),
-        passive('wheelchair_lightness'),
+        artifact('wheelchair_lightness'),
         weapon('hover_drone'),
         artifact('neural_net'),
         artifact('cochlear_implant'),
-        // 悬浮座椅改奇物
-        // 无人机改无人环（不再是设计攻击），数量改成2个，仿上官金虹。
-        // 无人机攻击招式，改成奇物人造发生器，带招式，音波攻击，效果类似碧海潮生曲
-        // 无人机弹幕，换成万法归一
         // 13
     ],
     actionConfigs: [
         { actionId: 'drone_paralyze', triggerId: 'on_summon_hit' },
         { actionId: 'summon_haste', triggerId: 'on_dodged' },
-        { actionId: 'drone_strike', triggerId: 'on_parried' },
+        { actionId: '_sonic_wave', triggerId: 'on_parried' },
     ],
 }

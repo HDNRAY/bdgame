@@ -145,11 +145,11 @@ export const ARTIFACTS: Artifact[] = [
         name: '战斗芯片·改',
         description: '博士特制的战斗分析芯片，推演+4，回合开始时有概率叠加战斗数据。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 2 } }],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 4 } }],
         triggers: [
             {
                 condition: { type: 'on_equip' },
-                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 2 }],
+                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 1 }],
             },
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_chip' }] },
         ],
@@ -459,12 +459,9 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'wakizashi',
         name: '胁差',
-        description: '腰间短刀，收拔自如。闪避或招架后可立即反击。',
+        description: '腰间短刀，收拔自如。闪避后可立即反击。',
         tags: ['weapon', 'counter'],
-        triggers: [
-            { condition: { type: 'on_parry' }, actionId: 'light_slash' },
-            { condition: { type: 'on_dodge' }, actionId: 'light_slash' },
-        ],
+        triggers: [{ condition: { type: 'on_dodge' }, actionId: 'pursuit_thrust' }],
     },
     {
         id: 'iron_mask',
@@ -542,7 +539,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'combat_armor',
         name: '斗铠',
-        description: '百战之铠，非炁伤害减免1点，但身法-2。',
+        description: '百战之铠，非炁伤害减免，但身法-2。',
         tags: ['defense', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { agility: -2 } }],
         triggers: [
@@ -713,6 +710,27 @@ export const ARTIFACTS: Artifact[] = [
                 effects: [{ type: 'add_debuff', buffId: 'oil_coating', stacks: 1, chance: 1 }],
             },
         ],
+    },
+    // ── 悬浮座椅（博士·义体） ──
+    {
+        id: 'wheelchair_lightness',
+        name: '悬浮座椅',
+        description: '悬浮座椅，以炁驱动。移动效率+20%，身法+2。',
+        tags: ['implant', 'inherent'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'wheelchair_speed' }],
+            },
+        ],
+    },
+    // ── 人造发生器（博士·音波攻击） ──
+    {
+        id: 'sonic_generator',
+        name: '人造发生器',
+        description: '义体研究部特制音波发生器，释放高频音波直摄心魄。',
+        tags: ['craft', 'qi', 'implant'],
+        grantsActions: ['_sonic_wave'],
     },
     // ── 武学宝典上（通晓天下武学，闪/招→叠暴击；暴击→叠闪/招） ──
     {

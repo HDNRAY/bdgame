@@ -281,17 +281,17 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'xiu_li',
         name: '袖里',
-        description: '千丝万缕，只在他衣袖之间。闪避获得1层缠劲；受伤消耗1层缠劲减免3点。',
+        description: '千丝万缕，只在他衣袖之间。闪避获得1层缠劲；受伤消耗1层缠劲减免2点。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, engine }) => {
             if (!target.spendChan(1)) return final
             engine?.emitLog({
                 type: 'system',
-                message: `[袖里] ${target.name} 消耗1层缠劲减免3点（剩${target.chan}层）`,
+                message: `[袖里] ${target.name} 消耗1层缠劲减免2点（剩${target.chan}层）`,
                 actorId: target.id,
             })
-            return Math.max(0, Math.round((final - 3) * 10) / 10)
+            return Math.max(0, round1(final - 2))
         },
     },
     {
@@ -343,15 +343,15 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'sword_intent_tempering',
         name: '剑意淬体',
-        description: '剑意淬炼肉身，slash/pierce伤害减免20%，单次受伤不超过最大生命的10%。',
+        description: '剑意淬炼肉身，slash/pierce伤害减免15%，单次受伤不超过最大生命的15%。',
         tags: ['defense', 'inherent'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, source }) => {
             let dmg = final
             if (source?.tags?.includes('slash') || source?.tags?.includes('pierce')) {
-                dmg = Math.round(dmg * 0.8 * 10) / 10
+                dmg = round1(dmg * 0.85)
             }
-            const cap = round1(target.maxHp * 0.1)
+            const cap = round1(target.maxHp * 0.15)
             return Math.min(dmg, cap)
         },
     },
@@ -406,13 +406,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'combat_armor_def',
         name: '斗铠',
-        description: '非炁伤害减免1点。',
+        description: '非炁伤害减免2点, 炁伤害减免1点。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, source, attacker }) => {
             const isQi = source?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
-            if (isQi || final <= 0) return final
-            return Math.max(0, Math.round((final - 1) * 10) / 10)
+            if (final <= 0) return final
+            return round1(final - (isQi ? 1 : 2))
         },
     },
     {
@@ -551,7 +551,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     },
     {
         id: 'enhanced_vision_buff',
-        name: '超强视觉',
+        name: '超强感知',
         description: '触觉敏锐，招架时洞察化解。',
         tags: ['defense'],
         expiry: { type: 'permanent' },

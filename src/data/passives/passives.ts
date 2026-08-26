@@ -82,6 +82,13 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, actionId: '_iaijutsu_ready' }],
     },
     {
+        id: 'yi_dao_liu',
+        name: '一刀流',
+        description: '居合一刀,只此一斩。招架时顺势反击,斩出顺劈。',
+        tags: ['passive', 'counter', 'slash'],
+        triggers: [{ condition: { type: 'on_parry' }, actionId: 'light_slash' }],
+    },
+    {
         id: 'dragon_palace_style',
         name: '龙宫院流',
         description: '龙宫院秘传身法，招架或闪避后蓄势，叠加势。',
@@ -114,7 +121,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'human_radar',
         name: '人体雷达',
-        description: '获得居合时锁定目标，下次近距离攻击命中+0.5。',
+        description: '获得居合时锁定目标，下次近距离攻击命中提升。',
         tags: ['buff'],
         triggers: [
             {
@@ -781,18 +788,6 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lian_da_mi_jue' }] }],
     },
     {
-        id: 'wheelchair_lightness',
-        name: '悬浮座椅',
-        description: '悬浮座椅，以炁驱动。移动效率+25%。',
-        tags: ['passive', 'buff'],
-        triggers: [
-            {
-                condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'wheelchair_speed' }],
-            },
-        ],
-    },
-    {
         id: 'sekai_heroism',
         name: '舍得心法',
         description: '舍得心法，有舍有得。以根骨换取极致的速度与感知。根骨-2，力道+2、身法+2、灵巧+2、洞察+2。',
@@ -813,9 +808,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'combat_instinct',
         name: '本能特训',
-        description: '经过特训，将战斗本能化为直觉反应。每4点洞察增加1触发槽。',
+        description: '经过特训，将战斗本能化为直觉反应。每5点洞察增加1触发槽。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'trigger_slot_mod', fn: (char) => Math.floor(char.attrs.get('insight') / 4) }],
+        effects: [{ type: 'trigger_slot_mod', fn: (char) => Math.floor(char.attrs.get('insight') / 5) }],
     },
     {
         id: 'insight_awareness',
@@ -855,11 +850,13 @@ export const PASSIVES: Passive[] = [
     {
         id: 'autumn_water',
         name: '秋水论',
-        description: '秋水时至，百川灌河。攻守转换如流水，出招前切攻势，收招后切守势。',
+        description: '秋水时至，盈虚消长。灵巧与洞察之间每2秒挪移1点，如潮汐涨落；移动效率提高。',
         tags: ['passive', 'buff'],
         triggers: [
-            { condition: { type: 'turn_start' }, actionId: 'spear_break' },
-            { condition: { type: 'turn_end' }, actionId: 'spear_guard' },
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'autumn_water_tide', stacks: 0 }],
+            },
         ],
     },
     {
@@ -904,7 +901,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'enhanced_vision',
         name: '超强感知',
-        description: '失聪后锻炼出的超强视觉与触觉。洞察+4，招架时以敏锐感知进一步化解伤害。',
+        description: '将注意力锻炼至极致。洞察+4，招架时以敏锐感知进一步化解伤害。',
         tags: ['passive', 'buff', 'defense'],
         effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
         triggers: [

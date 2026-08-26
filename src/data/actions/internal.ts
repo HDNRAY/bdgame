@@ -15,7 +15,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         hookNotes: { canUse: '居合架势中才可释放' },
         effects: [
             { type: 'short_dash', maxDistance: 1 },
-            { type: 'damage', scaling: { strength: 2 } },
+            { type: 'damage', scaling: { strength: 1.9 } },
             { type: 'remove_buff', buffId: 'iaijutsu' },
         ],
     },
@@ -180,13 +180,16 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         extraStunTime: 600,
     },
     {
-        id: '_drone_shot',
-        name: '无人机射击',
+        id: '_huan_shot',
+        name: '无人环撞击',
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['range', 'summon'],
-        effects: [{ type: 'damage', fixed: 1, piercing: 1 }],
+        tags: ['range', 'blunt', 'summon'],
+        effects: [
+            { type: 'damage', fixed: 2, piercing: 1 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.3 },
+        ],
         extraPreDelay: 500,
         extraStunTime: 600,
     },
@@ -434,7 +437,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 2,
         tags: ['slash', 'range', 'polearm'],
-        getRange: () => [3, 4] as [number, number],
+        getRange: () => [3, 5] as [number, number],
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     // ── 阿赖耶识 ──
@@ -489,26 +492,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         ],
     },
     {
-        id: 'spear_guard',
-        name: '秋水守',
-        description: '秋水之势，以静制动。招架率+10%。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger', 'internal'],
-        target: 'self',
-        effects: [{ type: 'add_buff', buffId: 'spear_guard_stance' }],
-    },
-    {
-        id: 'spear_break',
-        name: '秋水攻',
-        description: '秋水之势，以流破坚。削弱对手招架。',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger', 'internal'],
-        target: 'self',
-        effects: [{ type: 'add_buff', buffId: 'spear_break_stance' }],
-    },
-    {
         // 灵鳌步触发招式：闪避后借势冲撞。施法距离 0-0（本身无射程），dash 3 延伸有效射程 [0,3]；
         // canUse 限距离 >2m（太近无需撞）；上限由 getActionRange（dash 够不够得到）负责
         id: '_ling_ao_chong',
@@ -529,6 +512,21 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
             { type: 'short_dash', maxDistance: 3 },
             { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 },
+        ],
+    },
+    {
+        // 人造发生器·音波：类碧海潮生曲，无视招架闪避
+        id: '_sonic_wave',
+        name: '音波',
+        description: '人造发生器释放高频音波，直摄心魄。',
+        requiredTags: [],
+        apCost: 2,
+        tags: ['qi', 'range', 'debuff'],
+        getRange: () => [0, 9],
+        effects: [
+            { type: 'ignore_parry' },
+            { type: 'damage', scaling: { wisdom: 0.2 } },
+            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
     },
 ]

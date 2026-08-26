@@ -18,16 +18,18 @@ export const YIDAO: OpponentDef = {
         artifact('tiger_eye'),
         weapon('zantetsu'),
         passive('extreme'),
+        passive('enhanced_vision'),
         passive('stance_time'),
         artifact('chan_orb'),
         action('dian_bu'),
-        // 11
+        passive('yi_dao_liu'),
+        // 13
     ],
     actionConfigs: [
         { actionId: 'resheath', conditionId: 'no_stance' },
         {
             actionId: 'qi_slash',
-            triggerId: 'on_dodge',
+            triggerId: 'on_dodged',
         },
     ],
 }

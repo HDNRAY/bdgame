@@ -95,12 +95,13 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'cang_niao_jian_fa',
         name: '苍鸟诀',
-        description: '苍鸟掠空，身如电驰。消耗15层缠劲，12秒内内息回复+0.5/s。',
+        description: '苍鸟掠空，身如电驰。消耗12层缠劲，提高内息回复速度。',
         requiredTags: [],
         apCost: 1,
-        chanCost: 15,
+        chanCost: 12,
         tags: ['buff', 'pre_action', 'qi'],
         target: 'self',
+        canUse: (attacker, state) => !state.pendingBuffs.has(`cang_niao_buff::${attacker.id}`),
         effects: [{ type: 'add_buff', buffId: 'cang_niao_buff' }],
     },
     {
@@ -379,7 +380,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'drone_paralyze',
-        name: '无人机麻痹',
+        name: '御物麻痹',
         description: '召唤物命中时50%概率附加1层麻痹。',
         requiredTags: ['summon'],
         apCost: 0,
@@ -392,7 +393,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'ling_qi_guan_zhu',
         name: '灵炁灌注',
-        description: '将大量炁劲注入御物，4秒内伤害+10%、命中+10%。不可叠加。',
+        description: '将大量炁劲注入御物之中，增加命中和暴击，不可叠加。',
         requiredTags: ['imperial'],
         apCost: 1,
         tags: ['buff', 'pre_action', 'imperial'],
