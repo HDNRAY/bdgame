@@ -15,6 +15,7 @@ import { getPassive } from '../passives'
 import { getArtifact } from '../artifacts'
 import { getAction as getActionDef } from '../actions'
 import { getWeapon } from '../weapons/weapons'
+import type { BuffLayer } from '../../engine/combat/types'
 
 /** 统计角色所有奖励（功法/奇物/招式/武器）的标签总数（去重；只算 build.rewards，克隆安全） */
 function countRewardTags(char: Character): number {
@@ -37,6 +38,17 @@ function countRewardTags(char: Character): number {
     // 初始武器也算（build.weapon）
     for (const t of getWeapon(char.build.weapon)?.tags ?? []) set.add(t)
     return set.size
+}
+
+/** 洞幽烛微看破率：min(8%, 2% × log2(1 + 该招式各 tag 看破次数之和))。多 tag 招式取各 tag 次数之和，各自封顶 8%。 */
+function kanpoRate(source: { tags?: readonly string[] } | undefined, layer: BuffLayer): number {
+    if (!source?.tags?.length) return 0
+    let total = 0
+    for (const t of source.tags) {
+        total += (layer.extra?.[`kanpo_${t}`] as number | undefined) ?? 0
+    }
+    if (total <= 0) return 0
+    return Math.min(0.08, 0.02 * Math.log2(1 + total))
 }
 
 /** 是否为「非辅助主招」：天机只对这类招式生效并消耗（召唤物/辅招不吃必中必暴） */
@@ -1002,6 +1014,30 @@ export const BUFF_DB: BuffDef[] = [
             const pct = Math.min(0.1, countRewardTags(target) * 0.01)
             if (pct <= 0) return final
             return round1(final * (1 - pct))
+        },
+    },
+    {
+        id: 'dongyou_zhuwei',
+        name: '洞幽烛微',
+        description: '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（各收敛至8%）。',
+        tags: ['buff'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        // 对方出招 → 该招式每个 tag 看破次数 +1（存 layer.extra['kanpo_<tag>']）
+        onOpponentAction: ({ layer, source }) => {
+            if (!source?.tags?.length) return
+            for (const t of source.tags) {
+                const key = `kanpo_${t}`
+                const prev = (layer.extra?.[key] as number | undefined) ?? 0
+                layer.extra = { ...(layer.extra ?? {}), [key]: prev + 1 }
+            }
+        },
+        // 看破率 = min(10%, 2% × log2(1 + 该招式各 tag 看破次数之和))——多 tag 招式取各 tag 之和，各自封顶
+        onDodgeChance: ({ source, layer }) => kanpoRate(source, layer),
+        onTakeDamage: ({ final, source, layer }) => {
+            const rate = kanpoRate(source, layer)
+            if (rate <= 0) return final
+            return round1(final * (1 - rate))
         },
     },
     {

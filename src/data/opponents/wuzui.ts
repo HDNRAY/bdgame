@@ -10,19 +10,20 @@ export const WUZUI: OpponentDef = {
     weapon: 'bare_hands',
     targetAttrs: WUZUI_ATTRS,
     rewards: [
-        action('qi_bolt_2'),
+        action('duan_bei_shou'),
         passive('shenxing_baibian'),
         passive('jiu_yang_shen_gong'),
         passive('hun_yuan_gong'),
+        action('iron_charge'),
         action('wan_liu_gui_zong'),
         passive('qian_kun_da_nuo_yi'),
         artifact('shao_dao_zi'),
         passive('zui_quan'),
         artifact('hui_xiang_dou'),
-        action('hun_yuan_zhang'),
+        action('cun_jin'),
         artifact('ba_wang_zui'),
-        action('duan_bei_shou'), // 端杯手：醉酒层数加命中
-        // 12
+        action('qi_bolt_2'),
+        // 13
     ],
     actionConfigs: [
         {

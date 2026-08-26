@@ -104,6 +104,8 @@ export interface BuffDef extends GameEntity {
     onSummonInterval?: (ctx: BuffHookCtx) => number
     /** 出招回调（释放任何招式时调用，不受命中影响） */
     onAction?: (ctx: BuffHookCtx) => void
+    /** 对方出招回调（对方释放任何招式时调用，不受命中影响；用于看破类效果。ctx.attacker=对方，ctx.target=本 buff 持有者） */
+    onOpponentAction?: (ctx: BuffHookCtx) => void
     /** 闪避时回调（防御方成功闪避后调用） */
     onDodged?: (ctx: BuffHookCtx) => void
     /** 招架时回调（防御方成功招架后调用） */

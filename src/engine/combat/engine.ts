@@ -760,6 +760,20 @@ export class BattleEngine {
                 source: action,
             })
         })
+        // buff onOpponentAction 钩子（对方出招即触发，不受命中影响）——通知防御方 buff（看破类效果用）
+        forEachBuffOf(this.state.pendingBuffs, enemy.id, (def, layer) => {
+            if (!def?.onOpponentAction) return
+            def.onOpponentAction({
+                final: 0,
+                raw: 0,
+                target: enemy,
+                attacker: self,
+                engine: this,
+                state: this.state,
+                layer,
+                source: action,
+            })
+        })
         // 不受命中影响的效果先执行（移动、换武、buff 等）——前摇窗口内（short_dash 冲刺占用前摇）
         for (const eff of action.effects ?? []) {
             if (isPreHitEffect(eff.type)) {

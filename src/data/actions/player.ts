@@ -289,19 +289,19 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '屏气凝神，以自身炁感知对手炁的流转，瞬间突刺要害。',
         requiredTags: ['pierce'],
         apCost: 5,
-        chanCost: 35,
+        chanCost: 30,
         tags: ['pierce', 'qi', 'melee'],
-        onActionCritDamage: (base) => base + 0.3,
-        onActionCritChance: (base) => base + 0.3,
+        onActionCritDamage: (base) => base + 0.2,
+        onActionCritChance: (base) => base + 0.2,
         onActionHitChance: (base, state, self) => {
             const enemy = state.characters.find((c) => c.id !== self.id)
             if (!enemy || enemy.hp / enemy.maxHp >= 0.5) return base
             return 1
         },
-        hookNotes: { critChance: '+30%', critDamage: '+30%', hitChance: '目标气血低于 50% 时必中' },
+        hookNotes: { critChance: '+20%', critDamage: '+20%', hitChance: '目标气血低于 50% 时必中' },
         effects: [
             { type: 'short_dash', maxDistance: 3 },
-            { type: 'damage', scaling: { strength: 0.7, agility: 0.7, dexterity: 0.7 } },
+            { type: 'damage', scaling: { strength: 0.6, agility: 0.6, dexterity: 0.6 }, piercingRatio: 0.5 },
         ],
     },
     // ── 斩击系 ──
@@ -571,7 +571,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'polearm'],
         onActionCritChance: () => 1,
         hookNotes: { critChance: '必爆' },
-        effects: [{ type: 'damage', scaling: { strength: 0.5, agility: 0.1, vitality: 0.1, dexterity: 0.1 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.6, agility: 0.1, vitality: 0.1, dexterity: 0.2 } }],
     },
     {
         id: 'yi_dian_han_mang',
@@ -644,7 +644,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['blunt', 'electric'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.2 }, fixed: 2 },
+            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.4 }, fixed: 2 },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.8 },
         ],
     },

@@ -55,12 +55,12 @@ export const TALENTS: Talent[] = [
         ],
     },
     {
-        id: 'xiaowuxiang',
-        name: '斗转星移', // TODO: 改 洞幽烛微，根据敌我使用的招式tag，叠buff，战斗开始搜自己所有的奖励，对方的怎么办，也是战斗开始读？还是使用后叠，那被动非触发功法怎么办攻防，或者命中闪避招架暴击
-        description: '洞察入微，以彼之道还施彼身。缠劲满溢时窥破对手功法破绽，复制其最契合自身武道的功法。',
+        id: 'dongyou_zhuwei',
+        name: '洞幽烛微',
+        description: '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（各收敛至8%）。',
         tags: ['talent', 'buff'],
         requireAttrsMin: { insight: 20 },
-        triggers: [{ condition: { type: 'chan_overflow' }, actionId: '_xiaowuxiang_copy' }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dongyou_zhuwei' }] }],
     },
     {
         id: 'yuanting_yuezhi',

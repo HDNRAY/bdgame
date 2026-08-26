@@ -134,17 +134,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'cleanse', buffIds: ['poison'] }],
     },
     {
-        id: '_xiaowuxiang_copy',
-        name: '斗转星移',
-        description: '',
-        requiredTags: [],
-        apCost: 0,
-        tags: ['trigger', 'internal'],
-        target: 'self',
-        maxUses: 1,
-        effects: [{ type: 'copy_best_passive' }],
-    },
-    {
         id: '_arm_explosion',
         name: '自爆',
         description: '将钛合金臂飞向对手并引爆。',

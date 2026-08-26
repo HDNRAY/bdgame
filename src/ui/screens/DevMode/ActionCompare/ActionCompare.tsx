@@ -27,8 +27,8 @@ const WEAPON_ID = 'po_lang_zhu_zhi' // 无属性加成，射程 [1,4]
 const ALL_AP = [0, 1, 2, 3, 4, 5]
 
 // 加分/惩罚系数
-const RANGE_BONUS_PER_STEP = 0.3 // 射程分 ×1.5（远程招的射程价值更突出）
-const DASH_BONUS = 0.25
+// 射程/位移统一单价：位移 1 米 ≈ 射程 1 米（都能扩大这招的打击范围，同价计）
+const DIST_BONUS_PER_M = 0.3
 const SELF_DISARM_PENALTY = 1
 const MULTIHIT_PER_EXTRA = 0.25
 const MULTIHIT_CAP = 2
@@ -146,9 +146,15 @@ function buildRow(a: ActionDefinition, rawAp: number, chanNow: number): Row {
     // 加分
     const staticRange = a.getRange?.(weaponRange, atk) ?? weaponRange
     const rangeMax = staticRange[1]
-    const hasDash = (a.effects ?? []).some((e) => e.type === 'short_dash' || e.type === 'dash')
-    const distanceBonus = Math.max(0, Math.round((rangeMax - 4) * RANGE_BONUS_PER_STEP * 100)) / 100
-    const dashBonus = hasDash ? DASH_BONUS : 0
+    // 位移加分：按最大位移距离缩放（short_dash 用 maxDistance，dash 用 maxRange；多段位移取最大）
+    let dashDist = 0
+    for (const e of a.effects ?? []) {
+        if (e.type === 'short_dash') dashDist = Math.max(dashDist, e.maxDistance ?? 0)
+        if (e.type === 'dash') dashDist = Math.max(dashDist, e.maxRange ?? 0)
+    }
+    // 射程/位移同价：射程超 4m 每米 +0.3，短于 4m 每米 -0.3（0-1 贴脸短打减分）；位移每米 +0.3
+    const distanceBonus = Math.round((rangeMax - 4) * DIST_BONUS_PER_M * 100) / 100
+    const dashBonus = Math.round(dashDist * DIST_BONUS_PER_M * 100) / 100
 
     const buff = sumBuffScore(a.effects)
     let debuff = 0
@@ -320,7 +326,7 @@ export function ActionCompare() {
             <p className="ac-note">
                 双方全属性 15 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。 效率 =
                 期望伤 /（折前AP + 缠成本）；缠成本按阈值感知模型折算（基准缠劲可调，默认 35：缠越满越便宜， 跌破 30/50
-                丢「周」buff 加重成本）。得分 = 效率 + 射程（{'>'}4 每档+0.2）+ 位移（+0.25） +{BUFF_SCORE_NOTE} +
+                丢「周」buff 加重成本）。得分 = 效率 + 射程（4m 为基准，每±1m ∓0.3；0-1 贴脸短打减分）+ 位移（每米+0.3，与射程同价） +{BUFF_SCORE_NOTE} +
                 debuff（层×几率×权重）+ 缴械（×0.4）+ 击退 （距离×0.2） + 汲取（stat_transfer 每点×1.5）+ 斩杀（25%
                 斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）− 自耗血（比例×10）。
             </p>

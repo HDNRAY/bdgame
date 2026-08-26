@@ -31,7 +31,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         tags: ['qi', 'range', 'qi_action'],
         onActionHitChance: (base) => base + 0.2,
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, fixed: 1.5 }],
-        getRange: () => [1, 6],
+        getRange: () => [2, 6],
     },
     {
         id: 'qi_blade',

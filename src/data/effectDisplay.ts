@@ -151,8 +151,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return eff.note ? [eff.note] : ['函数回复: 视条件而定']
         case 'self_disarm':
             return [eff.dropAt === 'opponent' ? '自卸武器（兵器飞向对手）' : '自卸武器']
-        case 'copy_best_passive':
-            return ['复制对手功法']
         case 'weapon_tag':
             return [`武器标签: ${eff.tag}`]
         case 'stat_restriction':

@@ -842,7 +842,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'no_way_win',
         name: '无招胜有招',
-        description: '不拘泥一板一眼的招式，任何触发招式伤害+20%。',
+        description: '无招胜有招，出手无定式。',
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_way_win_buff' }] }],
     },

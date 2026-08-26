@@ -21,6 +21,7 @@ export const QILAN: OpponentDef = {
         action('thunder_storm'),
         passive('no_parry_style'),
         // 白虎定，闪避回缠
+        // 小白虫（换个名字），所有雷系招式，会自动寻路，跟踪，增加命中率
         // 11
     ],
     actionConfigs: [

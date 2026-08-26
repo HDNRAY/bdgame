@@ -4,9 +4,6 @@ import type { BattleEngine } from '../engine'
 import { ATTR_CN, type AttrName } from '../../entities/attributes'
 import { calcBaseDamage, calcPreDelayMs, calcHealAmount, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../../data/weapons/weapons'
-import { getPassive } from '../../../data/passives'
-import { getAction as getBaseAction } from '../../../data/actions'
-import { getRuntimeAction } from '../../../data/actions'
 import { genAppId } from '../../util/buff-utils'
 import { notifyRegenChanged, affectsApRegen } from '../utils/ap-regen'
 import type { Tag } from '../../entities/tag'
@@ -20,7 +17,6 @@ import {
     processOnEquipEffects,
     forEachBuffOf,
 } from '../utils'
-import { pickBestPassives } from '../utils/tag-match'
 import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
 import { MAX_STAT_TRANSFER_LAYERS } from '../../constants'
@@ -834,51 +830,5 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 2. 移除缴械
         const removeEff: EffectDef = { type: 'remove_buff', buffId: 'disarmed' }
         processActionEffect(removeEff, { self, enemy: self, engine, tMs: engine.state.turn.currentTime })
-    },
-    copy_best_passive({ self, engine }: EffectCtx) {
-        const enemy = engine.getOpponent(self.id)
-        if (!enemy) return
-        // 清空缠
-        self.chan = 0
-        engine.checkChanOverflow(self.id)
-        // 复制 2 个最匹配的功法
-        const copiedIds = pickBestPassives(self, enemy, 2)
-        for (const copiedId of copiedIds) {
-            const def = getPassive(copiedId)
-            if (!def) continue
-            self.passiveDefs.push(def)
-            self.applyPassive(def)
-            // 只触发该被动的 battle_start 效果，不触发全局事件（避免重复 buff）
-            for (const slot of def.triggers ?? []) {
-                if (slot.condition.type !== 'battle_start') continue
-                if (slot.effects) {
-                    for (const eff of slot.effects) {
-                        processActionEffect(eff, { self, enemy, engine, tMs: engine.state.turn.currentTime })
-                    }
-                }
-                if (slot.actionId) {
-                    const action = getRuntimeAction(slot.actionId, self, engine.state) ?? getBaseAction(slot.actionId)
-                    if (action && action.apCost <= 2) {
-                        for (const eff of action.effects ?? []) {
-                            processActionEffect(eff, {
-                                self,
-                                enemy,
-                                engine,
-                                tMs: engine.state.turn.currentTime,
-                                action,
-                            })
-                        }
-                    }
-                }
-            }
-        }
-        if (copiedIds.length > 0) {
-            const names = copiedIds.map((id) => getPassive(id)?.name ?? id).join('、')
-            engine.emitLog({
-                type: 'system',
-                message: `[斗转星移] ${self.name} 窥破破绽，复制了「${names}」`,
-                actorId: self.id,
-            })
-        }
     },
 }
