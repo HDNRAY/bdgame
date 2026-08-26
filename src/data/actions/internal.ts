@@ -349,7 +349,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '断刀锁链甩出，如灵蛇出洞。',
         requiredTags: ['slash'],
         apCost: 2,
-        tags: ['slash'],
+        tags: ['slash', 'internal', 'trigger'],
         getRange: () => [2, 4] as [number, number],
         effects: [{ type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } }],
     },
@@ -359,12 +359,9 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '辫中藏刃，回旋飞出。',
         requiredTags: [],
         apCost: 2,
-        tags: ['range', 'slash', 'pierce', 'internal'],
+        tags: ['trigger', 'slash', 'pierce', 'internal'],
         getRange: () => [2, 4] as [number, number],
-        onActionHitChance: (base) => base + 0.05,
-        onActionCritChance: (base) => base + 0.1,
-        hookNotes: { hitChance: '+5%', critChance: '+10%' },
-        effects: [{ type: 'damage', scaling: { agility: 0.2, dexterity: 0.2 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.1, agility: 0.1, dexterity: 0.1 } }],
     },
     // ── 战术腰包 ──
     {
@@ -462,10 +459,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'add_debuff', buffId: 'bleed', stacks: 2, chance: 0.6 },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.8 },
-            { type: 'add_buff', buffId: 'caltrops_cd' },
         ],
-        canUse: (attacker, state) => !state.pendingBuffs.has(`caltrops_cd::${attacker.id}`),
-        hookNotes: { canUse: '冷却中不可用' },
     },
     {
         id: '_oil_splash',
@@ -474,7 +468,12 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: ['debuff', 'pre_action', 'internal'],
-        maxUses: 2,
+        // 目标已有油时不再泼（油常驻，重复泼无意义）
+        canUse: (_attacker, state) => {
+            const enemy = state.characters.find((c) => c.id !== _attacker.id)
+            return enemy ? !state.pendingBuffs.has(`oil_coating::${enemy.id}`) : false
+        },
+        hookNotes: { canUse: '目标已泼油时不再释放' },
         effects: [{ type: 'add_debuff', buffId: 'oil_coating', stacks: 1, chance: 1 }],
     },
     {
@@ -484,12 +483,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: ['debuff', 'post_action', 'internal'],
-        canUse: (attacker, state) => !state.pendingBuffs.has(`smoke_bomb_cd::${attacker.id}`),
-        hookNotes: { canUse: '冷却中不可用' },
-        effects: [
-            { type: 'add_buff', buffId: 'smoke_bomb_cd' },
-            { type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 1 },
-        ],
+        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 1 }],
     },
     {
         // 灵鳌步触发招式：闪避后借势冲撞。施法距离 0-0（本身无射程），dash 3 延伸有效射程 [0,3]；

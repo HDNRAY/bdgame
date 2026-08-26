@@ -16,22 +16,20 @@ export const ORANGE: OpponentDef = {
         passive('blood_rage'),
         action('dart_throw'),
         passive('can_ying_bu'),
-        action('sand_throw'),
+        weapon('ninja_sword'),
         artifact('ninja_tool_kit'),
         action('blaze_strike'),
         passive('no_light_wisdom'),
-        weapon('ninja_sword'),
+        weapon('broken_blade'),
         passive('momentum_mastery'),
         artifact('fen_shen_qiu'),
-        // 锁链刃
         // 12
     ],
     actionConfigs: [
-        { actionId: 'light_slash', triggerId: 'on_dodged' },
+        { actionId: 'dart_throw', triggerId: 'on_dodged' },
         {
-            actionId: 'dart_throw',
-            triggerId: 'on_opponent_move_away',
+            actionId: 'light_slash',
+            triggerId: 'on_parried',
         },
-        { actionId: 'sand_throw', triggerId: 'on_dodge' },
     ],
 }

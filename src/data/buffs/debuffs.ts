@@ -254,24 +254,6 @@ export const DEBUFF_DB: BuffDef[] = [
         tickInterval: 1000,
         onTickDamage: ({ target }) => Math.max(1, Math.round(target.hp * 0.02 * 10) / 10),
     },
-    // ── 烟玉冷却 ──
-    {
-        id: 'smoke_bomb_cd',
-        name: '烟玉冷却',
-        description: '',
-        tags: [],
-        expiry: { type: 'duration', ms: 20000 },
-        stacking: { type: 'none' },
-    },
-    // ── 撒菱冷却 ──
-    {
-        id: 'caltrops_cd',
-        name: '撒菱冷却',
-        description: '',
-        tags: [],
-        expiry: { type: 'duration', ms: 15000 },
-        stacking: { type: 'none' },
-    },
     {
         id: 'blade_qi',
         name: '刃炁',
