@@ -1545,7 +1545,7 @@ export const BUFF_DB: BuffDef[] = [
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
         onDealDamage: ({ final, source }) => {
             const ap = Math.max(1, (source as ActionDefinition | undefined)?.apCost ?? 0)
-            return final + round1(ap / actionHits(source as ActionDefinition))
+            return final + round1((ap * 0.5) / actionHits(source as ActionDefinition))
         },
     },
     // ── 刃炁精通（攻击侧：持刃攻击令对手叠刃炁） ──
@@ -1585,11 +1585,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'cang_niao_buff',
         name: '苍鸟',
-        description: '苍鸟掠空，内息流转。AP回复+0.5/s。',
+        description: '苍鸟掠空，内息流转。10秒内，AP回复+0.4/s。',
         tags: ['buff', 'qi'],
-        expiry: { type: 'duration', ms: 20000 },
+        expiry: { type: 'duration', ms: 10000 },
         stacking: { type: 'none' },
-        apRegenPerSec: () => 0.5,
+        apRegenPerSec: () => 0.4,
     },
     {
         id: 'chanzi_chan_regen',
