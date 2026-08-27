@@ -9,11 +9,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'qi_shield',
         name: '炁盾',
-        description: '吸收炁招式伤害，每次2点。',
+        description: '吸收炁招式伤害，每次吸收2点，非炁招式每次吸收1点，吸收次数有限。',
         tags: ['defense'],
         onAbsorb: ({ final, target, engine, source, layer, state }) => {
-            if (!source?.tags?.includes('qi') || final <= 0 || layer.restoreValue <= 0) return final
-            const absorb = Math.min(2, final)
+            const absorbValue = source?.tags?.includes('qi') ? 2 : 1
+            const absorb = Math.min(absorbValue, final)
             layer.restoreValue--
             engine?.emitLog({
                 type: 'system',
@@ -505,7 +505,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '招架后减免3点伤害。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onParryReduction: ({ final }) => Math.max(0, round1(final - 3)),
+        onParryReduction: ({ final }) => round1(final - 3),
     },
     {
         id: 'bu_dong_ming_wang_buff',
@@ -605,8 +605,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
-        onDodgeChance: ({ layer }) => layer.restoreValue * 0.02,
-        onParryChance: ({ layer }) => layer.restoreValue * 0.02,
+        onDodgeChance: ({ layer }) => layer.restoreValue * 0.01,
+        onParryChance: ({ layer }) => layer.restoreValue * 0.03,
     },
     {
         id: 'rocket_boost',
@@ -693,7 +693,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             if (final <= 0 || !engine || attacker === target) return final
             const reflectDmg = Math.max(1, Math.round(final * 0.15))
             attacker.takeDamage(reflectDmg, engine)
-            // 反伤补发 damage 事件，计入伤害统计
+            // 反伤补发 damage 事件，计入伤害统计（不走修正管道，避免反伤递归）
             engine.emitLog({
                 type: 'damage',
                 actionId: 'chanzi_stance',
@@ -706,11 +706,6 @@ export const DEFENSE_BUFFS: BuffDef[] = [
                 isCrit: false,
                 isParried: false,
                 tags: ['bonus_damage'],
-            })
-            engine.emitLog({
-                type: 'system',
-                message: `[金刚不坏] ${target.name}反伤${reflectDmg}给${attacker.name}`,
-                actorId: target.id,
             })
             return final
         },

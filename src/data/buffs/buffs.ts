@@ -975,7 +975,7 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        id: 'martial_arts_archive',
+        id: 'wuxue_baodian_shang',
         name: '武学宝典上',
         description: '通晓天下武学，以推演预判。闪避/招架→武学·破+1层；暴击→武学·避+1层。',
         tags: [],
@@ -1663,7 +1663,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        chanRegenPerSec: () => 1,
+        chanRegenPerSec: () => 0.5,
     },
     // ── 禅心慧眼（禅子·推演化命中暴击） ──
     {
@@ -1673,8 +1673,8 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.005,
-        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.002,
+        onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.004,
+        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.005,
     },
     // ── 枯蝉（阿九·锁血：致死伤害无效1次，触发后蜕壳） ──
     {

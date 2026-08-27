@@ -66,6 +66,9 @@ export type EffectDef =
     | { type: 'switch_weapon'; weaponId: string }
     | { type: 'retrieve_weapon' }
     | { type: 'short_dash'; maxDistance?: number }
+    // step_back：命中后自身向远离对手方向退 distance 米（对掌弹开、拉开距离类）。
+    // 与 short_dash（冲近）方向相反；命中后才结算（效果顺序排在 damage/knockback 后）。
+    | { type: 'step_back'; distance?: number }
     | { type: 'disarm'; chance?: number }
     | { type: 'self_disarm'; dropAt?: 'ground' | 'opponent' }
     | { type: 'attr_convert'; from: AttrName; to: AttrName[]; ratio: number; mode?: 'round' | 'floor' }

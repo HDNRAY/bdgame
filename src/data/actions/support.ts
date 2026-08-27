@@ -227,7 +227,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['move', 'pre_action'],
         target: 'self',
         getRange: () => [0, 8] as [number, number],
-        effects: [{ type: 'dash', maxRange: 8, targetDist: 0, useAp: true }],
+        effects: [{ type: 'dash', maxRange: 8, targetDist: 0, useAp: false }],
     },
     {
         id: 'feng_fan',
@@ -238,7 +238,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['move', 'pre_action'],
         target: 'self',
         getRange: () => [0, 8] as [number, number],
-        effects: [{ type: 'dash', maxRange: 8, targetDist: -1, useAp: true }],
+        effects: [{ type: 'dash', maxRange: 8, targetDist: -1, useAp: false }],
     },
     {
         id: 'yun_bu',
@@ -306,23 +306,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'add_buff', buffId: 'santou_liubi', stacks: 2 }],
     },
     {
-        id: 'steal_artifact',
-        name: '探云手',
-        description: '神偷绝技，偷取对手一件奇物。初始100%成功，成功后概率减半。',
-        requiredTags: [],
-        apCost: 1,
-        tags: [],
-        target: 'enemy',
-        getRange: () => [0, 5],
-        // 对手无可偷奇物时不触发/不释放，避免 turn_start 每回合白烧 AP
-        canUse: (attacker, state) => {
-            const enemy = state.characters.find((c) => c.id !== attacker.id)
-            return !!enemy && enemy.artifactDefs.some((a) => !a.tags.includes('inherent'))
-        },
-        hookNotes: { canUse: '对手持有奇物时才可窃取' },
-        effects: [{ type: 'steal_artifact' }],
-    },
-    {
         id: 'sand_throw',
         name: '抛沙',
         description: '扬沙迷眼，中距离干扰。',
@@ -365,7 +348,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         name: '凝炁成盾',
         description: '凝聚炁息化为护盾，2层炁盾护体。已有炁盾时不重复凝聚。',
         requiredTags: [],
-        apCost: 2,
+        apCost: 1,
         tags: ['imperial', 'qi', 'post_action', 'defense'],
         target: 'self',
         canUse: (self, state) => !state.pendingBuffs.has(`qi_shield::${self.id}`),
@@ -418,20 +401,20 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'chanzi_heal',
         name: '甘露',
-        description: '禅心化露，回气疗伤。消耗1AP、10层缠劲，回复当前血量的5%，当血量高于100时可用。',
+        description: '禅心化露，回气疗伤。消耗1AP、10层缠劲，回复当前血量的5%，当血量高于120时可用。',
         requiredTags: [],
         apCost: 1,
         chanCost: 10,
         tags: ['heal', 'qi', 'pre_action'],
         target: 'self',
         canUse: (self) => {
-            return self.hp > 100
+            return self.hp > 120
         },
         effects: [
             {
                 type: 'functional_heal',
                 fn: ({ self }) => Math.round(self.hp * 0.05),
-                note: '回复当前血量 8%',
+                note: '回复当前血量 5%',
             },
         ],
     },

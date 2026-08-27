@@ -96,21 +96,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         ],
     },
     {
-        id: 'deadly_knife',
-        name: '无情飞刀',
-        description: '例不虚发，飞刀破空。',
-        requiredTags: [],
-        apCost: 4,
-        tags: ['range', 'pierce', 'slash', 'thrown'],
-        getRange: () => [1, 6],
-        effects: [
-            {
-                type: 'ignore_parry',
-            },
-            { type: 'damage', fixed: 14 },
-        ],
-    },
-    {
         id: 'sheng_si_fu',
         name: '生死符',
         description: '一道气劲凝符，穿透防御直击经脉。',
@@ -689,6 +674,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             },
         ],
     },
+    // ── 特殊系 ──
     {
         id: 'bi_hai_chao_sheng_qu',
         name: '碧海潮生曲',
@@ -728,6 +714,43 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     return totalRemaining * DMG_PER_POISON_TICK * AMPLIFY
                 },
                 note: '引爆目标剩余的全部中毒伤害',
+            },
+        ],
+    },
+    {
+        id: 'steal_artifact',
+        name: '探云手',
+        description: '神偷绝技，偷取对手一件奇物。初始100%成功，成功后概率减半。',
+        requiredTags: [],
+        apCost: 1,
+        tags: [],
+        target: 'enemy',
+        getRange: () => [0, 5],
+        // 对手无可偷奇物时不触发/不释放，避免 turn_start 每回合白烧 AP
+        canUse: (attacker, state) => {
+            const enemy = state.characters.find((c) => c.id !== attacker.id)
+            return !!enemy && enemy.artifactDefs.some((a) => !a.tags.includes('inherent'))
+        },
+        hookNotes: { canUse: '对手持有奇物时才可窃取' },
+        effects: [{ type: 'steal_artifact' }],
+    },
+    {
+        id: 'tian_wai_fei_xian',
+        name: '天外飞仙',
+        description: '人器合一，天外飞仙。',
+        requiredTags: [],
+        apCost: 5,
+        chanCost: 50,
+        tags: ['qi', 'thrown', 'range'],
+        onActionCritChance: (base) => base + 0.25,
+        onActionCritDamage: (base) => base + 0.5,
+        hookNotes: { critChance: '+25%', critDamage: '+50%' },
+        effects: [
+            { type: 'short_dash', maxDistance: 5 },
+            {
+                type: 'damage',
+                scaling: { strength: 0.4, agility: 0.4, dexterity: 0.4, vitality: 0.4, wisdom: 0.8 },
+                piercingRatio: 0.5,
             },
         ],
     },

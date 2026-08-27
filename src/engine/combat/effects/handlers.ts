@@ -169,13 +169,15 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         })
         applyHeal(engine, self, amount, action)
     },
-    knockback({ eff, self, engine }: EffectCtx) {
-        if (hasCcImmunity(self, engine.state.pendingBuffs)) {
-            engine.emitLog({ type: 'system', message: `[罡体] ${self.name} 免疫击退`, actorId: self.id })
+    knockback({ eff, enemy, engine }: EffectCtx) {
+        // 击退目标是受击方（enemy）——推掌「推开对手」等；罡体免疫也检查目标
+        if (hasCcImmunity(enemy, engine.state.pendingBuffs)) {
+            engine.emitLog({ type: 'system', message: `[罡体] ${enemy.name} 免疫击退`, actorId: enemy.id })
             return
         }
         const { distance } = eff as Extract<EffectDef, { type: 'knockback' }>
-        if (distance > 0) executeMove(self, engine, distance, 0, { blink: true })
+        // knockback 的位移量以敌方相对距离为准：distance>0 表示把目标推开 distance 米
+        if (distance > 0) executeMove(enemy, engine, distance, 0, { blink: true })
     },
     ciyuan_init({ self, engine }: EffectCtx) {
         const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
@@ -597,6 +599,13 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // short_dash 占用前摇窗口：位置在 [0, 前摇] 内平滑插值（不闪烁）
         const pre = calcPreDelayMs(self.attrs.get('agility'), action?.extraPreDelay ?? 0, self.getHaste(engine.state))
         executeMove(self, engine, -delta, 0, { durationMs: pre, kind: 'short_dash' })
+    },
+    // step_back：命中后自身向远离对手方向退 distance 米（对掌弹开、拉开距离类）。
+    // executeMove delta>0 = 远离；不占前摇（命中后结算，effect 顺序排在 damage/knockback 之后即可）
+    step_back({ eff, self, engine }: EffectCtx) {
+        const { distance = 1 } = eff as Extract<EffectDef, { type: 'step_back' }>
+        if (distance <= 0) return
+        executeMove(self, engine, distance, 0, { kind: 'move' })
     },
     dash({ eff, self, engine, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'dash' }>

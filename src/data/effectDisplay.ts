@@ -96,6 +96,8 @@ export function describeEffect(eff: EffectDef): string[] {
         }
         case 'short_dash':
             return [`短距冲刺: 最多${eff.maxDistance ?? 3}格`]
+        case 'step_back':
+            return [`后撤: ${eff.distance ?? 1}格`]
         case 'disarm':
             return ['卸除武器']
         case 'ignore_parry':

@@ -500,7 +500,7 @@ export const LIBRARY_JOB: EventDef = {
                 '「整理得不错。」龙语仙把最后一摞放回架上，回头看你，「……你该不会全记住了吧？」\n\n你没说话。你确实记住了——不是哪一招，是天下武学的路数。',
             choices: [
                 {
-                    id: 'martial_arts_archive',
+                    id: 'wuxue_baodian_shang',
                     type: 'artifact',
                     label: '武学宝典上',
                     description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',

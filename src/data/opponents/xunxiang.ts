@@ -15,13 +15,13 @@ export const XUNXIANG: OpponentDef = {
         passive('lingxi_finger'),
         passive('feng_wu_jiu_tian'),
         action('steal_artifact'),
-        action('deadly_knife'),
         action('dian_xue'),
         passive('li_wu_xu_fa'),
         passive('dian_xue_passive'),
         action('push_hand'),
         passive('no_way_win'),
         passive('ling_long_xin_qiao'),
+        action('tian_wai_fei_xian'),
         // 12
     ],
     actionConfigs: [

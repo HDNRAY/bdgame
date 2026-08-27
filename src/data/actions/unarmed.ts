@@ -120,10 +120,11 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'melee'],
+        getRange: () => [0, 1],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
             { type: 'knockback', distance: 1 },
-            { type: 'short_dash', maxDistance: 1 },
+            { type: 'step_back', distance: 1 },
         ],
     },
     {
@@ -208,8 +209,8 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['unarmed', 'melee'],
         getRange: () => [0, 1] as [number, number],
-        onActionHitChance: (base) => base + 0.3,
-        hookNotes: { hitChance: '+30%' },
+        onActionHitChance: (base) => base + 0.25,
+        hookNotes: { hitChance: '+25%' },
         effects: [{ type: 'damage', scaling: { strength: 1.2 } }],
     },
     {
@@ -251,9 +252,9 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'melee', 'qi'],
         getRange: () => [0, 4],
         chanCost: 18,
-        onActionHitChance: (base) => base + 0.2,
+        onActionHitChance: (base) => base + 0.15,
         onActionCritChance: (base) => base + 0.1,
-        hookNotes: { hitChance: '+20%', critChance: '+10%' },
+        hookNotes: { hitChance: '+15%', critChance: '+10%' },
         effects: [{ type: 'damage', scaling: { strength: 0.6, agility: 0.6, wisdom: 0.6 } }],
     },
     {

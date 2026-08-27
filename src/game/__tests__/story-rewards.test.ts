@@ -254,7 +254,7 @@ describe('打工事件（特殊固定奖励）', () => {
         const lib = getEvent('library_job')!
         const tg = getEvent('tiangong_job')!
         expect(lib.rounds.find((r) => r.id === 'reward_round')!.choices.map((c) => c.id)).toEqual([
-            'martial_arts_archive',
+            'wuxue_baodian_shang',
             'wuxue_baodian_xia',
             'other_mountain',
         ])
@@ -263,7 +263,7 @@ describe('打工事件（特殊固定奖励）', () => {
 
     it('两个特性功法被排除出普通奖励池（仅打工事件可获得）', () => {
         const ids = rewardPool.getPool('passive').map((p) => p.id)
-        expect(ids).not.toContain('martial_arts_archive')
+        expect(ids).not.toContain('wuxue_baodian_shang')
         expect(ids).not.toContain('qian_chui_bai_lian')
     })
 
@@ -273,7 +273,7 @@ describe('打工事件（特殊固定奖励）', () => {
         expect(passiveIds).not.toContain('wuxue_baodian_xia')
         const ev = getEvent('xiaohua_insight')!
         if (ev.reward?.kind === 'item') {
-            expect(ev.reward.ids).not.toContain('martial_arts_archive')
+            expect(ev.reward.ids).not.toContain('wuxue_baodian_shang')
         }
     })
 })

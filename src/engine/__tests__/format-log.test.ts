@@ -83,3 +83,26 @@ describe('formatBattleLog', () => {
         expect(i2).toBeGreaterThan(idot)
     })
 })
+
+describe('knockback 位移归属', () => {
+    it('命中后击退(knockback)移动渲染在招式判定之后，而非前摇行', () => {
+        const log = new BattleLog()
+        log.resetScope(1)
+        log.beginMainAction()
+        // 招式作用域 [1,1]:推掌 → 命中判定 → 击退移动(无 kind = knockback)
+        pushEvt(log, { type: 'attack_start', actor: 'A', target: 'B', weapon: 'bare_hands', actionName: '推掌', apCost: 2, apRemaining: 5, snapshot: mkSnap(2) }, 1000)
+        pushEvt(log, { type: 'check_hit', actor: 'A', target: 'B', hitChance: 0.9, roll: 0.5, result: true, snapshot: mkSnap(2) }, 1010)
+        pushEvt(log, { type: 'damage', actor: 'A', target: 'B', actionId: 'push_hand', actionName: '推掌', base: 9, distanceMult: 1, isCrit: false, isParried: false, final: 9, blocked: 0, snapshot: mkSnap(2) }, 1020)
+        // knockback 命中后位移:无 kind(区别于 short_dash/dash 前摇),距离 2→3
+        pushEvt(log, { type: 'move', actor: 'B', delta: 1, newDistance: 3, apCost: 0, apRemaining: 5, snapshot: mkSnap(2) }, 1030)
+        const { lines } = formatBattleLog(log)
+        const text = lines.join('\n')
+        console.log('--- 渲染结果 ---')
+        console.log(text)
+        const pushIdx = lines.findIndex((l) => l.includes('推掌'))
+        const moveIdx = lines.findIndex((l) => l.includes('@ 移动'))
+        // 击退移动应显示在推掌行之后(作为命中后效果),不在前摇位置
+        expect(pushIdx).toBeGreaterThanOrEqual(0)
+        expect(moveIdx).toBeGreaterThan(pushIdx)
+    })
+})

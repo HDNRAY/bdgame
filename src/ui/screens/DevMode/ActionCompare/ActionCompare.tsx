@@ -8,7 +8,8 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Character } from '../../../../engine/entities/character'
-import { getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
+import type { WeaponDef } from '../../../../data/weapons/weapons'
+import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { sumBuffScore, BUFF_SCORE_NOTE } from '../compare-utils'
 import { PLAYER_ACTIONS } from '../../../../data/actions/player'
 import { INTERNAL_ACTIONS } from '../../../../data/actions/internal'
@@ -23,7 +24,14 @@ import { EntityItem } from '../../../components/ui/EntityItem/EntityItem'
 import './ActionCompare.scss'
 
 const ATTRS = { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 }
-const WEAPON_ID = 'po_lang_zhu_zhi' // 无属性加成，射程 [1,4]
+// 兜底武器：无属性加成的中性空手（真实 bare_hands 自带 +2 身法会污染伤害评估，这里造一把"计算用空手"）
+const CALC_BARE_HANDS: WeaponDef = {
+    id: '_calc_bare_hands',
+    name: '空手（评估）',
+    description: 'compare 专用中性空手，无属性加成。',
+    tags: ['unarmed', 'dual_wield'],
+    range: [0, 2],
+}
 const ALL_AP = [0, 1, 2, 3, 4, 5]
 
 // 加分/惩罚系数
@@ -73,7 +81,8 @@ function makeChar(id: string, name: string): Character {
     const c = new Character({
         id,
         name,
-        weapon: WEAPON_ID,
+        // 初始武器仅用于构造（buildRow 会按 requiredTags 覆盖为评估武器）
+        weapon: 'bare_hands',
         baseAttrs: { ...ATTRS },
         rewards: [],
     })
@@ -109,9 +118,12 @@ interface Row {
 function buildRow(a: ActionDefinition, rawAp: number, chanNow: number): Row {
     const atk = makeChar('A', '甲')
     const def = makeChar('B', '乙')
-    const baseWeapon = getWeapon(WEAPON_ID)
+    // 按 requiredTags 从初始武器池匹配评估武器（找不到或无要求 → 中性空手）
+    const reqTags = a.requiredTags ?? []
+    const matched = reqTags.length > 0 ? STARTING_WEAPONS.find((w) => reqTags.every((t) => w.tags.includes(t))) : undefined
+    const baseWeapon = matched ?? CALC_BARE_HANDS
     // 基准武器模拟为重型（heavy）：燎天势等按重型武器加成的招式在对比中体现
-    atk.weaponDef = { ...baseWeapon, tags: [...baseWeapon.tags, 'heavy'] }
+    atk.weaponDef = { ...baseWeapon, tags: [...new Set([...baseWeapon.tags, 'heavy'])] }
     const weaponRange: [number, number] = baseWeapon.range
 
     const useSummon = a.id === 'wan_fa_gui_yi'

@@ -19,16 +19,16 @@ export const LAIFENG: OpponentDef = {
         passive('beiming'),
         action('eighteen_palms'),
         artifact('frog_gall'),
-        action('qi_bolt'),
+        action('qi_bolt_4'),
         action('qinlong_gong'),
         artifact('bu_lao_quan'),
         artifact('jiu_yin_zhen_jing'),
         // 12
     ],
     actionConfigs: [
-        { actionId: 'qi_bolt', triggerId: 'on_opponent_move_away' }, // AI 出招顺序
+        { actionId: 'qi_bolt_4', triggerId: 'on_move_closer' }, // AI 出招顺序
         { actionId: 'eighteen_palms' }, // AI 出招顺序
-        { actionId: 'qi_bolt_2', triggerId: 'on_opponent_move_closer' },
+        { actionId: 'qi_bolt_2', triggerId: 'on_move_away' },
         { actionId: 'qinlong_gong', triggerId: 'on_dodge' },
     ],
 }

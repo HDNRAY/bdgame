@@ -328,9 +328,15 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                 } else {
                     const f = popTo(sc)
                     if (f) {
-                        f.preLines.push(
-                            `${'  '.repeat(f.depth + 1)}@ ${moveLabel}  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m`,
-                        )
+                        // 深作用域位移分两类：前摇冲刺(dash/short_dash, 招式行前)与命中后位移(knockback, 招式效果后)
+                        const isWindupMove = e.kind === 'dash' || e.kind === 'short_dash'
+                        const moveLine = `${'  '.repeat(f.depth + 1)}@ ${moveLabel}  ${oldDist.toFixed(1)}→${e.newDistance.toFixed(1)}m`
+                        if (isWindupMove) {
+                            f.preLines.push(moveLine)
+                        } else {
+                            // knockback 等命中后位移：追加为帧内效果行（紧跟招式判定后）
+                            f.children.push(moveLine)
+                        }
                     }
                 }
                 break

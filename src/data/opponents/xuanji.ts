@@ -8,6 +8,7 @@ export const XUANJI: OpponentDef = {
     name: '玄机',
     weapon: 'tri_orb',
     targetAttrs: XUANJI_ATTRS,
+    battleStyle: 'melee',
     rewards: [
         action('qi_blade'),
         artifact('qi_amplifier'),

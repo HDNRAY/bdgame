@@ -276,10 +276,10 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'qi_guard',
         name: '吞炁囊',
-        description: '开局凝聚炁盾，吸收炁招式伤害2点，共40次。',
+        description: '开局凝聚30层炁盾。',
         tags: ['trigger', 'defense', 'qi'],
         triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 40 }] },
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 30 }] },
         ],
     },
     {
@@ -524,7 +524,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'pu_ti_zhu',
         name: '菩提珠串',
-        description: '静心菩提念珠。推演+4，50%免疫临时失心。',
+        description: '静心菩提念珠。推演+3，50%免疫临时失心。',
         tags: ['buff', 'defense'],
         effects: [{ type: 'stat_buff', attrs: { wisdom: 3 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'pu_ti_zhu_buff' }] }],
@@ -728,14 +728,14 @@ export const ARTIFACTS: Artifact[] = [
     },
     // ── 武学宝典上（通晓天下武学，闪/招→叠暴击；暴击→叠闪/招） ──
     {
-        id: 'martial_arts_archive',
+        id: 'wuxue_baodian_shang',
         name: '武学宝典上',
         description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
         tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'martial_arts_archive' }],
+                effects: [{ type: 'add_buff', buffId: 'wuxue_baodian_shang' }],
             },
         ],
     },
