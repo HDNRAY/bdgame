@@ -308,7 +308,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'steal_artifact',
         name: '探云手',
-        description: '神偷绝技，偷取对手一件奇物。初始60%成功，成功后概率减半。',
+        description: '神偷绝技，偷取对手一件奇物。初始100%成功，成功后概率减半。',
         requiredTags: [],
         apCost: 1,
         tags: [],

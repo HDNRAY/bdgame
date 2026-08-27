@@ -295,6 +295,23 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         },
     },
     {
+        id: 'baihu_ding',
+        name: '白虎定',
+        description: '白虎定息，虎啸生风。闪避时回复2点缠劲。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        onDodged: ({ target, engine }) => {
+            if (!engine) return
+            target.addChan(2)
+            engine.checkChanOverflow(target.id)
+            engine.emitLog({
+                type: 'system',
+                message: `[白虎定] ${target.name} 闪避回复2点缠劲（${target.chan}）`,
+                actorId: target.id,
+            })
+        },
+    },
+    {
         id: 'soft_armor',
         name: '软猬',
         description: '软猬甲护体，减免所有伤害；受拳脚攻击时反伤并叠流血。',
@@ -457,9 +474,9 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'nv_er_hong',
         name: '女儿红',
-        description: '每秒回复1.5点气血，持续5秒。',
+        description: '每秒回复1.5点气血，持续9秒。',
         tags: ['defense', 'jiu'],
-        expiry: { type: 'duration', ms: 5000 },
+        expiry: { type: 'duration', ms: 9000 },
         stacking: { type: 'additive', max: 3 },
         tickInterval: 1000,
         onTickHeal: () => 1.5,

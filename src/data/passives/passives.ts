@@ -32,7 +32,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'ji_lie_zhi_lie',
         name: '极烈之烈',
-        description: '死战不退，受击愈烈。每次受到伤害叠1层「烈」，最多5层，每层暴击率+3%。',
+        description: '死战不退，受击愈烈。每次受到伤害叠1层「烈」，每层提升暴击率与暴击伤害。',
         tags: ['passive', 'damage'],
         triggers: [
             {
@@ -107,7 +107,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'extreme',
         name: '极',
-        description: '蓄势至极，一击必杀。缠劲满时获得极状态，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+2%暴伤。',
+        description: '蓄势至极，一击必杀。缠劲满时获得极状态，下次≥5AP招式消耗所有缠劲，每层提升暴击率与暴击伤害。',
         tags: ['passive', 'buff'],
         triggers: [
             {
@@ -142,7 +142,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'frost_mastery',
         name: '冰霜诀',
-        description: '春雷疾掠，寒气侵骨。劈砍击中80%概率叠加寒冰，暴击时剑意凝寒。',
+        description: '春雷疾掠，寒气侵骨。命中时概率叠加寒霜，暴击时剑意凝寒。',
         tags: ['passive', 'debuff'],
         triggers: [
             {
@@ -158,7 +158,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'nineteen_stops',
         name: '十九停',
-        description: '每次出手叠一层「十九停」，每层命中+3%、暴击+2%、暴伤+1%，最多19层。',
+        description: '每次出手叠一层「十九停」，层数越高越易失手。每层提升命中、暴击与暴伤，最多19层。',
         tags: ['passive', 'buff', 'damage'],
         triggers: [
             {
@@ -269,6 +269,8 @@ export const PASSIVES: Passive[] = [
             if (!def.effects?.some((e) => e.type === 'damage')) return def
             if (!def.tags.includes('unarmed')) return def
             const chance = Math.min(0.8, def.apCost * 0.05)
+            // 雷法灌注 → 该招式即雷系（electric tag，供虺雷牵等雷系判定生效）
+            const tags: Tag[] = def.tags.includes('electric') ? def.tags : [...def.tags, 'electric']
             // 如果招式已有麻痹效果，合并概率（加法）
             const idx = def.effects!.findIndex(
                 (e): e is Extract<typeof e, { type: 'add_debuff' }> =>
@@ -281,10 +283,11 @@ export const PASSIVES: Passive[] = [
                 merged.chance = merged.chance + chance
                 const newEffects = [...def.effects!]
                 newEffects[idx] = merged
-                return { ...def, effects: newEffects }
+                return { ...def, tags, effects: newEffects }
             }
             return {
                 ...def,
+                tags,
                 effects: [...(def.effects ?? []), { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance }],
             }
         },
@@ -303,6 +306,20 @@ export const PASSIVES: Passive[] = [
                 ],
             },
         ],
+    },
+    {
+        id: 'hui_lei_qian',
+        name: '虺雷牵',
+        description: '虺雷如活物，牵丝追踪，不死不休。所有雷系招式命中+8%。',
+        tags: ['passive', 'buff', 'electric'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hui_lei_qian' }] }],
+    },
+    {
+        id: 'baihu_ding',
+        name: '白虎定',
+        description: '白虎定息，虎啸生风。闪避时回复缠劲。',
+        tags: ['passive', 'buff', 'defense'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'baihu_ding' }] }],
     },
     {
         id: 'qiti_source',
@@ -484,7 +501,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'qishier_bian',
         name: '七十二变',
-        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧增加3点。',
+        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧提升。',
         tags: ['passive', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qishier_bian', stacks: 0 }] },
@@ -512,7 +529,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yuxin_sword_mastery',
         name: '真假无用心经',
-        description: '真假无用，虚实可辨。所有可叠层 buff 上限翻倍，但每次叠层消耗1缠。',
+        description: '真假无用，虚实可辨。所有可叠层 buff 上限翻倍，但每次叠层消耗缠劲。',
         tags: ['qi', 'passive', 'buff'],
         requireAttrsMin: {},
         triggers: [
@@ -564,7 +581,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'sword_intent_tempering',
         name: '剑意淬体',
-        description: '剑意淬炼肉身，减免slash/pierce伤害25%，且单次受伤不超过最大生命的25%。',
+        description: '剑意淬炼肉身，减免 slash/pierce 伤害，且单次受伤不超过最大生命的一定比例。',
         tags: ['passive', 'buff', 'defense'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_intent_tempering' }] },
@@ -573,7 +590,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yu_du_shu',
         name: '毒炁外泄',
-        description: '毒雾护体，每8秒释放毒素。血量越少，毒雾越烈。',
+        description: '毒雾护体，周期性释放毒素。血量越少，毒雾越烈。',
         tags: ['passive', 'buff', 'poison'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yu_du_shu' }] }],
     },
@@ -587,7 +604,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'tongtian',
         name: '通天录',
-        description: '悟生离死别，所有伤害受推演按AP加成。',
+        description: '悟生离死别。攻击命中时有概率令对手不幸缠身。',
         tags: ['passive', 'buff', 'qi'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tongtian' }] }],
     },
@@ -627,7 +644,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'bai_ju_guo_xi',
         name: '白驹过隙',
-        description: '白驹过隙，匆匆一瞥，距对手3米内，每点身法+2%暴击伤害。',
+        description: '白驹过隙，匆匆一瞥，距对手3米内，每点身法提升暴击伤害。',
         tags: ['qi', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'bai_ju_guo_xi_buff' }] },
@@ -683,7 +700,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'jiu_yang_shen_gong',
         name: '九阳神功',
-        description: '九阳真气护体，AP恢复速度提升至125%。',
+        description: '九阳真气护体，提升AP恢复速度。',
         tags: ['passive', 'buff'],
         triggers: [
             {
@@ -746,7 +763,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'sword_capture',
         name: '无刀取',
-        description: '空手入白刃。获得1个额外触发槽，空手可招架，招架成功后有50%概率缴械对手。',
+        description: '空手入白刃。获得1个额外触发槽，空手可招架，招架成功后有概率缴械对手。',
         tags: ['buff', 'defense'],
         effects: [{ type: 'trigger_slot_mod', value: 1 }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_capture' }] }],
@@ -833,7 +850,7 @@ export const PASSIVES: Passive[] = [
         id: 'wolf_hunting',
         name: '苍狼劲',
         description:
-            '取苍狼猎杀之势，借体重、惯性与旋力增伤。polearm/slash招式消耗3缠，附加（根骨×0.1+身法×0.1+灵巧×0.1）额外伤害。',
+            '取苍狼猎杀之势，借体重、惯性与旋力增伤。消耗缠劲，附加额外伤害。',
         tags: ['passive', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'wolf_hunting_buff' }] },
@@ -897,7 +914,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'luo_ying_shen_jian',
         name: '落英神剑',
-        description: '所有伤害的30%寄存于神剑印内，暴击时引爆造成双倍伤害。',
+        description: '部分伤害寄存于神剑印内，暴击时引爆造成双倍伤害。',
         tags: ['passive', 'buff', 'qi'],
         triggers: [
             {
@@ -1040,7 +1057,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'chanzi_chan_regen',
         name: '玄武定',
-        description: '玄武定息，缠劲生生不息，每2秒恢复3点缠劲。',
+        description: '玄武定息，龟息绵绵。缠劲生生不息。',
         tags: ['passive', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chanzi_chan_regen' }] },
@@ -1049,7 +1066,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'chan_ding',
         name: '朱雀定',
-        description: '朱雀定息，以火炼炁。受击回复2点缠劲。',
+        description: '朱雀定息，以火炼炁。受击回复缠劲。',
         tags: ['passive', 'buff', 'defense'],
         triggers: [
             {

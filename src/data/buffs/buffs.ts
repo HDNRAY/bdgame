@@ -40,7 +40,7 @@ function countRewardTags(char: Character): number {
     return set.size
 }
 
-/** 洞幽烛微看破率：min(8%, 2% × log2(1 + 该招式各 tag 看破次数之和))。多 tag 招式取各 tag 次数之和，各自封顶 8%。 */
+/** 洞幽烛微看破率：min(7%, 2% × log2(1 + 该招式各 tag 看破次数之和))。多 tag 招式取各 tag 次数之和，各自封顶 7%。 */
 function kanpoRate(source: { tags?: readonly string[] } | undefined, layer: BuffLayer): number {
     if (!source?.tags?.length) return 0
     let total = 0
@@ -48,7 +48,7 @@ function kanpoRate(source: { tags?: readonly string[] } | undefined, layer: Buff
         total += (layer.extra?.[`kanpo_${t}`] as number | undefined) ?? 0
     }
     if (total <= 0) return 0
-    return Math.min(0.08, 0.02 * Math.log2(1 + total))
+    return Math.min(0.07, 0.02 * Math.log2(1 + total))
 }
 
 /** 是否为「非辅助主招」：天机只对这类招式生效并消耗（召唤物/辅招不吃必中必暴） */
@@ -169,6 +169,14 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         onHitChance: ({ source }) => (source?.tags?.includes('thrown') ? 0.5 : 0),
+    },
+    {
+        id: 'hui_lei_qian',
+        name: '虺雷牵',
+        description: '虺雷如活物，牵丝追踪，不死不休。雷系招式命中+8%。',
+        tags: ['electric'],
+        expiry: { type: 'permanent' },
+        onHitChance: ({ source }) => (source?.tags?.includes('electric') ? 0.08 : 0),
     },
     {
         id: 'ciyuan_blade',
@@ -1019,7 +1027,8 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'dongyou_zhuwei',
         name: '洞幽烛微',
-        description: '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（各收敛至8%）。',
+        description:
+            '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（各收敛至7%）。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -1043,14 +1052,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'no_parry_buff',
         name: '流风回雪',
-        description: '招架率的1/3转化为闪避率。',
+        description: '招架率的22%转化为闪避率。',
         tags: [],
         stacking: { type: 'none' },
         onCanParry: () => false,
         onDodgeChance: ({ target }) => {
             const dex = target.attrs.get('dexterity')
             const ins = target.attrs.get('insight')
-            return calcParryChance(dex, ins) / 3
+            return calcParryChance(dex, ins) * 0.22
         },
     },
     {
@@ -1569,11 +1578,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yun_bu_foresight',
         name: '云步·先机',
-        description: '云步后身形缥缈，下次攻击命中+15%。',
+        description: '云步后身形缥缈，下次攻击命中+8%。',
         tags: ['buff'],
         expiry: { type: 'consumed', trigger: 'on_hit' },
         stacking: { type: 'none' },
-        onHitChance: () => 0.15,
+        onHitChance: () => 0.08,
     },
     {
         id: 'dao_ma_dan',
@@ -1601,7 +1610,7 @@ export const BUFF_DB: BuffDef[] = [
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
         onDealDamage: ({ final, source }) => {
             const ap = Math.max(1, (source as ActionDefinition | undefined)?.apCost ?? 0)
-            return final + round1((ap * 0.5) / actionHits(source as ActionDefinition))
+            return final + round1(ap / actionHits(source as ActionDefinition))
         },
     },
     // ── 刃炁精通（攻击侧：持刃攻击令对手叠刃炁） ──

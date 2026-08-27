@@ -395,8 +395,21 @@ export class Character {
             if (handler) handler(this, eff)
         }
         for (const t of def.triggers ?? []) this.passiveTriggers.push(t)
+        // 奇物赋予的招式（偷来的女儿红能喝）
+        for (const g of def.grantsActions ?? []) {
+            const gDef = getActionDef(g)
+            if (gDef && !this.#actionCache.some((a) => a.id === g)) {
+                this.#actionCache.push(new Action(gDef))
+            }
+        }
         if (def.actionEnhancer) this.#applyActionEnhancer(def.actionEnhancer)
         return true
+    }
+
+    /** 移除指定招式（偷取奇物时同步移除其赋予的招式，如女儿红被偷后不能再喝） */
+    removeActionsByIds(ids: string[]): void {
+        if (ids.length === 0) return
+        this.#actionCache = this.#actionCache.filter((a) => !ids.includes(a.id))
     }
 
     #actionCache: Action[] = []

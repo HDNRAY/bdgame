@@ -1,5 +1,4 @@
 import type { Character } from '../entities/character'
-import type { EffectDef } from '../entities/action'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../../data/weapons/weapons'
 import { getBuff } from '../../data/buffs'
@@ -33,22 +32,13 @@ export function planSupportActions(
                 const hasTag = inst.def.requiredTags.some((tag) => weapon.tags.includes(tag))
                 if (!hasTag) return false
             }
-            // 跳过纯位移辅招（dash/short_dash 无 buff/回血效果）
-            if (inst.def.effects?.every((e) => e.type === 'dash' || e.type === 'short_dash' || e.type === 'knockback'))
-                return false
-            // 位移类辅招：期望位移不足最小要求时跳过（否则必然「距离不合适」白费 AP，
-            // 如虎跃需至少 2m 才跳）。maxRange 现为最大位移距离，不再是对手距离门槛。
-            const dashEff = inst.def.effects?.find((e): e is Extract<EffectDef, { type: 'dash' }> => e.type === 'dash')
-            if (dashEff) {
-                const enemy = state.characters.find((c) => c.id !== attacker.id)
-                if (!enemy) return false
-                const dist = state.position.distance(attacker.id, enemy.id)
-                const dashTarget =
-                    (dashEff.targetDist ?? 0) < 0 ? attacker.getMaxActionRange(state) : dashEff.targetDist
-                const desiredTravel = Math.abs(dist - dashTarget)
-                const minTravel = dashEff.minRange ?? 0
-                if (desiredTravel < minTravel || desiredTravel === 0) return false
-            }
+            // 跳过位移类辅招：含完整 dash 位移效果（魅影步/云步的 dash+自buff）或纯位移/击退（every dash/short_dash/knockback）。
+            // 位移招只由 planMove 负责，不当 buff 辅招选（否则一回合 preCmds + planMove 各用一次，重复位移）
+            const hasFullDash = inst.def.effects?.some((e) => e.type === 'dash') ?? false
+            const pureMove =
+                inst.def.effects?.every((e) => e.type === 'dash' || e.type === 'short_dash' || e.type === 'knockback') ??
+                false
+            if (hasFullDash || pureMove) return false
             return true
         })
         .sort((a, b) => {

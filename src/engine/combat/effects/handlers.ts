@@ -745,7 +745,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 成功概率（初始 60%，成功后减半）
         const trackKey = `steal_artifact_track::${self.id}`
         const track = engine.state.pendingBuffs.get(trackKey)
-        const chance = track?.restoreValue ?? 0.6
+        const chance = track?.restoreValue ?? 1
         const { success } = calcRoll(chance)
         if (!success) {
             engine.emitLog({
@@ -764,7 +764,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             const tIdx = enemy.passiveTriggers.indexOf(t)
             if (tIdx !== -1) enemy.passiveTriggers.splice(tIdx, 1)
         }
-        // 加给自己
+        // 移除奇物赋予的招式（酒被偷走 → 不能再喝）
+        enemy.removeActionsByIds(target.grantsActions ?? [])
+        // 加给自己（含奇物赋予的招式：偷来的酒能喝）
         self.addArtifact(target.id)
         // 更新成功概率（减半）
         engine.state.pendingBuffs.set(trackKey, { restoreValue: chance / 2 })

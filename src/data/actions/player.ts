@@ -569,8 +569,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 4,
         tags: ['blunt', 'polearm'],
-        onActionCritChance: () => 1,
-        hookNotes: { critChance: '必爆' },
+        onActionCritChance: (base) => base + 0.5,
+        hookNotes: { critChance: '+50%' },
         effects: [{ type: 'damage', scaling: { strength: 0.6, agility: 0.1, vitality: 0.1, dexterity: 0.2 } }],
     },
     {

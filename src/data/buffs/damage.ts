@@ -150,7 +150,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, target, engine, state }) => {
             // 攻击造成伤害时概率上「不幸」（降敌命中/闪避/招架/暴击）
-            if (engine && Math.random() < 0.5) {
+            if (engine && Math.random() < 0.8) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'bu_xing', stacks: 1, chance: 1 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
@@ -279,7 +279,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'wolf_hunting_buff',
         name: '狼狩',
-        description: '善用自重、惯性与借力造成额外伤害。消耗2层缠劲。',
+        description: '善用自重、惯性与借力造成额外伤害。消耗2层缠劲，附加（力道+根骨+身法+灵巧）×5%额外伤害。',
         tags: ['buff', 'damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },

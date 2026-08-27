@@ -241,7 +241,7 @@ export const WEAPON_DB: WeaponDef[] = [
                 condition: { type: 'on_equip' },
                 effects: [
                     { type: 'add_buff', buffId: 'heavy_load', stacks: 10 },
-                    { type: 'add_buff', buffId: 'energy_drain', stacks: 0.6 },
+                    { type: 'add_buff', buffId: 'energy_drain', stacks: 1 },
                 ],
             },
             // 暴击时施加霜冻（冰封）
