@@ -108,7 +108,7 @@ export const PASSIVES: Passive[] = [
         id: 'extreme',
         name: '极',
         description: '蓄势至极，一击必杀。缠劲满时获得极状态，下次≥5AP招式消耗所有缠劲，每层提升暴击率与暴击伤害。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'chan'],
         triggers: [
             {
                 condition: {
@@ -117,6 +117,13 @@ export const PASSIVES: Passive[] = [
                 effects: [{ type: 'add_buff', buffId: 'extreme' }],
             },
         ],
+    },
+    {
+        id: 'zhou_liu_bu_xi',
+        name: '周流不息',
+        description: '周流不息，盈虚消长。缠劲满溢时自动凝聚。',
+        tags: ['passive', 'buff', 'qi', 'chan'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'zhou_liu_bu_xi', stacks: 1 }] }],
     },
     {
         id: 'human_radar',
@@ -318,7 +325,7 @@ export const PASSIVES: Passive[] = [
         id: 'baihu_ding',
         name: '白虎定',
         description: '白虎定息，虎啸生风。闪避时回复缠劲。',
-        tags: ['passive', 'buff', 'defense'],
+        tags: ['passive', 'buff', 'defense', 'chan'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'baihu_ding' }] }],
     },
     {
@@ -517,7 +524,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'frost_step',
         name: '踏雪',
-        description: '踏雪如履平地，身法轻灵，移动效率+30%。',
+        description: '踏雪如履平地，身法轻灵。',
         tags: ['passive', 'buff'],
         triggers: [
             {
@@ -530,7 +537,7 @@ export const PASSIVES: Passive[] = [
         id: 'yuxin_sword_mastery',
         name: '真假无用心经',
         description: '真假无用，虚实可辨。所有可叠层 buff 上限翻倍，但每次叠层消耗缠劲。',
-        tags: ['qi', 'passive', 'buff'],
+        tags: ['qi', 'passive', 'buff', 'chan'],
         requireAttrsMin: {},
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yuxin_sword_mastery' }] },
@@ -761,6 +768,16 @@ export const PASSIVES: Passive[] = [
         },
     },
     {
+        // 锐炁诀：与凝炁诀联动（全招带炁 → 全招 30% 穿透）
+        id: 'rui_qi_jue',
+        name: '锐炁诀',
+        description: '炁凝如锋，锐不可当。所有带炁的招式，30%伤害转为穿透，无视招架与减伤。',
+        tags: ['passive', 'buff', 'qi'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rui_qi_jue' }] },
+        ],
+    },
+    {
         id: 'sword_capture',
         name: '无刀取',
         description: '空手入白刃。获得1个额外触发槽，空手可招架，招架成功后有概率缴械对手。',
@@ -772,7 +789,7 @@ export const PASSIVES: Passive[] = [
         id: 'ru_yi_jin',
         name: '如意劲',
         description: '暴击时消耗3层缠劲，按灵巧增加暴击伤害。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'chan'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ru_yi_jin' }] }],
     },
     {
@@ -786,7 +803,7 @@ export const PASSIVES: Passive[] = [
         id: 'gear_shift',
         name: '挂挡',
         description: '凝缠劲为内息，运转不息。习得招式「挂」。每层内息回复+0.3/s。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'chan'],
         grantsActions: ['gear_hang'],
     },
     {
@@ -808,7 +825,7 @@ export const PASSIVES: Passive[] = [
         id: 'lian_da_mi_jue',
         name: '练打秘诀',
         description: '暗器出手附灵巧加成：灵巧×0.1；消耗1缠劲则提升至灵巧×0.2。',
-        tags: ['buff'],
+        tags: ['buff', 'chan'],
         requireAttrsMin: { dexterity: 16 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lian_da_mi_jue' }] }],
     },
@@ -849,9 +866,8 @@ export const PASSIVES: Passive[] = [
     {
         id: 'wolf_hunting',
         name: '苍狼劲',
-        description:
-            '取苍狼猎杀之势，借体重、惯性与旋力增伤。消耗缠劲，附加额外伤害。',
-        tags: ['passive', 'buff'],
+        description: '取苍狼猎杀之势，借体重、惯性与旋力增伤。消耗缠劲，附加额外伤害。',
+        tags: ['passive', 'buff', 'chan'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'wolf_hunting_buff' }] },
         ],
@@ -888,7 +904,7 @@ export const PASSIVES: Passive[] = [
         id: 'bu_dong_ming_wang',
         name: '不动明王',
         description: '不动如山，明王御守。招架时消耗缠劲，固定减免伤害。',
-        tags: ['passive', 'defense'],
+        tags: ['passive', 'defense', 'chan'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'bu_dong_ming_wang_buff' }] },
         ],
@@ -1058,7 +1074,7 @@ export const PASSIVES: Passive[] = [
         id: 'chanzi_chan_regen',
         name: '玄武定',
         description: '玄武定息，龟息绵绵。缠劲生生不息。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'chan'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chanzi_chan_regen' }] },
         ],
@@ -1067,7 +1083,7 @@ export const PASSIVES: Passive[] = [
         id: 'chan_ding',
         name: '朱雀定',
         description: '朱雀定息，以火炼炁。受击回复缠劲。',
-        tags: ['passive', 'buff', 'defense'],
+        tags: ['passive', 'buff', 'defense', 'chan'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -1079,7 +1095,7 @@ export const PASSIVES: Passive[] = [
         id: 'qing_long_ding',
         name: '青龙定',
         description: '青龙定息，龙吟贯耳。暴击时回复缠劲。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'chan'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -1105,7 +1121,7 @@ export const PASSIVES: Passive[] = [
         id: 'ku_chan_shen_gong',
         name: '枯蝉神功',
         description: '枯蝉锁血。受到致死伤害时无效那一次伤害，耗尽自身缠劲；此后免疫一切持续伤害，且无法被治疗。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'chan'],
         triggers: [
             {
                 condition: { type: 'battle_start' },

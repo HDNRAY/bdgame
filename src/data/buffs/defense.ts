@@ -215,7 +215,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     },
     {
         id: 'poison_resist',
-        name: '蛇毒不侵',
+        name: '百毒不侵',
         description: '毒抗+50%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },

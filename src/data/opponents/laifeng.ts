@@ -23,7 +23,8 @@ export const LAIFENG: OpponentDef = {
         action('qinlong_gong'),
         artifact('bu_lao_quan'),
         artifact('jiu_yin_zhen_jing'),
-        // 12
+        passive('rui_qi_jue'), // 锐炁诀：与凝炁诀联动，全招 40% 穿透
+        // 13
     ],
     actionConfigs: [
         { actionId: 'qi_bolt_4', triggerId: 'on_move_closer' }, // AI 出招顺序

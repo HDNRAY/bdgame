@@ -483,9 +483,11 @@ export class Character {
         if (this.ap > this.maxAp) this.ap = this.maxAp
     }
 
-    /** 增加缠劲（不超过上限） */
-    addChan(amount: number): void {
+    /** 增加缠劲（不超过上限）。返回被上限截断的溢出量（供溢出转化类 buff 使用，如周流不息） */
+    addChan(amount: number): number {
+        const before = this.chan
         this.chan = Math.min(MAX_CHAN, Math.round((this.chan + amount) * 10) / 10)
+        return Math.max(0, Math.round((before + amount - this.chan) * 10) / 10)
     }
 
     /** 消耗缠劲（不足则返回 false 不扣，与 spendAp 一致） */

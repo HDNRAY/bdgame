@@ -54,7 +54,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['qi', 'range', 'qi_action'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.3 }, piercingRatio: 0.5 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.3 }, piercing: 1, piercingRatio: 0.4 }],
         getRange: () => [2, 6],
     },
     {

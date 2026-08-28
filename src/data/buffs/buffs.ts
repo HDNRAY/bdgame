@@ -394,11 +394,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'frost_step_speed',
         name: '踏雪',
-        description: '踏雪如履平地，移动效率+30%。',
+        description: '踏雪如履平地，移动效率+25%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.3,
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.25,
     },
     {
         id: 'wheelchair_speed',
@@ -778,6 +778,48 @@ export const BUFF_DB: BuffDef[] = [
             engine?.emitLog({
                 type: 'system',
                 message: `[天机] 「${attacker.name}」 天机已用（${(source as ActionDefinition).name}），玄机重置`,
+                actorId: attacker.id,
+            })
+        },
+    },
+    {
+        id: 'zhou_liu_bu_xi',
+        name: '周流不息',
+        description: '周流不息，盈虚消长。下个炁招命中+10%/层、伤害+10%/层（出招即消耗）。',
+        tags: ['buff', 'qi', 'chan'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'additive', max: 3 },
+        // 建层时归零（additive 需 stacks≥1 才能建层，但层数应由溢出累积驱动，开局 0 层）
+        onBuffApplied: ({ layer }) => {
+            layer.restoreValue = 0
+            layer.extra = { ...(layer.extra ?? {}), overflowAcc: 0 }
+        },
+        // 缠满后的溢出量累积：每满10点叠1层（累积值存 layer.extra.overflowAcc）
+        onChanOverflow: ({ layer, engine, target, overflow }) => {
+            if (overflow <= 0 || !engine) return
+            const acc = ((layer.extra?.overflowAcc as number | undefined) ?? 0) + overflow
+            layer.extra = { ...(layer.extra ?? {}), overflowAcc: acc }
+            const toLayers = Math.floor(acc / 10)
+            if (toLayers <= 0) return
+            layer.extra = { ...layer.extra, overflowAcc: acc - toLayers * 10 }
+            // 叠层（走 add_buff 统一上限逻辑）
+            processActionEffect(
+                { type: 'add_buff', buffId: 'zhou_liu_bu_xi', stacks: toLayers },
+                { self: target, enemy: engine.getOpponent(target.id)!, engine, tMs: engine.state.turn.currentTime },
+            )
+        },
+        onHitChance: ({ source, layer }) => (isMainMove(source) ? layer.restoreValue * 0.1 : 0),
+        onDealDamage: ({ final, source, layer }) =>
+            isMainMove(source) ? round1(final * (1 + layer.restoreValue * 0.1)) : final,
+        // 出招即消耗全部层（用掉这招的加持）；仅炁主招触发
+        onAction: ({ source, attacker, engine, state, layer }) => {
+            if (!isMainMove(source)) return
+            const stacks = layer.restoreValue
+            if (stacks <= 0) return
+            state.pendingBuffs.delete(`zhou_liu_bu_xi::${attacker.id}`)
+            engine?.emitLog({
+                type: 'system',
+                message: `[周流不息] 「${attacker.name}」 风罡迸发，${(source as ActionDefinition).name} 消耗${stacks}层（命中+${stacks * 10}%、伤害+${stacks * 10}%）`,
                 actorId: attacker.id,
             })
         },

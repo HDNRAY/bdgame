@@ -1077,12 +1077,28 @@ export class BattleEngine {
                 }
                 const chanRegen = calcEffectiveChanRegenPerSec(this.state, char)
                 if (chanRegen > 0) {
-                    char.addChan(chanRegen)
+                    const overflow = char.addChan(chanRegen)
                     this.emitLog({
                         type: 'system',
                         message: `[缠劲回复] ${char.name} 缠劲+${Math.round(chanRegen * 10) / 10}（${char.chan}层）`,
                         actorId: charId,
                     })
+                    // 缠满后的溢出量 → 通知身上声明 onChanOverflow 的 buff（周流不息等溢出转化）
+                    if (overflow > 0) {
+                        forEachBuffOf(this.state.pendingBuffs, char.id, (def, layer) => {
+                            if (!def?.onChanOverflow) return
+                            def.onChanOverflow({
+                                final: 0,
+                                raw: 0,
+                                target: char,
+                                attacker: this.getOpponent(char.id)!,
+                                engine: this,
+                                state: this.state,
+                                layer,
+                                overflow,
+                            })
+                        })
+                    }
                 }
                 if (this.state.phase === 'fighting') {
                     this.state.turn.scheduleSystemEventAt(eventId, nextActionAt + 1000, 'regen_tick')

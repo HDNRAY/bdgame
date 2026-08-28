@@ -64,6 +64,8 @@ export interface BuffDef extends GameEntity {
     apRegenPerSec?: (ctx: BuffHookCtx) => number
     /** 每秒额外缠劲回复量（由引擎统一 regen_tick 发放；返回 0 表示不贡献） */
     chanRegenPerSec?: (ctx: BuffHookCtx) => number
+    /** 缠劲回复溢出回调（缠达到上限后继续回复被截断的量，传入 overflow 实际溢出值；周流不息等溢出转化 buff 用） */
+    onChanOverflow?: (ctx: BuffHookCtx & { overflow: number }) => void
     /** tick 伤害回调 */
     onTickDamage?: (ctx: BuffHookCtx) => number
     /** tick 回复回调 */

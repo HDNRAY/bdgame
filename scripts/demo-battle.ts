@@ -46,7 +46,7 @@ import { formatBattleLog } from '../src/engine/format-log'
 import { StatsTracker } from '../src/engine/combat/stats-tracker'
 
 // ── 满配对手（n=33） ──
-const pBuild = gen(XUANJI, 33)
+const pBuild = gen(QILAN, 33)
 const oBuild = gen(LAIFENG, 33)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
