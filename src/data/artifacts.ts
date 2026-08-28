@@ -726,11 +726,24 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['craft', 'qi', 'implant'],
         grantsActions: ['_sonic_wave'],
     },
-    // ── 武学宝典上（通晓天下武学，闪/招→叠暴击；暴击→叠闪/招） ──
+    // ── 武学宝典总纲（通晓天下武学，闪/招→叠暴击；暴击→叠闪/招） ──
+    {
+        id: 'wuxue_baodian_zonggang',
+        name: '武学宝典总纲',
+        description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
+        tags: ['buff'],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'wuxue_baodian_zonggang' }],
+            },
+        ],
+    },
+    // ── 武学宝典上（攻：奖励标签越多伤害越高） ──
     {
         id: 'wuxue_baodian_shang',
         name: '武学宝典上',
-        description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
+        description: '通晓天下武学路数。每有1个奖励标签，伤害+1%，上限15%。',
         tags: ['buff'],
         triggers: [
             {
@@ -739,11 +752,11 @@ export const ARTIFACTS: Artifact[] = [
             },
         ],
     },
-    // ── 武学宝典下（通晓天下武学路数，奖励标签越多越强） ──
+    // ── 武学宝典下（防：奖励标签越多受伤越少） ──
     {
         id: 'wuxue_baodian_xia',
         name: '武学宝典下',
-        description: '通晓天下武学路数。每有1个奖励标签，伤害+1%、受到伤害-1%，上限各10%。',
+        description: '通晓天下武学路数。每有1个奖励标签，受到伤害-1%，上限15%。',
         tags: ['buff'],
         triggers: [
             {

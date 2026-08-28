@@ -250,14 +250,21 @@ describe('漱玉峰瀑布顿悟', () => {
 })
 
 describe('打工事件（特殊固定奖励）', () => {
-    it('图书馆打工 → 武学宝典上/下/他山之石 三选一；天工坊打工 → 千锤百炼', () => {
+    it('图书馆打工 → 武学宝典总纲/上/下/他山之石/九阴真经 五选三（fixed 规格，运行时抽 3）；天工坊打工 → 千锤百炼', () => {
         const lib = getEvent('library_job')!
         const tg = getEvent('tiangong_job')!
-        expect(lib.rounds.find((r) => r.id === 'reward_round')!.choices.map((c) => c.id)).toEqual([
-            'wuxue_baodian_shang',
-            'wuxue_baodian_xia',
-            'other_mountain',
-        ])
+        // reward_round 改用 fixed 规格（运行时 5 抽 3），选项定义在 reward.choices
+        const libReward = lib.rounds.find((r) => r.id === 'reward_round')!.reward
+        expect(libReward?.kind).toBe('fixed')
+        if (libReward?.kind === 'fixed') {
+            expect(libReward.choices.map((c) => c.id)).toEqual([
+                'wuxue_baodian_zonggang',
+                'wuxue_baodian_shang',
+                'wuxue_baodian_xia',
+                'other_mountain',
+                'jiu_yin_zhen_jing',
+            ])
+        }
         expect(tg.rounds.find((r) => r.id === 'reward_round')!.choices.map((c) => c.id)).toEqual(['qian_chui_bai_lian'])
     })
 

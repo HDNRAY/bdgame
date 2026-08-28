@@ -1,6 +1,7 @@
 import type { ActionDefinition } from '../../engine/entities/action'
 import { hasNoStance } from '../../engine/combat/utils'
 import { round1 } from '../../engine/util/math'
+import { MAX_CHAN } from '../../engine/constants'
 
 /** 内部招式（被动/天赋触发专用，不直接装备） */
 export const INTERNAL_ACTIONS: ActionDefinition[] = [
@@ -393,7 +394,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '一瞬间射出二十七枚银钉，力道万钧，中者必死无救。',
         requiredTags: [],
         apCost: 5,
-        chanCost: 50,
+        chanCost: MAX_CHAN,
         tags: ['pierce', 'range', 'thrown', 'chan'],
         getRange: () => [1, 6] as [number, number],
         onActionHitChance: (base) => base + 0.1,
@@ -488,13 +489,13 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         canUse: (attacker, state) => {
             const enemy = state.characters.find((c) => c.id !== attacker.id)
             if (!enemy) return false
-            return state.position.distance(attacker.id, enemy.id) > 2
+            return state.position.distance(attacker.id, enemy.id) > 1
         },
-        hookNotes: { canUse: '距离大于2m时触发' },
+        hookNotes: { canUse: '距离大于1m时触发' },
         effects: [
             { type: 'short_dash', maxDistance: 3 },
             { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1 } },
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.6 },
         ],
     },
     {

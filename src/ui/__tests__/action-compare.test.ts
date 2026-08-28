@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
 import { getAction } from '../../data/actions'
+import type { Tag } from '../../engine/entities/tag'
 
 /** 复刻 compare 的武器匹配逻辑 */
-function matchWeapon(reqTags: string[]) {
+function matchWeapon(reqTags: Tag[]) {
     if (reqTags.length === 0) return null
     return STARTING_WEAPONS.find((w) => reqTags.every((t) => w.tags.includes(t))) ?? null
 }

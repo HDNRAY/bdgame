@@ -17,11 +17,11 @@ export const LONGNV: OpponentDef = {
         artifact('herb_pouch'),
         artifact('golden_bell_rope'),
         passive('yuxin_sword_mastery'),
-        artifact('wuxue_baodian_shang'),
+        artifact('wuxue_baodian_zonggang'), // 武学宝典总纲（预判）
         action('yufeng_needle'),
         weapon('moxie_sword'),
         weapon('ganjiang_sword'),
-        artifact('wuxue_baodian_xia'),
+        artifact('wuxue_baodian_xia'), // 武学宝典下（防）
         artifact('jiu_yin_zhen_jing'),
         // 13
     ],

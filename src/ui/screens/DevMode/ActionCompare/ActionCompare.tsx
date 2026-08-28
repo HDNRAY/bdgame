@@ -18,6 +18,7 @@ import { UNARMED_ACTIONS } from '../../../../data/actions/unarmed'
 import { calcExpectedDamage } from '../../../../engine/ai/expected-damage'
 import type { BattleState } from '../../../../engine/combat/types'
 import { MAX_CHAN } from '../../../../engine/constants'
+import type { Tag } from '../../../../engine/entities/tag'
 import { calcChanCostInAp } from '../../../../engine/calc/chan-value'
 import type { ActionDefinition } from '../../../../engine/entities/action'
 import { EntityItem } from '../../../components/ui/EntityItem/EntityItem'
@@ -123,7 +124,7 @@ function buildRow(a: ActionDefinition, rawAp: number, chanNow: number): Row {
     const matched = reqTags.length > 0 ? STARTING_WEAPONS.find((w) => reqTags.every((t) => w.tags.includes(t))) : undefined
     const baseWeapon = matched ?? CALC_BARE_HANDS
     // 基准武器模拟为重型（heavy）：燎天势等按重型武器加成的招式在对比中体现
-    atk.weaponDef = { ...baseWeapon, tags: [...new Set([...baseWeapon.tags, 'heavy'])] }
+    atk.weaponDef = { ...baseWeapon, tags: [...new Set([...baseWeapon.tags, 'heavy'])] as Tag[] }
     const weaponRange: [number, number] = baseWeapon.range
 
     const useSummon = a.id === 'wan_fa_gui_yi'

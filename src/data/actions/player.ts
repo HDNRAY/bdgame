@@ -1,4 +1,4 @@
-import { DMG_PER_POISON_TICK } from '../../engine/constants'
+import { DMG_PER_POISON_TICK, MAX_CHAN } from '../../engine/constants'
 import { getAction as getBaseAction } from './index'
 import type { ActionDefinition } from '../../engine/entities/action'
 import { forEachBuffOf } from '../../engine/combat/utils'
@@ -219,7 +219,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '上穷碧落下黄泉，一剑既出，无可遁逃。',
         requiredTags: ['pierce', 'melee'],
         apCost: 5,
-        chanCost: 50,
+        chanCost: MAX_CHAN,
         tags: ['pierce', 'range', 'chan'],
         getRange: () => [0, 10] as [number, number],
         onActionHitChance: () => 1,
@@ -741,7 +741,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '人器合一，天外飞仙。',
         requiredTags: [],
         apCost: 5,
-        chanCost: 50,
+        chanCost: MAX_CHAN,
         tags: ['qi', 'thrown', 'range', 'chan'],
         onActionCritChance: (base) => base + 0.25,
         onActionCritDamage: (base) => base + 0.5,

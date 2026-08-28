@@ -101,7 +101,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '凝缠劲为内息，消耗50缠劲，叠一层「挡」，每层内息回复+0.3/s。',
         requiredTags: [],
         apCost: 1,
-        chanCost: 50,
+        chanCost: MAX_CHAN,
         tags: ['buff', 'pre_action', 'chan'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'gear_shift_buff', stacks: 1 }],

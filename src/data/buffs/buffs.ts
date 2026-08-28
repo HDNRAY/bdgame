@@ -530,10 +530,10 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'herb_pouch',
         name: '蜂草鱼囊',
-        description: '每 5 秒自动化解一层毒素，且恢复2点气血。',
+        description: '每 4 秒自动化解一层毒素，且恢复2点气血。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
-        tickInterval: 5000,
+        tickInterval: 4000,
         onTickHeal: ({ target, engine, state }) => {
             const poisonKey = `poison::${target.id}`
             const poisonLayer = state.pendingBuffs.get(poisonKey)
@@ -1017,8 +1017,8 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        id: 'wuxue_baodian_shang',
-        name: '武学宝典上',
+        id: 'wuxue_baodian_zonggang',
+        name: '武学宝典总纲',
         description: '通晓天下武学，以推演预判。闪避/招架→武学·破+1层；暴击→武学·避+1层。',
         tags: [],
         expiry: { type: 'permanent' },
@@ -1048,20 +1048,27 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        id: 'wuxue_baodian_xia',
-        name: '武学宝典下',
-        description: '通晓天下武学路数。每有1个奖励标签，伤害+1%、受到伤害-1%，上限各10%。',
+        id: 'wuxue_baodian_shang',
+        name: '武学宝典上',
+        description: '通晓天下武学路数。自身每有1个奖励标签，伤害+1%，上限15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        // 每 tag +1% 伤害（上限 10%）
+        // 每 tag +1% 伤害（上限 15%）
         onDealDamage: ({ final, attacker }) => {
-            const pct = Math.min(0.1, countRewardTags(attacker) * 0.01)
+            const pct = Math.min(0.15, countRewardTags(attacker) * 0.01)
             if (pct <= 0) return final
             return round1(final * (1 + pct))
         },
-        // 每 tag -1% 受到伤害（上限 10%）
+    },
+    {
+        id: 'wuxue_baodian_xia',
+        name: '武学宝典下',
+        description: '通晓天下武学路数。自身每有1个奖励标签，受到伤害-1%，上限15%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        // 每 tag -1% 受到伤害（上限 15%）
         onTakeDamage: ({ final, target }) => {
-            const pct = Math.min(0.1, countRewardTags(target) * 0.01)
+            const pct = Math.min(0.15, countRewardTags(target) * 0.01)
             if (pct <= 0) return final
             return round1(final * (1 - pct))
         },

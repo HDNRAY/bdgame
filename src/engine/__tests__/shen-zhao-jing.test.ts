@@ -9,7 +9,7 @@ function makeChar(id: string, name: string, rewards: { type: 'passive'; id: stri
     return new Character({
         id, name, weapon: 'bare_hands',
         baseAttrs: { strength: 14, vitality: 20, agility: 12, dexterity: 12, insight: 14, wisdom: 4 },
-        rewards,
+        rewards: rewards.map((r) => ({ ...r, name: r.id, description: '', tags: [] })),
     })
 }
 

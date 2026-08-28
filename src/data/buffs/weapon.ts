@@ -113,12 +113,12 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'xiu_dong_buff',
         name: '绣冬',
-        description: '势沉力猛，力道化为锋芒。力道×0.2 附加伤害。',
+        description: '势沉力猛，力道化为锋芒。力道×0.15附加伤害。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, attacker }) => {
-            const bonus = round1(attacker.attrs.get('strength') * 0.2)
+            const bonus = round1(attacker.attrs.get('strength') * 0.15)
             return final + bonus
         },
     },
@@ -135,11 +135,11 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'chun_lei_buff',
         name: '春雷',
-        description: '春雷灵巧加成，灵巧增伤。',
+        description: '春雷灵巧加成，灵巧×0.15增伤。',
         tags: ['weapon', 'damage'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker }) => {
-            const bonus = round1(attacker.attrs.get('dexterity') * 0.14)
+            const bonus = round1(attacker.attrs.get('dexterity') * 0.15)
             return final + bonus
         },
     },

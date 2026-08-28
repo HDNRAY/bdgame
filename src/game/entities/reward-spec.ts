@@ -35,7 +35,7 @@ export type RewardSpec =
               id: string
               label: string
               description?: string
-              type?: 'weapon' | 'points'
+              type?: 'weapon' | 'points' | 'artifact'
               slot?: 'main' | 'offhand'
           }[]
       }

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { getBuff } from '../../data/buffs'
 import { getPassive } from '../../data/passives'
 import { Character } from '../entities/character'
+import type { ActionDefinition } from '../entities/action'
 import type { BuffLayer } from '../combat/types'
 
 /** 构造看破 buff 的 layer（含 kanpo_<tag> 计数） */
@@ -77,22 +78,22 @@ describe('hui_lei_qian 虺雷牵', () => {
 
 describe('雷法灌注 → 虺雷牵联动', () => {
     it('雷法强化后的 unarmed 招式带 electric tag，虺雷牵对其生效', () => {
-        const thunderArt = getPassive('thunder_art')
-        const huiLeiQian = getBuff('hui_lei_qian')
+        const thunderArt = getPassive('thunder_art')!
+        const huiLeiQian = getBuff('hui_lei_qian')!
 
         // 六阳掌是 unarmed damage 招式，被雷法强化后应带 electric tag
-        const action = { id: 'liu_yang_zhang', tags: ['unarmed', 'melee'], apCost: 2, effects: [{ type: 'damage', scaling: {} }] }
+        const action: ActionDefinition = { id: 'liu_yang_zhang', name: '六阳掌', description: '', tags: ['unarmed', 'melee'], requiredTags: [], apCost: 2, effects: [{ type: 'damage', scaling: {} }] }
         const enhanced = thunderArt.actionEnhancer!(action)
         expect(enhanced.tags).toContain('electric')
 
         // 虺雷牵对强化后的招式返回 0.08
         const ctx = { final: 0, raw: 0, target: {} as never, attacker: {} as never, state: {} as never, layer: { restoreValue: 1 }, source: enhanced }
-        expect(huiLeiQian!.onHitChance!(ctx as never)).toBe(0.08)
+        expect(huiLeiQian.onHitChance!(ctx as never)).toBe(0.08)
     })
 
     it('非 unarmed 招式不被雷法强化', () => {
-        const thunderArt = getPassive('thunder_art')
-        const action = { id: 'electric_yoyo', tags: ['electric', 'qi'], apCost: 2, effects: [{ type: 'damage', scaling: {} }] }
+        const thunderArt = getPassive('thunder_art')!
+        const action: ActionDefinition = { id: 'electric_yoyo', name: '电光火石', description: '', tags: ['electric', 'qi'], requiredTags: [], apCost: 2, effects: [{ type: 'damage', scaling: {} }] }
         expect(thunderArt.actionEnhancer!(action)).toBe(action) // 原样返回
     })
 })

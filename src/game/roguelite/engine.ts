@@ -320,7 +320,7 @@ export class RogueliteRun implements RogueliteEngine {
             round.choices = picked.map(
                 (c): Choice => ({
                     id: c.id,
-                    type: (c.type ?? 'weapon') === 'points' ? 'points' : 'weapon',
+                    type: c.type ?? 'weapon',
                     label: c.label,
                     description: c.description,
                     slot: c.slot,

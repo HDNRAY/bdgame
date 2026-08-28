@@ -471,13 +471,11 @@ export const LIBRARY_JOB: EventDef = {
     description: '龙语仙抱着一摞比你人还高的书，正发愁。',
     placement: [
         {
-            nodes: [4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
+            nodes: POOL_NODES,
             fallback: true,
             weight: 1,
-            when: { '!': { var: 'flags.library_job_done' } },
         },
     ],
-    effects: [{ kind: 'set', flag: 'library_job_done', to: true }],
     rounds: [
         {
             id: 'intro',
@@ -498,26 +496,42 @@ export const LIBRARY_JOB: EventDef = {
             title: '报酬',
             description:
                 '「整理得不错。」龙语仙把最后一摞放回架上，回头看你，「……你该不会全记住了吧？」\n\n你没说话。你确实记住了——不是哪一招，是天下武学的路数。',
-            choices: [
-                {
-                    id: 'wuxue_baodian_shang',
-                    type: 'artifact',
-                    label: '武学宝典上',
-                    description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
-                },
-                {
-                    id: 'wuxue_baodian_xia',
-                    type: 'artifact',
-                    label: '武学宝典下',
-                    description: '通晓天下武学路数。每有1个奖励标签，伤害+1%、受到伤害-1%，上限各10%。',
-                },
-                {
-                    id: 'other_mountain',
-                    type: 'artifact',
-                    label: '他山之石',
-                    description: '现代搏击技巧总汇。博采众长，洞察入微。',
-                },
-            ],
+            reward: {
+                kind: 'fixed',
+                choices: [
+                    {
+                        id: 'wuxue_baodian_zonggang',
+                        type: 'artifact',
+                        label: '武学宝典总纲',
+                        description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
+                    },
+                    {
+                        id: 'wuxue_baodian_shang',
+                        type: 'artifact',
+                        label: '武学宝典上',
+                        description: '通晓天下武学路数。每有1个奖励标签，伤害+1%，上限15%。',
+                    },
+                    {
+                        id: 'wuxue_baodian_xia',
+                        type: 'artifact',
+                        label: '武学宝典下',
+                        description: '通晓天下武学路数。每有1个奖励标签，受到伤害-1%，上限15%。',
+                    },
+                    {
+                        id: 'other_mountain',
+                        type: 'artifact',
+                        label: '他山之石',
+                        description: '现代搏击技巧总汇。博采众长，洞察入微。',
+                    },
+                    {
+                        id: 'jiu_yin_zhen_jing',
+                        type: 'artifact',
+                        label: '九阴真经',
+                        description: '古墓石壁遗刻，夜夜观读，字字入心。以洞察悟缠劲，每秒按洞察回复缠劲。',
+                    },
+                ],
+            },
+            choices: [],
         },
     ],
 }

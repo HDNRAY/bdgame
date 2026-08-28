@@ -3,12 +3,13 @@ import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { getBuff } from '../../data/buffs'
 import { getPassive } from '../../data/passives'
+import type { ActionDefinition } from '../entities/action'
 
 function makeChar(id: string, name: string, rewards: { type: 'passive'; id: string }[]): Character {
     return new Character({
         id, name, weapon: 'bare_hands',
         baseAttrs: { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 },
-        rewards,
+        rewards: rewards.map((r) => ({ ...r, name: r.id, description: '', tags: [] })),
     })
 }
 
@@ -50,7 +51,7 @@ describe('锐炁诀·炁穿透', () => {
 
     it('与凝炁诀联动:虚实拳(无qi)经凝炁诀增强后带 qi,触发穿透', () => {
         const ningqi = getPassive('ningqi_jue')!
-        const action = { id: 'straight_punch', tags: ['unarmed', 'melee'], effects: [{ type: 'damage', scaling: {} }] }
+        const action: ActionDefinition = { id: 'straight_punch', name: '直拳', description: '', tags: ['unarmed', 'melee'], requiredTags: [], apCost: 2, effects: [{ type: 'damage', scaling: {} }] }
         const enhanced = ningqi.actionEnhancer!(action)
         expect(enhanced.tags).toContain('qi')
         // 增强后带 qi → buff 应拆穿透

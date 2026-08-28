@@ -50,7 +50,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense', 'stance'],
         expiry: { type: 'duration', ms: 6000 },
         stacking: { type: 'none' },
-        onParryChance: () => 0.3,
+        onParryChance: () => 0.5,
     },
     {
         id: 'wind_hear_buff',
@@ -802,13 +802,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'yao_xin_shi_buff',
         name: '药心石',
-        description: '药屋世代相传的护心石，危急时凝炁护心。每3秒自动防御1次，减免3点伤害；持续耗炁0.1AP/s。',
+        description: '药屋世代相传的护心石，危急时凝炁护心。每2秒自动防御1次，减免3点伤害；持续耗炁0.1AP/s。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         apRegenPerSec: () => -0.1,
-        // 5 秒冷却窗口：tick 重置可用；受击时若可用则减免 3 点（伤害≤3 → 归零）
-        tickInterval: 3000,
+        // 2 秒冷却窗口：tick 重置可用；受击时若可用则减免 3 点（伤害≤3 → 归零）
+        tickInterval: 2000,
         onTickHeal: ({ layer }) => {
             layer.extra = { ...(layer.extra ?? {}), ready: true }
             return 0
