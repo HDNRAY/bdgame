@@ -525,7 +525,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'qishier_bian',
         name: '七十二变',
-        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧提升。',
+        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧、洞察、推演提升。',
         tags: ['passive', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qishier_bian', stacks: 0 }] },
@@ -537,6 +537,16 @@ export const PASSIVES: Passive[] = [
         description: '以灵巧驾驭长兵，棍花如屏，可格挡远程攻击。灵巧越高招架远程越强。',
         tags: ['passive', 'defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hua_gun_parry' }] }],
+    },
+    {
+        // 疯魔棍法：棍招命中叠疯魔层（≤5），伤换伤；满层下一棍必中+翻倍
+        id: 'feng_mo_gun_fa',
+        name: '疯魔棍法',
+        description: '棍势如疯，不守反攻。棍招命中叠1层「疯魔」（最多5层），每层自身伤害+5%、受到伤害+5%；叠满5层后，下一棍招必中且伤害翻倍，用后归零。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'feng_mo_gun_fa' }] },
+        ],
     },
     {
         id: 'frost_step',

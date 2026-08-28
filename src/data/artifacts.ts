@@ -197,7 +197,7 @@ export const ARTIFACTS: Artifact[] = [
         description: '菩提枝编成的头环，澄澈心念。推演+4，50%免疫推演降低。',
         tags: ['buff', 'defense'],
         effects: [
-            { type: 'stat_buff', attrs: { wisdom: 3 } },
+            { type: 'stat_buff', attrs: { wisdom: 4 } },
             {
                 type: 'stat_restriction',
                 check: (_char, attr, _cur, delta) => {

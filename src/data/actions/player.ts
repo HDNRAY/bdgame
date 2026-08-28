@@ -469,9 +469,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['blunt', 'polearm'],
         apCost: 2,
         tags: ['blunt', 'polearm'],
-        onActionCritChance: (base) => base + 0.05,
-        hookNotes: { critChance: '+5%' },
-        effects: [{ type: 'damage', scaling: { strength: 0.3, dexterity: 0.1 } }],
+        onActionHitChance: (base) => base + 0.05,
+        hookNotes: { hitChance: '+5%' },
+        effects: [{ type: 'damage', scaling: { strength: 0.25, dexterity: 0.1 } }],
     },
     {
         id: 'rod_cleave',
@@ -480,8 +480,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 2,
         tags: ['blunt', 'polearm'],
-        onActionHitChance: (base) => base + 0.05,
-        hookNotes: { hitChance: '+5%' },
+        onActionCritChance: (base) => base + 0.05,
+        hookNotes: { critChance: '+5%' },
         effects: [{ type: 'damage', scaling: { strength: 0.3, vitality: 0.1 } }],
     },
     {
@@ -543,7 +543,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'polearm'],
         getRange: () => [1, 3],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
+            { type: 'short_dash', maxDistance: 1 },
+            { type: 'damage', scaling: { strength: 0.2, agility: 0.1 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
         ],
     },

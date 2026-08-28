@@ -89,7 +89,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
             // 召唤物（分身等）不吃本体武器的距离加成
             if (source?.tags?.includes('summon')) return final
             const dist = state.position.distance(attacker.id, target.id)
-            const bonus = round1((attacker.attrs.get('strength') * 0.6 * Math.max(0, 6 - dist)) / 6)
+            const bonus = round1(attacker.attrs.get('strength') * 0.03 * Math.max(0, 6 - dist))
             return round1(final + bonus)
         },
         onParryPenetration: ({ final, raw }) => {

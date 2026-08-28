@@ -297,12 +297,12 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'santou_liubi',
         name: '三头六臂',
-        description: `消耗${MAX_CHAN}层缠劲，进入三头六臂状态：后续3个回合结束时AP回满。`,
+        description: `消耗36层缠劲，进入三头六臂状态：后续3个回合结束时AP回满。`,
         requiredTags: [],
         apCost: 3,
         tags: ['buff', 'pre_action'],
         target: 'self',
-        chanCost: MAX_CHAN,
+        chanCost: 36,
         effects: [{ type: 'add_buff', buffId: 'santou_liubi', stacks: 2 }],
     },
     {
