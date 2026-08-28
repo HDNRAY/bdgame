@@ -146,12 +146,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'circle',
         name: '圆',
-        description: '锁定目标，洞察+2，对4AP及以上招式命中+25%。',
+        description: '锁定目标，洞察+2，对4AP及以上招式命中+15%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { insight: 2 },
-        onHitChance: ({ source }) => (((source as ActionDefinition | undefined)?.apCost ?? 0) >= 4 ? 0.25 : 0),
+        onHitChance: ({ source }) => (((source as ActionDefinition | undefined)?.apCost ?? 0) >= 4 ? 0.15 : 0),
     },
     {
         id: 'overlord_art_buff',

@@ -19,7 +19,7 @@ export const HONGTI: OpponentDef = {
         action('push_palm'),
         action('wrist_strike'), // 点腕
         action('crushing_blow'), // 崩拳
-        action('qi_bolt_4'),
+        action('qi_bolt'),
         action('break_formation'),
         // 12
     ],
