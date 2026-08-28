@@ -123,7 +123,12 @@ export const PASSIVES: Passive[] = [
         name: '周流不息',
         description: '周流不息，盈虚消长。缠劲满溢时自动凝聚。',
         tags: ['passive', 'buff', 'qi', 'chan'],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'zhou_liu_bu_xi', stacks: 1 }] }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'zhou_liu_bu_xi', stacks: 1 }],
+            },
+        ],
     },
     {
         id: 'human_radar',
@@ -416,17 +421,29 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yue_nv_sword',
         name: '越女剑法',
-        description: '白猿授剑，万兵为剑。刀枪棍棒在手亦是剑法，出剑极快，身随剑走。',
+        description: '白猿授剑，万兵为剑。出剑极快，身随剑走。',
         tags: ['buff', 'passive'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yue_nv_buff' }] }],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
             return {
                 ...def,
-                tags: [...new Set<Tag>([...def.tags, 'pierce'])],
-                // extraPreDelay: (def.extraPreDelay ?? 0) - 100,
+                // 不再加 pierce tag（由「不滞于物」统一赋予），只保留出剑极快的身法
                 effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])],
             }
+        },
+    },
+    {
+        // 不滞于物：万兵在手皆可为剑——所有伤害招式带 pierce 标记（供越女剑意全招生效），并按推演加伤
+        id: 'bu_zhi_yu_wu',
+        name: '不滞于物',
+        description: '不滞于物，草木竹石皆可为剑。按推演附加伤害。',
+        tags: ['passive', 'buff'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'bu_zhi_yu_wu' }] }],
+        actionEnhancer: (def) => {
+            if (!def.effects?.some((e) => e.type === 'damage')) return def
+            if (def.tags.includes('pierce')) return def
+            return { ...def, tags: [...def.tags, 'pierce'] }
         },
     },
     // ── 杨过 ──
@@ -773,9 +790,7 @@ export const PASSIVES: Passive[] = [
         name: '锐炁诀',
         description: '炁凝如锋，锐不可当。所有带炁的招式，30%伤害转为穿透，无视招架与减伤。',
         tags: ['passive', 'buff', 'qi'],
-        triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rui_qi_jue' }] },
-        ],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rui_qi_jue' }] }],
     },
     {
         id: 'sword_capture',

@@ -73,10 +73,24 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'yue_nv_buff',
         name: '越女剑意',
-        description: '白猿授剑，灵巧化为剑势，附加灵巧×0.1伤害。',
+        description: '白猿授剑，灵巧化为剑势，附加灵巧×0.06伤害（仅劈砍/戳刺招式）。',
         tags: ['pierce', 'slash', 'damage'],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker }) => round1(final + attacker.attrs.get('dexterity') * 0.1),
+        onDealDamage: ({ final, attacker, source }) => {
+            // 仅 pierce 或 slash 招式生效（配合「不滞于物」的全招 pierce 标记可全招生效）
+            const isBlade = source?.tags?.includes('pierce') || source?.tags?.includes('slash')
+            if (!isBlade) return final
+            return round1(final + attacker.attrs.get('dexterity') * 0.06)
+        },
+    },
+    {
+        // 不滞于物：按推演附加伤害
+        id: 'bu_zhi_yu_wu',
+        name: '不滞于物',
+        description: '不滞于物，草木竹石皆可为剑。附加推演×0.06伤害。',
+        tags: ['damage'],
+        expiry: { type: 'permanent' },
+        onDealDamage: ({ final, attacker }) => round1(final + attacker.attrs.get('wisdom') * 0.06),
     },
     {
         id: 'thunder_bonus',

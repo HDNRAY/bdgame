@@ -8,6 +8,7 @@ export const HONGTI: OpponentDef = {
     name: '白山月',
     weapon: 'dagger',
     targetAttrs: HONGTI_ATTRS,
+    battleStyle: 'melee',
     rewards: [
         action('sword_thrust'),
         passive('inner_power'),
@@ -15,6 +16,7 @@ export const HONGTI: OpponentDef = {
         artifact('other_mountain'),
         passive('tai_chi_mastery'),
         passive('yue_nv_sword'),
+        passive('bu_zhi_yu_wu'), // 不滞于物:全招 pierce 标记 + 推演加伤
         action('qi_slash'),
         action('push_palm'),
         action('wrist_strike'), // 点腕
