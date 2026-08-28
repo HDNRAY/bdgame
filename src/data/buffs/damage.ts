@@ -420,7 +420,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.01,
+        onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.015,
     },
     {
         id: 'yi_dian_po_xiao_buff',

@@ -23,7 +23,8 @@ export const SANGYUAN: OpponentDef = {
         action('spinning_kick'),
         passive('gear_shift'),
         artifact('chan_orb'),
-        // 12
+        passive('shen_zhao_jing'), // 神照经：血越少 AP 回复越快（最多+0.5/秒）
+        // 13
     ],
     actionConfigs: [
         {

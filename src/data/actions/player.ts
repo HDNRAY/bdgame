@@ -685,7 +685,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 9],
         effects: [
             { type: 'ignore_parry' },
-            { type: 'damage', scaling: { dexterity: 0.2, wisdom: 0.2 } },
+            { type: 'damage', scaling: { dexterity: 0.2, wisdom: 0.3 } },
             { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
     },

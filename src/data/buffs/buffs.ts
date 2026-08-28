@@ -1235,6 +1235,15 @@ export const BUFF_DB: BuffDef[] = [
             layer.extra = { str, agi, dex }
         },
     },
+    {
+        // 神照经：血越少 AP 回复越快（额外回复，封顶 0.5/秒）。onHpChange 触发重算行动时间
+        id: 'shen_zhao_jing',
+        name: '神照经',
+        description: '神照通明，气血愈衰，气机愈盛。气血越低，AP回复越快，最多+0.5/秒。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        apRegenPerSec: ({ target }) => 0.5 * (1 - target.hp / target.maxHp),
+    },
     // ── 观自在眼（姬然） ──
     {
         id: 'guan_zi_zai_yan',

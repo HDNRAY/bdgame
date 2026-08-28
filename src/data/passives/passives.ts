@@ -822,6 +822,16 @@ export const PASSIVES: Passive[] = [
         grantsActions: ['gear_hang'],
     },
     {
+        // 神照经：血越少 AP 回复越快（额外回复，封顶 0.5/秒）
+        id: 'shen_zhao_jing',
+        name: '神照经',
+        description: '神照通明，气血愈衰，气机愈盛。气血越低，AP回复越快，最多+0.5/秒。',
+        tags: ['passive', 'buff'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'shen_zhao_jing' }] },
+        ],
+    },
+    {
         id: 'karate',
         name: '空手道',
         description: '空手道不打蛮力，讲究拳到脚到、蹬地转腰，把劲凝在最刁钻的打击点上。空手拳脚伤害+10%，招式AP-0.5。',
