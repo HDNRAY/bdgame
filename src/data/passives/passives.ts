@@ -864,6 +864,16 @@ export const PASSIVES: Passive[] = [
         requireAttrsMin: { dexterity: 16 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lian_da_mi_jue' }] }],
     },
+    // ── 毒药大师（唐柔·唐门制毒） ──
+    {
+        id: 'du_yao_da_shi',
+        name: '毒药大师',
+        description: '唐门制毒世家，以巧手施毒。施毒时，按自身暴击率几率多叠一层毒。',
+        tags: ['passive', 'inherent', 'poison'],
+        triggers: [
+            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'du_yao_da_shi' }] },
+        ],
+    },
     {
         id: 'sekai_heroism',
         name: '舍得心法',

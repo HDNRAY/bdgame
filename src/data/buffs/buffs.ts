@@ -1,7 +1,7 @@
 import { processActionEffect } from '../../engine/combat/effects'
 import { forEachBuffOf, revertBuffMods } from '../../engine/combat/utils'
 import { applyAttrMods } from '../../engine/combat/utils/buff-layer'
-import { calcParryChance, calcApRegenPerSec, calcRoll } from '../../engine/calc/damage'
+import { calcParryChance, calcApRegenPerSec, calcRoll, calcCritChance, calcPoisonTicksPerStack } from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
 import type { BuffDef } from './types'
 import { DEFENSE_BUFFS } from './defense'
@@ -1368,6 +1368,40 @@ export const BUFF_DB: BuffDef[] = [
         onDebuffApplied: ({ layer, buffId }) => {
             if (!layer || buffId !== 'poison') return
             if (layer.extra) layer.extra.poisonMult = 2
+        },
+    },
+    // ── 毒药大师（唐柔·唐门制毒） ──
+    {
+        id: 'du_yao_da_shi',
+        name: '毒药大师',
+        description: '唐门制毒世家，施毒精微。施毒时，按自身暴击率几率多叠一层毒。',
+        tags: ['poison'],
+        expiry: { type: 'permanent' },
+        onDebuffApplied: ({ self, enemy, engine, state, layer, buffId }) => {
+            if (!layer || buffId !== 'poison' || !engine) return
+            // 自身当前暴击率（基础 + 经络初鉴等 onCritChance 修正）
+            let bonus = 0
+            forEachBuffOf(state.pendingBuffs, self.id, (def, l) => {
+                if (def?.onCritChance)
+                    bonus += def.onCritChance({
+                        final: 0,
+                        raw: 0,
+                        target: enemy,
+                        attacker: self,
+                        engine,
+                        state,
+                        layer: l,
+                    })
+            })
+            const crit = calcCritChance(self.attrs.get('dexterity'), self.attrs.get('insight'), bonus)
+            if (calcRoll(crit).success) {
+                // 直接往 poison 层数据里追加 1 层（remainingTicks +1，restoreValue+1），不再走施加流程，无递归
+                const ticksPerStack = calcPoisonTicksPerStack(enemy.attrs.get('wisdom'))
+                const existing: number[] = (layer.extra?.remainingTicks as number[]) ?? []
+                existing.push(ticksPerStack)
+                layer.restoreValue = (layer.restoreValue ?? 0) + 1
+                layer.extra = { ...layer.extra, remainingTicks: existing }
+            }
         },
     },
     // ── 内息澎湃（AP回复倍率） ──

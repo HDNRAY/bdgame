@@ -23,7 +23,8 @@ export const TANGROU: OpponentDef = {
         artifact('tempest'),
         artifact('qing_nang_san_bao'),
         passive('lian_da_mi_jue'),
-        // 12
+        passive('du_yao_da_shi'),
+        // 13
     ],
     actionConfigs: [
         { actionId: 'push_hand', triggerId: 'on_parry' },
