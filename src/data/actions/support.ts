@@ -321,6 +321,17 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 1 }],
     },
     {
+        id: 'shi_qi',
+        name: '蚀炁',
+        description: '以炁蚀敌，削弱对手气力与推演。',
+        requiredTags: [],
+        apCost: 1,
+        chanCost: 12,
+        tags: ['debuff', 'post_action', 'qi', 'range'],
+        getRange: () => [1, 5] as [number, number],
+        effects: [{ type: 'add_debuff', buffId: 'weakness', stacks: 3, chance: 1 }],
+    },
+    {
         id: 'spirit_sword',
         name: '灵剑',
         description: '凝炁为刃，剑炁可穿透防御。',

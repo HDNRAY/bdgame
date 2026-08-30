@@ -23,7 +23,8 @@ export const JUNSHI: OpponentDef = {
         weapon('floating_silk'),
         // 天生道种
         artifact('innate_seed'),
-        // 12
+        action('shi_qi'),
+        // 13
     ],
     actionConfigs: [
         { actionId: 'condense_shield', triggerId: 'on_took_damage' },
