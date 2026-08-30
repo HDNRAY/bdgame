@@ -1,12 +1,12 @@
 import { type OpponentDef } from '.'
-import { action, passive } from '../../engine/util/reward-utils'
+import { action, artifact, passive } from '../../engine/util/reward-utils'
 
-const XUNXIANG_ATTRS = { strength: 4, vitality: 6, agility: 16, dexterity: 14, insight: 14, wisdom: 20 }
+const XUNXIANG_ATTRS = { strength: 8, vitality: 6, agility: 14, dexterity: 14, insight: 14, wisdom: 20 }
 
 export const XUNXIANG: OpponentDef = {
     id: 'xunxiang',
     name: '凤寻香',
-    battleStyle: 'ranged',
+    battleStyle: 'mid',
     weapon: 'bare_hands',
     targetAttrs: XUNXIANG_ATTRS,
     rewards: [
@@ -22,7 +22,8 @@ export const XUNXIANG: OpponentDef = {
         passive('no_way_win'),
         passive('ling_long_xin_qiao'),
         action('tian_wai_fei_xian'),
-        // 12
+        artifact('zhu_ye_qing'),
+        // 13
     ],
     actionConfigs: [
         { actionId: 'dian_xue', triggerId: 'on_dodge' },

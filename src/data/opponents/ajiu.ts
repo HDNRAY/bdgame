@@ -16,7 +16,7 @@ export const AJIU: OpponentDef = {
         action('blaze_strike'),
         passive('zhu_huo_jue'),
         artifact('titanium_arm'),
-        action('iron_pellet'),
+        action('yin_zhen'),
         artifact('muscle_boost'),
         passive('xuannv_sword'),
         artifact('power_furnace'),
@@ -25,7 +25,7 @@ export const AJIU: OpponentDef = {
     ],
     actionConfigs: [
         {
-            actionId: 'iron_pellet',
+            actionId: 'yin_zhen',
             triggerId: 'on_dodged',
         },
         { actionId: '_arm_explosion', conditionId: 'hp_below_50' },

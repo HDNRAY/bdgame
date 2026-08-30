@@ -18,7 +18,7 @@ export const TANGROU: OpponentDef = {
         passive('dian_xue_passive'),
         passive('can_ying_bu'),
         passive('fei_hua_shou'),
-        action('iron_pellet'),
+        action('dart_throw'),
         action('push_hand'),
         artifact('tempest'),
         artifact('qing_nang_san_bao'),

@@ -17,7 +17,7 @@ export const HEIYUN: OpponentDef = {
         passive('momentum_mastery'),
         passive('drunken_step'),
         passive('sword_dominion'),
-        artifact('zhu_ye_qing'),
+        artifact('bu_lao_quan'),
         action('one_night_dance'),
         artifact('floating_eye'),
 

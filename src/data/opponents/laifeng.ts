@@ -21,7 +21,7 @@ export const LAIFENG: OpponentDef = {
         artifact('frog_gall'),
         action('qi_bolt_4'),
         action('qinlong_gong'),
-        artifact('bu_lao_quan'),
+        artifact('zhu_ye_qing'),
         artifact('jiu_yin_zhen_jing'),
         passive('rui_qi_jue'), // 锐炁诀：与凝炁诀联动，全招 40% 穿透
         // 13

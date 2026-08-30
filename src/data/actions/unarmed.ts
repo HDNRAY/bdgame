@@ -40,19 +40,6 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         ],
     },
     {
-        id: 'flick',
-        name: '弹指',
-        description: '指间弹出炁劲，击中目标短暂眩晕。',
-        requiredTags: ['unarmed'],
-        apCost: 2,
-        tags: ['unarmed', 'stun', 'qi', 'range'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
-            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.4 },
-        ],
-        getRange: () => [0, 6],
-    },
-    {
         id: 'shadow_fist',
         name: '无影拳',
         description: '看似柔弱的小拳头，实则借全身旋转之力。',

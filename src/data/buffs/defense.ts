@@ -321,7 +321,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             if (
                 source?.tags?.includes('unarmed') &&
                 !source?.tags?.includes('qi') &&
-                !source?.tags?.includes('range')
+                !source?.tags?.includes('range') &&
+                Math.random() < 0.8 // 80% 概率触发反伤流血
             ) {
                 const bleedKey = `bleed::${attacker.id}`
                 const existing = state.pendingBuffs.get(bleedKey)
@@ -455,21 +456,21 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'zhu_ye_qing',
         name: '竹叶青',
-        description: '每3秒回复3点气血，持续9秒。',
-        tags: ['defense', 'jiu'],
-        expiry: { type: 'duration', ms: 9000 },
-        stacking: { type: 'additive', max: 3 },
-        tickInterval: 3000,
-        onTickHeal: () => 3,
-    },
-    {
-        id: 'bu_lao_quan',
-        name: '不老泉',
-        description: '每层AP恢复+0.3/秒，持续9秒。',
+        description: '翠竹清冽，饮后内息奔涌。每层AP恢复+0.3/秒，持续9秒。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
         stacking: { type: 'additive', max: 3 },
         apRegenPerSec: ({ layer }) => 0.3 * (layer.restoreValue ?? 1),
+    },
+    {
+        id: 'bu_lao_quan',
+        name: '不老泉',
+        description: '养生琼浆，饮后气血缓缓流转。每3秒回复5点气血，持续9秒。',
+        tags: ['defense', 'jiu'],
+        expiry: { type: 'duration', ms: 9000 },
+        stacking: { type: 'additive', max: 3 },
+        tickInterval: 3000,
+        onTickHeal: () => 5,
     },
     {
         id: 'nv_er_hong',

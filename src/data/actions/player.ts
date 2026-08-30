@@ -11,17 +11,17 @@ import { round1 } from '../../engine/util/math'
 export const PLAYER_ACTIONS: ActionDefinition[] = [
     // ── 暗器系 ──
     {
-        id: 'iron_pellet',
-        name: '铁莲子',
-        description: '指间弹出铁莲子，钝击伤穴。',
+        id: 'flick',
+        name: '弹指',
+        description: '指间弹出炁劲，击中目标短暂眩晕。',
         requiredTags: [],
         apCost: 2,
-        tags: ['blunt', 'range', 'thrown'],
-        getRange: () => [1, 5] as [number, number],
+        tags: ['thrown', 'stun', 'qi', 'range', 'blunt'],
         effects: [
-            { type: 'damage', scaling: { dexterity: 0.2, strength: 0.1 }, fixed: 2 },
-            { type: 'knockback', distance: 1 },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
+            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.4 },
         ],
+        getRange: () => [0, 6],
     },
     {
         id: 'blood_droplet',
@@ -29,7 +29,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '以血为引，凝炁成滴，射向对手。消耗10%当前气血。',
         requiredTags: [],
         apCost: 2,
-        tags: ['qi', 'unarmed', 'range'],
+        tags: ['qi', 'unarmed', 'range', 'thrown'],
         getRange: () => [2, 4],
         onActionHitChance: (base) => base + 0.2,
         hookNotes: { hitChance: '+20%' },
@@ -52,9 +52,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['pierce', 'range', 'thrown'],
         getRange: () => [1, 5] as [number, number],
-        onActionHitChance: (base) => base + 0.1,
-        hookNotes: { hitChance: '+10%' },
-        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
+        effects: [
+            { type: 'ignore_parry' },
+            { type: 'damage', scaling: { dexterity: 0.2, strength: 0.1 }, piercingRatio: 0.5 },
+        ],
     },
     {
         id: 'dart_throw',
@@ -64,7 +65,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['slash', 'range', 'thrown'],
         getRange: () => [1, 6],
-        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 }, fixed: 1 }],
+        onActionHitChance: (base) => base + 0.03,
+        hookNotes: { hitChance: '+3%' },
+        effects: [{ type: 'damage', scaling: { strength: 0.3, dexterity: 0.1 } }],
     },
     {
         id: 'yufeng_needle',
@@ -83,17 +86,14 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'throwing_knife',
         name: '飞刀',
-        description: '例不虚发，飞刀破空。',
+        description: '例不虚发，飞刀破空，刀势凌厉易出暴击。',
         requiredTags: [],
         apCost: 2,
         tags: ['range', 'pierce', 'slash', 'thrown'],
-        getRange: () => [1, 6],
-        effects: [
-            {
-                type: 'ignore_parry',
-            },
-            { type: 'damage', fixed: 7 },
-        ],
+        getRange: () => [0, 6],
+        onActionCritChance: (base) => base + 0.1,
+        hookNotes: { critChance: '+10%' },
+        effects: [{ type: 'damage', scaling: { dexterity: 0.1, strength: 0.1 }, fixed: 3 }],
     },
     {
         id: 'sheng_si_fu',
