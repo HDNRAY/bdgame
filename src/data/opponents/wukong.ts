@@ -22,7 +22,7 @@ export const WUKONG: OpponentDef = {
         weapon('dinghai_shen_tie'),
         artifact('fen_shen_qiu'),
         artifact('pu_ti_tou_huan'),
-        passive('feng_mo_gun_fa'), // 疯魔棍法：棍招命中叠层，伤换伤；满5层爆发
+        passive('feng_mo_gong'), // 疯魔棍法：棍招命中叠层，伤换伤；满5层爆发
         // 13
     ],
     actionConfigs: [

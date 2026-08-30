@@ -21,7 +21,8 @@ export const AJIU: OpponentDef = {
         passive('xuannv_sword'),
         artifact('power_furnace'),
         passive('ku_chan_shen_gong'),
-        // 12
+        passive('feng_mo_gong'),
+        // 13
     ],
     actionConfigs: [
         {

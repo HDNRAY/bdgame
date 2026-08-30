@@ -473,35 +473,35 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         },
     },
     {
-        // 疯魔棍法：棍招命中叠疯魔层（≤5），每层伤换伤(+5%/-5%)；满5层下一棍必中+伤害翻倍，用后归零
-        id: 'feng_mo_gun_fa',
+        // 疯魔功：任何招式命中叠疯魔层（≤5），每层伤换伤(+5%/-5%)；满5层下一招必中+伤害翻倍，用后归零
+        id: 'feng_mo_gong',
         name: '疯魔',
         description:
-            '棍势如疯，不守反攻。棍招命中叠1层（最多5层），每层自身伤害+5%、受到伤害+5%；叠满5层后，下一棍招必中且伤害翻倍，用后归零。',
+            '势如疯魔，不守反攻。招式命中叠1层（最多5层），每层自身伤害+5%、受到伤害+5%；叠满5层后，下一招必中且伤害翻倍，用后归零。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 5 },
         onDealDamage: ({ final, source, layer, attacker, engine, state }) => {
-            const isRod =
-                source?.tags?.includes('polearm') &&
+            const isMain =
+                !!source &&
                 !source.tags.includes('pre_action') &&
                 !source.tags.includes('post_action') &&
                 !source.tags.includes('summon')
             const stacks = layer.restoreValue ?? 0
-            // 满层状态（已是5层）：本棍必中（onHitChance）已保证命中，吃5层增伤+翻倍，用后归零
+            // 满层状态（已是5层）：本招必中（onHitChance）已保证命中，吃5层增伤+翻倍，用后归零
             if (stacks >= 5) {
                 const dmg = round1(round1(final * (1 + stacks * 0.05)) * 2)
-                state.pendingBuffs.delete(`feng_mo_gun_fa::${attacker.id}`)
+                state.pendingBuffs.delete(`feng_mo_gong::${attacker.id}`)
                 engine?.emitLog({
                     type: 'system',
-                    message: `[疯魔] 「${attacker.name}」 疯魔爆发，一棍定音！伤害翻倍`,
+                    message: `[疯魔] 「${attacker.name}」 疯魔爆发，一招定音！伤害翻倍`,
                     actorId: attacker.id,
                 })
                 return dmg
             }
-            // 未满层：棍招命中 → 先叠层，这一棍就吃到新层（命中即疯，本棍生效）
+            // 未满层：主招命中 → 先叠层，这一招就吃到新层（命中即疯，本招生效）
             let dmg = final
-            if (isRod && engine) {
+            if (isMain && engine) {
                 const newStacks = Math.min(5, stacks + 1)
                 layer.restoreValue = newStacks
                 if (newStacks < 5) {
@@ -512,11 +512,11 @@ export const DAMAGE_BUFFS: BuffDef[] = [
                         actorId: attacker.id,
                     })
                 } else {
-                    // 叠到满层：本棍吃+25%但不翻倍，下一棍才爆发
+                    // 叠到满层：本招吃+25%但不翻倍，下一招才爆发
                     dmg = round1(final * 1.25)
                     engine.emitLog({
                         type: 'system',
-                        message: `[疯魔] 「${attacker.name}」 疯魔已满（5/5），下一棍爆发！`,
+                        message: `[疯魔] 「${attacker.name}」 疯魔已满（5/5），下一招爆发！`,
                         actorId: attacker.id,
                     })
                 }
@@ -531,8 +531,8 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             return round1(final * (1 + stacks * 0.05))
         },
         onHitChance: ({ source, layer }) =>
-            source?.tags?.includes('polearm') &&
             (layer.restoreValue ?? 0) >= 5 &&
+            !!source &&
             !source.tags.includes('pre_action') &&
             !source.tags.includes('post_action') &&
             !source.tags.includes('summon')

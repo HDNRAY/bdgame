@@ -540,14 +540,13 @@ export const PASSIVES: Passive[] = [
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hua_gun_parry' }] }],
     },
     {
-        // 疯魔棍法：棍招命中叠疯魔层（≤5），伤换伤；满层下一棍必中+翻倍
-        id: 'feng_mo_gun_fa',
-        name: '疯魔棍法',
-        description: '棍势如疯，不守反攻。棍招命中叠1层「疯魔」（最多5层），每层自身伤害+5%、受到伤害+5%；叠满5层后，下一棍招必中且伤害翻倍，用后归零。',
+        // 疯魔功：任何招式命中叠疯魔层（≤5），伤换伤；满层下一招必中+翻倍
+        id: 'feng_mo_gong',
+        name: '疯魔功',
+        description:
+            '势如疯魔，不守反攻。招式命中叠1层「疯魔」（最多5层），每层自身伤害+5%、受到伤害+5%；叠满5层后，下一招必中且伤害翻倍，用后归零。',
         tags: ['passive', 'buff'],
-        triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'feng_mo_gun_fa' }] },
-        ],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'feng_mo_gong' }] }],
     },
     {
         id: 'frost_step',
@@ -838,9 +837,7 @@ export const PASSIVES: Passive[] = [
         name: '神照经',
         description: '神照通明，气血愈衰，气机愈盛。气血越低，AP回复越快，最多+0.5/秒。',
         tags: ['passive', 'buff'],
-        triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'shen_zhao_jing' }] },
-        ],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'shen_zhao_jing' }] }],
     },
     {
         id: 'karate',
@@ -871,9 +868,7 @@ export const PASSIVES: Passive[] = [
         name: '毒药大师',
         description: '唐门制毒世家，以巧手施毒。施毒时，按自身暴击率几率多叠一层毒。',
         tags: ['passive', 'inherent', 'poison'],
-        triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'du_yao_da_shi' }] },
-        ],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'du_yao_da_shi' }] }],
     },
     {
         id: 'sekai_heroism',
