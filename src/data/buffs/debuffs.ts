@@ -1,5 +1,6 @@
 import type { BuffDef } from './types'
 import { processActionEffect } from '../../engine/combat/effects'
+import { revertBuffMods } from '../../engine/combat/utils/buff-layer'
 import { calcApRegenPerSec, calcPoisonTicksPerStack } from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
 
@@ -213,7 +214,7 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'fen_shen_cost',
         name: '分身耗炁',
-        description: '以炁维持分身，每个分身每秒消耗0.02点内息。',
+        description: '以炁维持分身，每秒消耗0.05点内息。',
         tags: ['summon', 'debuff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -230,16 +231,32 @@ export const DEBUFF_DB: BuffDef[] = [
     },
     { id: 'max_ap_mod', name: '失能', description: '最大AP变化。', tags: [], expiry: { type: 'permanent' } },
     { id: 'max_hp_mod', name: '失血', description: '最大HP变化。', tags: [], expiry: { type: 'permanent' } },
-    // ── 泼油 ──
+    // ── 浸油（忍者工具包·泼油） ──
     {
         id: 'oil_coating',
-        name: '泼油',
-        description: '浑身浇满油，整场灼烧伤害翻倍。',
+        name: '浸油',
+        description: '浑身浸满油，灼烧伤害翻倍，身法-2。灼烧额外伤害累计20点后油被烧尽。',
         tags: ['debuff'],
         expiry: { type: 'permanent' },
-        // 常驻：灼烧 tick 伤害翻倍（油不消耗；与铸火诀/千锤百炼同一 onDebuffTick 数据钩子）
-        onDebuffTick: ({ buffId, damage }) => {
-            if (buffId !== 'burn') return undefined
+        attrMods: { agility: -2 },
+        // 灼烧 tick 伤害翻倍；累计翻倍带来的额外伤害，达到 20 后移除自身（油烧尽，可重新泼）
+        onDebuffTick: ({ buffId, damage, layer, engine, target }) => {
+            if (buffId !== 'burn' || !layer) return undefined
+            const extra = damage // 翻倍部分 = 原始伤害
+            const acc = ((layer.extra?.burnExtra as number) ?? 0) + extra
+            if (acc >= 20) {
+                if (engine && target) {
+                    revertBuffMods(layer, target, engine.state)
+                    engine.state.pendingBuffs.delete(`oil_coating::${target.id}`)
+                    engine.emitLog({
+                        type: 'system',
+                        message: `[浸油] ${target.name} 身上的油被烧尽了`,
+                        actorId: target.id,
+                    })
+                }
+                return Math.max(0, round1(damage * 2))
+            }
+            layer.extra = { ...layer.extra, burnExtra: acc }
             return Math.max(0, round1(damage * 2))
         },
     },

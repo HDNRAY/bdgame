@@ -20,13 +20,18 @@ export const ORANGE: OpponentDef = {
         artifact('ninja_tool_kit'),
         action('blaze_strike'),
         passive('no_light_wisdom'),
+        action('yan_quan'),
         weapon('broken_blade'),
-        passive('momentum_mastery'),
+        action('horizontal_slash'),
         artifact('fen_shen_qiu'),
-        // 12
+        // 13
     ],
     actionConfigs: [
-        { actionId: 'dart_throw', triggerId: 'on_dodged' },
+        { actionId: 'dart_throw', triggerId: 'on_dodge' },
+        {
+            actionId: 'horizontal_slash',
+            triggerId: 'on_dodged',
+        },
         {
             actionId: 'light_slash',
             triggerId: 'on_parried',

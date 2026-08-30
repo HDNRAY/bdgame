@@ -178,7 +178,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'fen_shen_qiu',
         name: '分身球',
         description:
-            '携带分身球，会生成分身。分身以本体棍招出击，伤害仅为本体两成，命中暴击按自身属性结算，数量由根骨决定（最多3个）；每维持一个分身每秒消耗0.05点内息，并占用1点内息上限。',
+            '携带分身球，会生成分身。分身以力道灵巧出击（力量×0.15），命中暴击按自身属性结算，数量由体质决定（最多3个）；每秒消耗0.05点内息，并占用1点AP上限。',
         tags: ['summon'],
         summon: {
             id: 'fen_shen_qiu',
@@ -609,6 +609,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '七心海棠',
         description: '唐门至毒，所有施加的中毒伤害翻倍。',
         tags: ['poison', 'inherent'],
+        requiredTags: ['poison'],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -701,9 +702,9 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'ninja_tool_kit',
         name: '忍者工具包',
-        description: '多功能忍者工具包。内含泼油、撒菱与烟玉。泼油后整场灼烧伤害翻倍。',
+        description: '忍者随身油囊，泼油浸敌，令其易受火攻。',
         tags: ['craft', 'debuff'],
-        grantsActions: ['_oil_splash', '_caltrops', '_smoke_bomb'],
+        grantsActions: ['_oil_splash'],
     },
     // ── 悬浮座椅（博士·义体） ──
     {

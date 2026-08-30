@@ -309,6 +309,25 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             return round1(final + bonus)
         },
     },
+    // ── 焰炁（焰拳附刃：本体伤害概率叠灼烧；分身/召唤物不触发） ──
+    {
+        id: 'yan_qi',
+        name: '焰炁',
+        description: '拳刃凝焰，任何伤害都有40%独立概率令目标叠2层灼烧。',
+        tags: ['buff'],
+        expiry: { type: 'duration', ms: 15000 },
+        stacking: { type: 'none' },
+        onDealDamage: ({ final, attacker, target, engine, state, source }) => {
+            if (!engine || !target) return final
+            // 本体伤害才触发；分身/召唤物（summon/imperial）不叠，避免高频白嫖灼烧
+            if (source?.tags?.includes('summon') || source?.tags?.includes('imperial')) return final
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 0.4 },
+                { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
+            )
+            return final
+        },
+    },
     {
         id: 'bai_ju_guo_xi_buff',
         name: '白驹过隙',
@@ -457,7 +476,8 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         // 疯魔棍法：棍招命中叠疯魔层（≤5），每层伤换伤(+5%/-5%)；满5层下一棍必中+伤害翻倍，用后归零
         id: 'feng_mo_gun_fa',
         name: '疯魔',
-        description: '棍势如疯，不守反攻。棍招命中叠1层（最多5层），每层自身伤害+5%、受到伤害+5%；叠满5层后，下一棍招必中且伤害翻倍，用后归零。',
+        description:
+            '棍势如疯，不守反攻。棍招命中叠1层（最多5层），每层自身伤害+5%、受到伤害+5%；叠满5层后，下一棍招必中且伤害翻倍，用后归零。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 5 },
@@ -472,7 +492,11 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             if (stacks >= 5) {
                 const dmg = round1(round1(final * (1 + stacks * 0.05)) * 2)
                 state.pendingBuffs.delete(`feng_mo_gun_fa::${attacker.id}`)
-                engine?.emitLog({ type: 'system', message: `[疯魔] 「${attacker.name}」 疯魔爆发，一棍定音！伤害翻倍`, actorId: attacker.id })
+                engine?.emitLog({
+                    type: 'system',
+                    message: `[疯魔] 「${attacker.name}」 疯魔爆发，一棍定音！伤害翻倍`,
+                    actorId: attacker.id,
+                })
                 return dmg
             }
             // 未满层：棍招命中 → 先叠层，这一棍就吃到新层（命中即疯，本棍生效）
@@ -482,11 +506,19 @@ export const DAMAGE_BUFFS: BuffDef[] = [
                 layer.restoreValue = newStacks
                 if (newStacks < 5) {
                     dmg = round1(final * (1 + newStacks * 0.05))
-                    engine.emitLog({ type: 'system', message: `[疯魔] 「${attacker.name}」 疯魔+1（${newStacks}/5）`, actorId: attacker.id })
+                    engine.emitLog({
+                        type: 'system',
+                        message: `[疯魔] 「${attacker.name}」 疯魔+1（${newStacks}/5）`,
+                        actorId: attacker.id,
+                    })
                 } else {
                     // 叠到满层：本棍吃+25%但不翻倍，下一棍才爆发
                     dmg = round1(final * 1.25)
-                    engine.emitLog({ type: 'system', message: `[疯魔] 「${attacker.name}」 疯魔已满（5/5），下一棍爆发！`, actorId: attacker.id })
+                    engine.emitLog({
+                        type: 'system',
+                        message: `[疯魔] 「${attacker.name}」 疯魔已满（5/5），下一棍爆发！`,
+                        actorId: attacker.id,
+                    })
                 }
             } else if (stacks > 0) {
                 dmg = round1(final * (1 + stacks * 0.05))

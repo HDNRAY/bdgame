@@ -496,6 +496,7 @@ export const PASSIVES: Passive[] = [
         name: '铸火诀',
         description: '聚炁化火，火中淬炼不伤。',
         tags: ['passive', 'buff', 'qi'],
+        requiredTags: ['burn'],
         triggers: [
             {
                 condition: { type: 'battle_start' },

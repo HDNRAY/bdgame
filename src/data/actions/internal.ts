@@ -231,7 +231,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 0,
         tags: ['summon'],
-        effects: [{ type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.15 } }],
     },
     {
         id: '_flying_lion_roar',
@@ -438,42 +438,21 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         target: 'self',
         effects: [{ type: 'stat_transfer', stat: 'insight', value: 1, duration: 5000 }],
     },
-    // ── 忍者工具包 ──
-    {
-        id: '_caltrops',
-        name: '撒菱',
-        description: '',
-        requiredTags: [],
-        apCost: 1,
-        tags: ['debuff', 'post_action', 'internal'],
-        effects: [
-            { type: 'add_debuff', buffId: 'bleed', stacks: 2, chance: 0.6 },
-            { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.8 },
-        ],
-    },
+    // ── 忍者工具包·泼油 ──
     {
         id: '_oil_splash',
         name: '泼油',
-        description: '',
+        description: '泼油浸敌，令其易受火攻。',
         requiredTags: [],
-        apCost: 1,
+        apCost: 2,
         tags: ['debuff', 'pre_action', 'internal'],
-        // 目标已有油时不再泼（油常驻，重复泼无意义）
+        // 目标已浸油时不再泼（不可叠层）
         canUse: (_attacker, state) => {
             const enemy = state.characters.find((c) => c.id !== _attacker.id)
             return enemy ? !state.pendingBuffs.has(`oil_coating::${enemy.id}`) : false
         },
-        hookNotes: { canUse: '目标已泼油时不再释放' },
+        hookNotes: { canUse: '目标已浸油时不再释放' },
         effects: [{ type: 'add_debuff', buffId: 'oil_coating', stacks: 1, chance: 1 }],
-    },
-    {
-        id: '_smoke_bomb',
-        name: '烟玉',
-        description: '',
-        requiredTags: [],
-        apCost: 1,
-        tags: ['debuff', 'post_action', 'internal'],
-        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 1 }],
     },
     {
         // 灵鳌步触发招式：闪避后借势冲撞。施法距离 0-0（本身无射程），dash 3 延伸有效射程 [0,3]；

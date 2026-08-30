@@ -384,7 +384,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: (wr) => [wr[0], wr[1] + 1],
         hookNotes: { range: '武器范围 +1' },
         effects: [
-            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'damage', scaling: { strength: 0.3, wisdom: 0.1 } },
             { type: 'add_debuff', buffId: 'burn', stacks: 3, chance: 0.5 },
         ],
     },
@@ -480,8 +480,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 2,
         tags: ['blunt', 'polearm'],
-        onActionCritChance: (base) => base + 0.05,
-        hookNotes: { critChance: '+5%' },
+        onActionCritChance: (base) => base + 0.1,
+        hookNotes: { critChance: '+10%' },
         effects: [{ type: 'damage', scaling: { strength: 0.3, vitality: 0.1 } }],
     },
     {
@@ -609,6 +609,20 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                 note: '按自身非永久增益总层数增伤（力×0.2 + 智×0.2×层数）',
             },
         ],
+    },
+    // ── 焰拳（橘子会·耗缠凝焰附刃） ──
+    {
+        id: 'yan_quan',
+        name: '焰拳',
+        description: '凝炁为焰，附于拳刃。一段时间内，任何伤害都有概率令目标灼烧。',
+        requiredTags: [],
+        apCost: 1,
+        chanCost: 16,
+        tags: ['pre_action', 'buff', 'chan'],
+        target: 'self',
+        canUse: (attacker, state) => !state.pendingBuffs.has(`yan_qi::${attacker.id}`),
+        hookNotes: { canUse: '已凝焰炁时不可重复' },
+        effects: [{ type: 'add_buff', buffId: 'yan_qi' }],
     },
     // ── 钝器系 ──
     {
