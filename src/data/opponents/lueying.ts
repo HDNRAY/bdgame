@@ -19,14 +19,14 @@ export const LUEYING: OpponentDef = {
         artifact('braid_blade'),
         artifact('tactical_pouch'),
         passive('frost_step'),
-        action('dart_throw'),
+        action('yin_zhen'),
         action('sand_throw'),
         weapon('special_forces_dagger'),
         // 12
     ],
     actionConfigs: [
         { actionId: 'sand_throw', triggerId: 'on_dodged' },
-        { actionId: 'dart_throw', triggerId: 'on_dodge' },
+        { actionId: 'yin_zhen', triggerId: 'on_dodge' },
         { actionId: 'gash', triggerId: 'on_parry' },
     ],
 }

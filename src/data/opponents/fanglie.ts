@@ -16,14 +16,21 @@ export const FANGLIE: OpponentDef = {
         artifact('hydraulic_leg'),
         artifact('nano_metal_heart'),
         artifact('neural_net'),
+        action('rod_sweep'),
         artifact('blood_thorn_ring'),
         artifact('blood_thorn_earring'),
         action('thrust'),
         weapon('iron_spear'),
         action('return_spear'),
         passive('qing_long_ding'),
-        // 12
+        // 13
     ],
-    actionConfigs: [{ actionId: 'pursuit_thrust', triggerId: 'on_bleed' }],
+    actionConfigs: [
+        {
+            actionId: 'rod_sweep',
+            conditionId: 'distance_lt_2',
+        },
+        { actionId: 'pursuit_thrust', triggerId: 'on_bleed' },
+    ],
     taunt: () => '别怨我。各为其主。',
 }

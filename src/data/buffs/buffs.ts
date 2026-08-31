@@ -1,7 +1,13 @@
 import { processActionEffect } from '../../engine/combat/effects'
 import { forEachBuffOf, revertBuffMods } from '../../engine/combat/utils'
 import { applyAttrMods } from '../../engine/combat/utils/buff-layer'
-import { calcParryChance, calcApRegenPerSec, calcRoll, calcCritChance, calcPoisonTicksPerStack } from '../../engine/calc/damage'
+import {
+    calcParryChance,
+    calcApRegenPerSec,
+    calcRoll,
+    calcCritChance,
+    calcPoisonTicksPerStack,
+} from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
 import type { BuffDef } from './types'
 import { DEFENSE_BUFFS } from './defense'
@@ -380,7 +386,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.3,
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.4,
     },
     {
         id: 'jet_drive_speed',
