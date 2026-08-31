@@ -7,6 +7,7 @@
 
 import type { ActionDefinition } from '../engine/entities/action'
 import { ATTR_CN } from '../engine/entities/attributes'
+import { TAG_CN } from './tagDisplay'
 
 /** 招式附加说明 */
 export interface ActionNoteDisplay {
@@ -57,7 +58,9 @@ export function describeActionNotes(action: ActionDefinition, remainingUses?: nu
     }
     if (action.maxUses !== undefined) extra.push(`可用 ${action.maxUses} 次`)
     if (remainingUses !== undefined && isFinite(remainingUses)) extra.push(`剩余 ${remainingUses}次`)
-    if (action.requiredTags && action.requiredTags.length > 0) extra.push(`需: ${action.requiredTags.join('/')}`)
+    if (action.requiredTags && action.requiredTags.length > 0) {
+        extra.push(`需: ${action.requiredTags.map((t) => TAG_CN[t] ?? t).join('/')}`)
+    }
     if (action.requireAttrsMin) {
         const req = Object.entries(action.requireAttrsMin).map(([k, v]) => `${ATTR_CN[k] ?? k}≥${v}`)
         extra.push(`门槛 ${req.join(' ')}`)

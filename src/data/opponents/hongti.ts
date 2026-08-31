@@ -16,7 +16,7 @@ export const HONGTI: OpponentDef = {
         artifact('other_mountain'),
         passive('tai_chi_mastery'),
         passive('yue_nv_sword'),
-        passive('bu_zhi_yu_wu'), // 不滞于物:全招 pierce 标记 + 推演加伤
+        passive('bu_zhi_yu_wu'),
         action('qi_slash'),
         action('push_palm'),
         action('wrist_strike'), // 点腕

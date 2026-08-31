@@ -54,11 +54,11 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'overlord_blade',
         name: '霸刀在手',
-        description: '离心力驱动的巨刃，势不可挡。近战招架率+20%，远程+50%，招架减免减半。',
+        description: '离心力驱动的巨刃，势不可挡。近战招架率+20%，远程+40%，招架减免减少50%',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.5 : 0.2),
+        onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.4 : 0.2),
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
             const reduced = round1(blocked * 0.5)
@@ -68,14 +68,13 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'dark_iron_weight',
         name: '玄铁剑重',
-        description: '玄铁重剑，无锋无刃。命中+15%，暴击+10%，招架减免减半。',
+        description: '玄铁重剑，无锋无刃。命中+10%，招架减免减少50%',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         onHitChance: () => 0.1,
-        onCritChance: () => 0.2,
         onParryPenetration: ({ final, raw }) => {
             const blocked = raw - final
-            const kept = round1(blocked * 0.4)
+            const kept = round1(blocked * 0.5)
             return raw - kept
         },
     },

@@ -212,7 +212,7 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [0, 6],
         // 御物耗炁：每秒扣 0.5AP（5 环）。无人环 = 中速钝击流（1伤 + 30%麻痹），无穿透
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.5 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.3 }] },
         ],
         summon: {
             id: 'hover_drone',

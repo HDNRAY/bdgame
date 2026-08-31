@@ -557,7 +557,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'polearm'],
         onActionCritChance: (base) => base + 0.5,
         hookNotes: { critChance: '+50%' },
-        effects: [{ type: 'damage', scaling: { strength: 0.6, agility: 0.1, vitality: 0.1, dexterity: 0.2 } }],
+        effects: [{ type: 'damage', scaling: { strength: 0.4, agility: 0.1, vitality: 0.1, dexterity: 0.4 } }],
     },
     {
         id: 'yi_dian_han_mang',
@@ -659,7 +659,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['range', 'summon', 'chan'],
         onActionHitChance: (base) => base + 0.1,
         hookNotes: { hitChance: '+10%' },
-        effects: [{ type: 'damage', scaling: { wisdom: 0.4 }, fixed: 2, independentHits: 5 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.3 }, fixed: 2, independentHits: 5 }],
     },
     {
         id: 'wan_fa_gui_yi',
@@ -667,7 +667,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '御物万法，归一而发。令全部召唤物朝目标倾泻轰击，每击附推演之力。',
         requiredTags: ['imperial'],
         apCost: 5,
-        chanCost: 27,
+        chanCost: 30,
         tags: ['imperial', 'range', 'damage', 'chan'],
         effects: [
             {
@@ -683,9 +683,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     let baseHit = 0
                     if (dmgEff?.type === 'damage') baseHit = (dmgEff.fixed ?? 0) + wis * (dmgEff.scaling?.wisdom ?? 0)
                     // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
-                    return round1(count * (baseHit + wis * 0.15))
+                    return round1(count * (baseHit + wis * 0.1))
                 },
-                note: '按当前召唤物数量倾泻伤害（数量 × (单发 + wis * 0.15附伤)）',
+                note: '按当前召唤物数量倾泻伤害（数量 × (单发 + wis * 0.1附伤)）',
             },
         ],
     },

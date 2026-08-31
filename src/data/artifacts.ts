@@ -138,7 +138,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '人造耳蜗',
         description: '听觉植入装置，集成翻译与通讯模块。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { insight: 3, wisdom: 1 } }],
+        effects: [{ type: 'stat_buff', attrs: { insight: 4, wisdom: 1 } }],
     },
     {
         id: 'doctor_chip',
@@ -385,7 +385,6 @@ export const ARTIFACTS: Artifact[] = [
         description: '普斯曲蛇的蛇胆，强筋健骨。力道+2，根骨+2。',
         tags: ['buff', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { strength: 2, vitality: 2 } }],
-        // triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'poison_resist' }] }],
     },
     {
         id: 'frog_gall',
@@ -722,8 +721,8 @@ export const ARTIFACTS: Artifact[] = [
     // ── 人造发生器（博士·音波攻击） ──
     {
         id: 'sonic_generator',
-        name: '人造发生器',
-        description: '义体研究部特制音波发生器，释放高频音波直摄心魄。',
+        name: '人造发声器',
+        description: '义体研究部特制音波发声器，释放高频音波直摄心魄。',
         tags: ['craft', 'qi', 'implant'],
         grantsActions: ['_sonic_wave'],
     },

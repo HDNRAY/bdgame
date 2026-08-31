@@ -292,7 +292,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     },
     {
         id: 'wolf_hunting_buff',
-        name: '狼狩',
+        name: '狼狩法则',
         description: '善用自重、惯性与借力造成额外伤害。消耗2层缠劲，附加（力道+根骨+身法+灵巧）×5%额外伤害。',
         tags: ['buff', 'damage'],
         expiry: { type: 'permanent' },

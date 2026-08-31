@@ -45,7 +45,9 @@ export function describeEffect(eff: EffectDef): string[] {
                 stun: '眩晕',
                 paralyze: '麻痹',
             }
-            const name = statusCN[eff.buffId] ?? eff.buffId
+            // 优先用已注册 debuff 的中文名；未注册时回退到硬编码映射；都没有才显示原始 id
+            const buff = getBuff(eff.buffId)
+            const name = buff?.name ?? statusCN[eff.buffId] ?? eff.buffId
             return [`施加 ${name} ×${eff.stacks} (${(eff.chance * 100).toFixed(0)}%概率)`]
         }
         case 'stat_buff': {

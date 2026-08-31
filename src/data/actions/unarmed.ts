@@ -159,7 +159,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
     {
         id: 'crushing_blow',
         name: '石破天惊拳',
-        description: '蓄力一击，造成崩劲伤害。',
+        description: '石破天惊般的重拳，势不可挡。',
         requiredTags: ['unarmed'],
         apCost: 5,
         chanCost: 20,
@@ -182,8 +182,8 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'melee', 'chan'],
         getRange: () => [0, 4],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2 } },
-            { type: 'self_missing_hp_damage', ratio: 0.2 },
+            { type: 'damage', scaling: { strength: 0.1, wisdom: 0.1 } },
+            { type: 'self_missing_hp_damage', ratio: 0.18 },
             { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
     },

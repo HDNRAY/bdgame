@@ -12,6 +12,7 @@ export const YANGGUO: OpponentDef = {
         action('quanzhen_sword'),
         passive('dark_room_catch'),
         action('yunv_sword'),
+        passive('ni_zhuan_jing_mai'),
         passive('one_arm'),
         artifact('snake_gall'),
         passive('dark_iron_sword_art'),
@@ -20,7 +21,8 @@ export const YANGGUO: OpponentDef = {
         action('flick'),
         action('desolate_palm'),
         artifact('jiu_yin_zhen_jing'),
-        // 11
+        passive('bu_zhi_yu_wu'),
+        // 12
     ],
     actionConfigs: [
         { actionId: 'desolate_palm' }, // AI 出招顺序
