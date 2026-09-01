@@ -115,7 +115,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['pierce'],
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 }, piercingRatio: 0.1 }],
     },
-
     {
         id: 'nine_deaths_strike',
         name: '九死剑法',
@@ -228,8 +227,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'sword_thrust',
-        name: '突刺',
-        description: '垫步突刺，迅捷灵活。泛用戳刺技，任何带尖的兵器皆可施展。',
+        name: '踏月刺击',
+        description: '踏月而行，迅捷刺击敌人要害。',
         requiredTags: ['pierce'],
         apCost: 2,
         tags: ['pierce'],
@@ -239,8 +238,20 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         ],
     },
     {
+        id: 'pursuit_thrust',
+        name: '螺旋刺击',
+        description: '轻刺敌人，有几率造成流血。',
+        requiredTags: ['pierce'],
+        apCost: 2,
+        tags: ['bleed', 'pierce'],
+        effects: [
+            { type: 'damage', scaling: { strength: 0.4 } },
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.2 },
+        ],
+    },
+    {
         id: 'thrust',
-        name: '直刺',
+        name: '暴烈刺击',
         description: '聚力一刺，劲透三分。有几率撕裂伤口造成流血。',
         requiredTags: ['pierce'],
         apCost: 4,
@@ -254,18 +265,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                 stacks: 1,
                 chance: 0.3,
             },
-        ],
-    },
-    {
-        id: 'pursuit_thrust',
-        name: '轻刺',
-        description: '轻刺敌人，有几率造成流血。',
-        requiredTags: ['pierce'],
-        apCost: 2,
-        tags: ['bleed', 'pierce'],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.4 } },
-            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.2 },
         ],
     },
     {
@@ -752,11 +751,11 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'tian_wai_fei_xian',
         name: '天外飞仙',
-        description: '人器合一，天外飞仙。',
+        description: '以身为剑，天外飞仙。',
         requiredTags: [],
         apCost: 5,
         chanCost: MAX_CHAN,
-        tags: ['qi', 'thrown', 'range', 'chan'],
+        tags: ['qi', 'thrown', 'range', 'chan', 'pierce'],
         onActionCritChance: (base) => base + 0.25,
         onActionCritDamage: (base) => base + 0.5,
         hookNotes: { critChance: '+25%', critDamage: '+50%' },

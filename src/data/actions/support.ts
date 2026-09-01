@@ -312,7 +312,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         tags: ['debuff', 'pre_action'],
-        getRange: () => [1, 3] as [number, number],
+        getRange: () => [1, 3],
         canUse: (attacker, state) => {
             const enemy = state.characters.find((c) => c.id !== attacker.id)
             return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
