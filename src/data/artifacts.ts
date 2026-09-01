@@ -250,6 +250,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '虎彻之眼',
         description: '进入居合时双目如虎，洞察先机。',
         tags: ['trigger', 'buff'],
+        requiredTags: ['stance'],
         triggers: [
             {
                 condition: { type: 'on_stance' },
@@ -262,6 +263,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '定心香氛',
         description: '感知肾上腺素后散发镇定香氛，切换姿态时旧香换新，余香缭绕。洞察+2，推演+2。',
         tags: ['buff'],
+        requiredTags: ['stance'],
         triggers: [
             {
                 condition: { type: 'on_stance' },

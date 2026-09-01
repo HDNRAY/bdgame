@@ -64,6 +64,8 @@ export function processHitCheck(
         roll: hitResult.roll,
         result: hitResult.success,
     })
+    // 出招即消耗（on_attack）：钩子（onHitChance 等）已在判定前生效，判定后无论中不中都消耗
+    if (!suppressTriggers) consumeBuffsByTrigger(self.id, engine, 'on_attack')
     if (!r.hit) {
         // 事件归属已由 scope 判定；dodge 与 on_dodged 反应随判定基准作用域
         engine.emitLog({ type: 'dodged', sourceId: self.id, targetId: enemy.id })

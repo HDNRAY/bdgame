@@ -108,6 +108,16 @@ export const BUFF_DB: BuffDef[] = [
         onDodgeChance: () => 0.1,
     },
     {
+        // 因势利导：进架势后借势，下一次出招暴击，用后消散
+        id: 'yin_shi_li_dao',
+        name: '因势利导',
+        description: '借架势之势，下一次出招暴击率+10%。',
+        tags: ['buff'],
+        expiry: { type: 'consumed', trigger: 'on_crit' },
+        stacking: { type: 'additive', max: 1 },
+        onCritChance: () => 0.1,
+    },
+    {
         id: 'mind_eye',
         name: '心眼',
         description: '心眼已开，暴击率+25%。',

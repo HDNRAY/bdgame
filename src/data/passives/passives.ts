@@ -135,6 +135,7 @@ export const PASSIVES: Passive[] = [
         name: '人体雷达',
         description: '获得居合时锁定目标，下次近距离攻击命中提升。',
         tags: ['buff'],
+        requiredTags: ['stance'],
         triggers: [
             {
                 condition: { type: 'on_stance' },
@@ -349,10 +350,25 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
+        // 因势利导：进架势后借势，下一击暴击（消费 on_stance，与转换时刻的护体互补）
+        id: 'yin_shi_li_dao',
+        name: '因势利导',
+        description: '进架势时因势利导，下一次出招暴击率+10%，用后消散。',
+        tags: ['passive', 'buff', 'stance'],
+        requiredTags: ['stance'],
+        triggers: [
+            {
+                condition: { type: 'on_stance' },
+                effects: [{ type: 'add_buff', buffId: 'yin_shi_li_dao', stacks: 1 }],
+            },
+        ],
+    },
+    {
         id: 'stance_time',
         name: '转换时刻',
         description: '进入架势时罡气护体，5秒内免疫眩晕、击退、打断、缴械、击倒，并减伤10%。',
         tags: ['buff', 'defense'],
+        requiredTags: ['stance'],
         triggers: [
             {
                 condition: { type: 'on_stance' },
@@ -364,7 +380,7 @@ export const PASSIVES: Passive[] = [
         id: 'weapon_stance',
         name: '行云流水',
         description: '每次切换武器自动进入对应架势。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'stance'],
         triggers: [
             {
                 condition: {

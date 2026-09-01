@@ -348,8 +348,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         chanCost: 22,
         tags: ['slash', 'range', 'chan'],
         getRange: () => [0, 8],
-        onActionHitChance: (base) => base + 0.1,
-        hookNotes: { hitChance: '+10%' },
+        onActionHitChance: (base) => base + 0.05,
+        hookNotes: { hitChance: '+5%' },
         effects: [
             // 基础10 + 力/身/巧 scaling（命中结算）
             { type: 'damage', scaling: { strength: 0.6, agility: 0.6, dexterity: 0.6 }, fixed: 10 },
@@ -659,7 +659,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['range', 'summon', 'chan'],
         onActionHitChance: (base) => base + 0.1,
         hookNotes: { hitChance: '+10%' },
-        effects: [{ type: 'damage', scaling: { wisdom: 0.3 }, fixed: 2, independentHits: 5 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.28 }, fixed: 2, independentHits: 5 }],
     },
     {
         id: 'wan_fa_gui_yi',

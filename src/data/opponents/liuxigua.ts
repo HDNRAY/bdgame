@@ -22,8 +22,8 @@ export const LIUXIGUA: OpponentDef = {
         passive('stance_time'),
         artifact('calming_talisman'),
         passive('yu_yang_shi_ba_shi'),
-        // 一个近战大招？
-        // 12
+        passive('yin_shi_li_dao'),
+        // 13
     ],
     actionConfigs: [
         {
