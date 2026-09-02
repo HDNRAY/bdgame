@@ -1,7 +1,6 @@
 import type { ActionDefinition } from '../entities/action'
 import type { Character } from '../entities/character'
 import type { BattleState } from '../combat/types'
-import { getWeapon } from '../../data/weapons/weapons'
 import { getActionRange, getRuntimeAction } from '../../data/actions'
 import { BattleEngine } from '../combat/engine'
 
@@ -19,12 +18,12 @@ export function canExecuteAction(
     const cost = attacker.actionApCost(action.apCost, state)
     if (attacker.ap < cost) return { ok: false, reason: 'AP不足' }
     if (action.chanCost && attacker.chan < action.chanCost) return { ok: false, reason: '缠劲不足' }
-    const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)
-    const range = getActionRange(getRuntimeAction(action.id, attacker, state) ?? action, weapon.range, attacker)
+    const range = getActionRange(getRuntimeAction(action.id, attacker, state) ?? action, attacker.getEffectiveRange(), attacker)
     const dist = state.position.distance(attacker.id, state.characters.find((c) => c.id !== attacker.id)!.id)
     if (dist < range[0] || dist > range[1]) return { ok: false, reason: '距离不合适' }
     if (action.requiredTags.length > 0) {
-        const hasTag = action.requiredTags.some((tag) => weapon.tags.includes(tag))
+        const weaponTags = attacker.getWeaponTags()
+        const hasTag = action.requiredTags.some((tag) => weaponTags.includes(tag))
         if (!hasTag) return { ok: false, reason: `需要 ${action.requiredTags.join('/')} 标签` }
     }
     if (action.canUse && !action.canUse(attacker, state)) return { ok: false, reason: '条件不满足' }

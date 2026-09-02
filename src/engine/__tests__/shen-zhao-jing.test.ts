@@ -8,7 +8,8 @@ import { calcExtraApRegenPerSec } from '../combat/utils/ap-regen'
 function makeChar(id: string, name: string, rewards: { type: 'passive'; id: string }[]): Character {
     return new Character({
         id, name, weapon: 'bare_hands',
-        baseAttrs: { strength: 14, vitality: 20, agility: 12, dexterity: 12, insight: 14, wisdom: 4 },
+        baseAttrs: { strength: 14, vitality: 20, agility: 12, dexterity: 12, insight: 14, wisdom: 4 },        battleStyle: 'clinch' as const,
+
         rewards: rewards.map((r) => ({ ...r, name: r.id, description: '', tags: [] })),
     })
 }

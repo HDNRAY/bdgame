@@ -22,6 +22,7 @@ function mc(
         name,
         story: 'balanced',
         weapon: 'bare_hands',
+        battleStyle: 'clinch' as const,
         baseAttrs: attrs,
         rewards,
         actionConfigs,

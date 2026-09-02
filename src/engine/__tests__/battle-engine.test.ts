@@ -28,6 +28,7 @@ function makeChar(
         name,
         story: 'balanced',
         weapon,
+        battleStyle: 'melee' as const,
         baseAttrs: attrs,
         rewards,
     })
@@ -150,6 +151,7 @@ describe('御物耗炁上限与低属性战斗终止（回归：净 AP 回复为
             name: 't',
             story: 'balanced',
             weapon: 'floating_silk',
+            battleStyle: 'melee' as const,
             baseAttrs: { strength: 3, vitality: 3, agility: 3, dexterity: 3, insight: 3, wisdom },
             rewards: [],
         })
@@ -180,6 +182,7 @@ describe('御物耗炁上限与低属性战斗终止（回归：净 AP 回复为
             name: '玄十',
             story: 'xuanmen',
             weapon: 'floating_silk',
+            battleStyle: 'melee' as const,
             baseAttrs: { strength: 3, vitality: 3, agility: 3, dexterity: 3, insight: 3, wisdom: 3 },
             rewards: [],
         })

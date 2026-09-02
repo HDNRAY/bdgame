@@ -7,7 +7,8 @@ import { getPassive } from '../../data/passives'
 function makeChar(id: string, name: string, rewards: { type: 'passive'; id: string }[]): Character {
     return new Character({
         id, name, weapon: 'bare_hands',
-        baseAttrs: { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 },
+        baseAttrs: { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 },        battleStyle: 'clinch' as const,
+
         rewards: rewards.map((r) => ({ ...r, name: r.id, description: '', tags: [] })),
     })
 }

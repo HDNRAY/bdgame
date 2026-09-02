@@ -2,13 +2,11 @@ import type { Character } from '../entities/character'
 import type { EffectDef } from '../entities/action'
 import { calcExtraMoveEfficiency } from '../combat/utils'
 import type { BattleState, ActionCommand } from '../combat/types'
-import { getWeapon } from '../../data/weapons/weapons'
 import { PositionSystem } from '../combat/position'
 import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
-import { generatePlans, bestPlan } from './planner'
+import { generatePlans, bestPlan, type AttackStyle } from './planner'
 import { planSupportActions } from './support-planner'
-import { classifyAttackStyle, type AttackStyle } from './planner'
 import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
 
@@ -16,8 +14,6 @@ import { getConditionPreset } from '../../data/conditions'
 export function planEvent(self: Character, state: BattleState): ActionCommand[] {
     const enemy = state.characters.find((c) => c.id !== self.id)
     if (!enemy) return []
-
-    const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
 
     // 拾起兵器（0AP）：若本回合捡到武器，记录指令与移动 AP，待 preCmds 定义后合并（同回合继续攻击）
     let pickupCmdsOuter: ActionCommand[] = []
@@ -71,6 +67,9 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     }
 
     // ── 1. 候选主招（非 support） ──
+    // 武器射程/tags 在一次 planEvent 内不变，取一次复用（缴械/换武器是效果层事件，不在候选循环内发生）
+    const effRange = self.getEffectiveRange()
+    const weaponTags = self.getWeaponTags()
     const candidates: DamageEstimate[] = []
     for (const inst of self.actions) {
         if (
@@ -81,9 +80,9 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             continue
         if (!inst.canUse()) continue
         if (inst.def.canUse && !inst.def.canUse(self, state)) continue
-        // 检查武器标签兼容性（缴械后 bare_hands 无法使用需要标签的招式）
+        // 检查武器标签兼容性（缴械后 bare_hands 无法使用需要标签的招式；双持时任一武器满足即可）
         if (inst.def.requiredTags.length > 0) {
-            const hasTag = inst.def.requiredTags.some((tag) => weapon.tags.includes(tag))
+            const hasTag = inst.def.requiredTags.some((tag) => weaponTags.includes(tag))
             if (!hasTag) continue
         }
         // 检查资源消耗（缠劲等），距离/AP 由后续 trySelect 处理
@@ -101,7 +100,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const cond = getConditionPreset(config.conditionId)
             if (cond && !checkCondition(cond, self, state)) continue
         }
-        candidates.push(calcExpectedDamage(inst.def, self, enemy, weapon.range, state))
+        candidates.push(calcExpectedDamage(inst.def, self, enemy, effRange, state))
     }
 
     // 1.5. 前摇辅助（buff/饮酒等）优先预留 AP，先于主招与移动执行
@@ -127,8 +126,9 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     if (!best) {
         // 没有可行攻击计划：朝风格理想距离移动（clinch/melee 贴脸靠近、ranged/mid 风筝远离），
         // clamp 到理想距离不过冲——贴脸时不再无效靠近（move[-] 原地空转）、风筝时不再盲目冲
-        const style: AttackStyle = self.battleStyle ?? classifyAttackStyle(weapon.range)
-        const goal = style === 'clinch' || style === 'melee' ? weapon.range[0] : weapon.range[1]
+        const style: AttackStyle = self.battleStyle
+        const effRange = self.getEffectiveRange()
+        const goal = style === 'clinch' || style === 'melee' ? effRange[0] : effRange[1]
         const dist = enemy ? state.position.distance(self.id, enemy.id) : 4
         const perAp = PositionSystem.apToRange(self.attrs.get('agility')) * (1 + calcExtraMoveEfficiency(state, self))
         const moveM = Math.min(perAp * Math.max(0, apBudget), Math.abs(dist - goal))

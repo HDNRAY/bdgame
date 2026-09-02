@@ -23,6 +23,7 @@ import type { StoryDef } from '../../game/entities/story'
 import type { CharacterBuild } from '../../game/entities/character-build'
 import type { Tag } from '../../engine/entities/tag'
 import { Character } from '../../engine/entities/character'
+import { classifyAttackStyle } from '../../engine/ai/planner'
 import { gen, getOpponentDef, pickRandomOpponentId } from '../../data/opponents/index'
 import { runBattle } from '../../engine/battle-runner'
 
@@ -129,6 +130,8 @@ export class RogueliteRun implements RogueliteEngine {
             name: '小蝌蚪',
             story: '',
             weapon: 'bare_hands',
+            // battleStyle 显式必填（不再随武器自动判定）；开局空手默认贴身
+            battleStyle: 'clinch',
             baseAttrs: { strength: 3, vitality: 3, agility: 3, dexterity: 3, insight: 3, wisdom: 3 },
             rewards: [],
             actionConfigs: [],
@@ -486,6 +489,12 @@ export class RogueliteRun implements RogueliteEngine {
                 this._state.build.offhand = entityId
             } else {
                 this._state.build.weapon = entityId
+                // battleStyle 显式必填：主手换武器后按新武器同步建议风格（与玩家 build 编辑器保存口径一致）
+                const allWeapons2 = [...WEAPON_DB, ...STARTING_WEAPONS]
+                const newDef = allWeapons2.find((w) => w.id === entityId)
+                if (newDef) {
+                    this._state.build.battleStyle = classifyAttackStyle(newDef.range)
+                }
             }
             // 装备 → flag 同步（武器标签是通用机制，供 when 条件读取）
             const allWeapons = [...WEAPON_DB, ...STARTING_WEAPONS]

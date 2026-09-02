@@ -13,7 +13,8 @@ function makeChar(attrs: Record<string, number> = {}): Character {
         name: '测试',
         story: 'balanced',
         weapon: 'bare_hands',
-        baseAttrs: { strength: 10, vitality: 10, agility: 10, dexterity: 10, insight: 10, wisdom: 10, ...attrs },
+        baseAttrs: { strength: 10, vitality: 10, agility: 10, dexterity: 10, insight: 10, wisdom: 10, ...attrs },        battleStyle: 'clinch' as const,
+
         rewards: [],
     })
 }
@@ -24,7 +25,8 @@ function makeState(char: Character): BattleState {
         name: '敌人',
         story: 'balanced',
         weapon: 'bare_hands',
-        baseAttrs: { strength: 10, vitality: 10, agility: 10, dexterity: 10, insight: 10, wisdom: 10 },
+        baseAttrs: { strength: 10, vitality: 10, agility: 10, dexterity: 10, insight: 10, wisdom: 10 },        battleStyle: 'clinch' as const,
+
         rewards: [],
     })
     const tm = new TurnManager()

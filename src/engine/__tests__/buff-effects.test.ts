@@ -16,7 +16,8 @@ function makeChar(id: string, attrs: Record<string, number> = {}): Character {
         story: 'balanced',
         // 用 peach_sword 而非 bare_hands：bare_hands 自带 stat_buff 身法+2，会污染属性断言
         weapon: 'peach_sword',
-        baseAttrs: { strength: 10, vitality: 10, agility: 10, dexterity: 10, insight: 10, wisdom: 10, ...attrs },
+        baseAttrs: { strength: 10, vitality: 10, agility: 10, dexterity: 10, insight: 10, wisdom: 10, ...attrs },        battleStyle: 'melee' as const,
+
         rewards: [],
     })
 }

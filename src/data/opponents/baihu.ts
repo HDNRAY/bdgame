@@ -23,7 +23,6 @@ export const BAIHU: OpponentDef = {
         weapon('chun_lei'),
         passive('nineteen_stops'),
         artifact('wuxue_baodian_shang'), // 武学宝典上（攻）：每奖励标签伤害+1%，上限15%
-        // 听潮九剑
         // 13
     ],
     actionConfigs: [

@@ -7,6 +7,8 @@ import type { AttrName } from '../../engine/entities/attributes'
 import { Character } from '../../engine/entities/character'
 import { ALL_ATTRS } from '../../engine/entities/attributes'
 import { getAction } from '../../data/actions'
+import { getWeapon } from '../../data/weapons/weapons'
+import { classifyAttackStyle } from '../../engine/ai/planner'
 import { checkTalents } from '../../game/talent-check'
 
 /** 每级属性消耗的修炼点 */
@@ -150,10 +152,12 @@ export function useBuildCharacter(
             return
         }
         setSaveError(null)
+        // battleStyle 显式必填：未手动选风格时按当前主武器落一个建议值（引擎不再自动判定）
+        const style: BattleStyle = battleStyle ?? classifyAttackStyle(getWeapon(build.weapon).range)
         const newBuild: CharacterBuild = {
             ...build,
             baseAttrs: attrs as Partial<Record<AttrName, number>>,
-            battleStyle,
+            battleStyle: style,
             actionConfigs,
         }
         if (onSave) {

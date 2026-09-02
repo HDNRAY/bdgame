@@ -7,7 +7,7 @@ import type { Artifact } from './artifact'
 import type { TriggerSlot } from './trigger'
 import type { Tag } from './tag'
 import type { WeaponDef } from '../../data/weapons/weapons'
-import { classifyAttackStyle, type AttackStyle } from '../ai/planner'
+import type { AttackStyle } from '../ai/planner'
 import { calcMaxHp, calcMaxAp } from '../calc/stats'
 import { calcActionCostAfterSpeed } from '../calc/damage'
 import { getAction as getActionDef } from '../../data/actions'
@@ -62,6 +62,8 @@ export class Character {
     #maxTriggerSlots = 0
     /** 武器定义的 clone（含被动修改） */
     weaponDef?: WeaponDef
+    /** 副手武器定义缓存（构造时解析；主手可能在战斗中切换，副手武器一般固定） */
+    private offhandDef?: WeaponDef
     /** 待应用的 weapon_tag（构造时先记录，武器设置后统一应用） */
     pendingWeaponTags: Tag[] = []
     /** 已解析的奇物/义体列表 */
@@ -70,7 +72,7 @@ export class Character {
     maxApMod = 0
     maxHpMod = 0
 
-    /** 战斗风格（构建时按武器自动决定，不走 build.battleStyle fallback） */
+    /** 战斗风格（build.battleStyle 显式必填，不再自动判定） */
     battleStyle: AttackStyle
     /** 身法相关独立加速（凌波微步等） */
     haste = 0
@@ -160,8 +162,12 @@ export class Character {
                 this.weaponDef = { ...weapon, tags: [...weapon.tags, tag] }
             }
         }
-        // 自动决定战斗风格
-        this.battleStyle = build.battleStyle ?? classifyAttackStyle(this.weaponDef?.range ?? [0, 2])
+        // 副手武器定义缓存（build.offhand 固定；战斗中切主手不影响副手定义）
+        if (build.offhand) {
+            this.offhandDef = getWeapon(build.offhand)
+        }
+        // 战斗风格显式必填(build.battleStyle),不再按武器自动判定
+        this.battleStyle = build.battleStyle
         // 武器属性要求检测
         const weaponOk =
             !weapon.requireAttrsMin ||
@@ -359,17 +365,37 @@ export class Character {
 
     /** 获取所有招式中最远射程（用于 dash targetDist: -1 解析，仅统计非辅助招式；传 state 时叠加 buff 的 onRuntimeAction 距离修正，如御剑诀） */
     getMaxActionRange(state?: BattleState): number {
-        const weapon = this.weaponDef ?? getWeapon(this.build.weapon)
+        const effRange = this.getEffectiveRange()
         const map = state ? this.getRuntimeActions(state) : undefined
         return Math.max(
             ...this.actions
                 .filter((a) => !a.def.tags.includes('pre_action') && !a.def.tags.includes('post_action'))
                 .map((a) => {
                     const def = map?.get(a.id) ?? a.def
-                    const r = def.getRange?.(weapon.range, this) ?? weapon.range
+                    const r = def.getRange?.(effRange, this) ?? effRange
                     return r[1]
                 }),
         )
+    }
+
+    /**
+     * 有效武器射程：主手与副手射程取并集（双持时用任意一把够得着的武器出招）。
+     * 无副手 = 主手射程本身。武器射程构造后基本固定（缴械/换武器会重挂 weaponDef），
+     * 但本方法按需读取 weaponDef/offhandDef 引用，开销为常数（不涉及查找表遍历）。
+     */
+    getEffectiveRange(): [number, number] {
+        const main = this.weaponDef?.range ?? getWeapon(this.build.weapon).range
+        const off = this.offhandDef
+        if (!off) return main
+        return [Math.min(main[0], off.range[0]), Math.max(main[1], off.range[1])]
+    }
+
+    /** 主副手武器 tags 并集（招式 requiredTags 判定：双持时任一武器满足即可） */
+    getWeaponTags(): Tag[] {
+        const main = this.weaponDef ?? getWeapon(this.build.weapon)
+        const off = this.offhandDef
+        if (!off) return main.tags
+        return [...new Set([...main.tags, ...off.tags])]
     }
 
     /** 应用 actionEnhancer，重建招式缓存时保留剩余次数 */

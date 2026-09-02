@@ -81,6 +81,7 @@ function makeChar(id: string, name: string): Character {
         name,
         // 初始武器仅用于构造（buildRow 会按 requiredTags 覆盖为评估武器）
         weapon: 'bare_hands',
+        battleStyle: 'melee' as const,
         baseAttrs: { ...ATTRS },
         rewards: [],
     })

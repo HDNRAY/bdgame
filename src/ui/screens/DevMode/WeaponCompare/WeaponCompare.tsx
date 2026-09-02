@@ -71,6 +71,7 @@ function makeBenchChar(id: string, name: string, weapon: WeaponDef, pendingBuffs
         id,
         name,
         weapon: weapon.id,
+        battleStyle: 'melee' as const,
         baseAttrs: { ...ATTRS },
         rewards: [],
     })

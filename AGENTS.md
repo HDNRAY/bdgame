@@ -9,6 +9,10 @@ Tech stack: TypeScript + Vite 6 + React 19 + Zustand + CSS Modules + Canvas API.
 
 **禁止 emoji**：所有文本（事件文案、UI 文案、角色/故事设定文档、设计文档）一律不得出现 emoji/表情符号（如 ✅❌⚠️🔥⚔💀）。需要"已完成/未完成"类标记时用文字（「已」「未」「是」「否」）代替。
 
+## 玩法/数值文档
+
+**对战玩法说明：`docs/gameplay-guide.md`** — 面向玩家的规则手册：一场对决怎么进行、六属性作用、内息/缠劲资源循环、距离与射程、出手结算顺序、数值公式（命中/暴击/招架）、特殊机制、流派思路。改动任何涉及战斗机制、属性公式、资源循环的代码前，先对照本文档确认不破坏文档所述规则（数值以引擎为准，文档负责玩家可读表述）。首页「玩法」弹窗（`src/ui/screens/ModeSelect/GameplayModal.tsx`）是本文档的界面精简版，两处文案需同步。文档与弹窗均为玩家向表述，不要写入实现细节（代码标识符、内部钩子名等）。
+
 ## RTK (token-saving command compression)
 
 RTK is installed on this machine. When running shell commands via `bash`, **always prefix with `rtk`** where supported to reduce token cost and save on API usage:

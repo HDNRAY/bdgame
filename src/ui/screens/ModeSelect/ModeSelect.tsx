@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { GameplayModal } from './GameplayModal'
 import './ModeSelect.scss'
 
 /** 模式选择界面 */
 export function ModeSelect() {
     const navigate = useNavigate()
+    const [showGameplay, setShowGameplay] = useState(false)
     // /dev（DevMode）隐藏入口：右上角透明热区，仅构建时开启 dev 才渲染
     const devEnabled = import.meta.env.VITE_ENABLE_DEV_MODE === 'true'
     return (
@@ -34,6 +37,9 @@ export function ModeSelect() {
                 <button className="mode-select-btn mode-select-btn-sm" onClick={() => navigate('/encyclopedia')}>
                     图鉴
                 </button>
+                <button className="mode-select-btn mode-select-btn-sm" onClick={() => setShowGameplay(true)}>
+                    玩法
+                </button>
                 <button className="mode-select-btn mode-select-btn-sm" onClick={() => navigate('/settings')}>
                     设置
                 </button>
@@ -41,6 +47,8 @@ export function ModeSelect() {
                     关于
                 </button>
             </div>
+
+            {showGameplay && <GameplayModal onClose={() => setShowGameplay(false)} />}
         </div>
     )
 }

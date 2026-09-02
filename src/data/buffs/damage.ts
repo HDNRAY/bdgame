@@ -137,9 +137,9 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             layer.restoreValue = 0
         },
         onAction: ({ attacker, layer }) => {
-            if (!attacker.spendChan(2)) return
             const stacks = layer.restoreValue ?? 0
             if (Math.random() < (stacks / 19) ** 2) return
+            if (!attacker.spendChan(3)) return
             layer.restoreValue = Math.min(19, stacks + 1)
         },
         onHitChance: ({ layer }) => layer.restoreValue * 0.01,

@@ -6,7 +6,8 @@ import { processActionEffect } from '../combat/effects/action'
 function makeChar(id: string, name: string, weapon: string, rewards: { type: 'action'; id: string }[]): Character {
     return new Character({
         id, name, weapon,
-        baseAttrs: { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 },
+        baseAttrs: { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 },        battleStyle: 'melee' as const,
+
         rewards: rewards.map((r) => ({ ...r, name: r.id, description: '', tags: [] })),
     })
 }

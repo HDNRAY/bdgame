@@ -590,8 +590,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 主招式 short_dash：若已在武器有效射程内（太近了冲也没用），不冲刺
         const isTriggered = action?.tags?.includes('trigger')
         if (!isTriggered) {
-            const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
-            if (weapon.range && dist <= weapon.range[1]) return
+            // 主招式 short_dash：已在主副手有效射程内就不冲刺（双持副手够得着同样不冲）
+            const effRange = self.getEffectiveRange()
+            if (effRange && dist <= effRange[1]) return
         }
         const maxDash = e.maxDistance ?? 2
         const targetDist = Math.max(0, dist - maxDash)

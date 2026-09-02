@@ -10,7 +10,7 @@ import { getWeapon } from '../data/weapons/weapons'
 
 /** 通用生成器 */
 export function simpleGenerate(
-    def: { id: string; name: string; battleStyle?: BattleStyle; story?: string; targetAttrs: Record<string, number> },
+    def: { id: string; name: string; battleStyle: BattleStyle; story?: string; targetAttrs: Record<string, number> },
     weapon: string,
     rewards: Reward[],
     n: number,

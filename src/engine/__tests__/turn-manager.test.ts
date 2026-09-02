@@ -8,7 +8,8 @@ function mc(id: string, name: string, attrs: Record<string, number> = {}): Chara
         name,
         story: 'balanced',
         weapon: 'bare_hands',
-        baseAttrs: attrs,
+        baseAttrs: attrs,        battleStyle: 'clinch' as const,
+
         rewards: [],
     })
 }

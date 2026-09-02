@@ -417,6 +417,9 @@ export class BattleEngine {
         const { moveDelta, position } = this.state
         const isInitPhase =
             event === 'battle_start' || event === 'on_turn_start' || event === 'on_equip' || event === 'on_turn_end'
+        // 武器射程/tags 在一次触发循环内不变，取一次复用（距离检查用主副并集）
+        const effRange = self.getEffectiveRange()
+        const weaponTags = self.getWeaponTags()
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
@@ -481,16 +484,16 @@ export class BattleEngine {
                 inst.use()
             } else {
                 // 触发招式不消耗 AP（apCost 上限 2 已在前过滤），但仍需距离/标签/条件检测
-                const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
                 // ① canUse 检查（如灵鳌冲 距离 >2m 才触发，太近无需撞）
                 if (action.canUse && !action.canUse(self, this.state)) continue
                 // ② 距离检查：用 getActionRange（含 short_dash 延伸）——"dash 能打够"才算够得到。
                 //    灵鳌冲 getRange[0,0] + dash3 → 有效 [0,3]，3m 外够不到不触发。
-                const range: [number, number] = getActionRange(action, weapon.range, self)
+                //    射程基准 = 主副手并集（双持时任意一把够得着即触发）
+                const range: [number, number] = getActionRange(action, effRange, self)
                 const dist = this.state.position.distance(self.id, enemy.id)
                 if (dist < range[0] || dist > range[1]) continue
                 if (action.requiredTags.length > 0) {
-                    const hasTag = action.requiredTags.some((tag) => weapon.tags.includes(tag))
+                    const hasTag = action.requiredTags.some((tag) => weaponTags.includes(tag))
                     if (!hasTag) continue
                 }
                 this.state.log.enterReaction()

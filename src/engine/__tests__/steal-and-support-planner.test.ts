@@ -8,7 +8,8 @@ function makeChar(id: string, name: string, rewards: { type: 'passive' | 'artifa
         id,
         name,
         weapon: 'po_lang_zhu_zhi',
-        baseAttrs: { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 },
+        baseAttrs: { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 },        battleStyle: 'mid' as const,
+
         rewards: rewards.map((r) => ({ ...r, name: r.id, description: '', tags: [] })),
     })
 }

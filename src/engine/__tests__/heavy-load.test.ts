@@ -9,7 +9,8 @@ function makeChar(id: string, name: string, attrs: Record<string, number>, rewar
         name,
         story: 'balanced',
         weapon,
-        baseAttrs: attrs,
+        baseAttrs: attrs,        battleStyle: 'melee' as const,
+
         rewards: rewards as never[],
     })
 }

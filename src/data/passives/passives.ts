@@ -160,7 +160,7 @@ export const PASSIVES: Passive[] = [
         triggers: [
             {
                 condition: { type: 'on_hit' },
-                effects: [{ type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.8 }],
+                effects: [{ type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.5 }],
             },
             {
                 condition: { type: 'on_crit' },

@@ -75,7 +75,7 @@ export interface OpponentDef {
     id: string
     name: string
     story?: string
-    battleStyle?: BattleStyle
+    battleStyle: BattleStyle
     weapon: string
     rewards: Reward[]
     actionConfigs?: ActionConfig[]

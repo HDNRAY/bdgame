@@ -1,6 +1,5 @@
 import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
-import { getWeapon } from '../../data/weapons/weapons'
 import { getBuff } from '../../data/buffs'
 import { forEachBuffOf } from '../combat/utils'
 import { checkCondition } from '../../game/entities/action-config'
@@ -16,6 +15,8 @@ export function planSupportActions(
 ): ActionCommand[] {
     const cmds: ActionCommand[] = []
     const pickedIds = new Set<string>()
+    // 武器标签在一次辅助规划内不变，取一次复用
+    const weaponTags = attacker.getWeaponTags()
 
     // 按优先级排序
     const sorted = [...attacker.actions]
@@ -26,10 +27,9 @@ export function planSupportActions(
             if (blacklist?.includes(inst.id)) return false
             // 缠劲不够的辅助招（挂需 50 缠等）引擎会跳过，别占用计划 AP
             if (inst.def.chanCost && attacker.chan < inst.def.chanCost) return false
-            // 检查武器标签兼容性
+            // 检查武器标签兼容性（双持时任一武器满足即可）
             if (inst.def.requiredTags.length > 0) {
-                const weapon = attacker.weaponDef ?? getWeapon(attacker.build.weapon)
-                const hasTag = inst.def.requiredTags.some((tag) => weapon.tags.includes(tag))
+                const hasTag = inst.def.requiredTags.some((tag) => weaponTags.includes(tag))
                 if (!hasTag) return false
             }
             // 跳过位移类辅招：含完整 dash 位移效果（魅影步/云步的 dash+自buff）或纯位移/击退（every dash/short_dash/knockback）。

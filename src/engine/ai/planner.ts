@@ -252,6 +252,7 @@ function summonMinRange(self: Character): number | null {
         if (!sd) return
         const action = sd.action ?? getAction(sd.actionId)
         if (!action) return
+        // 召唤物由主手武器（御物）携带，射程基准用主手
         const r = action.getRange?.(weapon.range, self) ?? weapon.range
         max = Math.max(max, r[0])
     }
@@ -267,7 +268,6 @@ function summonMinRange(self: Character): number | null {
  * 评分低/被拒），中间点覆盖"移动成本 vs 剩余攻击 AP"的折中。
  */
 export function keyDistances(self: Character, state: BattleState, candidates: ActionDefinition[]): number[] {
-    const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
     const enemy = state.characters.find((c) => c.id !== self.id)
     const current = enemy ? state.position.distance(self.id, enemy.id) : 4
     // 站桩点不能低于召唤物射程下限：贴 0 时三相珠等召唤物失效（主输出全丢）
@@ -277,9 +277,11 @@ export function keyDistances(self: Character, state: BattleState, candidates: Ac
 
     if (candidates.length === 0) return [...dists]
 
+    // 武器射程在本次调用内不变，取一次复用
+    const effRange = self.getEffectiveRange()
     const ranges = candidates.map((a) => {
         const runtime = getRuntimeAction(a.id, self, state) ?? a
-        return getActionRange(runtime, weapon.range, self)
+        return getActionRange(runtime, effRange, self)
     })
     const rangeMaxes = ranges.map(([, hi]) => hi)
     const rangeMins = ranges.map(([lo]) => lo)
@@ -326,11 +328,12 @@ export function generatePlans(
     apBudget: number,
     precomputed?: Map<string, DamageEstimate>,
 ): ActionPlan[] {
-    const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
     const enemy = state.characters.find((c) => c.id !== self.id)
     if (!enemy) return []
-    const style: AttackStyle = self.battleStyle ?? classifyAttackStyle(weapon.range)
+    const style: AttackStyle = self.battleStyle
     const current = state.position.distance(self.id, enemy.id)
+    // 武器射程在计划生成期间不变（换武器是效果层事件，不在本回合计划内发生）——取一次复用
+    const effRange = self.getEffectiveRange()
 
     // 距离级评估缓存：同一 (距离, 招式) 只评估一次（热路径关键）。
     // current 距离复用 planEvent 的预评估；段2 各落点（连续值）第一次算后缓存
@@ -343,7 +346,7 @@ export function generatePlans(
         const key = `${Math.round(dist * 100) / 100}::${def.id}`
         const hit = evalCache.get(key)
         if (hit) return hit
-        const est = calcExpectedDamage(def, self, enemy, weapon.range, state, dist)
+        const est = calcExpectedDamage(def, self, enemy, effRange, state, dist)
         evalCache.set(key, est)
         return est
     }
@@ -358,7 +361,7 @@ export function generatePlans(
             baseApCost: est.apCost,
             chanCostAp: chanOpportunityCost(self, est.chanCost ?? 0),
             chanCost: est.chanCost ?? 0,
-            range: getActionRange(runtime, weapon.range, self),
+            range: getActionRange(runtime, effRange, self),
         }
     })
 
@@ -406,8 +409,7 @@ export function generatePlans(
     )
     // 落点偏好（对手风格）：对手近战 → 风筝（偏最远）；对手远程 → 贴脸（偏最近）。
     // 仅作评分加权（"首选"），AP 不足时仍会自然选可行侧。目标区间 [meleePoint, maxRange]
-    const enemyStyle: AttackStyle =
-        (enemy.build.battleStyle as AttackStyle) ?? classifyAttackStyle(enemy.weaponDef?.range ?? [0, 2])
+    const enemyStyle: AttackStyle = enemy.build.battleStyle
     const rangeMin = Math.min(...pool.map((a) => a.range[0]))
     const rangeMax = Math.max(...pool.map((a) => a.range[1]))
     const meleePoint = Math.max(rangeMin, summonMinRange(self) ?? -Infinity)
@@ -453,7 +455,7 @@ export function generatePlans(
         // （引擎：dist > weapon.range[1] 才垫步，垫步 = min(dist, maxDash)），实际打的位置更近。
         // 引擎 ceil 取整过冲/欠冲，落点 ≠ target，用真实落点与垫步修正后的位置评估
         let seg2Dist = movePlan ? movePlan.landDist : current
-        if (maxDash > 0 && seg2Dist > weapon.range[1]) {
+        if (maxDash > 0 && seg2Dist > effRange[1]) {
             seg2Dist = Math.max(0, seg2Dist - Math.min(seg2Dist, maxDash))
         }
         const seg2Budget = apBudget - seg1Ap - moveAp
@@ -502,17 +504,16 @@ function tacticalMove(
     remainAp: number,
 ): MovePlan | null {
     if (remainAp < 0.1) return null
-    const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
+    const effRange = self.getEffectiveRange()
     const enemy = state.characters.find((c) => c.id !== self.id)
     if (!enemy) return null
-    const enemyStyle: AttackStyle =
-        (enemy.build.battleStyle as AttackStyle) ?? classifyAttackStyle(enemy.weaponDef?.range ?? [0, 2])
+    const enemyStyle: AttackStyle = enemy.build.battleStyle
 
     // 当前战斗距离（段2 结束后 ≈ target）
     const dist = target
     // 贴脸下限：本体招下限与召唤物射程下限取大（贴脸不能让召唤物失效——三相珠 [1,10] 贴 0m 打不到）
     const summonMin = summonMinRange(self)
-    const meleeGoal = summonMin !== null ? Math.max(weapon.range[0], summonMin) : weapon.range[0]
+    const meleeGoal = summonMin !== null ? Math.max(effRange[0], summonMin) : effRange[0]
     // 战术目标距离：clinch 贴脸（射程下限 0）；melee 对手贴身则拉开到射程上限，否则贴脸；
     // ranged 风筝（射程最远），mid 看对手
     const kiting = enemyStyle === 'melee' || enemyStyle === 'clinch' // 对手近身 → 我方拉开
@@ -521,12 +522,12 @@ function tacticalMove(
             case 'clinch':
                 return meleeGoal // 贴身风格：贴到射程下限
             case 'ranged':
-                return weapon.range[1] // 远程风格：风筝到射程最远
+                return effRange[1] // 远程风格：风筝到射程最远
             case 'melee':
-                return enemyStyle === 'clinch' ? weapon.range[1] : meleeGoal // 对手贴身则拉开，否则贴脸
+                return enemyStyle === 'clinch' ? effRange[1] : meleeGoal // 对手贴身则拉开，否则贴脸
             case 'mid':
             default:
-                return kiting ? weapon.range[1] : meleeGoal // 对手近身则风筝，否则贴脸
+                return kiting ? effRange[1] : meleeGoal // 对手近身则风筝，否则贴脸
         }
     })()
     return planMove(self, state, dist, goal, remainAp)

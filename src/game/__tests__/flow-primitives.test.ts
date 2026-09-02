@@ -12,6 +12,7 @@ function makeCtx(over: Partial<EffectContext> = {}): EffectContext {
             id: 'player',
             name: '你',
             weapon: 'bare_hands',
+            battleStyle: 'clinch' as const,
             baseAttrs: {},
             rewards: [],
         },

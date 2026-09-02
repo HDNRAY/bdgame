@@ -7,7 +7,8 @@ import { getAction } from '../../data/actions'
 function makeChar(id: string, name: string, weapon: string): Character {
     return new Character({
         id, name, weapon,
-        baseAttrs: { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 },
+        baseAttrs: { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 },        battleStyle: 'melee' as const,
+
         rewards: [],
     })
 }

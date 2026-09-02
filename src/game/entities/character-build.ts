@@ -11,8 +11,8 @@ export interface CharacterBuild {
     name: string
     /** 故事/叙事文本 */
     story?: string
-    /** 战斗风格，缺省 = 随武器自动判断 */
-    battleStyle?: BattleStyle
+    /** 战斗风格（显式必填，不再自动判定） */
+    battleStyle: BattleStyle
     /** 战前台词 */
     taunt?: string
     /** 最终属性值 */
