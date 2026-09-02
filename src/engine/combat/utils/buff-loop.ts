@@ -17,7 +17,6 @@ function cloneBuffLayer(l: BuffLayer): BuffLayer {
 }
 
 /** 仅克隆指定角色的 buff layer（AI 估算沙盒：钩子只读写这些角色的层，召唤物 ownerId 属于召唤者） */
-let __cloneTotal=0
 export function cloneBuffsFor(
     pendingBuffs: Map<string, BuffLayer>,
     charIds: readonly string[],
@@ -31,7 +30,6 @@ export function cloneBuffsFor(
         const ownerId = sep2 < 0 ? rest : rest.slice(0, sep2)
         if (!charIds.includes(ownerId)) continue
         out.set(key, cloneBuffLayer(layer))
-        __cloneTotal++
     }
     return out
 }
@@ -42,18 +40,12 @@ export function cloneBuffsFor(
  * - 用 indexOf 解析 key，避免逐条 split('::') 分配数组
  * - 回调返回 false 可提前终止
  */
-export function __cloneStat(){return __cloneTotal}
-let __realScan=0,__evalScan=0
 export function forEachBuffOf(
     pendingBuffs: Map<string, BuffLayer>,
     charIds: string | readonly string[],
     fn: (def: BuffDef | undefined, layer: BuffLayer, buffId: string, key: string, ownerId: string) => void | false,
 ): void {
     const single = typeof charIds === 'string'
-    ;(globalThis as any).__fe_call=(globalThis as any).__fe_call||0;(globalThis as any).__fe_call++
-    // 粗略区分:评估沙盒的 map 通常只含 2 角色且 key 全带 ::,真实战斗 map 含系统层
-    ;(globalThis as any).__fe_real=(globalThis as any).__fe_real||0;(globalThis as any).__fe_eval=(globalThis as any).__fe_eval||0
-    if((globalThis as any).__fe_call>0){(globalThis as any).__fe_real++}
     for (const [key, layer] of pendingBuffs) {
         const sep = key.indexOf('::')
         if (sep < 0) continue
