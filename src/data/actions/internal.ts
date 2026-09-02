@@ -231,7 +231,9 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 0,
         tags: ['summon'],
-        effects: [{ type: 'damage', scaling: { strength: 0.15 } }],
+        extraPreDelay: 500,
+        extraStunTime: 700,
+        effects: [{ type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } }],
     },
     {
         id: '_flying_lion_roar',

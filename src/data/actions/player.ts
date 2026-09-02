@@ -242,7 +242,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '寒芒一点。刺入瞬间寒意迸发，附加寒锋与霜冻。',
         requiredTags: ['polearm', 'pierce'],
         apCost: 2,
-        tags: ['polearm', 'pierce', 'buff', 'qi'],
+        tags: ['polearm', 'pierce', 'buff', 'frost'],
         effects: [
             { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
             { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.5 },
@@ -255,7 +255,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '炁化烈焰，一戟燎河。附加灼烧。',
         requiredTags: ['polearm', 'pierce'],
         apCost: 3,
-        tags: ['polearm', 'pierce', 'burn', 'qi'],
+        tags: ['polearm', 'pierce', 'burn'],
         effects: [
             { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
             { type: 'damage', scaling: { strength: 0.3, dexterity: 0.2 } },
@@ -268,7 +268,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm', 'pierce'],
         apCost: 4,
         chanCost: 24,
-        tags: ['polearm', 'pierce', 'qi', 'damage', 'chan'],
+        tags: ['polearm', 'pierce', 'damage', 'chan'],
         effects: [
             {
                 type: 'functional_damage',
@@ -295,7 +295,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         chanCost: 16,
-        tags: ['pre_action', 'buff', 'chan'],
+        tags: ['pre_action', 'buff', 'chan', 'burn'],
         target: 'self',
         canUse: (attacker, state) => !state.pendingBuffs.has(`yan_qi::${attacker.id}`),
         hookNotes: { canUse: '已凝焰炁时不可重复' },
@@ -418,7 +418,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: [],
         target: 'enemy',
         getRange: () => [0, 5],
-        // 对手无可偷奇物时不触发/不释放，避免 turn_start 每回合白烧 AP
+        // 对手无可偷奇物时不触发/不释放，避免 on_turn_start 每回合白烧 AP
         canUse: (attacker, state) => {
             const enemy = state.characters.find((c) => c.id !== attacker.id)
             return !!enemy && enemy.artifactDefs.some((a) => !a.tags.includes('inherent'))

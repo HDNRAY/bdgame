@@ -7,7 +7,7 @@ const TAG_LEVELS: Record<string, Tag[]> = {
     /** 武器类型（核心 Build 方向）— 权重 4 */
     weaponType: ['unarmed', 'slash', 'blunt', 'pierce', 'polearm', 'heavy', 'melee', 'range', 'imperial', 'thrown'],
     /** 属性/流派 — 权重 2 */
-    school: ['qi', 'electric', 'frost', 'poison', 'bleed', 'burn', 'summon', 'dual_wield'],
+    school: ['qi', 'electric', 'frost', 'poison', 'bleed', 'burn', 'summon'],
 }
 
 const LEVEL_WEIGHT: Record<string, number> = {
@@ -15,8 +15,12 @@ const LEVEL_WEIGHT: Record<string, number> = {
     school: 2,
 }
 
-/** 查找 tag 所在的等级，返回权重。不在任何等级中视为 1。 */
+/** 无 build 意义的功能 tag：不参与关联权重（位移/前摇/收招/回复/缠耗 不构成流派方向） */
+const NO_BUILD_TAGS: Tag[] = ['move', 'pre_action', 'post_action', 'chan', 'heal']
+
+/** 查找 tag 所在的等级，返回权重。功能 tag 归 0（不参与关联）；不在任何等级中视为 1。 */
 function tagScore(tag: Tag): number {
+    if (NO_BUILD_TAGS.includes(tag)) return 0
     for (const [key, tags] of Object.entries(TAG_LEVELS)) {
         if (tags.includes(tag)) return LEVEL_WEIGHT[key]
     }

@@ -20,19 +20,29 @@ function setup(engine: BattleEngine, atk: Character, stacks: number) {
     return engine.state.pendingBuffs.get(key)!
 }
 
-describe('疯魔棍法', () => {
-    const rod = { tags: ['blunt', 'polearm'] }
+describe('疯魔功', () => {
+    const main = { tags: ['blunt', 'polearm'] }
 
     it('功法/buff 定义齐全', () => {
         expect(getPassive('feng_mo_gong')).toBeDefined()
         const buff = getBuff('feng_mo_gong')!
-        expect(buff.stacking).toEqual({ type: 'additive', max: 5 })
+        expect(buff.stacking).toEqual({ type: 'additive', max: 10 })
         expect(buff.onDealDamage).toBeTypeOf('function')
         expect(buff.onTakeDamage).toBeTypeOf('function')
-        expect(buff.onHitChance).toBeTypeOf('function')
+        expect(buff.apRegenPerSec).toBeTypeOf('function')
     })
 
-    it('完整节奏:第1-4棍逐层增伤,第5棍叠满(+25%不翻倍),第6棍爆发(必中+翻倍)归零', () => {
+    it('建层即归零:初始不带层(additive 需 stacks≥1 建层,onBuffApplied 清 0)', () => {
+        const atk = makeChar('A', '甲', [])
+        const def = makeChar('B', '乙', [])
+        const engine = new BattleEngine(atk, def, 4)
+        const buff = getBuff('feng_mo_gong')!
+        const layer = { restoreValue: 1, extra: {} }
+        buff.onBuffApplied!({ self: atk, engine, state: engine.state, layer, buffId: 'feng_mo_gong' } as never)
+        expect(layer.restoreValue).toBe(0) // 建层后归零,开局 0 层
+    })
+
+    it('持续成长:命中叠层,每层增伤1%,10层不归零', () => {
         const atk = makeChar('A', '甲', [])
         const def = makeChar('B', '乙', [])
         const engine = new BattleEngine(atk, def, 4)
@@ -50,38 +60,21 @@ describe('疯魔棍法', () => {
                 engine,
                 state: engine.state,
                 layer,
-                source: rod,
+                source: main,
             } as never)
         }
-        // 第1棍: 0→1层, +5%
-        expect(hit(100)).toBe(105)
-        // 第2棍: 1→2层, +10%
+        // 逐层 +1%
+        expect(hit(100)).toBe(101) // 0→1层, +1%
+        expect(hit(100)).toBe(102) // 1→2层, +2%
+        expect(hit(100)).toBe(103) // 2→3层, +3%
+        expect(engine.state.pendingBuffs.get(key)!.restoreValue).toBe(3)
+        // 叠到 10 层不归零,继续 +10%
+        engine.state.pendingBuffs.get(key)!.restoreValue = 10
         expect(hit(100)).toBe(110)
-        // 第3棍: 2→3层, +15%
-        expect(hit(100)).toBe(115)
-        // 第4棍: 3→4层, +20%
-        expect(hit(100)).toBe(120)
-        // 第5棍: 4→5层, +25% 不翻倍
-        expect(hit(100)).toBe(125)
-        expect(engine.state.pendingBuffs.get(key)!.restoreValue).toBe(5)
-        // 第6棍: 满层, 必中+翻倍 → 100×1.25×2=250, 归零
-        const layer = engine.state.pendingBuffs.get(key)!
-        const hc = buff.onHitChance!({
-            final: 0,
-            raw: 0,
-            target: def,
-            attacker: atk,
-            engine,
-            state: engine.state,
-            layer,
-            source: rod,
-        } as never)
-        expect(hc).toBe(1)
-        expect(hit(100)).toBe(250)
-        expect(engine.state.pendingBuffs.has(key)).toBe(false)
+        expect(engine.state.pendingBuffs.has(key)).toBe(true) // 不归零
     })
 
-    it('受到伤害+5%/层(伤换伤)', () => {
+    it('受伤+2%/层(伤换伤)', () => {
         const atk = makeChar('A', '甲', [])
         const def = makeChar('B', '乙', [])
         const engine = new BattleEngine(atk, def, 4)
@@ -97,7 +90,25 @@ describe('疯魔棍法', () => {
             layer,
             source: { tags: ['qi'] },
         } as never)
-        expect(dmg).toBe(115)
+        expect(dmg).toBe(106) // 3层 × 2% = +6%
+    })
+
+    it('AP回复 = 0.03/层', () => {
+        const atk = makeChar('A', '甲', [])
+        const def = makeChar('B', '乙', [])
+        const engine = new BattleEngine(atk, def, 4)
+        const layer = setup(engine, atk, 4)
+        const buff = getBuff('feng_mo_gong')!
+        const regen = buff.apRegenPerSec!({
+            final: 0,
+            raw: 0,
+            target: atk,
+            attacker: atk,
+            engine,
+            state: engine.state,
+            layer,
+        } as never)
+        expect(regen).toBeCloseTo(0.12) // 4层 × 0.03
     })
 
     it('非主招(pre_action)不叠层,但仍吃当前层增伤', () => {
@@ -117,7 +128,7 @@ describe('疯魔棍法', () => {
             layer,
             source: preSource,
         } as never)
-        expect(dmg).toBe(110) // 2层+10%
+        expect(dmg).toBe(102) // 2层 × 1% = +2%
         expect(layer.restoreValue).toBe(2) // 不叠
     })
 })

@@ -13,7 +13,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'bare_hands',
         name: '赤手空拳',
         description: '什么都没有，但什么都有可能。',
-        tags: ['unarmed', 'dual_wield'],
+        tags: ['unarmed'],
         effects: [{ type: 'stat_buff', attrs: { agility: 2 } }],
         range: [0, 2],
     },

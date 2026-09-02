@@ -23,7 +23,7 @@ export const YANGGUO: OpponentDef = {
         action('desolate_palm'),
         artifact('jiu_yin_zhen_jing'),
         passive('bu_zhi_yu_wu'),
-        // 12
+        // 13
     ],
     actionConfigs: [
         { actionId: 'desolate_palm' }, // AI 出招顺序

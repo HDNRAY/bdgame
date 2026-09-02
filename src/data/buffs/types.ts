@@ -136,7 +136,7 @@ export interface BuffDef extends GameEntity {
      *  对含爆伤的最终伤害做修正——返回 number 则整体覆盖该伤害（可增伤/转化），
      *  返回 { normal, piercing } 则把伤害拆成普通+穿透两部分（穿透吃爆伤且无视后续招架/减伤/吸收，如无相、一点破晓类效果）。 */
     onPostCritDamage?: (ctx: BuffHookCtx) => number | { normal: number; piercing: number }
-    /** 回合结束回调（turn_end 时调用，不依赖命中） */
+    /** 回合结束回调（on_turn_end 时调用，不依赖命中） */
     onTurnEnd?: (ctx: BuffHookCtx) => void
     /** 层数上限覆盖钩子（raw=原始 max，返回覆盖后的新上限） */
     onBuffApply?: (raw: number, char: Character, engine: BattleEngine) => number

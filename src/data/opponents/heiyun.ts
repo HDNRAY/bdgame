@@ -28,7 +28,7 @@ export const HEIYUN: OpponentDef = {
     actionConfigs: [
         { actionId: 'ling_qi_guan_zhu', conditionId: 'always' },
         { actionId: 'ling_qi_guan_zhu', triggerId: 'on_dodge' },
-        { actionId: 'condense_shield', triggerId: 'on_took_damage' },
+        { actionId: 'condense_shield', triggerId: 'on_was_hit' },
         {
             actionId: 'qi_bolt',
             triggerId: 'on_opponent_move_away',

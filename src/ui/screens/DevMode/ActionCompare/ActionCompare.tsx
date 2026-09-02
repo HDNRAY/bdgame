@@ -27,7 +27,7 @@ const CALC_BARE_HANDS: WeaponDef = {
     id: '_calc_bare_hands',
     name: '空手（评估）',
     description: 'compare 专用中性空手，无属性加成。',
-    tags: ['unarmed', 'dual_wield'],
+    tags: ['unarmed'],
     range: [0, 2],
 }
 const ALL_AP = [0, 1, 2, 3, 4, 5]

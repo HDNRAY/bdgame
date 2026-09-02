@@ -176,7 +176,6 @@ export const PASSIVES: Passive[] = [
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                // 靠 onAction hook 叠层的 additive buff 需以 stacks:1 建层（stacks:0 会被 add_buff 跳过）
                 effects: [{ type: 'add_buff', buffId: 'nineteen_stops', stacks: 1 }],
             },
         ],
@@ -535,7 +534,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'stone_skin',
         name: '石肤功',
-        description: '肌肤如岩石般坚硬，所受直伤-10%。免疫灼烧。',
+        description: '肌肤如岩石般坚硬，所受直伤-10%，灼烧伤害减半。',
         tags: ['passive', 'defense', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'stone_skin' }] }],
     },
@@ -560,9 +559,14 @@ export const PASSIVES: Passive[] = [
         id: 'feng_mo_gong',
         name: '疯魔功',
         description:
-            '势如疯魔，不守反攻。招式命中叠1层「疯魔」（最多5层），每层自身伤害+5%、受到伤害+5%；叠满5层后，下一招必中且伤害翻倍，用后归零。',
+            '势如疯魔，不守反攻。招式命中叠1层「疯魔」（最多8层），每层自身伤害+1%、受到伤害+2%、AP回复+0.03/秒；不再消退，越战越疯。',
         tags: ['passive', 'buff'],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'feng_mo_gong' }] }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [{ type: 'add_buff', buffId: 'feng_mo_gong', stacks: 1 }],
+            },
+        ],
     },
     {
         id: 'frost_step',

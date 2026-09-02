@@ -132,6 +132,10 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 19 },
+        // 建层即归零（additive 需 stacks≥1 建层，实际层数由出手驱动，开局 0 层）
+        onBuffApplied: ({ layer }) => {
+            layer.restoreValue = 0
+        },
         onAction: ({ attacker, layer }) => {
             if (!attacker.spendChan(2)) return
             const stacks = layer.restoreValue ?? 0
@@ -473,70 +477,47 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         },
     },
     {
-        // 疯魔功：任何招式命中叠疯魔层（≤5），每层伤换伤(+5%/-5%)；满5层下一招必中+伤害翻倍，用后归零
+        // 疯魔功：battle_start 建 1 层满足引擎(onBuffApplied 归零到 0)，命中手动叠层，越战越疯
         id: 'feng_mo_gong',
         name: '疯魔',
-        description:
-            '势如疯魔，不守反攻。招式命中叠1层（最多5层），每层自身伤害+5%、受到伤害+5%；叠满5层后，下一招必中且伤害翻倍，用后归零。',
+        description: '势如疯魔，不守反攻。招式命中叠1层（最多10层），每层自身伤害+1%、受到伤害+2%、AP回复+0.03/秒。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 5 },
-        onDealDamage: ({ final, source, layer, attacker, engine, state }) => {
+        stacking: { type: 'additive', max: 10 },
+        // 建层即归零（additive 需 stacks≥1 建层，实际层数由命中驱动，开局 0 层）
+        onBuffApplied: ({ layer }) => {
+            layer.restoreValue = 0
+        },
+        // 命中叠层（排除 pre/post/summon），本招吃新层增伤
+        onDealDamage: ({ final, source, layer, attacker, engine }) => {
             const isMain =
                 !!source &&
                 !source.tags.includes('pre_action') &&
                 !source.tags.includes('post_action') &&
                 !source.tags.includes('summon')
             const stacks = layer.restoreValue ?? 0
-            // 满层状态（已是5层）：本招必中（onHitChance）已保证命中，吃5层增伤+翻倍，用后归零
-            if (stacks >= 5) {
-                const dmg = round1(round1(final * (1 + stacks * 0.05)) * 2)
-                state.pendingBuffs.delete(`feng_mo_gong::${attacker.id}`)
-                engine?.emitLog({
-                    type: 'system',
-                    message: `[疯魔] 「${attacker.name}」 疯魔爆发，一招定音！伤害翻倍`,
-                    actorId: attacker.id,
-                })
-                return dmg
-            }
-            // 未满层：主招命中 → 先叠层，这一招就吃到新层（命中即疯，本招生效）
             let dmg = final
             if (isMain && engine) {
-                const newStacks = Math.min(5, stacks + 1)
+                const newStacks = Math.min(10, stacks + 1)
                 layer.restoreValue = newStacks
-                if (newStacks < 5) {
-                    dmg = round1(final * (1 + newStacks * 0.05))
-                    engine.emitLog({
-                        type: 'system',
-                        message: `[疯魔] 「${attacker.name}」 疯魔+1（${newStacks}/5）`,
-                        actorId: attacker.id,
-                    })
-                } else {
-                    // 叠到满层：本招吃+25%但不翻倍，下一招才爆发
-                    dmg = round1(final * 1.25)
-                    engine.emitLog({
-                        type: 'system',
-                        message: `[疯魔] 「${attacker.name}」 疯魔已满（5/5），下一招爆发！`,
-                        actorId: attacker.id,
-                    })
-                }
+                dmg = round1(final * (1 + newStacks * 0.01))
+                engine.emitLog({
+                    type: 'system',
+                    message: `[疯魔] 「${attacker.name}」 疯魔+1（${newStacks}/10）`,
+                    actorId: attacker.id,
+                })
             } else if (stacks > 0) {
-                dmg = round1(final * (1 + stacks * 0.05))
+                dmg = round1(final * (1 + stacks * 0.01))
             }
             return dmg
         },
+        // 伤换伤：越疯越脆
         onTakeDamage: ({ final, layer }) => {
             const stacks = layer.restoreValue ?? 0
             if (stacks <= 0) return final
-            return round1(final * (1 + stacks * 0.05))
+            return round1(final * (1 + stacks * 0.02))
         },
-        onHitChance: ({ source, layer }) =>
-            (layer.restoreValue ?? 0) >= 5 &&
-            !!source &&
-            !source.tags.includes('pre_action') &&
-            !source.tags.includes('post_action') &&
-            !source.tags.includes('summon')
-                ? 1
-                : 0,
+        // 越疯动作越快：每层 AP 回复 +0.03/s
+        apRegenPerSec: ({ layer }) => 0.03 * (layer.restoreValue ?? 0),
     },
 ]

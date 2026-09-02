@@ -325,7 +325,7 @@ export class BattleEngine {
         this.state.actionCount++
         this.state.log.resetScope(this.state.actionCount)
 
-        this.emit('turn_start', self, enemy)
+        this.emit('on_turn_start', self, enemy)
         // 重建召唤物（法球等每回合重新入队）
         this.#initSummons(self)
 
@@ -354,7 +354,7 @@ export class BattleEngine {
                 })
             }
         })
-        this.emit('turn_end', self, enemy)
+        this.emit('on_turn_end', self, enemy)
         this.state.turn.next(self.id)
 
         // ── 4. 下次行动间隔 = AP 回复耗时（身法/haste 减 AP 消耗 → 回复更快 → 攻击频率更高） ──
@@ -416,7 +416,7 @@ export class BattleEngine {
         if (!self.isAlive()) return
         const { moveDelta, position } = this.state
         const isInitPhase =
-            event === 'battle_start' || event === 'turn_start' || event === 'on_equip' || event === 'turn_end'
+            event === 'battle_start' || event === 'on_turn_start' || event === 'on_equip' || event === 'on_turn_end'
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
@@ -657,8 +657,6 @@ export class BattleEngine {
             this.emitLog({ type: 'system', message: BattleLog.plain(self.name, '没有可用招式'), actorId: self.id })
             return this.#emptyResult()
         }
-        // 本体招式发出前事件（供对手反制，御物/触发招式不触发）
-        this.emit('on_pre_action', enemy, self)
         const r = this.#executeAction(action, self, enemy)
         tickEngine.onBleedTrigger(self, this)
         return r
@@ -687,7 +685,7 @@ export class BattleEngine {
         if (fcPermLayer || fcTempLayer) {
             const permRate = fcPermLayer ? fcPermLayer.restoreValue * 0.05 : 0
             const tempRate = fcTempLayer
-                ? (fcTempLayer.extra?.fumbleRate as number | undefined) ?? fcTempLayer.restoreValue * 0.05
+                ? ((fcTempLayer.extra?.fumbleRate as number | undefined) ?? fcTempLayer.restoreValue * 0.05)
                 : 0
             if (Math.random() < permRate + tempRate) {
                 this.emitLog({ type: 'fumble', sourceId: self.id })
@@ -804,11 +802,7 @@ export class BattleEngine {
         // 效果在招式自身作用域处理（不新增 scope 层；渲染层按 scope 深度 +1 缩进效果行）
         const ignoresParry = action.effects?.some((e) => e.type === 'ignore_parry')
         for (const eff of action.effects ?? []) {
-            if (
-                (eff.type === 'add_debuff' || eff.type === 'damage') &&
-                r.hit &&
-                (ignoresParry || !r.dodged)
-            ) {
+            if ((eff.type === 'add_debuff' || eff.type === 'damage') && r.hit && (ignoresParry || !r.dodged)) {
                 processActionEffect(eff, { self, enemy, engine: this, tMs, action, triggered })
             } else if (r.hit && !r.dodged && !isPreHitEffect(eff.type)) {
                 processActionEffect(eff, { self, enemy, engine: this, tMs, action, triggered })

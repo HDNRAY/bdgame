@@ -47,7 +47,6 @@ export type Tag =
     | 'stance' // 架势/姿态
     | 'retrieve_weapon' // 收回武器
     | 'bonus_damage' // 独立附加伤害
-    | 'dual_wield' // 双持
     | 'range_up' // 增加攻击范围
     | 'inherent' // 特性（不可复制、不可禁用）
     | 'weapon' // 武器来源的 buff

@@ -233,10 +233,15 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'stone_skin',
         name: '石肤',
-        description: '肌肤如岩石般坚硬，所受直伤-10%。',
+        description: '肌肤如岩石般坚硬，所受直伤-10%，灼烧伤害减半。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final }) => Math.round(final * 0.9 * 10) / 10,
+        // 灼烧 tick 减半（与铸火诀/千锤百炼同机制，走 onDebuffTick 数据钩子）
+        onDebuffTick: ({ buffId, damage }) => {
+            if (buffId !== 'burn') return undefined
+            return Math.max(0, round1(damage * 0.5))
+        },
     },
     {
         id: 'hua_gun_parry',

@@ -19,8 +19,8 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
         maxUses: 1,
     },
     { id: 'on_dodge', type: 'on_dodge' },
-    { id: 'turn_start', type: 'turn_start' },
-    { id: 'on_turn_start', type: 'turn_start' },
+    { id: 'on_turn_start', type: 'on_turn_start' },
+    { id: 'on_turn_end', type: 'on_turn_end' },
     { id: 'on_attack', type: 'on_attack' },
     { id: 'on_dealt_damage', type: 'on_dealt_damage' },
     { id: 'on_was_hit', type: 'on_was_hit' },
@@ -40,7 +40,5 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
     { id: 'on_opponent_move_closer', type: 'on_opponent_move_closer' },
     { id: 'on_opponent_move_away', type: 'on_opponent_move_away' },
     { id: 'on_crit', type: 'on_crit' },
-    { id: 'on_pre_action', type: 'on_pre_action' },
-    { id: 'turn_end', type: 'turn_end' },
     { id: 'battle_start', type: 'battle_start' },
 ]
