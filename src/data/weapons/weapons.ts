@@ -112,11 +112,16 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'xiu_dong',
         name: '绣冬',
         description: '绣冬长三尺二寸，势沉力猛。力道化为锋芒，越重越利。',
-        tags: ['slash', 'parry', 'frost', 'melee', 'heavy', 'one_handed'],
+        tags: ['slash', 'parry', 'melee', 'heavy', 'one_handed'],
         range: [1, 3],
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 10 }] },
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'xiu_dong_buff' }] },
+            {
+                condition: { type: 'on_equip' },
+                effects: [
+                    { type: 'add_buff', buffId: 'heavy_load', stacks: 10 },
+                    { type: 'add_buff', buffId: 'xiu_dong_buff' },
+                ],
+            },
         ],
     },
     {
@@ -134,8 +139,13 @@ export const WEAPON_DB: WeaponDef[] = [
         tags: ['slash', 'parry', 'polearm', 'heavy'],
         range: [1, 4],
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 14 }] },
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overlord_blade' }] },
+            {
+                condition: { type: 'on_equip' },
+                effects: [
+                    { type: 'add_buff', buffId: 'heavy_load', stacks: 14 },
+                    { type: 'add_buff', buffId: 'overlord_blade' },
+                ],
+            },
         ],
     },
     {

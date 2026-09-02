@@ -128,7 +128,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'nineteen_stops',
         name: '十九停',
         description:
-            '每次出手消耗2缠劲（无论命中与否）并叠一层，但层数越高越易失手（叠不上）。每层命中+1%、暴击+1%、暴伤+1%，最多19层。',
+            '每次出手消耗2缠劲（无论命中与否）并叠一层，但层数越高越易失手（叠不上）。每层命中+1%、暴击+2%、暴伤+3%，最多19层。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 19 },
@@ -139,12 +139,12 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onAction: ({ attacker, layer }) => {
             if (!attacker.spendChan(2)) return
             const stacks = layer.restoreValue ?? 0
-            if (Math.random() < (stacks / 19) ** 2 * 0.95) return
+            if (Math.random() < (stacks / 19) ** 2) return
             layer.restoreValue = Math.min(19, stacks + 1)
         },
         onHitChance: ({ layer }) => layer.restoreValue * 0.01,
-        onCritChance: ({ layer }) => layer.restoreValue * 0.01,
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
+        onCritChance: ({ layer }) => layer.restoreValue * 0.02,
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.03,
     },
     {
         id: 'ji_lie_zhi_lie_buff',
