@@ -8,7 +8,7 @@ export const DUOER: OpponentDef = {
     name: '陶朵',
     story: '小时候最好的玩伴。后来被招入了**学校修习。二阶段重逢，共处一段时日后，目睹了她的另一面——那个在黑暗里执行任务的陶朵。',
     weapon: 'dagger',
-    battleStyle: 'melee',
+    battleStyle: 'clinch',
     targetAttrs: DUOER_ATTRS,
     rewards: [
         action('ba_gua_you_shen_zhang'),
@@ -27,6 +27,7 @@ export const DUOER: OpponentDef = {
         // 13
     ],
     actionConfigs: [
+        { actionId: 'poison_detonate', conditionId: 'enemy_hp_below_30' },
         { actionId: 'blood_droplet', triggerId: 'on_opponent_move_away' }, // AI 出招顺序
         { actionId: 'kick', triggerId: 'on_dodge' },
         { actionId: 'rear_naked_choke', conditionId: 'distance_lt_2' },

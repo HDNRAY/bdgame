@@ -11,6 +11,8 @@ import { WEAPON_DB } from '../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
 import { ARTIFACTS } from '../../data/artifacts'
 import { OPPONENTS } from '../../data/opponents'
+import { UNARMED_ACTIONS } from '../../data/actions/unarmed'
+import { MELEE_ACTIONS } from '../../data/actions'
 
 /**
  * 检查数组中所有 id 唯一，返回重复 id 列表
@@ -59,6 +61,8 @@ describe('buffs', () => {
 // ──────────────────────────────────────────
 describe('actions', () => {
     it('PLAYER_ACTIONS 内无重复 id', () => expectNoDupes(PLAYER_ACTIONS, 'PLAYER_ACTIONS'))
+    it('UNARMED_ACTIONS 内无重复 id', () => expectNoDupes(UNARMED_ACTIONS, 'UNARMED_ACTIONS'))
+    it('MELEE_ACTIONS 内无重复 id', () => expectNoDupes(MELEE_ACTIONS, 'MELEE_ACTIONS'))
     it('SUPPORT_ACTIONS 内无重复 id', () => expectNoDupes(SUPPORT_ACTIONS, 'SUPPORT_ACTIONS'))
     it('INTERNAL_ACTIONS 内无重复 id', () => expectNoDupes(INTERNAL_ACTIONS, 'INTERNAL_ACTIONS'))
     it('QI_SKILLS 内无重复 id', () => expectNoDupes(QI_SKILLS, 'QI_SKILLS'))

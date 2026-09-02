@@ -15,6 +15,7 @@ export const QIANXING: OpponentDef = {
     name: '天工·千星',
     story: '天工坊主人，神铁、千机、阿赖耶识的锻造者。以炁驱动的电磁锤纵横，雷火交加。每个人一生只能给他下一个订单，做不做全凭他意。',
     weapon: 'qimei_staff',
+    battleStyle: 'melee',
     targetAttrs: QIANXING_ATTRS,
     rewards: [
         weapon('engine_hammer'),

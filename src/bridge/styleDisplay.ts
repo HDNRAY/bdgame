@@ -1,4 +1,4 @@
-import { classifyAttackStyle } from '../engine/ai/move-planner'
+import { classifyAttackStyle } from '../engine/ai/planner'
 import type { BattleStyle } from '../game/entities/character-build'
 import type { WeaponDef } from '../data/weapons/weapons'
 
@@ -7,6 +7,7 @@ export const STYLE_OPTIONS: { label: string; value: BattleStyle | undefined }[] 
     { label: '近战', value: 'melee' },
     { label: '中距', value: 'mid' },
     { label: '远程', value: 'ranged' },
+    { label: '贴身', value: 'clinch' },
 ]
 
 const STYLE_MAP = new Map(STYLE_OPTIONS.map((o) => [o.value, o.label]))

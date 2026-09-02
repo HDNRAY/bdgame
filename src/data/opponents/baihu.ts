@@ -8,6 +8,7 @@ export const BAIHU: OpponentDef = {
     name: '南宫狐儿',
     weapon: 'peach_sword',
     targetAttrs: BAIHU_ATTRS,
+    battleStyle: 'melee',
     rewards: [
         action('light_slash'),
         passive('ice_heart'),

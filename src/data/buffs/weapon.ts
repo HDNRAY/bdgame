@@ -164,4 +164,14 @@ export const WEAPON_BUFFS: BuffDef[] = [
             return { normal: round1(final - pierce), piercing: pierce }
         },
     },
+    {
+        // 锁链断刀：锁链缠腕，兵器不会脱手
+        id: 'broken_blade_lock',
+        name: '锁链',
+        description: '锁链缠腕，免疫缴械。',
+        tags: ['weapon'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onDisarmChance: () => -1,
+    },
 ]

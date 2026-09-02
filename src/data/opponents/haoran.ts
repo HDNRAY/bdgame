@@ -7,7 +7,7 @@ export const HAORAN: OpponentDef = {
     id: 'haoran',
     name: '宁浩然',
     story: '持剑书生。以炁催动剑意，剑意化为万象。',
-    battleStyle: 'mid',
+    battleStyle: 'melee',
     weapon: 'peach_sword',
     targetAttrs: ATTRS,
     rewards: [

@@ -22,7 +22,6 @@ import { getWeapon } from '../../data/weapons/weapons'
 import { forEachBuffOf, calcExtraMoveEfficiency } from '../combat/utils'
 import { PositionSystem } from '../combat/position'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
-import { classifyAttackStyle, type AttackStyle } from './move-planner'
 import { chanOpportunityCost, calcChanCostInAp } from '../calc/chan-value'
 
 /** 一个完整的回合计划 */
@@ -188,9 +187,13 @@ export function planMove(
     acceptableRange?: [number, number],
 ): MovePlan | null {
     if (Math.abs(from - to) < 0.05) return null
+    // 每 AP 位移量只算一次（moveCost 与走路分支共用）
+    const perAp = movePerAp(self, state)
     const walkAp = moveCost(self, state, from, to)
 
     // 遍历位移招式（dash/short_dash），找一个能接近目标且更省 AP 的
+    // getMaxActionRange 缓存（dash 目标距离，遍历期间可能多次用到）
+    let cachedMaxRange: number | null = null
     let bestDash: MovePlan | null = null
     for (const inst of self.actions) {
         const dashEff = inst.def.effects?.find((e): e is Extract<EffectDef, { type: 'dash' }> => e.type === 'dash')
@@ -198,7 +201,7 @@ export function planMove(
         if (inst.def.chanCost && self.chan < inst.def.chanCost) continue
         if (inst.def.canUse && !inst.def.canUse(self, state)) continue
         const { minRange = 0, maxRange = Infinity, targetDist: rawTarget } = dashEff
-        const targetDist = rawTarget < 0 ? self.getMaxActionRange(state) : rawTarget
+        const targetDist = rawTarget < 0 ? (cachedMaxRange ??= self.getMaxActionRange(state)) : rawTarget
         if (targetDist < 0) continue
         const desired = from - targetDist // 正=靠近
         if (Math.abs(desired) < minRange) continue
@@ -229,7 +232,6 @@ export function planMove(
 
     // 走路：校验真实落点（引擎 perAp×ap 位移，ceil 取整可能过冲跌破射程下限）落在可接受区间内。
     // 落点是确定性的（与引擎同公式），用严格容差：过冲 0.06 就是真的打不到，直接放弃该移动
-    const perAp = movePerAp(self, state)
     const delta = to < from ? -1 : 1
     const landDist = Math.max(0, from + delta * perAp * walkAp)
     if (acceptableRange && (landDist < acceptableRange[0] - 0.01 || landDist > acceptableRange[1] + 0.01)) {
@@ -305,6 +307,18 @@ export function keyDistances(self: Character, state: BattleState, candidates: Ac
  * @param apBudget 本回合可用 AP（已扣前摇）
  * @param precomputed planEvent 收集候选时已按当前距离算好的评估（复用，避免 pool 构建重复评估）
  */
+export type AttackStyle = 'melee' | 'mid' | 'ranged' | 'clinch'
+
+/** 根据武器射程判断战斗风格（纯武器判断，不考虑具体招式） */
+export function classifyAttackStyle(weaponRange: [number, number]): AttackStyle {
+    const maxRange = weaponRange[1]
+    if (maxRange >= 6) return 'ranged'
+    if (maxRange >= 4) return 'mid'
+    // 射程下限为 0 且上限 ≤2（空手/贴脸武器）→ 贴身风格：贴到 0m
+    if (weaponRange[0] <= 0 && maxRange <= 2) return 'clinch'
+    return 'melee'
+}
+
 export function generatePlans(
     self: Character,
     state: BattleState,
@@ -400,10 +414,10 @@ export function generatePlans(
     const prefSpan = Math.max(0.01, rangeMax - meleePoint)
 
     for (const target of targetDists) {
-        // 落点偏好乘数：对手 melee → 目标越远加成越高；对手 ranged → 目标越近加成越高；mid 无偏好
+        // 落点偏好乘数：对手 melee/clinch → 目标越远加成越高；对手 ranged → 目标越近加成越高；mid 无偏好
         const norm = (target - meleePoint) / prefSpan
         const prefMult =
-            enemyStyle === 'melee'
+            enemyStyle === 'melee' || enemyStyle === 'clinch'
                 ? 1 + LANDING_PREF_WEIGHT * Math.min(1, Math.max(0, norm))
                 : enemyStyle === 'ranged'
                   ? 1 + LANDING_PREF_WEIGHT * Math.min(1, Math.max(0, 1 - norm))
@@ -499,15 +513,22 @@ function tacticalMove(
     // 贴脸下限：本体招下限与召唤物射程下限取大（贴脸不能让召唤物失效——三相珠 [1,10] 贴 0m 打不到）
     const summonMin = summonMinRange(self)
     const meleeGoal = summonMin !== null ? Math.max(weapon.range[0], summonMin) : weapon.range[0]
-    // 战术目标距离：melee 贴脸（武器最短，但不低于召唤物下限），ranged 风筝（射程最远），mid 看对手
-    const goal =
-        style === 'melee'
-            ? meleeGoal
-            : style === 'ranged'
-              ? weapon.range[1]
-              : enemyStyle === 'melee'
-                ? weapon.range[1]
-                : meleeGoal
+    // 战术目标距离：clinch 贴脸（射程下限 0）；melee 对手贴身则拉开到射程上限，否则贴脸；
+    // ranged 风筝（射程最远），mid 看对手
+    const kiting = enemyStyle === 'melee' || enemyStyle === 'clinch' // 对手近身 → 我方拉开
+    const goal = (() => {
+        switch (style) {
+            case 'clinch':
+                return meleeGoal // 贴身风格：贴到射程下限
+            case 'ranged':
+                return weapon.range[1] // 远程风格：风筝到射程最远
+            case 'melee':
+                return enemyStyle === 'clinch' ? weapon.range[1] : meleeGoal // 对手贴身则拉开，否则贴脸
+            case 'mid':
+            default:
+                return kiting ? weapon.range[1] : meleeGoal // 对手近身则风筝，否则贴脸
+        }
+    })()
     return planMove(self, state, dist, goal, remainAp)
 }
 

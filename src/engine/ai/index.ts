@@ -8,7 +8,7 @@ import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
 import { generatePlans, bestPlan } from './planner'
 import { planSupportActions } from './support-planner'
-import { classifyAttackStyle, type AttackStyle } from './move-planner'
+import { classifyAttackStyle, type AttackStyle } from './planner'
 import { checkCondition } from '../../game/entities/action-config'
 import { getConditionPreset } from '../../data/conditions'
 
@@ -125,10 +125,10 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const plans = generatePlans(self, state, candDefs, apBudget, precomputed)
     const best = bestPlan(plans)
     if (!best) {
-        // 没有可行攻击计划：朝风格理想距离移动（melee 贴脸靠近、ranged/mid 风筝远离），
+        // 没有可行攻击计划：朝风格理想距离移动（clinch/melee 贴脸靠近、ranged/mid 风筝远离），
         // clamp 到理想距离不过冲——贴脸时不再无效靠近（move[-] 原地空转）、风筝时不再盲目冲
         const style: AttackStyle = self.battleStyle ?? classifyAttackStyle(weapon.range)
-        const goal = style === 'melee' ? weapon.range[0] : weapon.range[1]
+        const goal = style === 'clinch' || style === 'melee' ? weapon.range[0] : weapon.range[1]
         const dist = enemy ? state.position.distance(self.id, enemy.id) : 4
         const perAp = PositionSystem.apToRange(self.attrs.get('agility')) * (1 + calcExtraMoveEfficiency(state, self))
         const moveM = Math.min(perAp * Math.max(0, apBudget), Math.abs(dist - goal))

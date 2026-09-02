@@ -1259,13 +1259,13 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
-        // 神照经：血越少 AP 回复越快（额外回复，封顶 0.5/秒）。onHpChange 触发重算行动时间
+        // 神照经：血越少 AP 回复越快（额外回复，封顶 0.4/秒）。onHpChange 触发重算行动时间
         id: 'shen_zhao_jing',
         name: '神照经',
-        description: '神照通明，气血愈衰，气机愈盛。气血越低，AP回复越快，最多+0.5/秒。',
+        description: '神照通明，气血愈衰，气机愈盛。气血越低，AP回复越快，最多+0.4/秒。',
         tags: [],
         expiry: { type: 'permanent' },
-        apRegenPerSec: ({ target }) => 0.5 * (1 - target.hp / target.maxHp),
+        apRegenPerSec: ({ target }) => 0.4 * (1 - target.hp / target.maxHp),
     },
     // ── 观自在眼（姬然） ──
     {
@@ -1435,11 +1435,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'gear_shift_buff',
         name: '挡',
-        description: '挂挡蓄劲，内息流转。每层内息回复+0.3/s。',
+        description: '挂挡蓄劲，内息流转。每层内息回复+0.1/s。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 3 },
-        apRegenPerSec: ({ layer }) => round1((layer.restoreValue ?? 0) * 0.3),
+        stacking: { type: 'additive', max: 5 },
+        apRegenPerSec: ({ layer }) => round1((layer.restoreValue ?? 0) * 0.1),
     },
     // ── 淬毒工具 ──
     {

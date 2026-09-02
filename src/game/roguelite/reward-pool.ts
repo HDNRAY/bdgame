@@ -3,12 +3,10 @@ import type { RewardType, RewardEntity } from '../../game/entities/reward'
 import { CULT_REWARD } from '../../game/entities/reward'
 import { PASSIVES } from '../../data/passives'
 import { ARTIFACTS } from '../../data/artifacts'
-import { PLAYER_ACTIONS } from '../../data/actions/player'
-import { SUPPORT_ACTIONS } from '../../data/actions/support'
-import { UNARMED_ACTIONS } from '../../data/actions/unarmed'
 import { WEAPON_DB } from '../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
 import { pickWeightedByTags } from '../tagRelevance'
+import { allMainActions } from '../../engine'
 
 export class RewardPool {
     private static _instance: RewardPool
@@ -103,7 +101,7 @@ export class RewardPool {
 
     private _getActionPool(): RewardEntity[] {
         if (!this._actionPool) {
-            this._actionPool = [...PLAYER_ACTIONS, ...SUPPORT_ACTIONS, ...UNARMED_ACTIONS] as RewardEntity[]
+            this._actionPool = allMainActions as RewardEntity[]
         }
         return this._actionPool
     }

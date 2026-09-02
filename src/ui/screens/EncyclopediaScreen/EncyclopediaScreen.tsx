@@ -5,7 +5,7 @@ import { STARTING_WEAPONS } from '../../../data/weapons/starting-weapons'
 import { PASSIVES } from '../../../data/passives'
 import { TALENTS } from '../../../data/passives/talents'
 import { ARTIFACTS } from '../../../data/artifacts'
-import { PLAYER_ACTIONS, SUPPORT_ACTIONS, QI_SKILLS } from '../../../data/actions'
+import { SUPPORT_ACTIONS, allMainActions } from '../../../data/actions'
 import { TAG_CN } from '../../../bridge/tagDisplay'
 import { EntityItem } from '../../components/ui/EntityItem/EntityItem'
 import type { EntityDef } from '../../../bridge/entity-tooltip'
@@ -24,7 +24,7 @@ interface ItemEntry {
 
 const ALL_WEAPONS = [...WEAPON_DB, ...STARTING_WEAPONS]
 const ALL_PASSIVES = [...PASSIVES, ...TALENTS]
-const ALL_ACTIONS = [...PLAYER_ACTIONS, ...SUPPORT_ACTIONS, ...QI_SKILLS]
+const ALL_ACTIONS = [...allMainActions, ...SUPPORT_ACTIONS]
 
 const CATEGORIES: { key: Category; label: string }[] = [
     { key: 'weapon', label: '武器' },

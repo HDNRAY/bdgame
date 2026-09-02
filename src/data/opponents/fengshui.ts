@@ -8,6 +8,7 @@ export const FENGSHUI: OpponentDef = {
     name: '风似水',
     story: '短发，黑铁面具只露嘴和下巴，腰悬雁翎刀「惊鸿」。别人问她为啥戴面具，她咧嘴一笑："长得太好看，怕你分心，刀太快怕你看不清。"',
     weapon: 'dagger',
+    battleStyle: 'clinch',
     targetAttrs: ATTRS,
     rewards: [
         action('horizontal_slash'), // 横斩

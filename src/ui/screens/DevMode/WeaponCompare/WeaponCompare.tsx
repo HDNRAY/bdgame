@@ -18,10 +18,7 @@ import type { BattleState, BuffLayer } from '../../../../engine/combat/types'
 import { MAX_CHAN } from '../../../../engine/constants'
 import type { ActionDefinition } from '../../../../engine/entities/action'
 import { getBuff } from '../../../../data/buffs'
-import { getAction } from '../../../../data/actions'
-import { PLAYER_ACTIONS } from '../../../../data/actions/player'
-import { INTERNAL_ACTIONS } from '../../../../data/actions/internal'
-import { QI_SKILLS } from '../../../../data/actions/qi'
+import { allMainActions, getAction } from '../../../../data/actions'
 import { calcApRegenPerSec } from '../../../../engine/calc/damage'
 import { EntityItem } from '../../../components/ui/EntityItem/EntityItem'
 import './WeaponCompare.scss'
@@ -245,7 +242,7 @@ const DEBUFF_DOT_DMG: Record<string, number> = {
 }
 
 /** 标准招式池（玩家/内置/炁招，排除支撑招） */
-const STANDARD_ACTION_POOL = [...PLAYER_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS].filter(
+const STANDARD_ACTION_POOL = allMainActions.filter(
     (a) => !a.tags.includes('pre_action') && !a.tags.includes('post_action'),
 )
 

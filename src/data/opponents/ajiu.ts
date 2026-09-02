@@ -8,6 +8,7 @@ export const AJIU: OpponentDef = {
     name: '阿九',
     weapon: 'peach_sword',
     targetAttrs: AJIU_ATTRS,
+    battleStyle: 'melee',
     rewards: [
         action('horizontal_slash'),
         weapon('broken_blade'),

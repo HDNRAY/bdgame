@@ -410,6 +410,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 2,
         tags: ['pierce', 'polearm', 'slash'],
+        getRange: () => [0, 3],
         effects: [
             {
                 type: 'ignore_parry',
@@ -424,7 +425,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 2,
         tags: ['slash', 'range', 'polearm'],
-        getRange: () => [3, 5] as [number, number],
+        getRange: () => [3, 5],
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
     },
     // ── 阿赖耶识 ──

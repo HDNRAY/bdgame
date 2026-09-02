@@ -1,5 +1,5 @@
 import type { ActionDefinition } from '../../engine/entities/action'
-import { MAX_CHAN, MAX_STAT_TRANSFER_LAYERS } from '../../engine/constants'
+import { MAX_STAT_TRANSFER_LAYERS } from '../../engine/constants'
 import { forEachBuffOf } from '../../engine/combat/utils'
 
 /**
@@ -98,10 +98,10 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'gear_hang',
         name: '挂',
-        description: '凝缠劲为内息，消耗50缠劲，叠一层「挡」，每层内息回复+0.3/s。',
+        description: '凝缠劲为内息，消耗20缠劲，叠一层「挡」。',
         requiredTags: [],
         apCost: 1,
-        chanCost: MAX_CHAN,
+        chanCost: 20,
         tags: ['buff', 'pre_action', 'chan'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'gear_shift_buff', stacks: 1 }],
@@ -185,15 +185,15 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'big_leap',
         name: '虎跃',
-        description: '猛虎跃涧，瞬间近身。范围2~6m。需力道≥10。',
+        description: '猛虎跃涧，瞬间近身。范围2~4m。需力道≥10。',
         requiredTags: [],
         apCost: 2,
         tags: ['move', 'pre_action'],
         target: 'self',
-        getRange: () => [2, 6] as [number, number],
+        chanCost: 3,
         canUse: (attacker) => attacker.attrs.get('strength') >= 10,
         hookNotes: { canUse: '力道不足时不可使用' },
-        effects: [{ type: 'dash', minRange: 2, maxRange: 6, targetDist: 0 }],
+        effects: [{ type: 'dash', minRange: 2, maxRange: 4, targetDist: 0 }],
     },
     {
         id: 'lightning_speed',
@@ -211,11 +211,11 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '一个筋斗翻腾而出，瞬间近身。范围1~8m。需身法≥10。',
         requiredTags: [],
         apCost: 2,
+        chanCost: 5,
         tags: ['move', 'pre_action'],
         target: 'self',
-        getRange: () => [1, 8] as [number, number],
         canUse: (attacker) => attacker.attrs.get('agility') >= 10,
-        hookNotes: { canUse: '被卸械时才能使用' },
+        hookNotes: { canUse: '身法不足时不可使用' },
         effects: [{ type: 'dash', minRange: 1, maxRange: 8, targetDist: 1 }],
     },
     {
@@ -226,7 +226,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['move', 'pre_action'],
         target: 'self',
-        getRange: () => [0, 8] as [number, number],
         effects: [{ type: 'dash', maxRange: 8, targetDist: 0, useAp: false }],
     },
     {
@@ -235,9 +234,8 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '如凤反转，瞬移拉开距离。',
         requiredTags: [],
         apCost: 1,
-        tags: ['move', 'pre_action'],
+        tags: ['move', 'pre_action', 'post_action'],
         target: 'self',
-        getRange: () => [0, 8] as [number, number],
         effects: [{ type: 'dash', maxRange: 8, targetDist: -1, useAp: false }],
     },
     {
@@ -245,7 +243,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         name: '云步',
         description: '身形如云，缥缈难测。闪身至最大攻击距离，云步后身法缥缈，下次攻击更难招架闪避。',
         requiredTags: [],
-        apCost: 1,
+        apCost: 2,
         tags: ['move', 'pre_action'],
         target: 'self',
         effects: [
@@ -265,7 +263,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     },
     {
         id: 'retrieve_blade',
-        name: '拾刀',
+        name: '滚地拾刀',
         description: '重握霸刀，恢复刀态。',
         requiredTags: [],
         apCost: 0,
@@ -273,7 +271,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         target: 'self',
         canUse: (attacker, state) => state.pendingBuffs.has('disarmed::' + attacker.id),
         hookNotes: { canUse: '被卸械时才能拾刀' },
-        effects: [{ type: 'short_dash', maxDistance: 2 }, { type: 'retrieve_weapon' }],
+        effects: [{ type: 'short_dash', maxDistance: 3 }, { type: 'retrieve_weapon' }],
     },
     {
         id: 'pickup_weapon',

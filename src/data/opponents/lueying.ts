@@ -8,7 +8,7 @@ export const LUEYING: OpponentDef = {
     name: '李雪影',
     weapon: 'dagger',
     targetAttrs: LUEYING_ATTRS,
-    battleStyle: 'melee',
+    battleStyle: 'clinch',
     rewards: [
         action('gash'),
         passive('ordinary_training'),

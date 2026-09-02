@@ -26,10 +26,11 @@ describe('planner · 关键移动落点（三风格）', () => {
             .map((a) => a.def)
             .filter((d) => !d.tags.some((t) => ['pre_action', 'post_action', 'internal'].includes(t)))
         const dists = keyDistances(self, state, cands)
-        // 当前 4m + 进射程（横斩/穿云 range[1]=3）+ 贴脸（range[0]=1）
-        expect(dists).toContain(4)
-        expect(dists).toContain(3)
-        expect(dists).toContain(1)
+        // 当前 4m + 落点区间 [minRange, maxRange] 内 4 点（min=0 贴脸、max=7 最远射程）
+        expect(dists).toContain(4) // 当前
+        expect(dists[0]).toBe(0) // 贴脸（射程下限）
+        expect(dists[dists.length - 1]).toBe(7) // 最远射程上限
+        expect(dists.some((d) => d >= 2 && d <= 3)).toBe(true) // 中段落点
     })
 
     it('ranged 博士：落点含当前距离/风筝最远', () => {

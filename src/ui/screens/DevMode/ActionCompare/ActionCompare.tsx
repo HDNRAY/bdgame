@@ -11,10 +11,6 @@ import { Character } from '../../../../engine/entities/character'
 import type { WeaponDef } from '../../../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { sumBuffScore, BUFF_SCORE_NOTE } from '../compare-utils'
-import { PLAYER_ACTIONS } from '../../../../data/actions/player'
-import { INTERNAL_ACTIONS } from '../../../../data/actions/internal'
-import { QI_SKILLS } from '../../../../data/actions/qi'
-import { UNARMED_ACTIONS } from '../../../../data/actions/unarmed'
 import { calcExpectedDamage } from '../../../../engine/ai/expected-damage'
 import type { BattleState } from '../../../../engine/combat/types'
 import { MAX_CHAN } from '../../../../engine/constants'
@@ -23,6 +19,7 @@ import { calcChanCostInAp } from '../../../../engine/calc/chan-value'
 import type { ActionDefinition } from '../../../../engine/entities/action'
 import { EntityItem } from '../../../components/ui/EntityItem/EntityItem'
 import './ActionCompare.scss'
+import { allMainActions } from '../../../../engine'
 
 const ATTRS = { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 }
 // 兜底武器：无属性加成的中性空手（真实 bare_hands 自带 +2 身法会污染伤害评估，这里造一把"计算用空手"）
@@ -121,7 +118,8 @@ function buildRow(a: ActionDefinition, rawAp: number, chanNow: number): Row {
     const def = makeChar('B', '乙')
     // 按 requiredTags 从初始武器池匹配评估武器（找不到或无要求 → 中性空手）
     const reqTags = a.requiredTags ?? []
-    const matched = reqTags.length > 0 ? STARTING_WEAPONS.find((w) => reqTags.every((t) => w.tags.includes(t))) : undefined
+    const matched =
+        reqTags.length > 0 ? STARTING_WEAPONS.find((w) => reqTags.every((t) => w.tags.includes(t))) : undefined
     const baseWeapon = matched ?? CALC_BARE_HANDS
     // 基准武器模拟为重型（heavy）：燎天势等按重型武器加成的招式在对比中体现
     atk.weaponDef = { ...baseWeapon, tags: [...new Set([...baseWeapon.tags, 'heavy'])] as Tag[] }
@@ -288,8 +286,7 @@ export function ActionCompare() {
     const rows = useMemo<Row[]>(() => {
         const isSupport = (a: ActionDefinition) => a.tags.includes('pre_action') || a.tags.includes('post_action')
         const query = search.trim().toLocaleLowerCase()
-        const all = [...UNARMED_ACTIONS, ...PLAYER_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS]
-        return all
+        return allMainActions
             .filter((a) => {
                 // 不选任何 AP 档 = 显示全部（不做 AP 过滤）
                 if (selected.length > 0 && !selected.includes(a.apCost)) return false
@@ -339,9 +336,10 @@ export function ActionCompare() {
             <p className="ac-note">
                 双方全属性 15 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。 效率 =
                 期望伤 /（折前AP + 缠成本）；缠成本按阈值感知模型折算（基准缠劲可调，默认 35：缠越满越便宜， 跌破 30/50
-                丢「周」buff 加重成本）。得分 = 效率 + 射程（4m 为基准，每±1m ∓0.3；0-1 贴脸短打减分）+ 位移（每米+0.3，与射程同价） +{BUFF_SCORE_NOTE} +
-                debuff（层×几率×权重）+ 缴械（×0.4）+ 击退 （距离×0.2） + 汲取（stat_transfer 每点×1.5）+ 斩杀（25%
-                斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）− 自耗血（比例×10）。
+                丢「周」buff 加重成本）。得分 = 效率 + 射程（4m 为基准，每±1m ∓0.3；0-1 贴脸短打减分）+
+                位移（每米+0.3，与射程同价） +{BUFF_SCORE_NOTE} + debuff（层×几率×权重）+ 缴械（×0.4）+ 击退
+                （距离×0.2） + 汲取（stat_transfer 每点×1.5）+ 斩杀（25% 斩杀档提升）+ 多段（每段+0.25 封顶+2）−
+                自缴械（−1）− 自耗血（比例×10）。
             </p>
             {rows.length === 0 ? (
                 <p className="ac-note">无匹配招式（搜索无结果）。</p>

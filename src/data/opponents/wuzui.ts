@@ -6,7 +6,7 @@ const WUZUI_ATTRS = { strength: 12, vitality: 20, agility: 12, dexterity: 14, in
 export const WUZUI: OpponentDef = {
     id: 'wuzui',
     name: '酒鬼·无志',
-    battleStyle: 'melee',
+    battleStyle: 'clinch',
     weapon: 'bare_hands',
     targetAttrs: WUZUI_ATTRS,
     rewards: [

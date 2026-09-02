@@ -7,6 +7,7 @@ export const HEIYUN: OpponentDef = {
     id: 'heiyun',
     name: '小树',
     weapon: 'fei_jian',
+    battleStyle: 'ranged',
     targetAttrs: HEIYUN_ATTRS,
     rewards: [
         action('qi_bolt'),

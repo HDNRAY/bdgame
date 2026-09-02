@@ -3,7 +3,7 @@ import type { Reward } from './reward'
 import type { ActionConfig } from './action-config'
 
 /** 战斗风格 */
-export type BattleStyle = 'melee' | 'mid' | 'ranged'
+export type BattleStyle = 'melee' | 'mid' | 'ranged' | 'clinch'
 
 /** 战前角色配置（可序列化） */
 export interface CharacterBuild {

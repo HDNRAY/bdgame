@@ -7,7 +7,7 @@ export const CHANZI: OpponentDef = {
     id: 'chanzi',
     name: '禅子',
     story: '多林寺的修禅之人，与来风、竹子同届师兄弟。不习武艺，只求禅定悟道——以炁观心，静坐参禅。掌法与金钟皆是禅修中无意悟得，推演通明，可于未发之前窥破对手破绽。',
-    battleStyle: 'melee',
+    battleStyle: 'clinch',
     weapon: 'bare_hands',
     targetAttrs: CHANZI_ATTRS,
     rewards: [

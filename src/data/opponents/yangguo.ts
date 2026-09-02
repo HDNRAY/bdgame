@@ -7,6 +7,7 @@ export const YANGGUO: OpponentDef = {
     id: 'yangguo',
     name: '杨之改',
     weapon: 'peach_sword',
+    battleStyle: 'melee',
     targetAttrs: YANGGUO_ATTRS,
     rewards: [
         action('quanzhen_sword'),

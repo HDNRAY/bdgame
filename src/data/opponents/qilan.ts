@@ -8,6 +8,7 @@ export const QILAN: OpponentDef = {
     name: '周奇岚',
     weapon: 'bare_hands',
     targetAttrs: QILAN_ATTRS,
+    battleStyle: 'clinch',
     rewards: [
         action('liu_yang_zhang'),
         passive('godspeed'),

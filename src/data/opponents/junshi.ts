@@ -8,6 +8,7 @@ export const JUNSHI: OpponentDef = {
     name: '梅用',
     story: '组织中推演最强者，天生道种。掌握着组织的所有计划。在天生道种线中，你会发现TA是你师兄的首领。',
     weapon: 'floating_silk',
+    battleStyle: 'ranged',
     targetAttrs: JUNSHI_ATTRS,
     rewards: [
         action('qi_bolt'),

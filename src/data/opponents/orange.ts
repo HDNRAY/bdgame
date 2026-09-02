@@ -7,11 +7,11 @@ export const ORANGE: OpponentDef = {
     id: 'orange',
     name: '橘子会',
     story: '橘子真的妹妹。从小修习忍术，成年后发现自己对真正的功夫由衷地向往，而自己的天赋无法发挥姐姐那种近乎本能的作战方式，到处寻找适合自身的功法，直到她遇到花大师，目前跟随其学习无明之明。',
-    battleStyle: 'mid',
+    battleStyle: 'clinch',
     weapon: 'dagger',
     targetAttrs: ATTRS,
     rewards: [
-        action('light_slash'),
+        action('gash'),
         passive('wolf_hunting'),
         passive('blood_rage'),
         action('dart_throw'),
@@ -33,7 +33,7 @@ export const ORANGE: OpponentDef = {
             triggerId: 'on_dodged',
         },
         {
-            actionId: 'light_slash',
+            actionId: 'gash',
             triggerId: 'on_parried',
         },
     ],

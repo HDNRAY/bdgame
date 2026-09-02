@@ -10,21 +10,36 @@ import { SUPPORT_ACTIONS } from './support'
 import { INTERNAL_ACTIONS } from './internal'
 import { QI_SKILLS } from './qi'
 import { UNARMED_ACTIONS } from './unarmed'
+import { MELEE_ACTIONS } from './melee'
 
 /** 合并所有招式 → id 索引（惰性构建一次，后续查找 O(1)；避免循环依赖导致模块初始化顺序问题） */
 let _actionCache: Map<string, ActionDefinition> | null = null
 function getAllActionMap(): Map<string, ActionDefinition> {
     if (!_actionCache) {
         _actionCache = new Map(
-            [...UNARMED_ACTIONS, ...PLAYER_ACTIONS, ...SUPPORT_ACTIONS, ...INTERNAL_ACTIONS, ...QI_SKILLS].map(
-                (a) => [a.id, a] as const,
-            ),
+            [
+                ...UNARMED_ACTIONS,
+                ...MELEE_ACTIONS,
+                ...PLAYER_ACTIONS,
+                ...SUPPORT_ACTIONS,
+                ...INTERNAL_ACTIONS,
+                ...QI_SKILLS,
+            ].map((a) => [a.id, a] as const),
         )
     }
     return _actionCache
 }
 
-export { PLAYER_ACTIONS, SUPPORT_ACTIONS, INTERNAL_ACTIONS, QI_SKILLS }
+const allMainActions = [
+    ...UNARMED_ACTIONS,
+    ...MELEE_ACTIONS,
+    ...PLAYER_ACTIONS,
+    ...SUPPORT_ACTIONS,
+    ...INTERNAL_ACTIONS,
+    ...QI_SKILLS,
+]
+
+export { MELEE_ACTIONS, PLAYER_ACTIONS, SUPPORT_ACTIONS, INTERNAL_ACTIONS, QI_SKILLS, allMainActions }
 
 /** 按 ID 查找 */
 export function getAction(id: string): ActionDefinition | undefined {

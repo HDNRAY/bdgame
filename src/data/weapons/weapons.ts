@@ -54,7 +54,10 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '一把残损的断刀。加装锁链，免疫缴械。',
         tags: ['slash', 'parry', 'melee', 'one_handed'],
         range: [0, 2],
-        triggers: [{ condition: { type: 'on_opponent_move_away' }, actionId: '_shuai_ren' }],
+        triggers: [
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'broken_blade_lock' }] },
+            { condition: { type: 'on_opponent_move_away' }, actionId: '_shuai_ren' },
+        ],
     },
     {
         id: 'special_forces_dagger',

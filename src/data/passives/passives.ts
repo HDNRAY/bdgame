@@ -843,7 +843,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'gear_shift',
         name: '挂挡',
-        description: '凝缠劲为内息，运转不息。习得招式「挂」。每层内息回复+0.3/s。',
+        description: '凝缠劲为内息，运转不息。习得招式「挂」。',
         tags: ['passive', 'buff', 'chan'],
         grantsActions: ['gear_hang'],
     },

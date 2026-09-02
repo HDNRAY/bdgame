@@ -13,6 +13,16 @@ export const CONDITION_PRESETS = [
         build: (): RequiredCondition => ({ type: 'enemy_hp_below', ratio: 0.5 }),
     },
     {
+        id: 'enemy_hp_below_30',
+        name: '目标HP<30%',
+        build: (): RequiredCondition => ({ type: 'enemy_hp_below', ratio: 0.3 }),
+    },
+    {
+        id: 'enemy_hp_below_10',
+        name: '目标HP<10%',
+        build: (): RequiredCondition => ({ type: 'enemy_hp_below', ratio: 0.1 }),
+    },
+    {
         id: 'enemy_hp_above_50',
         name: '目标HP>50%',
         build: (): RequiredCondition => ({ type: 'enemy_hp_above', ratio: 0.5 }),

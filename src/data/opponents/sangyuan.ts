@@ -9,7 +9,7 @@ export const SANGYUAN: OpponentDef = {
     story: '归海楼的空手道高手，以血祭之术闻名。越是濒临绝境，越是狂暴难挡。',
     weapon: 'bare_hands',
     targetAttrs: ATTRS,
-    battleStyle: 'melee',
+    battleStyle: 'clinch',
     rewards: [
         action('hand_blade'),
         passive('karate'),
