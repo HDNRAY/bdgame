@@ -886,7 +886,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'yu_du_shu',
         name: '剧毒吐纳',
         description: '剧毒吐纳，每3秒释放毒素。血量越少，毒雾越烈。',
-        tags: [],
+        tags: ['low_hp'],
         expiry: { type: 'permanent' },
         tickInterval: 3000,
         onTickDamage: ({ attacker: self, engine }) => {
@@ -1233,7 +1233,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'blood_rage',
         name: '血战到底',
         description: '气血越低属性加成越高。力道、身法、灵巧随血量减少而提升。',
-        tags: [],
+        tags: ['low_hp'],
         expiry: { type: 'permanent' },
         onHpChange: ({ target: char, state, layer }) => {
             const hpPct = char.hp / char.maxHp
@@ -1241,10 +1241,10 @@ export const BUFF_DB: BuffDef[] = [
                 agi = 0,
                 dex = 0
             if (hpPct < 0.3) {
-                str = 4
-                agi = 4
-                dex = 4
-            } else if (hpPct < 0.7) {
+                str = 3
+                agi = 3
+                dex = 3
+            } else if (hpPct < 0.6) {
                 str = 2
                 agi = 2
                 dex = 2
@@ -1263,7 +1263,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'shen_zhao_jing',
         name: '神照经',
         description: '神照通明，气血愈衰，气机愈盛。气血越低，AP回复越快，最多+0.4/秒。',
-        tags: [],
+        tags: ['low_hp'],
         expiry: { type: 'permanent' },
         apRegenPerSec: ({ target }) => 0.4 * (1 - target.hp / target.maxHp),
     },
@@ -1272,18 +1272,18 @@ export const BUFF_DB: BuffDef[] = [
         id: 'guan_zi_zai_yan',
         name: '观自在眼',
         description: '气血越低，洞察、推演越高。',
-        tags: [],
+        tags: ['low_hp'],
         expiry: { type: 'permanent' },
         onHpChange: ({ target: char, state, layer }) => {
             const hpPct = char.hp / char.maxHp
             let ins = 0,
                 wis = 0
             if (hpPct < 0.3) {
-                ins = 6
-                wis = 6
+                ins = 5
+                wis = 5
             } else if (hpPct < 0.7) {
                 ins = 3
-                wis = 3
+                wis = 2
             }
             const prev = layer.extra as Record<string, number> | undefined
             if (prev?.ins === ins && prev?.wis === wis) return
@@ -1318,7 +1318,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'sangui_yuanqi',
         name: '元气',
         description: '元气充盈，力道、身法、灵巧、洞察+1。',
-        tags: ['buff'],
+        tags: ['buff', 'low_hp'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { strength: 1, agility: 1, dexterity: 1, insight: 1 },
@@ -1711,14 +1711,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'sword_dominion',
         name: '御剑诀',
-        description: '以炁御剑，剑随意动。延长攻击距离，招式附加内息伤害。',
+        description: '以炁御剑，剑随意动。延长攻击距离，按招式内息消耗附加伤害。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
         onDealDamage: ({ final, source }) => {
             const ap = Math.max(1, (source as ActionDefinition | undefined)?.apCost ?? 0)
-            return final + round1(ap / actionHits(source as ActionDefinition))
+            return round1(final + Math.sqrt(ap) / actionHits(source as ActionDefinition))
         },
     },
     // ── 刃炁精通（攻击侧：持刃攻击令对手叠刃炁） ──
@@ -1750,7 +1750,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'qiti_awaken_buff',
         name: '炁体源流·觉醒',
         description: '六维激涌，觉醒后不再触发招式。',
-        tags: ['buff'],
+        tags: ['buff', 'low_hp'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         canTriggerAction: () => false,
@@ -1789,7 +1789,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'ku_chan',
         name: '枯蝉',
         description: '枯蝉锁血。受到致死伤害时无效那一次伤害，随后蜕壳。',
-        tags: ['buff', 'defense'],
+        tags: ['buff', 'defense', 'low_hp'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         // 锁血：onTakeDamage 阶段（扣血前）判断是否致死——是则返回 0 无效本次伤害，消耗次数、耗尽缠劲并蜕壳

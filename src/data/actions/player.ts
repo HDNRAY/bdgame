@@ -29,7 +29,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '以血为引，凝炁成滴，射向对手。消耗10%当前气血。',
         requiredTags: [],
         apCost: 2,
-        tags: ['qi', 'unarmed', 'range', 'thrown'],
+        tags: ['qi', 'unarmed', 'range', 'thrown', 'low_hp'],
         getRange: () => [2, 4],
         onActionHitChance: (base) => base + 0.2,
         hookNotes: { hitChance: '+20%' },

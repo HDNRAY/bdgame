@@ -7,7 +7,7 @@ export const PASSIVES: Passive[] = [
         id: 'forge',
         name: '三分归元气',
         description: '元气充盈，全属性提升。濒危时触发「三分归元」，消耗元气大幅回血。',
-        tags: ['qi', 'heal', 'buff', 'defense'],
+        tags: ['qi', 'heal', 'buff', 'defense', 'low_hp'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -65,7 +65,7 @@ export const PASSIVES: Passive[] = [
         id: 'last_sword',
         name: '绝剑诀',
         description: '绝境之剑，伤势越重，剑意越强。',
-        tags: ['qi', 'damage'],
+        tags: ['qi', 'damage', 'low_hp'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -338,7 +338,7 @@ export const PASSIVES: Passive[] = [
         id: 'qiti_source',
         name: '炁体源流',
         description: '濒危时炁体护体吸收炁伤害，并将炁转化为力量、身法和灵巧。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['passive', 'buff', 'qi', 'low_hp'],
         triggers: [
             {
                 condition: {
@@ -641,7 +641,7 @@ export const PASSIVES: Passive[] = [
         id: 'yu_du_shu',
         name: '毒炁外泄',
         description: '毒雾护体，周期性释放毒素。血量越少，毒雾越烈。',
-        tags: ['passive', 'buff', 'poison'],
+        tags: ['passive', 'buff', 'poison', 'low_hp'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yu_du_shu' }] }],
     },
     {
@@ -837,7 +837,7 @@ export const PASSIVES: Passive[] = [
         id: 'blood_rage',
         name: '血战到底',
         description: '气血越低属性加成越高。力道、身法、灵巧随血量减少而提升。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'low_hp'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'blood_rage' }] }],
     },
     {
@@ -852,7 +852,7 @@ export const PASSIVES: Passive[] = [
         id: 'shen_zhao_jing',
         name: '神照经',
         description: '神照通明，气血愈衰，气机愈盛。气血越低，AP回复越快，最多+0.5/秒。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'low_hp'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'shen_zhao_jing' }] }],
     },
     {
@@ -1116,7 +1116,7 @@ export const PASSIVES: Passive[] = [
         id: 'guan_zi_zai_yan',
         name: '观自在眼',
         description: '心境通明，气血波动中窥见武道真意。气血越低，洞察、推演越高。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'low_hp'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'guan_zi_zai_yan' }] }],
     },
     // ── 禅子 · 禅修 ──
@@ -1178,7 +1178,7 @@ export const PASSIVES: Passive[] = [
         id: 'ku_chan_shen_gong',
         name: '枯蝉神功',
         description: '枯蝉锁血。受到致死伤害时无效那一次伤害，耗尽自身缠劲；此后免疫一切持续伤害，且无法被治疗。',
-        tags: ['passive', 'buff', 'chan'],
+        tags: ['passive', 'buff', 'chan', 'low_hp'],
         triggers: [
             {
                 condition: { type: 'battle_start' },

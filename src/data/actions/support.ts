@@ -193,7 +193,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         chanCost: 3,
         canUse: (attacker) => attacker.attrs.get('strength') >= 10,
         hookNotes: { canUse: '力道不足时不可使用' },
-        effects: [{ type: 'dash', minRange: 2, maxRange: 4, targetDist: 0 }],
+        effects: [{ type: 'dash', minRange: 2, maxRange: 5, targetDist: 0 }],
     },
     {
         id: 'lightning_speed',
@@ -201,6 +201,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '电光石火，瞬息即至。',
         requiredTags: [],
         apCost: 1,
+        chanCost: 4,
         tags: ['move', 'pre_action'],
         target: 'self',
         effects: [{ type: 'dash', maxRange: 4, targetDist: 0 }],

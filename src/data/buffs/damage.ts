@@ -9,7 +9,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'last_stand',
         name: '绝剑',
         description: '损失血量越多，暴击伤害越高。',
-        tags: ['damage'],
+        tags: ['damage', 'low_hp'],
         onCritDamage: ({ attacker }) => {
             const ratio = 0.1
             const missingRatio = 1 - attacker.hp / attacker.maxHp
@@ -199,7 +199,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'blood_sacrifice',
         name: '血祭',
         description: '每招消耗1%最大气血，造成等额额外伤害，并缓慢回复等额气血。',
-        tags: ['damage'],
+        tags: ['damage', 'low_hp'],
         expiry: { type: 'permanent' },
         onAction: ({ source, attacker, engine, state, layer }) => {
             if (!source || attacker.hp <= 0) return
@@ -322,7 +322,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             // 本体伤害才触发；分身/召唤物（summon/imperial）不叠，避免高频白嫖灼烧
             if (source?.tags?.includes('summon') || source?.tags?.includes('imperial')) return final
             processActionEffect(
-                { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 0.4 },
+                { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 0.5 },
                 { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
             )
             return final

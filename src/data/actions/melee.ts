@@ -109,7 +109,6 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce', 'melee'],
         apCost: 2,
         tags: ['pierce', 'melee'],
-        getRange: () => [1, 3],
         effects: [
             { type: 'add_buff', buffId: 'yun_yin', stacks: 1 },
             { type: 'damage', scaling: { wisdom: 0.15, agility: 0.15 } },

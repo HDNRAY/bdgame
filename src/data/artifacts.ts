@@ -235,7 +235,7 @@ export const ARTIFACTS: Artifact[] = [
         description: '开悟通明，额外承载一道触发。',
         tags: ['trigger', 'buff'],
         effects: [
-            { type: 'stat_buff', attrs: { insight: 2 } },
+            { type: 'stat_buff', attrs: { insight: 1 } },
             { type: 'trigger_slot_mod', value: 1 },
         ],
     },
@@ -454,7 +454,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'blood_sacrifice_armband',
         name: '血祭护腕',
         description: '天工锻造的血祭护腕，每招消耗气血化为等额额外伤害，并缓慢回复。',
-        tags: ['buff', 'craft'],
+        tags: ['buff', 'craft', 'low_hp'],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'blood_sacrifice' }] }],
     },
     {

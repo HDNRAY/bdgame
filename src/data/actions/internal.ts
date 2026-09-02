@@ -38,7 +38,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'heal', 'internal'],
+        tags: ['trigger', 'heal', 'internal', 'low_hp'],
         target: 'self',
         maxUses: 1,
         effects: [
@@ -52,7 +52,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'internal'],
+        tags: ['trigger', 'internal', 'low_hp'],
         target: 'self',
         maxUses: 1,
         effects: [

@@ -58,6 +58,7 @@ export const TAG_CN: Record<Tag, string> = {
     craft: '天工',
     qi_action: '炁招',
     chan: '缠劲',
+    low_hp: '残血',
 }
 
 /** Tag → 颜色 */
@@ -118,4 +119,5 @@ export const TAG_COLOR: Record<Tag, string> = {
     one_handed: '#13f168',
     two_handed: '#5d4037',
     chan: '#2ecc71',
+    low_hp: '#e74c3c',
 }

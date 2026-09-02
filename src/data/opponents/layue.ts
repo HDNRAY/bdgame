@@ -22,11 +22,11 @@ export const LAYUE: OpponentDef = {
         passive('tongtian'),
         artifact('innate_seed'),
         action('cang_niao_jian_fa'),
-        // 剑丸
-        // 12
+        passive('guan_zi_zai_yan'),
+        // 13
     ],
     actionConfigs: [
-        { actionId: 'cun_mang', triggerId: 'on_dodged' },
         { actionId: 'cloud_hidden_sword', triggerId: 'on_dodge' },
+        { actionId: 'cun_mang', triggerId: 'on_dodged' },
     ],
 }

@@ -122,7 +122,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['unarmed', 'slash'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.15 } },
             {
                 type: 'add_debuff',
                 buffId: 'stun',
@@ -179,7 +179,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 5,
         chanCost: 20,
-        tags: ['unarmed', 'melee', 'chan'],
+        tags: ['unarmed', 'melee', 'chan', 'low_hp'],
         getRange: () => [0, 4],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, wisdom: 0.1 } },
