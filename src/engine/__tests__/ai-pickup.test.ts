@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { Character } from '../entities/character'
 import { planEvent } from '../ai'
-import type { BattleState } from '../combat/types'
+import { BattleState } from '../combat/battle-state'
+import { BuffRegistry } from '../combat/utils/buff-registry'
+import type { BattleState as BattleStateType } from '../combat/types'
 import { gen } from '../../data/opponents/index'
 import { XIAOHUA, FANGLIE } from '../../data/opponents/index'
 
@@ -16,13 +18,13 @@ describe('AI 拾起兵器同回合攻击', () => {
         const enemy = makeChar('B', '小花', XIAOHUA)
         self.weaponDef = undefined // 缴械状态
         // 掉落点 = 自己脚下（position.get 需返回 4，dropPosition 同值）
-        const state = {
-            pendingBuffs: new Map([
-                [`disarmed::A`, { restoreValue: 1, extra: { dropPosition: 4, originalWeapon: self.build.weapon } }],
-            ]),
-            position: { get: () => 4, distance: () => 4 },
-            characters: [self, enemy],
-        } as unknown as BattleState
+        const registry = new BuffRegistry()
+        registry.set(`disarmed::A`, { restoreValue: 1, extra: { dropPosition: 4, originalWeapon: self.build.weapon } })
+        const st = new BattleState()
+        st.pendingBuffs = registry
+        st.characters = [self, enemy]
+        const state = st as unknown as BattleStateType & { position: { get: () => number; distance: () => number } }
+        Object.assign(state, { position: { get: () => 4, distance: () => 4 } })
         const cmds = planEvent(self, state)
         const types = cmds.map((c) => c.type)
         const supportIds = cmds.filter((c) => c.type === 'support').map((c) => c.actionId)

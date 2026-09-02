@@ -19,11 +19,12 @@ import { reduceBleedOnHeal } from './utils/buff-layer'
 import { processActionEffect, processHitCheck, processBuffEnd } from './effects'
 import { processOnEquipEffects, forEachBuffOf, calcExtraMoveEfficiency } from './utils'
 import { tickEngine } from './tick-engine'
+import { BuffRegistry } from './utils/buff-registry'
+import { BattleState } from './battle-state'
 import type {
     ActionCommand,
     ActionResult,
     AttrSourceBreakdown,
-    BattleState,
     EventPlan,
     BattleSnapshot,
     TurnEntry,
@@ -66,20 +67,20 @@ export class BattleEngine {
         const halfDist = d / 2
         tm.addCharacter(p, 0)
         tm.addCharacter(o, 0)
-        this.state = {
-            phase: 'fighting',
-            characters: [p, o],
-            position: new PositionSystem(p.id, -halfDist, o.id, halfDist),
-            turn: tm,
-            log,
-            eventActorId: null,
-            eventTime: 0,
-            pendingBuffs: new Map(),
-            actionCount: 0,
-            isEmitting: false,
-            moveDelta: 0,
-            triggeredThisChain: null,
-        }
+        const st = new BattleState()
+        st.phase = 'fighting'
+        st.characters = [p, o]
+        st.position = new PositionSystem(p.id, -halfDist, o.id, halfDist)
+        st.turn = tm
+        st.log = log
+        st.eventActorId = null
+        st.eventTime = 0
+        st.pendingBuffs = new BuffRegistry()
+        st.actionCount = 0
+        st.isEmitting = false
+        st.moveDelta = 0
+        st.triggeredThisChain = null
+        this.state = st
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o)
         this.emit('battle_start', o, p)

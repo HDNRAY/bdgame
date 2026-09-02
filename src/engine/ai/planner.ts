@@ -451,13 +451,11 @@ export function generatePlans(
         }
         if (seg1Ap + moveAp > apBudget + 1e-9) continue
 
-        // 段2：按「垫步后的实际位置」评估——移动落点 landDist 处攻击，若超出武器射程会垫步靠近
-        // （引擎：dist > weapon.range[1] 才垫步，垫步 = min(dist, maxDash)），实际打的位置更近。
-        // 引擎 ceil 取整过冲/欠冲，落点 ≠ target，用真实落点与垫步修正后的位置评估
-        let seg2Dist = movePlan ? movePlan.landDist : current
-        if (maxDash > 0 && seg2Dist > effRange[1]) {
-            seg2Dist = Math.max(0, seg2Dist - Math.min(seg2Dist, maxDash))
-        }
+        // 段2：在真实落点评估。带 short_dash 的招其射程已在 getActionRange 扩展（base+dash），
+        // 站桩超武器射程时 AI 会靠 dash 招自身的扩展射程够到；无 dash 招不被误判为可垫步。
+        // 不再做全局 maxDash 距离修正——那会把「别招的自带 dash」误用到无 dash 招上，
+        // 生成引擎实际打不到的计划（如 7m 站桩却选 4m 射程招）。
+        const seg2Dist = movePlan ? movePlan.landDist : current
         const seg2Budget = apBudget - seg1Ap - moveAp
         const seg2Max = totalHitsMax - seg1.actions.length
         const exclude = new Set<string>(seg1.actions.map((a) => a.id))

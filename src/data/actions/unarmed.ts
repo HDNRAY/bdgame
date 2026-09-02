@@ -58,7 +58,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '身形一闪，先近身再出腿。',
         requiredTags: [],
         apCost: 2,
-        tags: ['unarmed', 'move'],
+        tags: ['unarmed'],
         effects: [
             { type: 'short_dash', maxDistance: 3 },
             { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1, dexterity: 0.1 } },

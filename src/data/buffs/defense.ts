@@ -835,4 +835,23 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             return reduced
         },
     },
+    {
+        id: 'frost_silk_robe_buff',
+        name: '冰蚕衣',
+        description: '冰蚕丝织就的软甲，遇寒愈坚。招架率+12%；招架近战攻击后以寒气反噬对手。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        onParryChance: () => 0.12,
+        // 招架后反噬冰霜：仅近战（非召唤物、非远程）攻击触发——召唤物是独立实体不反，远程够不着不反
+        onParried: ({ target, attacker, engine, state, source }) => {
+            if (!engine) return
+            if (source?.tags?.includes('summon')) return
+            if (source?.tags?.includes('range')) return
+            processActionEffect(
+                { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 },
+                { self: target, enemy: attacker, engine, tMs: state.turn.currentTime },
+            )
+        },
+    },
 ]

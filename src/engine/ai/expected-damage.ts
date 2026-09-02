@@ -14,7 +14,7 @@ import {
     calcPoisonTicksPerStack,
 } from '../calc/damage'
 import { DMG_PER_POISON_TICK } from '../constants'
-import { cloneBuffsFor, forEachBuffOf } from '../combat/utils'
+import { forEachBuffOf } from '../combat/utils'
 
 export interface DamageEstimate {
     actionId: string
@@ -79,9 +79,10 @@ export function calcExpectedDamage(
     // 克隆可变参数（钩子篡改只影响克隆，不影响原件）
     const safeAtk = Object.create(attacker) as Character
     const safeDef = Object.create(defender) as Character
-    // 只克隆两个角色的 layer（钩子只读写它们）+ 轻量浅克隆，替代 structuredClone 全量深拷贝（热路径 ~44% 开销）
-    const safePendings = cloneBuffsFor(state.pendingBuffs, [safeAtk.id, safeDef.id])
-    const safeState = { ...state, pendingBuffs: safePendings }
+    // 沙盒 state：只克隆两个角色的 buff 层及其 hook 注册（钩子只读写这些角色的层），
+    // 轻量浅克隆替代 structuredClone 全量深拷贝（热路径 ~44% 开销）。
+    // state 恒为 BattleState class（生产与 DevMode 评估均构造真 class），cloneFor 必然存在
+    const safeState = state.cloneFor([safeAtk.id, safeDef.id])
 
     // atDistance 提供时用指定距离评估（planner 在 target 落点评估段2 招式，避免用当前距离失真）
     const distance = atDistance !== undefined ? atDistance : state.position.distance(safeAtk.id, safeDef.id)
@@ -112,7 +113,8 @@ export function calcExpectedDamage(
             rawDamage += eff.fn({
                 self: safeAtk,
                 enemy: safeDef,
-                state: { ...state, pendingBuffs: new Map(state.pendingBuffs) },
+                // safeState 已是隔离沙盒（cloneFor 或 fallback 拷贝），fn 只读不写真源
+                state: safeState,
                 emitLog: () => {},
             })
         }
@@ -123,7 +125,7 @@ export function calcExpectedDamage(
                 const hitStacks = Math.round(eff.stacks * (eff.chance ?? 1))
                 // 攻击者 onDebuffApplied（铸火诀 WIS≥15 +2 否则 +1 等）作用于克隆层
                 const appliedLayer = applyDebuffAppliedHooks(
-                    safePendings,
+                    safeState.pendingBuffs,
                     safeAtk,
                     safeDef,
                     'burn',
@@ -133,13 +135,13 @@ export function calcExpectedDamage(
                 const n = appliedLayer.restoreValue
                 // 真实衰减灼烧：N 层逐跳 2N, 2(N-1), …, 2，每跳过目标 onDebuffTick 钩子（泼油×2/铸火×0.5 等自动生效）
                 for (let k = n; k >= 1; k--) {
-                    rawDamage += applyDotTickHooks(safePendings, safeDef, 'burn', 2 * k)
+                    rawDamage += applyDotTickHooks(safeState.pendingBuffs, safeDef, 'burn', 2 * k)
                 }
             } else if (eff.buffId === 'poison') {
                 const stacks = eff.stacks * (eff.chance ?? 1)
                 // 七心海棠等 onDebuffApplied 设 poisonMult=2（作用于克隆 layer，不改真实）
                 const appliedLayer = applyDebuffAppliedHooks(
-                    safePendings,
+                    safeState.pendingBuffs,
                     safeAtk,
                     safeDef,
                     'poison',
@@ -149,11 +151,11 @@ export function calcExpectedDamage(
                 const mult = (appliedLayer.extra?.poisonMult as number | undefined) ?? 1
                 const ticks = calcPoisonTicksPerStack(safeDef.attrs.get('wisdom'))
                 for (let i = 0; i < ticks; i++) {
-                    rawDamage += applyDotTickHooks(safePendings, safeDef, 'poison', stacks * DMG_PER_POISON_TICK * mult)
+                    rawDamage += applyDotTickHooks(safeState.pendingBuffs, safeDef, 'poison', stacks * DMG_PER_POISON_TICK * mult)
                 }
             } else if (eff.buffId === 'bleed') {
                 // 流血按 ~2 次触发估，每跳走 onDebuffTick 钩子
-                rawDamage += applyDotTickHooks(safePendings, safeDef, 'bleed', eff.stacks * 3 * (eff.chance ?? 1))
+                rawDamage += applyDotTickHooks(safeState.pendingBuffs, safeDef, 'bleed', eff.stacks * 3 * (eff.chance ?? 1))
             }
         }
     }
@@ -168,7 +170,7 @@ export function calcExpectedDamage(
     let cannotBeParried = false
     let buffCanParry: boolean | undefined
     const critHooks: { def: BuffDef; layer: BuffLayer }[] = []
-    forEachBuffOf(safePendings, [safeAtk.id, safeDef.id], (def, layer, _b, _k, ownerId) => {
+    forEachBuffOf(safeState.pendingBuffs, [safeAtk.id, safeDef.id], (def, layer, _b, _k, ownerId) => {
         if (!def) return
         const ctx = { final: 0, raw: 0, target: safeDef, attacker: safeAtk, state: safeState, layer, source: action }
         // onAction 必须在其他钩子之前调用（如抽刀断水需要先算 diff）
@@ -238,7 +240,7 @@ export function calcExpectedDamage(
     //    攻击方自身增伤（onDealDamage：狼狩/血祭/空手道等）作用于裸伤（算，属于攻击力）。
     let buffed = rawDamage
     let buffPiercing = 0
-    forEachBuffOf(safePendings, [safeDef.id, safeAtk.id], (def, layer, _b, _k, ownerId) => {
+    forEachBuffOf(safeState.pendingBuffs, [safeDef.id, safeAtk.id], (def, layer, _b, _k, ownerId) => {
         if (!def) return
         if (ownerId === safeAtk.id && def.onDealDamage) {
             const result = def.onDealDamage({
@@ -266,7 +268,7 @@ export function calcExpectedDamage(
     // 注：eval 按用户口径不算防御方减伤/吸收（onTakeDamage/onAbsorb），招架概率仍算。
     const parriedOf = (x: number): number => {
         let pd = calcParriedDamage(x, safeDef.attrs.get('strength'))
-        forEachBuffOf(safePendings, safeDef.id, (def, layer) => {
+        forEachBuffOf(safeState.pendingBuffs, safeDef.id, (def, layer) => {
             if (!def?.onParryReduction) return
             pd = def.onParryReduction({
                 final: pd,
@@ -278,7 +280,7 @@ export function calcExpectedDamage(
                 source: action,
             })
         })
-        forEachBuffOf(safePendings, safeAtk.id, (def, layer) => {
+        forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
             if (!def?.onParryPenetration) return
             pd = def.onParryPenetration({
                 final: pd,
@@ -304,7 +306,7 @@ export function calcExpectedDamage(
     /** 对某分支伤害做穿透拆分：返回 { normal, pierce }，穿透比例加算、上限 100% */
     const splitPierce = (base: number): { normal: number; pierce: number } => {
         let pierceRatio = actionPierceRatio
-        forEachBuffOf(safePendings, safeAtk.id, (def, layer) => {
+        forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
             if (!def?.onPostCritDamage) return
             const r = def.onPostCritDamage({
                 final: base,

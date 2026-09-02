@@ -14,7 +14,8 @@ import { Character } from '../../../../engine/entities/character'
 import { WEAPON_DB, getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { calcExpectedDamage } from '../../../../engine/ai/expected-damage'
-import type { BattleState, BuffLayer } from '../../../../engine/combat/types'
+import type { BuffLayer } from '../../../../engine/combat/types'
+import { makeEvalState } from '../makeEvalState'
 import { MAX_CHAN } from '../../../../engine/constants'
 import type { ActionDefinition } from '../../../../engine/entities/action'
 import { getBuff } from '../../../../data/buffs'
@@ -105,12 +106,7 @@ function calcBenchmark(
     const atk = makeBenchChar('A', '甲', weapon, pendingBuffs)
     const def = makeBenchChar('B', '乙', getWeapon(DEFENDER_WEAPON), pendingBuffs)
     const perDistance = BENCH_DISTANCES.map((d) => {
-        const state: BattleState = {
-            pendingBuffs,
-            position: { distance: () => d },
-            turn: { currentTime: 0 },
-            characters: [atk, def],
-        } as never
+        const state = makeEvalState(atk, def, { distance: d, buffs: pendingBuffs })
         const est = calcExpectedDamage(BENCH_ACTION, atk, def, weapon.range, state)
         return est.canReach ? est.expectedDamage : 0
     })
@@ -177,12 +173,7 @@ function calcSummonScore(weapon: WeaponDef): { count: number; perSummon: number;
 
     const count = weapon.summon.maxCount(atk)
     const perSummonArr = BENCH_DISTANCES.map((d) => {
-        const state: BattleState = {
-            pendingBuffs,
-            position: { distance: () => d },
-            turn: { currentTime: 0 },
-            characters: [atk, def],
-        } as never
+        const state = makeEvalState(atk, def, { distance: d, buffs: pendingBuffs })
         const est = calcExpectedDamage(summonAction, atk, def, weapon.range, state)
         return est.canReach ? est.expectedDamage : 0
     })
@@ -266,12 +257,7 @@ function calcTriggerScore(weapon: WeaponDef): number {
                     const pb = new Map<string, BuffLayer>()
                     const atk = makeBenchChar('A', '甲', weapon, pb)
                     const defc = makeBenchChar('B', '乙', getWeapon(DEFENDER_WEAPON), pb)
-                    const state: BattleState = {
-                        pendingBuffs: pb,
-                        position: { distance: () => 4 },
-                        turn: { currentTime: 0 },
-                        characters: [atk, defc],
-                    } as never
+                                            const state = makeEvalState(atk, defc, { distance: 4, buffs: pb })
                     return calcExpectedDamage(def, atk, defc, weapon.range, state).expectedDamage
                 })()
                 value = Math.round(est * 10) / 10
@@ -308,12 +294,7 @@ function calcGrantScore(weapon: WeaponDef): number {
         const pb = new Map<string, BuffLayer>()
         const atk = makeBenchChar('A', '甲', weapon, pb)
         const defc = makeBenchChar('B', '乙', getWeapon(DEFENDER_WEAPON), pb)
-        const state: BattleState = {
-            pendingBuffs: pb,
-            position: { distance: () => 4 },
-            turn: { currentTime: 0 },
-            characters: [atk, defc],
-        } as never
+                    const state = makeEvalState(atk, defc, { distance: 4, buffs: pb })
         const est = calcExpectedDamage(def, atk, defc, weapon.range, state)
         total += Math.round(est.expectedDamage * 10) / 10
     }

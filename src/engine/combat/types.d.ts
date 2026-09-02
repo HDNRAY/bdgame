@@ -38,7 +38,8 @@ export interface BattleState {
     log: BattleLog
     eventActorId: string | null
     eventTime: number
-    pendingBuffs: Map<string, BuffLayer>
+    /** buff 注册表（BuffRegistry extends Map，.set/.delete/.get/.entries 语义不变） */
+    pendingBuffs: import('./utils/buff-registry').BuffRegistry
     lastWinner?: string
     actionCount: number
     /** 防止触发递归 */
@@ -47,6 +48,10 @@ export interface BattleState {
     moveDelta: number
     /** 触发去重：每条事件链每人每事件最多触发一次 */
     triggeredThisChain: Set<string> | null
+    /** AI 评估沙盒：克隆只含指定角色层的新 state（实现见 battle-state.ts BattleState） */
+    cloneFor(charIds: readonly string[]): BattleState
+    /** 快照输出：等价 [...pendingBuffs.entries()] */
+    toSnapshotEntries(): [string, BuffLayer][]
 }
 
 export type EventPlan = (self: Character, enemy: Character, state: BattleState) => ActionCommand[]

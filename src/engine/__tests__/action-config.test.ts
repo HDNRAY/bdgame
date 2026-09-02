@@ -5,7 +5,9 @@ import { Character } from '../entities/character'
 import { PositionSystem } from '../combat/position'
 import { BattleLog } from '../combat/battle-log'
 import { TurnManager } from '../combat/turn'
-import type { BattleState } from '../combat/types'
+import { BuffRegistry } from '../combat/utils/buff-registry'
+import { BattleState } from '../combat/battle-state'
+import type { BattleState as BattleStateType } from '../combat/types'
 
 function makeChar(attrs: Record<string, number> = {}): Character {
     return new Character({
@@ -19,7 +21,7 @@ function makeChar(attrs: Record<string, number> = {}): Character {
     })
 }
 
-function makeState(char: Character): BattleState {
+function makeState(char: Character): BattleStateType {
     const enemy = new Character({
         id: 'enemy',
         name: '敌人',
@@ -30,20 +32,20 @@ function makeState(char: Character): BattleState {
         rewards: [],
     })
     const tm = new TurnManager()
-    return {
-        phase: 'fighting',
-        characters: [char, enemy] as [Character, Character],
-        position: new PositionSystem(char.id, -3, enemy.id, 3),
-        turn: tm,
-        log: new BattleLog(),
-        eventActorId: null,
-        eventTime: 0,
-        pendingBuffs: new Map(),
-        actionCount: 0,
-        isEmitting: false,
-        moveDelta: 0,
-        triggeredThisChain: null,
-    }
+    const st = new BattleState()
+    st.phase = 'fighting'
+    st.characters = [char, enemy] as [Character, Character]
+    st.position = new PositionSystem(char.id, -3, enemy.id, 3)
+    st.turn = tm
+    st.log = new BattleLog()
+    st.eventActorId = null
+    st.eventTime = 0
+    st.pendingBuffs = new BuffRegistry()
+    st.actionCount = 0
+    st.isEmitting = false
+    st.moveDelta = 0
+    st.triggeredThisChain = null
+    return st
 }
 
 describe('getConditionPreset', () => {

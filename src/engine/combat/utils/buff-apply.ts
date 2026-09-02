@@ -177,7 +177,7 @@ export function applyBuffLayer(engine: BattleEngine, opts: ApplyBuffLayerOptions
     const layer: BuffLayer = { restoreValue: applied, mods: { ...first.mods } }
     if (sourceId) layer.sourceId = sourceId
     applyMaxApMod(target, layer, buff, 1) // 首次建层按 ×1（与既有 add_buff 行为一致）
-    state.pendingBuffs.set(key, layer)
+    state.pendingBuffs.register(key, layer, buff)
     if (buff.onBuffApplied) {
         buff.onBuffApplied({ self: target, engine, state, layer, buffId: buff.id })
     }

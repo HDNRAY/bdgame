@@ -311,13 +311,12 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'frost_silk_robe',
         name: '冰蚕衣',
-        description: '冰蚕丝织就的软甲，遇寒愈坚。招架率+12%；招架后以寒气反噬对手。',
+        description: '冰蚕丝织就的软甲，遇寒愈坚。招架率+12%；招架近战攻击后以寒气反噬对手。',
         tags: ['defense', 'inherent'],
-        effects: [{ type: 'parry_mod', value: 0.12 }],
         triggers: [
             {
-                condition: { type: 'on_parry' },
-                effects: [{ type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 1 }],
+                condition: { type: 'on_equip' },
+                effects: [{ type: 'add_buff', buffId: 'frost_silk_robe_buff' }],
             },
         ],
     },

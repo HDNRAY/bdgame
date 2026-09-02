@@ -8,11 +8,11 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Character } from '../../../../engine/entities/character'
+import { makeEvalState } from '../makeEvalState'
 import type { WeaponDef } from '../../../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { sumBuffScore, BUFF_SCORE_NOTE } from '../compare-utils'
 import { calcExpectedDamage } from '../../../../engine/ai/expected-damage'
-import type { BattleState } from '../../../../engine/combat/types'
 import { MAX_CHAN } from '../../../../engine/constants'
 import type { Tag } from '../../../../engine/entities/tag'
 import { calcChanCostInAp } from '../../../../engine/calc/chan-value'
@@ -134,12 +134,7 @@ function buildRow(a: ActionDefinition, rawAp: number, chanNow: number): Row {
         effRange = WANFA_SUMMON_WEAPON.range
     }
 
-    const state: BattleState = {
-        pendingBuffs: new Map(),
-        position: { distance: () => 4 },
-        turn: { currentTime: 0 },
-        characters: [atk, def],
-    } as never
+    const state = makeEvalState(atk, def, { distance: 4 })
 
     const est = calcExpectedDamage(a, effAtk, def, effRange, state)
     const chanCost = calcChanCostInAp(chanNow, est.chanCost)
