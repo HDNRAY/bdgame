@@ -49,8 +49,6 @@ export class Character {
     lastActionEndMs = 0
     /** 上次召唤物 AP 恢复时间 */
     lastApUpdate = 0
-    /** 永久灼烧值（power_furnace），engine 初始化时转为 buff */
-    permanentBurn = 0
 
     /** 已解析的被动对象列表 */
     passiveDefs: Passive[] = []
@@ -594,10 +592,6 @@ const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef, so
         for (const attr of e.to) {
             char.attrs.modify(attr as AttrName, delta)
         }
-    },
-    permanent_burn(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'permanent_burn' }>
-        char.permanentBurn = (char.permanentBurn ?? 0) + e.value
     },
     dodge_mod(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>

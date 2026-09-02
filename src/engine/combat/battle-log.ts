@@ -242,14 +242,6 @@ export class BattleLog {
                     event.sourceId,
                 )
                 break
-            case 'overheat':
-                this.logSystem(
-                    `[过热] ${this.resolveName(event.targetId, snapshot)} 受到 ${event.damage.toFixed(1)} 点过热伤害`,
-                    tMs,
-                    snapshot,
-                    event.targetId,
-                )
-                break
             case 'stat_change':
                 this.logAttrChange(
                     this.resolveName(event.targetId, snapshot),

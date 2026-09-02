@@ -227,7 +227,9 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'permanent' },
         tickInterval: 3000,
-        onTickDamage: ({ target }) => Math.max(1, Math.round(target.maxHp * 0.01)),
+        // 层数 = 每跳最大气血百分比（value:1 = 1%）
+        onTickDamage: ({ target, layer }) =>
+            Math.max(1, Math.round((target.maxHp * (layer?.restoreValue ?? 1)) / 100)),
     },
     { id: 'max_ap_mod', name: '失能', description: '最大AP变化。', tags: [], expiry: { type: 'permanent' } },
     { id: 'max_hp_mod', name: '失血', description: '最大HP变化。', tags: [], expiry: { type: 'permanent' } },

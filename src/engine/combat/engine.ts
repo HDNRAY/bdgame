@@ -93,15 +93,6 @@ export class BattleEngine {
         this.emit('on_weapon_change', p, o)
         this.emit('on_weapon_change', o, p)
 
-        // 应用永久灼烧
-        for (const c of [p, o]) {
-            if (c.permanentBurn > 0) {
-                const key = `permanent_burn::${c.id}`
-                this.state.pendingBuffs.set(key, { restoreValue: c.permanentBurn })
-                this.state.turn.scheduleSystemEventAt(`tick_buff_${key}`, 0, 'tick_buff')
-            }
-        }
-
         // 创建召唤物
         this.#initSummons(p)
         this.#initSummons(o)

@@ -82,7 +82,6 @@ export type LogEvent =
     | { type: 'buff_end'; buffId: string; targetId: string; label: string; remaining: number; message?: string }
     | { type: 'stat_change'; targetId: string; attr: string; delta: number; label: string }
     | { type: 'fumble'; sourceId: string }
-    | { type: 'overheat'; targetId: string; damage: number }
     | { type: 'dodged'; sourceId: string; targetId: string }
     | { type: 'parried'; sourceId: string; targetId: string }
     | { type: 'knockback'; sourceId: string; targetId: string; distance: number }

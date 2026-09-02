@@ -106,8 +106,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return ['无视招架']
         case 'trigger_slot_mod':
             return [`触发槽 ${eff.value && eff.value > 0 ? '+' : ''}${eff.value ?? '?'}`]
-        case 'permanent_burn':
-            return [`永久灼烧: ${eff.value}层`]
         case 'attr_floor': {
             const parts = Object.entries(eff.attrs).map(([k, v]) => `${ATTR_CN[k] ?? k}≥${v}`)
             return [`属性下限: ${parts.join(', ')}`]

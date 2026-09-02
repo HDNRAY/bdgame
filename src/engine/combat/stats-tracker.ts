@@ -91,26 +91,6 @@ export class StatsTracker {
                 s.dotDamage += event.amount
                 break
             }
-
-            case 'overheat': {
-                this.totalDotDamage += event.damage
-                const k = key('permanent_burn', 'overheat')
-                let s = this.byAction.get(k)
-                if (!s) {
-                    s = {
-                        actionId: 'permanent_burn',
-                        actionName: '过热',
-                        sourceId: '',
-                        totalDamage: 0,
-                        hitCount: 0,
-                        dotDamage: 0,
-                        totalHeal: 0,
-                    }
-                    this.byAction.set(k, s)
-                }
-                s.dotDamage += event.damage
-                break
-            }
         }
     }
 

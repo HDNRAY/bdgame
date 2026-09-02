@@ -106,7 +106,6 @@ export const ARTIFACTS: Artifact[] = [
         name: '便携式核动力炉',
         description: '微型核聚变动力炉，输出炁态能量供炼炁士使用，加速炁的恢复。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'permanent_burn', value: 2 }],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -114,7 +113,11 @@ export const ARTIFACTS: Artifact[] = [
             },
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 3 }],
+                effects: [
+                    { type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 3 },
+                    // 过热：每跳最大气血 1%（permanent_burn 层数即百分比）
+                    { type: 'add_buff', buffId: 'permanent_burn', stacks: 1 },
+                ],
             },
         ],
     },

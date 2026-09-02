@@ -52,7 +52,6 @@ export type EffectDef =
     // 义体效果
     | { type: 'max_ap_mod'; value: number }
     | { type: 'max_hp_mod'; value: number }
-    | { type: 'permanent_burn'; value: number }
     // 功法/奇物效果
     | { type: 'trigger_slot_mod'; value?: number; fn?: (char: Character) => number }
     | { type: 'dodge_mod'; value: number }
