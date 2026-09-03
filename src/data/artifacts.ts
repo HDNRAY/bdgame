@@ -37,10 +37,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '机械眼球',
         description: '精密光学义眼，洞察入微，洞察降低效果减半。',
         tags: ['implant', 'inherent'],
-        effects: [
-            { type: 'stat_buff', attrs: { insight: 4 } },
-            insightReductionHalf(),
-        ],
+        effects: [{ type: 'stat_buff', attrs: { insight: 4 } }, insightReductionHalf()],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -115,7 +112,7 @@ export const ARTIFACTS: Artifact[] = [
             {
                 condition: { type: 'battle_start' },
                 effects: [
-                    { type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 3 },
+                    { type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 2.8 },
                     // 过热：每跳最大气血 1%（permanent_burn 层数即百分比）
                     { type: 'add_buff', buffId: 'permanent_burn', stacks: 1 },
                 ],
@@ -634,10 +631,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '战术护目镜',
         description: '天工出品的多功能战术护目镜，集成分析仪与辅助瞄准系统，洞察降低效果减半。',
         tags: ['craft', 'buff'],
-        effects: [
-            { type: 'stat_buff', attrs: { wisdom: 2, insight: 2 } },
-            insightReductionHalf(),
-        ],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 2, insight: 2 } }, insightReductionHalf()],
     },
     {
         id: 'nano_exoskeleton',
@@ -713,7 +707,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'wheelchair_lightness',
         name: '悬浮座椅',
-        description: '悬浮座椅，以炁驱动。移动效率+20%，身法+2。',
+        description: '悬浮座椅，以炁驱动。',
         tags: ['implant', 'inherent'],
         triggers: [
             {

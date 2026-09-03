@@ -192,6 +192,13 @@ export const PASSIVES: Passive[] = [
         ],
     },
     {
+        id: 'daily_grind',
+        name: '日复一日的训练',
+        description: '平平无奇的每日训练，洞察提升命中，推演提升闪避。',
+        tags: ['passive', 'damage', 'inherent'],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'daily_grind' }] }],
+    },
+    {
         id: 'momentum_mastery',
         name: '刃炁精通',
         requiredTags: ['slash'],
@@ -430,10 +437,7 @@ export const PASSIVES: Passive[] = [
         name: '暗室抓雀功',
         description: '古墓中蒙眼抓雀练就的身法与感知。身法+2，灵巧+2，洞察降低效果减半。',
         tags: ['passive', 'defense'],
-        effects: [
-            { type: 'stat_buff', attrs: { agility: 2, dexterity: 2 } },
-            insightReductionHalf(),
-        ],
+        effects: [{ type: 'stat_buff', attrs: { agility: 2, dexterity: 2 } }, insightReductionHalf()],
     },
     {
         id: 'yue_nv_sword',
@@ -1031,6 +1035,8 @@ export const PASSIVES: Passive[] = [
         name: '千锤百炼',
         description: '千锤百炼，水火不侵。所受灼烧伤害-30%；以根骨化力道（根骨每4点力道+1）。',
         tags: ['passive', 'buff', 'defense', 'inherent'],
+        // 根骨化力道：构造期一次性转化（attr_convert 快照，floor 与「每4点+1」同源）
+        effects: [{ type: 'attr_convert', from: 'vitality', to: ['strength'], ratio: 0.25, mode: 'floor' }],
         triggers: [
             {
                 condition: { type: 'battle_start' },

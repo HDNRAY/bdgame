@@ -6,6 +6,17 @@ import { round1 } from '../../engine/util/math'
 
 export const DAMAGE_BUFFS: BuffDef[] = [
     {
+        id: 'daily_grind',
+        name: '日复一日的打磨',
+        description: '日复一日的打磨技艺，洞察提升命中，推演提升闪避。',
+        tags: ['damage', 'inherent'],
+        expiry: { type: 'permanent' },
+        // 攻击侧：洞察提升命中（与平平无奇的锻炼同系数 0.004）
+        onHitChance: ({ attacker }) => attacker.attrs.get('insight') * 0.004,
+        // 防御侧：推演提升闪避
+        onDodgeChance: ({ target }) => target.attrs.get('wisdom') * 0.004,
+    },
+    {
         id: 'last_stand',
         name: '绝剑',
         description: '损失血量越多，暴击伤害越高。',

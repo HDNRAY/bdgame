@@ -331,7 +331,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '御物万法，归一而发。令全部召唤物朝目标倾泻轰击，每击附推演之力。',
         requiredTags: ['imperial'],
         apCost: 5,
-        chanCost: 30,
+        chanCost: 33,
         tags: ['imperial', 'range', 'damage', 'chan'],
         effects: [
             {
@@ -347,9 +347,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     let baseHit = 0
                     if (dmgEff?.type === 'damage') baseHit = (dmgEff.fixed ?? 0) + wis * (dmgEff.scaling?.wisdom ?? 0)
                     // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
-                    return round1(count * (baseHit + wis * 0.05))
+                    return round1(count * (baseHit + wis * 0.01))
                 },
-                note: '按当前召唤物数量倾泻伤害（数量 × (单发 + wis * 0.05附伤)）',
+                note: '按当前召唤物数量倾泻伤害（数量 × (单发 + wis * 0.01附伤)）',
             },
         ],
     },

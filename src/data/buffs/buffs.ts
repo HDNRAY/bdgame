@@ -318,7 +318,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['imperial', 'buff', 'summon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 4 },
-        onSummonInterval: ({ layer }) => Math.max(0.6, 1 - (layer.restoreValue ?? 0) * 0.05),
+        onSummonInterval: ({ layer }) => Math.max(0.6, 1 - (layer.restoreValue ?? 0) * 0.08),
     },
     {
         // 秋水论·盈虚（灵巧/洞察潮汐） ──
@@ -424,12 +424,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'wheelchair_speed',
         name: '悬浮座椅',
-        description: '悬浮座椅，以炁驱动。移动效率+20%，身法+2。',
+        description: '悬浮座椅，以炁驱动。移动效率+15%，身法+2。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { agility: 2 },
-        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.2,
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.15,
     },
     {
         id: 'can_ying_bu_speed',
@@ -479,7 +479,7 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'min_move_cost',
-        name: '跑得贼快',
+        name: '健步如飞',
         description: '步法精妙，移动消耗最低。',
         tags: [],
         expiry: { type: 'permanent' },
@@ -600,36 +600,18 @@ export const BUFF_DB: BuffDef[] = [
             layer.restoreValue += 1
         },
     },
-    // ── 千锤百炼（天工·千星·特性：灼烧-30%，根骨化力道） ──
+    // ── 千锤百炼（天工·千星·特性：灼烧-30%；根骨化力道已移至被动 attr_convert 构造期结算） ──
     {
         id: 'qian_chui_bai_lian_buff',
         name: '千锤百炼',
-        description: '千锤百炼，水火不侵。灼烧伤害-30%；根骨化力道。',
+        description: '千锤百炼，水火不侵。灼烧伤害-30%。',
         tags: ['buff', 'defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        tickInterval: 1,
         // 自身受灼烧 tick -30%（铸火诀为减半，特性更克制）
         onDebuffTick: ({ buffId, damage }) => {
             if (buffId !== 'burn') return undefined
             return Math.max(0, round1(damage * 0.7))
-        },
-        // 根骨化力道：一次性结算后移除 tick（先例：炁电转换）
-        onTickHeal: ({ attacker: char, engine, state, layer }) => {
-            if (layer.extra?.applied) return 0
-            const str = Math.floor(char.attrs.get('vitality') / 4)
-            if (str > 0) {
-                const mods = applyAttrMods(char, state, { strength: str }, '千锤百炼')
-                layer.mods = { ...mods }
-                engine?.emitLog({
-                    type: 'system',
-                    message: `[千锤百炼] ${char.name} 根骨化力道 +${str}`,
-                    actorId: char.id,
-                })
-            }
-            layer.extra = { applied: true, str }
-            state.turn.removeEvents(`tick_buff_qian_chui_bai_lian_buff::${char.id}`)
-            return 0
         },
     },
     // ── 万象剑意（浩然·剑意拟万象） ──
@@ -1397,7 +1379,7 @@ export const BUFF_DB: BuffDef[] = [
             // 无任何可净化负面 → 不消耗缠劲
             if (!hit) return 0
             // 有则消耗 1 点缠劲，净化 1 层（additive 减 1；independent/none 移除本条）
-            if (!target.spendChan(1)) return 0
+            // if (!target.spendChan(1)) return 0
             if (hit.additive) {
                 hit.layer.restoreValue = (hit.layer.restoreValue ?? 0) - 1
                 if ((hit.layer.restoreValue ?? 0) <= 0) {

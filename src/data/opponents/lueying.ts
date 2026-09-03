@@ -15,6 +15,7 @@ export const LUEYING: OpponentDef = {
         artifact('poison_coating'),
         artifact('shixiang_ruanjin_san'),
         artifact('western_poison'),
+        passive('daily_grind'),
         artifact('soft_hedgehog_mail'),
         artifact('braid_blade'),
         artifact('tactical_pouch'),
@@ -22,7 +23,7 @@ export const LUEYING: OpponentDef = {
         action('yin_zhen'),
         action('sand_throw'),
         weapon('special_forces_dagger'),
-        // 12
+        // 13
     ],
     actionConfigs: [
         { actionId: 'sand_throw', triggerId: 'on_dodged' },

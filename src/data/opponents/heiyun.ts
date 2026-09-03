@@ -10,7 +10,7 @@ export const HEIYUN: OpponentDef = {
     battleStyle: 'ranged',
     targetAttrs: HEIYUN_ATTRS,
     rewards: [
-        action('qi_bolt'),
+        action('qi_bolt_3'),
         passive('spirit_resonance'),
         action('ling_qi_guan_zhu'),
         passive('sword_intent_tempering'),
@@ -30,8 +30,8 @@ export const HEIYUN: OpponentDef = {
         { actionId: 'condense_shield', triggerId: 'on_was_hit' },
         { actionId: 'summon_haste', triggerId: 'on_summon_hit' },
         {
-            actionId: 'qi_bolt',
-            triggerId: 'on_opponent_move_away',
+            actionId: 'qi_bolt_3',
+            triggerId: 'on_opponent_move_closer',
         },
     ],
 }
