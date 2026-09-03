@@ -198,11 +198,13 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
         ms: number,
         actorId: string,
         snapshot: BattleSnapshot,
-        opts?: { displayName?: string; useCurrentAp?: boolean },
+        opts?: { displayName?: string; useCurrentAp?: boolean; distance?: number },
     ) {
         const actorName = opts?.displayName ?? fmtName(actorId, snapshot)
         const hp = hpInfo(actorId, snapshot)
-        const d = ` ${snapshot.distance.toFixed(1)}m`
+        // 回合头距离：默认取快照距离（该 actor 本回合首个事件发生时）。
+        // 首个事件若是移动，快照为移动后状态——用移动前距离(=回合开始真实距离)覆盖，避免「回合头 6.0 + 移动 0.0→6.0」自相矛盾。
+        const d = ` ${(opts?.distance ?? snapshot.distance).toFixed(1)}m`
         const num = snapshot.actionCount > 0 ? ` #${snapshot.actionCount}` : ''
         const c = snapshot.characters.find((x) => x.id === actorId)
         // 普通回合显示 maxAp（原子回合=满 AP）；召唤物回合显示主人当前 AP（御物耗炁可见）
@@ -217,7 +219,7 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
         actorId: string | undefined,
         snapshot: BattleSnapshot | undefined,
         turn: number,
-        opts?: { displayName?: string; useCurrentAp?: boolean },
+        opts?: { displayName?: string; useCurrentAp?: boolean; distance?: number },
     ) {
         if (!snapshot || !actorId) return
         const key = `${turn}_${actorId}_${opts?.displayName ?? ''}`
@@ -305,7 +307,8 @@ export function formatBattleLog(log: BattleLog): { lines: string[]; eventToLine:
                               ? '瞬移'
                               : '移动'
                 if (sc.length <= 2) {
-                    ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0)
+                    // 回合级移动开块：块头距离用移动前(=回合开始真实距离)，覆盖移动后快照距离
+                    ensureBlock(ms, e.actor, e.snapshot, sc[0] ?? 0, { distance: oldDist })
                     const apInfo = e.apCost > 0 ? `  | AP${e.apRemaining.toFixed(1)}` : ''
                     // 独立位移招（魅影步/虎跃等，scope=[turn,N] 且无父帧）→ 建帧，其 buff 效果经帧机制挂其下（↳ [魅影]）
                     const isStandaloneMove =

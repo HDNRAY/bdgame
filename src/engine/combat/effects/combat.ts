@@ -71,8 +71,8 @@ export function processHitCheck(
         engine.emitLog({ type: 'dodged', sourceId: self.id, targetId: enemy.id })
         if (!suppressTriggers) {
             engine.emit('on_dodged', self, enemy)
-            // 防御方 buff onDodged 钩子（在招式作用域内，渲染层 +1 缩进）
-            forEachBuffOf(engine.state.pendingBuffs, enemy.id, (def, layer) => {
+            // 攻击方 buff onDodged 钩子（自己攻击被对方闪避；遍历攻击方 buff，与 trigger on_dodged 同义）
+            forEachBuffOf(engine.state.pendingBuffs, self.id, (def, layer) => {
                 if (!def?.onDodged) return
                 def.onDodged({
                     final: 0,
@@ -82,7 +82,20 @@ export function processHitCheck(
                     source: action,
                     engine,
                     state: engine.state,
-                    // buffOwnerId: parts[1],
+                    layer,
+                })
+            })
+            // 防御方 buff onDodge 钩子（自己成功闪避；遍历防御方 buff，与 trigger on_dodge 同义）
+            forEachBuffOf(engine.state.pendingBuffs, enemy.id, (def, layer) => {
+                if (!def?.onDodge) return
+                def.onDodge({
+                    final: 0,
+                    raw: 0,
+                    attacker: self,
+                    target: enemy,
+                    source: action,
+                    engine,
+                    state: engine.state,
                     layer,
                 })
             })

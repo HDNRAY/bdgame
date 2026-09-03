@@ -373,8 +373,22 @@ function resolveParry(
     consumeBuffsByTrigger(target.id, engine, 'on_parry')
     engine.emit('on_parry', target, attacker)
     engine.emit('on_parried', attacker, target)
-    // 防御方 buff onParried 钩子（在招式作用域内，渲染层 +1 缩进）
+    // 防御方 buff onParry 钩子（自己成功招架；遍历防御方 buff，与 trigger on_parry 同义）
     forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
+        if (!def?.onParry) return
+        def.onParry({
+            final: raw,
+            raw,
+            target,
+            attacker,
+            engine,
+            layer,
+            state: engine.state,
+            source: act,
+        })
+    })
+    // 攻击方 buff onParried 钩子（自己攻击被对方招架；遍历攻击方 buff，与 trigger on_parried 同义）
+    forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
         if (!def?.onParried) return
         def.onParried({
             final: raw,

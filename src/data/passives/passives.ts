@@ -206,9 +206,9 @@ export const PASSIVES: Passive[] = [
     {
         id: 'nei_xi_mian_chang',
         name: '炁蕴绵长',
-        description: '内息悠长，增益久驻。每点推演使自身 buff 时长+2%。',
+        description: '内息悠长，增益久驻。每点推演使自身 buff 时长+5%。',
         tags: ['passive', 'buff'],
-        effects: [{ type: 'buff_duration_mult', eval: (char) => 1 + char.attrs.get('wisdom') * 0.02 }],
+        effects: [{ type: 'buff_duration_mult', eval: (char) => 1 + char.attrs.get('wisdom') * 0.05 }],
     },
     {
         id: 'overlord_art',
@@ -222,7 +222,7 @@ export const PASSIVES: Passive[] = [
         ],
         actionEnhancer: (def) => {
             if (!def.tags.includes('slash')) return def
-            return { ...def, effects: [{ type: 'short_dash', maxDistance: 2 }, ...(def.effects ?? [])] }
+            return { ...def, effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])] }
         },
     },
     {
@@ -244,7 +244,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'inner_power',
         name: '归元劲',
-        description: '内力深厚。每点推演提升全属性。持续运转消耗内息，每秒消耗 0.1 点AP。',
+        description: '内力深厚。每点推演提升全属性。',
         tags: ['passive', 'buff'],
         effects: [
             { type: 'attr_convert', from: 'wisdom', to: ['strength', 'vitality', 'agility', 'dexterity'], ratio: 0.1 },
@@ -352,7 +352,7 @@ export const PASSIVES: Passive[] = [
         // 因势利导：进架势后借势，下一击暴击（消费 on_stance，与转换时刻的护体互补）
         id: 'yin_shi_li_dao',
         name: '因势利导',
-        description: '进架势时因势利导，下一次出招暴击率+10%，用后消散。',
+        description: '进架势时因势利导，下一次出招暴击率增加，暴击后消散。',
         tags: ['passive', 'buff', 'stance'],
         requiredTags: ['stance'],
         triggers: [
@@ -494,8 +494,8 @@ export const PASSIVES: Passive[] = [
         description: '铁剑门绝学，身法灵动百变，极难捉摸。',
         tags: ['passive', 'buff', 'defense'],
         effects: [
-            { type: 'dodge_mod', value: 0.08 },
-            { type: 'haste', eval: (char) => char.attrs.get('wisdom') * 8 },
+            { type: 'dodge_mod', value: 0.04 },
+            { type: 'haste', eval: (char) => char.attrs.get('wisdom') * 10 },
         ],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'min_move_cost' }] }],
     },
@@ -515,7 +515,7 @@ export const PASSIVES: Passive[] = [
         triggers: [
             {
                 condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'zhu_huo_jue_buff', stacks: 1 }],
+                effects: [{ type: 'add_buff', buffId: 'zhu_huo_jue_buff' }],
             },
         ],
     },
@@ -726,7 +726,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'dian_xue_passive',
         name: '灵枢真解',
-        description: '灵枢真解，点穴封脉。拳脚及钝击招式均有50%概率造成4层麻痹。',
+        description: '灵枢真解，点穴封脉。',
         tags: ['passive', 'debuff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ling_xu_zhen_jie' }] },
@@ -787,7 +787,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'sword_focus',
         name: '怒炁充盈',
-        description: '每被闪避一次积攒怒气，下次命中附加 层数×3 点伤害，击中后重置。',
+        description: '攻击落空时积攒怒气，暴击时倾泻而出：每层爆伤+30%，暴击后怒气清空。',
         tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_focus' }] }],
     },
@@ -1056,7 +1056,7 @@ export const PASSIVES: Passive[] = [
                 check: (char, attr, _cur, delta, _src, state) => {
                     if (attr !== 'insight' || delta >= 0) return null
                     const layer = state?.pendingBuffs.get(`shen_zhao::${char.id}`)
-                    if ((layer?.extra?.stage as number | undefined) === 4) return { skip: true }
+                    if ((layer?.extra?.stage as number | undefined) === 3) return { skip: true }
                     return null
                 },
             },
@@ -1080,7 +1080,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'mingjing_zhishui',
         name: '明镜止水',
-        description: '心如明镜止水，神清目明。免疫迷惑，抵抗失心，出招省AP但推演降低。',
+        description: '心如明镜止水，神清目明。免疫迷惑，抵抗失心，出招省AP。',
         tags: ['passive', 'buff'],
         triggers: [
             {

@@ -27,8 +27,8 @@ export const LIUXIGUA: OpponentDef = {
     ],
     actionConfigs: [
         {
-            actionId: 'shadow_fist',
-            triggerId: 'on_disarmed',
+            actionId: 'spinning_slash',
+            triggerId: 'on_parried',
         },
     ],
 }

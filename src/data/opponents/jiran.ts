@@ -15,16 +15,16 @@ export const JIRAN: OpponentDef = {
         passive('insight_awareness'),
         action('yi_dian_han_mang'),
         passive('guan_zi_zai_yan'),
-        action('fen_cheng'),
+        action('blaze_strike'),
         passive('hua_gun'),
         passive('nei_xi_mian_chang'),
         weapon('zhen_bei_ji'),
         action('ru_long'),
         action('dao_ma_dan'),
         action('yun_bu'),
-
+        artifact('auto_purify_vest'),
         artifact('innate_seed'),
-        // 12
+        // 13
     ],
     actionConfigs: [
         {
@@ -33,8 +33,12 @@ export const JIRAN: OpponentDef = {
             conditionId: 'chill_blade_lt_2',
         },
         {
-            actionId: 'pursuit_thrust',
+            actionId: 'blaze_strike',
             triggerId: 'on_dodged',
+        },
+        {
+            actionId: 'pursuit_thrust',
+            triggerId: 'on_opponent_move_closer',
         },
     ],
     taunt: () => '',

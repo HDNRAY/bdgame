@@ -59,7 +59,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'none' },
         onDodgeChance: () => 0.15,
-        onDodged: ({ target, attacker, engine, state }) => {
+        onDodge: ({ target, attacker, engine, state }) => {
             if (!engine) return
             processActionEffect(
                 { type: 'short_dash', maxDistance: 2 },
@@ -78,7 +78,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             return 1
         },
         // 成功招架远程 → 标记本窗口已招架（回合结算时不叠层）
-        onParried: ({ layer }) => {
+        onParry: ({ layer }) => {
             layer.extra = { ...(layer.extra ?? {}), parriedWindow: true }
         },
         // 回合结算：本窗口未招架远程 → 叠 1 层「归宗·蓄」（灵巧+1/层，上限4）；每窗口最多结算一次
@@ -160,9 +160,9 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '以柔克刚，四两拨千斤。每点灵巧增加0.6%招架率与0.6%招架减伤。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onParryChance: ({ target }) => target.attrs.get('dexterity') * 0.005,
+        onParryChance: ({ target }) => target.attrs.get('dexterity') * 0.006,
         onParryReduction: ({ final, target }) =>
-            Math.max(0, round1(final * (1 - target.attrs.get('dexterity') * 0.005))),
+            Math.max(0, round1(final * (1 - target.attrs.get('dexterity') * 0.006))),
         onCanParry: () => true,
     },
     {
@@ -263,7 +263,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         stacking: { type: 'none' },
         onTakeDamage: ({ final }) => round1(final * 0.9),
         onReceiveDebuff: (ctx) => {
-            if (['stun', 'knockdown', 'disarmed'].includes(ctx.buffId)) return 0
+            if (['stun', 'knockdown', 'disarmed', 'knockback'].includes(ctx.buffId)) return 0
             return undefined
         },
     },
@@ -275,7 +275,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         attrMods: { strength: 1, dexterity: 3 },
         onCanParry: () => true,
-        onParried: ({ target, attacker, engine, state }) => {
+        onParry: ({ target, attacker, engine, state }) => {
             processActionEffect(
                 { type: 'disarm', chance: 0.3 },
                 { self: target, enemy: attacker, engine: engine!, tMs: state.turn.currentTime },
@@ -304,7 +304,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '白虎定息，虎啸生风。闪避时回复2点缠劲。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onDodged: ({ target, engine }) => {
+        onDodge: ({ target, engine }) => {
             if (!engine) return
             target.addChan(2)
             engine.checkChanOverflow(target.id)
@@ -489,11 +489,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'ba_wang_zui',
         name: '霸王醉',
-        description: '每层每秒回复0.5点缠劲，持续9秒。',
+        description: '每层每秒回复1点缠劲，持续9秒。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
         stacking: { type: 'additive', max: 3 },
-        chanRegenPerSec: ({ layer }) => 0.5 * (layer.restoreValue ?? 1),
+        chanRegenPerSec: ({ layer }) => layer.restoreValue ?? 1,
     },
     {
         id: 'shao_dao_zi',
@@ -538,7 +538,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         onCanParry: () => true,
         onParryChance: () => 0.1,
-        onParried: ({ target, attacker, engine, state }) => {
+        onParry: ({ target, attacker, engine, state }) => {
             if (engine) {
                 processActionEffect(
                     { type: 'disarm', chance: 0.25 },
@@ -551,11 +551,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'insight_awareness',
         name: '料敌机先',
-        description: '每点洞察+0.4%招架率、+0.4%闪避率。',
+        description: '每点洞察+0.5%招架率、+0.3%闪避率。',
         tags: [],
         expiry: { type: 'permanent' },
-        onParryChance: ({ target }) => target.attrs.get('insight') * 0.004,
-        onDodgeChance: ({ target }) => target.attrs.get('insight') * 0.004,
+        onParryChance: ({ target }) => target.attrs.get('insight') * 0.005,
+        onDodgeChance: ({ target }) => target.attrs.get('insight') * 0.003,
     },
     {
         id: 'ni_zhuan_jing_mai',
@@ -718,7 +718,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'jin_zhong_zhao',
         name: '金钟罩',
-        description: '金钟罩体，罡气护身。吸收30点伤害，免疫硬控；盾未破时每5秒修复1点。',
+        description: '金钟罩体，罡气护身。吸收45点伤害，免疫硬控；盾未破时每5秒修复1点。',
         tags: ['super_armor', 'defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -729,12 +729,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tickInterval: 5000,
         onTickHeal: ({ target, engine, layer }) => {
             if (!layer.extra) layer.extra = {}
-            const cur = (layer.extra.shieldRemaining as number) ?? 30
-            if (cur < 30) {
-                layer.extra.shieldRemaining = Math.min(30, cur + 1)
+            const cur = (layer.extra.shieldRemaining as number) ?? 45
+            if (cur < 45) {
+                layer.extra.shieldRemaining = Math.min(45, cur + 1)
                 engine?.emitLog({
                     type: 'system',
-                    message: `[金钟罩] ${target.name} 护盾修复+1（${layer.extra.shieldRemaining}/30）`,
+                    message: `[金钟罩] ${target.name} 护盾修复+1（${layer.extra.shieldRemaining}/45）`,
                     actorId: target.id,
                 })
             }
@@ -743,18 +743,18 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         onAbsorb: ({ final, target, engine, layer, state }) => {
             if (final <= 0) return final
             if (!layer.extra) layer.extra = {}
-            const remaining = (layer.extra.shieldRemaining as number) ?? 30
+            const remaining = (layer.extra.shieldRemaining as number) ?? 45
             const absorb = Math.min(remaining, final)
-            layer.extra.shieldRemaining = Math.round((remaining - absorb) * 10) / 10
+            layer.extra.shieldRemaining = round1(remaining - absorb)
             engine?.emitLog({
                 type: 'system',
-                message: `[金钟罩] ${target.name} 吸收${absorb}点（${layer.extra.shieldRemaining}/30）`,
+                message: `[金钟罩] ${target.name} 吸收${absorb}点（${layer.extra.shieldRemaining}/45）`,
                 actorId: target.id,
             })
             if (layer.extra.shieldRemaining <= 0) {
                 state.pendingBuffs.delete(`jin_zhong_zhao::${target.id}`)
             }
-            return Math.max(0, Math.round((final - absorb) * 10) / 10)
+            return Math.max(0, round1(final - absorb))
         },
     },
     // ── 朱雀定（禅子·挨打回缠功法） ──
@@ -843,7 +843,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         stacking: { type: 'none' },
         onParryChance: () => 0.12,
         // 招架后反噬冰霜：仅近战（非召唤物、非远程）攻击触发——召唤物是独立实体不反，远程够不着不反
-        onParried: ({ target, attacker, engine, state, source }) => {
+        onParry: ({ target, attacker, engine, state, source }) => {
             if (!engine) return
             if (source?.tags?.includes('summon')) return
             if (source?.tags?.includes('range')) return

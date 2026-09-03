@@ -20,7 +20,7 @@ export const HAORAN: OpponentDef = {
         action('fall_to_azure_sword'),
         artifact('qi_amplifier'),
         passive('jiu_yang_shen_gong'),
-        artifact('shao_dao_zi'),
+        artifact('zhu_ye_qing'),
         passive('wan_xiang_jian_yi'),
         passive('ling_long_xin_qiao'),
         passive('yi_dian_po_xiao'),

@@ -127,7 +127,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'nineteen_stops',
         name: '十九停',
         description:
-            '每次出手消耗2缠劲（无论命中与否）并叠一层，但层数越高越易失手（叠不上）。每层命中+1%、暴击+2%、暴伤+3%，最多19层。',
+            '每次出手消耗1缠劲（无论命中与否）并叠一层，但层数越高越易失手（叠不上）。每层命中+1%、暴击+1%、暴伤+1%，最多19层。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 19 },
@@ -138,12 +138,12 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onAction: ({ attacker, layer }) => {
             const stacks = layer.restoreValue ?? 0
             if (Math.random() < (stacks / 19) ** 2) return
-            if (!attacker.spendChan(3)) return
+            if (!attacker.spendChan(1)) return
             layer.restoreValue = Math.min(19, stacks + 1)
         },
         onHitChance: ({ layer }) => layer.restoreValue * 0.01,
-        onCritChance: ({ layer }) => layer.restoreValue * 0.02,
-        onCritDamage: ({ layer }) => layer.restoreValue * 0.03,
+        onCritChance: ({ layer }) => layer.restoreValue * 0.01,
+        onCritDamage: ({ layer }) => layer.restoreValue * 0.01,
     },
     {
         id: 'ji_lie_zhi_lie_buff',
@@ -392,7 +392,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'blood_thorn_suppress',
         name: '血棘·流血',
-        description: '暴击时向创口渡入棘炁，爆伤按 15:1 转化为流血。',
+        description: '暴击时向创口渡入棘炁，爆伤按 14:1 转化为流血。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -400,7 +400,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         priority: 99,
         onAfterCritDamage: ({ damage, final, attacker, target, engine, state }) => {
             const extraDamage = final - damage
-            const bleedStacks = Math.max(1, Math.round(extraDamage / 15))
+            const bleedStacks = Math.max(1, Math.round(extraDamage / 14))
             if (engine) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },

@@ -25,14 +25,16 @@ const REGISTERED_HOOKS = [
     'onCanBeParried',
     'onCanParry',
     'onParryChance',
-    'onParried',
+    'onParry',      // 自己成功招架（遍历防御方 buff）
+    'onParried',    // 对方招架了我的攻击（遍历攻击方 buff）
     'onParryReduction',
     'onParryPenetration',
     'onDealDamage',
     'onTakeDamage',
     'onAbsorb',
     'onDodgeChance',
-    'onDodged',
+    'onDodge',      // 自己成功闪避（遍历防御方 buff）
+    'onDodged',     // 对方闪避了我的攻击（遍历攻击方 buff）
     'onHitChance',
     'onCritChance',
     'onCritTakenChance',

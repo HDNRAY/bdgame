@@ -110,9 +110,13 @@ export interface BuffDef extends GameEntity {
     onAction?: (ctx: BuffHookCtx) => void
     /** 对方出招回调（对方释放任何招式时调用，不受命中影响；用于看破类效果。ctx.attacker=对方，ctx.target=本 buff 持有者） */
     onOpponentAction?: (ctx: BuffHookCtx) => void
-    /** 闪避时回调（防御方成功闪避后调用） */
+    /** 自己成功闪避回调（防御方闪避成功后调用；遍历防御方 buff，与 trigger on_dodge 同义） */
+    onDodge?: (ctx: BuffHookCtx) => void
+    /** 自己成功招架回调（防御方招架成功后调用；遍历防御方 buff，与 trigger on_parry 同义） */
+    onParry?: (ctx: BuffHookCtx) => void
+    /** 对方闪避回调（攻击方出招被闪避后调用；遍历攻击方 buff，与 trigger on_dodged 同义） */
     onDodged?: (ctx: BuffHookCtx) => void
-    /** 招架时回调（防御方成功招架后调用） */
+    /** 对方招架回调（攻击方出招被招架后调用；遍历攻击方 buff，与 trigger on_parried 同义） */
     onParried?: (ctx: BuffHookCtx) => void
     /** 暴击时回调（攻击方造成暴击后调用） */
     onCritical?: (ctx: BuffHookCtx) => void

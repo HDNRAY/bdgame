@@ -53,21 +53,21 @@ describe('神照（入神坐照）', () => {
         def!.onApSpent!({ self, amount, engine: e, state: e.state, layer })
     }
 
-    it('四档累计洞察 +2/+4/+6/+6，第4档后迷眼被拦截', () => {
+    it('每15AP一档：洞察 +2/+4/+6，3档满后迷眼被拦截', () => {
         const { engine: e, p } = setup([SHEN])
         const baseInsight = p.attrs.get('insight')
 
-        spend(e, p.id, 25)
+        spend(e, p.id, 15)
         expect(p.attrs.get('insight')).toBe(baseInsight + 2)
-        spend(e, p.id, 25)
+        spend(e, p.id, 15)
         expect(p.attrs.get('insight')).toBe(baseInsight + 4)
-        spend(e, p.id, 25)
+        spend(e, p.id, 15)
         expect(p.attrs.get('insight')).toBe(baseInsight + 6)
-        spend(e, p.id, 25)
-        expect(p.attrs.get('insight')).toBe(baseInsight + 6) // 第4档不再加洞察
-        expect(shenLayer(e, p.id)!.extra!.stage).toBe(4)
+        spend(e, p.id, 15)
+        expect(p.attrs.get('insight')).toBe(baseInsight + 6) // 第3档满后不再加洞察
+        expect(shenLayer(e, p.id)!.extra!.stage).toBe(3)
 
-        // 第4档后：迷眼（洞察-4）被 stat_restriction 拦截
+        // 3档满后：迷眼（洞察-4）被 stat_restriction 拦截
         const before = p.attrs.get('insight')
         const o = e.getCharacter('o')!
         const eff = { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 1 }
@@ -79,9 +79,9 @@ describe('神照（入神坐照）', () => {
         expect(p.attrs.get('insight')).toBe(before)
     })
 
-    it('未满4档时迷眼仍生效', () => {
+    it('未满3档时迷眼仍生效', () => {
         const { engine: e, p } = setup([SHEN])
-        spend(e, p.id, 25) // 只到第1档
+        spend(e, p.id, 15) // 只到第1档
         const before = p.attrs.get('insight')
         const o = e.getCharacter('o')!
         const eff = { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 1 }

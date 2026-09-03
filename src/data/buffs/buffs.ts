@@ -111,11 +111,11 @@ export const BUFF_DB: BuffDef[] = [
         // 因势利导：进架势后借势，下一次出招暴击，用后消散
         id: 'yin_shi_li_dao',
         name: '因势利导',
-        description: '借架势之势，下一次出招暴击率+15%。',
+        description: '借架势之势，下一次出招暴击率+20%。',
         tags: ['buff'],
         expiry: { type: 'consumed', trigger: 'on_crit' },
         stacking: { type: 'additive', max: 1 },
-        onCritChance: () => 0.15,
+        onCritChance: () => 0.2,
     },
     {
         id: 'mind_eye',
@@ -162,21 +162,21 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'circle',
         name: '圆',
-        description: '锁定目标，洞察+2，对4AP及以上招式命中+15%。',
+        description: '锁定目标，洞察+2，对4AP及以上招式命中+10%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { insight: 2 },
-        onHitChance: ({ source }) => (((source as ActionDefinition | undefined)?.apCost ?? 0) >= 4 ? 0.15 : 0),
+        onHitChance: ({ source }) => (((source as ActionDefinition | undefined)?.apCost ?? 0) >= 4 ? 0.1 : 0),
     },
     {
         id: 'overlord_art_buff',
         name: '轮舞月斩',
-        description: '长兵轮转如月，重器加持命中+15%；否则暴击+25%。',
+        description: '长兵轮转如月，重器加持命中+8%；否则暴击+15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),
-        onCritChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.25 : 0),
+        onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.1 : 0),
+        onCritChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),
     },
     {
         id: 'li_wu_xu_fa',
@@ -247,7 +247,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'fei_hua_shou',
         name: '漫天花雨',
-        description: '暗器出手如飞花，可连续追加投掷攻击。暗器招式AP消耗-20%。',
+        description: '暗器出手如飞花，可连续追加投掷攻击。暗器招式AP消耗-30%。',
         tags: [],
         expiry: { type: 'permanent' },
         getExtraAttack: ({ source }) => {
@@ -257,37 +257,37 @@ export const BUFF_DB: BuffDef[] = [
         onActionCost: ({ source }) => {
             const act = source as ActionDefinition
             if (!act || !act.tags.includes('thrown')) return 0
-            return -act.apCost * 0.2
+            return -act.apCost * 0.3
         },
     },
     // ── 空手道（桑原·拳到脚到） ──
     {
         id: 'karate',
         name: '空手道',
-        description: '空手道不打蛮力，把劲凝在最刁钻的打击点上。空手拳脚伤害+10%。',
+        description: '空手道不打蛮力，把劲凝在最刁钻的打击点上。空手拳脚伤害+8%，消耗-20%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, source }) => {
             if (!source?.tags.includes('unarmed')) return final
-            return round1(final * 1.1)
+            return round1(final * 1.08)
         },
         onActionCost: ({ source }) => {
             const act = source as ActionDefinition
             if (!act || !act.tags.includes('unarmed')) return 0
-            return -0.5
+            return -0.2
         },
     },
     // ── 练打秘诀 ──
     {
         id: 'lian_da_mi_jue',
         name: '练打秘诀',
-        description: '暗器出手附灵巧加成：灵巧×0.1；消耗1缠劲则提升至灵巧×0.2。',
+        description: '暗器出手附灵巧加成：灵巧×0.04；消耗1缠劲则提升至灵巧×0.08。',
         tags: [],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, source }) => {
             if (!source?.tags?.includes('thrown')) return final
-            const ratio = attacker.spendChan(1) ? 0.2 : 0.1
+            const ratio = attacker.spendChan(1) ? 0.08 : 0.04
             return round1(final + attacker.attrs.get('dexterity') * ratio)
         },
     },
@@ -295,11 +295,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'inner_power_cost',
         name: '归元劲·内耗',
-        description: '内力浑厚亦需运转维持，每秒消耗 0.1 点AP。',
+        description: '内力浑厚亦需运转维持，每秒消耗推演×0.01 点AP。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        apRegenPerSec: () => -0.1,
+        // 内耗随推演增长：推演越高，归元劲全属性转化收益越大，维持代价也越高
+        apRegenPerSec: ({ target }) => -round1(target.attrs.get('wisdom') * 0.01),
     },
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
@@ -1038,7 +1039,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '通晓天下武学，以推演预判。闪避/招架→武学·破+1层；暴击→武学·避+1层。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDodged: ({ engine, target, attacker, state }) => {
+        onDodge: ({ engine, target, attacker, state }) => {
             if (engine) {
                 processActionEffect(
                     { type: 'add_buff', buffId: 'martial_arts_crit', stacks: 1 },
@@ -1046,7 +1047,7 @@ export const BUFF_DB: BuffDef[] = [
                 )
             }
         },
-        onParried: ({ engine, target, attacker, state }) => {
+        onParry: ({ engine, target, attacker, state }) => {
             if (engine) {
                 processActionEffect(
                     { type: 'add_buff', buffId: 'martial_arts_crit', stacks: 1 },
@@ -1163,10 +1164,10 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'bean_buff',
         name: '茴香气',
-        description: '茴香豆的余香，全属性+1（除推演）。',
+        description: '茴香豆的余香，全属性+1。',
         tags: ['buff'],
         expiry: { type: 'duration', ms: 10000 },
-        attrMods: { strength: 1, vitality: 1, agility: 1, dexterity: 1, wisdom: 1 },
+        attrMods: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1, wisdom: 1 },
     },
     // ── 酒鬼·无志 ──
     {
@@ -1181,20 +1182,19 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'sword_focus',
         name: '怒炁充盈',
-        description: '每被闪避一次积攒怒气，下次命中附加 层数×3 点伤害，击中后重置。',
+        description: '攻击落空时积攒怒气，暴击时倾泻而出：每层爆伤+50%，暴击后怒气清空。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive' },
+        // 攻击被对方闪避（未命中）→ 怒气+1
         onDodged: ({ layer }) => {
             layer.restoreValue = (layer.restoreValue ?? 0) + 1
         },
-        onDealDamage: ({ final, layer }) => {
-            const stacks = layer.restoreValue ?? 0
-            if (stacks > 0) {
-                layer.restoreValue = 0
-                return Math.round((final + stacks * 3) * 10) / 10
-            }
-            return final
+        // 暴击时每层 +30% 爆伤（onCritDamage 加算到爆伤倍率，仅在暴击时生效）
+        onCritDamage: ({ layer }) => (layer.restoreValue ?? 0) * 0.5,
+        // 暴击结算后消费全部怒气（清空重新积累）
+        onCritical: ({ layer }) => {
+            layer.restoreValue = 0
         },
     },
     // ── 小树 ──
@@ -1240,7 +1240,7 @@ export const BUFF_DB: BuffDef[] = [
             let str = 0,
                 agi = 0,
                 dex = 0
-            if (hpPct < 0.3) {
+            if (hpPct < 0.25) {
                 str = 3
                 agi = 3
                 dex = 3
@@ -1354,19 +1354,79 @@ export const BUFF_DB: BuffDef[] = [
             return 7
         },
     },
+    // ── 自动净化背心 ──
+    {
+        id: 'auto_purify',
+        name: '自动净化',
+        description: '每5秒：若身中可净化的负面状态，消耗1点缠劲，净化1层；无负面则不消耗。',
+        tags: ['heal'],
+        expiry: { type: 'permanent' },
+        stacking: { type: 'none' },
+        tickInterval: 5000,
+        onTickHeal: ({ target, engine, state }) => {
+            if (!engine) return 0
+            // 可净化白名单（按净化优先级排列）：流血/毒/烧 → 麻痹/霜冻 → 其余削弱控制。
+            // 义体常驻（implant）与永久失心不进白名单——自动净化不免费抵消义体惩罚。
+            const PURIFIABLE = [
+                'bleed',
+                'poison',
+                'burn',
+                'paralyze',
+                'frost',
+                'confuse',
+                'weakness',
+                'fumble_chance_temp',
+                'duan_qi',
+            ]
+            // 遍历目标身上所有层，取白名单中优先级最高的那一个（每 5 秒只净化 1 层）
+            let hit: { key: string; layer: BuffLayer; additive: boolean; name: string } | undefined
+            let bestIdx = Infinity
+            forEachBuffOf(state.pendingBuffs, target.id, (def, layer, buffId, key) => {
+                const idx = PURIFIABLE.indexOf(buffId)
+                if (idx < 0 || idx >= bestIdx) return
+                const st = def?.stacking?.type
+                const additive = st === 'additive'
+                if (additive && (layer.restoreValue ?? 0) <= 0) return
+                bestIdx = idx
+                hit = { key, layer, additive: st === 'additive', name: def?.name ?? buffId }
+            })
+            // 无任何可净化负面 → 不消耗缠劲
+            if (!hit) return 0
+            // 有则消耗 1 点缠劲，净化 1 层（additive 减 1；independent/none 移除本条）
+            if (!target.spendChan(1)) return 0
+            if (hit.additive) {
+                hit.layer.restoreValue = (hit.layer.restoreValue ?? 0) - 1
+                if ((hit.layer.restoreValue ?? 0) <= 0) {
+                    // 层清空 → 恢复该层带走的属性修正（身法/灵巧等），再移除
+                    revertBuffMods(hit.layer, target, state)
+                    state.pendingBuffs.delete(hit.key)
+                }
+            } else {
+                // independent 每层独立带属性修正（麻痹/眩晕/虚弱等 attrMods）——
+                // 直接 delete 会永久吞掉身法/灵巧，必须先 revertBuffMods 恢复
+                revertBuffMods(hit.layer, target, state)
+                state.pendingBuffs.delete(hit.key)
+            }
+            engine.emitLog({
+                type: 'system',
+                message: `[自动净化] ${target.name} 消耗1点缠劲，净化1层${hit.name}`,
+                actorId: target.id,
+            })
+            return 0
+        },
+    },
     {
         id: 'ling_xu_zhen_jie',
         name: '灵枢真解',
-        description: '拳脚及钝击招式50%概率造成4层麻痹。',
+        description: '招式30%概率造成2层麻痹。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, source, attacker, engine, state }) => {
-            if (!source?.tags?.includes('unarmed') && !source?.tags?.includes('blunt')) return final
-            if (engine && Math.random() < 0.5) {
+        onDealDamage: ({ final, attacker, engine, state }) => {
+            if (engine) {
                 const enemy = engine.getOpponent(attacker.id)
                 if (enemy) {
                     processActionEffect(
-                        { type: 'add_debuff', buffId: 'paralyze', stacks: 4, chance: 1 },
+                        { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.3 },
                         { self: attacker, enemy, engine, tMs: state.turn.currentTime },
                     )
                 }
@@ -1581,7 +1641,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'shen_zhao',
         name: '神照',
-        description: '入神坐照。累计消耗AP分四档提升洞察（+2、+4、+6、+6）；满4档后免疫所有洞察减益。',
+        description: '入神坐照。累计消耗15AP，提升2点洞察，最多3层；满3层后免疫所有洞察减益。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -1591,18 +1651,18 @@ export const BUFF_DB: BuffDef[] = [
         },
         onApSpent: ({ self, amount, engine, state, layer }) => {
             const total = (layer.restoreValue ?? 0) + amount
-            const stage = Math.min(4, Math.floor(total / 25))
+            const stage = Math.min(3, Math.floor(total / 15))
             const previous = (layer.extra?.stage as number | undefined) ?? 0
             layer.restoreValue = total
             if (stage <= previous) return
-            const stageValues = [0, 2, 4, 6, 6]
+            const stageValues = [0, 2, 4, 6]
             const gained = stageValues[stage] - stageValues[previous]
             const mods = applyAttrMods(self, state, { insight: gained }, '神照')
             layer.mods = { ...(layer.mods ?? {}), ...mods }
             layer.extra = { ...(layer.extra ?? {}), stage }
             engine.emitLog({
                 type: 'system',
-                message: `[神照] ${self.name} 洞察+${gained}（${stage}/4）`,
+                message: `[神照] ${self.name} 洞察+${gained}（${stage}/3）`,
                 actorId: self.id,
             })
         },
@@ -1647,7 +1707,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'mingjing_zhishui_buff',
         name: '明镜止水',
-        description: '心如明镜，神清目明。招式AP消耗-10%，但推演降低。',
+        description: '心如明镜，神清目明。招式AP消耗-15%。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -1661,7 +1721,7 @@ export const BUFF_DB: BuffDef[] = [
         onActionCost: ({ source }) => {
             const act = source as ActionDefinition
             if (!act) return 0
-            return -act.apCost * 0.1
+            return -act.apCost * 0.15
         },
     },
     {

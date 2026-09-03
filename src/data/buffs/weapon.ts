@@ -54,15 +54,15 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'overlord_blade',
         name: '霸刀在手',
-        description: '离心力驱动的巨刃，势不可挡。近战招架率+20%，远程+40%，招架减免减少20%',
+        description: '离心力驱动的巨刃，势不可挡。近战招架率+20%，远程+40%，招架减免减少30%',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.4 : 0.2),
         onParryPenetration: ({ final, raw }) => {
-            // 返回穿掉的伤害值: 招架减免减少20%
+            // 返回穿掉的伤害值: 招架减免减少30%
             const blocked = raw - final
-            return round1(blocked * 0.2)
+            return round1(blocked * 0.3)
         },
     },
     {
@@ -81,7 +81,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'dinghai_pressure',
         name: '定海',
-        description: '锭海神铁的压制力场，距离越近伤害越高。招架减免减少40%。',
+        description: '锭海神铁的压制力场，距离越近伤害越高。招架减免减少30%。',
         tags: ['weapon', 'heavy'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, target, state, source }) => {
@@ -92,9 +92,9 @@ export const WEAPON_BUFFS: BuffDef[] = [
             return round1(final + bonus)
         },
         onParryPenetration: ({ final, raw }) => {
-            // 返回穿掉的伤害值: 招架减免减少40%
+            // 返回穿掉的伤害值: 招架减免减少30%
             const blocked = raw - final
-            return round1(blocked * 0.4)
+            return round1(blocked * 0.3)
         },
     },
     {

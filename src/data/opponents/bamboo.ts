@@ -22,8 +22,9 @@ export const BAMBOO: OpponentDef = {
         weapon('po_lang_zhu_zhi'),
         artifact('pu_ti_zhu'),
         passive('hua_gun'),
+        action('jin_zhong_zhao'),
         passive('ba_gua_gun_fa'),
-        // 12
+        // 13
     ],
     actionConfigs: [
         { actionId: 'rod_sweep', triggerId: 'on_dodged' },

@@ -16,6 +16,7 @@ import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { calcExpectedDamage } from '../../../../engine/ai/expected-damage'
 import type { BuffLayer } from '../../../../engine/combat/types'
 import { makeEvalState } from '../makeEvalState'
+import { applyCompareDefense } from '../compare-utils'
 import { MAX_CHAN } from '../../../../engine/constants'
 import type { ActionDefinition } from '../../../../engine/entities/action'
 import { getBuff } from '../../../../data/buffs'
@@ -98,6 +99,20 @@ function makeBenchChar(id: string, name: string, weapon: WeaponDef, pendingBuffs
     return c
 }
 
+/** compare 评估统一口径：双方各挂 10% 减伤（石肤），期望伤应用防御方减伤（见 ActionCompare 同口径） */
+function evalDamage(
+    action: ActionDefinition,
+    atk: Character,
+    def: Character,
+    weaponRange: [number, number],
+    pendingBuffs: Map<string, BuffLayer>,
+    distance: number,
+): ReturnType<typeof calcExpectedDamage> {
+    const state = makeEvalState(atk, def, { distance, buffs: pendingBuffs })
+    applyCompareDefense(state, atk, def)
+    return calcExpectedDamage(action, atk, def, weaponRange, state, undefined, { applyDefenseReduction: true })
+}
+
 /** 基准测量：基准招式在四档距离下的期望伤（射程外的档记 0） */
 function calcBenchmark(
     weapon: WeaponDef,
@@ -106,8 +121,7 @@ function calcBenchmark(
     const atk = makeBenchChar('A', '甲', weapon, pendingBuffs)
     const def = makeBenchChar('B', '乙', getWeapon(DEFENDER_WEAPON), pendingBuffs)
     const perDistance = BENCH_DISTANCES.map((d) => {
-        const state = makeEvalState(atk, def, { distance: d, buffs: pendingBuffs })
-        const est = calcExpectedDamage(BENCH_ACTION, atk, def, weapon.range, state)
+        const est = evalDamage(BENCH_ACTION, atk, def, weapon.range, pendingBuffs, d)
         return est.canReach ? est.expectedDamage : 0
     })
     return { perDistance, reachableTiers: perDistance.filter((v) => v > 0).length }
@@ -156,10 +170,12 @@ function calcAttrScore(weapon: WeaponDef): { mods: Record<string, number>; score
     return { mods, score }
 }
 
-/** 距离分：按射程跨度（max−min）× 每单位分（范围越大射程越广，非最大距离） */
+/** 距离分：按射程跨度（max−min）× 每单位分（范围越大射程越广，非最大距离）；
+ *  射程下限 0 = 贴脸也能打（被贴身不丢输出）→ 额外 +0.3。 */
 function calcDistanceScore(weapon: WeaponDef): { span: number; score: number } {
     const span = weapon.range[1] - weapon.range[0]
-    return { span, score: Math.round(span * DISTANCE_SCORE_PER_UNIT * 10) / 10 }
+    const reachZeroBonus = weapon.range[0] <= 0 ? 0.3 : 0
+    return { span, score: Math.round(span * DISTANCE_SCORE_PER_UNIT * 10) / 10 + reachZeroBonus }
 }
 
 /** 御物召唤物输出分：召唤物期望伤 × 数量（每个召唤物一次攻击，0AP 免费输出） */
@@ -173,8 +189,7 @@ function calcSummonScore(weapon: WeaponDef): { count: number; perSummon: number;
 
     const count = weapon.summon.maxCount(atk)
     const perSummonArr = BENCH_DISTANCES.map((d) => {
-        const state = makeEvalState(atk, def, { distance: d, buffs: pendingBuffs })
-        const est = calcExpectedDamage(summonAction, atk, def, weapon.range, state)
+        const est = evalDamage(summonAction, atk, def, weapon.range, pendingBuffs, d)
         return est.canReach ? est.expectedDamage : 0
     })
     const reachable = perSummonArr.filter((v) => v > 0)
@@ -257,8 +272,7 @@ function calcTriggerScore(weapon: WeaponDef): number {
                     const pb = new Map<string, BuffLayer>()
                     const atk = makeBenchChar('A', '甲', weapon, pb)
                     const defc = makeBenchChar('B', '乙', getWeapon(DEFENDER_WEAPON), pb)
-                                            const state = makeEvalState(atk, defc, { distance: 4, buffs: pb })
-                    return calcExpectedDamage(def, atk, defc, weapon.range, state).expectedDamage
+                    return evalDamage(def, atk, defc, weapon.range, pb, 4).expectedDamage
                 })()
                 value = Math.round(est * 10) / 10
             }
@@ -294,8 +308,7 @@ function calcGrantScore(weapon: WeaponDef): number {
         const pb = new Map<string, BuffLayer>()
         const atk = makeBenchChar('A', '甲', weapon, pb)
         const defc = makeBenchChar('B', '乙', getWeapon(DEFENDER_WEAPON), pb)
-                    const state = makeEvalState(atk, defc, { distance: 4, buffs: pb })
-        const est = calcExpectedDamage(def, atk, defc, weapon.range, state)
+        const est = evalDamage(def, atk, defc, weapon.range, pb, 4)
         total += Math.round(est.expectedDamage * 10) / 10
     }
     return Math.round(total * 10) / 10

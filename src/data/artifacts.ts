@@ -197,7 +197,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'pu_ti_tou_huan',
         name: '菩提头环',
-        description: '菩提枝编成的头环，澄澈心念。推演+4，50%免疫推演降低。',
+        description: '菩提枝编成的头环，澄澈心念。推演+4，50%抵抗推演降低。',
         tags: ['buff', 'defense'],
         effects: [
             { type: 'stat_buff', attrs: { wisdom: 4 } },
@@ -476,7 +476,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'hui_xiang_dou',
         name: '茴香豆',
-        description: '茴香豆，下酒良品。嚼几颗提神醒脑，全属性+1（除推演），持续10秒。',
+        description: '茴香豆，下酒良品。嚼几颗提神醒脑，全属性+1，持续10秒。',
         tags: ['buff'],
         grantsActions: ['_eat_beans'],
     },
@@ -653,7 +653,7 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['craft', 'buff'],
         triggers: [
             {
-                condition: { type: 'battle_start' },
+                condition: { type: 'on_equip' },
                 effects: [
                     { type: 'add_buff', buffId: 'rocket_boost' },
                     { type: 'add_buff', buffId: 'jet_drive_speed' },
@@ -667,9 +667,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '能量护盾',
         description: '天工锻造的能量护盾发生器，以缠化盾：直伤最多吸收三分之一（1缠:1伤，缠不足按比例吸收）。',
         tags: ['craft', 'defense'],
-        triggers: [
-            { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'energy_shield_buff' }] },
-        ],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'energy_shield_buff' }] }],
     },
     // ── 蓄炁瓶 ──
     {
@@ -680,11 +678,10 @@ export const ARTIFACTS: Artifact[] = [
         triggers: [
             {
                 condition: { type: 'on_equip' },
-                effects: [{ type: 'max_ap_mod', value: -1 }],
-            },
-            {
-                condition: { type: 'battle_start' },
-                effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 1 }],
+                effects: [
+                    { type: 'max_ap_mod', value: -1 },
+                    { type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 1 },
+                ],
             },
         ],
     },
@@ -696,7 +693,7 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['craft', 'electric', 'buff'],
         triggers: [
             {
-                condition: { type: 'battle_start' },
+                condition: { type: 'on_equip' },
                 effects: [{ type: 'add_buff', buffId: 'ci_magnetic_coil_buff' }],
             },
         ],
@@ -717,7 +714,7 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['implant', 'inherent'],
         triggers: [
             {
-                condition: { type: 'battle_start' },
+                condition: { type: 'on_equip' },
                 effects: [{ type: 'add_buff', buffId: 'wheelchair_speed' }],
             },
         ],
@@ -738,7 +735,7 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['buff'],
         triggers: [
             {
-                condition: { type: 'battle_start' },
+                condition: { type: 'on_equip' },
                 effects: [{ type: 'add_buff', buffId: 'wuxue_baodian_zonggang' }],
             },
         ],
@@ -751,7 +748,7 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['buff'],
         triggers: [
             {
-                condition: { type: 'battle_start' },
+                condition: { type: 'on_equip' },
                 effects: [{ type: 'add_buff', buffId: 'wuxue_baodian_shang' }],
             },
         ],
@@ -764,8 +761,21 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['buff'],
         triggers: [
             {
-                condition: { type: 'battle_start' },
+                condition: { type: 'on_equip' },
                 effects: [{ type: 'add_buff', buffId: 'wuxue_baodian_xia' }],
+            },
+        ],
+    },
+    // ── 自动净化背心 ──
+    {
+        id: 'auto_purify_vest',
+        name: '自动净化背心',
+        description: '秘制背心，感应自身异常状态，自行净化。',
+        tags: ['defense', 'craft'],
+        triggers: [
+            {
+                condition: { type: 'on_equip' },
+                effects: [{ type: 'add_buff', buffId: 'auto_purify' }],
             },
         ],
     },

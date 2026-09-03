@@ -285,7 +285,15 @@ export function keyDistances(self: Character, state: BattleState, candidates: Ac
     })
     const rangeMaxes = ranges.map(([, hi]) => hi)
     const rangeMins = ranges.map(([lo]) => lo)
-    const maxRange = Math.max(...rangeMaxes)
+    // 落点区间上限：近战风格（melee/clinch）用武器射程 cap——风筝基准以武器距离为准，
+    // 不被超程大招（如燎天 8m）拉远（燎天 0-8 ⊂ 武器 1-4，站桩即可用，无需为它跑远）。
+    // ranged/mid 角色靠远程招式输出（唐柔空手 + 暗器 range 2-6），风筝基准按招式射程并集，
+    // 武器（常为副手/空手 [0,2]）不参与 cap，否则永远拉不到暗器射程。
+    const myStyle = self.build.battleStyle
+    const maxRange =
+        myStyle === 'ranged' || myStyle === 'mid'
+            ? Math.max(...rangeMaxes)
+            : Math.min(Math.max(...rangeMaxes), effRange[1])
     const minRange = Math.min(...rangeMins)
     // 贴脸点：本体招下限与召唤物射程下限取大（贴脸 = 攻击距离下限，不是 0）。
     // 注意：不在此处 +short_dash——垫步只在攻击时距离超出武器射程才发生且距离动态

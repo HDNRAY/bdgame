@@ -76,6 +76,7 @@ export function calcExpectedDamage(
     weaponRange: [number, number],
     state: BattleState,
     atDistance?: number,
+    opts?: { applyDefenseReduction?: boolean },
 ): DamageEstimate {
     // 克隆可变参数（钩子篡改只影响克隆，不影响原件）
     const safeAtk = Object.create(attacker) as Character
@@ -373,7 +374,26 @@ export function calcExpectedDamage(
     condFinal += buffPiercing
 
     // 命中率只决定能否造成伤害（引擎 calcRoll：p>1 必中、p<0 必失 → clamp [0,1]）
-    const expected = Math.min(1, Math.max(0, hitChance)) * condFinal
+    let expected = Math.min(1, Math.max(0, hitChance)) * condFinal
+
+    // 可选：应用防御方减伤链（compare 等 DevMode 工具想算"真实可打出伤害"时开启；
+    // AI 决策默认不开——避免对手肉导致 AI 放弃攻击/护盾永不破死锁，见函数头注释）。
+    // 命中期望上遍历防御方 onTakeDamage（铁布衫/石肤 ×0.85/×0.9 等），招架混合已在 condFinal 内。
+    // 近似：穿透部分引擎免减伤，此处按全量打折（compare 精度可接受）。
+    if (opts?.applyDefenseReduction) {
+        forEachBuffOf(safeState.pendingBuffs, safeDef.id, (def, layer) => {
+            if (!def?.onTakeDamage) return
+            expected = def.onTakeDamage({
+                final: expected,
+                raw: rawDamage,
+                target: safeDef,
+                attacker: safeAtk,
+                state: safeState,
+                layer,
+                source: action,
+            })
+        })
+    }
 
     return {
         actionId: action.id,

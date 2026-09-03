@@ -162,7 +162,7 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'heshan_sword',
         name: '阿赖耶识',
-        description: '一把触及识海的唐刀，可同时使用拳掌功夫。命中后窃取对手 1 点洞察，持续 5 秒。',
+        description: '一把触及识海的唐刀，可同时使用拳掌功夫。命中后窃取对手 1 点洞察，持续 4 秒。',
         tags: ['slash', 'pierce', 'unarmed', 'parry', 'melee', 'one_handed'],
         range: [1, 3],
         grantsActions: ['_alaya_insight'],
@@ -225,7 +225,7 @@ export const WEAPON_DB: WeaponDef[] = [
         range: [0, 6],
         // 御物耗炁：每秒扣 0.5AP（5 环）。无人环 = 中速钝击流（1伤 + 30%麻痹），无穿透
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.3 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }] },
         ],
         summon: {
             id: 'hover_drone',

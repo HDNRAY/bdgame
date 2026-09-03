@@ -10,11 +10,10 @@ export const AJIU: OpponentDef = {
     targetAttrs: AJIU_ATTRS,
     battleStyle: 'melee',
     rewards: [
-        action('horizontal_slash'),
+        action('blaze_strike'),
         weapon('broken_blade'),
         action('spirit_sword'),
         passive('shenxing_baibian'),
-        action('blaze_strike'),
         passive('zhu_huo_jue'),
         artifact('titanium_arm'),
         action('dart_throw'),
@@ -23,11 +22,11 @@ export const AJIU: OpponentDef = {
         artifact('power_furnace'),
         passive('ku_chan_shen_gong'),
         passive('feng_mo_gong'),
-        // 13
+        // 12
     ],
     actionConfigs: [
         {
-            actionId: 'dart_throw',
+            actionId: 'blaze_strike',
             triggerId: 'on_dodged',
         },
         { actionId: '_arm_explosion', conditionId: 'hp_below_50' },

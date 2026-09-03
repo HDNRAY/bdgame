@@ -28,19 +28,19 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         name: '血滴子',
         description: '以血为引，凝炁成滴，射向对手。消耗10%当前气血。',
         requiredTags: [],
-        apCost: 2,
+        apCost: 1,
         tags: ['qi', 'unarmed', 'range', 'thrown', 'low_hp'],
-        getRange: () => [2, 4],
-        onActionHitChance: (base) => base + 0.2,
-        hookNotes: { hitChance: '+20%' },
+        getRange: () => [1, 4],
+        onActionHitChance: (base) => base + 0.3,
+        hookNotes: { hitChance: '+30%' },
         effects: [
             // 血引：以血为引，先耗10%当前气血（不受命中影响，miss 也耗血）
             { type: 'self_hp_cost', ratio: 0.1 },
-            // 血凝成滴射出，造成当前气血5%的伤害（≈所耗之血一半，命中后结算）
+            // 1:1 换血：伤害 = 所耗之血。扣血已先行执行，fn 拿到的是扣后血：
             {
                 type: 'functional_damage',
-                fn: ({ self }) => round1(self.hp * 0.1),
-                note: '按所耗气血造成伤害',
+                fn: ({ self }) => round1(self.hp / 9),
+                note: '造成与所耗等额伤害（1:1 换血）',
             },
         ],
     },
@@ -51,7 +51,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['pierce', 'range', 'thrown'],
-        getRange: () => [2, 6] as [number, number],
+        getRange: () => [1, 6] as [number, number],
         effects: [
             { type: 'ignore_parry' },
             { type: 'damage', scaling: { dexterity: 0.2, strength: 0.1 }, piercingRatio: 0.5 },
@@ -64,7 +64,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['slash', 'range', 'thrown'],
-        getRange: () => [2, 6],
+        getRange: () => [1, 6],
         onActionHitChance: (base) => base + 0.03,
         hookNotes: { hitChance: '+3%' },
         effects: [{ type: 'damage', scaling: { strength: 0.3, dexterity: 0.1 } }],
@@ -76,7 +76,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['range', 'thrown', 'paralyze', 'debuff', 'pierce'],
-        getRange: () => [2, 6] as [number, number],
+        getRange: () => [1, 6] as [number, number],
         effects: [
             // { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
@@ -129,10 +129,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         tags: ['electric', 'stun', 'chan'],
         getRange: () => [0, 4] as [number, number],
-        chanCost: 18,
+        chanCost: 15,
         hookNotes: { hitChance: '+25%' },
         effects: [
-            { type: 'damage', scaling: { wisdom: 1.9 } },
+            { type: 'damage', scaling: { wisdom: 2 }, piercingRatio: 0.3 },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
             { type: 'ignore_parry' },
         ],
@@ -221,7 +221,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [1, 4],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, agility: 0.1 } },
-            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
+            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.8 },
         ],
     },
     {
@@ -246,18 +246,6 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
             { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
             { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.5 },
             { type: 'damage', scaling: { strength: 0.1, wisdom: 0.2 } },
-        ],
-    },
-    {
-        id: 'fen_cheng',
-        name: '焚河',
-        description: '炁化烈焰，一戟燎河。附加灼烧。',
-        requiredTags: ['polearm', 'pierce'],
-        apCost: 3,
-        tags: ['polearm', 'pierce', 'burn'],
-        effects: [
-            { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 1 },
-            { type: 'damage', scaling: { strength: 0.3, dexterity: 0.2 } },
         ],
     },
     {
@@ -359,9 +347,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     let baseHit = 0
                     if (dmgEff?.type === 'damage') baseHit = (dmgEff.fixed ?? 0) + wis * (dmgEff.scaling?.wisdom ?? 0)
                     // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
-                    return round1(count * (baseHit + wis * 0.1))
+                    return round1(count * (baseHit + wis * 0.05))
                 },
-                note: '按当前召唤物数量倾泻伤害（数量 × (单发 + wis * 0.1附伤)）',
+                note: '按当前召唤物数量倾泻伤害（数量 × (单发 + wis * 0.05附伤)）',
             },
         ],
     },

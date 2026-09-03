@@ -22,14 +22,14 @@ export const HONGTI: OpponentDef = {
         action('wrist_strike'), // 点腕
         action('crushing_blow'), // 崩拳
         action('qi_bolt'),
-        action('break_formation'),
+        artifact('auto_purify_vest'),
         // 13
     ],
     actionConfigs: [
         { actionId: 'push_palm', triggerId: 'on_parry' },
         { actionId: 'wrist_strike', triggerId: 'on_dodged' },
         { actionId: 'qi_slash', triggerId: 'on_dodge' },
+        { actionId: 'cun_mang', triggerId: 'on_parried' },
         { actionId: 'qi_bolt', triggerId: 'on_opponent_move_away', conditionId: 'distance_gt_4' },
-        { actionId: 'break_formation', triggerId: 'on_debuff' },
     ],
 }

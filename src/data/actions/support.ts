@@ -114,16 +114,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         effects: [{ type: 'add_buff', buffId: 'cang_niao_buff' }],
     },
     {
-        id: 'break_formation',
-        name: '净化',
-        description: '破除一切负面效果，恢复自身状态。',
-        requiredTags: [],
-        apCost: 0,
-        chanCost: 1,
-        tags: ['cleanse', 'pre_action', 'chan'],
-        effects: [{ type: 'cleanse', allDebuffs: true, perDebuffStacks: 1 }],
-    },
-    {
         id: 'flash',
         name: '闪光',
         description: '以炁激发强光致盲对手，范围广，效果显著。',
@@ -435,13 +425,12 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'jin_zhong_zhao',
         name: '金钟罩',
-        description: '金钟罩体，罡气护身。获得30点护盾与罡体，盾未破时每5秒修复1点。',
+        description: '金钟罩体，罡气护身。',
         requiredTags: [],
-        apCost: 2,
+        apCost: 0,
         maxUses: 1,
         tags: ['defense', 'buff', 'pre_action'],
         target: 'self',
-        hookNotes: { canUse: '已有金钟罩时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'jin_zhong_zhao' }],
     },
     {

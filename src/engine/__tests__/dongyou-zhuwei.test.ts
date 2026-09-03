@@ -112,7 +112,7 @@ describe('baihu_ding 白虎定', () => {
             rewards: [],
         })
         expect(char.chan).toBe(0)
-        buff.onDodged!({
+        buff.onDodge!({
             final: 0,
             raw: 0,
             target: char,

@@ -17,13 +17,12 @@ export const XUNXIANG: OpponentDef = {
         action('steal_artifact'),
         action('dian_xue'),
         passive('li_wu_xu_fa'),
-        passive('dian_xue_passive'),
         action('push_hand'),
         passive('no_way_win'),
         passive('ling_long_xin_qiao'),
         action('tian_wai_fei_xian'),
         artifact('zhu_ye_qing'),
-        // 13
+        // 12
     ],
     actionConfigs: [
         { actionId: 'dian_xue', triggerId: 'on_dodge' },
