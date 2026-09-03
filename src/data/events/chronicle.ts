@@ -29,8 +29,18 @@ export const CHRONICLE_TAVERN_ENCOUNTER: EventDef = {
             description:
                 '你在九朵桃花酒吧独酌，酒过三巡，门口进来一个风尘仆仆的人——正是常在镇上晃荡的来风。他认得你，咧嘴一笑：「哟，一个人喝闷酒？来，凑一桌。」',
             choices: [
-                { id: '__end__', type: 'continue', label: '与来风喝酒', effects: [{ kind: 'set', flag: 'got_wine', to: true }] },
-                { id: '__end__', type: 'continue', label: '与酒鬼·无志喝酒', effects: [{ kind: 'set', flag: 'got_wine', to: true }] },
+                {
+                    id: '__end__',
+                    type: 'continue',
+                    label: '与来风喝酒',
+                    effects: [{ kind: 'set', flag: 'got_wine', to: true }],
+                },
+                {
+                    id: '__end__',
+                    type: 'continue',
+                    label: '与酒鬼·无志喝酒',
+                    effects: [{ kind: 'set', flag: 'got_wine', to: true }],
+                },
                 { id: '__end__', type: 'continue', label: '自顾自喝，不理会' },
             ],
         },
@@ -148,7 +158,7 @@ export const CHRONICLE_BAR_KILLING: EventDef = {
             id: 'heard',
             title: '传闻',
             description:
-                '你在街上听说九朵桃花酒吧昨晚出了事。有人被杀，凶手消失得无影无踪。酒吧照常营业，但吧台后面那排药酒瓶少了几瓶——有人说是飞虎·竹子送的跌打酒，也有人说是别的什么东西。你路过宝字堂药铺时，看见里面碾药的姑娘神情有些恍惚。',
+                '你在街上听说九朵桃花酒吧昨晚出了事。有人被杀，凶手消失得无影无踪。酒吧照常营业，但吧台后面那排药酒瓶少了几瓶——有人说是竹鸿子送的跌打酒，也有人说是别的什么东西。你路过宝字堂药铺时，看见里面碾药的姑娘神情有些恍惚。',
             choices: [{ id: 'investigate', type: 'continue', label: '打听详情' }],
         },
         {
@@ -171,10 +181,7 @@ export const CHRONICLE_SWORD_BROTHERS: EventDef = {
         {
             ...STAGE2_PLACEMENT[0],
             when: {
-                and: [
-                    { '==': [{ var: 'flags.got_wine' }, true] },
-                    { '!': { var: 'flags.sworn_done' } },
-                ],
+                and: [{ '==': [{ var: 'flags.got_wine' }, true] }, { '!': { var: 'flags.sworn_done' } }],
             },
         },
     ],

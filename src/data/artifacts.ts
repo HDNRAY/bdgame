@@ -413,7 +413,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'golden_bell_rope',
         name: '金玲索',
-        description: '金玲索，以炁御之，可攻可守。受到炁攻击时减伤2点；非炁攻击被招架时额外减免2点。',
+        description: '金玲索，以炁御之，可攻可守。',
         tags: ['defense'],
         grantsActions: ['_golden_bell_swing'],
         triggers: [

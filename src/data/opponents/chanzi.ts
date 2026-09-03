@@ -28,7 +28,7 @@ export const CHANZI: OpponentDef = {
     ],
     actionConfigs: [
         { actionId: 'jin_zhong_zhao' },
-        { actionId: 'chanzi_heal', conditionId: 'hp_below_70' },
+        { actionId: 'chanzi_heal', conditionId: 'hp_above_50' },
         { actionId: 'ru_lai_shen_zhang' },
         { actionId: 'liu_yang_zhang', triggerId: 'on_parried' },
         { actionId: 'qinlong_gong', triggerId: 'on_dodge' },

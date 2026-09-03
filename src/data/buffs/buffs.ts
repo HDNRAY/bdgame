@@ -1726,8 +1726,8 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff'],
         expiry: { type: 'duration', ms: 10000 },
         stacking: { type: 'additive', max: 3 },
-        onDodgeChance: ({ layer }) => layer.restoreValue * 0.04,
-        onCritChance: ({ layer }) => layer.restoreValue * 0.04,
+        onDodgeChance: ({ layer }) => layer.restoreValue * 0.03,
+        onCritChance: ({ layer }) => layer.restoreValue * 0.05,
     },
     {
         id: 'yun_bu_foresight',

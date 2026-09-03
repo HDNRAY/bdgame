@@ -5,7 +5,7 @@ const BAMBOO_ATTRS = { strength: 13, vitality: 13, agility: 10, dexterity: 18, i
 
 export const BAMBOO: OpponentDef = {
     id: 'bamboo',
-    name: '飞虎·竹子',
+    name: '竹鸿子',
     story: '幼年在佛寺修行，后被逐出山门。如今在镇上开了家药铺"宝字堂"，兼行医济世。一根竹棍从不离身。',
     battleStyle: 'mid',
     weapon: 'qimei_staff',

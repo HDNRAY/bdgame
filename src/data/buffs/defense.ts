@@ -231,7 +231,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'hua_gun_parry',
         name: '舞花棍',
-        description: '灵巧转化为远程招架率。',
+        description: '灵巧*1%转化为招架率, 远程招架率加倍。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onParryChance: ({ target, source }) => {
@@ -256,14 +256,14 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'lingxi_finger',
         name: '灵犀一指',
-        description: '灵犀一指，空手可格挡兵刃，招架时缴械对手，力道+1，灵巧+3。',
+        description: '灵犀一指，空手可格挡兵刃，招架时有25%几率缴械对手。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         attrMods: { strength: 1, dexterity: 3 },
         onCanParry: () => true,
         onParry: ({ target, attacker, engine, state }) => {
             processActionEffect(
-                { type: 'disarm', chance: 0.3 },
+                { type: 'disarm', chance: 0.25 },
                 { self: target, enemy: attacker, engine: engine!, tMs: state.turn.currentTime },
             )
         },
@@ -337,16 +337,16 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'golden_bell_guard',
         name: '金玲',
-        description: '金玲索护体，炁伤-2；招架时额外减免2点。',
+        description: '金玲索护体，炁伤-1；招架时额外减免2点。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, source }) => {
             if (source?.tags?.includes('qi')) {
-                return Math.max(0, Math.round((final - 2) * 10) / 10)
+                return Math.max(0, round1(final - 1))
             }
             return final
         },
-        onParryReduction: ({ final }) => Math.max(0, Math.round((final - 2) * 10) / 10),
+        onParryReduction: ({ final }) => Math.max(0, round1(final - 2)),
     },
     {
         id: 'sword_intent_tempering',
@@ -537,10 +537,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'insight_awareness',
         name: '料敌机先',
-        description: '每点洞察+0.5%招架率、+0.3%闪避率。',
+        description: '每点洞察+0.6%招架率、+0.3%闪避率。',
         tags: [],
         expiry: { type: 'permanent' },
-        onParryChance: ({ target }) => target.attrs.get('insight') * 0.005,
+        onParryChance: ({ target }) => target.attrs.get('insight') * 0.006,
         onDodgeChance: ({ target }) => target.attrs.get('insight') * 0.003,
     },
     {
@@ -592,7 +592,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'martial_arts_dodge',
         name: '武学·避',
-        description: '暴击推演出的闪避预判，每层闪避+1%、招架+1%。',
+        description: '暴击推演出的闪避预判，每层闪避+1%、招架+3%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },

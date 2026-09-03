@@ -292,7 +292,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['debuff', 'pre_action'],
         getRange: () => [1, 3],
         // 迷眼为 single 叠层：已迷眼时本次施加自动忽略，无需 canUse
-        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 1 }],
+        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 0.8 }],
     },
     {
         id: 'shi_qi',
@@ -361,14 +361,14 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'drone_paralyze',
         name: '御物麻痹',
-        description: '召唤物命中时50%概率附加1层麻痹。',
+        description: '召唤物命中时350%概率附加1层麻痹。',
         requiredTags: ['summon'],
         apCost: 0,
         tags: ['imperial', 'summon'],
         // 必定命中：跟随召唤物命中触发，不额外滚命中判定
         onActionHitChance: () => 1,
         hookNotes: { hitChance: '必中' },
-        effects: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.4 }],
+        effects: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.35 }],
     },
     {
         id: 'ling_qi_guan_zhu',
@@ -384,20 +384,17 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'chanzi_heal',
         name: '甘露',
-        description: '禅心化露，回气疗伤。消耗1AP、10层缠劲，回复当前血量的5%，当血量高于120时可用。',
+        description: '禅心化露，回气疗伤。',
         requiredTags: [],
         apCost: 1,
         chanCost: 10,
         tags: ['heal', 'qi', 'pre_action', 'chan'],
         target: 'self',
-        canUse: (self) => {
-            return self.hp > 120
-        },
         effects: [
             {
                 type: 'functional_heal',
-                fn: ({ self }) => Math.round(self.hp * 0.05),
-                note: '回复当前血量 5%',
+                fn: ({ self }) => Math.round(self.hp * 0.03),
+                note: '回复当前血量 3%',
             },
         ],
     },

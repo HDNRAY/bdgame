@@ -73,7 +73,7 @@ graph TB
     subgraph DCK["特殊事件调查科"]
       direction TB
       ql["奇岚（雷法拳）"]
-      zz["飞虎·竹子（法医）"]
+      zz["竹鸿子（法医）"]
     end
 
     subgraph Other["其他场所"]

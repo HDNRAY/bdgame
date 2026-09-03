@@ -257,6 +257,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         chanCost: 24,
         tags: ['polearm', 'pierce', 'damage', 'chan'],
         effects: [
+            { type: 'damage', scaling: { strength: 0.2 } },
             {
                 type: 'functional_damage',
                 fn: ({ state, self }) => {
@@ -268,9 +269,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                         if (def.expiry?.type === 'permanent') return
                         layers += layer.restoreValue ?? 1
                     })
-                    return round1(self.attrs.get('strength') * 0.2 + self.attrs.get('wisdom') * 0.2 * layers)
+                    return round1(self.attrs.get('wisdom') * 0.2 * layers)
                 },
-                note: '按自身非永久增益总层数增伤（力×0.2 + 智×0.2×层数）',
+                note: '按自身非永久BUFF总层数增伤（推演×0.2×层数）',
             },
         ],
     },
