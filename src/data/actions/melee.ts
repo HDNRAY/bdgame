@@ -95,7 +95,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce', 'melee'],
         apCost: 2,
         tags: ['pierce', 'heal', 'melee'],
-        getRange: () => [1, 5] as [number, number],
+        getRange: () => [1, 4],
         effects: [
             { type: 'add_buff', buffId: 'bamboo_regen', stacks: 1 },
             { type: 'damage', scaling: { wisdom: 0.2, dexterity: 0.15 } },
@@ -274,7 +274,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         getRange: (wr) => [wr[0], wr[1] + 1],
         hookNotes: { range: '武器范围 +1' },
         effects: [
-            { type: 'damage', scaling: { strength: 0.3, wisdom: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.2, wisdom: 0.1 } },
             { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 0.4 },
         ],
     },

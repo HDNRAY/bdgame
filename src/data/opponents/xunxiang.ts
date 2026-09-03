@@ -22,7 +22,8 @@ export const XUNXIANG: OpponentDef = {
         passive('ling_long_xin_qiao'),
         action('tian_wai_fei_xian'),
         artifact('zhu_ye_qing'),
-        // 12
+        passive('ni_zhuan_jing_mai'),
+        // 13
     ],
     actionConfigs: [
         { actionId: 'dian_xue', triggerId: 'on_dodge' },

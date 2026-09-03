@@ -295,12 +295,16 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'inner_power_cost',
         name: '归元劲·内耗',
-        description: '内力浑厚亦需运转维持，每秒消耗推演×0.01 点AP。',
+        description: '内力浑厚亦需运转维持，每秒消耗与归元劲全属性加成挂钩：每实际加成 1 点全属性扣 0.1 点AP。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        // 内耗随推演增长：推演越高，归元劲全属性转化收益越大，维持代价也越高
-        apRegenPerSec: ({ target }) => -round1(target.attrs.get('wisdom') * 0.01),
+        // 内耗与归元劲收益挂钩：归元劲 attr_convert(推演×0.1 → 四维全属性, round 取整)实际加 N 点全属性，
+        // 每秒扣 N×0.1 AP——推演越高转化收益越大，维持代价也越高；取整公式与 attr_convert 同源。
+        apRegenPerSec: ({ target }) => {
+            const gained = Math.round(target.attrs.get('wisdom') * 0.1)
+            return -round1(gained * 0.15)
+        },
     },
     // ── 内部追踪 ──
     { id: 'stun_track', name: '眩晕连续', description: '连续眩晕计数（5秒窗口）。', tags: [] },
@@ -1511,9 +1515,9 @@ export const BUFF_DB: BuffDef[] = [
         onAction: ({ source, attacker, target, engine, state }) => {
             if (!source) return
             if (!source.tags.includes('pierce') && !source.tags.includes('slash')) return
-            if (engine && Math.random() < 0.3) {
+            if (engine) {
                 processActionEffect(
-                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 },
+                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.3 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }

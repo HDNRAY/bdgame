@@ -43,8 +43,17 @@ export type BuffExpiry =
     | { type: 'consumed'; trigger: TriggerEvent }
     | { type: 'permanent' }
 
-/** 叠层行为 */
-export type BuffStacking = { type: 'none' } | { type: 'additive'; max?: number } | { type: 'independent' }
+/** 叠层行为：
+ *  - none：同一次施加的 stacks 生效（可 >1），已存在则幂等跳过（不叠不刷新）
+ *  - single：与 none 行为一致，但语义表达「同一次可多层、跨次不叠」——单次施加即完整效果，
+ *    已存在时再次施加完全忽略（用于迷眼类：一次撒沙叠 N 层，已迷眼不再加深/刷新）
+ *  - additive：可跨次叠加（restoreValue 累计、时长刷新）
+ *  - independent：每层独立 key（各自计时/独立 attrMods） */
+export type BuffStacking =
+    | { type: 'none' }
+    | { type: 'single' }
+    | { type: 'additive'; max?: number }
+    | { type: 'independent' }
 
 /** Buff 定义 */
 export interface BuffDef extends GameEntity {

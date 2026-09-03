@@ -59,10 +59,11 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'sand_blind',
         name: '迷眼',
-        description: '沙尘入眼，洞察大幅降低。',
+        description: '沙尘入眼，洞察大幅降低，每层-4。',
         tags: ['debuff'],
         expiry: { type: 'duration', ms: 5000 },
-        stacking: { type: 'none' },
+        // single：同一次施加可多层（闪光 stacks3 → -12），已迷眼则跨次忽略（不叠不刷新时长）
+        stacking: { type: 'single' },
         // 施加时广播 on_sand_blind，驱动攻击方触发器
         onDebuffApply: ({ self, enemy, engine }) => {
             engine?.emit('on_sand_blind', self, enemy)

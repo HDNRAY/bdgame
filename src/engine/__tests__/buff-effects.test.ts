@@ -277,12 +277,26 @@ describe('add_debuff', () => {
         expect(layer(engine, 'duan_qi', 'b')!.restoreValue).toBe(3) // max:3 封顶
     })
     it('re-applying a none-stacking debuff is skipped', () => {
-        const { engine, a, b } = makeFixture()
-        apply(engine, { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 1 }, a)
-        apply(engine, { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 1 }, a)
+        const { engine, a } = makeFixture()
+        apply(engine, { type: 'add_debuff', buffId: 'disarmed', stacks: 1, chance: 1 }, a)
+        apply(engine, { type: 'add_debuff', buffId: 'disarmed', stacks: 1, chance: 1 }, a)
 
-        expect(layerKeys(engine, 'sand_blind::b').length).toBe(1)
-        expect(b.attrs.get('insight')).toBe(6) // 10 - 4，仅减一次
+        expect(layerKeys(engine, 'disarmed::b').length).toBe(1)
+    })
+
+    it('sand_blind（single）同次 stacks 多层生效、跨次忽略', () => {
+        const { engine, a, b } = makeFixture({}, { insight: 30 })
+        // 同一次 stacks3 → 一次叠 3 层（-12）
+        apply(engine, { type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 1 }, a)
+        const l1 = layer(engine, 'sand_blind', 'b')
+        expect(l1?.restoreValue).toBe(3)
+        expect(b.attrs.get('insight')).toBe(18) // 30 - 4×3
+
+        // 跨次再施加 → 完全忽略（不叠不刷新）
+        apply(engine, { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 1 }, a)
+        const l2 = layer(engine, 'sand_blind', 'b')
+        expect(l2?.restoreValue).toBe(3) // 仍 3 层
+        expect(b.attrs.get('insight')).toBe(18)
     })
 
     it('onReceiveDebuff hook can fully resist a debuff', () => {

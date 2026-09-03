@@ -186,20 +186,6 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         },
     },
     {
-        id: 'dark_room_sense',
-        name: '黑暗视觉',
-        description: '暗室练就的敏锐感知，免疫迷眼。',
-        tags: ['defense'],
-        expiry: { type: 'permanent' },
-        onReceiveDebuff: (ctx) => {
-            if (ctx.buffId === 'sand_blind') {
-                const { success } = calcRoll(0.8)
-                if (success) return 0
-            }
-            return undefined
-        },
-    },
-    {
         id: 'thunder_constitution',
         name: '雷电锻体',
         description: '雷系伤害减免80%，其他伤害减免10%。',
@@ -232,10 +218,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'stone_skin',
         name: '石肤',
-        description: '肌肤如岩石般坚硬，所受直伤-10%，灼烧伤害减半。',
+        description: '肌肤如岩石般坚硬，所受直伤-12%，灼烧伤害减半。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onTakeDamage: ({ final }) => Math.round(final * 0.9 * 10) / 10,
+        onTakeDamage: ({ final }) => Math.round(final * 0.88 * 10) / 10,
         // 灼烧 tick 减半（与铸火诀/千锤百炼同机制，走 onDebuffTick 数据钩子）
         onDebuffTick: ({ buffId, damage }) => {
             if (buffId !== 'burn') return undefined
@@ -641,10 +627,9 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             const isQiHit = source?.tags.includes('qi') ?? false
             if (!isHeavyHit && !isQiHit) return final
 
-            // 反伤所受伤害的一半，缠耗为反伤的一半（即所受伤害的 1/4），缠不足则不反伤
-            const reflectDmg = Math.max(1, Math.round(final * 0.5))
-            const chanCost = Math.max(1, Math.round(reflectDmg * 0.5))
-            if (!target.spendChan(chanCost)) return final
+            // 反伤所受伤害的一半，消耗等量的缠，缠不足则不反伤
+            const reflectDmg = Math.max(1, round1(final * 0.5))
+            if (!target.spendChan(reflectDmg)) return final
             attacker.takeDamage(reflectDmg, engine)
             // 反伤补发 damage 事件，计入伤害统计
             engine.emitLog({
@@ -666,7 +651,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             )
             engine.emitLog({
                 type: 'system',
-                message: `[混元炁] ${target.name}消耗${chanCost}缠反伤${reflectDmg}并击退${attacker.name}（自承${round1(final)}）`,
+                message: `[混元炁] ${target.name}消耗${reflectDmg}缠反伤${reflectDmg}并击退${attacker.name}（自承${round1(final)}）`,
                 actorId: target.id,
             })
             return final

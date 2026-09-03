@@ -190,8 +190,8 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['unarmed', 'melee'],
         getRange: () => [0, 1] as [number, number],
-        onActionHitChance: (base) => base + 0.25,
-        hookNotes: { hitChance: '+25%' },
+        onActionHitChance: (base) => base + 0.2,
+        hookNotes: { hitChance: '+20%' },
         effects: [{ type: 'damage', scaling: { strength: 1.2 } }],
     },
     {

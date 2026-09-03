@@ -105,10 +105,10 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'cang_niao_jian_fa',
         name: '苍鸟诀',
-        description: '苍鸟掠空，身如电驰。消耗12层缠劲，提高内息回复速度。',
+        description: '苍鸟掠空，身如电驰。消耗10层缠劲，提高内息回复速度。',
         requiredTags: [],
-        apCost: 1,
-        chanCost: 12,
+        apCost: 0,
+        chanCost: 10,
         tags: ['buff', 'pre_action', 'qi', 'chan'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'cang_niao_buff' }],
@@ -121,12 +121,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['debuff', 'pre_action', 'electric'],
         getRange: () => [1, 5] as [number, number],
-        canUse: (attacker, state) => {
-            const enemy = state.characters.find((c) => c.id !== attacker.id)
-            return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
-        },
-        hookNotes: { canUse: '对手已致盲时不可重复' },
-        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 0.6 }],
+        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 0.8 }],
     },
     {
         id: 'dao_ma_dan',
@@ -296,11 +291,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['debuff', 'pre_action'],
         getRange: () => [1, 3],
-        canUse: (attacker, state) => {
-            const enemy = state.characters.find((c) => c.id !== attacker.id)
-            return !enemy || !state.pendingBuffs.has(`sand_blind::${enemy.id}`)
-        },
-        hookNotes: { canUse: '对手已致盲时不可重复' },
+        // 迷眼为 single 叠层：已迷眼时本次施加自动忽略，无需 canUse
         effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 1 }],
     },
     {

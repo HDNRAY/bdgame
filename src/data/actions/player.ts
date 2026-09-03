@@ -93,7 +93,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 6],
         onActionCritChance: (base) => base + 0.1,
         hookNotes: { critChance: '+10%' },
-        effects: [{ type: 'damage', scaling: { dexterity: 0.1, strength: 0.1 }, fixed: 3 }],
+        effects: [{ type: 'damage', scaling: { dexterity: 0.1, strength: 0.1 }, fixed: 2 }],
     },
     {
         id: 'sheng_si_fu',

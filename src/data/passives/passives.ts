@@ -1,6 +1,7 @@
 import type { Passive } from '../../engine/entities/passive'
 import { getWeapon } from '../weapons/weapons'
 import { Tag } from '../../engine/entities/tag'
+import { insightReductionHalf } from '../utils/insightGuard'
 
 export const PASSIVES: Passive[] = [
     {
@@ -244,7 +245,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'inner_power',
         name: '归元劲',
-        description: '内力深厚。每点推演提升全属性。',
+        description: '内力深厚。每点推演提升力道，根骨，身法，灵巧。',
         tags: ['passive', 'buff'],
         effects: [
             { type: 'attr_convert', from: 'wisdom', to: ['strength', 'vitality', 'agility', 'dexterity'], ratio: 0.1 },
@@ -253,7 +254,6 @@ export const PASSIVES: Passive[] = [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'inner_power_cost' }] },
         ],
     },
-
     {
         id: 'tai_chi_mastery',
         name: '太极',
@@ -428,10 +428,12 @@ export const PASSIVES: Passive[] = [
     {
         id: 'dark_room_catch',
         name: '暗室抓雀功',
-        description: '古墓中蒙眼抓雀练就的身法与感知。身法+2，灵巧+2，免疫迷眼。',
-        tags: ['passive', 'buff', 'defense'],
-        effects: [{ type: 'stat_buff', attrs: { agility: 2, dexterity: 2 } }],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dark_room_sense' }] }],
+        description: '古墓中蒙眼抓雀练就的身法与感知。身法+2，灵巧+2，洞察降低效果减半。',
+        tags: ['passive', 'defense'],
+        effects: [
+            { type: 'stat_buff', attrs: { agility: 2, dexterity: 2 } },
+            insightReductionHalf(),
+        ],
     },
     {
         id: 'yue_nv_sword',

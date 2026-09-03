@@ -17,12 +17,13 @@ export const AJIU: OpponentDef = {
         passive('zhu_huo_jue'),
         artifact('titanium_arm'),
         action('dart_throw'),
+        artifact('mechanical_eye'),
         artifact('muscle_boost'),
         passive('xuannv_sword'),
         artifact('power_furnace'),
         passive('ku_chan_shen_gong'),
         passive('feng_mo_gong'),
-        // 12
+        // 13
     ],
     actionConfigs: [
         {

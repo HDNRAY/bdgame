@@ -24,7 +24,7 @@ export const DUOER: OpponentDef = {
         action('blood_qi_protection'),
         action('rear_naked_choke'),
         action('poison_detonate'),
-        // 12
+        // 13
     ],
     actionConfigs: [
         { actionId: 'poison_detonate', conditionId: 'enemy_hp_below_30' },

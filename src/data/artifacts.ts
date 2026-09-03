@@ -1,4 +1,5 @@
 import type { Artifact } from '../engine/entities/artifact'
+import { insightReductionHalf } from './utils/insightGuard'
 
 /** 所有可获取物品：义体（带副作用） + 奇物（特殊效果） */
 export const ARTIFACTS: Artifact[] = [
@@ -34,16 +35,16 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'mechanical_eye',
         name: '机械眼球',
-        description: '精密光学义眼，洞察入微，免疫迷眼。',
+        description: '精密光学义眼，洞察入微，洞察降低效果减半。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
+        effects: [
+            { type: 'stat_buff', attrs: { insight: 4 } },
+            insightReductionHalf(),
+        ],
         triggers: [
             {
                 condition: { type: 'on_equip' },
-                effects: [
-                    { type: 'add_buff', buffId: 'dark_room_sense' },
-                    { type: 'add_buff', buffId: 'ap_drain', stacks: 1 },
-                ],
+                effects: [{ type: 'add_buff', buffId: 'ap_drain', stacks: 1 }],
             },
         ],
     },
@@ -432,7 +433,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'shi_gu',
         name: '蚀蛊',
-        description: '自幼炼蛊，毒入敌体自行繁衍蚀骨。你施加的中毒每跳有20%概率加深1层。',
+        description: '毒入敌体自行繁衍蚀骨。你施加的中毒每跳有20%概率加深1层。',
         tags: ['inherent', 'poison'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'shi_gu_buff' }] }],
     },
@@ -631,10 +632,12 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'tactical_goggles',
         name: '战术护目镜',
-        description: '天工出品的多功能战术护目镜，集成分析仪与辅助瞄准系统，免疫迷眼。',
+        description: '天工出品的多功能战术护目镜，集成分析仪与辅助瞄准系统，洞察降低效果减半。',
         tags: ['craft', 'buff'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 2, insight: 2 } }],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dark_room_sense' }] }],
+        effects: [
+            { type: 'stat_buff', attrs: { wisdom: 2, insight: 2 } },
+            insightReductionHalf(),
+        ],
     },
     {
         id: 'nano_exoskeleton',
