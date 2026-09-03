@@ -67,7 +67,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         getRange: () => [0, 2],
         effects: [
             { type: 'ignore_parry' },
-            { type: 'damage', scaling: { wisdom: 0.3, dexterity: 0.1 }, piercingRatio: 0.4 },
+            { type: 'damage', scaling: { wisdom: 0.3, dexterity: 0.1 }, piercingRatio: 0.3 },
         ],
     },
     {

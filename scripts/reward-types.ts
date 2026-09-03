@@ -71,10 +71,13 @@ for (const r of rows) {
 }
 
 const avg = (arr: number[]) => arr.reduce((s, n) => s + n, 0) / arr.length
-out('\n平均值：' + rows.map((r) => r.total).reduce((s, n) => s + n, 0) / rows.length)
-out(
-    `招式均值 ${avg(rows.map((r) => r.action)).toFixed(1)} · 功法均值 ${avg(rows.map((r) => r.passive)).toFixed(1)} · 奇物均值 ${avg(rows.map((r) => r.artifact)).toFixed(1)}`,
-)
+// 平均值：同时写入 txt 与终端（终端 console.table 之外补回均值行）
+const totalAvg = rows.map((r) => r.total).reduce((s, n) => s + n, 0) / rows.length
+const avgText = `招式均值 ${avg(rows.map((r) => r.action)).toFixed(1)} · 功法均值 ${avg(rows.map((r) => r.passive)).toFixed(1)} · 奇物均值 ${avg(rows.map((r) => r.artifact)).toFixed(1)}`
+out('\n平均值：' + totalAvg)
+out(avgText)
+console.log('\n平均值：' + totalAvg)
+console.log(avgText)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 writeFileSync(resolve(__dirname, 'reward-types.txt'), lines.join('\n') + '\n')

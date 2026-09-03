@@ -3,6 +3,13 @@ import { processActionEffect } from '../../engine/combat/effects'
 import { revertBuffMods } from '../../engine/combat/utils/buff-layer'
 import { calcApRegenPerSec, calcPoisonTicksPerStack } from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
+import type { Character } from '../../engine/entities/character'
+
+/** 窒息每跳绞杀伤害：裸绞施加后每秒结算（力道×0.2+体质×0.2）。
+ *  引擎 tick 与 AI 伤害评估共用同一份公式，改动只需在此一处。 */
+export function calcChokeTickDamage(atk: Character): number {
+    return round1(atk.attrs.get('strength') * 0.2 + atk.attrs.get('vitality') * 0.2)
+}
 
 /** 减益状态 */
 export const DEBUFF_DB: BuffDef[] = [
@@ -228,8 +235,7 @@ export const DEBUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         tickInterval: 3000,
         // 层数 = 每跳最大气血百分比（value:1 = 1%）
-        onTickDamage: ({ target, layer }) =>
-            Math.max(1, Math.round((target.maxHp * (layer?.restoreValue ?? 1)) / 100)),
+        onTickDamage: ({ target, layer }) => Math.max(1, Math.round((target.maxHp * (layer?.restoreValue ?? 1)) / 100)),
     },
     { id: 'max_ap_mod', name: '失能', description: '最大AP变化。', tags: [], expiry: { type: 'permanent' } },
     { id: 'max_hp_mod', name: '失血', description: '最大HP变化。', tags: [], expiry: { type: 'permanent' } },
@@ -323,7 +329,7 @@ export const DEBUFF_DB: BuffDef[] = [
             }
 
             // 本秒伤害：只要绞杀仍存在就先结算（含松脱那一秒）
-            const dmg = round1(atk.attrs.get('strength') * 0.2 + atk.attrs.get('vitality') * 0.1)
+            const dmg = calcChokeTickDamage(atk)
 
             // 扣 AP（1/秒)
             atk.spendAp(1)

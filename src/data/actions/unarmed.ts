@@ -45,7 +45,8 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '看似柔弱的小拳头，实则借全身旋转之力。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed'],
+        tags: ['unarmed', 'debuff'],
+        getRange: () => [1, 2],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
             { type: 'damage', scaling: { strength: 0.1, agility: 0.3 } },
@@ -58,10 +59,11 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '身形一闪，先近身再出腿。',
         requiredTags: [],
         apCost: 2,
-        tags: ['unarmed'],
+        tags: ['unarmed', 'debuff'],
+        getRange: () => [0, 3],
         effects: [
-            { type: 'short_dash', maxDistance: 3 },
-            { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1, dexterity: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1 } },
+            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.4 },
         ],
     },
     {
@@ -88,19 +90,6 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 7, chance: 0.8 },
-        ],
-    },
-    {
-        id: 'kick',
-        name: '脚踢',
-        description: '一记凶狠的蹬踏。',
-        requiredTags: [],
-        apCost: 2,
-        tags: ['unarmed', 'debuff'],
-        getRange: () => [0, 2],
-        effects: [
-            { type: 'damage', scaling: { strength: 0.1, agility: 0.1, dexterity: 0.1 } },
-            { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.3 },
         ],
     },
     {
@@ -161,7 +150,6 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
             { type: 'add_buff', buffId: 'you_shen', stacks: 1 },
         ],
     },
-
     {
         id: 'crushing_blow',
         name: '石破天惊拳',

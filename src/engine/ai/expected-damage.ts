@@ -15,6 +15,7 @@ import {
 } from '../calc/damage'
 import { DMG_PER_POISON_TICK } from '../constants'
 import { forEachBuffOf } from '../combat/utils'
+import { calcChokeTickDamage } from '../../data/buffs/debuffs'
 
 export interface DamageEstimate {
     actionId: string
@@ -156,6 +157,13 @@ export function calcExpectedDamage(
             } else if (eff.buffId === 'bleed') {
                 // 流血按 ~2 次触发估，每跳走 onDebuffTick 钩子
                 rawDamage += applyDotTickHooks(safeState.pendingBuffs, safeDef, 'bleed', eff.stacks * 3 * (eff.chance ?? 1))
+            } else if (eff.buffId === 'choke') {
+                // 窒息（裸绞）：tick_buff 通道每秒绞杀，不走 onDebuffTick 链（不吃泼油/毒体等修正）。
+                // 每跳伤害直接调 buff 自身共享公式 calcChokeTickDamage（与引擎 tick 同一份代码）；
+                // duration 3s/tick 1s → 第三跳与 buff_end 同刻且 buff_end 先执行，满 duration 稳定 2 跳；
+                // 施加方每跳 -1 AP、力道可挣脱只会更短，故按满 duration 估 2 跳（与真实 log 窒息段 2 跳一致）。
+                const perTick = calcChokeTickDamage(safeAtk)
+                rawDamage += perTick * 2 * (eff.chance ?? 1)
             }
         }
     }

@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
-const XUANJI_ATTRS = { strength: 6, vitality: 10, agility: 12, dexterity: 15, insight: 15, wisdom: 18 }
+const XUANJI_ATTRS = { strength: 6, vitality: 10, agility: 14, dexterity: 15, insight: 14, wisdom: 18 }
 
 export const XUANJI: OpponentDef = {
     id: 'xuanji',
@@ -18,7 +18,7 @@ export const XUANJI: OpponentDef = {
         artifact('qi_battery'),
         artifact('ju_chan_fa_yi'),
         artifact('flying_lion'),
-        action('restore_ap'),
+        action('qi_bolt_3'),
         action('summon_haste'),
         action('agility_steal'),
         weapon('tri_orb'),
@@ -26,9 +26,9 @@ export const XUANJI: OpponentDef = {
         // 13
     ],
     actionConfigs: [
-        { actionId: 'qi_blade', triggerId: 'on_opponent_move_closer' },
-        { actionId: 'restore_ap', triggerId: 'on_summon_hit' },
-        { actionId: 'summon_haste', triggerId: 'on_dodged' },
-        { actionId: 'agility_steal', triggerId: 'on_parried' },
+        { actionId: 'qi_bolt_3', triggerId: 'on_dodge', conditionId: 'distance_gt_3' },
+        { actionId: 'agility_steal', triggerId: 'on_summon_hit' },
+        { actionId: 'qi_blade', triggerId: 'on_dodged' },
+        { actionId: 'summon_haste', triggerId: 'on_parried' },
     ],
 }

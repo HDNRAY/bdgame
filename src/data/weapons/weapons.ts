@@ -63,7 +63,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'special_forces_dagger',
         name: '特种兵匕首',
         description: '军方特制电击匕首。耗1缠劲，追加电伤并麻痹目标。',
-        tags: ['pierce', 'unarmed', 'parry', 'slash', 'melee', 'one_handed', 'electric'],
+        tags: ['pierce', 'unarmed', 'parry', 'slash', 'melee', 'one_handed', 'electric', 'chan'],
         range: [0, 2],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'special_forces_dagger' }] },

@@ -200,7 +200,7 @@ export class TickEngine {
         engine.emitLog({
             type: 'damage_over_time',
             actionId: 'poison',
-            actionName: `${buffName}(${stacks}层)`,
+            actionName: buffName,
             sourceId: (entry.sourceId as string) ?? '?',
             targetId: char.id,
             status: buffName,
@@ -269,7 +269,7 @@ export class TickEngine {
         engine.emitLog({
             type: 'damage_over_time',
             actionId: 'burn',
-            actionName: `${buffName}(${stacks}层)`,
+            actionName: buffName,
             sourceId: (entry.sourceId as string) ?? '?',
             targetId: char.id,
             status: buffName,
@@ -320,7 +320,7 @@ export class TickEngine {
             engine.emitLog({
                 type: 'damage_over_time',
                 actionId: 'bleed',
-                actionName: `${buffName}(${stacks}层)`,
+                actionName: buffName,
                 sourceId: (entry.sourceId as string) ?? '?',
                 targetId: owner.id,
                 status: buffName,

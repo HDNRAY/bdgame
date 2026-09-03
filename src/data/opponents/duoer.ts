@@ -11,7 +11,7 @@ export const DUOER: OpponentDef = {
     battleStyle: 'clinch',
     targetAttrs: DUOER_ATTRS,
     rewards: [
-        action('ba_gua_you_shen_zhang'),
+        action('shadow_kick'),
         artifact('gu_tong_body'),
         passive('yu_du_shu'),
         artifact('venom_gland'),
@@ -23,13 +23,12 @@ export const DUOER: OpponentDef = {
         action('blood_qi_protection'),
         action('rear_naked_choke'),
         action('poison_detonate'),
-        action('kick'),
-        // 13
+        // 12
     ],
     actionConfigs: [
         { actionId: 'poison_detonate', conditionId: 'enemy_hp_below_30' },
         { actionId: 'blood_droplet', triggerId: 'on_opponent_move_away' }, // AI 出招顺序
-        { actionId: 'kick', triggerId: 'on_dodge' },
+        { actionId: 'shadow_kick', triggerId: 'on_dodged' },
         { actionId: 'rear_naked_choke', conditionId: 'distance_lt_2' },
     ],
     taunt: () => '对不起……我没得选。',

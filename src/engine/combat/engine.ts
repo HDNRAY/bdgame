@@ -993,6 +993,8 @@ export class BattleEngine {
                         char.takeDamage(dmg)
                         this.emitLog({
                             type: 'damage_over_time',
+                            actionId: buffDef.id,
+                            actionName: buffDef.name,
                             sourceId: (layer!.sourceId as string) ?? charId,
                             targetId: charId,
                             amount: dmg,
