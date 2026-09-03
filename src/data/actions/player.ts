@@ -51,7 +51,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['pierce', 'range', 'thrown'],
-        getRange: () => [1, 5] as [number, number],
+        getRange: () => [2, 6] as [number, number],
         effects: [
             { type: 'ignore_parry' },
             { type: 'damage', scaling: { dexterity: 0.2, strength: 0.1 }, piercingRatio: 0.5 },
@@ -64,7 +64,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['slash', 'range', 'thrown'],
-        getRange: () => [1, 6],
+        getRange: () => [2, 6],
         onActionHitChance: (base) => base + 0.03,
         hookNotes: { hitChance: '+3%' },
         effects: [{ type: 'damage', scaling: { strength: 0.3, dexterity: 0.1 } }],
@@ -218,9 +218,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 2,
         tags: ['blunt', 'polearm'],
-        getRange: () => [1, 3],
+        getRange: () => [1, 4],
         effects: [
-            { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.2, agility: 0.1 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
         ],

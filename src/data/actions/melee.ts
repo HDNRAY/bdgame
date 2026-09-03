@@ -14,7 +14,6 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 2,
         tags: ['pierce'],
-        getRange: () => [0, 2],
         effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 }, piercingRatio: 0.1 }],
     },
     {
@@ -105,7 +104,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
     {
         id: 'cloud_hidden_sword',
         name: '云隐剑法',
-        description: '剑气如云，藏锋其中。叠一层云隐，每层闪避+8%。',
+        description: '剑气如云，藏锋其中。叠一层云隐。',
         requiredTags: ['pierce', 'melee'],
         apCost: 2,
         tags: ['pierce', 'melee'],
@@ -126,18 +125,6 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         onActionHitChance: () => 1,
         hookNotes: { hitChance: '必中', critChance: '目标气血低于 30% 时暴击+30%' },
         effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1 }, fixed: 10 }],
-    },
-    {
-        id: 'sword_thrust',
-        name: '踏月刺击',
-        description: '踏月而行，迅捷刺击敌人要害。',
-        requiredTags: ['pierce'],
-        apCost: 2,
-        tags: ['pierce'],
-        effects: [
-            { type: 'short_dash', maxDistance: 1 },
-            { type: 'damage', scaling: { strength: 0.2, agility: 0.2 } },
-        ],
     },
     {
         id: 'pursuit_thrust',

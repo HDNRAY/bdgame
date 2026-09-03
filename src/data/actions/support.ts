@@ -51,7 +51,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         name: '无想剑',
         description: '一刀既出，迅如雷，凛如冰，刀至极致，一击便可定胜负。',
         requiredTags: [],
-        apCost: 0,
+        apCost: 1,
         chanCost: 3,
         tags: ['pre_action', 'buff', 'chan'],
         target: 'self',

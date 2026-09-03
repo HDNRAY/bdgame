@@ -65,7 +65,9 @@ export function getActionRange(
         (e): e is Extract<EffectDef, { type: 'short_dash' }> => e.type === 'short_dash',
     )
     if (!shortDash) return base
-    return [base[0], Math.min(10, base[1] + (shortDash.maxDistance ?? 2))]
+    const dash = shortDash.maxDistance ?? 2
+    // short_dash 双向：太远前冲补上限、太近（贴脸够不到下限）后撤补下限
+    return [Math.max(0, base[0] - dash), Math.min(10, base[1] + dash)]
 }
 
 /** 运行时招式（考虑角色身上 buff 的 onRuntimeAction 修正；优先用角色实际持有的招式定义，保留 actionEnhancer 增强如液压腿短冲刺） */

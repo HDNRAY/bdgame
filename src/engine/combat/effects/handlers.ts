@@ -587,12 +587,35 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const opponent = engine.getOpponent(self.id)!
         const dist = engine.state.position.distance(self.id, opponent.id)
         // 触发招式（闪避/招架反击等）带 short_dash = 冲过去打：总是冲近贴脸，不做"已在射程内"判断
-        // 主招式 short_dash：若已在武器有效射程内（太近了冲也没用），不冲刺
         const isTriggered = action?.tags?.includes('trigger')
         if (!isTriggered) {
-            // 主招式 short_dash：已在主副手有效射程内就不冲刺（双持副手够得着同样不冲）
+            // 主招式 short_dash：双向垫步——太远前冲、太近（贴脸够不到下限）后撤到射程内。
+            // 下限~上限之间已能打到，不冲。
             const effRange = self.getEffectiveRange()
-            if (effRange && dist <= effRange[1]) return
+            if (effRange) {
+                const [lo, hi] = effRange
+                const maxDash = e.maxDistance ?? 2
+                if (dist > hi) {
+                    // 前冲 min(超出量, dash)，落到射程内
+                    const push = Math.min(dist - hi, maxDash)
+                    const pre = calcPreDelayMs(
+                        self.attrs.get('agility'),
+                        action?.extraPreDelay ?? 0,
+                        self.getHaste(engine.state),
+                    )
+                    executeMove(self, engine, -push, 0, { durationMs: pre, kind: 'short_dash' })
+                } else if (dist < lo) {
+                    // 后撤 min(不足量, dash)，退到射程下限够得着
+                    const back = Math.min(lo - dist, maxDash)
+                    const pre = calcPreDelayMs(
+                        self.attrs.get('agility'),
+                        action?.extraPreDelay ?? 0,
+                        self.getHaste(engine.state),
+                    )
+                    executeMove(self, engine, back, 0, { durationMs: pre, kind: 'short_dash' })
+                }
+                return
+            }
         }
         const maxDash = e.maxDistance ?? 2
         const targetDist = Math.max(0, dist - maxDash)

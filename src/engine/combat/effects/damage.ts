@@ -388,10 +388,10 @@ function resolveParry(
         })
     })
 
-    // ── 5. 伤害减免 ──
+    // ── 5. 伤害减免(先算防御) ──
     let final = calcParriedDamage(raw, target.attrs.get('strength'))
     if (act) {
-        // 目标方 buff 修正招架减伤
+        // 5a. 目标方 buff 修正招架减伤(含固定减免 -2/-3 等,全部先结算)
         forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
             if (!def?.onParryReduction) return
             final = def.onParryReduction({
@@ -405,20 +405,31 @@ function resolveParry(
                 source: act,
             })
         })
-        // 攻击方 buff 修正招架穿透（如玄铁剑·重剑无锋、霸刀）
-        forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
-            if (!def?.onParryPenetration) return
-            final = def.onParryPenetration({
-                final,
-                raw,
-                target,
-                attacker,
-                engine,
-                state: engine.state,
-                layer,
-                source: act,
+        // 5b. 攻击方 buff 招架穿透(玄铁剑/霸刀/次元刃等):
+        //     每个 onParryPenetration 返回「本次穿掉的伤害值」(基于 final/raw 自行计算),
+        //     引擎把多个穿透返回值相加,clamp 到最多把整个招架段减免穿干净(blocked),
+        //     不会穿成负数,也不会把⑤段减伤/吸收一并穿掉(那在招架段之后独立结算)。
+        //     固定减免(onParryReduction 的 -2/-3)属于招架段,会被穿透影响。
+        const blocked = raw - final
+        if (blocked > 0) {
+            let piercedTotal = 0
+            forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
+                if (!def?.onParryPenetration) return
+                const pierced = def.onParryPenetration({
+                    final,
+                    raw,
+                    target,
+                    attacker,
+                    engine,
+                    state: engine.state,
+                    layer,
+                    source: act,
+                })
+                if (pierced > 0) piercedTotal += pierced
             })
-        })
+            const pierced = Math.min(piercedTotal, blocked)
+            final = Math.round((final + pierced) * 10) / 10
+        }
     }
     final = Math.round(final * 10) / 10
     return { parried: true, final }

@@ -218,6 +218,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
+        getRange: () => [0, 7],
         tags: ['range', 'slash', 'pierce', 'summon'],
         effects: [{ type: 'damage', scaling: { wisdom: 0.5 }, fixed: 5 }],
         // 单剑重击：长前后摇 → 约 4s 一轮，大动作可读、节奏沉
@@ -245,10 +246,10 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 10] as [number, number],
         effects: [
             { type: 'damage', scaling: { wisdom: 0.3 } },
-            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 1 },
+            { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.6 },
         ],
-        extraPreDelay: 2000,
-        extraStunTime: 3000,
+        extraPreDelay: 3000,
+        extraStunTime: 4000,
     },
     {
         id: '_lingbo_insight_step',
@@ -412,7 +413,6 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 2,
         tags: ['pierce', 'polearm', 'slash'],
-        getRange: () => [0, 3],
         effects: [
             {
                 type: 'ignore_parry',

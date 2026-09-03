@@ -71,6 +71,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'melee', 'debuff'],
+        getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
             { type: 'disarm', chance: 0.6 },
@@ -83,6 +84,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'debuff'],
+        getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 7, chance: 0.8 },
@@ -95,6 +97,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['unarmed', 'debuff'],
+        getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, agility: 0.1, dexterity: 0.1 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.3 },
@@ -121,6 +124,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'slash'],
+        getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, dexterity: 0.15 } },
             {
@@ -138,6 +142,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'melee'],
+        getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
             { type: 'stat_transfer', stat: 'dexterity', value: 1, duration: 3000 },
@@ -150,6 +155,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'melee', 'buff'],
+        getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, agility: 0.2 } },
             { type: 'add_buff', buffId: 'you_shen', stacks: 1 },
@@ -341,8 +347,11 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'melee', 'jiu'],
-        onActionHitChance: (base, state, self) => base + countDrunkLayers(state, self.id) * 0.04,
-        hookNotes: { hitChance: '每层醉酒+4%' },
-        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.1, dexterity: 0.1 } }],
+        onActionHitChance: (base, state, self) => base + countDrunkLayers(state, self.id) * 0.03,
+        hookNotes: { hitChance: '每层醉酒+3%' },
+        effects: [
+            { type: 'short_dash', maxDistance: 1 },
+            { type: 'damage', scaling: { strength: 0.2, agility: 0.1, dexterity: 0.1 } },
+        ],
     },
 ]

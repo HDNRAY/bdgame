@@ -197,14 +197,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'ciyuan_blade',
         name: '次元刃',
-        description: '凝炁为刃，削弱招架减伤效果。',
+        description: '凝炁为刃，削弱招架减伤效果。招架减免减少30%。',
         tags: ['qi', 'weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onParryPenetration: ({ final, raw }) => {
+            // 返回穿掉的伤害值: 招架减免减少30%
             const blocked = raw - final
-            const reduced = round1(blocked * 0.4)
-            return raw - reduced
+            return round1(blocked * 0.3)
         },
     },
     {
@@ -392,11 +392,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'hydraulic_leg_speed',
         name: '液压腿',
-        description: '液压驱动，爆发力惊人。移动效率+30%。',
+        description: '液压驱动，爆发力惊人。移动效率+10%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.4,
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.1,
     },
     {
         id: 'jet_drive_speed',
@@ -537,11 +537,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yun_yin',
         name: '云隐',
-        description: '剑气化云，身形隐没。每层闪避+7%。最多2层。',
+        description: '剑气化云，身形隐没。每层闪避+5%。最多2层。',
         tags: ['buff'],
         expiry: { type: 'duration', ms: 30000 },
         stacking: { type: 'additive', max: 2 },
-        onDodgeChance: ({ layer }) => (layer.restoreValue ?? 0) * 0.07,
+        onDodgeChance: ({ layer }) => (layer.restoreValue ?? 0) * 0.05,
     },
     {
         id: 'herb_pouch',
@@ -1530,14 +1530,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'special_forces_dagger',
         name: '特种兵匕首',
-        description: '耗1缠劲，追加1点电伤、1点穿透电伤，并使目标麻痹1层。',
+        description: '耗1缠劲，追加1点电伤、1点穿透电伤，并有40%概率使目标麻痹1层。',
         tags: ['electric', 'damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onAfterDealDamage: ({ attacker, target, engine, state }) => {
             if (!attacker.spendChan(1)) return 0
             processActionEffect(
-                { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
+                { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.4 },
                 { self: attacker, enemy: target, engine: engine!, tMs: state.turn.currentTime },
             )
             return { normal: 1, piercing: 1 }
@@ -1732,7 +1732,7 @@ export const BUFF_DB: BuffDef[] = [
         onDealDamage: ({ final, source, attacker, target, engine, state }) => {
             if (!engine || !source) return final
             // 炁招（炁弹/炁刃）：按招式自身 tag 判断是否带刃——炁刃带 slash 可叠，炁弹不带不叠
-            const qiMove = source.tags.includes('qi_action')
+            const qiMove = source.tags.includes('qi_action') || source.tags.includes('summon')
             const ok = qiMove
                 ? source.tags.includes('slash') || source.tags.includes('pierce')
                 : !!attacker.weaponDef?.tags.includes('slash')

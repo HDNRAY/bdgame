@@ -82,7 +82,9 @@ export interface BuffDef extends GameEntity {
     onParryChance?: (ctx: BuffHookCtx) => number
     /** 招架减伤修正钩子（防御方 buff，applyDamage 招架成功后自动调用） */
     onParryReduction?: (ctx: BuffHookCtx) => number
-    /** 招架穿透修正钩子（攻击方 buff，削弱对方招架减伤） */
+    /** 招架穿透修正钩子（攻击方 buff，削弱对方招架减伤）。返回「本次穿掉的伤害值」(>=0)，
+     *  引擎将多个穿透返回值相加后 clamp 到最多把招架段减免穿干净(blocked)，不会穿成负数；
+     *  不作用于⑤段减伤/吸收(onTakeDamage/onAbsorb)。ctx.final = 防御方 onParryReduction 结算后的伤害。 */
     onParryPenetration?: (ctx: BuffHookCtx) => number
     /** 命中率修正钩子（processHitCheck 中自动调用，返回加算值） */
     onHitChance?: (ctx: BuffHookCtx) => number

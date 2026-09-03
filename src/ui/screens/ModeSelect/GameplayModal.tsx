@@ -38,7 +38,7 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
                                 </tr>
                                 <tr>
                                     <td>体质</td>
-                                    <td>气血(20+体质×10) · 缩短负面状态时长</td>
+                                    <td>气血(80+体质×16) · 缩短负面状态时长</td>
                                 </tr>
                                 <tr>
                                     <td>身法</td>
@@ -76,6 +76,13 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
                         <p>暴击率：基础 5% + (灵巧+洞察)/200，暴击伤害 1.5 倍起。</p>
                         <p>招架：防守方按灵巧/洞察招架，招架后力道决定减免多少。</p>
                         <p>穿透：无视招架/减伤/护盾。</p>
+                    </Section>
+
+                    <Section title="三种持续伤害">
+                        <p><b>流血</b>：越动越掉血——你出招、移动、被击中后都会自己流血（层数×1.5）。触发 5 次掉 1 层。</p>
+                        <p><b>中毒</b>：定时发作（层数×单跳伤害），每层毒有自己的剩余跳数，推演越高毒缠越久。</p>
+                        <p><b>灼烧</b>：每 1 秒跳一次（2×层数），每跳掉 1 层。</p>
+                        <p>三种伤害都吃「持续伤害修正」（泼油翻倍、铸火减半等），施加时会触发对方的连招反应（如流血后追击）。</p>
                     </Section>
 
                     <Section title="资源小贴士">

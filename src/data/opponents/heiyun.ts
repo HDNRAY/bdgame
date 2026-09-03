@@ -20,15 +20,15 @@ export const HEIYUN: OpponentDef = {
         passive('sword_dominion'),
         artifact('bu_lao_quan'),
         action('one_night_dance'),
-        artifact('floating_eye'),
-
+        artifact('flying_lion'),
+        action('summon_haste'),
         weapon('fei_jian'),
-        // 12
+        // 13
     ],
     actionConfigs: [
-        { actionId: 'ling_qi_guan_zhu', conditionId: 'always' },
-        { actionId: 'ling_qi_guan_zhu', triggerId: 'on_dodge' },
+        { actionId: 'ling_qi_guan_zhu', triggerId: 'on_dodge', conditionId: 'always' },
         { actionId: 'condense_shield', triggerId: 'on_was_hit' },
+        { actionId: 'summon_haste', triggerId: 'on_summon_hit' },
         {
             actionId: 'qi_bolt',
             triggerId: 'on_opponent_move_away',

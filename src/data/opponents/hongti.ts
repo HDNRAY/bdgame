@@ -10,7 +10,7 @@ export const HONGTI: OpponentDef = {
     targetAttrs: HONGTI_ATTRS,
     battleStyle: 'melee',
     rewards: [
-        action('sword_thrust'),
+        action('cun_mang'),
         passive('inner_power'),
         weapon('heshan_sword'),
         artifact('other_mountain'),
@@ -23,7 +23,7 @@ export const HONGTI: OpponentDef = {
         action('crushing_blow'), // 崩拳
         action('qi_bolt'),
         action('break_formation'),
-        // 12
+        // 13
     ],
     actionConfigs: [
         { actionId: 'push_palm', triggerId: 'on_parry' },

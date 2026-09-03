@@ -366,15 +366,15 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'sword_intent_tempering',
         name: '剑意淬体',
-        description: '剑意淬炼肉身，slash/pierce伤害减免15%，单次受伤不超过最大生命的15%。',
+        description: '剑意淬炼肉身，slash/pierce伤害减免10%，单次受伤不超过最大生命的30%。',
         tags: ['defense', 'inherent'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, source }) => {
             let dmg = final
             if (source?.tags?.includes('slash') || source?.tags?.includes('pierce')) {
-                dmg = round1(dmg * 0.85)
+                dmg = round1(dmg * 0.9)
             }
-            const cap = round1(target.maxHp * 0.15)
+            const cap = round1(target.maxHp * 0.3)
             return Math.min(dmg, cap)
         },
     },
@@ -470,12 +470,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'bu_lao_quan',
         name: '不老泉',
-        description: '养生琼浆，饮后气血缓缓流转。每3秒回复5点气血，持续9秒。',
+        description: '养生琼浆，饮后气血缓缓流转。每3秒回复3点气血，持续9秒。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
         stacking: { type: 'additive', max: 3 },
         tickInterval: 3000,
-        onTickHeal: () => 5,
+        onTickHeal: () => 3,
     },
     {
         id: 'nv_er_hong',

@@ -70,27 +70,26 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             return round1(final * mult)
         },
     },
+    // {
+    //     id: 'yue_nv_buff',
+    //     name: '越女剑意',
+    //     description: '白猿授剑，灵巧化为剑势，附加灵巧×0.04伤害（仅劈砍/戳刺招式）。',
+    //     tags: ['pierce', 'slash', 'damage'],
+    //     expiry: { type: 'permanent' },
+    //     onDealDamage: ({ final, attacker, source }) => {
+    //         // 仅 pierce 或 slash 招式生效（配合「不滞于物」的全招 pierce 标记可全招生效）
+    //         const isBlade = source?.tags?.includes('pierce') || source?.tags?.includes('slash')
+    //         if (!isBlade) return final
+    //         return round1(final + attacker.attrs.get('dexterity') * 0.04)
+    //     },
+    // },
     {
-        id: 'yue_nv_buff',
-        name: '越女剑意',
-        description: '白猿授剑，灵巧化为剑势，附加灵巧×0.06伤害（仅劈砍/戳刺招式）。',
-        tags: ['pierce', 'slash', 'damage'],
-        expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker, source }) => {
-            // 仅 pierce 或 slash 招式生效（配合「不滞于物」的全招 pierce 标记可全招生效）
-            const isBlade = source?.tags?.includes('pierce') || source?.tags?.includes('slash')
-            if (!isBlade) return final
-            return round1(final + attacker.attrs.get('dexterity') * 0.06)
-        },
-    },
-    {
-        // 不滞于物：按推演附加伤害
         id: 'bu_zhi_yu_wu',
         name: '不滞于物',
-        description: '不滞于物，草木竹石皆可为剑。附加推演×0.06伤害。',
+        description: '不滞于物，草木竹石皆可为剑。附加推演×0.05伤害。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker }) => round1(final + attacker.attrs.get('wisdom') * 0.06),
+        onDealDamage: ({ final, attacker }) => round1(final + attacker.attrs.get('wisdom') * 0.05),
     },
     {
         id: 'thunder_bonus',
@@ -392,8 +391,8 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     },
     {
         id: 'blood_thorn_suppress',
-        name: '血棘·压制',
-        description: '暴击时向创口渡入棘炁，爆伤按 10:1 转化为流血。',
+        name: '血棘·流血',
+        description: '暴击时向创口渡入棘炁，爆伤按 15:1 转化为流血。',
         tags: ['damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -401,21 +400,20 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         priority: 99,
         onAfterCritDamage: ({ damage, final, attacker, target, engine, state }) => {
             const extraDamage = final - damage
-            const bleedStacks = Math.max(1, Math.round(extraDamage / 10))
+            const bleedStacks = Math.max(1, Math.round(extraDamage / 15))
             if (engine) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'bleed', stacks: bleedStacks, chance: 1 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }
-            // 返回全量 = 没暴击的值：多出的爆伤按 10:1 全转流血，本次不再造成暴击伤害
             return damage
         },
     },
     {
         id: 'blood_thorn_earring_buff',
         name: '血棘·追魂',
-        description: '持枪（刺）攻击暴击率+7%，对流血中目标再+8%。',
+        description: '刺击暴击率+7%，对流血中目标再+8%。',
         tags: ['bleed', 'pierce', 'damage'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },

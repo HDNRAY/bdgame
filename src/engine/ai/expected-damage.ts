@@ -265,6 +265,7 @@ export function calcExpectedDamage(
     // 引擎顺序：暴击+爆伤 → onAfterCritDamage → 穿透拆出 → 招架（只作用于 non-pierce 部分）。
     // 穿透部分无视招架，故招架混合只对 normal 分支（非暴击）与 critNormal 分支（暴击的 non-pierce 部分）做。
     // 穿透比例 = 招式 piercingRatio + 攻击方 onPostCritDamage 拆出比例，加算上限 100%（总伤害不膨胀，穿透是结算方式）。
+    // onParryPenetration 返回穿掉的伤害值，多个加法聚合，clamp 到最多把招架段减免(blocked)穿干净。
     // 注：eval 按用户口径不算防御方减伤/吸收（onTakeDamage/onAbsorb），招架概率仍算。
     const parriedOf = (x: number): number => {
         let pd = calcParriedDamage(x, safeDef.attrs.get('strength'))
@@ -280,18 +281,25 @@ export function calcExpectedDamage(
                 source: action,
             })
         })
-        forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
-            if (!def?.onParryPenetration) return
-            pd = def.onParryPenetration({
-                final: pd,
-                raw: x,
-                target: safeDef,
-                attacker: safeAtk,
-                state: safeState,
-                layer,
-                source: action,
+        // 攻击方穿透：收集穿掉的伤害值，加法聚合后 clamp 到 blocked
+        const blocked = x - pd
+        if (blocked > 0) {
+            let piercedTotal = 0
+            forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
+                if (!def?.onParryPenetration) return
+                const pierced = def.onParryPenetration({
+                    final: pd,
+                    raw: x,
+                    target: safeDef,
+                    attacker: safeAtk,
+                    state: safeState,
+                    layer,
+                    source: action,
+                })
+                if (pierced > 0) piercedTotal += pierced
             })
-        })
+            pd = Math.round((pd + Math.min(piercedTotal, blocked)) * 10) / 10
+        }
         return Math.round(pd * 10) / 10
     }
     const mixParry = (x: number): number => (1 - parryChance) * x + parryChance * parriedOf(x)

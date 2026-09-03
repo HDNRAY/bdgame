@@ -438,12 +438,12 @@ export const PASSIVES: Passive[] = [
         name: '越女剑法',
         description: '白猿授剑，万兵为剑。出剑极快，身随剑走。',
         tags: ['buff', 'passive'],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yue_nv_buff' }] }],
+        // 目前short dash太op，暂时注释
+        // triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yue_nv_buff' }] }],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
             return {
                 ...def,
-                // 不再加 pierce tag（由「不滞于物」统一赋予），只保留出剑极快的身法
                 effects: [{ type: 'short_dash', maxDistance: 1 }, ...(def.effects ?? [])],
             }
         },
