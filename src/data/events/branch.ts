@@ -67,7 +67,7 @@ export const BRANCH_ACTION: EventDef = {
 export const BRANCH_ARTIFACT: EventDef = {
     id: 'branch_artifact',
     name: '接一单',
-    description: '黑市留言板上贴着一张没人接的单子。跑一趟，报酬是一件奇物。',
+    description: '镇外黑市的留言板上，贴着一张没人接的单子。你揭了下来。',
     placement: POOL_PLACEMENT,
     reward: { kind: 'item', pool: 'artifact' },
     rounds: [
@@ -172,7 +172,7 @@ export const TIANGONG_WEAPON: EventDef = {
             id: 'intro',
             title: '天工坊',
             description:
-                '斗炁大会即将开始，你在街上看到了天工坊的招牌。千星正靠在门口擦一把新出炉的兵器，看到你便扬了扬下巴：「哟，来了？这次进了决赛圈，要不要换件趁手的家伙？」',
+                '你在街上看到了天工坊的招牌。千星正靠在门口擦一把新出炉的兵器，看到你便扬了扬下巴：「哟，来了？想添件趁手的家伙？进来挑。」',
             choices: [
                 { id: 'showcase', type: 'continue', label: '去天工坊看看' },
                 { id: 'training', type: 'continue', label: '不去，在家修炼' },
@@ -195,7 +195,7 @@ export const TIANGONG_WEAPON: EventDef = {
             id: 'training',
             title: '在家修炼',
             description: '你决定不去天工坊，留在住处潜心修炼，巩固修为。',
-            choices: [{ id: '__end__', type: 'points', label: '潜心修炼（+4 修炼点）' }],
+            choices: [{ id: '__end__', type: 'points', label: '潜心修炼' }],
         },
     ],
 }
@@ -243,17 +243,17 @@ export const TIANGONG_OFFHAND: EventDef = {
 export const LIBRARY_EVENT: EventDef = {
     id: 'douqi_library',
     name: '斗炁图书馆',
-    description: '你在街角发现了一座古朴的图书馆，檐下匾额写着「斗炁图书馆」四个字。',
+    description: '街角一座古朴的图书馆，你推门走了进去。',
     placement: POOL_PLACEMENT,
     rounds: [
         {
             id: 'intro',
             title: '斗炁图书馆',
             description:
-                '你推开木门，一股书卷气扑面而来。柜台后——图书馆馆长龙语仙——正悠闲地翻着书，见你进来便抬眼一笑："新面孔嘛，随便看。"\n\n角落的蒲团上，一只白狐蜷着尾巴，专心致志地盯着一本泛黄的古籍，尾巴尖时不时抖一下，完全没注意到你。',
+                '你推开木门，一股书卷气扑面而来。柜台后，图书馆馆长龙语仙正悠闲地翻着书，见你进来便抬眼一笑：「新面孔嘛，随便看。」\n\n角落的蒲团上，一只白狐蜷着尾巴，专心致志地盯着一本泛黄的古籍，尾巴尖时不时抖一下，完全没注意到你。',
             choices: [
-                { id: 'dragon_reward', type: 'continue', label: '找龙语仙请教防御功法' },
-                { id: 'fox_reward', type: 'continue', label: '找白狐请教攻击功法' },
+                { id: 'dragon_reward', type: 'continue', label: '请教防御功法' },
+                { id: 'fox_reward', type: 'continue', label: '请教攻击功法' },
                 { id: '__end__', type: 'continue', label: '随便翻翻就走' },
             ],
         },
@@ -261,7 +261,7 @@ export const LIBRARY_EVENT: EventDef = {
             id: 'dragon_reward',
             title: '龙语仙的推荐',
             description:
-                '"防御功法是吧？" 龙语仙——也是这家图书馆的馆长——放下书，走到一排书架前，指尖划过书脊，"这几本适合你——好好练，别出去让人揍得鼻青脸肿，丢我的人。"',
+                '「防御功法是吧？」龙语仙放下书，走到一排书架前，指尖划过书脊，「这几本适合你——好好练，别出去让人揍得鼻青脸肿，丢我的人。」',
             reward: { kind: 'item', pool: 'passive', includeTags: ['defense'] },
             choices: [],
         },
@@ -269,21 +269,21 @@ export const LIBRARY_EVENT: EventDef = {
             id: 'dragon_epilogue',
             title: '龙语仙的赠言',
             description:
-                '龙语仙把功法抄本塞到你手里："练熟了再来，我这还有更好的。" 她摆摆手，又窝回柜台后面看书去了。',
+                '龙语仙把功法抄本塞到你手里：「练熟了再来，我这还有更好的。」她摆摆手，又窝回柜台后面看书去了。',
             choices: [{ id: '__end__', type: 'continue', label: '离开图书馆' }],
         },
         {
             id: 'fox_reward',
             title: '白狐的珍藏',
             description:
-                '你走近时，白狐才从书页间抬起头，琥珀色的眼睛眨了眨。"你也喜欢看这个？" 她兴奋地翻开另一本书，"这本的记载更完整，你看看——包教包会！"',
+                '你走近时，白狐才从书页间抬起头，琥珀色的眼睛眨了眨。「你也喜欢看这个？」她兴奋地翻开另一本书，「这本的记载更完整——你看看，包教包会。」',
             reward: { kind: 'item', pool: 'passive', includeTags: ['damage'] },
             choices: [],
         },
         {
             id: 'fox_epilogue',
             title: '白狐的赠言',
-            description: '"下次来提前说一声，我给你留几本新到的。" 白狐笑眯眯地挥了挥爪子，又埋头扎进了书堆里。',
+            description: '「下次来提前说一声，我给你留几本新到的。」白狐笑眯眯地挥了挥爪子，又埋头扎进了书堆里。',
             choices: [{ id: '__end__', type: 'continue', label: '离开图书馆' }],
         },
     ],
@@ -305,10 +305,10 @@ export const XIAOHUA_INSIGHT: EventDef = {
             id: 'intro',
             title: '药屋',
             description:
-                '你推门走进药屋，花大师正背对着你碾药。她没有回头，只是安静地说了一句：「来了？」\n\n你说明来意——想请教洞察与推演的心法。花大师停下手中的活，沉默了片刻。\n\n「洞察和推演……」她转过身来，明明双目失明，你却感到她"看"了你一眼。「想学可以，先让我看看你的底子。」',
+                '你推门走进药屋，花大师正背对着你碾药。她没有回头，只是安静地说了一句：「来了？」\n\n你说明来意——想请教洞察与推演的心法。花大师停下手中的活，沉默了片刻。\n\n「洞察和推演……」她转过身来，明明双目失明，你却感到她「看」了你一眼。「想学可以，先让我看看你的底子。」',
             choices: [
-                { id: 'fight_xiaohua', type: 'continue', label: '请花大师亲自指点' },
-                { id: 'fight_orange', type: 'continue', label: '请橘子会代为切磋' },
+                { id: 'fight_xiaohua', type: 'continue', label: '请花大师赐教' },
+                { id: 'fight_orange', type: 'continue', label: '与橘子会切磋' },
             ],
         },
         {
@@ -316,7 +316,7 @@ export const XIAOHUA_INSIGHT: EventDef = {
             title: '花大师亲自下场',
             enemyId: 'xiaohua',
             description:
-                '花大师缓缓起身：「好，我亲自来会会你。」\n\n她每一步都精准地踏在你的气机之上。你意识到——这不是普通的切磋，这是她用「无明之明」在"看"你。',
+                '花大师缓缓起身：「好，我亲自来会会你。」\n\n她每一步都精准地踏在你的气机之上。你意识到——这不是普通的切磋，这是她用「无明之明」在「看」你。',
             choices: [{ id: 'aftermath', type: 'continue', label: '聆听指点' }],
         },
         {
@@ -324,14 +324,14 @@ export const XIAOHUA_INSIGHT: EventDef = {
             title: '橘子会迎战',
             enemyId: 'orange',
             description:
-                '花大师轻轻一笑：「那让橘子会陪你走几招。」\n\n橘子会从里屋走出，朝你抱拳一礼。花大师退到一旁，侧耳倾听——她要通过橘子会的交手来"看"你的路数。',
+                '花大师轻轻一笑：「那让橘子会陪你走几招。」\n\n橘子会从里屋走出，朝你抱拳一礼。花大师退到一旁，侧耳倾听——她要通过橘子会的交手来「看」你的路数。',
             choices: [{ id: 'aftermath', type: 'continue', label: '聆听指点' }],
         },
         {
             id: 'aftermath',
             title: '花大师的指点',
             description:
-                '（战斗过后）花大师沉默了一会儿，然后缓缓开口，从你最基础的感知方式讲起——如何区分"看"和"察"、如何用推演补洞察之不足、如何在混沌中抓住那一线先机。\n\n橘子会在旁认真听着，不时点头。你感觉到，这番指点让你的感知之道豁然开朗。',
+                '花大师沉默了一会儿，才缓缓开口，从最基础的感知讲起。她讲得慢，你听得更慢——讲到后来，你闭着眼也能「听」见屋里每一处响动。\n\n橘子会在旁认真听着，不时点头。你感觉到，这番指点让心里那条路，亮了一截。',
             choices: [{ id: 'reward', type: 'continue', label: '细细体会' }],
         },
         { id: 'reward', title: '收获', choices: [] },

@@ -6,7 +6,7 @@ export const SECT: StoryDef = {
     name: '少年行',
     characterName: '苏念',
     description:
-        '百年一遇的根骨，自幼与师兄一同入玄青宗山门修行。你们年纪有差，但一起入门，是最亲的师兄弟。你们的修炼由同是天生道种的腊月安排。',
+        '百年一遇的根骨，自幼与师兄一同入玄青宗山门修行。你们年纪有差，但一起入门，是最亲近的同门。你们的修炼由同是天生道种的腊月安排。',
     originEventId: 'origin_sect',
     reward: storyRewardEffects('sect', 'junshi', [
         { kind: 'grant', type: 'artifact', id: 'innate_seed' },

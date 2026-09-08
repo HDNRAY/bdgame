@@ -6,7 +6,7 @@ const FANGLIE_ATTRS = { strength: 16, vitality: 13, agility: 17, dexterity: 14, 
 export const FANGLIE: OpponentDef = {
     id: 'fanglie',
     name: '方烈',
-    story: '军旅出身，退伍后加入了那个组织。你的老战友们——那些还在追查真相的人——一个接一个消失了。他是最后一个活的。',
+    story: '军旅出身。退伍后只身回到镇上，独来独往，枪不离手。没人知道他退伍前那几年经历了什么。',
     weapon: 'long_spear',
     battleStyle: 'mid',
     targetAttrs: FANGLIE_ATTRS,

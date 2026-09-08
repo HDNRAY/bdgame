@@ -9,22 +9,22 @@ import { N2_WEAPON_CHOICES, SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen }
 export const SECT_N02_WEAPON: EventDef = {
     id: 'sect_n02_weapon',
     name: '选兵器',
-    description: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。三件法器微微发光，等你伸手。',
+    description: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。架上兵刃微微发亮，等你伸手。',
     placement: [{ nodes: [2], when: storyWhen('sect') }],
     reward: { kind: 'fixed', choices: N2_WEAPON_CHOICES },
     rounds: [
         {
             id: 'intro',
             title: '藏兵阁',
-            description: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。三件法器微微发光，等你伸手。',
+            description: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。架上兵刃微微发亮，等你伸手。',
             choices: [{ id: 'reward_round', type: 'continue', label: '伸手' }],
         },
-        { id: 'reward_round', title: '选择法器', choices: [] },
+        { id: 'reward_round', title: '挑选', choices: [] },
         {
             id: 'epilogue',
             title: '掌门的话',
             description:
-                '掌门微微颔首：「法器择主，你与它有缘。从今日起它便是你的本命法器，好生待它。修行之路漫长，戒骄戒躁。」',
+                '掌门微微颔首：「选定了，就是它了。兵刃也罢，空手也罢，路都是自己走出来的。修行之路漫长，戒骄戒躁。」',
             choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],
@@ -57,7 +57,7 @@ export const SECT_N03_ACTION: EventDef = {
 /** node 11: 与师兄对决 → 感悟选奖励 → 师兄被假死掳走 */
 export const SECT_N11_TRAGEDY: EventDef = {
     id: 'sect_n11_tragedy',
-    name: '师兄弟对决',
+    name: '宗门大比',
     description: '宗门大比，你与师兄站在擂台两端。',
     placement: [{ nodes: [11], when: storyWhen('sect') }],
     reward: { kind: 'points' },
@@ -72,6 +72,7 @@ export const SECT_N11_TRAGEDY: EventDef = {
             id: 'combat_round',
             title: '对决',
             enemyId: 'junshi',
+            bossName: '师兄',
             choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
         {
@@ -83,7 +84,7 @@ export const SECT_N11_TRAGEDY: EventDef = {
             id: 'aftermath',
             title: '大火',
             description:
-                '你收起兵器，正要去扶师兄，四周突然燃起大火。混乱中有人趁乱将师兄的"尸体"拖走。你追出去，只看到废墟中白布下渗出的血。你跪在雨中，不明白为什么最亲的人会抛下你。你才九岁。',
+                '你收起兵器，正要去扶师兄，四周突然燃起大火。火光里，有人把师兄拖走了。你追出去，只看到废墟中白布下渗出的血。你跪在雨中，不明白为什么最亲的人会抛下你。你才九岁。',
             choices: [{ id: '__end__', type: 'continue', label: '继续' }],
         },
     ],
@@ -101,7 +102,7 @@ export const SECT_N16_REUNION: EventDef = {
             id: 'scene',
             title: '惊鸿一瞥',
             description:
-                '九年了。你代表宗门参加比武大会，台下人群中闪过一个熟悉的身影——师兄！你追出三里地，却被一个用毒的女人拦住。待你逼退她，师兄早已不见。毒入经脉的剧痛让你清醒：他还活着，但已经不是你的师兄了。这份执念，从这一刻开始。',
+                '九年了。你代表宗门参加比武大会，台下人群中闪过一个熟悉的身影——师兄！你追出三里地，却被一个用毒的女人拦住。待你逼退她，师兄早已不见。毒入经脉的剧痛让你清醒：他还活着——可他为什么不愿见你？这份执念，从这一刻开始。',
             choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
         {
@@ -125,7 +126,7 @@ export const SECT_N19_TRAIL: EventDef = {
             id: 'scene',
             title: '线索',
             description:
-                '三年了。你一直在天下行走，借调查之名寻找师兄的下落。这天你在隔壁镇查一宗非法义体交易，意外看到了陶朵——三年前那个女人。你听到他们提到"斗炁大会"。你压下冲动，先完成了调查任务。师兄的事，不能急。',
+                '三年了。你一直在天下行走，借调查之名寻找师兄的下落。这天你在隔壁镇查一宗非法义体交易，意外看到了陶朵——三年前那个女人。你听到他们提到「斗炁大会」。你压下冲动，先完成了调查任务。师兄的事，不能急。',
             choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
         {
@@ -179,7 +180,7 @@ export const SECT_N09_PROMISE: EventDef = {
             description: '收功之后，你和师兄并排坐在演武场的台阶上。他看着星空说：「等修炼有成，我们一起下山闯荡。」「好。」你回答。你没有问去哪。他在就行。',
             choices: [{ id: 'reward_round', type: 'continue', label: '点头' }],
         },
-        { id: 'reward_round', title: '后来', description: '后来山门起了火，师兄被带走。你很多年没再看过星星。', choices: [] },
+        { id: 'reward_round', title: '后来', description: '后来你再没和别人提过「下山」两个字。很多个晚上，你是一个人看星星的。', choices: [] },
     ],
 }
 
@@ -201,7 +202,7 @@ export const SECT_GUIHAILOU_ARRIVE: EventDef = {
             id: 'arrive',
             title: '抵达归海楼',
             description:
-                '归海楼山门前人声鼎沸。你递上宗门名帖，小厮领你入座。台上桑原正在与人切磋，刀光剑影。观众席一角，两个身着斗篷的人正在低声交谈——其中一个的身形，让你想起师兄。你摇了摇头。师兄已经不在了。',
+                '归海楼山门前人声鼎沸。你递上宗门名帖，小厮领你入座。台上桑原正在与人过招，兵刃带风。观众席一角，两个身着斗篷的人正在低声交谈——其中一个的身形，让你想起师兄。你摇了摇头。师兄已经不在了。',
             choices: [{ id: 'combat_round', type: 'continue', label: '下场切磋' }],
         },
         {
@@ -227,7 +228,7 @@ export const SECT_GUIHAILOU_SHOW: EventDef = {
             id: 'watch',
             title: '表演赛',
             description:
-                '归海楼掌门一刀亲自下场，与腊月师姐表演。剑气纵横，满座喝彩。你坐在席上，看得心头发热——那是山门之外的路数，你从没见过的走法。',
+                '归海楼掌门一刀亲自下场，与腊月师姐走了几个来回，满座喝彩。你坐在席上，看得心头发热——那是山门之外的路数，你从没见过的走法。',
             choices: [{ id: 'reward_round', type: 'continue', label: '鼓掌' }],
         },
         {
@@ -345,14 +346,15 @@ export const SECT_SPAR_FANGQING: EventDef = {
         {
             id: 'scene',
             title: '山道',
-            description: '方青是同门里和你走得近的弟子。下山历练的路上碰见，他非要跟你比一场：「师兄/师妹，让我看看你这两年长进了多少。」',
+            description: '方青是同门里和你走得近的弟子。下山历练的山道上碰见，他拦住你：「让我看看你这两年长进了多少。」',
             choices: [{ id: 'combat_round', type: 'continue', label: '切磋' }],
         },
         {
             id: 'combat_round',
             title: '切磋',
             enemyId: 'otsu',
-            description: '你俩在山道空地上过了几十招，点到为止。方青收手，喘着气笑：「行啊，山门没白待。」',
+            bossName: '方青',
+            description: '山道空地上，你们没有客套。',
             choices: [{ id: 'reward_round', type: 'continue', label: '收招' }],
         },
         {

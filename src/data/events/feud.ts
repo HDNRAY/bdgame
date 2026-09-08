@@ -114,10 +114,10 @@ export const BOSS_AJIU: EventDef = {
         },
         {
             id: 'combat_round',
-            title: '赴死',
+            title: '拦路',
             enemyId: 'ajiu',
             description:
-                '你拔出兵器。阿九没有动。她只是站在那里，看着你——眼神里没有恐惧，没有抵抗，只有一种说不清的平静。她缓缓抬起义体手臂，让你看清它。',
+                '你拔出兵器。阿九抬起义体手臂——月光下的金属光泽，和许多年前那个晚上一样冷。她没有后退。',
             choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
         {
@@ -172,7 +172,7 @@ export const FEUD_N14_CRIME_SCENE: EventDef = {
             id: 'evidence',
             title: '纸屑',
             description:
-                '你检查了死者的衣物。内衬夹层里有一叠被烧过的纸屑——据奇岚说，他翻进后院时陶朵正在烧东西，被他吓了一跳，剩下的碎纸掉在地上。你拼了拼，勉强认出几个零散的字："2074"……半个"木"字偏旁……"义"……"火"。',
+                '你检查了死者的衣物。内衬夹层里有一叠被烧过的纸屑——据奇岚说，他翻进后院时陶朵正在烧东西，被他吓了一跳，剩下的碎纸掉在地上。你拼了拼，勉强认出几个零散的字：「2074」……半个「木」字旁……「义」……「火」。',
             choices: [{ id: 'question', type: 'continue', label: '收好' }],
         },
         {
@@ -260,21 +260,21 @@ export const FEUD_N32_BAISHAN: EventDef = {
             id: 'greeting',
             title: '旧友',
             description:
-                '一名腰悬唐刀的女子拦住你的去路。她上下打量了你一番，笑道：「你就是老陆的儿子？我叫白山月，曾与你父亲并肩作战。让我看看他教了你些什么。」',
+                '一名腰悬唐刀的女子拦住你的去路。她上下打量了你一番，笑道：「我是白山月。赛前，会长托我来掂掂你的斤两——让我看看，你这些年练得如何。」',
             choices: [{ id: 'combat_round', type: 'continue', label: '迎战' }],
         },
         {
             id: 'combat_round',
             title: '切磋',
             enemyId: 'hongti',
-            description: '唐刀出鞘，快如闪电。你全力以赴，仍被她的气势压了一头——但你接住了。',
+            description: '唐刀出鞘。她没有留手。',
             choices: [{ id: 'reward_round', type: 'continue', label: '收招' }],
         },
         {
             id: 'reward_round',
             title: '见面礼',
             description:
-                '白山月收回唐刀，满意地点了点头：「底子不错，有你父亲当年的风范。这门功法你拿去练，算是我的见面礼。若有事，随时可来找我。」说罢她转身离去，身影很快消失在街角。',
+                '白山月收回唐刀，满意地点了点头：「底子不错，没白练。这门功法你拿去，算是我的见面礼。赛场上见。」说罢她转身离去，身影很快消失在街角。',
             choices: [],
         },
     ],

@@ -422,6 +422,8 @@ export class RogueliteRun implements RogueliteEngine {
 
         const player = new Character(this._state.build)
         const enemyBuild = gen(enemyDef, this._state.nodeIndex)
+        // Boss 剧情名覆盖（战斗内显示用；属性/招式仍取 enemyId 定义）
+        if (round.bossName) enemyBuild.name = round.bossName
         const enemy = new Character(enemyBuild)
 
         const { winner } = runBattle(player, enemy)

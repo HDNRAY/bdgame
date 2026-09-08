@@ -6,7 +6,7 @@ const ATTRS = { strength: 12, vitality: 12, agility: 14, dexterity: 14, insight:
 export const HAORAN: OpponentDef = {
     id: 'haoran',
     name: '宁浩然',
-    story: '持剑书生。以炁催动剑意，剑意化为万象。',
+    story: '持剑的书生，一身旧衫洗得发白。他的剑意能拟出万象——你常常只来得及看见他收剑。',
     battleStyle: 'melee',
     weapon: 'peach_sword',
     targetAttrs: ATTRS,

@@ -56,7 +56,7 @@ const EVENT_META: Record<TournamentEventId, TournamentEventMeta> = {
     },
     tournament_group_r3: {
         title: '小组赛收官',
-        description: '小组赛最后一场打完，出线名单已定。你在名单上找到了自己的名字——下一场，就是淘汰赛。',
+        description: '小组赛最后一场。出线与否，打完才知道。',
         nodes: [28],
         noReward: false,
     },
@@ -160,7 +160,7 @@ function makeTournamentOpen(): EventDef {
                 id: `warmup_${s}`,
                 title: `与${WARMUP_ENEMY[s].label}`,
                 enemyId: WARMUP_ENEMY[s].id,
-                description: `你跃上擂台，与${WARMUP_ENEMY[s].label}切磋。${WARMUP_ENEMY[s].desc}`,
+                description: `你跃上擂台，与${WARMUP_ENEMY[s].label}对面而立。`,
                 choices: [{ id: 'warmup_result', type: 'continue' as const, label: '收招' }],
             }),
         ),
@@ -216,7 +216,7 @@ function makeTournamentOpen(): EventDef {
         {
             id: 'group_reward',
             title: '战利品',
-            description: '大战之后，你有所收获。',
+            description: '你走回选手席。',
             reward: { kind: 'points' },
             choices: [],
         },

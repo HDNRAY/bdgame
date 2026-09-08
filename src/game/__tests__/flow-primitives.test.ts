@@ -88,6 +88,12 @@ describe('效果（Effect DSL 写入层）', () => {
         applyEffects(ctx, [{ kind: 'heal', n: 15 }])
         expect(ctx.injury).toBe(25)
     })
+
+    it('rename 给主角改名', () => {
+        const ctx = makeCtx()
+        applyEffects(ctx, [{ kind: 'rename', name: '玄久' }])
+        expect(ctx.build.name).toBe('玄久')
+    })
 })
 
 describe('地图构建与渐进生成（map-builder）', () => {

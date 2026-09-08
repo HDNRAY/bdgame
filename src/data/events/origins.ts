@@ -18,7 +18,7 @@ export const ORIGIN_XUANMEN: EventDef = {
             id: 'scene',
             title: '祖祠',
             description:
-                '玄门，青山镇最古老的宗门之一。你从记事起就在修炼家传功法，御物即手足。你有一个双胞胎姐姐——而玄门有一条历代传下的规矩：双胞胎，只能留一个。',
+                '你从记事起就在修炼家传功法，御物即手足。你有一个双胞胎姐姐，一起练功，一起挨罚。\n\n只是家里有件事，大人们从不提起——你问过，没人答你。',
             choices: [{ id: END_EVENT, type: 'continue', label: '继续' }],
         },
     ],
@@ -34,7 +34,7 @@ export const ORIGIN_SECT: EventDef = {
             id: 'scene',
             title: '山门',
             description:
-                '你记事起就在山上。玄青宗的钟声、腊月师姐的鞭子、师兄总走在你前面半步的影子。你们年纪有差，但一起入门，是最亲的师兄弟。',
+                '你记事起就在山上。玄青宗的钟声、腊月师姐的鞭子、师兄总走在你前面半步的影子。你们年纪有差，但一起入门，是最亲近的同门。',
             choices: [{ id: END_EVENT, type: 'continue', label: '继续' }],
         },
     ],
@@ -50,7 +50,7 @@ export const ORIGIN_VETERAN: EventDef = {
             id: 'scene',
             title: '营房',
             description:
-                '父亲是军人，战死了。你在军队孤儿院长大，从记事起，听到的就是号角和操练。没有家族，没有牵挂——军营的边，就是你的家。',
+                '你在军队孤儿院长大，从记事起，听到的就是号角和操练。父亲是军人，没能从战场上回来。没有家族，没有牵挂——军营的边，就是你的家。',
             choices: [{ id: END_EVENT, type: 'continue', label: '继续' }],
         },
     ],
@@ -66,7 +66,7 @@ export const ORIGIN_WANDERER: EventDef = {
             id: 'scene',
             title: '巷子',
             description:
-                '你是孤儿，在镇子的巷子里长大。陶朵、奇岚也是。陶朵失踪那天，没有人告诉你她去了哪里；奇岚后来进了协会。你一个人在山野间行走修炼。',
+                '陶朵、奇岚和你，都是孤儿，一块儿在巷子里长大。陶朵失踪那天，没有人告诉你她去了哪里；奇岚后来进了协会。你一个人在山野间行走修炼。',
             choices: [{ id: END_EVENT, type: 'continue', label: '继续' }],
         },
     ],

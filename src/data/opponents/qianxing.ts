@@ -13,7 +13,7 @@ const QIANXING_ATTRS = {
 export const QIANXING: OpponentDef = {
     id: 'qianxing',
     name: '天工·千星',
-    story: '天工坊主人，神铁、千机、阿赖耶识的锻造者。以炁驱动的电磁锤纵横，雷火交加。每个人一生只能给他下一个订单，做不做全凭他意。',
+    story: '天工坊的主人。他打的兵器，镇上有头有脸的人都要排队等。他有一条规矩：每个人一辈子只许找他下一次单——接不接，全凭他意。',
     weapon: 'qimei_staff',
     battleStyle: 'melee',
     targetAttrs: QIANXING_ATTRS,

@@ -6,7 +6,7 @@ const OTSU_ATTRS = { strength: 8, vitality: 8, agility: 18, dexterity: 18, insig
 export const OTSU: OpponentDef = {
     id: 'otsu',
     name: '橘子真',
-    story: '归海楼弟子，枪术惊世却无争强之心。三节枪使得出神入化，可在守势与攻势间自如切换。她出手从来不是为了自己——有人需要她赢，她便赢。',
+    story: '归海楼弟子。一杆三节枪使得纯熟，攻守之间切换自如。她没有争强的心——只是有人需要她赢的时候，她会赢。',
     battleStyle: 'melee',
     weapon: 'three_section_spear',
     targetAttrs: OTSU_ATTRS,

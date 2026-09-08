@@ -30,7 +30,7 @@ export const XUANMEN_N02_WEAPON: EventDef = {
                     description: '一缕以炁御动的柔丝，可远可近，可硬可软，变幻莫测。',
                 },
                 { id: 'tri_orb', type: 'weapon', label: '三相珠', description: '三颗由炁劲驱动的法珠，环绕主人旋转。' },
-                { id: 'fei_jian', type: 'weapon', label: '黑云剑', description: '御剑飞行，剑气纵横。' },
+                { id: 'fei_jian', type: 'weapon', label: '黑云剑', description: '御剑飞行，剑随人走。' },
             ],
         },
         {
@@ -47,14 +47,14 @@ export const XUANMEN_N02_WEAPON: EventDef = {
 export const XUANMEN_N03_START: EventDef = {
     id: 'xuanmen_n03_start',
     name: '选奇物',
-    description: '招式已随御物附赠，父亲翻出家传库房，让你先择一件趁手的奇物傍身。',
+    description: '父亲翻出家传库房，让你先择一件趁手的奇物傍身。',
     placement: [{ nodes: [3], when: storyWhen('xuanmen') }],
     reward: { kind: 'item', pool: 'artifact' },
     rounds: [
         {
             id: 'intro',
             title: '家传库房',
-            description: '招式已随御物附赠，父亲翻出家传库房，让你先择一件趁手的奇物傍身。',
+            description: '御物里的门道，父亲说要慢慢教。他打开库房，让你先挑一件趁手的奇物傍身。',
             choices: [{ id: 'reward_round', type: 'continue', label: '挑选' }],
         },
         { id: 'reward_round', title: '选择奇物', choices: [] },
@@ -104,9 +104,9 @@ export const XUANMEN_N12_NAMING: EventDef = {
             title: '玄久',
             description:
                 '生死斗之后，你用了一年时间接受现实。然后你站在祖祠前，给自己取了一个名字：玄久。久，不是九。父亲听到这个名字时，沉默了一会儿，没有阻止。他知道你在纪念谁。',
-            choices: [{ id: 'reward_round', type: 'continue', label: '记下' }],
+            choices: [{ id: 'reward_round', type: 'continue', label: '记下', effects: [{ kind: 'rename', name: '玄久' }] }],
         },
-        { id: 'reward_round', title: '久', description: '久，不是九。但念起来，是一样的。', choices: [] },
+        { id: 'reward_round', title: '久', description: '从此你叫玄久。父亲很少叫你的名字，偶尔叫了，会停一停。', choices: [] },
     ],
 }
 
@@ -114,7 +114,7 @@ export const XUANMEN_N12_NAMING: EventDef = {
 export const XUANMEN_N13_CLAN: EventDef = {
     id: 'xuanmen_n13_clan',
     name: '家族内斗',
-    description: '家主之位，不是只有一条命才能换。',
+    description: '门主那把椅子，从来不是一条命就能坐稳的。',
     placement: [{ nodes: [13], when: storyWhen('xuanmen') }],
     reward: { kind: 'points' },
     rounds: [
@@ -179,13 +179,13 @@ export const XUANMEN_N09_SECRET: EventDef = {
             id: 'scene',
             title: '书房',
             description:
-                '那晚，父亲把你叫到书房，说出了埋藏多年的家族密辛：「我族之人，唯有亲手斩断一缕血亲之情，方能真正驭使御物。你十岁那年，会有一场生死之斗——好好准备。」',
+                '那晚，父亲把你叫到书房，沉默了许久才开口：「玄门有条规矩——双生子，不两全。你十岁那年，族里会安排一场生死之斗。你和玄九之间，只有一个能活下来。」\n\n他顿了顿：「活下来的那个，才有资格在祖祠前，为自己取一个正式的名字。」',
             choices: [{ id: 'reward_round', type: 'continue', label: '记住' }],
         },
         {
             id: 'reward_round',
             title: '夜不能寐',
-            description: '那晚你第一次知道，有些路，从出生那天就注定了。',
+            description: '那晚你躺在床上，数着日子。十岁，原来没那么远。',
             choices: [],
         },
     ],
@@ -233,7 +233,7 @@ export const XUANMEN_N15_HEISHU: EventDef = {
             id: 'scene',
             title: '重逢',
             description:
-                '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔——小树。他看着你，忽然笑了：「其实，你根本不需要杀他。手刃血亲，不过是玄门为了更好地拿捏后代编出来的说辞。我知道了这秘密，才离开的。」话音未落，他转身再次远去。',
+                '归海楼比武大会上，你又见到了那位早已从家中消失的旁系叔叔——小树。他看见你，愣了一下，随即笑了笑：「你长这么大了。」\n\n他像是知道你要问什么，没有接话，只看着远处说了一句：「玄门的规矩，是编出来拿捏人的。我们都被骗了。」\n\n你愣住了，还想再问，他已经转身，走进了人群。「想知道为什么，回去问你父亲。」',
             choices: [{ id: 'reward_round', type: 'continue', label: '追上去' }],
         },
         {
@@ -257,7 +257,7 @@ export const XUANMEN_N16_CONFRONT: EventDef = {
             id: 'scene',
             title: '对质',
             description:
-                '你连夜赶回家中，质问父亲。他沉默良久，终于承认：「此事……属实。但你若真想改变什么，眼下先证明你的实力。有了实力，我们再谈。」',
+                '你连夜赶回家中，质问父亲。他沉默了很久，才开口：「小树没说错——规矩是玄门历代传下来的。可传下来的规矩，不一定就是真相。」他顿住，像在掂量字句：「有些话，现在还不是说给你听的时候。先证明你自己。等你有了说话的份量，我们再谈。」',
             choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
         {
@@ -287,13 +287,13 @@ export const XUANMEN_GUIHAILOU: EventDef = {
             id: 'arrive',
             title: '归海楼',
             description:
-                '父亲让你代表玄门赴归海楼之约。山门前人声鼎沸，各派弟子都在。你依礼入场，与几派弟子切磋了几场，不落下风。观众席一角，军师与博士正低声交谈——以"观摩"为名，收集战斗数据。',
+                '父亲让你代表玄门赴归海楼之约。山门前人声鼎沸，各派弟子都在。你依礼入场，与几派弟子切磋了几场，不落下风。',
             choices: [{ id: 'reward_round', type: 'continue', label: '收手' }],
         },
         {
             id: 'reward_round',
             title: '留意',
-            description: '你多看了那两人一眼，又扫了一遍满场的面孔。归海楼此行，你记下了很多人。',
+            description: '满场大多是生面孔。你扫了一圈，把各派的路数记在心里。归海楼此行，你记下了很多人。',
             choices: [],
         },
     ],
@@ -324,7 +324,7 @@ export const XUANMEN_RENDER_TWINS: EventDef = {
         {
             id: 'reward_round',
             title: '背影',
-            description: '你走在她身后，看着她的背影。你从没想过，有一天你们只能留一个。',
+            description: '你走在她身后，踩着她踩过的路。那时候你觉得，日子长得像永远过不完。',
             choices: [],
         },
     ],
@@ -344,13 +344,13 @@ export const XUANMEN_RENDER_YUWU: EventDef = {
         {
             id: 'scene',
             title: '祖祠',
-            description: '父亲带你到祖祠，让你以炁感应。三件御物悬在炁阵里，你伸出手，其中一件微微一亮——它认得你。',
+            description: '夜里没人了，你偷偷取出本命御物，试着以炁唤动它。它离了手，浮在你面前，一动不动。你屏住呼吸——它晃了晃，稳住了。',
             choices: [{ id: 'reward_round', type: 'continue', label: '触碰' }],
         },
         {
             id: 'reward_round',
             title: '认主',
-            description: '指尖触到御物的那一刻，你心里忽然静了。父亲在身后说：「御物即手足。莫要辱没了它。」',
+            description: '指尖触到御物的那一刻，你心里忽然静了。父亲不知何时站在门边，看了一眼，没说话。第二天起，他每天多教你一炷香。',
             choices: [],
         },
     ],
@@ -370,7 +370,7 @@ export const XUANMEN_RENDER_ZUXUN: EventDef = {
         {
             id: 'scene',
             title: '怪话',
-            description: '祠堂里的规矩一条条刻在墙上。你小时候识字不全，指着其中一条问父亲：「双胞胎只能留一个，是什么意思？」父亲没答，只是看了你一眼。那一眼，你记了很多年。',
+            description: '祠堂里的规矩一条条刻在墙上。有一条被磨得看不清了，像是有人故意抹掉的。你问父亲那上面原来写着什么，他没答，只是看了你一眼。那一眼，你记了很多年。',
             choices: [{ id: 'reward_round', type: 'continue', label: '没再问' }],
         },
         {
@@ -412,13 +412,15 @@ export const XUANMEN_SPAR_XUANQI: EventDef = {
             id: 'combat_round',
             title: '御物比斗',
             enemyId: 'heiyun',
-            description: '两件御物在祖宅外的空地上交缠碰撞。玄七出手狠辣，你也毫不相让。最后他收手，眯起眼：「有点意思。族里那些人，你小心。」',
+            bossName: '玄七',
+            description: '两件御物在祖宅外的空地上交缠碰撞。玄七出手毫不留情。',
             choices: [{ id: 'reward_round', type: 'continue', label: '收招' }],
         },
         {
             id: 'reward_round',
             title: '试探',
-            description: '这一场比试，你明白了什么叫树大招风。家族内斗的刀，迟早会架到你脖子上。',
+            description:
+                '玄七收手，眯起眼：「有点意思。族里那些人，你小心。」\n\n这一场比试下来，你明白了什么叫树大招风。家族内斗的刀，迟早会架到你脖子上。',
             choices: [],
         },
     ],

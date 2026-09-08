@@ -5,10 +5,15 @@ import { CharacterPanel } from '../../components/CharacterPanel/CharacterPanel'
 import { NodeMap } from '../../components/roguelite/NodeMap'
 import { InjuryBar } from '../../components/roguelite/InjuryBar'
 import { RoundCard } from '../../components/roguelite/RoundCard'
+import { IntroOverlay } from '../../components/roguelite/IntroOverlay'
+import { WORLD_INTRO, CHAPTERS, STORY_INTRO_TEXT } from '../../../data/story-intros'
 import './RogueliteScreen.scss'
 
+const CHAPTER_CN = ['', '一', '二', '三']
+
 export function RogueliteScreen() {
-    const { gameState, mode, select, setMode, saveBuild, reset } = useRogueliteStore()
+    const { gameState, mode, select, setMode, saveBuild, reset, worldIntroShown, chapterIntro, confirmWorldIntro, confirmChapterIntro } =
+        useRogueliteStore()
     const { isLandscape } = useOrientation()
     const navigate = useNavigate()
 
@@ -18,6 +23,11 @@ export function RogueliteScreen() {
     }
 
     if (!gameState) return null
+
+    // 开场背景页（选故事线之前）
+    if (!worldIntroShown) {
+        return <IntroOverlay kicker="公元 2088 年" title="青山镇" text={WORLD_INTRO} onEnter={confirmWorldIntro} />
+    }
 
     if (gameState.finished) {
         return (
@@ -35,8 +45,25 @@ export function RogueliteScreen() {
         )
     }
 
+    // 章节页：按章节盖在正文上方，读完进入
+    const ci = chapterIntro
+    const chapterOverlay =
+        ci && (() => {
+            const meta = CHAPTERS.find((c) => c.chapter === ci.chapter)
+            const text = STORY_INTRO_TEXT[ci.story]?.[ci.chapter] ?? ''
+            return (
+                <IntroOverlay
+                    kicker={`第${CHAPTER_CN[ci.chapter]}章`}
+                    title={meta?.title}
+                    text={text}
+                    onEnter={confirmChapterIntro}
+                />
+            )
+        })()
+
     return (
         <div className={`rs ${isLandscape ? 'rs-landscape' : 'rs-portrait'}`}>
+            {chapterOverlay}
             <header className="rs-header">
                 <NodeMap nodeIndex={gameState.nodeIndex} />
                 <InjuryBar injury={gameState.injury} />

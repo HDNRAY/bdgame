@@ -6,7 +6,7 @@ const DOCTOR_ATTRS = { strength: 4, vitality: 10, agility: 6, dexterity: 18, ins
 export const DOCTOR: OpponentDef = {
     id: 'doctor',
     name: '博士·德克',
-    story: '义体研究部核心人物，专研义体与战斗芯片开发。日常坐轮椅。以无人机代替御物作战，炁只作为能源，控制全靠脑机芯片。',
+    story: '义体研究部核心人物，一辈子泡在义体与战斗芯片上。他坐着轮椅，出手的从来不是他自己——是几架无人机。',
     battleStyle: 'ranged',
     weapon: 'hover_drone',
     targetAttrs: DOCTOR_ATTRS,

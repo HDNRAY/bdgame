@@ -6,7 +6,7 @@ const DUOER_ATTRS = { strength: 4, vitality: 20, agility: 18, dexterity: 12, ins
 export const DUOER: OpponentDef = {
     id: 'duoer',
     name: '陶朵',
-    story: '小时候最好的玩伴。后来被招入了**学校修习。二阶段重逢，共处一段时日后，目睹了她的另一面——那个在黑暗里执行任务的陶朵。',
+    story: '镇上的姑娘，小时候走失过几年。没人知道她去了哪里。后来她回了镇上，住下来，跟人说话总带着笑。',
     weapon: 'dagger',
     battleStyle: 'clinch',
     targetAttrs: DUOER_ATTRS,

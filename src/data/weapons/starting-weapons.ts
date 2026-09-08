@@ -81,7 +81,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
     {
         id: 'fei_jian',
         name: '黑云剑',
-        description: '御剑飞行，剑气纵横。',
+        description: '御剑飞行，剑随人走。',
         tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'polearm', 'summon'],
         bound: true,
         range: [0, 6],

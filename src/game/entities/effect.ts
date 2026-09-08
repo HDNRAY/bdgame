@@ -14,6 +14,7 @@ export type Effect =
     | { kind: 'grant'; type: 'weapon' | 'action' | 'passive' | 'artifact'; id: string; slot?: 'main' | 'offhand' } // 给实体
     | { kind: 'points'; n: number; count?: boolean } // 修炼点；count=true 计入 16 次预算（有上限），否则为额外奖励
     | { kind: 'heal'; n: number } // 疗伤
+    | { kind: 'rename'; name: string } // 给主角改名（剧情中更名，如玄十 → 玄久）
 
 /** 效果执行的上下文（引擎的实时状态）。 */
 export interface EffectContext {
@@ -72,6 +73,10 @@ export function applyEffects(ctx: EffectContext, effects: Effect[] | undefined):
             case 'heal':
                 ctx.injury = Math.max(0, ctx.injury - e.n)
                 ctx.nodeLog.push(`恢复 ${e.n} 伤势`)
+                break
+            case 'rename':
+                ctx.build.name = e.name
+                ctx.nodeLog.push(`更名：${e.name}`)
                 break
         }
     }

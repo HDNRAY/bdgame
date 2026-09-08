@@ -6,7 +6,7 @@ const JUNSHI_ATTRS = { strength: 4, vitality: 16, agility: 10, dexterity: 14, in
 export const JUNSHI: OpponentDef = {
     id: 'junshi',
     name: '梅用',
-    story: '组织中推演最强者，天生道种。掌握着组织的所有计划。在天生道种线中，你会发现TA是你师兄的首领。',
+    story: '组织中的推演第一人。掌握着组织的所有计划——他算得动所有人，没人算得动他。',
     weapon: 'floating_silk',
     battleStyle: 'ranged',
     targetAttrs: JUNSHI_ATTRS,
