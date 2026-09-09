@@ -82,6 +82,9 @@ export interface Round {
     /** 随机敌人池（enemyId 缺省时从池中随机挑一个）。通用 Boss 用此表达"未指定则随机"。 */
     enemyPool?: string[]
 
+    /** 教学展示轮：AI vs AI 观战（不计玩家胜负/伤势/奖励），引擎生成回放供 UI 播放。 */
+    tutorial?: { aId: string; bId: string; aName?: string; bName?: string; level?: number }
+
     /** Boss 剧情名。覆盖敌人默认名字。 */
     bossName?: string
 

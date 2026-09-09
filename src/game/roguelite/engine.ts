@@ -33,6 +33,9 @@ export class RogueliteRun implements RogueliteEngine {
     private _eventDef: EventDef | null = null
     /** 上一场战斗结果（胜负分支：下一轮次可读 result.won） */
     private _lastCombatResult: { won: boolean } | undefined = undefined
+    /** 最近一场战斗回放原始日志（不进 state，避免每次 structuredClone 复制大数组；UI 播放用） */
+    private _battleReplay: { roundId: string; entries: { event: unknown; timelineMs: number }[] } | undefined =
+        undefined
     /** 大会对手（processTournament 产出）：注入到 id 为 match/group_r0 的战斗轮 */
     private _pendingTournamentEnemy: string | undefined = undefined
 
@@ -111,6 +114,11 @@ export class RogueliteRun implements RogueliteEngine {
 
     getState(): GameState {
         return structuredClone(this._state)
+    }
+
+    /** 指定轮次的战斗回放原始日志（若该轮为最近一场战斗/教学）。 */
+    getBattleReplay(roundId: string): { entries: { event: unknown; timelineMs: number }[] } | undefined {
+        return this._battleReplay?.roundId === roundId ? this._battleReplay : undefined
     }
 
     /** 更新角色数据（备战保存时调用）。 */
@@ -281,6 +289,24 @@ export class RogueliteRun implements RogueliteEngine {
         const whenCtx = { flags: this._state.flags, result: this._lastCombatResult }
         copy.choices = copy.choices.filter((c) => evaluateWhen(c.when, whenCtx))
         const enemyId = copy.enemyId ?? (copy.enemyPool ? pickRandomOpponentId(copy.enemyPool) : undefined)
+        if (copy.tutorial) {
+            // 教学展示轮：AI vs AI 观战，生成回放（不计胜负/伤势/奖励）
+            const t = copy.tutorial
+            const aDef = getOpponentDef(t.aId)
+            const bDef = getOpponentDef(t.bId)
+            if (aDef && bDef) {
+                const a = new Character(gen(aDef, t.level ?? 33))
+                const b = new Character(gen(bDef, t.level ?? 33))
+                const { engine } = runBattle(a, b)
+                this._battleReplay = { roundId: copy.id, entries: engine.state.log.getAll() }
+            }
+            delete copy.enemyId
+            delete copy.enemyPool
+            copy.choices = copy.choices.filter((c) => evaluateWhen(c.when, whenCtx))
+            this._state.rounds.push(copy)
+            this._lastCombatResult = undefined
+            return
+        }
         if (enemyId) {
             copy.enemyId = enemyId
             this._executeCombat(copy)
@@ -426,7 +452,9 @@ export class RogueliteRun implements RogueliteEngine {
         if (round.bossName) enemyBuild.name = round.bossName
         const enemy = new Character(enemyBuild)
 
-        const { winner } = runBattle(player, enemy)
+        const { winner, engine } = runBattle(player, enemy)
+        // 保留本场回放日志（UI 用 initialData 播 log；不进 state，避免每次克隆大数组）
+        this._battleReplay = { roundId: round.id, entries: engine.state.log.getAll() }
         const lost = winner === enemy.id
         const injuryGained = lost ? injuryForNode(this._state.nodeIndex) : 0
 

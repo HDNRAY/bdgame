@@ -273,3 +273,53 @@
         flex-direction: column;
     }
 }
+
+/* ── 战斗轮：嵌入 BattlePanel 回放 ── */
+.rs-battle {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: var(--sp-xs);
+}
+
+.rs-battle-title {
+    padding: var(--sp-xxs) var(--sp-sm);
+    font-size: var(--font-md);
+    border-bottom: var(--border-width) solid var(--color-border);
+    background: var(--color-bg-panel);
+}
+
+.rs-result {
+    padding: var(--sp-xxs) var(--sp-sm);
+    text-align: center;
+    font-size: var(--font-md);
+
+    &.rs-win {
+        color: var(--color-success);
+    }
+
+    &.rs-lose {
+        color: var(--color-danger);
+    }
+}
+
+.rs-battle-continue {
+    margin: var(--sp-sm) auto;
+    padding: var(--sp-xxs) var(--sp-lg);
+    background: none;
+    border: var(--border-width) solid var(--color-text);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: var(--font-md);
+    cursor: pointer;
+    letter-spacing: 0.3em;
+
+    &:hover {
+        color: var(--color-bg);
+        background: var(--color-text);
+    }
+}

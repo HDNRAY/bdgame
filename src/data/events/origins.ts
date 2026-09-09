@@ -1,12 +1,24 @@
 import type { EventDef } from '../../game/entities/event'
 import { END_EVENT } from '../../game/entities/round'
+import type { Round } from '../../game/entities/round'
 
 // ════════════════════════════════════════
 //  出身事件（n1 · 你从哪里来）
-//  每个故事线一个出身事件：先展示出身场景，结算后再进入 n2。
+//  每个故事线一个出身事件：先展示一场教学观战（该线指定的 AI vs AI），再进入出身场景。
 //  选项文案 = 事件 name（场景化短句），展开叙事 = description + rounds。
 //  需要扩展 n1 时，直接给对应出身事件加轮次/选项即可。
 // ════════════════════════════════════════
+
+/** 教学观战轮（该线指定的 AI vs AI n33 演示；不计玩家胜负/伤势/奖励） */
+function tutorialRound(t: Round['tutorial']): Round {
+    return {
+        id: 'tutorial',
+        title: '观战',
+        description: '在开始之前，先看看一场巅峰对决。',
+        tutorial: t,
+        choices: [{ id: 'scene', type: 'continue', label: '继续' }],
+    }
+}
 
 /** 玄门子弟：青山镇最古老的宗门之一，血脉中流淌着以炁御物的能力 */
 export const ORIGIN_XUANMEN: EventDef = {
@@ -14,6 +26,7 @@ export const ORIGIN_XUANMEN: EventDef = {
     name: '你出自玄门',
     description: '玄门，青山镇最古老的宗门之一，血脉中拥有以炁御物的能力。',
     rounds: [
+        tutorialRound({ aId: 'xuanji', bId: 'wukong', aName: '玄机', bName: '孙悟' }),
         {
             id: 'scene',
             title: '祖祠',
@@ -30,6 +43,7 @@ export const ORIGIN_SECT: EventDef = {
     name: '你是玄青宗的道种',
     description: '百年一遇的根骨，自幼与师兄一同入玄青宗山门修行。',
     rounds: [
+        tutorialRound({ aId: 'layue', bId: 'fengshui', aName: '赵越', bName: '风似水' }),
         {
             id: 'scene',
             title: '山门',
@@ -46,6 +60,7 @@ export const ORIGIN_VETERAN: EventDef = {
     name: '你生在军营边',
     description: '父亲是军人，战死了。',
     rounds: [
+        tutorialRound({ aId: 'hongti', bId: 'otsu', aName: '白山月', bName: '橘子真' }),
         {
             id: 'scene',
             title: '营房',
@@ -62,6 +77,7 @@ export const ORIGIN_WANDERER: EventDef = {
     name: '你是巷子里长大的孤儿',
     description: '你和陶朵、奇岚都是孤儿，一起在镇子的巷子里长大。',
     rounds: [
+        tutorialRound({ aId: 'yangguo', bId: 'longnv', aName: '杨之改', bName: '龙语仙' }),
         {
             id: 'scene',
             title: '巷子',
@@ -78,6 +94,7 @@ export const ORIGIN_FEUD: EventDef = {
     name: '你是林家最后的血脉',
     description: '林家世代反对义体研究。',
     rounds: [
+        tutorialRound({ aId: 'jiran', bId: 'heiyun', aName: '姬然', bName: '玄木' }),
         {
             id: 'scene',
             title: '火',

@@ -380,3 +380,36 @@
     margin-left: 8px;
     font-weight: normal;
 }
+
+/* ── 构筑模式（奖励槽） ── */
+.cp-pool-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xxs);
+}
+
+.cp-pool-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xxs);
+
+    .cp-btn-sm {
+        margin-left: auto;
+    }
+}
+
+.cp-pool-empty {
+    color: var(--color-text-dim);
+    font-size: var(--font-sm);
+    line-height: 1.7;
+}
+
+.cp-add-btn {
+    margin-left: auto;
+}
+
+.cp-pool-slot {
+    color: var(--color-text-dim);
+    font-size: var(--font-xs);
+    min-width: 2.2em;
+}

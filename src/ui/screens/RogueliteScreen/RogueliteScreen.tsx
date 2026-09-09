@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { useRogueliteStore } from '../../stores/roguelite-store'
 import { useOrientation } from '../../hooks/useOrientation'
 import { useNavigate } from 'react-router-dom'
@@ -6,14 +7,30 @@ import { NodeMap } from '../../components/roguelite/NodeMap'
 import { InjuryBar } from '../../components/roguelite/InjuryBar'
 import { RoundCard } from '../../components/roguelite/RoundCard'
 import { IntroOverlay } from '../../components/roguelite/IntroOverlay'
+import { BattlePanel } from '../../components/BattlePanel/BattlePanel'
+import { buildBattleDataFromEntries } from '../../components/roguelite/battle-replay'
+import { gen, getOpponentDef } from '../../../data/opponents'
+import type { CharacterBuild } from '../../../game/entities/character-build'
+import type { Round } from '../../../game/entities/round'
 import { WORLD_INTRO, CHAPTERS, STORY_INTRO_TEXT } from '../../../data/story-intros'
 import './RogueliteScreen.scss'
 
 const CHAPTER_CN = ['', '一', '二', '三']
 
 export function RogueliteScreen() {
-    const { gameState, mode, select, setMode, saveBuild, reset, worldIntroShown, chapterIntro, confirmWorldIntro, confirmChapterIntro } =
-        useRogueliteStore()
+    const {
+        engine,
+        gameState,
+        mode,
+        select,
+        setMode,
+        saveBuild,
+        reset,
+        worldIntroShown,
+        chapterIntro,
+        confirmWorldIntro,
+        confirmChapterIntro,
+    } = useRogueliteStore()
     const { isLandscape } = useOrientation()
     const navigate = useNavigate()
 
@@ -61,6 +78,59 @@ export function RogueliteScreen() {
             )
         })()
 
+    // 当前战斗/教学轮：嵌 BattlePanel 播本场回放（引擎已结算那局，结果与动画一致）
+    const renderRound = (r: Round, i: number): ReactElement => {
+        const isCurrent = i === gameState.rounds.length - 1
+        const isCombat = !!r.enemyId || !!r.enemyPool
+        const isTutorial = !!r.tutorial
+        if (isCurrent && (isCombat || isTutorial)) {
+            const replay = engine.getBattleReplay(r.id)
+            if (replay) {
+                let aBuild: CharacterBuild = gameState.build
+                let bBuild: CharacterBuild = gameState.build
+                let aName: string = aBuild.name
+                let bName: string = bBuild.name
+                if (isTutorial && r.tutorial) {
+                    const aDef = getOpponentDef(r.tutorial.aId)
+                    const bDef = getOpponentDef(r.tutorial.bId)
+                    if (aDef) aBuild = gen(aDef, r.tutorial.level ?? 33)
+                    if (bDef) bBuild = gen(bDef, r.tutorial.level ?? 33)
+                    aName = r.tutorial.aName ?? aDef?.name ?? aBuild.name
+                    bName = r.tutorial.bName ?? bDef?.name ?? bBuild.name
+                } else if (r.enemyId) {
+                    const def = getOpponentDef(r.enemyId)
+                    if (def) bBuild = gen(def, gameState.nodeIndex)
+                    bName = r.bossName ?? bBuild.name
+                }
+                const data = buildBattleDataFromEntries(replay, aName, bName)
+                return (
+                    <div className="rs-battle" key={`${r.id}-b`}>
+                        {r.title && <div className="rs-battle-title">{r.title}</div>}
+                        <BattlePanel
+                            key={`${r.id}-${i}`}
+                            buildA={aBuild}
+                            buildB={bBuild}
+                            showSidePanels={false}
+                            initialData={data}
+                        />
+                        {!isTutorial && r.result && (
+                            <div className={`rs-result ${r.result.won ? 'rs-win' : 'rs-lose'}`}>
+                                {r.result.won ? '胜' : '负'}
+                                {r.result.injuryGained > 0 ? ` 伤势+${r.result.injuryGained}` : ''}
+                            </div>
+                        )}
+                        {r.choices.length > 0 && (
+                            <button className="rs-battle-continue" onClick={() => select(0)}>
+                                {r.choices[0].label ?? '继续'}
+                            </button>
+                        )}
+                    </div>
+                )
+            }
+        }
+        return <RoundCard key={i} round={r} past={i < gameState.rounds.length - 1} onChoice={select} />
+    }
+
     return (
         <div className={`rs ${isLandscape ? 'rs-landscape' : 'rs-portrait'}`}>
             {chapterOverlay}
@@ -77,9 +147,7 @@ export function RogueliteScreen() {
             </header>
             <div className="rs-body">
                 <div className="rs-rounds">
-                    {gameState.rounds.map((r, i) => (
-                        <RoundCard key={i} round={r} past={i < gameState.rounds.length - 1} onChoice={select} />
-                    ))}
+                    {gameState.rounds.map((r, i) => renderRound(r, i))}
                 </div>
                 {mode === 'build' && <div className="rs-overlay" />}
                 <div className={`rs-sidebar rs-${mode}`}>

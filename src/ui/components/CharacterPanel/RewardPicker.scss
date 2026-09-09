@@ -1,0 +1,103 @@
+.rp-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-md);
+}
+
+.rp-panel {
+    width: min(720px, 100%);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-panel);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    overflow: hidden;
+}
+
+.rp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-xs) var(--sp-sm);
+    border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.rp-title {
+    font-size: var(--font-md);
+}
+
+.rp-close {
+    background: none;
+    border: none;
+    color: var(--color-text-dim);
+    font-size: var(--font-lg);
+    cursor: pointer;
+    padding: 0 var(--sp-xxs);
+}
+
+.rp-tabs {
+    display: flex;
+    gap: var(--sp-xxs);
+    padding: var(--sp-xxs) var(--sp-sm);
+    border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.rp-tab {
+    background: none;
+    border: var(--border-width) solid transparent;
+    color: var(--color-text-dim);
+    padding: var(--sp-xxs) var(--sp-sm);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    border-radius: var(--radius-sm);
+
+    &:hover {
+        color: var(--color-text);
+    }
+
+    &-active {
+        color: var(--color-text);
+        border-color: var(--color-border);
+        background: var(--color-bg-hover);
+    }
+}
+
+.rp-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--sp-xs);
+    display: flex;
+    flex-direction: column;
+}
+
+.rp-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-bottom: var(--border-width) solid var(--color-border);
+    color: var(--color-text);
+    padding: var(--sp-xxs) var(--sp-xxs);
+    cursor: pointer;
+    font-family: var(--font-mono);
+
+    &:hover {
+        background: var(--color-bg-hover);
+    }
+}
+
+.rp-empty {
+    color: var(--color-text-dim);
+    text-align: center;
+    padding: var(--sp-lg);
+}
