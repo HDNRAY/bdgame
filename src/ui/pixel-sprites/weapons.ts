@@ -742,29 +742,26 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
     // flip 为反向握持（整根杆掉头，长端朝角色正面）
     qimei_staff: {
         ...makePoses({ gripX: 21.3, gripY: 22.0, grip2X: 38.3, grip2Y: 39.0, flip: true }),
-        // attack：副手锚点上移 1 格；主手锚点（第二握点）上移 1 格（两点各自覆盖，连线角度自动贴合）
-        attack: {
-            gripX: 24.1,
-            gripY: 24.1,
-            grip2X: 41.1,
-            grip2Y: 41.1,
-            handX: OTHER_HAND_POINT.attack.x,
-            handY: OTHER_HAND_POINT.attack.y - 0.5, // 有效锚点含 +0.5 微调 → 净上移 1 格
-            targetX: HAND_POINTS.attack.x,
-            targetY: HAND_POINTS.attack.y - 1, // 主手上移 1 格
-            flip: true,
+        // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
+        idle: {
+            gripX: 21.3, gripY: 22.0, grip2X: 38.3, grip2Y: 39.0, flip: true,
+            handX: OTHER_HAND_POINT.idle.x, handY: OTHER_HAND_POINT.idle.y + 1,
+            targetX: HAND_POINTS.idle.x, targetY: HAND_POINTS.idle.y + 1,
         },
-        // parry：副手锚点上移 1 格
+        dodge: {
+            gripX: 21.3, gripY: 22.0, grip2X: 38.3, grip2Y: 39.0, flip: true,
+            handX: OTHER_HAND_POINT.dodge.x, handY: OTHER_HAND_POINT.dodge.y + 1,
+            targetX: HAND_POINTS.dodge.x, targetY: HAND_POINTS.dodge.y + 1,
+        },
+        attack: {
+            gripX: 24.1, gripY: 24.1, grip2X: 41.1, grip2Y: 41.1, flip: true,
+            handX: OTHER_HAND_POINT.attack.x, handY: OTHER_HAND_POINT.attack.y - 1.5,
+            targetX: HAND_POINTS.attack.x, targetY: HAND_POINTS.attack.y,
+        },
         parry: {
-            gripX: 23.5,
-            gripY: 23.8,
-            grip2X: 40.5,
-            grip2Y: 40.8,
-            handX: OTHER_HAND_POINT.parry.x,
-            handY: OTHER_HAND_POINT.parry.y - 1,
-            targetX: HAND_POINTS.parry.x,
-            targetY: HAND_POINTS.parry.y,
-            flip: true,
+            gripX: 23.5, gripY: 23.8, grip2X: 40.5, grip2Y: 40.8, flip: true,
+            handX: OTHER_HAND_POINT.parry.x, handY: OTHER_HAND_POINT.parry.y - 2,
+            targetX: HAND_POINTS.parry.x, targetY: HAND_POINTS.parry.y + 1,
         },
         // hit：脱手落在角色左侧、竖着；整体右移 12 格并顺时针 10°
         hit: {
@@ -795,28 +792,68 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
     // 破狼竹枝 / 陨铁神珍（双手长杆）：握点同上（杆中点落在主手）；hit 照齐眉棍的脱手姿势
     po_lang_zhu_zhi: {
         ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
-        attack: { gripX: 23.8, gripY: 23.8, grip2X: 40.8, grip2Y: 40.8, flip: true },
-        parry: { gripX: 23.6, gripY: 23.6, grip2X: 40.6, grip2Y: 40.6, flip: true },
+        // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
+        idle: {
+            gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true,
+            handX: OTHER_HAND_POINT.idle.x, handY: OTHER_HAND_POINT.idle.y + 1,
+            targetX: HAND_POINTS.idle.x, targetY: HAND_POINTS.idle.y + 1,
+        },
+        dodge: {
+            gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true,
+            handX: OTHER_HAND_POINT.dodge.x, handY: OTHER_HAND_POINT.dodge.y + 1,
+            targetX: HAND_POINTS.dodge.x, targetY: HAND_POINTS.dodge.y + 1,
+        },
+        attack: {
+            gripX: 23.8, gripY: 23.8, grip2X: 40.8, grip2Y: 40.8, flip: true,
+            handX: OTHER_HAND_POINT.attack.x, handY: OTHER_HAND_POINT.attack.y - 0.5,
+            targetX: HAND_POINTS.attack.x, targetY: HAND_POINTS.attack.y,
+        },
+        parry: {
+            gripX: 23.6, gripY: 23.6, grip2X: 40.6, grip2Y: 40.6, flip: true,
+            handX: OTHER_HAND_POINT.parry.x, handY: OTHER_HAND_POINT.parry.y - 1,
+            targetX: HAND_POINTS.parry.x, targetY: HAND_POINTS.parry.y + 1,
+        },
+        // hit：脱手落在角色左侧、竖着；整体右移 12 格并顺时针 10°
         hit: {
             gripX: 7,
             gripY: 7,
             grip2X: 24,
             grip2Y: 24,
-            handX: 24 + SPRITE_PAD_LEFT, // 右移 12 格
+            handX: 24 + SPRITE_PAD_LEFT,
             handY: 34.5,
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
     },
     dinghai_shen_tie: {
         ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
-        attack: { gripX: 23.8, gripY: 23.8, grip2X: 40.8, grip2Y: 40.8, flip: true },
-        parry: { gripX: 23.6, gripY: 23.6, grip2X: 40.6, grip2Y: 40.6, flip: true },
+        // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
+        idle: {
+            gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true,
+            handX: OTHER_HAND_POINT.idle.x, handY: OTHER_HAND_POINT.idle.y + 1,
+            targetX: HAND_POINTS.idle.x, targetY: HAND_POINTS.idle.y + 1,
+        },
+        dodge: {
+            gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true,
+            handX: OTHER_HAND_POINT.dodge.x, handY: OTHER_HAND_POINT.dodge.y + 1,
+            targetX: HAND_POINTS.dodge.x, targetY: HAND_POINTS.dodge.y + 1,
+        },
+        attack: {
+            gripX: 23.8, gripY: 23.8, grip2X: 40.8, grip2Y: 40.8, flip: true,
+            handX: OTHER_HAND_POINT.attack.x, handY: OTHER_HAND_POINT.attack.y - 0.5,
+            targetX: HAND_POINTS.attack.x, targetY: HAND_POINTS.attack.y,
+        },
+        parry: {
+            gripX: 23.6, gripY: 23.6, grip2X: 40.6, grip2Y: 40.6, flip: true,
+            handX: OTHER_HAND_POINT.parry.x, handY: OTHER_HAND_POINT.parry.y - 1,
+            targetX: HAND_POINTS.parry.x, targetY: HAND_POINTS.parry.y + 1,
+        },
+        // hit：脱手落在角色左侧、竖着；整体右移 12 格并顺时针 10°
         hit: {
             gripX: 7,
             gripY: 7,
             grip2X: 24,
             grip2Y: 24,
-            handX: 24 + SPRITE_PAD_LEFT, // 右移 12 格
+            handX: 24 + SPRITE_PAD_LEFT,
             handY: 34.5,
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
