@@ -9,3 +9,4 @@ dev-dist/
 *.tsbuildinfo
 .reasonix/truncated-results/
 scripts/*.txt
+scripts/preview/

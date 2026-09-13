@@ -11,6 +11,7 @@
         "node": "tsx scripts/node-demo.ts",
         "reward": "tsx scripts/reward-impact.ts",
         "rt": "tsx scripts/reward-types.ts",
+        "pixel": "tsx scripts/pixel-preview.ts",
         "build": "tsc -b && vite build",
         "lint": "eslint .",
         "preview": "vite preview",

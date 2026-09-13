@@ -89,3 +89,16 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 | AttrName         | src/engine/entities/attributes.ts | ATTR_CN[attr], ATTR_DESC[attr] (注释)                             |
 | Tag              | src/engine/entities/tag.ts        | 36 种标签类型，对应中文名见 tagDisplay.ts                         |
 | EffectDef        | src/engine/entities/action.ts     | 24 种效果变体 (damage/heal/stat_buff/status 等)                   |
+
+## 像素美术（武器叠加图）
+
+**可靠参照只有三把**：桃木剑、齐眉棍、玄铁重剑（人工逐格调过，可当模板）。其余武器图为早期 AI 生成，不可当参照。
+
+**画法约定**（`src/ui/pixel-sprites/weapons.ts`）：
+
+- 一律按轴向几何生成：`u = (A - x - y)·√½`（沿轴，越大越靠尖端/左上）、`v = (y - x)·√½`（横向，符号决定受光/背光侧），`A` 取该武器轴起点的 `x + y`。禁止「按行阶梯」画斜线（会斜掉）。
+- 武器美术画在 32×32 网格（`constants.ts` 的 `WEAPON_WIDTH/HEIGHT`）；像素颜色索引必须写**数字**（字符串会被当成颜色字面量，渲染成黑色）。
+- 握点与姿势独立登记在 `WEAPON_POSES`：单手武器锚主手；双手武器给 `gripX/gripY` + `grip2X/grip2Y`，角度由两手连线自动算（`getWeaponAngle`），可用 `handX/handY/targetX/targetY/angle` 逐姿势覆盖。**每把武器独立写配置，同族也不共享常量**，便于逐把微调。
+- 改手位或轴向后必须同步 `HAND_POINTS` / `OTHER_HAND_POINT` / `HAND_COVER` / `LEFT_HAND_COVER`。
+
+**预览工具**：`npm run pixel -- <武器ID[,ID...]> [姿势|all] [缩放]` 输出 `scripts/preview/*.png`（旋转方式与游戏一致：旋转整张位图 + 反向最近邻采样；不要用逐像素取整，会把 2 格宽的杆挤成 1 格）。新增武器后在 DevMode 的像素查看器确认五个姿势的包围盒都落在 120×54 画布内。

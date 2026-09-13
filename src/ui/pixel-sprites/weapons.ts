@@ -792,8 +792,31 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
         },
     },
     // 破狼竹枝 / 陨铁神珍（双手长杆）：握点同齐眉棍 —— 主握点 7,7 锚副手、第二握点 24,24 定轴线
-    po_lang_zhu_zhi: makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
-    dinghai_shen_tie: makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
+    // hit：照齐眉棍的脱手姿势 —— 武器竖着落在角色左侧、顺时针 10°（握点与两锚点显式给出）
+    po_lang_zhu_zhi: {
+        ...makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
+        hit: {
+            gripX: 7,
+            gripY: 7,
+            grip2X: 24,
+            grip2Y: 24,
+            handX: 24 + SPRITE_PAD_LEFT, // 右移 12 格
+            handY: 34.5,
+            angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
+        },
+    },
+    dinghai_shen_tie: {
+        ...makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
+        hit: {
+            gripX: 7,
+            gripY: 7,
+            grip2X: 24,
+            grip2Y: 24,
+            handX: 24 + SPRITE_PAD_LEFT, // 右移 12 格
+            handY: 34.5,
+            angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
+        },
+    },
 }
 
 /** 未登记武器的兜底配置 */
