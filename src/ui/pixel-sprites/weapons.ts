@@ -737,30 +737,29 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             angle: (15 * Math.PI) / 180,
         },
     },
-    // 齐眉棍（双手）：attack 副手锚点上移 1 格；parry 武器整体右移 4 格
-    // （右移 = 武器本地握点左移 4；两点连线角度自动计算，故双锚点仍落在手上）
+    // 齐眉棍（双手长杆）：握点取「杆中点落在主手（画面左侧那只手）」的位置
+    // 两手间距 idle/dodge 9.5 格、attack 12.5 格、parry 12.2 格 → attack/parry 握点相应前移
+    // flip 为反向握持（整根杆掉头，长端朝角色正面）
     qimei_staff: {
-        ...makePoses({ gripX: 12.5, gripY: 12.5, grip2X: 29.5, grip2Y: 29.5, flip: true }),
+        ...makePoses({ gripX: 21.3, gripY: 22.0, grip2X: 38.3, grip2Y: 39.0, flip: true }),
         // attack：副手锚点上移 1 格；主手锚点（第二握点）上移 1 格（两点各自覆盖，连线角度自动贴合）
         attack: {
-            gripX: 12.5,
-            gripY: 12.5,
-            grip2X: 29.5,
-            grip2Y: 29.5,
+            gripX: 24.1,
+            gripY: 24.1,
+            grip2X: 41.1,
+            grip2Y: 41.1,
             handX: OTHER_HAND_POINT.attack.x,
             handY: OTHER_HAND_POINT.attack.y - 0.5, // 有效锚点含 +0.5 微调 → 净上移 1 格
             targetX: HAND_POINTS.attack.x,
             targetY: HAND_POINTS.attack.y - 1, // 主手上移 1 格
             flip: true,
         },
-        // parry：副手锚点上移 1 格；武器整体「水平右移 5 格 + 下移 1.5 格」且两点仍贴手
-        // 手法：两个握点在武器图上一起平移（按当前旋转角逆向量补偿）→ 武器整体平移，握点↔手不变。
-        // 注：补偿量随 parry 手锚点/棍身轴线变化，改手位后需重算。
+        // parry：副手锚点上移 1 格
         parry: {
-            gripX: 16.05,
-            gripY: 16.32,
-            grip2X: 33.05,
-            grip2Y: 33.32,
+            gripX: 23.5,
+            gripY: 23.8,
+            grip2X: 40.5,
+            grip2Y: 40.8,
             handX: OTHER_HAND_POINT.parry.x,
             handY: OTHER_HAND_POINT.parry.y - 1,
             targetX: HAND_POINTS.parry.x,
@@ -793,10 +792,11 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             angle: (15 * Math.PI) / 180,
         },
     },
-    // 破狼竹枝 / 陨铁神珍（双手长杆）：握点同齐眉棍 —— 主握点 7,7 锚副手、第二握点 24,24 定轴线
-    // hit：照齐眉棍的脱手姿势 —— 武器竖着落在角色左侧、顺时针 10°（握点与两锚点显式给出）
+    // 破狼竹枝 / 陨铁神珍（双手长杆）：握点同上（杆中点落在主手）；hit 照齐眉棍的脱手姿势
     po_lang_zhu_zhi: {
-        ...makePoses({ gripX: 12.5, gripY: 12.5, grip2X: 29.5, grip2Y: 29.5, flip: true }),
+        ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
+        attack: { gripX: 23.8, gripY: 23.8, grip2X: 40.8, grip2Y: 40.8, flip: true },
+        parry: { gripX: 23.6, gripY: 23.6, grip2X: 40.6, grip2Y: 40.6, flip: true },
         hit: {
             gripX: 7,
             gripY: 7,
@@ -808,7 +808,9 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
         },
     },
     dinghai_shen_tie: {
-        ...makePoses({ gripX: 12.5, gripY: 12.5, grip2X: 29.5, grip2Y: 29.5, flip: true }),
+        ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
+        attack: { gripX: 23.8, gripY: 23.8, grip2X: 40.8, grip2Y: 40.8, flip: true },
+        parry: { gripX: 23.6, gripY: 23.6, grip2X: 40.6, grip2Y: 40.6, flip: true },
         hit: {
             gripX: 7,
             gripY: 7,

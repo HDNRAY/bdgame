@@ -149,19 +149,12 @@ function drawCharacter(g: Grid, charId: string, oy: number): Palette {
     return palette
 }
 
-/** 武器 + 双手遮罩（旋转整张位图，逐目标格反向采样） */
+/** 武器 + 双手遮罩（旋转整张位图，逐目标格反向采样）
+ *  图层顺序与游戏一致：身体 → 武器 → 手部遮罩（手在最上层，制造"握着"效果） */
 function drawWeapon(g: Grid, weaponId: string, pose: string, oy: number, palette: Palette): void {
     const cfg = getWeaponPoseConfig(weaponId, pose)
     const hand = getWeaponHand(weaponId, pose)
     const angle = getWeaponAngle(weaponId, pose, true)
-    if (shouldDrawHandCover(pose)) {
-        const skin = palette['3'] ?? '#f5d6c6'
-        for (const [cx, cy] of HAND_COVER[pose] ?? []) g.fill(cx + OFF_X, cy + OFF_Y + oy, skin)
-        // 双手武器（或双持副手）才画第二只手
-        if (cfg.grip2X !== undefined) {
-            for (const [cx, cy] of LEFT_HAND_COVER[pose] ?? []) g.fill(cx + OFF_X, cy + OFF_Y + oy, skin)
-        }
-    }
     const art = artMap(weaponId)
     const cos = Math.cos(-angle)
     const sin = Math.sin(-angle)
@@ -174,6 +167,15 @@ function drawWeapon(g: Grid, weaponId: string, pose: string, oy: number, palette
             const ay = dx * sin + dy * cos + cfg.gripY
             const color = art.get(`${Math.round(ax)},${Math.round(ay)}`)
             if (color) g.fill(hx + dx, hy + dy + oy, color)
+        }
+    }
+    // 手部遮罩画在武器之上
+    if (shouldDrawHandCover(pose) && !cfg.noHandCover) {
+        const skin = palette['3'] ?? '#f5d6c6'
+        for (const [cx, cy] of HAND_COVER[pose] ?? []) g.fill(cx + OFF_X, cy + OFF_Y + oy, skin)
+        // 双手武器（或双持副手）才画第二只手
+        if (cfg.grip2X !== undefined) {
+            for (const [cx, cy] of LEFT_HAND_COVER[pose] ?? []) g.fill(cx + OFF_X, cy + OFF_Y + oy, skin)
         }
     }
 }
