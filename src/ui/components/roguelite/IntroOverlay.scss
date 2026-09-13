@@ -35,11 +35,20 @@
     }
 
     .io-text {
-        max-width: 560px;
-        white-space: pre-line;
+        /* 全屏下正文铺得更宽；行距收紧，段距交给 .io-p 的 margin */
+        max-width: min(46rem, 86vw);
         font-size: var(--font-md);
-        line-height: 1.9;
+        line-height: 1.7;
         color: var(--color-text);
+        text-align: left;
+    }
+
+    .io-p {
+        margin: 0 0 var(--sp-md);
+
+        &:last-child {
+            margin-bottom: 0;
+        }
     }
 
     .io-cursor {

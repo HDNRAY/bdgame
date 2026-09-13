@@ -17,6 +17,12 @@ export interface GameState {
     /** 当前节点的所有轮次。推进到下一节点时清空，重新累计。 */
     rounds: Round[]
 
+    /**
+     * 已过去节点的回合（只留卡片与结果，供 UI 回看本局经历）。
+     * 战斗回放不入历史：回放仅当场可放，过往只展示结果。
+     */
+    history: Round[]
+
     /** 角色数据。复用 CharacterBuild。 */
     build: CharacterBuild
 

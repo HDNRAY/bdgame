@@ -8,7 +8,7 @@ import { N2_WEAPON_CHOICES, SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen }
 /** node 2: 选兵器（藏兵阁，固定 5 选 1） */
 export const SECT_N02_WEAPON: EventDef = {
     id: 'sect_n02_weapon',
-    name: '选兵器',
+    name: '入山门那年',
     description: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。架上兵刃微微发亮，等你伸手。',
     placement: [{ nodes: [2], when: storyWhen('sect') }],
     reward: { kind: 'fixed', choices: N2_WEAPON_CHOICES },
@@ -19,7 +19,7 @@ export const SECT_N02_WEAPON: EventDef = {
             description: '入山门那年你刚满五岁。掌门领你到藏兵阁，让你以炁感应。架上兵刃微微发亮，等你伸手。',
             choices: [{ id: 'reward_round', type: 'continue', label: '伸手' }],
         },
-        { id: 'reward_round', title: '挑选', choices: [] },
+        { id: 'reward_round', title: '架上的兵刃', choices: [] },
         {
             id: 'epilogue',
             title: '掌门的话',
@@ -33,7 +33,7 @@ export const SECT_N02_WEAPON: EventDef = {
 /** node 3: 选招式（与兵器同源的 2AP 招式） */
 export const SECT_N03_ACTION: EventDef = {
     id: 'sect_n03_action',
-    name: '选招式',
+    name: '传功那天',
     description: '入门后腊月师姐负责带你和师兄。她翻了翻你们的根骨记录，丢过来三门基础功法让你们挑。',
     placement: [{ nodes: [3], when: storyWhen('sect') }],
     reward: { kind: 'item', pool: 'action', apMax: 2, noPrePost: true, requireTags: true },
@@ -44,7 +44,7 @@ export const SECT_N03_ACTION: EventDef = {
             description: '入门后腊月师姐负责带你和师兄。她翻了翻你们的根骨记录，丢过来三门基础功法让你们挑。',
             choices: [{ id: 'reward_round', type: 'continue', label: '挑选' }],
         },
-        { id: 'reward_round', title: '选择功法', choices: [] },
+        { id: 'reward_round', title: '三门基础功法', choices: [] },
         {
             id: 'epilogue',
             title: '腊月的话',

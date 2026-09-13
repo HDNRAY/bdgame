@@ -97,6 +97,25 @@
         }
     }
 
+    /* 历史里回看"本轮选了什么"（只读，不可点） */
+    &-chosen {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-xs);
+        cursor: default;
+
+        &:hover {
+            border-color: var(--color-accent);
+            background: var(--color-accent-bg);
+        }
+    }
+
+    &-chosen-mark {
+        flex-shrink: 0;
+        color: var(--color-text-dim);
+        font-size: var(--font-xs);
+    }
+
     /* 实体选项内联详情（复用 tooltip 内容样式，无气泡外观） */
     &-entity {
         &-details {

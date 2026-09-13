@@ -76,6 +76,9 @@ export interface Round {
     /** 本轮的选项。至少 1 项。 */
     choices: Choice[]
 
+    /** 本轮实际选中的选项（只有选过才有值）。历史回看时用来展示"选了什么"。 */
+    chosen?: { id: string; label: string }
+
     /** 固定敌人 ID。有值→战斗轮，引擎自动执行战斗。 */
     enemyId?: string
 

@@ -232,7 +232,7 @@ export const TIANGONG_OFFHAND: EventDef = {
         },
         {
             id: 'reward_round',
-            title: '选择副手',
+            title: '台面上那几件',
             reward: { kind: 'fixed', choices: OFFHAND_CHOICES },
             choices: [],
         },

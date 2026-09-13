@@ -20,7 +20,7 @@ export const WANDERER_N02_INTRO: EventDef = {
                 '七岁那年你和奇岚在青山边缘的林地玩耍，一时贪玩跑进了深山，撞上一头不知从哪来的凶兽。眼看就要没命，一道剑光破空而至——你被拎着甩到安全处，抬头才看清那对夫妇：男子背负一柄大剑，女子腰悬双剑。他们见你二人筋骨不错，便将随身几件兵器和图谱赠予了你。你后来才知道，他们叫杨之改与龙语仙。',
             choices: [{ id: 'reward_round', type: 'continue', label: '收下' }],
         },
-        { id: 'reward_round', title: '选择兵器', choices: [] },
+        { id: 'reward_round', title: '夫妇俩留下的', choices: [] },
         {
             id: 'epilogue',
             title: '杨之改的话',
@@ -45,7 +45,7 @@ export const WANDERER_N03_INTRO: EventDef = {
             description: '杨之改和龙语仙留下的图谱在你脑海中挥之不去。你一遍遍回想、比划，渐渐悟出了其中的门道。',
             choices: [{ id: 'reward_round', type: 'continue', label: '演练' }],
         },
-        { id: 'reward_round', title: '选择招式', choices: [] },
+        { id: 'reward_round', title: '图谱里的门道', choices: [] },
         {
             id: 'epilogue',
             title: '龙语仙的话',

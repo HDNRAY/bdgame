@@ -10,8 +10,8 @@ export interface RawReplay {
 
 export function buildBattleDataFromEntries(
     replay: RawReplay,
-    aName: string,
-    bName: string,
+    a: { id: string; name: string },
+    b: { id: string; name: string },
 ): BattleData {
     const entries = replay.entries as LogEntry[]
     const log = new BattleLog()
@@ -23,7 +23,8 @@ export function buildBattleDataFromEntries(
         logLines: lines,
         eventToLine,
         snapshots,
-        charAInfo: { id: aName, name: aName, color: '#4ecdc4' },
-        charBInfo: { id: bName, name: bName, color: '#ff6b6b' },
+        // id 必须传引擎里的角色 id（渲染器按 id 取精灵与武器图层），name 只用于显示
+        charAInfo: { id: a.id, name: a.name, color: '#4ecdc4' },
+        charBInfo: { id: b.id, name: b.name, color: '#ff6b6b' },
     }
 }

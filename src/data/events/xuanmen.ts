@@ -8,7 +8,7 @@ import { SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
 /** node 2: 祖祠选御物 → 三件固定法器（御物血统限定，仅玄门可选） */
 export const XUANMEN_N02_WEAPON: EventDef = {
     id: 'xuanmen_n02_weapon',
-    name: '选兵器',
+    name: '祖祠那天',
     description: '你六岁那年，父亲将你叫到祖祠前。三件家族御物悬浮在炁阵中。',
     placement: [{ nodes: [2], when: storyWhen('xuanmen') }],
     rounds: [
@@ -21,7 +21,7 @@ export const XUANMEN_N02_WEAPON: EventDef = {
         },
         {
             id: 'reward_round',
-            title: '选择御物',
+            title: '炁阵中的三件',
             choices: [
                 {
                     id: 'floating_silk',
@@ -46,7 +46,7 @@ export const XUANMEN_N02_WEAPON: EventDef = {
 /** node 3: 库房选奇物 */
 export const XUANMEN_N03_START: EventDef = {
     id: 'xuanmen_n03_start',
-    name: '选奇物',
+    name: '父亲打开库房',
     description: '父亲翻出家传库房，让你先择一件趁手的奇物傍身。',
     placement: [{ nodes: [3], when: storyWhen('xuanmen') }],
     reward: { kind: 'item', pool: 'artifact' },
@@ -57,7 +57,7 @@ export const XUANMEN_N03_START: EventDef = {
             description: '御物里的门道，父亲说要慢慢教。他打开库房，让你先挑一件趁手的奇物傍身。',
             choices: [{ id: 'reward_round', type: 'continue', label: '挑选' }],
         },
-        { id: 'reward_round', title: '选择奇物', choices: [] },
+        { id: 'reward_round', title: '趁手的一件', choices: [] },
         {
             id: 'epilogue',
             title: '父亲的叮嘱',

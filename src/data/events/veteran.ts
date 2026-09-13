@@ -8,7 +8,7 @@ import { N2_WEAPON_CHOICES, SPAR_RANGE, storyRenderWhen, storyWhen } from './lay
 /** node 2: 挑兵器（军械架，固定 5 选 1） */
 export const VETERAN_N02_WEAPON: EventDef = {
     id: 'veteran_n02_weapon',
-    name: '挑兵器',
+    name: '训练场边上',
     description: '你从小扒在训练场边偷看，老兵们操练的家伙事，你一件件都认得。',
     placement: [{ nodes: [2], when: storyWhen('veteran') }],
     reward: { kind: 'fixed', choices: N2_WEAPON_CHOICES },
@@ -20,7 +20,7 @@ export const VETERAN_N02_WEAPON: EventDef = {
                 '训练场的兵器架就摆在墙根，夜里没人收。你趁黑摸进去，借着月光一件件摸过去——老兵们说，兵器认人，摸到哪件，哪件就是你的。',
             choices: [{ id: 'reward_round', type: 'continue', label: '挑一件' }],
         },
-        { id: 'reward_round', title: '选择兵器', choices: [] },
+        { id: 'reward_round', title: '架子上那件', choices: [] },
         {
             id: 'epilogue',
             title: '收好',

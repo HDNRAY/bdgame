@@ -8,7 +8,7 @@ import { N2_WEAPON_CHOICES, SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen }
 /** node 2: 选兵器（父亲遗物，固定 5 选 1；空手 → 修炼点） */
 export const FEUD_N02_WEAPON: EventDef = {
     id: 'feud_n02_weapon',
-    name: '选兵器',
+    name: '六岁那年',
     description:
         '那年你六岁。会长姬仲从家里找出你父亲遗留的兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
     placement: [{ nodes: [2], when: storyWhen('feud') }],
@@ -21,7 +21,7 @@ export const FEUD_N02_WEAPON: EventDef = {
                 '那年你六岁。会长姬仲从家里找出你父亲遗留的兵器，递给你说：「这是你父亲留下的。你从中挑一件，我来教你怎么用。」',
             choices: [{ id: 'reward_round', type: 'continue', label: '挑选' }],
         },
-        { id: 'reward_round', title: '选择兵器', choices: [] },
+        { id: 'reward_round', title: '父亲留下的', choices: [] },
         {
             id: 'epilogue',
             title: '父亲的叮嘱',
@@ -35,7 +35,7 @@ export const FEUD_N02_WEAPON: EventDef = {
 /** node 3: 选招式（与兵器同源的 2AP 招式） */
 export const FEUD_N03_ACTION: EventDef = {
     id: 'feud_n03_action',
-    name: '选招式',
+    name: '练功房里',
     description:
         '会长教你的是炼炁协会的基础功法，循序渐进，很是耐心。但你修炼时眼神总是很凶，好像要把仇恨都煅进骨子里。',
     placement: [{ nodes: [3], when: storyWhen('feud') }],
@@ -48,7 +48,7 @@ export const FEUD_N03_ACTION: EventDef = {
                 '会长教你的是炼炁协会的基础功法，循序渐进，很是耐心。但你修炼时眼神总是很凶，好像要把仇恨都煅进骨子里。',
             choices: [{ id: 'reward_round', type: 'continue', label: '练功' }],
         },
-        { id: 'reward_round', title: '选择功法', choices: [] },
+        { id: 'reward_round', title: '练出来的', choices: [] },
         {
             id: 'epilogue',
             title: '会长的告诫',

@@ -125,6 +125,14 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
                     {round.result.injuryGained > 0 && <> 伤势 +{round.result.injuryGained}</>}
                 </div>
             )}
+            {past && round.chosen && round.choices.length > 1 && (
+                <div className="rc-choices">
+                    <div className="rc-choice rc-choice-selected rc-chosen">
+                        <span className="rc-chosen-mark">已选</span>
+                        <span className="rc-label">{round.chosen.label}</span>
+                    </div>
+                </div>
+            )}
             {desc.done && !past && round.choices.length > 0 && (
                 <div className="rc-choices">
                     {round.choices.map((c, i) => (

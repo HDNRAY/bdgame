@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRogueliteStore } from '../../stores/roguelite-store'
 import { useOrientation } from '../../hooks/useOrientation'
 import { useNavigate } from 'react-router-dom'
@@ -12,12 +13,14 @@ import { buildBattleDataFromEntries } from '../../components/roguelite/battle-re
 import { gen, getOpponentDef } from '../../../data/opponents'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import type { Round } from '../../../game/entities/round'
-import { WORLD_INTRO, CHAPTERS, STORY_INTRO_TEXT } from '../../../data/story-intros'
+import { WORLD_INTRO, CHAPTER1_INTRO, CHAPTERS, STORY_INTRO_TEXT } from '../../../data/story-intros'
 import './RogueliteScreen.scss'
 
 const CHAPTER_CN = ['', '一', '二', '三']
 
 export function RogueliteScreen() {
+    /** 展开观看的教学轮（默认折叠，不展开就不播回放） */
+    const [openTutorials, setOpenTutorials] = useState<Record<string, boolean>>({})
     const {
         engine,
         gameState,
@@ -33,6 +36,20 @@ export function RogueliteScreen() {
     } = useRogueliteStore()
     const { isLandscape } = useOrientation()
     const navigate = useNavigate()
+
+    /** 回合列表容器：只有玩家本来就贴在底部时，新内容才自动滚到底（翻看历史时不动） */
+    const roundsRef = useRef<HTMLDivElement>(null)
+    const atBottomRef = useRef(true)
+    const roundsCount = `${gameState?.history.length ?? 0}:${gameState?.rounds.length ?? 0}`
+    useEffect(() => {
+        const el = roundsRef.current
+        if (el && atBottomRef.current) el.scrollTop = el.scrollHeight
+    }, [roundsCount])
+    const handleRoundsScroll = () => {
+        const el = roundsRef.current
+        if (!el) return
+        atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight <= 8
+    }
 
     function handleExit() {
         reset()
@@ -67,7 +84,8 @@ export function RogueliteScreen() {
     const chapterOverlay =
         ci && (() => {
             const meta = CHAPTERS.find((c) => c.chapter === ci.chapter)
-            const text = STORY_INTRO_TEXT[ci.story]?.[ci.chapter] ?? ''
+            // 第一章在选故事线之前播放 → 用公共正文；第二/三章按故事线
+            const text = ci.chapter === 1 ? CHAPTER1_INTRO : (STORY_INTRO_TEXT[ci.story]?.[ci.chapter] ?? '')
             return (
                 <IntroOverlay
                     kicker={`第${CHAPTER_CN[ci.chapter]}章`}
@@ -102,17 +120,37 @@ export function RogueliteScreen() {
                     if (def) bBuild = gen(def, gameState.nodeIndex)
                     bName = r.bossName ?? bBuild.name
                 }
-                const data = buildBattleDataFromEntries(replay, aName, bName)
+                const data = buildBattleDataFromEntries(
+                    replay,
+                    { id: aBuild.id, name: aName },
+                    { id: bBuild.id, name: bName },
+                )
+                const tutorialOpen = isTutorial && !!openTutorials[r.id]
                 return (
                     <div className="rs-battle" key={`${r.id}-b`}>
                         {r.title && <div className="rs-battle-title">{r.title}</div>}
-                        <BattlePanel
-                            key={`${r.id}-${i}`}
-                            buildA={aBuild}
-                            buildB={bBuild}
-                            showSidePanels={false}
-                            initialData={data}
-                        />
+                        {isTutorial && (
+                            <div className="rs-tutorial-bar">
+                                <span className="rs-tutorial-note">
+                                    教学观战：{aName} 对 {bName}（AI 对局演示，不计胜负）
+                                </span>
+                                <button
+                                    className="rs-tutorial-toggle"
+                                    onClick={() => setOpenTutorials((prev) => ({ ...prev, [r.id]: !prev[r.id] }))}
+                                >
+                                    {tutorialOpen ? '收起' : '展开观看'}
+                                </button>
+                            </div>
+                        )}
+                        {(!isTutorial || tutorialOpen) && (
+                            <BattlePanel
+                                key={`${r.id}-${i}`}
+                                buildA={aBuild}
+                                buildB={bBuild}
+                                showSidePanels={false}
+                                initialData={data}
+                            />
+                        )}
                         {!isTutorial && r.result && (
                             <div className={`rs-result ${r.result.won ? 'rs-win' : 'rs-lose'}`}>
                                 {r.result.won ? '胜' : '负'}
@@ -131,6 +169,9 @@ export function RogueliteScreen() {
         return <RoundCard key={i} round={r} past={i < gameState.rounds.length - 1} onChoice={select} />
     }
 
+    /** 是否已选定故事线（未选线时右侧不显示人物面板） */
+    const hasStory = !!gameState.build.story
+
     return (
         <div className={`rs ${isLandscape ? 'rs-landscape' : 'rs-portrait'}`}>
             {chapterOverlay}
@@ -146,26 +187,37 @@ export function RogueliteScreen() {
                 </button>
             </header>
             <div className="rs-body">
-                <div className="rs-rounds">
+                <div className="rs-rounds" ref={roundsRef} onScroll={handleRoundsScroll}>
+                    {/* 过去节点的回合：只看得见结果（回放仅当场可放） */}
+                    {gameState.history.length > 0 && (
+                        <div className="rs-rounds-history">
+                            {gameState.history.map((r, i) => (
+                                <RoundCard key={`hist-${i}-${r.id}`} round={r} past />
+                            ))}
+                        </div>
+                    )}
                     {gameState.rounds.map((r, i) => renderRound(r, i))}
                 </div>
                 {mode === 'build' && <div className="rs-overlay" />}
-                <div className={`rs-sidebar rs-${mode}`}>
-                    {mode === 'view' && (
-                        <button className="rs-prep-btn" onClick={() => setMode('build')}>
-                            备 战
-                        </button>
-                    )}
-                    <div className="rs-panel-wrapper">
-                        <CharacterPanel
-                            mode={mode}
-                            build={gameState.build}
-                            unspentCultPoints={gameState.unspentPoints}
-                            onSave={saveBuild}
-                            onBack={() => setMode('view')}
-                        />
+                {/* 未选故事线时不显示人物面板，也不占右侧宽度 */}
+                {hasStory && (
+                    <div className={`rs-sidebar rs-${mode}`}>
+                        {mode === 'view' && (
+                            <button className="rs-prep-btn" onClick={() => setMode('build')}>
+                                备 战
+                            </button>
+                        )}
+                        <div className="rs-panel-wrapper">
+                            <CharacterPanel
+                                mode={mode}
+                                build={gameState.build}
+                                unspentCultPoints={gameState.unspentPoints}
+                                onSave={saveBuild}
+                                onBack={() => setMode('view')}
+                            />
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     )

@@ -21,14 +21,21 @@ interface IntroOverlayProps {
 export function IntroOverlay({ kicker, title, text, enterLabel = '开始', onEnter }: IntroOverlayProps) {
     const typewriterEnabled = useAppStore((s) => s.uiConfig.typewriter)
     const tw = useTypewriter(text, { enabled: typewriterEnabled })
+    // 按空行/换行切段：段间距交给 CSS 的 margin，不再靠空白行撑（原来行距会翻倍）
+    const paragraphs = tw.displayText.split('\n').filter((line) => line.trim() !== '')
+    const lastIndex = paragraphs.length - 1
 
     return (
         <div className={`intro-overlay${!tw.done ? ' intro-overlay-typing' : ''}`} onClick={!tw.done ? tw.skip : undefined}>
             {kicker && <div className="io-kicker">{kicker}</div>}
             {title && <h1 className="io-title">{title}</h1>}
             <div className="io-text">
-                {tw.displayText}
-                {!tw.done && <span className="io-cursor">▌</span>}
+                {paragraphs.map((line, i) => (
+                    <p key={i} className="io-p">
+                        {line}
+                        {!tw.done && i === lastIndex && <span className="io-cursor">▌</span>}
+                    </p>
+                ))}
             </div>
             {tw.done && (
                 <button className="io-enter" onClick={(e) => { e.stopPropagation(); onEnter() }}>

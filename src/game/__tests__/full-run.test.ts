@@ -80,6 +80,26 @@ describe('完整肉鸽流程（战斗 mock，Math.random 固定保证确定性�
         expect(state.nodeIndex).toBeLessThan(34)
         expect(state.tournamentData?.phase).not.toBe('finished') // 未夺冠
     })
+
+    it('历史：过往节点的回合归档进 state.history，当前节点的 rounds 单独维护', () => {
+        battle.playerWins = true
+        const run = new RogueliteRun()
+        let state = run.getState()
+        let guard = 0
+        // 推到至少跨过一个节点（rounds 被清空、之前的内容进 history）
+        while (state.history.length === 0 && !state.finished && guard++ < 200) {
+            const round = state.rounds[state.rounds.length - 1]
+            if (!round || round.choices.length === 0) break
+            run.selectChoice(0)
+            state = run.getState()
+        }
+
+        expect(state.history.length).toBeGreaterThan(0)
+        // 当前节点里的回合对象不会同时留在历史里（历史是归档，不是引用同一批对象）
+        for (const r of state.rounds) expect(state.history.includes(r)).toBe(false)
+        // 归档的回合都记下了当时选了什么（历史回看用）
+        for (const r of state.history) expect(r.chosen?.label).toBeTruthy()
+    })
 })
 
 /** 按真实节点顺序推进大会：open → 小组 r1/r2 → 出线 r3 → 十六强 → 八强 → 四强 → 决赛。

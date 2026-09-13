@@ -45,6 +45,7 @@ export class RogueliteRun implements RogueliteEngine {
             roundIdx: 0,
             nodes: buildNodeSpecs(ALL_EVENTS),
             rounds: [],
+            history: [],
             build: this._defaultBuild(),
             unspentPoints: 0,
             injury: 0,
@@ -66,6 +67,8 @@ export class RogueliteRun implements RogueliteEngine {
         const round = this._state.rounds[this._state.rounds.length - 1]
         if (!round || choiceIndex < 0 || choiceIndex >= round.choices.length) return
         const choice = round.choices[choiceIndex]
+        // 记下本轮选了什么（历史回看时只展示选中项）
+        round.chosen = { id: choice.id, label: choice.label ?? choice.id }
         // 一切副作用统一走 choice.effects（写 flag / 给奖励 / 加点…）
         this._applyEffects(choice.effects)
 
@@ -187,6 +190,8 @@ export class RogueliteRun implements RogueliteEngine {
     // ── 内部：节点进入（渐进生成 · 懒解析） ──
 
     private _enterNode(): void {
+        // 归档上一个节点的回合（历史只留卡片与结果，不留回放）
+        if (this._state.rounds.length > 0) this._state.history.push(...this._state.rounds)
         this._state.rounds = []
         this._eventDef = null
         this._state.roundIdx = 0

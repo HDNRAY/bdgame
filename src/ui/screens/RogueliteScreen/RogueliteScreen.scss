@@ -274,9 +274,16 @@
     }
 }
 
+/* 过去节点的回合：可回看但只显示结果，比"本节点已过的回合"再淡一档，并用虚线分隔 */
+.rs-rounds-history {
+    padding-bottom: var(--sp-xs);
+    margin-bottom: var(--sp-xs);
+    border-bottom: dashed var(--border-width) var(--color-border);
+    opacity: 0.75;
+}
+
 /* ── 战斗轮：嵌入 BattlePanel 回放 ── */
-.rs-battle {
-    display: flex;
+.rs-battle {    display: flex;
     flex-direction: column;
     gap: var(--sp-xs);
     border: var(--border-width) solid var(--color-border);
@@ -303,6 +310,38 @@
 
     &.rs-lose {
         color: var(--color-danger);
+    }
+}
+
+/* 教学观战轮：默认折叠，这一条常驻可点开 */
+.rs-tutorial-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    padding: var(--sp-xs) var(--sp-sm);
+    background: var(--color-bg-panel);
+}
+
+.rs-tutorial-note {
+    flex: 1;
+    min-width: 0;
+    color: var(--color-text-dim);
+    font-size: var(--font-sm);
+}
+
+.rs-tutorial-toggle {
+    flex-shrink: 0;
+    padding: var(--sp-xxs) var(--sp-sm);
+    background: none;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--color-bg-hover);
     }
 }
 
