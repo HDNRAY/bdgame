@@ -740,30 +740,32 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
     // 齐眉棍（双手）：attack 副手锚点上移 1 格；parry 武器整体右移 4 格
     // （右移 = 武器本地握点左移 4；两点连线角度自动计算，故双锚点仍落在手上）
     qimei_staff: {
-        ...makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
+        ...makePoses({ gripX: 12.5, gripY: 12.5, grip2X: 29.5, grip2Y: 29.5, flip: true }),
         // attack：副手锚点上移 1 格；主手锚点（第二握点）上移 1 格（两点各自覆盖，连线角度自动贴合）
         attack: {
-            gripX: 7,
-            gripY: 7,
-            grip2X: 24,
-            grip2Y: 24,
+            gripX: 12.5,
+            gripY: 12.5,
+            grip2X: 29.5,
+            grip2Y: 29.5,
             handX: OTHER_HAND_POINT.attack.x,
             handY: OTHER_HAND_POINT.attack.y - 0.5, // 有效锚点含 +0.5 微调 → 净上移 1 格
             targetX: HAND_POINTS.attack.x,
             targetY: HAND_POINTS.attack.y - 1, // 主手上移 1 格
+            flip: true,
         },
         // parry：副手锚点上移 1 格；武器整体「水平右移 5 格 + 下移 1.5 格」且两点仍贴手
         // 手法：两个握点在武器图上一起平移（按当前旋转角逆向量补偿）→ 武器整体平移，握点↔手不变。
         // 注：补偿量随 parry 手锚点/棍身轴线变化，改手位后需重算。
         parry: {
-            gripX: 10.55,
-            gripY: 10.82,
-            grip2X: 27.55,
-            grip2Y: 27.82,
+            gripX: 16.05,
+            gripY: 16.32,
+            grip2X: 33.05,
+            grip2Y: 33.32,
             handX: OTHER_HAND_POINT.parry.x,
             handY: OTHER_HAND_POINT.parry.y - 1,
             targetX: HAND_POINTS.parry.x,
             targetY: HAND_POINTS.parry.y,
+            flip: true,
         },
         // hit：脱手落在角色左侧、竖着；整体右移 12 格并顺时针 10°
         hit: {
@@ -794,7 +796,7 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
     // 破狼竹枝 / 陨铁神珍（双手长杆）：握点同齐眉棍 —— 主握点 7,7 锚副手、第二握点 24,24 定轴线
     // hit：照齐眉棍的脱手姿势 —— 武器竖着落在角色左侧、顺时针 10°（握点与两锚点显式给出）
     po_lang_zhu_zhi: {
-        ...makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
+        ...makePoses({ gripX: 12.5, gripY: 12.5, grip2X: 29.5, grip2Y: 29.5, flip: true }),
         hit: {
             gripX: 7,
             gripY: 7,
@@ -806,7 +808,7 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
         },
     },
     dinghai_shen_tie: {
-        ...makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
+        ...makePoses({ gripX: 12.5, gripY: 12.5, grip2X: 29.5, grip2Y: 29.5, flip: true }),
         hit: {
             gripX: 7,
             gripY: 7,
@@ -934,12 +936,13 @@ export function shouldDrawHandCover(pose: string): boolean {
  */
 export function getWeaponAngle(weaponId: string, pose: string, facingRight: boolean): number {
     const cfg = getWeaponPoseConfig(weaponId, pose)
+    const flip = cfg.flip ? Math.PI : 0
     if (cfg.angle !== undefined) {
-        return facingRight ? cfg.angle : -cfg.angle
+        return (facingRight ? cfg.angle : -cfg.angle) + flip
     }
     if (cfg.grip2X === undefined || cfg.grip2Y === undefined) {
-        if (pose !== 'attack') return 0
-        return facingRight ? -Math.PI / 4 : Math.PI / 4
+        if (pose !== 'attack') return flip
+        return (facingRight ? -Math.PI / 4 : Math.PI / 4) + flip
     }
     // 锚点 = 副手（左手），目标 = 主手（右手）；两者均可被该武器的姿势配置覆盖
     const { anchor: baseAnchor, target: baseTarget } = getDualHandPoints(pose)
@@ -950,7 +953,7 @@ export function getWeaponAngle(weaponId: string, pose: string, facingRight: bool
     const dy = target.y - anchor.y
     const wdx = cfg.grip2X - cfg.gripX
     const wdy = cfg.grip2Y - cfg.gripY
-    if (facingRight) return Math.atan2(dy, dx) - Math.atan2(wdy, wdx)
+    if (facingRight) return Math.atan2(dy, dx) - Math.atan2(wdy, wdx) + flip
     // 朝左：武器本地 x 镜像为 -wdx，锚点/目标 x 亦镜像为 -dx
-    return Math.atan2(dy, -dx) - Math.atan2(wdy, -wdx)
+    return Math.atan2(dy, -dx) - Math.atan2(wdy, -wdx) + flip
 }

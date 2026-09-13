@@ -48,4 +48,6 @@ export interface WeaponPoseConfig {
     angle?: number
     /** 无手部覆盖层 — 漂浮类武器（如法珠）无需"握着"的皮肤盖片 */
     noHandCover?: boolean
+    /** 反向握持：该姿势最终角度再 +180°（长杆"掉头"拿、长端朝前时用） */
+    flip?: boolean
 }
