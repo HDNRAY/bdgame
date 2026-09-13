@@ -384,16 +384,81 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
             [8, -3, '#996633'],
         ],
     },
+    // 铁枪·破军（双手长枪）：参考「猛虎啸牙枪」——细锋刃 + 虎口吞口；无红缨
+    // 点阵：刃身每步 1~2 像素（渲染 2~3 格），只在刃根 k6/k8 与虎口 k10 外张到 3 像素（渲染约 4 格）
+    // k0~8 锋刃（钢）、k9~11 虎口（深铁 + 一格暗红）、k12~48 黑铁枪杆
     iron_spear: {
+        palette: {
+            '0': '#9aa4b4', // 锋刃 中（提亮）
+            '1': '#5b6373', // 锋刃 暗（提亮）
+            '2': '#e8edf5', // 锋刃 亮（提亮）
+            '3': '#23272e', // 虎口 深铁
+            '4': '#5a2b22', // 虎口 内里暗红
+            '7': '#4a505c', // 枪杆 中（黑铁）
+            '8': '#2b2f38', // 枪杆 暗（黑铁）
+        },
         pixels: [
-            [10, -6, '#996633'],
-            [10, -5, '#996633'],
-            [10, -4, '#996633'],
-            [10, -3, '#996633'],
-            [10, -2, '#996633'],
-            [10, -1, '#996633'],
-            [9, -7, '#c0c0c0'],
-            [11, -7, '#c0c0c0'],
+            [3, 3, 2],
+            [4, 3, 0],
+            [3, 4, 0],
+            [4, 4, 2],
+            [5, 4, 0],
+            [4, 5, 0],
+            [5, 5, 2],
+            [6, 5, 0],
+            [7, 5, 1],
+            [5, 6, 0],
+            [6, 6, 2],
+            [7, 6, 0],
+            [8, 6, 1],
+            [5, 7, 1],
+            [6, 7, 0],
+            [7, 7, 2],
+            [8, 7, 3],
+            [9, 7, 3],
+            [6, 8, 1],
+            [7, 8, 3],
+            [8, 8, 4],
+            [9, 8, 3],
+            [7, 9, 3],
+            [8, 9, 3],
+            [9, 9, 7],
+            [10, 9, 8],
+            [10, 10, 7],
+            [11, 10, 8],
+            [11, 11, 7],
+            [12, 11, 8],
+            [12, 12, 7],
+            [13, 12, 8],
+            [13, 13, 7],
+            [14, 13, 8],
+            [14, 14, 7],
+            [15, 14, 8],
+            [15, 15, 7],
+            [16, 15, 8],
+            [16, 16, 7],
+            [17, 16, 8],
+            [17, 17, 7],
+            [18, 17, 8],
+            [18, 18, 7],
+            [19, 18, 8],
+            [19, 19, 7],
+            [20, 19, 8],
+            [20, 20, 7],
+            [21, 20, 8],
+            [21, 21, 7],
+            [22, 21, 8],
+            [22, 22, 7],
+            [23, 22, 8],
+            [23, 23, 7],
+            [24, 23, 8],
+            [24, 24, 7],
+            [25, 24, 8],
+            [25, 25, 7],
+            [26, 25, 8],
+            [26, 26, 7],
+            [27, 26, 8],
+            [27, 27, 7],
         ],
     },
     // ── 32×32 坐标系（剑尖/棍尖朝左上，握柄在右下）──
@@ -660,6 +725,71 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
             [27, 27, 6],
         ],
     },
+    // 长枪（双手长杆 + 枪头）：与三根杆同一条 45° 对角线、同样的 2 格宽点阵
+    // k = x+y-6：k0~8 枪头（2 格宽、单像素逐步，中列亮 / 背光列中），k9~10 铜箍，k11~48 木杆
+    long_spear: {
+        palette: {
+            '0': '#8a90a0', // 枪头 中
+            '1': '#5b6270', // 枪头 暗
+            '2': '#d0d6e0', // 枪头 亮
+            '4': '#b08a3c', // 铜箍 中
+            '5': '#7a5c22', // 铜箍 暗
+            '6': '#e0bb62', // 铜箍 亮
+            '7': '#9a6d33', // 杆身 中（木）
+            '8': '#6e441a', // 杆身 暗（木）
+        },
+        pixels: [
+            [3, 3, 2],
+            [4, 3, 0],
+            [4, 4, 2],
+            [5, 4, 0],
+            [5, 5, 2],
+            [6, 5, 0],
+            [6, 6, 2],
+            [7, 6, 0],
+            [7, 7, 2],
+            [8, 7, 4],
+            [8, 8, 6],
+            [9, 8, 8],
+            [9, 9, 7],
+            [10, 9, 8],
+            [10, 10, 7],
+            [11, 10, 8],
+            [11, 11, 7],
+            [12, 11, 8],
+            [12, 12, 7],
+            [13, 12, 8],
+            [13, 13, 7],
+            [14, 13, 8],
+            [14, 14, 7],
+            [15, 14, 8],
+            [15, 15, 7],
+            [16, 15, 8],
+            [16, 16, 7],
+            [17, 16, 8],
+            [17, 17, 7],
+            [18, 17, 8],
+            [18, 18, 7],
+            [19, 18, 8],
+            [19, 19, 7],
+            [20, 19, 8],
+            [20, 20, 7],
+            [21, 20, 8],
+            [21, 21, 7],
+            [22, 21, 8],
+            [22, 22, 7],
+            [23, 22, 8],
+            [23, 23, 7],
+            [24, 23, 8],
+            [24, 24, 7],
+            [25, 24, 8],
+            [25, 25, 7],
+            [26, 25, 8],
+            [26, 26, 7],
+            [27, 26, 8],
+            [27, 27, 7],
+        ],
+    },
 }
 
 /** 全部姿势名 */
@@ -704,7 +834,65 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
     chun_lei: makePoses({ gripX: 8, gripY: 7 }),
     heshan_sword: makePoses({ gripX: 8, gripY: 7 }),
     dagger: makePoses({ gripX: 8, gripY: -3 }),
-    iron_spear: makePoses({ gripX: 10, gripY: -3 }),
+    // 铁枪·破军（双手长枪）：握持配置与破狼竹枝逐字一致（含 flip；虎牙刃在美术左上端，与竹枝嫩竹同端）
+    iron_spear: {
+        ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
+        // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
+        idle: {
+            gripX: 21.0,
+            gripY: 21.7,
+            grip2X: 38.0,
+            grip2Y: 38.7,
+            flip: true,
+            handX: OTHER_HAND_POINT.idle.x,
+            handY: OTHER_HAND_POINT.idle.y + 1,
+            targetX: HAND_POINTS.idle.x,
+            targetY: HAND_POINTS.idle.y + 1,
+        },
+        dodge: {
+            gripX: 21.0,
+            gripY: 21.7,
+            grip2X: 38.0,
+            grip2Y: 38.7,
+            flip: true,
+            handX: OTHER_HAND_POINT.dodge.x,
+            handY: OTHER_HAND_POINT.dodge.y + 1,
+            targetX: HAND_POINTS.dodge.x,
+            targetY: HAND_POINTS.dodge.y + 1,
+        },
+        attack: {
+            gripX: 23.8,
+            gripY: 23.8,
+            grip2X: 40.8,
+            grip2Y: 40.8,
+            flip: true,
+            handX: OTHER_HAND_POINT.attack.x,
+            handY: OTHER_HAND_POINT.attack.y - 0.5,
+            targetX: HAND_POINTS.attack.x,
+            targetY: HAND_POINTS.attack.y,
+        },
+        parry: {
+            gripX: 23.6,
+            gripY: 23.6,
+            grip2X: 40.6,
+            grip2Y: 40.6,
+            flip: true,
+            handX: OTHER_HAND_POINT.parry.x,
+            handY: OTHER_HAND_POINT.parry.y - 1,
+            targetX: HAND_POINTS.parry.x,
+            targetY: HAND_POINTS.parry.y + 1,
+        },
+        // hit：脱手落在角色左侧、竖着；整体右移 12 格并顺时针 10°
+        hit: {
+            gripX: 7,
+            gripY: 7,
+            grip2X: 24,
+            grip2Y: 24,
+            handX: 24 + SPRITE_PAD_LEFT,
+            handY: 34.5,
+            angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
+        },
+    },
     // 桃木剑：单手剑。招架时主手锚定（面前抬手），剑身旋转斜穿副手（腰间握持），只给主手遮罩
     peach_sword: {
         ...makePoses({ gripX: 24, gripY: 24 }),
@@ -911,6 +1099,66 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
     },
+    // 长枪（双手长杆 + 枪头）：握持配置与破狼竹枝逐字一致（含 flip；枪头在美术左上端，与竹枝嫩竹同端）
+    long_spear: {
+        ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
+        // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
+        idle: {
+            gripX: 21.0,
+            gripY: 21.7,
+            grip2X: 38.0,
+            grip2Y: 38.7,
+            flip: true,
+            handX: OTHER_HAND_POINT.idle.x,
+            handY: OTHER_HAND_POINT.idle.y + 1,
+            targetX: HAND_POINTS.idle.x,
+            targetY: HAND_POINTS.idle.y + 1,
+        },
+        dodge: {
+            gripX: 21.0,
+            gripY: 21.7,
+            grip2X: 38.0,
+            grip2Y: 38.7,
+            flip: true,
+            handX: OTHER_HAND_POINT.dodge.x,
+            handY: OTHER_HAND_POINT.dodge.y + 1,
+            targetX: HAND_POINTS.dodge.x,
+            targetY: HAND_POINTS.dodge.y + 1,
+        },
+        attack: {
+            gripX: 23.8,
+            gripY: 23.8,
+            grip2X: 40.8,
+            grip2Y: 40.8,
+            flip: true,
+            handX: OTHER_HAND_POINT.attack.x,
+            handY: OTHER_HAND_POINT.attack.y - 0.5,
+            targetX: HAND_POINTS.attack.x,
+            targetY: HAND_POINTS.attack.y,
+        },
+        parry: {
+            gripX: 23.6,
+            gripY: 23.6,
+            grip2X: 40.6,
+            grip2Y: 40.6,
+            flip: true,
+            handX: OTHER_HAND_POINT.parry.x,
+            handY: OTHER_HAND_POINT.parry.y - 1,
+            targetX: HAND_POINTS.parry.x,
+            targetY: HAND_POINTS.parry.y + 1,
+        },
+        // hit：脱手落在角色左侧、竖着；整体右移 12 格并顺时针 10°
+        hit: {
+            gripX: 7,
+            gripY: 7,
+            grip2X: 24,
+            grip2Y: 24,
+            handX: 24 + SPRITE_PAD_LEFT,
+            handY: 34.5,
+            angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
+        },
+    },
+
 }
 
 /** 未登记武器的兜底配置 */

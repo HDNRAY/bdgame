@@ -97,6 +97,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 **画法约定**（`src/ui/pixel-sprites/weapons.ts`）：
 
 - 一律按轴向几何生成：`u = (A - x - y)·√½`（沿轴，越大越靠尖端/左上）、`v = (y - x)·√½`（横向，符号决定受光/背光侧），`A` 取该武器轴起点的 `x + y`。禁止「按行阶梯」画斜线（会斜掉）。
+- 刃/尖端一律画在美术网格的**左上端**（沿轴坐标 `k = x+y-6` 的小端）。要让长端朝角色正面，用握点/`flip` 去解决，不要反过来画刃（所有兵器点阵同源才好复用）。
 - 武器美术画在 32×32 网格（`constants.ts` 的 `WEAPON_WIDTH/HEIGHT`）；像素颜色索引必须写**数字**（字符串会被当成颜色字面量，渲染成黑色）。
 - 握点与姿势独立登记在 `WEAPON_POSES`：单手武器锚主手；双手武器给 `gripX/gripY` + `grip2X/grip2Y`，角度由两手连线自动算（`getWeaponAngle`），可用 `handX/handY/targetX/targetY/angle` 逐姿势覆盖。**每把武器独立写配置，同族也不共享常量**，便于逐把微调。
 - 改手位或轴向后必须同步 `HAND_POINTS` / `OTHER_HAND_POINT` / `HAND_COVER` / `LEFT_HAND_COVER`。
