@@ -44,6 +44,12 @@ interface PixelCanvasProps {
     secondAngle?: number
     /** 双持时主手角度覆盖（不填用 getDualMainAngle） */
     dualMainAngle?: number
+    /** 画布列数（格）——不填则用 max(内容宽高) 的方形画布；武器/长兵器可指定更宽 */
+    canvasCols?: number
+    /** 画布行数（格）——不填同 canvasCols 的逻辑 */
+    canvasRows?: number
+    /** 内容左上角在画布中的列位置（格）——不填则水平居中；用于"左侧留更多空间" */
+    contentOffsetX?: number
 }
 
 export function PixelCanvas({
@@ -60,6 +66,9 @@ export function PixelCanvas({
     secondWeaponId,
     secondAngle,
     dualMainAngle,
+    canvasCols,
+    canvasRows,
+    contentOffsetX,
 }: PixelCanvasProps) {
     const ref = useRef<HTMLCanvasElement>(null)
 
@@ -81,14 +90,16 @@ export function PixelCanvas({
         contentH = WEAPON_HEIGHT
     }
 
-    // 始终方形画布：side = max(w, h)，内容居中，空白自动补齐（避免非方形被拉伸变形）
+    // 画布尺寸：默认方形（side = max(w, h)，内容居中）；可用 canvasCols/Rows 指定更大画布
     const side = Math.max(contentW, contentH)
+    const cols = canvasCols ?? side
+    const rows = canvasRows ?? side
     // 仅武器图标模式用 os 缩放；有角色像素时用 scale
-    const bufW = side * (hasPixels ? scale : os)
-    const bufH = side * (hasPixels ? scale : os)
-    // 内容居中偏移（像素格）
-    const offX = Math.floor((side - contentW) / 2)
-    const offY = Math.floor((side - contentH) / 2)
+    const bufW = cols * (hasPixels ? scale : os)
+    const bufH = rows * (hasPixels ? scale : os)
+    // 内容居中偏移（像素格）；contentOffsetX 可让左侧留更多空间
+    const offX = contentOffsetX ?? Math.floor((cols - contentW) / 2)
+    const offY = Math.floor((rows - contentH) / 2)
 
     useEffect(() => {
         const canvas = ref.current

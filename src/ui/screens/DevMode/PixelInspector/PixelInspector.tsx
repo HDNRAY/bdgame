@@ -19,13 +19,16 @@ import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { PixelCanvas } from '../../../components/ui/PixelCanvas/PixelCanvas'
 import './PixelInspector.scss'
 
-/** 像素放大倍数：角色精灵（多动作并排展示，稍缩小便于容纳） */
-const SCALE = 6
+/** 姿势帧默认缩放（每像素格显示尺寸，可由工具栏滑块调整） */
+const DEFAULT_ZOOM = 4
+/** 缩放滑块范围 */
+const ZOOM_MIN = 2
+const ZOOM_MAX = 12
 /** 头像放大倍数 */
 const AVATAR_SCALE = 4
 /** 武器单图放大倍数：32×32 → 192×192 */
 const WEAPON_SCALE = 6
-/** 头像/武器显示尺寸：两个并排 ≈ 一个动作帧宽（SCALE×60 = 360） */
+/** 头像/武器显示尺寸：两个并排 ≈ 一个动作帧宽 */
 const AVATAR_WEAPON_SIZE = 176
 
 /** 角色 ID 列表（有配色 + 体型映射的），中文名取自 OpponentDef.name */
@@ -34,13 +37,25 @@ const CHARACTER_IDS = Object.keys(CHARACTER_COLORS).filter((id) => CHARACTER_SPR
 /** 角色 ID → 中文名（来自 data/opponents 的 name 字段） */
 const NAME_BY_ID: Record<string, string> = Object.fromEntries(OPPONENTS.map((o) => [o.id, o.name]))
 
-/** 武器 ID 列表 */
-const WEAPON_IDS = Object.keys(WEAPON_OVERLAYS)
+/** 武器 ID 列表：起始武器 + 武器库全量（含有数据但尚未绘制像素图的武器，便于对照还缺哪些美术） */
+const WEAPON_IDS = Array.from(new Set([...STARTING_WEAPONS, ...WEAPON_DB].map((w) => w.id)))
+
+/** 武器 ID → 是否已有像素图（没有美术的武器在查看器里只能看到角色空手） */
+const WEAPON_HAS_ART: Record<string, boolean> = {
+    ...Object.fromEntries(Object.entries(WEAPON_OVERLAYS).map(([id, ov]) => [id, ov.pixels.length > 0])),
+    // 空手本来就没有武器图，不算"未绘制"
+    bare_hands: true,
+}
 
 /** 武器 ID → 中文名（来自 data/weapons，找不到则回退为 id 本身） */
 const WEAPON_NAME: Record<string, string> = Object.fromEntries(
     [...WEAPON_DB, ...STARTING_WEAPONS].map((w) => [w.id, w.name]),
 )
+
+/** 下拉项文案：未绘制像素图的武器标注出来 */
+function weaponLabel(id: string): string {
+    return `${WEAPON_NAME[id] ?? id}${WEAPON_HAS_ART[id] ? '' : '（未绘制）'}`
+}
 
 interface PixelInfo {
     x: number
@@ -95,7 +110,11 @@ export function PixelInspector() {
     /** 双持预览：主手武器 + 副手武器（默认桃木剑，看副手锚点/角度） */
     const [dualWield, setDualWield] = useState(true)
     const [offhandId, setOffhandId] = useState('peach_sword')
+    /** 姿势帧缩放：每像素格的显示尺寸（画布缓冲同步，保证 1:1 清晰） */
+    const [zoom, setZoom] = useState(DEFAULT_ZOOM)
     const overlay = useMemo(() => WEAPON_OVERLAYS[weaponId] ?? WEAPON_OVERLAYS.bare_hands, [weaponId])
+    const hasWeaponArt = WEAPON_HAS_ART[weaponId] ?? false
+    const hasOffhandArt = WEAPON_HAS_ART[offhandId] ?? false
     const idlePose = useMemo(() => getWeaponPoseConfig(weaponId, 'idle'), [weaponId])
     // 武器坐标系尺寸（显示整个网格，见 constants.ts）
     const weaponW = WEAPON_WIDTH
@@ -126,12 +145,15 @@ export function PixelInspector() {
 
     const height = idlePixels.length
     const width = idlePixels[0].length
-    // 与 PixelCanvas 一致的方形画布与居中偏移（内容 60×48 → 方形 60×60，垂直居中 offY=6）
+    // 画布尺寸：宽度取 2 倍（给长兵器/大范围攻击留空间），多出的宽度按 1.5:0.5 分配
+    // → 左侧留得多（武器多向左挥）、右侧留得少；高度在方形基准上减 6 格
     const side = Math.max(width, height)
-    const bufW = side * SCALE
-    const bufH = side * SCALE
-    const offX = Math.floor((side - width) / 2)
-    const offY = Math.floor((side - height) / 2)
+    const canvasCols = side * 2
+    const canvasRows = side - 6
+    const bufW = canvasCols * zoom
+    const bufH = canvasRows * zoom
+    const offX = Math.round(((canvasCols - width) * 3) / 4)
+    const offY = Math.floor((canvasRows - height) / 2)
 
     /** 颜色使用统计（基于 idle 帧） */
     const colorStats = useMemo(() => {
@@ -178,8 +200,8 @@ export function PixelInspector() {
     const toPixel = (e: React.MouseEvent<HTMLCanvasElement>): { x: number; y: number } | null => {
         const canvas = e.currentTarget
         const rect = canvas.getBoundingClientRect()
-        const x = Math.floor(((e.clientX - rect.left) / rect.width) * side) - offX
-        const y = Math.floor(((e.clientY - rect.top) / rect.height) * side) - offY
+        const x = Math.floor(((e.clientX - rect.left) / rect.width) * canvasCols) - offX
+        const y = Math.floor(((e.clientY - rect.top) / rect.height) * canvasRows) - offY
         if (x < 0 || x >= width || y < 0 || y >= height) return null
         return { x, y }
     }
@@ -194,21 +216,24 @@ export function PixelInspector() {
         const ctx = canvas.getContext('2d')
         if (!ctx) return
         ctx.clearRect(0, 0, bufW, bufH)
+        // 高亮框格边长（缩放很小时至少 1px，避免画不出来）
+        const hoverSize = Math.max(1, zoom - 2)
 
         if (showGrid) {
             ctx.strokeStyle = 'rgba(128, 128, 128, 0.35)'
             ctx.lineWidth = 1
-            for (let i = 0; i <= width; i++) {
+            // 竖线按画布绝对列号（不加内容偏移），否则左侧留白区没有网格
+            for (let i = 0; i <= canvasCols; i++) {
                 ctx.beginPath()
-                ctx.moveTo((i + offX) * SCALE + 0.5, 0)
-                ctx.lineTo((i + offX) * SCALE + 0.5, bufH)
+                ctx.moveTo(i * zoom + 0.5, 0)
+                ctx.lineTo(i * zoom + 0.5, bufH)
                 ctx.stroke()
             }
             // 横线铺满整个方形画布（含上下留白），避免上下缺横线
-            for (let j = 0; j <= side; j++) {
+            for (let j = 0; j <= canvasRows; j++) {
                 ctx.beginPath()
-                ctx.moveTo(0, j * SCALE + 0.5)
-                ctx.lineTo(bufW, j * SCALE + 0.5)
+                ctx.moveTo(0, j * zoom + 0.5)
+                ctx.lineTo(bufW, j * zoom + 0.5)
                 ctx.stroke()
             }
         }
@@ -218,14 +243,14 @@ export function PixelInspector() {
             ctx.strokeStyle = '#4ecdc4'
             ctx.lineWidth = 2
             ctx.setLineDash([4, 3])
-            ctx.strokeRect((hover.x + offX) * SCALE + 1, (hover.y + offY) * SCALE + 1, SCALE - 2, SCALE - 2)
+            ctx.strokeRect((hover.x + offX) * zoom + 1, (hover.y + offY) * zoom + 1, hoverSize, hoverSize)
             ctx.setLineDash([])
         }
         // locked 高亮（实线）
         if (locked) {
             ctx.strokeStyle = '#ff6b6b'
             ctx.lineWidth = 2
-            ctx.strokeRect((locked.x + offX) * SCALE + 1, (locked.y + offY) * SCALE + 1, SCALE - 2, SCALE - 2)
+            ctx.strokeRect((locked.x + offX) * zoom + 1, (locked.y + offY) * zoom + 1, hoverSize, hoverSize)
         }
     }
 
@@ -258,7 +283,7 @@ export function PixelInspector() {
                     <select value={weaponId} onChange={(e) => setWeaponId(e.target.value)}>
                         {WEAPON_IDS.map((id) => (
                             <option key={id} value={id}>
-                                {WEAPON_NAME[id] ?? id}
+                                {weaponLabel(id)}
                             </option>
                         ))}
                     </select>
@@ -281,16 +306,41 @@ export function PixelInspector() {
                         <select value={offhandId} onChange={(e) => setOffhandId(e.target.value)}>
                             {WEAPON_IDS.map((id) => (
                                 <option key={id} value={id}>
-                                    {WEAPON_NAME[id] ?? id}
+                                    {weaponLabel(id)}
                                 </option>
                             ))}
                         </select>
                     </label>
                 )}
+                <label className="pixel-inspector-zoom">
+                    缩放
+                    <input
+                        type="range"
+                        min={ZOOM_MIN}
+                        max={ZOOM_MAX}
+                        step={1}
+                        value={zoom}
+                        onChange={(e) => setZoom(Number(e.target.value))}
+                    />
+                    <span className="pixel-inspector-size">{zoom}x</span>
+                </label>
                 <span className="pixel-inspector-size">
-                    {width}×{height} @ {SCALE}x
+                    {width}×{height} 内容 · 画布 {canvasCols}×{canvasRows}
                 </span>
             </div>
+
+            {!hasWeaponArt && (
+                <p className="pixel-inspector-hint">
+                    「{WEAPON_NAME[weaponId] ?? weaponId}」尚未绘制像素图 —— 画面只显示角色空手。
+                    补图方式：在 weapons.ts 的 WEAPON_OVERLAYS 里加一张 {weaponW}×{weaponH} 网格的叠加图，
+                    并在 WEAPON_POSES 里登记握点/角度。
+                </p>
+            )}
+            {dualWield && !hasOffhandArt && (
+                <p className="pixel-inspector-hint">
+                    副手「{WEAPON_NAME[offhandId] ?? offhandId}」尚未绘制像素图。
+                </p>
+            )}
 
             <div className="pixel-inspector-body">
                 <div className="pixel-inspector-frames">
@@ -301,13 +351,16 @@ export function PixelInspector() {
                                 <PixelCanvas
                                     pixels={pixels}
                                     palette={palette}
-                                    scale={SCALE}
+                                    scale={zoom}
                                     pose={name}
                                     weaponId={compositeWeapon ? weaponId : undefined}
                                     angle={!dualWield && name === 'attack' ? -Math.PI / 4 : undefined}
                                     overlay={compositeWeapon ? overlay : undefined}
                                     secondWeaponId={compositeWeapon && dualWield ? offhandId : undefined}
                                     dualMainAngle={compositeWeapon && dualWield ? getDualMainAngle(weaponId, name, true) : undefined}
+                                    canvasCols={canvasCols}
+                                    canvasRows={canvasRows}
+                                    contentOffsetX={offX}
                                     className="pixel-inspector-canvas"
                                 />
                                 <canvas
@@ -355,7 +408,8 @@ export function PixelInspector() {
                         </div>
                         <figcaption className="pixel-inspector-weapon-caption">
                             weapon · {weaponId}（{weaponW}×{weaponH}，grip {idlePose.gripX},{idlePose.gripY}
-                            {idlePose.grip2X !== undefined ? ` / 2nd ${idlePose.grip2X},${idlePose.grip2Y}` : ''}）
+                            {idlePose.grip2X !== undefined ? ` / 2nd ${idlePose.grip2X},${idlePose.grip2Y}` : ''}
+                            {hasWeaponArt ? '' : '，未绘制'}）
                         </figcaption>
                     </figure>
                 </div>

@@ -38,6 +38,18 @@
         }
     }
 
+    &-zoom {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sp-xs);
+        font-size: var(--font-sm);
+
+        input[type='range'] {
+            width: 120px;
+            accent-color: var(--color-accent);
+        }
+    }
+
     &-size {
         font-size: var(--font-xs);
         color: var(--color-text-dim);
@@ -67,6 +79,8 @@
             font-family: var(--font-mono);
         }
 
+        /* 姿势帧画布：尺寸由 canvas 缓冲（画布格数 × 缩放）决定，避免被 CSS 拉伸 */
+
         &--avatar {
             .pixel-inspector-avatar-row {
                 display: flex;
@@ -95,8 +109,6 @@
 
     &-canvas {
         display: block;
-        width: 384px;
-        height: 384px;
         border: 1px solid var(--color-border);
         border-radius: var(--radius-md);
         image-rendering: pixelated;

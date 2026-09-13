@@ -19,10 +19,15 @@ const ENEMY_LEVEL = 33
 /** 初始武器集合（免费位，不计入奖励位） */
 const STARTING_IDS = new Set(STARTING_WEAPONS.map((w) => w.id))
 
-/** 能否作副手 / 能否配副手：单手且非御物（与引擎 weapon_one_handed 口径一致） */
+/**
+ * 可双持 / 可作副手：单人可持的**单手近战兵器**。
+ * one_handed 只是必要条件 —— 还要排除御物（imperial）与长柄（polearm，如千机）。
+ */
 function isOneHanded(weaponId: string): boolean {
     const def = getWeapon(weaponId)
-    return !!def && def.tags.includes('one_handed') && !def.tags.includes('imperial')
+    if (!def) return false
+    const t = def.tags
+    return t.includes('one_handed') && !t.includes('imperial') && !t.includes('polearm')
 }
 
 function freshBuild(): CharacterBuild {
@@ -105,9 +110,7 @@ export function BuildSim() {
 
     // 下一把武器将作为副手（主手已是单手选件且尚无副手）→ 武器页只列单手
     const offhandPickMode = !build.offhand && !STARTING_IDS.has(build.weapon) && isOneHanded(build.weapon)
-    const weaponFilter: ((w: WeaponDef) => boolean) | undefined = offhandPickMode
-        ? (w) => w.tags.includes('one_handed') && !w.tags.includes('imperial')
-        : undefined
+    const weaponFilter: ((w: WeaponDef) => boolean) | undefined = offhandPickMode ? (w) => isOneHanded(w.id) : undefined
 
     // 初始武器切换（已选出主手时禁用）
     const handleInitWeapon = (id: string) => {
@@ -294,7 +297,7 @@ export function BuildSim() {
                 <span className="bsim-hint">
                     {isOneHanded(build.weapon)
                         ? '完成属性分配后点面板右上「保存」再试炼'
-                        : '主手为双手/御物武器：不可配副手'}
+                        : '主手非单手近战兵器（双手/御物/长柄）：不可配副手'}
                 </span>
                 <button className="bsim-new" onClick={handleNewBuild}>
                     新建构筑
