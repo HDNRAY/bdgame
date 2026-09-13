@@ -461,6 +461,78 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
             [27, 27, 7],
         ],
     },
+    // 镇北戟（双手长戟）：姬家世代相传的战戟，千星重铸的赛博战戟
+    // 戟头 = 中央直刃（钢，k0~10）+ 一侧月牙（根部 k7 两格厚做出弧度，两尖向外收到 +3：k5/k9）
+    // 枪杆比破军更深；点阵同三根杆/枪（每步 1~2 像素的 2 格宽带）
+    zhen_bei_ji: {
+        palette: {
+            '0': '#8b95a6', // 戟头 中
+            '1': '#596273', // 戟头 暗
+            '2': '#d5dded', // 戟头 亮
+            '3': '#23272e', // 吞口 深铁
+            '7': '#383d47', // 枪杆 中（比破军更深）
+            '8': '#1e2128', // 枪杆 暗
+        },
+        pixels: [
+            [3, 3, 2],
+            [4, 3, 1],
+            [4, 4, 2],
+            [5, 4, 1],
+            [5, 5, 2],
+            [6, 5, 1],
+            [6, 6, 2],
+            [7, 6, 1],
+            [4, 7, 2],
+            [4, 6, 0],
+            [6, 7, 1],
+            [7, 7, 2],
+            [8, 7, 1],
+            [5, 6, 1],
+            [6, 8, 0],
+            [3, 6, 2],
+            [5, 8, 2],
+            [8, 8, 2],
+            [7, 8, 3],
+            [6, 9, 2],
+            [9, 9, 3],
+            [10, 9, 8],
+            [10, 10, 7],
+            [11, 10, 8],
+            [11, 11, 7],
+            [12, 11, 8],
+            [12, 12, 7],
+            [13, 12, 8],
+            [13, 13, 7],
+            [14, 13, 8],
+            [14, 14, 7],
+            [15, 14, 8],
+            [15, 15, 7],
+            [16, 15, 8],
+            [16, 16, 7],
+            [17, 16, 8],
+            [17, 17, 7],
+            [18, 17, 8],
+            [18, 18, 7],
+            [19, 18, 8],
+            [19, 19, 7],
+            [20, 19, 8],
+            [20, 20, 7],
+            [21, 20, 8],
+            [21, 21, 7],
+            [22, 21, 8],
+            [22, 22, 7],
+            [23, 22, 8],
+            [23, 23, 7],
+            [24, 23, 8],
+            [24, 24, 7],
+            [25, 24, 8],
+            [25, 25, 7],
+            [26, 25, 8],
+            [26, 26, 7],
+            [27, 26, 8],
+            [27, 27, 7],
+        ],
+    },
     // ── 32×32 坐标系（剑尖/棍尖朝左上，握柄在右下）──
     peach_sword: {
         palette: {
@@ -893,6 +965,65 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
     },
+    // 镇北戟（双手长戟）：握持配置与破狼竹枝逐字一致（含 flip；戟头在美术左上端）
+    zhen_bei_ji: {
+        ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
+        // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
+        idle: {
+            gripX: 21.0,
+            gripY: 21.7,
+            grip2X: 38.0,
+            grip2Y: 38.7,
+            flip: true,
+            handX: OTHER_HAND_POINT.idle.x,
+            handY: OTHER_HAND_POINT.idle.y + 1,
+            targetX: HAND_POINTS.idle.x,
+            targetY: HAND_POINTS.idle.y + 1,
+        },
+        dodge: {
+            gripX: 21.0,
+            gripY: 21.7,
+            grip2X: 38.0,
+            grip2Y: 38.7,
+            flip: true,
+            handX: OTHER_HAND_POINT.dodge.x,
+            handY: OTHER_HAND_POINT.dodge.y + 1,
+            targetX: HAND_POINTS.dodge.x,
+            targetY: HAND_POINTS.dodge.y + 1,
+        },
+        attack: {
+            gripX: 23.8,
+            gripY: 23.8,
+            grip2X: 40.8,
+            grip2Y: 40.8,
+            flip: true,
+            handX: OTHER_HAND_POINT.attack.x,
+            handY: OTHER_HAND_POINT.attack.y - 0.5,
+            targetX: HAND_POINTS.attack.x,
+            targetY: HAND_POINTS.attack.y,
+        },
+        parry: {
+            gripX: 23.6,
+            gripY: 23.6,
+            grip2X: 40.6,
+            grip2Y: 40.6,
+            flip: true,
+            handX: OTHER_HAND_POINT.parry.x,
+            handY: OTHER_HAND_POINT.parry.y - 1,
+            targetX: HAND_POINTS.parry.x,
+            targetY: HAND_POINTS.parry.y + 1,
+        },
+        // hit：脱手落在角色左侧、竖着；整体右移 12 格并顺时针 10°
+        hit: {
+            gripX: 7,
+            gripY: 7,
+            grip2X: 24,
+            grip2Y: 24,
+            handX: 24 + SPRITE_PAD_LEFT,
+            handY: 34.5,
+            angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
+        },
+    },
     // 桃木剑：单手剑。招架时主手锚定（面前抬手），剑身旋转斜穿副手（腰间握持），只给主手遮罩
     peach_sword: {
         ...makePoses({ gripX: 24, gripY: 24 }),
@@ -1158,7 +1289,6 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
     },
-
 }
 
 /** 未登记武器的兜底配置 */

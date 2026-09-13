@@ -60,12 +60,27 @@ function weaponLabel(id: string): string {
 interface PixelInfo {
     x: number
     y: number
-    idx: number
+    /** 调色板索引：姿势帧为角色调色板键；武器原图为其在 weapons.ts 里的原始键 */
+    idx: number | string
     color: string
     /** 该颜色在整个精灵中的使用次数 */
     count: number
     /** 该颜色占比（0~1） */
     ratio: number
+}
+
+/** 叠加层（网格 / hover / 锁定框）的画布布局：姿势帧与武器原图各一套 */
+interface OverlayLayout {
+    cols: number
+    rows: number
+    /** 内容左上角在画布中的位置（格） */
+    offX: number
+    offY: number
+    /** 每格放大倍数（画布缓冲像素） */
+    cell: number
+    /** 可点选的内容尺寸（像素坐标有效范围） */
+    contentW: number
+    contentH: number
 }
 
 export function PixelInspector() {
@@ -100,6 +115,8 @@ export function PixelInspector() {
 
     /** 各姿势叠加层 canvas ref / hover / locked（按姿势名索引） */
     const overlayRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
+    /** 武器原图（32×32）的叠加层画布 */
+    const weaponOverlayRef = useRef<HTMLCanvasElement | null>(null)
 
     const [showGrid, setShowGrid] = useState(true)
     const [hover, setHover] = useState<Record<string, { x: number; y: number } | null>>({})
@@ -166,74 +183,128 @@ export function PixelInspector() {
         return stats
     }, [idlePixels])
 
-    const colorAt = (pixels: number[][], x: number, y: number): string => {
-        const idx = pixels[y]?.[x] ?? 0
-        return palette[String(idx)] ?? palette['0'] ?? 'transparent'
-    }
+    /** 武器原图的颜色统计（右侧「像素信息」用） */
+    const weaponColorStats = useMemo(() => {
+        const stats = new Map<number, number>()
+        for (const row of weaponViewPixels.pixels) {
+            for (const idx of row) stats.set(idx, (stats.get(idx) ?? 0) + 1)
+        }
+        return stats
+    }, [weaponViewPixels])
 
-    const infoFor = (pixels: number[][], p: { x: number; y: number } | null): PixelInfo | null => {
+    /** 武器原图里 颜色 → 原始调色板键（让面板显示 weapons.ts 里写的那个索引） */
+    const weaponKeyByColor = useMemo(() => {
+        const map = new Map<string, string>()
+        for (const [key, color] of Object.entries(WEAPON_OVERLAYS[weaponId]?.palette ?? {})) map.set(color, key)
+        return map
+    }, [weaponId])
+
+    const infoFor = (
+        pixels: number[][],
+        pal: Record<string, string>,
+        stats: Map<number, number>,
+        p: { x: number; y: number } | null,
+        keyOf?: (color: string, idx: number) => number | string,
+    ): PixelInfo | null => {
         if (!p) return null
         const idx = pixels[p.y]?.[p.x] ?? 0
-        const count = colorStats.get(idx) ?? 0
-        const total = width * height
+        const count = stats.get(idx) ?? 0
+        const total = pixels.length * (pixels[0]?.length ?? 0)
+        const color = pal[String(idx)] ?? pal['0'] ?? 'transparent'
         return {
             x: p.x,
             y: p.y,
-            idx,
-            color: colorAt(pixels, p.x, p.y),
+            idx: keyOf ? keyOf(color, idx) : idx,
+            color,
             count,
             ratio: total > 0 ? count / total : 0,
         }
     }
 
-    /** 当前有 hover/locked 的那一帧的信息（按帧顺序取第一个） */
+    /** 当前有 hover/locked 的目标（武器原图优先），以及它的来源标签 */
     let activeInfo: PixelInfo | null = null
-    for (const [name, pixels] of frames) {
-        const p = locked[name] ?? hover[name]
-        if (p) {
-            activeInfo = infoFor(pixels, p)
-            break
+    let activeSource = ''
+    const weaponPoint = locked.weapon ?? hover.weapon
+    if (weaponPoint) {
+        activeInfo = infoFor(weaponViewPixels.pixels, weaponViewPixels.palette, weaponColorStats, weaponPoint, (color, idx) =>
+            weaponKeyByColor.get(color) ?? `视图 ${idx}`,
+        )
+        activeSource = '武器原图'
+    }
+    if (!activeInfo) {
+        for (const [name, pixels] of frames) {
+            const p = locked[name] ?? hover[name]
+            if (p) {
+                activeInfo = infoFor(pixels, palette, colorStats, p)
+                activeSource = name
+                break
+            }
         }
     }
 
-    /** 将鼠标事件坐标换算为像素坐标（考虑画布居中偏移） */
-    const toPixel = (e: React.MouseEvent<HTMLCanvasElement>): { x: number; y: number } | null => {
+    /** 姿势帧与武器原图两套画布布局 */
+    const frameLayout: OverlayLayout = {
+        cols: canvasCols,
+        rows: canvasRows,
+        offX,
+        offY,
+        cell: zoom,
+        contentW: width,
+        contentH: height,
+    }
+    const weaponLayout: OverlayLayout = {
+        cols: weaponW,
+        rows: weaponH,
+        offX: 0,
+        offY: 0,
+        cell: WEAPON_SCALE,
+        contentW: weaponW,
+        contentH: weaponH,
+    }
+
+    /** 将鼠标事件坐标换算为像素坐标（按给定画布布局，考虑内容偏移） */
+    const toPixelIn = (
+        e: React.MouseEvent<HTMLCanvasElement>,
+        layout: OverlayLayout,
+    ): { x: number; y: number } | null => {
         const canvas = e.currentTarget
         const rect = canvas.getBoundingClientRect()
-        const x = Math.floor(((e.clientX - rect.left) / rect.width) * canvasCols) - offX
-        const y = Math.floor(((e.clientY - rect.top) / rect.height) * canvasRows) - offY
-        if (x < 0 || x >= width || y < 0 || y >= height) return null
+        const x = Math.floor(((e.clientX - rect.left) / rect.width) * layout.cols) - layout.offX
+        const y = Math.floor(((e.clientY - rect.top) / rect.height) * layout.rows) - layout.offY
+        if (x < 0 || x >= layout.contentW || y < 0 || y >= layout.contentH) return null
         return { x, y }
     }
 
-    /** 重绘叠加层：网格 + hover/locked 高亮框 */
+    /** 重绘叠加层：网格 + hover/locked 高亮框（姿势帧与武器原图共用，靠 layout 区分） */
     const drawOverlay = (
         canvas: HTMLCanvasElement | null,
+        layout: OverlayLayout,
         hover: { x: number; y: number } | null,
         locked: { x: number; y: number } | null,
     ) => {
         if (!canvas) return
         const ctx = canvas.getContext('2d')
         if (!ctx) return
-        ctx.clearRect(0, 0, bufW, bufH)
+        const { cols, rows, offX: ox, offY: oy, cell } = layout
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
         // 高亮框格边长（缩放很小时至少 1px，避免画不出来）
-        const hoverSize = Math.max(1, zoom - 2)
+        const hoverSize = Math.max(1, cell - 2)
 
         if (showGrid) {
             ctx.strokeStyle = 'rgba(128, 128, 128, 0.35)'
             ctx.lineWidth = 1
             // 竖线按画布绝对列号（不加内容偏移），否则左侧留白区没有网格
-            for (let i = 0; i <= canvasCols; i++) {
+            for (let i = 0; i <= cols; i++) {
                 ctx.beginPath()
-                ctx.moveTo(i * zoom + 0.5, 0)
-                ctx.lineTo(i * zoom + 0.5, bufH)
+                ctx.moveTo(i * cell + 0.5, 0)
+                ctx.lineTo(i * cell + 0.5, canvas.height)
                 ctx.stroke()
             }
-            // 横线铺满整个方形画布（含上下留白），避免上下缺横线
-            for (let j = 0; j <= canvasRows; j++) {
+            // 横线铺满整张画布（含留白），避免缺横线
+            for (let j = 0; j <= rows; j++) {
                 ctx.beginPath()
-                ctx.moveTo(0, j * zoom + 0.5)
-                ctx.lineTo(bufW, j * zoom + 0.5)
+                ctx.moveTo(0, j * cell + 0.5)
+                ctx.lineTo(canvas.width, j * cell + 0.5)
                 ctx.stroke()
             }
         }
@@ -243,22 +314,28 @@ export function PixelInspector() {
             ctx.strokeStyle = '#4ecdc4'
             ctx.lineWidth = 2
             ctx.setLineDash([4, 3])
-            ctx.strokeRect((hover.x + offX) * zoom + 1, (hover.y + offY) * zoom + 1, hoverSize, hoverSize)
+            ctx.strokeRect((hover.x + ox) * cell + 1, (hover.y + oy) * cell + 1, hoverSize, hoverSize)
             ctx.setLineDash([])
         }
         // locked 高亮（实线）
         if (locked) {
             ctx.strokeStyle = '#ff6b6b'
             ctx.lineWidth = 2
-            ctx.strokeRect((locked.x + offX) * zoom + 1, (locked.y + offY) * zoom + 1, hoverSize, hoverSize)
+            ctx.strokeRect((locked.x + ox) * cell + 1, (locked.y + oy) * cell + 1, hoverSize, hoverSize)
         }
     }
 
-    // 网格 / hover / locked 变化时重绘叠加层
+    // 网格 / hover / locked 变化时重绘叠加层（含武器原图）
     useEffect(() => {
         for (const [name] of frames) {
-            drawOverlay(overlayRefs.current[name] ?? null, hover[name] ?? null, locked[name] ?? null)
+            drawOverlay(
+                overlayRefs.current[name] ?? null,
+                frameLayout,
+                hover[name] ?? null,
+                locked[name] ?? null,
+            )
         }
+        drawOverlay(weaponOverlayRef.current, weaponLayout, hover.weapon ?? null, locked.weapon ?? null)
     })
 
     return (
@@ -372,12 +449,12 @@ export function PixelInspector() {
                                     className="pixel-inspector-overlay"
                                     onMouseMove={(e) => {
                                         // 同步读取坐标：e.currentTarget 在事件处理结束/异步 setState 时会被清空
-                                        const p = toPixel(e)
+                                        const p = toPixelIn(e, frameLayout)
                                         setHover((prev) => ({ ...prev, [name]: p }))
                                     }}
                                     onMouseLeave={() => setHover((prev) => ({ ...prev, [name]: null }))}
                                     onClick={(e) => {
-                                        const p = toPixel(e)
+                                        const p = toPixelIn(e, frameLayout)
                                         setLocked((prev) => ({ ...prev, [name]: p }))
                                     }}
                                     onDoubleClick={() => setLocked((prev) => ({ ...prev, [name]: null }))}
@@ -404,6 +481,23 @@ export function PixelInspector() {
                                     className="pixel-inspector-canvas pixel-inspector-canvas--weapon"
                                     style={{ width: AVATAR_WEAPON_SIZE, height: AVATAR_WEAPON_SIZE }}
                                 />
+                                {/* 武器原图也支持 hover / 锁定，像素信息面板同步显示 */}
+                                <canvas
+                                    ref={weaponOverlayRef}
+                                    width={weaponW * WEAPON_SCALE}
+                                    height={weaponH * WEAPON_SCALE}
+                                    className="pixel-inspector-overlay"
+                                    onMouseMove={(e) => {
+                                        const p = toPixelIn(e, weaponLayout)
+                                        setHover((prev) => ({ ...prev, weapon: p }))
+                                    }}
+                                    onMouseLeave={() => setHover((prev) => ({ ...prev, weapon: null }))}
+                                    onClick={(e) => {
+                                        const p = toPixelIn(e, weaponLayout)
+                                        setLocked((prev) => ({ ...prev, weapon: p }))
+                                    }}
+                                    onDoubleClick={() => setLocked((prev) => ({ ...prev, weapon: null }))}
+                                />
                             </div>
                         </div>
                         <figcaption className="pixel-inspector-weapon-caption">
@@ -419,6 +513,10 @@ export function PixelInspector() {
 
                     {activeInfo ? (
                         <dl className="pixel-inspector-info">
+                            <div className="pixel-inspector-info-row">
+                                <dt>来源</dt>
+                                <dd>{activeSource}</dd>
+                            </div>
                             <div className="pixel-inspector-info-row">
                                 <dt>坐标</dt>
                                 <dd>
