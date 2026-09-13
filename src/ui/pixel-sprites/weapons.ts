@@ -5,22 +5,25 @@ import { SPRITE_PAD_LEFT } from './constants'
 /** 各姿势右手握柄位置（角色精灵坐标，网格尺寸见 constants.ts SPRITE_WIDTH×SPRITE_HEIGHT） */
 export const HAND_POINTS: Record<string, { x: number; y: number }> = {
     idle: { x: 30 + SPRITE_PAD_LEFT, y: 32 },
-    attack: { x: 16 + SPRITE_PAD_LEFT, y: 29 },
+    attack: { x: 17.5 + SPRITE_PAD_LEFT, y: 27.5 }, // attack 帧主手（武器整体下移 1 格）
     dodge: { x: 32 + SPRITE_PAD_LEFT, y: 32 }, // 左移 1 格
-    // 招架：主手（右手）在面前抬起握拳，位于脸部高度（DEFAULT_PARRY 皮肤像素 29-30,23-24 中心）
-    parry: { x: 29.5 + SPRITE_PAD_LEFT, y: 23.5 },
+    hit: { x: 23.5 + SPRITE_PAD_LEFT, y: 34.5 }, // 受击：武器被打飞（左 10 后再右移 2、下 3）
+    // 招架：主手（右手）在面前抬起握拳（DEFAULT_PARRY 皮肤像素 28-29,24-25 中心）
+    parry: { x: 28.5 + SPRITE_PAD_LEFT, y: 24.5 },
 }
 
 /**
  * 各姿势副手（左手，图中右侧）握点位置（角色精灵坐标，取 LEFT_HAND_COVER 中心）。
  * 双手武器的主握点（gripX/gripY）锚定于此；棍身轴线须穿过主手。
+ * 一律以「内容坐标 + SPRITE_PAD_LEFT」书写，便于整体平移角色。
  */
 export const OTHER_HAND_POINT: Record<string, { x: number; y: number }> = {
-    idle: { x: 52.5, y: 31.5 },
-    attack: { x: 42, y: 25.5 },
-    dodge: { x: 54.5, y: 31.5 }, // 左移 1 格
-    // 招架：副手（左手）在腰间握持（DEFAULT_PARRY 皮肤像素 39-41,27 / 40-41,28 中心）
-    parry: { x: 40 + SPRITE_PAD_LEFT, y: 27.5 },
+    idle: { x: 39.5 + SPRITE_PAD_LEFT, y: 32 }, // 副手武器左移 1 格、下移半格（与主手同高）
+    attack: { x: 30 + SPRITE_PAD_LEFT, y: 26.5 }, // attack 帧副手（武器整体下移 1 格）
+    dodge: { x: 41.5 + SPRITE_PAD_LEFT, y: 32 }, // 左移 1 格（武器）、与主手同高
+    hit: { x: 43.5 + SPRITE_PAD_LEFT, y: 34.5 }, // 受击：副手武器右移 2、下移 3 格
+    // 招架：副手（左手）在腰间握持（下移 1 格）
+    parry: { x: 40 + SPRITE_PAD_LEFT, y: 28.5 },
 }
 
 /** 各姿势手部覆盖像素（人物精灵坐标）— 用角色皮肤色绘制在握柄上方，制造"握着"效果 */
@@ -32,12 +35,10 @@ export const HAND_COVER: Record<string, [number, number][]> = {
         [31 + SPRITE_PAD_LEFT, 32],
     ],
     attack: [
-        [15 + SPRITE_PAD_LEFT, 27],
-        [16 + SPRITE_PAD_LEFT, 27],
+        [17 + SPRITE_PAD_LEFT, 26],
+        [18 + SPRITE_PAD_LEFT, 26],
         [17 + SPRITE_PAD_LEFT, 27],
-        [15 + SPRITE_PAD_LEFT, 28],
-        [16 + SPRITE_PAD_LEFT, 28],
-        [17 + SPRITE_PAD_LEFT, 28],
+        [18 + SPRITE_PAD_LEFT, 27],
     ],
     dodge: [
         [32 + SPRITE_PAD_LEFT, 31],
@@ -46,37 +47,37 @@ export const HAND_COVER: Record<string, [number, number][]> = {
         [33 + SPRITE_PAD_LEFT, 32],
     ],
     parry: [
-        // 主手：面前抬起握拳（DEFAULT_PARRY 皮肤像素 29-30,23-24）
-        [29 + SPRITE_PAD_LEFT, 23],
-        [30 + SPRITE_PAD_LEFT, 23],
+        // 主手：面前抬起握拳（DEFAULT_PARRY 皮肤像素 28-29,24-25）
+        [28 + SPRITE_PAD_LEFT, 24],
         [29 + SPRITE_PAD_LEFT, 24],
-        [30 + SPRITE_PAD_LEFT, 24],
+        [28 + SPRITE_PAD_LEFT, 25],
+        [29 + SPRITE_PAD_LEFT, 25],
     ],
 }
 
 /**
  * 各姿势第二只手（左手）覆盖像素（人物精灵坐标）— 双手武器（有 grip2）用皮肤色盖住第二握点。
- * idle 左手在角色右侧 4 格：52,29 53,29 52,30 53,30；attack：41,24 42,24 42,25 43,25。
+ * idle 左手在角色右侧 4 格：40,31 41,31 40,32 41,32（+SPRITE_PAD_LEFT）；attack：29-31,25-26。
+ * 一律以「内容坐标 + SPRITE_PAD_LEFT」书写，便于整体平移角色。
  */
 export const LEFT_HAND_COVER: Record<string, [number, number][]> = {
     idle: [
-        [52, 31],
-        [53, 31],
-        [52, 32],
-        [53, 32],
+        [40 + SPRITE_PAD_LEFT, 31],
+        [41 + SPRITE_PAD_LEFT, 31],
+        [40 + SPRITE_PAD_LEFT, 32],
+        [41 + SPRITE_PAD_LEFT, 32],
     ],
     attack: [
-        [41, 26],
-        [41, 25],
-        [42, 25],
-        [42, 26],
-        [43, 26],
+        [29 + SPRITE_PAD_LEFT, 26],
+        [29 + SPRITE_PAD_LEFT, 25],
+        [30 + SPRITE_PAD_LEFT, 25],
+        [30 + SPRITE_PAD_LEFT, 26],
     ],
     dodge: [
-        [54, 31],
-        [55, 31],
-        [54, 32],
-        [55, 32],
+        [42 + SPRITE_PAD_LEFT, 31],
+        [43 + SPRITE_PAD_LEFT, 31],
+        [42 + SPRITE_PAD_LEFT, 32],
+        [43 + SPRITE_PAD_LEFT, 32],
     ],
     parry: [
         // 副手：腰间握持（DEFAULT_PARRY 皮肤像素 39-41,27 / 40-41,28）
@@ -393,7 +394,7 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             gripX: 9,
             gripY: 22,
             noHandCover: true,
-            handX: 20, // 锚点左挪 20（HAND_POINTS.attack x=28）
+            handX: 16.5, // 锚点左挪 8（HAND_POINTS.attack.x = 24.5）
             handY: 32,
             angle: (-80 * Math.PI) / 180, // 逆时针 45°
         },
@@ -401,7 +402,7 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             gripX: 9,
             gripY: 22,
             noHandCover: true,
-            handX: 40, // 锚点左挪 4（HAND_POINTS.dodge x=44），随整体再左移 1
+            handX: 35, // 锚点左挪 4（HAND_POINTS.dodge.x = 39）
             handY: 32,
             angle: (-37 * Math.PI) / 180, // 与 idle 一致
         },
@@ -417,7 +418,45 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
         ...makePoses({ gripX: 24, gripY: 24 }),
         parry: { gripX: 24, gripY: 24, angle: 2.6857 }, // 剑尖朝右下斜下（穿过副手）
     },
-    qimei_staff: makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
+    // 齐眉棍（双手）：attack 副手锚点上移 1 格；parry 武器整体右移 4 格
+    // （右移 = 武器本地握点左移 4；两点连线角度自动计算，故双锚点仍落在手上）
+    qimei_staff: {
+        ...makePoses({ gripX: 7, gripY: 7, grip2X: 24, grip2Y: 24 }),
+        // attack：副手锚点上移 1 格；主手锚点（第二握点）上移 1 格（两点各自覆盖，连线角度自动贴合）
+        attack: {
+            gripX: 7,
+            gripY: 7,
+            grip2X: 24,
+            grip2Y: 24,
+            handX: OTHER_HAND_POINT.attack.x,
+            handY: OTHER_HAND_POINT.attack.y - 0.5, // 有效锚点含 +0.5 微调 → 净上移 1 格
+            targetX: HAND_POINTS.attack.x,
+            targetY: HAND_POINTS.attack.y - 1, // 主手上移 1 格
+        },
+        // parry：副手锚点上移 1 格；武器整体「水平右移 5 格 + 下移 1.5 格」且两点仍贴手
+        // 手法：两个握点在武器图上一起平移（按当前旋转角逆向量补偿）→ 武器整体平移，握点↔手不变。
+        // 注：补偿量随 parry 手锚点/棍身轴线变化，改手位后需重算。
+        parry: {
+            gripX: 10.55,
+            gripY: 10.82,
+            grip2X: 27.55,
+            grip2Y: 27.82,
+            handX: OTHER_HAND_POINT.parry.x,
+            handY: OTHER_HAND_POINT.parry.y - 1,
+            targetX: HAND_POINTS.parry.x,
+            targetY: HAND_POINTS.parry.y,
+        },
+        // hit：脱手落在角色左侧、竖着；整体右移 12 格并顺时针 10°
+        hit: {
+            gripX: 7,
+            gripY: 7,
+            grip2X: 24,
+            grip2Y: 24,
+            handX: 24 + SPRITE_PAD_LEFT, // 12 + 12（右移 12 格）
+            handY: 34.5,
+            angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
+        },
+    },
 }
 
 /** 未登记武器的兜底配置 */
@@ -479,6 +518,53 @@ export function getWeaponHand(weaponId: string, pose: string): { x: number; y: n
 }
 
 /**
+ * 双持（主手 + 副手各一把单手武器）的角度规则。
+ * 机制上一次只出一招：主手挥击、副手保持握持待机 —— 副手取「同向轻前倾」，
+ * 招架（parry）时两把武器在身前交叉（数值为初值，可在像素查看器里看后微调）。
+ */
+export const DUAL_MAIN_ANGLE: Record<string, number> = {
+    // 招架：主手向前上方，与副手交叉
+    parry: (100 * Math.PI) / 180,
+    // 受击：主手武器被打飞时的朝向（0 = 保持原角度）
+    hit: (20 * Math.PI) / 180,
+}
+
+export const DUAL_OFFHAND_ANGLE: Record<string, number> = {
+    idle: 0,
+    // 攻击：副手同向轻前倾（-12°），比待机更"备战"但不与主手抢戏
+    attack: (-12 * Math.PI) / 180,
+    dodge: 0,
+    hit: (58 * Math.PI) / 180,
+    move: 0,
+    // 招架：副手向前下方，与主手交叉
+    parry: (-10 * Math.PI) / 180,
+}
+
+/** 双持时主手角度（未覆盖的姿势沿用单手规则） */
+export function getDualMainAngle(weaponId: string, pose: string, facingRight: boolean): number {
+    const override = DUAL_MAIN_ANGLE[pose]
+    if (override !== undefined) return facingRight ? override : -override
+    return getWeaponAngle(weaponId, pose, facingRight)
+}
+
+/** 双持时副手角度（锚定副手 OTHER_HAND_POINT） */
+export function getDualOffhandAngle(pose: string, facingRight: boolean): number {
+    const a = DUAL_OFFHAND_ANGLE[pose] ?? 0
+    return facingRight ? a : -a
+}
+
+/**
+ * 说明：受击（hit）时武器的"脱手"位置不再走全局位移叠加，
+ * 而是直接由各武器的 hit 锚点（HAND_POINTS.hit / OTHER_HAND_POINT.hit）
+ * 与该武器的 WEAPON_POSES[weaponId].hit（handX/handY/angle）决定。
+ */
+
+/** 是否绘制手部覆盖：hit 时武器脱手，不再画"握着"的皮肤盖片 */
+export function shouldDrawHandCover(pose: string): boolean {
+    return pose !== 'hit'
+}
+
+/**
  * 计算武器在给定姿势/朝向上的旋转角度（弧度）。
  * - 姿势配置显式给了 angle → 直接用（朝左取负镜像）
  * - 单手武器（无 grip2）：idle=0，attack=±45°（按朝向倾斜），锚定主手。
@@ -495,7 +581,12 @@ export function getWeaponAngle(weaponId: string, pose: string, facingRight: bool
         if (pose !== 'attack') return 0
         return facingRight ? -Math.PI / 4 : Math.PI / 4
     }
-    const { anchor, target } = getDualHandPoints(pose) // 锚点 = 副手（左手），目标 = 主手（右手）
+    // 锚点 = 副手（左手），目标 = 主手（右手）；两者均可被该武器的姿势配置覆盖
+    const { anchor: baseAnchor, target: baseTarget } = getDualHandPoints(pose)
+    const anchor =
+        cfg.handX !== undefined && cfg.handY !== undefined ? { x: cfg.handX, y: cfg.handY } : baseAnchor
+    const target =
+        cfg.targetX !== undefined && cfg.targetY !== undefined ? { x: cfg.targetX, y: cfg.targetY } : baseTarget
     const dx = target.x - anchor.x
     const dy = target.y - anchor.y
     const wdx = cfg.grip2X - cfg.gripX

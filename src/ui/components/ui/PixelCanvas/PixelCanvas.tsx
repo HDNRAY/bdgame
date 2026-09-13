@@ -5,11 +5,15 @@ import {
     HAND_COVER,
     HAND_POINTS,
     LEFT_HAND_COVER,
+    OTHER_HAND_POINT,
     WEAPON_WIDTH,
     WEAPON_HEIGHT,
+    getDualOffhandAngle,
     getWeaponAngle,
     getWeaponHand,
+    getWeaponOverlay,
     getWeaponPoseConfig,
+    shouldDrawHandCover,
     resolveWeaponPixels,
 } from '../../../pixel-sprites'
 
@@ -34,6 +38,12 @@ interface PixelCanvasProps {
     className?: string
     /** 内联样式 */
     style?: CSSProperties
+    /** 副手武器 ID（提供时按双持渲染：锚定副手、角度取双持规则） */
+    secondWeaponId?: string
+    /** 副手角度覆盖（不填用 getDualOffhandAngle） */
+    secondAngle?: number
+    /** 双持时主手角度覆盖（不填用 getDualMainAngle） */
+    dualMainAngle?: number
 }
 
 export function PixelCanvas({
@@ -47,6 +57,9 @@ export function PixelCanvas({
     angle,
     className,
     style,
+    secondWeaponId,
+    secondAngle,
+    dualMainAngle,
 }: PixelCanvasProps) {
     const ref = useRef<HTMLCanvasElement>(null)
 
@@ -102,53 +115,54 @@ export function PixelCanvas({
             }
         }
 
-        // 渲染武器叠加层 — 用 canvas transform 旋转整张武器图，保持像素样式
-        if (overlay && overlay.pixels.length > 0) {
-            // 武器像素边界
-            const xs = overlay.pixels.map((p) => p[0])
-            const ys = overlay.pixels.map((p) => p[1])
+        // 武器绘制：以锚定手为旋转中心，把整张武器图旋转后贴回（保持像素样式）
+        const paintRotatedWeapon = (
+            ov: WeaponOverlay,
+            gripX: number,
+            gripY: number,
+            hand: { x: number; y: number },
+            angleRad: number,
+        ) => {
+            const xs = ov.pixels.map((p) => p[0])
+            const ys = ov.pixels.map((p) => p[1])
             const minX = Math.min(...xs)
             const maxX = Math.max(...xs)
             const minY = Math.min(...ys)
             const maxY = Math.max(...ys)
+            const rotPad = Math.ceil(Math.hypot(maxX - minX, maxY - minY))
+            const offscreen = document.createElement('canvas')
+            offscreen.width = (maxX - minX + 1 + rotPad * 2) * os
+            offscreen.height = (maxY - minY + 1 + rotPad * 2) * os
+            const offCtx = offscreen.getContext('2d')!
+            offCtx.imageSmoothingEnabled = false
+            for (const [px, py, color] of resolveWeaponPixels(ov)) {
+                offCtx.fillStyle = color
+                offCtx.fillRect((px - minX + rotPad) * os, (py - minY + rotPad) * os, os, os)
+            }
+            const offRotX = (gripX - minX + rotPad) * os
+            const offRotY = (gripY - minY + rotPad) * os
+            ctx.save()
+            ctx.translate((hand.x + offX) * scale, (hand.y + offY) * scale)
+            if (angleRad) ctx.rotate(angleRad)
+            ctx.imageSmoothingEnabled = false
+            ctx.drawImage(offscreen, -offRotX, -offRotY)
+            ctx.restore()
+        }
 
+        // 渲染武器叠加层
+        if (overlay && overlay.pixels.length > 0) {
             if (hasPixels) {
-                // 合成模式：以角色手部为旋转中心，旋转整张武器图（手部坐标需叠加内容居中偏移）
-                // 锚定手：单手=主手，双手=副手（左手/图中右侧）
+                // 合成模式：锚定手（单手=主手；双手武器=副手）
                 const hand = weaponId ? getWeaponHand(weaponId, pose) : (HAND_POINTS[pose] ?? HAND_POINTS.idle)
-                const gripX = poseConfig?.gripX ?? 0
-                const gripY = poseConfig?.gripY ?? 0
-                const rotPad = Math.ceil(Math.hypot(maxX - minX, maxY - minY))
-                const offW = (maxX - minX + 1 + rotPad * 2) * os
-                const offH = (maxY - minY + 1 + rotPad * 2) * os
-                const offscreen = document.createElement('canvas')
-                offscreen.width = offW
-                offscreen.height = offH
-                const offCtx = offscreen.getContext('2d')!
-                offCtx.imageSmoothingEnabled = false
-                // 武器原点 (minX,minY) 画在 (rotPad*os, rotPad*os)
-                for (const [px, py, color] of resolveWeaponPixels(overlay)) {
-                    offCtx.fillStyle = color
-                    offCtx.fillRect((px - minX + rotPad) * os, (py - minY + rotPad) * os, os, os)
-                }
-                // 旋转中心在离屏中的位置：主握点（双手武器锚定副手/左手）
-                const rotX = gripX
-                const rotY = gripY
-                const offRotX = (rotX - minX + rotPad) * os
-                const offRotY = (rotY - minY + rotPad) * os
-
-                ctx.save()
-                ctx.translate((hand.x + offX) * scale, (hand.y + offY) * scale)
-                // 配置了 angle / 双手武器：由 getWeaponAngle 计算（如三相珠 idle 倾斜）；
-                // 其余单手武器：使用传入的 angle（idle=0，attack=±45°）
+                // 双手武器：握点连线自动决定角度（不被双持主手角度覆盖）
                 const effAngle =
-                    weaponId && (poseConfig?.grip2X !== undefined || poseConfig?.angle !== undefined)
-                        ? getWeaponAngle(weaponId, pose, true)
-                        : (angle ?? 0)
-                if (effAngle) ctx.rotate(effAngle)
-                ctx.imageSmoothingEnabled = false
-                ctx.drawImage(offscreen, -offRotX, -offRotY)
-                ctx.restore()
+                    poseConfig?.grip2X !== undefined
+                        ? getWeaponAngle(weaponId ?? '', pose, true)
+                        : (dualMainAngle ??
+                          (weaponId && poseConfig?.angle !== undefined
+                              ? getWeaponAngle(weaponId, pose, true)
+                              : (angle ?? 0)))
+                paintRotatedWeapon(overlay, poseConfig?.gripX ?? 0, poseConfig?.gripY ?? 0, hand, effAngle)
             } else {
                 // 武器图标模式：按完整 32×32 网格 + 原始坐标绘制，保留武器设计时的空白
                 ctx.imageSmoothingEnabled = false
@@ -159,25 +173,65 @@ export function PixelCanvas({
             }
         }
 
-        // 渲染手部覆盖层 — 仅在合成武器时（有角色像素）绘制，人物精灵坐标，用皮肤色盖住握柄（漂浮类武器跳过）
-        if (hasPixels && overlay && overlay.pixels.length > 0 && !(poseConfig?.noHandCover ?? false)) {
-            const cover = HAND_COVER[pose]
+        // 副手武器（双持）：锚定副手位、角度取双持规则
+        const offhandOverlay = secondWeaponId ? getWeaponOverlay(secondWeaponId) : undefined
+        const offhandConfig = secondWeaponId ? getWeaponPoseConfig(secondWeaponId, pose) : undefined
+        if (hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0) {
+            const offHand = OTHER_HAND_POINT[pose] ?? OTHER_HAND_POINT.idle
+            const offAngle = secondAngle ?? getDualOffhandAngle(pose, true)
+            paintRotatedWeapon(offhandOverlay, offhandConfig?.gripX ?? 0, offhandConfig?.gripY ?? 0, offHand, offAngle)
+        }
+
+        // 渲染手部覆盖层 — 仅在合成武器时（有角色像素）绘制，用皮肤色盖住握柄（漂浮类武器/武器脱手时跳过）
+        if (
+            hasPixels &&
+            overlay &&
+            overlay.pixels.length > 0 &&
+            !(poseConfig?.noHandCover ?? false) &&
+            shouldDrawHandCover(pose)
+        ) {
             const skin = palette?.['3'] ?? '#f5d6c6'
             ctx.fillStyle = skin
+            const cover = HAND_COVER[pose]
             if (cover) {
                 for (const [cx, cy] of cover) {
                     ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
                 }
             }
-            // 双手武器（有 grip2）：额外盖住第二只手（左手）
-            if (poseConfig?.grip2X !== undefined) {
-                const leftCover = LEFT_HAND_COVER[pose] ?? LEFT_HAND_COVER.idle
-                for (const [cx, cy] of leftCover) {
-                    ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
-                }
+        }
+        // 第二只手：双手武器（grip2）或双持副手武器时，盖住副手握点
+        const needsLeftCover =
+            shouldDrawHandCover(pose) &&
+            hasPixels &&
+            ((poseConfig?.grip2X !== undefined && overlay && overlay.pixels.length > 0) ||
+                (!!offhandOverlay && offhandOverlay.pixels.length > 0 && !(offhandConfig?.noHandCover ?? false)))
+        if (needsLeftCover) {
+            const skin = palette?.['3'] ?? '#f5d6c6'
+            ctx.fillStyle = skin
+            const leftCover = LEFT_HAND_COVER[pose] ?? LEFT_HAND_COVER.idle
+            for (const [cx, cy] of leftCover) {
+                ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
             }
         }
-    }, [bufW, bufH, pixels, palette, scale, overlay, os, weaponId, pose, angle, offX, offY, hasPixels])
+    }, [
+        bufW,
+        bufH,
+        pixels,
+        palette,
+        scale,
+        overlay,
+        os,
+        weaponId,
+        pose,
+        angle,
+        offX,
+        offY,
+        hasPixels,
+        contentW,
+        secondWeaponId,
+        secondAngle,
+        dualMainAngle,
+    ])
 
     return <canvas ref={ref} width={bufW} height={bufH} className={className} style={style} />
 }

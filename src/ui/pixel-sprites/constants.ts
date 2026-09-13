@@ -4,9 +4,10 @@ export const SPRITE_HEIGHT = 48
 
 /**
  * 角色内容在精灵画布中的水平偏移（左侧留白像素数）。
- * 攻击时武器向左上延伸会超出左边界，故左侧需预留空间（角色内容靠右）。
+ * 内容整体偏左：右侧留出空间（第二把手/副手武器、右侧延伸的动作）。
+ * 锚点表（HAND_POINTS / OTHER_HAND_POINT / HAND_COVER / LEFT_HAND_COVER）以「内容坐标 + 本常量」书写，改这里即整体平移。
  */
-export const SPRITE_PAD_LEFT = 12
+export const SPRITE_PAD_LEFT = 7
 
 /**
  * 角色内容在精灵画布底部的留白（像素行数）。

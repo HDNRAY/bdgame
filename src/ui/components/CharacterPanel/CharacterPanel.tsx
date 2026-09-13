@@ -7,7 +7,7 @@ import { CSS } from '@dnd-kit/utilities'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import type { Character } from '../../../engine/entities/character'
 import { getAction } from '../../../data/actions'
-import { getWeapon } from '../../../data/weapons/weapons'
+import { getWeapon, type WeaponDef } from '../../../data/weapons/weapons'
 import { getPassive } from '../../../data/passives'
 import type { ActionConfig } from '../../../game/entities/action-config'
 import { CONDITION_PRESETS } from '../../../data/conditions'
@@ -78,6 +78,8 @@ interface CharacterPanelProps {
     onAddReward?: (kind: PickKind, id: string) => void
     onRemoveReward?: (kind: Exclude<Reward['type'], 'weapon'>, id: string) => void
     onRemoveWeaponSlot?: (slot: 'main' | 'off') => void
+    /** 挑选器武器页过滤（如：当前只能选单手武器作副手） */
+    poolWeaponFilter?: (weapon: WeaponDef) => boolean
 }
 
 const ATTR_ORDER: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
@@ -96,6 +98,7 @@ export function CharacterPanel({
     onAddReward,
     onRemoveReward,
     onRemoveWeaponSlot,
+    poolWeaponFilter,
 }: CharacterPanelProps) {
     const navigate = useNavigate()
     const isBuild = mode === 'build'
@@ -392,6 +395,7 @@ export function CharacterPanel({
                     {pickerOpen && (
                         <RewardPicker
                             exclude={rewardExclude}
+                            weaponFilter={poolWeaponFilter}
                             onPick={(kind, id) => {
                                 onAddReward?.(kind, id)
                                 setPickerOpen(false)

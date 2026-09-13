@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useAppStore, getEffectiveTheme } from '../../../stores/app-store'
 import {
     getCharacterAvatar,
+    getDualMainAngle,
     getSpriteOutlineColor,
     getWeaponPoseConfig,
     makeCharacterSprite,
@@ -91,6 +92,9 @@ export function PixelInspector() {
 
     // ── 武器调试 ──
     const [compositeWeapon, setCompositeWeapon] = useState(true)
+    /** 双持预览：主手武器 + 副手武器（默认桃木剑，看副手锚点/角度） */
+    const [dualWield, setDualWield] = useState(true)
+    const [offhandId, setOffhandId] = useState('peach_sword')
     const overlay = useMemo(() => WEAPON_OVERLAYS[weaponId] ?? WEAPON_OVERLAYS.bare_hands, [weaponId])
     const idlePose = useMemo(() => getWeaponPoseConfig(weaponId, 'idle'), [weaponId])
     // 武器坐标系尺寸（显示整个网格，见 constants.ts）
@@ -267,6 +271,22 @@ export function PixelInspector() {
                     />
                     合成武器
                 </label>
+                <label className="pixel-inspector-toggle" title="副手武器按双持规则锚定副手位（攻击同向轻前倾、招架交叉）">
+                    <input type="checkbox" checked={dualWield} onChange={(e) => setDualWield(e.target.checked)} />
+                    双持预览
+                </label>
+                {dualWield && (
+                    <label className="pixel-inspector-select">
+                        副手
+                        <select value={offhandId} onChange={(e) => setOffhandId(e.target.value)}>
+                            {WEAPON_IDS.map((id) => (
+                                <option key={id} value={id}>
+                                    {WEAPON_NAME[id] ?? id}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                )}
                 <span className="pixel-inspector-size">
                     {width}×{height} @ {SCALE}x
                 </span>
@@ -284,8 +304,10 @@ export function PixelInspector() {
                                     scale={SCALE}
                                     pose={name}
                                     weaponId={compositeWeapon ? weaponId : undefined}
-                                    angle={name === 'attack' ? -Math.PI / 4 : undefined}
+                                    angle={!dualWield && name === 'attack' ? -Math.PI / 4 : undefined}
                                     overlay={compositeWeapon ? overlay : undefined}
+                                    secondWeaponId={compositeWeapon && dualWield ? offhandId : undefined}
+                                    dualMainAngle={compositeWeapon && dualWield ? getDualMainAngle(weaponId, name, true) : undefined}
                                     className="pixel-inspector-canvas"
                                 />
                                 <canvas

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { allMainActions } from '../../../data/actions'
 import { PASSIVES } from '../../../data/passives'
 import { ARTIFACTS } from '../../../data/artifacts'
-import { WEAPON_DB } from '../../../data/weapons/weapons'
+import { WEAPON_DB, type WeaponDef } from '../../../data/weapons/weapons'
 import type { Reward } from '../../../game/entities/reward'
 import { EntityItem } from '../ui/EntityItem/EntityItem'
 import './RewardPicker.scss'
@@ -14,13 +14,15 @@ interface RewardPickerProps {
     exclude: Partial<Record<PickKind, Set<string>>>
     onPick: (kind: PickKind, id: string) => void
     onClose: () => void
+    /** 武器页额外过滤（如：当前选择将作为副手时只列单手武器） */
+    weaponFilter?: (weapon: WeaponDef) => boolean
 }
 
 const TABS: { kind: PickKind; label: string }[] = [
     { kind: 'action', label: '招式' },
     { kind: 'passive', label: '功法' },
     { kind: 'artifact', label: '奇物' },
-    { kind: 'weapon', label: '武器(升级)' },
+    { kind: 'weapon', label: '武器' },
 ]
 
 /** 与游戏奖励池口径一致：inherent（血脉限定/特性）与 imperial（御物）不可自选 */
@@ -28,7 +30,7 @@ const isPoolPassive = (p: { tags?: string[] }) => !p.tags?.includes('inherent')
 const isPoolArtifact = (a: { tags?: string[] }) => !a.tags?.includes('inherent')
 const isPoolWeapon = (w: { tags?: string[] }) => !w.tags?.includes('imperial')
 
-export function RewardPicker({ exclude, onPick, onClose }: RewardPickerProps) {
+export function RewardPicker({ exclude, onPick, onClose, weaponFilter }: RewardPickerProps) {
     const [kind, setKind] = useState<PickKind>('action')
     const excluded = exclude[kind] ?? new Set<string>()
 
@@ -52,7 +54,9 @@ export function RewardPicker({ exclude, onPick, onClose }: RewardPickerProps) {
                 type: 'artifact' as const,
             }))
         }
-        return WEAPON_DB.filter((w) => isPoolWeapon(w) && !excluded.has(w.id)).map((w) => ({
+        return WEAPON_DB.filter(
+            (w) => isPoolWeapon(w) && !excluded.has(w.id) && (weaponFilter ? weaponFilter(w) : true),
+        ).map((w) => ({
             id: w.id,
             entity: w,
             type: 'weapon' as const,
@@ -80,7 +84,11 @@ export function RewardPicker({ exclude, onPick, onClose }: RewardPickerProps) {
                     ))}
                 </nav>
                 <div className="rp-list">
-                    {items.length === 0 && <div className="rp-empty">没有更多可选</div>}
+                    {items.length === 0 && (
+                        <div className="rp-empty">
+                            {kind === 'weapon' && weaponFilter ? '当前只能选单手武器（作为副手）' : '没有更多可选'}
+                        </div>
+                    )}
                     {items.map((it) => (
                         <button key={it.id} className="rp-item" onClick={() => onPick(it.type, it.id)}>
                             <EntityItem entity={it.entity as never} type={it.type} />

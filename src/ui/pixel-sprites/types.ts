@@ -38,6 +38,10 @@ export interface WeaponPoseConfig {
     handX?: number
     /** 覆盖锚定手位置 Y（角色精灵坐标） */
     handY?: number
+    /** 双手武器：覆盖"另一只手"（目标手）位置 X —— 与 handX/handY 一起决定轴线角度 */
+    targetX?: number
+    /** 双手武器：覆盖"另一只手"（目标手）位置 Y */
+    targetY?: number
     /** 锚定哪只手：'main'=主手(HAND_POINTS)、'off'=副手(OTHER_HAND_POINT)；默认单手=main、双手=off */
     anchorHand?: 'main' | 'off'
     /** 该姿势最终旋转角（弧度）— 覆盖自动规则，朝左镜像取反 */

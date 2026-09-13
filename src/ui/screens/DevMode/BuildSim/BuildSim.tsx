@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CharacterBuild } from '../../../../game/entities/character-build'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
+import { getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
 import { OPPONENTS, gen } from '../../../../data/opponents'
 import type { Reward } from '../../../../game/entities/reward'
 import { CharacterPanel } from '../../../components/CharacterPanel/CharacterPanel'
@@ -17,6 +18,12 @@ const REWARD_CAP = 13
 const ENEMY_LEVEL = 33
 /** 初始武器集合（免费位，不计入奖励位） */
 const STARTING_IDS = new Set(STARTING_WEAPONS.map((w) => w.id))
+
+/** 能否作副手 / 能否配副手：单手且非御物（与引擎 weapon_one_handed 口径一致） */
+function isOneHanded(weaponId: string): boolean {
+    const def = getWeapon(weaponId)
+    return !!def && def.tags.includes('one_handed') && !def.tags.includes('imperial')
+}
 
 function freshBuild(): CharacterBuild {
     return {
@@ -56,7 +63,12 @@ function loadPersisted(): Persisted {
         const raw = localStorage.getItem(SAVE_KEY)
         if (raw) {
             const p = JSON.parse(raw) as Persisted
-            if (p?.build) return { build: { ...freshBuild(), ...p.build }, initWeaponId: p.initWeaponId ?? 'bare_hands' }
+            if (p?.build) {
+                const build = { ...freshBuild(), ...p.build }
+                // 非法组合清理：主手非单手（双手/御物）时不能带副手
+                if (build.offhand && !isOneHanded(build.weapon)) build.offhand = undefined
+                return { build, initWeaponId: p.initWeaponId ?? 'bare_hands' }
+            }
         }
     } catch {
         /* 损坏存档忽略 */
@@ -91,11 +103,17 @@ export function BuildSim() {
     const weaponSlots = [mainSlot, offSlot].filter((x): x is NonNullable<typeof x> => !!x)
     const usedSlots = build.rewards.length + weaponSlots.length
 
+    // 下一把武器将作为副手（主手已是单手选件且尚无副手）→ 武器页只列单手
+    const offhandPickMode = !build.offhand && !STARTING_IDS.has(build.weapon) && isOneHanded(build.weapon)
+    const weaponFilter: ((w: WeaponDef) => boolean) | undefined = offhandPickMode
+        ? (w) => w.tags.includes('one_handed') && !w.tags.includes('imperial')
+        : undefined
+
     // 初始武器切换（已选出主手时禁用）
     const handleInitWeapon = (id: string) => {
         setInitWeaponId(id)
         if (!mainSlot) {
-            setBuild((b) => ({ ...b, weapon: id }))
+            setBuild((b) => ({ ...b, weapon: id, offhand: isOneHanded(id) ? b.offhand : undefined }))
         }
     }
     const handleRemoveWeaponSlot = (slot: 'main' | 'off') => {
@@ -106,12 +124,23 @@ export function BuildSim() {
     const handleAddReward = useCallback(
         (kind: Reward['type'], id: string) => {
             if (kind === 'weapon') {
-                // 有副手 → 替换副手（槽数不变）；无副手 → 第 1 把覆盖初始主手 / 第 2 把进副手
-                if (!build.offhand && usedSlots >= REWARD_CAP) return
+                // 规则：主手为单手（one_handed 且非御物）才能配副手；副手也只能是单手
+                const selCanOffhand = isOneHanded(id)
+                const willAddOffhand =
+                    !build.offhand && !STARTING_IDS.has(build.weapon) && selCanOffhand && isOneHanded(build.weapon)
+                if (willAddOffhand && usedSlots >= REWARD_CAP) return
                 setBuild((b) => {
-                    if (b.offhand) return { ...b, offhand: id }
+                    const mainCanOffhand = isOneHanded(b.weapon)
+                    // 已有副手：单手武器 → 替换副手；非单手 → 只能替换主手（并清掉副手）
+                    if (b.offhand) {
+                        if (selCanOffhand && mainCanOffhand) return { ...b, offhand: id }
+                        return { ...b, weapon: id, offhand: undefined }
+                    }
+                    // 主手还是初始位 → 这一把覆盖主手
                     if (STARTING_IDS.has(b.weapon)) return { ...b, weapon: id }
-                    return { ...b, offhand: id }
+                    // 主手已是选件：单手且主手可配副手 → 进副手；否则替换主手
+                    if (selCanOffhand && mainCanOffhand) return { ...b, offhand: id }
+                    return { ...b, weapon: id, offhand: undefined }
                 })
                 return
             }
@@ -121,7 +150,7 @@ export function BuildSim() {
                 return { ...b, rewards: [...b.rewards, { id, type: kind, name: id, description: '', tags: [] }] }
             })
         },
-        [usedSlots, build.offhand],
+        [usedSlots, build.offhand, build.weapon],
     )
 
     const handleRemoveReward = useCallback((kind: Reward['type'], id: string) => {
@@ -262,7 +291,11 @@ export function BuildSim() {
                         ))}
                     </select>
                 </label>
-                <span className="bsim-hint">完成属性分配后点面板右上「保存」再试炼</span>
+                <span className="bsim-hint">
+                    {isOneHanded(build.weapon)
+                        ? '完成属性分配后点面板右上「保存」再试炼'
+                        : '主手为双手/御物武器：不可配副手'}
+                </span>
                 <button className="bsim-new" onClick={handleNewBuild}>
                     新建构筑
                 </button>
@@ -281,6 +314,7 @@ export function BuildSim() {
                     onAddReward={handleAddReward}
                     onRemoveReward={handleRemoveReward}
                     onRemoveWeaponSlot={handleRemoveWeaponSlot}
+                    poolWeaponFilter={weaponFilter}
                 />
             </div>
 

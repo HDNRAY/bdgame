@@ -12,6 +12,7 @@ import {
     getWeaponAngle,
     getWeaponHand,
     resolveWeaponPixels,
+    shouldDrawHandCover,
     HAND_COVER,
     LEFT_HAND_COVER,
     SPRITE_WIDTH,
@@ -315,6 +316,8 @@ export class CanvasRenderer {
         // 画布底含 SPRITE_PAD_BOTTOM 行空白 → 内容脚底对齐地面（而非画布底），再留 GROUND_MARGIN 间距
         const oy = groundY - spriteH + SPRITE_PAD_BOTTOM * PIXEL - GROUND_MARGIN
 
+        let contentMinX = Number.POSITIVE_INFINITY
+        let contentMaxX = -1
         for (let y = 0; y < frameData.length; y++) {
             for (let x = 0; x < frameData[y].length; x++) {
                 const sx = facingRight ? x : frameData[y].length - 1 - x
@@ -322,6 +325,8 @@ export class CanvasRenderer {
                 const key = String(idx)
                 const palColor = sprite.palette[key] ?? sprite.palette['0']
                 if (!palColor || palColor === 'transparent') continue
+                if (x < contentMinX) contentMinX = x
+                if (x > contentMaxX) contentMaxX = x
                 g.rect(ox + x * PIXEL, oy + y * PIXEL, PIXEL, PIXEL).fill(palColor)
             }
         }
@@ -338,8 +343,11 @@ export class CanvasRenderer {
         // 亚像素高度（不做整像素取整）：燃烧/回复平滑细腻，避免步进感
         const fillH = CANDLE_H * burn
         const baseY = groundY - GROUND_MARGIN // 蜡烛底座（与人物脚底同水平）
-        // 背后侧：右侧角色背后在右，左侧角色背后在左
-        const candleX = facingRight ? ox + spriteW + 2 : ox - 2 - CANDLE_W
+        // 背后侧：按角色内容实际左右边界贴放（内容整体左移后不再用固定画布宽）
+        const hasContent = contentMaxX >= 0
+        const rightEdge = hasContent ? ox + (contentMaxX + 1) * PIXEL : ox + spriteW
+        const leftEdge = hasContent ? ox + contentMinX * PIXEL : ox
+        const candleX = facingRight ? rightEdge + 2 : leftEdge - 2 - CANDLE_W
         if (fillH > 0.5) {
             // 蜡体：底部固定，从顶部向下变矮（像蜡烛燃烧），颜色 = 内息黄
             g.rect(candleX, baseY - fillH, CANDLE_W, fillH).fill({ color: this.apColor })
@@ -384,6 +392,8 @@ export class CanvasRenderer {
         const cg = this.handCoverSprites.get(c.id)
         if (!cg) return
         cg.clear()
+        // 命中（hit）：武器被打飞脱手 → 不画握持手
+        if (!shouldDrawHandCover(c.pose)) return
         // 握持行为按武器+姿势查配置：漂浮类武器（如三相珠）无握柄手部覆盖
         const poseConfig = getWeaponPoseConfig(c.weaponId, c.pose)
         if (poseConfig.noHandCover) return
