@@ -340,11 +340,7 @@ export function CharacterPanel({
                         <div className="cp-section">
                             <div className="cp-section-label">
                                 奖励 ({poolUsed}/{poolCap})
-                                <button
-                                    className="cp-btn-sm cp-add-btn"
-                                    disabled={poolUsed >= poolCap}
-                                    onClick={() => setPickerOpen(true)}
-                                >
+                                <button className="cp-btn-sm cp-add-btn" onClick={() => setPickerOpen(true)}>
                                     + 添加
                                 </button>
                             </div>
@@ -396,9 +392,18 @@ export function CharacterPanel({
                         <RewardPicker
                             exclude={rewardExclude}
                             weaponFilter={poolWeaponFilter}
-                            onPick={(kind, id) => {
-                                onAddReward?.(kind, id)
-                                setPickerOpen(false)
+                            used={poolUsed}
+                            cap={poolCap}
+                            onToggle={(kind, id) => {
+                                // 弹窗不关闭：点已选 = 取消，点未选 = 加入（满位时弹窗内提示）
+                                if (kind === 'weapon') {
+                                    const slot = poolWeaponSlots.find((s) => s.id === id)
+                                    if (slot) onRemoveWeaponSlot?.(slot.slot)
+                                    else onAddReward?.(kind, id)
+                                    return
+                                }
+                                if (rewardExclude[kind]?.has(id)) onRemoveReward?.(kind, id)
+                                else onAddReward?.(kind, id)
                             }}
                             onClose={() => setPickerOpen(false)}
                         />

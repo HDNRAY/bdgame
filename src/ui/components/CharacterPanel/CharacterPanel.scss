@@ -405,7 +405,11 @@
 }
 
 .cp-add-btn {
+    /* .cp-btn-sm 是给单字符图标按钮（− + ×）定的固定宽度，"+ 添加" 需要按内容撑开 */
     margin-left: auto;
+    width: auto;
+    padding: 0 var(--sp-sm);
+    white-space: nowrap;
 }
 
 .cp-pool-slot {
