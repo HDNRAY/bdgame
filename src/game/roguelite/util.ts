@@ -1,5 +1,5 @@
 import type { RewardEntity } from '../../game/entities/reward'
-import { MAX_POINTS_REWARDS } from '../../game/entities/reward'
+import { MAX_POINTS_REWARDS, TOTAL_REWARD_SLOTS } from '../../game/entities/reward'
 import type { Tag } from '../../engine/entities/tag'
 import type { NodeSpec } from '../../game/entities/node-spec'
 
@@ -57,29 +57,41 @@ export function countRewardOpportunities(nodes: NodeSpec[], fromIndex: number): 
 }
 
 /**
- * 动态修炼点配额：按「还需的修炼点 / 剩余机会」决定本轮给修炼点还是实体奖励。
+ * 动态奖励配额（账本口径）：整局 29 个奖励槽 = 16 次修炼点 + 13 个实体奖励。
  *
- * - 淘汰赛/决赛 → 'none'（无奖励）
- * - n2/n3 → 必为实体奖励（选武器/选招式）
- * - 已达 16 次硬上限 → 不再给修炼点（实体奖励）
- * - need >= 机会数 → **强制修炼点**（快来不及达到 16 次了，不给 3 选 1）
- * - 否则按 need/机会数 的概率给修炼点：差得远就多出现，给多了就少出现
+ * - 淘汰赛/决赛 → 'none'（这些节点结构上就不发奖励：n29/n30/n31/n33）
+ * - n2/n3 → 必为实体奖励（选武器/选招式），不走配额
+ * - 已打满 16 次修炼点 → 'item'
+ * - 其余按 need / 剩余机会的概率铺开：差得远就多出现，给多了就少出现
+ *
+ * `entityGiven` 是**实际已发的实体奖励数**（含 n1 开局奇物、n2/n3 兵器招式、n23 授艺与战利品等定点奖励）。
+ * 一局能发奖励的节点是固定的 28 个（n23 双发 → 29 次），淘汰赛阶段一定不发，
+ * 所以总数**结构上不可能超过 29**，这里不需要再写"发满了就返回「继续」"的兜底。
+ * 分母取 min(剩余槽, 剩余机会)，越到后面 prob 越容易 ≥1 → 16 次修炼点必然发满，
+ * 实体奖励就是 29 - 16 = 13 的余数。
  */
 export function resolveQuotaRewardType(
     nodeIndex: number,
     pointsGiven: number,
     opportunities = 0,
+    entityGiven = 0,
 ): 'points' | 'item' | 'none' {
     if (NO_REWARD_NODES.has(nodeIndex)) return 'none'
     if (FIXED_ITEM_NODES.has(nodeIndex)) return 'item'
 
     const need = MAX_POINTS_REWARDS - pointsGiven
-    if (need <= 0) return 'item' // 已打满 16 次
-    if (opportunities <= 0) return 'item'
+    if (need <= 0) return 'item'
 
-    const prob = need / opportunities
-    if (prob >= 1 || Math.random() < prob) {
-        return 'points' // 强制或按概率给修炼点
+    const slotsLeft = Math.max(TOTAL_REWARD_SLOTS - pointsGiven - entityGiven, 1)
+    // 关键：如果"再给一个实体，修炼点就来不及发满"，本轮必须给修炼点。
+    // 用 need >= slotsLeft - 1（而不是 need >= slotsLeft）留一格余量，
+    // 否则最后一轮可能被概率判成实体，收尾就只剩 15 次修炼点。
+    if (need >= slotsLeft - 1) return 'points'
+
+    const denom = Math.min(slotsLeft, Math.max(opportunities, 1))
+    const prob = need / denom
+    if (Math.random() < prob) {
+        return 'points' // 按概率给修炼点：差得远就多出现，给多了就少出现
     }
     return 'item'
 }

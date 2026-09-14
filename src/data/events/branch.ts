@@ -110,37 +110,6 @@ export const BRANCH_POINTS: EventDef = {
     ],
 }
 
-export const BRANCH_HEAL: EventDef = {
-    id: 'branch_heal',
-    name: '宝字堂',
-    description: '你推门走进宝字堂，药香扑面而来。',
-    // 医馆条件化：仅在第二阶段（n22 前）、伤势 ≥50 时出现；第三阶段大会期间不出现
-    placement: [
-        {
-            nodes: [4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
-            fallback: true,
-            weight: 1,
-            when: { '>=': [{ var: 'flags.injury' }, 50] },
-        },
-    ],
-    reward: { kind: 'heal' },
-    rounds: [
-        {
-            id: 'clinic',
-            title: '宝字堂',
-            description:
-                '你推门走进宝字堂。柜台后，唐柔正在碾药，抬头看了你一眼：「伤得不轻啊。」里间帘子一掀，竹子走出来，搭了搭你的脉：「坐下。骨头没事，内伤得养。」',
-            choices: [{ id: 'reward', type: 'continue', label: '接受治疗' }],
-        },
-        {
-            id: 'reward',
-            title: '疗伤',
-            description: '唐柔递上一碗药，你一口气灌了下去。竹子又开了两剂：「回去按时吃。伤没好利索前，别逞强。」',
-            choices: [],
-        },
-    ],
-}
-
 /** 去天工坊找千星打造武器（第一次：第一阶段快结束时出现，3 选 1 池事件，每局至多一次；玄门御物从小蕴养，不涉天工坊） */
 export const TIANGONG_WEAPON: EventDef = {
     id: 'tiangong_weapon',
@@ -190,6 +159,13 @@ export const TIANGONG_WEAPON: EventDef = {
             title: '挑选材料',
             description: '材料柜里陈列着几件千星打造的兵器，泛着淡淡的炁光。',
             choices: [],
+        },
+        {
+            // 分支收尾：掐断流程，免得顺次走到下面的「在家修炼」再发一次奖励
+            id: 'got_weapon',
+            title: '收好',
+            description: '你把新兵器裹进布里，向千星道了谢。炉火在身后噼啪响了两声。',
+            choices: [{ id: '__end__', type: 'continue', label: '出门' }],
         },
         {
             id: 'training',

@@ -21,7 +21,7 @@ export interface Choice {
      *  - event            : 事件 ID，引擎开始该事件。
      *  - weapon/action/passive/artifact : 实体 ID，引擎给奖励。
      *  - continue         : 目标轮次 ID，引擎跳转。值为 END_EVENT 时结束事件。
-     *  - points/heal      : 固定为 'points' / 'heal'。 */
+     *  - points           : 固定为 'points'。 */
     id: string
 
     /** 选项类型。引擎据此决定处理逻辑。
@@ -32,9 +32,8 @@ export interface Choice {
      *  - 'passive'   : 给功法奖励，结束事件，推进到下一节点。
      *  - 'artifact'  : 给奇物奖励，结束事件，推进到下一节点。
      *  - 'points'    : 加修炼点（计入 16 次预算），结束事件，推进到下一节点。
-     *  - 'heal'      : 恢复伤势，结束事件，推进到下一节点。
      *  - 'continue'  : 推进到 id 对应轮次。id === END_EVENT 时结束事件。 */
-    type: 'event' | 'weapon' | 'action' | 'passive' | 'artifact' | 'points' | 'heal' | 'continue'
+    type: 'event' | 'weapon' | 'action' | 'passive' | 'artifact' | 'points' | 'continue'
 
     /** 展示文字。纯文本，不含 emoji。 */
     label: string

@@ -35,21 +35,18 @@ export type RewardSpec =
               id: string
               label: string
               description?: string
-              type?: 'weapon' | 'points' | 'artifact'
+              type?: 'weapon' | 'action' | 'passive' | 'artifact' | 'points'
               slot?: 'main' | 'offhand'
           }[]
       }
     | { kind: 'none' }
-    | { kind: 'heal' }
 
 /** 由事件自然奖励推算的"配额自然类型"：points 类事件被配额转为实体时，回退给功法。 */
-export function rewardNaturalKind(spec: RewardSpec | undefined): 'points' | 'heal' | 'item' {
+export function rewardNaturalKind(spec: RewardSpec | undefined): 'points' | 'item' {
     if (!spec) return 'item'
     switch (spec.kind) {
         case 'points':
             return 'points'
-        case 'heal':
-            return 'heal'
         default:
             return 'item'
     }

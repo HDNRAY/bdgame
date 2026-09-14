@@ -63,10 +63,17 @@ describe('n23 开幕热身赛（tournament_open）', () => {
         const result = open.rounds.find((r) => r.id === 'warmup_result')!
         expect(result.choices.some((c) => c.id === 'warmup_win' && c.when && evaluateWhen(c.when, { flags: {}, result: { won: true } }))).toBe(true)
         expect(result.choices.some((c) => c.id === 'warmup_loss' && c.when && evaluateWhen(c.when, { flags: {}, result: { won: false } }))).toBe(true)
-        // 赢 → 各线授艺功法
+        // 赢 → 授艺是 fixed 清单（五门心法），由引擎滤已拥有后抽 3、不足补同类型普池
         const win = open.rounds.find((r) => r.id === 'warmup_win')!
-        expect(win.choices.map((c) => c.id).sort()).toEqual(['combat_instinct', 'iaijutsu_mastery', 'insight_awareness', 'spirit_resonance', 'sword_dominion'])
-        expect(win.choices.every((c) => c.type === 'passive')).toBe(true)
+        expect(win.reward?.kind).toBe('fixed')
+        expect(win.reward?.kind === 'fixed' && win.reward.choices.map((c) => c.id)).toEqual([
+            'sword_dominion',
+            'ji_lie_zhi_lie',
+            'combat_instinct',
+            'insight_awareness',
+            'spirit_resonance',
+        ])
+        expect(win.choices).toEqual([])
     })
 
     it('n23 不再计为修炼点配额机会', () => {
@@ -112,20 +119,6 @@ describe('玄门 × 天工坊', () => {
     })
 })
 
-describe('医馆条件化（n22 前 · 受伤 ≥50）', () => {
-    it('受伤 50 以下不出现；50 及以上才进入池', () => {
-        const c = candidateAt('branch_heal', 13)!
-        expect(c).toBeDefined()
-        expect(evaluateWhen(c.when, { flags: { injury: 30 } })).toBe(false)
-        expect(evaluateWhen(c.when, { flags: { injury: 50 } })).toBe(true)
-        expect(evaluateWhen(c.when, { flags: { injury: 80 } })).toBe(true)
-    })
-    it('n22 之后（三阶段）不再出现', () => {
-        expect(candidateAt('branch_heal', 23)).toBeUndefined()
-        expect(candidateAt('branch_heal', 31)).toBeUndefined()
-    })
-})
-
 describe('n23 热身赛集成（mock 战斗全胜 → 赢 → 授艺）', () => {
     function driveToWarmup(seed: number): { reward: string; won: boolean } {
         battle.playerWins = true
@@ -156,9 +149,11 @@ describe('n23 热身赛集成（mock 战斗全胜 → 赢 → 授艺）', () => 
         return { reward: rewardChoice, won }
     }
 
-    it('道种热身赢 → 授艺剑意领域', () => {
+    it('道种热身赢 → 授艺从五门心法里给（fixed 清单抽 3）', () => {
         const r = driveToWarmup(0.5)
         expect(r.won).toBe(true)
-        expect(r.reward).toBe('sword_dominion')
+        expect(['sword_dominion', 'ji_lie_zhi_lie', 'combat_instinct', 'insight_awareness', 'spirit_resonance']).toContain(
+            r.reward,
+        )
     })
 })

@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { N2_WEAPON_CHOICES, SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
+import { N2_WEAPON_CHOICES, SPAR_RANGE, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  奇遇流 — 自定义事件
@@ -292,7 +292,7 @@ export const WANDERER_RENDER_LANE: EventDef = {
     name: '巷子',
     description: '你路过镇口那台自动售货机，脚步慢了下来。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('wanderer', 'wanderer_render_lane_done') },
+        { nodes: [4], when: storyRenderWhen('wanderer', 'wanderer_render_lane_done') },
     ],
     effects: [{ kind: 'set', flag: 'wanderer_render_lane_done', to: true }],
     reward: { kind: 'points' },
@@ -318,7 +318,7 @@ export const WANDERER_RENDER_GONE: EventDef = {
     name: '陶朵失踪',
     description: '陶朵失踪那天，是个晴天。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('wanderer', 'wanderer_render_gone_done') },
+        { nodes: [5], when: storyRenderWhen('wanderer', 'wanderer_render_gone_done') },
     ],
     effects: [{ kind: 'set', flag: 'wanderer_render_gone_done', to: true }],
     reward: { kind: 'points' },
@@ -344,7 +344,7 @@ export const WANDERER_RENDER_QILAN: EventDef = {
     name: '奇岚',
     description: '奇岚的雷法，你从小就没赢过。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('wanderer', 'wanderer_render_qilan_done') },
+        { nodes: [6], when: storyRenderWhen('wanderer', 'wanderer_render_qilan_done') },
     ],
     effects: [{ kind: 'set', flag: 'wanderer_render_qilan_done', to: true }],
     reward: { kind: 'points' },

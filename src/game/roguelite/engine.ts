@@ -98,12 +98,6 @@ export class RogueliteRun implements RogueliteEngine {
                 this._grantPoints(4)
                 this._advanceRound()
                 break
-            case 'heal':
-                this._state.injury = Math.max(0, this._state.injury - 15)
-                this._syncInjuryFlag()
-                this._state.nodeLog.push('恢复 15 伤势')
-                this._advanceRound()
-                break
             case 'continue':
                 if (choice.id === END_EVENT) {
                     this._finishEvent()
@@ -228,7 +222,6 @@ export class RogueliteRun implements RogueliteEngine {
         const kind = ev?.reward?.kind
         if (kind === 'points') hints.push('+修炼点')
         else if (kind === 'item') hints.push('奖励功法/招式')
-        else if (kind === 'heal') hints.push('疗伤')
         const suffix = hints.length > 0 ? `（${hints.join(' · ')}）` : ''
         return base ? `${base}${suffix}` : suffix || '继续'
     }
@@ -347,33 +340,21 @@ export class RogueliteRun implements RogueliteEngine {
         // 奖励规格：轮次级优先
         const spec: RewardSpec | undefined = round.reward ?? ev.reward
 
-        // 固定奖励（如 n2 选武器、回忆三选一）——不走配额；选项超过 3 个时随机抽 3（n2 兵器 5 抽 3，空手随机出现）
-        if (spec?.kind === 'fixed') {
-            const pool = spec.choices
-            const picked = pool.length > 3 ? pickRandom(pool, 3) : pool
-            round.choices = picked.map(
-                (c): Choice => ({
-                    id: c.id,
-                    type: c.type ?? 'weapon',
-                    label: c.label,
-                    description: c.description,
-                    slot: c.slot,
-                }),
-            )
-            return
-        }
-
         if (!spec || spec.kind === 'none') {
             round.choices = [{ id: END_EVENT, type: 'continue', label: '继续' }]
             return
         }
 
-        // 动态修炼点配额：按「还需 / 剩余机会」决定本轮给修炼点还是实体奖励
+        // ── 修炼点：唯一选项，不参与"抽 3 条" ──
+        // 奖励配额（账本）：整局 29 槽 = 16 次修炼点 + 13 个实体奖励。
+        // entityGiven 传实际已发的实体数（n1 开局奇物、n2/n3 兵器招式、n23 定点奖励都在内）。
+        // 总数不会超 29：能发奖励的节点固定 28 个（n23 双发 → 29），淘汰赛阶段结构上不发奖励，无需兜底。
         const pointsGiven = this._pointsGiven()
         const quota = resolveQuotaRewardType(
             this._state.nodeIndex,
             pointsGiven,
             countRewardOpportunities(this._state.nodes, this._state.nodeIndex),
+            this._state.build.rewards.length,
         )
         if (quota === 'points') {
             round.choices = [
@@ -382,20 +363,43 @@ export class RogueliteRun implements RogueliteEngine {
             return
         }
 
-        if (spec.kind === 'heal') {
-            round.choices = [{ id: 'heal_reward', type: 'heal', label: '疗伤', description: '恢复 15 伤势' }]
-            return
-        }
-
-        // 实体奖励：剧情感悟类（kind points）被配额转为实体时默认给功法
-        const effectivePool: RewardType = spec.kind === 'points' ? 'passive' : spec.pool
+        // ── 实体奖励：所有节点同一条流程 ──
+        // 规格只决定"候选从哪来"：fixed = 显式清单；item = 类型池 + 过滤；points 类事件转实体时默认给功法。
+        // 取到候选之后每个节点完全一样：滤掉已拥有 → 随机抽 3 条 → 不足 3 条用同类型普池补足。
         const exclude = this._state.build.rewards.map((r) => (typeof r === 'string' ? r : r.id))
-        const playerTags = this._derivePlayerTags()
-
-        round.choices = this._generateItemChoices(spec, effectivePool, exclude, playerTags, round)
+        const poolType: RewardType =
+            spec.kind === 'fixed'
+                ? ((spec.choices[0]?.type ?? 'weapon') as RewardType)
+                : spec.kind === 'points'
+                  ? 'passive'
+                  : spec.pool
+        const candidates =
+            spec.kind === 'fixed'
+                ? spec.choices.map(
+                      (c): Choice => ({
+                          id: c.id,
+                          type: c.type ?? 'weapon',
+                          label: c.label,
+                          description: c.description,
+                          slot: c.slot,
+                      }),
+                  )
+                : this._itemCandidates(spec, poolType, exclude, this._derivePlayerTags(), round)
+        const choices = this._padToThree(
+            pickRandom(
+                candidates.filter((c) => !exclude.includes(c.id)),
+                3,
+            ),
+            poolType,
+            exclude,
+            spec.kind === 'item' ? spec.slot : undefined,
+        )
+        round.choices = choices.length > 0 ? choices : [{ id: END_EVENT, type: 'continue', label: '继续' }]
     }
 
-    private _generateItemChoices(
+    /** item 规格的候选清单：类型池 + 规格过滤（ids/includeTags/ap 范围/武器关联/自定义 filter），已拥有的排除。
+     *  抽 3 条与不足补足由调用方统一做（见 _padToThree），这里只负责"候选从哪来"。 */
+    private _itemCandidates(
         spec: Extract<RewardSpec, { kind: 'item' }> | { kind: 'points' },
         poolType: RewardType,
         exclude: string[],
@@ -432,18 +436,37 @@ export class RogueliteRun implements RogueliteEngine {
         const items = spec.kind === 'item' && spec.includeTags
             ? [...tagged, ...general.filter((r) => !tagged.includes(r))]
             : general.filter(passTags)
-        if (items.length === 0) {
-            // 池被过滤为空（如已拥有全部候选）→ 无奖励直接继续，不卡死
-            return [{ id: END_EVENT, type: 'continue', label: '继续' }]
-        }
-        const picked = pickRandom(items, 3)
-        return picked.map((i: RewardEntity) => ({
-            id: i.id,
-            type: poolType,
-            label: i.name,
-            description: i.description,
-            slot: spec.kind === 'item' ? spec.slot : undefined,
-        }))
+        return items.map(
+            (i: RewardEntity): Choice => ({
+                id: i.id,
+                type: poolType,
+                label: i.name,
+                description: i.description,
+                slot: spec.kind === 'item' ? spec.slot : undefined,
+            }),
+        )
+    }
+
+    /** 实体奖励候选收口：不足 3 条时用**同类型普池**补足（已拥有的一律排除）。各节点共用这一处。 */
+    private _padToThree(choices: Choice[], type: RewardType, exclude: string[], slot?: 'main' | 'offhand'): Choice[] {
+        if (choices.length >= 3) return choices
+        const taken = new Set([...exclude, ...choices.map((c) => c.id)])
+        const extra = pickRandom(
+            rewardPool.getPool(type).filter((r) => !taken.has(r.id)),
+            3 - choices.length,
+        )
+        return [
+            ...choices,
+            ...extra.map(
+                (i: RewardEntity): Choice => ({
+                    id: i.id,
+                    type,
+                    label: i.name,
+                    description: i.description,
+                    slot,
+                }),
+            ),
+        ]
     }
 
     /** 执行战斗轮 */

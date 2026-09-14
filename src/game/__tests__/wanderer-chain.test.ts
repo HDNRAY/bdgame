@@ -176,32 +176,42 @@ describe('故事线补充节点（文档有→游戏有）', () => {
     })
 })
 
-describe('一阶段中段（n4-7）渲染池', () => {
-    const renderEvents: { story: string; ids: string[] }[] = [
-        { story: 'feud', ids: ['feud_render_manor', 'feud_render_qinggong', 'feud_render_baishan'] },
-        { story: 'sect', ids: ['sect_render_shixiong', 'sect_render_layue', 'sect_render_men'] },
-        { story: 'xuanmen', ids: ['xuanmen_render_twins', 'xuanmen_render_yuwu', 'xuanmen_render_zuxun'] },
-        { story: 'wanderer', ids: ['wanderer_render_lane', 'wanderer_render_gone', 'wanderer_render_qilan'] },
-        { story: 'veteran', ids: ['veteran_render_laochai'] },
+describe('一阶段中段（n4-7）故事线主线场景', () => {
+    // 渲染场景已从"池候选"改为**定点主线**：每场只挂在自己那一个节点上，且非 fallback（压过通用池）
+    const renderEvents: { story: string; plan: [string, number][] }[] = [
+        // [事件 id, 0-based 节点] —— 玄门 n6 已被「结识小树」占用，故第三场放 n7
+        { story: 'feud', plan: [['feud_render_manor', 3], ['feud_render_qinggong', 4], ['feud_render_baishan', 5]] },
+        { story: 'sect', plan: [['sect_render_shixiong', 3], ['sect_render_layue', 4], ['sect_render_men', 5]] },
+        {
+            story: 'xuanmen',
+            plan: [['xuanmen_render_twins', 3], ['xuanmen_render_yuwu', 4], ['xuanmen_render_zuxun', 6]],
+        },
+        {
+            story: 'wanderer',
+            plan: [['wanderer_render_lane', 3], ['wanderer_render_gone', 4], ['wanderer_render_qilan', 5]],
+        },
+        { story: 'veteran', plan: [['veteran_render_laochai', 6]] }, // 军旅 n4-6 被主线占据，只在 n7
     ]
 
-    for (const { story, ids } of renderEvents) {
-        it(`${story} 的渲染事件是 fallback 候选，且只对本故事线存活`, () => {
-            const indices = story === 'veteran' ? [6] : [3, 4, 5, 6] // 军旅 n4-6 被主线占据，只在 n7
-            for (const i of indices) {
-                for (const id of ids) {
-                    const c = candidateAt(id, i)
-                    expect(c, `${id}@${i + 1}`).toBeDefined()
-                    expect(c?.fallback).toBe(true)
-                    expect(evaluateWhen(c?.when, { flags: { story } })).toBe(true)
-                    // 其他故事线不存活
-                    expect(evaluateWhen(c?.when, { flags: { story: story === 'feud' ? 'sect' : 'feud' } })).toBe(false)
+    for (const { story, plan } of renderEvents) {
+        it(`${story} 的主线场景定点播放，且只对本故事线存活`, () => {
+            for (const [id, node] of plan) {
+                const c = candidateAt(id, node)
+                expect(c, `${id}@n${node + 1}`).toBeDefined()
+                // 定点主线：非 fallback（解析时压过通用池，不再进三选一）
+                expect(c?.fallback).toBeFalsy()
+                expect(evaluateWhen(c?.when, { flags: { story } })).toBe(true)
+                // 其他故事线不存活
+                expect(evaluateWhen(c?.when, { flags: { story: story === 'feud' ? 'sect' : 'feud' } })).toBe(false)
+                // 只挂在这一个节点上
+                for (let i = 3; i <= 6; i++) {
+                    if (i !== node) expect(candidateAt(id, i), `${id}@n${i + 1}`).toBeUndefined()
                 }
             }
         })
     }
 
-    it('军旅渲染事件只在 n7（n4-6 被主线占据）', () => {
+    it('军旅主线场景只在 n7（n4-6 被主线占据）', () => {
         expect(candidateAt('veteran_render_laochai', 6)).toBeDefined() // node 7
         for (let i = 3; i <= 5; i++) {
             expect(candidateAt('veteran_render_laochai', i)).toBeUndefined() // node 4-6

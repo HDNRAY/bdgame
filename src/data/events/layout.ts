@@ -28,7 +28,7 @@ export const STAGE1_END = [8, 9, 10]
 /** 天工坊第二次（副手）：第三阶段开打之前 */
 export const STAGE3_PRE = [24, 25]
 
-/** 一阶段中段渲染池节点（n4-7；从 n4 起主角已 7-8 岁。天工坊 n8-10 之前） */
+/** 一阶段中段（n4-7；从 n4 起主角已 7-8 岁。天工坊 n8-10 之前）：故事线专属回忆场景在此定点播放 */
 export const STAGE1_MID = [4, 5, 6, 7]
 
 /** 二阶段切磋池节点范围（n10-21：同辈切磋，3 选 1 池候选，可空缺） */
@@ -39,7 +39,7 @@ export function storyWhen(id: string): When {
     return { '==': [{ var: 'flags.story' }, id] }
 }
 
-/** 一阶段中段渲染池条件：故事线专属 + 每局至多一次（done flag 门控）。 */
+/** 故事线专属回忆场景条件：仅该故事线触发（done flag 仅作重复保护，节点已定点）。 */
 export function storyRenderWhen(storyId: string, doneFlag: string): When {
     return { and: [storyWhen(storyId), { '!': { var: `flags.${doneFlag}` } }] }
 }

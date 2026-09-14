@@ -173,7 +173,7 @@ export const VETERAN_RENDER_LAOCHAI: EventDef = {
     name: '同袍',
     description: '老柴是伙房的老兵，什么都知道一点。',
     placement: [
-        { nodes: [7], fallback: true, weight: 2, when: storyRenderWhen('veteran', 'veteran_render_laochai_done') },
+        { nodes: [7], when: storyRenderWhen('veteran', 'veteran_render_laochai_done') },
     ],
     effects: [{ kind: 'set', flag: 'veteran_render_laochai_done', to: true }],
     reward: { kind: 'points' },

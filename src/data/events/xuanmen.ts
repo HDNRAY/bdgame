@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
+import { SPAR_RANGE, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  玄门 — 自定义事件
@@ -310,7 +310,7 @@ export const XUANMEN_RENDER_TWINS: EventDef = {
     name: '一起长大',
     description: '你和玄九，生来就是两个人。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('xuanmen', 'xuanmen_render_twins_done') },
+        { nodes: [4], when: storyRenderWhen('xuanmen', 'xuanmen_render_twins_done') },
     ],
     effects: [{ kind: 'set', flag: 'xuanmen_render_twins_done', to: true }],
     reward: { kind: 'points' },
@@ -336,7 +336,7 @@ export const XUANMEN_RENDER_YUWU: EventDef = {
     name: '御物初习',
     description: '御物认主，父亲说，靠的是心。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('xuanmen', 'xuanmen_render_yuwu_done') },
+        { nodes: [5], when: storyRenderWhen('xuanmen', 'xuanmen_render_yuwu_done') },
     ],
     effects: [{ kind: 'set', flag: 'xuanmen_render_yuwu_done', to: true }],
     reward: { kind: 'points' },
@@ -362,7 +362,7 @@ export const XUANMEN_RENDER_ZUXUN: EventDef = {
     name: '祖训',
     description: '那条祖训，你小时候只当它是句怪话。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('xuanmen', 'xuanmen_render_zuxun_done') },
+        { nodes: [7], when: storyRenderWhen('xuanmen', 'xuanmen_render_zuxun_done') },
     ],
     effects: [{ kind: 'set', flag: 'xuanmen_render_zuxun_done', to: true }],
     reward: { kind: 'points' },

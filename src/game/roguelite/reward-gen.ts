@@ -14,9 +14,6 @@ export function generateRewardChoices(
     if (rewardType === 'points') {
         return [{ id: CULT_REWARD.id, type: 'points', label: CULT_REWARD.label, description: CULT_REWARD.description }]
     }
-    if (rewardType === 'heal') {
-        return [{ id: 'heal_reward', type: 'heal', label: '疗伤', description: '恢复 15 伤势' }]
-    }
 
     const source = pool ?? rewardPool.getPool(rewardType)
     const items = filter ? source.filter(filter) : [...source]

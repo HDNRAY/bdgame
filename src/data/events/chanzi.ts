@@ -78,6 +78,13 @@ export const CHANZI_MEDITATION: EventDef = {
             choices: [],
         },
         {
+            // 分支收尾：掐断流程，免得顺次走到下面兄弟分支的奖励轮（会多发奖励）
+            id: 'sworn_end',
+            title: '出寺',
+            description: '你收好经书，向禅子告辞。铜铃响了一路。',
+            choices: [{ id: '__end__', type: 'continue', label: '下山' }],
+        },
+        {
             id: 'feud_reward',
             title: '禅子的话',
             description:
@@ -86,12 +93,24 @@ export const CHANZI_MEDITATION: EventDef = {
             choices: [],
         },
         {
+            id: 'feud_end',
+            title: '出寺',
+            description: '你谢过禅子，出了寺门。山下的灯一盏盏亮起来。',
+            choices: [{ id: '__end__', type: 'continue', label: '下山' }],
+        },
+        {
             id: 'default_reward',
             title: '禅定',
             description:
                 '你坐下听禅。山风过檐，铜铃不响，你心里那些乱糟糟的念头，渐渐落了下来。等睁开眼，天已经黑了。',
             reward: { kind: 'item', pool: 'action', apMax: 3 },
             choices: [],
+        },
+        {
+            id: 'default_end',
+            title: '出寺',
+            description: '你起身告辞。禅子没有送，只在你身后敲了一下铜铃。',
+            choices: [{ id: '__end__', type: 'continue', label: '下山' }],
         },
     ],
 }

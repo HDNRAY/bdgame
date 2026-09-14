@@ -124,9 +124,10 @@ const WARMUP_ENEMY: Record<string, { id: string; label: string; desc: string }> 
 }
 
 /** 各线热身奖励：赢 → 前辈/师父授艺（固定功法，绕过配额） */
+
 const WARMUP_REWARD: Record<string, { id: string; label: string; desc: string }> = {
     sect: { id: 'sword_dominion', label: '剑意领域', desc: '腊月师姐传你的剑意心法。' },
-    veteran: { id: 'iaijutsu_mastery', label: '居合精通', desc: '白山月教官传你的居合要诀。' },
+    veteran: { id: 'ji_lie_zhi_lie', label: '极烈之烈', desc: '白山月教官传你的死战心法。' },
     wanderer: { id: 'combat_instinct', label: '战斗本能', desc: '来风兄弟教的野路子，管用。' },
     feud: { id: 'insight_awareness', label: '洞察意识', desc: '黛玄科长教的侦查心法。' },
     xuanmen: { id: 'spirit_resonance', label: '精神共鸣', desc: '玄演指点的御物心法。' },
@@ -184,16 +185,20 @@ function makeTournamentOpen(): EventDef {
             ],
         },
         {
+            // 授艺 = 五门心法里给三选一（fixed 清单；统一流程会滤已拥有、不足补同类型普池）
             id: 'warmup_win',
             title: '授艺',
             description: '「底子不错。」对方拍了拍你的肩，当场指点了几句，把一门心法传了给你。',
-            choices: STORY_IDS.map((s) => ({
-                id: WARMUP_REWARD[s].id,
-                type: 'passive' as const,
-                label: WARMUP_REWARD[s].label,
-                description: WARMUP_REWARD[s].desc,
-                when: storyWhen(s),
-            })),
+            reward: {
+                kind: 'fixed',
+                choices: STORY_IDS.map((s) => ({
+                    id: WARMUP_REWARD[s].id,
+                    type: 'passive' as const,
+                    label: WARMUP_REWARD[s].label,
+                    description: WARMUP_REWARD[s].desc,
+                })),
+            },
+            choices: [],
         },
         {
             id: 'warmup_end',
@@ -214,11 +219,12 @@ function makeTournamentOpen(): EventDef {
             choices: [{ id: 'group_reward', type: 'continue' as const, label: '踏入擂台' }],
         },
         {
+            // n23 的奖励只有上面「授艺」那一门心法（见 reward: { kind: 'none' }）；
+            // 这场 r0 是小组赛的引子，不再另发战利品，否则整局会多出一次奖励（29 → 30）。
             id: 'group_reward',
-            title: '战利品',
-            description: '你走回选手席。',
-            reward: { kind: 'points' },
-            choices: [],
+            title: '回到选手席',
+            description: '你走回选手席，等着正式赛程排到自己。',
+            choices: [{ id: END_EVENT, type: 'continue' as const, label: '继续' }],
         },
     ]
     return {

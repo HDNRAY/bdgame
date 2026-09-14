@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { N2_WEAPON_CHOICES, SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
+import { N2_WEAPON_CHOICES, SPAR_RANGE, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  血海深仇 — 自定义事件
@@ -118,13 +118,15 @@ export const BOSS_AJIU: EventDef = {
             enemyId: 'ajiu',
             description:
                 '你拔出兵器。阿九抬起义体手臂——月光下的金属光泽，和许多年前那个晚上一样冷。她没有后退。',
-            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
+            choices: [{ id: 'aftermath', type: 'continue', label: '继续' }],
         },
         {
-            id: 'reward_round',
+            id: 'aftermath',
             title: '阿九',
-            choices: [{ id: '__end__', type: 'continue', label: '继续' }],
+            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
         },
+        // 守门人节点（n22）每条线都要发奖励：这里默认给修炼点（与通用池版「守门人」一致）
+        { id: 'reward_round', title: '战利品', choices: [] },
     ],
 }
 
@@ -291,7 +293,7 @@ export const FEUD_RENDER_MANOR: EventDef = {
     name: '会长府',
     description: '会长府的灯，总是留到很晚。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('feud', 'feud_render_manor_done') },
+        { nodes: [4], when: storyRenderWhen('feud', 'feud_render_manor_done') },
     ],
     effects: [{ kind: 'set', flag: 'feud_render_manor_done', to: true }],
     reward: { kind: 'points' },
@@ -317,7 +319,7 @@ export const FEUD_RENDER_QINGGONG: EventDef = {
     name: '学轻功',
     description: '姬仲说，轻功是保命的本事。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('feud', 'feud_render_qinggong_done') },
+        { nodes: [5], when: storyRenderWhen('feud', 'feud_render_qinggong_done') },
     ],
     effects: [{ kind: 'set', flag: 'feud_render_qinggong_done', to: true }],
     reward: { kind: 'points' },
@@ -343,7 +345,7 @@ export const FEUD_RENDER_BAISHAN: EventDef = {
     name: '白山月来访',
     description: '白山月腰悬唐刀，进门先打量了你一圈。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('feud', 'feud_render_baishan_done') },
+        { nodes: [6], when: storyRenderWhen('feud', 'feud_render_baishan_done') },
     ],
     effects: [{ kind: 'set', flag: 'feud_render_baishan_done', to: true }],
     reward: { kind: 'points' },

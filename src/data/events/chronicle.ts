@@ -22,6 +22,7 @@ export const CHRONICLE_TAVERN_ENCOUNTER: EventDef = {
             when: { '!': { var: 'flags.got_wine' } },
         },
     ],
+    reward: { kind: 'item', pool: 'passive' },
     rounds: [
         {
             id: 'scene',
@@ -30,20 +31,21 @@ export const CHRONICLE_TAVERN_ENCOUNTER: EventDef = {
                 '你在九朵桃花酒吧独酌，酒过三巡，门口进来一个风尘仆仆的人——正是常在镇上晃荡的来风。他认得你，咧嘴一笑：「哟，一个人喝闷酒？来，凑一桌。」\n\n墙根那儿，抱着酒葫芦的酒鬼·无志也抬了抬眼，朝你晃了晃葫芦。',
             choices: [
                 {
-                    id: '__end__',
+                    id: 'reward_round',
                     type: 'continue',
                     label: '与来风喝酒',
                     effects: [{ kind: 'set', flag: 'got_wine', to: true }],
                 },
                 {
-                    id: '__end__',
+                    id: 'reward_round',
                     type: 'continue',
                     label: '与酒鬼·无志喝酒',
                     effects: [{ kind: 'set', flag: 'got_wine', to: true }],
                 },
-                { id: '__end__', type: 'continue', label: '自顾自喝，不理会' },
+                { id: 'reward_round', type: 'continue', label: '自顾自喝，不理会' },
             ],
         },
+        { id: 'reward_round', title: '散场', choices: [] },
     ],
 }
 

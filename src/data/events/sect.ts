@@ -1,5 +1,5 @@
 import type { EventDef } from '../../game/entities/event'
-import { N2_WEAPON_CHOICES, SPAR_RANGE, STAGE1_MID, storyRenderWhen, storyWhen } from './layout'
+import { N2_WEAPON_CHOICES, SPAR_RANGE, storyRenderWhen, storyWhen } from './layout'
 
 // ════════════════════════════════════════
 //  天生道种 — 自定义事件
@@ -251,7 +251,7 @@ export const SECT_RENDER_SHIXIONG: EventDef = {
     name: '师兄照顾',
     description: '师兄总是先你一步，把路走一遍。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('sect', 'sect_render_shixiong_done') },
+        { nodes: [4], when: storyRenderWhen('sect', 'sect_render_shixiong_done') },
     ],
     effects: [{ kind: 'set', flag: 'sect_render_shixiong_done', to: true }],
     reward: { kind: 'points' },
@@ -277,7 +277,7 @@ export const SECT_RENDER_LAYUE: EventDef = {
     name: '腊月师姐',
     description: '腊月师姐凶得很，山门上下都怕她。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('sect', 'sect_render_layue_done') },
+        { nodes: [5], when: storyRenderWhen('sect', 'sect_render_layue_done') },
     ],
     effects: [{ kind: 'set', flag: 'sect_render_layue_done', to: true }],
     reward: { kind: 'points' },
@@ -303,7 +303,7 @@ export const SECT_RENDER_MEN: EventDef = {
     name: '山门早课',
     description: '山门的早课，从寅时的钟声开始。',
     placement: [
-        { nodes: STAGE1_MID, fallback: true, weight: 2, when: storyRenderWhen('sect', 'sect_render_men_done') },
+        { nodes: [6], when: storyRenderWhen('sect', 'sect_render_men_done') },
     ],
     effects: [{ kind: 'set', flag: 'sect_render_men_done', to: true }],
     reward: { kind: 'points' },
