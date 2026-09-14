@@ -101,7 +101,13 @@ export class RewardPool {
 
     private _getActionPool(): RewardEntity[] {
         if (!this._actionPool) {
-            this._actionPool = allMainActions as RewardEntity[]
+            // 排除「不该被学」的内部招式，两道闸：
+            //   ① 带 internal 标签的（内部实现，不对用户/AI 暴露）；
+            //   ② 下划线开头的实现型招式（如 _arm_explosion：钛合金臂的专属绝境招，
+            //      不能带 internal，否则 AI 无法出手；但它同样不该作为「学招式」奖励发给玩家）。
+            this._actionPool = allMainActions.filter(
+                (a) => !a.tags.includes('internal') && !a.id.startsWith('_'),
+            ) as RewardEntity[]
         }
         return this._actionPool
     }

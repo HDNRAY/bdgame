@@ -9,7 +9,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'daily_grind',
         name: '日复一日的打磨',
         description: '日复一日的打磨技艺，洞察提升命中，推演提升闪避。',
-        tags: ['damage', 'inherent'],
+        tags: ['inherent'],
         expiry: { type: 'permanent' },
         // 攻击侧：洞察提升命中（与平平无奇的锻炼同系数 0.004）
         onHitChance: ({ attacker }) => attacker.attrs.get('insight') * 0.004,
@@ -20,7 +20,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'last_stand',
         name: '绝剑',
         description: '损失血量越多，暴击伤害越高。',
-        tags: ['damage', 'low_hp'],
+        tags: ['low_hp'],
         onCritDamage: ({ attacker }) => {
             const ratio = 0.1
             const missingRatio = 1 - attacker.hp / attacker.maxHp
@@ -31,7 +31,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'extreme',
         name: '极',
         description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+3%暴伤。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         onCritChance: ({ source, attacker, layer, engine }) => {
             if (((source as ActionDefinition)?.apCost ?? 0) < 5 || attacker.chan < MAX_CHAN) {
@@ -62,7 +62,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'shi_buff',
         name: '势',
         description: '招架或闪避后蓄势，每层暴击伤害+15%。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 3 },
         onCritDamage: ({ layer }) => layer.restoreValue * 0.15,
@@ -71,7 +71,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'qi_amplify',
         name: '炁意',
         description: '凝炁玉增幅，炁系招式伤害根据推演加成。',
-        tags: ['qi', 'damage'],
+        tags: ['qi'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, source }) => {
             const isQi = source?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
@@ -85,7 +85,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     //     id: 'yue_nv_buff',
     //     name: '越女剑意',
     //     description: '白猿授剑，灵巧化为剑势，附加灵巧×0.04伤害（仅劈砍/戳刺招式）。',
-    //     tags: ['pierce', 'slash', 'damage'],
+    //     tags: ['pierce', 'slash'],
     //     expiry: { type: 'permanent' },
     //     onDealDamage: ({ final, attacker, source }) => {
     //         // 仅 pierce 或 slash 招式生效（配合「不滞于物」的全招 pierce 标记可全招生效）
@@ -98,7 +98,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'bu_zhi_yu_wu',
         name: '不滞于物',
         description: '不滞于物，草木竹石皆可为剑。附加推演×0.05伤害。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker }) => round1(final + attacker.attrs.get('wisdom') * 0.05),
     },
@@ -106,7 +106,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'thunder_bonus',
         name: '雷法',
         description: '攻击附加2点雷击伤害（1点穿透）。',
-        tags: ['qi', 'electric', 'damage'],
+        tags: ['qi', 'electric'],
         expiry: { type: 'permanent' },
         onAfterDealDamage: ({ attacker }) => {
             attacker.spendChan(1)
@@ -117,7 +117,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'cinnabar_mark',
         name: '守宫砂·印',
         description: '每次攻击积攒一颗雷印，满四颗后下一击爆发。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, layer, engine }) => {
             if (layer.restoreValue >= 4) {
@@ -139,7 +139,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         name: '十九停',
         description:
             '每次出手消耗1缠劲（无论命中与否）并叠一层，但层数越高越易失手（叠不上）。每层命中+1%、暴击+1%、暴伤+1%，最多19层。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 19 },
         // 建层即归零（additive 需 stacks≥1 建层，实际层数由出手驱动，开局 0 层）
@@ -160,7 +160,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'ji_lie_zhi_lie_buff',
         name: '极烈',
         description: '受击愈烈，每层暴击率+2%, 暴击伤害+3%，最多7层。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 7 },
         onTakeDamage: ({ final, layer }) => {
@@ -174,7 +174,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'tongtian',
         name: '通天大物',
         description: '悟生离死别，攻击命中时有概率令对手不幸缠身。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, target, engine, state }) => {
             // 攻击造成伤害时概率上「不幸」（降敌命中/闪避/招架/暴击）
@@ -191,7 +191,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'golden_light',
         name: '金光',
         description: '金光咒护体，受伤时消耗1层缠劲减免2点；非御物攻击消耗1层缠劲附加2点伤害。',
-        tags: ['qi', 'defense', 'damage'],
+        tags: ['qi', 'defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, engine }) => {
             if (!target.spendChan(1)) return final
@@ -213,7 +213,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'blood_sacrifice',
         name: '血祭',
         description: '每招消耗1%最大气血，造成等额额外伤害，并缓慢回复等额气血。',
-        tags: ['damage', 'low_hp'],
+        tags: ['low_hp'],
         expiry: { type: 'permanent' },
         onAction: ({ source, attacker, engine, state, layer }) => {
             if (!source || attacker.hp <= 0) return
@@ -308,7 +308,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'wolf_hunting_buff',
         name: '狼狩法则',
         description: '善用自重、惯性与借力造成额外伤害。消耗2层缠劲，附加（力道+根骨+身法+灵巧）×5%额外伤害。',
-        tags: ['buff', 'damage'],
+        tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, attacker, source }) => {
@@ -346,7 +346,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'bai_ju_guo_xi_buff',
         name: '白驹过隙',
         description: '距对手3米内，每点身法+3%暴击伤害。',
-        tags: ['buff', 'damage'],
+        tags: ['buff'],
         stacking: { type: 'none' },
         onCritDamage: ({ attacker, target, state }) => {
             if (!state || !target) return 0
@@ -358,7 +358,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'chou_dao_duan_shui_buff',
         name: '抽刀断水',
         description: '暴击时对方气息一滞，AP-1，且回复重新起算。',
-        tags: ['buff', 'damage'],
+        tags: ['buff'],
         stacking: { type: 'none' },
         onCritical: ({ attacker, target, engine, state }) => {
             if (!target || !engine) return
@@ -394,7 +394,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'martial_arts_crit',
         name: '武学·破',
         description: '推演出的破绽洞察，每层暴击+2%、爆伤+5%。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         onCritChance: ({ layer }) => layer.restoreValue * 0.02,
@@ -404,7 +404,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'blood_thorn_suppress',
         name: '血棘·流血',
         description: '暴击时向创口渡入棘炁，爆伤按 14:1 转化为流血。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         // 血棘戒：priority 最高 → 最后结算，读到的 final 是其他钩子处理后的完整伤害
@@ -425,7 +425,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'blood_thorn_earring_buff',
         name: '血棘·追魂',
         description: '刺击暴击率+7%，对流血中目标再+8%。',
-        tags: ['bleed', 'pierce', 'damage'],
+        tags: ['bleed', 'pierce'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onCritChance: ({ source, target, state }) => {
@@ -439,7 +439,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'no_way_win_buff',
         name: '无招胜有招',
         description: '触发招式伤害+25%。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         priority: 99,
@@ -449,7 +449,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'ling_long_xin_qiao_buff',
         name: '玲珑心窍',
         description: '心窍玲珑，算尽对手每寸动作。每点推演+1%暴击率。',
-        tags: ['damage'],
+        tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.015,
@@ -458,7 +458,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'yi_dian_po_xiao_buff',
         name: '一点破晓',
         description: '刺击招式伤害的50%转为穿透。',
-        tags: ['damage', 'pierce'],
+        tags: ['pierce'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         // 每次命中都拆 50% 穿透：基于结算后伤害拆（暴击时含爆伤，穿透吃爆伤），穿透部分无视招架/减伤/吸收
@@ -475,7 +475,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         id: 'rui_qi_jue',
         name: '锐炁诀',
         description: '炁凝如锋，锐不可当。带炁的招式，30%伤害转为穿透，无视招架与减伤。',
-        tags: ['damage', 'qi'],
+        tags: ['qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onPostCritDamage: ({ final, source }) => {

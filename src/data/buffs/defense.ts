@@ -304,7 +304,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'soft_armor',
         name: '软猬',
-        description: '软猬甲护体，减免所有伤害；受拳脚攻击时反伤并叠流血。',
+        description: '软猬甲护体，受伤减免1点；受拳脚攻击时叠流血。',
         tags: ['defense'],
         onTakeDamage: ({ final, target, attacker, engine, state, source }) => {
             const reduced = Math.max(0, Math.round((final - 1) * 10) / 10)

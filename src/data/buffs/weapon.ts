@@ -135,7 +135,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         id: 'chun_lei_buff',
         name: '春雷',
         description: '春雷灵巧加成，灵巧×8%增伤。',
-        tags: ['weapon', 'damage'],
+        tags: ['weapon'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker }) => {
             const bonus = round1(attacker.attrs.get('dexterity') * 0.08)
@@ -146,7 +146,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         id: 'buer_sword',
         name: '不二剑灵',
         description: '最快的剑之一，出剑必中要害，暴击率+15%。',
-        tags: ['weapon', 'damage'],
+        tags: ['weapon'],
         expiry: { type: 'permanent' },
         onCritChance: () => 0.15,
     },
@@ -154,7 +154,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         id: 'iron_back_buff',
         name: '无相',
         description: '玉环化甲，拳劲透体，伤害穿透。免疫缴械。',
-        tags: ['damage', 'weapon'],
+        tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDisarmChance: () => -1,

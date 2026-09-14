@@ -34,7 +34,7 @@ export const PASSIVES: Passive[] = [
         id: 'ji_lie_zhi_lie',
         name: '极烈之烈',
         description: '死战不退，受击愈烈。每次受到伤害叠1层「烈」，每层提升暴击率与暴击伤害。',
-        tags: ['passive', 'damage'],
+        tags: ['passive'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -66,7 +66,7 @@ export const PASSIVES: Passive[] = [
         id: 'last_sword',
         name: '绝剑诀',
         description: '绝境之剑，伤势越重，剑意越强。',
-        tags: ['qi', 'damage', 'low_hp'],
+        tags: ['qi', 'low_hp'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -173,7 +173,7 @@ export const PASSIVES: Passive[] = [
         id: 'nineteen_stops',
         name: '十九停',
         description: '每次出手叠一层「十九停」，层数越高越易失手。每层提升命中、暴击与暴伤，最多19层。',
-        tags: ['passive', 'buff', 'damage'],
+        tags: ['passive', 'buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -195,7 +195,7 @@ export const PASSIVES: Passive[] = [
         id: 'daily_grind',
         name: '日复一日的训练',
         description: '平平无奇的每日训练，洞察提升命中，推演提升闪避。',
-        tags: ['passive', 'damage', 'inherent'],
+        tags: ['passive', 'inherent'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'daily_grind' }] }],
     },
     {
@@ -203,7 +203,7 @@ export const PASSIVES: Passive[] = [
         name: '刃炁精通',
         requiredTags: ['slash'],
         description: '刃炁入体，每层受到伤害+5%。受到治疗时减少一层（累计10点治疗消一层）。',
-        tags: ['passive', 'damage', 'debuff', 'slash'],
+        tags: ['passive', 'debuff', 'slash'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -222,7 +222,7 @@ export const PASSIVES: Passive[] = [
         id: 'overlord_art',
         name: '轮舞月斩',
         description: '长兵轮转，如月之轮舞。每一刀都顺势回旋突进。',
-        tags: ['passive', 'damage'],
+        tags: ['passive'],
         effects: [],
         grantsActions: ['retrieve_blade'],
         triggers: [

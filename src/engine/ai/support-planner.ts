@@ -76,7 +76,7 @@ export function planSupportActions(
 /** 辅助招式优先级 */
 function priority(tags: string[]): number {
     if (tags.includes('heal')) return 100
-    if (tags.includes('damage') || tags.includes('buff')) return 50
+    if (tags.includes('buff')) return 50
     if (tags.includes('defense')) return 30
     return 10
 }

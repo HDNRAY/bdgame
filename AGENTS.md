@@ -87,7 +87,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 | Passive          | src/engine/entities/passive.ts    | name, description, tags, effects, triggers                        |
 | Artifact         | src/engine/entities/artifact.ts   | name, description, tags, effects, triggers                        |
 | AttrName         | src/engine/entities/attributes.ts | ATTR_CN[attr], ATTR_DESC[attr] (注释)                             |
-| Tag              | src/engine/entities/tag.ts        | 36 种标签类型，对应中文名见 tagDisplay.ts                         |
+| Tag              | src/engine/entities/tag.ts        | 54 种标签类型，对应中文名见 tagDisplay.ts                         |
 | EffectDef        | src/engine/entities/action.ts     | 24 种效果变体 (damage/heal/stat_buff/status 等)                   |
 
 ## 像素美术（武器叠加图）

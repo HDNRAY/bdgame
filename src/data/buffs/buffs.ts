@@ -1577,7 +1577,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'special_forces_dagger',
         name: '特种兵匕首',
         description: '耗1缠劲，追加1点电伤、1点穿透电伤，并有40%概率使目标麻痹1层。',
-        tags: ['electric', 'damage'],
+        tags: ['electric'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onAfterDealDamage: ({ attacker, target, engine, state }) => {

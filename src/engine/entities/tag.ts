@@ -38,11 +38,9 @@ export type Tag =
     // | 'charge' // 冲锋
     | 'defense' // 防御
     | 'debuff' // 弱化
-    | 'dot' // 持续伤害
     | 'melee' // 近战武器
     | 'one_handed' // 单手
     | 'two_handed' // 双手
-    // | 'damage' // 伤害增强
     | 'summon' // 召唤相关
     | 'stance' // 架势/姿态
     | 'retrieve_weapon' // 收回武器
@@ -51,7 +49,6 @@ export type Tag =
     | 'inherent' // 特性（不可复制、不可禁用）
     | 'weapon' // 武器来源的 buff
     | 'thrown' // 暗器
-    | 'damage' // 伤害增强
     | 'super_armor' // 罡体
     | 'jiu' // 酒
     | 'craft' // 锻造品（天工出品，无副作用的人造装备）

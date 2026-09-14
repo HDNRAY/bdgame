@@ -255,7 +255,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm', 'pierce'],
         apCost: 4,
         chanCost: 24,
-        tags: ['polearm', 'pierce', 'damage', 'chan'],
+        tags: ['polearm', 'pierce', 'chan'],
         effects: [
             { type: 'damage', scaling: { strength: 0.2 } },
             {
@@ -333,7 +333,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['imperial'],
         apCost: 5,
         chanCost: 33,
-        tags: ['imperial', 'range', 'damage', 'chan'],
+        tags: ['imperial', 'range', 'chan'],
         effects: [
             {
                 type: 'functional_damage',

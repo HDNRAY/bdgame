@@ -288,7 +288,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'iron_will',
         name: '乌铠',
-        description: '受到超过5点的拳脚/斩/刺/钝伤害时，消耗1AP减少4点。',
+        description: '受到超过4点的拳脚/斩/刺/钝伤害时，消耗1缠劲减免4点，每场最多20次。',
         tags: ['trigger', 'defense', 'inherent'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dmg_reduce' }] }],
     },
@@ -302,7 +302,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'bamboo_hat',
         name: '青竹斗笠',
-        description: '遮面掩踪，远程攻击（距离≥5）额外 +15% 闪避。',
+        description: '遮面掩踪，远程攻击（距离≥4米）额外 +20% 闪避。',
         tags: ['defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ranged_dodge' }] }],
     },
@@ -406,7 +406,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'soft_hedgehog_mail',
         name: '软猬甲',
-        description: '天工锻造的软猬甲衣，柔韧而多刺。减免所有伤害；受拳脚攻击时反伤并令对手流血。',
+        description: '天工锻造的软猬甲衣，柔韧而多刺。受伤减免1点；受拳脚攻击时令对手流血。',
         tags: ['defense', 'craft'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'soft_armor' }] }],
     },
@@ -481,7 +481,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'nv_er_hong',
         name: '女儿红',
-        description: '温润醇厚的黄酒，饮后气血奔涌。花1AP饮用，每秒回复1.5点气血，持续5秒，最多3层。',
+        description: '温润醇厚的黄酒，饮后气血奔涌。花1AP饮用，每秒回复1.5点气血，持续9秒，最多3层。',
         tags: ['jiu'],
         grantsActions: ['_jiu_nv_er_hong'],
     },
