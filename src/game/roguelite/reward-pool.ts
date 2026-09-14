@@ -4,7 +4,6 @@ import { CULT_REWARD } from '../../game/entities/reward'
 import { PASSIVES } from '../../data/passives'
 import { ARTIFACTS } from '../../data/artifacts'
 import { WEAPON_DB } from '../../data/weapons/weapons'
-import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
 import { pickWeightedByTags } from '../tagRelevance'
 import { allMainActions } from '../../engine'
 
@@ -114,9 +113,9 @@ export class RewardPool {
 
     private _getWeaponPool(): RewardEntity[] {
         if (!this._weaponPool) {
-            // 排除 imperial（御物武器，仅通过天工坊事件获得）
-            this._weaponPool = [...WEAPON_DB, ...STARTING_WEAPONS].filter(
-                (w) => !w.tags.includes('imperial'),
+            // 只出 WEAPON_DB：起始武器（starting-weapons.ts）不进随机池；
+            // 御物（imperial）也排除，仅通过天工坊/玄门事件获得。
+            this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'),
             ) as RewardEntity[]
         }
         return this._weaponPool

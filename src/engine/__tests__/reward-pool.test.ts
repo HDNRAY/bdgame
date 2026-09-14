@@ -39,11 +39,16 @@ describe('rewardPool', () => {
             })
         })
 
-        it('weapon 池包含所有武器（含初始）', () => {
+        it('weapon 池只出 WEAPON_DB：不含起始武器、不含御物', () => {
             const pool = rewardPool.getPool('weapon')
             const ids = pool.map((r) => r.id)
-            expect(ids).toContain('bare_hands')
-            expect(ids).toContain('peach_sword')
+            // 起始武器（赤手空拳/桃木剑/齐眉棍/长枪/军用匕首…）不进随机池
+            expect(ids).not.toContain('bare_hands')
+            expect(ids).not.toContain('peach_sword')
+            expect(ids).not.toContain('qimei_staff')
+            // 御物只通过事件获得
+            expect(ids).not.toContain('floating_silk')
+            expect(pool.length).toBeGreaterThan(5)
         })
     })
 
