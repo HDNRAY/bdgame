@@ -42,6 +42,7 @@
 
     &-note {
         font-size: var(--font-xs);
+        font-family: var(--font-family-small);
         color: var(--color-text-dim);
         line-height: 1.6;
     }
@@ -49,6 +50,7 @@
     &-table {
         border-collapse: collapse;
         font-size: var(--font-xs);
+        font-family: var(--font-family-small);
 
         th,
         td {

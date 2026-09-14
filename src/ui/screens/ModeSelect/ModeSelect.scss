@@ -22,15 +22,24 @@
     }
 
     &-title {
-        font-family: var(--font-cursive);
+        /* 像素字体（12px 版）：36px = 3×12，正落在原生网格上 */
+        font-family: var(--font-family-base);
         font-size: var(--font-title);
         font-weight: 700;
         color: var(--color-accent);
-        letter-spacing: 8px;
-        text-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        /* 字距取 12 网格的一半；标题按空格自然换行（2088 会独占一行） */
+        letter-spacing: 6px;
+        /* 像素风：1px 描边 + 深青硬阴影（不用柔光） */
+        text-shadow:
+            -1px -1px 0 rgba(0, 0, 0, 0.7),
+            1px -1px 0 rgba(0, 0, 0, 0.7),
+            -1px 1px 0 rgba(0, 0, 0, 0.7),
+            1px 1px 0 rgba(0, 0, 0, 0.7),
+            3px 3px 0 #1f6361; /* 深青（accent #4ecdc4 压暗） */
         margin-bottom: var(--sp-lg);
         text-align: center;
         padding: 0 var(--sp-sm);
+        max-width: 100%;
 
         @media (max-height: 500px) {
             font-size: var(--font-xxl);
@@ -73,6 +82,7 @@
 
         &-hint {
             font-size: var(--font-xs);
+            font-family: var(--font-family-small);
             color: var(--color-text-dim);
         }
 

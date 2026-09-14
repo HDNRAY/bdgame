@@ -114,6 +114,7 @@
         flex-shrink: 0;
         color: var(--color-text-dim);
         font-size: var(--font-xs);
+        font-family: var(--font-family-small);
     }
 
     /* 实体选项内联详情（复用 tooltip 内容样式，无气泡外观） */
@@ -142,6 +143,7 @@
             .tt-desc {
                 color: var(--color-text-dim);
                 font-size: var(--font-xs);
+                font-family: var(--font-family-small);
                 margin-bottom: var(--sp-xxs);
             }
 
@@ -152,6 +154,7 @@
 
                 li {
                     font-size: var(--font-xs);
+                    font-family: var(--font-family-small);
                     color: var(--color-text);
                     padding: 1px 0;
                 }
@@ -171,6 +174,7 @@
 
             .tt-extra {
                 font-size: var(--font-xs);
+                font-family: var(--font-family-small);
                 color: var(--color-text);
 
                 &-dim {
@@ -186,6 +190,7 @@
 
             .tt-label {
                 font-size: var(--font-xxs);
+                font-family: var(--font-family-small);
                 color: var(--color-text-dim);
                 margin-bottom: var(--sp-xxs);
             }
@@ -238,7 +243,7 @@
     }
 
     &-desc-text {
-        font-size: 11px;
+        font-size: 12px;
         color: #666;
         margin-top: 2px;
         display: block;

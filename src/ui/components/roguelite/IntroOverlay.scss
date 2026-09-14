@@ -36,11 +36,23 @@
 
     .io-text {
         /* 全屏下正文铺得更宽；行距收紧，段距交给 .io-p 的 margin */
+        position: relative;
         max-width: min(46rem, 86vw);
         font-size: var(--font-md);
         line-height: 1.7;
         color: var(--color-text);
         text-align: left;
+    }
+
+    /* 占位层：完整正文，只用来撑住高度（打字过程中高度不变，标题不会上下跳） */
+    .io-text-ghost {
+        visibility: hidden;
+    }
+
+    /* 打字层：绝对定位盖在占位层上，增删文字都不影响布局 */
+    .io-text-live {
+        position: absolute;
+        inset: 0;
     }
 
     .io-p {
@@ -54,6 +66,11 @@
     .io-cursor {
         animation: io-blink 0.8s steps(1) infinite;
         margin-left: 2px;
+    }
+
+    /* 未读完时按钮占位但不显示：出现时不再把正文往上顶 */
+    .io-enter-hidden {
+        visibility: hidden;
     }
 
     .io-enter {

@@ -96,6 +96,7 @@
 
         &-count {
             font-size: var(--font-xs);
+            font-family: var(--font-family-small);
             color: var(--color-text-dim);
         }
     }
@@ -143,6 +144,7 @@
 
         &-desc {
             font-size: var(--font-xs);
+            font-family: var(--font-family-small);
             color: var(--color-text-dim);
             margin-top: var(--sp-xxs);
             line-height: 1.4;
@@ -158,6 +160,7 @@
 
     &-tag {
         font-size: var(--font-xxs);
+        font-family: var(--font-family-small);
         padding: 1px var(--sp-xxs);
         background: var(--color-entity-bg);
         color: var(--color-text);

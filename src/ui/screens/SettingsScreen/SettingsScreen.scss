@@ -51,6 +51,7 @@
 
 .settings-hint {
     font-size: var(--font-xs);
+    font-family: var(--font-family-small);
     color: var(--color-text-dim);
     margin-top: var(--sp-xxs);
 }
@@ -140,6 +141,7 @@
     cursor: pointer;
     font-family: var(--font-mono);
     font-size: var(--font-xxs);
+    font-family: var(--font-family-small);
     text-align: center;
     transition: all 0.15s;
 

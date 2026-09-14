@@ -90,6 +90,7 @@
     background: var(--color-bg-hover);
     color: var(--color-text-dim);
     font-size: var(--font-xs);
+    font-family: var(--font-family-small);
 }
 
 .rp-search {
@@ -119,6 +120,7 @@
 .rp-search-count {
     color: var(--color-text-dim);
     font-size: var(--font-xs);
+    font-family: var(--font-family-small);
     white-space: nowrap;
 }
 
@@ -160,6 +162,7 @@
     padding: 0 var(--sp-xxs);
     color: var(--color-text-dim);
     font-size: var(--font-xs);
+    font-family: var(--font-family-small);
 }
 
 .rp-item-selected .rp-item-mark {
@@ -179,6 +182,7 @@
     min-width: 0;
     color: var(--color-text-dim);
     font-size: var(--font-xs);
+    font-family: var(--font-family-small);
 }
 
 .rp-foot-note-warn {

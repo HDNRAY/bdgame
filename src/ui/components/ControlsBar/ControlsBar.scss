@@ -45,6 +45,7 @@
     .turn-tag {
         color: var(--color-gold);
         font-size: var(--font-xs);
+        font-family: var(--font-family-small);
         white-space: nowrap;
         padding: 0 var(--sp-xxs);
     }
@@ -52,6 +53,7 @@
     .timestamp {
         color: var(--color-text-dim);
         font-size: var(--font-xs);
+        font-family: var(--font-family-small);
         white-space: nowrap;
         text-align: right;
         width: 2.25rem;

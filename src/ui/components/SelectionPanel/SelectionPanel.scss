@@ -110,6 +110,7 @@
         color: var(--color-text);
         font-family: var(--font-mono);
         font-size: var(--font-xs);
+        font-family: var(--font-family-small);
         transition:
             border-color 0.15s,
             background 0.15s;
@@ -140,7 +141,8 @@
     }
 
     .card-name {
-        font-size: 9px;
+        font-size: 10px;
+        font-family: var(--font-family-small);
         line-height: 1.2;
         color: var(--color-text);
         max-width: 3.5rem;
@@ -151,6 +153,7 @@
 
     .card-build-btn {
         font-size: var(--font-xxs);
+        font-family: var(--font-family-small);
         color: var(--color-text-dim);
         cursor: pointer;
         padding: 0 var(--sp-xxs);

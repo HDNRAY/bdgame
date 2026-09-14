@@ -193,6 +193,7 @@
                 gap: 2px;
                 .cp-info-row {
                     font-size: var(--font-xs);
+                    font-family: var(--font-family-small);
                 }
             }
         }
@@ -216,6 +217,7 @@
                     grid-column: 1 / -1;
                     margin-bottom: 1px;
                     font-size: var(--font-xxs);
+                    font-family: var(--font-family-small);
                 }
             }
             // 隐藏属性进度条

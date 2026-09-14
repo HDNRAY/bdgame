@@ -52,6 +52,7 @@
 
     &-size {
         font-size: var(--font-xs);
+        font-family: var(--font-family-small);
         color: var(--color-text-dim);
     }
 
@@ -75,6 +76,7 @@
 
         figcaption {
             font-size: var(--font-xs);
+            font-family: var(--font-family-small);
             color: var(--color-text-dim);
             font-family: var(--font-mono);
         }
@@ -158,6 +160,7 @@
         dt {
             color: var(--color-text-dim);
             font-size: var(--font-xs);
+            font-family: var(--font-family-small);
         }
 
         dd {
@@ -210,6 +213,7 @@
         background: transparent;
         color: var(--color-text);
         font-size: var(--font-xs);
+        font-family: var(--font-family-small);
         cursor: pointer;
 
         &:hover {
@@ -231,6 +235,7 @@
         align-items: center;
         gap: var(--sp-xs);
         font-size: var(--font-xs);
+        font-family: var(--font-family-small);
         font-family: var(--font-mono);
     }
 
