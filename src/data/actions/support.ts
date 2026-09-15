@@ -36,7 +36,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '万流归宗之势，完全招架远程攻击；未招架远程时叠1层灵巧。每场最多4次。',
         requiredTags: ['unarmed'],
         apCost: 1,
-        tags: ['defense', 'unarmed', 'post_action'],
+        tags: ['defense', 'unarmed', 'post_action', 'buff'],
         maxUses: 4,
         canUse: (attacker, state) => {
             // 已有归宗状态时不可重复（避免连续刷层吃AP）
@@ -64,7 +64,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '释放15%当前气血换取护体真气，减伤10%并持续恢复10秒。已有buff时不可重复使用。',
         requiredTags: ['unarmed'],
         apCost: 0,
-        tags: ['pre_action', 'buff'],
+        tags: ['pre_action', 'buff', 'heal', 'defense', 'self_damage', 'low_hp'],
         target: 'self',
         canUse: (attacker, state) => {
             if (state.pendingBuffs.has(`blood_qi_protection::${attacker.id}`)) return false
@@ -119,7 +119,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '以炁激发强光致盲对手，范围广，效果显著。',
         requiredTags: [],
         apCost: 1,
-        tags: ['debuff', 'pre_action', 'electric'],
+        tags: ['debuff', 'pre_action'],
         getRange: () => [1, 5] as [number, number],
         effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 0.8 }],
     },
@@ -223,7 +223,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '身形如云，缥缈难测。闪身至最大攻击距离，云步后身法缥缈，下次攻击更难招架闪避。',
         requiredTags: [],
         apCost: 2,
-        tags: ['move', 'pre_action'],
+        tags: ['move', 'pre_action', 'buff'],
         target: 'self',
         effects: [
             { type: 'dash', maxRange: 4, targetDist: -1 },
@@ -323,7 +323,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '御物加速，召唤物开火更快（叠1层，上限4层）。',
         requiredTags: ['summon'],
         apCost: 0,
-        tags: ['imperial', 'summon', 'pre_action'],
+        tags: ['imperial', 'summon', 'pre_action', 'buff'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'summon_haste', stacks: 1 }],
     },
@@ -333,7 +333,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '凝聚炁息化为护盾，2层炁盾护体。已有炁盾时不重复凝聚。',
         requiredTags: [],
         apCost: 1,
-        tags: ['post_action', 'defense'],
+        tags: ['post_action', 'defense', 'buff'],
         target: 'self',
         hookNotes: { canUse: '已有炁盾时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 2 }],
@@ -364,7 +364,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '召唤物命中时350%概率附加1层麻痹。',
         requiredTags: ['summon'],
         apCost: 0,
-        tags: ['imperial', 'summon'],
+        tags: ['imperial', 'summon', 'debuff', 'paralyze'],
         // 必定命中：跟随召唤物命中触发，不额外滚命中判定
         onActionHitChance: () => 1,
         hookNotes: { hitChance: '必中' },
@@ -405,7 +405,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         chanCost: 10,
-        tags: ['buff', 'qi', 'pre_action', 'chan'],
+        tags: ['buff', 'qi', 'pre_action', 'chan', 'defense', 'counter'],
         target: 'self',
         hookNotes: { canUse: '已有金刚不坏时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'chanzi_stance' }],

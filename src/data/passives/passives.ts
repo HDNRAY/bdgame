@@ -34,7 +34,7 @@ export const PASSIVES: Passive[] = [
         id: 'ji_lie_zhi_lie',
         name: '极烈之烈',
         description: '死战不退，受击愈烈。每次受到伤害叠1层「烈」，每层提升暴击率与暴击伤害。',
-        tags: ['passive'],
+        tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -86,14 +86,14 @@ export const PASSIVES: Passive[] = [
         id: 'yi_dao_liu',
         name: '一刀流',
         description: '居合一刀,只此一斩。招架时顺势反击,斩出顺劈。',
-        tags: ['passive', 'counter', 'slash'],
+        tags: ['counter', 'slash'],
         triggers: [{ condition: { type: 'on_parry' }, actionId: 'light_slash' }],
     },
     {
         id: 'dragon_palace_style',
         name: '龙宫院流',
         description: '龙宫院秘传身法，招架或闪避后蓄势，叠加势。',
-        tags: ['passive'],
+        tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'on_parry' },
@@ -109,7 +109,7 @@ export const PASSIVES: Passive[] = [
         id: 'extreme',
         name: '极',
         description: '蓄势至极，一击必杀。缠劲满时获得极状态，下次≥5AP招式消耗所有缠劲，每层提升暴击率与暴击伤害。',
-        tags: ['passive', 'buff', 'chan'],
+        tags: ['buff', 'chan'],
         triggers: [
             {
                 condition: {
@@ -123,7 +123,7 @@ export const PASSIVES: Passive[] = [
         id: 'zhou_liu_bu_xi',
         name: '周流不息',
         description: '周流不息，盈虚消长。缠劲满溢时自动凝聚。',
-        tags: ['passive', 'buff', 'qi', 'chan'],
+        tags: ['buff', 'qi', 'chan'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -148,7 +148,7 @@ export const PASSIVES: Passive[] = [
         id: 'ice_heart',
         name: '冰心诀',
         description: '冰心玉壶，免疫霜冻，对麻痹、灼烧有50%几率免疫。',
-        tags: ['passive', 'defense'],
+        tags: ['defense', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'elemental_immunity' }] },
         ],
@@ -157,7 +157,7 @@ export const PASSIVES: Passive[] = [
         id: 'frost_mastery',
         name: '冰霜诀',
         description: '春雷疾掠，寒气侵骨。命中时概率叠加寒霜，暴击时剑意凝寒。',
-        tags: ['passive', 'debuff'],
+        tags: ['debuff', 'frost'],
         triggers: [
             {
                 condition: { type: 'on_hit' },
@@ -173,7 +173,7 @@ export const PASSIVES: Passive[] = [
         id: 'nineteen_stops',
         name: '十九停',
         description: '每次出手叠一层「十九停」，层数越高越易失手。每层提升命中、暴击与暴伤，最多19层。',
-        tags: ['passive', 'buff', 'chan'],
+        tags: ['buff', 'chan'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -186,7 +186,7 @@ export const PASSIVES: Passive[] = [
         id: 'ordinary_training',
         name: '平平无奇的锻炼',
         description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
-        tags: ['passive', 'defense'],
+        tags: ['defense', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ordinary_training' }] },
         ],
@@ -195,7 +195,7 @@ export const PASSIVES: Passive[] = [
         id: 'daily_grind',
         name: '日复一日的训练',
         description: '平平无奇的每日训练，洞察提升命中，推演提升闪避。',
-        tags: ['passive'],
+        tags: ['defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'daily_grind' }] }],
     },
     {
@@ -203,7 +203,7 @@ export const PASSIVES: Passive[] = [
         name: '刃炁精通',
         requiredTags: ['slash'],
         description: '刃炁入体，每层受到伤害+5%。受到治疗时减少一层（累计10点治疗消一层）。',
-        tags: ['passive', 'debuff', 'slash'],
+        tags: ['debuff', 'slash'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -215,14 +215,14 @@ export const PASSIVES: Passive[] = [
         id: 'nei_xi_mian_chang',
         name: '炁蕴绵长',
         description: '内息悠长，增益久驻。每点推演使自身 buff 时长+5%。',
-        tags: ['passive', 'buff'],
+        tags: ['defense'],
         effects: [{ type: 'buff_duration_mult', eval: (char) => 1 + char.attrs.get('wisdom') * 0.05 }],
     },
     {
         id: 'overlord_art',
         name: '轮舞月斩',
         description: '长兵轮转，如月之轮舞。每一刀都顺势回旋突进。',
-        tags: ['passive'],
+        tags: ['buff'],
         effects: [],
         grantsActions: ['retrieve_blade'],
         triggers: [
@@ -237,14 +237,14 @@ export const PASSIVES: Passive[] = [
         id: 'yu_yang_shi_ba_shi',
         name: '渔阳十八势',
         description: '利用灵活的身法，寻找并感知对方。身法转化感知。',
-        tags: ['passive', 'buff'],
+        tags: ['buff', 'defense'],
         effects: [{ type: 'attr_convert', from: 'agility', to: ['insight'], ratio: 0.3 }],
     },
     {
         id: 'yi_dian_po_xiao',
         name: '一点破晓',
         description: '刺击以点破面，劲力透体。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yi_dian_po_xiao_buff' }] },
         ],
@@ -253,7 +253,7 @@ export const PASSIVES: Passive[] = [
         id: 'inner_power',
         name: '归元劲',
         description: '内力深厚。每点推演提升力道，根骨，身法，灵巧。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         effects: [
             { type: 'attr_convert', from: 'wisdom', to: ['strength', 'vitality', 'agility', 'dexterity'], ratio: 0.1 },
         ],
@@ -265,14 +265,14 @@ export const PASSIVES: Passive[] = [
         id: 'tai_chi_mastery',
         name: '太极',
         description: '太极圆满，以柔克刚。每点灵巧提升招架率与招架减伤。空手可招架。',
-        tags: ['passive', 'defense'],
+        tags: ['defense', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tai_chi' }] }],
     },
     {
         id: 'godspeed',
         name: '疾风迅雷',
         description: '神经电刺激，闪避后蓄势；被击中时雷闪反击。',
-        tags: ['passive', 'buff', 'electric'],
+        tags: ['buff', 'electric'],
         triggers: [
             { condition: { type: 'on_dodge' }, effects: [{ type: 'add_buff', buffId: 'thunder_swift', stacks: 1 }] },
             { condition: { type: 'on_was_hit' }, actionId: '_godspeed_counter' },
@@ -282,7 +282,7 @@ export const PASSIVES: Passive[] = [
         id: 'thunder_art',
         name: '雷法',
         description: '雷电之力灌注全身，攻击附带雷击伤害，并概率麻痹对手。',
-        tags: ['passive', 'buff', 'electric'],
+        tags: ['buff', 'electric'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'thunder_bonus' }] }],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
@@ -315,7 +315,7 @@ export const PASSIVES: Passive[] = [
         id: 'zoldyck_art',
         name: '周氏秘法',
         description: '周氏秘法，雷电锻体，免疫麻痹并减免雷系伤害。',
-        tags: ['passive', 'buff', 'electric', 'inherent'],
+        tags: ['buff', 'electric', 'inherent', 'defense'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -330,21 +330,21 @@ export const PASSIVES: Passive[] = [
         id: 'hui_lei_qian',
         name: '虺雷牵',
         description: '虺雷如活物，牵丝追踪，不死不休。所有雷系招式命中+8%。',
-        tags: ['passive', 'buff', 'electric'],
+        tags: ['buff', 'electric'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hui_lei_qian' }] }],
     },
     {
         id: 'baihu_ding',
         name: '白虎定',
         description: '白虎定息，虎啸生风。闪避时回复缠劲。',
-        tags: ['passive', 'buff', 'defense', 'chan'],
+        tags: ['buff', 'defense', 'chan'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'baihu_ding' }] }],
     },
     {
         id: 'qiti_source',
         name: '炁体源流',
         description: '濒危时炁体护体吸收炁伤害，并将炁转化为力量、身法和灵巧。',
-        tags: ['passive', 'buff', 'qi', 'low_hp'],
+        tags: ['buff', 'qi', 'low_hp', 'cleanse', 'defense'],
         triggers: [
             {
                 condition: {
@@ -360,7 +360,7 @@ export const PASSIVES: Passive[] = [
         id: 'yin_shi_li_dao',
         name: '因势利导',
         description: '进架势时因势利导，下一次出招暴击率增加，暴击后消散。',
-        tags: ['passive', 'buff', 'stance'],
+        tags: ['buff', 'stance'],
         requiredTags: ['stance'],
         triggers: [
             {
@@ -386,7 +386,7 @@ export const PASSIVES: Passive[] = [
         id: 'weapon_stance',
         name: '行云流水',
         description: '每次切换武器自动进入对应架势。',
-        tags: ['passive', 'buff', 'stance'],
+        tags: ['buff', 'stance'],
         triggers: [
             {
                 // 「重器架势」覆盖 polearm 与 heavy：heavy = 重型武器（力道驱动），
@@ -439,14 +439,14 @@ export const PASSIVES: Passive[] = [
         id: 'dark_room_catch',
         name: '暗室抓雀功',
         description: '古墓中蒙眼抓雀练就的身法与感知。身法+2，灵巧+2，洞察降低效果减半。',
-        tags: ['passive', 'defense'],
+        tags: ['defense'],
         effects: [{ type: 'stat_buff', attrs: { agility: 2, dexterity: 2 } }, insightReductionHalf()],
     },
     {
         id: 'yue_nv_sword',
         name: '越女剑法',
         description: '白猿授剑，万兵为剑。出剑极快，身随剑走。',
-        tags: ['buff', 'passive'],
+        tags: [],
         // 目前short dash太op，暂时注释
         // triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yue_nv_buff' }] }],
         actionEnhancer: (def) => {
@@ -462,7 +462,7 @@ export const PASSIVES: Passive[] = [
         id: 'bu_zhi_yu_wu',
         name: '不滞于物',
         description: '不滞于物，草木竹石皆可为剑。按推演附加伤害。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'bu_zhi_yu_wu' }] }],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
@@ -475,7 +475,7 @@ export const PASSIVES: Passive[] = [
         id: 'one_arm',
         name: '独臂',
         description: '总有断臂之人不喜义体。无法双持。运劲更凝练，招式消耗降低1AP（最低1）。',
-        tags: ['passive', 'debuff', 'inherent'],
+        tags: ['debuff', 'inherent'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'one_arm_buff' }] }],
     },
     {
@@ -483,7 +483,7 @@ export const PASSIVES: Passive[] = [
         name: '玄剑秘册',
         description:
             '玄门流落在外的秘籍，虽无玄门血脉，亦可以炁御物。无法精巧御物，但可减少重器的身法负担，并以剑意施展手上功夫。',
-        tags: ['passive', 'buff', 'heavy'],
+        tags: ['buff', 'heavy'],
         effects: [{ type: 'weapon_tag', tag: 'unarmed' }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'heavy_training' }] }],
     },
@@ -491,7 +491,7 @@ export const PASSIVES: Passive[] = [
         id: 'tide_inner_power',
         name: '潮汐炁功',
         description: '炁如潮汐般涨落，每回合交替以力道或身法驱动招式。可化解重器的身法负担（固定-2）。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['buff', 'qi'],
         effects: [],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tide_power', stacks: 0 }] },
@@ -501,7 +501,7 @@ export const PASSIVES: Passive[] = [
         id: 'shenxing_baibian',
         name: '神行百变',
         description: '铁剑门绝学，身法灵动百变，极难捉摸。',
-        tags: ['passive', 'buff', 'defense'],
+        tags: ['defense'],
         effects: [
             { type: 'dodge_mod', value: 0.04 },
             { type: 'haste', eval: (char) => char.attrs.get('wisdom') * 10 },
@@ -512,14 +512,14 @@ export const PASSIVES: Passive[] = [
         id: 'xuannv_sword',
         name: '玄女剑法',
         description: '独臂神尼所创上乘剑法，以巧借力、以奇制胜，灵巧化为力道。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         effects: [{ type: 'attr_convert', from: 'dexterity', to: ['strength'], ratio: 0.3, mode: 'floor' }],
     },
     {
         id: 'zhu_huo_jue',
         name: '铸火诀',
         description: '聚炁化火，火中淬炼不伤。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['buff', 'qi', 'burn', 'defense'],
         requiredTags: ['burn'],
         triggers: [
             {
@@ -532,7 +532,7 @@ export const PASSIVES: Passive[] = [
         id: 'wan_xiang_jian_yi',
         name: '万象剑意',
         description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+5%。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -544,14 +544,14 @@ export const PASSIVES: Passive[] = [
         id: 'stone_skin',
         name: '石肤功',
         description: '肌肤如岩石般坚硬，所受直伤-10%，灼烧伤害减半。',
-        tags: ['passive', 'defense', 'buff'],
+        tags: ['defense', 'buff', 'burn'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'stone_skin' }] }],
     },
     {
         id: 'qishier_bian',
         name: '七十二变',
         description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧、洞察、推演提升。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qishier_bian', stacks: 0 }] },
         ],
@@ -560,7 +560,7 @@ export const PASSIVES: Passive[] = [
         id: 'hua_gun',
         name: '舞花棍',
         description: '以灵巧驾驭长兵，棍花如屏，可格挡远程攻击。灵巧越高招架远程越强。',
-        tags: ['passive', 'defense'],
+        tags: ['defense', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hua_gun_parry' }] }],
     },
     {
@@ -569,7 +569,7 @@ export const PASSIVES: Passive[] = [
         name: '疯魔功',
         description:
             '势如疯魔，不守反攻。招式命中叠1层「疯魔」（最多8层），每层自身伤害+1%、受到伤害+2%、AP回复+0.03/秒；不再消退，越战越疯。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -581,7 +581,7 @@ export const PASSIVES: Passive[] = [
         id: 'frost_step',
         name: '踏雪',
         description: '踏雪如履平地，身法轻灵。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -593,7 +593,7 @@ export const PASSIVES: Passive[] = [
         id: 'yuxin_sword_mastery',
         name: '真假无用心经',
         description: '真假无用，虚实可辨。所有可叠层 buff 上限翻倍，但每次叠层消耗缠劲。',
-        tags: ['passive', 'buff', 'chan'],
+        tags: ['buff', 'chan'],
         requireAttrsMin: {},
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yuxin_sword_mastery' }] },
@@ -603,14 +603,14 @@ export const PASSIVES: Passive[] = [
         id: 'lingxi_finger',
         name: '灵犀一指',
         description: '空手入白刃，招架时缴械。',
-        tags: ['passive', 'buff', 'defense'],
+        tags: ['buff', 'defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lingxi_finger' }] }],
     },
     {
         id: 'feng_wu_jiu_tian',
         name: '凤舞九天',
         description: '凤舞九天，翩若惊鸿，来去如风。',
-        tags: ['passive', 'buff', 'move'],
+        tags: ['move'],
         effects: [],
         grantsActions: ['feng_hui', 'feng_fan'],
     },
@@ -618,7 +618,7 @@ export const PASSIVES: Passive[] = [
         id: 'beiming',
         name: '北冥神功',
         description: '北冥之渊，吞噬万物。命中时汲取敌方推演 1 点，持续 5 秒。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['buff', 'qi'],
         triggers: [
             {
                 condition: { type: 'on_hit' },
@@ -630,7 +630,7 @@ export const PASSIVES: Passive[] = [
         id: 'golden_light',
         name: '金光咒',
         description: '金光护体，AP上限-1。',
-        tags: ['passive', 'buff', 'defense', 'qi'],
+        tags: ['buff', 'defense', 'qi'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -645,7 +645,7 @@ export const PASSIVES: Passive[] = [
         id: 'sword_intent_tempering',
         name: '剑意淬体',
         description: '剑意淬炼肉身，减免 slash/pierce 伤害，且单次受伤不超过最大生命的一定比例。',
-        tags: ['passive', 'buff', 'defense'],
+        tags: ['buff', 'defense'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_intent_tempering' }] },
         ],
@@ -654,21 +654,21 @@ export const PASSIVES: Passive[] = [
         id: 'yu_du_shu',
         name: '毒炁外泄',
         description: '毒雾护体，周期性释放毒素。血量越少，毒雾越烈。',
-        tags: ['passive', 'buff', 'poison', 'low_hp'],
+        tags: ['buff', 'poison', 'low_hp'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yu_du_shu' }] }],
     },
     {
         id: 'yi_ma_xin_yuan',
         name: '意马心猿',
         description: '心猿意马，劲力扰神。凝神聚气提升命中，命中时令对手心神被扰。',
-        tags: ['passive', 'buff'],
+        tags: [],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yi_ma_xin_yuan' }] }],
     },
     {
         id: 'tongtian',
         name: '通天录',
         description: '悟生离死别。攻击命中时有概率令对手不幸缠身。',
-        tags: ['passive', 'buff'],
+        tags: [],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tongtian' }] }],
     },
     {
@@ -692,7 +692,7 @@ export const PASSIVES: Passive[] = [
         id: 'dan_dao_fa_xuan',
         name: '单刀法选',
         description: '单刀法选，诱而击之，惊而取之。闪避后下一击暴击率增加，不可叠加。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [{ condition: { type: 'on_dodge' }, effects: [{ type: 'add_buff', buffId: 'jing_ji' }] }],
     },
     {
@@ -700,7 +700,7 @@ export const PASSIVES: Passive[] = [
         id: 'tai_shang_yu_fa',
         name: '太上御法',
         description: '玄门祖传御法。御物命中时，回炁养身，回复1点气血。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['qi', 'heal'],
         triggers: [{ condition: { type: 'on_summon_hit' }, actionId: '_tai_shang_heal' }],
     },
     // ── 白驹过隙（由「匆匆一瞥」拆分而来：身法→爆伤，3米内） ──
@@ -718,7 +718,7 @@ export const PASSIVES: Passive[] = [
         id: 'chou_dao_duan_shui',
         name: '抽刀断水',
         description: '抽刀断水。刀落，水断。暴击时对方气息一滞，AP-1，回复重新起算。',
-        tags: ['buff'],
+        tags: [],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chou_dao_duan_shui_buff' }] },
         ],
@@ -727,7 +727,7 @@ export const PASSIVES: Passive[] = [
         id: 'jing_luo_chu_jian',
         name: '经络初鉴',
         description: '熟稔经络，洞察弱点。每点洞察增加1%暴击率。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'jing_luo_chu_jian' }] },
         ],
@@ -736,7 +736,7 @@ export const PASSIVES: Passive[] = [
         id: 'dian_xue_passive',
         name: '灵枢真解',
         description: '灵枢真解，点穴封脉。',
-        tags: ['passive', 'debuff'],
+        tags: ['debuff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ling_xu_zhen_jie' }] },
         ],
@@ -745,7 +745,7 @@ export const PASSIVES: Passive[] = [
         id: 'li_wu_xu_fa',
         name: '例无虚发',
         description: '所有暗器招式命中率+50%。',
-        tags: ['passive', 'buff', 'thrown'],
+        tags: ['buff', 'thrown'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'li_wu_xu_fa' }] }],
     },
     // ── 酒鬼·无志 ──
@@ -753,7 +753,7 @@ export const PASSIVES: Passive[] = [
         id: 'zui_quan',
         name: '醉拳',
         description: '醉态蹒跚，步法诡谲。徒手招式附带短距冲刺，身法化闪避；有酒劲buff时闪避额外增加。',
-        tags: ['passive', 'buff', 'jiu'],
+        tags: ['buff', 'jiu'],
         actionEnhancer: (def) => {
             if (!def.tags?.includes('unarmed') || !def.effects?.some((e) => e.type === 'damage')) return def
             return { ...def, effects: [{ type: 'short_dash', maxDistance: 1 }, ...def.effects] }
@@ -764,7 +764,7 @@ export const PASSIVES: Passive[] = [
         id: 'jiu_yang_shen_gong',
         name: '九阳神功',
         description: '九阳真气护体，提升AP恢复速度。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -776,7 +776,7 @@ export const PASSIVES: Passive[] = [
         id: 'hun_yuan_gong',
         name: '混元功',
         description: '混元护体，近身受到超过8点或炁伤害时反伤并击退对手。',
-        tags: ['passive', 'qi', 'defense', 'chan'],
+        tags: ['qi', 'defense', 'chan', 'counter', 'knockback'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hun_yuan_gong_buff' }] },
         ],
@@ -785,7 +785,7 @@ export const PASSIVES: Passive[] = [
         id: 'qian_kun_da_nuo_yi',
         name: '醉里乾坤',
         description: '醉态中，体内炁流波动，受击时有概率反弹伤害。醉酒越深，反弹越高。',
-        tags: ['passive', 'defense', 'jiu', 'chan'],
+        tags: ['defense', 'jiu', 'chan', 'counter'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -797,14 +797,14 @@ export const PASSIVES: Passive[] = [
         id: 'sword_focus',
         name: '怒炁充盈',
         description: '攻击落空时积攒怒气，暴击时倾泻而出：每层爆伤+30%，暴击后怒气清空。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_focus' }] }],
     },
     {
         id: 'drunken_step',
         name: '醉仙望月步',
         description: '醉态越深，身法越飘忽。每层醉酒获得6%闪避。',
-        tags: ['passive', 'defense', 'buff', 'jiu'],
+        tags: ['defense', 'buff', 'jiu'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -816,7 +816,7 @@ export const PASSIVES: Passive[] = [
         id: 'ningqi_jue',
         name: '凝炁诀',
         description: '药屋家传呼吸法，血脉限定的炼炁诀。以炁劲贯通全身，所有招式带炁。外人无法修习。',
-        tags: ['passive', 'qi', 'inherent'],
+        tags: ['qi', 'inherent'],
         effects: [{ type: 'stat_buff', attrs: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 } }],
         actionEnhancer: (def) => {
             if (def.tags?.includes('qi')) return def
@@ -828,7 +828,7 @@ export const PASSIVES: Passive[] = [
         id: 'rui_qi_jue',
         name: '锐炁诀',
         description: '炁凝如锋，锐不可当。所有带炁的招式，30%伤害转为穿透，无视招架与减伤。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['buff', 'qi'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rui_qi_jue' }] }],
     },
     {
@@ -843,21 +843,21 @@ export const PASSIVES: Passive[] = [
         id: 'ru_yi_jin',
         name: '如意劲',
         description: '暴击时消耗3层缠劲，按灵巧增加暴击伤害。',
-        tags: ['passive', 'buff', 'chan'],
+        tags: ['buff', 'chan'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ru_yi_jin' }] }],
     },
     {
         id: 'blood_rage',
         name: '血战到底',
         description: '气血越低属性加成越高。力道、身法、灵巧随血量减少而提升。',
-        tags: ['passive', 'buff', 'low_hp'],
+        tags: ['buff', 'low_hp'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'blood_rage' }] }],
     },
     {
         id: 'gear_shift',
         name: '挂挡',
         description: '凝缠劲为内息，运转不息。习得招式「挂」。',
-        tags: ['passive', 'buff', 'chan'],
+        tags: ['buff', 'chan'],
         grantsActions: ['gear_hang'],
     },
     {
@@ -865,14 +865,14 @@ export const PASSIVES: Passive[] = [
         id: 'shen_zhao_jing',
         name: '神照经',
         description: '神照通明，气血愈衰，气机愈盛。气血越低，AP回复越快，最多+0.5/秒。',
-        tags: ['passive', 'buff', 'low_hp'],
+        tags: ['buff', 'low_hp'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'shen_zhao_jing' }] }],
     },
     {
         id: 'karate',
         name: '空手道',
         description: '空手道不打蛮力，讲究拳到脚到、蹬地转腰，把劲凝在最刁钻的打击点上。空手拳脚伤害+10%，招式AP-0.5。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'karate' }] }],
     },
     {
@@ -896,14 +896,14 @@ export const PASSIVES: Passive[] = [
         id: 'du_yao_da_shi',
         name: '毒药大师',
         description: '唐门制毒世家，以巧手施毒。施毒时，按自身暴击率几率多叠一层毒。',
-        tags: ['passive', 'inherent', 'poison'],
+        tags: ['inherent', 'poison'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'du_yao_da_shi' }] }],
     },
     {
         id: 'sekai_heroism',
         name: '舍得心法',
         description: '舍得心法，有舍有得。以根骨换取极致的速度与感知。根骨-2，力道+2、身法+2、灵巧+2、洞察+2。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         effects: [
             {
                 type: 'stat_buff',
@@ -921,14 +921,14 @@ export const PASSIVES: Passive[] = [
         id: 'combat_instinct',
         name: '本能特训',
         description: '经过特训，将战斗本能化为直觉反应。每5点洞察增加1触发槽。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         effects: [{ type: 'trigger_slot_mod', fn: (char) => Math.floor(char.attrs.get('insight') / 5) }],
     },
     {
         id: 'insight_awareness',
         name: '先觉功',
         description: '先觉者，未战而先胜。以洞察预判对手攻势，洞察越高招架率与闪避率越高。',
-        tags: ['passive', 'buff'],
+        tags: ['buff', 'defense'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'insight_awareness' }] },
         ],
@@ -937,7 +937,7 @@ export const PASSIVES: Passive[] = [
         id: 'wolf_hunting',
         name: '苍狼劲',
         description: '取苍狼猎杀之势，借体重、惯性与旋力增伤。消耗缠劲，附加额外伤害。',
-        tags: ['passive', 'buff', 'chan'],
+        tags: ['buff', 'chan'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'wolf_hunting_buff' }] },
         ],
@@ -946,14 +946,14 @@ export const PASSIVES: Passive[] = [
         id: 'no_way_win',
         name: '无招胜有招',
         description: '无招胜有招，出手无定式。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_way_win_buff' }] }],
     },
     {
         id: 'ling_long_xin_qiao',
         name: '玲珑心窍',
         description: '心窍玲珑，算尽对手每寸动作。每点推演增加1%暴击率。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ling_long_xin_qiao_buff' }] },
         ],
@@ -962,7 +962,7 @@ export const PASSIVES: Passive[] = [
         id: 'autumn_water',
         name: '秋水论',
         description: '秋水时至，盈虚消长。灵巧与洞察之间每2秒挪移1点，如潮汐涨落；移动效率提高。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -974,7 +974,7 @@ export const PASSIVES: Passive[] = [
         id: 'bu_dong_ming_wang',
         name: '不动明王',
         description: '不动如山，明王御守。招架时消耗缠劲，固定减免伤害。',
-        tags: ['passive', 'defense', 'chan'],
+        tags: ['defense', 'chan'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'bu_dong_ming_wang_buff' }] },
         ],
@@ -983,7 +983,7 @@ export const PASSIVES: Passive[] = [
         id: 'ni_zhuan_jing_mai',
         name: '移经易脉',
         description: '逆转经脉运行，概率抵抗麻痹，降低被暴击伤害，被暴击时反击。',
-        tags: ['passive', 'defense', 'counter'],
+        tags: ['defense', 'counter'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ni_zhuan_jing_mai' }] },
             // 被暴击 → 无 tag 通用招反击（任何武器可用）
@@ -994,14 +994,14 @@ export const PASSIVES: Passive[] = [
         id: 'ling_ao_bu',
         name: '灵鳌步',
         description: '灵鳌踏浪，借势而进。闪避后冲向对手，撞出钝击并麻痹。',
-        tags: ['passive', 'buff', 'unarmed'],
+        tags: ['unarmed', 'debuff', 'paralyze'],
         triggers: [{ condition: { type: 'on_dodge' }, actionId: '_ling_ao_chong' }],
     },
     {
         id: 'luo_ying_shen_jian',
         name: '落英神剑',
         description: '部分伤害寄存于神剑印内，暴击时引爆造成双倍伤害。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['buff', 'qi'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -1013,7 +1013,7 @@ export const PASSIVES: Passive[] = [
         id: 'enhanced_vision',
         name: '超强感知',
         description: '将注意力锻炼至极致。洞察+4，招架时以敏锐感知进一步化解伤害。',
-        tags: ['passive', 'buff', 'defense'],
+        tags: ['buff', 'defense'],
         effects: [{ type: 'stat_buff', attrs: { insight: 4 } }],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'enhanced_vision_buff' }] },
@@ -1024,7 +1024,7 @@ export const PASSIVES: Passive[] = [
         id: 'qi_electric_conversion',
         name: '炁电转换',
         description: '以炁驱动装备，身上的天工造物与义体越多、推演越高，力道、身法、灵巧提升越多。',
-        tags: ['passive', 'buff', 'electric', 'craft'],
+        tags: ['buff', 'craft'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -1037,7 +1037,7 @@ export const PASSIVES: Passive[] = [
         id: 'qian_chui_bai_lian',
         name: '千锤百炼',
         description: '千锤百炼，水火不侵。所受灼烧伤害-30%；以根骨化力道（根骨每4点力道+1）。',
-        tags: ['passive', 'buff', 'defense', 'inherent'],
+        tags: ['buff', 'defense', 'inherent'],
         // 根骨化力道：构造期一次性转化（attr_convert 快照，floor 与「每4点+1」同源）
         effects: [{ type: 'attr_convert', from: 'vitality', to: ['strength'], ratio: 0.25, mode: 'floor' }],
         triggers: [
@@ -1052,7 +1052,7 @@ export const PASSIVES: Passive[] = [
         id: 'no_light_wisdom',
         name: '无明之明',
         description: '完全失去视觉，重新构建感知体系。推演也影响命中、闪避、招架与暴击。',
-        tags: ['passive', 'buff'],
+        tags: ['buff', 'defense'],
         effects: [{ type: 'stat_buff', attrs: { insight: -4 } }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_light_buff' }] }],
     },
@@ -1060,7 +1060,7 @@ export const PASSIVES: Passive[] = [
         id: 'ru_shen_zuo_zhao',
         name: '入神坐照',
         description: '神意澄明。累计消耗AP，分四档提升洞察；神照圆满后，洞察减益不能动摇心神。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         effects: [
             {
                 type: 'stat_restriction',
@@ -1079,7 +1079,7 @@ export const PASSIVES: Passive[] = [
         id: 'hearing_power',
         name: '听劲',
         description: '接触感知对手劲力流转，每次徒手击中短暂提升洞察。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'on_hit' },
@@ -1092,7 +1092,7 @@ export const PASSIVES: Passive[] = [
         id: 'mingjing_zhishui',
         name: '明镜止水',
         description: '心如明镜止水，神清目明。免疫迷惑，抵抗失心，出招省AP。',
-        tags: ['passive', 'buff'],
+        tags: ['buff', 'defense'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -1105,7 +1105,7 @@ export const PASSIVES: Passive[] = [
         id: 'can_ying_bu',
         name: '残影步',
         description: '步法如残影，移动时留下虚影迷惑对手。移动效率提升，每次移动叠加闪避。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -1120,7 +1120,7 @@ export const PASSIVES: Passive[] = [
         id: 'ba_gua_gun_fa',
         name: '奇门八卦',
         description: '奇门八卦步法。每次移动叠一层八卦步，增加闪避和暴击率。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             { condition: { type: 'on_move_away' }, effects: [{ type: 'add_buff', buffId: 'ba_gua_bu', stacks: 1 }] },
             { condition: { type: 'on_move_closer' }, effects: [{ type: 'add_buff', buffId: 'ba_gua_bu', stacks: 1 }] },
@@ -1131,7 +1131,7 @@ export const PASSIVES: Passive[] = [
         id: 'guan_zi_zai_yan',
         name: '观自在眼',
         description: '心境通明，气血波动中窥见武道真意。气血越低，洞察、推演越高。',
-        tags: ['passive', 'buff', 'low_hp'],
+        tags: ['buff', 'low_hp'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'guan_zi_zai_yan' }] }],
     },
     // ── 禅子 · 禅修 ──
@@ -1139,14 +1139,14 @@ export const PASSIVES: Passive[] = [
         id: 'yi_jin_jing',
         name: '易筋经',
         description: '佛门易筋洗髓之法，根骨+2，推演+2。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         effects: [{ type: 'stat_buff', attrs: { vitality: 2, wisdom: 2 } }],
     },
     {
         id: 'chanzi_chan_regen',
         name: '玄武定',
         description: '玄武定息，龟息绵绵。缠劲生生不息。',
-        tags: ['passive', 'buff', 'chan'],
+        tags: ['buff', 'chan'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chanzi_chan_regen' }] },
         ],
@@ -1155,7 +1155,7 @@ export const PASSIVES: Passive[] = [
         id: 'chan_ding',
         name: '朱雀定',
         description: '朱雀定息，以火炼炁。受击回复缠劲。',
-        tags: ['passive', 'buff', 'defense', 'chan'],
+        tags: ['buff', 'defense', 'chan'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -1167,7 +1167,7 @@ export const PASSIVES: Passive[] = [
         id: 'qing_long_ding',
         name: '青龙定',
         description: '青龙定息，龙吟贯耳。暴击时回复缠劲。',
-        tags: ['passive', 'buff', 'chan'],
+        tags: ['buff', 'chan'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -1180,7 +1180,7 @@ export const PASSIVES: Passive[] = [
         id: 'chan_xin_hui_yan',
         name: '禅心慧眼',
         description: '禅心通明，慧眼洞悉破绽。以推演窥破对手招式轨迹，推演化为命中与暴击。',
-        tags: ['passive', 'buff'],
+        tags: ['buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -1193,7 +1193,7 @@ export const PASSIVES: Passive[] = [
         id: 'ku_chan_shen_gong',
         name: '枯蝉神功',
         description: '枯蝉锁血。受到致死伤害时无效那一次伤害，耗尽自身缠劲；此后免疫一切持续伤害，且无法被治疗。',
-        tags: ['passive', 'buff', 'chan', 'low_hp'],
+        tags: ['buff', 'chan', 'low_hp', 'defense'],
         triggers: [
             {
                 condition: { type: 'battle_start' },

@@ -55,7 +55,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '玉箫为剑，点穴封脉。',
         requiredTags: ['melee'],
         apCost: 2,
-        tags: ['melee', 'blunt', 'pierce', 'debuff'],
+        tags: ['melee', 'blunt', 'pierce', 'debuff', 'paralyze'],
         effects: [
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 },
             { type: 'add_debuff', buffId: 'duan_qi', stacks: 1, chance: 0.4 },
@@ -68,7 +68,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '电光石火，目眩神驰。',
         requiredTags: ['pierce', 'melee'],
         apCost: 2,
-        tags: ['pierce', 'melee', 'buff'],
+        tags: ['pierce', 'melee', 'buff', 'debuff'],
         effects: [
             { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 0.5 },
             { type: 'add_buff', buffId: 'thunder_swift', stacks: 1 },
@@ -81,7 +81,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '一剑西来，天外飞仙。剑气凛冽如雪。',
         requiredTags: ['pierce', 'melee'],
         apCost: 2,
-        tags: ['pierce', 'melee', 'buff'],
+        tags: ['pierce', 'melee', 'buff', 'debuff', 'frost'],
         effects: [
             { type: 'add_debuff', buffId: 'frost', stacks: 2, chance: 0.5 },
             { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
@@ -94,7 +94,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '剑气如春竹，破土凌云。',
         requiredTags: ['pierce', 'melee'],
         apCost: 2,
-        tags: ['pierce', 'heal', 'melee'],
+        tags: ['pierce', 'heal', 'melee', 'buff'],
         getRange: () => [1, 4],
         effects: [
             { type: 'add_buff', buffId: 'bamboo_regen', stacks: 1 },
@@ -107,7 +107,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '剑气如云，藏锋其中。叠一层云隐。',
         requiredTags: ['pierce', 'melee'],
         apCost: 2,
-        tags: ['pierce', 'melee'],
+        tags: ['pierce', 'melee', 'buff'],
         effects: [
             { type: 'add_buff', buffId: 'yun_yin', stacks: 1 },
             { type: 'damage', scaling: { wisdom: 0.15, agility: 0.15 } },
@@ -120,7 +120,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce', 'melee'],
         apCost: 5,
         chanCost: MAX_CHAN,
-        tags: ['pierce', 'range', 'chan'],
+        tags: ['pierce', 'range', 'chan', 'ignore_parry'],
         getRange: () => [0, 10] as [number, number],
         onActionHitChance: () => 1,
         hookNotes: { hitChance: '必中', critChance: '目标气血低于 30% 时暴击+30%' },
@@ -132,7 +132,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '轻刺敌人，有几率造成流血。',
         requiredTags: ['pierce'],
         apCost: 2,
-        tags: ['bleed', 'pierce', 'melee'],
+        tags: ['bleed', 'pierce', 'melee', 'debuff'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.2 },
@@ -144,7 +144,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '聚力一刺，劲透三分。有几率撕裂伤口造成流血。',
         requiredTags: ['pierce'],
         apCost: 4,
-        tags: ['bleed', 'pierce', 'melee'],
+        tags: ['bleed', 'pierce', 'melee', 'debuff'],
         onActionHitChance: (base) => base + 0.15,
         effects: [
             { type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } },
@@ -270,7 +270,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '以炁化焰，隔空斩击，距离比兵刃更远。',
         requiredTags: ['slash', 'pierce'],
         apCost: 2,
-        tags: ['slash', 'pierce', 'burn', 'melee'],
+        tags: ['slash', 'pierce', 'burn', 'melee', 'debuff'],
         getRange: (wr) => [wr[0], wr[1] + 1],
         hookNotes: { range: '武器范围 +1' },
         effects: [
@@ -307,7 +307,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 4,
         chanCost: 20,
-        tags: ['slash', 'chan', 'melee'],
+        tags: ['slash', 'chan', 'melee', 'ignore_parry'],
         onActionCritChance: (base) => base + 0.3,
         onActionHitChance: (base) => base + 0.5,
         getRange: () => [0, 2],

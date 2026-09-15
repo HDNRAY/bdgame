@@ -16,7 +16,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '指间弹出炁劲，击中目标短暂眩晕。',
         requiredTags: [],
         apCost: 2,
-        tags: ['thrown', 'stun', 'qi', 'range', 'blunt'],
+        tags: ['thrown', 'stun', 'qi', 'range', 'blunt', 'debuff'],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
             { type: 'add_debuff', buffId: 'stun', stacks: 1, chance: 0.4 },
@@ -29,7 +29,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '以血为引，凝炁成滴，射向对手。消耗10%当前气血。',
         requiredTags: [],
         apCost: 1,
-        tags: ['qi', 'unarmed', 'range', 'thrown', 'low_hp'],
+        tags: ['qi', 'unarmed', 'range', 'thrown', 'low_hp', 'self_damage'],
         getRange: () => [1, 4],
         onActionHitChance: (base) => base + 0.3,
         hookNotes: { hitChance: '+30%' },
@@ -50,7 +50,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '一指银针破空而去，精准刺穴。',
         requiredTags: [],
         apCost: 2,
-        tags: ['pierce', 'range', 'thrown'],
+        tags: ['pierce', 'range', 'thrown', 'ignore_parry'],
         getRange: () => [1, 6] as [number, number],
         effects: [
             { type: 'ignore_parry' },
@@ -75,7 +75,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '玉蜂针破空，附寒毒麻痹。',
         requiredTags: [],
         apCost: 2,
-        tags: ['range', 'thrown', 'paralyze', 'debuff', 'pierce'],
+        tags: ['range', 'thrown', 'paralyze', 'debuff', 'pierce', 'poison'],
         getRange: () => [1, 6] as [number, number],
         effects: [
             // { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },
@@ -112,7 +112,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '电力灌注的溜溜球，远近皆宜。',
         requiredTags: [],
         apCost: 2,
-        tags: ['electric', 'debuff', 'qi'],
+        tags: ['electric', 'debuff', 'qi', 'paralyze'],
         getRange: () => [1, 3] as [number, number],
         onActionHitChance: (base) => base + 0.2,
         hookNotes: { hitChance: '+20%' },
@@ -127,7 +127,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '以炁化雷，电蛇出击，麻痹对手。',
         requiredTags: [],
         apCost: 5,
-        tags: ['electric', 'stun', 'chan'],
+        tags: ['electric', 'stun', 'chan', 'debuff', 'ignore_parry'],
         getRange: () => [0, 4] as [number, number],
         chanCost: 15,
         hookNotes: { hitChance: '+25%' },
@@ -178,7 +178,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '横扫千军，造成失衡。',
         requiredTags: ['polearm'],
         apCost: 2,
-        tags: ['knockdown', 'polearm'],
+        tags: ['knockdown', 'polearm', 'debuff'],
         effects: [
             { type: 'damage', scaling: { strength: 0.35 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 1 },
@@ -190,7 +190,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '猛砸地面，造成冲击波。',
         requiredTags: ['polearm'],
         apCost: 3,
-        tags: ['paralyze', 'ignore_parry', 'unarmed'],
+        tags: ['paralyze', 'ignore_parry', 'unarmed', 'debuff'],
         effects: [
             { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.6 },
@@ -217,7 +217,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '以棍撑地，凌空一脚。',
         requiredTags: ['polearm'],
         apCost: 2,
-        tags: ['blunt', 'polearm'],
+        tags: ['blunt', 'polearm', 'debuff', 'knockdown'],
         getRange: () => [1, 4],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, agility: 0.1 } },
@@ -241,7 +241,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '寒芒一点。刺入瞬间寒意迸发，附加寒锋与霜冻。',
         requiredTags: ['polearm', 'pierce'],
         apCost: 2,
-        tags: ['polearm', 'pierce', 'buff', 'frost'],
+        tags: ['polearm', 'pierce', 'buff', 'frost', 'debuff'],
         effects: [
             { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
             { type: 'add_debuff', buffId: 'frost', stacks: 1, chance: 0.5 },
@@ -307,7 +307,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '高举铁锤，雷霆万钧砸下，电光四溢。',
         requiredTags: ['blunt'],
         apCost: 4,
-        tags: ['blunt', 'electric'],
+        tags: ['blunt', 'electric', 'debuff', 'paralyze'],
         effects: [
             { type: 'damage', scaling: { strength: 0.6, wisdom: 0.4 }, fixed: 2 },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.8 },
@@ -361,7 +361,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '以炁御音，曲如碧海潮生。无视招架闪避，直摄心魄。',
         requiredTags: [],
         apCost: 3,
-        tags: ['qi', 'range', 'debuff'],
+        tags: ['qi', 'range', 'debuff', 'ignore_parry'],
         getRange: () => [0, 9],
         effects: [
             { type: 'ignore_parry' },

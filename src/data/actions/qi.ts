@@ -28,7 +28,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '凝聚炁劲远程攻击。巧妙灵活，难以捉摸。',
         requiredTags: [],
         apCost: 2,
-        tags: ['qi', 'range', 'qi_action'],
+        tags: ['qi', 'range', 'qi_action', 'ignore_parry'],
         onActionHitChance: (base) => base + 0.1,
         hookNotes: { hitChance: '+10%' },
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, fixed: 2 }, { type: 'ignore_parry' }],
@@ -40,7 +40,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '凝聚炁劲远程攻击。大开大阖，以拙胜巧。',
         requiredTags: [],
         apCost: 2,
-        tags: ['qi', 'range', 'qi_action', 'blunt'],
+        tags: ['qi', 'range', 'qi_action', 'blunt', 'debuff', 'stun'],
         effects: [
             { type: 'damage', fixed: 5 },
             { type: 'add_debuff', buffId: 'stun', chance: 0.6, stacks: 1 },
@@ -63,7 +63,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '凝炁成刃，近身斩击。无视招架，一半伤害穿透。',
         requiredTags: [],
         apCost: 2,
-        tags: ['qi', 'melee', 'slash', 'pierce', 'qi_action'],
+        tags: ['qi', 'melee', 'slash', 'pierce', 'qi_action', 'ignore_parry'],
         getRange: () => [0, 2],
         effects: [
             { type: 'ignore_parry' },

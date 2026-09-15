@@ -8,7 +8,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'titanium_arm',
         name: '钛合金臂',
         description: '重型钛合金义肢，力大无穷。可飞向对手自爆。',
-        tags: ['implant', 'inherent'],
+        tags: ['implant', 'inherent', 'burn'],
         effects: [{ type: 'stat_buff', attrs: { strength: 2, dexterity: 2 } }],
         grantsActions: ['_arm_explosion'],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'overload', stacks: 1 }] }],
@@ -103,7 +103,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'power_furnace',
         name: '便携式核动力炉',
         description: '微型核聚变动力炉，输出炁态能量供炼炁士使用，加速炁的恢复。',
-        tags: ['implant', 'inherent'],
+        tags: ['implant', 'inherent', 'buff'],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -123,7 +123,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'venom_gland',
         name: '毒腺',
         description: '每10秒消耗3层自身毒素，获得1点洞察，持续30秒。不满3层时不触发。',
-        tags: ['implant', 'inherent', 'poison'],
+        tags: ['implant', 'inherent', 'poison', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'venom_gland' }] }],
     },
     {
@@ -160,14 +160,14 @@ export const ARTIFACTS: Artifact[] = [
         id: 'floating_eye',
         name: '浮游眼',
         description: '一枚以炁悬浮的异瞳，洞察流转，预判对手。',
-        tags: ['imperial', 'summon'],
+        tags: ['imperial', 'summon', 'buff'],
         effects: [{ type: 'add_buff', buffId: 'floating_eye_buff' }],
     },
     {
         id: 'flying_lion',
         name: '飞狮',
         description: '飞狮奇物，自动释放狮吼功。',
-        tags: ['summon', 'imperial'],
+        tags: ['summon', 'imperial', 'stun'],
         summon: {
             id: 'flying_lion',
             name: '飞狮',
@@ -212,7 +212,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'blood_thorn_ring',
         name: '血棘戒',
         description: '暴击时向创口渡入棘炁，引发持续流血。暴击的额外伤害转为流血层数。',
-        tags: ['trigger', 'bleed'],
+        tags: ['bleed'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'blood_thorn_suppress' }] },
         ],
@@ -221,7 +221,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'blood_thorn_earring',
         name: '血棘耳环',
         description: '血棘耳环见血封喉。持枪（刺）攻击暴击率+7%，对流血中目标再+8%。',
-        tags: ['trigger', 'bleed', 'pierce'],
+        tags: ['bleed', 'pierce'],
         requiredTags: ['pierce'],
         triggers: [
             {
@@ -234,7 +234,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'wisdom_talisman',
         name: '通明符',
         description: '开悟通明，额外承载一道触发。',
-        tags: ['trigger', 'buff'],
+        tags: ['buff'],
         effects: [
             { type: 'stat_buff', attrs: { insight: 1 } },
             { type: 'trigger_slot_mod', value: 1 },
@@ -250,7 +250,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'tiger_eye',
         name: '虎彻之眼',
         description: '进入居合时双目如虎，洞察先机。',
-        tags: ['trigger', 'buff'],
+        tags: ['buff', 'stance'],
         requiredTags: ['stance'],
         triggers: [
             {
@@ -263,7 +263,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'calming_talisman',
         name: '定心香氛',
         description: '感知肾上腺素后散发镇定香氛，切换姿态时旧香换新，余香缭绕。洞察+2，推演+2。',
-        tags: ['buff'],
+        tags: ['buff', 'stance'],
         requiredTags: ['stance'],
         triggers: [
             {
@@ -280,7 +280,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'qi_guard',
         name: '吞炁囊',
         description: '开局凝聚30层炁盾。',
-        tags: ['trigger', 'defense', 'qi'],
+        tags: ['defense', 'qi'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_shield', stacks: 30 }] },
         ],
@@ -289,14 +289,14 @@ export const ARTIFACTS: Artifact[] = [
         id: 'iron_will',
         name: '乌铠',
         description: '受到超过4点的拳脚/斩/刺/钝伤害时，消耗1缠劲减免4点，每场最多20次。',
-        tags: ['trigger', 'defense', 'chan'],
+        tags: ['defense', 'chan'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dmg_reduce' }] }],
     },
     {
         id: 'qi_amplifier',
         name: '凝炁玉',
         description: '天工锻造的炁能增幅器，增幅炁系武器的锋芒。',
-        tags: ['trigger', 'buff', 'craft'],
+        tags: ['buff', 'craft'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qi_amplify' }] }],
     },
     {
@@ -310,7 +310,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'frost_silk_robe',
         name: '冰蚕衣',
         description: '冰蚕丝织就的软甲，遇寒愈坚。招架率+12%；招架近战攻击后以寒气反噬对手。',
-        tags: ['defense'],
+        tags: ['defense', 'frost', 'counter'],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -322,14 +322,14 @@ export const ARTIFACTS: Artifact[] = [
         id: 'poison_coating',
         name: '淬毒工具',
         description: '刃上淬毒，割裂或刺击时概率令其中毒。',
-        tags: ['poison', 'trigger'],
+        tags: ['poison'],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'poison_coating' }] }],
     },
     {
         id: 'shixiang_ruanjin_san',
         name: '十香软筋散',
         description: '无色无味之毒，中者筋骨酥软。每次中毒时叠加一层虚弱。',
-        tags: ['poison', 'debuff', 'trigger'],
+        tags: ['poison', 'debuff'],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'shixiang_ruanjin_san' }] },
         ],
@@ -338,7 +338,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'western_poison',
         name: '西域奇毒',
         description: '剧毒入体，麻痹神经。每次中毒时叠加麻痹。',
-        tags: ['debuff', 'poison', 'trigger', 'paralyze'],
+        tags: ['debuff', 'poison', 'paralyze'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'western_poison_buff' }] },
         ],
@@ -363,7 +363,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'cinnabar_mole',
         name: '守宫砂',
         description: '龙虎山秘传之印，每三击蓄满雷印，下一击爆发×1.5。',
-        tags: ['trigger', 'inherent'],
+        tags: ['inherent'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'cinnabar_mark' }] }],
     },
     {
@@ -378,7 +378,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'herb_pouch',
         name: '蜂草鱼囊',
         description: '玉蜂浆、断肠草、寒潭白鱼所制，每 5 秒自动化解一层毒素，且恢复2点气血',
-        tags: ['trigger', 'heal'],
+        tags: ['heal', 'cleanse'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'herb_pouch' }] }],
     },
     {
@@ -407,14 +407,14 @@ export const ARTIFACTS: Artifact[] = [
         id: 'soft_hedgehog_mail',
         name: '软猬甲',
         description: '天工锻造的软猬甲衣，柔韧而多刺。受伤减免1点；受拳脚攻击时令对手流血。',
-        tags: ['defense', 'craft'],
+        tags: ['defense', 'craft', 'bleed', 'counter'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'soft_armor' }] }],
     },
     {
         id: 'golden_bell_rope',
         name: '金玲索',
         description: '金玲索，以炁御之，可攻可守。',
-        tags: ['defense'],
+        tags: ['defense', 'paralyze'],
         grantsActions: ['_golden_bell_swing'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'golden_bell_guard' }] },
@@ -482,7 +482,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'nv_er_hong',
         name: '女儿红',
         description: '温润醇厚的黄酒，饮后气血奔涌。花1AP饮用，每秒回复1.5点气血，持续9秒，最多3层。',
-        tags: ['jiu'],
+        tags: ['jiu', 'heal'],
         grantsActions: ['_jiu_nv_er_hong'],
     },
     {
@@ -510,14 +510,14 @@ export const ARTIFACTS: Artifact[] = [
         id: 'bu_lao_quan',
         name: '不老泉',
         description: '养生琼浆，饮后气血缓缓流转。花1AP饮用，每3秒回复3点气血，持续9秒，最多3层。',
-        tags: ['jiu'],
+        tags: ['jiu', 'heal'],
         grantsActions: ['_bu_lao_quan'],
     },
     {
         id: 'qing_nang_san_bao',
         name: '青囊三宝',
         description: '每7秒：有毒解毒，没毒止血。',
-        tags: ['heal'],
+        tags: ['heal', 'cleanse'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'qing_nang_san_juan' }] },
         ],
@@ -568,7 +568,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'tactical_pouch',
         name: '战术腰包',
         description: '多功能战术腰包，内含止血针、解毒针、肾上腺素针。',
-        tags: ['trigger', 'heal'],
+        tags: ['heal', 'cleanse'],
         grantsActions: ['_field_dressing', '_detox_shot', '_adrenaline_shot'],
         triggers: [
             {
@@ -647,7 +647,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'jet_drive',
         name: '喷气式机动装置',
         description: '天工锻造的喷气推进装置，大幅提升移动能力，免疫击倒。',
-        tags: ['craft', 'buff'],
+        tags: ['craft', 'buff', 'defense'],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -687,7 +687,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'ci_magnetic_coil',
         name: '磁暴线圈',
         description: '天工锻造的电磁增幅线圈，缠绕兵刃。电系招式伤害+15%，施加的麻痹层数翻倍。',
-        tags: ['craft', 'electric', 'buff'],
+        tags: ['craft', 'electric', 'buff', 'paralyze'],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -700,7 +700,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'ninja_tool_kit',
         name: '忍者工具包',
         description: '忍者随身油囊，泼油浸敌，令其易受火攻。',
-        tags: ['craft', 'debuff'],
+        tags: ['craft', 'debuff', 'burn'],
         grantsActions: ['_oil_splash'],
     },
     // ── 悬浮座椅（博士·义体） ──
@@ -708,7 +708,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'wheelchair_lightness',
         name: '悬浮座椅',
         description: '悬浮座椅，以炁驱动。',
-        tags: ['implant', 'inherent'],
+        tags: ['implant', 'inherent', 'buff'],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -755,7 +755,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'wuxue_baodian_xia',
         name: '武学宝典下',
         description: '通晓天下武学路数。每有1个奖励标签，受到伤害-1%，上限15%。',
-        tags: ['buff'],
+        tags: ['buff', 'defense'],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -768,7 +768,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'auto_purify_vest',
         name: '自动净化背心',
         description: '秘制背心，感应自身异常状态，自行净化。',
-        tags: ['defense', 'craft'],
+        tags: ['defense', 'craft', 'cleanse'],
         triggers: [
             {
                 condition: { type: 'on_equip' },

@@ -19,7 +19,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '以柔克刚，借力打力。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'stun', 'melee'],
+        tags: ['unarmed', 'stun', 'melee', 'debuff'],
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.15, dexterity: 0.2 } },
@@ -32,7 +32,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '以掌化拳，力道化为锋芒。击中目标短暂混乱。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'melee'],
+        tags: ['unarmed', 'melee', 'debuff'],
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, wisdom: 0.1 } },
@@ -45,7 +45,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '看似柔弱的小拳头，实则借全身旋转之力。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'debuff'],
+        tags: ['unarmed', 'debuff', 'knockdown'],
         getRange: () => [1, 2],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
@@ -59,7 +59,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '身形一闪，先近身再出腿。',
         requiredTags: [],
         apCost: 2,
-        tags: ['unarmed', 'debuff'],
+        tags: ['unarmed', 'debuff', 'knockdown'],
         getRange: () => [0, 3],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1 } },
@@ -85,7 +85,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '一指封穴，阻断气血。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'debuff', 'melee'],
+        tags: ['unarmed', 'debuff', 'melee', 'paralyze'],
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
@@ -98,7 +98,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '借力打力，推开对手并后撤。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'melee'],
+        tags: ['unarmed', 'melee', 'knockback'],
         getRange: () => [0, 1],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, dexterity: 0.1 } },
@@ -112,7 +112,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '一记凌厉的手刀，兼具拳脚与刀势。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'slash', 'melee'],
+        tags: ['unarmed', 'slash', 'melee', 'debuff', 'stun'],
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, dexterity: 0.15 } },
@@ -173,7 +173,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 5,
         chanCost: 20,
-        tags: ['unarmed', 'melee', 'chan', 'low_hp'],
+        tags: ['unarmed', 'melee', 'chan', 'low_hp', 'debuff'],
         getRange: () => [0, 4],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, wisdom: 0.1 } },
@@ -202,7 +202,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         onActionHitChance: (base) => base + 0.2,
         hookNotes: { hitChance: '+20%' },
-        tags: ['stun', 'self_damage', 'unarmed', 'melee'],
+        tags: ['stun', 'self_damage', 'unarmed', 'melee', 'debuff'],
         effects: [
             { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.8 } },
@@ -246,7 +246,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '一记势大力沉的侧踢，直取中门。',
         requiredTags: ['unarmed'],
         apCost: 3,
-        tags: ['unarmed', 'melee'],
+        tags: ['unarmed', 'melee', 'debuff', 'paralyze'],
         effects: [
             { type: 'damage', scaling: { strength: 0.3, dexterity: 0.2 } },
             {
@@ -263,7 +263,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '低身扫腿，攻其下盘。',
         requiredTags: ['unarmed'],
         apCost: 3,
-        tags: ['unarmed', 'melee'],
+        tags: ['unarmed', 'melee', 'debuff', 'knockdown'],
         effects: [
             { type: 'damage', scaling: { agility: 0.3, dexterity: 0.2 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.4 },
@@ -305,7 +305,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '从背后锁喉，持续绞杀。双方均无法行动。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'melee', 'debuff'],
+        tags: ['unarmed', 'melee', 'debuff', 'knockdown'],
         getRange: () => [0, 1] as [number, number],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1 } },

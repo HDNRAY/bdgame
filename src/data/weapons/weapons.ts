@@ -24,7 +24,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'po_lang_zhu_zhi',
         name: '破狼竹枝',
         description: '经特殊药水浸泡多年的竹枝，坚如钢铁，轻如竹羽。招架后减免3点伤害。',
-        tags: ['parry', 'polearm', 'blunt'],
+        tags: ['parry', 'polearm', 'blunt', 'buff'],
         range: [1, 4],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'po_lang_zhu_zhi_buff' }] },
@@ -52,7 +52,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'broken_blade',
         name: '锁链断刀',
         description: '一把残损的断刀。加装锁链，免疫缴械。',
-        tags: ['slash', 'parry', 'melee', 'one_handed'],
+        tags: ['slash', 'parry', 'melee', 'one_handed', 'buff'],
         range: [0, 2],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'broken_blade_lock' }] },
@@ -63,7 +63,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'special_forces_dagger',
         name: '特种兵匕首',
         description: '军方特制电击匕首。耗1缠劲，追加电伤并麻痹目标。',
-        tags: ['pierce', 'unarmed', 'parry', 'slash', 'melee', 'one_handed', 'electric', 'chan'],
+        tags: ['pierce', 'unarmed', 'parry', 'slash', 'melee', 'one_handed', 'electric', 'chan', 'buff'],
         range: [0, 2],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'special_forces_dagger' }] },
@@ -73,7 +73,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'iron_spear',
         name: '铁枪·破军',
         description: '丈二铁枪，势大力沉。出枪迅猛，暴击更盛。',
-        tags: ['pierce', 'parry', 'polearm', 'heavy'],
+        tags: ['pierce', 'parry', 'polearm', 'heavy', 'buff'],
         range: [1, 4],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 6 }] },
@@ -92,7 +92,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'zantetsu',
         name: '藏锋',
         description: '锋藏于鞘，出鞘一瞬，无物不斩。',
-        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed'],
+        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed', 'stance'],
         range: [1, 3],
         triggers: [
             {
@@ -112,7 +112,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'xiu_dong',
         name: '绣冬',
         description: '绣冬长三尺二寸，势沉力猛。力道化为锋芒，越重越利。',
-        tags: ['slash', 'parry', 'melee', 'heavy', 'one_handed'],
+        tags: ['slash', 'parry', 'melee', 'heavy', 'one_handed', 'buff'],
         range: [1, 3],
         triggers: [
             {
@@ -128,7 +128,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'chun_lei',
         name: '春雷',
         description: '轻灵迅捷，见血封喉。灵巧化为致命锋芒。',
-        tags: ['slash', 'parry', 'melee', 'one_handed'],
+        tags: ['slash', 'parry', 'melee', 'one_handed', 'buff'],
         range: [0, 2],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'chun_lei_buff' }] }],
     },
@@ -136,7 +136,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'overlord_blade',
         name: '素铁霸刀',
         description: '与身同高的巨刃，离心力驱动，势不可挡。',
-        tags: ['slash', 'parry', 'heavy', 'melee'],
+        tags: ['slash', 'parry', 'heavy', 'melee', 'buff'],
         range: [1, 4],
         triggers: [
             {
@@ -200,7 +200,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'engine_hammer',
         name: '引擎铁锤',
         description: '天工锻造的电磁锤，以炁驱动，雷火交加。。',
-        tags: ['blunt', 'electric', 'qi', 'craft', 'polearm'],
+        tags: ['blunt', 'electric', 'qi', 'craft', 'polearm', 'debuff', 'burn'],
         range: [0, 2],
         triggers: [
             {
@@ -247,7 +247,7 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '镇北戟',
         description:
             '姬家世代相传的战戟，曾为守关领袖所用。经千星重铸为赛博战戟，可将使用者的炁转化为冰电之力。暴击时冰封对手。',
-        tags: ['polearm', 'parry', 'pierce', 'blunt', 'electric', 'heavy'],
+        tags: ['polearm', 'parry', 'pierce', 'blunt', 'electric', 'heavy', 'debuff', 'frost', 'paralyze'],
         range: [1, 4],
         triggers: [
             {
@@ -275,7 +275,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'buer_sword',
         name: '不二剑',
         description: '最快的剑之一，起手暴击大增但身法略滞，逐回合恢复。',
-        tags: ['pierce', 'slash', 'parry', 'melee', 'one_handed'],
+        tags: ['pierce', 'slash', 'parry', 'melee', 'one_handed', 'buff'],
         range: [1, 3],
         triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword' }] }],
     },
@@ -283,7 +283,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'ganjiang_sword',
         name: '干将',
         description: '千星融两柄古剑所铸，注入现代科技，以炁驱动。雄剑追星，迅捷无匹。',
-        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed'],
+        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed', 'buff'],
         range: [1, 3],
         triggers: [{ condition: { type: 'on_hit' }, effects: [{ type: 'add_buff', buffId: 'zhuixing', stacks: 1 }] }],
     },
@@ -291,7 +291,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'moxie_sword',
         name: '莫邪',
         description: '千星融两柄古剑所铸，注入现代科技，以炁驱动。雌剑回息，内息自生。',
-        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed'],
+        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed', 'buff'],
         range: [1, 3],
         triggers: [{ condition: { type: 'on_hit' }, effects: [{ type: 'add_buff', buffId: 'huixi', stacks: 1 }] }],
     },

@@ -55,7 +55,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'internal', 'low_hp'],
+        tags: ['trigger', 'internal', 'low_hp', 'cleanse', 'buff'],
         target: 'self',
         maxUses: 1,
         effects: [
@@ -77,7 +77,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'internal'],
+        tags: ['trigger', 'internal', 'buff'],
         target: 'self',
         maxUses: 1,
         effects: [{ type: 'add_buff', buffId: 'iaijutsu' }],
@@ -88,7 +88,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'internal'],
+        tags: ['trigger', 'internal', 'buff'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'mind_eye' }],
     },
@@ -132,7 +132,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'internal'],
+        tags: ['trigger', 'internal', 'cleanse'],
         target: 'self',
         maxUses: 999,
         effects: [{ type: 'cleanse', buffIds: ['poison'] }],
@@ -145,7 +145,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         onActionHitChance: () => 1,
         // 不用 internal：AI 需能通过 conditionId 主动选用（绝境招），也允许 UI 展示
-        tags: ['burn'],
+        tags: ['burn', 'debuff'],
         target: 'enemy',
         maxUses: 1,
         getRange: () => [0, 5] as [number, number],
@@ -178,7 +178,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['range', 'blunt', 'summon'],
+        tags: ['range', 'blunt', 'summon', 'debuff', 'paralyze'],
         effects: [
             { type: 'damage', fixed: 2, piercing: 1 },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.3 },
@@ -245,7 +245,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['range', 'summon'],
+        tags: ['range', 'summon', 'debuff', 'stun'],
         getRange: () => [0, 10] as [number, number],
         effects: [
             { type: 'damage', scaling: { wisdom: 0.3 } },
@@ -270,7 +270,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 2,
-        tags: ['blunt', 'range'],
+        tags: ['blunt', 'range', 'debuff', 'paralyze'],
         getRange: () => [2, 5] as [number, number],
         effects: [
             { type: 'damage', scaling: { dexterity: 0.4 } },
@@ -365,7 +365,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'heal', 'internal'],
+        tags: ['trigger', 'internal', 'cleanse'],
         target: 'self',
         maxUses: 1,
         effects: [{ type: 'cleanse', buffIds: ['bleed'], perDebuffStacks: 2 }],
@@ -376,7 +376,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'internal'],
+        tags: ['trigger', 'internal', 'cleanse'],
         target: 'self',
         maxUses: 1,
         // 只解 2 层毒（perDebuffStacks:2）：避免一次清空全部毒层把毒系对手彻底掐死，又保留一定的解毒价值
@@ -414,7 +414,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '三节枪近身缠卷，绕过盾牌与招架，直击要害。',
         requiredTags: ['polearm'],
         apCost: 2,
-        tags: ['pierce', 'polearm', 'slash'],
+        tags: ['pierce', 'polearm', 'slash', 'ignore_parry'],
         effects: [
             {
                 type: 'ignore_parry',
@@ -467,7 +467,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '闪避后借势冲向对手，撞出钝击并麻痹。',
         requiredTags: [],
         apCost: 2,
-        tags: ['trigger', 'internal', 'unarmed', 'blunt', 'melee'],
+        tags: ['trigger', 'internal', 'unarmed', 'blunt', 'melee', 'debuff', 'paralyze'],
         target: 'enemy',
         getRange: () => [0, 0],
         canUse: (attacker, state) => {
@@ -489,7 +489,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '人造发生器释放高频音波，直摄心魄。',
         requiredTags: [],
         apCost: 2,
-        tags: ['range', 'debuff'],
+        tags: ['range', 'debuff', 'ignore_parry'],
         getRange: () => [0, 9],
         effects: [
             { type: 'ignore_parry' },

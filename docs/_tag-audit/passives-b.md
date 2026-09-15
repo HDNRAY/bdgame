@@ -27,7 +27,7 @@
 | --- | --- | --- | --- | --- |
 | 意马心猿（yi_ma_xin_yuan） | `passive` `buff` | ❌ | 引用 buff `yi_ma_xin_yuan`（buffs.ts:975）：`onHitChance: () => 0.05` 已被注释掉（buffs.ts:981），唯一生效钩子是 `onDealDamage → add_debuff 'confuse' 15%`，对自身无任何数值/能力收益，`buff` 是「给对手上负面的实现载体」；description 的「凝神聚气提升命中」在实现里已不存在 | 去 `buff`，补 `debuff` |
 | 通天录（tongtian） | `passive` `buff` `qi` | ❌ | buff `tongtian`（damage.ts:174）全部效果是 `add_debuff 'bu_xing'`（80% 概率，降敌命中/闪避/招架/暴击，debuffs.ts:369），对自身零收益 → `buff` 假；缺 `debuff`；description 与 buff（tags 仅 `damage`）均无炁机制 | 去 `buff`·`qi`，补 `debuff` |
-| 流风回雪（no_parry_style） | `qi` `buff` `defense` | ⚠️ | buff `no_parry_buff`（buffs.ts:1105）给出「招架率的22%转化为闪避率」，`buff`/`defense` 与实现一致；但 description 与 buff 均无炁（buff tags 为空），`qi` 无依据；本条是功法却缺 `passive` | 去 `qi`，补 `passive` |
+| 流风回雪（no_parry_style） | `qi` `buff` `defense` | ⚠️ | buff `no_parry_buff`（buffs.ts:1105）给出「招架率的22%转化为闪避率」，`buff`/`defense` 与实现一致；但 description 与 buff 均无炁（buff tags 为空），`qi` 无依据；本条是功法却缺 `passive` | 去 `qi`，补 |
 | 云龙三现（yun_long_san_xian） | `qi` `buff` | ⚠️ | buff `draw_sword_combo_buff`（buffs.ts:1118）自带 `slash`，且 `onAction`/`onDealDamage` 都先判 `source.tags.includes('slash')`、交替斩击叠增伤并附加（身法+灵巧）伤害 → 核心武器类型是斩击、机制是增伤，`slash`/`damage` 均未标；`qi` 无依据（buff 无 qi） | 去 `qi`，补 `slash`·`damage` |
 | 单刀法选（dan_dao_fa_xuan） | `passive` `buff` | ⚠️ | trigger `on_dodge → add_buff 'jing_ji'`（buffs.ts:130，下一击暴击率+25%）确为真实增益；按口径「暴击」属 `damage` 输出提升，未标 | 补 `damage` |
 | 太上御法（tai_shang_yu_fa） | `passive` `buff` `qi` | ❌ | 全条无任何 `add_buff`：唯一 trigger 是 `on_summon_hit → actionId '_tai_shang_heal'`，该 action（internal.ts:499）唯一效果是 `{ type:'heal', value:1 }`，自带 tags `trigger`/`heal`/`internal` → 这是回血不是增益，`buff` 假且 `heal` 漏标 | 去 `buff`，补 `heal`（`summon`/`imperial` 见需裁定） |

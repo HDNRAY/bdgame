@@ -202,6 +202,8 @@ allMainActions.filter((a) => !a.tags.includes('internal') && !a.id.startsWith('_
 | **P2 补齐一致性** | ① `buff`：按 A 口径保留叠层类（撤销大部分"去 buff"）、补齐 54 处（含 14 件义体、27 把武器 —— 需先定"是否统一补"）；② `defense` 12 / `counter` 3 / `heal` 5 / `debuff` 12 / 元素状态 34 / `ignore_parry` 6 / `stance` 3 / `self_damage` 2；③ `passive` 统一（功法 42 条缺失）；④ `trigger` 移除（13 件） | ~180 | A / 各报告结论 | 低（多为展示与权重） |
 | **P3 文案同步** | 描述与机制不符的一批（`thunder_storm` 写麻痹实为眩晕、`hearing_power` 写徒手实为任意命中、`ru_lai_shen_zhang` 形态等） | 待清点 | 明细分报告 | 低 |
 
+> 执行进展：P0 见 §十一、P1 见 §十三、P2 见 §十四（下表处数为审计当时估算，实际以执行记录为准）。
+
 **开始前需要你定的三件事**：
 1. **武器 / 义体是否统一补 `buff`**（27 把武器、14 件义体都有真实数值增益，现状一个不标）；
 2. **起始武器**：是"不进池"（那就补 `inherent`）还是"进池没问题"（那就改 `starting-weapons.ts:8` 的注释）；
@@ -372,3 +374,84 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 | 同上重跑 | **46.4% – 54.0%** | 47.1% |
 
 32 人全部落在 45–55；同码两次跑的差约 ±1.0（战斗内 `Math.random` 未定种子），属运行间波动。
+
+## 十四、P2 执行结果（2026-09）
+
+依据 = 各分类明细的逐条结论 + 裁定 A / 第三轮 `buff` 口径。**共改 132 条实体的 tags**（9 个数据文件：`internal` 13、`melee` 10、`player` 12、`qi` 3、`support` 8、`unarmed` 12、`artifacts` 31、`passives` 30、`weapons` 13）。
+
+### 1. `passive` 标签已下架（2026-09）
+
+审计说「功法上半 42/55 缺 `passive`」，**实测只有 15 条**缺。该标签全库**零消费方**（`includes('passive')` 无命中），且在 `tagRelevance` 里对**同一奖励池内**的候选是等比加成（池内相对分布不变）→ 实际零效果；功法本来就在 `PASSIVES` 表里，再标一次是重复信息。
+
+按用户裁定**整体下架**：
+
+| 位置 | 改动 |
+| --- | --- |
+| `src/data/passives/passives.ts` | 110 条功法的 `tags` 全部去掉 `passive`（其中 15 条先补后撤、95 条为历史标注） |
+| `src/engine/entities/tag.ts` | 删除 `\| 'passive' // 功法` 成员 |
+| `src/bridge/tagDisplay.ts` | 删除 `TAG_CN`/`TAG_COLOR` 的 `passive` 条目 |
+| `AGENTS.md` | Tag 总数 54 → **53** |
+
+与 `dot` 同一处理方式（零数据使用/零消费方的死标签下架）。
+
+### 2. 奇物去 `trigger`（13 件）
+
+`blood_thorn_ring`、`blood_thorn_earring`、`wisdom_talisman`、`tiger_eye`、`qi_guard`、`iron_will`、`qi_amplifier`、`poison_coating`、`shixiang_ruanjin_san`、`western_poison`、`cinnabar_mole`、`herb_pouch`、`tactical_pouch`。
+`trigger` 的代码消费方读的是**招式**的 tags（`handlers.ts:590`：触发招式的 `short_dash` 一律冲向贴脸），奇物侧纯展示。
+
+### 3. 功能与元素 tag（88 条）
+
+| 类别 | 处数 | 判定依据 |
+| --- | --- | --- |
+| `debuff` | 30 | `effects` 带 `add_debuff` 即标（口径：弱化不论敌我） |
+| `paralyze` 11 / `stun` 4 / `knockdown` 5 / `burn` 6 / `frost` 4 / `bleed` 2 / `poison` 1 / `knockback` 1 | 34 | 施加了该元素/控制状态（含经 buff 施加者，如 `frost_silk_robe` 招架后叠霜冻） |
+| `ignore_parry` | 9 | **只有效果里真有 `ignore_parry` 才标**（裁定 E：穿透不算） |
+| `cleanse` | 9 | 净化类效果（含每跳解毒的 buff） |
+| `defense` | 13 | 减伤/免疫/招架闪避类收益 |
+| `counter` | 4 | 反伤/受击反制 |
+| `heal` | 3 | `tai_shang_yu_fa`、`nv_er_hong`、`bu_lao_quan` |
+| `stance` | 3 | `zantetsu`、`tiger_eye`、`calming_talisman` |
+| `self_damage` | 2 | 卖血：`blood_droplet`、`blood_qi_protection` |
+| 去 `electric` 2 / 去 `heal` 1 | 3 | `qi_electric_conversion`、`flash` 无雷系机制；`_field_dressing` 是净化不是回血 |
+
+实体侧的 `debuff`/`stance`/元素/`cleanse`/`counter`/`ignore_parry` 只进 `tagRelevance` 权重：代码里的消费方读的是 **BuffDef 自身的 tags**（`buffs.ts:629`、`buff-layer.ts:194`）或**效果本身**（`handlers.ts:497` 架势替换、`engine.ts:827` 命中形态广播）。全库 `includes('chan')`、`includes('counter')`、`includes('ignore_parry')`、`includes('stun')` 等均为零命中。
+
+### 4. `buff` 按「是否施加了状态」重筛（39 条）
+
+口径（第三轮收窄，取代裁定 A 的宽口径）：**只有本条真的施加了「状态」才算 `buff`** —— 叠层、有持续、有条件/触发，或免疫、吸收、回复、资源回复、行动代价这类非纯数值行为；**平坦的永久属性/命中/暴击/暴伤/招架/闪避数值加成不算**（`惊鸿` 的 `stat_buff`、`千机` 的 `qianji_crit`、`绝剑诀` 的 `last_stand` 都不算）。
+
+- **补 30**：武器 10（`po_lang_zhu_zhi`、`broken_blade`、`special_forces_dagger`、`iron_spear`、`xiu_dong`、`chun_lei`、`overlord_blade`、`buer_sword`、`ganjiang_sword`、`moxie_sword`）、功法 7、招式 4（`wan_liu_gui_zong`、`yun_bu`、`summon_haste`、`condense_shield`）、内部招 3（`_qiti_awaken`、`_cangfeng_mind_eye`、`_iaijutsu_ready`）、奇物 4（`venom_gland`、`floating_eye`、`wheelchair_lightness`、`power_furnace`）、`spring_bamboo_sword`、`cloud_hidden_sword`；
+- **去 9**（引用的 buff 自身零收益）：`nei_xi_mian_chang`（只放大时长）、`yue_nv_sword`（buff 触发器已被注释）、`shenxing_baibian`（纯移动消耗）、`feng_wu_jiu_tian` 与 `ling_ao_bu`（只授招、本体不施状态）、`tai_shang_yu_fa`（纯回血）、`yi_ma_xin_yuan`/`tongtian`/`chou_dao_duan_shui`（只给对手上负面）；
+- **不补/保留**：14 条只用 `stat_buff` 或平坦数值（`yanling_blade`/`qianji`/`ninja_sword`/`bare_hands`/`dagger`/`heshan_sword`/`fusi_sword`/`dark_room_catch`/`ningqi_jue`/`agility_steal`/`_alaya_insight`/`synthetic_lung`/`cochlear_implant`/`zhu_ye_qing`/`shao_dao_zi`）；施加**自身负面**的（`ap_drain`/`fumble_chance`/`muscle_degradation`/`permanent_burn`）；裁定 A 下保留的 `extreme`、`yuxin_sword_mastery`、`wan_xiang_jian_yi`；`one_arm` 留 `debuff`、不补 `buff`。
+
+### 5. 追加口径（第四轮澄清）
+
+| 主题 | 裁定 | 落地 |
+| --- | --- | --- |
+| `heal` 的范围 | **只算回血**，不含回 AP/内息 | `cang_niao_jian_fa`（AP 回复 +0.4/s）**不补** `heal`——补了会把它的 AI 辅招优先级由 50 抬到 100 |
+| `low_hp` 的定义 | **血量越低越强 或 自伤 都算**（与 `tag.ts:56` 双义一致） | 补 `blood_qi_protection`（释放 15% 当前气血 = 自伤）；`blood_droplet` 保留；`tactical_pouch` 的 `hp_below 0.5` 只是阈值触发、**不补** |
+| `craft` 的范围 | **宽义：人造物即 `craft`** | 药心石/聚缠法衣/忍者工具包/自动净化背心 的 `craft` 保留——它有真实消费方（`buffs.ts:1559` 千星「炁电转换」按 `craft`/`implant` 装备数给属性） |
+| `qi` 的补类 | 维持第三轮「只去不补」 | 核动力炉/蓄炁瓶/归元劲/秋水论/炁电转换 一律不补 |
+| `super_armor` / `jiu` | 代码读的是 **BuffDef** 自身的 tags（`buff-apply.ts:185`、`drunk.ts:8`） | 实体侧维持现状 |
+| `range_up` / `poison_coating` | 全库零消费方 | 维持现状 |
+
+### 6. 未做（留待 P3）
+
+- `craft` 之外的类型类口径、`super_armor` 是否落到实体（如需）；
+- P3 文案同步：`thunder_storm` 麻痹 vs stun、`hearing_power` 徒手 vs 任意命中、`chanzi_stance` 10% vs 15%、`soft_armor` 反伤、`zhu_huo_jue` 灼烧减半、`blood_droplet` 越残越弱、`shixiang_ruanjin_san` 等一批「描述与实现不符」。
+
+### 7. 校验
+
+`tsc` 无错、`eslint` 无错、**423 测试全过**、`vite build` 通过。
+
+| 轮次 | 胜率区间 | 备注 |
+| --- | --- | --- |
+| P1 后 | 46.3% – 54.0% | 同码两次 |
+| P2 后 | 45.7% – 53.5% | N=100 |
+| P2 后低端复测 | 李雪影 47.1%、空拳·来风 47.1%、刘西瓜 47.5% | N=300，45.7/45.8 属抽样波动 |
+
+32 人全部落在 45–55。P2 中真正会改战斗的只有两类：
+
+1. `heal`/`buff` 落在**招式**上 → AI 辅招优先级变化（`blood_qi_protection` 50→100、`wan_liu_gui_zong`/`condense_shield` 30→50、`summon_haste` 10→50；`spring_bamboo_sword` 本就是 100；`yun_bu` 是位移招、不走辅招通道）；
+2. `flash` 去掉 `electric` → 电系加成类 buff 不再对它生效。
+实测影响在 ±1 点内。

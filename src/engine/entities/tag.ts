@@ -23,7 +23,6 @@ export type Tag =
     | 'electric' // 雷电
     | 'trigger' // 触发
     | 'talent' // 天赋
-    | 'passive' // 功法
     | 'frost' // 霜冻
     | 'polearm' // 长柄
     | 'heavy' // 重型武器（力道驱动，可与 polearm 叠加）
