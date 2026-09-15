@@ -132,7 +132,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '轻刺敌人，有几率造成流血。',
         requiredTags: ['pierce'],
         apCost: 2,
-        tags: ['bleed', 'pierce', 'melee', 'debuff'],
+        tags: ['bleed', 'pierce', 'melee'],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
             { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.2 },
@@ -144,7 +144,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '聚力一刺，劲透三分。有几率撕裂伤口造成流血。',
         requiredTags: ['pierce'],
         apCost: 4,
-        tags: ['bleed', 'pierce', 'melee', 'debuff'],
+        tags: ['bleed', 'pierce', 'melee'],
         onActionHitChance: (base) => base + 0.15,
         effects: [
             { type: 'damage', scaling: { strength: 0.6, dexterity: 0.2 } },
@@ -270,7 +270,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '以炁化焰，隔空斩击，距离比兵刃更远。',
         requiredTags: ['slash', 'pierce'],
         apCost: 2,
-        tags: ['slash', 'pierce', 'burn', 'melee', 'debuff'],
+        tags: ['slash', 'pierce', 'burn', 'melee'],
         getRange: (wr) => [wr[0], wr[1] + 1],
         hookNotes: { range: '武器范围 +1' },
         effects: [

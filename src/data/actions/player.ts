@@ -75,7 +75,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '玉蜂针破空，附寒毒麻痹。',
         requiredTags: [],
         apCost: 2,
-        tags: ['range', 'thrown', 'paralyze', 'debuff', 'pierce', 'poison'],
+        tags: ['range', 'thrown', 'paralyze', 'pierce', 'poison'],
         getRange: () => [1, 6] as [number, number],
         effects: [
             // { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1 } },

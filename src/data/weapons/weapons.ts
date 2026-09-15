@@ -200,7 +200,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'engine_hammer',
         name: '引擎铁锤',
         description: '天工锻造的电磁锤，以炁驱动，雷火交加。。',
-        tags: ['blunt', 'electric', 'qi', 'craft', 'polearm', 'debuff', 'burn'],
+        tags: ['blunt', 'electric', 'qi', 'craft', 'polearm', 'burn'],
         range: [0, 2],
         triggers: [
             {

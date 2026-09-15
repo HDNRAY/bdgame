@@ -647,6 +647,16 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 2. 回补 `slash`，改李雪影的 kit（换掉 `western_poison`/`shixiang_ruanjin_san` 之一）—— 属配装改动；
 3. 不回补（维持现状）—— 代价是「切割」不带 `slash`、`poison_coating` 也不会在它上面触发。
 
+### 4. `debuff` 的归属（追加口径，2026-09）
+
+**有 `burn` / `bleed` / `poison` 的条目不再标 `debuff`** —— 这三个专属状态标签已经表达了弱化，`debuff` 留给「没有专属 nerf 标签的其他弱化效果」。
+
+据此去掉 `debuff` 的 9 处：`pursuit_thrust`、`thrust`（`bleed`）、`blaze_strike`（`burn`）、`yufeng_needle`（`poison`）、`_arm_explosion`（`burn`）、`shixiang_ruanjin_san`、`western_poison`（`poison`）、`ninja_tool_kit`（`burn`）、`engine_hammer`（`burn`）。`gash` 在此之前的同类改动（`debuff` → `slash`，保留 `bleed`）也符合本口径。
+
+保留 `debuff` 的对照（无专属 tag / 用别的专属 tag 表达）：`liu_yang_zhang`、`wrist_strike`、`zhemei_shou`、`desolate_palm`（吸属性类）、`flash`、`sand_throw`、`shi_qi`、`_oil_splash`（迷眼/失心/蚀炁/浸油）、`beiming`、`yi_ma_xin_yuan`、`tongtian`、`chou_dao_duan_shui`、`sword_capture`（吸属性/缴械）、`_sonic_wave`、`sonic_generator` 等。
+
+**已裁定（2026-09）**：`paralyze` / `stun` / `frost` / `knockdown` / `knockback` **与 `debuff` 并存**，不按同一逻辑收窄（31 条维持，如 `thunder_art`、`dian_xue`、`zhen_bei_ji`、`blowing_snow_sword`）。即：只有 `burn`/`bleed`/`poison` 这三个持续伤害标签替代 `debuff`。
+
 至此本次审计的全部条目处理完毕（P0–P3 + 剩余清单）。
 
 ---

@@ -145,7 +145,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         onActionHitChance: () => 1,
         // 不用 internal：AI 需能通过 conditionId 主动选用（绝境招），也允许 UI 展示
-        tags: ['burn', 'debuff', 'range'],
+        tags: ['burn', 'range'],
         target: 'enemy',
         maxUses: 1,
         getRange: () => [0, 5] as [number, number],

@@ -329,7 +329,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'shixiang_ruanjin_san',
         name: '十香软筋散',
         description: '无色无味之毒，中者筋骨酥软。每次中毒时叠加一层虚弱。',
-        tags: ['poison', 'debuff'],
+        tags: ['poison'],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'shixiang_ruanjin_san' }] },
         ],
@@ -338,7 +338,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'western_poison',
         name: '西域奇毒',
         description: '剧毒入体，麻痹神经。每次中毒时叠加麻痹。',
-        tags: ['debuff', 'poison', 'paralyze'],
+        tags: ['poison', 'paralyze'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'western_poison_buff' }] },
         ],
@@ -700,7 +700,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'ninja_tool_kit',
         name: '忍者工具包',
         description: '忍者随身油囊，泼油浸敌，令其易受火攻。',
-        tags: ['craft', 'debuff', 'burn'],
+        tags: ['craft', 'burn'],
         grantsActions: ['_oil_splash'],
     },
     // ── 悬浮座椅（博士·义体） ──
