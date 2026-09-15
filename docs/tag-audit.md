@@ -339,6 +339,87 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 - 未改：`_resheath` 的 `post_action`（裁定 F 已复核：收招定位正确，不改）、`_sonic_wave` 的 `qi`（P1）；
 - 复测：博士·德克 48.6%、一刀 55.6%，与基线一致（`_` 前缀对战斗零影响）。
 
+## 十三、P1 执行结果（2026-09）
+
+按裁定 B/C/E/I 与第三轮澄清执行：**49 处 tag 改动**（6 个数据文件）+ `tag.ts` 注释 + `weapon_stance` 两处判定。
+
+### 1. `qi` 去标（14 处，只去不补）
+
+口径 = 「炁的外放」；「以炁驱动」一律不补（核动力炉/蓄炁瓶/炁电转换/描述写"以炁驱动"的 8 把武器）。
+
+| 范围 | 条目 |
+| --- | --- |
+| 功法 11 | `iron_bone`（铁布衫）、`wan_xiang_jian_yi`（万象剑意）、`yuxin_sword_mastery`（真假无用）、`tongtian`（通天录）、`no_parry_style`（流风回雪）、`yun_long_san_xian`（云龙三现）、`bai_ju_guo_xi`（白驹过隙）、`chou_dao_duan_shui`（抽刀断水）、`ru_shen_zuo_zhao`（入神坐照）、`chan_xin_hui_yan`（禅心慧眼）、`iaijutsu_mastery`（居合道，拔刀术无炁） |
+| 奇物 2 | `jiu_yin_zhen_jing`（九阴真经）、`ju_chan_fa_yi`（聚缠法衣）——都是缠劲体系，保留 `chan` |
+| 招式 1 | `_sonic_wave`（音波，人造发生器） |
+
+### 2. `chan` 与缠劲机制对齐（5 处）
+
+`chan` 全库**零代码消费方**（无 `includes('chan')`），且 `tagRelevance` 里它权重 0 → 纯展示/无战斗影响。核对口径 = 招式 `chanCost` + 所施 buff 是否 `spendChan`/`chanRegen`：
+
+- 去：`wind_hear`（听风式：无 `chanCost`，`wind_hear_buff` 不回缠）；
+- 补：`nineteen_stops`、`hun_yuan_gong`、`qian_kun_da_nuo_yi`（三条 buff 均 `spendChan`）、`iron_will`（乌铠 `dmg_reduce` `spendChan(1)`）；
+- 复核：审计说的「8 条有 `chanCost` 无 `chan`」（`gear_hang`/`big_leap`/`lightning_speed`/`jindou`/`santou_liubi`/`chanzi_heal`/`chanzi_stance`/`deng_ping_du_shui`）**当前全部已带 `chan`**，无需处理。
+
+### 3. `move` 粒度（2 处）
+
+- 去：`_iaijutsu_strike`（居合斩只有 `short_dash` → 裁定 E「short_dash 不算 move」）；
+- 补：`feng_wu_jiu_tian`（凤舞九天，功法侧唯一该标 `move` 者 → 裁定 I）；
+- 其余「补 `move`」建议（`retrieve_blade`/越女剑法/踏雪/神行百变/醉拳/灵鳌步/残影步/奇门八卦/轮舞月斩/天外飞仙/液压腿）按裁定 I 一律不做。
+
+### 4. 形态 tag（27 处）
+
+| 子项 | 改动 |
+| --- | --- |
+| 补 `melee`·招式 20 | 刀剑刺斩 14：`cun_mang`、`nine_deaths_strike`、`pursuit_thrust`、`thrust`、`light_slash`、`heavy_slash`、`gash`、`spinning_slash`、`cyclone_slash`、`qi_slash`、`blaze_strike`、`horizontal_slash`、`rising_slash`、`follow_the_current`；拳脚 6：`push_palm`、`dian_xue`、`hand_blade`、`iron_charge`、`eighteen_palms`、`three_inch_light` |
+| 补 `melee`·武器 2 | `overlord_blade`（素铁霸刀）、`dark_iron_sword`（玄铁重剑） |
+| 去 `polearm`·武器 3 | `overlord_blade`、`dark_iron_sword`、`fei_jian`（黑云剑是飞剑，非长柄） |
+| 去 `melee` 补 `thrown`·招式 1 | `sky_burner`（燎天裂地势，顺势脱手投掷） |
+| 补 `thrown`·功法 3 | `li_wu_xu_fa`（例无虚发）、`fei_hua_shou`（漫天花雨）、`lian_da_mi_jue`（练打秘诀）——三条 buff 只对 `thrown` 招式生效 |
+| 补 `range`·招式 1 | `return_spear`（回马枪，`getRange [3,4]`，对齐 `_luo_yue` 的口径） |
+
+### 5. `heavy` 注释更正
+
+`tag.ts`：`| 'heavy' // 巨型双手` → `// 重型武器（力道驱动，可与 polearm 叠加）`（裁定 C）。
+
+### 6. 连带修复：`weapon_stance` 的「重器架势」
+
+`overlord_blade`/`dark_iron_sword` 去掉 `polearm` 后，行云流水的 `polearm_stance`（撼岳，其 buff 描述本就是「**重器**架势，命中+10%」）不再对它们生效 → 刘西瓜胜率由 49.3% 掉到 **40.5%**（唯一带 `weapon_stance` 的对手）。
+
+修法：重器架势按 `polearm || heavy` 判定，短兵架势排除 `heavy`（避免又被压回守拙）：
+
+```ts
+// 撼岳（重器架势）：polearm || heavy
+return w.tags.includes('polearm') || w.tags.includes('heavy')
+// 守拙（短兵架势）：melee && !heavy
+return w.tags.includes('melee') && !w.tags.includes('heavy')
+```
+
+- 刘西瓜回到 46.3% / 47.1%（同码两次跑）；
+- 全库仅刘西瓜持 `weapon_stance`，该修复不影响其他人的对局；
+- 唯一顺带变化：`xiu_dong`（绣冬，`melee`+`heavy`）由守拙（招架+10%）变为撼岳（命中+10%），与「`heavy` = 重型武器」口径一致。
+
+### 7. 未做（留待后续）
+
+- 需裁定仍未动：`ru_lai_shen_zhang` 的 `range`/`getRange` 冲突、`shadow_kick` 的 `requiredTags`、`three_inch_light` 的 `qi_action`、`tian_wai_fei_xian` 的 `move`/`thrown`；
+- P2 全部未动：`buff` 按状态口径重筛、`defense`/`counter`/`heal`/`debuff`/元素状态/`ignore_parry`/`stance`/`self_damage`、`passive` 统一、`trigger` 移除；
+- 零散：`gash` 缺 `slash`、`qi_electric_conversion` 的 `electric`。
+
+### 8. 校验
+
+`tsc` 无错、`eslint` 无错、**423 测试全过**、`vite build` 通过。
+
+`npm run tour`（32 人 × 3100 场，同码跑两次）：
+
+| 次 | 区间 | 刘西瓜 |
+| --- | --- | --- |
+| P1 前（基线） | 45.7% – 53.7% | 49.3% |
+| P1 后（仅补 `_`… 略） | 40.5% 最低 | 40.5% |
+| P1 + 重器架势修复 | **46.3% – 53.8%** | 46.3% |
+| 同上重跑 | **46.4% – 54.0%** | 47.1% |
+
+32 人全部落在 45–55；同码两次跑的差约 ±1.0（战斗内 `Math.random` 未定种子），属运行间波动。
+
 
 审计由多个子任务并行产出，汇总前对**高危/结论性判定**做了复核。以下记录复核结论，最终报告以复核后为准。
 

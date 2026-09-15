@@ -289,7 +289,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'iron_will',
         name: '乌铠',
         description: '受到超过4点的拳脚/斩/刺/钝伤害时，消耗1缠劲减免4点，每场最多20次。',
-        tags: ['trigger', 'defense'],
+        tags: ['trigger', 'defense', 'chan'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dmg_reduce' }] }],
     },
     {
@@ -445,7 +445,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'jiu_yin_zhen_jing',
         name: '九阴真经',
         description: '古墓石壁遗刻，夜夜观读，字字入心。以洞察悟缠劲，每秒按洞察回复缠劲。',
-        tags: ['buff', 'qi', 'chan'],
+        tags: ['buff', 'chan'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'jiu_yin_zhen_jing_buff' }] },
         ],
@@ -551,7 +551,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'ju_chan_fa_yi',
         name: '聚缠法衣',
         description: '玄门法衣，吸收缠劲，增加施法者属性。',
-        tags: ['craft', 'buff', 'qi', 'chan'],
+        tags: ['craft', 'buff', 'chan'],
         requiredTags: ['imperial'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ju_chan_fa_yi' }] }],
     },

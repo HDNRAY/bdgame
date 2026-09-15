@@ -13,7 +13,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '拔刀一瞬，电光石火。',
         requiredTags: ['slash'],
         apCost: 5,
-        tags: ['move', 'slash'],
+        tags: ['slash'],
         canUse: (attacker, state) => state.pendingBuffs.has('iaijutsu::' + attacker.id),
         hookNotes: { canUse: '居合架势中才可释放' },
         effects: [
@@ -489,7 +489,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '人造发生器释放高频音波，直摄心魄。',
         requiredTags: [],
         apCost: 2,
-        tags: ['qi', 'range', 'debuff'],
+        tags: ['range', 'debuff'],
         getRange: () => [0, 9],
         effects: [
             { type: 'ignore_parry' },

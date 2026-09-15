@@ -27,7 +27,7 @@ export const PASSIVES: Passive[] = [
         id: 'iron_bone',
         name: '铁布衫',
         description: '铁布衫，所受直伤-15%。',
-        tags: ['qi', 'buff', 'defense'],
+        tags: ['buff', 'defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'iron_defense' }] }],
     },
     {
@@ -78,7 +78,7 @@ export const PASSIVES: Passive[] = [
         id: 'iaijutsu_mastery',
         name: '居合道',
         description: '居合拔刀术的极致境界。习得居合斩与纳刀。',
-        tags: ['qi', 'stance'],
+        tags: ['stance'],
         grantsActions: ['_iaijutsu_strike', '_resheath'],
         triggers: [{ condition: { type: 'battle_start' }, actionId: '_iaijutsu_ready' }],
     },
@@ -173,7 +173,7 @@ export const PASSIVES: Passive[] = [
         id: 'nineteen_stops',
         name: '十九停',
         description: '每次出手叠一层「十九停」，层数越高越易失手。每层提升命中、暴击与暴伤，最多19层。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'chan'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -389,11 +389,13 @@ export const PASSIVES: Passive[] = [
         tags: ['passive', 'buff', 'stance'],
         triggers: [
             {
+                // 「重器架势」覆盖 polearm 与 heavy：heavy = 重型武器（力道驱动），
+                // 重剑/霸刀这类只有 heavy（不是 polearm）的兵器同样该进撼岳
                 condition: {
                     type: 'on_weapon_change',
                     check: (ctx) => {
                         const w = ctx.actor.weaponDef ?? getWeapon(ctx.actor.build.weapon)
-                        return w.tags.includes('polearm')
+                        return w.tags.includes('polearm') || w.tags.includes('heavy')
                     },
                 },
                 effects: [
@@ -403,11 +405,12 @@ export const PASSIVES: Passive[] = [
                 ],
             },
             {
+                // 短兵架势只给「非重器」的 melee（重器已进撼岳，避免又被本条压回守拙）
                 condition: {
                     type: 'on_weapon_change',
                     check: (ctx) => {
                         const w = ctx.actor.weaponDef ?? getWeapon(ctx.actor.build.weapon)
-                        return w.tags.includes('melee')
+                        return w.tags.includes('melee') && !w.tags.includes('heavy')
                     },
                 },
                 effects: [
@@ -529,7 +532,7 @@ export const PASSIVES: Passive[] = [
         id: 'wan_xiang_jian_yi',
         name: '万象剑意',
         description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+5%。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['passive', 'buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -590,7 +593,7 @@ export const PASSIVES: Passive[] = [
         id: 'yuxin_sword_mastery',
         name: '真假无用心经',
         description: '真假无用，虚实可辨。所有可叠层 buff 上限翻倍，但每次叠层消耗缠劲。',
-        tags: ['qi', 'passive', 'buff', 'chan'],
+        tags: ['passive', 'buff', 'chan'],
         requireAttrsMin: {},
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yuxin_sword_mastery' }] },
@@ -607,7 +610,7 @@ export const PASSIVES: Passive[] = [
         id: 'feng_wu_jiu_tian',
         name: '凤舞九天',
         description: '凤舞九天，翩若惊鸿，来去如风。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'move'],
         effects: [],
         grantsActions: ['feng_hui', 'feng_fan'],
     },
@@ -665,14 +668,14 @@ export const PASSIVES: Passive[] = [
         id: 'tongtian',
         name: '通天录',
         description: '悟生离死别。攻击命中时有概率令对手不幸缠身。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['passive', 'buff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tongtian' }] }],
     },
     {
         id: 'no_parry_style',
         name: '流风回雪',
         description: '飘飖兮若流风之回雪。不招架，只闪避，将招架率转化为闪避率。',
-        tags: ['qi', 'buff', 'defense'],
+        tags: ['buff', 'defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'no_parry_buff' }] }],
     },
     {
@@ -680,7 +683,7 @@ export const PASSIVES: Passive[] = [
         name: '云龙三现',
         description:
             '云龙三现。龙游云中，见首不见尾。交替使用不同斩击招式可叠加增伤（至多3层），重复同一招不归零、只是不再叠加。每层附加身法+灵巧伤害。',
-        tags: ['qi', 'buff'],
+        tags: ['buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'draw_sword_combo_buff' }] },
         ],
@@ -705,7 +708,7 @@ export const PASSIVES: Passive[] = [
         id: 'bai_ju_guo_xi',
         name: '白驹过隙',
         description: '白驹过隙，匆匆一瞥，距对手3米内，每点身法提升暴击伤害。',
-        tags: ['qi', 'buff'],
+        tags: ['buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'bai_ju_guo_xi_buff' }] },
         ],
@@ -715,7 +718,7 @@ export const PASSIVES: Passive[] = [
         id: 'chou_dao_duan_shui',
         name: '抽刀断水',
         description: '抽刀断水。刀落，水断。暴击时对方气息一滞，AP-1，回复重新起算。',
-        tags: ['qi', 'buff'],
+        tags: ['buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chou_dao_duan_shui_buff' }] },
         ],
@@ -742,7 +745,7 @@ export const PASSIVES: Passive[] = [
         id: 'li_wu_xu_fa',
         name: '例无虚发',
         description: '所有暗器招式命中率+50%。',
-        tags: ['passive', 'buff'],
+        tags: ['passive', 'buff', 'thrown'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'li_wu_xu_fa' }] }],
     },
     // ── 酒鬼·无志 ──
@@ -773,7 +776,7 @@ export const PASSIVES: Passive[] = [
         id: 'hun_yuan_gong',
         name: '混元功',
         description: '混元护体，近身受到超过8点或炁伤害时反伤并击退对手。',
-        tags: ['passive', 'qi', 'defense'],
+        tags: ['passive', 'qi', 'defense', 'chan'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hun_yuan_gong_buff' }] },
         ],
@@ -782,7 +785,7 @@ export const PASSIVES: Passive[] = [
         id: 'qian_kun_da_nuo_yi',
         name: '醉里乾坤',
         description: '醉态中，体内炁流波动，受击时有概率反弹伤害。醉酒越深，反弹越高。',
-        tags: ['passive', 'defense', 'jiu'],
+        tags: ['passive', 'defense', 'jiu', 'chan'],
         triggers: [
             {
                 condition: { type: 'battle_start' },
@@ -876,7 +879,7 @@ export const PASSIVES: Passive[] = [
         id: 'fei_hua_shou',
         name: '漫天花雨',
         description: '暗器出手如飞花，可连续追加投掷攻击。暗器招式AP消耗-20%。',
-        tags: ['buff'],
+        tags: ['buff', 'thrown'],
         requireAttrsMin: { dexterity: 16 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'fei_hua_shou' }] }],
     },
@@ -884,7 +887,7 @@ export const PASSIVES: Passive[] = [
         id: 'lian_da_mi_jue',
         name: '练打秘诀',
         description: '暗器出手附灵巧加成：灵巧×0.1；消耗1缠劲则提升至灵巧×0.2。',
-        tags: ['buff', 'chan'],
+        tags: ['buff', 'chan', 'thrown'],
         requireAttrsMin: { dexterity: 16 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lian_da_mi_jue' }] }],
     },
@@ -1034,7 +1037,7 @@ export const PASSIVES: Passive[] = [
         id: 'qian_chui_bai_lian',
         name: '千锤百炼',
         description: '千锤百炼，水火不侵。所受灼烧伤害-30%；以根骨化力道（根骨每4点力道+1）。',
-        tags: ['passive', 'buff', 'defense'],
+        tags: ['passive', 'buff', 'defense', 'inherent'],
         // 根骨化力道：构造期一次性转化（attr_convert 快照，floor 与「每4点+1」同源）
         effects: [{ type: 'attr_convert', from: 'vitality', to: ['strength'], ratio: 0.25, mode: 'floor' }],
         triggers: [
@@ -1057,7 +1060,7 @@ export const PASSIVES: Passive[] = [
         id: 'ru_shen_zuo_zhao',
         name: '入神坐照',
         description: '神意澄明。累计消耗AP，分四档提升洞察；神照圆满后，洞察减益不能动摇心神。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['passive', 'buff'],
         effects: [
             {
                 type: 'stat_restriction',
@@ -1177,7 +1180,7 @@ export const PASSIVES: Passive[] = [
         id: 'chan_xin_hui_yan',
         name: '禅心慧眼',
         description: '禅心通明，慧眼洞悉破绽。以推演窥破对手招式轨迹，推演化为命中与暴击。',
-        tags: ['passive', 'buff', 'qi'],
+        tags: ['passive', 'buff'],
         triggers: [
             {
                 condition: { type: 'battle_start' },

@@ -204,7 +204,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: ['polearm'],
         apCost: 5,
         chanCost: 38,
-        tags: ['polearm', 'pierce', 'chan'],
+        tags: ['polearm', 'pierce', 'chan', 'range'],
         getRange: () => [3, 4],
         onActionHitChance: (base) => base + 0.3,
         onActionCritChance: (base) => base + 0.3,

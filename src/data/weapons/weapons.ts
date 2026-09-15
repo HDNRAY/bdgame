@@ -136,7 +136,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'overlord_blade',
         name: '素铁霸刀',
         description: '与身同高的巨刃，离心力驱动，势不可挡。',
-        tags: ['slash', 'parry', 'polearm', 'heavy'],
+        tags: ['slash', 'parry', 'heavy', 'melee'],
         range: [1, 4],
         triggers: [
             {
@@ -152,7 +152,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'dark_iron_sword',
         name: '玄铁重剑',
         description: '与身同高的玄铁巨剑，重六十四斤，无锋无刃。大巧不工，以力破万法。',
-        tags: ['heavy', 'blunt', 'slash', 'pierce', 'parry', 'polearm'],
+        tags: ['heavy', 'blunt', 'slash', 'pierce', 'parry', 'melee'],
         range: [1, 4],
         triggers: [
             { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 14 }] },

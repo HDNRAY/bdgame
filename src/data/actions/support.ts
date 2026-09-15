@@ -25,7 +25,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '听风辩位，身随意动。提升闪避率，闪避后顺势前移。',
         requiredTags: [],
         apCost: 1,
-        tags: ['buff', 'defense', 'post_action', 'chan', 'stance'],
+        tags: ['buff', 'defense', 'post_action', 'stance'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'wind_hear_buff' }],
         hookNotes: { canUse: '已有听风状态时不可重复' },

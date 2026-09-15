@@ -82,7 +82,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         id: 'fei_jian',
         name: '黑云剑',
         description: '御剑飞行，剑随人走。',
-        tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'polearm', 'summon'],
+        tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'summon'],
         bound: true,
         range: [0, 6],
         // 御物耗炁：每秒扣 0.5AP（1 剑）。剑 = 慢速重击：单发 WIS×0.5、长前后摇、节奏沉

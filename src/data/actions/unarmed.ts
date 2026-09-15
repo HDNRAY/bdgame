@@ -19,7 +19,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '以柔克刚，借力打力。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'stun'],
+        tags: ['unarmed', 'stun', 'melee'],
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.15, dexterity: 0.2 } },
@@ -85,7 +85,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '一指封穴，阻断气血。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'debuff'],
+        tags: ['unarmed', 'debuff', 'melee'],
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
@@ -112,7 +112,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '一记凌厉的手刀，兼具拳脚与刀势。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'slash'],
+        tags: ['unarmed', 'slash', 'melee'],
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, dexterity: 0.15 } },
@@ -202,7 +202,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         onActionHitChance: (base) => base + 0.2,
         hookNotes: { hitChance: '+20%' },
-        tags: ['stun', 'self_damage', 'unarmed'],
+        tags: ['stun', 'self_damage', 'unarmed', 'melee'],
         effects: [
             { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.8 } },
@@ -232,7 +232,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '十八掌之首，力道化为锋芒。',
         requiredTags: ['unarmed'],
         apCost: 4,
-        tags: ['unarmed', 'qi', 'chan'],
+        tags: ['unarmed', 'qi', 'chan', 'melee'],
         getRange: () => [0, 4],
         chanCost: 18,
         onActionHitChance: (base) => base + 0.15,
@@ -293,7 +293,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 4,
         chanCost: 20,
-        tags: ['unarmed', 'qi', 'pierce', 'chan'],
+        tags: ['unarmed', 'qi', 'pierce', 'chan', 'melee'],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
             { type: 'damage', scaling: { strength: 0.8, wisdom: 0.8, agility: 0.4 }, piercingRatio: 0.5 },
