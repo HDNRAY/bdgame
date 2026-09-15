@@ -36,7 +36,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'mechanical_eye',
         name: '机械眼球',
         description: '精密光学义眼，洞察入微，洞察降低效果减半。',
-        tags: ['implant', 'inherent'],
+        tags: ['implant', 'inherent', 'defense'],
         effects: [{ type: 'stat_buff', attrs: { insight: 4 } }, insightReductionHalf()],
         triggers: [
             {
@@ -559,7 +559,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'braid_blade',
         name: '发辫刃',
         description: '辫发中暗藏飞刃，敌人远离时自动追击。',
-        tags: ['weapon', 'inherent'],
+        tags: ['weapon', 'inherent', 'slash', 'pierce'],
         grantsActions: ['_braid_blade'],
         triggers: [{ condition: { type: 'on_opponent_move_away' }, actionId: '_braid_blade' }],
     },
@@ -622,7 +622,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'tempest',
         name: '暴雨梨花钉',
         description: '机簧发射二十七枚银钉，力道万钧，中者必死无救。从不淬毒。',
-        tags: ['thrown'],
+        tags: ['thrown', 'pierce', 'range', 'chan'],
         grantsActions: ['tempest'],
     },
     // ── 天工锻造品 ──
@@ -729,7 +729,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'wuxue_baodian_zonggang',
         name: '武学宝典总纲',
         description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
-        tags: ['buff'],
+        tags: ['buff', 'defense'],
         triggers: [
             {
                 condition: { type: 'on_equip' },

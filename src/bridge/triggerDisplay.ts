@@ -39,10 +39,6 @@ const TRIGGER_NAMES: Record<string, string> = {
     chan_overflow: '缠劲溢出时',
     on_action_trigger: '触发器触发时',
     on_equip: '装备时',
-    on_melee: '被近身命中时',
-    on_range: '被远程命中时',
-    on_unarmed: '被拳脚命中时',
-    on_polearm: '被长兵命中时',
 }
 
 /** 所有触发事件的中文描述 */
@@ -75,10 +71,6 @@ const TRIGGER_DESCS: Record<string, string> = {
     on_stance: '进入架势状态时触发',
     chan_overflow: '缠劲达到上限时触发',
     on_action_trigger: '触发招式执行时触发',
-    on_melee: '被对手近战攻击命中时触发',
-    on_range: '被对手远程攻击命中时触发',
-    on_unarmed: '被对手拳脚攻击命中时触发',
-    on_polearm: '被对手长兵攻击命中时触发',
 }
 
 /** 根据触发事件类型获取中文名 */

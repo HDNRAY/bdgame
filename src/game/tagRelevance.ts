@@ -15,8 +15,8 @@ const LEVEL_WEIGHT: Record<string, number> = {
     school: 2,
 }
 
-/** 无 build 意义的功能 tag：不参与关联权重（位移/前摇/收招/回复/缠耗 不构成流派方向） */
-const NO_BUILD_TAGS: Tag[] = ['move', 'pre_action', 'post_action', 'chan', 'heal']
+/** 无 build 意义的功能 tag：不参与关联权重（位移/前摇/收招/回复/缠耗/硬控免疫 不构成流派方向） */
+const NO_BUILD_TAGS: Tag[] = ['move', 'pre_action', 'post_action', 'chan', 'heal', 'super_armor']
 
 /** 查找 tag 所在的等级，返回权重。功能 tag 归 0（不参与关联）；不在任何等级中视为 1。 */
 function tagScore(tag: Tag): number {

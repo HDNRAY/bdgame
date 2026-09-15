@@ -823,11 +823,6 @@ export class BattleEngine {
         if (isSummonAttack) this.emit('on_summon_hit', self, enemy)
         // 召唤物攻击不触发被命中反应
         if (!isSummonAttack) this.emit('on_was_hit', enemy, self)
-        // 按攻击方招式 tag 命中触发
-        if (action.tags.includes('melee')) this.emit('on_melee', enemy, self)
-        if (action.tags.includes('range')) this.emit('on_range', enemy, self)
-        if (action.tags.includes('unarmed')) this.emit('on_unarmed', enemy, self)
-        if (action.tags.includes('polearm')) this.emit('on_polearm', enemy, self)
         tickEngine.onBleedTrigger(enemy, this)
         // HP 阈值触发检测
         this.emit('hp_below', self, enemy)

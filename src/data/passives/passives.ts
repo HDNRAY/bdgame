@@ -135,7 +135,7 @@ export const PASSIVES: Passive[] = [
         id: 'human_radar',
         name: '人体雷达',
         description: '获得居合时锁定目标，下次近距离攻击命中提升。',
-        tags: ['buff'],
+        tags: ['buff', 'stance'],
         requiredTags: ['stance'],
         triggers: [
             {
@@ -222,7 +222,7 @@ export const PASSIVES: Passive[] = [
         id: 'overlord_art',
         name: '轮舞月斩',
         description: '长兵轮转，如月之轮舞。每一刀都顺势回旋突进。',
-        tags: ['buff'],
+        tags: ['buff', 'polearm', 'heavy'],
         effects: [],
         grantsActions: ['retrieve_blade'],
         triggers: [
@@ -265,7 +265,7 @@ export const PASSIVES: Passive[] = [
         id: 'tai_chi_mastery',
         name: '太极',
         description: '太极圆满，以柔克刚。每点灵巧提升招架率与招架减伤。空手可招架。',
-        tags: ['defense', 'buff'],
+        tags: ['defense', 'buff', 'parry'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tai_chi' }] }],
     },
     {
@@ -373,7 +373,7 @@ export const PASSIVES: Passive[] = [
         id: 'stance_time',
         name: '转换时刻',
         description: '进入架势时罡气护体，5秒内免疫眩晕、击退、打断、缴械、击倒，并减伤10%。',
-        tags: ['buff', 'defense'],
+        tags: ['buff', 'defense', 'super_armor'],
         requiredTags: ['stance'],
         triggers: [
             {
@@ -560,7 +560,7 @@ export const PASSIVES: Passive[] = [
         id: 'hua_gun',
         name: '舞花棍',
         description: '以灵巧驾驭长兵，棍花如屏，可格挡远程攻击。灵巧越高招架远程越强。',
-        tags: ['defense', 'buff'],
+        tags: ['defense', 'buff', 'polearm'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'hua_gun_parry' }] }],
     },
     {
@@ -603,7 +603,7 @@ export const PASSIVES: Passive[] = [
         id: 'lingxi_finger',
         name: '灵犀一指',
         description: '空手入白刃，招架时缴械。',
-        tags: ['buff', 'defense'],
+        tags: ['buff', 'defense', 'unarmed', 'parry'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'lingxi_finger' }] }],
     },
     {

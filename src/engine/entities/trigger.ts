@@ -39,10 +39,6 @@ export type TriggerEvent =
     | 'on_crit'
     | 'chan_overflow'
     | 'on_action_trigger'
-    | 'on_melee'
-    | 'on_range'
-    | 'on_unarmed'
-    | 'on_polearm'
 
 /** 触发条件上下文 */
 export interface ConditionContext {

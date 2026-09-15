@@ -55,7 +55,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '',
         requiredTags: [],
         apCost: 0,
-        tags: ['trigger', 'internal', 'low_hp', 'cleanse', 'buff'],
+        tags: ['trigger', 'internal', 'low_hp', 'cleanse', 'buff', 'defense'],
         target: 'self',
         maxUses: 1,
         effects: [
@@ -145,7 +145,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         onActionHitChance: () => 1,
         // 不用 internal：AI 需能通过 conditionId 主动选用（绝境招），也允许 UI 展示
-        tags: ['burn', 'debuff'],
+        tags: ['burn', 'debuff', 'range'],
         target: 'enemy',
         maxUses: 1,
         getRange: () => [0, 5] as [number, number],

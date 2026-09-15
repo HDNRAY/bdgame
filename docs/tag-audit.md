@@ -523,17 +523,75 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 已核对**无问题、无需改**：`yi_hui` 的 `hookNotes`（+20% 暴击 / +20% 暴伤 / 气血低于 50% 必中，与代码一致）；`special_forces_dagger`（其 buff 确实有 40% 概率麻痹，描述准确）。
 
-### 仍待设计裁定
+### 已裁定（用户）
 
-- **无假剑法与流萤剑法的劲力疑似互换**：`quanzhen_sword`（力道 scaling）发「柔劲」（敏捷+4/力道-2），`yunv_sword`（灵巧 scaling）发「刚劲」（力道+4/敏捷-2）；两个 buff 的 description 恰是对方的台词（「以柔克刚」对「以力破巧」）。是改文案还是互换 buff，需定；
-- **天外飞仙（`tian_wai_fei_xian`）** —— **已裁定（用户）**：去掉 `range`（保留 `thrown`）——它本质是 `short_dash 5` 冲近砍，不该按远程判；改后 tour 全员仍在 45–55；
-- 审计里其余「可补」项本次未做（低影响、可选）：`super_armor`（`jin_zhong_zhao`、`stance_time`）、`heavy_reduce`（`dark_iron_sword_art`、`tide_inner_power`）、`parry`/`unarmed`/`pierce`（`tai_chi_mastery`、`lingxi_finger`、`sheng_si_fu` 等）、`imperial`（`one_night_dance`）、`iron_bone` 之外的 `inherent` 复议。
+- **天外飞仙（`tian_wai_fei_xian`）**：不该有 `range`（本质是 `short_dash 5` 冲近砍）→ 已去 `range`、保留 `thrown`；
+- **无假剑法 / 流萤剑法的「柔劲 / 刚劲」**：**不是问题**，无需改（不改文案、不换 buff）；
+- **剑意淬体（`sword_intent_tempering`）**：**它不是血脉特性** → 不补 `inherent`，继续进随机池；
+- **`thrown` 的权重档**：全库没有投掷武器是正常的 → 保持 `weaponType` 权重 4 不动。
+
+### 剩余可选项（低影响）
+
+审计里标「可补 / 可选」而本次未做的条目，逐条建议见 §十六.3。
 
 ### 校验
 
 `tsc` 无错、`eslint` 无错、**423 测试全过**、`vite build` 通过。
 
 `npm run tour`（含天外飞仙去 `range` 后）：32 人 **46.1% – 53.3%**，全部落在 45–55；低端复测（N=300）宁浩然 47.3%，46.1 属抽样波动。
+
+## 十六、死事件下架与收尾（2026-09）
+
+### 1. 4 个无消费方的触发事件已删除
+
+`on_melee` / `on_range` / `on_unarmed` / `on_polearm` 全项目只有发射方与声明（校订记录 5 已核实无消费方），按追加裁定「确认无消费方，考虑删除」下架：
+
+| 位置 | 改动 |
+| --- | --- |
+| `src/engine/combat/engine.ts` | 删除 4 行 `emit` + 1 行注释（"按攻击方招式 tag 命中触发"） |
+| `src/engine/entities/trigger.ts` | 删除 4 个 `TriggerEvent` 成员 |
+| `src/bridge/triggerDisplay.ts` | 删除 `TRIGGER_CN` 4 行 + `TRIGGER_DESCS` 4 行 |
+
+删除后 `melee` / `polearm` / `range` / `unarmed` 的消费点只剩两个：`tagRelevance` 权重档与招式 `requiredTags`（`engine.ts:487`）。零行为影响，tour 32 人 **46.9% – 53.4%**。
+
+### 2. 收尾裁定
+
+见 §十五「已裁定（用户）」。
+
+### 3. 可选项裁定与落地（2026-09）
+
+**已补 16 处**（实体侧这些标签只影响抽卡权重）：
+
+| 实体 | 补 | 依据 |
+| --- | --- | --- |
+| 轮舞月斩（`overlord_art`） | `polearm` `heavy` | 描述"长兵轮转"（用户裁定连 `heavy` 一起补） |
+| 舞花棍（`hua_gun`） | `polearm` | 棍属长柄 |
+| 太极（`tai_chi_mastery`） | `parry` | 描述"空手可招架" |
+| 灵犀一指（`lingxi_finger`） | `unarmed` `parry` | "空手入白刃，招架时缴械" |
+| 听潮式（`guard`） | `parry` | `requiredTags:['parry']` + 招架 buff |
+| 人体雷达（`human_radar`） | `stance` | 完全由 `on_stance` 驱动（用户裁定补） |
+| 转换时刻（`stance_time`） | `super_armor` | 其 buff `stance_armor` 自带 `super_armor` |
+| 金钟罩（`jin_zhong_zhao`） | `super_armor` | 其 buff `jin_zhong_zhao` 自带 `super_armor` |
+| 凝炁成盾（`condense_shield`） | `qi` | 「炁盾」属炁的外放 |
+| 炁体源流·觉醒（`_qiti_awaken`） | `defense` | 施加 `qi_shield` 吸收伤害 |
+| 自爆（`_arm_explosion`） | `range` | `getRange [0,5]`，非近身 |
+| 扫描分析（`scan_analysis`） | `imperial` | 御物支援招，与同族一致 |
+| 机械眼球（`mechanical_eye`） | `defense` | 洞察降低减半＝抗减益 |
+| 武学宝典总纲（`wuxue_baodian_zonggang`） | `defense` | 暴击→叠闪避 |
+| 发辫刃（`braid_blade`） | `slash` `pierce` | 辫中藏刃 |
+| 暴雨梨花钉（`tempest`，奇物） | `pierce` `range` `chan` | 与它授予的招式同形（用户裁定补） |
+
+**`super_armor` 不参与流派权重**：`src/game/tagRelevance.ts` 的 `NO_BUILD_TAGS` 加入 `super_armor` —— 它不是流派方向，与 `move`/`pre_action`/`post_action`/`chan`/`heal` 同类，权重归 0。
+
+**未补（维持现状）**：
+
+- `jet_drive`：其 buff `rocket_boost` 的 tags 是 `['defense']`，**没有** `super_armor`（免疫击倒是用 `onReceiveDebuff` 钩子实现的）→ 按用户条件不补；
+- 弗思剑 / 莫邪 的 `defense`（用户裁定不补）；
+- 以炁驱动的 8 把武器、核动力炉 / 蓄炁瓶 / 悬浮座椅 的 `qi`（"以炁驱动/储存/恢复"不算外放）；
+- 一刀流 / 龙宫院流 / 定心香氛 / 青竹斗笠 的 `trigger`（与"奇物不标 trigger"同口径）；
+- 神行百变 `move`（`move` 只给凤舞九天）；
+
+**校验**：`tsc` / `eslint` / 423 测试 / `vite build` 全过；tour 32 人 **45.9% – 53.7%**，低端李雪影复测（N=300）为 47.1%，全部落在 45–55。这 16 处里只有 `_arm_explosion` 的 `range` 会改战斗（对手的"防远程"类 buff 现在会对自爆生效，符合它 5 米投掷的形态）。、剑意淬体 `inherent`（非血脉）与 `slash`/`pierce`（它是减免斩刺）、生死符 `pierce`/`ignore_parry`（穿透≠无视招架）、冰蚕衣 `inherent`（P0 已裁定进池）、钛合金臂 `self_damage`（自伤在其授予的招式上）、锁链断刀 `retrieve_weapon`/`range_up`（前者只被招式侧读取、后者零消费方）。
 
 
 审计由多个子任务并行产出，汇总前对**高危/结论性判定**做了复核。以下记录复核结论，最终报告以复核后为准。
