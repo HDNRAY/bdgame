@@ -274,7 +274,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'santou_liubi',
         name: '三头六臂',
-        description: `消耗30层缠劲，进入三头六臂状态：后续3个回合结束时AP回满。`,
+        description: `消耗27层缠劲，进入三头六臂状态：后续2个回合结束时AP回满。`,
         requiredTags: [],
         apCost: 3,
         tags: ['buff', 'pre_action', 'chan'],
@@ -373,7 +373,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'ling_qi_guan_zhu',
         name: '灵炁灌注',
-        description: '将大量炁劲注入御物之中，增加命中和暴击，不可叠加。',
+        description: '将大量炁劲注入御物之中，增加伤害与命中，不可叠加。',
         requiredTags: ['imperial'],
         apCost: 1,
         tags: ['buff', 'pre_action', 'imperial'],
@@ -401,7 +401,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'chanzi_stance',
         name: '金刚不坏',
-        description: '金刚不坏体，反震敌手。消耗10层缠劲，15秒内受到伤害时反伤10%。',
+        description: '金刚不坏体，反震敌手。消耗10层缠劲，15秒内受到伤害时反伤15%。',
         requiredTags: [],
         apCost: 1,
         chanCost: 10,

@@ -56,7 +56,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
     {
         id: 'shadow_kick',
         name: '无影脚',
-        description: '身形一闪，先近身再出腿。',
+        description: '身形一闪，出腿无声。',
         requiredTags: [],
         apCost: 2,
         tags: ['unarmed', 'debuff', 'knockdown'],
@@ -316,7 +316,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
     {
         id: 'ru_lai_shen_zhang',
         name: '如来神掌',
-        description: '掌含如来真意，掌未至，意已到。距离极远，极难闪避，以根骨与推演之力伤敌。',
+        description: '掌含如来真意，掌未至，意已到。极难闪避，以根骨与推演之力伤敌。',
         requiredTags: ['unarmed'],
         apCost: 5,
         chanCost: 20,

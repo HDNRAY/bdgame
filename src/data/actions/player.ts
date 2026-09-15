@@ -124,7 +124,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'thunder_storm',
         name: '雷蛇',
-        description: '以炁化雷，电蛇出击，麻痹对手。',
+        description: '以炁化雷，电蛇出击，眩晕对手。',
         requiredTags: [],
         apCost: 5,
         tags: ['electric', 'stun', 'chan', 'debuff', 'ignore_parry'],
@@ -164,7 +164,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'rod_lift',
         name: '棍挑',
-        description: '竹棍一挑，破敌防势，降低对手闪避。',
+        description: '竹棍上挑，力透棍梢。',
         requiredTags: ['polearm'],
         apCost: 2,
         tags: ['blunt', 'polearm'],
@@ -190,7 +190,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '猛砸地面，造成冲击波。',
         requiredTags: ['polearm'],
         apCost: 3,
-        tags: ['paralyze', 'ignore_parry', 'unarmed', 'debuff'],
+        tags: ['paralyze', 'ignore_parry', 'debuff', 'blunt', 'polearm'],
         effects: [
             { type: 'damage', scaling: { strength: 0.6 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.6 },
@@ -358,7 +358,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'bi_hai_chao_sheng_qu',
         name: '碧海潮生曲',
-        description: '以炁御音，曲如碧海潮生。无视招架闪避，直摄心魄。',
+        description: '以炁御音，曲如碧海潮生。无视招架，直摄心魄。',
         requiredTags: [],
         apCost: 3,
         tags: ['qi', 'range', 'debuff', 'ignore_parry'],
@@ -421,7 +421,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 5,
         chanCost: MAX_CHAN,
-        tags: ['qi', 'thrown', 'range', 'chan', 'pierce'],
+        tags: ['qi', 'thrown', 'chan', 'pierce'],
         onActionCritChance: (base) => base + 0.25,
         onActionCritDamage: (base) => base + 0.5,
         hookNotes: { critChance: '+25%', critDamage: '+50%' },

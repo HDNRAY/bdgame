@@ -249,7 +249,7 @@ allMainActions.filter((a) => !a.tags.includes('internal') && !a.id.startsWith('_
 | **P2 补齐一致性** | ① `buff`：按 A 口径保留叠层类（撤销大部分"去 buff"）、补齐 54 处（含 14 件义体、27 把武器 —— 需先定"是否统一补"）；② `defense` 12 / `counter` 3 / `heal` 5 / `debuff` 12 / 元素状态 34 / `ignore_parry` 6 / `stance` 3 / `self_damage` 2；③ `passive` 统一（功法 42 条缺失）；④ `trigger` 移除（13 件） | ~180 | A / 各报告结论 | 低（多为展示与权重） |
 | **P3 文案同步** | 描述与机制不符的一批（`thunder_storm` 写麻痹实为眩晕、`hearing_power` 写徒手实为任意命中、`ru_lai_shen_zhang` 形态等） | 待清点 | 明细分报告 | 低 |
 
-> 执行进展：P0 见 §十一、P1 见 §十三、P2 见 §十四（下表处数为审计当时估算，实际以执行记录为准）。
+> 执行进展：P0 见 §十一、P1 见 §十三、P2 见 §十四、P3 文案见 §十五（下表处数为审计当时估算，实际以执行记录为准）。
 
 **开始前需要你定的三件事**：
 1. **武器 / 义体是否统一补 `buff`**（27 把武器、14 件义体都有真实数值增益，现状一个不标）；
@@ -502,6 +502,38 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 1. `heal`/`buff` 落在**招式**上 → AI 辅招优先级变化（`blood_qi_protection` 50→100、`wan_liu_gui_zong`/`condense_shield` 30→50、`summon_haste` 10→50；`spring_bamboo_sword` 本就是 100；`yun_bu` 是位移招、不走辅招通道）；
 2. `flash` 去掉 `electric` → 电系加成类 buff 不再对它生效。
 实测影响在 ±1 点内。
+
+## 十五、P3 文案同步（2026-09）
+
+把「描述与实现不符」的一批按**实现**改文（不动机制），并补一处错标 tag：
+
+| 位置 | 原文 | 改为 | 依据 |
+| --- | --- | --- | --- |
+| 寸芒（`cun_mang`） | 顺势反击 | 锋锐入骨 | 效果只有 `damage`，无 counter |
+| 雷蛇（`thunder_storm`） | 麻痹对手 | 眩晕对手 | `add_debuff: stun` |
+| 棍挑（`rod_lift`） | 破敌防势，降低对手闪避 | 力透棍梢 | 无任何降闪避 debuff |
+| 三头六臂（`santou_liubi`） | 消耗30层缠劲…后续3个回合 | 消耗27层缠劲…后续2个回合 | `chanCost:27`、buff `stacks:2` |
+| 金刚不坏（`chanzi_stance`） | 反伤10% | 反伤15% | `defense.ts:676` |
+| 灵炁灌注（`ling_qi_guan_zhu`） | 增加命中和暴击 | 增加伤害与命中 | `sword_enhance_buff`：伤害+10%/命中+5% |
+| 听劲（`hearing_power`） | 每次徒手击中 | 每次命中 | trigger 是无过滤 `on_hit` |
+| 如来神掌（`ru_lai_shen_zhang`） | 距离极远 | （删去该分句） | `getRange [0,2]`，远距全靠 `short_dash 5` |
+| 无影脚（`shadow_kick`） | 先近身再出腿 | 出腿无声 | 无 `dash`/`short_dash` |
+| 碧海潮生曲（`bi_hai_chao_sheng_qu`） | 无视招架闪避 | 无视招架 | `ignore_parry` 只无视招架（`damage.ts:317`） |
+| 裂地击（`fissure`） | tags 错标 `unarmed` | 去 `unarmed`、补 `blunt`/`polearm` | 棍系招（`requiredTags:['polearm']`），`unarmed` 会污染空手流派权重 |
+
+已核对**无问题、无需改**：`yi_hui` 的 `hookNotes`（+20% 暴击 / +20% 暴伤 / 气血低于 50% 必中，与代码一致）；`special_forces_dagger`（其 buff 确实有 40% 概率麻痹，描述准确）。
+
+### 仍待设计裁定
+
+- **无假剑法与流萤剑法的劲力疑似互换**：`quanzhen_sword`（力道 scaling）发「柔劲」（敏捷+4/力道-2），`yunv_sword`（灵巧 scaling）发「刚劲」（力道+4/敏捷-2）；两个 buff 的 description 恰是对方的台词（「以柔克刚」对「以力破巧」）。是改文案还是互换 buff，需定；
+- **天外飞仙（`tian_wai_fei_xian`）** —— **已裁定（用户）**：去掉 `range`（保留 `thrown`）——它本质是 `short_dash 5` 冲近砍，不该按远程判；改后 tour 全员仍在 45–55；
+- 审计里其余「可补」项本次未做（低影响、可选）：`super_armor`（`jin_zhong_zhao`、`stance_time`）、`heavy_reduce`（`dark_iron_sword_art`、`tide_inner_power`）、`parry`/`unarmed`/`pierce`（`tai_chi_mastery`、`lingxi_finger`、`sheng_si_fu` 等）、`imperial`（`one_night_dance`）、`iron_bone` 之外的 `inherent` 复议。
+
+### 校验
+
+`tsc` 无错、`eslint` 无错、**423 测试全过**、`vite build` 通过。
+
+`npm run tour`（含天外飞仙去 `range` 后）：32 人 **46.1% – 53.3%**，全部落在 45–55；低端复测（N=300）宁浩然 47.3%，46.1 属抽样波动。
 
 
 审计由多个子任务并行产出，汇总前对**高危/结论性判定**做了复核。以下记录复核结论，最终报告以复核后为准。

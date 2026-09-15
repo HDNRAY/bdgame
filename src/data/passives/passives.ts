@@ -1078,7 +1078,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'hearing_power',
         name: '听劲',
-        description: '接触感知对手劲力流转，每次徒手击中短暂提升洞察。',
+        description: '接触感知对手劲力流转，每次命中短暂提升洞察。',
         tags: ['buff'],
         triggers: [
             {

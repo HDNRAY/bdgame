@@ -10,7 +10,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
     {
         id: 'cun_mang',
         name: '寸芒',
-        description: '一寸剑芒，顺势反击。',
+        description: '一寸剑芒，锋锐入骨。',
         requiredTags: ['pierce'],
         apCost: 2,
         tags: ['pierce', 'melee'],
