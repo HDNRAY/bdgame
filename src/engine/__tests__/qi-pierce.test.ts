@@ -17,7 +17,7 @@ function makeChar(id: string, name: string, rewards: { type: 'passive'; id: stri
 describe('锐炁诀·炁穿透', () => {
     const buff = getBuff('rui_qi_jue')!
 
-    it('buff 定义存在,带 qi 招拆 30% 穿透', () => {
+    it('buff 定义存在,带 qi 招拆 40% 穿透', () => {
         expect(getPassive('rui_qi_jue')).toBeDefined()
         expect(buff.onPostCritDamage).toBeTypeOf('function')
     })
@@ -33,8 +33,8 @@ describe('锐炁诀·炁穿透', () => {
         const r = buff.onPostCritDamage!(ctx(['qi', 'range']) as never)
         expect(typeof r).toBe('object')
         if (typeof r === 'object') {
-            expect(r.normal).toBe(70)
-            expect(r.piercing).toBe(30)
+            expect(r.normal).toBe(60)
+            expect(r.piercing).toBe(40)
         }
     })
 
@@ -61,8 +61,8 @@ describe('锐炁诀·炁穿透', () => {
         const engine = new BattleEngine(atk, def, 4)
         const r = buff.onPostCritDamage!({ final: 100, raw: 100, target: def, attacker: atk, engine, state: engine.state, layer: { restoreValue: 1 }, source: enhanced } as never)
         if (typeof r === 'object') {
-            expect(r.normal).toBe(70)
-            expect(r.piercing).toBe(30)
+            expect(r.normal).toBe(60)
+            expect(r.piercing).toBe(40)
         } else {
             expect(r).toBe(100)
         }

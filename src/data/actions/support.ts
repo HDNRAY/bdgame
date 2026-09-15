@@ -292,7 +292,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['debuff', 'pre_action'],
         getRange: () => [1, 3],
         // 迷眼为 single 叠层：已迷眼时本次施加自动忽略，无需 canUse
-        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 2, chance: 0.8 }],
+        effects: [{ type: 'add_debuff', buffId: 'sand_blind', stacks: 3, chance: 0.8 }],
     },
     {
         id: 'shi_qi',

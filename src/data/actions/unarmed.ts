@@ -130,7 +130,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '折梅之手，拂穴拿脉。吸取对方身法。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['unarmed', 'melee'],
+        tags: ['unarmed', 'melee', 'debuff'],
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
@@ -320,7 +320,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 5,
         chanCost: 20,
-        tags: ['unarmed', 'qi', 'range', 'chan'],
+        tags: ['unarmed', 'qi', 'chan'],
         getRange: () => [0, 2] as [number, number],
         onActionHitChance: (base) => base + 0.2,
         onActionCritChance: (base) => base + 0.3,

@@ -27,7 +27,7 @@ export const LAIFENG: OpponentDef = {
         // 13
     ],
     actionConfigs: [
-        { actionId: 'qi_bolt_4', triggerId: 'on_move_closer' }, // AI 出招顺序
+        { actionId: 'straight_punch', triggerId: 'on_move_closer' }, // AI 出招顺序
         { actionId: 'eighteen_palms' }, // AI 出招顺序
         { actionId: 'qi_bolt_2', triggerId: 'on_move_away' },
         { actionId: 'qinlong_gong', triggerId: 'on_dodge' },

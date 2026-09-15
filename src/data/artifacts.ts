@@ -370,7 +370,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'golden_silk_gloves',
         name: '金丝手套',
         description: '天工锻造的金丝手套，空手亦可格挡兵刃。招架率+15%，空手可招架。',
-        tags: ['defense', 'craft'],
+        tags: ['defense', 'craft', 'parry'],
         effects: [{ type: 'parry_mod', value: 0.15 }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'silk_guard' }] }],
     },
@@ -721,7 +721,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'sonic_generator',
         name: '人造发声器',
         description: '义体研究部特制音波发声器，释放高频音波直摄心魄。',
-        tags: ['implant', 'inherent'],
+        tags: ['implant', 'inherent', 'debuff'],
         grantsActions: ['_sonic_wave'],
     },
     // ── 武学宝典总纲（通晓天下武学，闪/招→叠暴击；暴击→叠闪/招） ──

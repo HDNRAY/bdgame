@@ -86,7 +86,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         description: '隔空擒龙，夺人兵刃。',
         requiredTags: ['unarmed'],
         apCost: 2,
-        tags: ['qi', 'debuff', 'range'],
+        tags: ['qi', 'debuff', 'range', 'unarmed'],
         getRange: () => [1, 3],
         effects: [
             { type: 'damage', scaling: { strength: 0.2, wisdom: 0.2 } },

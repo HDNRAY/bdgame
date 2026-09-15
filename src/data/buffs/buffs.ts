@@ -247,7 +247,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'fei_hua_shou',
         name: '漫天花雨',
-        description: '暗器出手如飞花，可连续追加投掷攻击。暗器招式AP消耗-30%。',
+        description: '暗器出手如漫天花雨，可连续追加投掷攻击。暗器招式AP消耗-50%。',
         tags: [],
         expiry: { type: 'permanent' },
         getExtraAttack: ({ source }) => {
@@ -257,7 +257,7 @@ export const BUFF_DB: BuffDef[] = [
         onActionCost: ({ source }) => {
             const act = source as ActionDefinition
             if (!act || !act.tags.includes('thrown')) return 0
-            return -act.apCost * 0.3
+            return -act.apCost * 0.5
         },
     },
     // ── 空手道（桑原·拳到脚到） ──
@@ -1198,9 +1198,9 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'adrenaline_rush',
         name: '肾上腺素',
-        description: 'AP恢复速度翻倍，持续20秒。',
+        description: 'AP恢复速度翻倍，持续12秒。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 20000 },
+        expiry: { type: 'duration', ms: 12000 },
         apRegenPerSec: ({ target }) => Math.max(1, Math.round(Math.max(2, target.attrs.get('wisdom') * 0.1))),
     },
     // ── 浮游眼 ──
@@ -1436,7 +1436,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'du_yao_da_shi',
         name: '毒药大师',
-        description: '唐门制毒世家，施毒精微。施毒时，按自身暴击率几率多叠一层毒。',
+        description: '唐门制毒世家，施毒精微。施毒暴击时，每6点灵巧多叠1层毒。',
         tags: ['poison'],
         expiry: { type: 'permanent' },
         onDebuffApplied: ({ self, enemy, engine, state, layer, buffId }) => {
@@ -1457,11 +1457,13 @@ export const BUFF_DB: BuffDef[] = [
             })
             const crit = calcCritChance(self.attrs.get('dexterity'), self.attrs.get('insight'), bonus)
             if (calcRoll(crit).success) {
-                // 直接往 poison 层数据里追加 1 层（remainingTicks +1，restoreValue+1），不再走施加流程，无递归
+                // 层数随灵巧成长：每 6 点灵巧多叠 1 层，至少 1 层
+                const layers = Math.max(1, Math.floor(self.attrs.get('dexterity') / 6))
+                // 直接往 poison 层数据里追加（每层 = 1 个 tick 桶 + restoreValue+1），不走施加流程，无递归
                 const ticksPerStack = calcPoisonTicksPerStack(enemy.attrs.get('wisdom'))
                 const existing: number[] = (layer.extra?.remainingTicks as number[]) ?? []
-                existing.push(ticksPerStack)
-                layer.restoreValue = (layer.restoreValue ?? 0) + 1
+                for (let i = 0; i < layers; i++) existing.push(ticksPerStack)
+                layer.restoreValue = (layer.restoreValue ?? 0) + layers
                 layer.extra = { ...layer.extra, remainingTicks: existing }
             }
         },
@@ -1491,7 +1493,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'poison_coating',
         name: '淬毒工具',
-        description: '刃上淬毒，割裂或刺击时概率令其中毒。',
+        description: '刃上淬毒，割裂或刺击时有10%概率令其中毒。',
         tags: [],
         expiry: { type: 'permanent' },
         onAction: ({ source, attacker, target, engine, state }) => {
@@ -1499,7 +1501,7 @@ export const BUFF_DB: BuffDef[] = [
             if (!source.tags.includes('pierce') && !source.tags.includes('slash')) return
             if (engine) {
                 processActionEffect(
-                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.3 },
+                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.1 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }
@@ -1516,7 +1518,7 @@ export const BUFF_DB: BuffDef[] = [
         onDebuffApplied: ({ buffId, self, enemy, engine }) => {
             if (buffId !== 'poison' || !engine) return
             processActionEffect(
-                { type: 'add_debuff', buffId: 'weakness', stacks: 1, chance: 1 },
+                { type: 'add_debuff', buffId: 'weakness', stacks: 1, chance: 0.8 },
                 { self, enemy, engine, tMs: engine.state.turn.currentTime },
             )
         },

@@ -29,7 +29,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         description: '收刀入鞘，重归居合。',
         requiredTags: ['slash'],
         apCost: 1,
-        tags: ['buff', 'post_action', 'stance'],
+        tags: ['buff', 'post_action', 'stance', 'slash'],
         target: 'self',
         canUse: (attacker, state) => hasNoStance(state.pendingBuffs, attacker.id),
         hookNotes: { canUse: '无架势时才可纳刀' },

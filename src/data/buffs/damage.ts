@@ -471,7 +471,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         },
     },
     {
-        // 锐炁诀：与凝炁诀联动（全招带炁 → 全招 30% 穿透）。穿透是「结算方式」非增伤，总伤害不膨胀
+        // 锐炁诀：与凝炁诀联动（全招带炁 → 全招 40% 穿透）。穿透是「结算方式」非增伤，总伤害不膨胀
         id: 'rui_qi_jue',
         name: '锐炁诀',
         description: '炁凝如锋，锐不可当。带炁的招式，30%伤害转为穿透，无视招架与减伤。',
@@ -481,7 +481,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onPostCritDamage: ({ final, source }) => {
             const isQi = source?.tags?.includes('qi')
             if (!isQi) return final
-            const pierce = round1(final * 0.3)
+            const pierce = round1(final * 0.4)
             return { normal: round1(final - pierce), piercing: pierce }
         },
     },

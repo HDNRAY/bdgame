@@ -204,7 +204,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '匕首划过，血流如注。',
         requiredTags: ['slash'],
         apCost: 2,
-        tags: ['bleed', 'debuff', 'melee'],
+        tags: ['bleed', 'melee', 'slash'],
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },

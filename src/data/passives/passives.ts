@@ -244,7 +244,7 @@ export const PASSIVES: Passive[] = [
         id: 'yi_dian_po_xiao',
         name: '一点破晓',
         description: '刺击以点破面，劲力透体。',
-        tags: ['buff'],
+        tags: ['buff', 'pierce'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yi_dian_po_xiao_buff' }] },
         ],
@@ -282,7 +282,7 @@ export const PASSIVES: Passive[] = [
         id: 'thunder_art',
         name: '雷法',
         description: '雷电之力灌注全身，攻击附带雷击伤害，并概率麻痹对手。',
-        tags: ['buff', 'electric'],
+        tags: ['buff', 'electric', 'debuff', 'paralyze'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'thunder_bonus' }] }],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
@@ -483,7 +483,7 @@ export const PASSIVES: Passive[] = [
         name: '玄剑秘册',
         description:
             '玄门流落在外的秘籍，虽无玄门血脉，亦可以炁御物。无法精巧御物，但可减少重器的身法负担，并以剑意施展手上功夫。',
-        tags: ['buff', 'heavy'],
+        tags: ['buff', 'heavy', 'heavy_reduce'],
         effects: [{ type: 'weapon_tag', tag: 'unarmed' }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'heavy_training' }] }],
     },
@@ -491,7 +491,7 @@ export const PASSIVES: Passive[] = [
         id: 'tide_inner_power',
         name: '潮汐炁功',
         description: '炁如潮汐般涨落，每回合交替以力道或身法驱动招式。可化解重器的身法负担（固定-2）。',
-        tags: ['buff', 'qi'],
+        tags: ['buff', 'qi', 'heavy_reduce'],
         effects: [],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tide_power', stacks: 0 }] },
@@ -618,7 +618,7 @@ export const PASSIVES: Passive[] = [
         id: 'beiming',
         name: '北冥神功',
         description: '北冥之渊，吞噬万物。命中时汲取敌方推演 1 点，持续 5 秒。',
-        tags: ['buff', 'qi'],
+        tags: ['buff', 'qi', 'debuff'],
         triggers: [
             {
                 condition: { type: 'on_hit' },
@@ -661,14 +661,14 @@ export const PASSIVES: Passive[] = [
         id: 'yi_ma_xin_yuan',
         name: '意马心猿',
         description: '心猿意马，劲力扰神。凝神聚气提升命中，命中时令对手心神被扰。',
-        tags: [],
+        tags: ['debuff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yi_ma_xin_yuan' }] }],
     },
     {
         id: 'tongtian',
         name: '通天录',
         description: '悟生离死别。攻击命中时有概率令对手不幸缠身。',
-        tags: [],
+        tags: ['debuff'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'tongtian' }] }],
     },
     {
@@ -718,7 +718,7 @@ export const PASSIVES: Passive[] = [
         id: 'chou_dao_duan_shui',
         name: '抽刀断水',
         description: '抽刀断水。刀落，水断。暴击时对方气息一滞，AP-1，回复重新起算。',
-        tags: [],
+        tags: ['debuff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chou_dao_duan_shui_buff' }] },
         ],
@@ -736,7 +736,7 @@ export const PASSIVES: Passive[] = [
         id: 'dian_xue_passive',
         name: '灵枢真解',
         description: '灵枢真解，点穴封脉。',
-        tags: ['debuff'],
+        tags: ['debuff', 'paralyze'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ling_xu_zhen_jie' }] },
         ],
@@ -753,7 +753,7 @@ export const PASSIVES: Passive[] = [
         id: 'zui_quan',
         name: '醉拳',
         description: '醉态蹒跚，步法诡谲。徒手招式附带短距冲刺，身法化闪避；有酒劲buff时闪避额外增加。',
-        tags: ['buff', 'jiu'],
+        tags: ['buff', 'jiu', 'unarmed'],
         actionEnhancer: (def) => {
             if (!def.tags?.includes('unarmed') || !def.effects?.some((e) => e.type === 'damage')) return def
             return { ...def, effects: [{ type: 'short_dash', maxDistance: 1 }, ...def.effects] }
@@ -827,7 +827,7 @@ export const PASSIVES: Passive[] = [
         // 锐炁诀：与凝炁诀联动（全招带炁 → 全招 30% 穿透）
         id: 'rui_qi_jue',
         name: '锐炁诀',
-        description: '炁凝如锋，锐不可当。所有带炁的招式，30%伤害转为穿透，无视招架与减伤。',
+        description: '炁凝如锋，锐不可当。所有带炁的招式，部分伤害转为穿透。',
         tags: ['buff', 'qi'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'rui_qi_jue' }] }],
     },
@@ -835,7 +835,7 @@ export const PASSIVES: Passive[] = [
         id: 'sword_capture',
         name: '无刀取',
         description: '空手入白刃。获得1个额外触发槽，空手可招架，招架成功后有概率缴械对手。',
-        tags: ['buff', 'defense'],
+        tags: ['buff', 'defense', 'debuff'],
         effects: [{ type: 'trigger_slot_mod', value: 1 }],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'sword_capture' }] }],
     },
@@ -872,13 +872,13 @@ export const PASSIVES: Passive[] = [
         id: 'karate',
         name: '空手道',
         description: '空手道不打蛮力，讲究拳到脚到、蹬地转腰，把劲凝在最刁钻的打击点上。空手拳脚伤害+10%，招式AP-0.5。',
-        tags: ['buff'],
+        tags: ['buff', 'unarmed'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'karate' }] }],
     },
     {
         id: 'fei_hua_shou',
         name: '漫天花雨',
-        description: '暗器出手如飞花，可连续追加投掷攻击。暗器招式AP消耗-20%。',
+        description: '暗器出手如飞花，可连续追加投掷攻击。暗器招式AP消耗减少。',
         tags: ['buff', 'thrown'],
         requireAttrsMin: { dexterity: 16 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'fei_hua_shou' }] }],
@@ -895,7 +895,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'du_yao_da_shi',
         name: '毒药大师',
-        description: '唐门制毒世家，以巧手施毒。施毒时，按自身暴击率几率多叠一层毒。',
+        description: '唐门制毒世家，以巧手施毒。施毒暴击时，每6点灵巧多叠1层毒。',
         tags: ['inherent', 'poison'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'du_yao_da_shi' }] }],
     },
@@ -1060,7 +1060,7 @@ export const PASSIVES: Passive[] = [
         id: 'ru_shen_zuo_zhao',
         name: '入神坐照',
         description: '神意澄明。累计消耗AP，分四档提升洞察；神照圆满后，洞察减益不能动摇心神。',
-        tags: ['buff'],
+        tags: ['buff', 'defense'],
         effects: [
             {
                 type: 'stat_restriction',
