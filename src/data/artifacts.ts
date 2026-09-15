@@ -724,6 +724,14 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['implant', 'inherent', 'debuff'],
         grantsActions: ['_sonic_wave'],
     },
+    // ── 钛合金脊椎（隐藏boss 专属：只给「斗炁协会副会长」的旧义体，玩家不可获得） ──
+    {
+        id: 'titanium_spine',
+        name: '钛合金脊椎',
+        description: '整条脊椎换成钛合金，撑得住百年。根骨+5。',
+        tags: ['implant', 'inherent'],
+        effects: [{ type: 'stat_buff', attrs: { vitality: 5 } }],
+    },
     // ── 武学宝典总纲（通晓天下武学，闪/招→叠暴击；暴击→叠闪/招） ──
     {
         id: 'wuxue_baodian_zonggang',

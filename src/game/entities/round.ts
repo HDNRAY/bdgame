@@ -1,3 +1,4 @@
+import type { CharacterBuild } from './character-build'
 import type { RewardEntity } from './reward'
 import type { RewardSpec } from './reward-spec'
 import type { Effect } from './effect'
@@ -83,6 +84,23 @@ export interface Round {
 
     /** 随机敌人池（enemyId 缺省时从池中随机挑一个）。通用 Boss 用此表达"未指定则随机"。 */
     enemyPool?: string[]
+
+    /**
+     * 敌人来自元进度存档里「最近一次通关的玩家 build」（隐藏boss）。
+     * 有存档 → 引擎用 `championBossBuild()` 生成该 build 并挂到 `enemyBuild`，不走 `gen()`；
+     * 没有存档（首次通关）→ 跳过本轮的战斗轮。
+     */
+    enemyFromSave?: boolean
+
+    /** 运行时注入的完整敌人 build（由 `enemyFromSave` 生成；UI 回放也用它与敌人名） */
+    enemyBuild?: CharacterBuild
+
+    /**
+     * 隐藏boss 序列专用轮（战斗轮之后的分歧轮、以及「击败」这类只在该战后出现的轮次）。
+     * 只在一处有实际作用：`enemyFromSave` 的隐藏boss 缺席（首次通关）时，
+     * 引擎会连同这类轮次一起跳过，避免玩家撞上无人可打却只剩败北选项的死路。
+     */
+    bossOnly?: boolean
 
     /** 教学展示轮：AI vs AI 观战（不计玩家胜负/伤势/奖励），引擎生成回放供 UI 播放。 */
     tutorial?: { aId: string; bId: string; aName?: string; bName?: string; level?: number }

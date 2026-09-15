@@ -55,7 +55,8 @@ function exempt(ev: EventLike): boolean {
     return (
         ev.id.startsWith('origin_') || // 出身场景：奖励由故事线 storyRewardEffects 发放
         ev.id.startsWith('tournament_') || // 大会赛程：n23/n26-n28 轮级固定奖励、淘汰赛无奖励
-        ev.id.startsWith('pick_') // 出身选择轮：奖励同上由故事线发放
+        ev.id.startsWith('pick_') || // 出身选择轮：奖励同上由故事线发放
+        ev.id === 'ending_cavern' // 终局·山腹：结构上不发奖励（设计见 docs/ending-design.md）
     )
 }
 

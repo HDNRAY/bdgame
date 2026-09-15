@@ -2,7 +2,7 @@
 // 主进程切块后以 `node <tsx loader> tournament.ts --worker` 派生子进程并行跑对局，
 // 子进程从 stdin 读任务、把 JSON 结果写回 stdout；安静模式(quiet)跳过日志构建提速。
 /// <reference types="node" />
-import { writeFileSync } from 'fs'
+import { readFileSync, writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { spawn } from 'child_process'
@@ -10,6 +10,12 @@ import { cpus } from 'os'
 import { Character } from '../src/engine/entities/character'
 import { OPPONENTS, getOpponentDef, gen } from '../src/data/opponents/index'
 import { runBattle } from '../src/engine/battle-runner'
+import {
+    CHAMPION_BOSS_ID,
+    CHAMPION_BOSS_NAME,
+    championBossBuild,
+} from '../src/game/champion-boss'
+import type { CharacterBuild } from '../src/game/entities/character-build'
 
 /** 子进程 worker 模式：process.argv[2] === '--worker' */
 const IS_WORKER = process.argv[2] === '--worker'
@@ -28,19 +34,56 @@ interface Job {
     bId: string
 }
 
+/**
+ * 隐藏boss（第 33 名参赛者）。用法：
+ *   npm run tour -- champion_boss --champion                  # 用内置基准（见下）当「上一轮通关 build」
+ *   npm run tour -- champion_boss --champion=scripts/xxx.json  # 用真实存档 / build 文件
+ * 文件可以是裸 CharacterBuild，也可以是元进度存档（含 lastWinBuild）。
+ * 传入的 build 会过一遍 championBossBuild（换义体、逐件抵扣、+5 根骨）。
+ */
+function resolveChampion(args: string[]): CharacterBuild | undefined {
+    const withValue = args.find((a) => a.startsWith('--champion='))
+    const bare = args.includes('--champion') || !!withValue
+    if (!bare) return undefined
+
+    let base: CharacterBuild | undefined
+    if (withValue) {
+        const file = withValue.slice('--champion='.length)
+        const raw = JSON.parse(readFileSync(file, 'utf-8')) as CharacterBuild | { lastWinBuild?: CharacterBuild }
+        base = (raw as { lastWinBuild?: CharacterBuild }).lastWinBuild ?? (raw as CharacterBuild)
+        if (!base || !base.baseAttrs) {
+            console.error(`[--champion: 文件里没有可用的 build]: ${file}`)
+            process.exit(1)
+        }
+        console.log(`隐藏boss 基准：${file}`)
+    } else {
+        // 内置基准：拿一位中游对手的满级 build 当作「上一轮通关的玩家」
+        // （玩家的 baseAttrs 与对手同量级；真实 build 请用 --champion=<文件>）
+        const def = getOpponentDef('daixuan') ?? OPPONENTS[0]
+        base = gen(def, 33)
+        console.log(`隐藏boss 基准：内置（${def.name} 的满级 build，偏保守；真实 build 用 --champion=<文件>）`)
+    }
+    return championBossBuild(base)
+}
+
+/** 参赛者取自哪个 build：隐藏boss 用存档构造的 build，其余 32 人用 gen(def, 33) */
+function buildOf(id: string, champion?: CharacterBuild): CharacterBuild {
+    if (champion && id === CHAMPION_BOSS_ID) return champion
+    return gen(getOpponentDef(id)!, 33)
+}
+
 /** 跑一组对局（worker 与主进程共用；安静模式不构建日志；onProgress 每完成一对回调一次） */
 async function runPairBattles(
     jobs: Job[],
     n: number,
+    champion?: CharacterBuild,
     onProgress?: (pairsDone: number) => void,
 ): Promise<BattlePairResult[]> {
     const out: BattlePairResult[] = []
     for (let i = 0; i < jobs.length; i++) {
         const job = jobs[i]
-        const aDef = getOpponentDef(job.aId)!
-        const bDef = getOpponentDef(job.bId)!
-        const templateA = new Character(gen(aDef, 33))
-        const templateB = new Character(gen(bDef, 33))
+        const templateA = new Character(buildOf(job.aId, champion))
+        const templateB = new Character(buildOf(job.bId, champion))
         let aWins = 0
         let bWins = 0
         let aHp = 0
@@ -68,8 +111,8 @@ async function workerMain(): Promise<void> {
         process.stdin.on('end', () => resolve(data))
         process.stdin.on('error', reject)
     })
-    const { jobs, n } = JSON.parse(raw) as { jobs: Job[]; n: number }
-    const out = await runPairBattles(jobs, n, (done) => process.stdout.write(`P:${done}\n`))
+    const { jobs, n, champion } = JSON.parse(raw) as { jobs: Job[]; n: number; champion?: CharacterBuild }
+    const out = await runPairBattles(jobs, n, champion, (done) => process.stdout.write(`P:${done}\n`))
     // 结果行以 R: 前缀结尾，便于主进程与进度行区分
     process.stdout.write(`R:${JSON.stringify(out)}\n`)
     process.exit(0)
@@ -91,25 +134,31 @@ async function main(): Promise<void> {
 
     const N = Math.max(1, parseInt(process.argv[3] ?? '100', 10))
     const targetId = process.argv[2]
-    const filterDef = targetId ? getOpponentDef(targetId) : null
-    if (targetId && !filterDef) {
-        console.error(`[未找到角色]: ${targetId}`)
+    const champion = resolveChampion(process.argv.slice(2))
+
+    /** 参赛者：32 名对手 +（可选）第 33 名隐藏boss */
+    const participants = OPPONENTS.map((d) => ({ id: d.id, name: d.name }))
+    if (champion) participants.push({ id: CHAMPION_BOSS_ID, name: CHAMPION_BOSS_NAME })
+    const nameOf = (id: string) => participants.find((p) => p.id === id)?.name ?? id
+
+    if (targetId && !participants.some((p) => p.id === targetId)) {
+        console.error(`[未找到角色]: ${targetId}${targetId === CHAMPION_BOSS_ID ? '（隐藏boss 需要 --champion）' : ''}`)
         process.exit(1)
     }
 
     type Result = { name: string; wins: number; total: number; hpPct: number }
     const results: Record<string, Result> = {}
-    for (const def of OPPONENTS) {
-        results[def.id] = { name: def.name, wins: 0, total: 0, hpPct: 0 }
+    for (const p of participants) {
+        results[p.id] = { name: p.name, wins: 0, total: 0, hpPct: 0 }
     }
 
     // 1. 对局列表
     const pairs: Job[] = []
-    for (let i = 0; i < OPPONENTS.length; i++) {
-        for (let j = i + 1; j < OPPONENTS.length; j++) {
+    for (let i = 0; i < participants.length; i++) {
+        for (let j = i + 1; j < participants.length; j++) {
             // 过滤：只打包含目标角色的对战
-            if (filterDef && OPPONENTS[i].id !== targetId && OPPONENTS[j].id !== targetId) continue
-            pairs.push({ aId: OPPONENTS[i].id, bId: OPPONENTS[j].id })
+            if (targetId && participants[i].id !== targetId && participants[j].id !== targetId) continue
+            pairs.push({ aId: participants[i].id, bId: participants[j].id })
         }
     }
 
@@ -172,7 +221,7 @@ async function main(): Promise<void> {
                             reject(e)
                         }
                     })
-                    child.stdin.end(JSON.stringify({ jobs, n: N }))
+                    child.stdin.end(JSON.stringify({ jobs, n: N, champion }))
                 }),
         )
     const chunkResults = await Promise.all(pending)
@@ -188,8 +237,6 @@ async function main(): Promise<void> {
     let totalBattles = 0
     for (const pair of pairs) {
         const r = byKey.get(`${pair.aId}::${pair.bId}`)!
-        const aDef = getOpponentDef(pair.aId)!
-        const bDef = getOpponentDef(pair.bId)!
         results[pair.aId].wins += r.aWins
         results[pair.aId].total += N
         results[pair.aId].hpPct += r.aHp
@@ -198,13 +245,13 @@ async function main(): Promise<void> {
         results[pair.bId].hpPct += r.bHp
         totalBattles += N
         console.log(
-            `${aDef.name} vs ${bDef.name}: ${r.aWins}/${N} (${((r.aWins / N) * 100).toFixed(1)}%) - ${r.bWins}/${N} (${((r.bWins / N) * 100).toFixed(1)}%)`,
+            `${nameOf(pair.aId)} vs ${nameOf(pair.bId)}: ${r.aWins}/${N} (${((r.aWins / N) * 100).toFixed(1)}%) - ${r.bWins}/${N} (${((r.bWins / N) * 100).toFixed(1)}%)`,
         )
     }
 
     const elapsed = ((Date.now() - startWall) / 1000).toFixed(1)
     console.log(`\n⏱ 耗时 ${elapsed}s`)
-    console.log(`📊 ${OPPONENTS.length} 名角色 · ${totalBattles} 场`)
+    console.log(`📊 ${participants.length} 名角色 · ${totalBattles} 场`)
     for (const r of Object.values(results).sort((a, b) => b.wins - a.wins)) {
         const rate = ((r.wins / r.total) * 100).toFixed(1)
         const hp = ((r.hpPct / r.total) * 100).toFixed(1)

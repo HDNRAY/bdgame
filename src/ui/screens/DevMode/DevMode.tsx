@@ -4,12 +4,14 @@ import { TournamentSim } from './TournamentSim/TournamentSim'
 import { ActionCompare } from './ActionCompare/ActionCompare'
 import { WeaponCompare } from './WeaponCompare/WeaponCompare'
 import { BuildSim } from './BuildSim/BuildSim'
+import { MetaPanel } from './MetaPanel/MetaPanel'
 import './DevMode.scss'
 
 const NAV_ITEMS = [
     { id: 'pixel', label: '像素图测试' },
     { id: 'buildsim', label: '构筑试炼' },
     { id: 'tournament', label: '大会模拟' },
+    { id: 'meta', label: '元进度' },
     { id: 'ap', label: '招式对比' },
     { id: 'weapon', label: '武器对比' },
 ] as const
@@ -56,6 +58,8 @@ export function DevMode() {
                     <BuildSim />
                 ) : activeId === 'tournament' ? (
                     <TournamentSim />
+                ) : activeId === 'meta' ? (
+                    <MetaPanel />
                 ) : activeId === 'ap' ? (
                     <ActionCompare />
                 ) : (

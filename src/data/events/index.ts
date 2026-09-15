@@ -78,6 +78,7 @@ import {
 import { CHRONICLE_GUIHAILOU, CHRONICLE_BAR_KILLING, CHRONICLE_SIX_DUEL, CHRONICLE_SWORD_BROTHERS, CHRONICLE_TAVERN_ENCOUNTER, CHRONICLE_WINE_TUTOR } from './chronicle'
 import { TOURNAMENT_EVENT_MAP } from './tournament'
 import { ORIGIN_EVENTS } from './origins'
+import { ENDING_CAVERN } from './ending'
 import { CHANZI_MEDITATION } from './chanzi'
 
 const REGISTRY: Record<string, EventDef> = {
@@ -171,6 +172,7 @@ const REGISTRY: Record<string, EventDef> = {
     [TIANGONG_JOB.id]: TIANGONG_JOB,
     [TIANGONG_OFFHAND.id]: TIANGONG_OFFHAND,
     [CHANZI_MEDITATION.id]: CHANZI_MEDITATION,
+    [ENDING_CAVERN.id]: ENDING_CAVERN,
     ...TOURNAMENT_EVENT_MAP,
     ...Object.fromEntries(ORIGIN_EVENTS.map((ev) => [ev.id, ev])),
 }

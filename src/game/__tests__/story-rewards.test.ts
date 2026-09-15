@@ -101,7 +101,7 @@ describe('修炼点动态配额', () => {
 })
 
 describe('淘汰赛无奖励', () => {
-    it.each(['tournament_knockout_16', 'tournament_knockout_8', 'tournament_knockout_4', 'tournament_final'])(
+    it.each(['tournament_knockout_16', 'tournament_knockout_8', 'tournament_knockout_4'])(
         '%s 奖励为 none 且无奖励轮',
         (id) => {
             const ev = getEvent(id)!
@@ -111,6 +111,28 @@ describe('淘汰赛无奖励', () => {
             expect(matchRound.choices[0].type).toBe('continue')
         },
     )
+
+    it('tournament_final 奖励为 none，胜后进入终局事件「山腹」', () => {
+        const ev = getEvent('tournament_final')!
+        expect(ev.reward?.kind).toBe('none')
+        const matchRound = ev.rounds[0]
+        expect(matchRound.choices).toHaveLength(1)
+        expect(matchRound.choices[0].type).toBe('event')
+        expect(matchRound.choices[0].id).toBe('ending_cavern')
+    })
+
+    it('终局事件「山腹」无奖励，且隐藏boss 战来自存档', () => {
+        const ev = getEvent('ending_cavern')!
+        expect(ev.reward?.kind).toBe('none')
+        const boss = ev.rounds.find((r) => r.enemyFromSave)!
+        expect(boss).toBeDefined()
+        expect(boss.bossName).toBe('斗炁协会副会长')
+        // 结局两轮各写一个结局 flag
+        const loop = ev.rounds.find((r) => r.id === 'loop')!
+        const trueEnd = ev.rounds.find((r) => r.id === 'true')!
+        expect(JSON.stringify(loop.choices[0].effects)).toContain('ending_loop')
+        expect(JSON.stringify(trueEnd.choices[0].effects)).toContain('ending_true')
+    })
 
     it('小组赛事件有奖励轮', () => {
         for (const id of ['tournament_group_r1', 'tournament_group_r2', 'tournament_group_r3']) {

@@ -16,4 +16,8 @@
     - 补全各线"回忆中的回忆"具体梦境文案（当前为通用文案）
     - 角色/招式/功法池数量不足，后续补完（见支线文档奖励预算表）
 6. 再加一点组织和东西的蛛丝马迹到各个故事线里
-7. 剧情审计待办见 `docs/plot-todo.md`（阿九/方烈/陶朵细节、故事线节点接入、终局接入等）
+7. 剧情审计待办见 `docs/plot-todo.md`（阿九/方烈/陶朵细节、故事线节点接入等）
+8. 终局与元进度（**已实现**，见 `docs/ending-design.md`）
+    - 已：n33.5 隐藏boss（= 最近一次通关的玩家 build）、n34 许愿 / 转身离开、`MetaSave` 存档（`localStorage`）
+    - 已：DevMode「元进度」页（查看 / 清档 / 导出 JSON）、`npm run tour -- champion_boss --champion=<build.json>` 测隐藏boss 胜率
+    - 待办：隐藏boss 数值平衡（目标 tour 胜率 55%–60%）

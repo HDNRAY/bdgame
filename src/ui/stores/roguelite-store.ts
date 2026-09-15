@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { RogueliteRun } from '../../game/roguelite/engine'
+import { recordRunStart } from '../../game/meta-save'
 import type { GameState } from '../../game/entities/state'
 import type { CharacterBuild } from '../../game/entities/character-build'
 
@@ -20,12 +21,15 @@ interface RogueliteState {
     chapterIntro: ChapterIntro | null
     /** 本 run 已展示过的章节号 */
     chaptersShown: number[]
+    /** 真结局的终章页是否已读过（本局；读完才显示结算页） */
+    endingSeen: boolean
 
     select: (index: number) => void
     setMode: (mode: 'view' | 'build') => void
     saveBuild: (build: CharacterBuild) => void
     confirmWorldIntro: () => void
     confirmChapterIntro: () => void
+    confirmEnding: () => void
     reset: () => void
 }
 
@@ -56,6 +60,7 @@ export const useRogueliteStore = create<RogueliteState>((set, get) => {
         worldIntroShown: false,
         chapterIntro: null,
         chaptersShown: [],
+        endingSeen: false,
 
         select: (index: number) => {
             get().engine.selectChoice(index)
@@ -68,9 +73,14 @@ export const useRogueliteStore = create<RogueliteState>((set, get) => {
             set({ mode: 'view' })
         },
 
-        confirmWorldIntro: () =>
+        confirmWorldIntro: () => {
+            // 进入本局（元进度：总轮数 +1；跨局存档见 docs/ending-design.md 第四节）
+            recordRunStart()
             // 首屏背景读完后紧接「第一章」章页（此时还没选故事线，正文用公共文案）
-            set({ worldIntroShown: true, chapterIntro: { chapter: 1, story: '' } }),
+            set({ worldIntroShown: true, chapterIntro: { chapter: 1, story: '' } })
+        },
+
+        confirmEnding: () => set({ endingSeen: true }),
 
         confirmChapterIntro: () => {
             const ci = get().chapterIntro
@@ -91,6 +101,7 @@ export const useRogueliteStore = create<RogueliteState>((set, get) => {
                 worldIntroShown: false,
                 chapterIntro: null,
                 chaptersShown: [],
+                endingSeen: false,
             })
         },
     }

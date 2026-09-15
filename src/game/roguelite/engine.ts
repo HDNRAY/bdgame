@@ -10,6 +10,8 @@ import {
 import { CULT_REWARD, MAX_POINTS_REWARDS } from '../entities/reward'
 import { rewardPool } from './reward-pool'
 import { pickRandom, resolveQuotaRewardType, countRewardOpportunities, injuryForNode } from './util'
+import { championBuildFromSave } from '../champion-boss'
+import { hasCleared, recordBossResult, recordClear } from '../meta-save'
 import { WEAPON_DB } from '../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../data/weapons/starting-weapons'
 import { END_EVENT, type Round, type Choice } from '../../game/entities/round'
@@ -33,6 +35,8 @@ export class RogueliteRun implements RogueliteEngine {
     private _eventDef: EventDef | null = null
     /** 上一场战斗结果（胜负分支：下一轮次可读 result.won） */
     private _lastCombatResult: { won: boolean } | undefined = undefined
+    /** 结局是否已写进元进度（一场只写一次） */
+    private _endingRecorded = false
     /** 最近一场战斗回放原始日志（不进 state，避免每次 structuredClone 复制大数组；UI 播放用） */
     private _battleReplay: { roundId: string; entries: { event: unknown; timelineMs: number }[] } | undefined =
         undefined
@@ -54,6 +58,7 @@ export class RogueliteRun implements RogueliteEngine {
             tournamentData: undefined,
             finished: false,
         }
+        this._state.flags['cleared_before'] = hasCleared()
         this._syncInjuryFlag()
         this._enterNode()
     }
@@ -218,7 +223,7 @@ export class RogueliteRun implements RogueliteEngine {
     private _hintFor(eventId: string, base?: string): string {
         const ev = getEvent(eventId)
         const hints: string[] = []
-        if (ev?.rounds.some((r) => r.enemyId || r.enemyPool)) hints.push('将进行战斗')
+        if (ev?.rounds.some((r) => r.enemyId || r.enemyPool || r.enemyFromSave)) hints.push('将进行战斗')
         const kind = ev?.reward?.kind
         if (kind === 'points') hints.push('+修炼点')
         else if (kind === 'item') hints.push('奖励功法/招式')
@@ -286,6 +291,23 @@ export class RogueliteRun implements RogueliteEngine {
         // 条件选项：按当前 flags + 上一场战斗结果过滤（热身赛胜负分支用 result.won）
         const whenCtx = { flags: this._state.flags, result: this._lastCombatResult }
         copy.choices = copy.choices.filter((c) => evaluateWhen(c.when, whenCtx))
+        // 隐藏boss：从元进度取「最近一次通关的玩家 build」；首次通关（没有存档）则跳过这一轮
+        if (copy.enemyFromSave) {
+            const boss = championBuildFromSave()
+            if (!boss) {
+                this._lastCombatResult = undefined
+                // 那具躯体不存在 → 连同隐藏boss 序列的后续轮次一起跳过（guardian_result / beaten）
+                const rounds = this._eventDef?.rounds ?? []
+                this._state.roundIdx++
+                while (this._state.roundIdx < rounds.length && rounds[this._state.roundIdx].bossOnly) {
+                    this._state.roundIdx++
+                }
+                if (this._state.roundIdx < rounds.length) this._pushRound(rounds[this._state.roundIdx])
+                else this._finishEvent()
+                return
+            }
+            copy.enemyBuild = boss
+        }
         const enemyId = copy.enemyId ?? (copy.enemyPool ? pickRandomOpponentId(copy.enemyPool) : undefined)
         if (copy.tutorial) {
             // 教学展示轮：AI vs AI 观战，生成回放（不计胜负/伤势/奖励）
@@ -305,7 +327,7 @@ export class RogueliteRun implements RogueliteEngine {
             this._lastCombatResult = undefined
             return
         }
-        if (enemyId) {
+        if (enemyId || copy.enemyBuild) {
             copy.enemyId = enemyId
             this._executeCombat(copy)
             this._lastCombatResult = { won: copy.result?.won ?? false }
@@ -472,10 +494,13 @@ export class RogueliteRun implements RogueliteEngine {
     /** 执行战斗轮 */
     private _executeCombat(round: Round): void {
         const enemyDef = getOpponentDef(round.enemyId ?? '')
-        if (!enemyDef) return
+        // 隐藏boss：用存档里的玩家 build（`_pushRound` 已把它注入 round.enemyBuild），不走 gen()
+        const src = round.enemyBuild ?? (enemyDef ? gen(enemyDef, this._state.nodeIndex) : undefined)
+        if (!src) return
+        const isChampionBoss = !!round.enemyBuild
 
         const player = new Character(this._state.build)
-        const enemyBuild = gen(enemyDef, this._state.nodeIndex)
+        const enemyBuild = { ...src }
         // Boss 剧情名覆盖（战斗内显示用；属性/招式仍取 enemyId 定义）
         if (round.bossName) enemyBuild.name = round.bossName
         const enemy = new Character(enemyBuild)
@@ -509,6 +534,8 @@ export class RogueliteRun implements RogueliteEngine {
                 this._state.rounds = []
             }
         }
+        // 隐藏boss 战绩（元进度）
+        if (isChampionBoss) recordBossResult(!lost)
     }
 
     /** 从已有奖励 + 已装备武器推导玩家 tags */
@@ -596,11 +623,26 @@ export class RogueliteRun implements RogueliteEngine {
     private _advanceToNextNode(): void {
         this._state.nodeIndex++
         if (this._state.nodeIndex > 33 || this._state.injury >= 100) {
+            this._recordEndingIfAny()
             this._state.finished = true
             this._state.rounds = []
             return
         }
         this._enterNode()
+    }
+
+    /** 结局轮写下的 flag → 元进度存档（通关数 / 结局种类 / 最近一次通关的 build） */
+    private _recordEndingIfAny(): void {
+        if (this._endingRecorded) return
+        const ending = this._state.flags['ending_loop'] ? 'loop' : this._state.flags['ending_true'] ? 'true' : undefined
+        if (!ending) return
+        this._endingRecorded = true
+        recordClear({
+            build: this._state.build,
+            ending,
+            injuries: this._state.injury,
+            rewards: this._state.build.rewards.length,
+        })
     }
 
     /** 按出身事件 ID 找对应的故事线（n1 选择出身时用）。 */

@@ -13,7 +13,16 @@ import { buildBattleDataFromEntries } from '../../components/roguelite/battle-re
 import { gen, getOpponentDef } from '../../../data/opponents'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import type { Round } from '../../../game/entities/round'
-import { WORLD_INTRO, CHAPTER1_INTRO, CHAPTERS, STORY_INTRO_TEXT } from '../../../data/story-intros'
+import {
+    WORLD_INTRO,
+    CHAPTER1_INTRO,
+    CHAPTERS,
+    ENDING_NAMES,
+    ENDING_NAME_DEFAULT,
+    ENDING_NAME_FALLEN,
+    STORY_INTRO_TEXT,
+    TRUE_ENDING_EPILOGUE,
+} from '../../../data/story-intros'
 import './RogueliteScreen.scss'
 
 const CHAPTER_CN = ['', '一', '二', '三']
@@ -31,8 +40,10 @@ export function RogueliteScreen() {
         reset,
         worldIntroShown,
         chapterIntro,
+        endingSeen,
         confirmWorldIntro,
         confirmChapterIntro,
+        confirmEnding,
     } = useRogueliteStore()
     const { isLandscape } = useOrientation()
     const navigate = useNavigate()
@@ -63,10 +74,30 @@ export function RogueliteScreen() {
         return <IntroOverlay kicker="公元 2088 年" title="青山镇" text={WORLD_INTRO} onEnter={confirmWorldIntro} />
     }
 
+    // 真结局：先单独放一页终章（新会长从炁印里知道的来龙去脉），读完才进结算
+    if (gameState.finished && gameState.flags['ending_true'] && !endingSeen) {
+        return (
+            <IntroOverlay
+                kicker={TRUE_ENDING_EPILOGUE.kicker}
+                title={TRUE_ENDING_EPILOGUE.title}
+                text={TRUE_ENDING_EPILOGUE.text}
+                enterLabel="结束"
+                onEnter={confirmEnding}
+            />
+        )
+    }
+
     if (gameState.finished) {
+        const finishTitle = gameState.flags['ending_true']
+            ? ENDING_NAMES.true
+            : gameState.flags['ending_fallen']
+              ? ENDING_NAME_FALLEN
+              : gameState.flags['ending_loop']
+                ? ENDING_NAMES.loop
+                : ENDING_NAME_DEFAULT
         return (
             <div className="rs rs-finish">
-                <h1>通关</h1>
+                <h1>{finishTitle}</h1>
                 <p>伤势: {gameState.injury}</p>
                 <p>获得: {gameState.build.rewards.length} 个奖励</p>
                 <button className="rs-btn" onClick={reset}>
@@ -99,7 +130,7 @@ export function RogueliteScreen() {
     // 当前战斗/教学轮：嵌 BattlePanel 播本场回放（引擎已结算那局，结果与动画一致）
     const renderRound = (r: Round, i: number): ReactElement => {
         const isCurrent = i === gameState.rounds.length - 1
-        const isCombat = !!r.enemyId || !!r.enemyPool
+        const isCombat = !!r.enemyId || !!r.enemyPool || !!r.enemyBuild
         const isTutorial = !!r.tutorial
         if (isCurrent && (isCombat || isTutorial)) {
             const replay = engine.getBattleReplay(r.id)
@@ -115,6 +146,10 @@ export function RogueliteScreen() {
                     if (bDef) bBuild = gen(bDef, r.tutorial.level ?? 33)
                     aName = r.tutorial.aName ?? aDef?.name ?? aBuild.name
                     bName = r.tutorial.bName ?? bDef?.name ?? bBuild.name
+                } else if (r.enemyBuild) {
+                    // 隐藏boss（上一轮通关的玩家 build）：属性/招式取存档，显示名仍用剧情名
+                    bBuild = r.enemyBuild
+                    bName = r.bossName ?? bBuild.name
                 } else if (r.enemyId) {
                     const def = getOpponentDef(r.enemyId)
                     if (def) bBuild = gen(def, gameState.nodeIndex)

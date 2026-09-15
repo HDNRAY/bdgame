@@ -11,6 +11,8 @@ Tech stack: TypeScript + Vite 6 + React 19 + Zustand + CSS Modules + Canvas API.
 
 ## 玩法/数值文档
 
+**终局与元进度：`docs/ending-design.md`** — n33 决赛之后的 **n33.5 隐藏boss**（= 最近一次通关的玩家 build：保留 13 个奖励、义体拉满、属性六项各 7 点起（`CHAMPION_BASE_ATTR`）、奖励与义体全部叠加不抵扣，不走 `gen()`）与 **n34 许愿 / 转身离开**；两段无奖励，用「插入事件」实现（`src/data/events/ending.ts`），不动节点编号；元进度存档 `MetaSave`（`localStorage` key `dantiao:meta:v1`，`src/game/meta-save.ts`）。改终局/存档相关代码前先对照本文档。两个易错点：**(1)** 隐藏boss 的 build `id` 必须与玩家（`'player'`）不同，否则 `winner === enemy.id` 会让 boss 战恒判为败；**(2)** 胜负分支要写在战斗轮的**下一轮**（选项在推轮时按 `result.won` 过滤，战斗轮自己的选项是战斗结算前过滤的）。「转身，离开」要连选三次（每次都被蛊惑一句，次数记在 `flags.leave_step`），走完真结局会先盖一页章页样式的终章（`TRUE_ENDING_EPILOGUE`）。隐藏boss 胜率用 `npm run tour -- champion_boss --champion=<build.json>` 测（DevMode「元进度」页可导出该 JSON）。
+
 **对战玩法说明：`docs/gameplay-guide.md`** — 面向玩家的规则手册：一场对决怎么进行、六属性作用、内息/缠劲资源循环、距离与射程、出手结算顺序、数值公式（命中/暴击/招架）、特殊机制、流派思路。改动任何涉及战斗机制、属性公式、资源循环的代码前，先对照本文档确认不破坏文档所述规则（数值以引擎为准，文档负责玩家可读表述）。首页「玩法」弹窗（`src/ui/screens/ModeSelect/GameplayModal.tsx`）是本文档的界面精简版，两处文案需同步。文档与弹窗均为玩家向表述，不要写入实现细节（代码标识符、内部钩子名等）。
 
 ## RTK (token-saving command compression)

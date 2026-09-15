@@ -95,7 +95,10 @@ function makeTournamentEvent(id: TournamentEventId): EventDef {
             title: meta.title,
             description: meta.description,
             choices: meta.noReward
-                ? [{ id: END_EVENT, type: 'continue' as const, label: '踏入擂台' }]
+                ? // 决赛（n33）：胜后进入终局「山腹」（败则本局结束，走不到这条选项）
+                  id === 'tournament_final'
+                    ? [{ id: 'ending_cavern', type: 'event' as const, label: '推开最后一扇门' }]
+                    : [{ id: END_EVENT, type: 'continue' as const, label: '踏入擂台' }]
                 : [{ id: 'reward_round', type: 'continue' as const, label: '踏入擂台' }],
         },
     ]
