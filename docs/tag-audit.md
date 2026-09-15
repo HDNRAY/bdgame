@@ -1,7 +1,7 @@
 # 全量 Tag 审计报告（武器 / 功法 / 招式 / 奇物）
 
-> 只读审计，**未改动任何数据**。判定口径见 [`docs/_tag-audit/RUBRIC.md`](_tag-audit/RUBRIC.md)（本次唯一标准）。
-> 明细分文件：`docs/_tag-audit/{weapons,passives-a,passives-b,actions-a,actions-b,artifacts}.md`。
+> 本文件 = **审计原判（2026-09，只读）** + 其后四轮口径裁定与全部执行记录。
+> 分项明细见文末附录 A–F，判定口径见附录 G（原 RUBRIC）；**实际落地以 §八–§十七 为准**。
 
 ## 一、审计范围
 
@@ -42,12 +42,11 @@
 
 （以下为分类明细汇总）
 
-
 ---
 
-# 执行摘要
+## 执行摘要（§一–§十七 = 裁定与执行记录）
 
-## 一、判定统计（373 个实体）
+### 一、判定统计（373 个实体）
 
 | 类别 | 数量 | ❌ 错标 | ⚠️ 存疑 | ✅ 合理 |
 | --- | --- | --- | --- | --- |
@@ -62,7 +61,7 @@
 ※ 标记者是**主 agent 复核后下调**的条目：武器原报 ❌2、功法上半原报 ❌3、招式 A 原报 ❌3，其中 5 条经复核不成立（理由见文末「校订记录」）。
 下文 ❌ 条目的代码依据由各子任务给出（附行号）；主 agent 复核了其中的高危项，未逐条复算。
 
-## 二、跨类别的高危问题（按建议修复顺序）
+### 二、跨类别的高危问题（按建议修复顺序）
 
 1. **内部招式进奖励池（已验证，已修）**
    `internal.ts` 共 38 条；池层原先直接吃 `allMainActions`，**不按 `internal` 过滤、也不认 `_` 前缀**，于是实现型招式会作为「学招式」奖励发给玩家，学了永远不生效 —— **死奖励**（受害最明显的是 `_orb_shot` / `_huan_shot` / `_silk_shot` / `_fei_jian_shot` / `_fen_shen_shot`，连 `trigger` 都没有）。
@@ -101,7 +100,7 @@
 
 8. **`requiredTags` 体系本身是自洽的**：99 条招式的 requiredTags 并集全部命中武器 tag 并集，无孤立项；两份子任务里"武器缺 tag 就永远拿不到招"的 ❌ 经复核**不成立**（判定是 `.some()`，见校订记录 3）。
 
-## 三、需要你裁定的口径（影响后续批量修法）
+### 三、需要你裁定的口径（影响后续批量修法）
 
 1. `debuff` ＝「只给对手」还是「任何弱化」？（决定 `独臂`/`momentum_mastery` 是否错标）
 2. `buff` 的施加层级：只算"给角色加状态"，还是"给对手上负面"也算？
@@ -114,9 +113,7 @@
 
 ---
 
-## 校订记录（主 agent 复核）
-
-## 四、你的裁定（2026-09，已确认；tag 变更留待批量执行）
+### 四、你的裁定（2026-09，已确认；tag 变更留待批量执行）
 
 | # | 问题 | 裁定 | 待办（尚未动 tag） |
 | --- | --- | --- | --- |
@@ -129,7 +126,7 @@
 | 12 | 描述与实现不一致 | **现在就改描述** | ✅ 已改（见下） |
 | 2 / 3 / 4 / 6 / 10 | 义体补 `buff`、奇物补 `damage`、`dot` 死标签、`inherent` 边界、奇物 `stance` | **按报告结论执行** | 义体统一补 `buff`；6 件增伤奇物补 `damage`；`dot` 不再使用；乌铠/冰蚕衣/斗铠 去掉 `inherent`（通用防具应进池）；虎彻之眼/定心香氛补 `stance` |
 
-### 已执行的描述修正（本轮唯一动过的数据，共 5 处）
+#### 已执行的描述修正（本轮唯一动过的数据，共 5 处）
 
 | 位置 | 原 | 现 | 依据 |
 | --- | --- | --- | --- |
@@ -139,7 +136,7 @@
 | `buffs/defense.ts` 软猬甲 buff 描述 | 同上（含「反伤」） | 同上 | 同上 |
 | `artifacts.ts` 女儿红 | 持续 **5秒** | 持续 **9秒** | `buffs/defense.ts:467` `nv_er_hong`：`expiry.ms = 9000` |
 
-### 追加裁定（2026-09，第二轮）
+#### 追加裁定（2026-09，第二轮）
 
 | 问题 | 裁定 | 待办 |
 | --- | --- | --- |
@@ -148,7 +145,7 @@
 | 四个 `on_*` 事件（melee/range/unarmed/polearm）| **确认无消费方，考虑删除** | 见校订记录 5；删除后 `melee` 等 tag 只剩「权重档 + requiredTags」两个消费点 |
 | `melee` 口径 | **采用 (a)：`melee` = 短兵（刀剑匕首），与 `polearm`/`unarmed` 并列互斥** | 玄铁重剑、素铁霸刀：去掉 `polearm`、补 `melee`；`引擎铁锤` 有 `polearm` 无 `heavy`，待定 |
 
-## 五、`thrown`（暗器）现状与建议
+### 五、`thrown`（暗器）现状与建议
 
 **结论：不需要给 `赤手空拳` 加 `thrown`。** 三条依据：
 
@@ -166,7 +163,7 @@
 | 2 | 以后真出「暗器囊 / 投掷武器」，把 `thrown` 落到那件武器上 | 暗器成为独立武器系；目前无此武器，`thrown` 事实上是招式侧标签 |
 | 3 | 把 `thrown` 从 `tagRelevance` 的 weaponType(4) 挪到 school(2) | 暗器流与"雷/毒"同档，而不是与"剑/刀"同档 |
 
-## 六、待裁定的口径清单（去重后 10 组，附我的建议）
+### 六、待裁定的口径清单（去重后 10 组，附我的建议）
 
 > 各分类明细末尾的 45 条「需裁定」按主题合并如下。多数同源：**同一语义在不同实体上口径不一致**。
 
@@ -185,7 +182,7 @@
 
 另有**一批描述与机制不符**（`thunder_storm` 写麻痹实为眩晕、`hearing_power` 写徒手实为任意命中、`ru_lai_shen_zhang` 形态、`soft_armor` 等已改）—— 建议单独出一轮文案同步清单。
 
-## 七、第二轮裁定（A–J）
+### 七、第二轮裁定（A–J）
 
 | # | 你的裁定 | 待办 |
 | --- | --- | --- |
@@ -200,13 +197,13 @@
 | **I** | `thrown`/`range`/`melee` 该标就标；**`move` 只有「凤舞九天」该标** | 按此批量 |
 | **J** | **`tempest` 可以进池**（不改）；**`internal.ts` 里的都要挡住奖励池** | 修法已修正（见 §十二）：**不补 `internal` 标签**，改用 `_` 下划线前缀 —— `internal` 会让招式退出 AI 主招候选（`ai/index.ts:76-80`），一刀/德克会因此崩盘；本次只需给 `iaijutsu_strike`、`resheath` 改名（`_iaijutsu_strike`、`_resheath`），其余 11 条本就带 `_` 前缀 |
 
-### D 的现状依据
+#### D 的现状依据
 
 `damage` 作为 tag 全项目**只有一个消费方**：`src/engine/ai/support-planner.ts:79`「招式 tags 含 `damage` **或** `buff` → 前置动作优先级 50」。其余 grep 命中均为 *effect type* `'damage'`，与 tag 无关。`tagRelevance` 中它是权重 1 的未分类 tag。
 
-## 八、执行记录（D 落地 + 池层修复）
+### 八、执行记录（D 落地 + 池层修复）
 
-### 1. `damage` tag 已彻底删除（2026-09 执行）
+#### 1. `damage` tag 已彻底删除（2026-09 执行）
 
 | 位置 | 改动 |
 | --- | --- |
@@ -218,7 +215,7 @@
 
 > 注：第一次批量替换误把**效果类型** `type: 'damage'` 一起删了，已 `git checkout` 回滚相关文件后改用「只处理 `tags: [...]` 数组」的精确替换；最终 `tsc` / `eslint` / 422 测试 / `vite build` 全过。
 
-### 2. 池层修复（在改 tag 之前先做）
+#### 2. 池层修复（在改 tag 之前先做）
 
 `src/game/roguelite/reward-pool.ts` `_getActionPool()` 现在排除两类招式：
 
@@ -229,16 +226,16 @@ allMainActions.filter((a) => !a.tags.includes('internal') && !a.id.startsWith('_
 - `_arm_explosion` 不必标 `internal`（AI 仍可经 conditionId 出手），也不会进「学招式」池；
 - `tempest` 保留在池内（按裁定「可以进池」）。
 
-### 3. 剩余
+#### 3. 剩余
 
 - 实现型招式已全部挡住奖励池（§十二：`internal` 标签 + `_` 前缀两道闸）；
 - `dot` 是全库无人使用的死标签，是否一并清理待定。
 
-### 4. `dot` 已删除（同上流程）
+#### 4. `dot` 已删除（同上流程）
 
 `dot` 全库**零数据使用**（`stats-tracker.ts` 里的 `'dot'` 是默认动作名字符串，与 tag 无关）。删除 `tag.ts:41` 成员与 `tagDisplay.ts` 两条映射；Tag 总数 55 → **54**，`AGENTS.md` 同步。
 
-## 九、tag 整理执行计划（按影响面排序）
+### 九、tag 整理执行计划（按影响面排序）
 
 从 6 份明细的「建议」列汇总：**约 290 处待改**；其中「补 `damage`」25 处随标签下架作废，「去 `debuff`」2 处按口径（对自己也算）作废。
 
@@ -256,9 +253,9 @@ allMainActions.filter((a) => !a.tags.includes('internal') && !a.id.startsWith('_
 2. **起始武器**：是"不进池"（那就补 `inherent`）还是"进池没问题"（那就改 `starting-weapons.ts:8` 的注释）；
 3. **`qi` 补到武器上会真改数值**（`qi_amplify`、`斗铠`），是只补描述里明确"以炁驱动"的那几把，还是全部严格按描述补。
 
-## 十、第三轮澄清（2026-09，含立即执行项）
+### 十、第三轮澄清（2026-09，含立即执行项）
 
-### 1. `buff` 的最终口径（收窄）
+#### 1. `buff` 的最终口径（收窄）
 **只有"施加了状态"才算 `buff`** —— 可叠层、有持续、有条件、触发型的状态；**纯粹的属性数值加成（`stat_buff` / `attrMods` 型）不算**。
 例：`惊鸿` 的 `stat_buff {敏捷+1、灵巧+2、力道+1}`、`千机` 的 `qianji_crit`（暴击伤害+30%）都**不属于** `buff`。
 
@@ -268,7 +265,7 @@ allMainActions.filter((a) => !a.tags.includes('internal') && !a.id.startsWith('_
 - P2 的「补 `buff` 54 处」大幅缩水，需要逐条按"是状态还是直接属性"筛。
 - 另注：**buff 定义自身**（`src/data/buffs/*.ts` 里的 `BuffDef.tags`）是引擎侧的分类标记（如 `buff-layer.ts` 读 `stance`），与实体 tag 不是同一层，不受本条影响。
 
-### 2. 起始武器不进随机池 —— 已执行
+#### 2. 起始武器不进随机池 —— 已执行
 `reward-pool._getWeaponPool()` 改为**只读 `WEAPON_DB`**，不再合并 `starting-weapons.ts`：
 
 ```ts
@@ -280,14 +277,14 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 - `reward-pool.test.ts` 里断言相反行为的旧用例已改写（并补上"不含起始武器/御物"的断言）；
 - `_derivePlayerTags()` 仍然会查 `[...WEAPON_DB, ...STARTING_WEAPONS]`（那是为了识别**已装备**的意图，必须保留）。
 
-### 3. `qi` 的最终口径
+#### 3. `qi` 的最终口径
 **`qi` = 有炁的「外放」**（炁劲、炁弹、炁刃、炁盾等对外的炁）；**"以炁驱动"不算** —— 能源/驱动方式不是炁的对外释放。
 
 连带影响：
 - 描述写"以炁驱动/激活/供能"的那 8 把武器**一律不补** `qi`；
 - P1 的 `qi` 子批变成：**只做"去"**（去掉 10 处无炁外放的泛标），"补"的 15 处逐条按"有没有炁外放"重筛。
 
-## 十一、P0 执行结果（2026-09）
+### 十一、P0 执行结果（2026-09）
 
 | 项 | 改动 | 结果 |
 | --- | --- | --- |
@@ -302,9 +299,9 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 奇物池：76 → **51**（25 件 inherent 排除，加回乌铠/冰蚕衣/斗铠/玲珑心窍* 等）；`*` 玲珑心窍属功法池。
 
 > 过程记录：`internal` 补标第一次用正则批量替换时，因"边遍历边改字符串"导致偏移错乱写坏了文件，已 `git checkout` 回滚并改为逐行定位重做（diff 13 增 13 删，tsc/eslint/422 测试全过）。**该批补标随后因胜率回归被整体回退，见 §十二。**
-## 十二、第四轮修正（`internal` 回退 → 下划线前缀，2026-09）
+### 十二、第四轮修正（`internal` 回退 → 下划线前缀，2026-09）
 
-### 1. 口径：两个挡池手段不等价
+#### 1. 口径：两个挡池手段不等价
 
 | 手段 | 挡奖励池 | 挡 AI 主招候选 |
 | --- | --- | --- |
@@ -316,7 +313,7 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 - **AI/对手要用、玩家不该从「学招式」拿到的** → `_` 前缀，**不标 `internal`**；
 - **AI 与玩家都不该主动用的纯触发实现招** → 保持 `internal`（现存 23 条全部同时带 `_` 前缀，`internal` 在池层是冗余的，它实际承担的是 AI 剔除）。
 
-### 2. 回归与回退
+#### 2. 回归与回退
 
 按旧裁定给 `internal.ts` 13 条补 `internal` 后，同一套 `simulateWinRate`（等级 33，对 `xiaohua/laifeng/layue/hongti/daixuan/junshi`，N=60）：
 
@@ -327,7 +324,7 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 
 根因：一刀的主招 `iaijutsu_strike`、`post_action` 辅招 `resheath`，与德克召唤物的 `_sonic_wave`（人造发生器 `on_parried` 触发）都在 AI 主招循环里取用，补 `internal` 等于把它们从候选里删掉。**已整体 `git checkout` 回退**。
 
-### 3. 本次实际改动
+#### 3. 本次实际改动
 
 | 位置 | 改动 |
 | --- | --- |
@@ -341,11 +338,11 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 - 未改：`_resheath` 的 `post_action`（裁定 F 已复核：收招定位正确，不改）、`_sonic_wave` 的 `qi`（P1）；
 - 复测：博士·德克 48.6%、一刀 55.6%，与基线一致（`_` 前缀对战斗零影响）。
 
-## 十三、P1 执行结果（2026-09）
+### 十三、P1 执行结果（2026-09）
 
 按裁定 B/C/E/I 与第三轮澄清执行：**49 处 tag 改动**（6 个数据文件）+ `tag.ts` 注释 + `weapon_stance` 两处判定。
 
-### 1. `qi` 去标（14 处，只去不补）
+#### 1. `qi` 去标（14 处，只去不补）
 
 口径 = 「炁的外放」；「以炁驱动」一律不补（核动力炉/蓄炁瓶/炁电转换/描述写"以炁驱动"的 8 把武器）。
 
@@ -355,7 +352,7 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 | 奇物 2 | `jiu_yin_zhen_jing`（九阴真经）、`ju_chan_fa_yi`（聚缠法衣）——都是缠劲体系，保留 `chan` |
 | 招式 1 | `_sonic_wave`（音波，人造发生器） |
 
-### 2. `chan` 与缠劲机制对齐（5 处）
+#### 2. `chan` 与缠劲机制对齐（5 处）
 
 `chan` 全库**零代码消费方**（无 `includes('chan')`），且 `tagRelevance` 里它权重 0 → 纯展示/无战斗影响。核对口径 = 招式 `chanCost` + 所施 buff 是否 `spendChan`/`chanRegen`：
 
@@ -363,13 +360,13 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 - 补：`nineteen_stops`、`hun_yuan_gong`、`qian_kun_da_nuo_yi`（三条 buff 均 `spendChan`）、`iron_will`（乌铠 `dmg_reduce` `spendChan(1)`）；
 - 复核：审计说的「8 条有 `chanCost` 无 `chan`」（`gear_hang`/`big_leap`/`lightning_speed`/`jindou`/`santou_liubi`/`chanzi_heal`/`chanzi_stance`/`deng_ping_du_shui`）**当前全部已带 `chan`**，无需处理。
 
-### 3. `move` 粒度（2 处）
+#### 3. `move` 粒度（2 处）
 
 - 去：`_iaijutsu_strike`（居合斩只有 `short_dash` → 裁定 E「short_dash 不算 move」）；
 - 补：`feng_wu_jiu_tian`（凤舞九天，功法侧唯一该标 `move` 者 → 裁定 I）；
 - 其余「补 `move`」建议（`retrieve_blade`/越女剑法/踏雪/神行百变/醉拳/灵鳌步/残影步/奇门八卦/轮舞月斩/天外飞仙/液压腿）按裁定 I 一律不做。
 
-### 4. 形态 tag（27 处）
+#### 4. 形态 tag（27 处）
 
 | 子项 | 改动 |
 | --- | --- |
@@ -380,11 +377,11 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 | 补 `thrown`·功法 3 | `li_wu_xu_fa`（例无虚发）、`fei_hua_shou`（漫天花雨）、`lian_da_mi_jue`（练打秘诀）——三条 buff 只对 `thrown` 招式生效 |
 | 补 `range`·招式 1 | `return_spear`（回马枪，`getRange [3,4]`，对齐 `_luo_yue` 的口径） |
 
-### 5. `heavy` 注释更正
+#### 5. `heavy` 注释更正
 
 `tag.ts`：`| 'heavy' // 巨型双手` → `// 重型武器（力道驱动，可与 polearm 叠加）`（裁定 C）。
 
-### 6. 连带修复：`weapon_stance` 的「重器架势」
+#### 6. 连带修复：`weapon_stance` 的「重器架势」
 
 `overlord_blade`/`dark_iron_sword` 去掉 `polearm` 后，行云流水的 `polearm_stance`（撼岳，其 buff 描述本就是「**重器**架势，命中+10%」）不再对它们生效 → 刘西瓜胜率由 49.3% 掉到 **40.5%**（唯一带 `weapon_stance` 的对手）。
 
@@ -401,13 +398,13 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 - 全库仅刘西瓜持 `weapon_stance`，该修复不影响其他人的对局；
 - 唯一顺带变化：`xiu_dong`（绣冬，`melee`+`heavy`）由守拙（招架+10%）变为撼岳（命中+10%），与「`heavy` = 重型武器」口径一致。
 
-### 7. 未做（留待后续）
+#### 7. 未做（留待后续）
 
 - 需裁定仍未动：`ru_lai_shen_zhang` 的 `range`/`getRange` 冲突、`shadow_kick` 的 `requiredTags`、`three_inch_light` 的 `qi_action`、`tian_wai_fei_xian` 的 `move`/`thrown`；
 - P2 全部未动：`buff` 按状态口径重筛、`defense`/`counter`/`heal`/`debuff`/元素状态/`ignore_parry`/`stance`/`self_damage`、`passive` 统一、`trigger` 移除；
 - 零散：`gash` 缺 `slash`、`qi_electric_conversion` 的 `electric`。
 
-### 8. 校验
+#### 8. 校验
 
 `tsc` 无错、`eslint` 无错、**423 测试全过**、`vite build` 通过。
 
@@ -422,11 +419,11 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 32 人全部落在 45–55；同码两次跑的差约 ±1.0（战斗内 `Math.random` 未定种子），属运行间波动。
 
-## 十四、P2 执行结果（2026-09）
+### 十四、P2 执行结果（2026-09）
 
 依据 = 各分类明细的逐条结论 + 裁定 A / 第三轮 `buff` 口径。**共改 132 条实体的 tags**（9 个数据文件：`internal` 13、`melee` 10、`player` 12、`qi` 3、`support` 8、`unarmed` 12、`artifacts` 31、`passives` 30、`weapons` 13）。
 
-### 1. `passive` 标签已下架（2026-09）
+#### 1. `passive` 标签已下架（2026-09）
 
 审计说「功法上半 42/55 缺 `passive`」，**实测只有 15 条**缺。该标签全库**零消费方**（`includes('passive')` 无命中），且在 `tagRelevance` 里对**同一奖励池内**的候选是等比加成（池内相对分布不变）→ 实际零效果；功法本来就在 `PASSIVES` 表里，再标一次是重复信息。
 
@@ -441,12 +438,12 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 与 `dot` 同一处理方式（零数据使用/零消费方的死标签下架）。
 
-### 2. 奇物去 `trigger`（13 件）
+#### 2. 奇物去 `trigger`（13 件）
 
 `blood_thorn_ring`、`blood_thorn_earring`、`wisdom_talisman`、`tiger_eye`、`qi_guard`、`iron_will`、`qi_amplifier`、`poison_coating`、`shixiang_ruanjin_san`、`western_poison`、`cinnabar_mole`、`herb_pouch`、`tactical_pouch`。
 `trigger` 的代码消费方读的是**招式**的 tags（`handlers.ts:590`：触发招式的 `short_dash` 一律冲向贴脸），奇物侧纯展示。
 
-### 3. 功能与元素 tag（88 条）
+#### 3. 功能与元素 tag（88 条）
 
 | 类别 | 处数 | 判定依据 |
 | --- | --- | --- |
@@ -463,7 +460,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 实体侧的 `debuff`/`stance`/元素/`cleanse`/`counter`/`ignore_parry` 只进 `tagRelevance` 权重：代码里的消费方读的是 **BuffDef 自身的 tags**（`buffs.ts:629`、`buff-layer.ts:194`）或**效果本身**（`handlers.ts:497` 架势替换、`engine.ts:827` 命中形态广播）。全库 `includes('chan')`、`includes('counter')`、`includes('ignore_parry')`、`includes('stun')` 等均为零命中。
 
-### 4. `buff` 按「是否施加了状态」重筛（39 条）
+#### 4. `buff` 按「是否施加了状态」重筛（39 条）
 
 口径（第三轮收窄，取代裁定 A 的宽口径）：**只有本条真的施加了「状态」才算 `buff`** —— 叠层、有持续、有条件/触发，或免疫、吸收、回复、资源回复、行动代价这类非纯数值行为；**平坦的永久属性/命中/暴击/暴伤/招架/闪避数值加成不算**（`惊鸿` 的 `stat_buff`、`千机` 的 `qianji_crit`、`绝剑诀` 的 `last_stand` 都不算）。
 
@@ -471,7 +468,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 - **去 9**（引用的 buff 自身零收益）：`nei_xi_mian_chang`（只放大时长）、`yue_nv_sword`（buff 触发器已被注释）、`shenxing_baibian`（纯移动消耗）、`feng_wu_jiu_tian` 与 `ling_ao_bu`（只授招、本体不施状态）、`tai_shang_yu_fa`（纯回血）、`yi_ma_xin_yuan`/`tongtian`/`chou_dao_duan_shui`（只给对手上负面）；
 - **不补/保留**：14 条只用 `stat_buff` 或平坦数值（`yanling_blade`/`qianji`/`ninja_sword`/`bare_hands`/`dagger`/`heshan_sword`/`fusi_sword`/`dark_room_catch`/`ningqi_jue`/`agility_steal`/`_alaya_insight`/`synthetic_lung`/`cochlear_implant`/`zhu_ye_qing`/`shao_dao_zi`）；施加**自身负面**的（`ap_drain`/`fumble_chance`/`muscle_degradation`/`permanent_burn`）；裁定 A 下保留的 `extreme`、`yuxin_sword_mastery`、`wan_xiang_jian_yi`；`one_arm` 留 `debuff`、不补 `buff`。
 
-### 5. 追加口径（第四轮澄清）
+#### 5. 追加口径（第四轮澄清）
 
 | 主题 | 裁定 | 落地 |
 | --- | --- | --- |
@@ -482,12 +479,12 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 | `super_armor` / `jiu` | 代码读的是 **BuffDef** 自身的 tags（`buff-apply.ts:185`、`drunk.ts:8`） | 实体侧维持现状 |
 | `range_up` / `poison_coating` | 全库零消费方 | 维持现状 |
 
-### 6. 未做（留待 P3）
+#### 6. 未做（留待 P3）
 
 - `craft` 之外的类型类口径、`super_armor` 是否落到实体（如需）；
 - P3 文案同步：`thunder_storm` 麻痹 vs stun、`hearing_power` 徒手 vs 任意命中、`chanzi_stance` 10% vs 15%、`soft_armor` 反伤、`zhu_huo_jue` 灼烧减半、`blood_droplet` 越残越弱、`shixiang_ruanjin_san` 等一批「描述与实现不符」。
 
-### 7. 校验
+#### 7. 校验
 
 `tsc` 无错、`eslint` 无错、**423 测试全过**、`vite build` 通过。
 
@@ -503,7 +500,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 2. `flash` 去掉 `electric` → 电系加成类 buff 不再对它生效。
 实测影响在 ±1 点内。
 
-## 十五、P3 文案同步（2026-09）
+### 十五、P3 文案同步（2026-09）
 
 把「描述与实现不符」的一批按**实现**改文（不动机制），并补一处错标 tag：
 
@@ -523,26 +520,26 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 已核对**无问题、无需改**：`yi_hui` 的 `hookNotes`（+20% 暴击 / +20% 暴伤 / 气血低于 50% 必中，与代码一致）；`special_forces_dagger`（其 buff 确实有 40% 概率麻痹，描述准确）。
 
-### 已裁定（用户）
+#### 已裁定（用户）
 
 - **天外飞仙（`tian_wai_fei_xian`）**：不该有 `range`（本质是 `short_dash 5` 冲近砍）→ 已去 `range`、保留 `thrown`；
 - **无假剑法 / 流萤剑法的「柔劲 / 刚劲」**：**不是问题**，无需改（不改文案、不换 buff）；
 - **剑意淬体（`sword_intent_tempering`）**：**它不是血脉特性** → 不补 `inherent`，继续进随机池；
 - **`thrown` 的权重档**：全库没有投掷武器是正常的 → 保持 `weaponType` 权重 4 不动。
 
-### 剩余可选项（低影响）
+#### 剩余可选项（低影响）
 
 审计里标「可补 / 可选」而本次未做的条目，逐条建议见 §十六.3。
 
-### 校验
+#### 校验
 
 `tsc` 无错、`eslint` 无错、**423 测试全过**、`vite build` 通过。
 
 `npm run tour`（含天外飞仙去 `range` 后）：32 人 **46.1% – 53.3%**，全部落在 45–55；低端复测（N=300）宁浩然 47.3%，46.1 属抽样波动。
 
-## 十六、死事件下架与收尾（2026-09）
+### 十六、死事件下架与收尾（2026-09）
 
-### 1. 4 个无消费方的触发事件已删除
+#### 1. 4 个无消费方的触发事件已删除
 
 `on_melee` / `on_range` / `on_unarmed` / `on_polearm` 全项目只有发射方与声明（校订记录 5 已核实无消费方），按追加裁定「确认无消费方，考虑删除」下架：
 
@@ -554,11 +551,11 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 删除后 `melee` / `polearm` / `range` / `unarmed` 的消费点只剩两个：`tagRelevance` 权重档与招式 `requiredTags`（`engine.ts:487`）。零行为影响，tour 32 人 **46.9% – 53.4%**。
 
-### 2. 收尾裁定
+#### 2. 收尾裁定
 
 见 §十五「已裁定（用户）」。
 
-### 3. 可选项裁定与落地（2026-09）
+#### 3. 可选项裁定与落地（2026-09）
 
 **已补 16 处**（实体侧这些标签只影响抽卡权重）：
 
@@ -593,10 +590,72 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 **校验**：`tsc` / `eslint` / 423 测试 / `vite build` 全过；tour 32 人 **45.9% – 53.7%**，低端李雪影复测（N=300）为 47.1%，全部落在 45–55。这 16 处里只有 `_arm_explosion` 的 `range` 会改战斗（对手的"防远程"类 buff 现在会对自爆生效，符合它 5 米投掷的形态）。、剑意淬体 `inherent`（非血脉）与 `slash`/`pierce`（它是减免斩刺）、生死符 `pierce`/`ignore_parry`（穿透≠无视招架）、冰蚕衣 `inherent`（P0 已裁定进池）、钛合金臂 `self_damage`（自伤在其授予的招式上）、锁链断刀 `retrieve_weapon`/`range_up`（前者只被招式侧读取、后者零消费方）。
 
+### 十七、剩余清单（2026-09 复核 + 已处理完毕）
+
+把 6 份明细的「建议」列与当前数据逐条对照，扣掉已执行项与已裁定「不改」项后，剩下的两类**均已处理完**。
+
+#### 1. 直接补的 22 处（已执行）
+
+| 类别 | 实体 | 依据 |
+| --- | --- | --- |
+| `debuff`（给对手上负面） | `beiming`、`zhemei_shou`（两者是 `stat_transfer` 吸对手属性）、`sword_capture`（招架后缴械）、`yi_ma_xin_yuan`、`tongtian`、`chou_dao_duan_shui`、`thunder_art`（给对手叠麻痹） | 口径：弱化即 `debuff` |
+| `debuff`（奇物经授予招式） | `sonic_generator`（音波给对手 `fumble_chance`） | 同上 |
+| `paralyze` | `thunder_art`（`actionEnhancer` 给空手伤害招叠麻痹）、`dian_xue_passive`（灵枢真解：招式 30% 概率 2 层麻痹） | 施加了该控制状态 |
+| 形态 / 攻击 | `rod_sweep` 补 `blunt`（同族棍招都有）、`_resheath` 补 `slash`、`qinlong_gong` 补 `unarmed`（`requiredTags:['unarmed']`）、`karate` 补 `unarmed`、`zui_quan` 补 `unarmed` | 与同族 / `requiredTags` 对齐 |
+| `defense` | `ru_shen_zuo_zhao`（神照圆满后免疫洞察减益） | 与冰心诀 / 明镜止水 / 机械眼球同一口径 |
+| `parry` | `golden_silk_gloves`（招架率+15%、空手可招架） | 招架类实体统一带 `parry` |
+| `imperial` | `one_night_dance`（御物系，同族 `wan_fa_gui_yi` 已带） | 御物口径 |
+| `heavy_reduce` | `dark_iron_sword_art`、`tide_inner_power`（两者 buff 都自带 `heavy_reduce`） | 与 buff 对齐 |
+| `pierce` | `yi_dian_po_xiao`（其 buff 只对刺击招式生效） | 形态对齐 |
+
+> 第一轮漏掉的原因：`stat_transfer`、`actionEnhancer` 里施加的 debuff、以及经 buff 生效的机制都不在 `effects` 数组里，机械推导没覆盖。
+
+#### 2. 设计题裁定（用户已定，2026-09）
+
+| # | 主题 | 裁定 | 落地 |
+| --- | --- | --- | --- |
+| 1 | `one_night_dance` 的 `summon` | **保留** | 不动（另补 `imperial`，见上表） |
+| 2 | `qi_bolt_4` 是否补 `pierce` | **不加** | 穿透不算「带刃」，不叠刃炁 |
+| 3 | `three_inch_light` 是否补 `qi_action` | **不加** | 刃炁判定回落到武器 tags |
+| 4 | `shadow_kick` 的 `requiredTags` | **不改** | 维持 `[]`（持械也能踢） |
+| 5 | `ru_lai_shen_zhang` 的形态 | **`range` 与 `melee` 都不该有** | 去掉 `range`、不加 `melee` → `['unarmed','qi','chan']` |
+| 6 | `bai_ju_guo_xi` 的形态 tag | **不用** | 不动 |
+| 7 | `tai_shang_yu_fa` 的 `summon`/`imperial` | **不用** | 不动 |
+| 8 | 对手专属功法是否进随机池 | **要进** | `tai_shang_yu_fa`/`zui_quan`/`ku_chan_shen_gong`/`guan_zi_zai_yan` 均无 `inherent`，本就在池内，无需改动 |
+| 9 | `floating_eye` 去 `summon` / `fen_shen_qiu` 补 `qi` | **都不动** | 不动 |
+
+### 3. 暂缓项：`gash` 的 `slash`（会引爆李雪影的中毒链）
+
+审计建议 `gash`（切割）补 `slash` —— 标签本身是对的（切割就是斩击；`poison_coating` 的描述也写明「**割裂或刺击**时概率令其中毒」）。但实测它会直接打破平衡：
+
+| 状态 | 李雪影胜率（N=100） | tour 区间 |
+| --- | --- | --- |
+| `gash` 带 `slash` | **83.9%**（残均HP 30.2%） | 44.5% – 85.3% |
+| `gash` 不带 `slash` | **45.6%** | 46.8% – 53.8% |
+
+原因：`gash` 是李雪影的 `on_parry` 触发招（每次招架都出手），而她同时带三件中毒奇物：
+
+- `poison_coating`（淬毒工具）：`pierce`/`slash` 招式 30% 概率叠 1 层中毒；
+- `shixiang_ruanjin_san`（十香软筋散）：**每次中毒**叠 1 层虚弱（力道/推演 -1）；
+- `western_poison`（西域奇毒）：**每次中毒**叠 **3 层麻痹**。
+
+于是一次中毒 = 1 虚弱 + 3 麻痹 + 持续毒伤，且招架越多触发越多 → 对手被永久麻痹+虚弱，滚雪球。
+
+**处理**：本轮**暂不回补** `gash` 的 `slash`（保持胜率窗口），留待你定：
+
+1. 回补 `slash`，并修那条中毒链（例如「每次中毒叠虚弱/麻痹」加每回合上限、或给中毒层数设上限）—— 属机制改动；
+2. 回补 `slash`，改李雪影的 kit（换掉 `western_poison`/`shixiang_ruanjin_san` 之一）—— 属配装改动；
+3. 不回补（维持现状）—— 代价是「切割」不带 `slash`、`poison_coating` 也不会在它上面触发。
+
+至此本次审计的全部条目处理完毕（P0–P3 + 剩余清单）。
+
+---
+
+## 校订记录（主 agent 复核）
 
 审计由多个子任务并行产出，汇总前对**高危/结论性判定**做了复核。以下记录复核结论，最终报告以复核后为准。
 
-## 1. 「`sword_intent_tempering` 漏 `inherent`」（passives-a 提出）→ 依据不足，降级为「需裁定」
+### 1. 「`sword_intent_tempering` 漏 `inherent`」（passives-a 提出）→ 依据不足，降级为「需裁定」
 
 子任务的理由是"它引用的 buff 定义自带 `inherent`"。复核：
 
@@ -604,13 +663,13 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 - 落在**功法/奇物**上时语义是"血脉限定/特性，不进随机奖励池"（`src/game/roguelite/reward-pool.ts:89/97` 过滤的是 `PASSIVES`/`ARTIFACTS` 自身的 tags）；
 - 因此"buff 标了 inherent"**不能推出**"该功法该标 inherent"。事实部分（`剑意淬体` 目前会进随机池）成立，但"是否应该"属于设计判断 → 归入「需裁定」。
 
-## 2. 「`one_arm` / `momentum_mastery` 标 `debuff` 是错标」→ 口径已确认，**判定撤销**
+### 2. 「`one_arm` / `momentum_mastery` 标 `debuff` 是错标」→ 口径已确认，**判定撤销**
 
 原本按 RUBRIC 的「`debuff` = 只给对手」判为错标。**用户已确认：`debuff` 对对手或对自己都算**。
 
 因此 `独臂`(one_arm) 的「无法双持」、`momentum_mastery` 的自身代价标 `debuff` **属正确**，这两条从 ⚠️ 改为 ✅（`momentum_mastery` 另有 `damage`/`buff` 归属问题，仍保留 ⚠️）。
 
-## 3. 「`requiredTags` 是硬门槛、武器缺 tag 就永远拿不到招」→ 语义理解错误（两条 ❌ 都降级）
+### 3. 「`requiredTags` 是硬门槛、武器缺 tag 就永远拿不到招」→ 语义理解错误（两条 ❌ 都降级）
 
 `requiredTags` 的判定是 **`.some()`**（"武器只要有其中**任意一个** tag 即可"），不是 `.all()`：
 
@@ -629,14 +688,14 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 - `polearm` 误标在 `玄铁重剑`/`素铁霸刀` 上会让 `on_polearm` 生效（真实行为影响）；
 - `[...WEAPON_DB, ...STARTING_WEAPONS].filter((w) => !w.tags.includes('imperial'))`（`reward-pool.ts:112`）→ 8 把起始武器（含 `bare_hands`）确实会进随机池，与 `starting-weapons.ts:8` 的注释矛盾。
 
-## 4. 「`polearm` 被三把非长柄武器占用（含 `黑云剑`）」（weapons 提出）→ 实际只有两把
+### 4. 「`polearm` 被三把非长柄武器占用（含 `黑云剑`）」（weapons 提出）→ 实际只有两把
 
 逐把核对 `polearm` 持有者（`weapons.ts`）：`破狼竹枝`、`春翁`、`铁枪·破军`、`陨铁神珍`、`千机`、`引擎铁锤`、`镇北戟` 属真长柄；**误标的是 `玄铁重剑`(dark_iron_sword) 与 `素铁霸刀`(overlord_blade)** 两把（且两者都没有 `melee`）。
 
 `黑云剑`(fei_jian) 的 tags 是 `['melee']`，**并未标 `polearm`** —— 子任务的这一条不成立，已剔除。
 
 
-## 5. 四个 `on_*` 事件没有消费方（用户指出，已核实）→ 影响面修正
+### 5. 四个 `on_*` 事件没有消费方（用户指出，已核实）→ 影响面修正
 
 `on_melee` / `on_range` / `on_unarmed` / `on_polearm` 全项目只有**发射方与声明**，没有消费方：
 
@@ -650,7 +709,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 2. 删掉后，`melee`/`polearm`/`range`/`unarmed` 的消费点只剩两个：`tagRelevance` 权重档（4）与招式 `requiredTags`。
 3. 因此「招式缺 `melee` → `on_melee` 不触发」这条审计结论**失效**（该标题下的 ⚠️ 仅保留"奖励权重偏低"这一半）。
 
-## 6. 「内部实现条目必须带 `internal`」→ 基准废止，改用 `_` 前缀（用户指出 + 胜率回归实测）
+### 6. 「内部实现条目必须带 `internal`」→ 基准废止，改用 `_` 前缀（用户指出 + 胜率回归实测）
 
 原审计基准是「`internal.ts` 里的条目必须带 `internal` 标签」，P0 照此给 13 条补标，结果把 AI 要用的招式一并剔出了主招候选（`ai/index.ts:76-80`）：
 
@@ -666,12 +725,14 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 据此各明细报告里 ❌/⚠️ 的「补 `internal`」建议一律作废，改读为「未挡池」；实际只需 `iaijutsu_strike`、`resheath` 改名（`_iaijutsu_strike`、`_resheath`），其余 11 条本就带 `_` 前缀。执行细节见汇总文 §十二。
 
+---
+
+> **附录说明**：A–F 为审计当时的逐实体原判（「判定 / 建议」列写于执行前），其中的建议已被后续裁定覆盖；实际落地以 §八–§十七 为准。
+
 
 ---
 
-## 五、武器（24 + 8 起始）
-
-# 武器 tag 审计（24 把 WEAPON_DB + 8 把起始武器）
+## 附录 A、武器（24 + 8 起始武器）
 
 > 只读审计，**未改动 `src/` 下任何文件**。判定口径见 [`RUBRIC.md`](RUBRIC.md)（本次唯一标准）。
 > 数据源：`src/data/weapons/weapons.ts`（24）、`src/data/weapons/starting-weapons.ts`（8）；
@@ -680,7 +741,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 > `src/game/roguelite/reward-pool.ts:109-117`（武器池只按 **`imperial`** 过滤，**不看 `inherent`**）、
 > `src/game/tagRelevance.ts`（武器类型 tag 权重 4）、`src/data/actions/*.ts`（各招 `requiredTags`）。
 
-## 结论摘要
+### 结论摘要
 
 - 实体数：**32**（`WEAPON_DB` 24 + `STARTING_WEAPONS` 8）
 - **❌ 2 条 / ⚠️ 19 条 / ✅ 11 条**
@@ -698,7 +759,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
   - `imperial` 是御物进入/退出随机池的唯一开关（`reward-pool.ts:113`）——4 把御物全部标了 `imperial` 且**都只由 `xuanmen_n02_weapon` 事件发放**（`events/xuanmen.ts:26-34`），过滤正确；反过来说，任何未来新增御物漏 `imperial` 会直接进随机池。
   - `parry` 是 `damage.ts:322` 的招架硬开关：32 把中**唯一不带 `parry` 的是 `engine_hammer`**（description 无守势、`heavy_load` 6 层，无 `onParryChance` 类钩子），判定自洽。
 
-### 补充：`buff` 判定依据（摘自 `src/data/buffs/`）
+#### 补充：`buff` 判定依据（摘自 `src/data/buffs/`）
 
 | 武器触发引用的 buff | 定义处 | 是否"真增益" |
 | --- | --- | --- |
@@ -723,7 +784,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 > 说明：`buff` 属"其他"权重 1，标错不改战斗数值，但会污染抽卡权重与 UI 语义（与 `passives-a.md` 同口径）。
 
-## 明细
+### 明细
 
 | 实体 | 现 tags | 判定 | 理由（引用 effects/triggers/description） | 建议 |
 | --- | --- | --- | --- | --- |
@@ -760,7 +821,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 | 黑云剑（`fei_jian`） | `imperial` `parry` `slash` `pierce` `range` `heavy` `polearm` `summon` | ⚠️ | description「御剑飞行，剑随人走」；`yuwu_cost` 0.5、`summon: fei_jian`（`_fei_jian_shot`：`getRange:[0,7]`、`tags:['range','slash','pierce','summon']`、推演×0.5+5、长前后摇）→ `imperial`/`range`/`slash`/`pierce`/`summon`/`parry`/`heavy`（慢速重击）成立。**`polearm` 可疑**：黑云剑是飞剑，不是长柄；它使 `_luo_yue`/`on_polearm` 对一把飞剑生效（与 `overlord_blade` 同类漂移）。与 `long_spear` 对比可见 `polearm` 被重复用于表达"攻距/重击" | 去 `polearm`（或移入需裁定 5）；可补 `qi`、`damage` |
 | 军用匕首（`dagger`） | `pierce` `unarmed` `parry` `slash` `melee` `one_handed` | ✅ | description「短小而致命的匕首」；`effects:[{stat_buff: agility+1}]`，`range:[0,2]`；`special_forces_dagger` 是它的电击衍生版，tag 列表为其子集 → `pierce`/`slash`/`melee`/`one_handed`/`parry` 自洽。`unarmed` 与 `special_forces_dagger` 同源（匕首可配拳法），与 `opponents.test.ts` 不冲突 | 可补 `buff` |
 
-## 需裁定（拿不准的）
+### 需裁定（拿不准的）
 
 1. **`starting-weapons.ts` 的"不进奖励池"注释与代码不符**：`reward-pool.ts:109-117` 的武器池 `filter((w) => !w.tags.includes('imperial'))` **只排除 `imperial`**，`STARTING_WEAPONS` 被显式合入（`[...WEAPON_DB, ...STARTING_WEAPONS]`）。因此 8 把起始武器**当前全部可被随机抽到**（含 `bare_hands` 赤手空拳——它同时是 n2 的"修炼点"选项）。按 RUBRIC §归类与暴露，若"起始武器不进池"是既定规则，应给它们标 `inherent`；若"可被抽到"是有意（例如事件节点补给），则只需改注释。本报告按"代码与注释冲突"记录，未判 ❌。御物 4 把（`hover_drone`/`floating_silk`/`tri_orb`/`fei_jian`）另走 `xuanmen_n02_weapon` 事件发放，`imperial` 过滤正确；但 `inherent`（"不可复制、不可禁用"，见 `tag.ts:51`）与 `imperial` 的职责边界需确认。
 2. **`unarmed`/第二个攻击 tag 在"兵器"上的口径**：`special_forces_dagger`、`ninja_sword`、`heshan_sword`、`dagger` 带 `unarmed`；`dark_iron_sword` 带 `blunt`/`slash`/`pierce`。现象是"握兵器也能吃拳脚招/多类斩击招"。若口径是"武器 tags 只描述形态"，则 `unarmed` 应只给拳套/空手（4 条要动）；若口径是"能解锁哪类招"，则现状成立（`heshan_sword` 的描述"可同时使用拳掌功夫"与 `passives.ts:484` 的 `weapon_tag: 'unarmed'` 都指向后者）。本报告按后者不判 ❌。
@@ -775,11 +836,9 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 ---
 
-## 六、功法 · 上半（前 55 个）
+## 附录 B、功法 · 上半（前 55 个）
 
-# 功法（被动）· 上半 tag 审计（前 55 个）
-
-## 结论摘要
+### 结论摘要
 
 - 实体数：**55**（`src/data/passives/passives.ts` 中 `PASSIVES` 按数组顺序第 1–55 个：`forge`(id 行 8) … `sword_intent_tempering`(id 行 642)，第 56 个 `yu_du_shu`(行 651) 起不在本次范围）
 - **❌ 3 条 / ⚠️ 40 条 / ✅ 12 条**（❌ = `frost_mastery`、`momentum_mastery`、`one_arm`；✅ = `sword_dominion`、`ordinary_training`、`tai_chi_mastery`、`zoldyck_art`、`hui_lei_qian`、`baihu_ding`、`yin_shi_li_dao`、`weapon_stance`、`stone_skin`、`qishier_bian`、`hua_gun`、`lingxi_finger`）
@@ -790,11 +849,11 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
   - **语义漂移**：`qi` 泛标（`iron_bone`、`extreme`、`zhou_liu_bu_xi`、`wan_xiang_jian_yi` 的描述/effects 与炁无关）；`damage` 泛标（`daily_grind`、`nei_xi_mian_chang`）；`low_hp` 漏标（`extreme` 条件为 `chan_overflow`，见需裁定）。
 - 高危项提醒（按 RUBRIC §归类与暴露）：`inherent` 直接决定能否进随机奖励池（`reward-pool.ts:89`）。本次 55 条里带 `inherent` 的 4 条（`ordinary_training`、`daily_grind`、`zoldyck_art`、`one_arm`）与其 buff 定义（`ordinary_training`/`daily_grind` 为 `tags: ['damage','inherent']`、`zoldyck_art` 为血脉秘法、`one_arm` 为断臂）自洽，未发现 ❌ 级错标；反之 `yuxin_sword_mastery` 的 `buff` 定义 `yuxin_sword_mastery` 是"叠层上限翻倍"——见需裁定第 3 条。
 
-### 补充：`passive` 标签的系统性缺口（跨条问题，计入各条 ⚠️）
+#### 补充：`passive` 标签的系统性缺口（跨条问题，计入各条 ⚠️）
 
 `grep "'passive'" src --include=*.ts` 显示：引擎/游戏/UI 代码**不读取实体自身的 `passive` 标签**（只读 `weapon.tags`、buff `tags`），该标签目前只影响 tooltip 徽章与 `tagRelevance` 权重（权重 1）。因此缺 `passive` 是低影响，但文件内 55 条中仅 20 条带，属明显不一致。以下 35 条缺 `passive`：`forge`、`iron_bone`、`spirit_resonance`、`sword_dominion`、`last_sword`、`iaijutsu_mastery`、`human_radar`、`ice_heart`、`frost_mastery`、`nineteen_stops`、`extreme`、`zhou_liu_bu_xi`、`nei_xi_mian_chang`、`yu_yang_shi_ba_shi`、`yi_dian_po_xiao`、`inner_power`、`tai_chi_mastery`、`godspeed`、`thunder_art`、`hui_lei_qian`、`baihu_ding`、`qiti_source`、`stance_time`、`dark_room_catch`、`yue_nv_sword`、`one_arm`、`dark_iron_sword_art`、`tide_inner_power`、`shenxing_baibian`、`xuannv_sword`、`zhu_huo_jue`、`wan_xiang_jian_yi`、`stone_skin`、`qishier_bian`、`hua_gun`、`feng_mo_gong`、`frost_step`、`lingxi_finger`、`feng_wu_jiu_tian`、`beiming`、`golden_light`、`sword_intent_tempering`（共 42 项，含已在上文单列者）。建议：文件内统一（要么全带、要么全不带）。
 
-### 补充：`buff` 判定依据（摘自 `src/data/buffs/`）
+#### 补充：`buff` 判定依据（摘自 `src/data/buffs/`）
 
 | 被动引用的 buff | 定义处 | 是否"真增益" |
 | --- | --- | --- |
@@ -842,7 +901,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 | `beiming` 的 `stat_transfer` | buffs.ts:220 每次命中 `推演+1`（同时敌方 `推演-1`） | 是＋给对手负面 |
 | `golden_light` | damage.ts:191 受击耗缠减2、攻击耗缠加2 | 是 |
 
-## 明细
+### 明细
 
 | 实体 | 现 tags | 判定 | 理由（引用 effects/triggers/description） | 建议 |
 | --- | --- | --- | --- | --- |
@@ -901,7 +960,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 | 金光咒（`golden_light`） | `passive` `buff` `defense` `qi` | ⚠️ | 描述"金光护体，AP上限-1"；`battle_start` 给 `max_ap_mod -1`＋`golden_light`（受击耗缠减2伤、攻击耗缠加2伤，真增益向）→ `buff`/`defense`/`qi`（缠劲/炁体系，`golden_light.tags:['qi','defense','damage']`）成立；缺 `damage`（`onAfterDealDamage` 附加 2 点） | 补 `damage` |
 | 剑意淬体（`sword_intent_tempering`） | `passive` `buff` `defense` | ⚠️ | 描述"减免 slash/pierce 伤害，且单次受伤不超过最大生命的一定比例"；`sword_intent_tempering`（`onTakeDamage`：`slash`/`pierce` ×0.9、单次伤害上限 `maxHp×0.3`）→ `buff`/`defense` 成立；**该 buff 自身 `tags:['defense','inherent']`，是血脉特性却未在被动上标 `inherent`（会进随机池）**；可补 `slash` `pierce`（只对这两类减伤） | 补 `inherent`；`slash`/`pierce` 可选 |
 
-## 需裁定（拿不准的）
+### 需裁定（拿不准的）
 
 1. **`debuff` 是否包含"给自己上的中性/收束型负面"**：`one_arm`（`agility -2`）、`momentum_mastery`（"每层受到伤害+5%"）按 RUBRIC §二字面（"给自己上的负面不算 `debuff`"）都是错标，但两者描述文本本身就把这段代价写在"代价"位置，UI 上标 `debuff` 是否属于团队既定约定，需要口径确认。本报告按 RUBRIC 判 ❌。
 2. **`qi` 的边界**：`iron_bone`（铁布衫）、`extreme`、`zhou_liu_bu_xi`、`wan_xiang_jian_yi`、`yue_nv_sword`/`xuannv_sword` 等一批武侠类功法的 `qi` 只来自命名/世界观（"内力/元气/剑意"），代码里既无炁资源也无炁伤。若 `qi` 是"炁/内功体系"的宽口径世界观标签则应保留；若按 RUBRIC「与炁相关（炁资源、炁伤害、炁体、以炁驱动）」的机制口径则应大面积删除。本报告按机制口径给 ⚠️，未直接判 ❌。
@@ -915,15 +974,13 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 ---
 
-## 七、功法 · 下半（后 55 个）
-
-# 功法（被动）后 55 个 tag 审计（passives-b）
+## 附录 C、功法 · 下半（后 55 个）
 
 > 范围：`src/data/passives/passives.ts` 的 `PASSIVES` 按文件顺序第 56 个（`yi_ma_xin_yuan`）到第 110 个（`ku_chan_shen_gong`）。
-> 口径：`docs/_tag-audit/RUBRIC.md`（唯一标准）。判定中引用的 buff 定义见 `src/data/buffs/{buffs,damage,defense}.ts`，触发招式见 `src/data/actions/{internal,support}.ts`。
+> 口径：见附录 G（原 RUBRIC）（唯一标准）。判定中引用的 buff 定义见 `src/data/buffs/{buffs,damage,defense}.ts`，触发招式见 `src/data/actions/{internal,support}.ts`。
 > 只读审计，未改动 `src/` 任何文件。
 
-## 结论摘要
+### 结论摘要
 
 - 实体数：55
 - ❌ 6 条 / ⚠️ 34 条 / ✅ 15 条
@@ -940,7 +997,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
     - **其他**：`passive` 标记缺失 7 条；`buff` 借用/缺失 3 条（`gear_shift`、`combat_instinct`、`ningqi_jue`）；`move`/`trigger`/`ignore_parry` 少标若按口径应补，但全文件 110 条功法对这三个 tag 均为 0 处使用（可能属约定性省略，见「需裁定」）。
     - `stance` / `dot` / `summon` / `talent` 轴：本 55 条中 `stance`、`dot`、`talent` 无应标未标或误标（`talent` 由独立文件 `src/data/passives/talents.ts` 承担，本文件不带是对的）；`summon` 仅 `tai_shang_yu_fa` 一条存疑。
 
-## 明细
+### 明细
 
 | 实体 | 现 tags | 判定 | 理由（引用 effects/triggers/description） | 建议 |
 | --- | --- | --- | --- | --- |
@@ -1000,7 +1057,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 | 禅心慧眼（chan_xin_hui_yan） | `passive` `buff` `qi` | ⚠️ | buff `chan_xin_hui_yan_buff`（buffs.ts:1824）按推演加命中/暴击，`buff` 成立；`qi` 在 description 与 buff（tags 仅 `buff`）中均无依据 | 去 `qi` |
 | 枯蝉神功（ku_chan_shen_gong） | `passive` `buff` `chan` `low_hp` | ⚠️ | buff `ku_chan`（buffs.ts:1835）致死后无效该次伤害并耗尽缠劲，蜕壳 `ku_chan_tuo_ke`（buffs.ts:1867）免疫一切 DOT；`buff`/`chan`/`low_hp` 均成立，但「无效致死伤害+免疫 DOT」是防御价值，`defense` 未标 | 补 `defense` |
 
-## 需裁定（拿不准的）
+### 需裁定（拿不准的）
 
 1. **`inherent` 的边界**：`tai_shang_yu_fa` 的 description 是「玄门祖传御法」，与已标 `inherent` 的 `ningqi_jue`（「药屋家传呼吸法，血脉限定」）同构，但当前未标 `inherent`，会进随机奖励池（`reward-pool.ts:89`）。同类还有只在单一对手处授予的 `zui_quan`（无志）、`ku_chan_shen_gong`（阿九）、`guan_zi_zai_yan`（姬然/拉月）、`ling_ao_bu`、`luo_ying_shen_jian` 等 —— 但这些功法同时出现在对手的 `rewards` 里（如 `wuzui.ts:21`、`ajiu.ts:24`），说明「可经击败对手获得」是既定设计，是否还要排除随机池需设计确认。
 2. **`ling_long_xin_qiao` 的 `inherent`**：其 buff 是一次性数值增益（每点推演+1.5%暴击），却被标记 `inherent` 永久排除随机池；它同时授予 `xunxiang.ts:22` 与 `haoran.ts:25` 两名角色，「特性/血脉限定」的依据需确认。
@@ -1016,11 +1073,9 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 ---
 
-## 八、招式 · 近战/炁/空手
+## 附录 D、招式 · 近战/炁/空手
 
-# 招式（动作）tag 审计 · A 组：melee / qi / unarmed
-
-## 结论摘要
+### 结论摘要
 
 - 实体数：**56**（`src/data/actions/melee.ts` 24 + `src/data/actions/qi.ts` 8 + `src/data/actions/unarmed.ts` 24）
 - ❌ 3 条 / ⚠️ 39 条 / ✅ 14 条
@@ -1040,7 +1095,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 > 机制依据：`engine.ts:827-828`（action.tags 决定 `on_melee`/`on_range`）、`engine.ts:851`（辅助招必须带 pre/post）、`support-planner.ts:71-79`（招式 tag 参与 AI 辅助优先级）、`tagRelevance.ts`（权重 4/2/0）、`buffs.ts:1781`（`qi_action` 的带刃判定只认 `slash`/`pierce`）。
 
-## 明细
+### 明细
 
 | 实体 | 现 tags | 判定 | 理由（引用 effects/description） | 建议 |
 | --- | --- | --- | --- | --- |
@@ -1101,7 +1156,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 | 如来神掌（ru_lai_shen_zhang） | `unarmed` `qi` `range` `chan` | ⚠️ | str/vit/wisdom 0.6（wisdom→`qi`）与 `chanCost 20` 正确；但 `getRange [0,2]` 是近身，`range` 只因 `short_dash 5` 才达 0-7，会对一记掌击发 `on_range`。description「距离极远」支持 `range`，但基础射程文案与 getRange 需统一。 | 见「需裁定」：统一为 melee+dash 或改 getRange |
 | 端杯手（duan_bei_shou） | `unarmed` `melee` `jiu` | ✅ | `onActionHitChance` 用 `countDrunkLayers`（`drunk.ts` 按 `jiu` tag buff 层数），description「每层醉酒提升命中」→`jiu` 正确。 | 无需调整 |
 
-## requiredTags 专项核对
+### requiredTags 专项核对
 
 - 范围内 requiredTags 只用了 `pierce` / `slash` / `melee` / `unarmed`，**均存在于武器体系**：
   - `pierce`：长枪、七根丝、军用匕首、桃木剑等；`slash`：桃木剑、锁链断刀、黑云剑、素铁霸刀等；`melee`：桃木剑、军用匕首、弗思剑、藏锋、次元刃、千绣冬、春雷、阿赖耶识、惊鸿、千机、不二剑等；`unarmed`：赤手空拳（`starting-weapons.ts`）、素手无相、军用匕首、特种兵匕首、千机。
@@ -1109,7 +1164,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 - **唯一失效项**：`yu_xiao_jian_fa` 的 requiredTags `['melee']`（单标签）——齐眉棍/玄铁重剑/引擎铁锤/陨铁神珍/铁枪·破军/三节枪/镇北戟均无 `melee` tag，与其 tags 中的 `blunt`/`pierce` 宣称冲突。
 - 拳脚招一律 `['unarmed']`；`shadow_kick`、`lion_roar`、全部炁技（含 `qi_gather`/`restore_ap`/四发炁弹）为 `[]`（任意武器可用）。炁技 `[]` 与其「锻体解锁的辅招」定位一致；`shadow_kick`/`lion_roar` 的 `[]` 见「需裁定」。
 
-## 需裁定（拿不准的）
+### 需裁定（拿不准的）
 
 1. **肆炁弹（qi_bolt_4）是否补 `pierce`**：效果 `piercing:1, piercingRatio:0.4`。`buffs.ts:1781` 中炁招的「带刃」判定 = `tags.includes('slash') || tags.includes('pierce')`；补 `pierce` 会让它叠「刃炁」，不补则纯穿透弹不叠。穿透是否等于带刃，需设计口径。
 2. **三寸光（three_inch_light）是否补 `qi_action`**：description「炁凝指尖」属纯炁凝聚；不标 `qi_action` 时刃炁判定回落到武器 tags（unarmed 武器无 slash → 不叠）。同类 `qi_blade` 标了 `qi_action`。
@@ -1130,14 +1185,12 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 ---
 
-## 九、招式 · 玩家/支援/内部
-
-# 招式 · 玩家/支援/内部 tag 审计
+## 附录 E、招式 · 玩家/支援/内部
 
 > 只读审计，**未改动 `src/` 下任何文件**。判定口径见 [`RUBRIC.md`](RUBRIC.md)。
 > 范围：`src/data/actions/player.ts`（28）、`support.ts`（33）、`internal.ts`（38）；`index.ts` 无内联 `ActionDefinition`（只有 import/合并/`getActionsByWeapon`），不计入。
 
-## 结论摘要
+### 结论摘要
 
 - 实体数：**99**（player 28 + support 33 + internal 38；`grep -c "id: '"` 与逐条解析一致）
 - **❌ 19 条 / ⚠️ 39 条 / ✅ 41 条**（player 4/15/9，support 2/18/13，internal 13/6/19）
@@ -1153,7 +1206,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 ---
 
-## 一、`player.ts`（28）
+### 一、`player.ts`（28）
 
 现 tags 与判定：
 
@@ -1190,7 +1243,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 ---
 
-## 二、`support.ts`（33）
+### 二、`support.ts`（33）
 
 | 实体 | 现 tags | 判定 | 理由（引用自身 effects/description/requiredTags） | 建议 |
 | --- | --- | --- | --- | --- |
@@ -1230,7 +1283,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 ---
 
-## 三、`internal.ts`（38）
+### 三、`internal.ts`（38）
 
 > 该文件头注释为「内部招式（被动/天赋触发专用，不直接装备）」。**判定基准（已按 §十二 修正）= 内部实现条目必须挡住「学招式」候选池**；挡池有两个手段且**不等价** —— `internal` 标签会同时把招式剔出 AI 主招候选（`ai/index.ts:76-80`），`_` 前缀只挡池子（全库只有 `reward-pool.ts` 读它）。故本表「判定」列保留审计原判（基准为「必须带 `internal`」），「建议」列的「补 `internal`」一律以 §十二 的 `_` 前缀方案为准。
 
@@ -1277,7 +1330,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 ---
 
-## 需裁定（拿不准的）
+### 需裁定（拿不准的）
 
 1. **`pre_action` / `post_action` 的语义边界** —— **已复核，无需改动**（原三条疑问全部不成立）。引擎只用「是否带其中之一」分流（`engine.ts:851` 放行 support 路径、`ai/index.ts:76` 从主招剔除），`ai/support-planner.ts` 再把 `pre_action` 排在主招前、`post_action` 排在主招后。逐条复核：
    - `feng_fan` 同带两者**不会重复释放**：前摇选完后其 id 作为 blacklist 传入收招阶段（`ai/index.ts:151`、`support-planner.ts:24`）；且它是纯位移招，位移招一律不走 support 通道（`support-planner.ts:41`，与阶段无关），实际只由 `planMove` 使用；
@@ -1300,14 +1353,12 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 
 ---
 
-## 十、奇物（76）
+## 附录 F、奇物（76）
 
-# 奇物（ARTIFACTS）tag 审计
-
-> 口径：`docs/_tag-audit/RUBRIC.md`。数据源：`src/data/artifacts.ts`（76 件）、`src/data/buffs/*.ts`、`src/data/actions/internal.ts`、`src/engine/entities/tag.ts`、`src/game/roguelite/reward-pool.ts`、`src/game/tagRelevance.ts`。
+> 口径：见附录 G（原 RUBRIC）。数据源：`src/data/artifacts.ts`（76 件）、`src/data/buffs/*.ts`、`src/data/actions/internal.ts`、`src/engine/entities/tag.ts`、`src/game/roguelite/reward-pool.ts`、`src/game/tagRelevance.ts`。
 > 本审计为只读，未修改 `src/` 下任何文件。
 
-## 结论摘要
+### 结论摘要
 
 - 实体数：76
 - ❌ 6 条 / ⚠️ 46 条 / ✅ 24 条
@@ -1321,7 +1372,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
   - **`debuff` 方向全部正确**：3 件带 `debuff` 的奇物（十香软筋散、西域奇毒、忍者工具包）均把负面状态施加给对手；自罚（义体 `ap_drain`/`overload`/`muscle_degradation`、斗铠身法-2、血祭护腕耗血）未被误标为 `debuff`，符合口径。
   - **`dot` 标签全库死标签**：`src/data/` 下无任何实体使用 `dot`（毒/流血类奇物也未标），见「需裁定」。
 
-## 明细
+### 明细
 
 | 实体 | 现 tags | 判定 | 理由（引用 effects/triggers/description） | 建议 |
 | --- | --- | --- | --- | --- |
@@ -1402,7 +1453,7 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 | 武学宝典下（wuxue_baodian_xia） | `buff` | ⚠️ | `wuxue_baodian_xia`（`buffs.ts:1067`）每奖励标签受到伤害-1%（上限15%）＝防御价值，缺 `defense` | 补 `defense` |
 | 自动净化背心（auto_purify_vest） | `defense` `craft` | ⚠️ | `auto_purify`（`buffs.ts:1345`）每 5 秒净化 1 层可净化负面（耗 1 缠劲）＝净化自身，`cleanse` 未标（`defense` 语义勉强）；`description`「秘制背心」非天工出品 | 补 `cleanse`；依口径去 `craft` |
 
-## 需裁定（拿不准的）
+### 需裁定（拿不准的）
 
 1. **`low_hp` 口径冲突**：RUBRIC 二写「低血触发、越残越强才标」，而 `tag.ts:60` 注释含「用血换效果的奖励标签」。血祭护腕 `blood_sacrifice`（`damage.ts:213`）只按最大气血 1% 固定耗血、**无低血阈值/越残越强**，却标了 `low_hp`。按 RUBRIC 应去，按 tag.ts 注释可留。另：战术腰包有真正的 `hp_below 0.5` 触发，反而未标 `low_hp`。
 2. **义体是否统一补 `buff`**：14 件 `implant` 的 `stat_buff` 都是真增益却不标 `buff`，而同为 `stat_buff` 的血脉奇物（菩斯曲蛇胆/莽牯朱蛤/火眼金睛）与 craft 奇物（机巧面具/战术护目镜/纳米外骨骼）都标了 `buff`。是「义体统一不标」还是漏标？
@@ -1416,3 +1467,113 @@ return w.tags.includes('melee') && !w.tags.includes('heavy')
 10. **`stance` 是否要落到奇物上**：虎彻之眼、定心香氛用 `requiredTags: ['stance']` 门控且收益与架势相关，但奇物自身无 `stance` tag（全库奇物均无）。是否需要统一补？
 11. **`trigger` 口径不一致**：13/76 标 `trigger`，但几乎每件奇物都有 `triggers` 数组（如冰蚕衣 `on_equip`、软猬甲 `battle_start`、能量护盾 `on_equip` 均未标）。`trigger` 是指「进入触发槽 build」还是「任意 triggers 数组」？
 12. **描述与实现不一致（非 tag 问题，顺带记录）**：乌铠描述「消耗1AP减少4点」vs `dmg_reduce` 实为「1缠劲减4点、限20次」；青竹斗笠描述「距离≥5 额外+15%」vs `ranged_dodge` 实为「≥4m、+20%」；软猬甲描述「反伤并令对手流血」vs `soft_armor` 只叠 `bleed` 无直接反伤；女儿红描述「持续5秒」vs buff「持续9秒」。
+
+
+---
+
+## 附录 G、判定口径（RUBRIC，审计当时）
+
+> 本文件是本次 tag 审计的**唯一判定标准**。所有审计产物按本口径书写。
+> 数据源：`src/engine/entities/tag.ts`（Tag 联合类型）、`src/bridge/tagDisplay.ts`（中文名/颜色）、
+> `src/game/tagRelevance.ts`（tag 权重分级）、`src/data/buffs/`（buff 定义，判断"是否真为人物增益"的依据）。
+
+### 零、硬性约束
+
+- **只读**：禁止修改 `src/` 下任何文件。审计产物只写到 `docs/_tag-audit/` 下指定的文件。
+- **不臆测**：拿不准的不要下结论，放进「需裁定」区，并附上你看到的代码证据。
+- **每个判定都要有理由**：引用该实体自己的 `description` / `effects` / `triggers` / `requiredTags`，不要只说"不合适"。
+
+### 一、tag 分级（来自 tagRelevance.ts）
+
+| 级别 | 权重 | tag |
+| --- | --- | --- |
+| 武器类型（核心 Build 方向） | 4 | `unarmed` `slash` `blunt` `pierce` `polearm` `heavy` `melee` `range` `imperial` `thrown` |
+| 流派 | 2 | `qi` `electric` `frost` `poison` `bleed` `burn` `summon` |
+| 功能（不构成流派） | 0 | `move` `pre_action` `post_action` `chan` `heal` |
+| 其他 | 1 | 其余全部 tag |
+
+### 二、逐 tag 判定口径
+
+#### 增益 / 负面（本次重点）
+
+- **`buff`**：只有「**真的给角色施加了增益状态**」才该标。
+  - 算：属性/状态提升、叠层增益（层数本身带来数值收益）、持续回复、护体等对角色有利的状态。
+  - **不算**：仅把 buff 机制当作**实现手段或标记**用途 —— 如内部计数器、状态旗标、条件载体、纯视觉/流程标记。
+  - 判断方法：去 `src/data/buffs/` 找到它引用的 buff，看 `effects` 是否给角色带来**数值或能力上的正收益**。
+- **`debuff`**：施加**负面状态（弱化）**即算 —— 对**对手**（降属性、禁招、失手、异常）**或对自己**（自罚代价、永久缺陷、动作失败率等）都算。
+  - 已确认口径（2026-09）：**不是"只对对手"**。`独臂` 的「无法双持」、`momentum_mastery` 的自身代价标 `debuff` 属正确。
+- **`low_hp`**：机制与「濒危/低血量」绑定（低血触发、越残越强）才标。
+- **`stance`**：属于架势系统（进入/切换架势、架势收益）。
+- **`chan`**：消耗/回复/以缠劲为资源。
+- **`jiu`**：与酒（醉酒/酒功）绑定。
+
+#### 输出 / 防御
+
+- **`damage`**：直接造成伤害，或显著提升输出（增伤、暴击、连击、破防）。
+- **`defense`**：减伤、招架、格挡、免疫、护盾、回复等防御价值。
+- **`heal`**：真实回血/回伤势（仅"提升回复效率"看情况归 `defense`，需说明）。
+- **`counter`**：反击/反伤/受击反制。
+- **`dot`**：持续伤害（每回合/按秒掉血）。
+- **`ignore_parry`**：无视招架。
+
+#### 元素与状态
+
+- **`bleed` / `burn` / `frost` / `electric` / `poison`**：造成对应元素/异常伤害或叠对应状态才标。只是名字带"火/雷/冰"但机制无关，不标。
+- **`stun` / `paralyze` / `knockback` / `knockdown` / `sand_blind`**：真的造成对应控制效果才标。
+- **`cleanse`**：净化自身/解除负面。
+- **`self_damage`**：自伤代价。
+- **`qi`**：与炁相关（炁资源、炁伤害、炁体、以炁驱动）。
+
+#### 形态与武器
+
+- **`melee` / `range` / `thrown`**：攻击距离形态（近战 / 远程 / 投掷）。
+- **`polearm` / `heavy` / `unarmed` / `slash` / `blunt` / `pierce`**：武器类别与攻击方式。
+- **`imperial`**：御物（以炁御器）体系。
+- **`parry`**：可招架 / 与招架机制相关。
+- **`one_handed`**：单手可持（双手武器不得带）。
+- **`retrieve_weapon` / `super_armor` / `heavy_reduce` / `range_up`**：对应具体机制（取回兵器 / 霸体 / 重器负担减免 / 射程延长）。
+- **招式的 `requiredTags` 必须与它服务的武器自洽**（与武器 tags 有交集）；反之武器 tags 缺了某类会让相关招式拿不到。
+
+#### 归类与暴露
+
+- **`inherent`**（血脉限定/特性）：**不进随机奖励池**（`src/game/roguelite/reward-pool.ts` 会过滤）。因此：
+  - 应标未标 → 会被随机抽到（多数是错）；
+  - 不该标却标了 → 玩家永远抽不到（也是错）。
+- **`internal`**（内部实现，不对用户/AI 暴露）：用于不该出现在 UI/选项里的条目。
+- **`talent`**：天赋。
+- **`passive`**：功法自身标记（招式/奇物不该带）。
+- **`trigger`**：与触发器系统相关。
+- **`move`**：位移/冲刺/拉近。
+- **`pre_action` / `post_action`**：招式分类（前摇 / 收招），二者与普通招式互斥的分类，不应与流派 tag 混用出错。
+- **`implant` / `craft`**：义体 / 天工造物。
+
+### 三、判定分级与输出格式
+
+每个实体给一行：
+
+| 判定 | 含义 |
+| --- | --- |
+| ✅ | tags 与机制一致，无需调整 |
+| ⚠️ | 存疑：多标 / 少标 / 语义漂移，但影响有限 |
+| ❌ | 明显不符：会造成实际错误（如被错误过滤、错误关联、UI 误读） |
+
+产物格式（Markdown）：
+
+```md
+## <范围名> tag 审计
+
+### 结论摘要
+- 实体数：N
+- ❌ x 条 / ⚠️ y 条 / ✅ z 条
+- 问题归类：<多标> …；<少标> …；<语义漂移> …
+
+### 明细
+| 实体 | 现 tags | 判定 | 理由（引用 effects/triggers/description） | 建议 |
+| --- | --- | --- | --- | --- |
+| 名称（id） | `a` `b` | ⚠️ | …… | 去掉 `b` / 补 `c` |
+
+### 需裁定（拿不准的）
+- ……
+```
+
+> 「建议」列只写建议，**不要改代码**。
