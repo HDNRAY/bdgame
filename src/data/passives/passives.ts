@@ -79,7 +79,7 @@ export const PASSIVES: Passive[] = [
         name: '居合道',
         description: '居合拔刀术的极致境界。习得居合斩与纳刀。',
         tags: ['qi', 'stance'],
-        grantsActions: ['iaijutsu_strike', 'resheath'],
+        grantsActions: ['_iaijutsu_strike', '_resheath'],
         triggers: [{ condition: { type: 'battle_start' }, actionId: '_iaijutsu_ready' }],
     },
     {
@@ -186,7 +186,7 @@ export const PASSIVES: Passive[] = [
         id: 'ordinary_training',
         name: '平平无奇的锻炼',
         description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
-        tags: ['passive', 'defense', 'inherent'],
+        tags: ['passive', 'defense'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ordinary_training' }] },
         ],
@@ -195,7 +195,7 @@ export const PASSIVES: Passive[] = [
         id: 'daily_grind',
         name: '日复一日的训练',
         description: '平平无奇的每日训练，洞察提升命中，推演提升闪避。',
-        tags: ['passive', 'inherent'],
+        tags: ['passive'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'daily_grind' }] }],
     },
     {
@@ -950,7 +950,7 @@ export const PASSIVES: Passive[] = [
         id: 'ling_long_xin_qiao',
         name: '玲珑心窍',
         description: '心窍玲珑，算尽对手每寸动作。每点推演增加1%暴击率。',
-        tags: ['passive', 'buff', 'inherent'],
+        tags: ['passive', 'buff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'ling_long_xin_qiao_buff' }] },
         ],
@@ -1034,7 +1034,7 @@ export const PASSIVES: Passive[] = [
         id: 'qian_chui_bai_lian',
         name: '千锤百炼',
         description: '千锤百炼，水火不侵。所受灼烧伤害-30%；以根骨化力道（根骨每4点力道+1）。',
-        tags: ['passive', 'buff', 'defense', 'inherent'],
+        tags: ['passive', 'buff', 'defense'],
         // 根骨化力道：构造期一次性转化（attr_convert 快照，floor 与「每4点+1」同源）
         effects: [{ type: 'attr_convert', from: 'vitality', to: ['strength'], ratio: 0.25, mode: 'floor' }],
         triggers: [

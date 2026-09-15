@@ -289,7 +289,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'iron_will',
         name: '乌铠',
         description: '受到超过4点的拳脚/斩/刺/钝伤害时，消耗1缠劲减免4点，每场最多20次。',
-        tags: ['trigger', 'defense', 'inherent'],
+        tags: ['trigger', 'defense'],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dmg_reduce' }] }],
     },
     {
@@ -310,7 +310,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'frost_silk_robe',
         name: '冰蚕衣',
         description: '冰蚕丝织就的软甲，遇寒愈坚。招架率+12%；招架近战攻击后以寒气反噬对手。',
-        tags: ['defense', 'inherent'],
+        tags: ['defense'],
         triggers: [
             {
                 condition: { type: 'on_equip' },
@@ -541,7 +541,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'combat_armor',
         name: '斗铠',
         description: '百战之铠，非炁伤害减免，但身法-2。',
-        tags: ['defense', 'inherent'],
+        tags: ['defense'],
         effects: [{ type: 'stat_buff', attrs: { agility: -2 } }],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_armor_def' }] },
@@ -622,7 +622,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'tempest',
         name: '暴雨梨花钉',
         description: '机簧发射二十七枚银钉，力道万钧，中者必死无救。从不淬毒。',
-        tags: ['inherent'],
+        tags: ['thrown'],
         grantsActions: ['tempest'],
     },
     // ── 天工锻造品 ──
@@ -721,7 +721,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'sonic_generator',
         name: '人造发声器',
         description: '义体研究部特制音波发声器，释放高频音波直摄心魄。',
-        tags: ['craft', 'qi', 'implant'],
+        tags: ['implant', 'inherent'],
         grantsActions: ['_sonic_wave'],
     },
     // ── 武学宝典总纲（通晓天下武学，闪/招→叠暴击；暴击→叠闪/招） ──

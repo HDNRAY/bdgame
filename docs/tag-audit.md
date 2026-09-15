@@ -64,10 +64,9 @@
 
 ## 二、跨类别的高危问题（按建议修复顺序）
 
-1. **`internal` 漏标 → 内部招式进奖励池（已验证）**
-   `internal.ts` 共 38 条，其中 **15 条没有 `internal`**；`reward-pool.ts:104` 的 `_getActionPool()` 直接 `allMainActions` 且**不按 `internal` 过滤**，`engine.ts:413` 的筛选也不查该 tag（过滤只发生在 UI 层的构筑界面）。
-   受害最明显的是 `_orb_shot` / `_huan_shot` / `_silk_shot` / `_fei_jian_shot` / `_fen_shen_shot`：它们既无 `internal` 也**无 `trigger`**，会作为「学招式」奖励直接发给玩家，学了永远不生效 —— **死奖励**。
-   （`_arm_explosion` 是**有意豁免**：`internal.ts:144` 注释说明 AI 需经 `conditionId` 主动选用。）
+1. **内部招式进奖励池（已验证，已修）**
+   `internal.ts` 共 38 条；池层原先直接吃 `allMainActions`，**不按 `internal` 过滤、也不认 `_` 前缀**，于是实现型招式会作为「学招式」奖励发给玩家，学了永远不生效 —— **死奖励**（受害最明显的是 `_orb_shot` / `_huan_shot` / `_silk_shot` / `_fei_jian_shot` / `_fen_shen_shot`，连 `trigger` 都没有）。
+   **修法（见 §八.2 与 §十二）**：池层两道闸 —— `internal` 标签 + `_` 前缀。但 `internal` **还会把招式剔出 AI 主招候选**，所以「AI 要用、玩家不该学」的招式只能用 `_` 前缀。招式池 155 → 118。
 
 2. **`inherent` 双向错（已验证，直接影响抽卡）**
    `reward-pool.ts:97` 按奇物自身 `inherent` 过滤随机池，于是：
@@ -94,7 +93,7 @@
    `reward-pool.ts:112`：`[...WEAPON_DB, ...STARTING_WEAPONS].filter(w => !w.tags.includes('imperial'))` —— 8 把起始武器（含 `bare_hands`）都会进随机池，与 `starting-weapons.ts:8` 的「不进奖励池」注释矛盾。
 
 7. **其它成体系的口径不一致**（详见各分类明细）
-   - `pre_action`/`post_action`：`feng_fan` 同带两者（AI 会重复释放）、`wind_hear`/`resheath` 该蓄势却标收招；
+   - `pre_action`/`post_action`：已复核无问题 —— `feng_fan` 双标不会重复释放（blacklist + 位移招不走 support 通道），`wind_hear`/`_resheath` 的 `post_action` 正确（见裁定 F）；
    - `chan`：8 条有 `chanCost` 却无 `chan` 标签（`gear_hang` 等），`wind_hear` 反之；
    - `damage`：招式文件里几乎不用该 tag（只 buff/功法在用），造成 3 处语义漂移；
    - `passive` 标签系统性缺失（功法上半 42/55）；
@@ -178,11 +177,11 @@
 | C | **`heavy` 的语义** | `tag.ts:29` 写「巨型双手」，但长枪/单手剑（绣冬）/飞剑都带 | 定为「**重器（力道驱动）**」，可叠加在长柄上；不与 `polearm` 互斥 |
 | D | **`damage` 的口径与覆盖面** | 招式 56+99 里几乎不用（仅 2 处）、奇物 0 处、功法 14 条漏标 | 定为「**显著提升输出/破防/暴击**」，按此补齐；否则明确该 tag 只用于 buff |
 | E | **`move` / `chan` / `self_damage` / `ignore_parry` 的粒度** | 带 `short_dash` 的攻击招多数未标 `move`；8 条有 `chanCost` 无 `chan`，`wind_hear` 反之；用 `self_hp_cost` 的不算 `self_damage`；穿透算不算 `ignore_parry` | 分别定为：有位移即 `move`；涉及缠劲（消耗或回复）即 `chan`；卖血即 `self_damage`；只有真"无视招架"才 `ignore_parry` |
-| F | **`pre_action` / `post_action` 的边界与互斥** | `feng_fan` 同带两者（AI 会重复释放）；`wind_hear`/`resheath` 是蓄势却标 `post_action` | 定为互斥；请给一句定义（前摇/前置 vs 收招/后置） |
+| F | **`pre_action` / `post_action` 的边界与互斥** | 原判：`feng_fan` 同带两者会重复释放；`wind_hear`/`_resheath` 该蓄势却标 `post_action` | **已核实不成立**：`ai/index.ts:151` 把前摇指令 id 作为 blacklist 传给收招阶段（`support-planner.ts:24`），位移招又不分阶段地跳过 support 通道（:41）；`post_action` 对「收招补架势」类的判定正确。无需改动 |
 | G | **`inherent` 的边界（剩余）** | `tai_shang_yu_fa`（玄门祖传）未标；`ling_long_xin_qiao` 仅数值增益却被永久排除；只在特定对手处授予的 `zui_quan`；以及"对手专属装备是否一律不进池" | 定为「**血脉/传承特性、不应被随机获取**」，逐条按"能否被抽到"判定 |
 | H | **武器上的 `unarmed` / 多攻击类型** | 匕首/忍者刀/鹤山剑带 `unarmed`（握兵器也能吃拳脚招）；玄铁重剑同时带 `blunt`+`slash`+`pierce` | 去掉"握兵器还能用拳脚招"的 `unarmed`；多攻击类型（重剑）保留 |
 | I | **形态 tag 在功法上的使用** | 110 个功法 `thrown`/`move`/`range`/`melee` 合计 0 处；`bai_ju_guo_xi`（3 米内）、`hearing_power`（徒手）属明显形态 | 给"形态明确"的功法补形态 tag（参与权重即可） |
-| J | **招式池的两处泄漏** | `tempest`（唐柔专属奇物招式）无 `internal`/`inherent` 会进池；15 条 `internal.ts` 招式漏标 `internal` | 与 `internal` 那批一起处理：池层过滤 `internal`，`tempest` 补标 |
+| J | **招式池的两处泄漏** | `tempest`（唐柔专属奇物招式）无 `internal`/`inherent` 会进池；15 条 `internal.ts` 招式未挡池 | 池层两道闸（`internal` + `_` 前缀）；「AI 要用」的招式用 `_` 前缀而非 `internal`；`tempest` 按裁定保留在池内 |
 
 另有**一批描述与机制不符**（`thunder_storm` 写麻痹实为眩晕、`hearing_power` 写徒手实为任意命中、`ru_lai_shen_zhang` 形态、`soft_armor` 等已改）—— 建议单独出一轮文案同步清单。
 
@@ -195,11 +194,11 @@
 | **C** | **`heavy` = 重型武器，不是"巨型双手"** | 更新 `tag.ts:29` 注释 |
 | **D** | 待你定（建议见报告） | 推荐**删掉 `damage`**，`support-planner.ts:79` 改为只看 `buff` |
 | **E** | **short_dash 不算 `move`**；`chanCost` 与 `chan` 必须一致；**穿透不算 `ignore_parry`** | `wind_hear` 去掉 `chan`；8 条有 `chanCost` 的补 `chan`；穿透类不标 `ignore_parry` |
-| **F** | 同带 `pre_action`+`post_action` = 招前招后都能放，但**不应释放两次** | 记录为待研究：改完 tag 后查 AI 会不会重复放 |
+| **F** | 同带 `pre_action`+`post_action` = 招前招后都能放，但**不应释放两次** | **已核实：不会重复**。前摇选完后其 id 作为 blacklist 传入收招阶段（`ai/index.ts:151`、`support-planner.ts:24`）；`feng_fan` 是纯位移招，本就走 `planMove`（`support-planner.ts:41` 跳过位移招，与阶段无关）。无需改动 |
 | **G** | **功法上的 `inherent` 只表示"不进普池"**（原意是"飞龙探云手能否被偷"，该机制已移除） | 按"是否应进普池"逐条判 |
 | **H** | 武器带 `unarmed` **没问题**（持匕首时本就能同时用拳脚）；**`阿赖耶识` 的 `unarmed` 去掉** | 白山"同时释放拳脚招式"改用别的方式 → 记录，后续讨论 |
 | **I** | `thrown`/`range`/`melee` 该标就标；**`move` 只有「凤舞九天」该标** | 按此批量 |
-| **J** | **`tempest` 可以进池**（不改）；**`internal.ts` 里的都要标上 `internal`** | 15 条补标；⚠️ 例外 `_arm_explosion`（`internal.ts:144` 注释：AI 需经 conditionId 主动选用；`ai/index.ts:76-80` 会把 `internal` 从 AI 候选中剔除）→ 需确认或豁免 |
+| **J** | **`tempest` 可以进池**（不改）；**`internal.ts` 里的都要挡住奖励池** | 修法已修正（见 §十二）：**不补 `internal` 标签**，改用 `_` 下划线前缀 —— `internal` 会让招式退出 AI 主招候选（`ai/index.ts:76-80`），一刀/德克会因此崩盘；本次只需给 `iaijutsu_strike`、`resheath` 改名（`_iaijutsu_strike`、`_resheath`），其余 11 条本就带 `_` 前缀 |
 
 ### D 的现状依据
 
@@ -232,7 +231,7 @@ allMainActions.filter((a) => !a.tags.includes('internal') && !a.id.startsWith('_
 
 ### 3. 剩余
 
-- `internal.ts` 15 条待补 `internal`（`_arm_explosion` 除外）；
+- 实现型招式已全部挡住奖励池（§十二：`internal` 标签 + `_` 前缀两道闸）；
 - `dot` 是全库无人使用的死标签，是否一并清理待定。
 
 ### 4. `dot` 已删除（同上流程）
@@ -285,6 +284,60 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 连带影响：
 - 描述写"以炁驱动/激活/供能"的那 8 把武器**一律不补** `qi`；
 - P1 的 `qi` 子批变成：**只做"去"**（去掉 10 处无炁外放的泛标），"补"的 15 处逐条按"有没有炁外放"重筛。
+
+## 十一、P0 执行结果（2026-09）
+
+| 项 | 改动 | 结果 |
+| --- | --- | --- |
+| ~~`internal` 补齐（J）~~ **已回退** | 曾给 13 条补 `internal`（`iaijutsu_strike`、`resheath`、`_orb_shot`、`_huan_shot`、`_silk_shot`、`_fei_jian_shot`、`_fen_shen_shot`、`_flying_lion_roar`、`_golden_bell_swing`、`_eat_beans`、`_chuan_yun`、`_luo_yue`、`_sonic_wave`），导致德克 48.9%→31.4%、一刀 55.8%→16.9% | 已 `git checkout` 回退；改为 `_` 前缀方案，见 §十二 |
+| `inherent` 去（通用防具） | `iron_will`（乌铠）、`frost_silk_robe`（冰蚕衣）、`combat_armor`（斗铠）去掉 `inherent` | 三件现在**进**奇物池 |
+| `sonic_generator`（人造发声器） | `['craft','qi','implant']` → `['implant','inherent']` | 按裁定「应该是义体」；现在**不进**池 |
+| `ling_long_xin_qiao`（玲珑心窍） | 去掉 `inherent` | 按裁定**进**池 |
+| 暴雨梨花钉（奇物 id=`tempest`） | `['inherent']` → `['thrown']` | 按裁定**进**池，且带 `thrown`（暗器） |
+| 阿赖耶识 `unarmed` | **不改**（裁定更正：持械同时用拳脚没问题，阿赖耶识也一样） | 与 H 的初版裁定相反，以本轮为准 |
+| 风切 / 匕首 的 `unarmed` | **无需改** —— `风切` 现有 tags 已含 `unarmed`（`slash/pierce/parry/melee/unarmed/one_handed`），匕首同理 | 与「匕首、风切都应该有 unarmed」一致 |
+
+奇物池：76 → **51**（25 件 inherent 排除，加回乌铠/冰蚕衣/斗铠/玲珑心窍* 等）；`*` 玲珑心窍属功法池。
+
+> 过程记录：`internal` 补标第一次用正则批量替换时，因"边遍历边改字符串"导致偏移错乱写坏了文件，已 `git checkout` 回滚并改为逐行定位重做（diff 13 增 13 删，tsc/eslint/422 测试全过）。**该批补标随后因胜率回归被整体回退，见 §十二。**
+## 十二、第四轮修正（`internal` 回退 → 下划线前缀，2026-09）
+
+### 1. 口径：两个挡池手段不等价
+
+| 手段 | 挡奖励池 | 挡 AI 主招候选 |
+| --- | --- | --- |
+| `internal` 标签 | 是（`reward-pool.ts` `_getActionPool`） | **是**（`ai/index.ts:76-80` 直接 `continue`） |
+| `_` 前缀 | 是（同一个 filter） | 否（全库只有 `reward-pool.ts` 读它） |
+
+`_` 前缀全仓库只有一个消费方（`_getActionPool`），AI、引擎、UI 都不读；`internal` 则同时服务池过滤与 AI 剔除。因此适用面是：
+
+- **AI/对手要用、玩家不该从「学招式」拿到的** → `_` 前缀，**不标 `internal`**；
+- **AI 与玩家都不该主动用的纯触发实现招** → 保持 `internal`（现存 23 条全部同时带 `_` 前缀，`internal` 在池层是冗余的，它实际承担的是 AI 剔除）。
+
+### 2. 回归与回退
+
+按旧裁定给 `internal.ts` 13 条补 `internal` 后，同一套 `simulateWinRate`（等级 33，对 `xiaohua/laifeng/layue/hongti/daixuan/junshi`，N=60）：
+
+| 对手 | 基线 | 补 `internal` 后 | 回退后 |
+| --- | --- | --- | --- |
+| 博士·德克 | 48.9% | 31.4% | 48.6% |
+| 一刀 | 55.8% | 16.9% | 55.6% |
+
+根因：一刀的主招 `iaijutsu_strike`、`post_action` 辅招 `resheath`，与德克召唤物的 `_sonic_wave`（人造发生器 `on_parried` 触发）都在 AI 主招循环里取用，补 `internal` 等于把它们从候选里删掉。**已整体 `git checkout` 回退**。
+
+### 3. 本次实际改动
+
+| 位置 | 改动 |
+| --- | --- |
+| `src/data/actions/internal.ts` | `iaijutsu_strike` → `_iaijutsu_strike`；`resheath` → `_resheath`（只改 id，名字/tags/数值不动） |
+| `src/data/passives/passives.ts:82` | `grantsActions` 同步为 `['_iaijutsu_strike', '_resheath']` |
+| `src/data/opponents/yidao.ts:29` | `actionId` 同步为 `_resheath` |
+| `src/engine/__tests__/reward-pool.test.ts` | 新增断言：action 池不含 `_` 前缀、不含 `internal` 标签；并点名 `_iaijutsu_strike`/`_resheath` 不在池内 |
+
+- 招式池 155 → **118**（其余 11 条「漏标」本就带 `_` 前缀，池层早已挡住，不必再动）；
+- `tempest` 按裁定 J 保留在池内，不动；
+- 未改：`_resheath` 的 `post_action`（裁定 F 已复核：收招定位正确，不改）、`_sonic_wave` 的 `qi`（P1）；
+- 复测：博士·德克 48.6%、一刀 55.6%，与基线一致（`_` 前缀对战斗零影响）。
 
 
 审计由多个子任务并行产出，汇总前对**高危/结论性判定**做了复核。以下记录复核结论，最终报告以复核后为准。
@@ -342,6 +395,22 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 1. 删除这 4 个事件是安全的（4 行 emit + 4 行 union + 8 行文案）。
 2. 删掉后，`melee`/`polearm`/`range`/`unarmed` 的消费点只剩两个：`tagRelevance` 权重档（4）与招式 `requiredTags`。
 3. 因此「招式缺 `melee` → `on_melee` 不触发」这条审计结论**失效**（该标题下的 ⚠️ 仅保留"奖励权重偏低"这一半）。
+
+## 6. 「内部实现条目必须带 `internal`」→ 基准废止，改用 `_` 前缀（用户指出 + 胜率回归实测）
+
+原审计基准是「`internal.ts` 里的条目必须带 `internal` 标签」，P0 照此给 13 条补标，结果把 AI 要用的招式一并剔出了主招候选（`ai/index.ts:76-80`）：
+
+| 对手 | 基线 | 补 `internal` 后 | 回退后 |
+| --- | --- | --- | --- |
+| 博士·德克 | 48.9% | 31.4% | 48.6% |
+| 一刀 | 55.8% | 16.9% | 55.6% |
+
+两个挡池手段的效力并不相同：`_` 前缀只挡奖励池（全库唯一消费方是 `reward-pool.ts` 的 `_getActionPool`），`internal` 标签同时挡池**并**把招式剔出 AI 主招候选。故基准改为：
+
+- 「AI/对手要用、玩家不该学」→ `_` 前缀；
+- 「AI 与玩家都不该主动用」→ `internal`。
+
+据此各明细报告里 ❌/⚠️ 的「补 `internal`」建议一律作废，改读为「未挡池」；实际只需 `iaijutsu_strike`、`resheath` 改名（`_iaijutsu_strike`、`_resheath`），其余 11 条本就带 `_` 前缀。执行细节见汇总文 §十二。
 
 
 ---
@@ -818,11 +887,11 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 
 - 实体数：**99**（player 28 + support 33 + internal 38；`grep -c "id: '"` 与逐条解析一致）
 - **❌ 19 条 / ⚠️ 39 条 / ✅ 41 条**（player 4/15/9，support 2/18/13，internal 13/6/19）
-- `internal` 漏标集中区（最高危）：`internal.ts` 38 条里**15 条无 `internal`**（该文件头注释为「内部招式（被动/天赋触发专用，不直接装备）」，同文件 artifact 授予的 `_jiu_*`/`_field_dressing`/`_detox_shot` 等都带了）。其中 13 条判 ❌：`iaijutsu_strike`、`_orb_shot`、`_huan_shot`、`_silk_shot`、`_fei_jian_shot`、`_fen_shen_shot`、`_flying_lion_roar`、`_golden_bell_swing`、`_eat_beans`、`tempest`、`_chuan_yun`、`_luo_yue`、`_sonic_wave`；`resheath`、`_detox_shot` 判 ⚠️（另有其他 tag 问题）；`_arm_explosion` 是**有意豁免**（`internal.ts:144` 注释：AI 需能经 `conditionId` 主动选用）。
+- **实现型招式未挡奖励池（最高危）**：`internal.ts` 38 条中 23 条带 `internal` 且同时带 `_` 前缀；余下 15 条里 12 条本就带 `_` 前缀（池层早已挡住），真正漏网的只有 `iaijutsu_strike`、`resheath`（外加按裁定允许进池的 `tempest`）。当时按「内部条目必须带 `internal`」判 ❌/⚠️，**该基准已废止**：`internal` 会同时把招式剔出 AI 主招候选（`ai/index.ts:76-80`），给 AI 要用的招式补 `internal` 会让对手崩盘（实测见汇总文 §十二）。正确的挡池手段是 `_` 前缀。
 - 问题归类：
-  - **`internal` 漏标（最高危，13 条判 ❌，另有 2 条 ⚠️；全在 `internal.ts`）**：`internal.ts` 是「被动/天赋触发专用」文件（38 条里 23 条带 `internal`）。漏标的 15 条会被 `reward-pool` 当作普通招式。`src/game/roguelite/reward-pool.ts:104` 的 `_getActionPool()` 直接 `allMainActions`（含 `INTERNAL_ACTIONS`）且**不过滤 `internal`**，`src/game/roguelite/engine.ts:413` `_itemCandidates` 的 `passAll` 也只查 `exclude/ids/excludeTags/ap/requireTags/requiredTags`；过滤只发生在 UI 层（`RewardPicker.tsx:50`、`CharacterPanel.tsx:279`、`useBuildCharacter.ts:63`）。典型受害：`_orb_shot`(`internal.ts:160`)、`_fei_jian_shot`(:216)、`_silk_shot`(:187)、`_fen_shen_shot`(:229) 连 `trigger` 都没有 → **会作为「学招式」奖励直接发给玩家，学了也不可出现/触发，纯死奖励**。`_arm_explosion`(:144) 有明确注释说明为何不标（AI 需经 `conditionId` 主动选用），属有意豁免。
+  - **`internal` 漏标（最高危，13 条判 ❌，另有 2 条 ⚠️；全在 `internal.ts`）**：`internal.ts` 是「被动/天赋触发专用」文件（38 条里 23 条带 `internal`）。漏标的 15 条会被 `reward-pool` 当作普通招式。**（审计当时）**`src/game/roguelite/reward-pool.ts` 的 `_getActionPool()` 直接 `allMainActions`（含 `INTERNAL_ACTIONS`）且**不过滤 `internal`**，`engine.ts:413` `_itemCandidates` 的 `passAll` 也只查 `exclude/ids/excludeTags/ap/requireTags/requiredTags`；过滤只发生在 UI 层（`RewardPicker.tsx:50`、`CharacterPanel.tsx:279`、`useBuildCharacter.ts:63`）—— 池层两道闸已于本次补上。典型受害：`_orb_shot`(`internal.ts:160`)、`_fei_jian_shot`(:216)、`_silk_shot`(:187)、`_fen_shen_shot`(:229) 连 `trigger` 都没有 → **会作为「学招式」奖励直接发给玩家，学了也不可出现/触发，纯死奖励**。`_arm_explosion`(:144) 有明确注释说明为何不标（AI 需经 `conditionId` 主动选用），属有意豁免。**修法见汇总文 §十二：一律改用 `_` 前缀挡池，不补 `internal`。**
   - **`buff` 方向反标（6 条）**：`electric_yoyo`、`flash`、`bi_hai_chao_sheng_qu`、`shi_qi` 等把「给对手上异常」标成 `buff`。对照：`yufeng_needle` 只有 `add_debuff`（标 `debuff`+`paralyze`），而 `_huan_shot`/`_flying_lion_roar`/`_golden_bell_swing` 同类却不带 `buff` —— 文件内无统一口径。
-  - **`buff` 少标（15 条）**：`wan_liu_gui_zong`、`jin_zhong_zhao`、`chanzi_stance`、`cang_niao_jian_fa`、`gear_hang`、`summon_haste`、`condense_shield`、`agility_steal`、`drone_paralyze`、`resheath`、`_iaijutsu_ready`、`_cangfeng_mind_eye`、`_alaya_insight`、`_qiti_awaken`、`_tai_shang_heal` 等只写 `defense`/`summon`/`trigger` 而不写 `buff`（若团队口径是「只标功能类」，这批应判 ✅，见「需裁定」2）。
+  - **`buff` 少标（15 条）**：`wan_liu_gui_zong`、`jin_zhong_zhao`、`chanzi_stance`、`cang_niao_jian_fa`、`gear_hang`、`summon_haste`、`condense_shield`、`agility_steal`、`drone_paralyze`、`_resheath`、`_iaijutsu_ready`、`_cangfeng_mind_eye`、`_alaya_insight`、`_qiti_awaken`、`_tai_shang_heal` 等只写 `defense`/`summon`/`trigger` 而不写 `buff`（若团队口径是「只标功能类」，这批应判 ✅，见「需裁定」2）。
   - **`chan` 口径不一致**：`chanCost > 0` 却无 `chan` 标签的有 8 条（`gear_hang` 20、`big_leap` 3、`lightning_speed` 4、`jindou` 5、`santou_liubi` 27、`chanzi_heal` 10、`chanzi_stance` 10、`deng_ping_du_shui` 2）；而 `wind_hear` 无 `chanCost` 却带 `chan`（其 buff `wind_hear_buff` 不回复缠劲，只有闪避+前移）。
   - **`damage` tag 语义漂移（3 条）**：`ru_long`、`wan_fa_gui_yi`、`tempest` 带 `damage`。`grep "'damage'" src/data/actions/*.ts` 显示 `melee/unarmed/qi` 三个文件**没有任何一条招式带 `damage`**，该 tag 在数据层只用于 buff/功法（`damage.ts` 11 处）表达「增伤」。这 3 条是「造成伤害」而非「提升输出」，按 RUBRIC §输出/防御应去掉。
   - **`requiredTags` 自洽**：全部 99 条的 `requiredTags` 并集 = `blunt imperial parry pierce polearm slash summon unarmed`，全部命中武器 tag 并集（`weapons.ts`+`starting-weapons.ts`），**无孤立 requiredTags**；`getActionsByWeapon`/`ai/index.ts:85` 的交集判定也不会出现为空。
@@ -886,10 +955,10 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 | 电光石火（lightning_speed） | `move` `pre_action` `chan` | ✅ | `dash{maxRange:4, targetDist:0}`，`chanCost: 4`，描述「瞬息即至」；无元素机制，未标 `electric` 正确 | 保持 |
 | 筋斗（jindou） | `move` `pre_action` `chan` | ✅ | `dash{minRange:1, maxRange:8, targetDist:1}` + `canUse agility>=10`，`chanCost: 5` | 保持 |
 | 凤迴（feng_hui） | `move` `pre_action` | ✅ | `dash{maxRange:8, targetDist:0}`，描述「瞬移至对手身后」，`useAp: false` | 保持 |
-| 凤反（feng_fan） | `move` `pre_action` `post_action` | ❌ | **同时带 `pre_action` 与 `post_action`**；`engine.ts:851` 用「有其中任一」放行 support 路径，`ai/index.ts:76-78` 用「有其中任一」从主招候选剔除，二者语义互斥（RUBRIC §归类与暴露：「二者与普通招式互斥的分类」）。`effects` 只有 `dash{maxRange:8, targetDist:-1}`（纯后撤） | 二选一（按「收招后拉开距离」保留 `post_action`，去 `pre_action`） |
+| 凤反（feng_fan） | `move` `pre_action` `post_action` | ✅（已复核改判） | 同时带 `pre_action` 与 `post_action`，但**不构成重复释放**：`ai/index.ts:151` 把前摇指令的 id 作为 blacklist 传给收招阶段（`support-planner.ts:24` 直接跳过）；且 `effects` 只有 `dash{maxRange:8, targetDist:-1}`（纯后撤），`support-planner.ts:41` 对位移招**不分阶段**一律跳过，实际只由 `planMove` 使用 | 保持（双标无害；若想收窄可去 `pre_action`，行为不变） |
 | 云步（yun_bu） | `move` `pre_action` | ⚠️ | `dash{maxRange:4, targetDist:-1}` + `add_buff: yun_bu_foresight`（`onHitChance +0.08`，描述「下次攻击更难招架闪避」）= 真增益却无 `buff` | 补 `buff` |
 | 瞬步（dian_bu） | `move` `pre_action` | ✅ | `dash{maxRange:2, targetDist:2, useAp:false}`，描述「回到最佳攻击距离」 | 保持 |
-| 滚地拾刀（retrieve_blade） | `pre_action` `retrieve_weapon` | ⚠️ | `short_dash{maxDistance:3}` + `retrieve_weapon`，`canUse` 要求 `disarmed`；同文件带 `short_dash` 的触发招（`iaijutsu_strike`、`_ling_ao_chong`）都标 `move` | 补 `move` |
+| 滚地拾刀（retrieve_blade） | `pre_action` `retrieve_weapon` | ⚠️ | `short_dash{maxDistance:3}` + `retrieve_weapon`，`canUse` 要求 `disarmed`；同文件带 `short_dash` 的触发招（`_iaijutsu_strike`、`_ling_ao_chong`）都标 `move` | 补 `move` |
 | 拾起兵器（pickup_weapon） | `pre_action` `retrieve_weapon` | ✅ | `retrieve_weapon` + `canUse` 判定 `dropPosition` 距离 ≤1 | 保持 |
 | 三头六臂（santou_liubi） | `buff` `pre_action` `chan` | ⚠️ | `add_buff: santou_liubi`（`buffs.ts:671` 回合结束 AP 回满，`stacks: 2`），`chanCost: 27`；描述写「消耗**30**层缠劲…后续**3**个回合」与 `chanCost:27`/`stacks:2` 不一致（描述与实现漂移，tag 本身没问题） | 保持 tag；描述需修（见「需裁定」） |
 | 抛沙（sand_throw） | `debuff` `pre_action` | ✅ | `add_debuff: sand_blind{stacks:2, chance:0.8}`，描述「扬沙迷眼，中距离干扰」，`getRange [1,3]`；`canUse` 防重复 | 保持 |
@@ -909,12 +978,12 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 
 ## 三、`internal.ts`（38）
 
-> 该文件头注释为「内部招式（被动/天赋触发专用，不直接装备）」。**判定基准 = RUBRIC §归类与暴露：内部实现条目必须带 `internal`**；`reward-pool.ts:104` 不按 `internal` 过滤，UI 才过滤（`RewardPicker.tsx:50` 等），因此漏标即等于把内部招放进「学招式」候选池。
+> 该文件头注释为「内部招式（被动/天赋触发专用，不直接装备）」。**判定基准（已按 §十二 修正）= 内部实现条目必须挡住「学招式」候选池**；挡池有两个手段且**不等价** —— `internal` 标签会同时把招式剔出 AI 主招候选（`ai/index.ts:76-80`），`_` 前缀只挡池子（全库只有 `reward-pool.ts` 读它）。故本表「判定」列保留审计原判（基准为「必须带 `internal`」），「建议」列的「补 `internal`」一律以 §十二 的 `_` 前缀方案为准。
 
 | 实体 | 现 tags | 判定 | 理由（引用自身 effects/description/canUse/来源） | 建议 |
 | --- | --- | --- | --- | --- |
-| 居合斩（iaijutsu_strike） | `move` `slash` | ❌ | `canUse` 要求 `pendingBuffs.has('iaijutsu::')`，`effects = short_dash{1} + damage{strength 1.9} + remove_buff: iaijutsu`；**是 `resheath` 的姿态收招专用招，不可装备，缺 `internal`**（有 `move`/`slash` 说明位移/武器面已标注） | 补 `internal` |
-| 纳刀（resheath） | `buff` `post_action` `stance` | ⚠️ | `add_buff: iaijutsu`（`buffs.ts:86` `tags:['stance']`，无 `expiry`）→ `buff`/`stance` 正确；但 `post_action` 与语义相反：`ai/support-planner.ts` 中 `post_action` 在主招**之后**执行，而本招的功能是「进入居合架势为下一击蓄势」，`canUse: hasNoStance` 也表明应在无架势时先手使用 | `post_action` → `pre_action`；补 `internal`；补 `slash`（`requiredTags ['slash']` 呼应） |
+| 居合斩（_iaijutsu_strike） | `move` `slash` | ❌→已修 | `canUse` 要求 `pendingBuffs.has('iaijutsu::')`，`effects = short_dash{1} + damage{strength 1.9} + remove_buff: iaijutsu`；**是 `_resheath` 的姿态收招专用招，不可装备**（有 `move`/`slash` 说明位移/武器面已标注） | 已改 id 为 `_iaijutsu_strike`（挡池但不挡 AI）；`move` 待裁定 E |
+| 纳刀（_resheath） | `buff` `post_action` `stance` | ⚠️→已修 | `add_buff: iaijutsu`（`buffs.ts:86` `tags:['stance']`，无 `expiry`）→ `buff`/`stance` 正确；`post_action` **也正确**：本招的功能是「居合斩消耗架势后补回架势」，且 `canUse: hasNoStance` 只在主招之后才成立 —— `support-planner.ts:55` 只对 pre 阶段做 `canUse` 校验、收招阶段跳过（注释明写「条件在主招执行后才满足」），改 `pre_action` 反而会被自身 `canUse` 挡掉 | 已改 id 为 `_resheath`；保留 `post_action`（复审撤销原「改 pre_action」建议）；补 `slash` |
 | 三分归元（_sangui_heal） | `trigger` `heal` `internal` `low_hp` | ✅ | `effects = heal{ratio:0.2} + remove_buff: sangui_yuanqi`；触发源 `passives.ts:11-22`（`hp_below < 0.3` 触发 `_sangui_heal`）；`internal`、`trigger`、`heal`、`low_hp` 全对 | 保持 |
 | 炁体源流·觉醒（_qiti_awaken） | `trigger` `internal` `low_hp` | ⚠️ | 触发源 `passives.ts:346-355`（`hp_below < 0.2`）；`effects = cleanse{allDebuffs} + add_buff: qi_shield{10} + add_buff: qiti_awaken_buff + stat_buff{六维+2}` → `buff`/`defense`/`cleanse` 皆缺 | 补 `buff`、`cleanse`（可选 `defense`） |
 | 居合（_iaijutsu_ready） | `trigger` `internal` | ⚠️ | `add_buff: iaijutsu`（`stance` 类），`maxUses: 1`；`trigger`/`internal` 正确但缺 `buff`/`stance` | 补 `buff`、`stance` |
@@ -924,15 +993,15 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 | 虎彻·看破（_tiger_eye_foresight） | `trigger` `internal` | ✅ | `add_buff: foresight`（招架 +30%）+ `kanchuan`（闪避 +10%），触发源 `artifacts.ts:254` `on_stance`；`trigger`/`internal` 到位（严格说可补 `buff`） | 保持 |
 | 解毒（_detox） | `trigger` `internal` | ⚠️ | `effects = cleanse{buffIds:['poison']}`，`maxUses: 999`；`cleanse` tag 存在（`tag.ts:14`）却未标（同族 `_detox_shot`/`_field_dressing` 同样漏） | 补 `cleanse` |
 | 自爆（_arm_explosion） | `burn` | ⚠️ | 注释 `internal.ts:144`：「**不用 internal：AI 需能通过 conditionId 主动选用（绝境招），也允许 UI 展示**」，`_arm_explosion` 经 `artifacts.ts:13` `grantsActions` + `opponents/ajiu.ts:33` `conditionId: 'hp_below_50'` 使用——**不标 `internal` 是有意为之，不应改**；但 `damage{fixed:5}` 输出面缺 `damage`/`range`（`getRange [0,5]`） | 保持 `internal` 缺失（有意豁免）；补 `damage`/`range`（可选） |
-| 法珠冲击（_orb_shot） | `range` `summon` | ❌ | 来源 `starting-weapons.ts:78` `summon.actionId: '_orb_shot'`（召唤物招式），`damage{fixed:3, piercing:1}`、`getRange = 1+wis/2`；**无 `internal`、无 `trigger`，会被奖励池当普通招式发给玩家——学了也不会被推演命中（不在角色 actionConfigs 触发/装备链）** | 补 `internal` |
-| 无人环撞击（_huan_shot） | `range` `blunt` `summon` | ❌ | 来源 `weapons.ts:234`（`hover_drone.summon.actionId`），`add_debuff: paralyze{0.3}`；无 `internal`，同类高危 | 补 `internal` |
-| 浮游丝（_silk_shot） | `range` `pierce` `summon` | ❌ | 来源 `starting-weapons.ts:60`（御物浮游丝），`functional_damage` 按距离收紧；无 `internal` | 补 `internal` |
-| 一剑西来（_fei_jian_shot） | `range` `slash` `pierce` `summon` | ❌ | 来源 `starting-weapons.ts:96`（御物飞剑），`damage{wisdom .5, fixed 5}`；无 `internal` | 补 `internal` |
-| 分身攻击（_fen_shen_shot） | `summon` | ❌ | 来源 `artifacts.ts:188`（分身召唤物 `actionId`），描述「分身的攻击」，`damage{strength .1, dexterity .1}`；无 `internal`（连 `summon` 都有却漏 `internal`） | 补 `internal` |
-| 飞狮吼（_flying_lion_roar） | `range` `summon` | ❌ | 来源 `artifacts.ts:175`（召唤物招式），`damage{wisdom .3}` + `add_debuff: stun{0.6}`；无 `internal` | 补 `internal` |
+| 法珠冲击（_orb_shot） | `range` `summon` | ❌ | 来源 `starting-weapons.ts:78` `summon.actionId: '_orb_shot'`（召唤物招式），`damage{fixed:3, piercing:1}`、`getRange = 1+wis/2`；**无 `internal`、无 `trigger`，会被奖励池当普通招式发给玩家——学了也不会被推演命中（不在角色 actionConfigs 触发/装备链）** | 池层已挡（`_` 前缀），不必补 `internal` |
+| 无人环撞击（_huan_shot） | `range` `blunt` `summon` | ❌ | 来源 `weapons.ts:234`（`hover_drone.summon.actionId`），`add_debuff: paralyze{0.3}`；无 `internal`，同类高危 | 池层已挡（`_` 前缀），不必补 `internal` |
+| 浮游丝（_silk_shot） | `range` `pierce` `summon` | ❌ | 来源 `starting-weapons.ts:60`（御物浮游丝），`functional_damage` 按距离收紧；无 `internal` | 池层已挡（`_` 前缀），不必补 `internal` |
+| 一剑西来（_fei_jian_shot） | `range` `slash` `pierce` `summon` | ❌ | 来源 `starting-weapons.ts:96`（御物飞剑），`damage{wisdom .5, fixed 5}`；无 `internal` | 池层已挡（`_` 前缀），不必补 `internal` |
+| 分身攻击（_fen_shen_shot） | `summon` | ❌ | 来源 `artifacts.ts:188`（分身召唤物 `actionId`），描述「分身的攻击」，`damage{strength .1, dexterity .1}`；无 `internal`（连 `summon` 都有却漏 `internal`） | 池层已挡（`_` 前缀），不必补 `internal` |
+| 飞狮吼（_flying_lion_roar） | `range` `summon` | ❌ | 来源 `artifacts.ts:175`（召唤物招式），`damage{wisdom .3}` + `add_debuff: stun{0.6}`；无 `internal` | 池层已挡（`_` 前缀），不必补 `internal` |
 | 凌波微步（_lingbo_insight_step） | `trigger` `buff` `internal` | ✅ | `stat_buff{dodgeChance: 0.02, durationMs: 3000}`，触发招；`buff`/`trigger`/`internal` 齐全 | 保持 |
-| 金玲索（_golden_bell_swing） | `blunt` `range` | ❌ | 来源 `artifacts.ts:418` `grantsActions: ['_golden_bell_swing']`，`damage{dexterity .4}` + `add_debuff: paralyze{1}`，`getRange [2,5]`；无 `internal`（artifact 授予但注释说「以炁御之」）且缺 `paralyze`/`debuff` | 补 `internal`、`debuff`、`paralyze` |
-| 嚼茴香豆（_eat_beans） | `pre_action` `buff` | ❌ | 来源 `artifacts.ts:479` `grantsActions`，`add_buff: bean_buff`（`buffs.ts:1151` 全属性 +1，10 秒）；**与同样由 artifact 授予的 `_jiu_*` 五条（都带 `internal`）不一致** | 补 `internal` |
+| 金玲索（_golden_bell_swing） | `blunt` `range` | ❌ | 来源 `artifacts.ts:418` `grantsActions: ['_golden_bell_swing']`，`damage{dexterity .4}` + `add_debuff: paralyze{1}`，`getRange [2,5]`；无 `internal`（artifact 授予但注释说「以炁御之」）且缺 `paralyze`/`debuff` | 池层已挡（`_` 前缀）；补 `debuff`、`paralyze` |
+| 嚼茴香豆（_eat_beans） | `pre_action` `buff` | ❌ | 来源 `artifacts.ts:479` `grantsActions`，`add_buff: bean_buff`（`buffs.ts:1151` 全属性 +1，10 秒）；**与同样由 artifact 授予的 `_jiu_*` 五条（都带 `internal`）不一致** | 池层已挡（`_` 前缀），不必补 `internal` |
 | 女儿红（_jiu_nv_er_hong） | `pre_action` `buff` `jiu` `internal` | ✅ | `add_buff: nv_er_hong`（每秒回 1.5 血，9 秒），`jiu` 对应酒系 artifact | 保持 |
 | 霸王醉（_jiu_ba_wang_zui） | `pre_action` `buff` `jiu` `internal` | ✅ | `add_buff: ba_wang_zui`（每层每秒回 1 缠，9 秒） | 保持 |
 | 竹叶青（_zhu_ye_qing） | `pre_action` `buff` `jiu` `internal` | ✅ | `add_buff: zhu_ye_qing`（每层 AP +0.3/s，9 秒） | 保持 |
@@ -943,30 +1012,31 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 | 止血针（_field_dressing） | `trigger` `heal` `internal` | ⚠️ | `effects = cleanse{buffIds:['bleed'], perDebuffStacks:2}`，`maxUses: 1`；**效果是净化流血，`heal` 反而是空的**（没有 `heal` 效果），且缺 `cleanse` | 去 `heal`；补 `cleanse`（或让 `heal` 描述对应） |
 | 解毒针（_detox_shot） | `trigger` `internal` | ❌ | `effects = cleanse{buffIds:['poison'], perDebuffStacks:2}`（注释明确「只解 2 层毒」），是标准净化；`tag.ts:14` 有 `cleanse`，全库却**无一条招式使用 `cleanse`**（`grep cleanse src/data/actions/*` 仅 internal.ts 命中） | 补 `cleanse`（并考虑补 `heal` 与 `_field_dressing` 统一） |
 | 肾上腺素针（_adrenaline_shot） | `trigger` `buff` `internal` | ✅ | `add_buff: adrenaline_rush`（`buffs.ts:1199` AP 恢复翻倍 20 秒），`maxUses: 1` | 保持 |
-| 暴雨梨花（tempest） | `pierce` `range` `thrown` `chan` | ❌ | 来源 `artifacts.ts:622`（artifact `id:'tempest'`，`tags:['inherent']`，`grantsActions:['tempest']`），`damage{wisdom .2, fixed 3, independentHits:27, piercing:2}`，`chanCost: MAX_CHAN`、`maxUses: 1`；**action 自身无 `inherent`/`internal`**，而 artifact 的 `inherent` 只挡 artifact 池（`reward-pool.ts:97`）不挡 action 池（:104），于是唐柔专属奇物的招式会作为「学招式」奖励发给玩家 | 补 `inherent`（与 artifact 对齐）或 `internal`（并在 `reward-pool` 统一过滤）——见「需裁定」 |
-| 穿云（_chuan_yun） | `pierce` `polearm` `slash` | ❌ | 描述「三节枪近身缠卷，**绕过盾牌与招架**」，`effects = ignore_parry + damage`，`requiredTags ['polearm']`；**无 `internal`**（同族 `_luo_yue` 也无），且缺 `ignore_parry` | 补 `internal`、`ignore_parry` |
-| 落月（_luo_yue） | `slash` `range` `polearm` | ❌ | 描述「三节枪如鞭般甩出，凌空斩下」，`getRange [3,5]`，`requiredTags ['polearm']`；无 `internal` | 补 `internal` |
+| 暴雨梨花（tempest） | `pierce` `range` `thrown` `chan` | ✅（裁定 J） | 来源 `artifacts.ts:622`（artifact `id:'tempest'`，`tags:['inherent']`，`grantsActions:['tempest']`），`damage{wisdom .2, fixed 3, independentHits:27, piercing:2}`，`chanCost: MAX_CHAN`、`maxUses: 1`；action 自身无 `inherent`/`internal`（artifact 的 `inherent` 只挡 artifact 池，不挡 action 池） | 保持进池（裁定 J）；无需补 `inherent`/`internal` |
+| 穿云（_chuan_yun） | `pierce` `polearm` `slash` | ❌ | 描述「三节枪近身缠卷，**绕过盾牌与招架**」，`effects = ignore_parry + damage`，`requiredTags ['polearm']`；**无 `internal`**（同族 `_luo_yue` 也无），且缺 `ignore_parry` | 池层已挡（`_` 前缀）；补 `ignore_parry` |
+| 落月（_luo_yue） | `slash` `range` `polearm` | ❌ | 描述「三节枪如鞭般甩出，凌空斩下」，`getRange [3,5]`，`requiredTags ['polearm']`；无 `internal` | 池层已挡（`_` 前缀），不必补 `internal` |
 | 阿赖耶识（_alaya_insight） | `trigger` `internal` | ⚠️ | `stat_transfer{stat:'insight', value:1, duration:4000}` 是属性增益，缺 `buff` | 补 `buff` |
 | 泼油（_oil_splash） | `debuff` `pre_action` `internal` | ✅ | `add_debuff: oil_coating`（`debuffs.ts:245` 灼烧翻倍、身法 -2），`canUse` 防目标已浸油；`debuff`/`internal` 正确 | 保持 |
 | 灵鳌冲（_ling_ao_chong） | `trigger` `internal` `unarmed` `blunt` `melee` | ✅ | 描述「闪避后借势冲向对手，撞出钝击并麻痹」，`short_dash{3}` + `damage{strength .1, agility .1, vitality .1}` + `add_debuff: paralyze{0.6}`，触发源 `passives.ts:995` `on_dodge` | 保持 |
-| 音波（_sonic_wave） | `qi` `range` `debuff` | ❌ | 来源 `artifacts.ts:725` `grantsActions: ['_sonic_wave']`（人造发生器），`effects = ignore_parry + damage{wisdom .2} + add_debuff: fumble_chance_temp{2}`；**无 `internal`**，描述与「炁」无关却标 `qi` | 补 `internal`；`qi` 去掉——见「需裁定」 |
+| 音波（_sonic_wave） | `qi` `range` `debuff` | ❌ | 来源 `artifacts.ts:725` `grantsActions: ['_sonic_wave']`（人造发生器），`effects = ignore_parry + damage{wisdom .2} + add_debuff: fumble_chance_temp{2}`；描述与「炁」无关却标 `qi` | 池层已挡（`_` 前缀），不补 `internal`；`qi` 去掉——见「需裁定」 |
 | 太上御法·回炁（_tai_shang_heal） | `trigger` `heal` `internal` | ✅ | `heal{value:1}`，注释「召唤物命中时微量回血」；`trigger`/`heal`/`internal` 齐全 | 保持 |
 
 ---
 
 ## 需裁定（拿不准的）
 
-1. **`pre_action` / `post_action` 的语义边界**（影响 `feng_fan`、`wind_hear`、`resheath`、`_adrenaline_shot`）。引擎只用「是否带其中之一」分流（`engine.ts:851` 放行 support 路径、`ai/index.ts:76` 从主招剔除），`ai/support-planner.ts` 再把 `pre_action` 排在主招前、`post_action` 排在主招后。据此：
-   - `feng_fan` 同时带两者，**任何一条路径都会重复释放**（`preCmds` 与 post 各一次）——请裁定保留哪一个；
-   - `wind_hear`、`resheath` 的功能是「为下一次攻击蓄势/进入架势」，却标 `post_action`（在主招之后才执行），是否应改 `pre_action`；
-   - `_adrenaline_shot`（`internal.ts:383`）无 `pre_action`，靠 `trigger` 触发消费则无影响；若要 AI 主动规划则需补。
+1. **`pre_action` / `post_action` 的语义边界** —— **已复核，无需改动**（原三条疑问全部不成立）。引擎只用「是否带其中之一」分流（`engine.ts:851` 放行 support 路径、`ai/index.ts:76` 从主招剔除），`ai/support-planner.ts` 再把 `pre_action` 排在主招前、`post_action` 排在主招后。逐条复核：
+   - `feng_fan` 同带两者**不会重复释放**：前摇选完后其 id 作为 blacklist 传入收招阶段（`ai/index.ts:151`、`support-planner.ts:24`）；且它是纯位移招，位移招一律不走 support 通道（`support-planner.ts:41`，与阶段无关），实际只由 `planMove` 使用；
+   - `wind_hear`、`_resheath` 的 `post_action` **正确**：二者都是「收招补架势」，`_resheath` 的 `canUse: hasNoStance` 更只在主招后才成立（pre 阶段会先被 `canUse` 校验挡掉，见 `support-planner.ts:55`）；
+   - `_adrenaline_shot`（`internal.ts`）无 `pre_action`，靠战术腰包的 `trigger` 触发消费，不需要相位标记；
+   - 附注（有意设计，非缺陷）：pre/post 招式不算「主招」——`buffs.ts`/`damage.ts` 的 `isMainMove`（天机、疯魔）、血祭 `onAction` 均显式排除 `pre/post/summon`；`character.ts:370` 的 `getMaxActionRange` 同样排除它们。
 2. **`buff` 标注到哪一层**。RUBRIC 只要求「真的给角色施加了增益状态」。同文件内有三种现成口径：
    - 只标 buff 机制（`guard`/`dao_ma_dan`/`spirit_sword`/`_eat_beans`）；
    - 只标功能类（`condense_shield` 标 `defense`、`summon_haste` 标 `summon`、`wan_liu_gui_zong` 标 `defense`、`_tai_shang_heal` 标 `heal`）；
    - 两者都标（`jin_zhong_zhao` 标 `buff`+`defense`）。
    我按「两者都标」判了 ⚠️（少标），但如果团队口径是「只标功能类」，则 `wan_liu_gui_zong`、`summon_haste`、`condense_shield`、`agility_steal`、`drone_paralyze`、`jin_zhong_zhao`、`_iaijutsu_ready`、`_cangfeng_mind_eye`、`_alaya_insight`、`_qiti_awaken` 这 10 条应改判 ✅。
 3. **`chan` 到底是「消耗缠劲」还是「缠劲奖励」**。`thunder_storm`/`return_spear`/`ru_long`/`yan_quan`/`poison_detonate`/`tian_wai_fei_xian`/`shi_qi`/`big_leap`/`jindou`/`lightning_speed`/`deng_ping_du_shui` 是「消耗」；`wind_hear`（`chanCost` 0，buff 不回缠）像「奖励」；`gear_hang`/`santou_liubi`/`chanzi_heal`/`chanzi_stance` 有 `chanCost` 却无 `chan`。`tag.ts:59` 注释「缠劲（消耗缠/回复缠的奖励标签）」两种都算 → 需统一（我按「消耗即标」判了 ⚠️）。
-4. **`tempest` 该不该从奖励池消失**。artifact `tempest`（`artifacts.ts:622`）是 `inherent`，但 action `tempest` 无 `inherent`/`internal`；`_getActionPool` 不查 `inherent`，所以它会进「学招式」池（唐柔的专属奇物招式被玩家随机学到）。是补 action 的 `inherent`（与 artifact 对齐）、还是给 `reward-pool` 加统一 `internal`/`inherent` 过滤，属设计裁定。
+4. **`tempest` 该不该从奖励池消失** —— 已裁定（J）：**保留在池内**，action 不补 `inherent`/`internal`。原问题：artifact `tempest`（`artifacts.ts:622`）是 `inherent`，但 action `tempest` 无 `inherent`/`internal`，而 `_getActionPool` 不查 `inherent`，所以它会进「学招式」池（唐柔的专属奇物招式可被玩家随机学到）。
 5. **`thunder_storm` 的控制类型**：描述写「麻痹」但 `add_debuff: buffId:'stun'`（`stun`=眩晕、控制更硬）。tag `stun` 与实现一致、与描述不一致——是改描述还是改 buffId？
 6. **`_sonic_wave` 的 `qi`**：来源是「人造发生器」（`artifacts.ts:725`），`requiredTags: []`、无 `chanCost`、`damage{wisdom .2}`，与炁无关；但同效果的 `bi_hai_chao_sheng_qu` 标 `qi`（描述「以炁御音」）。是否按「以炁驱动」统一保留，还是去掉。
 7. **`one_night_dance` 的 `summon`**：`tagRelevance.ts:19` 把 `summon` 定为权重 2 流派；本条 `effects` 无召唤机制（`independentHits: 5`），但 `requiredTags ['imperial']` 的玩家自带 `summon` 武器 tag（`hover_drone` `tags: [..., 'summon']`），标了反而与「御物 build」关联一致——保留 or 去掉？

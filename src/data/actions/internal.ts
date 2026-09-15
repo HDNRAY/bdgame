@@ -6,7 +6,9 @@ import { MAX_CHAN } from '../../engine/constants'
 /** 内部招式（被动/天赋触发专用，不直接装备） */
 export const INTERNAL_ACTIONS: ActionDefinition[] = [
     {
-        id: 'iaijutsu_strike',
+        // 不用 internal 标签：一刀的 AI 需主动选用此招，internal 会让它退出 AI 候选；
+        // 只挡奖励池，用下划线前缀（见 reward-pool.ts 的两道闸）
+        id: '_iaijutsu_strike',
         name: '居合斩',
         description: '拔刀一瞬，电光石火。',
         requiredTags: ['slash'],
@@ -21,7 +23,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         ],
     },
     {
-        id: 'resheath',
+        // 同上：须与 _iaijutsu_strike 成对获得，单进奖励池即是一张打不出去的牌
+        id: '_resheath',
         name: '纳刀',
         description: '收刀入鞘，重归居合。',
         requiredTags: ['slash'],
@@ -401,7 +404,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         getRange: () => [1, 6] as [number, number],
         onActionHitChance: (base) => base + 0.1,
         hookNotes: { hitChance: '+10%' },
-        effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, fixed: 3, independentHits: 27, piercing: 2 }],
+        effects: [{ type: 'damage', scaling: { dexterity: 0.2 }, fixed: 2, independentHits: 27, piercing: 1 }],
         maxUses: 1,
     },
     // ── 春翁 ──

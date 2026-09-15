@@ -31,6 +31,18 @@ describe('rewardPool', () => {
             })
         })
 
+        it('action 池只出可学招式：不含 internal 标签、不含下划线前缀', () => {
+            const pool = rewardPool.getPool('action')
+            for (const r of pool) {
+                // 两道闸都不许漏：internal 标签（同时会屏蔽 AI）+ 下划线前缀（实现型/成对招式的实现招）
+                expect(r.id.startsWith('_')).toBe(false)
+                expect(r.tags.includes('internal')).toBe(false)
+            }
+            // 居合斩/纳刀须成对由「居合道」授予，单进池即是死招
+            expect(pool.map((r) => r.id)).not.toContain('_iaijutsu_strike')
+            expect(pool.map((r) => r.id)).not.toContain('_resheath')
+        })
+
         it('weapon 池返回武器列表', () => {
             const pool = rewardPool.getPool('weapon')
             expect(pool.length).toBeGreaterThan(5)

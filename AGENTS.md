@@ -90,6 +90,15 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 | Tag              | src/engine/entities/tag.ts        | 54 种标签类型，对应中文名见 tagDisplay.ts                         |
 | EffectDef        | src/engine/entities/action.ts     | 24 种效果变体 (damage/heal/stat_buff/status 等)                   |
 
+**招式挡奖励池的两道闸**（`src/game/roguelite/reward-pool.ts` 的 `_getActionPool()`）：
+
+| 手段           | 挡奖励池 | 挡 AI 主招候选                                                 |
+| -------------- | -------- | -------------------------------------------------------------- |
+| `internal` 标签 | 是       | 是（`src/engine/ai/index.ts` 的主招循环直接跳过该标签）        |
+| `_` id 前缀     | 是       | 否（全库只有 `_getActionPool()` 读这个前缀）                    |
+
+「AI/对手要用、但不该被玩家当「学招式」奖励抽到」的招式只加 `_` 前缀，**不要加 `internal`** —— `internal` 会让 AI 出不了这张牌（曾因此把一刀/德克的胜率砍半）。两个手段不等价的完整说明见 `docs/tag-audit.md` §十二。
+
 ## 像素美术（武器叠加图）
 
 **可靠参照只有三把**：桃木剑、齐眉棍、玄铁重剑（人工逐格调过，可当模板）。其余武器图为早期 AI 生成，不可当参照。

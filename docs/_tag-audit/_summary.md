@@ -17,10 +17,9 @@
 
 ## 二、跨类别的高危问题（按建议修复顺序）
 
-1. **`internal` 漏标 → 内部招式进奖励池（已验证）**
-   `internal.ts` 共 38 条，其中 **15 条没有 `internal`**；`reward-pool.ts:104` 的 `_getActionPool()` 直接 `allMainActions` 且**不按 `internal` 过滤**，`engine.ts:413` 的筛选也不查该 tag（过滤只发生在 UI 层的构筑界面）。
-   受害最明显的是 `_orb_shot` / `_huan_shot` / `_silk_shot` / `_fei_jian_shot` / `_fen_shen_shot`：它们既无 `internal` 也**无 `trigger`**，会作为「学招式」奖励直接发给玩家，学了永远不生效 —— **死奖励**。
-   （`_arm_explosion` 是**有意豁免**：`internal.ts:144` 注释说明 AI 需经 `conditionId` 主动选用。）
+1. **内部招式进奖励池（已验证，已修）**
+   `internal.ts` 共 38 条；池层原先直接吃 `allMainActions`，**不按 `internal` 过滤、也不认 `_` 前缀**，于是实现型招式会作为「学招式」奖励发给玩家，学了永远不生效 —— **死奖励**（受害最明显的是 `_orb_shot` / `_huan_shot` / `_silk_shot` / `_fei_jian_shot` / `_fen_shen_shot`，连 `trigger` 都没有）。
+   **修法（见 §八.2 与 §十二）**：池层两道闸 —— `internal` 标签 + `_` 前缀。但 `internal` **还会把招式剔出 AI 主招候选**，所以「AI 要用、玩家不该学」的招式只能用 `_` 前缀。招式池 155 → 118。
 
 2. **`inherent` 双向错（已验证，直接影响抽卡）**
    `reward-pool.ts:97` 按奇物自身 `inherent` 过滤随机池，于是：
@@ -47,7 +46,7 @@
    `reward-pool.ts:112`：`[...WEAPON_DB, ...STARTING_WEAPONS].filter(w => !w.tags.includes('imperial'))` —— 8 把起始武器（含 `bare_hands`）都会进随机池，与 `starting-weapons.ts:8` 的「不进奖励池」注释矛盾。
 
 7. **其它成体系的口径不一致**（详见各分类明细）
-   - `pre_action`/`post_action`：`feng_fan` 同带两者（AI 会重复释放）、`wind_hear`/`resheath` 该蓄势却标收招；
+   - `pre_action`/`post_action`：已复核无问题 —— `feng_fan` 双标不会重复释放（blacklist + 位移招不走 support 通道），`wind_hear`/`_resheath` 的 `post_action` 正确（见裁定 F）；
    - `chan`：8 条有 `chanCost` 却无 `chan` 标签（`gear_hang` 等），`wind_hear` 反之；
    - `damage`：招式文件里几乎不用该 tag（只 buff/功法在用），造成 3 处语义漂移；
    - `passive` 标签系统性缺失（功法上半 42/55）；
@@ -131,11 +130,11 @@
 | C | **`heavy` 的语义** | `tag.ts:29` 写「巨型双手」，但长枪/单手剑（绣冬）/飞剑都带 | 定为「**重器（力道驱动）**」，可叠加在长柄上；不与 `polearm` 互斥 |
 | D | **`damage` 的口径与覆盖面** | 招式 56+99 里几乎不用（仅 2 处）、奇物 0 处、功法 14 条漏标 | 定为「**显著提升输出/破防/暴击**」，按此补齐；否则明确该 tag 只用于 buff |
 | E | **`move` / `chan` / `self_damage` / `ignore_parry` 的粒度** | 带 `short_dash` 的攻击招多数未标 `move`；8 条有 `chanCost` 无 `chan`，`wind_hear` 反之；用 `self_hp_cost` 的不算 `self_damage`；穿透算不算 `ignore_parry` | 分别定为：有位移即 `move`；涉及缠劲（消耗或回复）即 `chan`；卖血即 `self_damage`；只有真"无视招架"才 `ignore_parry` |
-| F | **`pre_action` / `post_action` 的边界与互斥** | `feng_fan` 同带两者（AI 会重复释放）；`wind_hear`/`resheath` 是蓄势却标 `post_action` | 定为互斥；请给一句定义（前摇/前置 vs 收招/后置） |
+| F | **`pre_action` / `post_action` 的边界与互斥** | 原判：`feng_fan` 同带两者会重复释放；`wind_hear`/`_resheath` 该蓄势却标 `post_action` | **已核实不成立**：`ai/index.ts:151` 把前摇指令 id 作为 blacklist 传给收招阶段（`support-planner.ts:24`），位移招又不分阶段地跳过 support 通道（:41）；`post_action` 对「收招补架势」类的判定正确。无需改动 |
 | G | **`inherent` 的边界（剩余）** | `tai_shang_yu_fa`（玄门祖传）未标；`ling_long_xin_qiao` 仅数值增益却被永久排除；只在特定对手处授予的 `zui_quan`；以及"对手专属装备是否一律不进池" | 定为「**血脉/传承特性、不应被随机获取**」，逐条按"能否被抽到"判定 |
 | H | **武器上的 `unarmed` / 多攻击类型** | 匕首/忍者刀/鹤山剑带 `unarmed`（握兵器也能吃拳脚招）；玄铁重剑同时带 `blunt`+`slash`+`pierce` | 去掉"握兵器还能用拳脚招"的 `unarmed`；多攻击类型（重剑）保留 |
 | I | **形态 tag 在功法上的使用** | 110 个功法 `thrown`/`move`/`range`/`melee` 合计 0 处；`bai_ju_guo_xi`（3 米内）、`hearing_power`（徒手）属明显形态 | 给"形态明确"的功法补形态 tag（参与权重即可） |
-| J | **招式池的两处泄漏** | `tempest`（唐柔专属奇物招式）无 `internal`/`inherent` 会进池；15 条 `internal.ts` 招式漏标 `internal` | 与 `internal` 那批一起处理：池层过滤 `internal`，`tempest` 补标 |
+| J | **招式池的两处泄漏** | `tempest`（唐柔专属奇物招式）无 `internal`/`inherent` 会进池；15 条 `internal.ts` 招式未挡池 | 池层两道闸（`internal` + `_` 前缀）；「AI 要用」的招式用 `_` 前缀而非 `internal`；`tempest` 按裁定保留在池内 |
 
 另有**一批描述与机制不符**（`thunder_storm` 写麻痹实为眩晕、`hearing_power` 写徒手实为任意命中、`ru_lai_shen_zhang` 形态、`soft_armor` 等已改）—— 建议单独出一轮文案同步清单。
 
@@ -148,11 +147,11 @@
 | **C** | **`heavy` = 重型武器，不是"巨型双手"** | 更新 `tag.ts:29` 注释 |
 | **D** | 待你定（建议见报告） | 推荐**删掉 `damage`**，`support-planner.ts:79` 改为只看 `buff` |
 | **E** | **short_dash 不算 `move`**；`chanCost` 与 `chan` 必须一致；**穿透不算 `ignore_parry`** | `wind_hear` 去掉 `chan`；8 条有 `chanCost` 的补 `chan`；穿透类不标 `ignore_parry` |
-| **F** | 同带 `pre_action`+`post_action` = 招前招后都能放，但**不应释放两次** | 记录为待研究：改完 tag 后查 AI 会不会重复放 |
+| **F** | 同带 `pre_action`+`post_action` = 招前招后都能放，但**不应释放两次** | **已核实：不会重复**。前摇选完后其 id 作为 blacklist 传入收招阶段（`ai/index.ts:151`、`support-planner.ts:24`）；`feng_fan` 是纯位移招，本就走 `planMove`（`support-planner.ts:41` 跳过位移招，与阶段无关）。无需改动 |
 | **G** | **功法上的 `inherent` 只表示"不进普池"**（原意是"飞龙探云手能否被偷"，该机制已移除） | 按"是否应进普池"逐条判 |
 | **H** | 武器带 `unarmed` **没问题**（持匕首时本就能同时用拳脚）；**`阿赖耶识` 的 `unarmed` 去掉** | 白山"同时释放拳脚招式"改用别的方式 → 记录，后续讨论 |
 | **I** | `thrown`/`range`/`melee` 该标就标；**`move` 只有「凤舞九天」该标** | 按此批量 |
-| **J** | **`tempest` 可以进池**（不改）；**`internal.ts` 里的都要标上 `internal`** | 15 条补标；⚠️ 例外 `_arm_explosion`（`internal.ts:144` 注释：AI 需经 conditionId 主动选用；`ai/index.ts:76-80` 会把 `internal` 从 AI 候选中剔除）→ 需确认或豁免 |
+| **J** | **`tempest` 可以进池**（不改）；**`internal.ts` 里的都要挡住奖励池** | 修法已修正（见 §十二）：**不补 `internal` 标签**，改用 `_` 下划线前缀 —— `internal` 会让招式退出 AI 主招候选（`ai/index.ts:76-80`），一刀/德克会因此崩盘；本次只需给 `iaijutsu_strike`、`resheath` 改名（`_iaijutsu_strike`、`_resheath`），其余 11 条本就带 `_` 前缀 |
 
 ### D 的现状依据
 
@@ -185,7 +184,7 @@ allMainActions.filter((a) => !a.tags.includes('internal') && !a.id.startsWith('_
 
 ### 3. 剩余
 
-- `internal.ts` 15 条待补 `internal`（`_arm_explosion` 除外）；
+- 实现型招式已全部挡住奖励池（§十二：`internal` 标签 + `_` 前缀两道闸）；
 - `dot` 是全库无人使用的死标签，是否一并清理待定。
 
 ### 4. `dot` 已删除（同上流程）
@@ -239,3 +238,56 @@ this._weaponPool = WEAPON_DB.filter((w) => !w.tags.includes('imperial'))
 - 描述写"以炁驱动/激活/供能"的那 8 把武器**一律不补** `qi`；
 - P1 的 `qi` 子批变成：**只做"去"**（去掉 10 处无炁外放的泛标），"补"的 15 处逐条按"有没有炁外放"重筛。
 
+## 十一、P0 执行结果（2026-09）
+
+| 项 | 改动 | 结果 |
+| --- | --- | --- |
+| ~~`internal` 补齐（J）~~ **已回退** | 曾给 13 条补 `internal`（`iaijutsu_strike`、`resheath`、`_orb_shot`、`_huan_shot`、`_silk_shot`、`_fei_jian_shot`、`_fen_shen_shot`、`_flying_lion_roar`、`_golden_bell_swing`、`_eat_beans`、`_chuan_yun`、`_luo_yue`、`_sonic_wave`），导致德克 48.9%→31.4%、一刀 55.8%→16.9% | 已 `git checkout` 回退；改为 `_` 前缀方案，见 §十二 |
+| `inherent` 去（通用防具） | `iron_will`（乌铠）、`frost_silk_robe`（冰蚕衣）、`combat_armor`（斗铠）去掉 `inherent` | 三件现在**进**奇物池 |
+| `sonic_generator`（人造发声器） | `['craft','qi','implant']` → `['implant','inherent']` | 按裁定「应该是义体」；现在**不进**池 |
+| `ling_long_xin_qiao`（玲珑心窍） | 去掉 `inherent` | 按裁定**进**池 |
+| 暴雨梨花钉（奇物 id=`tempest`） | `['inherent']` → `['thrown']` | 按裁定**进**池，且带 `thrown`（暗器） |
+| 阿赖耶识 `unarmed` | **不改**（裁定更正：持械同时用拳脚没问题，阿赖耶识也一样） | 与 H 的初版裁定相反，以本轮为准 |
+| 风切 / 匕首 的 `unarmed` | **无需改** —— `风切` 现有 tags 已含 `unarmed`（`slash/pierce/parry/melee/unarmed/one_handed`），匕首同理 | 与「匕首、风切都应该有 unarmed」一致 |
+
+奇物池：76 → **51**（25 件 inherent 排除，加回乌铠/冰蚕衣/斗铠/玲珑心窍* 等）；`*` 玲珑心窍属功法池。
+
+> 过程记录：`internal` 补标第一次用正则批量替换时，因"边遍历边改字符串"导致偏移错乱写坏了文件，已 `git checkout` 回滚并改为逐行定位重做（diff 13 增 13 删，tsc/eslint/422 测试全过）。**该批补标随后因胜率回归被整体回退，见 §十二。**
+## 十二、第四轮修正（`internal` 回退 → 下划线前缀，2026-09）
+
+### 1. 口径：两个挡池手段不等价
+
+| 手段 | 挡奖励池 | 挡 AI 主招候选 |
+| --- | --- | --- |
+| `internal` 标签 | 是（`reward-pool.ts` `_getActionPool`） | **是**（`ai/index.ts:76-80` 直接 `continue`） |
+| `_` 前缀 | 是（同一个 filter） | 否（全库只有 `reward-pool.ts` 读它） |
+
+`_` 前缀全仓库只有一个消费方（`_getActionPool`），AI、引擎、UI 都不读；`internal` 则同时服务池过滤与 AI 剔除。因此适用面是：
+
+- **AI/对手要用、玩家不该从「学招式」拿到的** → `_` 前缀，**不标 `internal`**；
+- **AI 与玩家都不该主动用的纯触发实现招** → 保持 `internal`（现存 23 条全部同时带 `_` 前缀，`internal` 在池层是冗余的，它实际承担的是 AI 剔除）。
+
+### 2. 回归与回退
+
+按旧裁定给 `internal.ts` 13 条补 `internal` 后，同一套 `simulateWinRate`（等级 33，对 `xiaohua/laifeng/layue/hongti/daixuan/junshi`，N=60）：
+
+| 对手 | 基线 | 补 `internal` 后 | 回退后 |
+| --- | --- | --- | --- |
+| 博士·德克 | 48.9% | 31.4% | 48.6% |
+| 一刀 | 55.8% | 16.9% | 55.6% |
+
+根因：一刀的主招 `iaijutsu_strike`、`post_action` 辅招 `resheath`，与德克召唤物的 `_sonic_wave`（人造发生器 `on_parried` 触发）都在 AI 主招循环里取用，补 `internal` 等于把它们从候选里删掉。**已整体 `git checkout` 回退**。
+
+### 3. 本次实际改动
+
+| 位置 | 改动 |
+| --- | --- |
+| `src/data/actions/internal.ts` | `iaijutsu_strike` → `_iaijutsu_strike`；`resheath` → `_resheath`（只改 id，名字/tags/数值不动） |
+| `src/data/passives/passives.ts:82` | `grantsActions` 同步为 `['_iaijutsu_strike', '_resheath']` |
+| `src/data/opponents/yidao.ts:29` | `actionId` 同步为 `_resheath` |
+| `src/engine/__tests__/reward-pool.test.ts` | 新增断言：action 池不含 `_` 前缀、不含 `internal` 标签；并点名 `_iaijutsu_strike`/`_resheath` 不在池内 |
+
+- 招式池 155 → **118**（其余 11 条「漏标」本就带 `_` 前缀，池层早已挡住，不必再动）；
+- `tempest` 按裁定 J 保留在池内，不动；
+- 未改：`_resheath` 的 `post_action`（裁定 F 已复核：收招定位正确，不改）、`_sonic_wave` 的 `qi`（P1）；
+- 复测：博士·德克 48.6%、一刀 55.6%，与基线一致（`_` 前缀对战斗零影响）。
