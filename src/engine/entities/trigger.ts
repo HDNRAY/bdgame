@@ -59,11 +59,16 @@ export interface Condition {
     check?: (ctx: ConditionContext) => boolean
 }
 
-/** 可供玩家选择的触发条件 */
+/** 触发条件表里的一条（数据层声明；玩家可选的会进构筑面板的触发槽下拉） */
 export interface TriggerCondition extends Condition {
     id: string
     apCost?: number
     maxUses?: number
+    /**
+     * 内部种类：只给数据/引擎用，不进玩家的触发槽下拉（与招式的 `internal` 标签同一口径）。
+     * 用法见 src/data/triggers.ts 的 SELECTABLE_TRIGGER_CONDITIONS。
+     */
+    internal?: boolean
 }
 
 /** 玩家装备的触发器槽 */

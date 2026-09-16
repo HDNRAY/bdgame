@@ -8,7 +8,7 @@ import { getWeapon, type WeaponDef } from '../../../data/weapons/weapons'
 import { getPassive } from '../../../data/passives'
 import type { ActionConfig } from '../../../game/entities/action-config'
 import { describeCondition, resolveCondition } from '../../../data/conditions'
-import { TRIGGER_CONDITIONS } from '../../../data/triggers'
+import { SELECTABLE_TRIGGER_CONDITIONS } from '../../../data/triggers'
 import { getTriggerConditionName } from '../../../bridge/triggerDisplay'
 import type { AttrName } from '../../../engine/entities/attributes'
 import type { Reward } from '../../../game/entities/reward'
@@ -462,7 +462,7 @@ function ActionRow({
                         value={isMove ? '' : (ac.triggerId ?? '')}
                         options={[
                             { value: '', label: '—' },
-                            ...TRIGGER_CONDITIONS.filter((tc) => !takenTriggerIds.has(tc.id) || tc.id === ac.triggerId).map(
+                            ...SELECTABLE_TRIGGER_CONDITIONS.filter((tc) => !takenTriggerIds.has(tc.id) || tc.id === ac.triggerId).map(
                                 (tc) => ({ value: tc.id, label: getTriggerConditionName(tc.id) }),
                             ),
                         ]}
