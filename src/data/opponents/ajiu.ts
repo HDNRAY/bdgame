@@ -30,7 +30,7 @@ export const AJIU: OpponentDef = {
             actionId: 'blaze_strike',
             triggerId: 'on_dodged',
         },
-        { actionId: '_arm_explosion', conditionId: 'hp_below_50' },
+        { actionId: '_arm_explosion', condition: { type: 'hp_below', ratio: 0.5 } },
     ],
     taunt: () => '……让开。',
 }

@@ -26,7 +26,11 @@ export const XUANJI: OpponentDef = {
         // 13
     ],
     actionConfigs: [
-        { actionId: 'qi_bolt_3', triggerId: 'on_dodge', conditionId: 'distance_gt_3' },
+        {
+            actionId: 'qi_bolt_3',
+            triggerId: 'on_dodge',
+            condition: { type: 'distance_greater_than', meters: 3 },
+        },
         { actionId: 'agility_steal', triggerId: 'on_summon_hit' },
         { actionId: 'qi_blade', triggerId: 'on_dodged' },
         { actionId: 'summon_haste', triggerId: 'on_parried' },

@@ -4,178 +4,95 @@ import { BUFF_DB, DEBUFF_DB, getBuff } from './buffs'
 // ════════════════════════════════════════
 //  出招必要条件
 //
-//  两套并存的表达：
-//   1. CONDITION_PRESETS —— 预设 id（旧存档与对手数据用，见 src/data/opponents/*）
-//   2. CONDITION_TYPES   —— 结构化条件（玩家编辑写入 ActionConfig.condition，阈值可自由设定）
+//  只有一套表达：结构化条件（`ActionConfig.condition`），数据源是 CONDITION_TYPES。
+//  - 玩家在构筑面板里编辑 → 写结构化条件
+//  - 对手数据（src/data/opponents/*）直接写结构化条件
+//  - 旧存档 / 旧文件里的 `conditionId` 由 migrateLegacyActionConfig() 一次性升级，运行期不再读取
 //
-//  resolveCondition() 解析时结构化优先，预设兜底。两套都是**闸门**语义：
-//  条件满足只代表"这招允许被选择"，是否真的出招仍由 AI 按期望伤害/内息效率评分决定。
+//  语义是**闸门**：条件满足只代表"这招允许被选择"，
+//  是否真的出招仍由 AI 按期望伤害/内息效率评分决定（详见 docs/gameplay-guide.md「出招条件」）。
 // ════════════════════════════════════════
 
-/** 预定义必要条件预设（旧存档与对手数据引用 id，勿删；改 id 会让旧存档条件失效） */
-export const CONDITION_PRESETS = [
-    { id: 'always', name: '始终可用', build: (): RequiredCondition => ({ type: 'always' }) },
-    { id: 'hp_below_50', name: 'HP<50%', build: (): RequiredCondition => ({ type: 'hp_below', ratio: 0.5 }) },
-    { id: 'hp_below_70', name: 'HP<70%', build: (): RequiredCondition => ({ type: 'hp_below', ratio: 0.7 }) },
-    { id: 'hp_above_30', name: 'HP>30%', build: (): RequiredCondition => ({ type: 'hp_above', ratio: 0.3 }) },
-    { id: 'hp_above_50', name: 'HP>50%', build: (): RequiredCondition => ({ type: 'hp_above', ratio: 0.5 }) },
-    { id: 'hp_above_70', name: 'HP>70%', build: (): RequiredCondition => ({ type: 'hp_above', ratio: 0.7 }) },
-    {
-        id: 'enemy_hp_below_50',
-        name: '目标HP<50%',
-        build: (): RequiredCondition => ({ type: 'enemy_hp_below', ratio: 0.5 }),
-    },
-    {
-        id: 'enemy_hp_below_30',
-        name: '目标HP<30%',
-        build: (): RequiredCondition => ({ type: 'enemy_hp_below', ratio: 0.3 }),
-    },
-    {
-        id: 'enemy_hp_below_10',
-        name: '目标HP<10%',
-        build: (): RequiredCondition => ({ type: 'enemy_hp_below', ratio: 0.1 }),
-    },
-    {
-        id: 'enemy_hp_above_50',
-        name: '目标HP>50%',
-        build: (): RequiredCondition => ({ type: 'enemy_hp_above', ratio: 0.5 }),
-    },
-    {
-        id: 'distance_gt_2',
-        name: '距离>2m',
-        build: (): RequiredCondition => ({ type: 'distance_greater_than', meters: 2 }),
-    },
-    {
-        id: 'distance_lt_1',
-        name: '距离<1m',
-        build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 1 }),
-    },
-    {
-        id: 'distance_lt_2',
-        name: '距离<2m',
-        build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 2 }),
-    },
-    {
-        id: 'distance_gt_3',
-        name: '距离>3m',
-        build: (): RequiredCondition => ({ type: 'distance_greater_than', meters: 3 }),
-    },
-    {
-        id: 'distance_lt_3',
-        name: '距离<3m',
-        build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 3 }),
-    },
-    {
-        id: 'distance_gt_4',
-        name: '距离>4m',
-        build: (): RequiredCondition => ({ type: 'distance_greater_than', meters: 4 }),
-    },
-    {
-        id: 'distance_lt_4',
-        name: '距离<4m',
-        build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 4 }),
-    },
-    {
-        id: 'distance_gt_5',
-        name: '距离>5m',
-        build: (): RequiredCondition => ({ type: 'distance_greater_than', meters: 5 }),
-    },
-    {
-        id: 'distance_lt_5',
-        name: '距离<5m',
-        build: (): RequiredCondition => ({ type: 'distance_less_than', meters: 5 }),
-    },
-    {
-        id: 'enemy_no_stun_track',
-        name: '目标无眩晕递减',
-        build: (): RequiredCondition => ({ type: 'enemy_buff_not_active', buffId: 'stun_track' }),
-    },
-    {
-        id: 'no_stance',
-        name: '无架势',
-        build: (): RequiredCondition => ({ type: 'no_buff_with_tag', tag: 'stance' }),
-    },
-    {
-        id: 'enemy_no_shixin',
-        name: '目标无失心',
-        build: (): RequiredCondition => ({ type: 'debuff_not_active', buffId: 'fumble_chance_temp' }),
-    },
-    {
-        id: 'chill_blade_lt_2',
-        name: '寒锋<2层',
-        build: (): RequiredCondition => ({ type: 'buff_stacks_below', buffId: 'chill_blade', maxStacks: 2 }),
-    },
-    {
-        id: 'bamboo_regen_lt_2',
-        name: '回春<2层',
-        build: (): RequiredCondition => ({ type: 'buff_stacks_below', buffId: 'bamboo_regen', maxStacks: 2 }),
-    },
-    {
-        id: 'thunder_swift_lt_2',
-        name: '迅雷<2层',
-        build: (): RequiredCondition => ({ type: 'buff_stacks_below', buffId: 'thunder_swift', maxStacks: 2 }),
-    },
-    {
-        id: 'yun_yin_lt_2',
-        name: '云隐<2层',
-        build: (): RequiredCondition => ({ type: 'buff_stacks_below', buffId: 'yun_yin', maxStacks: 2 }),
-    },
-    {
-        id: 'chan_ge_30',
-        name: '缠劲≥30',
-        build: (): RequiredCondition => ({ type: 'chan_above', value: 30 }),
-    },
-    {
-        id: 'chan_ge_50',
-        name: '缠劲≥50',
-        build: (): RequiredCondition => ({ type: 'chan_above', value: 50 }),
-    },
-] as const
-
-/** 按 ID 查找条件预设 */
-export function getConditionPreset(id: string): RequiredCondition | undefined {
-    return CONDITION_PRESETS.find((p) => p.id === id)?.build()
+/**
+ * 旧预设表（冻结，只读）：仅用于把旧存档 / 旧对手数据里的 `conditionId` 升级成结构化条件。
+ * 不要再往这里加条目 —— 新条件一律加到 CONDITION_TYPES（编辑器的唯一数据源）。
+ */
+const LEGACY_CONDITION_IDS: Record<string, RequiredCondition> = {
+    always: { type: 'always' },
+    hp_below_50: { type: 'hp_below', ratio: 0.5 },
+    hp_below_70: { type: 'hp_below', ratio: 0.7 },
+    hp_above_30: { type: 'hp_above', ratio: 0.3 },
+    hp_above_50: { type: 'hp_above', ratio: 0.5 },
+    hp_above_70: { type: 'hp_above', ratio: 0.7 },
+    enemy_hp_below_50: { type: 'enemy_hp_below', ratio: 0.5 },
+    enemy_hp_below_30: { type: 'enemy_hp_below', ratio: 0.3 },
+    enemy_hp_below_10: { type: 'enemy_hp_below', ratio: 0.1 },
+    enemy_hp_above_50: { type: 'enemy_hp_above', ratio: 0.5 },
+    distance_gt_2: { type: 'distance_greater_than', meters: 2 },
+    distance_lt_1: { type: 'distance_less_than', meters: 1 },
+    distance_lt_2: { type: 'distance_less_than', meters: 2 },
+    distance_gt_3: { type: 'distance_greater_than', meters: 3 },
+    distance_lt_3: { type: 'distance_less_than', meters: 3 },
+    distance_gt_4: { type: 'distance_greater_than', meters: 4 },
+    distance_lt_4: { type: 'distance_less_than', meters: 4 },
+    distance_gt_5: { type: 'distance_greater_than', meters: 5 },
+    distance_lt_5: { type: 'distance_less_than', meters: 5 },
+    enemy_no_stun_track: { type: 'enemy_buff_not_active', buffId: 'stun_track' },
+    no_stance: { type: 'no_buff_with_tag', tag: 'stance' },
+    enemy_no_shixin: { type: 'debuff_not_active', buffId: 'fumble_chance_temp' },
+    chill_blade_lt_2: { type: 'buff_stacks_below', buffId: 'chill_blade', maxStacks: 2 },
+    bamboo_regen_lt_2: { type: 'buff_stacks_below', buffId: 'bamboo_regen', maxStacks: 2 },
+    thunder_swift_lt_2: { type: 'buff_stacks_below', buffId: 'thunder_swift', maxStacks: 2 },
+    yun_yin_lt_2: { type: 'buff_stacks_below', buffId: 'yun_yin', maxStacks: 2 },
+    chan_ge_30: { type: 'chan_above', value: 30 },
+    chan_ge_50: { type: 'chan_above', value: 50 },
 }
 
-/** 预设 id 是否仍然存在（用于存档校验：不存在的 id 会让条件静默失效） */
-export function isKnownConditionId(id: string): boolean {
-    return CONDITION_PRESETS.some((p) => p.id === id)
+/** 按旧 id 取条件（仅供迁移与「条件已失效」提示；返回副本，避免调用方改动冻结表） */
+export function getLegacyCondition(id: string): RequiredCondition | undefined {
+    const c = LEGACY_CONDITION_IDS[id]
+    return c ? { ...c } : undefined
+}
+
+/** 旧 id 是否仍然认识（用于提示：不认识的 id 迁移后仍会留在存档里，编辑器标为已失效） */
+export function isKnownLegacyConditionId(id: string): boolean {
+    return id in LEGACY_CONDITION_IDS
 }
 
 /**
- * 解析招式条件：结构化 condition 优先，预设 conditionId 兜底。
- * 返回的是**生效的闸门**：没设条件、条件为 always、或预设 id 已失效时一律返回 undefined，
- * 调用方按"无门槛"处理（失效 id 由 unknownConditionIds 单独报出来，避免静默）。
+ * 解析招式条件 → **生效的闸门**（唯一入口，运行期只认结构化条件）。
+ * 没设条件、条件为 always 时返回 undefined（= 无门槛）。
+ * 旧格式的 `conditionId` 必须先由 migrateLegacyActionConfig 升级，这里不再兜底。
  */
 export function resolveCondition(ac: ActionConfig | undefined): RequiredCondition | undefined {
-    if (!ac) return undefined
-    if (ac.condition) return ac.condition.type === 'always' ? undefined : ac.condition
-    if (ac.conditionId) {
-        const preset = getConditionPreset(ac.conditionId)
-        return preset && preset.type !== 'always' ? preset : undefined
-    }
-    return undefined
+    if (!ac?.condition) return undefined
+    return ac.condition.type === 'always' ? undefined : ac.condition
 }
 
 /**
- * 旧存档迁移：把预设 conditionId 展开成结构化 condition（阈值随存档一起保存，
- * 以后预设表变动也不会影响已保存的构筑）。预设已不存在时保留原 id —— 编辑器会标为「条件已失效」，
- * 不再静默当作无条件。
+ * 旧存档迁移：把 `conditionId` 展开成结构化 `condition`（阈值随存档一起保存，
+ * 以后旧表变动也不会影响已保存的构筑）。
+ * 旧表里查不到的 id 原样保留 —— 编辑器会标成「条件已失效」，不静默当无条件。
  */
-export function migrateActionConfig(ac: ActionConfig): ActionConfig {
+export function migrateLegacyActionConfig(ac: ActionConfig): ActionConfig {
     if (ac.condition || !ac.conditionId) return ac
-    const preset = getConditionPreset(ac.conditionId)
-    if (!preset) return ac
-    const next = { ...ac, condition: preset }
+    const cond = getLegacyCondition(ac.conditionId)
+    if (!cond) return ac
+    const next = { ...ac, condition: cond }
     delete next.conditionId
     return next
 }
 
-/** 找出配置里已失效的预设 id（供存档校验提示，避免条件静默失效） */
-export function unknownConditionIds(configs: readonly ActionConfig[]): string[] {
+/** 批量迁移（build.actionConfigs 可能缺省，保持 undefined 原样返回） */
+export function migrateLegacyActionConfigs(configs?: readonly ActionConfig[]): ActionConfig[] | undefined {
+    return configs?.map(migrateLegacyActionConfig)
+}
+
+/** 找出迁移后仍认不出的旧 id（供存档校验提示，避免条件静默失效） */
+export function unknownLegacyConditionIds(configs: readonly ActionConfig[]): string[] {
     const bad = new Set<string>()
     for (const ac of configs) {
-        if (!ac.condition && ac.conditionId && !isKnownConditionId(ac.conditionId)) bad.add(ac.conditionId)
+        if (!ac.condition && ac.conditionId && !isKnownLegacyConditionId(ac.conditionId)) bad.add(ac.conditionId)
     }
     return [...bad]
 }

@@ -92,7 +92,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const dmg = calcSelfDamage(self.maxHp, selfDmgEff.ratio)
             if (self.hp <= dmg) continue
         }
-        // 必要条件过滤（结构化 condition 优先，预设 conditionId 兜底）
+        // 必要条件过滤（结构化条件；旧 conditionId 已在读档边界升级）
         const cond = resolveCondition(self.getConfig(inst.id))
         if (cond && !checkCondition(cond, self, state)) continue
         candidates.push(calcExpectedDamage(inst.def, self, enemy, effRange, state))

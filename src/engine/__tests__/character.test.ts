@@ -123,8 +123,9 @@ describe('Character', () => {
     })
 
     it('getConfig returns correct config', () => {
-        const c = mc('test_cfg', '配置测试', {}, ['thrust', 'jab'], [{ actionId: 'jab', conditionId: 'hp_below_50' }])
-        expect(c.getConfig('jab')?.conditionId).toBe('hp_below_50')
+        const cfg = { actionId: 'jab', condition: { type: 'hp_below' as const, ratio: 0.5 } }
+        const c = mc('test_cfg', '配置测试', {}, ['thrust', 'jab'], [cfg])
+        expect(c.getConfig('jab')?.condition).toEqual({ type: 'hp_below', ratio: 0.5 })
         expect(c.getConfig('thrust')).toBeUndefined()
     })
 })

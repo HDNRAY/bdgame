@@ -29,7 +29,7 @@ export const FANGLIE: OpponentDef = {
     actionConfigs: [
         {
             actionId: 'rod_sweep',
-            conditionId: 'distance_lt_2',
+            condition: { type: 'distance_less_than', meters: 2 },
         },
         { actionId: 'pursuit_thrust', triggerId: 'on_bleed' },
     ],

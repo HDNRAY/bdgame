@@ -26,7 +26,7 @@ export const YIDAO: OpponentDef = {
         // 13
     ],
     actionConfigs: [
-        { actionId: '_resheath', conditionId: 'no_stance' },
+        { actionId: '_resheath', condition: { type: 'no_buff_with_tag', tag: 'stance' } },
         {
             actionId: 'qi_slash',
             triggerId: 'on_dodged',

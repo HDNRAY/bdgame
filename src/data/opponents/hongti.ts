@@ -30,6 +30,10 @@ export const HONGTI: OpponentDef = {
         { actionId: 'wrist_strike', triggerId: 'on_dodged' },
         { actionId: 'qi_slash', triggerId: 'on_dodge' },
         { actionId: 'cun_mang', triggerId: 'on_parried' },
-        { actionId: 'qi_bolt', triggerId: 'on_opponent_move_away', conditionId: 'distance_gt_4' },
+        {
+            actionId: 'qi_bolt',
+            triggerId: 'on_opponent_move_away',
+            condition: { type: 'distance_greater_than', meters: 4 },
+        },
     ],
 }

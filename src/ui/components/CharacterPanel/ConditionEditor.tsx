@@ -9,13 +9,13 @@ import {
     defaultParams,
     describeCondition,
     getConditionType,
-    isKnownConditionId,
+    isKnownLegacyConditionId,
     resolveCondition,
 } from '../../../data/conditions'
 
 /** 条件摘要（未选状态 / 预设失效时给出可读文案，而不是空描述） */
 function summarizeCondition(ac: ActionConfig): { text: string; warn: boolean } {
-    if (!ac.condition && ac.conditionId && !isKnownConditionId(ac.conditionId)) {
+    if (!ac.condition && ac.conditionId && !isKnownLegacyConditionId(ac.conditionId)) {
         return { text: `条件已失效：${ac.conditionId}`, warn: true }
     }
     const cond = resolveCondition(ac)
@@ -50,7 +50,7 @@ export function ConditionButton({
 /**
  * 出招必要条件编辑器（构筑模式）。
  * 「类型 + 参数」结构化编辑 —— 阈值由玩家自由设定，不再依赖写死的预设表。
- * 写入 ActionConfig.condition（结构化优先于旧的 conditionId）。
+ * 写入 ActionConfig.condition（唯一表达），顺带清掉可能残留的旧 conditionId。
  */
 export function ConditionEditor({ ac, onChange }: { ac: ActionConfig; onChange: (patch: Partial<ActionConfig>) => void }) {
     const cond: RequiredCondition | undefined = resolveCondition(ac)

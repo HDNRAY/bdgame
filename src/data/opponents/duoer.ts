@@ -27,9 +27,9 @@ export const DUOER: OpponentDef = {
         // 13
     ],
     actionConfigs: [
-        { actionId: 'poison_detonate', conditionId: 'enemy_hp_below_30' },
-        { actionId: 'rear_naked_choke', conditionId: 'distance_lt_2' },
-        { actionId: 'lion_roar', conditionId: 'distance_gt_3' },
+        { actionId: 'poison_detonate', condition: { type: 'enemy_hp_below', ratio: 0.3 } },
+        { actionId: 'rear_naked_choke', condition: { type: 'distance_less_than', meters: 2 } },
+        { actionId: 'lion_roar', condition: { type: 'distance_greater_than', meters: 3 } },
         { actionId: 'blood_droplet', triggerId: 'on_opponent_move_away' }, // AI 出招顺序
         { actionId: 'shadow_kick', triggerId: 'on_dodged' },
     ],

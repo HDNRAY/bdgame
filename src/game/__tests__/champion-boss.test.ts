@@ -139,4 +139,21 @@ describe('champion-boss（隐藏boss 构造）', () => {
         const boss = championBossBuild(baseBuild({ baseAttrs: low }))
         for (const a of ALL_ATTRS) expect(boss.baseAttrs[a]).toBe(CHAMPION_BASE_ATTR)
     })
+
+    it('旧存档的招式条件（conditionId）在入口升级成结构化条件', () => {
+        const boss = championBossBuild(
+            baseBuild({
+                actionConfigs: [
+                    { actionId: 'liu_yang_zhang', conditionId: 'hp_below_50' },
+                    { actionId: 'thunder_storm', condition: { type: 'chan_above', value: 30 } },
+                ],
+            }),
+        )
+        expect(boss.actionConfigs?.[0]).toEqual({
+            actionId: 'liu_yang_zhang',
+            condition: { type: 'hp_below', ratio: 0.5 },
+        })
+        // 已有的结构化条件原样保留
+        expect(boss.actionConfigs?.[1]?.condition).toEqual({ type: 'chan_above', value: 30 })
+    })
 })

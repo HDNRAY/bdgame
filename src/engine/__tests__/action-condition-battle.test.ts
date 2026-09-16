@@ -7,6 +7,7 @@ import { TurnManager } from '../combat/turn'
 import { BuffRegistry } from '../combat/utils/buff-registry'
 import { BattleState } from '../combat/battle-state'
 import type { ActionCommand, BattleState as BattleStateType } from '../combat/types'
+import { migrateLegacyActionConfig } from '../../data/conditions'
 import type { ActionConfig } from '../../game/entities/action-config'
 import type { CharacterBuild } from '../../game/entities/character-build'
 
@@ -74,32 +75,28 @@ describe('出招条件在 AI 计划里生效', () => {
         expect(plannedAttacks(planEvent(self, state))).toContain('liu_yang_zhang')
     })
 
-    it('结构化条件优先于同一条目的预设 conditionId', () => {
+    it('旧格式 conditionId 经迁移后生效：不满足则不出招', () => {
         const { self, state } = makeState(
             ACTIONS,
-            ACTIONS.map((actionId) => ({
-                actionId,
-                conditionId: 'always',
-                condition: { type: 'time_above' as const, seconds: 99999 },
-            })),
+            ACTIONS.map((actionId) => migrateLegacyActionConfig({ actionId, conditionId: 'enemy_hp_below_10' })),
             1,
         )
         expect(plannedAttacks(planEvent(self, state))).toEqual([])
     })
 
-    it('预设 conditionId 仍生效：不满足则不出招', () => {
+    it('旧格式 conditionId 经迁移后生效：满足则出招', () => {
+        const { self, state } = makeState(
+            ACTIONS,
+            ACTIONS.map((actionId) => migrateLegacyActionConfig({ actionId, conditionId: 'distance_lt_5' })),
+            1,
+        )
+        expect(plannedAttacks(planEvent(self, state))).toContain('liu_yang_zhang')
+    })
+
+    it('没走迁移的旧 conditionId 不生效（视为无门槛）——迁移是读档边界的责任', () => {
         const { self, state } = makeState(
             ACTIONS,
             ACTIONS.map((actionId) => ({ actionId, conditionId: 'enemy_hp_below_10' })),
-            1,
-        )
-        expect(plannedAttacks(planEvent(self, state))).toEqual([])
-    })
-
-    it('预设 conditionId 仍生效：满足则出招', () => {
-        const { self, state } = makeState(
-            ACTIONS,
-            ACTIONS.map((actionId) => ({ actionId, conditionId: 'distance_lt_5' })),
             1,
         )
         expect(plannedAttacks(planEvent(self, state))).toContain('liu_yang_zhang')

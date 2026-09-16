@@ -27,27 +27,24 @@ export const HAORAN: OpponentDef = {
         // 13
     ],
     actionConfigs: [
-        {
-            actionId: 'fall_to_azure_sword',
-            conditionId: 'always',
-        },
+        { actionId: 'fall_to_azure_sword' },
         {
             actionId: 'spring_bamboo_sword',
-            conditionId: 'hp_below_70',
+            condition: { type: 'hp_below', ratio: 0.7 },
         },
         {
             actionId: 'swift_thunder_sword',
-            conditionId: 'thunder_swift_lt_2',
+            condition: { type: 'buff_stacks_below', buffId: 'thunder_swift', maxStacks: 2 },
             triggerId: 'on_parried',
         },
         {
             actionId: 'cloud_hidden_sword',
-            conditionId: 'yun_yin_lt_2',
+            condition: { type: 'buff_stacks_below', buffId: 'yun_yin', maxStacks: 2 },
             triggerId: 'on_dodge',
         },
         {
             actionId: 'blowing_snow_sword',
-            conditionId: 'chill_blade_lt_2',
+            condition: { type: 'buff_stacks_below', buffId: 'chill_blade', maxStacks: 2 },
             triggerId: 'on_dodged',
         },
     ],

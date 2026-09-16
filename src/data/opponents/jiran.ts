@@ -30,7 +30,7 @@ export const JIRAN: OpponentDef = {
         {
             actionId: 'yi_dian_han_mang',
             triggerId: 'on_dodge',
-            conditionId: 'chill_blade_lt_2',
+            condition: { type: 'buff_stacks_below', buffId: 'chill_blade', maxStacks: 2 },
         },
         {
             actionId: 'blaze_strike',
