@@ -232,12 +232,13 @@ export function CharacterPanel({
                         </div>
                         {isBuild ? (
                             <>
-                                <div className="cp-table-header">
-                                    <span className="cp-col-name">招式</span>
-                                    <span className="cp-col-cond">条件</span>
-                                    <span className="cp-col-trig">触发</span>
-                                </div>
-                                <div className="cp-table-body">
+                                {/* 表头与所有招式行共用一个网格（行内 display:contents），三列宽度才统一 */}
+                                <div className="cp-table">
+                                    <div className="cp-table-header">
+                                        <span className="cp-col-name">招式</span>
+                                        <span className="cp-col-cond">条件</span>
+                                        <span className="cp-col-trig">触发</span>
+                                    </div>
                                     {actionConfigs.map((ac, i) => (
                                         <ActionRow
                                             key={ac.actionId}

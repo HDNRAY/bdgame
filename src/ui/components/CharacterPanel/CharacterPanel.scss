@@ -323,27 +323,36 @@
     color: var(--color-success);
 }
 
-/* 招式表格 */
-.cp-table-header,
-.cp-row {
+/* 招式表格：表头与所有行共用一个网格，三列宽度在行与行之间统一
+   （原来是每行各自 display:grid，列宽按各行的招式名长短各算一套，宽窄不一） */
+.cp-table {
     display: grid;
-    grid-template-columns: 1fr minmax(5.625rem, auto) minmax(5.625rem, auto);
-    gap: var(--sp-xxs);
+    /* 第 1 列 = 当前最长招式名（内容收缩时允许变窄，配 .cp-col-name 的省略号兜底）；
+       条件/触发两列平分剩余空间，各自不低于 5.625rem */
+    grid-template-columns: minmax(0, max-content) minmax(5.625rem, 1fr) minmax(5.625rem, 1fr);
     align-items: center;
-    padding: var(--sp-xxs) 0;
     font-size: var(--font-sm);
     user-select: none;
 }
 
-.cp-table-header {
-    color: var(--color-text-dim);
-    border-bottom: var(--border-width) solid var(--color-border);
-    padding-bottom: var(--sp-xxs);
-    margin-bottom: 2px;
+/* 行与表头不生成盒子，让各自的单元格直接参与上面这个共享网格 */
+.cp-table-header,
+.cp-row {
+    display: contents;
 }
 
-.cp-row {
+/* 单元格：横向间距改用 padding 提供；display:contents 下父级边框失效，分隔线画在单元格上，
+   首列不留左内边距、末列不留右内边距，分隔线仍然贯通整行 */
+.cp-table-header > span,
+.cp-row > span {
+    min-width: 0;
+    padding: var(--sp-xxs) var(--sp-xxs) var(--sp-xxs) 0;
     border-bottom: var(--border-width) solid var(--color-bg-alt);
+}
+
+.cp-table-header > span {
+    color: var(--color-text-dim);
+    border-bottom-color: var(--color-border);
 }
 
 .cp-table-note {
@@ -357,6 +366,17 @@
     color: var(--color-text);
     font-size: var(--font-sm);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cp-col-cond,
+.cp-col-trig {
+    overflow: hidden;
+}
+
+.cp-col-trig {
+    padding-right: 0;
 }
 
 .cp-col-cond .ss-input,
@@ -405,6 +425,8 @@
 }
 
 .cp-cond-editor {
+    /* 展开的编辑器横跨整行（它和 .cp-row 同为共享网格的子项） */
+    grid-column: 1 / -1;
     padding: var(--sp-xxs) var(--sp-xs) var(--sp-xs);
     margin: 2px 0 var(--sp-xxs);
     background: var(--color-bg-panel);
