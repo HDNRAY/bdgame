@@ -14,8 +14,9 @@ import type { TriggerCondition } from '../engine/entities/trigger'
  *  - 玩家可选（进构筑面板下拉）：要求有中文名、且名字互不重复（有测试把关）
  *  - 内部种类（`internal: true`）：只给数据/引擎用，不进下拉
  *
- * 数据层自带触发（功法/奇物/武器/被动）是直接写 `TriggerSlot` 对象（`{ type, check }`），
- * 不经过本表的 id，所以标记 internal 不影响它们。
+ * 数据层自带触发（功法/奇物/武器/被动）是直接写 `TriggerSlot` 对象（`{ type, check }`），不经过本表的 id。
+ * 所以**引擎的触发事件可以不出现在本表里**：例如 `hp_below` 只服务数据里声明的「濒危反应」被动
+ * （三分归元气 HP<30%、炁体源流 HP<20%），属内部触发，与玩家可选表无关 —— 不要因为本表没有就去删事件。
  */
 export const TRIGGER_CONDITIONS: TriggerCondition[] = [
     { id: 'on_parry', type: 'on_parry' },

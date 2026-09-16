@@ -106,7 +106,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 - 语义是**闸门**不是优先级：条件满足只代表"这招允许被选中"，是否出招仍由 AI 按期望伤害/内息效率评分决定（每回合通常只有一招的名额）。
 - 读档边界三处：玩家构筑编辑器（`useBuildCharacter`）、隐藏boss（`championBossBuild`，覆盖 meta 存档与 `npm run tour --champion=<build.json>`）、DevMode 构筑试炼（`BuildSim.loadPersisted`）。存档里的 build 结构加字段时，在这三处一并处理。
 
-**触发器与条件的分工（别混）**：**触发器 = 见招拆招**，由交手过程中发生的事件驱动（招架/闪避/被命中/被缴械/对手靠近远离/给对手挂毒挂流血/回合开始…），表在 `src/data/triggers.ts`；**出招条件 = 自己的套路**，是自身状态门槛（气血/内息/缠劲/距离/状态层数/时间），走 `ActionConfig.condition`。所以**血量阈值这类"自身状态"不做成触发槽**（`TRIGGER_CONDITIONS` 里有测试禁止出现 `hp_below` 之类自查项）。`TriggerCondition` 只有 `id/type/buffId/check/internal`——触发招式的次数上限与 AP 上限由**招式自身**（`maxUses`、`apCost > 2` 硬过滤）决定，条件条目上不再挂这两个字段。数据层自带触发（功法/奇物/武器/被动）直接写 `TriggerSlot` 对象，不经过该表的 id；这些 id 的显示名在 `src/bridge/triggerDisplay.ts`。
+**触发器与条件的分工（别混）**：**触发器 = 见招拆招**，由交手过程中发生的事件驱动（招架/闪避/被命中/被缴械/对手靠近远离/给对手挂毒挂流血/回合开始…），表在 `src/data/triggers.ts`；**出招条件 = 自己的套路**，是自身状态门槛（气血/内息/缠劲/距离/状态层数/时间），走 `ActionConfig.condition`。所以**血量阈值这类"自身状态"不做成触发槽**（`TRIGGER_CONDITIONS` 里有测试禁止出现 `hp_below` 之类自查项）。`TriggerCondition` 只有 `id/type/buffId/check/internal`——触发招式的次数上限与 AP 上限由**招式自身**（`maxUses`、`apCost > 2` 硬过滤）决定，条件条目上不再挂这两个字段。数据层自带触发（功法/奇物/武器/被动）直接写 `TriggerSlot` 对象，不经过该表的 id；这些 id 的显示名在 `src/bridge/triggerDisplay.ts`。**引擎事件可以不在该表里**：`hp_below` 只服务数据声明的「濒危反应」被动（三分归元气 HP<30%、炁体源流 HP<20%），属内部触发，不要因为表里没有就删事件。
 
 ## 像素美术（武器叠加图）
 
