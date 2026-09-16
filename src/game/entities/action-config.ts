@@ -35,12 +35,7 @@ export type RequiredCondition =
 /** 招式配置条目 */
 export interface ActionConfig {
     actionId: string
-    /**
-     * @deprecated 旧存档里的预设 id，**运行期不再读取**。
-     * 读档时由 `migrateLegacyActionConfig` 升级成 `condition`；不要在新数据里写它（有测试把关）。
-     */
-    conditionId?: string
-    /** 结构化必要条件（唯一表达）——阈值可自由设定，不依赖预设表 */
+    /** 出招必要条件（唯一表达）——阈值可自由设定，不依赖任何预设表 */
     condition?: RequiredCondition
     /** 触发条件 ID（查 TRIGGER_CONDITIONS） */
     triggerId?: string

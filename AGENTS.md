@@ -101,11 +101,10 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 
 「AI/对手要用、但不该被玩家当「学招式」奖励抽到」的招式只加 `_` 前缀，**不要加 `internal`** —— `internal` 会让 AI 出不了这张牌（曾因此把一刀/德克的胜率砍半）。两个手段不等价的完整说明见 `docs/tag-audit.md` §十二。
 
-**出招条件只有一套表达**：`ActionConfig.condition`（结构化，类型与参数见 `src/data/conditions.ts` 的 `CONDITION_TYPES`）。对手数据（`src/data/opponents/*`）与玩家构筑都直接写结构化条件；运行期解析唯一入口是 `resolveCondition()`，只认结构化条件。
+**出招条件只有一套表达**：`ActionConfig.condition`（结构化，类型与参数见 `src/data/conditions.ts` 的 `CONDITION_TYPES`）。对手数据（`src/data/opponents/*`）与玩家构筑都直接写结构化条件，解析唯一入口是 `resolveCondition()`。**不要再引入"预设 id / 结构化"两套表达**（旧 `conditionId` 已按"无旧数据"删除）。
 
-- 已废弃的 `ActionConfig.conditionId`（旧预设 id）**只允许在读档边界出现**，由 `migrateLegacyActionConfig()` 从冻结旧表 `LEGACY_CONDITION_IDS` 升级。不要再往那张表加条目，也不要在新数据里写 `conditionId`（`src/game/__tests__/opponent-config.test.ts` 有护栏）。
-- 读档边界三处：玩家构筑编辑器（`useBuildCharacter`）、隐藏boss（`championBossBuild`，覆盖 meta 存档与 `npm run tour --champion=<build.json>`）、DevMode 构筑试炼（`BuildSim.loadPersisted`）。存档格式加字段时要一并在这里处理。
 - 语义是**闸门**不是优先级：条件满足只代表"这招允许被选中"，是否出招仍由 AI 按期望伤害/内息效率评分决定（每回合通常只有一招的名额）。
+- 读档边界三处：玩家构筑编辑器（`useBuildCharacter`）、隐藏boss（`championBossBuild`，覆盖 meta 存档与 `npm run tour --champion=<build.json>`）、DevMode 构筑试炼（`BuildSim.loadPersisted`）。存档里的 build 结构加字段时，在这三处一并处理。
 
 ## 像素美术（武器叠加图）
 

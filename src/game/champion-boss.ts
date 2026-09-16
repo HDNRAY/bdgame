@@ -3,7 +3,6 @@ import { getWeapon } from '../data/weapons/weapons'
 import { ALL_ATTRS, type AttrName } from '../engine/entities/attributes'
 import { artifact as artifactReward } from '../engine/util/reward-utils'
 import { loadMeta } from './meta-save'
-import { migrateLegacyActionConfigs } from '../data/conditions'
 import type { CharacterBuild } from './entities/character-build'
 import type { Reward } from './entities/reward'
 
@@ -76,8 +75,6 @@ export function championBossBuild(saved: CharacterBuild): CharacterBuild {
         taunt: CHAMPION_BOSS_TAUNT,
         baseAttrs,
         rewards,
-        // 存档里的 build 可能来自旧版本（招式条件还是 conditionId），入口统一升级成结构化条件
-        actionConfigs: migrateLegacyActionConfigs(saved.actionConfigs),
         // 这副躯体是「上一轮的自己」，故事线文本不再沿用
         story: undefined,
     }

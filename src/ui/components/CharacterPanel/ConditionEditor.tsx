@@ -9,15 +9,11 @@ import {
     defaultParams,
     describeCondition,
     getConditionType,
-    isKnownLegacyConditionId,
     resolveCondition,
 } from '../../../data/conditions'
 
-/** 条件摘要（未选状态 / 预设失效时给出可读文案，而不是空描述） */
+/** 条件摘要（未选状态时给出可读文案，而不是空描述） */
 function summarizeCondition(ac: ActionConfig): { text: string; warn: boolean } {
-    if (!ac.condition && ac.conditionId && !isKnownLegacyConditionId(ac.conditionId)) {
-        return { text: `条件已失效：${ac.conditionId}`, warn: true }
-    }
     const cond = resolveCondition(ac)
     if (!cond) return { text: '不设条件', warn: false }
     if ('buffId' in cond && !cond.buffId) return { text: '未选择状态', warn: true }
@@ -50,7 +46,7 @@ export function ConditionButton({
 /**
  * 出招必要条件编辑器（构筑模式）。
  * 「类型 + 参数」结构化编辑 —— 阈值由玩家自由设定，不再依赖写死的预设表。
- * 写入 ActionConfig.condition（唯一表达），顺带清掉可能残留的旧 conditionId。
+ * 写入 ActionConfig.condition（唯一表达）。
  */
 export function ConditionEditor({ ac, onChange }: { ac: ActionConfig; onChange: (patch: Partial<ActionConfig>) => void }) {
     const cond: RequiredCondition | undefined = resolveCondition(ac)
@@ -63,7 +59,7 @@ export function ConditionEditor({ ac, onChange }: { ac: ActionConfig; onChange: 
     const emit = (nextType: string, nextParams: Record<string, number | string>) => {
         const def = CONDITION_TYPES.find((t) => t.type === nextType)
         if (!def) return
-        onChange({ condition: def.build(nextParams), conditionId: undefined })
+        onChange({ condition: def.build(nextParams) })
     }
 
     /** 换类型：参数回到该类型的默认值 */

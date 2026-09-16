@@ -4,7 +4,7 @@ import type { ActionConfig } from '../../../../game/entities/action-config'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
 import { OPPONENTS, gen } from '../../../../data/opponents'
-import { resolveCondition, migrateLegacyActionConfigs } from '../../../../data/conditions'
+import { resolveCondition } from '../../../../data/conditions'
 import type { Reward } from '../../../../game/entities/reward'
 import { CharacterPanel } from '../../../components/CharacterPanel/CharacterPanel'
 import { SearchSelect, type SelectOption } from '../../../components/ui/SearchSelect/SearchSelect'
@@ -83,12 +83,7 @@ function loadPersisted(): Persisted {
         if (raw) {
             const p = JSON.parse(raw) as Persisted
             if (p?.build) {
-                const build = {
-                    ...freshBuild(),
-                    ...p.build,
-                    // 存档可能是旧版本（招式条件还是 conditionId），读档时统一升级
-                    actionConfigs: migrateLegacyActionConfigs(p.build.actionConfigs) ?? [],
-                }
+                const build = { ...freshBuild(), ...p.build }
                 // 非法组合清理：主手非单手（双手/御物）时不能带副手
                 if (build.offhand && !isOneHanded(build.weapon)) build.offhand = undefined
                 return { build, initWeaponId: p.initWeaponId ?? 'bare_hands', baseline: p.baseline }

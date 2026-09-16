@@ -1,15 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { checkCondition } from '../../game/entities/action-config'
 import {
-    getLegacyCondition,
     describeCondition,
     CONDITION_TYPES,
     conditionParams,
     defaultParams,
-    migrateLegacyActionConfig,
-    migrateLegacyActionConfigs,
     resolveCondition,
-    unknownLegacyConditionIds,
 } from '../../data/conditions'
 import { Character } from '../entities/character'
 import { PositionSystem } from '../combat/position'
@@ -57,24 +53,6 @@ function makeState(char: Character): BattleStateType {
     st.triggeredThisChain = null
     return st
 }
-
-describe('旧预设表（只读迁移用）', () => {
-    it('能查到旧 id', () => {
-        expect(getLegacyCondition('hp_below_50')).toEqual({ type: 'hp_below', ratio: 0.5 })
-        expect(getLegacyCondition('distance_gt_3')).toEqual({ type: 'distance_greater_than', meters: 3 })
-        expect(getLegacyCondition('always')).toEqual({ type: 'always' })
-    })
-
-    it('查不到的旧 id 返回 undefined', () => {
-        expect(getLegacyCondition('unknown')).toBeUndefined()
-    })
-
-    it('返回副本，改不动冻结表', () => {
-        const a = getLegacyCondition('chan_ge_30')!
-        a.type = 'always'
-        expect(getLegacyCondition('chan_ge_30')).toEqual({ type: 'chan_above', value: 30 })
-    })
-})
 
 describe('describeCondition', () => {
     it('describes always', () => {
@@ -130,87 +108,11 @@ describe('resolveCondition（只认结构化条件）', () => {
         expect(resolveCondition({ actionId: 'a', condition: { type: 'always' } })).toBeUndefined()
     })
 
-    it('旧 conditionId 不再兜底：必须先迁移（否则视为无门槛）', () => {
-        expect(resolveCondition({ actionId: 'a', conditionId: 'hp_below_50' })).toBeUndefined()
-    })
-
-    it('结构化条件优先于残留的旧 id', () => {
-        const c = resolveCondition({
-            actionId: 'a',
-            conditionId: 'hp_below_50',
-            condition: { type: 'hp_below', ratio: 0.2 },
+    it('返回条件本体（不是 always 时）', () => {
+        expect(resolveCondition({ actionId: 'a', condition: { type: 'hp_below', ratio: 0.2 } })).toEqual({
+            type: 'hp_below',
+            ratio: 0.2,
         })
-        expect(c).toEqual({ type: 'hp_below', ratio: 0.2 })
-    })
-})
-
-describe('旧格式迁移', () => {
-    const LEGACY_IDS = [
-        'always',
-        'hp_below_50',
-        'hp_below_70',
-        'hp_above_30',
-        'hp_above_50',
-        'hp_above_70',
-        'enemy_hp_below_50',
-        'enemy_hp_below_30',
-        'enemy_hp_below_10',
-        'enemy_hp_above_50',
-        'distance_gt_2',
-        'distance_lt_1',
-        'distance_lt_2',
-        'distance_gt_3',
-        'distance_lt_3',
-        'distance_gt_4',
-        'distance_lt_4',
-        'distance_gt_5',
-        'distance_lt_5',
-        'enemy_no_stun_track',
-        'no_stance',
-        'enemy_no_shixin',
-        'chill_blade_lt_2',
-        'bamboo_regen_lt_2',
-        'thunder_swift_lt_2',
-        'yun_yin_lt_2',
-        'chan_ge_30',
-        'chan_ge_50',
-    ]
-
-    it('每个旧 id 都升级成等价的结构化条件，且清掉旧字段', () => {
-        for (const id of LEGACY_IDS) {
-            const before = getLegacyCondition(id)
-            expect(before, `旧表缺 id: ${id}`).toBeDefined()
-            const after = migrateLegacyActionConfig({ actionId: 'a', conditionId: id })
-            expect(after.condition, id).toEqual(before)
-            expect(after.conditionId, id).toBeUndefined()
-            // 迁移前后生效闸门一致（always 两侧都是无门槛）
-            const legacyGate = before && before.type !== 'always' ? before : undefined
-            expect(resolveCondition(after), id).toEqual(legacyGate)
-        }
-    })
-
-    it('已有结构化条件时不动它', () => {
-        const ac = migrateLegacyActionConfig({
-            actionId: 'a',
-            conditionId: 'hp_below_50',
-            condition: { type: 'ap_below', value: 3 },
-        })
-        expect(ac.condition).toEqual({ type: 'ap_below', value: 3 })
-    })
-
-    it('认不出的旧 id 原样留下（编辑器标为已失效），且不参与运行期解析', () => {
-        const ac = migrateLegacyActionConfig({ actionId: 'a', conditionId: 'no_such_preset' })
-        expect(ac.conditionId).toBe('no_such_preset')
-        expect(ac.condition).toBeUndefined()
-        expect(resolveCondition(ac)).toBeUndefined()
-        expect(unknownLegacyConditionIds([ac])).toEqual(['no_such_preset'])
-    })
-
-    it('批量迁移保留 undefined', () => {
-        expect(migrateLegacyActionConfigs(undefined)).toBeUndefined()
-        expect(migrateLegacyActionConfigs([{ actionId: 'a', conditionId: 'hp_below_50' }])).toEqual([
-            { actionId: 'a', condition: { type: 'hp_below', ratio: 0.5 } },
-        ])
     })
 })
 

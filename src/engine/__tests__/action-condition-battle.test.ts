@@ -7,7 +7,6 @@ import { TurnManager } from '../combat/turn'
 import { BuffRegistry } from '../combat/utils/buff-registry'
 import { BattleState } from '../combat/battle-state'
 import type { ActionCommand, BattleState as BattleStateType } from '../combat/types'
-import { migrateLegacyActionConfig } from '../../data/conditions'
 import type { ActionConfig } from '../../game/entities/action-config'
 import type { CharacterBuild } from '../../game/entities/character-build'
 
@@ -70,33 +69,6 @@ describe('出招条件在 AI 计划里生效', () => {
         const { self, state } = makeState(
             ACTIONS,
             ACTIONS.map((actionId) => ({ actionId, condition: { type: 'distance_between' as const, min: 0, max: 2 } })),
-            1,
-        )
-        expect(plannedAttacks(planEvent(self, state))).toContain('liu_yang_zhang')
-    })
-
-    it('旧格式 conditionId 经迁移后生效：不满足则不出招', () => {
-        const { self, state } = makeState(
-            ACTIONS,
-            ACTIONS.map((actionId) => migrateLegacyActionConfig({ actionId, conditionId: 'enemy_hp_below_10' })),
-            1,
-        )
-        expect(plannedAttacks(planEvent(self, state))).toEqual([])
-    })
-
-    it('旧格式 conditionId 经迁移后生效：满足则出招', () => {
-        const { self, state } = makeState(
-            ACTIONS,
-            ACTIONS.map((actionId) => migrateLegacyActionConfig({ actionId, conditionId: 'distance_lt_5' })),
-            1,
-        )
-        expect(plannedAttacks(planEvent(self, state))).toContain('liu_yang_zhang')
-    })
-
-    it('没走迁移的旧 conditionId 不生效（视为无门槛）——迁移是读档边界的责任', () => {
-        const { self, state } = makeState(
-            ACTIONS,
-            ACTIONS.map((actionId) => ({ actionId, conditionId: 'enemy_hp_below_10' })),
             1,
         )
         expect(plannedAttacks(planEvent(self, state))).toContain('liu_yang_zhang')

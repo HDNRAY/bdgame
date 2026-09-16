@@ -2,99 +2,23 @@ import type { ActionConfig, RequiredCondition } from '../game/entities/action-co
 import { BUFF_DB, DEBUFF_DB, getBuff } from './buffs'
 
 // ════════════════════════════════════════
-//  出招必要条件
+//  出招必要条件（唯一表达：结构化条件）
 //
-//  只有一套表达：结构化条件（`ActionConfig.condition`），数据源是 CONDITION_TYPES。
-//  - 玩家在构筑面板里编辑 → 写结构化条件
-//  - 对手数据（src/data/opponents/*）直接写结构化条件
-//  - 旧存档 / 旧文件里的 `conditionId` 由 migrateLegacyActionConfig() 一次性升级，运行期不再读取
+//  - 数据源：本文件的 CONDITION_TYPES（编辑器与对手数据都从这里取类型与参数）
+//  - 写入位置：ActionConfig.condition
+//  - 解析入口：resolveCondition()，返回"生效的闸门"
 //
 //  语义是**闸门**：条件满足只代表"这招允许被选择"，
 //  是否真的出招仍由 AI 按期望伤害/内息效率评分决定（详见 docs/gameplay-guide.md「出招条件」）。
 // ════════════════════════════════════════
 
 /**
- * 旧预设表（冻结，只读）：仅用于把旧存档 / 旧对手数据里的 `conditionId` 升级成结构化条件。
- * 不要再往这里加条目 —— 新条件一律加到 CONDITION_TYPES（编辑器的唯一数据源）。
- */
-const LEGACY_CONDITION_IDS: Record<string, RequiredCondition> = {
-    always: { type: 'always' },
-    hp_below_50: { type: 'hp_below', ratio: 0.5 },
-    hp_below_70: { type: 'hp_below', ratio: 0.7 },
-    hp_above_30: { type: 'hp_above', ratio: 0.3 },
-    hp_above_50: { type: 'hp_above', ratio: 0.5 },
-    hp_above_70: { type: 'hp_above', ratio: 0.7 },
-    enemy_hp_below_50: { type: 'enemy_hp_below', ratio: 0.5 },
-    enemy_hp_below_30: { type: 'enemy_hp_below', ratio: 0.3 },
-    enemy_hp_below_10: { type: 'enemy_hp_below', ratio: 0.1 },
-    enemy_hp_above_50: { type: 'enemy_hp_above', ratio: 0.5 },
-    distance_gt_2: { type: 'distance_greater_than', meters: 2 },
-    distance_lt_1: { type: 'distance_less_than', meters: 1 },
-    distance_lt_2: { type: 'distance_less_than', meters: 2 },
-    distance_gt_3: { type: 'distance_greater_than', meters: 3 },
-    distance_lt_3: { type: 'distance_less_than', meters: 3 },
-    distance_gt_4: { type: 'distance_greater_than', meters: 4 },
-    distance_lt_4: { type: 'distance_less_than', meters: 4 },
-    distance_gt_5: { type: 'distance_greater_than', meters: 5 },
-    distance_lt_5: { type: 'distance_less_than', meters: 5 },
-    enemy_no_stun_track: { type: 'enemy_buff_not_active', buffId: 'stun_track' },
-    no_stance: { type: 'no_buff_with_tag', tag: 'stance' },
-    enemy_no_shixin: { type: 'debuff_not_active', buffId: 'fumble_chance_temp' },
-    chill_blade_lt_2: { type: 'buff_stacks_below', buffId: 'chill_blade', maxStacks: 2 },
-    bamboo_regen_lt_2: { type: 'buff_stacks_below', buffId: 'bamboo_regen', maxStacks: 2 },
-    thunder_swift_lt_2: { type: 'buff_stacks_below', buffId: 'thunder_swift', maxStacks: 2 },
-    yun_yin_lt_2: { type: 'buff_stacks_below', buffId: 'yun_yin', maxStacks: 2 },
-    chan_ge_30: { type: 'chan_above', value: 30 },
-    chan_ge_50: { type: 'chan_above', value: 50 },
-}
-
-/** 按旧 id 取条件（仅供迁移与「条件已失效」提示；返回副本，避免调用方改动冻结表） */
-export function getLegacyCondition(id: string): RequiredCondition | undefined {
-    const c = LEGACY_CONDITION_IDS[id]
-    return c ? { ...c } : undefined
-}
-
-/** 旧 id 是否仍然认识（用于提示：不认识的 id 迁移后仍会留在存档里，编辑器标为已失效） */
-export function isKnownLegacyConditionId(id: string): boolean {
-    return id in LEGACY_CONDITION_IDS
-}
-
-/**
- * 解析招式条件 → **生效的闸门**（唯一入口，运行期只认结构化条件）。
+ * 解析招式条件 → **生效的闸门**（唯一入口）。
  * 没设条件、条件为 always 时返回 undefined（= 无门槛）。
- * 旧格式的 `conditionId` 必须先由 migrateLegacyActionConfig 升级，这里不再兜底。
  */
 export function resolveCondition(ac: ActionConfig | undefined): RequiredCondition | undefined {
     if (!ac?.condition) return undefined
     return ac.condition.type === 'always' ? undefined : ac.condition
-}
-
-/**
- * 旧存档迁移：把 `conditionId` 展开成结构化 `condition`（阈值随存档一起保存，
- * 以后旧表变动也不会影响已保存的构筑）。
- * 旧表里查不到的 id 原样保留 —— 编辑器会标成「条件已失效」，不静默当无条件。
- */
-export function migrateLegacyActionConfig(ac: ActionConfig): ActionConfig {
-    if (ac.condition || !ac.conditionId) return ac
-    const cond = getLegacyCondition(ac.conditionId)
-    if (!cond) return ac
-    const next = { ...ac, condition: cond }
-    delete next.conditionId
-    return next
-}
-
-/** 批量迁移（build.actionConfigs 可能缺省，保持 undefined 原样返回） */
-export function migrateLegacyActionConfigs(configs?: readonly ActionConfig[]): ActionConfig[] | undefined {
-    return configs?.map(migrateLegacyActionConfig)
-}
-
-/** 找出迁移后仍认不出的旧 id（供存档校验提示，避免条件静默失效） */
-export function unknownLegacyConditionIds(configs: readonly ActionConfig[]): string[] {
-    const bad = new Set<string>()
-    for (const ac of configs) {
-        if (!ac.condition && ac.conditionId && !isKnownLegacyConditionId(ac.conditionId)) bad.add(ac.conditionId)
-    }
-    return [...bad]
 }
 
 // ── 结构化条件类型表（编辑器唯一数据源） ──

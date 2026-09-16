@@ -10,8 +10,6 @@ import { getAction } from '../../data/actions'
 import { getWeapon } from '../../data/weapons/weapons'
 import { classifyAttackStyle } from '../../engine/ai/planner'
 import { checkTalents } from '../../game/talent-check'
-import { migrateLegacyActionConfig, unknownLegacyConditionIds } from '../../data/conditions'
-
 /** 每级属性消耗的修炼点 */
 export function cultCost(value: number): number {
     if (value >= 20) return 3
@@ -32,8 +30,8 @@ export function useBuildCharacter(
 
     const [attrs, setAttrs] = useImmer<Record<string, number>>(() => ({ ...(build.baseAttrs ?? {}) }))
     const [actionConfigs, setActionConfigs] = useImmer<ActionConfig[]>(() => {
-        // 已有的配置（来自上次保存）——顺带把旧格式 conditionId 迁移成结构化条件
-        const existing = (build.actionConfigs ?? []).map((c) => migrateLegacyActionConfig({ ...c }))
+        // 已有的配置（来自上次保存）
+        const existing = (build.actionConfigs ?? []).map((c) => ({ ...c }))
         const existingIds = new Set(existing.map((c) => c.actionId))
         // 补充 rewards 中新增但尚未配置的招式
         for (const r of build.rewards) {
@@ -98,8 +96,6 @@ export function useBuildCharacter(
 
     const maxTriggerSlots = character.maxTriggerSlots
     const triggerCount = actionConfigs.filter((ac) => ac.triggerId).length
-    /** 已失效的条件预设 id（预设表变动后的旧存档）——不阻断保存，但会明确提示 */
-    const staleConditions = unknownLegacyConditionIds(actionConfigs)
     const activeTalents = checkTalents(attrs)
 
     function handleAttrAdjust(attr: string, delta: number) {
@@ -116,7 +112,7 @@ export function useBuildCharacter(
     function handleReset() {
         setAttrs({ ...build.baseAttrs })
         setActionConfigs((draft) => {
-            const existing = (build.actionConfigs ?? []).map((c) => migrateLegacyActionConfig({ ...c }))
+            const existing = (build.actionConfigs ?? []).map((c) => ({ ...c }))
             const existingIds = new Set(existing.map((c) => c.actionId))
             for (const r of build.rewards) {
                 if (r.type === 'action' && !existingIds.has(r.id)) {
@@ -146,12 +142,7 @@ export function useBuildCharacter(
             )
             return
         }
-        // 失效的条件不阻断保存，但要提示：引擎会把它当"无条件"处理（见 staleConditions）
-        setSaveError(
-            staleConditions.length > 0
-                ? `有 ${staleConditions.length} 个条件已失效（${staleConditions.join('、')}），已按「不设条件」保存`
-                : null,
-        )
+        setSaveError(null)
         // battleStyle 显式必填：未手动选风格时按当前主武器落一个建议值（引擎不再自动判定）
         const style: BattleStyle = battleStyle ?? classifyAttackStyle(getWeapon(build.weapon).range)
         const newBuild: CharacterBuild = {
@@ -176,7 +167,6 @@ export function useBuildCharacter(
         remaining,
         maxTriggerSlots,
         triggerCount,
-        staleConditions,
         activeTalents,
         saveError,
         handleAttrAdjust,

@@ -116,7 +116,6 @@ export function CharacterPanel({
         remaining,
         maxTriggerSlots,
         triggerCount,
-        staleConditions,
         activeTalents,
         saveError,
         handleAttrAdjust,
@@ -173,12 +172,6 @@ export function CharacterPanel({
             )}
 
             {isBuild && saveError && <div className="cp-error">{saveError}</div>}
-            {isBuild && staleConditions.length > 0 && (
-                <div className="cp-error">
-                    有 {staleConditions.length} 个条件已失效（{staleConditions.join('、')}）：引擎按「不设条件」处理，
-                    请重新设置或点该招式的条件按钮清除。
-                </div>
-            )}
 
             <div className="cp-body">
                 {/* 左栏：区块1+4 */}
