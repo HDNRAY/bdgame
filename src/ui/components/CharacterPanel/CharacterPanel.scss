@@ -183,6 +183,7 @@
         font-size: var(--font-xs);
         font-family: var(--font-family-small);
         padding: 2px var(--sp-xxs);
+        padding-right: var(--ss-caret-space);
         border: var(--border-width) solid var(--color-border);
         border-radius: var(--radius-md);
         background: var(--color-bg-panel);
@@ -362,6 +363,7 @@
 .cp-col-trig .ss-input {
     width: 100%;
     padding: 2px var(--sp-xxs);
+    padding-right: var(--ss-caret-space);
     font-size: var(--font-xs);
     font-family: var(--font-family-small);
     background: var(--color-bg-panel);

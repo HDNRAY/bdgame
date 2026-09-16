@@ -1,4 +1,7 @@
 .ss {
+    /* 箭头占位与内缩：各调用方的 .ss-input padding 覆盖只需补 padding-right: var(--ss-caret-space) */
+    --ss-caret-space: 1.125rem;
+    --ss-caret-inset: 0.375rem;
     position: relative;
     display: block;
     width: 100%;
@@ -13,7 +16,9 @@
     /* 块级：避免行盒基线留出下沿空隙，否则外层 .ss 比输入框高、箭头会被拉低 */
     display: block;
     width: 100%;
-    padding: 2px var(--sp-xs) 2px var(--sp-xxs);
+    padding: 2px var(--sp-xxs);
+    /* 右侧留出箭头的位置，文本再长也不会压到箭头下 */
+    padding-right: var(--ss-caret-space);
     font-size: var(--font-xs);
     font-family: var(--font-mono);
     background: var(--color-bg-input, var(--color-bg-panel));
@@ -37,7 +42,7 @@
 /* 折叠态的箭头（纯 CSS，不用字符） */
 .ss-caret {
     position: absolute;
-    right: var(--sp-xxs);
+    right: var(--ss-caret-inset);
     top: 50%;
     /* 三角用 border 画的，transform 把 4px 高的盒子真正压在垂直中线上 */
     transform: translateY(-50%);

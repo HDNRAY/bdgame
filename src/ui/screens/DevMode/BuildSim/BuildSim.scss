@@ -33,6 +33,7 @@
     }
 
     .ss-input {
+        padding-right: var(--ss-caret-space);
         background: var(--color-bg-input);
         color: var(--color-text);
         border: var(--border-width) solid var(--color-border);
@@ -96,6 +97,7 @@
         }
 
         .ss-input {
+            padding-right: var(--ss-caret-space);
             background: var(--color-bg-input);
             color: var(--color-text);
             border: var(--border-width) solid var(--color-border);
