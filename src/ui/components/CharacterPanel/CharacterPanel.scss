@@ -426,7 +426,9 @@
     font-size: var(--font-xs);
     color: var(--color-text-dim);
 
-    input {
+    /* 数字输入与下拉在同一行里保持同高同色；只挑 number 输入，避免压掉 .ss-input 自己的样式 */
+    input[type='number'],
+    .ss-input {
         padding: 2px var(--sp-xxs);
         font-size: var(--font-xs);
         font-family: var(--font-mono);
@@ -436,6 +438,11 @@
         border-radius: var(--radius-sm);
     }
 
+    /* 下拉要额外给箭头留位（须排在上面那条 padding 简写之后） */
+    .ss-input {
+        padding-right: var(--ss-caret-space);
+    }
+
     input[type='number'] {
         width: 4.5rem;
     }
@@ -443,6 +450,13 @@
     .ss {
         max-width: 13rem;
     }
+}
+
+/* 单位与输入框同行：数字输入 + 单位并排 */
+.cp-cond-input {
+    display: flex;
+    align-items: center;
+    gap: 3px;
 }
 
 .cp-cond-unit {

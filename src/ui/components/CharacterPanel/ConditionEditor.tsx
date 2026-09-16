@@ -120,15 +120,18 @@ export function ConditionEditor({ ac, onChange }: { ac: ActionConfig; onChange: 
                     return (
                         <label key={p.key} className="cp-cond-field">
                             <span>{p.label}</span>
-                            <input
-                                type="number"
-                                value={Number(raw ?? 0)}
-                                min={p.min}
-                                max={p.max}
-                                step={p.step}
-                                onChange={(e) => setParam(p.key, Number(e.target.value))}
-                            />
-                            {p.unit && <em className="cp-cond-unit">{p.unit}</em>}
+                            {/* 单位与输入框同一行，避免单位被挤到下一行 */}
+                            <span className="cp-cond-input">
+                                <input
+                                    type="number"
+                                    value={Number(raw ?? 0)}
+                                    min={p.min}
+                                    max={p.max}
+                                    step={p.step}
+                                    onChange={(e) => setParam(p.key, Number(e.target.value))}
+                                />
+                                {p.unit && <em className="cp-cond-unit">{p.unit}</em>}
+                            </span>
                         </label>
                     )
                 })}
