@@ -25,7 +25,8 @@
     }
 
     .tt-name {
-        font-size: var(--font-lg);
+        /* md（12px）：与 tooltip 正文同号，靠加粗与标题色拉开层级 */
+        font-size: var(--font-md);
         font-weight: bold;
         color: var(--color-text-h);
         margin-bottom: var(--sp-xxs);
