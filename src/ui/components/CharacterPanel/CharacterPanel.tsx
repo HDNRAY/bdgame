@@ -254,7 +254,7 @@ export function CharacterPanel({
                                     ))}
                                 </div>
                                 <div className="cp-table-note">
-                                    条件只是「允不允许出这招」；实际出招按期望伤害与内息效率择优，招式排列顺序不影响选择。
+                                    条件满足只代表这招「允许被选」，实际出招仍按期望伤害与内息效率择优；招式排列顺序不影响选择。
                                 </div>
                             </>
                         ) : (

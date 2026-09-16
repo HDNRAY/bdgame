@@ -136,7 +136,6 @@ export function ConditionEditor({ ac, onChange }: { ac: ActionConfig; onChange: 
                     清除
                 </button>
             </div>
-            <div className="cp-cond-hint">条件满足只代表这招「允许被选」，实际出招仍按伤害与内息效率择优。</div>
         </div>
     )
 }
