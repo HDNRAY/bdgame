@@ -43,4 +43,8 @@ describe('触发条件表', () => {
         // 血量阈值属于「出招条件」，不是交手事件
         expect(TRIGGER_CONDITIONS.some((t) => t.type === 'hp_below')).toBe(false)
     })
+
+    it('不收过于宽泛的事件：on_attack 等于每次攻击都触发，且无数据使用', () => {
+        expect(TRIGGER_CONDITIONS.some((t) => t.type === 'on_attack')).toBe(false)
+    })
 })

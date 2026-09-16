@@ -14,6 +14,10 @@ import type { TriggerCondition } from '../engine/entities/trigger'
  *  - 玩家可选（进构筑面板下拉）：要求有中文名、且名字互不重复（有测试把关）
  *  - 内部种类（`internal: true`）：只给数据/引擎用，不进下拉
  *
+ * 本表是**玩家可选项**，不是全部触发事件：引擎事件里另有 `on_hit` / `on_equip` / `on_stance` / `on_buff` /
+ * `chan_overflow` / `on_action_trigger` / `on_attack` 等，只给数据层声明用（buff 消耗触发、功法/武器自带触发），
+ * 不进玩家下拉。`on_attack` 尤其宽泛——等于「每次攻击都触发」，故不列为玩家选项。
+ *
  * 数据层自带触发（功法/奇物/武器/被动）是直接写 `TriggerSlot` 对象（`{ type, check }`），不经过本表的 id。
  * 所以**引擎的触发事件可以不出现在本表里**：例如 `hp_below` 只服务数据里声明的「濒危反应」被动
  * （三分归元气 HP<30%、炁体源流 HP<20%），属内部触发，与玩家可选表无关 —— 不要因为本表没有就去删事件。
@@ -26,7 +30,6 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
     { id: 'on_dodge', type: 'on_dodge' },
     { id: 'on_turn_start', type: 'on_turn_start' },
     { id: 'on_turn_end', type: 'on_turn_end' },
-    { id: 'on_attack', type: 'on_attack' },
     { id: 'on_dealt_damage', type: 'on_dealt_damage' },
     { id: 'on_was_hit', type: 'on_was_hit' },
     // 内部：与「被命中时」在玩家侧区分不开（差别只是有没有真的掉血），事件本身仍由引擎广播
