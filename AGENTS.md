@@ -101,12 +101,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 
 「AI/对手要用、但不该被玩家当「学招式」奖励抽到」的招式只加 `_` 前缀，**不要加 `internal`** —— `internal` 会让 AI 出不了这张牌（曾因此把一刀/德克的胜率砍半）。两个手段不等价的完整说明见 `docs/tag-audit.md` §十二。
 
-**出招条件只有一套表达**：`ActionConfig.condition`（结构化，类型与参数见 `src/data/conditions.ts` 的 `CONDITION_TYPES`）。对手数据（`src/data/opponents/*`）与玩家构筑都直接写结构化条件，解析唯一入口是 `resolveCondition()`。**不要再引入"预设 id / 结构化"两套表达**（旧 `conditionId` 已按"无旧数据"删除）。
-
-- 语义是**闸门**不是优先级：条件满足只代表"这招允许被选中"，是否出招仍由 AI 按期望伤害/内息效率评分决定（每回合通常只有一招的名额）。
-- 读档边界三处：玩家构筑编辑器（`useBuildCharacter`）、隐藏boss（`championBossBuild`，覆盖 meta 存档与 `npm run tour --champion=<build.json>`）、DevMode 构筑试炼（`BuildSim.loadPersisted`）。存档里的 build 结构加字段时，在这三处一并处理。
-
-**触发器与条件的分工（别混）**：**触发器 = 见招拆招**，由交手过程中发生的事件驱动（招架/闪避/被命中/被缴械/对手靠近远离/给对手挂毒挂流血/回合开始…），表在 `src/data/triggers.ts`；**出招条件 = 自己的套路**，是自身状态门槛（气血/内息/缠劲/距离/状态层数/时间），走 `ActionConfig.condition`。所以**血量阈值这类"自身状态"不做成触发槽**（`TRIGGER_CONDITIONS` 里有测试禁止出现 `hp_below` 之类自查项）。`TriggerCondition` 只有 `id/type/buffId/check/internal`——触发招式的次数上限与 AP 上限由**招式自身**（`maxUses`、`apCost > 2` 硬过滤）决定，条件条目上不再挂这两个字段。数据层自带触发（功法/奇物/武器/被动）直接写 `TriggerSlot` 对象，不经过该表的 id；这些 id 的显示名在 `src/bridge/triggerDisplay.ts`。**引擎事件可以不在该表里**：`hp_below` 只服务数据声明的「濒危反应」被动（三分归元气 HP<30%、炁体源流 HP<20%），属内部触发，不要因为表里没有就删事件。
+**出招条件 vs 触发器**：出招条件是**自己的套路**（自身状态门槛，唯一表达 `ActionConfig.condition`，解析入口 `resolveCondition()`）；触发器是**见招拆招**（交手事件，表在 `src/data/triggers.ts`）。自身状态阈值（如血量）**不做成触发槽**。细节见这两个文件的文件头注释。
 
 ## 像素美术（武器叠加图）
 

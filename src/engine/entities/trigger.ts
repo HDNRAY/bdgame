@@ -59,7 +59,11 @@ export interface Condition {
     check?: (ctx: ConditionContext) => boolean
 }
 
-/** 触发条件表里的一条（数据层声明；玩家可选的会进构筑面板的触发槽下拉） */
+/**
+ * 触发条件表里的一条（数据层声明；玩家可选的会进构筑面板的触发槽下拉）。
+ * 触发招式的次数/AP 上限由**招式自身**决定（`ActionDefinition.maxUses`、`apCost > 2` 不进触发），
+ * 所以这里不挂次数/费用字段。
+ */
 export interface TriggerCondition extends Condition {
     id: string
     /**
