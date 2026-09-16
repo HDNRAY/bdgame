@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useImmer } from 'use-immer'
 import type { CharacterBuild, BattleStyle } from '../../game/entities/character-build'
-import type { ActionConfig } from '../../game/entities/action-config'
+import { canBeTriggerAction, type ActionConfig } from '../../game/entities/action-config'
 import type { AttrName } from '../../engine/entities/attributes'
 import { Character } from '../../engine/entities/character'
 import { ALL_ATTRS } from '../../engine/entities/attributes'
@@ -10,6 +10,14 @@ import { getAction } from '../../data/actions'
 import { getWeapon } from '../../data/weapons/weapons'
 import { classifyAttackStyle } from '../../engine/ai/planner'
 import { checkTalents } from '../../game/talent-check'
+/** 摘掉不合法的触发绑定（位移 / 内息消耗 > 2 的招式不能当触发招式），返回同一条配置 */
+function stripIllegalTrigger(ac: ActionConfig): ActionConfig {
+    if (!ac.triggerId) return ac
+    const def = getAction(ac.actionId)
+    if (def && !canBeTriggerAction(def)) ac.triggerId = undefined
+    return ac
+}
+
 /** 每级属性消耗的修炼点 */
 export function cultCost(value: number): number {
     if (value >= 20) return 3
@@ -30,8 +38,8 @@ export function useBuildCharacter(
 
     const [attrs, setAttrs] = useImmer<Record<string, number>>(() => ({ ...(build.baseAttrs ?? {}) }))
     const [actionConfigs, setActionConfigs] = useImmer<ActionConfig[]>(() => {
-        // 已有的配置（来自上次保存）
-        const existing = (build.actionConfigs ?? []).map((c) => ({ ...c }))
+        // 已有的配置（来自上次保存）；顺手摘掉不合法的触发绑定（位移 / 内息消耗 > 2）
+        const existing = (build.actionConfigs ?? []).map((c) => stripIllegalTrigger({ ...c }))
         const existingIds = new Set(existing.map((c) => c.actionId))
         // 补充 rewards 中新增但尚未配置的招式
         for (const r of build.rewards) {
@@ -61,10 +69,12 @@ export function useBuildCharacter(
         const temp = new Character(build)
         const allActionIds = new Set(temp.actions.filter((a) => !a.def.tags.includes('internal')).map((a) => a.id))
         setActionConfigs((draft) => {
-            // 移除不再可用的招式
+            // 移除不再可用的招式；顺手摘掉不合法的触发绑定
             for (let i = draft.length - 1; i >= 0; i--) {
                 if (!allActionIds.has(draft[i].actionId)) {
                     draft.splice(i, 1)
+                } else {
+                    stripIllegalTrigger(draft[i])
                 }
             }
             // 补充新招式
@@ -128,9 +138,10 @@ export function useBuildCharacter(
         setActionConfigs((draft) => {
             const ac = draft[index]
             Object.assign(ac, patch)
-            // 位移招式只能设条件、不能作为触发招式（与引擎护栏一致）
-            if (ac.triggerId && getAction(ac.actionId)?.tags.includes('move')) {
-                ac.triggerId = undefined
+            // 位移招式与内息消耗 > 2 的招式不能作为触发招式（与引擎护栏一致）
+            if (ac.triggerId) {
+                const def = getAction(ac.actionId)
+                if (def && !canBeTriggerAction(def)) ac.triggerId = undefined
             }
         })
     }

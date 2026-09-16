@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { checkCondition } from '../../game/entities/action-config'
+import { checkCondition, canBeTriggerAction } from '../../game/entities/action-config'
+import { allMainActions } from '../../engine'
 import {
     describeCondition,
     CONDITION_TYPES,
@@ -255,5 +256,26 @@ describe('checkCondition', () => {
         // 自身同名状态不参与判定：自身 0 层不应让「目标层数少于 1」成立
         state.pendingBuffs.set(`bleed::${char.id}`, { restoreValue: 0 })
         expect(checkCondition({ type: 'enemy_buff_stacks_below', buffId: 'bleed', maxStacks: 1 }, char, state)).toBe(false)
+    })
+
+})
+
+describe('canBeTriggerAction（与引擎触发护栏同口径）', () => {
+    it('允许：内息消耗 ≤ 2 的非位移招', () => {
+        const light = allMainActions.filter((a) => a.apCost <= 2 && !a.tags.includes('move'))
+        expect(light.length).toBeGreaterThan(0)
+        expect(light.every(canBeTriggerAction)).toBe(true)
+    })
+
+    it('禁止：内息消耗 > 2', () => {
+        const heavy = allMainActions.filter((a) => a.apCost > 2)
+        expect(heavy.length).toBeGreaterThan(0)
+        expect(heavy.some(canBeTriggerAction)).toBe(false)
+    })
+
+    it('禁止：位移招式', () => {
+        const moves = allMainActions.filter((a) => a.tags.includes('move'))
+        expect(moves.length).toBeGreaterThan(0)
+        expect(moves.some(canBeTriggerAction)).toBe(false)
     })
 })

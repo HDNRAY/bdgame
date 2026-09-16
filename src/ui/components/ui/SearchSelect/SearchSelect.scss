@@ -7,8 +7,18 @@
     width: 100%;
     min-width: 0;
 
+    /* 禁用态：不加整体透明度（会把文字压到看不见），改为虚线边框 + 隐藏箭头（不可展开） */
     &.ss-disabled {
-        opacity: 0.4;
+        .ss-input {
+            color: var(--color-text-dim);
+            background: var(--color-bg-alt);
+            border-style: dashed;
+            cursor: default;
+        }
+
+        .ss-caret {
+            display: none;
+        }
     }
 }
 

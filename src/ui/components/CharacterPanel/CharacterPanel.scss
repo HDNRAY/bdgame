@@ -375,6 +375,21 @@
     overflow: hidden;
 }
 
+/* 不能作触发的招式：占位说明，替代一个空的禁用下拉 */
+.cp-trig-none {
+    display: block;
+    padding: 2px var(--sp-xxs);
+    font-size: var(--font-xs);
+    font-family: var(--font-mono);
+    color: var(--color-text-dim);
+    border: var(--border-width) dashed var(--color-border);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .cp-col-trig {
     padding-right: 0;
 }

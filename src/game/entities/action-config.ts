@@ -1,5 +1,6 @@
 import type { BattleState } from '../../engine/combat/types'
 import type { Character } from '../../engine/entities/character'
+import type { ActionDefinition } from '../../engine/entities/action'
 import { forEachBuffOf } from '../../engine/combat/utils'
 
 /**
@@ -31,6 +32,15 @@ export type RequiredCondition =
     | { type: 'ap_above'; value: number }
     | { type: 'ap_below'; value: number }
     | { type: 'time_above'; seconds: number }
+
+/**
+ * 该招式能否挂在触发槽上。
+ * 与引擎同一口径（`engine.ts` 的 `#processEmit`：触发招式 `apCost > 2` 或带 `move` 标签直接跳过），
+ * UI 用它决定「触发」列是否可选，避免配出一个永远不触发的槽。
+ */
+export function canBeTriggerAction(def: ActionDefinition): boolean {
+    return !def.tags.includes('move') && def.apCost <= 2
+}
 
 /** 招式配置条目 */
 export interface ActionConfig {

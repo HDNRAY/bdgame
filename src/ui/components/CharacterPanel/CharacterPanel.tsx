@@ -6,7 +6,7 @@ import type { Character } from '../../../engine/entities/character'
 import { getAction } from '../../../data/actions'
 import { getWeapon, type WeaponDef } from '../../../data/weapons/weapons'
 import { getPassive } from '../../../data/passives'
-import type { ActionConfig } from '../../../game/entities/action-config'
+import { canBeTriggerAction, type ActionConfig } from '../../../game/entities/action-config'
 import { describeCondition, resolveCondition } from '../../../data/conditions'
 import { SELECTABLE_TRIGGER_CONDITIONS } from '../../../data/triggers'
 import { getTriggerConditionName } from '../../../bridge/triggerDisplay'
@@ -252,6 +252,7 @@ export function CharacterPanel({
                                 </div>
                                 <div className="cp-table-note">
                                     条件满足只代表这招「允许被选」，实际出招仍按期望伤害与内息效率择优；招式排列顺序不影响选择。
+                                    位移招式与内息消耗 &gt; 2 的招式不能作为触发招式（触发招式不耗内息，但照常耗缠劲）。
                                 </div>
                             </>
                         ) : (
@@ -449,8 +450,13 @@ function ActionRow({
 }) {
     const [condOpen, setCondOpen] = useState(false)
     const actionDef = getAction(ac.actionId)
-    // 位移招式只能设条件、不能作为触发招式（与引擎护栏一致）
-    const isMove = actionDef?.tags.includes('move') ?? false
+    // 位移招式与内息消耗 > 2 的招式不能作为触发招式（与引擎护栏一致）
+    const triggerBlocked = !!actionDef && !canBeTriggerAction(actionDef)
+    const blockedReason = !actionDef
+        ? undefined
+        : actionDef.tags.includes('move')
+          ? '位移招式不能作为触发招式'
+          : `内息消耗 ${actionDef.apCost} > 2，不能作为触发招式`
 
     return (
         <>
@@ -462,19 +468,26 @@ function ActionRow({
                     <ConditionButton ac={ac} open={condOpen} onToggle={() => setCondOpen((o) => !o)} />
                 </span>
                 <span className="cp-col-trig">
-                    <SearchSelect
-                        value={isMove ? '' : (ac.triggerId ?? '')}
-                        options={[
-                            { value: '', label: '—' },
-                            ...SELECTABLE_TRIGGER_CONDITIONS.filter((tc) => !takenTriggerIds.has(tc.id) || tc.id === ac.triggerId).map(
-                                (tc) => ({ value: tc.id, label: getTriggerConditionName(tc.id) }),
-                            ),
-                        ]}
-                        onChange={(v) => onUpdate(index, { triggerId: v || undefined })}
-                        disabled={disabled || isMove}
-                        title={isMove ? '位移招式不能设为触发招式' : undefined}
-                        searchPlaceholder="搜索触发条件…"
-                    />
+                    {triggerBlocked ? (
+                        /* 不能作触发的招式：直接写明原因，不再渲染一个空的禁用下拉 */
+                        <span className="cp-trig-none" title={blockedReason}>
+                            {actionDef.tags.includes('move') ? '位移招' : '耗>2'}
+                        </span>
+                    ) : (
+                        <SearchSelect
+                            value={ac.triggerId ?? ''}
+                            options={[
+                                { value: '', label: '—' },
+                                ...SELECTABLE_TRIGGER_CONDITIONS.filter(
+                                    (tc) => !takenTriggerIds.has(tc.id) || tc.id === ac.triggerId,
+                                ).map((tc) => ({ value: tc.id, label: getTriggerConditionName(tc.id) })),
+                            ]}
+                            onChange={(v) => onUpdate(index, { triggerId: v || undefined })}
+                            disabled={disabled}
+                            title={disabled ? '触发槽已满，先腾出一个再设置' : undefined}
+                            searchPlaceholder="搜索触发条件…"
+                        />
+                    )}
                 </span>
             </div>
             {condOpen && <ConditionEditor ac={ac} onChange={(patch) => onUpdate(index, patch)} />}
