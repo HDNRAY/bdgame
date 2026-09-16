@@ -3,7 +3,7 @@ import type { BattleState, ActionCommand } from '../combat/types'
 import { getBuff } from '../../data/buffs'
 import { forEachBuffOf } from '../combat/utils'
 import { checkCondition } from '../../game/entities/action-config'
-import { getConditionPreset } from '../../data/conditions'
+import { resolveCondition } from '../../data/conditions'
 
 /** 按阶段选择辅助招式 */
 export function planSupportActions(
@@ -55,11 +55,8 @@ export function planSupportActions(
         if (inst.def.canUse && phase === 'pre_action' && !inst.def.canUse(attacker, state)) continue
 
         if (phase === 'pre_action') {
-            const config = attacker.getConfig(inst.id)
-            if (config?.conditionId) {
-                const cond = getConditionPreset(config.conditionId)
-                if (cond && !checkCondition(cond, attacker, state)) continue
-            }
+            const cond = resolveCondition(attacker.getConfig(inst.id))
+            if (cond && !checkCondition(cond, attacker, state)) continue
         }
 
         // 收招阶段跳过去重（条件在主招执行后才满足，引擎执行时会再验证）

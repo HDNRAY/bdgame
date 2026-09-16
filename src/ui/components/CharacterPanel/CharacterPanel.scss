@@ -325,7 +325,7 @@
 .cp-table-header,
 .cp-row {
     display: grid;
-    grid-template-columns: 1.75rem 1fr minmax(5.625rem, auto) minmax(5.625rem, auto);
+    grid-template-columns: 1fr minmax(5.625rem, auto) minmax(5.625rem, auto);
     gap: var(--sp-xxs);
     align-items: center;
     padding: var(--sp-xxs) 0;
@@ -344,18 +344,11 @@
     border-bottom: var(--border-width) solid var(--color-bg-alt);
 }
 
-.cp-col-order {
-    display: flex;
-}
-
-.cp-drag-handle {
-    cursor: grab;
-    color: var(--color-border);
-    font-size: var(--font-lg);
-    user-select: none;
-    &:active {
-        cursor: grabbing;
-    }
+.cp-table-note {
+    margin-top: var(--sp-xxs);
+    font-size: var(--font-xs);
+    line-height: 1.5;
+    color: var(--color-text-dim);
 }
 
 .cp-col-name {
@@ -380,6 +373,102 @@
         opacity: 0.25;
         cursor: default;
     }
+}
+
+/* ── 条件按钮 + 展开编辑器 ── */
+.cp-cond-btn {
+    width: 100%;
+    padding: 2px var(--sp-xxs);
+    font-size: var(--font-xs);
+    font-family: var(--font-mono);
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--color-bg-panel);
+    color: var(--color-text);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+
+    &.open {
+        border-color: var(--color-text-dim);
+    }
+    /* 失效条件 / 未选状态：警示色，避免条件静默失效 */
+    &.warn {
+        border-color: #c0392b;
+        color: #c0392b;
+    }
+}
+
+.cp-cond-editor {
+    padding: var(--sp-xxs) var(--sp-xs) var(--sp-xs);
+    margin: 2px 0 var(--sp-xxs);
+    background: var(--color-bg-panel);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+}
+
+.cp-cond-editor-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--sp-xs);
+}
+
+.cp-cond-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: var(--font-xs);
+    color: var(--color-text-dim);
+
+    select,
+    input {
+        padding: 2px var(--sp-xxs);
+        font-size: var(--font-xs);
+        font-family: var(--font-mono);
+        background: var(--color-bg-alt);
+        color: var(--color-text);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-sm);
+    }
+
+    input[type='number'] {
+        width: 4.5rem;
+    }
+
+    select {
+        max-width: 12rem;
+    }
+}
+
+.cp-cond-unit {
+    font-style: normal;
+    font-size: var(--font-xs);
+    color: var(--color-text-dim);
+}
+
+.cp-cond-clear {
+    padding: 2px var(--sp-xs);
+    font-size: var(--font-xs);
+    background: var(--color-bg-alt);
+    color: var(--color-text);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+}
+
+.cp-cond-hint {
+    margin-top: var(--sp-xxs);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--color-text-dim);
 }
 
 .cp-trigger-count {

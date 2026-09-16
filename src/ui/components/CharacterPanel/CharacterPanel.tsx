@@ -1,22 +1,20 @@
 import { useMemo, useState } from 'react'
 import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { useNavigate } from 'react-router-dom'
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import type { Character } from '../../../engine/entities/character'
 import { getAction } from '../../../data/actions'
 import { getWeapon, type WeaponDef } from '../../../data/weapons/weapons'
 import { getPassive } from '../../../data/passives'
 import type { ActionConfig } from '../../../game/entities/action-config'
-import { CONDITION_PRESETS } from '../../../data/conditions'
+import { describeCondition, resolveCondition } from '../../../data/conditions'
 import { TRIGGER_CONDITIONS } from '../../../data/triggers'
 import { getTriggerConditionName } from '../../../bridge/triggerDisplay'
 import type { AttrName } from '../../../engine/entities/attributes'
 import type { Reward } from '../../../game/entities/reward'
 import { ARTIFACTS } from '../../../data/artifacts'
 import { RewardPicker, type PickKind } from './RewardPicker'
+import { ConditionButton, ConditionEditor } from './ConditionEditor'
 import { getCharacterAvatar, getSpriteOutlineColor, getWeaponOverlay } from '../../../ui/pixel-sprites'
 import { useBuildCharacter, cultCost } from '../../hooks/useBuildCharacter'
 import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
@@ -117,11 +115,11 @@ export function CharacterPanel({
         remaining,
         maxTriggerSlots,
         triggerCount,
+        staleConditions,
         activeTalents,
         saveError,
         handleAttrAdjust,
         handleReset,
-        moveAction,
         updateAction,
         handleSave,
     } = useBuildCharacter(build, onSave, unspentCultPoints)
@@ -131,17 +129,6 @@ export function CharacterPanel({
 
     // 已选触发 ID 集合（只检查 actionConfigs，不检查武器/功法/奇物自带触发）
     const takenTriggerIds = new Set(actionConfigs.map((ac) => ac.triggerId).filter((id): id is string => !!id))
-
-    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
-
-    function handleDragEnd(event: DragEndEvent) {
-        if (!isBuild) return
-        const { active, over } = event
-        if (!over || active.id === over.id) return
-        const from = parseInt(active.id as string)
-        const to = parseInt(over.id as string)
-        moveAction(from, to)
-    }
 
     // 构筑模式：已选奖励集合（供挑选器去重）与奖励定义查找
     const rewardExclude = useMemo(() => {
@@ -185,6 +172,12 @@ export function CharacterPanel({
             )}
 
             {isBuild && saveError && <div className="cp-error">{saveError}</div>}
+            {isBuild && staleConditions.length > 0 && (
+                <div className="cp-error">
+                    有 {staleConditions.length} 个条件已失效（{staleConditions.join('、')}）：引擎按「不设条件」处理，
+                    请重新设置或点该招式的条件按钮清除。
+                </div>
+            )}
 
             <div className="cp-body">
                 {/* 左栏：区块1+4 */}
@@ -243,35 +236,25 @@ export function CharacterPanel({
                         {isBuild ? (
                             <>
                                 <div className="cp-table-header">
-                                    <span className="cp-col-order">≡</span>
                                     <span className="cp-col-name">招式</span>
                                     <span className="cp-col-cond">条件</span>
                                     <span className="cp-col-trig">触发</span>
                                 </div>
-                                <DndContext
-                                    collisionDetection={closestCenter}
-                                    onDragEnd={handleDragEnd}
-                                    sensors={sensors}
-                                >
-                                    <SortableContext
-                                        items={actionConfigs.map((_, i) => String(i))}
-                                        strategy={verticalListSortingStrategy}
-                                    >
-                                        <div className="cp-table-body">
-                                            {actionConfigs.map((ac, i) => (
-                                                <SortableRow
-                                                    key={`${ac.actionId}-${i}`}
-                                                    id={String(i)}
-                                                    ac={ac}
-                                                    index={i}
-                                                    onUpdate={updateAction}
-                                                    disabled={triggerCount >= maxTriggerSlots && !ac.triggerId}
-                                                    takenTriggerIds={takenTriggerIds}
-                                                />
-                                            ))}
-                                        </div>
-                                    </SortableContext>
-                                </DndContext>
+                                <div className="cp-table-body">
+                                    {actionConfigs.map((ac, i) => (
+                                        <ActionRow
+                                            key={ac.actionId}
+                                            ac={ac}
+                                            index={i}
+                                            onUpdate={updateAction}
+                                            disabled={triggerCount >= maxTriggerSlots && !ac.triggerId}
+                                            takenTriggerIds={takenTriggerIds}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="cp-table-note">
+                                    条件只是「允不允许出这招」；实际出招按期望伤害与内息效率择优，招式排列顺序不影响选择。
+                                </div>
                             </>
                         ) : (
                             <div className="cp-tag-list">
@@ -279,9 +262,8 @@ export function CharacterPanel({
                                     .filter((a) => !a.def.tags.includes('internal'))
                                     .map((act, i) => {
                                         const cfg = character.getConfig(act.id)
-                                        const condName = cfg?.conditionId
-                                            ? CONDITION_PRESETS.find((p) => p.id === cfg.conditionId)?.name
-                                            : null
+                                        const cond = resolveCondition(cfg)
+                                        const condName = cond ? describeCondition(cond) : null
                                         const trigName = cfg?.triggerId ? getTriggerConditionName(cfg.triggerId) : null
                                         return (
                                             <EntityItem key={i} entity={act.def} type="action">
@@ -453,68 +435,54 @@ export function CharacterPanel({
     )
 }
 
-/** 可拖拽排序的招式行 */
-function SortableRow({
-    id,
+/** 招式行：条件（结构化编辑，展开后占整行）+ 触发槽绑定 */
+function ActionRow({
     ac,
     index,
     onUpdate,
     disabled,
     takenTriggerIds,
 }: {
-    id: string
     ac: ActionConfig
     index: number
     onUpdate: (i: number, patch: Partial<ActionConfig>) => void
     disabled: boolean
     takenTriggerIds: Set<string>
 }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
-    const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
+    const [condOpen, setCondOpen] = useState(false)
     const actionDef = getAction(ac.actionId)
     // 位移招式只能设条件、不能作为触发招式（与引擎护栏一致）
     const isMove = actionDef?.tags.includes('move') ?? false
 
     return (
-        <div ref={setNodeRef} style={style} className="cp-row">
-            <span className="cp-col-order" {...attributes} {...listeners}>
-                <span className="cp-drag-handle">⠿</span>
-            </span>
-            <span className="cp-col-name">
-                {actionDef ? <EntityItem entity={actionDef} type="action" /> : ac.actionId}
-            </span>
-            <span className="cp-col-cond">
-                <select
-                    value={ac.conditionId ?? 'always'}
-                    onChange={(e) =>
-                        onUpdate(index, { conditionId: e.target.value === 'always' ? undefined : e.target.value })
-                    }
-                >
-                    {CONDITION_PRESETS.map((p) => (
-                        <option key={p.id} value={p.id}>
-                            {p.name}
-                        </option>
-                    ))}
-                </select>
-            </span>
-            <span className="cp-col-trig">
-                <select
-                    value={isMove ? '' : (ac.triggerId ?? '')}
-                    disabled={disabled || isMove}
-                    title={isMove ? '位移招式不能设为触发招式' : undefined}
-                    onChange={(e) => onUpdate(index, { triggerId: e.target.value || undefined })}
-                >
-                    <option value="">—</option>
-                    {TRIGGER_CONDITIONS.map((tc) => {
-                        if (takenTriggerIds.has(tc.id) && tc.id !== ac.triggerId) return null
-                        return (
-                            <option key={tc.id} value={tc.id}>
-                                {getTriggerConditionName(tc.id)}
-                            </option>
-                        )
-                    })}
-                </select>
-            </span>
-        </div>
+        <>
+            <div className="cp-row">
+                <span className="cp-col-name">
+                    {actionDef ? <EntityItem entity={actionDef} type="action" /> : ac.actionId}
+                </span>
+                <span className="cp-col-cond">
+                    <ConditionButton ac={ac} open={condOpen} onToggle={() => setCondOpen((o) => !o)} />
+                </span>
+                <span className="cp-col-trig">
+                    <select
+                        value={isMove ? '' : (ac.triggerId ?? '')}
+                        disabled={disabled || isMove}
+                        title={isMove ? '位移招式不能设为触发招式' : undefined}
+                        onChange={(e) => onUpdate(index, { triggerId: e.target.value || undefined })}
+                    >
+                        <option value="">—</option>
+                        {TRIGGER_CONDITIONS.map((tc) => {
+                            if (takenTriggerIds.has(tc.id) && tc.id !== ac.triggerId) return null
+                            return (
+                                <option key={tc.id} value={tc.id}>
+                                    {getTriggerConditionName(tc.id)}
+                                </option>
+                            )
+                        })}
+                    </select>
+                </span>
+            </div>
+            {condOpen && <ConditionEditor ac={ac} onChange={(patch) => onUpdate(index, patch)} />}
+        </>
     )
 }

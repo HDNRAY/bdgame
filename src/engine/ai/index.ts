@@ -8,7 +8,7 @@ import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
 import { generatePlans, bestPlan, type AttackStyle } from './planner'
 import { planSupportActions } from './support-planner'
 import { checkCondition } from '../../game/entities/action-config'
-import { getConditionPreset } from '../../data/conditions'
+import { resolveCondition } from '../../data/conditions'
 
 /** AI 决策：返回本行动中要执行的一串指令 */
 export function planEvent(self: Character, state: BattleState): ActionCommand[] {
@@ -31,10 +31,8 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const pickupAction = self.actions.find((a) => a.def.tags.includes('retrieve_weapon'))
             if (pickupAction) {
                 const pickupConfig = self.getConfig(pickupAction.id)
-                if (pickupConfig?.conditionId) {
-                    const cond = getConditionPreset(pickupConfig.conditionId)
-                    if (cond && !checkCondition(cond, self, state)) shouldPickup = false
-                }
+                const cond = resolveCondition(pickupConfig)
+                if (cond && !checkCondition(cond, self, state)) shouldPickup = false
             }
         }
         if (shouldPickup && dropPos !== undefined) {
@@ -94,12 +92,9 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const dmg = calcSelfDamage(self.maxHp, selfDmgEff.ratio)
             if (self.hp <= dmg) continue
         }
-        // 必要条件过滤
-        const config = self.getConfig(inst.id)
-        if (config?.conditionId) {
-            const cond = getConditionPreset(config.conditionId)
-            if (cond && !checkCondition(cond, self, state)) continue
-        }
+        // 必要条件过滤（结构化 condition 优先，预设 conditionId 兜底）
+        const cond = resolveCondition(self.getConfig(inst.id))
+        if (cond && !checkCondition(cond, self, state)) continue
         candidates.push(calcExpectedDamage(inst.def, self, enemy, effRange, state))
     }
 

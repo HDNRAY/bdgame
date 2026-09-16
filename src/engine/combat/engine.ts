@@ -11,7 +11,7 @@ import { getAction as getBaseAction, getActionRange } from '../../data/actions'
 import { getRuntimeAction } from '../../data/actions'
 import { getBuff } from '../../data/buffs'
 import { checkCondition } from '../../game/entities/action-config'
-import { getConditionPreset } from '../../data/conditions'
+import { resolveCondition } from '../../data/conditions'
 import type { ActionDefinition, EffectDef } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
@@ -849,11 +849,8 @@ export class BattleEngine {
             return r
         // 运行时验证（条件可能在前摇/主招后才满足）
         if (inst.def.canUse && !inst.def.canUse(self, this.state)) return r
-        const config = self.getConfig(inst.id)
-        if (config?.conditionId) {
-            const cond = getConditionPreset(config.conditionId)
-            if (cond && !checkCondition(cond, self, this.state)) return r
-        }
+        const cond = resolveCondition(self.getConfig(inst.id))
+        if (cond && !checkCondition(cond, self, this.state)) return r
         // 缠劲不足的辅助招不释放（不扣 AP、不扣缠劲）
         if (inst.def.chanCost && !self.spendChan(inst.def.chanCost)) return r
         const supportApCost = self.actionApCost(inst.apCost, this.state)

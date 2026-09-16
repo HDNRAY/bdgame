@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CharacterBuild } from '../../../../game/entities/character-build'
+import type { ActionConfig } from '../../../../game/entities/action-config'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
 import { OPPONENTS, gen } from '../../../../data/opponents'
+import { resolveCondition } from '../../../../data/conditions'
 import type { Reward } from '../../../../game/entities/reward'
 import { CharacterPanel } from '../../../components/CharacterPanel/CharacterPanel'
 import { runSeries, type SeriesJob, type SeriesResult } from './sim-core'
@@ -46,11 +48,22 @@ function freshBuild(): CharacterBuild {
 interface Persisted {
     build: CharacterBuild
     initWeaponId: string
+    /** A/B 对照：基准组的招式条件（只存 actionConfigs，其余与 build 相同） */
+    baseline?: ActionConfig[]
 }
 
+/**
+ * A/B 对照状态：A = 记录的基准条件，B = 当前编辑的条件，其余构筑完全相同。
+ * 两轮跑同一批对手与场次，差异只来自出招条件 —— 用于把「条件怎么写」从玄学变成可测量。
+ */
 interface SimState {
     status: 'idle' | 'running' | 'done'
+    mode: 'single' | 'ab'
+    /** 当前进度所在组（A/B 两轮时的提示） */
+    phase: '' | 'A' | 'B'
     results: Record<string, SeriesResult>
+    resultsA: Record<string, SeriesResult>
+    resultsB: Record<string, SeriesResult>
     total: number
 }
 
@@ -72,7 +85,7 @@ function loadPersisted(): Persisted {
                 const build = { ...freshBuild(), ...p.build }
                 // 非法组合清理：主手非单手（双手/御物）时不能带副手
                 if (build.offhand && !isOneHanded(build.weapon)) build.offhand = undefined
-                return { build, initWeaponId: p.initWeaponId ?? 'bare_hands' }
+                return { build, initWeaponId: p.initWeaponId ?? 'bare_hands', baseline: p.baseline }
             }
         }
     } catch {
@@ -81,11 +94,23 @@ function loadPersisted(): Persisted {
     return { build: freshBuild(), initWeaponId: 'bare_hands' }
 }
 
+/** 真正带条件（有生效闸门）的招式数，用于展示 A/B 两组到底差在哪 */
+const conditionCount = (configs: readonly ActionConfig[]): number => configs.filter((ac) => !!resolveCondition(ac)).length
+
 export function BuildSim() {
     const initial = useMemo(() => loadPersisted(), [])
     const [build, setBuild] = useState<CharacterBuild>(initial.build)
     const [initWeaponId, setInitWeaponId] = useState<string>(initial.initWeaponId)
-    const [sim, setSim] = useState<SimState>({ status: 'idle', results: {}, total: 0 })
+    const [baseline, setBaseline] = useState<ActionConfig[] | null>(initial.baseline ?? null)
+    const [sim, setSim] = useState<SimState>({
+        status: 'idle',
+        mode: 'single',
+        phase: '',
+        results: {},
+        resultsA: {},
+        resultsB: {},
+        total: 0,
+    })
     const [nGames, setNGames] = useState(100)
     const [styleFilter, setStyleFilter] = useState<(typeof STYLE_FILTER)[number]['id']>('all')
     const [watchOppId, setWatchOppId] = useState<string | null>(null)
@@ -95,11 +120,14 @@ export function BuildSim() {
     // 持久化
     useEffect(() => {
         try {
-            localStorage.setItem(SAVE_KEY, JSON.stringify({ build, initWeaponId } satisfies Persisted))
+            localStorage.setItem(
+                SAVE_KEY,
+                JSON.stringify({ build, initWeaponId, baseline: baseline ?? undefined } satisfies Persisted),
+            )
         } catch {
             /* 存不下忽略 */
         }
-    }, [build, initWeaponId])
+    }, [build, initWeaponId, baseline])
 
     const isUpgradedWeapon = !STARTING_IDS.has(build.weapon)
     // 奖励里选出的武器槽：第 1 把覆盖初始主手；第 2 把进副手
@@ -163,8 +191,9 @@ export function BuildSim() {
     const handleNewBuild = () => {
         setBuild(freshBuild())
         setInitWeaponId('bare_hands')
+        setBaseline(null)
         setWatchOppId(null)
-        setSim({ status: 'idle', results: {}, total: 0 })
+        setSim({ status: 'idle', mode: 'single', phase: '', results: {}, resultsA: {}, resultsB: {}, total: 0 })
         localStorage.removeItem(SAVE_KEY)
     }
 
@@ -187,92 +216,160 @@ export function BuildSim() {
     // ── 试炼执行 ──
     const tick = () => new Promise<void>((r) => setTimeout(r, 0))
 
+    /** 跑一轮（一个 build × 全部对手 × nGames）；worker 不可用时降级主线程 */
+    const runPass = async (
+        targetBuild: CharacterBuild,
+        jobs: SeriesJob[],
+        onBatch: (list: SeriesResult[]) => void,
+    ): Promise<void> => {
+        if (typeof Worker !== 'undefined') {
+            const concurrency = Math.min(
+                6,
+                (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 2,
+                jobs.length,
+            )
+            if (concurrency > 0) {
+                const chunks: SeriesJob[][] = Array.from({ length: concurrency }, () => [])
+                jobs.forEach((j, i) => chunks[i % concurrency].push(j))
+                try {
+                    await Promise.all(
+                        chunks
+                            .filter((c) => c.length > 0)
+                            .map((jobList) => {
+                                const worker = new Worker(new URL('./sim.worker.ts', import.meta.url), {
+                                    type: 'module',
+                                })
+                                workersRef.current.push(worker)
+                                worker.postMessage({ build: targetBuild, jobs: jobList })
+                                return new Promise<void>((resolve, reject) => {
+                                    worker.onmessage = (e: MessageEvent<SeriesResult[]>) => {
+                                        onBatch(e.data)
+                                        worker.terminate()
+                                        workersRef.current = workersRef.current.filter((w) => w !== worker)
+                                        resolve()
+                                    }
+                                    worker.onerror = () => {
+                                        worker.terminate()
+                                        workersRef.current = workersRef.current.filter((w) => w !== worker)
+                                        reject(new Error('worker-error'))
+                                    }
+                                })
+                            }),
+                    )
+                    return
+                } catch {
+                    for (const w of workersRef.current) w.terminate()
+                    workersRef.current = []
+                    // worker 不可用 → 降级主线程
+                }
+            }
+        }
+        for (const job of jobs) {
+            if (abortRef.current.aborted) break
+            onBatch([runSeries(targetBuild, job, abortRef.current)])
+            await tick()
+        }
+    }
+
+    /** 单轮试炼：当前构筑 */
     const startSim = async () => {
         if (sim.status === 'running') return
         abortRef.current = { aborted: false }
-        setSim({ status: 'running', results: {}, total: opponents.length })
+        setSim({
+            status: 'running',
+            mode: 'single',
+            phase: '',
+            results: {},
+            resultsA: {},
+            resultsB: {},
+            total: opponents.length,
+        })
         setWatchOppId(null)
 
         const jobs: SeriesJob[] = opponents.map((o) => ({ opponentId: o.id, n: nGames, level: ENEMY_LEVEL }))
-        const update = (list: SeriesResult[]) => {
-            setSim((s) => {
-                const results = { ...s.results }
-                for (const r of list) results[r.opponentId] = r
-                const doneCount = Object.keys(results).length
-                return { ...s, results, status: doneCount >= opponents.length ? 'done' : 'running' }
-            })
-        }
-        const mainLoop = async (useWorker: boolean): Promise<void> => {
-            if (useWorker && typeof Worker !== 'undefined') {
-                const concurrency = Math.min(
-                    6,
-                    (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 2,
-                    jobs.length,
-                )
-                if (concurrency > 0) {
-                    const chunks: SeriesJob[][] = Array.from({ length: concurrency }, () => [])
-                    jobs.forEach((j, i) => chunks[i % concurrency].push(j))
-                    try {
-                        await Promise.all(
-                            chunks
-                                .filter((c) => c.length > 0)
-                                .map((jobList) => {
-                                    const worker = new Worker(new URL('./sim.worker.ts', import.meta.url), {
-                                        type: 'module',
-                                    })
-                                    workersRef.current.push(worker)
-                                    worker.postMessage({ build, jobs: jobList })
-                                    return new Promise<void>((resolve, reject) => {
-                                        worker.onmessage = (e: MessageEvent<SeriesResult[]>) => {
-                                            update(e.data)
-                                            worker.terminate()
-                                            workersRef.current = workersRef.current.filter((w) => w !== worker)
-                                            resolve()
-                                        }
-                                        worker.onerror = () => {
-                                            worker.terminate()
-                                            workersRef.current = workersRef.current.filter((w) => w !== worker)
-                                            reject(new Error('worker-error'))
-                                        }
-                                    })
-                                }),
-                        )
-                        return
-                    } catch {
-                        for (const w of workersRef.current) w.terminate()
-                        workersRef.current = []
-                        // worker 不可用 → 降级主线程
-                    }
-                }
-            }
-            for (const job of jobs) {
-                if (abortRef.current.aborted) break
-                update([runSeries(build, job, abortRef.current)])
-                await tick()
-            }
-        }
-
         try {
-            await mainLoop(true)
+            await runPass(build, jobs, (list) => {
+                setSim((s) => {
+                    const results = { ...s.results }
+                    for (const r of list) results[r.opponentId] = r
+                    const doneCount = Object.keys(results).length
+                    return { ...s, results, status: doneCount >= opponents.length ? 'done' : 'running' }
+                })
+            })
         } finally {
-            setSim((s) => ({ ...s, status: abortRef.current.aborted ? 'idle' : 'done' }))
+            setSim((s) => ({ ...s, status: abortRef.current.aborted ? 'idle' : s.status }))
         }
+    }
+
+    /** A/B 对照试炼：A = 记录的基准条件，B = 当前条件，其余构筑相同 */
+    const startAbSim = async () => {
+        if (sim.status === 'running' || !baseline) return
+        abortRef.current = { aborted: false }
+        setSim({
+            status: 'running',
+            mode: 'ab',
+            phase: 'A',
+            results: {},
+            resultsA: {},
+            resultsB: {},
+            total: opponents.length,
+        })
+        setWatchOppId(null)
+
+        const jobs: SeriesJob[] = opponents.map((o) => ({ opponentId: o.id, n: nGames, level: ENEMY_LEVEL }))
+        const buildA: CharacterBuild = { ...build, actionConfigs: baseline }
+        const merge = (key: 'resultsA' | 'resultsB') => (list: SeriesResult[]) =>
+            setSim((s) => {
+                const next = { ...s[key] }
+                for (const r of list) next[r.opponentId] = r
+                return { ...s, [key]: next }
+            })
+
+        await runPass(buildA, jobs, merge('resultsA'))
+        if (abortRef.current.aborted) {
+            setSim((s) => ({ ...s, status: 'idle', phase: '' }))
+            return
+        }
+        setSim((s) => ({ ...s, phase: 'B' }))
+        await runPass(build, jobs, merge('resultsB'))
+        setSim((s) => ({ ...s, status: abortRef.current.aborted ? 'idle' : 'done', phase: '' }))
     }
 
     const stopSim = () => {
         abortRef.current.aborted = true
         for (const w of workersRef.current) w.terminate()
         workersRef.current = []
-        setSim((s) => ({ ...s, status: 'idle' }))
+        setSim((s) => ({ ...s, status: 'idle', phase: '' }))
     }
 
+    /** 记录当前招式条件为对照 A */
+    const recordBaseline = () => setBaseline((build.actionConfigs ?? []).map((c) => ({ ...c })))
+
     // 汇总
+    const isAb = sim.mode === 'ab'
+    const activeResults = isAb ? sim.resultsA : sim.results
+    const progressed = Object.keys(activeResults).length
     const resultRows = opponents
         .map((o) => ({ def: o, r: sim.results[o.id] }))
         .filter((x) => x.r && x.r.done > 0)
+    const abRows = opponents
+        .map((o) => ({ def: o, a: sim.resultsA[o.id], b: sim.resultsB[o.id] }))
+        .filter((x): x is { def: (typeof opponents)[number]; a: SeriesResult; b: SeriesResult } =>
+            !!(x.a && x.a.done > 0 && x.b && x.b.done > 0),
+        )
     const totalWins = resultRows.reduce((s, x) => s + x.r.wins, 0)
     const totalGames = resultRows.reduce((s, x) => s + x.r.done, 0)
     const overallRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(1) : '—'
+    const sumRate = (rows: typeof abRows, pick: (x: (typeof abRows)[number]) => SeriesResult) => {
+        const w = rows.reduce((s, x) => s + pick(x).wins, 0)
+        const g = rows.reduce((s, x) => s + pick(x).done, 0)
+        return { wins: w, games: g, rate: g > 0 ? (w / g) * 100 : 0 }
+    }
+    const rateA = sumRate(abRows, (x) => x.a)
+    const rateB = sumRate(abRows, (x) => x.b)
+    /** 当前条件的招式数（A 组同构筑，只差条件） */
+    const condCountA = baseline ? conditionCount(baseline) : 0
+    const condCountB = conditionCount(build.actionConfigs ?? [])
     const watchDef = watchOppId ? OPPONENTS.find((o) => o.id === watchOppId) : null
 
     return (
@@ -350,19 +447,53 @@ export function BuildSim() {
                             停止
                         </button>
                     ) : (
-                        <button className="bsim-run" onClick={startSim} disabled={opponents.length === 0}>
-                            {sim.status === 'done' ? '重新试炼' : '开始试炼'}
-                        </button>
+                        <>
+                            <button className="bsim-run" onClick={startSim} disabled={opponents.length === 0}>
+                                {sim.status === 'done' && !isAb ? '重新试炼' : '开始试炼'}
+                            </button>
+                            <button
+                                className="bsim-run bsim-run-ab"
+                                onClick={startAbSim}
+                                disabled={opponents.length === 0 || !baseline}
+                                title={baseline ? 'A = 记录的条件，B = 当前条件，其余构筑相同' : '先「记录为对照 A」'}
+                            >
+                                A/B 对比
+                            </button>
+                        </>
+                    )}
+                </div>
+
+                {/* A/B 对照：基准条件（只存 actionConfigs，其余与当前构筑相同） */}
+                <div className="bsim-baseline">
+                    <button className="bsim-baseline-btn" onClick={recordBaseline} disabled={sim.status === 'running'}>
+                        {baseline ? '更新对照 A' : '记录为对照 A'}
+                    </button>
+                    {baseline ? (
+                        <>
+                            <span className="bsim-baseline-info">
+                                对照 A 已记录：{condCountA} 招带条件 · 当前 B：{condCountB} 招带条件
+                            </span>
+                            <button
+                                className="bsim-baseline-clear"
+                                onClick={() => setBaseline(null)}
+                                disabled={sim.status === 'running'}
+                            >
+                                清除
+                            </button>
+                        </>
+                    ) : (
+                        <span className="bsim-baseline-info">记录当前条件为 A，改完条件再跑 A/B，即可看出条件改动值多少胜率</span>
                     )}
                 </div>
 
                 {sim.status === 'running' && (
                     <div className="bsim-progress">
-                        已完 {Object.keys(sim.results).length}/{sim.total} 对手
+                        {isAb && <b>{sim.phase} 组 </b>}
+                        已完 {progressed}/{sim.total} 对手
                     </div>
                 )}
 
-                {sim.status === 'done' && totalGames > 0 && (
+                {sim.status === 'done' && !isAb && totalGames > 0 && (
                     <div className="bsim-overall">
                         总胜率 <b>{overallRate}%</b>（{totalWins}/{totalGames}）
                         {resultRows.length > 0 && (
@@ -374,7 +505,59 @@ export function BuildSim() {
                     </div>
                 )}
 
-                {sim.status === 'done' && resultRows.length > 0 && (
+                {sim.status === 'done' && isAb && rateA.games > 0 && (
+                    <div className="bsim-overall">
+                        A（记录条件）<b>{rateA.rate.toFixed(1)}%</b>（{rateA.wins}/{rateA.games}） · B（当前条件）
+                        <b>{rateB.rate.toFixed(1)}%</b>（{rateB.wins}/{rateB.games}）
+                        <span className={`bsim-delta ${rateB.rate >= rateA.rate ? 'up' : 'down'}`}>
+                            {rateB.rate >= rateA.rate ? '+' : ''}
+                            {(rateB.rate - rateA.rate).toFixed(1)} 个百分点
+                        </span>
+                        <span className="bsim-best">无种子随机：样本越大越可信，几场的差距不算数</span>
+                    </div>
+                )}
+
+                {sim.status === 'done' && isAb && abRows.length > 0 && (
+                    <table className="bsim-table bsim-table-ab">
+                        <thead>
+                            <tr>
+                                <th>对手</th>
+                                <th>流派</th>
+                                <th>A 胜率（记录 {condCountA} 条）</th>
+                                <th>B 胜率（当前 {condCountB} 条）</th>
+                                <th>差</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {abRows
+                                .slice()
+                                .sort((a, b) => b.b.wins / b.b.done - a.b.wins / a.b.done)
+                                .map(({ def, a, b }) => {
+                                    const ra = (a.wins / a.done) * 100
+                                    const rb = (b.wins / b.done) * 100
+                                    const d = rb - ra
+                                    return (
+                                        <tr key={def.id}>
+                                            <td>{def.name}</td>
+                                            <td>{def.battleStyle}</td>
+                                            <td>
+                                                {ra.toFixed(1)}% <em>({a.wins}/{a.done})</em>
+                                            </td>
+                                            <td>
+                                                {rb.toFixed(1)}% <em>({b.wins}/{b.done})</em>
+                                            </td>
+                                            <td className={d >= 0 ? 'bsim-delta-up' : 'bsim-delta-down'}>
+                                                {d >= 0 ? '+' : ''}
+                                                {d.toFixed(1)}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                        </tbody>
+                    </table>
+                )}
+
+                {sim.status === 'done' && !isAb && resultRows.length > 0 && (
                     <table className="bsim-table">
                         <thead>
                             <tr>

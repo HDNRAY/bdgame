@@ -5,6 +5,9 @@ import { forEachBuffOf } from '../../engine/combat/utils'
 /**
  * 招式的必要条件 — AI 在选择该招式前必须满足的条件
  * 所有条件类型都返回 true/false
+ *
+ * 语义：条件是**闸门**，不是优先级 —— 条件满足只代表"这招允许被选择"，
+ * 是否真的出招仍由 AI 按期望伤害/内息效率评分决定（详见 docs/gameplay-guide.md「出招条件」）。
  */
 export type RequiredCondition =
     | { type: 'always' }
@@ -16,29 +19,39 @@ export type RequiredCondition =
     | { type: 'hp_above'; ratio: number }
     | { type: 'distance_less_than'; meters: number }
     | { type: 'distance_greater_than'; meters: number }
+    | { type: 'distance_between'; min: number; max: number }
     | { type: 'enemy_hp_below'; ratio: number }
     | { type: 'enemy_hp_above'; ratio: number }
     | { type: 'enemy_buff_not_active'; buffId: string }
+    | { type: 'enemy_buff_stacks_below'; buffId: string; maxStacks: number }
+    | { type: 'enemy_buff_stacks_above'; buffId: string; minStacks: number }
     | { type: 'no_buff_with_tag'; tag: string }
     | { type: 'chan_above'; value: number }
+    | { type: 'chan_below'; value: number }
+    | { type: 'ap_above'; value: number }
+    | { type: 'ap_below'; value: number }
+    | { type: 'time_above'; seconds: number }
 
 /** 招式配置条目 */
 export interface ActionConfig {
     actionId: string
-    /** 必要条件 ID（查 CONDITION_PRESETS），缺省 = always */
+    /** 必要条件 ID（查 CONDITION_PRESETS）。旧存档与对手数据用；玩家编辑后写入 condition */
     conditionId?: string
+    /** 结构化必要条件（优先于 conditionId）——阈值可自由设定，不依赖预设表 */
+    condition?: RequiredCondition
     /** 触发条件 ID（查 TRIGGER_CONDITIONS） */
     triggerId?: string
 }
 
-/** 检查必要条件是否满足 */
+/** 检查必要条件是否满足（热路径：每回合每候选招都调用，避免闭包/临时对象分配） */
 export function checkCondition(cond: RequiredCondition, self: Character, state: BattleState): boolean {
     const enemy = state.characters.find((c) => c.id !== self.id)
+    const enemyId = enemy?.id ?? ''
     switch (cond.type) {
         case 'always':
             return true
         case 'debuff_not_active':
-            return !state.pendingBuffs.has(`${cond.buffId}::${enemy?.id}`)
+            return !state.pendingBuffs.has(`${cond.buffId}::${enemyId}`)
         case 'buff_not_active':
             return !state.pendingBuffs.has(`${cond.buffId}::${self.id}`)
         case 'buff_stacks_below': {
@@ -53,20 +66,28 @@ export function checkCondition(cond: RequiredCondition, self: Character, state: 
             return self.hp / self.maxHp < cond.ratio
         case 'hp_above':
             return self.hp / self.maxHp > cond.ratio
-        case 'distance_less_than': {
+        case 'distance_less_than':
+            return (enemy ? state.position.distance(self.id, enemy.id) : 0) < cond.meters
+        case 'distance_greater_than':
+            return (enemy ? state.position.distance(self.id, enemy.id) : 0) > cond.meters
+        case 'distance_between': {
             const d = enemy ? state.position.distance(self.id, enemy.id) : 0
-            return d < cond.meters
-        }
-        case 'distance_greater_than': {
-            const d = enemy ? state.position.distance(self.id, enemy.id) : 0
-            return d > cond.meters
+            return d >= cond.min && d <= cond.max
         }
         case 'enemy_hp_below':
             return enemy ? enemy.hp / enemy.maxHp < cond.ratio : false
         case 'enemy_hp_above':
             return enemy ? enemy.hp / enemy.maxHp > cond.ratio : false
         case 'enemy_buff_not_active':
-            return !state.pendingBuffs.has(`${cond.buffId}::${enemy?.id}`)
+            return !state.pendingBuffs.has(`${cond.buffId}::${enemyId}`)
+        case 'enemy_buff_stacks_below': {
+            const layer = state.pendingBuffs.get(`${cond.buffId}::${enemyId}`)
+            return !layer || layer.restoreValue < cond.maxStacks
+        }
+        case 'enemy_buff_stacks_above': {
+            const layer = state.pendingBuffs.get(`${cond.buffId}::${enemyId}`)
+            return !!layer && layer.restoreValue >= cond.minStacks
+        }
         case 'no_buff_with_tag': {
             let hasTag = false
             forEachBuffOf(state.pendingBuffs, self.id, (buff) => {
@@ -79,5 +100,13 @@ export function checkCondition(cond: RequiredCondition, self: Character, state: 
         }
         case 'chan_above':
             return self.chan >= cond.value
+        case 'chan_below':
+            return self.chan < cond.value
+        case 'ap_above':
+            return self.ap >= cond.value
+        case 'ap_below':
+            return self.ap < cond.value
+        case 'time_above':
+            return state.turn.currentTime >= cond.seconds * 1000
     }
 }

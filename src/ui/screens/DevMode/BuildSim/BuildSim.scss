@@ -115,6 +115,81 @@
     &:hover {
         opacity: 0.85;
     }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+}
+
+/* A/B 对比按钮：跟在主按钮之后，不吃 margin-left:auto */
+.bsim-run-ab {
+    margin-left: 0;
+    background: none;
+    color: var(--color-text);
+}
+
+/* ── A/B 对照：基准条件条 ── */
+.bsim-baseline {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    flex-wrap: wrap;
+    font-size: var(--font-xs);
+    color: var(--color-text-dim);
+}
+
+.bsim-baseline-btn,
+.bsim-baseline-clear {
+    background: none;
+    border: var(--border-width) solid var(--color-border);
+    color: var(--color-text);
+    padding: 2px var(--sp-sm);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    cursor: pointer;
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+}
+
+.bsim-baseline-clear:hover:not(:disabled) {
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+
+.bsim-baseline-info {
+    line-height: 1.5;
+}
+
+.bsim-delta {
+    margin-left: var(--sp-sm);
+
+    &.up {
+        color: var(--color-success, #2e8b57);
+    }
+
+    &.down {
+        color: var(--color-danger);
+    }
+}
+
+.bsim-table-ab {
+    em {
+        font-style: normal;
+        color: var(--color-text-dim);
+    }
+}
+
+.bsim-delta-up {
+    color: var(--color-success, #2e8b57);
+}
+
+.bsim-delta-down {
+    color: var(--color-danger);
 }
 
 .bsim-stop {
