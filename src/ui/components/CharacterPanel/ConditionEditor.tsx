@@ -1,4 +1,5 @@
 import type { ActionConfig, RequiredCondition } from '../../../game/entities/action-config'
+import { SearchSelect } from '../ui/SearchSelect/SearchSelect'
 import {
     BUFF_OPTIONS,
     BUFF_TAG_OPTIONS,
@@ -78,13 +79,12 @@ export function ConditionEditor({ ac, onChange }: { ac: ActionConfig; onChange: 
             <div className="cp-cond-editor-row">
                 <label className="cp-cond-field">
                     <span>条件</span>
-                    <select value={type} onChange={(e) => emitType(e.target.value)}>
-                        {CONDITION_TYPES.map((t) => (
-                            <option key={t.type} value={t.type}>
-                                {t.label}
-                            </option>
-                        ))}
-                    </select>
+                    <SearchSelect
+                        value={type}
+                        options={CONDITION_TYPES.map((t) => ({ value: t.type, label: t.label }))}
+                        onChange={(v) => emitType(v)}
+                        searchPlaceholder="搜索条件…"
+                    />
                 </label>
                 {typeDef.params.map((p) => {
                     const raw = params[p.key]
@@ -92,18 +92,15 @@ export function ConditionEditor({ ac, onChange }: { ac: ActionConfig; onChange: 
                         return (
                             <label key={p.key} className="cp-cond-field">
                                 <span>{p.label}</span>
-                                <select value={String(raw ?? '')} onChange={(e) => setParam(p.key, e.target.value)}>
-                                    <option value="">— 选择状态 —</option>
-                                    {['状态', '异常'].map((group) => (
-                                        <optgroup key={group} label={group}>
-                                            {BUFF_OPTIONS.filter((b) => b.group === group).map((b) => (
-                                                <option key={b.id} value={b.id}>
-                                                    {b.name}
-                                                </option>
-                                            ))}
-                                        </optgroup>
-                                    ))}
-                                </select>
+                                <SearchSelect
+                                    value={String(raw ?? '')}
+                                    options={[
+                                        { value: '', label: '— 选择状态 —' },
+                                        ...BUFF_OPTIONS.map((b) => ({ value: b.id, label: b.name, group: b.group })),
+                                    ]}
+                                    onChange={(v) => setParam(p.key, v)}
+                                    searchPlaceholder="搜索状态…"
+                                />
                             </label>
                         )
                     }
@@ -111,13 +108,12 @@ export function ConditionEditor({ ac, onChange }: { ac: ActionConfig; onChange: 
                         return (
                             <label key={p.key} className="cp-cond-field">
                                 <span>{p.label}</span>
-                                <select value={String(raw ?? '')} onChange={(e) => setParam(p.key, e.target.value)}>
-                                    {BUFF_TAG_OPTIONS.map((t) => (
-                                        <option key={t.id} value={t.id}>
-                                            {t.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <SearchSelect
+                                    value={String(raw ?? '')}
+                                    options={BUFF_TAG_OPTIONS.map((t) => ({ value: t.id, label: t.name }))}
+                                    onChange={(v) => setParam(p.key, v)}
+                                    searchPlaceholder="搜索类别…"
+                                />
                             </label>
                         )
                     }

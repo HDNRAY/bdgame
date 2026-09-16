@@ -27,7 +27,11 @@
         gap: var(--sp-xs);
         font-size: var(--font-sm);
 
-        select {
+        .ss {
+            width: 11rem;
+        }
+
+        .ss-input {
             padding: var(--sp-xxs) var(--sp-xs);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);

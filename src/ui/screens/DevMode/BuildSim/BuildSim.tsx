@@ -7,6 +7,7 @@ import { OPPONENTS, gen } from '../../../../data/opponents'
 import { resolveCondition } from '../../../../data/conditions'
 import type { Reward } from '../../../../game/entities/reward'
 import { CharacterPanel } from '../../../components/CharacterPanel/CharacterPanel'
+import { SearchSelect, type SelectOption } from '../../../components/ui/SearchSelect/SearchSelect'
 import { runSeries, type SeriesJob, type SeriesResult } from './sim-core'
 import { BattlePanel } from '../../../components/BattlePanel/BattlePanel'
 import './BuildSim.scss'
@@ -378,18 +379,16 @@ export function BuildSim() {
                 <h2 className="bsim-title">构筑试炼</h2>
                 <label className="bsim-initweapon">
                     初始主手(免费)
-                    <select
+                    <SearchSelect
                         value={mainSlot ? '' : build.weapon}
+                        options={[
+                            ...(mainSlot ? [{ value: '', label: '已选出主手(见奖励位)' }] : []),
+                            ...STARTING_WEAPONS.map((w) => ({ value: w.id, label: w.name })),
+                        ]}
+                        onChange={handleInitWeapon}
                         disabled={!!mainSlot}
-                        onChange={(e) => handleInitWeapon(e.target.value)}
-                    >
-                        {mainSlot && <option value="">已选出主手(见奖励位)</option>}
-                        {STARTING_WEAPONS.map((w) => (
-                            <option key={w.id} value={w.id}>
-                                {w.name}
-                            </option>
-                        ))}
-                    </select>
+                        searchPlaceholder="搜索武器…"
+                    />
                 </label>
                 <span className="bsim-hint">
                     {isOneHanded(build.weapon)
@@ -424,23 +423,21 @@ export function BuildSim() {
                     <h3>试炼台</h3>
                     <label>
                         每对手
-                        <select value={nGames} onChange={(e) => setNGames(Number(e.target.value))}>
-                            {N_OPTIONS.map((n) => (
-                                <option key={n} value={n}>
-                                    {n} 场
-                                </option>
-                            ))}
-                        </select>
+                        <SearchSelect
+                            value={nGames}
+                            options={N_OPTIONS.map((n) => ({ value: n, label: `${n} 场` }))}
+                            onChange={setNGames}
+                            searchPlaceholder="搜索场次…"
+                        />
                     </label>
                     <label>
                         范围
-                        <select value={styleFilter} onChange={(e) => setStyleFilter(e.target.value as typeof styleFilter)}>
-                            {STYLE_FILTER.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                    {s.label}
-                                </option>
-                            ))}
-                        </select>
+                        <SearchSelect
+                            value={styleFilter}
+                            options={STYLE_FILTER.map((s): SelectOption<typeof styleFilter> => ({ value: s.id, label: s.label }))}
+                            onChange={setStyleFilter}
+                            searchPlaceholder="搜索范围…"
+                        />
                     </label>
                     {sim.status === 'running' ? (
                         <button className="bsim-stop" onClick={stopSim}>

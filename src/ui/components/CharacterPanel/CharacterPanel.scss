@@ -177,19 +177,20 @@
 
 /* 战斗风格选择器 */
 .cp-style-select {
-    font-size: var(--font-xs);
-    font-family: var(--font-family-small);
-    padding: 2px var(--sp-xxs);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-panel);
-    color: var(--color-text);
-    cursor: pointer;
-    outline: none;
     width: 100%;
 
-    &:focus {
-        border-color: var(--color-accent);
+    .ss-input {
+        font-size: var(--font-xs);
+        font-family: var(--font-family-small);
+        padding: 2px var(--sp-xxs);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg-panel);
+        color: var(--color-text);
+
+        &:focus {
+            border-color: var(--color-accent);
+        }
     }
 }
 
@@ -357,8 +358,8 @@
     white-space: nowrap;
 }
 
-.cp-col-cond select,
-.cp-col-trig select {
+.cp-col-cond .ss-input,
+.cp-col-trig .ss-input {
     width: 100%;
     padding: 2px var(--sp-xxs);
     font-size: var(--font-xs);
@@ -423,7 +424,6 @@
     font-size: var(--font-xs);
     color: var(--color-text-dim);
 
-    select,
     input {
         padding: 2px var(--sp-xxs);
         font-size: var(--font-xs);
@@ -438,8 +438,8 @@
         width: 4.5rem;
     }
 
-    select {
-        max-width: 12rem;
+    .ss {
+        max-width: 13rem;
     }
 }
 

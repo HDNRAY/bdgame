@@ -17,6 +17,7 @@ import { OPPONENTS } from '../../../../data/opponents'
 import { WEAPON_DB } from '../../../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { PixelCanvas } from '../../../components/ui/PixelCanvas/PixelCanvas'
+import { SearchSelect } from '../../../components/ui/SearchSelect/SearchSelect'
 import './PixelInspector.scss'
 
 /** 姿势帧默认缩放（每像素格显示尺寸，可由工具栏滑块调整） */
@@ -343,13 +344,12 @@ export function PixelInspector() {
             <div className="pixel-inspector-toolbar">
                 <label className="pixel-inspector-select">
                     角色
-                    <select value={charId} onChange={(e) => setCharId(e.target.value)}>
-                        {CHARACTER_IDS.map((id) => (
-                            <option key={id} value={id}>
-                                {NAME_BY_ID[id] ?? id}
-                            </option>
-                        ))}
-                    </select>
+                    <SearchSelect
+                        value={charId}
+                        options={CHARACTER_IDS.map((id) => ({ value: id, label: NAME_BY_ID[id] ?? id }))}
+                        onChange={setCharId}
+                        searchPlaceholder="搜索角色…"
+                    />
                 </label>
                 <label className="pixel-inspector-toggle">
                     <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} />
@@ -357,13 +357,12 @@ export function PixelInspector() {
                 </label>
                 <label className="pixel-inspector-select">
                     武器
-                    <select value={weaponId} onChange={(e) => setWeaponId(e.target.value)}>
-                        {WEAPON_IDS.map((id) => (
-                            <option key={id} value={id}>
-                                {weaponLabel(id)}
-                            </option>
-                        ))}
-                    </select>
+                    <SearchSelect
+                        value={weaponId}
+                        options={WEAPON_IDS.map((id) => ({ value: id, label: weaponLabel(id) }))}
+                        onChange={setWeaponId}
+                        searchPlaceholder="搜索武器…"
+                    />
                 </label>
                 <label className="pixel-inspector-toggle">
                     <input
@@ -380,13 +379,12 @@ export function PixelInspector() {
                 {dualWield && (
                     <label className="pixel-inspector-select">
                         副手
-                        <select value={offhandId} onChange={(e) => setOffhandId(e.target.value)}>
-                            {WEAPON_IDS.map((id) => (
-                                <option key={id} value={id}>
-                                    {weaponLabel(id)}
-                                </option>
-                            ))}
-                        </select>
+                        <SearchSelect
+                            value={offhandId}
+                            options={WEAPON_IDS.map((id) => ({ value: id, label: weaponLabel(id) }))}
+                            onChange={setOffhandId}
+                            searchPlaceholder="搜索武器…"
+                        />
                     </label>
                 )}
                 <label className="pixel-inspector-zoom">

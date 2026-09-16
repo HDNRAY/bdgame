@@ -15,6 +15,7 @@ import type { Reward } from '../../../game/entities/reward'
 import { ARTIFACTS } from '../../../data/artifacts'
 import { RewardPicker, type PickKind } from './RewardPicker'
 import { ConditionButton, ConditionEditor } from './ConditionEditor'
+import { SearchSelect } from '../ui/SearchSelect/SearchSelect'
 import { getCharacterAvatar, getSpriteOutlineColor, getWeaponOverlay } from '../../../ui/pixel-sprites'
 import { useBuildCharacter, cultCost } from '../../hooks/useBuildCharacter'
 import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
@@ -464,22 +465,19 @@ function ActionRow({
                     <ConditionButton ac={ac} open={condOpen} onToggle={() => setCondOpen((o) => !o)} />
                 </span>
                 <span className="cp-col-trig">
-                    <select
+                    <SearchSelect
                         value={isMove ? '' : (ac.triggerId ?? '')}
+                        options={[
+                            { value: '', label: '—' },
+                            ...TRIGGER_CONDITIONS.filter((tc) => !takenTriggerIds.has(tc.id) || tc.id === ac.triggerId).map(
+                                (tc) => ({ value: tc.id, label: getTriggerConditionName(tc.id) }),
+                            ),
+                        ]}
+                        onChange={(v) => onUpdate(index, { triggerId: v || undefined })}
                         disabled={disabled || isMove}
                         title={isMove ? '位移招式不能设为触发招式' : undefined}
-                        onChange={(e) => onUpdate(index, { triggerId: e.target.value || undefined })}
-                    >
-                        <option value="">—</option>
-                        {TRIGGER_CONDITIONS.map((tc) => {
-                            if (takenTriggerIds.has(tc.id) && tc.id !== ac.triggerId) return null
-                            return (
-                                <option key={tc.id} value={tc.id}>
-                                    {getTriggerConditionName(tc.id)}
-                                </option>
-                            )
-                        })}
-                    </select>
+                        searchPlaceholder="搜索触发条件…"
+                    />
                 </span>
             </div>
             {condOpen && <ConditionEditor ac={ac} onChange={(patch) => onUpdate(index, patch)} />}

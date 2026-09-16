@@ -28,7 +28,11 @@
     font-size: var(--font-sm);
     color: var(--color-text-dim);
 
-    select {
+    .ss {
+        width: 12rem;
+    }
+
+    .ss-input {
         background: var(--color-bg-input);
         color: var(--color-text);
         border: var(--border-width) solid var(--color-border);
@@ -87,7 +91,11 @@
         font-size: var(--font-sm);
         color: var(--color-text-dim);
 
-        select {
+        .ss {
+            width: 7rem;
+        }
+
+        .ss-input {
             background: var(--color-bg-input);
             color: var(--color-text);
             border: var(--border-width) solid var(--color-border);
