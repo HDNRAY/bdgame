@@ -252,7 +252,7 @@ export function CharacterPanel({
                                 </div>
                                 <div className="cp-table-note">
                                     条件满足只代表这招「允许被选」，实际出招仍按期望伤害与内息效率择优；招式排列顺序不影响选择。
-                                    位移招式与内息消耗 &gt; 2 的招式不能作为触发招式（触发招式不耗内息，但照常耗缠劲）。
+                                    触发招式不耗内息、只耗缠劲，但位移类招式与内息消耗 3 点及以上的招式不能设成触发招式。
                                 </div>
                             </>
                         ) : (
@@ -455,8 +455,8 @@ function ActionRow({
     const blockedReason = !actionDef
         ? undefined
         : actionDef.tags.includes('move')
-          ? '位移招式不能作为触发招式'
-          : `内息消耗 ${actionDef.apCost} > 2，不能作为触发招式`
+          ? '位移类招式不能设成触发招式'
+          : `这招要花 ${actionDef.apCost} 点内息，3 点及以上的招式不能设成触发招式`
 
     return (
         <>
@@ -469,9 +469,9 @@ function ActionRow({
                 </span>
                 <span className="cp-col-trig">
                     {triggerBlocked ? (
-                        /* 不能作触发的招式：直接写明原因，不再渲染一个空的禁用下拉 */
+                        /* 不能设成触发的招式：说明写在表下与 title 里，格子里只标「不可触发」 */
                         <span className="cp-trig-none" title={blockedReason}>
-                            {actionDef.tags.includes('move') ? '位移招' : '耗>2'}
+                            不可触发
                         </span>
                     ) : (
                         <SearchSelect
