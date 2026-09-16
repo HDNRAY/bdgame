@@ -10,6 +10,8 @@
 }
 
 .ss-input {
+    /* 块级：避免行盒基线留出下沿空隙，否则外层 .ss 比输入框高、箭头会被拉低 */
+    display: block;
     width: 100%;
     padding: 2px var(--sp-xs) 2px var(--sp-xxs);
     font-size: var(--font-xs);
@@ -37,9 +39,10 @@
     position: absolute;
     right: var(--sp-xxs);
     top: 50%;
+    /* 三角用 border 画的，transform 把 4px 高的盒子真正压在垂直中线上 */
+    transform: translateY(-50%);
     width: 0;
     height: 0;
-    margin-top: 1px;
     border-left: 3px solid transparent;
     border-right: 3px solid transparent;
     border-top: 4px solid var(--color-text-dim);
