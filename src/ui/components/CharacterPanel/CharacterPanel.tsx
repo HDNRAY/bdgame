@@ -152,6 +152,9 @@ export function CharacterPanel({
 
     if (!character) return null
 
+    // 天赋在构筑模式下用 chip 单独展示（activeTalents），功法列表里不重复列
+    const shownPassives = isBuild ? character.passiveDefs.filter((p) => !p.tags.includes('talent')) : character.passiveDefs
+
     return (
         <div className="character-panel">
             {/* Header */}
@@ -402,11 +405,11 @@ export function CharacterPanel({
                         </div>
                     )}
 
-                    {!poolMode && character.passiveDefs.length > 0 && (
+                    {!poolMode && shownPassives.length > 0 && (
                         <div className="cp-section">
-                            <div className="cp-section-label">功法 ({character.passiveDefs.length})</div>
+                            <div className="cp-section-label">功法 ({shownPassives.length})</div>
                             <div className="cp-tag-list">
-                                {character.passiveDefs.map((p, i) => (
+                                {shownPassives.map((p, i) => (
                                     <EntityItem key={i} entity={p} type="passive" />
                                 ))}
                             </div>

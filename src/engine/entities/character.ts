@@ -16,6 +16,7 @@ import { getPassive } from '../../data/passives'
 import { getArtifact } from '../../data/artifacts'
 import { forEachBuffOf, calcExtraHaste } from '../combat/utils'
 import { TRIGGER_CONDITIONS } from '../../data/triggers'
+import { checkTalents } from '../../game/talent-check'
 import { MAX_CHAN } from '../constants'
 import type { BattleEngine } from '../combat/engine'
 import type { BattleState } from '../combat/types'
@@ -112,6 +113,12 @@ export class Character {
             if (r.type === 'passive') gainedPassives.push(r.id)
             else if (r.type === 'artifact') gainedArtifacts.push(r.id)
             else if (r.type === 'action') gainedActions.push(r.id)
+        }
+
+        // 2b. 天赋：按**原始属性**（baseAttrs，不含装备/功法/状态加成）解锁，每次构造角色（= 每场战斗前）算一次。
+        // 奖励表里已预置的（生成器会写进去，供图鉴/面板展示）不重复加，避免触发重复奖励检查。
+        for (const t of checkTalents(build.baseAttrs)) {
+            if (!gainedPassives.includes(t.id)) gainedPassives.push(t.id)
         }
 
         // 2a. 检查重复奖励（功法/奇物/招式）
@@ -263,16 +270,21 @@ export class Character {
 
     /** 应用被动：达标检测 → effects + triggers */
     applyPassive(p: Passive): void {
-        // 属性要求检测（不达标则不生效）
+        // 属性要求检测（不达标则不生效）。
+        // 天赋只看**原始属性** baseAttrs：它由构造时的 checkTalents(baseAttrs) 决定，
+        // 不能因为装备/功法的加减属性而出现或消失；其余被动沿用生效属性。
+        const rawAttrs = p.tags.includes('talent') ? this.build.baseAttrs : undefined
+        const attrValue = (attr: AttrName, fallback: number) =>
+            rawAttrs ? (rawAttrs[attr] ?? fallback) : this.attrs.get(attr)
         if (p.requireAttrsMin) {
-            const ok = Object.entries(p.requireAttrsMin).every(([attr, req]) => this.attrs.get(attr as AttrName) >= req)
+            const ok = Object.entries(p.requireAttrsMin).every(([attr, req]) => attrValue(attr as AttrName, 0) >= req)
             if (!ok) return
         }
         // Talent requireAttrsMax
         if ('requireAttrsMax' in p) {
             const t = p as unknown as Talent
             const maxOk = Object.entries(t.requireAttrsMax!).every(
-                ([attr, req]) => this.attrs.get(attr as AttrName) <= req,
+                ([attr, req]) => attrValue(attr as AttrName, 99) <= req,
             )
             if (!maxOk) return
         }

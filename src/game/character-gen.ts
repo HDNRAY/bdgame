@@ -3,7 +3,6 @@ import type { Reward } from '../game/entities/reward'
 import type { ActionConfig } from '../game/entities/action-config'
 import { ALL_ATTRS } from '../engine/entities/attributes'
 import { cultCost } from './cultivation'
-import { checkTalents } from './talent-check'
 import { getArtifact } from '../data/artifacts'
 import { getPassive } from '../data/passives'
 import { getWeapon } from '../data/weapons/weapons'
@@ -42,9 +41,6 @@ export function simpleGenerate(
         }
         if (!improved) break
     }
-
-    // 根据属性自动解锁天赋
-    const talentRewards = checkTalents(result)
 
     // 奖励按优先级选取
     const ratio = Math.min(1, n / 33)
@@ -89,7 +85,8 @@ export function simpleGenerate(
         weapon: finalWeapon,
         spriteId: def.id,
         baseAttrs: result,
-        rewards: [...talentRewards, ...picked],
+        // 天赋不写进 rewards：由 Character 构造时按 baseAttrs（原始属性）解锁，见 talent-check.ts
+        rewards: picked,
         actionConfigs: filteredConfigs,
     }
 }

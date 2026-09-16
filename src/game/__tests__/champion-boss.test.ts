@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { getArtifact } from '../../data/artifacts'
+import { Character } from '../../engine/entities/character'
+import { TALENTS } from '../../data/passives/talents'
 import type { CharacterBuild } from '../entities/character-build'
 import type { AttrName } from '../../engine/entities/attributes'
 import {
@@ -138,5 +140,18 @@ describe('champion-boss（隐藏boss 构造）', () => {
         for (const a of ALL_ATTRS) low[a] = 1
         const boss = championBossBuild(baseBuild({ baseAttrs: low }))
         for (const a of ALL_ATTRS) expect(boss.baseAttrs[a]).toBe(CHAMPION_BASE_ATTR)
+    })
+
+    it('不继承玩家上一局解锁的天赋（boss 的原始属性只有 7 点起）', () => {
+        // 玩家上一局身法 20 → 解锁凌波微步（haste 200）
+        const saved = baseBuild({ baseAttrs: { strength: 7, vitality: 7, agility: 20, dexterity: 7, insight: 7, wisdom: 7 } })
+        const player = new Character(saved)
+        const playerTalent = TALENTS.find((t) => t.id === 'ling_bo_wei_bu')!
+        expect((playerTalent.triggers ?? []).some((s2) => player.passiveTriggers.includes(s2))).toBe(true)
+
+        // 同一份存档当隐藏boss：baseAttrs 全被重置为 7（+义体也到不了 20）→ 天赋不再解锁
+        const boss = new Character(championBossBuild(saved))
+        expect(boss.attrs.get('agility')).toBeLessThan(20)
+        expect((playerTalent.triggers ?? []).some((s2) => boss.passiveTriggers.includes(s2))).toBe(false)
     })
 })
