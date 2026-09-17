@@ -15,10 +15,16 @@ export function simpleGenerate(
     n: number,
     actionConfigs?: ActionConfig[],
 ): CharacterBuild {
+    // 奖励按比例发放（n<33 时只发一部分）：先定下这次真正拿到的名单，
+    // 后面的加点/武器都看它 —— 否则会出现「等级不够、没抽到天生道种，却照样白拿 8 点修炼」。
+    const ratio = Math.min(1, n / 33)
+    const rewardCount = Math.round(rewards.length * ratio)
+    const picked = rewards.slice(0, rewardCount)
+
     // 修炼点 = 每2节点1次+4
     const cultRewards = Math.floor((n - 1) / 2)
-    // 天生道种：固定 +8 修炼点
-    const hasInnateSeed = rewards.some((r) => r.id === 'innate_seed')
+    // 天生道种：固定 +8 修炼点（只有真拿到这件奇物才算）
+    const hasInnateSeed = picked.some((r) => r.id === 'innate_seed')
     const extraPoints = hasInnateSeed ? 8 : 0
     const total = Math.max(0, cultRewards * 4 + extraPoints)
     const result: Record<string, number> = {}
@@ -41,11 +47,6 @@ export function simpleGenerate(
         }
         if (!improved) break
     }
-
-    // 奖励按优先级选取
-    const ratio = Math.min(1, n / 33)
-    const rewardCount = Math.round(rewards.length * ratio)
-    const picked = rewards.slice(0, rewardCount)
 
     // 从奖励中找武器：第一个为主武器，第二个为副武器
     const weaponRewards = picked.filter((r) => r.type === 'weapon')

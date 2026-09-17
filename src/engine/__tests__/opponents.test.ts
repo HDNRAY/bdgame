@@ -38,6 +38,34 @@ describe('opponents', () => {
     }
 })
 
+describe('天生道种（innate_seed）的 +8 修炼点', () => {
+    const withSeed = OPPONENTS.filter((d) => d.rewards.some((r) => r.id === 'innate_seed'))
+    const def = withSeed[0]
+    const idx = def.rewards.findIndex((r) => r.id === 'innate_seed')
+
+    it('33 级全额发放：拿到奇物 → 64 + 8 = 72', () => {
+        const build = gen(def, 33)
+        expect(build.rewards.some((r) => r.id === 'innate_seed')).toBe(true)
+        expect(calcCultCost(build.baseAttrs)).toBe(72)
+    })
+
+    it('等级不够、奖励被比例截断时：拿不到奇物就不该白拿那 8 点', () => {
+        // 找一个「按 n/33 比例发放会把它截掉」的等级
+        let lv = 0
+        for (let l = 5; l < 33; l++) {
+            if (idx >= Math.round(def.rewards.length * (l / 33))) {
+                lv = l
+                break
+            }
+        }
+        expect(lv).toBeGreaterThan(0)
+        const build = gen(def, lv)
+        expect(build.rewards.some((r) => r.id === 'innate_seed')).toBe(false) // 这个等级确实没拿到
+        const budget = Math.max(0, Math.floor((lv - 1) / 2) * 4)
+        expect(calcCultCost(build.baseAttrs)).toBeLessThanOrEqual(budget) // 不能超预算（+8 会超）
+    })
+})
+
 describe('weapon tags', () => {
     const all = [...WEAPON_DB, ...STARTING_WEAPONS]
     for (const w of all) {
