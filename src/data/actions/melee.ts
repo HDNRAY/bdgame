@@ -227,7 +227,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 4,
         tags: ['slash', 'melee'],
-        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, fixed: 4, independentHits: 2 }],
+        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, fixed: 3, independentHits: 2 }],
     },
     {
         id: 'sky_burner',

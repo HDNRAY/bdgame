@@ -85,7 +85,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'yi_dao_liu',
         name: '一刀流',
-        description: '居合一刀,只此一斩。招架时顺势反击,斩出顺劈。',
+        description: '居合一刀，只此一斩。招架时顺势反击，斩出顺劈。',
         tags: ['counter', 'slash'],
         triggers: [{ condition: { type: 'on_parry' }, actionId: 'light_slash' }],
     },
@@ -448,7 +448,7 @@ export const PASSIVES: Passive[] = [
         description: '白猿授剑，万兵为剑。出剑极快，身随剑走。',
         tags: [],
         // 目前short dash太op，暂时注释
-        // triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yue_nv_buff' }] }],
+        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'yue_nv_buff' }] }],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
             return {
@@ -571,8 +571,7 @@ export const PASSIVES: Passive[] = [
         // 疯魔功：任何招式命中叠疯魔层（≤5），伤换伤；满层下一招必中+翻倍
         id: 'feng_mo_gong',
         name: '疯魔功',
-        description:
-            '势如疯魔，不守反攻。招式命中叠1层「疯魔」（最多8层），每层自身伤害+1%、受到伤害+2%、AP回复+0.03/秒；不再消退，越战越疯。',
+        description: '不疯魔，不成活。不再消退，越战越疯。',
         tags: ['buff'],
         triggers: [
             {
@@ -721,7 +720,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'chou_dao_duan_shui',
         name: '抽刀断水',
-        description: '抽刀断水。刀落，水断。暴击时对方气息一滞，AP-1，回复重新起算。',
+        description: '抽刀断水。刀落，水断。暴击时对方气息一滞，AP-1。',
         tags: ['debuff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chou_dao_duan_shui_buff' }] },

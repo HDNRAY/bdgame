@@ -309,7 +309,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         tags: ['blunt', 'electric', 'debuff', 'paralyze'],
         effects: [
-            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.4 }, fixed: 2 },
+            { type: 'damage', scaling: { strength: 0.6, wisdom: 0.4 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 2, chance: 0.8 },
         ],
     },

@@ -112,7 +112,7 @@ export const ARTIFACTS: Artifact[] = [
             {
                 condition: { type: 'battle_start' },
                 effects: [
-                    { type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 2.8 },
+                    { type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 3 },
                     // 过热：每跳最大气血 1%（permanent_burn 层数即百分比）
                     { type: 'add_buff', buffId: 'permanent_burn', stacks: 1 },
                 ],
@@ -676,7 +676,7 @@ export const ARTIFACTS: Artifact[] = [
             {
                 condition: { type: 'on_equip' },
                 effects: [
-                    { type: 'max_ap_mod', value: -1 },
+                    // { type: 'max_ap_mod', value: -1 },
                     { type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 1 },
                 ],
             },

@@ -192,7 +192,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 1] as [number, number],
         onActionHitChance: (base) => base + 0.2,
         hookNotes: { hitChance: '+20%' },
-        effects: [{ type: 'damage', scaling: { strength: 1.2 } }],
+        effects: [{ type: 'damage', scaling: { strength: 1.1 } }],
     },
     {
         id: 'iron_charge',
@@ -232,12 +232,11 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '十八掌之首，力道化为锋芒。',
         requiredTags: ['unarmed'],
         apCost: 4,
-        tags: ['unarmed', 'qi', 'chan', 'melee'],
+        tags: ['unarmed', 'qi', 'chan'],
         getRange: () => [0, 4],
         chanCost: 18,
-        onActionHitChance: (base) => base + 0.15,
-        onActionCritChance: (base) => base + 0.1,
-        hookNotes: { hitChance: '+15%', critChance: '+10%' },
+        onActionHitChance: (base) => base + 0.05,
+        hookNotes: { hitChance: '+5%' },
         effects: [{ type: 'damage', scaling: { strength: 0.6, agility: 0.6, wisdom: 0.6 } }],
     },
     {
@@ -296,7 +295,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'qi', 'pierce', 'chan', 'melee'],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
-            { type: 'damage', scaling: { strength: 0.8, wisdom: 0.8, agility: 0.4 }, piercingRatio: 0.5 },
+            { type: 'damage', scaling: { strength: 0.8, wisdom: 0.8, agility: 0.2 }, piercingRatio: 0.5 },
         ],
     },
     {
@@ -337,8 +336,8 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'melee', 'jiu'],
-        onActionHitChance: (base, state, self) => base + countDrunkLayers(state, self.id) * 0.03,
-        hookNotes: { hitChance: '每层醉酒+3%' },
+        onActionHitChance: (base, state, self) => base + countDrunkLayers(state, self.id) * 0.02,
+        hookNotes: { hitChance: '每层醉酒+2%' },
         effects: [
             { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.2, agility: 0.1, dexterity: 0.1 } },

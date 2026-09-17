@@ -151,7 +151,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 5] as [number, number],
         hookNotes: { hitChance: '必中' },
         effects: [
-            { type: 'damage', fixed: 5 },
+            { type: 'damage', fixed: 15 },
             { type: 'add_debuff', buffId: 'burn', stacks: 8, chance: 1 },
             { type: 'add_buff', buffId: 'blood_loss' },
             { type: 'add_buff', buffId: 'one_arm_buff' },
@@ -223,7 +223,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         getRange: () => [0, 7],
         tags: ['range', 'slash', 'pierce', 'summon'],
-        effects: [{ type: 'damage', scaling: { wisdom: 0.5 }, fixed: 5 }],
+        effects: [{ type: 'damage', scaling: { wisdom: 0.6 }, fixed: 5 }],
         // 单剑重击：长前后摇 → 约 4s 一轮，大动作可读、节奏沉
         extraPreDelay: 600,
         extraStunTime: 900,

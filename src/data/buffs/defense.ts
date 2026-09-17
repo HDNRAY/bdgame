@@ -178,11 +178,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'shenxing_baibian_buff',
         name: '神行百变',
-        description: '身形飘忽百变：闪避率+4%，急速 = 10 + 推演/2（出招更省内息、起手更快）。',
+        description: '身形飘忽百变：闪避率+5%，急速 = 4 + 推演/2。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onDodgeChance: () => 0.04,
-        onHaste: ({ target }) => 10 + target.attrs.get('wisdom') / 2,
+        onDodgeChance: () => 0.05,
+        onHaste: ({ target }) => 4 + target.attrs.get('wisdom') / 2,
     },
     {
         id: 'ling_bo_wei_bu_buff',
@@ -384,14 +384,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'zui_quan_dodge',
         name: '醉步',
-        description: '醉态蹒跚，以身为步。每点身法+0.6%闪避；有酒劲buff时闪避额外+20%。',
+        description: '醉态蹒跚，以身为步。每点身法+0.5%闪避；每层酒buff，闪避效果增幅+5%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onDodgeChance: ({ target, state }) => {
-            const base = target.attrs.get('agility') * 0.006
-            // 身上有带 jiu tag 的 buff（烧刀子/女儿红/霸王醉等）时闪避额外+25%
-            const hasJiu = countDrunkLayers(state, target.id) > 0
-            return hasJiu ? base * 1.2 : base
+            const base = target.attrs.get('agility') * 0.005
+            const drunk = countDrunkLayers(state, target.id)
+            return base * (1 + drunk * 0.05)
         },
     },
     {
@@ -453,7 +452,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'blood_qi_protection',
         name: '血炁护体',
-        description: '消耗15%当前气血换取护体真气，减伤10%并持续恢复。',
+        description: '减伤10%并持续恢复消耗的气血。',
         tags: ['buff', 'defense'],
         expiry: { type: 'duration', ms: 10000 },
         stacking: { type: 'none' },

@@ -20,7 +20,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         apCost: 2,
         tags: ['qi', 'range', 'qi_action'],
         effects: [{ type: 'damage', scaling: { wisdom: 0.4 } }],
-        getRange: () => [2, 6],
+        getRange: () => [1, 6],
     },
     {
         id: 'qi_bolt_2',
@@ -32,7 +32,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         onActionHitChance: (base) => base + 0.1,
         hookNotes: { hitChance: '+10%' },
         effects: [{ type: 'damage', scaling: { wisdom: 0.2 }, fixed: 2 }, { type: 'ignore_parry' }],
-        getRange: () => [2, 6],
+        getRange: () => [1, 6],
     },
     {
         id: 'qi_bolt_3',
@@ -45,7 +45,7 @@ export const QI_SKILLS: ActionDefinition[] = [
             { type: 'damage', fixed: 5 },
             { type: 'add_debuff', buffId: 'stun', chance: 0.6, stacks: 1 },
         ],
-        getRange: () => [2, 6],
+        getRange: () => [1, 6],
     },
     {
         id: 'qi_bolt_4',
@@ -55,7 +55,7 @@ export const QI_SKILLS: ActionDefinition[] = [
         apCost: 2,
         tags: ['qi', 'range', 'qi_action'],
         effects: [{ type: 'damage', scaling: { wisdom: 0.3 }, piercing: 1, piercingRatio: 0.4 }],
-        getRange: () => [2, 6],
+        getRange: () => [1, 6],
     },
     {
         id: 'qi_blade',

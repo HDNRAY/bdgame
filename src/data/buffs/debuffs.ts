@@ -278,7 +278,7 @@ export const DEBUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         tickInterval: 1000,
-        onTickDamage: ({ target }) => Math.max(1, Math.round(target.hp * 0.02 * 10) / 10),
+        onTickDamage: ({ target }) => Math.max(1, round1(target.hp * 0.02)),
     },
     {
         id: 'blade_qi',

@@ -85,9 +85,9 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         tags: ['imperial', 'parry', 'slash', 'pierce', 'range', 'heavy', 'summon'],
         bound: true,
         range: [0, 6],
-        // 御物耗炁：每秒扣 0.5AP（1 剑）。剑 = 慢速重击：单发 WIS×0.5、长前后摇、节奏沉
+        // 御物耗炁：每秒扣 0.4AP（1 剑）。剑 = 慢速重击：单发 WIS×0.5、长前后摇、节奏沉
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.5 }] },
+            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }] },
         ],
         summon: {
             id: 'fei_jian',
@@ -99,7 +99,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
     // ── 匕首 ──
     {
         id: 'dagger',
-        name: '军用匕首',
+        name: '匕首',
         description: '短小而致命的匕首。',
         tags: ['pierce', 'unarmed', 'parry', 'slash', 'melee', 'one_handed'],
         effects: [{ type: 'stat_buff', attrs: { agility: 1 } }],

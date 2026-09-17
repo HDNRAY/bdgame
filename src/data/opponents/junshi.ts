@@ -32,6 +32,7 @@ export const JUNSHI: OpponentDef = {
         { actionId: 'agility_steal', triggerId: 'on_dodged' },
         { actionId: 'summon_haste', triggerId: 'on_parried' },
         { actionId: 'restore_ap', triggerId: 'on_summon_hit' },
+        { actionId: 'shi_qi', triggerId: 'on_opponent_move_closer' },
     ],
     taunt: () => '一切都在掌控之中。',
 }

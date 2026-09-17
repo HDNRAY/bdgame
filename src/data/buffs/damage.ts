@@ -30,7 +30,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'extreme',
         name: '极',
-        description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+3%暴伤。',
+        description: '缠劲满时获得，下次≥5AP招式消耗所有缠劲，每层+1%暴击率和+2%暴伤。',
         tags: [],
         expiry: { type: 'permanent' },
         onCritChance: ({ source, attacker, layer, engine }) => {
@@ -40,7 +40,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             }
             const chan = attacker.chan
             attacker.spendChan(chan)
-            layer.restoreValue = chan * 0.03
+            layer.restoreValue = chan * 0.02
             engine?.emitLog({
                 type: 'system',
                 message: `[极] ${attacker.name} 极意绽放，缠劲尽散`,
@@ -81,19 +81,19 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             return round1(final * mult)
         },
     },
-    // {
-    //     id: 'yue_nv_buff',
-    //     name: '越女剑意',
-    //     description: '白猿授剑，灵巧化为剑势，附加灵巧×0.04伤害（仅劈砍/戳刺招式）。',
-    //     tags: ['pierce', 'slash'],
-    //     expiry: { type: 'permanent' },
-    //     onDealDamage: ({ final, attacker, source }) => {
-    //         // 仅 pierce 或 slash 招式生效（配合「不滞于物」的全招 pierce 标记可全招生效）
-    //         const isBlade = source?.tags?.includes('pierce') || source?.tags?.includes('slash')
-    //         if (!isBlade) return final
-    //         return round1(final + attacker.attrs.get('dexterity') * 0.04)
-    //     },
-    // },
+    {
+        id: 'yue_nv_buff',
+        name: '越女剑意',
+        description: '白猿授剑，灵巧化为剑势，附加灵巧×0.04伤害（仅劈砍/戳刺招式）。',
+        tags: ['pierce', 'slash'],
+        expiry: { type: 'permanent' },
+        onDealDamage: ({ final, attacker, source }) => {
+            // 仅 pierce 或 slash 招式生效（配合「不滞于物」的全招 pierce 标记可全招生效）
+            const isBlade = source?.tags?.includes('pierce') || source?.tags?.includes('slash')
+            if (!isBlade) return final
+            return round1(final + attacker.attrs.get('dexterity') * 0.04)
+        },
+    },
     {
         id: 'bu_zhi_yu_wu',
         name: '不滞于物',
@@ -489,10 +489,10 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         // 疯魔功：battle_start 建 1 层满足引擎(onBuffApplied 归零到 0)，命中手动叠层，越战越疯
         id: 'feng_mo_gong',
         name: '疯魔',
-        description: '势如疯魔，不守反攻。招式命中叠1层（最多10层），每层自身伤害+1%、受到伤害+2%、AP回复+0.03/秒。',
+        description: '势如疯魔，不守反攻。招式命中叠1层（最多9层），每层自身伤害+2%、受到伤害+2%、AP回复+0.03/秒。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
-        stacking: { type: 'additive', max: 10 },
+        stacking: { type: 'additive', max: 9 },
         // 建层即归零（additive 需 stacks≥1 建层，实际层数由命中驱动，开局 0 层）
         onBuffApplied: ({ layer }) => {
             layer.restoreValue = 0
@@ -505,18 +505,19 @@ export const DAMAGE_BUFFS: BuffDef[] = [
                 !source.tags.includes('post_action') &&
                 !source.tags.includes('summon')
             const stacks = layer.restoreValue ?? 0
+            const damageFactor = 0.02
             let dmg = final
             if (isMain && engine) {
-                const newStacks = Math.min(10, stacks + 1)
+                const newStacks = Math.min(9, stacks + 1)
                 layer.restoreValue = newStacks
-                dmg = round1(final * (1 + newStacks * 0.01))
+                dmg = round1(final * (1 + newStacks * damageFactor))
                 engine.emitLog({
                     type: 'system',
-                    message: `[疯魔] 「${attacker.name}」 疯魔+1（${newStacks}/10）`,
+                    message: `[疯魔] 「${attacker.name}」 疯魔+1（${newStacks}/9）`,
                     actorId: attacker.id,
                 })
             } else if (stacks > 0) {
-                dmg = round1(final * (1 + stacks * 0.01))
+                dmg = round1(final * (1 + stacks * damageFactor))
             }
             return dmg
         },

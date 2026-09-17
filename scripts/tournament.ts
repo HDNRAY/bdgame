@@ -10,11 +10,7 @@ import { cpus } from 'os'
 import { Character } from '../src/engine/entities/character'
 import { OPPONENTS, getOpponentDef, gen } from '../src/data/opponents/index'
 import { runBattle } from '../src/engine/battle-runner'
-import {
-    CHAMPION_BOSS_ID,
-    CHAMPION_BOSS_NAME,
-    championBossBuild,
-} from '../src/game/champion-boss'
+import { CHAMPION_BOSS_ID, CHAMPION_BOSS_NAME, championBossBuild } from '../src/game/champion-boss'
 import type { CharacterBuild } from '../src/game/entities/character-build'
 
 /** 子进程 worker 模式：process.argv[2] === '--worker' */
@@ -132,7 +128,7 @@ async function main(): Promise<void> {
     }
     process.on('exit', () => writeFileSync(logPath, logLines.join('\n') + '\n', 'utf-8'))
 
-    const N = Math.max(1, parseInt(process.argv[3] ?? '100', 10))
+    const N = Math.max(1, parseInt(process.argv[3] ?? '20', 10))
     const targetId = process.argv[2]
     const champion = resolveChampion(process.argv.slice(2))
 

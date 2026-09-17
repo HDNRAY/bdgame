@@ -61,7 +61,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'blood_qi_protection',
         name: '血炁护体',
-        description: '释放15%当前气血换取护体真气，减伤10%并持续恢复10秒。已有buff时不可重复使用。',
+        description: '释放10%当前气血换取护体真气。',
         requiredTags: ['unarmed'],
         apCost: 0,
         tags: ['pre_action', 'buff', 'heal', 'defense', 'self_damage', 'low_hp'],
@@ -76,7 +76,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             {
                 type: 'functional_damage',
                 fn: ({ self, state, engine }) => {
-                    const cost = Math.max(1, Math.round(self.hp * 0.15 * 10) / 10)
+                    const cost = Math.max(1, Math.round(self.hp * 0.1 * 10) / 10)
                     if (self.hp <= cost) return 0
                     // spendHp：卖血触发 onHpChange（血战到底联动），但不回缠
                     self.spendHp(cost, engine)
@@ -87,17 +87,17 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
                     if (layer) layer.restoreValue = totalRecovery
                     return 0
                 },
-                note: '消耗当前气血 15% 转为护体（血太少则无法发动）',
+                note: '消耗当前气血 10% 转为护体（血太少则无法发动）',
             },
         ],
     },
     {
         id: 'gear_hang',
         name: '挂',
-        description: '凝缠劲为内息，消耗20缠劲，叠一层「挡」。',
+        description: '凝缠劲为内息，消耗10缠劲，叠一层「挡」。',
         requiredTags: [],
         apCost: 1,
-        chanCost: 20,
+        chanCost: 10,
         tags: ['buff', 'pre_action', 'chan'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'gear_shift_buff', stacks: 1 }],
@@ -168,7 +168,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['move', 'pre_action', 'chan'],
         target: 'self',
-        chanCost: 3,
+        chanCost: 1,
         canUse: (attacker) => attacker.attrs.get('strength') >= 10,
         hookNotes: { canUse: '力道不足时不可使用' },
         effects: [{ type: 'dash', minRange: 2, maxRange: 5, targetDist: 0 }],
@@ -190,7 +190,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '一个筋斗翻腾而出，瞬间近身。范围1~8m。需身法≥10。',
         requiredTags: [],
         apCost: 2,
-        chanCost: 5,
+        chanCost: 3,
         tags: ['move', 'pre_action', 'chan'],
         target: 'self',
         canUse: (attacker) => attacker.attrs.get('agility') >= 10,
@@ -279,7 +279,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         apCost: 3,
         tags: ['buff', 'pre_action', 'chan'],
         target: 'self',
-        chanCost: 27,
+        chanCost: 25,
         hookNotes: { canUse: '已处于三头六臂状态时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'santou_liubi', stacks: 2 }],
     },
@@ -300,9 +300,9 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '以炁蚀敌，削弱对手气力与推演。',
         requiredTags: [],
         apCost: 1,
-        chanCost: 12,
+        chanCost: 7,
         tags: ['debuff', 'post_action', 'qi', 'range', 'chan'],
-        getRange: () => [1, 5] as [number, number],
+        getRange: () => [0, 4] as [number, number],
         effects: [{ type: 'add_debuff', buffId: 'weakness', stacks: 3, chance: 1 }],
     },
     {
@@ -322,8 +322,8 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         name: '御物加速',
         description: '御物加速，召唤物开火更快（叠1层，上限4层）。',
         requiredTags: ['summon'],
-        apCost: 0,
-        tags: ['imperial', 'summon', 'pre_action', 'buff'],
+        apCost: 1,
+        tags: ['imperial', 'summon', 'buff'],
         target: 'self',
         effects: [{ type: 'add_buff', buffId: 'summon_haste', stacks: 1 }],
     },
@@ -341,10 +341,10 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'agility_steal',
         name: '汲灵',
-        description: '本体命中时吸取身法 1 点，持续 3 秒。',
+        description: '本体命中时吸取身法 1 点，持续 5 秒。',
         requiredTags: ['summon'],
-        apCost: 0,
-        tags: ['imperial', 'summon', 'pre_action'],
+        apCost: 1,
+        tags: ['imperial', 'summon'],
         // 必定命中：偷取跟随本体（召唤物）命中触发，不额外滚命中判定
         onActionHitChance: () => 1,
         // 汲取已达上限（4层）时不再尝试触发
@@ -356,14 +356,14 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             return layers < MAX_STAT_TRANSFER_LAYERS
         },
         hookNotes: { hitChance: '必中' },
-        effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 3000 }],
+        effects: [{ type: 'stat_transfer', stat: 'agility', value: 1, duration: 5000 }],
     },
     {
         id: 'drone_paralyze',
         name: '御物麻痹',
         description: '召唤物命中时350%概率附加1层麻痹。',
         requiredTags: ['summon'],
-        apCost: 0,
+        apCost: 1,
         tags: ['imperial', 'summon', 'debuff', 'paralyze'],
         // 必定命中：跟随召唤物命中触发，不额外滚命中判定
         onActionHitChance: () => 1,
@@ -373,7 +373,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'ling_qi_guan_zhu',
         name: '灵炁灌注',
-        description: '将大量炁劲注入御物之中，增加伤害与命中，不可叠加。',
+        description: '将大量炁劲注入御物之中，增加伤害与命中。',
         requiredTags: ['imperial'],
         apCost: 1,
         tags: ['buff', 'pre_action', 'imperial'],

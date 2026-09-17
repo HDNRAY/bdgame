@@ -264,13 +264,13 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'karate',
         name: '空手道',
-        description: '空手道不打蛮力，把劲凝在最刁钻的打击点上。空手拳脚伤害+8%，消耗-20%。',
+        description: '空手道不打蛮力，把劲凝在最刁钻的打击点上。空手拳脚伤害12%，消耗-20%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, source }) => {
             if (!source?.tags.includes('unarmed')) return final
-            return round1(final * 1.08)
+            return round1(final * 1.12)
         },
         onActionCost: ({ source }) => {
             const act = source as ActionDefinition
@@ -444,12 +444,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'zhuixing',
         name: '追星',
-        description: '千星雄剑，以炁驱动。命中叠1层，每层急速+4，移动效率+10%，最多2层。',
+        description: '千星雄剑，以炁驱动。命中叠1层，每层急速+3，移动效率+10%，最多2层。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 0) * 0.1,
-        onHaste: ({ layer }) => (layer.restoreValue ?? 0) * 4,
+        onHaste: ({ layer }) => (layer.restoreValue ?? 0) * 3,
     },
     {
         id: 'huixi',
@@ -466,7 +466,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '以洞察悟缠劲，每秒按洞察回复缠劲。',
         tags: ['qi'],
         expiry: { type: 'permanent' },
-        chanRegenPerSec: ({ target }) => round1(target.attrs.get('insight') * 0.1),
+        chanRegenPerSec: ({ target }) => round1(target.attrs.get('insight') * 0.2),
     },
     {
         id: 'phantom_step',
@@ -974,15 +974,15 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yi_ma_xin_yuan',
         name: '意马心猿',
-        description: '凝神聚气，命中时15%令对手迷惑。',
+        description: '凝神聚气，命中+5%，命中时令对手迷惑。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        // onHitChance: () => 0.05,
+        onHitChance: () => 0.05,
         onDealDamage: ({ final, attacker, target, engine, state }) => {
             if (engine) {
                 processActionEffect(
-                    { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 0.15 },
+                    { type: 'add_debuff', buffId: 'confuse', stacks: 1, chance: 1 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }

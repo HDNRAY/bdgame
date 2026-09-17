@@ -69,7 +69,8 @@ export const TALENTS: Talent[] = [
     {
         id: 'dongyou_zhuwei',
         name: '洞幽烛微',
-        description: '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（各收敛至7%）。',
+        description:
+            '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（各收敛至7%）。',
         tags: ['talent', 'buff'],
         requireAttrsMin: { insight: 20 },
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'dongyou_zhuwei' }] }],
@@ -77,14 +78,15 @@ export const TALENTS: Talent[] = [
     {
         id: 'yuanting_yuezhi',
         name: '渊渟岳峙',
-        description: '渊深如潭，岳峙如山。永久罡体，身法/灵巧无法被降低。',
+        description: '渊深如潭，岳峙如山。永久罡体，力道/身法/灵巧无法被降低。',
         tags: ['talent', 'buff', 'defense'],
         requireAttrsMin: { strength: 20 },
         effects: [
             {
                 type: 'stat_restriction',
                 check: (_char, attr, _cur, delta) => {
-                    if ((attr === 'agility' || attr === 'dexterity') && delta < 0) return { skip: true }
+                    if ((attr === 'strength' || attr === 'agility' || attr === 'dexterity') && delta < 0)
+                        return { skip: true }
                     return null
                 },
             },

@@ -92,7 +92,7 @@
 
     .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, 5rem);
+        grid-template-columns: repeat(auto-fill, 6rem);
         gap: var(--sp-xxs);
         margin-top: var(--sp-sm);
     }
