@@ -1,5 +1,5 @@
 import { AttributeSet, type AttrName } from './attributes'
-import { Action, type ActionDefinition, type EffectDef } from './action'
+import { Action, type ActionDefinition } from './action'
 import type { CharacterBuild } from '../../game/entities/character-build'
 import type { ActionConfig } from '../../game/entities/action-config'
 import type { Passive, Talent } from './passive'
@@ -15,14 +15,16 @@ import { getWeapon } from '../../data/weapons/weapons'
 import { getPassive } from '../../data/passives'
 import { getArtifact } from '../../data/artifacts'
 import { forEachBuffOf, calcExtraHaste } from '../combat/utils'
-import { TRIGGER_CONDITIONS } from '../../data/triggers'
-import { checkTalents } from '../../game/talent-check'
 import { MAX_CHAN } from '../constants'
 import type { BattleEngine } from '../combat/engine'
 import type { BattleState } from '../combat/types'
 import type { BuffHookCtx, RuntimeAction } from '../../data/buffs/types'
 import { round1 } from '../util/math'
 import { emptyResourceTally, type ResourceTally } from './resource-tally'
+import { collectRewards } from './reward-collect'
+import { buildActionCache } from './action-cache'
+import { buildConfigTriggers } from './trigger-slots'
+import { applyPassiveEffect } from './passive-effects'
 
 export class Character {
     readonly build: CharacterBuild
@@ -108,44 +110,13 @@ export class Character {
         // 1. 直接使用最终属性值
         this.attrs = new AttributeSet(build.baseAttrs)
 
-        // 2. 编译非属性奖励 → 分类收集
-        const gainedPassives: string[] = []
-        const gainedArtifacts: string[] = []
-        const gainedActions: string[] = []
-        for (const r of build.rewards) {
-            if (r.type === 'passive') gainedPassives.push(r.id)
-            else if (r.type === 'artifact') gainedArtifacts.push(r.id)
-            else if (r.type === 'action') gainedActions.push(r.id)
-        }
-
-        // 2b. 天赋：按**原始属性**（baseAttrs，不含装备/功法/状态加成）解锁，每次构造角色（= 每场战斗前）算一次。
-        // 奖励表里已预置的（生成器会写进去，供图鉴/面板展示）不重复加，避免触发重复奖励检查。
-        for (const t of checkTalents(build.baseAttrs)) {
-            if (!gainedPassives.includes(t.id)) gainedPassives.push(t.id)
-        }
-
-        // 2a. 检查重复奖励（功法/奇物/招式）
-        const checkDup = (items: string[], label: string): void => {
-            const seen = new Set<string>()
-            const dups: string[] = []
-            for (const id of items) {
-                if (seen.has(id)) dups.push(id)
-                seen.add(id)
-            }
-            if (dups.length > 0) {
-                throw new Error(
-                    `[${build.name}] 发现重复${label}: ${[...new Set(dups)].join(', ')}。` +
-                        `请检查奖励列表，每个${label}最多出现一次。`,
-                )
-            }
-        }
-        checkDup(gainedPassives, '功法')
-        checkDup(gainedArtifacts, '奇物')
-        checkDup(gainedActions, '招式')
+        // 2. 奖励分类 + 天赋解锁 + 重复检查（见 reward-collect.ts）
+        const rewards = collectRewards(build)
+        const gainedActions = rewards.actions
 
         // 3. 解析被动/奇物 ID → 定义
-        this.passiveDefs = gainedPassives.map((id) => getPassive(id)).filter((p): p is Passive => p !== undefined)
-        this.artifactDefs = gainedArtifacts.map((id) => getArtifact(id)).filter((a): a is Artifact => a !== undefined)
+        this.passiveDefs = rewards.passives.map((id) => getPassive(id)).filter((p): p is Passive => p !== undefined)
+        this.artifactDefs = rewards.artifacts.map((id) => getArtifact(id)).filter((a): a is Artifact => a !== undefined)
 
         // 4. 应用被动/奇物/武器效果
         for (const p of this.passiveDefs) {
@@ -154,10 +125,7 @@ export class Character {
             if (p.grantsActions) gainedActions.push(...p.grantsActions)
         }
         for (const a of this.artifactDefs) {
-            for (const eff of a.effects ?? []) {
-                const handler = passiveEffectHandlers[eff.type]
-                if (handler) handler(this, eff)
-            }
+            for (const eff of a.effects ?? []) applyPassiveEffect(eff.type, this, eff)
             for (const t of a.triggers ?? []) this.passiveTriggers.push(t)
             // 义体赋予的招式
             if (a.grantsActions) gainedActions.push(...a.grantsActions)
@@ -176,16 +144,13 @@ export class Character {
         }
         // 战斗风格显式必填(build.battleStyle),不再按武器自动判定
         this.battleStyle = build.battleStyle
-        // 武器属性要求检测
+        // 武器属性要求检测（不达标则武器自带的效果/触发/招式都不生效）
         const weaponOk =
             !weapon.requireAttrsMin ||
             Object.entries(weapon.requireAttrsMin).every(([attr, req]) => this.attrs.get(attr as AttrName) >= req!)
         if (weaponOk) {
             const activeWeapon = this.weaponDef ?? weapon
-            for (const eff of activeWeapon.effects ?? []) {
-                const handler = passiveEffectHandlers[eff.type]
-                if (handler) handler(this, eff, ['weapon'])
-            }
+            for (const eff of activeWeapon.effects ?? []) applyPassiveEffect(eff.type, this, eff, ['weapon'])
             for (const t of activeWeapon.triggers ?? []) this.passiveTriggers.push(t)
             if (activeWeapon.grantsActions) gainedActions.push(...activeWeapon.grantsActions)
         }
@@ -193,71 +158,27 @@ export class Character {
         // 副手武器：只处理 effects/triggers/grantsActions，不处理 tag，不含 range/战斗逻辑
         if (build.offhand) {
             const offhand = getWeapon(build.offhand)
-            for (const eff of offhand.effects ?? []) {
-                const handler = passiveEffectHandlers[eff.type]
-                if (handler) handler(this, eff, ['weapon'])
-            }
+            for (const eff of offhand.effects ?? []) applyPassiveEffect(eff.type, this, eff, ['weapon'])
             for (const t of offhand.triggers ?? []) this.passiveTriggers.push(t)
             if (offhand.grantsActions) gainedActions.push(...offhand.grantsActions)
         }
 
-        // 5. 缓存招式
-        this.#actionCache = gainedActions
-            .map((id) => {
-                const def = getActionDef(id)
-                return def ? new Action(def) : null
-            })
-            .filter((a): a is Action => a !== null)
-
-        // 5b. 补充触发招式（被动/奇物/武器/actionConfig 引用的内部招式）到缓存，供 maxUses 追踪
-        // 复用 passiveTriggers（已聚合被动/奇物/主副手武器的 triggers），避免重复遍历各来源
-        const triggerActionIds = new Set<string>()
-        for (const t of this.passiveTriggers) {
-            if (t.actionId) triggerActionIds.add(t.actionId)
-        }
-        for (const ac of build.actionConfigs ?? []) {
-            if (ac.actionId) triggerActionIds.add(ac.actionId)
-        }
-        const existingIds = new Set(this.#actionCache.map((a) => a.id))
-        for (const id of triggerActionIds) {
-            if (!existingIds.has(id)) {
-                const def = getActionDef(id)
-                if (def) this.#actionCache.push(new Action(def))
-            }
-        }
-
-        // 通用招式强化：被动钩子
-        for (const p of this.passiveDefs) {
-            if (p.actionEnhancer) this.#applyActionEnhancer(p.actionEnhancer)
-        }
-        // 通用招式强化：义体钩子
-        for (const a of this.artifactDefs) {
-            if (a.actionEnhancer) this.#applyActionEnhancer(a.actionEnhancer)
-        }
-
-        // 非空手、非御物角色自动获取捡武器招式
-        if (
-            weapon.id !== 'bare_hands' &&
-            !weapon.tags.includes('imperial') &&
-            !this.#actionCache.some((a) => a.id === 'pickup_weapon' || a.id === 'retrieve_blade')
-        ) {
-            const pw = getActionDef('pickup_weapon')
-            if (pw) this.#actionCache.push(new Action(pw))
-        }
+        // 5. 招式缓存（触发招 / 通用强化 / 捡武器 / 排序，见 action-cache.ts）
+        const enhancers = [
+            ...this.passiveDefs.map((p) => p.actionEnhancer),
+            ...this.artifactDefs.map((a) => a.actionEnhancer),
+        ].filter((f): f is (def: ActionDefinition) => ActionDefinition => !!f)
+        this.#actionCache = buildActionCache(build, gainedActions, this.passiveTriggers, (def) =>
+            enhancers.reduce((d, f) => f(d), def),
+        )
 
         this.ap = this.maxAp
         this.hp = calcMaxHp(this.attrs.get('vitality')) + this.maxHpMod
 
-        // 按 actionConfigs 排序
-        if (build.actionConfigs) {
-            const order = new Map(build.actionConfigs.map((c, i) => [c.actionId, i]))
-            this.#actionCache.sort((a, b) => (order.get(a.id) ?? 999) - (order.get(b.id) ?? 999))
-        }
-
         // 初始化触发条件缓存（战斗期间固定，不随属性变化）
         const initWis = this.attrs.get('wisdom')
         this.#maxTriggerSlots = Math.max(1, Math.floor(initWis / 4)) + this.triggerSlotMod
-        this.#configTriggers = this.#buildConfigTriggers()
+        this.#configTriggers = buildConfigTriggers(build)
         if (this.#configTriggers.length > this.#maxTriggerSlots) {
             console.warn(
                 `[${this.name}] WIS=${initWis} 仅 ${this.#maxTriggerSlots} 个触发槽，`,
@@ -292,10 +213,7 @@ export class Character {
             if (!maxOk) return
         }
         // effects
-        for (const eff of p.effects ?? []) {
-            const handler = passiveEffectHandlers[eff.type]
-            if (handler) handler(this, eff)
-        }
+        for (const eff of p.effects ?? []) applyPassiveEffect(eff.type, this, eff)
         // triggers
         for (const slot of p.triggers ?? []) this.passiveTriggers.push(slot)
     }
@@ -310,27 +228,6 @@ export class Character {
 
     get triggers(): TriggerSlot[] {
         return [...this.#configTriggers.slice(0, this.#maxTriggerSlots), ...this.passiveTriggers]
-    }
-
-    #buildConfigTriggers(): TriggerSlot[] {
-        const result: TriggerSlot[] = []
-        const seenTriggers = new Set<string>()
-        for (const ac of this.build.actionConfigs ?? []) {
-            if (!ac.triggerId) continue
-            if (seenTriggers.has(ac.triggerId)) {
-                throw new Error(
-                    `重复触发条件: ${ac.triggerId}（招式「${ac.actionId}」），每个触发条件只能被一个招式使用`,
-                )
-            }
-            seenTriggers.add(ac.triggerId)
-            const tc = TRIGGER_CONDITIONS.find((t) => t.id === ac.triggerId)
-            if (!tc) continue
-            result.push({
-                condition: { type: tc.type, buffId: tc.buffId, check: tc.check },
-                actionId: ac.actionId,
-            })
-        }
-        return result
     }
 
     /** 获取招式配置 */
@@ -428,10 +325,7 @@ export class Character {
         const def = getArtifact(id)
         if (!def) return false
         this.artifactDefs.push(def)
-        for (const eff of def.effects ?? []) {
-            const handler = passiveEffectHandlers[eff.type]
-            if (handler) handler(this, eff)
-        }
+        for (const eff of def.effects ?? []) applyPassiveEffect(eff.type, this, eff)
         for (const t of def.triggers ?? []) this.passiveTriggers.push(t)
         // 奇物赋予的招式（偷来的女儿红能喝）
         for (const g of def.grantsActions ?? []) {
@@ -578,84 +472,4 @@ export class Character {
         c.res = emptyResourceTally()
         return c
     }
-}
-
-// ── 被动效果分发表（构造期执行，无战斗上下文） ──
-
-const passiveEffectHandlers: Record<string, (char: Character, eff: EffectDef, sourceTags?: string[]) => void> = {
-    haste(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'haste' }>
-        if (e.value) char.haste += e.value
-        if (e.eval) char.hasteCallbacks.push(e.eval)
-    },
-    buff_duration_mult(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'buff_duration_mult' }>
-        if (e.eval) char.buffDurationCallbacks.push(e.eval)
-    },
-    attr_floor(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'attr_floor' }>
-        for (const [attr, value] of Object.entries(e.attrs)) {
-            char.attrs.minValues[attr as AttrName] = value
-        }
-    },
-    stat_buff(char, eff, sourceTags) {
-        const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
-        for (const [attr, value] of Object.entries(e.attrs)) {
-            let delta = value as number
-            for (const check of char.statRestrictionChecks ?? []) {
-                const cur = char.attrs.get(attr as AttrName)
-                const result = check(char, attr, cur, delta, sourceTags)
-                if (!result) continue
-                if (result.skip) {
-                    delta = 0
-                    break
-                }
-                if (result.delta !== undefined) delta = result.delta
-            }
-            if (delta === 0) continue
-            const cur = char.attrs.get(attr as AttrName)
-            char.attrs.set(attr as AttrName, cur + delta)
-        }
-    },
-    stat_restriction(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'stat_restriction' }>
-        char.statRestrictionChecks.push(e.check)
-    },
-    // 义体效果（构造期执行）
-    max_hp_mod(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'max_hp_mod' }>
-        char.maxHpMod += e.value
-    },
-    trigger_slot_mod(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'trigger_slot_mod' }>
-        if (e.fn) {
-            char.triggerSlotMod += e.fn(char)
-        } else {
-            char.triggerSlotMod += e.value ?? 0
-        }
-    },
-    attr_convert(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'attr_convert' }>
-        const src = char.attrs.get(e.from)
-        const delta = e.mode === 'floor' ? Math.floor(src * e.ratio) : Math.round(src * e.ratio)
-        for (const attr of e.to) {
-            char.attrs.modify(attr as AttrName, delta)
-        }
-    },
-    dodge_mod(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>
-        char.dodgeMod += e.value
-    },
-    parry_mod(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'parry_mod' }>
-        char.parryMod += e.value
-    },
-    weapon_tag(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'weapon_tag' }>
-        char.pendingWeaponTags.push(e.tag)
-        const weapon = char.weaponDef ?? getWeapon(char.build.weapon)
-        if (!weapon.tags.includes(e.tag)) {
-            char.weaponDef = { ...weapon, tags: [...weapon.tags, e.tag] }
-        }
-    },
 }
