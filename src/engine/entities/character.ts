@@ -23,6 +23,43 @@ import type { BattleState } from '../combat/types'
 import type { BuffHookCtx, RuntimeAction } from '../../data/buffs/types'
 import { round1 } from '../util/math'
 
+/**
+ * 一场战斗内的资源流水（内息 / 缠劲）。
+ *
+ * 每个数字都由 `Character` 的资源方法自己记账 —— 这是唯一权威口径：
+ * 招式消耗、移动消耗、被打断扣气、武器/奇物自扣（如特种兵匕首 `spendChan(1)`）、
+ * 时间回复、受击回气、上限溢出，全都经过这些方法，所以统计不必再去猜事件字段。
+ * 统计快照在战斗结束时由引擎同步给 `BattleStats`（见 `docs/battle-stats-design.md`）。
+ */
+export interface ResourceTally {
+    /** 主动消耗的内息（招式 / 移动 / 辅助招，含加成与减免后的实付） */
+    apSpent: number
+    /** 被外力扣掉的内息（打断、破气、御物耗炁这类净回复压制），不是自己花掉的 */
+    apDrained: number
+    /** 时间回复 + 效果回复的内息 */
+    apGained: number
+    /** 回复时因内息已满而浪费掉的部分 */
+    apWasted: number
+    /** 获得的缠劲（受击回气 / 每秒回复 / 效果给予） */
+    chanGained: number
+    /** 消耗的缠劲（招式、武器/奇物自扣、御物维持等） */
+    chanSpent: number
+    /** 缠劲满上限时被截断的溢出量 */
+    chanOverflow: number
+}
+
+export function emptyResourceTally(): ResourceTally {
+    return {
+        apSpent: 0,
+        apDrained: 0,
+        apGained: 0,
+        apWasted: 0,
+        chanGained: 0,
+        chanSpent: 0,
+        chanOverflow: 0,
+    }
+}
+
 export class Character {
     readonly build: CharacterBuild
     readonly id: string
@@ -46,6 +83,8 @@ export class Character {
     }
     /** 缠劲层数 */
     chan = 0
+    /** 本场资源流水（内息 / 缠劲的获得、消耗、溢出）——战斗统计读取，见 `ResourceTally` */
+    res: ResourceTally = emptyResourceTally()
     /** 上次行动结束的绝对时间 (ms)，0=未行动过 */
     lastActionEndMs = 0
     /** 上次召唤物 AP 恢复时间 */
@@ -498,8 +537,24 @@ export class Character {
     spendAp(cost: number): boolean {
         if (this.ap < cost) return false
         this.ap -= cost
+        this.res.apSpent += cost
         this.addChan(cost)
         return true
+    }
+
+    /** 增加内息（时间回复 / 效果回复）。返回实际增加量；超出上限的部分记为浪费。
+     *  传入负数表示"净回复被压低"（御物耗炁等），视为消耗而非获得。 */
+    gainAp(amount: number): number {
+        const before = this.ap
+        this.ap = Math.max(0, Math.min(this.maxAp, this.ap + amount))
+        const delta = Math.round((this.ap - before) * 10) / 10
+        if (delta >= 0) {
+            this.res.apGained += delta
+            this.res.apWasted += Math.max(0, Math.round((amount - delta) * 10) / 10)
+        } else {
+            this.res.apDrained += -delta
+        }
+        return delta
     }
 
     /** 纯扣 AP（不产生缠劲）：被打断/破气类效果用（裸绞、抽刀断水等）。
@@ -509,6 +564,7 @@ export class Character {
     reduceAp(amount: number, nowMs?: number): number {
         const actual = Math.min(amount, this.ap)
         this.ap = Math.max(0, this.ap - actual)
+        this.res.apDrained += actual
         if (nowMs !== undefined) this.lastApUpdate = nowMs
         return actual
     }
@@ -522,13 +578,17 @@ export class Character {
     addChan(amount: number): number {
         const before = this.chan
         this.chan = Math.min(MAX_CHAN, Math.round((this.chan + amount) * 10) / 10)
-        return Math.max(0, Math.round((before + amount - this.chan) * 10) / 10)
+        const overflow = Math.max(0, Math.round((before + amount - this.chan) * 10) / 10)
+        this.res.chanGained += Math.round((amount - overflow) * 10) / 10
+        this.res.chanOverflow += overflow
+        return overflow
     }
 
     /** 消耗缠劲（不足则返回 false 不扣，与 spendAp 一致） */
     spendChan(cost: number): boolean {
         if (this.chan < cost) return false
         this.chan = Math.round((this.chan - cost) * 10) / 10
+        this.res.chanSpent += cost
         return true
     }
 
@@ -539,6 +599,19 @@ export class Character {
         c.ap = this.maxAp // 战斗开始满 AP
         c.lastActionEndMs = 0
         c.lastApUpdate = 0
+        return c
+    }
+
+    /**
+     * 推演用浅克隆：原型继承读、写落在自身（AI 期望伤害的沙盘，见 `ai/expected-damage.ts`）。
+     *
+     * 它只隔离「会被赋值的字段」（`chan`/`ap`/`hp` 这类赋值自动成为自身属性），
+     * 但 `res` 是对象，钩子里的 `spendChan`/`addChan` 会**原地**改它 —— 所以沙盒必须自带一份，
+     * 否则推演出的资源流水会累加进真实角色的统计（表现为缠劲消耗虚高、对不上账）。
+     */
+    forkForSim(): Character {
+        const c = Object.create(this) as Character
+        c.res = emptyResourceTally()
         return c
     }
 }

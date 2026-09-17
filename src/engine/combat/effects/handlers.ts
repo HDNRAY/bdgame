@@ -368,7 +368,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     },
     restore_ap({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'restore_ap' }>
-        self.ap = Math.min(self.maxAp, self.ap + e.value)
+        self.gainAp(e.value)
         engine.emitLog({ type: 'system', message: BattleLog.msg('回炁', self.name, `AP+${e.value}`), actorId: self.id })
     },
     max_ap_mod({ eff, self }: EffectCtx) {

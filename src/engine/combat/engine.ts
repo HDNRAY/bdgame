@@ -297,7 +297,7 @@ export class BattleEngine {
         const lastRef = Math.max(self.lastActionEndMs, self.lastApUpdate)
         const elapsedMs = e.nextActionAt - lastRef
         if (elapsedMs > 0) {
-            self.ap = Math.min(self.maxAp, self.ap + calcApRegen(elapsedMs, self.attrs.get('wisdom')))
+            self.gainAp(calcApRegen(elapsedMs, self.attrs.get('wisdom')))
         }
         self.capAp()
         // AP 已恢复至本回合时刻 → 更新恢复参考点（getSnapshot 叠加回复时不再对行动方双计）
@@ -537,6 +537,12 @@ export class BattleEngine {
     enableStats(level: StatsLevel): BattleStats {
         this.stats = new BattleStats(level)
         return this.stats
+    }
+
+    /** 把双方本场的资源流水（内息/缠劲的消耗·获得·溢出）同步进统计。战斗结束时调用一次即可。 */
+    syncResourceStats(): void {
+        if (!this.stats) return
+        for (const c of this.state.characters) this.stats.setResources(c.id, c.res)
     }
 
     emitLog(event: LogEvent): void {
@@ -1066,7 +1072,7 @@ export class BattleEngine {
                 if (!char || !char.isAlive()) break
                 const extraAp = calcExtraApRegenPerSec(this.state, char)
                 if (extraAp !== 0) {
-                    char.ap = Math.max(0, Math.min(char.maxAp, char.ap + Math.round(extraAp * 10) / 10))
+                    char.gainAp(Math.round(extraAp * 10) / 10)
                     if (extraAp > 0) {
                         this.emitLog({
                             type: 'system',

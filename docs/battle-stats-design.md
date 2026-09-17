@@ -72,7 +72,7 @@ stats（数值投影） ←── BattleStatsPanel / demo 脚本 / DevMode 聚�
 | `attack_start` / `support` | `chanCost`（缠劲消耗） | **已做**：触发招式不耗内息但要耗缠劲，之前没有任何事件带这个数 |
 | `damage` | 附伤不另加字段：引擎已经在 `tags` 里标了 `bonus_damage` | **已做**（用 tag 判定） |
 | `damage` | `piercing` / `absorbed` / `mitigated` / `parriedAmount` 细分，`isSummon` / `ownerId` 归属 | **待做**：要动伤害管道（`applyDefenseStages` / `onAbsorb`）与召唤物发射点，风险高于收益，等 UI 真的需要再补。当前口径：`final` = 实际扣血，`blocked` = 减免总量（不细分） |
-| 新增 `resource` | AP 浪费（回满截断）、缠劲溢出 | **待做**：`Character.spendAp` 会调 `addChan` 但丢掉了溢出的返回值，要动 `Character` 的热路径；当前缠劲溢出只能从 `chan_overflow` 触发事件侧面看 |
+| 资源 | 不加事件：改由 `Character` 自己记账 | **已做**：新资源事件要在热路径上多发日志，而资源流动的**唯一必经之路**就是 `Character` 的四个方法（`spendAp` / `gainAp` / `addChan` / `spendChan`）。在这四个方法里累加 `Character.res`（`ResourceTally`），战斗结束时 `BattleEngine.syncResourceStats()` 一次性同步给 `BattleStats`，零事件开销 |
 | `move` | 已有 `delta / newDistance / durationMs / kind` | 够用 |
 | `attack_start` | 已有 `triggered` / `summonName` | 够用 |
 
@@ -103,7 +103,24 @@ stats（数值投影） ←── BattleStatsPanel / demo 脚本 / DevMode 聚�
   | 失手 | `fumble`（发生在 `attack_start` 之前，所以不计入出手数） |
   顺带发现两处事件问题：**`parried` 日志事件没有任何生产者**（招架只走 `check_parry`），`dodged` 事件与 `check_hit` 重复——统计一律只认 `check_*`，不看这两个事件。
 - **对账规则**（报告里必须成立）：`出手 = 命中 + 被闪避`；`命中 = 造成伤害 + 打中未造成伤害`。
+- **资源统计补全**（第二步之前顺手做掉，它属于「数字对不对」而不是「界面长什么样」）：
+  - 口径从「事件字段猜」换成「角色自己记账」。原来的 `缠劲消耗` 只数了 `attack_start.chanCost`，
+    于是**武器 / 奇物 / buff 自扣的缠劲全丢**——典型例子是李雪影的「特种兵匕首」（`onAfterDealDamage` 里
+    `attacker.spendChan(1)` 追加电伤），报告里她的缠劲消耗是 0；移动消耗的内息也从来没数过。
+  - `ResourceTally` 七个字段：`apSpent` / `apDrained` / `apGained` / `apWasted` / `chanGained` / `chanSpent` / `chanOverflow`。
+    被扣（打断、破气）与主动消耗分开，因为玩家会问「我的内息是被花掉的还是被扣掉的」。
+  - 顺带统一了内息写入入口：新增 `Character.gainAp(amount)`（返回实际增量，负值表示净回复被压低，如御物耗炁），
+    原先散在引擎与效果处理器里的 `char.ap = Math.min(...)` 赋值全部改走它。
+  - **对账不变式**（已写成测试）：`初始 AP（起手 50%）+ apGained − apSpent − apDrained = 终值 AP`，
+    `chanGained − chanSpent = 终值缠劲`。
+  - **踩到的坑**：AI 期望伤害的沙盘（`ai/expected-damage.ts`）用 `Object.create(char)` 做原型克隆，
+    赋值类字段（`chan` / `ap` / `hp`）写入落在克隆自身，所以以前没事；但 `res` 是**对象**，
+    钩子里的 `spendChan` 会原地改它 —— 推演时每次「假装花缠劲」都累加进真实角色的统计，
+    实测把唐柔的缠劲消耗从 26 抬到 50（虚高近一倍）。修法是 `Character.forkForSim()`：
+    沙盒克隆必须自带一份 `res`。这条同样适用于以后任何「挂在角色上的可变对象」。
 - **实测开销**（3000 场 quiet 对战，各跑两轮）：level 0 = 6.77/6.80 ms/场，level 1 = 6.80/6.86，level 2 = 6.86/6.88 —— 即 **+0.5% ~ +1.3%**。折算到 tour（49,600 场 / 约 100 秒），level 1 约多 1 秒。
+  - 资源记账（`Character.res`）即便 level 0 也在跑：同脚本同机器 A/B（5 组满配对手，1500 场 ×2 轮）差异在噪声内（level 0 = 10.41/10.48 vs 10.45/10.84；level 2 = 10.24/10.22 vs 10.35/10.39 ms/场），不值得为它加开关。
+  - 补全后重跑 tour：49,600 场 106.7 秒，胜率 46.3% ~ 52.7%（与补全前分布一致，资源数字不参与判定）。
 - **验收**：`npm run demo`（`scripts/demo-battle.ts`）单场打印完整报告，`npm run demo 20` 走 `merge()` 聚合，均正常。
 
 ## 五、口径定义（先定死，避免「数字对不上」）
@@ -113,6 +130,9 @@ stats（数值投影） ←── BattleStatsPanel / demo 脚本 / DevMode 聚�
 - **DoT 单列**，不混进直接伤害；**附伤**（`bonus`，雷法 / 金光那类）单列或归入来源招式，二者选一后全站统一。
 - **召唤物**：伤害归主人（用 `isSummon` / `ownerId` 上卷），同时在明细里可展开看召唤物本体。
 - **治疗**：有效治疗 = 实际回血；溢出 = 名义量 − 有效。UI 默认显示有效，溢出作为次要信息。
+- **资源**：角色级数字只有一个来源 —— `Character.res`（角色自己记账，战斗结束同步）。事件字段只用于「按招式归属」，
+  两者**不允许互相补差**：总账多出来的部分恰恰是「不属于任何招式的消耗」（移动、被打断、武器与 buff 自扣）。
+  展示时外面是消耗，括号里是流水明细（回复 / 浪费 / 被扣、获得 / 溢出），避免玩家把「回复」误读成「消耗」。
 - **时间/回合**：分段统一用 `log scope[0]`（回放的分段也用它），保证统计与回放对得齐。
 - **「一次出手」**：以 `attack_start` 为准（无论中不中）；命中 / 闪避 / 被招架 / 暴击都以它为分母。
 
@@ -126,7 +146,7 @@ stats（数值投影） ←── BattleStatsPanel / demo 脚本 / DevMode 聚�
 | 承伤 | 结果 | 被谁打、挨了多少；减免构成（招架 / 减伤 / 护盾）占比 |
 | 命中面板 | 结果 | 每招出手数、命中率、闪避率、被招架率、暴击率 |
 | 治疗 | 结果 | 有效治疗、溢出、治疗来源 |
-| 资源 | 结果 | 内息消耗 / 回复 / 浪费；缠劲获得 / 消耗 / 溢出。**当前只有「消耗」两项**（来自 `attack_start.apCost` / `chanCost`），回复、浪费、缠劲获得与溢出都依赖待做的 `resource` 事件 |
+| 资源 | 结果 | 内息消耗 / 回复 / 浪费 / 被扣；缠劲消耗 / 获得 / 溢出。角色总账来自 `Character.res`（覆盖招式、移动、武器与 buff 自扣、被打断、时间回复）；`ActionStat.apSpent/chanSpent` 只做「按招式归属」的明细 |
 | 距离 | 结果 | 平均交战距离、贴脸 / 风筝时间占比、位移招用量 |
 | 状态 | 结果 | 我给对手挂上什么、成功率；我身上减益的覆盖时长 |
 | 触发 | 结果 + 决策 | 触发招式用了几次、贡献多少；哪些槽一次都没触发 |
@@ -151,6 +171,8 @@ stats（数值投影） ←── BattleStatsPanel / demo 脚本 / DevMode 聚�
 - 事件字段按第四节落地（`heal.effective/overheal`、`attack_start/support.chanCost`；附伤用 `bonus_damage` tag）；
   `formatBattleLog` 与回放只在字段变化处适配，结构未动。
 - `battle-stats.ts` 落地，引擎持有、管道内更新；`stats-tracker.ts` 已删除。
+- **资源统计补全**（第四节表格末行 + 四·五）：`Character.res` + `syncResourceStats()`，内息与缠劲的消耗 / 获得 / 浪费 / 溢出全部有账，
+  并用「初值 + 获得 − 消耗 = 终值」的不变式测试兜住（`src/engine/__tests__/resource-tally.test.ts`）。
 - **决策面（`PlanDiagnostics`）未做**，放到第二步之后：它要动 `planEvent` / `generatePlans` / `pickActions` 的签名，
   属于「为什么要重新跑一遍才有意义」的东西，等 UI 能看统计了再加。
 

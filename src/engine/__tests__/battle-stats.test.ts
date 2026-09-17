@@ -128,19 +128,59 @@ describe('BattleStats 口径', () => {
         expect(p1.casts).toBe(0)
     })
 
-    it('level 1 不收资源与距离；level 2 收', () => {
+    it('level 1 不收资源与距离；level 2 收（按招式归属的消耗）', () => {
         const l1 = new BattleStats(1)
         l1.handle(attack({ chanCost: 30 }))
         l1.handle({ type: 'move', sourceId: 'p1', delta: -2, newDistance: 2, apCost: 1, apRemaining: 2 })
-        expect(l1.chars.get('p1')!.chanSpent).toBe(0)
+        expect(l1.chars.get('p1')!.actions.get('a1')!.chanSpent).toBe(0)
         expect(l1.chars.get('p1')!.distanceSamples).toBe(0)
 
         const l2 = new BattleStats(2)
         l2.handle(attack({ chanCost: 30 }))
         l2.handle({ type: 'move', sourceId: 'p1', delta: -2, newDistance: 2, apCost: 1, apRemaining: 2 })
-        expect(l2.chars.get('p1')!.chanSpent).toBe(30)
+        expect(l2.chars.get('p1')!.actions.get('a1')!.chanSpent).toBe(30)
+        expect(l2.chars.get('p1')!.actions.get('a1')!.apSpent).toBe(2)
         expect(l2.chars.get('p1')!.distanceSamples).toBe(1)
         expect(l2.chars.get('p1')!.distanceSum).toBe(2)
+    })
+
+    it('资源总账只认 setResources（角色自己记账），merge 逐项累加', () => {
+        const s = new BattleStats(2)
+        s.setResources('p1', {
+            apSpent: 12,
+            apDrained: 1,
+            apGained: 20,
+            apWasted: 4,
+            chanGained: 9,
+            chanSpent: 6,
+            chanOverflow: 3,
+        })
+        const p1 = s.chars.get('p1')!
+        expect(p1.res.chanSpent).toBe(6)
+        expect(p1.res.apWasted).toBe(4)
+
+        // 招式事件不会污染角色总账
+        s.handle(attack({ chanCost: 30 }))
+        expect(p1.res.chanSpent).toBe(6)
+
+        const other = new BattleStats(2)
+        other.setResources('p1', {
+            apSpent: 1,
+            apDrained: 0,
+            apGained: 2,
+            apWasted: 0,
+            chanGained: 0,
+            chanSpent: 1,
+            chanOverflow: 0,
+        })
+        s.merge(other)
+        expect(p1.res.apSpent).toBe(13)
+        expect(p1.res.chanSpent).toBe(7)
+        expect(p1.res.apGained).toBe(22)
+
+        // 快照必须深拷贝，否则合并会串场
+        const snap = s.snapshot()
+        expect(snap.chars.find((c) => c.id === 'p1')!.res).not.toBe(p1.res)
     })
 
     it('merge 累加（脚本跑 N 场用）', () => {

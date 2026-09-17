@@ -1,4 +1,5 @@
 import type { LogEvent } from './log-events'
+import { emptyResourceTally, type ResourceTally } from '../entities/character'
 
 /**
  * 战斗统计（伤害统计 / 承伤 / 治疗 / 命中 / 资源 / 距离）。
@@ -66,9 +67,8 @@ export interface CharStat {
     parried: number
     dodged: number
     fumbles: number
-    /** level ≥ 2：内息 / 缠劲消耗 */
-    apSpent: number
-    chanSpent: number
+    /** level ≥ 2：资源流水（内息 / 缠劲的获得、消耗、溢出）——权威口径由角色自己记账，战斗结束时同步 */
+    res: ResourceTally
     /** level ≥ 2：距离采样（出手/移动后的交战距离） */
     distanceSamples: number
     distanceSum: number
@@ -110,8 +110,7 @@ function emptyChar(id: string): CharStat {
         parried: 0,
         dodged: 0,
         fumbles: 0,
-        apSpent: 0,
-        chanSpent: 0,
+        res: emptyResourceTally(),
         distanceSamples: 0,
         distanceSum: 0,
         closeSamples: 0,
@@ -179,6 +178,15 @@ export class BattleStats {
         return a
     }
 
+    /**
+     * 同步一名角色的资源流水（战斗结束时由引擎调用）。
+     * 角色级资源数字**只认这里**：招式消耗、移动消耗、被打断扣气、武器/奇物自扣都走
+     * `Character` 的资源方法，事件字段（`apCost` / `chanCost`）只够做「按招式归属」。
+     */
+    setResources(charId: string, res: ResourceTally): void {
+        this.#char(charId).res = { ...res }
+    }
+
     /** 收一个战斗事件（引擎在 emitLog 最前面调用，quiet 模式也会走） */
     handle(e: LogEvent): void {
         switch (e.type) {
@@ -186,25 +194,23 @@ export class BattleStats {
                 const c = this.#char(e.sourceId)
                 const a = this.#action(e.sourceId, e.actionId, e.actionName)
                 c.casts++
-                c.apSpent += e.apCost
                 a.casts++
-                a.apSpent += e.apCost
                 if (e.triggered) a.triggeredCasts++
                 if (this.level >= 2) {
-                    const chan = e.chanCost ?? 0
-                    c.chanSpent += chan
-                    a.chanSpent += chan
+                    // 按招式归属的消耗（角色总账见 res）。
+                    // 触发招式不耗内息（`apCost` 只是招式宣告值，引擎不为触发招扣 AP），缠劲照扣。
+                    if (!e.triggered) a.apSpent += e.apCost
+                    a.chanSpent += e.chanCost ?? 0
                 }
                 this.#lastAction.set(e.sourceId, e.actionId)
                 break
             }
 
             case 'support': {
-                // 辅助招的内息消耗记在角色上（不建招式条目：辅助招不进伤害榜）
                 if (this.level >= 2) {
-                    const c = this.#char(e.sourceId)
-                    c.apSpent += e.apCost
-                    c.chanSpent += e.chanCost ?? 0
+                    const a = this.#action(e.sourceId, e.actionId, e.actionName)
+                    a.apSpent += e.apCost
+                    a.chanSpent += e.chanCost ?? 0
                 }
                 break
             }
@@ -343,8 +349,6 @@ export class BattleStats {
                 'parried',
                 'dodged',
                 'fumbles',
-                'apSpent',
-                'chanSpent',
                 'distanceSamples',
                 'distanceSum',
                 'closeSamples',
@@ -352,6 +356,17 @@ export class BattleStats {
                 'statusApplied',
             ] as const) {
                 dst[k] += src[k]
+            }
+            for (const k of [
+                'apSpent',
+                'apDrained',
+                'apGained',
+                'apWasted',
+                'chanGained',
+                'chanSpent',
+                'chanOverflow',
+            ] as const) {
+                dst.res[k] += src.res[k]
             }
             for (const [actionId, a] of src.actions) {
                 const d = this.#action(id, actionId, a.actionName)
@@ -389,6 +404,7 @@ export class BattleStats {
             level: this.level,
             chars: [...this.chars.values()].map((c) => ({
                 ...c,
+                res: { ...c.res },
                 actions: [...c.actions.values()],
                 takenByAction: [...c.takenByAction.entries()].map(([actionId, v]) => ({
                     actionId,
@@ -462,9 +478,21 @@ export class BattleStats {
             for (const c of chars) {
                 const avgDist = c.distanceSamples > 0 ? r1(c.distanceSum / c.distanceSamples) : 0
                 const closeRate = c.distanceSamples > 0 ? ((c.closeSamples / c.distanceSamples) * 100).toFixed(1) : '0.0'
-                // 注意口径：这里两条都是**消耗**，不是回复（回复/获得/溢出要新的 resource 事件，见设计文档）
+                const r = c.res
+                // 口径：外面是"花掉多少"，括号里是流水明细（回复/浪费/被扣、获得/溢出）。
+                // 角色总账来自角色自己的记账，覆盖招式消耗、移动消耗、武器/奇物自扣等所有路径。
+                const apDetail = [
+                    r.apGained > 0 ? `回复 ${r1(r.apGained)}` : '',
+                    r.apWasted > 0 ? `浪费 ${r1(r.apWasted)}` : '',
+                    r.apDrained > 0 ? `被扣 ${r1(r.apDrained)}` : '',
+                ].filter(Boolean)
+                const chanDetail = [
+                    r.chanGained > 0 ? `获得 ${r1(r.chanGained)}` : '',
+                    r.chanOverflow > 0 ? `溢出 ${r1(r.chanOverflow)}` : '',
+                ].filter(Boolean)
                 lines.push(
-                    `  ${nameOf(c.id)}  内息消耗 ${r1(c.apSpent)}  缠劲消耗 ${r1(c.chanSpent)}` +
+                    `  ${nameOf(c.id)}  内息消耗 ${r1(r.apSpent)}${apDetail.length ? `（${apDetail.join(' ')}）` : ''}` +
+                        `  缠劲消耗 ${r1(r.chanSpent)}${chanDetail.length ? `（${chanDetail.join(' ')}）` : ''}` +
                         `  平均交战距离 ${avgDist}m  1m 内 ${closeRate}%` +
                         (c.statusTried > 0 ? `  挂状态 ${c.statusApplied}/${c.statusTried}` : ''),
                 )

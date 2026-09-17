@@ -67,6 +67,8 @@ export function runBattle(
         if (!engine.runEvent(planFn)) break
     }
     const alive = state.characters.filter((c) => c.isAlive())
+    // 资源统计由角色自己记账，战斗结束统一同步（覆盖招式/移动/武器自扣/时间回复等所有路径）
+    engine.syncResourceStats()
     let winner: string
     if (alive.length === 1) {
         winner = alive[0].id

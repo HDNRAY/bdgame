@@ -78,9 +78,9 @@ export function calcExpectedDamage(
     atDistance?: number,
     opts?: { applyDefenseReduction?: boolean },
 ): DamageEstimate {
-    // 克隆可变参数（钩子篡改只影响克隆，不影响原件）
-    const safeAtk = Object.create(attacker) as Character
-    const safeDef = Object.create(defender) as Character
+    // 克隆可变参数（钩子篡改只影响克隆，不影响原件）；资源流水必须自带一份，见 Character.forkForSim
+    const safeAtk = attacker.forkForSim()
+    const safeDef = defender.forkForSim()
     // 沙盒 state：只克隆两个角色的 buff 层及其 hook 注册（钩子只读写这些角色的层），
     // 轻量浅克隆替代 structuredClone 全量深拷贝（热路径 ~44% 开销）。
     // state 恒为 BattleState class（生产与 DevMode 评估均构造真 class），cloneFor 必然存在
