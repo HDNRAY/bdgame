@@ -21,6 +21,18 @@ describe('对手招式配置', () => {
         expect(bad).toEqual([])
     })
 
+    it('不设 priority（出招优先级只由玩家拖拽写入）', () => {
+        // 实测把对手 actionConfigs 的顺序当优先级，全员胜率极差会从 7.6pp 崩到 63.4pp：
+        // 那份顺序是奖励列举顺序（gen() 抽奖过滤后还会变），不是设计好的优先级。
+        const bad: string[] = []
+        for (const def of OPPONENTS) {
+            for (const ac of def.actionConfigs ?? []) {
+                if (ac.priority !== undefined) bad.push(`${def.id}: ${ac.actionId} → ${ac.priority}`)
+            }
+        }
+        expect(bad).toEqual([])
+    })
+
     it('triggerId 全部可解析且不重复', () => {
         const bad: string[] = []
         for (const def of OPPONENTS) {

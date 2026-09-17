@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useImmer } from 'use-immer'
 import type { CharacterBuild, BattleStyle } from '../../game/entities/character-build'
-import { canBeTriggerAction, type ActionConfig } from '../../game/entities/action-config'
+import { canBeTriggerAction, withPriorityOrder, type ActionConfig } from '../../game/entities/action-config'
 import type { AttrName } from '../../engine/entities/attributes'
 import { Character } from '../../engine/entities/character'
 import { ALL_ATTRS } from '../../engine/entities/attributes'
@@ -77,13 +77,13 @@ export function useBuildCharacter(
                     stripIllegalTrigger(draft[i])
                 }
             }
-            // 补充新招式
+            // 补充新招式：插到最前——顺序即出招优先级，排到末尾的招会被前面的招一直压着出不来
             const existingIds = new Set(draft.map((c) => c.actionId))
+            const added: ActionConfig[] = []
             for (const id of allActionIds) {
-                if (!existingIds.has(id)) {
-                    draft.push({ actionId: id })
-                }
+                if (!existingIds.has(id)) added.push({ actionId: id })
             }
+            if (added.length > 0) draft.unshift(...added)
         })
     }, [build, setActionConfigs])
 
@@ -134,6 +134,15 @@ export function useBuildCharacter(
         setSaveError(null)
     }
 
+    /** 拖拽排序：面板里拖出来的顺序即出招优先级 */
+    function moveAction(fromIndex: number, toIndex: number) {
+        if (toIndex < 0 || toIndex >= actionConfigs.length) return
+        setActionConfigs((draft) => {
+            const [moved] = draft.splice(fromIndex, 1)
+            draft.splice(toIndex, 0, moved)
+        })
+    }
+
     function updateAction(index: number, patch: Partial<ActionConfig>) {
         setActionConfigs((draft) => {
             const ac = draft[index]
@@ -160,7 +169,8 @@ export function useBuildCharacter(
             ...build,
             baseAttrs: attrs as Partial<Record<AttrName, number>>,
             battleStyle: style,
-            actionConfigs,
+            // 列表顺序 = 出招优先级（拖拽得到的顺序直接落成 priority）
+            actionConfigs: withPriorityOrder(actionConfigs),
         }
         if (onSave) {
             onSave(newBuild, remaining)
@@ -182,6 +192,7 @@ export function useBuildCharacter(
         saveError,
         handleAttrAdjust,
         handleReset,
+        moveAction,
         updateAction,
         handleSave,
     }

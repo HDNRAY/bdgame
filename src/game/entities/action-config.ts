@@ -49,6 +49,19 @@ export interface ActionConfig {
     condition?: RequiredCondition
     /** 触发条件 ID（查 TRIGGER_CONDITIONS） */
     triggerId?: string
+    /**
+     * 出招优先级（越小越优先，1 起）。缺省 = 不排序，交给 AI 按期望伤害/内息效率择优。
+     * 由构筑面板的拖拽顺序写入（见 withPriorityOrder）；对手数据不写 = 保持效率比择优。
+     */
+    priority?: number
+}
+
+/**
+ * 按列表位置写入出招优先级（1..N）：面板里拖出来的顺序就是出招顺序。
+ * 榜单与说明见 docs/gameplay-guide.md 第九节。
+ */
+export function withPriorityOrder(configs: readonly ActionConfig[]): ActionConfig[] {
+    return configs.map((ac, i) => ({ ...ac, priority: i + 1 }))
 }
 
 /** 检查必要条件是否满足（热路径：每回合每候选招都调用，避免闭包/临时对象分配） */

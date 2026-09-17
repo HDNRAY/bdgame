@@ -42,6 +42,8 @@ export interface ActionPlan {
 interface UsableAction {
     id: string
     def: ActionDefinition
+    /** 显式出招优先级（1 起，越小越优先）；0 = 未设 */
+    priority: number
     /** 身法减免后的基础 AP 成本（不含 onActionCost 连招减免，引擎动态算） */
     baseApCost: number
     /** 缠劲成本（机会成本折算到 AP） */
@@ -60,7 +62,8 @@ interface PickResult {
 }
 
 /**
- * 从招式池里按「伤害/AP 效率」贪心选招（在 dist 距离能打到的）。
+ * 从招式池里选招（在 dist 距离能打到的）：**先按显式出招优先级（`ActionConfig.priority`），
+ * 再按伤害/AP 效率**。未设优先级的招式排在有优先级的之后（对手数据都没设 → 等价原来的效率比择优）。
  * @param dist 施放时的距离（决定 canReach）
  * @param max 本段最多选几招（连发：1 + getExtraAttack）
  * @param exclude 排除的招式 id（如已用作主招）
@@ -93,6 +96,10 @@ function pickActions(
         .filter((x) => x.canReach && x.damage > 0)
         .map((x) => ({ ...x, rate: x.damage / Math.max(1e-9, x.a.baseApCost + x.a.chanCostAp) }))
         .sort((x, y) => {
+            // 显式优先级在前（未设 = 最低档）；同一档内仍按伤害/AP 效率比
+            const px = x.a.priority > 0 ? x.a.priority : Number.POSITIVE_INFINITY
+            const py = y.a.priority > 0 ? y.a.priority : Number.POSITIVE_INFINITY
+            if (px !== py) return px - py
             if (Math.abs(x.rate - y.rate) > 1e-9) return y.rate - x.rate
             return y.damage - x.damage
         })
@@ -366,6 +373,7 @@ export function generatePlans(
         return {
             id: def.id,
             def,
+            priority: self.getConfig(def.id)?.priority ?? 0,
             baseApCost: est.apCost,
             chanCostAp: chanOpportunityCost(self, est.chanCost ?? 0),
             chanCost: est.chanCost ?? 0,

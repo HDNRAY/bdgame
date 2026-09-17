@@ -329,7 +329,7 @@
     display: grid;
     /* 第 1 列 = 当前最长招式名（内容收缩时允许变窄，配 .cp-col-name 的省略号兜底）；
        条件/触发两列平分剩余空间，各自不低于 5.625rem */
-    grid-template-columns: minmax(0, max-content) minmax(5.625rem, 1fr) minmax(5.625rem, 1fr);
+    grid-template-columns: 1.25rem minmax(0, max-content) minmax(5.625rem, 1fr) minmax(5.625rem, 1fr);
     align-items: center;
     font-size: var(--font-sm);
     user-select: none;
@@ -348,6 +348,39 @@
     min-width: 0;
     padding: var(--sp-xxs) var(--sp-xxs) var(--sp-xxs) 0;
     border-bottom: var(--border-width) solid var(--color-bg-alt);
+}
+
+/* 拖拽手柄列：顺序即出招优先级 */
+.cp-col-handle {
+    display: flex;
+    align-items: center;
+}
+
+.cp-drag {
+    width: 0.5rem;
+    height: 0.8125rem;
+    padding: 0;
+    border: none;
+    cursor: grab;
+    /* 六个点画成抓手：不依赖字体字形 */
+    background-image: radial-gradient(circle, var(--color-border) 1px, transparent 1.2px);
+    background-size: 0.3125rem 0.3125rem;
+    background-repeat: repeat;
+    background-color: transparent;
+
+    &:active,
+    &.dragging {
+        cursor: grabbing;
+    }
+
+    &.dragging {
+        opacity: 0.7;
+    }
+}
+
+/* 拖拽悬停到某一行：整行加底色，指示落点 */
+.cp-row.over > span {
+    background: var(--color-bg-alt);
 }
 
 .cp-table-header > span {

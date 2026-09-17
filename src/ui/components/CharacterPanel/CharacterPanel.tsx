@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react'
 import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { useNavigate } from 'react-router-dom'
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import type { Character } from '../../../engine/entities/character'
 import { getAction } from '../../../data/actions'
@@ -120,6 +123,7 @@ export function CharacterPanel({
         saveError,
         handleAttrAdjust,
         handleReset,
+        moveAction,
         updateAction,
         handleSave,
     } = useBuildCharacter(build, onSave, unspentCultPoints)
@@ -129,6 +133,14 @@ export function CharacterPanel({
 
     // 已选触发 ID 集合（只检查 actionConfigs，不检查武器/功法/奇物自带触发）
     const takenTriggerIds = new Set(actionConfigs.map((ac) => ac.triggerId).filter((id): id is string => !!id))
+
+    // 拖拽排序：手柄单独作为拖拽源（表格行是 display:contents，没有自己的盒子，量不到位置）
+    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+    function handleDragEnd(event: DragEndEvent) {
+        const { active, over } = event
+        if (!over || active.id === over.id) return
+        moveAction(parseInt(String(active.id), 10), parseInt(String(over.id), 10))
+    }
 
     // 构筑模式：已选奖励集合（供挑选器去重）与奖励定义查找
     const rewardExclude = useMemo(() => {
@@ -232,27 +244,38 @@ export function CharacterPanel({
                         </div>
                         {isBuild ? (
                             <>
-                                {/* 表头与所有招式行共用一个网格（行内 display:contents），三列宽度才统一 */}
-                                <div className="cp-table">
-                                    <div className="cp-table-header">
-                                        <span className="cp-col-name">招式</span>
-                                        <span className="cp-col-cond">条件</span>
-                                        <span className="cp-col-trig">触发</span>
-                                    </div>
-                                    {actionConfigs.map((ac, i) => (
-                                        <ActionRow
-                                            key={ac.actionId}
-                                            ac={ac}
-                                            index={i}
-                                            onUpdate={updateAction}
-                                            disabled={triggerCount >= maxTriggerSlots && !ac.triggerId}
-                                            takenTriggerIds={takenTriggerIds}
-                                        />
-                                    ))}
-                                </div>
+                                {/* 表头与所有招式行共用一个网格（行内 display:contents），各列宽度才统一。
+                                    DndContext/SortableContext 不产生 DOM，不会破坏这个网格。 */}
+                                <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd} sensors={sensors}>
+                                    <SortableContext
+                                        items={actionConfigs.map((_, i) => String(i))}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        <div className="cp-table">
+                                            <div className="cp-table-header">
+                                                <span className="cp-col-handle" aria-hidden="true" />
+                                                <span className="cp-col-name">招式</span>
+                                                <span className="cp-col-cond">条件</span>
+                                                <span className="cp-col-trig">触发</span>
+                                            </div>
+                                            {actionConfigs.map((ac, i) => (
+                                                <ActionRow
+                                                    key={ac.actionId}
+                                                    id={String(i)}
+                                                    ac={ac}
+                                                    index={i}
+                                                    onUpdate={updateAction}
+                                                    disabled={triggerCount >= maxTriggerSlots && !ac.triggerId}
+                                                    takenTriggerIds={takenTriggerIds}
+                                                />
+                                            ))}
+                                        </div>
+                                    </SortableContext>
+                                </DndContext>
                                 <div className="cp-table-note">
-                                    条件满足只代表这招「允许被选」，实际出招仍按期望伤害与内息效率择优；招式排列顺序不影响选择。
-                                    触发招式不耗内息、只耗缠劲，但位移类招式与内息消耗 3 点及以上的招式不能设成触发招式。
+                                    列表顺序就是出招顺序：靠前的招只要当场能用（够得着、内息与缠劲够、条件满足）就先出它。
+                                    顺序管出哪一招，站多远仍由战斗风格与效率决定。触发招式不耗内息、只耗缠劲，
+                                    但位移类招式与内息消耗 3 点及以上的招式不能设成触发招式。
                                 </div>
                             </>
                         ) : (
@@ -434,14 +457,16 @@ export function CharacterPanel({
     )
 }
 
-/** 招式行：条件（结构化编辑，展开后占整行）+ 触发槽绑定 */
+/** 招式行：拖拽手柄（顺序 = 出招优先级）+ 条件（展开占整行）+ 触发槽绑定 */
 function ActionRow({
+    id,
     ac,
     index,
     onUpdate,
     disabled,
     takenTriggerIds,
 }: {
+    id: string
     ac: ActionConfig
     index: number
     onUpdate: (i: number, patch: Partial<ActionConfig>) => void
@@ -449,6 +474,9 @@ function ActionRow({
     takenTriggerIds: Set<string>
 }) {
     const [condOpen, setCondOpen] = useState(false)
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({ id })
+    // 只有手柄参与位移（行本身是 display:contents，没有盒子可平移）
+    const handleStyle = { transform: CSS.Transform.toString(transform), transition }
     const actionDef = getAction(ac.actionId)
     // 位移招式与内息消耗 > 2 的招式不能作为触发招式（与引擎护栏一致）
     const triggerBlocked = !!actionDef && !canBeTriggerAction(actionDef)
@@ -460,7 +488,19 @@ function ActionRow({
 
     return (
         <>
-            <div className="cp-row">
+            <div className={`cp-row${isOver && !isDragging ? ' over' : ''}`}>
+                <span className="cp-col-handle">
+                    <button
+                        type="button"
+                        ref={setNodeRef}
+                        style={handleStyle}
+                        className={`cp-drag${isDragging ? ' dragging' : ''}`}
+                        title="拖动调整出招顺序（靠前的先出）"
+                        aria-label="拖动调整出招顺序"
+                        {...attributes}
+                        {...listeners}
+                    />
+                </span>
                 <span className="cp-col-name">
                     {actionDef ? <EntityItem entity={actionDef} type="action" /> : ac.actionId}
                 </span>

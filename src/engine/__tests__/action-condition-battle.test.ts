@@ -73,4 +73,61 @@ describe('出招条件在 AI 计划里生效', () => {
         )
         expect(plannedAttacks(planEvent(self, state))).toContain('liu_yang_zhang')
     })
+
+})
+
+describe('出招优先级（ActionConfig.priority）', () => {
+    it('未设优先级 → 按效率比择优（对手数据就是这个状态，别改）', () => {
+        // 电力溜溜球效率比高于六阳掌，两者都 2AP、都能打
+        const { self, state } = makeState(['liu_yang_zhang', 'electric_yoyo'], undefined, 1)
+        expect(plannedAttacks(planEvent(self, state))).toEqual(['electric_yoyo'])
+    })
+
+    it('设了优先级 → 靠前的先出，哪怕效率比更低', () => {
+        const { self, state } = makeState(
+            ['liu_yang_zhang', 'electric_yoyo'],
+            [
+                { actionId: 'liu_yang_zhang', priority: 1 },
+                { actionId: 'electric_yoyo', priority: 2 },
+            ],
+            1,
+        )
+        expect(plannedAttacks(planEvent(self, state))).toEqual(['liu_yang_zhang'])
+    })
+
+    it('调换优先级则换成另一招', () => {
+        const { self, state } = makeState(
+            ['liu_yang_zhang', 'electric_yoyo'],
+            [
+                { actionId: 'electric_yoyo', priority: 1 },
+                { actionId: 'liu_yang_zhang', priority: 2 },
+            ],
+            1,
+        )
+        expect(plannedAttacks(planEvent(self, state))).toEqual(['electric_yoyo'])
+    })
+
+    it('优先级不越过条件闸门：被挡住就落到下一招', () => {
+        const { self, state } = makeState(
+            ['liu_yang_zhang', 'electric_yoyo'],
+            [
+                { actionId: 'electric_yoyo', priority: 1, condition: { type: 'time_above', seconds: 99999 } },
+                { actionId: 'liu_yang_zhang', priority: 2 },
+            ],
+            1,
+        )
+        expect(plannedAttacks(planEvent(self, state))).toEqual(['liu_yang_zhang'])
+    })
+
+    it('优先级不越过缠劲门槛：缠劲不够就落到下一招', () => {
+        const { self, state } = makeState(
+            ['thunder_storm', 'liu_yang_zhang'],
+            [
+                { actionId: 'thunder_storm', priority: 1 },
+                { actionId: 'liu_yang_zhang', priority: 2 },
+            ],
+            1,
+        )
+        expect(plannedAttacks(planEvent(self, state))).toEqual(['liu_yang_zhang'])
+    })
 })

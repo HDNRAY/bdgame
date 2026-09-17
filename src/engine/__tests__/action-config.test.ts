@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { checkCondition, canBeTriggerAction } from '../../game/entities/action-config'
+import { checkCondition, canBeTriggerAction, withPriorityOrder } from '../../game/entities/action-config'
+import type { ActionConfig } from '../../game/entities/action-config'
 import { allMainActions } from '../../engine'
 import {
     describeCondition,
@@ -277,5 +278,20 @@ describe('canBeTriggerAction（与引擎触发护栏同口径）', () => {
         const moves = allMainActions.filter((a) => a.tags.includes('move'))
         expect(moves.length).toBeGreaterThan(0)
         expect(moves.some(canBeTriggerAction)).toBe(false)
+    })
+
+})
+
+describe('withPriorityOrder', () => {
+    it('按列表位置写入 1..N 的优先级', () => {
+        const out = withPriorityOrder([{ actionId: 'a' }, { actionId: 'b', priority: 9 }, { actionId: 'c' }])
+        expect(out.map((c) => c.priority)).toEqual([1, 2, 3])
+        expect(out.map((c) => c.actionId)).toEqual(['a', 'b', 'c'])
+    })
+
+    it('不改原数组', () => {
+        const input: ActionConfig[] = [{ actionId: 'a' }]
+        withPriorityOrder(input)
+        expect(input[0].priority).toBeUndefined()
     })
 })
