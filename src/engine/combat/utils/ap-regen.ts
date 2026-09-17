@@ -39,5 +39,5 @@ export function calcEffectiveApRegenPerSec(state: BattleState, char: Character):
  * 触发：wis 属性变化、获得/失去带 apRegenPerSec 钩子的 buff（九阳→内息澎湃、肾上腺素、不老泉）
  */
 export function notifyRegenChanged(state: BattleState, char: Character): void {
-    state.turn.recalcRegenDelay(char.id, calcEffectiveApRegenPerSec(state, char), char.ap, char.maxAp)
+    state.turn.recalcRegenDelay(char, calcEffectiveApRegenPerSec(state, char))
 }

@@ -96,15 +96,23 @@ export class TurnManager {
     }
 
     /**
-     * AP 回复率变化 → 重算 pending 下次行动时间（原子回合：纯回复耗时）。
-     * 队首或非 character 条目跳过。
+     * AP 回复率变化 → 重算 pending 的下次行动时间（原子回合：纯回复耗时）。队首或非 character 条目跳过。
+     *
+     * **必须保留已攒的进度**：AP 是惰性结算的（`char.ap` 只在行动那一刻更新，进度编码在 `nextActionAt` 里），
+     * 所以不能拿「现在的 `char.ap`」直接算剩余时间 —— 那等于把已经开始攒的这段时间清零，
+     * 每次属性/回复率变动都会凭空延迟一次行动（洞察/推演被反复改动的角色会明显变慢）。
+     * 正确做法：先按 `nextActionAt` 反推「已经走了几分之几」，再按新速率排剩下的部分。
      */
-    recalcRegenDelay(id: string, regenPerSec: number, ap: number, maxAp: number): void {
-        const entry = this.queue.find((e) => e.id === id && e.type === 'character')
+    recalcRegenDelay(char: Character, regenPerSec: number): void {
+        const entry = this.queue.find((e) => e.id === char.id && e.type === 'character')
         if (!entry || entry === this.queue[0]) return
-        const deficit = Math.max(0, maxAp - ap)
-        const regenMs = Math.ceil((deficit / Math.max(0.001, regenPerSec)) * 1000)
-        entry.nextActionAt = this.time + regenMs
+        // 把「上次结算 → 现在」这段回复投影出来（与引擎结算 AP 时同一套算法：
+        // 都以 ref 为起点、都用当前推演），再按新速率排剩下的一截。不能直接用 char.ap 当当前值。
+        const ref = Math.max(char.lastActionEndMs, char.lastApUpdate)
+        const elapsed = Math.max(0, this.time - ref)
+        const projected = Math.min(char.maxAp, char.ap + (regenPerSec * elapsed) / 1000)
+        const deficit = Math.max(0, char.maxAp - projected)
+        entry.nextActionAt = this.time + Math.ceil((deficit / Math.max(0.001, regenPerSec)) * 1000)
         this.sort()
     }
 
