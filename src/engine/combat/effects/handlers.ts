@@ -11,6 +11,7 @@ import {
     scheduleBuffExpiry,
     revertBuffMods,
     clearWeaponBuffLayers,
+    removeBuffLayer,
     executeMove,
     emitMoveEvents,
     revertWeaponStatBuffs,
@@ -125,25 +126,28 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // perDebuffStacks：每类 debuff 减 N 层（additive 减 restoreValue；independent 每种独立计数移除 N 层；其余整体清除）
         const left = new Map<string, number>()
         for (const [k, layer] of engine.state.pendingBuffs) {
-            const [prefix] = k.split('::')
+            const [prefix, ownerId] = k.split('::')
+            // 只净化自己身上的：所有使用者都是 target: 'self'，不过滤会把对手的毒/麻痹/流血也清掉（等于资敌）
+            if (ownerId !== self.id) continue
             const matches = allDebuffs ? (getBuff(prefix)?.tags?.includes('debuff') ?? false) : targets.includes(prefix)
             if (!matches) continue
             if (perDebuffStacks && perDebuffStacks > 0) {
                 const def = getBuff(prefix)
                 if (def?.stacking?.type === 'additive') {
-                    layer.restoreValue -= perDebuffStacks
-                    if (layer.restoreValue <= 0) engine.state.pendingBuffs.delete(k)
+                    // 层数减了，属性修正也要按比例退（不能只改层数）
+                    partialRevertMods(layer, Math.min(perDebuffStacks, layer.restoreValue), self)
+                    if (layer.restoreValue <= 0) removeBuffLayer(engine, k)
                 } else if (def?.stacking?.type === 'independent') {
                     const remain = left.get(prefix) ?? perDebuffStacks
                     if (remain > 0) {
-                        engine.state.pendingBuffs.delete(k)
+                        removeBuffLayer(engine, k)
                         left.set(prefix, remain - 1)
                     }
                 } else {
-                    engine.state.pendingBuffs.delete(k)
+                    removeBuffLayer(engine, k)
                 }
             } else {
-                engine.state.pendingBuffs.delete(k)
+                removeBuffLayer(engine, k)
             }
         }
         engine.emitLog({

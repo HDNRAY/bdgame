@@ -4,7 +4,7 @@ import type { AttrName } from '../../entities/attributes'
 import type { BattleState, BuffLayer } from '../types'
 import type { BuffDef } from '../../../data/buffs'
 import { genAppId } from '../../util/buff-utils'
-import { applyScaledAttrMods, scheduleBuffEnd } from './buff-layer'
+import { applyScaledAttrMods, scheduleBuffEnd, removeBuffLayer } from './buff-layer'
 
 /** super_armor 施加时清除的硬控 debuff */
 const CC_DEBUFF_IDS = ['stun', 'knockdown', 'disarmed'] as const
@@ -58,10 +58,11 @@ export function countIndependentLayers(state: BattleState, buffId: string, charI
 /** super_armor 施加时清除目标身上的硬控 */
 export function clearCcOnSuperArmor(engine: BattleEngine, charId: string): void {
     for (const id of CC_DEBUFF_IDS) {
-        const ck = `${id}::${charId}`
-        if (engine.state.pendingBuffs.has(ck)) {
-            engine.state.pendingBuffs.delete(ck)
-            engine.state.turn.removeEvents('buff_end_' + ck)
+        const prefix = `${id}::${charId}`
+        // independent 叠层的 key 是 `buff::charId::appId`，所以按前缀扫，别只查两段 key
+        for (const ck of [...engine.state.pendingBuffs.keys()]) {
+            if (ck !== prefix && !ck.startsWith(`${prefix}::`)) continue
+            removeBuffLayer(engine, ck)
         }
     }
 }
@@ -210,7 +211,10 @@ export function partialRevertMods(layer: BuffLayer, removed: number, char: Chara
         if (cur === 0) continue
         const revertVal = Math.round(cur * ratio)
         if (revertVal === 0) continue
+        // 按「实际退掉多少」记账：被属性地板/上限夹住时，想退的和真退的不一样
+        const before = char.attrs.get(attr as AttrName)
         char.attrs.modify(attr as AttrName, -revertVal)
-        layer.mods[attr] = cur - revertVal
+        const actualRevert = before - char.attrs.get(attr as AttrName)
+        layer.mods[attr] = cur - actualRevert
     }
 }

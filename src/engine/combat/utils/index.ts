@@ -1,4 +1,4 @@
-export { scheduleBuffExpiry, revertBuffMods, consumeBuffsByTrigger, hasNoStance } from './buff-layer'
+export { scheduleBuffExpiry, revertBuffMods, removeBuffLayer, consumeBuffsByTrigger, hasNoStance } from './buff-layer'
 export { forEachBuffOf, cloneBuffsFor } from './buff-loop'
 export { calcExtraMoveEfficiency } from './move-efficiency'
 export { revertWeaponStatBuffs, clearWeaponBuffLayers } from './weapon'

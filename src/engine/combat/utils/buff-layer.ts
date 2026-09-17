@@ -68,12 +68,33 @@ export function applyAttrMods(
     return applied
 }
 
+/**
+ * 移除一层 buff：先按「层主」回退它的属性修正，再删层、清掉到期事件。
+ *
+ * **不要直接 `pendingBuffs.delete(key)`** —— 那会把这层加过的属性永久留在角色身上
+ * （身法/灵巧/推演被悄悄吃掉，且回不来）。净化、霸体清硬控、消耗型 buff 都踩过这个坑。
+ * 层主从 key 推：`buffId::charId[::appId]`。
+ */
+export function removeBuffLayer(engine: BattleEngine, key: string): void {
+    const layer = engine.state.pendingBuffs.get(key)
+    if (!layer) return
+    const owner = engine.state.characters.find((c) => c.id === key.split('::')[1])
+    if (owner) {
+        revertBuffMods(layer, owner, engine.state)
+        if (typeof layer.mods?.maxApMod === 'number') owner.maxApMod -= layer.mods.maxApMod
+    }
+    engine.state.pendingBuffs.delete(key)
+    engine.state.turn.removeEvents('buff_end_' + key)
+}
+
 /** 反转 buff 的属性修正 */
 export function revertBuffMods(layer: BuffLayer | undefined, char: Character, state: BattleState): void {
     if (!layer?.mods) return
     const oldMaxHp = char.maxHp
     let wisdomChanged = false
     for (const [attr, delta] of Object.entries(layer.mods)) {
+        // maxApMod 不是六属性之一，由调用方单独减（buff-end / clearWeaponBuffLayers）
+        if (attr === 'maxApMod') continue
         char.attrs.modify(attr as AttrName, -(delta as number))
         if (attr === 'wisdom') wisdomChanged = true
     }
@@ -158,7 +179,7 @@ export function hasNoStance(pendingBuffs: Map<string, unknown>, charId: string):
 export function consumeBuffsByTrigger(charId: string, engine: BattleEngine, trigger: TriggerEvent): void {
     forEachBuffOf(engine.state.pendingBuffs, charId, (def, _layer, buffId, key) => {
         if (def?.expiry?.type !== 'consumed' || def.expiry.trigger !== trigger) return
-        engine.state.pendingBuffs.delete(key)
+        removeBuffLayer(engine, key)
         // 触发型消耗：记录一条「状态消耗」日志（惊击/心眼/看破 等一次性 buff 被触发消耗）
         engine.emitLog({
             type: 'system',
