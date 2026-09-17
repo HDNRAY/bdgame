@@ -28,15 +28,30 @@ describe('AttributeSet', () => {
         expect(attrs.get('strength')).toBe(ATTR_ABSOLUTE_MAX)
     })
 
-    it('地板是 3：压不穿，且加成先填坑再生效', () => {
+    it('地板与天花板都在写入时夹取，读时不钳制', () => {
         const attrs = new AttributeSet({ insight: 6 })
         attrs.modify('insight', -8)
         expect(attrs.get('insight')).toBe(3)
-        // 被地板吸收的部分要补回来，属性才会真的涨
+        // 地板挡住了损失，所以没有「坑」要填：加成直接生效
         attrs.modify('insight', 2)
-        expect(attrs.get('insight')).toBe(3)
-        attrs.modify('insight', 6)
-        expect(attrs.get('insight')).toBe(6)
+        expect(attrs.get('insight')).toBe(5)
+        attrs.modify('insight', 40)
+        expect(attrs.get('insight')).toBe(ATTR_ABSOLUTE_MAX)
+    })
+
+    it('回滚能精确还原（写入即夹取，所以不会棘轮）', () => {
+        const attrs = new AttributeSet({ agility: 20 })
+        // 照 applyAttrMods 的记账方式：先记 before，写入，再算实际生效量
+        const apply = (delta: number): number => {
+            const before = attrs.get('agility')
+            attrs.modify('agility', delta)
+            return attrs.get('agility') - before
+        }
+        const applied = apply(-25) // 想压到 -5，被地板停在 3 → 实际 -17
+        expect(attrs.get('agility')).toBe(3)
+        expect(applied).toBe(-17)
+        attrs.modify('agility', -applied) // 回滚实际生效量
+        expect(attrs.get('agility')).toBe(20)
     })
 
     it('should clone correctly', () => {

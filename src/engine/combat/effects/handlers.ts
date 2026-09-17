@@ -327,17 +327,20 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const attr = e.stat as AttrName
         const old = self.attrs.get(attr)
         self.attrs.set(attr, old * e.multiplier)
+        // 记「实际生效量」而不是「原值」：写在上限边上会被夹住（20×2 → 30），
+        // 按原值回滚会把多出来的部分一起扣掉（30−20=10）。与 stat_transfer 同一口径。
+        const actual = self.attrs.get(attr) - old
         engine.emitLog({
             type: 'stat_change',
             targetId: self.id,
             attr: e.stat,
-            delta: old * e.multiplier - old,
+            delta: actual,
             label: getBuff('stat_multiply')?.name ?? '超越',
         })
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'stat_multiply',
-            restoreValue: old,
-            mods: { [e.stat]: old },
+            restoreValue: old, // 仅供展示/调试：施法前的属性值
+            mods: { [e.stat]: actual },
         })
         scheduleBuffEnd(engine, layerKey, getBuff('stat_multiply')!, self)
     },
