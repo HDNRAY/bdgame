@@ -2,14 +2,18 @@
  * 奖励影响分析：对任意角色，逐一摘掉每个奖励，测胜率下降多少 → 找出"哪件奖励影响最大"。
  *
  * 用法:
- *   npx tsx scripts/reward-impact.ts <targetId> [--n 15] [--level 33] [--pool id1,id2,...] [--reward id]
+ *   npx tsx scripts/reward-impact.ts <targetId> [--n 15] [--level 33] [--pool id1,id2,...] [--reward id] [--no-talents]
  *
- *   --n      每个对手对战局数（默认 15，越大越准越慢）
- *   --level  生成等级（默认 33，对齐 tournament）
- *   --pool   参考池（逗号分隔的对手 id，默认 = 除目标外的全部对手）
- *   --reward 只看某个奖励（id），默认测全部奖励
+ *   --n           每个对手对战局数（默认 15，越大越准越慢）
+ *   --level       生成等级（默认 33，对齐 tournament）
+ *   --pool        参考池（逗号分隔的对手 id，默认 = 除目标外的全部对手）
+ *   --reward      只看某个奖励（id），默认测全部奖励
+ *   --no-talents  排除天赋：属性（baseAttrs）一点不动，但天赋一律不按属性自动解锁。
+ *                 用来剥掉「奖励 ↔ 天赋」的互相放大（例如奖励给推演 → 顺带抬高神行百变的急速），
+ *                 测出来的就是**奖励本身**值多少，而不是它在完整 kit 里的值。
  */
 import { OPPONENTS, getOpponentDef, gen } from '../src/data/opponents'
+import { TALENTS } from '../src/data/passives'
 import { runBattle } from '../src/engine/battle-runner'
 import { Character } from '../src/engine/entities/character'
 import type { OpponentDef } from '../src/data/opponents'
@@ -24,10 +28,17 @@ const N = parseInt(argVal('--n', '15'), 10)
 const LEVEL = parseInt(argVal('--level', '33'), 10)
 const poolArg = argVal('--pool', '')
 const rewardArg = argVal('--reward', '')
+const noTalents = args.includes('--no-talents')
+
+// 排除天赋：构造期解锁天赋的唯一数据源就是 TALENTS 这个数组，清空它即可 ——
+// baseAttrs 完全不碰，所以属性/装备/功法带来的数值一模一样，只是不再自动解锁天赋。
+// 天赋定义不在 PASSIVES 里（getPassive 是 PASSIVES → TALENTS 两段查），这里只影响自动解锁；
+// 且 gen() 不会把天赋写进 rewards，所以下面逐件摘奖励的循环不受影响。
+if (noTalents) TALENTS.length = 0
 
 if (!targetId) {
     console.error(
-        '用法: npx tsx scripts/reward-impact.ts <targetId> [--n 15] [--level 33] [--pool id1,id2] [--reward id]',
+        '用法: npx tsx scripts/reward-impact.ts <targetId> [--n 15] [--level 33] [--pool id1,id2] [--reward id] [--no-talents]',
     )
     process.exit(1)
 }
@@ -80,7 +91,8 @@ function winRate(target: Character): number {
 
 console.log(`\n=== ${def.name}（${targetId}）奖励影响分析 ===`)
 console.log(
-    `参数：n=${N} 场/对手 · level=${LEVEL} · 参考池 ${pool.length} 人（${pool.map((o) => o.name).join('、')}）\n`,
+    `参数：n=${N} 场/对手 · level=${LEVEL} · 参考池 ${pool.length} 人（${pool.map((o) => o.name).join('、')}）` +
+        ` · 天赋：${noTalents ? '已排除（属性不变）' : '按原始属性自动解锁'}\n`,
 )
 
 // 全 kit 基线
