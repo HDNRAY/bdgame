@@ -400,7 +400,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 5,
         chanCost: MAX_CHAN,
-        tags: ['pierce', 'range', 'thrown', 'chan'],
+        tags: ['thrown', 'chan'],
         getRange: () => [1, 6] as [number, number],
         onActionHitChance: (base) => base + 0.1,
         hookNotes: { hitChance: '+10%' },

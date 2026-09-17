@@ -28,6 +28,8 @@ export interface ActionStat {
     overheal: number
     /** 出手次数（attack_start） */
     casts: number
+    /** 辅助出手次数（support：挂/瞬步/架势这类不带 attack_start 的招式） */
+    supports: number
     /** 其中来自触发槽的次数 */
     triggeredCasts: number
     /** 命中判定通过的次数（check_hit.result = true） */
@@ -60,6 +62,8 @@ export interface CharStat {
     heal: number
     overheal: number
     casts: number
+    /** 辅助出手次数（support 事件；与攻击出手分开计） */
+    supports: number
     /** 命中判定通过 / 其中造成伤害 */
     hits: number
     hitsWithDamage: number
@@ -109,6 +113,7 @@ function emptyChar(id: string): CharStat {
         heal: 0,
         overheal: 0,
         casts: 0,
+        supports: 0,
         hits: 0,
         hitsWithDamage: 0,
         crits: 0,
@@ -137,6 +142,7 @@ function emptyAction(actorId: string, actionId: string, actionName: string): Act
         heal: 0,
         overheal: 0,
         casts: 0,
+        supports: 0,
         triggeredCasts: 0,
         hits: 0,
         hitsWithDamage: 0,
@@ -219,8 +225,11 @@ export class BattleStats {
             }
 
             case 'support': {
+                // 辅助出手也计入统计（原来只记 AP/缠 → 「挂」「瞬步」这类永远出手 0）
+                this.#char(e.sourceId).supports++
+                const a = this.#action(e.sourceId, e.actionId, e.actionName)
+                a.supports++
                 if (this.level >= 2) {
-                    const a = this.#action(e.sourceId, e.actionId, e.actionName)
                     a.apSpent += e.apCost
                     a.chanSpent += e.chanCost ?? 0
                 }
@@ -356,6 +365,7 @@ export class BattleStats {
                 'heal',
                 'overheal',
                 'casts',
+                'supports',
                 'hits',
                 'hitsWithDamage',
                 'crits',
@@ -390,6 +400,7 @@ export class BattleStats {
                     'heal',
                     'overheal',
                     'casts',
+                    'supports',
                     'triggeredCasts',
                     'hits',
                     'hitsWithDamage',
@@ -482,13 +493,13 @@ export class BattleStats {
             // 口径：出手 = attack_start 次数；判定 = 每次命中判定。连发/多段一招多判，所以 判定 ≥ 出手，
             // 命中率的分母是判定（用出手当分母会超过 100%）。被招架只可能发生在命中之后，分母是命中。
             lines.push(
-                `    出手 ${c.casts}  判定 ${checks}  命中 ${c.hits}（${hitRate}%）  暴击 ${c.crits}（${critRate}%）` +
+                `    出手 ${c.casts}${c.supports > 0 ? ` + 辅助 ${c.supports}` : ''}  判定 ${checks}  命中 ${c.hits}（${hitRate}%）  暴击 ${c.crits}（${critRate}%）` +
                     `  被招架 ${c.parried}  被闪避 ${c.dodged}  失手 ${c.fumbles}` +
                     (zeroed > 0 ? `  打中未造成伤害 ${zeroed}` : ''),
             )
             const actions = [...c.actions.values()]
                 .map((a) => ({ a, total: a.damage + a.dot + a.bonus }))
-                .filter((x) => x.total > 0 || x.a.casts > 0)
+                .filter((x) => x.total > 0 || x.a.casts > 0 || x.a.supports > 0)
                 .sort((x, y) => y.total - x.total)
             for (const { a, total } of actions) {
                 const pct = c.dealt > 0 ? ((total / c.dealt) * 100).toFixed(1) : '0.0'
@@ -497,14 +508,20 @@ export class BattleStats {
                 const trigStr = a.triggeredCasts > 0 ? ` 触发${a.triggeredCasts}次` : ''
                 // 纯 DoT / 附伤条目没有出手数，只报量
                 const aZeroed = a.hits - a.hitsWithDamage
-                const detail =
+                const supportStr = a.supports > 0 ? `辅助 ${a.supports}次` : ''
+                const detail = [
                     a.casts > 0
-                        ? `  出手 ${a.casts} 命中 ${a.hits}（判定 ${a.hits + a.dodged}） 暴击 ${a.crits}` +
+                        ? `出手 ${a.casts} 命中 ${a.hits}（判定 ${a.hits + a.dodged}） 暴击 ${a.crits}` +
                           ` 被招架 ${a.parried} 被闪避 ${a.dodged}` +
-                          (aZeroed > 0 ? ` 零伤 ${aZeroed}` : '') +
-                          trigStr
-                        : ''
-                lines.push(`    ${a.actionName}: ${r1(total)} (${pct}%)${dotStr}${bonusStr}${detail}`)
+                          (aZeroed > 0 ? ` 零伤 ${aZeroed}` : '')
+                        : '',
+                    supportStr,
+                    trigStr.trim(),
+                ]
+                    .filter(Boolean)
+                    .join('  ')
+                const detailStr = detail ? `  ${detail}` : ''
+                lines.push(`    ${a.actionName}: ${r1(total)} (${pct}%)${dotStr}${bonusStr}${detailStr}`)
             }
         }
 

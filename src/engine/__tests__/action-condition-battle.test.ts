@@ -84,13 +84,15 @@ describe('出招优先级（ActionConfig.priority）', () => {
     })
 
     it('设了优先级 → 靠前的先出，哪怕效率比更低', () => {
+        // 距离 0：两招都在射程内、无需移动，隔离出「优先级 > 效率比」这一条本身。
+        // （距离 1 时计划的选优会先挑「移动+某招」的整段计划，优先级只作用于同一段内的排序）
         const { self, state } = makeState(
             ['liu_yang_zhang', 'electric_yoyo'],
             [
                 { actionId: 'liu_yang_zhang', priority: 1 },
                 { actionId: 'electric_yoyo', priority: 2 },
             ],
-            1,
+            0,
         )
         expect(plannedAttacks(planEvent(self, state))).toEqual(['liu_yang_zhang'])
     })

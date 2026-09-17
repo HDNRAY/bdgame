@@ -357,15 +357,15 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'chou_dao_duan_shui_buff',
         name: '抽刀断水',
-        description: '暴击时对方气息一滞，AP-1，且回复重新起算。',
+        description: '暴击时对方气息一滞，AP-0.5。',
         tags: ['buff'],
         stacking: { type: 'none' },
         onCritical: ({ attacker, target, engine, state }) => {
             if (!target || !engine) return
-            target.reduceAp(1, state.turn.currentTime)
+            target.reduceAp(0.5, state.turn.currentTime)
             engine.emitLog({
                 type: 'system',
-                message: `[抽刀断水] 「${target.name}」 气息一滞，AP-1`,
+                message: `[抽刀断水] 「${target.name}」 气息一滞，AP-0.5`,
                 actorId: attacker.id,
             })
         },
@@ -373,18 +373,18 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'ru_yi_jin',
         name: '如意劲',
-        description: '暴击时消耗3缠，灵巧×3%暴伤。',
+        description: '暴击时消耗5缠，灵巧×3%暴伤。',
         tags: [],
         expiry: { type: 'permanent' },
         // 用 onAfterCritDamage：暴击结算前扣缠并立即生效。
         // 不能用 onCritDamage/onCritical 组合——引擎先跑 onCritDamage（读 bonus）再跑 onCritical（写 bonus），
         // 会导致本次暴击白扣 3 缠、加成落到下一次暴击（且不暴击则永久白耗）。
         onAfterCritDamage: ({ final, attacker, engine }) => {
-            if (!attacker.spendChan(3)) return final
+            if (!attacker.spendChan(5)) return final
             const bonus = round1(attacker.attrs.get('dexterity') * 0.03)
             engine?.emitLog({
                 type: 'system',
-                message: `[如意劲] ${attacker.name} 消耗3缠，暴伤+${bonus}`,
+                message: `[如意劲] ${attacker.name} 消耗5缠，暴伤+${bonus}`,
                 actorId: attacker.id,
             })
             return round1(final * (1 + bonus))

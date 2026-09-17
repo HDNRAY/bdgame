@@ -21,7 +21,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'ninja_sword_haste',
         name: '风切',
-        description: '刀轻如风：出招更省内息、起手更快。急速12。',
+        description: '刀轻如风：出招更省内息、起手更快。急速10。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         onHaste: () => 10,

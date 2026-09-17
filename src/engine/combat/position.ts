@@ -1,4 +1,4 @@
-import { MOVE_BASE, MOVE_RATE } from '../constants'
+import { MOVE_BASE, MOVE_RATE, MIN_MOVE_PER_AP } from '../constants'
 
 /** 位置系统：大范围坐标，0 为中线 */
 export const POS_MIN = -1000
@@ -66,15 +66,14 @@ export class PositionSystem {
         return clone
     }
 
-    /** 根据身法计算每点 AP 能移动的档位：加性公式 = 基础 0.4 + 身法/40。
-     *  基础保证低身法也能移动；身法边际 0.025m/点（旧 1/20=0.05，身法对移速影响减半）。 */
+    /** 根据身法计算每点 AP 能移动的档位：加性公式 = MOVE_BASE + 身法 / MOVE_RATE */
     static apToRange(agility: number): number {
         return MOVE_BASE + agility / MOVE_RATE
     }
 
     /** 计算移动：从 bestDistance（期望AP，支持1位小数）算出实际消耗和位移量
      *  @param moveEff 移动效率倍率（1.2 = +20% 每AP移动距离）
-     *  @param minMoveCost 最低移动消耗（固定 2 档/AP）
+     *  @param minMoveCost 健步如飞：移动固定为 MIN_MOVE_PER_AP 米/AP（替换身法/移速加成）
      */
     static calcMovement(
         bestDistance: number,
@@ -86,7 +85,7 @@ export class PositionSystem {
         const ap = Math.round(Math.abs(bestDistance) * 10) / 10
         const dir = Math.sign(bestDistance)
         const basePerAp = this.apToRange(agility)
-        const perAp = minMoveCost ? 2 : basePerAp * moveEff
+        const perAp = minMoveCost ? MIN_MOVE_PER_AP : basePerAp * moveEff
         if (!Number.isFinite(perAp)) return { ap: 0, delta: 0 }
         return { ap, delta: dir * perAp * ap }
     }

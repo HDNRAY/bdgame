@@ -189,7 +189,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requireAttrsMin: { strength: 14 },
         apCost: 4,
         tags: ['unarmed', 'melee'],
-        getRange: () => [0, 1] as [number, number],
+        getRange: () => [0, 0] as [number, number],
         onActionHitChance: (base) => base + 0.2,
         hookNotes: { hitChance: '+20%' },
         effects: [{ type: 'damage', scaling: { strength: 1.1 } }],
@@ -340,7 +340,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         hookNotes: { hitChance: '每层醉酒+2%' },
         effects: [
             { type: 'short_dash', maxDistance: 1 },
-            { type: 'damage', scaling: { strength: 0.2, agility: 0.1, dexterity: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.1, agility: 0.1, dexterity: 0.1 } },
         ],
     },
 ]

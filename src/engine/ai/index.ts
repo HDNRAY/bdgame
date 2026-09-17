@@ -3,6 +3,7 @@ import type { EffectDef } from '../entities/action'
 import { calcExtraMoveEfficiency } from '../combat/utils'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { PositionSystem } from '../combat/position'
+import { MIN_MOVE_PER_AP } from '../constants'
 import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
 import { generatePlans, bestPlan, type AttackStyle } from './planner'
@@ -39,7 +40,7 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
             const distToDrop = Math.abs(state.position.get(self.id) - dropPos)
             const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
             const perAp = state.pendingBuffs.has(`min_move_cost::${self.id}`)
-                ? 2
+                ? MIN_MOVE_PER_AP
                 : basePerAp * (1 + calcExtraMoveEfficiency(state, self))
             const moveToPickupAp = distToDrop > 1 ? PositionSystem.moveApFor(distToDrop - 1, perAp) : 0
             if (moveToPickupAp <= apBudget) {

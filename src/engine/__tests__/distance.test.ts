@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { PositionSystem, POS_MIN, POS_MAX } from '../combat/position'
+import { MOVE_BASE, MOVE_RATE } from '../constants'
 
 describe('PositionSystem', () => {
     it('should initialize positions at -2 and +2', () => {
@@ -52,9 +53,10 @@ describe('PositionSystem', () => {
     })
 
     it('should calculate movement per AP', () => {
-        expect(PositionSystem.apToRange(10)).toBe(0.65) // 0.4 + 10/40
-        expect(PositionSystem.apToRange(20)).toBe(0.9) // 0.4 + 20/40
-        expect(PositionSystem.apToRange(40)).toBe(1.4) // 0.4 + 40/40
+        // 与 constants 同源：MOVE_BASE + 身法 / MOVE_RATE（数值可调，公式不变）
+        expect(PositionSystem.apToRange(10)).toBeCloseTo(MOVE_BASE + 10 / MOVE_RATE)
+        expect(PositionSystem.apToRange(20)).toBeCloseTo(MOVE_BASE + 20 / MOVE_RATE)
+        expect(PositionSystem.apToRange(40)).toBeCloseTo(MOVE_BASE + 40 / MOVE_RATE)
     })
 
     it('should clone correctly', () => {

@@ -10,6 +10,7 @@ import {
     calcParriedDamage,
     calcMoveApCost,
 } from '../calc/damage'
+import { MOVE_BASE, MOVE_RATE } from '../constants'
 
 describe('calcBaseDamage', () => {
     it('should calculate damage from scaling and attrs', () => {
@@ -101,11 +102,15 @@ describe('calcParriedDamage', () => {
 })
 
 describe('calcMoveApCost', () => {
+    // 期望值按当前 MOVE_BASE/MOVE_RATE 现算（走路速度是可调平衡项，别把数字写死）
+    const perAp = (agility: number) => MOVE_BASE + agility / MOVE_RATE
+
     it('should cost 1 AP per range at dex 20', () => {
-        expect(calcMoveApCost(2, 20)).toBe(3) // ceil(2 / (0.4 + 20/40)) = ceil(2/0.9) = 3
+        expect(calcMoveApCost(2, 20)).toBe(Math.ceil(2 / perAp(20)))
     })
 
     it('should cost more at low dex', () => {
-        expect(calcMoveApCost(1, 10)).toBe(2) // ceil(1 / (0.4 + 10/40)) = ceil(1/0.65) = 2
+        expect(calcMoveApCost(1, 10)).toBe(Math.ceil(1 / perAp(10)))
+        expect(calcMoveApCost(1, 10)).toBeGreaterThanOrEqual(calcMoveApCost(1, 20))
     })
 })

@@ -720,7 +720,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'chou_dao_duan_shui',
         name: '抽刀断水',
-        description: '抽刀断水。刀落，水断。暴击时对方气息一滞，AP-1。',
+        description: '抽刀断水。刀落，水断。暴击时对方气息一滞。',
         tags: ['debuff'],
         triggers: [
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'chou_dao_duan_shui_buff' }] },

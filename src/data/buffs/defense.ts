@@ -178,11 +178,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'shenxing_baibian_buff',
         name: '神行百变',
-        description: '身形飘忽百变：闪避率+5%，急速 = 4 + 推演/2。',
+        description: '身形飘忽百变：闪避率+5%，急速 = 6 + 推演/4。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onDodgeChance: () => 0.05,
-        onHaste: ({ target }) => 4 + target.attrs.get('wisdom') / 2,
+        onHaste: ({ target }) => 6 + target.attrs.get('wisdom') / 4,
     },
     {
         id: 'ling_bo_wei_bu_buff',
@@ -384,11 +384,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'zui_quan_dodge',
         name: '醉步',
-        description: '醉态蹒跚，以身为步。每点身法+0.5%闪避；每层酒buff，闪避效果增幅+5%。',
+        description: '醉态蹒跚，以身为步。每点身法+0.4%闪避；每层酒buff，闪避效果增幅+5%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onDodgeChance: ({ target, state }) => {
-            const base = target.attrs.get('agility') * 0.005
+            const base = target.attrs.get('agility') * 0.004
             const drunk = countDrunkLayers(state, target.id)
             return base * (1 + drunk * 0.05)
         },

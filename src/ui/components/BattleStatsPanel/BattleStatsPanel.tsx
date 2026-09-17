@@ -128,6 +128,7 @@ function Overview({
         { label: '承伤/场', hint: '括号内为减免量', cell: (c) => `${per(c.taken, battles)}（${per(c.mitigated, battles)}）` },
         { label: '治疗/场', hint: '有效（溢出）', cell: (c) => `${per(c.heal, battles)}（${per(c.overheal, battles)}）` },
         { label: '出手/场', hint: 'attack_start 次数', cell: (c) => `${per(c.casts, battles)}` },
+        { label: '辅助/场', hint: 'support 次数（挂/瞬步/架势这类不带 attack_start 的招式）', cell: (c) => `${per(c.supports, battles)}` },
         { label: '命中率', hint: '命中 / 判定（连发一招多判）', cell: (c) => pct(c.hits, c.hits + c.dodged) },
         { label: '暴击率', hint: '暴击 / 命中', cell: (c) => pct(c.crits, c.hits) },
         { label: '被闪避率', hint: '被闪避 / 判定', cell: (c) => pct(c.dodged, c.hits + c.dodged) },
@@ -178,7 +179,7 @@ function Overview({
 function Offense({ char, nameOf, battles }: { char: SnapshotChar; nameOf: (id: string) => string; battles: number }) {
     const actions = [...char.actions.values()]
         .map((a) => ({ a, total: a.damage + a.dot + a.bonus }))
-        .filter((x) => x.a.casts > 0 || x.total > 0)
+        .filter((x) => x.a.casts > 0 || x.a.supports > 0 || x.total > 0)
         .sort((x, y) => y.total - x.total)
     return (
         <div className="bsp-block">
@@ -197,6 +198,7 @@ function Offense({ char, nameOf, battles }: { char: SnapshotChar; nameOf: (id: s
                         <tr>
                             <th>招式</th>
                             <th>出手/场</th>
+                            <th>辅助/场</th>
                             <th>触发</th>
                             <th>命中率</th>
                             <th>暴击</th>
@@ -211,7 +213,8 @@ function Offense({ char, nameOf, battles }: { char: SnapshotChar; nameOf: (id: s
                         {actions.map(({ a, total }) => (
                             <tr key={a.actionId}>
                                 <td>{a.actionName}</td>
-                                <td>{per(a.casts, battles)}</td>
+                                <td>{a.casts > 0 ? per(a.casts, battles) : ''}</td>
+                                <td>{a.supports > 0 ? per(a.supports, battles) : ''}</td>
                                 <td>{a.triggeredCasts > 0 ? a.triggeredCasts : ''}</td>
                                 <td>{pct(a.hits, a.hits + a.dodged)}</td>
                                 <td>{a.crits > 0 ? a.crits : ''}</td>

@@ -247,7 +247,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'fei_hua_shou',
         name: '漫天花雨',
-        description: '暗器出手如漫天花雨，可连续追加投掷攻击。暗器招式AP消耗-50%。',
+        description: '暗器出手如漫天花雨，可连续追加投掷攻击。暗器招式AP消耗-25%。',
         tags: [],
         expiry: { type: 'permanent' },
         getExtraAttack: ({ source }) => {
@@ -257,7 +257,7 @@ export const BUFF_DB: BuffDef[] = [
         onActionCost: ({ source }) => {
             const act = source as ActionDefinition
             if (!act || !act.tags.includes('thrown')) return 0
-            return -act.apCost * 0.5
+            return -act.apCost * 0.25
         },
     },
     // ── 空手道（桑原·拳到脚到） ──
@@ -424,12 +424,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'wheelchair_speed',
         name: '悬浮座椅',
-        description: '悬浮座椅，以炁驱动。移动效率+15%，身法+2。',
+        description: '悬浮座椅，以炁驱动。移动效率+20%，身法+2。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { agility: 2 },
-        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.15,
+        onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 1) * 0.2,
     },
     {
         id: 'can_ying_bu_speed',
@@ -1493,18 +1493,20 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'poison_coating',
         name: '淬毒工具',
-        description: '刃上淬毒，割裂或刺击时有10%概率令其中毒。',
+        description: '刃上淬毒，割裂或刺击时有30%概率令其中毒。',
         tags: [],
         expiry: { type: 'permanent' },
-        onAction: ({ source, attacker, target, engine, state }) => {
-            if (!source) return
-            if (!source.tags.includes('pierce') && !source.tags.includes('slash')) return
+        onDealDamage: ({ final, source, attacker, target, engine, state }) => {
+            if (!source) return final
+            if (!source.tags.includes('pierce') && !source.tags.includes('slash')) return final
             if (engine) {
                 processActionEffect(
-                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.1 },
+                    { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 0.3 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
                 )
             }
+
+            return final
         },
     },
     // ── 十香软筋散（毒→虚弱） ──
@@ -1518,7 +1520,7 @@ export const BUFF_DB: BuffDef[] = [
         onDebuffApplied: ({ buffId, self, enemy, engine }) => {
             if (buffId !== 'poison' || !engine) return
             processActionEffect(
-                { type: 'add_debuff', buffId: 'weakness', stacks: 1, chance: 0.8 },
+                { type: 'add_debuff', buffId: 'weakness', stacks: 2, chance: 1 },
                 { self, enemy, engine, tMs: engine.state.turn.currentTime },
             )
         },

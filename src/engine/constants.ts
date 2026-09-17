@@ -14,6 +14,9 @@ export const MAX_STAT_TRANSFER_LAYERS = 4
 export const DMG_PER_POISON_TICK = 1
 
 /** 每 AP 移动距离的加性公式：MOVE_BASE + 身法 / MOVE_RATE。
- *  基础 0.4m 保证低身法也能移动；身法边际 0.025m/点（旧 max(0.5, agi/20) 的 1/20=0.05 减半）。 */
-export const MOVE_BASE = 0.4
-export const MOVE_RATE = 40
+ *  走路整体放慢（原 0.4 + 身法/40：身法 20 = 0.9m/AP），让位移招式（固定 0.4AP/m）在 AP 比较里更有竞争力。 */
+export const MOVE_BASE = 0.25
+export const MOVE_RATE = 60
+/** 健步如飞（min_move_cost）生效时的移动距离：固定 1.2 米/AP（原 2，削弱）。
+ *  抽成常量消掉原来三处硬编码；调这一条即可整体缩放这套轻功的移速。 */
+export const MIN_MOVE_PER_AP = 1.2

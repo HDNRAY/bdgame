@@ -23,6 +23,7 @@ import { forEachBuffOf, calcExtraMoveEfficiency } from '../combat/utils'
 import { PositionSystem } from '../combat/position'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
 import { chanOpportunityCost, calcChanCostInAp } from '../calc/chan-value'
+import { MIN_MOVE_PER_AP } from '../constants'
 
 /** 一个完整的回合计划 */
 export interface ActionPlan {
@@ -174,7 +175,7 @@ interface MovePlan {
 function movePerAp(self: Character, state: BattleState): number {
     const basePerAp = PositionSystem.apToRange(self.attrs.get('agility'))
     return state.pendingBuffs.has(`min_move_cost::${self.id}`)
-        ? 2
+        ? MIN_MOVE_PER_AP
         : basePerAp * (1 + calcExtraMoveEfficiency(state, self))
 }
 
