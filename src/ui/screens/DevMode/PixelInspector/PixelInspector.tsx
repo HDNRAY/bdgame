@@ -341,168 +341,170 @@ export function PixelInspector() {
 
     return (
         <div className="pixel-inspector">
-            <div className="pixel-inspector-toolbar">
-                <label className="pixel-inspector-select">
-                    角色
-                    <SearchSelect
-                        value={charId}
-                        options={CHARACTER_IDS.map((id) => ({ value: id, label: NAME_BY_ID[id] ?? id }))}
-                        onChange={setCharId}
-                        searchPlaceholder="搜索角色…"
-                    />
-                </label>
-                <label className="pixel-inspector-toggle">
-                    <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} />
-                    显示网格
-                </label>
-                <label className="pixel-inspector-select">
-                    武器
-                    <SearchSelect
-                        value={weaponId}
-                        options={WEAPON_IDS.map((id) => ({ value: id, label: weaponLabel(id) }))}
-                        onChange={setWeaponId}
-                        searchPlaceholder="搜索武器…"
-                    />
-                </label>
-                <label className="pixel-inspector-toggle">
-                    <input
-                        type="checkbox"
-                        checked={compositeWeapon}
-                        onChange={(e) => setCompositeWeapon(e.target.checked)}
-                    />
-                    合成武器
-                </label>
-                <label className="pixel-inspector-toggle" title="副手武器按双持规则锚定副手位（攻击同向轻前倾、招架交叉）">
-                    <input type="checkbox" checked={dualWield} onChange={(e) => setDualWield(e.target.checked)} />
-                    双持预览
-                </label>
-                {dualWield && (
-                    <label className="pixel-inspector-select">
-                        副手
-                        <SearchSelect
-                            value={offhandId}
-                            options={WEAPON_IDS.map((id) => ({ value: id, label: weaponLabel(id) }))}
-                            onChange={setOffhandId}
-                            searchPlaceholder="搜索武器…"
-                        />
-                    </label>
-                )}
-                <label className="pixel-inspector-zoom">
-                    缩放
-                    <input
-                        type="range"
-                        min={ZOOM_MIN}
-                        max={ZOOM_MAX}
-                        step={1}
-                        value={zoom}
-                        onChange={(e) => setZoom(Number(e.target.value))}
-                    />
-                    <span className="pixel-inspector-size">{zoom}x</span>
-                </label>
-            </div>
-
-            {!hasWeaponArt && (
-                <p className="pixel-inspector-hint">
-                    「{WEAPON_NAME[weaponId] ?? weaponId}」尚未绘制像素图 —— 画面只显示角色空手。
-                    补图方式：在 weapons.ts 的 WEAPON_OVERLAYS 里加一张 {weaponW}×{weaponH} 网格的叠加图，
-                    并在 WEAPON_POSES 里登记握点/角度。
-                </p>
-            )}
-            {dualWield && !hasOffhandArt && (
-                <p className="pixel-inspector-hint">
-                    副手「{WEAPON_NAME[offhandId] ?? offhandId}」尚未绘制像素图。
-                </p>
-            )}
-
             <div className="pixel-inspector-body">
-                <aside className="pixel-inspector-panel">
-                    <h3 className="pixel-inspector-panel-title">像素信息</h3>
+                <div className="pixel-inspector-side">
+                    <div className="pixel-inspector-toolbar">
+                        <label className="pixel-inspector-select">
+                            角色
+                            <SearchSelect
+                                value={charId}
+                                options={CHARACTER_IDS.map((id) => ({ value: id, label: NAME_BY_ID[id] ?? id }))}
+                                onChange={setCharId}
+                                searchPlaceholder="搜索角色…"
+                            />
+                        </label>
+                        <label className="pixel-inspector-toggle">
+                            <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} />
+                            显示网格
+                        </label>
+                        <label className="pixel-inspector-select">
+                            武器
+                            <SearchSelect
+                                value={weaponId}
+                                options={WEAPON_IDS.map((id) => ({ value: id, label: weaponLabel(id) }))}
+                                onChange={setWeaponId}
+                                searchPlaceholder="搜索武器…"
+                            />
+                        </label>
+                        <label className="pixel-inspector-toggle">
+                            <input
+                                type="checkbox"
+                                checked={compositeWeapon}
+                                onChange={(e) => setCompositeWeapon(e.target.checked)}
+                            />
+                            合成武器
+                        </label>
+                        <label className="pixel-inspector-toggle" title="副手武器按双持规则锚定副手位（攻击同向轻前倾、招架交叉）">
+                            <input type="checkbox" checked={dualWield} onChange={(e) => setDualWield(e.target.checked)} />
+                            双持预览
+                        </label>
+                        {dualWield && (
+                            <label className="pixel-inspector-select">
+                                副手
+                                <SearchSelect
+                                    value={offhandId}
+                                    options={WEAPON_IDS.map((id) => ({ value: id, label: weaponLabel(id) }))}
+                                    onChange={setOffhandId}
+                                    searchPlaceholder="搜索武器…"
+                                />
+                            </label>
+                        )}
+                        <label className="pixel-inspector-zoom">
+                            缩放
+                            <input
+                                type="range"
+                                min={ZOOM_MIN}
+                                max={ZOOM_MAX}
+                                step={1}
+                                value={zoom}
+                                onChange={(e) => setZoom(Number(e.target.value))}
+                            />
+                            <span className="pixel-inspector-size">{zoom}x</span>
+                        </label>
+                    </div>
 
-                    <dl className="pixel-inspector-info pixel-inspector-info--canvas">
-                        <div className="pixel-inspector-info-row">
-                            <dt>画布</dt>
-                            <dd>
-                                {canvasCols}×{canvasRows}
-                            </dd>
-                        </div>
-                        <div className="pixel-inspector-info-row">
-                            <dt>内容</dt>
-                            <dd>
-                                {width}×{height}
-                            </dd>
-                        </div>
-                    </dl>
-
-                    {activeInfo ? (
-                        <dl className="pixel-inspector-info">
-                            <div className="pixel-inspector-info-row">
-                                <dt>来源</dt>
-                                <dd>{activeSource}</dd>
-                            </div>
-                            <div className="pixel-inspector-info-row">
-                                <dt>坐标</dt>
-                                <dd>
-                                    ({activeInfo.x}, {activeInfo.y})
-                                </dd>
-                            </div>
-                            <div className="pixel-inspector-info-row">
-                                <dt>索引</dt>
-                                <dd>
-                                    <code>{activeInfo.idx}</code>
-                                </dd>
-                            </div>
-                            <div className="pixel-inspector-info-row">
-                                <dt>颜色</dt>
-                                <dd className="pixel-inspector-color-cell">
-                                    <span
-                                        className="pixel-inspector-swatch"
-                                        style={{
-                                            background:
-                                                activeInfo.color === 'transparent' ? 'transparent' : activeInfo.color,
-                                        }}
-                                    />
-                                    <code>{activeInfo.color}</code>
-                                </dd>
-                            </div>
-                            <div className="pixel-inspector-info-row">
-                                <dt>使用</dt>
-                                <dd>
-                                    {activeInfo.count} 像素（{(activeInfo.ratio * 100).toFixed(1)}%）
-                                </dd>
-                            </div>
-                        </dl>
-                    ) : (
-                        <p className="pixel-inspector-hint">将鼠标悬停在画布上查看像素信息</p>
+                    {!hasWeaponArt && (
+                        <p className="pixel-inspector-hint">
+                            「{WEAPON_NAME[weaponId] ?? weaponId}」尚未绘制像素图 —— 画面只显示角色空手。
+                            补图方式：在 weapons.ts 的 WEAPON_OVERLAYS 里加一张 {weaponW}×{weaponH} 网格的叠加图，
+                            并在 WEAPON_POSES 里登记握点/角度。
+                        </p>
+                    )}
+                    {dualWield && !hasOffhandArt && (
+                        <p className="pixel-inspector-hint">
+                            副手「{WEAPON_NAME[offhandId] ?? offhandId}」尚未绘制像素图。
+                        </p>
                     )}
 
-                    {Object.values(locked).some(Boolean) && (
-                        <button className="pixel-inspector-unlock" onClick={() => setLocked({})}>
-                            清除锁定（双击也可）
-                        </button>
-                    )}
+                        <aside className="pixel-inspector-panel">
+                            <h3 className="pixel-inspector-panel-title">像素信息</h3>
 
-                    <h3 className="pixel-inspector-panel-title pixel-inspector-panel-title--stats">颜色统计（idle）</h3>
-                    <ul className="pixel-inspector-stats">
-                        {[...colorStats.entries()]
-                            .sort((a, b) => b[1] - a[1])
-                            .map(([idx, count]) => {
-                                const color = palette[String(idx)] ?? palette['0'] ?? 'transparent'
-                                return (
-                                    <li key={idx} className="pixel-inspector-stats-item">
-                                        <span
-                                            className="pixel-inspector-swatch"
-                                            style={{ background: color === 'transparent' ? 'transparent' : color }}
-                                        />
-                                        <code>{idx}</code>
-                                        <span className="pixel-inspector-stats-hex">{color}</span>
-                                        <span className="pixel-inspector-stats-count">
-                                            {count}（{((count / (width * height)) * 100).toFixed(1)}%）
-                                        </span>
-                                    </li>
-                                )
-                            })}
-                    </ul>
-                </aside>
+                            <dl className="pixel-inspector-info pixel-inspector-info--canvas">
+                                <div className="pixel-inspector-info-row">
+                                    <dt>画布</dt>
+                                    <dd>
+                                        {canvasCols}×{canvasRows}
+                                    </dd>
+                                </div>
+                                <div className="pixel-inspector-info-row">
+                                    <dt>内容</dt>
+                                    <dd>
+                                        {width}×{height}
+                                    </dd>
+                                </div>
+                            </dl>
+
+                            {activeInfo ? (
+                                <dl className="pixel-inspector-info">
+                                    <div className="pixel-inspector-info-row">
+                                        <dt>来源</dt>
+                                        <dd>{activeSource}</dd>
+                                    </div>
+                                    <div className="pixel-inspector-info-row">
+                                        <dt>坐标</dt>
+                                        <dd>
+                                            ({activeInfo.x}, {activeInfo.y})
+                                        </dd>
+                                    </div>
+                                    <div className="pixel-inspector-info-row">
+                                        <dt>索引</dt>
+                                        <dd>
+                                            <code>{activeInfo.idx}</code>
+                                        </dd>
+                                    </div>
+                                    <div className="pixel-inspector-info-row">
+                                        <dt>颜色</dt>
+                                        <dd className="pixel-inspector-color-cell">
+                                            <span
+                                                className="pixel-inspector-swatch"
+                                                style={{
+                                                    background:
+                                                        activeInfo.color === 'transparent' ? 'transparent' : activeInfo.color,
+                                                }}
+                                            />
+                                            <code>{activeInfo.color}</code>
+                                        </dd>
+                                    </div>
+                                    <div className="pixel-inspector-info-row">
+                                        <dt>使用</dt>
+                                        <dd>
+                                            {activeInfo.count} 像素（{(activeInfo.ratio * 100).toFixed(1)}%）
+                                        </dd>
+                                    </div>
+                                </dl>
+                            ) : (
+                                <p className="pixel-inspector-hint">将鼠标悬停在画布上查看像素信息</p>
+                            )}
+
+                            {Object.values(locked).some(Boolean) && (
+                                <button className="pixel-inspector-unlock" onClick={() => setLocked({})}>
+                                    清除锁定（双击也可）
+                                </button>
+                            )}
+
+                            <h3 className="pixel-inspector-panel-title pixel-inspector-panel-title--stats">颜色统计（idle）</h3>
+                            <ul className="pixel-inspector-stats">
+                                {[...colorStats.entries()]
+                                    .sort((a, b) => b[1] - a[1])
+                                    .map(([idx, count]) => {
+                                        const color = palette[String(idx)] ?? palette['0'] ?? 'transparent'
+                                        return (
+                                            <li key={idx} className="pixel-inspector-stats-item">
+                                                <span
+                                                    className="pixel-inspector-swatch"
+                                                    style={{ background: color === 'transparent' ? 'transparent' : color }}
+                                                />
+                                                <code>{idx}</code>
+                                                <span className="pixel-inspector-stats-hex">{color}</span>
+                                                <span className="pixel-inspector-stats-count">
+                                                    {count}（{((count / (width * height)) * 100).toFixed(1)}%）
+                                                </span>
+                                            </li>
+                                        )
+                                    })}
+                            </ul>
+                        </aside>
+                </div>
                 <div className="pixel-inspector-frames">
                     {frames.map(([name, pixels]) => (
                         <figure key={name} className="pixel-inspector-frame">

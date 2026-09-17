@@ -3,13 +3,14 @@
     flex-direction: column;
     gap: var(--sp-md);
 
-    /* 顶部一排控件：空间不够时整项换行，别把标签里的字挤成竖排 */
+    /* 左栏顶部的控件：竖排（一行一个） */
     &-toolbar {
         display: flex;
-        align-items: center;
-        gap: var(--sp-sm);
-        row-gap: var(--sp-xs);
-        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--sp-xs);
+        padding-bottom: var(--sp-sm);
+        border-bottom: 1px solid var(--color-border);
 
         > label,
         > span {
@@ -18,7 +19,7 @@
     }
 
     &-toggle {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         gap: var(--sp-xs);
         font-size: var(--font-sm);
@@ -30,8 +31,9 @@
     }
 
     &-select {
-        display: inline-flex;
+        display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: var(--sp-xs);
         font-size: var(--font-sm);
 
@@ -53,13 +55,14 @@
     }
 
     &-zoom {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         gap: var(--sp-xs);
         font-size: var(--font-sm);
 
         input[type='range'] {
-            width: 120px;
+            flex: 1 1 auto;
+            min-width: 0;
             accent-color: var(--color-accent);
         }
     }
@@ -70,11 +73,22 @@
         color: var(--color-text-dim);
     }
 
-    /* 左：像素信息 / 颜色统计（竖排固定宽）；右：姿势帧图（占满剩余） */
+    /* 左栏：控件竖排 + 像素信息/颜色统计接在下方；右：姿势帧图（占满剩余） */
     &-body {
         display: flex;
         gap: var(--sp-lg);
         align-items: flex-start;
+    }
+
+    &-side {
+        flex: 0 0 260px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-sm);
+        padding: var(--sp-md);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg-panel);
     }
 
     &-frames {
@@ -141,12 +155,10 @@
         cursor: crosshair;
     }
 
+    /* 已经在左栏里了，不再自己套一层盒子 */
     &-panel {
-        flex: 0 0 260px;
-        padding: var(--sp-md);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-md);
-        background: var(--color-bg-panel);
+        display: flex;
+        flex-direction: column;
     }
 
     &-panel-title {
