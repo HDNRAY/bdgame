@@ -43,7 +43,7 @@ import {
 import { getWeapon } from '../src/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
-import { StatsTracker } from '../src/engine/combat/stats-tracker'
+import { BattleStats } from '../src/engine/combat/battle-stats'
 
 // ── 满配对手（n=33） ──
 const pBuild = gen(XUNXIANG, 33)
@@ -95,15 +95,15 @@ if (N === 1) {
     show(rightBase)
     show(leftBase)
     console.log('')
-    const stats = new StatsTracker()
-    const { winner, engine } = runBattle(leftBase, rightBase, (e) => stats.handle(e))
+    const { winner, engine } = runBattle(leftBase, rightBase, undefined, 4, false, { statsLevel: 2 })
+    const stats = engine.stats ?? new BattleStats(2)
     for (const line of formatBattleLog(engine.state.log).lines) console.log(line)
     const charNames = { [leftBase.id]: leftBase.name, [rightBase.id]: rightBase.name }
     const winName = winner === leftBase.id ? leftBase.name : winner === rightBase.id ? rightBase.name : '平局'
     consoleOnlyLog(`\n── 胜负 ──`)
     consoleOnlyLog(`  ${winName}`)
     consoleOnly = true
-    console.log('\n── 伤害占比 ──')
+    console.log('\n── 战斗统计 ──')
     for (const line of stats.format(charNames)) console.log(line)
     consoleOnly = false
 } else {
@@ -111,11 +111,15 @@ if (N === 1) {
         rightWins = 0
     let leftHp = 0,
         rightHp = 0
-    const stats = new StatsTracker()
+    // N 场聚合：每场各自收集，再 merge 到累计器（统计与胜负同源，都是引擎产物）
+    const stats = new BattleStats(2)
     const leftId = oBuild.id,
         rightId = pBuild.id
     for (let i = 0; i < N; i++) {
-        const { winner, engine } = runBattle(new Character(oBuild), new Character(pBuild), (e) => stats.handle(e))
+        const { winner, engine } = runBattle(new Character(oBuild), new Character(pBuild), undefined, 4, false, {
+            statsLevel: 2,
+        })
+        if (engine.stats) stats.merge(engine.stats)
         if (winner === leftId) leftWins++
         else if (winner === rightId) rightWins++
         const [l, r] = engine.state.characters
@@ -131,7 +135,7 @@ if (N === 1) {
     console.log(`  ${pBuild.name}: ${rightWins} 胜 (${rr}%)  平均残血 ${((rightHp / N) * 100).toFixed(1)}%`)
     console.log(`  平局: ${N - leftWins - rightWins}`)
     const charNames = { [leftId]: oBuild.name, [rightId]: pBuild.name }
-    console.log('\n── 伤害占比 ──')
+    console.log('\n── 战斗统计 ──')
     for (const line of stats.format(charNames)) console.log(line)
     consoleOnly = false
 }

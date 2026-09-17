@@ -62,18 +62,19 @@ stats（数值投影） ←── BattleStatsPanel / demo 脚本 / DevMode 聚�
 
 ---
 
-## 四、第一步的核心：事件字段补齐
+## 四、事件字段（第一步已落地的部分）
 
-统计要算得准，事件先要带够信息。第一步补这些字段（`src/engine/combat/log-events.ts`）：
+统计要算得准，事件先要带够信息。
 
-| 事件 | 补什么 | 为什么 |
+| 事件 | 补什么 | 状态 |
 | --- | --- | --- |
-| `damage` | `piercing`（穿透部分）、`absorbed`（护盾吸收）、`mitigated`（减伤）、`parriedAmount`（招架减免）、`isSummon` / `ownerId` | 现在只有 `base / final / blocked`，无法拆分减免构成，也无法把召唤物伤害归给主人 |
-| `heal` | `effective`（实际回血）、`overheal`（溢出） | `applyHeal` 现在记名义量，而 `Character.heal` 会截到上限（`character.ts` 里已算过 hp 前后差，只是没用上） |
-| `damage_over_time` | 沿用 `status` / `sourceId`，补 `actionId`（缺失时回退到 buffId） | DoT 要能按来源招式聚合 |
-| `move` | 已有 `delta / newDistance / durationMs / kind` | 距离统计够用，不需要补 |
-| `attack_start` | 已有 `triggered` / `isBonus` / `summonName` | 触发招式的收益统计够用 |
-| 新增 `resource` | `{ charId, kind: 'ap_spent' \| 'ap_regen' \| 'ap_wasted' \| 'chan_gain' \| 'chan_spent' \| 'chan_overflow', amount, reason }` | 内息浪费（回满截断）、缠劲溢出目前没有任何记录 |
+| `heal` | `effective`（实际回血）、`overheal`（溢出） | **已做**：`applyHeal` 与 `heal_over_time` 两处都按 hp 前后差记账 |
+| `attack_start` / `support` | `chanCost`（缠劲消耗） | **已做**：触发招式不耗内息但要耗缠劲，之前没有任何事件带这个数 |
+| `damage` | 附伤不另加字段：引擎已经在 `tags` 里标了 `bonus_damage` | **已做**（用 tag 判定） |
+| `damage` | `piercing` / `absorbed` / `mitigated` / `parriedAmount` 细分，`isSummon` / `ownerId` 归属 | **待做**：要动伤害管道（`applyDefenseStages` / `onAbsorb`）与召唤物发射点，风险高于收益，等 UI 真的需要再补。当前口径：`final` = 实际扣血，`blocked` = 减免总量（不细分） |
+| 新增 `resource` | AP 浪费（回满截断）、缠劲溢出 | **待做**：`Character.spendAp` 会调 `addChan` 但丢掉了溢出的返回值，要动 `Character` 的热路径；当前缠劲溢出只能从 `chan_overflow` 触发事件侧面看 |
+| `move` | 已有 `delta / newDistance / durationMs / kind` | 够用 |
+| `attack_start` | 已有 `triggered` / `summonName` | 够用 |
 
 **决策面**（新增，仅 level 2）：`planEvent` 产出一份诊断，记录
 
@@ -82,6 +83,27 @@ stats（数值投影） ←── BattleStatsPanel / demo 脚本 / DevMode 聚�
 - 每个触发槽的触发次数与收益。
 
 ---
+
+## 四·五、已实现（第一步交付物）
+
+- **`src/engine/combat/battle-stats.ts`**：`BattleStats` + `StatsLevel`（0/1/2）。字段分两层：`CharStat`（角色）+ `ActionStat`（角色 × 招式）；
+  另有 `merge()`（脚本跑 N 场聚合）、`snapshot()`（Map 换数组，供 UI）、`format()`（文本报告）。
+- **接入点**：`BattleEngine.enableStats(level)` + `emitLog()` **最前面**调用 `stats.handle(event)`——在 `quiet` 短路之前，所以批量模拟也能收集；
+  `runBattle(..., { statsLevel })` 是脚本/UI 的入口（第 6 个可选参数，向后兼容）。
+- **删除** `stats-tracker.ts`（挂在 log 监听器上的旧统计）。
+- **命中面板的权威来源**（这一步最关键的修正）：
+  | 数字 | 来源 |
+  | --- | --- |
+  | 出手 | `attack_start` |
+  | 命中 / 被闪避 | `check_hit.result`（true / false） |
+  | 被招架 | `check_parry.result` |
+  | 暴击 | `check_crit.result` |
+  | 打中但零伤 | `命中 − 造成伤害的事件数`（被吸收/减免到 0 时不会发 `damage`） |
+  | 失手 | `fumble`（发生在 `attack_start` 之前，所以不计入出手数） |
+  顺带发现两处事件问题：**`parried` 日志事件没有任何生产者**（招架只走 `check_parry`），`dodged` 事件与 `check_hit` 重复——统计一律只认 `check_*`，不看这两个事件。
+- **对账规则**（报告里必须成立）：`出手 = 命中 + 被闪避`；`命中 = 造成伤害 + 打中未造成伤害`。
+- **实测开销**（3000 场 quiet 对战，各跑两轮）：level 0 = 6.77/6.80 ms/场，level 1 = 6.80/6.86，level 2 = 6.86/6.88 —— 即 **+0.5% ~ +1.3%**。折算到 tour（49,600 场 / 约 100 秒），level 1 约多 1 秒。
+- **验收**：`npm run demo`（`scripts/demo-battle.ts`）单场打印完整报告，`npm run demo 20` 走 `merge()` 聚合，均正常。
 
 ## 五、口径定义（先定死，避免「数字对不上」）
 
@@ -123,13 +145,13 @@ stats（数值投影） ←── BattleStatsPanel / demo 脚本 / DevMode 聚�
 
 ## 八、三步实施计划
 
-**第一步：引擎层全面重写（含 log 口径收口）**
+**第一步：引擎层全面重写（含 log 口径收口）—— 已完成**
 
-- 事件字段按第四节补齐；`formatBattleLog` 与回放只在字段变化处适配，不动结构。
-- 新增 `src/engine/combat/battle-stats.ts`（`BattleStats` + `StatsLevel`），引擎持有、管道内更新；
-  删除 `stats-tracker.ts` 与「log 监听器统计」这条路。
-- 决策面：`planEvent` / `generatePlans` / `pickActions` 接收可空的 `PlanDiagnostics`。
-- 验收：`npm run demo`（`scripts/demo-battle.ts`）能打印新的完整报告；`npm run tour` 耗时与改造前同量级。
+- 事件字段按第四节落地（`heal.effective/overheal`、`attack_start/support.chanCost`；附伤用 `bonus_damage` tag）；
+  `formatBattleLog` 与回放只在字段变化处适配，结构未动。
+- `battle-stats.ts` 落地，引擎持有、管道内更新；`stats-tracker.ts` 已删除。
+- **决策面（`PlanDiagnostics`）未做**，放到第二步之后：它要动 `planEvent` / `generatePlans` / `pickActions` 的签名，
+  属于「为什么要重新跑一遍才有意义」的东西，等 UI 能看统计了再加。
 
 **第二步：接入构筑模式 UI（先看效果）**
 

@@ -112,7 +112,9 @@ export function applyHeal(
     action?: { id?: string; name?: string },
 ): void {
     if (amount <= 0) return
+    const hpBefore = target.hp
     target.heal(amount)
+    const healed = Math.round((target.hp - hpBefore) * 10) / 10
     reduceBleedOnHeal(engine, target.id, amount)
     engine.emitLog({
         type: 'heal',
@@ -121,6 +123,8 @@ export function applyHeal(
         sourceId: target.id,
         targetId: target.id,
         amount,
+        effective: healed,
+        overheal: Math.round((amount - healed) * 10) / 10,
     })
     // 通知所有 buff 持有者收到治疗
     forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {

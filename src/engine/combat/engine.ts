@@ -33,6 +33,7 @@ import type {
 } from './types'
 import type { SummonDef, SummonInstance } from '../entities/summon'
 import type { LogEvent } from './log-events'
+import { BattleStats, type StatsLevel } from './battle-stats'
 import { isPreHitEffect } from './effects/action'
 import { MAX_CHAN } from '../constants'
 
@@ -41,6 +42,8 @@ type LogListener = (event: LogEvent) => void
 
 export class BattleEngine {
     state!: BattleState
+    /** 战斗统计（可选）：null = 不收集，热路径只多一次判断；`quiet` 模式下同样会收集 */
+    stats: BattleStats | null = null
     #summons = new Map<string, SummonInstance>()
     #logListeners: LogListener[] = []
     #quiet = false
@@ -530,7 +533,15 @@ export class BattleEngine {
     }
 
     /** 发射日志事件（自动附加当前快照；原子回合下回合内所有事件共享 eventTime，顺序由 scope 定） */
+    /** 开启战斗统计（quiet 模式下也生效，批量模拟才有整体视角） */
+    enableStats(level: StatsLevel): BattleStats {
+        this.stats = new BattleStats(level)
+        return this.stats
+    }
+
     emitLog(event: LogEvent): void {
+        // 统计先收（在 quiet 短路之前，否则批量模拟收不到）
+        if (this.stats) this.stats.handle(event)
         // 安静模式（批量模拟/比赛）：跳过快照与日志构建，大幅提速
         if (this.#quiet) return
         const snap = this.getSnapshot()
@@ -738,6 +749,7 @@ export class BattleEngine {
             apRemaining: self.ap,
             triggered,
             summonName,
+            chanCost: action.chanCost ?? 0,
         })
         // buff onAction 钩子（出招即触发，不受命中影响）——前摇窗口内
         forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
@@ -874,6 +886,7 @@ export class BattleEngine {
                 sourceId: self.id,
                 targetId: self.id,
                 apCost: self.actionApCost(inst.apCost, this.state),
+                chanCost: inst.def.chanCost ?? 0,
             })
         }
         for (const eff of inst.def.effects ?? []) {
@@ -1008,7 +1021,9 @@ export class BattleEngine {
                         source: undefined!,
                     })
                     if (amt > 0) {
+                        const hpBefore = char.hp
                         char.heal(amt, this)
+                        const healed = Math.round((char.hp - hpBefore) * 10) / 10
                         reduceBleedOnHeal(this, char.id, amt, 8)
                         this.emitLog({
                             type: 'heal_over_time',
@@ -1017,6 +1032,8 @@ export class BattleEngine {
                             sourceId: char.id,
                             targetId: char.id,
                             amount: amt,
+                            effective: healed,
+                            overheal: Math.round((amt - healed) * 10) / 10,
                         })
                         // 通知所有 buff 持有者收到治疗
                         forEachBuffOf(this.state.pendingBuffs, char.id, (def, layer) => {

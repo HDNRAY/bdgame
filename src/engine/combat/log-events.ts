@@ -15,6 +15,8 @@ export type LogEvent =
           apRemaining: number
           triggered: boolean
           summonName?: string
+          /** 缠劲消耗（统计口径；触发招式不耗内息但要耗缠劲） */
+          chanCost?: number
       }
     | { type: 'check_hit'; sourceId: string; targetId: string; hitChance: number; roll: number; result: boolean }
     | { type: 'check_parry'; sourceId: string; targetId: string; parryChance: number; roll: number; result: boolean }
@@ -41,7 +43,19 @@ export type LogEvent =
           status: string
           amount: number
       }
-    | { type: 'heal'; actionId?: string; actionName?: string; sourceId?: string; targetId: string; amount: number }
+    | {
+          type: 'heal'
+          actionId?: string
+          actionName?: string
+          sourceId?: string
+          targetId: string
+          /** 名义治疗量 */
+          amount: number
+          /** 实际回血量（气血上限截断后） */
+          effective?: number
+          /** 溢出量 = amount - effective */
+          overheal?: number
+      }
     | {
           type: 'heal_over_time'
           actionId?: string
@@ -49,6 +63,10 @@ export type LogEvent =
           sourceId?: string
           targetId: string
           amount: number
+          /** 实际回血量（气血上限截断后） */
+          effective?: number
+          /** 溢出量 = amount - effective */
+          overheal?: number
       }
     | {
           type: 'move'
@@ -86,5 +104,14 @@ export type LogEvent =
     | { type: 'parried'; sourceId: string; targetId: string }
     | { type: 'knockback'; sourceId: string; targetId: string; distance: number }
     | { type: 'cleanse'; sourceId: string; targetId: string; buffIds?: string[] }
-    | { type: 'support'; actionId: string; actionName: string; sourceId: string; targetId: string; apCost: number }
+    | {
+          type: 'support'
+          actionId: string
+          actionName: string
+          sourceId: string
+          targetId: string
+          apCost: number
+          /** 缠劲消耗（统计口径） */
+          chanCost?: number
+      }
     | { type: 'system'; message: string; actorId?: string; indent?: number; apCost?: number }

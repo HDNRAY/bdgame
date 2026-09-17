@@ -1,6 +1,7 @@
 import { Character } from './entities/character'
 import { BattleEngine } from './combat/engine'
 import type { EventPlan, ActionCommand } from './combat/types'
+import type { StatsLevel } from './combat/battle-stats'
 import type { LogEvent } from './combat/log-events'
 import { planEvent } from './ai'
 import { getOpponentDef } from '../data/opponents/index'
@@ -11,6 +12,12 @@ const MAX_BATTLE_TIME_MS = 300_000
 /** 系统事件上限，防 bug 导致无限循环 */
 const MAX_SYSTEM_EVENTS = 10000
 
+/** 运行一场完整战斗的可选参数 */
+export interface RunBattleOptions {
+    /** 收集战斗统计（0/不传 = 不收集）。quiet 模式也能收，见 docs/battle-stats-design.md */
+    statsLevel?: StatsLevel
+}
+
 /** 运行一场完整战斗（自动 clone 角色，不污染原始数据） */
 export function runBattle(
     charA: Character,
@@ -18,10 +25,12 @@ export function runBattle(
     onLog?: (event: LogEvent) => void,
     distance = 4,
     quiet = false,
+    options?: RunBattleOptions,
 ): { winner: string; engine: BattleEngine } {
     const a = charA.cloneForBattle()
     const b = charB.cloneForBattle()
     const engine = new BattleEngine(a, b, distance, quiet)
+    if (options?.statsLevel) engine.enableStats(options.statsLevel)
     if (onLog) engine.onLog(onLog)
     const { state } = engine
     let systemCount = 0
