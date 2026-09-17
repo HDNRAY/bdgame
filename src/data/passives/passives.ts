@@ -502,7 +502,6 @@ export const PASSIVES: Passive[] = [
         name: '神行百变',
         description: '铁剑门绝学，身法灵动百变，极难捉摸。',
         tags: ['defense'],
-        effects: [{ type: 'haste', eval: (char) => char.attrs.get('wisdom') * 10 }],
         triggers: [
             {
                 condition: { type: 'battle_start' },

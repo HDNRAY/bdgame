@@ -10,11 +10,6 @@ import { getWeapon } from '../../../data/weapons/weapons'
  * 战斗中的效果走 `combat/effects/handlers.ts`，两边不要混。
  */
 const handlers: Record<string, (char: Character, eff: EffectDef, sourceTags?: string[]) => void> = {
-    haste(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'haste' }>
-        if (e.value) char.haste += e.value
-        if (e.eval) char.hasteCallbacks.push(e.eval)
-    },
     buff_duration_mult(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'buff_duration_mult' }>
         if (e.eval) char.buffDurationCallbacks.push(e.eval)

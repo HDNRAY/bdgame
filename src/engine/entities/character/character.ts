@@ -79,9 +79,6 @@ export class Character {
     /** 战斗风格（build.battleStyle 显式必填，不再自动判定） */
     battleStyle: AttackStyle
     /** 身法相关独立加速（凌波微步等） */
-    haste = 0
-    /** haste eval 回调列表（构造期收集，getHaste 时求值） */
-    hasteCallbacks: Array<(char: Character) => number> = []
     /** buff 时长倍率回调列表（炁蕴绵长等功法，构造期收集，乘算） */
     buffDurationCallbacks: Array<(char: Character) => number> = []
     /** 额外触发槽位（奇物提供） */
@@ -230,11 +227,9 @@ export class Character {
         return this.build.actionConfigs?.find((c) => c.actionId === actionId)
     }
 
-    /** 实时计算 haste（固定值 + 所有 eval 回调求值 + buff onHaste 钩子；传 state 才计入 buff 急速） */
+    /** 实时计算急速：全部来自 buff 的 onHaste 钩子（没有 state 就没有急速，构造期不算） */
     getHaste(state?: BattleState): number {
-        let h = this.haste + this.hasteCallbacks.reduce((sum, cb) => sum + cb(this), 0)
-        if (state) h += calcExtraHaste(state, this)
-        return h
+        return state ? calcExtraHaste(state, this) : 0
     }
 
     /** buff 时长倍率（炁蕴绵长等功法，乘算，默认 1） */

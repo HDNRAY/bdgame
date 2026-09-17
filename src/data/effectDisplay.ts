@@ -79,8 +79,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`消耗当前气血${(eff.ratio * 100).toFixed(0)}%`]
         case 'cleanse':
             return eff.buffIds && eff.buffIds.length > 0 ? [`净化: ${eff.buffIds.join(', ')}`] : ['净化所有负面状态']
-        case 'haste':
-            return [`急速: +${eff.value}% 行动速度`]
         case 'buff_duration_mult':
             return ['增益时长: 随推演提升']
         case 'knockback':

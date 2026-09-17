@@ -178,10 +178,19 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'shenxing_baibian_buff',
         name: '神行百变',
-        description: '身形飘忽百变，闪避率+4%。',
+        description: '身形飘忽百变：闪避率+4%，急速 = 10 + 推演/2（出招更省内息、起手更快）。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onDodgeChance: () => 0.04,
+        onHaste: ({ target }) => 10 + target.attrs.get('wisdom') / 2,
+    },
+    {
+        id: 'ling_bo_wei_bu_buff',
+        name: '凌波微步',
+        description: '步法精妙，出招更省内息、起手更快。急速16。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        onHaste: () => 16,
     },
     {
         id: 'paralyze_immunity',

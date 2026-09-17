@@ -34,16 +34,16 @@ function applied(build: CharacterBuild, talentId: string): boolean {
 }
 
 describe('天赋解锁只看原始属性', () => {
-    // 凌波微步：身法 ≥ 20，效果含 haste 200
+    // 凌波微步：身法 ≥ 20（效果含急速，走 battle_start 的 buff）
     it('凌波微步：原始身法 20 生效、19 不生效', () => {
-        expect(new Character(makeBuild({ agility: 20 })).haste).toBeGreaterThan(0)
-        expect(new Character(makeBuild({ agility: 19 })).haste).toBe(0)
+        expect(applied(makeBuild({ agility: 20 }), 'ling_bo_wei_bu')).toBe(true)
+        expect(applied(makeBuild({ agility: 19 }), 'ling_bo_wei_bu')).toBe(false)
     })
 
     it('装备把生效属性推过门槛也没用：原始身法 15 + 斗铠/奇物 +5 → 不生效', () => {
         const c = new Character(makeBuild({ agility: 15 }, [artifact('muscle_boost')]))
         expect(c.attrs.get('agility')).toBeGreaterThanOrEqual(20) // 生效属性确实到 20 了
-        expect(c.haste).toBe(0) // 但天赋没解锁
+        expect(applied(makeBuild({ agility: 15 }, [artifact('muscle_boost')]), 'ling_bo_wei_bu')).toBe(false) // 但天赋没解锁
     })
 
     it('装备把生效属性压到门槛下也不影响：原始力道 20 + 三分归元气（力道-2）→ 仍生效', () => {

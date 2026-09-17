@@ -403,7 +403,7 @@ export function calcExpectedDamage(
         expectedDamage: expected,
         hitChance,
         canReach,
-        apCost: attacker.actionApCost(action.apCost),
+        apCost: attacker.actionApCost(action.apCost, state),
         chanCost: action.chanCost ?? 0,
     }
 }

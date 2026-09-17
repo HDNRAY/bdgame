@@ -54,7 +54,6 @@ export type EffectDef =
     | { type: 'max_hp_mod'; value: number }
     // 功法/奇物效果
     | { type: 'trigger_slot_mod'; value?: number; fn?: (char: Character) => number }
-    | { type: 'haste'; value?: number; eval?: (char: Character) => number }
     | { type: 'buff_duration_mult'; eval?: (char: Character) => number }
     | { type: 'add_buff'; buffId: string; stacks?: number }
     | { type: 'remove_buff'; buffId: string; stacks?: number }

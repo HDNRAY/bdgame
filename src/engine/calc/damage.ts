@@ -153,14 +153,14 @@ export function calcActionDurationMs(apCost: number): number {
 }
 
 // ── 身法/急速 AP 消耗减免 ──
-/** 每点身法（或每 10 点急速）的 AP 减免率 */
+/** 每点身法/急速的 AP 减免率（同一个刻度：1 点 = 1%） */
 export const SPEED_AP_COST_RATE = 0.01
-/** AP 减免率上限 */
+/** AP 减免率上限（身法与急速共享，叠到上限后多余的急速不产生收益） */
 export const SPEED_AP_COST_CAP = 0.4
 
-/** 身法/急速对 AP 消耗的减免率（身法 1 点 = 1%，急速每 10 点 = 1%） */
+/** 身法/急速对 AP 消耗的减免率（两者同刻度，1 点 = 1%） */
 export function calcApCostReduction(agility: number, haste: number): number {
-    return Math.min(SPEED_AP_COST_CAP, (agility + haste / 10) * SPEED_AP_COST_RATE)
+    return Math.min(SPEED_AP_COST_CAP, (agility + haste) * SPEED_AP_COST_RATE)
 }
 
 /** 减免后的招式 AP 成本（0 成本招式保持 0；非零成本最低 1；保留 1 位小数，让身法减免/百分比折扣真实生效） */

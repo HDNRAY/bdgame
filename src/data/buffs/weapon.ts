@@ -19,6 +19,14 @@ function calcHeavyPenalty(char: Character, tier: number, state: BattleState): nu
 
 export const WEAPON_BUFFS: BuffDef[] = [
     {
+        id: 'ninja_sword_haste',
+        name: '风切',
+        description: '刀轻如风：出招更省内息、起手更快。急速12。',
+        tags: ['weapon'],
+        expiry: { type: 'permanent' },
+        onHaste: () => 12,
+    },
+    {
         id: 'heavy_load',
         name: '重器负担',
         description: '力量不足以驾驭重器，身法受限。力量每差1点身法-1；玄剑/潮汐可化解部分负担。',

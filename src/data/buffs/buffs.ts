@@ -444,12 +444,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'zhuixing',
         name: '追星',
-        description: '千星雄剑，以炁驱动。命中叠1层，每层急速+40,移动效率+10%，最多2层。',
+        description: '千星雄剑，以炁驱动。命中叠1层，每层急速+4，移动效率+10%，最多2层。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         onMoveEfficiency: ({ layer }) => (layer.restoreValue ?? 0) * 0.1,
-        onHaste: ({ layer }) => (layer.restoreValue ?? 0) * 40,
+        onHaste: ({ layer }) => (layer.restoreValue ?? 0) * 4,
     },
     {
         id: 'huixi',

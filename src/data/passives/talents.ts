@@ -9,7 +9,6 @@ export const TALENTS: Talent[] = [
         tags: ['talent', 'buff'],
         requireAttrsMin: { agility: 20 },
         effects: [
-            { type: 'haste', value: 200 },
             // 身法不低于 16：战中被减身法时兜住（与「洞察降低减半」同一套 stat_restriction 机制）
             {
                 type: 'stat_restriction',
@@ -17,7 +16,15 @@ export const TALENTS: Talent[] = [
                     attr === 'agility' && delta < 0 && current + delta < 16 ? { delta: 16 - current } : null,
             },
         ],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'min_move_cost' }] }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [
+                    { type: 'add_buff', buffId: 'min_move_cost' },
+                    { type: 'add_buff', buffId: 'ling_bo_wei_bu_buff' },
+                ],
+            },
+        ],
     },
     {
         id: 'zuoyou_hubo',

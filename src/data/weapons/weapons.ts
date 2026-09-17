@@ -240,7 +240,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '忍者短刀，轻如风，快过影。可藏于袖中，出手极速。',
         tags: ['slash', 'pierce', 'parry', 'melee', 'unarmed', 'one_handed'],
         range: [0, 2],
-        effects: [{ type: 'haste', value: 120 }],
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'ninja_sword_haste' }] }],
     },
     {
         id: 'zhen_bei_ji',
