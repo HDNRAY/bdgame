@@ -461,8 +461,9 @@ export class BattleStats {
             for (const c of chars) {
                 const avgDist = c.distanceSamples > 0 ? r1(c.distanceSum / c.distanceSamples) : 0
                 const closeRate = c.distanceSamples > 0 ? ((c.closeSamples / c.distanceSamples) * 100).toFixed(1) : '0.0'
+                // 注意口径：这里两条都是**消耗**，不是回复（回复/获得/溢出要新的 resource 事件，见设计文档）
                 lines.push(
-                    `  ${nameOf(c.id)}  内息 ${r1(c.apSpent)}  缠劲 ${r1(c.chanSpent)}` +
+                    `  ${nameOf(c.id)}  内息消耗 ${r1(c.apSpent)}  缠劲消耗 ${r1(c.chanSpent)}` +
                         `  平均交战距离 ${avgDist}m  1m 内 ${closeRate}%` +
                         (c.statusTried > 0 ? `  挂状态 ${c.statusApplied}/${c.statusTried}` : ''),
                 )

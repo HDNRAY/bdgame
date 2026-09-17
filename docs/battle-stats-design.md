@@ -86,6 +86,7 @@ stats（数值投影） ←── BattleStatsPanel / demo 脚本 / DevMode 聚�
 
 ## 四·五、已实现（第一步交付物）
 
+- **顺带确认了「统计不能长在 log 上」**：`BattleLog` 在重建事件时会丢字段——log 里的 `attack_start` **不带 `actionId`**（只有 `actionName`），所以按招式统计命中/招架/闪避这条路在 log 上根本走不通（旧的 `stats-tracker` 是残缺的）。引擎管道里的原始事件才带全字段。
 - **`src/engine/combat/battle-stats.ts`**：`BattleStats` + `StatsLevel`（0/1/2）。字段分两层：`CharStat`（角色）+ `ActionStat`（角色 × 招式）；
   另有 `merge()`（脚本跑 N 场聚合）、`snapshot()`（Map 换数组，供 UI）、`format()`（文本报告）。
 - **接入点**：`BattleEngine.enableStats(level)` + `emitLog()` **最前面**调用 `stats.handle(event)`——在 `quiet` 短路之前，所以批量模拟也能收集；
@@ -125,7 +126,7 @@ stats（数值投影） ←── BattleStatsPanel / demo 脚本 / DevMode 聚�
 | 承伤 | 结果 | 被谁打、挨了多少；减免构成（招架 / 减伤 / 护盾）占比 |
 | 命中面板 | 结果 | 每招出手数、命中率、闪避率、被招架率、暴击率 |
 | 治疗 | 结果 | 有效治疗、溢出、治疗来源 |
-| 资源 | 结果 | 内息消耗 / 回复 / 浪费；缠劲攒 / 花 / 溢出 |
+| 资源 | 结果 | 内息消耗 / 回复 / 浪费；缠劲获得 / 消耗 / 溢出。**当前只有「消耗」两项**（来自 `attack_start.apCost` / `chanCost`），回复、浪费、缠劲获得与溢出都依赖待做的 `resource` 事件 |
 | 距离 | 结果 | 平均交战距离、贴脸 / 风筝时间占比、位移招用量 |
 | 状态 | 结果 | 我给对手挂上什么、成功率；我身上减益的覆盖时长 |
 | 触发 | 结果 + 决策 | 触发招式用了几次、贡献多少；哪些槽一次都没触发 |
