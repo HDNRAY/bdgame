@@ -1,5 +1,5 @@
 import type { LogEvent } from './log-events'
-import { emptyResourceTally, type ResourceTally } from '../entities/character'
+import { emptyResourceTally, type ResourceTally } from '../entities/resource-tally'
 
 /**
  * 战斗统计（伤害统计 / 承伤 / 治疗 / 命中 / 资源 / 距离）。
