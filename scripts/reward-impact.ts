@@ -8,12 +8,13 @@
  *   --level       生成等级（默认 33，对齐 tournament）
  *   --pool        参考池（逗号分隔的对手 id，默认 = 除目标外的全部对手）
  *   --reward      只看某个奖励（id），默认测全部奖励
- *   --no-talents  排除天赋：属性（baseAttrs）一点不动，但天赋一律不按属性自动解锁。
- *                 用来剥掉「奖励 ↔ 天赋」的互相放大（例如奖励给推演 → 顺带抬高神行百变的急速），
- *                 测出来的就是**奖励本身**值多少，而不是它在完整 kit 里的值。
+ *   --no-talents  不列天赋行（只看真奖励）。默认会把**自动解锁的天赋也当成一行**参与排名 ——
+ *                 摘掉它的方式和摘奖励一样：临时把它从 TALENTS 里拿掉再构造角色，
+ *                 baseAttrs 一点不动，所以属性/装备/功法数值完全不变，只是少解锁这一条天赋。
  */
 import { OPPONENTS, getOpponentDef, gen } from '../src/data/opponents'
 import { TALENTS } from '../src/data/passives'
+import { checkTalents } from '../src/game/talent-check'
 import { runBattle } from '../src/engine/battle-runner'
 import { Character } from '../src/engine/entities/character'
 import type { OpponentDef } from '../src/data/opponents'
@@ -30,11 +31,20 @@ const poolArg = argVal('--pool', '')
 const rewardArg = argVal('--reward', '')
 const noTalents = args.includes('--no-talents')
 
-// 排除天赋：构造期解锁天赋的唯一数据源就是 TALENTS 这个数组，清空它即可 ——
-// baseAttrs 完全不碰，所以属性/装备/功法带来的数值一模一样，只是不再自动解锁天赋。
-// 天赋定义不在 PASSIVES 里（getPassive 是 PASSIVES → TALENTS 两段查），这里只影响自动解锁；
-// 且 gen() 不会把天赋写进 rewards，所以下面逐件摘奖励的循环不受影响。
-if (noTalents) TALENTS.length = 0
+/**
+ * 临时摘掉某一条天赋再跑：构造期解锁天赋的唯一数据源就是 TALENTS 这个数组，
+ * 把它摘出来即可 —— baseAttrs 一点不动，属性/装备/功法数值完全一致，只是这一条天赋不再解锁。
+ */
+function withTalentRemoved<T>(talentId: string, fn: () => T): T {
+    const idx = TALENTS.findIndex((t) => t.id === talentId)
+    if (idx < 0) return fn()
+    const [saved] = TALENTS.splice(idx, 1)
+    try {
+        return fn()
+    } finally {
+        TALENTS.splice(idx, 0, saved)
+    }
+}
 
 if (!targetId) {
     console.error(
@@ -65,7 +75,7 @@ if (pool.length === 0) {
     process.exit(1)
 }
 
-const TYPE_LABEL: Record<string, string> = { weapon: '武器', action: '招式', passive: '功法', artifact: '奇物' }
+const TYPE_LABEL: Record<string, string> = { weapon: '武器', action: '招式', passive: '功法', artifact: '奇物', talent: '天赋' }
 
 function buildChar(d: OpponentDef, n: number): Character {
     return new Character(gen(d, n))
@@ -92,7 +102,7 @@ function winRate(target: Character): number {
 console.log(`\n=== ${def.name}（${targetId}）奖励影响分析 ===`)
 console.log(
     `参数：n=${N} 场/对手 · level=${LEVEL} · 参考池 ${pool.length} 人（${pool.map((o) => o.name).join('、')}）` +
-        ` · 天赋：${noTalents ? '已排除（属性不变）' : '按原始属性自动解锁'}\n`,
+        ` · 天赋：${noTalents ? '不列入排名' : '作为独立一行参与排名（摘法与奖励相同）'}\n`,
 )
 
 // 全 kit 基线
@@ -100,26 +110,43 @@ const full = buildChar(def, LEVEL)
 const fullRate = winRate(full)
 console.log(`【全 kit 胜率】${(fullRate * 100).toFixed(1)}%\n`)
 
-// 逐一摘奖励（--reward 指定时只看单个奖励）
-const targets = def.rewards.filter((r) => !rewardArg || r.id === rewardArg)
-if (targets.length === 0) {
-    console.error(`找不到奖励 ${rewardArg}（${def.name} 的奖励: ${def.rewards.map((x) => x.id).join(', ')}）`)
+// 逐一摘掉一件东西：真奖励来自 def.rewards；天赋来自「原始属性自动解锁」，也当成一行
+type Ablation = { id: string; type: string; rate: number }
+const rewardTargets = def.rewards.filter((r) => !rewardArg || r.id === rewardArg)
+// 自动解锁的天赋（按原始属性判定，和构造角色时同一套逻辑）。奖励表里已有的那条不重复列。
+const rewardIds = new Set(def.rewards.map((r) => r.id))
+const talentTargets = noTalents
+    ? []
+    : checkTalents(buildChar(def, LEVEL).build.baseAttrs)
+          .map((t) => t.id)
+          .filter((id) => !rewardIds.has(id) && (!rewardArg || id === rewardArg))
+const total = rewardTargets.length + talentTargets.length
+if (total === 0) {
+    console.error(
+        `找不到 ${rewardArg || '任何奖励或天赋'}（${def.name} 的奖励: ${def.rewards.map((x) => x.id).join(', ')}）`,
+    )
     process.exit(1)
 }
+
 const results: { id: string; name: string; type: string; rate: number; drop: number }[] = []
-for (const r of targets) {
-    const variant: OpponentDef = { ...def, rewards: def.rewards.filter((x) => x.id !== r.id) }
-    const vChar = buildChar(variant, LEVEL)
-    const rate = winRate(vChar)
+const ablations: Ablation[] = [
+    ...rewardTargets.map((r) => ({ id: r.id, type: r.type, rate: 0 })),
+    ...talentTargets.map((id) => ({ id, type: 'talent', rate: 0 })),
+]
+for (const a of ablations) {
+    a.rate =
+        a.type === 'talent'
+            ? withTalentRemoved(a.id, () => winRate(buildChar(def, LEVEL)))
+            : winRate(buildChar({ ...def, rewards: def.rewards.filter((x) => x.id !== a.id) }, LEVEL))
     results.push({
-        id: r.id,
-        name: TYPE_LABEL[r.type] ?? r.type,
-        type: r.type,
-        rate,
-        drop: fullRate - rate,
+        id: a.id,
+        name: TYPE_LABEL[a.type] ?? a.type,
+        type: a.type,
+        rate: a.rate,
+        drop: fullRate - a.rate,
     })
     console.log(
-        `去掉 ${TYPE_LABEL[r.type] ?? r.type}「${r.id}」→ 胜率 ${(rate * 100).toFixed(1)}%（${fullRate - rate >= 0 ? '-' : '+'}${(Math.abs(fullRate - rate) * 100).toFixed(1)}）`,
+        `去掉 ${TYPE_LABEL[a.type] ?? a.type}「${a.id}」→ 胜率 ${(a.rate * 100).toFixed(1)}%（${fullRate - a.rate >= 0 ? '-' : '+'}${(Math.abs(fullRate - a.rate) * 100).toFixed(1)}）`,
     )
 }
 
