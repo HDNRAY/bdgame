@@ -10,3 +10,4 @@ dev-dist/
 .reasonix/truncated-results/
 scripts/*.txt
 scripts/preview/
+.tmp-chrome/

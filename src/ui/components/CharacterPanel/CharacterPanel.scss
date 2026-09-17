@@ -362,6 +362,8 @@
     padding: 0;
     border: none;
     cursor: grab;
+    /* 触屏：手柄上按住拖动时不要滚页面 */
+    touch-action: none;
     /* 六个点画成抓手：不依赖字体字形 */
     background-image: radial-gradient(circle, var(--color-border) 1px, transparent 1.2px);
     background-size: 0.3125rem 0.3125rem;
@@ -378,9 +380,13 @@
     }
 }
 
-/* 拖拽悬停到某一行：整行加底色，指示落点 */
+/* 拖拽：目标行加底色指示落点；源行淡出 */
 .cp-row.over > span {
     background: var(--color-bg-alt);
+}
+
+.cp-row.dragging > span {
+    opacity: 0.5;
 }
 
 .cp-table-header > span {
