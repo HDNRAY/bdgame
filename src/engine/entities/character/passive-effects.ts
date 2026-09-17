@@ -19,12 +19,6 @@ const handlers: Record<string, (char: Character, eff: EffectDef, sourceTags?: st
         const e = eff as Extract<EffectDef, { type: 'buff_duration_mult' }>
         if (e.eval) char.buffDurationCallbacks.push(e.eval)
     },
-    attr_floor(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'attr_floor' }>
-        for (const [attr, value] of Object.entries(e.attrs)) {
-            char.attrs.minValues[attr as AttrName] = value
-        }
-    },
     stat_buff(char, eff, sourceTags) {
         const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
         for (const [attr, value] of Object.entries(e.attrs)) {
@@ -68,14 +62,6 @@ const handlers: Record<string, (char: Character, eff: EffectDef, sourceTags?: st
         for (const attr of e.to) {
             char.attrs.modify(attr as AttrName, delta)
         }
-    },
-    dodge_mod(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'dodge_mod' }>
-        char.dodgeMod += e.value
-    },
-    parry_mod(char, eff) {
-        const e = eff as Extract<EffectDef, { type: 'parry_mod' }>
-        char.parryMod += e.value
     },
     weapon_tag(char, eff) {
         const e = eff as Extract<EffectDef, { type: 'weapon_tag' }>

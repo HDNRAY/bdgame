@@ -54,11 +54,8 @@ export type EffectDef =
     | { type: 'max_hp_mod'; value: number }
     // 功法/奇物效果
     | { type: 'trigger_slot_mod'; value?: number; fn?: (char: Character) => number }
-    | { type: 'dodge_mod'; value: number }
-    | { type: 'parry_mod'; value: number }
     | { type: 'haste'; value?: number; eval?: (char: Character) => number }
     | { type: 'buff_duration_mult'; eval?: (char: Character) => number }
-    | { type: 'attr_floor'; attrs: Partial<Record<AttrName, number>> }
     | { type: 'add_buff'; buffId: string; stacks?: number }
     | { type: 'remove_buff'; buffId: string; stacks?: number }
     | { type: 'ciyuan_init' }

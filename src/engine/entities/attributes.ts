@@ -13,19 +13,12 @@ export const ATTR_CN: Record<string, string> = {
 }
 
 export const ATTR_ABSOLUTE_MAX = 30
+/** 属性下限：任何来源都压不到 3 以下（战中的减属性保护走 `stat_restriction`，不在这里做） */
+export const ATTR_ABSOLUTE_MIN = 3
 
 /** 属性容器 */
 export class AttributeSet {
     private values: Record<AttrName, number>
-    /** 各属性下限（被动/天赋设置），空 = 不限制 */
-    minValues: Partial<Record<AttrName, number>> = {
-        strength: 3,
-        vitality: 3,
-        agility: 3,
-        dexterity: 3,
-        insight: 3,
-        wisdom: 3,
-    }
 
     constructor(values?: Partial<Record<AttrName, number>>) {
         this.values = {
@@ -40,9 +33,7 @@ export class AttributeSet {
     }
 
     get(attr: AttrName): number {
-        const floor = this.minValues[attr]
-        const val = this.values[attr]
-        return floor !== undefined ? Math.max(val, floor) : val
+        return Math.max(this.values[attr], ATTR_ABSOLUTE_MIN)
     }
 
     set(attr: AttrName, value: number): void {
@@ -69,8 +60,6 @@ export class AttributeSet {
     }
 
     clone(): AttributeSet {
-        const c = new AttributeSet({ ...this.values })
-        c.minValues = { ...this.minValues }
-        return c
+        return new AttributeSet({ ...this.values })
     }
 }

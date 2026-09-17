@@ -800,7 +800,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 移除奇物赋予的招式（酒被偷走 → 不能再喝）
         enemy.removeActionsByIds(target.grantsActions ?? [])
         // 加给自己（含奇物赋予的招式：偷来的酒能喝）
-        self.addArtifact(target.id)
+        self.addArtifact(target.id, engine)
         // 更新成功概率（减半）
         engine.state.pendingBuffs.set(trackKey, { restoreValue: chance / 2 })
         engine.emitLog({

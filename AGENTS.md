@@ -90,7 +90,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 | Artifact         | src/engine/entities/artifact.ts   | name, description, tags, effects, triggers                        |
 | AttrName         | src/engine/entities/attributes.ts | ATTR_CN[attr], ATTR_DESC[attr] (注释)                             |
 | Tag              | src/engine/entities/tag.ts        | 53 种标签类型，对应中文名见 tagDisplay.ts（功法不带同名 tag：类型即身份） |
-| EffectDef        | src/engine/entities/action.ts     | 24 种效果变体 (damage/heal/stat_buff/status 等)                   |
+| EffectDef        | src/engine/entities/action.ts     | 效果变体全表看类型定义（damage/heal/stat_buff/stat_restriction 等，别写死个数） |
 
 **招式挡奖励池的两道闸**（`src/game/roguelite/reward-pool.ts` 的 `_getActionPool()`）：
 

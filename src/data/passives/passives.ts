@@ -502,11 +502,16 @@ export const PASSIVES: Passive[] = [
         name: '神行百变',
         description: '铁剑门绝学，身法灵动百变，极难捉摸。',
         tags: ['defense'],
-        effects: [
-            { type: 'dodge_mod', value: 0.04 },
-            { type: 'haste', eval: (char) => char.attrs.get('wisdom') * 10 },
+        effects: [{ type: 'haste', eval: (char) => char.attrs.get('wisdom') * 10 }],
+        triggers: [
+            {
+                condition: { type: 'battle_start' },
+                effects: [
+                    { type: 'add_buff', buffId: 'min_move_cost' },
+                    { type: 'add_buff', buffId: 'shenxing_baibian_buff' },
+                ],
+            },
         ],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'min_move_cost' }] }],
     },
     {
         id: 'xuannv_sword',

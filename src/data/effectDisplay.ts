@@ -79,10 +79,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`消耗当前气血${(eff.ratio * 100).toFixed(0)}%`]
         case 'cleanse':
             return eff.buffIds && eff.buffIds.length > 0 ? [`净化: ${eff.buffIds.join(', ')}`] : ['净化所有负面状态']
-        case 'dodge_mod':
-            return [`闪避率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
-        case 'parry_mod':
-            return [`招架率 ${eff.value > 0 ? '+' : ''}${(eff.value * 100).toFixed(0)}%`]
         case 'haste':
             return [`急速: +${eff.value}% 行动速度`]
         case 'buff_duration_mult':
@@ -106,10 +102,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return ['无视招架']
         case 'trigger_slot_mod':
             return [`触发槽 ${eff.value && eff.value > 0 ? '+' : ''}${eff.value ?? '?'}`]
-        case 'attr_floor': {
-            const parts = Object.entries(eff.attrs).map(([k, v]) => `${ATTR_CN[k] ?? k}≥${v}`)
-            return [`属性下限: ${parts.join(', ')}`]
-        }
         case 'add_buff': {
             const buff = getBuff(eff.buffId)
             const name = buff?.name ?? eff.buffId

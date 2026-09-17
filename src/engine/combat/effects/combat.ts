@@ -15,7 +15,7 @@ export function processHitCheck(
     suppressTriggers = false,
 ): boolean {
     if (!suppressTriggers) engine.emit('on_attack', self, enemy)
-    let defenderDodgeMod = enemy.dodgeMod
+    let defenderDodgeMod = 0
     // 防御方 buff 闪避率修正
     forEachBuffOf(engine.state.pendingBuffs, enemy.id, (def, layer) => {
         if (!def?.onDodgeChance) return

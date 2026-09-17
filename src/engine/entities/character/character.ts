@@ -14,7 +14,7 @@ import { getAction as getActionDef } from '../../../data/actions'
 import { getWeapon } from '../../../data/weapons/weapons'
 import { getPassive } from '../../../data/passives'
 import { getArtifact } from '../../../data/artifacts'
-import { forEachBuffOf, calcExtraHaste } from '../../combat/utils'
+import { forEachBuffOf, calcExtraHaste, processOnEquipEffects } from '../../combat/utils'
 import { MAX_CHAN } from '../../constants'
 import type { BattleEngine } from '../../combat/engine'
 import type { BattleState } from '../../combat/types'
@@ -97,11 +97,6 @@ export class Character {
             state?: BattleState,
         ) => { skip?: boolean; delta?: number } | null
     > = []
-    /** 闪避修正 */
-    dodgeMod = 0
-    /** 招架修正 */
-    parryMod = 0
-
     constructor(build: CharacterBuild) {
         this.build = build
         this.id = build.id
@@ -319,14 +314,21 @@ export class Character {
         })
     }
 
-    /** 运行时添加奇物 */
-    addArtifact(id: string): boolean {
+    /**
+     * 运行时添加奇物（探云手偷取等）。
+     *
+     * 传了 engine 就补触发一遍装备期效果（`on_equip`）—— 与开局 `processOnEquipEffects` 同一个入口，
+     * 否则偷来的奇物只有 `effects` 生效、装备期 buff 静默丢掉（金丝手套的招架率就属于后者）。
+     */
+    addArtifact(id: string, engine?: BattleEngine): boolean {
         if (this.artifactDefs.some((a) => a.id === id)) return false
         const def = getArtifact(id)
         if (!def) return false
         this.artifactDefs.push(def)
         for (const eff of def.effects ?? []) applyPassiveEffect(eff.type, this, eff)
         for (const t of def.triggers ?? []) this.passiveTriggers.push(t)
+        if (engine) processOnEquipEffects(engine, this, [def], engine.state.turn.currentTime)
+
         // 奇物赋予的招式（偷来的女儿红能喝）
         for (const g of def.grantsActions ?? []) {
             const gDef = getActionDef(g)

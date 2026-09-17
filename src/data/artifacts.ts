@@ -371,8 +371,8 @@ export const ARTIFACTS: Artifact[] = [
         name: '金丝手套',
         description: '天工锻造的金丝手套，空手亦可格挡兵刃。招架率+15%，空手可招架。',
         tags: ['defense', 'craft', 'parry'],
-        effects: [{ type: 'parry_mod', value: 0.15 }],
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'silk_guard' }] }],
+        // 招架率+15% 与「空手可招架」同属一件护手的效果，都挂在 silk_guard 上（一个 buff 一处口径）
+        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'silk_guard' }] }],
     },
     {
         id: 'herb_pouch',

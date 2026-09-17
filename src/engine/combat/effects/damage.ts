@@ -337,9 +337,6 @@ function resolveParry(
 
     // ── 2. 招架概率 ──
     let pc = calcParryChance(target.attrs.get('dexterity'), target.attrs.get('insight'))
-    if (target.parryMod) {
-        pc = pc + target.parryMod
-    }
     if (act) {
         forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
             if (!def?.onParryChance) return

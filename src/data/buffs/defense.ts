@@ -168,11 +168,20 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'silk_guard',
         name: '金丝护手',
-        description: '金丝手套护持，无刃亦可格挡兵刃，缴械抗性+30%。',
+        description: '金丝手套护持，无刃亦可格挡兵刃。招架率+15%，缴械抗性+30%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onCanParry: () => true,
         onDisarmChance: () => -0.3,
+        onParryChance: () => 0.15,
+    },
+    {
+        id: 'shenxing_baibian_buff',
+        name: '神行百变',
+        description: '身形飘忽百变，闪避率+4%。',
+        tags: ['defense'],
+        expiry: { type: 'permanent' },
+        onDodgeChance: () => 0.04,
     },
     {
         id: 'paralyze_immunity',

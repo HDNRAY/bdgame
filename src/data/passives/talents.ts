@@ -5,12 +5,17 @@ export const TALENTS: Talent[] = [
     {
         id: 'ling_bo_wei_bu',
         name: '凌波微步',
-        description: '绝世轻功，身法达到一定境界后自然领悟。步法精妙，身法不低于15。',
+        description: '绝世轻功，身法达到一定境界后自然领悟。步法精妙，身法不低于16。',
         tags: ['talent', 'buff'],
         requireAttrsMin: { agility: 20 },
         effects: [
-            { type: 'attr_floor', attrs: { agility: 16 } },
             { type: 'haste', value: 200 },
+            // 身法不低于 16：战中被减身法时兜住（与「洞察降低减半」同一套 stat_restriction 机制）
+            {
+                type: 'stat_restriction',
+                check: (_char, attr, current, delta) =>
+                    attr === 'agility' && delta < 0 && current + delta < 16 ? { delta: 16 - current } : null,
+            },
         ],
         triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'min_move_cost' }] }],
     },

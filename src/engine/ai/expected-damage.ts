@@ -178,15 +178,17 @@ export function calcExpectedDamage(
     let critTakenDamageMod = 0
     let cannotBeParried = false
     let buffCanParry: boolean | undefined
+    let dodgeMod = 0
+    let parryMod = 0
     const critHooks: { def: BuffDef; layer: BuffLayer }[] = []
     forEachBuffOf(safeState.pendingBuffs, [safeAtk.id, safeDef.id], (def, layer, _b, _k, ownerId) => {
         if (!def) return
         const ctx = { final: 0, raw: 0, target: safeDef, attacker: safeAtk, state: safeState, layer, source: action }
         // onAction 必须在其他钩子之前调用（如抽刀断水需要先算 diff）
         if (ownerId === safeAtk.id && def.onAction) def.onAction(ctx)
-        if (ownerId === safeDef.id && def.onDodgeChance) safeDef.dodgeMod += def.onDodgeChance(ctx)
+        if (ownerId === safeDef.id && def.onDodgeChance) dodgeMod += def.onDodgeChance(ctx)
         if (ownerId === safeAtk.id && def.onHitChance) hitMod += def.onHitChance(ctx)
-        if (ownerId === safeDef.id && def.onParryChance) safeDef.parryMod += def.onParryChance(ctx)
+        if (ownerId === safeDef.id && def.onParryChance) parryMod += def.onParryChance(ctx)
         if (ownerId === safeAtk.id && def.onCritChance) critChanceMod += def.onCritChance(ctx)
         if (ownerId === safeAtk.id && def.onCritDamage) critDamageMod += def.onCritDamage(ctx)
         // 防御方降被暴击率/被爆伤（逆转经脉、百纳珠等）
@@ -221,7 +223,7 @@ export function calcExpectedDamage(
         attackerInsight: safeAtk.attrs.get('insight'),
         defenderAgility: safeDef.attrs.get('agility'),
         defenderInsight: safeDef.attrs.get('insight'),
-        defenderDodgeMod: safeDef.dodgeMod,
+        defenderDodgeMod: dodgeMod,
     })
     const hitChance = (action.onActionHitChance?.(baseHc, state, attacker) ?? baseHc) + hitMod
 
@@ -234,7 +236,7 @@ export function calcExpectedDamage(
     const parryChance =
         hasIgnoreParry || cannotBeParried || !canParry
             ? 0
-            : calcParryChance(safeDef.attrs.get('dexterity'), safeDef.attrs.get('insight')) + safeDef.parryMod
+            : calcParryChance(safeDef.attrs.get('dexterity'), safeDef.attrs.get('insight')) + parryMod
     // 防御方降被暴击率修正暴击率（引擎 resolveCrit 中 onCritTakenChance 同向累加）
     const rawCrit = calcCritChance(
         safeAtk.attrs.get('dexterity'),
