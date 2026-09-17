@@ -1,7 +1,7 @@
-import type { AttrName } from './attributes'
-import type { EffectDef } from './action'
-import type { Character } from './character'
-import { getWeapon } from '../../data/weapons/weapons'
+import type { AttrName } from '../attributes'
+import type { EffectDef } from '../action'
+import type { Character } from '.'
+import { getWeapon } from '../../../data/weapons/weapons'
 
 /**
  * 构造期效果分发表（无战斗上下文）。

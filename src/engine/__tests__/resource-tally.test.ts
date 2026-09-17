@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { Character } from '../entities/character'
-import { emptyResourceTally } from '../entities/resource-tally'
+import { emptyResourceTally } from '../entities/character/resource-tally'
 import { runBattle } from '../battle-runner'
 import { gen, LUEYING, TANGROU, XUNXIANG } from '../../data/opponents/index'
 import { MAX_CHAN } from '../constants'

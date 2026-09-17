@@ -1,5 +1,5 @@
-import type { CharacterBuild } from '../../game/entities/character-build'
-import { checkTalents } from '../../game/talent-check'
+import type { CharacterBuild } from '../../../game/entities/character-build'
+import { checkTalents } from '../../../game/talent-check'
 
 /** 构筑里的奖励按类型分好类 */
 export interface CollectedRewards {

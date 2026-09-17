@@ -1,8 +1,8 @@
-import { Action, type ActionDefinition } from './action'
-import type { TriggerSlot } from './trigger'
-import type { CharacterBuild } from '../../game/entities/character-build'
-import { getAction as getActionDef } from '../../data/actions'
-import { getWeapon } from '../../data/weapons/weapons'
+import { Action, type ActionDefinition } from '../action'
+import type { TriggerSlot } from '../trigger'
+import type { CharacterBuild } from '../../../game/entities/character-build'
+import { getAction as getActionDef } from '../../../data/actions'
+import { getWeapon } from '../../../data/weapons/weapons'
 
 /**
  * 构造期生成招式缓存，顺序与原构造流程一致：

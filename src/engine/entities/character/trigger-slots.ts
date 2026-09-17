@@ -1,6 +1,6 @@
-import type { TriggerSlot } from './trigger'
-import type { CharacterBuild } from '../../game/entities/character-build'
-import { TRIGGER_CONDITIONS } from '../../data/triggers'
+import type { TriggerSlot } from '../trigger'
+import type { CharacterBuild } from '../../../game/entities/character-build'
+import { TRIGGER_CONDITIONS } from '../../../data/triggers'
 
 /**
  * 把 `build.actionConfigs` 的 `triggerId` 编译成触发槽（构造期算一次，战斗期间固定）。
