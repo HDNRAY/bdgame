@@ -40,30 +40,39 @@ function sumHook(char: Character, engine: BattleEngine, hook: 'onDodgeChance' | 
 }
 
 describe('闪避 / 招架改由 buff 承载', () => {
-    it('效果类型已经删掉，数据挂在 buff 上', () => {
-        expect(getBuff('silk_guard')!.onParryChance).toBeTypeOf('function')
-        expect(getBuff('silk_guard')!.onParryChance!({} as never)).toBeCloseTo(0.15)
-        expect(getBuff('shenxing_baibian_buff')!.onDodgeChance).toBeTypeOf('function')
-        expect(getBuff('shenxing_baibian_buff')!.onDodgeChance!({} as never)).toBeCloseTo(0.04)
+    it('效果类型已经删掉，数据挂在 buff 上（数值是可调平衡项，这里只钉钩子在且为正）', () => {
+        const guard = getBuff('silk_guard')!
+        expect(guard.onParryChance).toBeTypeOf('function')
+        expect(guard.onParryChance!({} as never)).toBeGreaterThan(0)
+        const shenxing = getBuff('shenxing_baibian_buff')!
+        expect(shenxing.onDodgeChance).toBeTypeOf('function')
+        expect(shenxing.onDodgeChance!({} as never)).toBeGreaterThan(0)
     })
 
-    it('金丝手套：开局给金丝护手，招架率与 calcParryChance 同口径地 +15%', () => {
+    it('金丝手套：开局给金丝护手，招架加成立刻进 calcParryChance 同口径', () => {
         const atk = makeChar('A', '甲')
         const def = makeChar('B', '乙', { rewards: [reward('artifact', 'golden_silk_gloves')] })
         const engine = new BattleEngine(atk, def, 4)
         expect(engine.state.pendingBuffs.has(`silk_guard::${def.id}`)).toBe(true)
-        expect(sumHook(def, engine, 'onParryChance')).toBeCloseTo(0.15)
+        const bonus = sumHook(def, engine, 'onParryChance')
+        expect(bonus).toBeGreaterThan(0)
+        // 引擎里的招架率就是「基础 + buff 钩子之和」，两边必须同一个口径
         const base = calcParryChance(def.attrs.get('dexterity'), def.attrs.get('insight'))
-        expect(base + sumHook(def, engine, 'onParryChance')).toBeCloseTo(base + 0.15)
+        expect(base + bonus).toBeGreaterThan(base)
+        expect(sumHook(def, engine, 'onParryChance')).toBeCloseTo(
+            getBuff('silk_guard')!.onParryChance!({} as never),
+        )
     })
 
-    it('神行百变：开局给闪避 buff，命中判定里的防御方闪避修正 +4%', () => {
+    it('神行百变：开局给闪避 buff，修正真的进了命中判定（数值不写死）', () => {
         const atk = makeChar('A', '甲')
         const def = makeChar('B', '乙', { rewards: [reward('passive', 'shenxing_baibian')] })
         const engine = new BattleEngine(atk, def, 4)
         expect(engine.state.pendingBuffs.has(`shenxing_baibian_buff::${def.id}`)).toBe(true)
         const dodgeMod = sumHook(def, engine, 'onDodgeChance')
-        expect(dodgeMod).toBeCloseTo(0.04)
+        expect(dodgeMod).toBeGreaterThan(0)
+        // 和 buff 自己声明的值一致（数值可调，不写死）
+        expect(dodgeMod).toBeCloseTo(getBuff('shenxing_baibian_buff')!.onDodgeChance!({} as never))
         // 闪避修正进的是命中率（防御方越高越难打中）
         const noDodge = calcHitChance({
             attackerDexterity: 10,

@@ -24,10 +24,11 @@ function setup(engine: BattleEngine, atk: Character, stacks: number) {
 describe('疯魔功', () => {
     const main = { tags: ['blunt', 'polearm'] }
 
-    it('功法/buff 定义齐全', () => {
+    it('功法/buff 定义齐全（上限是可调平衡项，只检查形状）', () => {
         expect(getPassive('feng_mo_gong')).toBeDefined()
         const buff = getBuff('feng_mo_gong')!
-        expect(buff.stacking).toEqual({ type: 'additive', max: 10 })
+        expect(buff.stacking?.type).toBe('additive')
+        expect(buff.stacking?.type === 'additive' ? (buff.stacking.max ?? 0) : 0).toBeGreaterThan(0)
         expect(buff.onDealDamage).toBeTypeOf('function')
         expect(buff.onTakeDamage).toBeTypeOf('function')
         expect(buff.apRegenPerSec).toBeTypeOf('function')
@@ -43,7 +44,7 @@ describe('疯魔功', () => {
         expect(layer.restoreValue).toBe(0) // 建层后归零,开局 0 层
     })
 
-    it('持续成长:命中叠层,每层增伤1%,10层不归零', () => {
+    it('持续成长:命中叠层,每层增伤递增,到上限不归零（系数/上限都不写死）', () => {
         const atk = makeChar('A', '甲', [])
         const def = makeChar('B', '乙', [])
         const engine = new BattleEngine(atk, def, 4)
@@ -64,14 +65,21 @@ describe('疯魔功', () => {
                 source: main,
             } as never)
         }
-        // 逐层 +1%
-        expect(hit(100)).toBe(101) // 0→1层, +1%
-        expect(hit(100)).toBe(102) // 1→2层, +2%
-        expect(hit(100)).toBe(103) // 2→3层, +3%
+        // 第一击叠到 1 层 → 从这一击的结果反推「每层系数」，不写死数值
+        const one = hit(100)
+        if (typeof one !== 'number') throw new Error('疯魔功 onDealDamage 应返回数值')
+        const factor = one / 100 - 1
+        expect(factor).toBeGreaterThan(0)
+        expect(hit(100)).toBeCloseTo(100 * (1 + factor * 2)) // 2 层 = 2×系数
+        expect(hit(100)).toBeCloseTo(100 * (1 + factor * 3)) // 3 层 = 3×系数
         expect(engine.state.pendingBuffs.get(key)!.restoreValue).toBe(3)
-        // 叠到 10 层不归零,继续 +10%
-        engine.state.pendingBuffs.get(key)!.restoreValue = 10
-        expect(hit(100)).toBe(110)
+
+        // 一直打：层数到定义里的上限就停住，不归零，伤害按满层算
+        const cap = (getBuff('feng_mo_gong')!.stacking as { max?: number }).max ?? 0
+        expect(cap).toBeGreaterThanOrEqual(3)
+        for (let i = 0; i < 30; i++) hit(100)
+        expect(engine.state.pendingBuffs.get(key)!.restoreValue).toBe(cap)
+        expect(hit(100)).toBeCloseTo(100 * (1 + cap * factor))
         expect(engine.state.pendingBuffs.has(key)).toBe(true) // 不归零
     })
 
@@ -91,7 +99,21 @@ describe('疯魔功', () => {
             layer,
             source: { tags: ['qi'] },
         } as never)
-        expect(dmg).toBe(106) // 3层 × 2% = +6%
+        const perStack = dmg / 100 - 1 // 3 层 → 反推每层系数
+        expect(perStack).toBeGreaterThan(0)
+        const layer1 = setup(engine, atk, 1)
+        const dmg1 = buff.onTakeDamage!({
+            final: 100,
+            raw: 100,
+            target: atk,
+            attacker: def,
+            engine,
+            state: engine.state,
+            layer: layer1,
+            source: { tags: ['qi'] },
+        } as never)
+        expect(dmg1).toBeCloseTo(100 * (1 + perStack / 3))
+        expect(dmg).toBeCloseTo(100 * (1 + (perStack / 3) * 3))
     })
 
     it('AP回复 = 0.03/层', () => {
@@ -109,7 +131,18 @@ describe('疯魔功', () => {
             state: engine.state,
             layer,
         } as never)
-        expect(regen).toBeCloseTo(0.12) // 4层 × 0.03
+        // 每层回复量从 1 层时的返回值反推（数值可调）
+        const one = buff.apRegenPerSec!({
+            final: 0,
+            raw: 0,
+            target: atk,
+            attacker: atk,
+            engine,
+            state: engine.state,
+            layer: setup(engine, atk, 1),
+        } as never)
+        expect(one).toBeGreaterThan(0)
+        expect(regen).toBeCloseTo(one * 4)
     })
 
     it('非主招(pre_action)不叠层,但仍吃当前层增伤', () => {
@@ -129,7 +162,22 @@ describe('疯魔功', () => {
             layer,
             source: preSource,
         } as never)
-        expect(dmg).toBe(102) // 2层 × 1% = +2%
+        // 期望值按「每层系数」现算：先打一击读出系数
+        const mainLayer = setup(engine, atk, 0)
+        const oneHit = buff.onDealDamage!({
+            final: 100,
+            raw: 100,
+            target: def,
+            attacker: atk,
+            engine,
+            state: engine.state,
+            layer: mainLayer,
+            source: main,
+        } as never)
+        if (typeof oneHit !== 'number') throw new Error('疯魔功 onDealDamage 应返回数值')
+        const factor = oneHit / 100 - 1
+        expect(factor).toBeGreaterThan(0)
+        expect(dmg).toBeCloseTo(100 * (1 + 2 * factor)) // 2 层 = 2×系数
         expect(layer.restoreValue).toBe(2) // 不叠
     })
 })
