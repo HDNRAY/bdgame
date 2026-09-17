@@ -3,10 +3,18 @@
     flex-direction: column;
     gap: var(--sp-md);
 
+    /* 顶部一排控件：空间不够时整项换行，别把标签里的字挤成竖排 */
     &-toolbar {
         display: flex;
         align-items: center;
-        gap: var(--sp-md);
+        gap: var(--sp-sm);
+        row-gap: var(--sp-xs);
+        flex-wrap: wrap;
+
+        > label,
+        > span {
+            white-space: nowrap;
+        }
     }
 
     &-toggle {
@@ -28,7 +36,8 @@
         font-size: var(--font-sm);
 
         .ss {
-            width: 11rem;
+            /* 窄一点才能在 1440 宽下把顶部控件排成一排（武器名最长 6~7 字） */
+            width: 8rem;
         }
 
         .ss-input {
@@ -61,6 +70,7 @@
         color: var(--color-text-dim);
     }
 
+    /* 左：像素信息 / 颜色统计（竖排固定宽）；右：姿势帧图（占满剩余） */
     &-body {
         display: flex;
         gap: var(--sp-lg);
@@ -68,6 +78,8 @@
     }
 
     &-frames {
+        flex: 1 1 auto;
+        min-width: 0;
         display: flex;
         gap: var(--sp-md);
         flex-wrap: wrap;
@@ -130,9 +142,7 @@
     }
 
     &-panel {
-        flex: 1;
-        min-width: 220px;
-        max-width: 320px;
+        flex: 0 0 260px;
         padding: var(--sp-md);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-md);
@@ -154,6 +164,13 @@
         display: flex;
         flex-direction: column;
         gap: var(--sp-xs);
+
+        /* 常驻的画布/内容尺寸：和下面的悬停信息之间留一道分隔 */
+        &--canvas {
+            margin-bottom: var(--sp-sm);
+            padding-bottom: var(--sp-xs);
+            border-bottom: 1px solid var(--color-border);
+        }
     }
 
     &-info-row {

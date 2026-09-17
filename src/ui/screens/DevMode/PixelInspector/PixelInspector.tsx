@@ -399,9 +399,6 @@ export function PixelInspector() {
                     />
                     <span className="pixel-inspector-size">{zoom}x</span>
                 </label>
-                <span className="pixel-inspector-size">
-                    {width}×{height} 内容 · 画布 {canvasCols}×{canvasRows}
-                </span>
             </div>
 
             {!hasWeaponArt && (
@@ -418,6 +415,94 @@ export function PixelInspector() {
             )}
 
             <div className="pixel-inspector-body">
+                <aside className="pixel-inspector-panel">
+                    <h3 className="pixel-inspector-panel-title">像素信息</h3>
+
+                    <dl className="pixel-inspector-info pixel-inspector-info--canvas">
+                        <div className="pixel-inspector-info-row">
+                            <dt>画布</dt>
+                            <dd>
+                                {canvasCols}×{canvasRows}
+                            </dd>
+                        </div>
+                        <div className="pixel-inspector-info-row">
+                            <dt>内容</dt>
+                            <dd>
+                                {width}×{height}
+                            </dd>
+                        </div>
+                    </dl>
+
+                    {activeInfo ? (
+                        <dl className="pixel-inspector-info">
+                            <div className="pixel-inspector-info-row">
+                                <dt>来源</dt>
+                                <dd>{activeSource}</dd>
+                            </div>
+                            <div className="pixel-inspector-info-row">
+                                <dt>坐标</dt>
+                                <dd>
+                                    ({activeInfo.x}, {activeInfo.y})
+                                </dd>
+                            </div>
+                            <div className="pixel-inspector-info-row">
+                                <dt>索引</dt>
+                                <dd>
+                                    <code>{activeInfo.idx}</code>
+                                </dd>
+                            </div>
+                            <div className="pixel-inspector-info-row">
+                                <dt>颜色</dt>
+                                <dd className="pixel-inspector-color-cell">
+                                    <span
+                                        className="pixel-inspector-swatch"
+                                        style={{
+                                            background:
+                                                activeInfo.color === 'transparent' ? 'transparent' : activeInfo.color,
+                                        }}
+                                    />
+                                    <code>{activeInfo.color}</code>
+                                </dd>
+                            </div>
+                            <div className="pixel-inspector-info-row">
+                                <dt>使用</dt>
+                                <dd>
+                                    {activeInfo.count} 像素（{(activeInfo.ratio * 100).toFixed(1)}%）
+                                </dd>
+                            </div>
+                        </dl>
+                    ) : (
+                        <p className="pixel-inspector-hint">将鼠标悬停在画布上查看像素信息</p>
+                    )}
+
+                    {Object.values(locked).some(Boolean) && (
+                        <button className="pixel-inspector-unlock" onClick={() => setLocked({})}>
+                            清除锁定（双击也可）
+                        </button>
+                    )}
+
+                    <h3 className="pixel-inspector-panel-title pixel-inspector-panel-title--stats">颜色统计（idle）</h3>
+                    <ul className="pixel-inspector-stats">
+                        {[...colorStats.entries()]
+                            .sort((a, b) => b[1] - a[1])
+                            .map(([idx, count]) => {
+                                const color = palette[String(idx)] ?? palette['0'] ?? 'transparent'
+                                return (
+                                    <li key={idx} className="pixel-inspector-stats-item">
+                                        <span
+                                            className="pixel-inspector-swatch"
+                                            style={{ background: color === 'transparent' ? 'transparent' : color }}
+                                        />
+                                        <code>{idx}</code>
+                                        <span className="pixel-inspector-stats-hex">{color}</span>
+                                        <span className="pixel-inspector-stats-count">
+                                            {count}（{((count / (width * height)) * 100).toFixed(1)}%）
+                                        </span>
+                                    </li>
+                                )
+                            })}
+                    </ul>
+                </aside>
                 <div className="pixel-inspector-frames">
                     {frames.map(([name, pixels]) => (
                         <figure key={name} className="pixel-inspector-frame">
@@ -506,79 +591,6 @@ export function PixelInspector() {
                     </figure>
                 </div>
 
-                <aside className="pixel-inspector-panel">
-                    <h3 className="pixel-inspector-panel-title">像素信息</h3>
-
-                    {activeInfo ? (
-                        <dl className="pixel-inspector-info">
-                            <div className="pixel-inspector-info-row">
-                                <dt>来源</dt>
-                                <dd>{activeSource}</dd>
-                            </div>
-                            <div className="pixel-inspector-info-row">
-                                <dt>坐标</dt>
-                                <dd>
-                                    ({activeInfo.x}, {activeInfo.y})
-                                </dd>
-                            </div>
-                            <div className="pixel-inspector-info-row">
-                                <dt>索引</dt>
-                                <dd>
-                                    <code>{activeInfo.idx}</code>
-                                </dd>
-                            </div>
-                            <div className="pixel-inspector-info-row">
-                                <dt>颜色</dt>
-                                <dd className="pixel-inspector-color-cell">
-                                    <span
-                                        className="pixel-inspector-swatch"
-                                        style={{
-                                            background:
-                                                activeInfo.color === 'transparent' ? 'transparent' : activeInfo.color,
-                                        }}
-                                    />
-                                    <code>{activeInfo.color}</code>
-                                </dd>
-                            </div>
-                            <div className="pixel-inspector-info-row">
-                                <dt>使用</dt>
-                                <dd>
-                                    {activeInfo.count} 像素（{(activeInfo.ratio * 100).toFixed(1)}%）
-                                </dd>
-                            </div>
-                        </dl>
-                    ) : (
-                        <p className="pixel-inspector-hint">将鼠标悬停在画布上查看像素信息</p>
-                    )}
-
-                    {Object.values(locked).some(Boolean) && (
-                        <button className="pixel-inspector-unlock" onClick={() => setLocked({})}>
-                            清除锁定（双击也可）
-                        </button>
-                    )}
-
-                    <h3 className="pixel-inspector-panel-title pixel-inspector-panel-title--stats">颜色统计（idle）</h3>
-                    <ul className="pixel-inspector-stats">
-                        {[...colorStats.entries()]
-                            .sort((a, b) => b[1] - a[1])
-                            .map(([idx, count]) => {
-                                const color = palette[String(idx)] ?? palette['0'] ?? 'transparent'
-                                return (
-                                    <li key={idx} className="pixel-inspector-stats-item">
-                                        <span
-                                            className="pixel-inspector-swatch"
-                                            style={{ background: color === 'transparent' ? 'transparent' : color }}
-                                        />
-                                        <code>{idx}</code>
-                                        <span className="pixel-inspector-stats-hex">{color}</span>
-                                        <span className="pixel-inspector-stats-count">
-                                            {count}（{((count / (width * height)) * 100).toFixed(1)}%）
-                                        </span>
-                                    </li>
-                                )
-                            })}
-                    </ul>
-                </aside>
             </div>
         </div>
     )
