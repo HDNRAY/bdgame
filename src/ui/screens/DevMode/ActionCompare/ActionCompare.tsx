@@ -34,7 +34,9 @@ const ALL_AP = [0, 1, 2, 3, 4, 5]
 
 // 加分/惩罚系数
 // 射程/位移统一单价：位移 1 米 ≈ 射程 1 米（都能扩大这招的打击范围，同价计）
-const DIST_BONUS_PER_M = 0.3
+const DIST_BONUS_PER_M = 0.2
+/** 射程下限 0 = 贴脸也能打（被贴身不丢输出）的固定加分（旧口径等于 1 米射程） */
+const REACH_ZERO_BONUS = 0.3
 const SELF_DISARM_PENALTY = 1
 const MULTIHIT_PER_EXTRA = 0.25
 const MULTIHIT_CAP = 2
@@ -161,9 +163,9 @@ function buildRow(a: ActionDefinition, rawAp: number, chanNow: number): Row {
         if (e.type === 'short_dash') dashDist = Math.max(dashDist, e.maxDistance ?? 0)
         if (e.type === 'dash') dashDist = Math.max(dashDist, e.maxRange ?? 0)
     }
-    // 射程/位移同价：射程超 4m 每米 +0.3，短于 4m 每米 -0.3（0-1 贴脸短打减分）；位移每米 +0.3。
+    // 射程/位移同价：射程超 4m 每米 +0.2，短于 4m 每米 -0.2（0-1 贴脸短打减分）；位移每米 +0.2。
     // 射程下限 0 = 贴脸也能打（被贴身不丢输出）→ 额外 +0.3。
-    const reachZeroBonus = staticRange[0] <= 0 ? 0.3 : 0
+    const reachZeroBonus = staticRange[0] <= 0 ? REACH_ZERO_BONUS : 0
     const distanceBonus = Math.round((rangeMax - 4) * DIST_BONUS_PER_M * 100) / 100 + reachZeroBonus
     const dashBonus = Math.round(dashDist * DIST_BONUS_PER_M * 100) / 100
 
@@ -336,8 +338,8 @@ export function ActionCompare() {
             <p className="ac-note">
                 双方全属性 15 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。{' '}
                 {COMPARE_DEFENSE_NOTE}，期望伤已按防御方减伤折算。 效率 = 期望伤 /（折前AP + 缠成本）；缠成本按阈值感知模型折算（基准缠劲可调，默认 35：缠越满越便宜， 跌破 30/50
-                丢「周」buff 加重成本）。得分 = 效率 + 射程（4m 为基准，每±1m ∓0.3；射程下限 0 可贴脸打 +0.3）+
-                位移（每米+0.3，与射程同价） +{BUFF_SCORE_NOTE} + debuff（层×几率×权重）+ 缴械（×0.4）+ 击退
+                丢「周」buff 加重成本）。得分 = 效率 + 射程（4m 为基准，每±1m ∓{DIST_BONUS_PER_M}；射程下限 0 可贴脸打 +
+                {REACH_ZERO_BONUS}）+ 位移（每米+{DIST_BONUS_PER_M}，与射程同价） +{BUFF_SCORE_NOTE} + debuff（层×几率×权重）+ 缴械（×0.4）+ 击退
                 （距离×0.2） + 汲取（stat_transfer 每点×1.5）+ 斩杀（25% 斩杀档提升）+ 多段（每段+0.25 封顶+2）−
                 自缴械（−1）− 自耗血（比例×10）。
             </p>

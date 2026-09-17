@@ -9,8 +9,11 @@ import type { CharacterBuild } from '../../game/entities/character-build'
 import type { Reward } from '../../game/entities/reward'
 
 /**
- * 急速改成「与身法同刻度」（1 点 = 1%），数值整体 ÷10：
- * 20 急速 = 原来 200 急速的效果。急速不再是一种 EffectDef，全部由 buff 的 onHaste 钩子承载。
+ * 急速改成「与身法同刻度」（1 点 = 1%），数值整体 ÷10；
+ * 急速不再是一种 EffectDef，全部由 buff 的 onHaste 钩子承载。
+ *
+ * 注意：这里只钉**机制**（同刻度、共享上限、每个 buff 的钩子形状），不钉具体数值 ——
+ * 数值是可调平衡项，改了不该让测试变红。
  */
 function makeChar(id: string, attrs: Partial<Record<string, number>> = {}, rewards: Reward[] = []): Character {
     return new Character({
@@ -42,7 +45,7 @@ function onHasteOf(buffId: string, stacks: number, target?: Character): number {
 }
 
 describe('急速与身法同刻度', () => {
-    it('1 点 = 1%：20 急速就等于原来 200 急速的效果', () => {
+    it('1 点 = 1%：20 急速就等于原来 200 急速的效果（20% 减免）', () => {
         expect(calcApCostReduction(0, 20)).toBeCloseTo(0.2)
         expect(calcApCostReduction(20, 0)).toBeCloseTo(0.2)
         expect(calcApCostReduction(20, 16)).toBeCloseTo(0.36)
@@ -55,36 +58,45 @@ describe('急速与身法同刻度', () => {
 })
 
 describe('急速全部由 buff 承载', () => {
-    it('数值：凌波微步 16 / 风切 12 / 追星每层 4 / 神行百变 10+推演÷2', () => {
-        expect(onHasteOf('ling_bo_wei_bu_buff', 1)).toBe(16)
-        expect(onHasteOf('ninja_sword_haste', 1)).toBe(12)
-        expect(onHasteOf('zhuixing', 1)).toBe(4)
-        expect(onHasteOf('zhuixing', 2)).toBe(8)
-        const c = makeChar('A', { wisdom: 20 })
-        expect(onHasteOf('shenxing_baibian_buff', 1, c)).toBeCloseTo(20)
-        const c2 = makeChar('A', { wisdom: 4 })
-        expect(onHasteOf('shenxing_baibian_buff', 1, c2)).toBeCloseTo(12)
+    it('凌波微步 / 风切：固定值（与推演无关）且为正', () => {
+        const low = makeChar('A', { wisdom: 4 })
+        const high = makeChar('B', { wisdom: 20 })
+        for (const id of ['ling_bo_wei_bu_buff', 'ninja_sword_haste']) {
+            const v = onHasteOf(id, 1, low)
+            expect(v, id).toBeGreaterThan(0)
+            expect(onHasteOf(id, 1, high), id).toBeCloseTo(v) // 不吃推演
+        }
     })
 
-    it('战斗里真的挂上、并且按新刻度减免招式成本（凌波微步：身法20 + 急速16 = 36%）', () => {
-        const me = makeChar('A', { agility: 20 }, [passive('ling_bo_wei_bu')])
-        const engine = new BattleEngine(me, makeChar('B'), 4)
-        const { engine: after } = runBattle(me, makeChar('B'), undefined, 4, true)
-        const self = after.state.characters[0]
-        void engine
-        expect(after.state.pendingBuffs.has(`ling_bo_wei_bu_buff::${self.id}`)).toBe(true)
-        expect(self.getHaste(after.state)).toBeCloseTo(16)
-        const raw = self.attrs.get('agility') + self.getHaste(after.state)
-        expect(calcApCostReduction(self.attrs.get('agility'), self.getHaste(after.state))).toBeCloseTo(Math.min(0.4, raw * 0.01))
-        expect(calcActionCostAfterSpeed(4, self.attrs.get('agility'), self.getHaste(after.state))).toBeLessThan(4)
+    it('追星：与层数成正比', () => {
+        expect(onHasteOf('zhuixing', 2)).toBeCloseTo(onHasteOf('zhuixing', 1) * 2)
     })
 
-    it('风切（武器）走 on_equip，开战即有急速', () => {
-        const build: CharacterBuild = { ...makeChar('A').build, weapon: 'ninja_sword' }
-        const me = new Character(build)
-        const { engine } = runBattle(me, makeChar('B'), undefined, 4, true)
-        const self = engine.state.characters[0]
-        expect(engine.state.pendingBuffs.has(`ninja_sword_haste::${self.id}`)).toBe(true)
-        expect(self.getHaste(engine.state)).toBeCloseTo(12)
+    it('神行百变：实时读推演，斜率 1/2（推演 +4 → 急速 +2）', () => {
+        const a = onHasteOf('shenxing_baibian_buff', 1, makeChar('A', { wisdom: 8 }))
+        const b = onHasteOf('shenxing_baibian_buff', 1, makeChar('B', { wisdom: 12 }))
+        expect(b - a).toBeCloseTo(2)
+        expect(a).toBeGreaterThan(0)
+    })
+
+    it('战斗里真的挂上、并且真的减免招式成本（凌波微步 / 风切）', () => {
+        const viaTalent = runBattle(makeChar('A', { agility: 20 }, [passive('ling_bo_wei_bu')]), makeChar('B'), undefined, 4, true)
+        const self = viaTalent.engine.state.characters[0]
+        expect(viaTalent.engine.state.pendingBuffs.has(`ling_bo_wei_bu_buff::${self.id}`)).toBe(true)
+        const haste = self.getHaste(viaTalent.engine.state)
+        expect(haste).toBeGreaterThan(0)
+        expect(calcActionCostAfterSpeed(4, self.attrs.get('agility'), haste)).toBeLessThan(4)
+
+        const viaWeapon = runBattle(new Character({ ...makeChar('A').build, weapon: 'ninja_sword' }), makeChar('B'), undefined, 4, true)
+        const w = viaWeapon.engine.state.characters[0]
+        expect(viaWeapon.engine.state.pendingBuffs.has(`ninja_sword_haste::${w.id}`)).toBe(true)
+        expect(w.getHaste(viaWeapon.engine.state)).toBeGreaterThan(0)
+    })
+
+    it('急速只来自 buff：没有 state 时算 0，开战后由钩子层提供', () => {
+        const c = makeChar('A', { agility: 20 }, [passive('ling_bo_wei_bu')])
+        expect(c.getHaste()).toBe(0) // 构造期不再有 flat 急速
+        const engine = new BattleEngine(c, makeChar('B'), 4)
+        expect(c.getHaste(engine.state)).toBeGreaterThan(0) // battle_start 的 buff 已挂
     })
 })
