@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { useNavigate } from 'react-router-dom'
 import type { CharacterBuild } from '../../../game/entities/character-build'
@@ -136,7 +137,7 @@ export function CharacterPanel({
 
     // 拖拽排序：指针按住手柄上下拖。
     // 行是 display:contents（量不到 rect），所以按「招式名单元格」的底边算落点，见 rowDrag.ts。
-    const [dragging, setDragging] = useState<{ from: number; over: number } | null>(null)
+    const [dragging, setDragging] = useState<{ from: number; over: number; x: number; y: number } | null>(null)
 
     function rowBottoms(): number[] {
         const cells = tableRef.current?.querySelectorAll('.cp-row > .cp-col-name') ?? []
@@ -146,10 +147,10 @@ export function CharacterPanel({
     function startDrag(index: number) {
         return (e: React.PointerEvent) => {
             e.preventDefault()
-            setDragging({ from: index, over: index })
+            setDragging({ from: index, over: index, x: e.clientX, y: e.clientY })
             const onMove = (ev: PointerEvent) => {
                 const to = rowIndexAtY(rowBottoms(), ev.clientY)
-                if (to >= 0) setDragging((d) => (d ? { ...d, over: to } : d))
+                setDragging((d) => (d && to >= 0 ? { ...d, over: to, x: ev.clientX, y: ev.clientY } : d))
             }
             const onUp = (ev: PointerEvent) => {
                 window.removeEventListener('pointermove', onMove)
@@ -210,6 +211,18 @@ export function CharacterPanel({
             )}
 
             {isBuild && saveError && <div className="cp-error">{saveError}</div>}
+
+            {/* 拖拽时跟随指针的「块块」：行是 display:contents 移不动，所以单画一个浮层（portal 到 body，避免被裁切） */}
+            {dragging &&
+                createPortal(
+                    <div className="cp-drag-ghost" style={{ left: dragging.x, top: dragging.y }}>
+                        <span className="cp-drag-ghost-name">
+                            {getAction(actionConfigs[dragging.from]?.actionId)?.name ?? '招式'}
+                        </span>
+                        <span className="cp-drag-ghost-pos">第 {dragging.over + 1} 位</span>
+                    </div>,
+                    document.body,
+                )}
 
             <div className="cp-body">
                 {/* 左栏：区块1+4 */}

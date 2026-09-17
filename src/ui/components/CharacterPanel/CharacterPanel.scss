@@ -380,13 +380,37 @@
     }
 }
 
-/* 拖拽：目标行加底色指示落点；源行淡出 */
+/* 拖拽：目标行高亮指示落点；源行淡出 */
 .cp-row.over > span {
-    background: var(--color-bg-alt);
+    background: var(--color-bg-hover);
 }
 
 .cp-row.dragging > span {
-    opacity: 0.5;
+    opacity: 0.45;
+}
+
+/* 跟随指针的拖拽块块 */
+.cp-drag-ghost {
+    position: fixed;
+    z-index: 10002;
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-xs);
+    padding: 2px var(--sp-xs);
+    transform: translate(-50%, -140%);
+    pointer-events: none;
+    font-size: var(--font-sm);
+    font-family: var(--font-family-base);
+    background: var(--color-bg-panel);
+    color: var(--color-text);
+    border: var(--border-width) solid var(--color-accent);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+
+    .cp-drag-ghost-pos {
+        font-size: var(--font-xs);
+        color: var(--color-accent);
+    }
 }
 
 .cp-table-header > span {
