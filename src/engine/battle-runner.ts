@@ -114,7 +114,8 @@ export function simulateWinRate(
         if (abortSignal?.aborted) break
         const a = new Character(buildA)
         const b = new Character(buildB)
-        const { winner } = runBattle(a, b, undefined, distance)
+        // quiet：批量模拟只要胜负，不需要回放日志（大会小组赛/淘汰赛的 NPC 对局走这里）
+        const { winner } = runBattle(a, b, undefined, distance, true)
         if (winner === buildA.id) aWins++
         else if (winner === buildB.id) bWins++
         else draws++

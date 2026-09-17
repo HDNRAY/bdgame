@@ -49,7 +49,8 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
         for (let i = 0; i < total; i++) {
             const a = new Character(buildA)
             const b = new Character(buildB)
-            const { winner } = runBattle(a, b, undefined, 6)
+            // quiet：这里只要 20 场的胜率，不需要回放日志
+            const { winner } = runBattle(a, b, undefined, 6, true)
             if (winner === buildA.id) aWins++
             else if (winner === buildB.id) bWins++
         }
