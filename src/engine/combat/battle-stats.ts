@@ -444,9 +444,10 @@ export class BattleStats {
         for (const c of chars) {
             if (c.taken <= 0) continue
             lines.push(`  ${nameOf(c.id)}  合计 ${r1(c.taken)}（减免 ${r1(c.mitigated)}）`)
-            const rows = [...c.takenByAction.entries()].sort((a, b) => b[1].amount - a[1].amount)
-            for (const [actionId, v] of rows) {
-                lines.push(`    ${v.actionName}(${actionId}): ${r1(v.amount)}`)
+            // 报告只显示招式名（内部 id 不给看）
+            const rows = [...c.takenByAction.values()].sort((a, b) => b.amount - a.amount)
+            for (const v of rows) {
+                lines.push(`    ${v.actionName}: ${r1(v.amount)}`)
             }
         }
 
