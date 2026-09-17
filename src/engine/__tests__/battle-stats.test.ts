@@ -193,7 +193,7 @@ describe('BattleStats 口径', () => {
         b.handle(hit(false))
         b.handle(damage({ final: 6 }))
 
-        const total = new BattleStats(1)
+        const total = BattleStats.accumulator(1)
         total.merge(a)
         total.merge(b)
         const p1 = total.chars.get('p1')!
@@ -205,6 +205,50 @@ describe('BattleStats 口径', () => {
         expect(p1.actions.get('a1')!.damage).toBe(16)
     })
 
+    it('样本场数：新建算 1 场，aggregator 从 0 起算，merge 逐场累加', () => {
+        expect(new BattleStats(1).battles).toBe(1)
+        const acc = BattleStats.accumulator(1)
+        expect(acc.battles).toBe(0)
+        acc.merge(new BattleStats(1))
+        acc.merge(new BattleStats(1))
+        acc.merge(new BattleStats(1))
+        expect(acc.battles).toBe(3)
+        expect(acc.snapshot().battles).toBe(3)
+    })
+
+    it('snapshot → fromSnapshot 往返一致，mergeSnapshots 等于直接 merge', () => {
+        const a = new BattleStats(2)
+        a.handle(attack({ chanCost: 3 }))
+        a.handle(hit(true))
+        a.handle(damage({ final: 10, tags: ['bonus_damage'] }))
+        a.setResources('p1', {
+            apSpent: 5,
+            apDrained: 0,
+            apGained: 6,
+            apWasted: 1,
+            chanGained: 9,
+            chanSpent: 3,
+            chanOverflow: 2,
+        })
+        const b = new BattleStats(2)
+        b.handle(attack({ actionId: 'a2', actionName: '乙招' }))
+        b.handle(hit(false))
+
+        const snapA = a.snapshot()
+        const snapB = b.snapshot()
+        expect(BattleStats.fromSnapshot(snapA).snapshot()).toEqual(snapA)
+        expect(BattleStats.mergeSnapshots([snapA, snapB]).snapshot()).toEqual(
+            (() => {
+                const acc = BattleStats.accumulator(2)
+                acc.merge(a)
+                acc.merge(b)
+                return acc.snapshot()
+            })(),
+        )
+        // 空列表不炸
+        expect(BattleStats.mergeSnapshots([]).battles).toBe(0)
+    })
+
     it('snapshot 把 Map 换成数组（跨到 UI 用）', () => {
         const s = new BattleStats(2)
         s.handle(attack())
@@ -213,6 +257,24 @@ describe('BattleStats 口径', () => {
         expect(snap.level).toBe(2)
         expect(snap.chars[0].actions[0].actionId).toBe('a1')
         expect(Array.isArray(snap.chars[0].takenByAction)).toBe(true)
+    })
+
+    it('命中率的分母是判定次数：连发一招多判，用出手当分母会超过 100%', () => {
+        const s = new BattleStats(1)
+        s.handle(attack()) // 1 次出手
+        s.handle(hit(true))
+        s.handle(hit(true))
+        s.handle(hit(true))
+        s.handle(hit(false)) // 共 4 次判定（1 次出手打出 4 段）
+        s.handle(damage({ final: 5 })) // 报告只列有输出的角色
+        const p1 = s.chars.get('p1')!
+        expect(p1.casts).toBe(1)
+        expect(p1.hits).toBe(3)
+        expect(p1.dodged).toBe(1)
+        const text = s.format({ p1: '甲' }).join('\n')
+        expect(text).toContain('出手 1  判定 4')
+        expect(text).toContain('命中 3（75.0%）')
+        expect(text).toContain('命中 3（判定 4）') // 按招式明细同口径
     })
 
     it('format 能出报告且包含关键分区', () => {

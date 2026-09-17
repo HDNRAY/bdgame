@@ -10,6 +10,8 @@ import { CharacterPanel } from '../../../components/CharacterPanel/CharacterPane
 import { SearchSelect, type SelectOption } from '../../../components/ui/SearchSelect/SearchSelect'
 import { runSeries, type SeriesJob, type SeriesResult } from './sim-core'
 import { BattlePanel } from '../../../components/BattlePanel/BattlePanel'
+import { BattleStatsPanel } from '../../../components/BattleStatsPanel/BattleStatsPanel'
+import { BattleStats, type BattleStatsSnapshot } from '../../../../engine/combat/battle-stats'
 import './BuildSim.scss'
 
 const SAVE_KEY = 'buildsim-save-v1'
@@ -98,6 +100,67 @@ function loadPersisted(): Persisted {
 /** 真正带条件（有生效闸门）的招式数，用于展示 A/B 两组到底差在哪 */
 const conditionCount = (configs: readonly ActionConfig[]): number => configs.filter((ac) => !!resolveCondition(ac)).length
 
+/**
+ * A/B 对照用的可比值：只取「我方」一个角色的数字，按场次折算。
+ * 口径与引擎一致（`battle-stats.ts`），这里只做换算，不重算判定。
+ */
+interface Metrics {
+    dealt: number
+    casts: number
+    hitRate: number | null
+    critRate: number | null
+    dodgeRate: number | null
+    parryRate: number | null
+    taken: number
+    apSpent: number
+    chanSpent: number
+    avgDist: number | null
+    closeRate: number | null
+    statusRate: number | null
+}
+
+function metricsOf(snap: BattleStatsSnapshot | undefined, selfId: string): Metrics | null {
+    if (!snap || snap.battles <= 0) return null
+    const c = snap.chars.find((x) => x.id === selfId)
+    if (!c) return null
+    const b = snap.battles
+    /** 分母为 0（没出手 / 没被判定过）时给 null，界面显示「—」而不是 0% */
+    const rate = (num: number, den: number): number | null => (den > 0 ? (num / den) * 100 : null)
+    // 命中判定的次数：连发/多段一招多判，所以命中率的分母是「判定」而不是「出手」（用出手会超过 100%）。
+    // 被招架只可能发生在命中之后 → 它的分母是命中。
+    const checks = c.hits + c.dodged
+    return {
+        dealt: c.dealt / b,
+        casts: c.casts / b,
+        hitRate: rate(c.hits, checks),
+        critRate: rate(c.crits, c.hits),
+        dodgeRate: rate(c.dodged, checks),
+        parryRate: rate(c.parried, c.hits),
+        taken: c.taken / b,
+        apSpent: c.res.apSpent / b,
+        chanSpent: c.res.chanSpent / b,
+        avgDist: c.distanceSamples > 0 ? c.distanceSum / c.distanceSamples : null,
+        closeRate: c.distanceSamples > 0 ? rate(c.closeSamples, c.distanceSamples) : null,
+        statusRate: c.statusTried > 0 ? rate(c.statusApplied, c.statusTried) : null,
+    }
+}
+
+/** A/B 指标行：`better` 决定「变大」是绿还是红（null = 中性，不判好坏） */
+const METRIC_ROWS: Array<{ key: keyof Metrics; label: string; digits: number; better: 'high' | 'low' | null }> = [
+    { key: 'dealt', label: '输出/场', digits: 1, better: 'high' },
+    { key: 'casts', label: '出手/场', digits: 2, better: null },
+    { key: 'hitRate', label: '命中率', digits: 1, better: 'high' },
+    { key: 'critRate', label: '暴击率', digits: 1, better: 'high' },
+    { key: 'dodgeRate', label: '被闪避率', digits: 1, better: 'low' },
+    { key: 'parryRate', label: '被招架率', digits: 1, better: 'low' },
+    { key: 'taken', label: '承伤/场', digits: 1, better: 'low' },
+    { key: 'apSpent', label: '内息消耗/场', digits: 1, better: null },
+    { key: 'chanSpent', label: '缠劲消耗/场', digits: 1, better: null },
+    { key: 'avgDist', label: '平均交战距离', digits: 2, better: null },
+    { key: 'closeRate', label: '1m 内占比', digits: 1, better: null },
+    { key: 'statusRate', label: '挂状态成功率', digits: 1, better: 'high' },
+]
+
 export function BuildSim() {
     const initial = useMemo(() => loadPersisted(), [])
     const [build, setBuild] = useState<CharacterBuild>(initial.build)
@@ -115,6 +178,8 @@ export function BuildSim() {
     const [nGames, setNGames] = useState(100)
     const [styleFilter, setStyleFilter] = useState<(typeof STYLE_FILTER)[number]['id']>('all')
     const [watchOppId, setWatchOppId] = useState<string | null>(null)
+    const [statsOppId, setStatsOppId] = useState<string | null>(null)
+    const [showOverallStats, setShowOverallStats] = useState(false)
     const abortRef = useRef<{ aborted: boolean }>({ aborted: false })
     const workersRef = useRef<Worker[]>([])
 
@@ -194,6 +259,8 @@ export function BuildSim() {
         setInitWeaponId('bare_hands')
         setBaseline(null)
         setWatchOppId(null)
+        setStatsOppId(null)
+        setShowOverallStats(false)
         setSim({ status: 'idle', mode: 'single', phase: '', results: {}, resultsA: {}, resultsB: {}, total: 0 })
         localStorage.removeItem(SAVE_KEY)
     }
@@ -286,6 +353,8 @@ export function BuildSim() {
             total: opponents.length,
         })
         setWatchOppId(null)
+        setStatsOppId(null)
+        setShowOverallStats(false)
 
         const jobs: SeriesJob[] = opponents.map((o) => ({ opponentId: o.id, n: nGames, level: ENEMY_LEVEL }))
         try {
@@ -316,6 +385,8 @@ export function BuildSim() {
             total: opponents.length,
         })
         setWatchOppId(null)
+        setStatsOppId(null)
+        setShowOverallStats(false)
 
         const jobs: SeriesJob[] = opponents.map((o) => ({ opponentId: o.id, n: nGames, level: ENEMY_LEVEL }))
         const buildA: CharacterBuild = { ...build, actionConfigs: baseline }
@@ -372,6 +443,32 @@ export function BuildSim() {
     const condCountA = baseline ? conditionCount(baseline) : 0
     const condCountB = conditionCount(build.actionConfigs ?? [])
     const watchDef = watchOppId ? OPPONENTS.find((o) => o.id === watchOppId) : null
+
+    // ── 统计（引擎产物，UI 只聚合与展示） ──
+    /** 多对手聚合时只留我方一列 —— 三十多个对手全摆出来没人看得清；看单个对手请用每行的「统计」 */
+    const selfOnly = (s: BattleStatsSnapshot): BattleStatsSnapshot => ({
+        ...s,
+        chars: s.chars.filter((c) => c.id === build.id),
+    })
+    const statsDef = statsOppId ? OPPONENTS.find((o) => o.id === statsOppId) : null
+    const statsRow = statsOppId ? sim.results[statsOppId] : undefined
+    /** 单轮全部对手合计：把每个对手的快照 merge 起来（口径与引擎一致） */
+    const overallStats = (() => {
+        if (!showOverallStats) return null
+        const merged = BattleStats.mergeSnapshots(
+            resultRows.map((x) => x.r.stats).filter((s): s is BattleStatsSnapshot => !!s),
+        ).snapshot()
+        return selfOnly(merged)
+    })()
+    /** A/B 两组同一批对手的合计统计（只统计两边都跑到的对手，保证可比） */
+    const abStats = (() => {
+        if (!isAb) return null
+        const rows = abRows.filter((x) => x.a.stats && x.b.stats)
+        if (rows.length === 0) return null
+        const a = BattleStats.mergeSnapshots(rows.map((x) => x.a.stats!)).snapshot()
+        const b = BattleStats.mergeSnapshots(rows.map((x) => x.b.stats!)).snapshot()
+        return { a, b, metricsA: metricsOf(a, build.id), metricsB: metricsOf(b, build.id) }
+    })()
 
     return (
         <div className="bsim">
@@ -564,6 +661,7 @@ export function BuildSim() {
                                 <th>胜率</th>
                                 <th>平均残血</th>
                                 <th>观战</th>
+                                <th>统计</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -587,10 +685,98 @@ export function BuildSim() {
                                                 {watchOppId === def.id ? '收起' : '观战'}
                                             </button>
                                         </td>
+                                        <td>
+                                            <button
+                                                className="bsim-watch"
+                                                disabled={!r.stats}
+                                                onClick={() => setStatsOppId(statsOppId === def.id ? null : def.id)}
+                                            >
+                                                {statsOppId === def.id ? '收起' : '统计'}
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                         </tbody>
                     </table>
+                )}
+
+                {sim.status === 'done' && !isAb && resultRows.length > 0 && (
+                    <div className="bsim-stats-bar">
+                        <button className="bsim-watch" onClick={() => setShowOverallStats((v) => !v)}>
+                            {showOverallStats ? '收起整体统计' : '整体统计（全部对手合计）'}
+                        </button>
+                        <span className="bsim-best">条件改动值多少，看这里的每场数字与上面各对手的明细</span>
+                    </div>
+                )}
+
+                {overallStats && (
+                    <div className="bsim-stats-panel">
+                        <BattleStatsPanel
+                            snapshot={overallStats}
+                            names={{ [build.id]: `${build.name || '我方'}（我方）` }}
+                            selfId={build.id}
+                            title="整体统计"
+                        />
+                    </div>
+                )}
+
+                {statsDef && statsRow?.stats && (
+                    <div className="bsim-stats-panel">
+                        <BattleStatsPanel
+                            snapshot={statsRow.stats}
+                            names={{ [build.id]: build.name || '我方', [statsDef.id]: statsDef.name }}
+                            selfId={build.id}
+                            title={`vs ${statsDef.name}（${statsRow.done} 场）`}
+                        />
+                    </div>
+                )}
+
+                {sim.status === 'done' && isAb && abStats && abStats.metricsA && abStats.metricsB && (
+                    <div className="bsim-stats-panel">
+                        <h4 className="bsim-stats-title">
+                            统计对照（A 记录条件 / B 当前条件，同一批 {abStats.a.battles} 场）
+                        </h4>
+                        <table className="bsim-table bsim-table-metrics">
+                            <thead>
+                                <tr>
+                                    <th>指标（我方每场）</th>
+                                    <th>A</th>
+                                    <th>B</th>
+                                    <th>差</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {METRIC_ROWS.map((row) => {
+                                    const va = abStats.metricsA![row.key]
+                                    const vb = abStats.metricsB![row.key]
+                                    if (va === null && vb === null) return null
+                                    const d = (vb ?? 0) - (va ?? 0)
+                                    const cls =
+                                        row.better === null || Math.abs(d) < 1e-9
+                                            ? ''
+                                            : (row.better === 'high') === d > 0
+                                              ? 'bsim-delta-up'
+                                              : 'bsim-delta-down'
+                                    const show = (v: number | null) => (v === null ? '—' : v.toFixed(row.digits))
+                                    return (
+                                        <tr key={row.key}>
+                                            <td>{row.label}</td>
+                                            <td>{show(va)}</td>
+                                            <td>{show(vb)}</td>
+                                            <td className={cls}>
+                                                {Math.abs(d) < 1e-9 ? '—' : `${d > 0 ? '+' : ''}${d.toFixed(row.digits)}`}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                        <BattleStatsPanel
+                            snapshot={selfOnly(abStats.b)}
+                            names={{ [build.id]: 'B 我方' }}
+                            selfId={build.id}
+                        />
+                    </div>
                 )}
 
                 {watchDef && (

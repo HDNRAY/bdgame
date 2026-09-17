@@ -1,0 +1,208 @@
+/* 战斗统计面板（BattleStatsPanel）：纯展示，样式跟着 BuildSim / DevMode 的暗色终端风 */
+.bsp {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+    font-size: var(--font-sm);
+    color: var(--color-text);
+}
+
+.bsp-empty {
+    color: var(--color-text-dim);
+}
+
+.bsp-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    flex-wrap: wrap;
+}
+
+.bsp-title {
+    margin: 0;
+    font-size: var(--font-sm);
+    font-weight: normal;
+    color: var(--color-text-h, var(--color-text));
+}
+
+.bsp-tabs {
+    display: flex;
+    gap: var(--sp-xxs);
+}
+
+.bsp-tab {
+    background: none;
+    border: var(--border-width) solid var(--color-border);
+    color: var(--color-text-dim);
+    padding: 1px var(--sp-xs);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    cursor: pointer;
+
+    &.on {
+        color: var(--color-text);
+        border-color: var(--color-accent);
+        background: var(--color-accent-bg);
+    }
+
+    &:hover:not(.on) {
+        color: var(--color-text);
+    }
+}
+
+.bsp-sample {
+    margin-left: auto;
+    color: var(--color-text-dim);
+    font-size: var(--font-xs);
+}
+
+.bsp-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xxs);
+}
+
+.bsp-block + .bsp-block {
+    margin-top: var(--sp-xs);
+    border-top: var(--border-width) solid var(--color-border);
+    padding-top: var(--sp-xs);
+}
+
+.bsp-block-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-sm);
+    flex-wrap: wrap;
+
+    b {
+        font-weight: normal;
+        color: var(--color-text-h, var(--color-text));
+    }
+
+    span {
+        color: var(--color-text-dim);
+        font-size: var(--font-xs);
+    }
+}
+
+.bsp-none {
+    color: var(--color-text-dim);
+    font-size: var(--font-xs);
+}
+
+.bsp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-xs);
+
+    th,
+    td {
+        text-align: left;
+        padding: 2px var(--sp-xs) 2px 0;
+        border-bottom: var(--border-width) solid var(--color-border);
+        white-space: nowrap;
+    }
+
+    th {
+        color: var(--color-text-dim);
+        font-weight: normal;
+    }
+
+    /* 名称列贴内容宽度：让它拉满会把数字挤到最右边，名和数字隔一大片 */
+    td:first-child,
+    th:first-child {
+        width: 1%;
+        padding-right: var(--sp-lg);
+    }
+
+    /* 数字列右对齐更好比大小 */
+    td:not(:first-child):not(:last-child),
+    th:not(:first-child):not(:last-child) {
+        text-align: right;
+        padding-right: var(--sp-xs);
+    }
+
+    /* 最后一列（构成 / 占比）吃掉剩余宽度，内容靠左紧跟数字 */
+    td:last-child,
+    th:last-child {
+        width: 100%;
+        text-align: left;
+    }
+}
+
+.bsp-overview {
+    /* 指标列吃内容宽度，别把数字挤到最右边（父级是 flex 列，默认 stretch 会把表格拉满） */
+    width: auto;
+    align-self: flex-start;
+
+    td:first-child,
+    th:first-child {
+        width: auto;
+        padding-right: var(--sp-lg);
+    }
+
+    td:not(:first-child),
+    th:not(:first-child) {
+        min-width: 7rem;
+    }
+}
+
+.bsp-metric {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-xs);
+
+    em {
+        font-style: normal;
+        color: var(--color-text-dim);
+        font-size: var(--font-xxs);
+    }
+}
+
+.bsp-parts {
+    color: var(--color-text-dim);
+}
+
+.bsp-res-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-xs);
+    font-size: var(--font-xs);
+}
+
+.bsp-res-label {
+    min-width: 4.5rem;
+    color: var(--color-text-dim);
+}
+
+.bsp-res-main {
+    color: var(--color-text);
+}
+
+.bsp-res-detail {
+    color: var(--color-text-dim);
+}
+
+.bsp-note {
+    margin: var(--sp-xxs) 0 0;
+    color: var(--color-text-dim);
+    font-size: var(--font-xxs);
+    line-height: 1.5;
+}
+
+.bsp-toggle {
+    background: none;
+    border: var(--border-width) solid var(--color-border);
+    color: var(--color-text-dim);
+    padding: 0 var(--sp-xs);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--color-text);
+        border-color: var(--color-border-hover);
+    }
+}

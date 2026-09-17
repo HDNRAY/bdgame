@@ -112,7 +112,7 @@ if (N === 1) {
     let leftHp = 0,
         rightHp = 0
     // N 场聚合：每场各自收集，再 merge 到累计器（统计与胜负同源，都是引擎产物）
-    const stats = new BattleStats(2)
+    const stats = BattleStats.accumulator(2)
     const leftId = oBuild.id,
         rightId = pBuild.id
     for (let i = 0; i < N; i++) {

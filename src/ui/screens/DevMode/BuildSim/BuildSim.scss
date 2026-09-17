@@ -261,6 +261,41 @@
     }
 }
 
+/* ── 战斗统计（BattleStatsPanel 的挂载位） ── */
+.bsim-stats-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    font-size: var(--font-xs);
+}
+
+.bsim-stats-panel {
+    border-top: var(--border-width) solid var(--color-border);
+    padding-top: var(--sp-xs);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+}
+
+.bsim-stats-title {
+    margin: 0;
+    font-size: var(--font-sm);
+    font-weight: normal;
+}
+
+/* A/B 指标对照表：数字列右对齐，窄屏也不挤 */
+.bsim-table-metrics {
+    td:not(:first-child),
+    th:not(:first-child) {
+        text-align: right;
+        width: 5rem;
+    }
+
+    td:first-child {
+        color: var(--color-text-dim);
+    }
+}
+
 .bsim-watch-panel {
     border-top: var(--border-width) solid var(--color-border);
     padding-top: var(--sp-xs);

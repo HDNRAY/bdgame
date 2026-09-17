@@ -86,11 +86,16 @@ export interface CharStat {
 /** 纯数据快照（跨到 UI / 存档用；Map 换成数组） */
 export interface BattleStatsSnapshot {
     level: StatsLevel
+    /** 样本场数（1 = 单场；`merge` 累加）。UI 用总量 / 场数得到「每场」 */
+    battles: number
     chars: Array<Omit<CharStat, 'actions' | 'takenByAction'> & {
         actions: ActionStat[]
         takenByAction: Array<{ actionId: string; actionName: string; amount: number }>
     }>
 }
+
+/** 快照里的单个角色（`actions` / `takenByAction` 已从 Map 换成数组） */
+export type SnapshotChar = BattleStatsSnapshot['chars'][number]
 
 function emptyChar(id: string): CharStat {
     return {
@@ -154,9 +159,16 @@ export class BattleStats {
      * 靠它把闪避/招架归到具体招式上（这两个事件紧跟在 attack_start 之后）。
      */
     #lastAction = new Map<string, string>()
+    /** 样本场数：新建 = 1 场，`merge` 逐场累加 */
+    #battles = 1
 
     constructor(level: StatsLevel = 1) {
         this.level = level
+    }
+
+    /** 样本场数（聚合多场后 > 1，UI 用来算「每场」） */
+    get battles(): number {
+        return this.#battles
     }
 
     #char(id: string): CharStat {
@@ -331,6 +343,7 @@ export class BattleStats {
 
     /** 合并另一场战斗的统计（脚本跑 N 场时用） */
     merge(other: BattleStats): void {
+        this.#battles += other.#battles
         for (const [id, src] of other.chars) {
             const dst = this.#char(id)
             for (const k of [
@@ -402,6 +415,7 @@ export class BattleStats {
     snapshot(): BattleStatsSnapshot {
         return {
             level: this.level,
+            battles: this.#battles,
             chars: [...this.chars.values()].map((c) => ({
                 ...c,
                 res: { ...c.res },
@@ -415,23 +429,60 @@ export class BattleStats {
         }
     }
 
+    /**
+     * 从快照重建实例（`snapshot()` 的逆运算）。
+     * UI 侧要把多个对手 / 多场的快照合起来看，只能靠它回到 `merge()`，避免在界面里另写一套加法。
+     */
+    static fromSnapshot(snap: BattleStatsSnapshot): BattleStats {
+        const s = new BattleStats(snap.level)
+        s.#battles = snap.battles
+        for (const c of snap.chars) {
+            const { actions, takenByAction, ...rest } = c
+            const dst = s.#char(c.id)
+            Object.assign(dst, rest, { res: { ...c.res } })
+            dst.actions = new Map(actions.map((a) => [a.actionId, { ...a }]))
+            dst.takenByAction = new Map(
+                takenByAction.map((t) => [t.actionId, { actionName: t.actionName, amount: t.amount }]),
+            )
+        }
+        return s
+    }
+
+    /** 合并多份快照（聚合多个对手 / 多场；`battles` 一并累加） */
+    static mergeSnapshots(list: readonly BattleStatsSnapshot[]): BattleStats {
+        const out = BattleStats.accumulator(list[0]?.level ?? 2)
+        for (const snap of list) out.merge(BattleStats.fromSnapshot(snap))
+        return out
+    }
+
+    /** 聚合器：`battles` 从 0 起算。新建实例默认算 1 场，直接拿来 merge N 场会多算一场，故聚合一律用它 */
+    static accumulator(level: StatsLevel = 2): BattleStats {
+        const s = new BattleStats(level)
+        s.#battles = 0
+        return s
+    }
+
     /** 文本报告（脚本 / 调试用） */
     format(charNames?: Record<string, string>): string[] {
         const lines: string[] = []
         const nameOf = (id: string) => charNames?.[id] ?? id
         const chars = [...this.chars.values()]
 
+        if (this.#battles > 1) lines.push(`样本 ${this.#battles} 场（下列数字为合计）`)
         lines.push('── 伤害输出 ──')
         for (const c of chars) {
             if (c.dealt <= 0) continue
-            const hitRate = c.casts > 0 ? ((c.hits / c.casts) * 100).toFixed(1) : '0.0'
+            const checks = c.hits + c.dodged
+            const hitRate = checks > 0 ? ((c.hits / checks) * 100).toFixed(1) : '0.0'
             const critRate = c.hits > 0 ? ((c.crits / c.hits) * 100).toFixed(1) : '0.0'
             const zeroed = c.hits - c.hitsWithDamage
             lines.push(
                 `  ${nameOf(c.id)}  合计 ${r1(c.dealt)}（直接 ${r1(c.dealtDirect)} + 持续 ${r1(c.dealtDot)} + 附伤 ${r1(c.dealtBonus)}）`,
             )
+            // 口径：出手 = attack_start 次数；判定 = 每次命中判定。连发/多段一招多判，所以 判定 ≥ 出手，
+            // 命中率的分母是判定（用出手当分母会超过 100%）。被招架只可能发生在命中之后，分母是命中。
             lines.push(
-                `    出手 ${c.casts}  命中 ${c.hits}（${hitRate}%）  暴击 ${c.crits}（${critRate}%）` +
+                `    出手 ${c.casts}  判定 ${checks}  命中 ${c.hits}（${hitRate}%）  暴击 ${c.crits}（${critRate}%）` +
                     `  被招架 ${c.parried}  被闪避 ${c.dodged}  失手 ${c.fumbles}` +
                     (zeroed > 0 ? `  打中未造成伤害 ${zeroed}` : ''),
             )
@@ -448,7 +499,8 @@ export class BattleStats {
                 const aZeroed = a.hits - a.hitsWithDamage
                 const detail =
                     a.casts > 0
-                        ? `  出手 ${a.casts} 命中 ${a.hits} 暴击 ${a.crits} 被招架 ${a.parried} 被闪避 ${a.dodged}` +
+                        ? `  出手 ${a.casts} 命中 ${a.hits}（判定 ${a.hits + a.dodged}） 暴击 ${a.crits}` +
+                          ` 被招架 ${a.parried} 被闪避 ${a.dodged}` +
                           (aZeroed > 0 ? ` 零伤 ${aZeroed}` : '') +
                           trigStr
                         : ''
