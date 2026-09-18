@@ -36,10 +36,25 @@ export interface LayerBase {
     id?: string
     /** source = 构造期来源固有层；battle = 战斗中挂上的层（默认） */
     origin?: 'battle' | 'source'
-    /** 属性修正（来源层里是"请求值"，实际生效量看 applied） */
+    /**
+     * 属性修正**请求值**（两类层一致）：重算时按它回放，不按"当时实际生效了多少"。
+     *
+     * 为什么必须是请求值：`applied`（夹取后的实际量）一旦上下文变化（来源增减、战斗层加减）
+     * 就再也对不上 —— base 9 + 来源 A(+10，applied 10) + 来源 B(+20，被上限夹成 applied 11)，
+     * 撤 A 若按 applied 平移 = 30−10 = 20，正确是 29。回放请求值不带这个毛病。
+     */
     mods?: ModTable
-    /** 实际生效的属性增减（夹取之后，供核对/展示） */
+    /** 实际生效的属性增减（夹取之后，仅供核对/展示；重算不读它） */
     applied?: ModTable
+    /** 战斗层用：每层请求的属性修正（`mods = modsPerStack × 当前层数`，部分掉层时据此重算） */
+    modsPerStack?: ModTable
+    /** 战斗层用：倍增请求（attr → 倍率），重算按「乘」回放（超越 stat_multiply） */
+    modsMultiply?: ModTable
+    /**
+     * 战斗层用：这条层的**静态**属性已折进 `Character` 的来源层账（附着 buff），物化时不要再应用一次。
+     * 注意它只挡"物化时的初次施加"，**不挡重算回放** —— 运行时钩子写进 `mods` 的动态修正照常生效。
+     */
+    attrsInLedger?: boolean
 }
 
 export interface BuffLayer extends LayerBase {

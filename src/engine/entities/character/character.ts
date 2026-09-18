@@ -14,18 +14,22 @@ import { getAction as getActionDef } from '../../../data/actions'
 import { getWeapon } from '../../../data/weapons/weapons'
 import { getPassive } from '../../../data/passives'
 import { getArtifact } from '../../../data/artifacts'
-import { forEachBuffOf, calcExtraHaste, processOnEquipEffects } from '../../combat/utils'
+import { forEachBuffOf, calcExtraHaste, dropBuffLayer } from '../../combat/utils'
+import { materializeAttachedBuff } from '../../combat/utils/buff-apply'
+import { getBuff } from '../../../data/buffs'
 import { MAX_CHAN } from '../../constants'
 import type { BattleEngine } from '../../combat/engine'
-import type { BattleState } from '../../combat/types'
+import type { BattleState, ModTable } from '../../combat/types'
 import type { BuffHookCtx, RuntimeAction } from '../../../data/buffs/types'
 import { round1 } from '../../util/math'
 import { emptyResourceTally, type ResourceTally } from './resource-tally'
+
 import { collectRewards } from './reward-collect'
 import { buildActionCache } from './action-cache'
 import { buildConfigTriggers } from './trigger-slots'
 import {
     buildSourceLayer,
+    needsRuntimeLayer,
     type SourceKind,
     type SourceLayer,
     type StatRestrictionCheck,
@@ -71,8 +75,19 @@ export class Character {
     #maxTriggerSlots = 0
     /** 武器定义的 clone（含被动修改） */
     weaponDef?: WeaponDef
+    /** 当前主手武器 id（换武/缴械/捡回都改它；weaponDef 与来源层账都由它派生） */
+    currentWeaponId: string
     /** 副手武器定义缓存（构造时解析；主手可能在战斗中切换，副手武器一般固定） */
     private offhandDef?: WeaponDef
+    /**
+     * 战斗期对主手武器的临时改写（目前唯一用例：附炁与刃补 `qi` 标签 + 射程下限抬到 3）。
+     *
+     * **不能改写 `weaponDef` 本身**：它由 `derivedWeaponDef()` 派生，任何一次 `rebuildDerived()`
+     * （战斗层建/删/叠层、血量副作用、探云手…）都会把它重算回「基础武器 + 来源层 weaponTags」，
+     * 手写的标签/射程会被静默抹掉（宁浩然「炁意」失效、胜率掉 15pp 的直接原因）。
+     * 换武（`setWeapon`）时随旧武器一起丢弃 —— 与改造前 `switch_weapon` 整体覆盖 weaponDef 同口径。
+     */
+    private weaponPatch?: { tags?: readonly Tag[]; range?: [number, number] }
     /** 已解析的奇物/义体列表 */
     artifactDefs: Artifact[] = []
     /** 义体/效果修正 */
@@ -92,6 +107,13 @@ export class Character {
      * 公开是为了 `forkForSim` 能给沙盒一份自己的数组副本（层对象只读共享）。
      */
     sourceLayers: SourceLayer[] = []
+    /**
+     * 运行时被消耗/移除掉的附着 buff（`${sourceId}::${buffId}`）。
+     *
+     * 附着 buff 的属性折在**来源层账**里，所以运行时移除它必须同时把账上那部分也停掉
+     * （否则「三分归元」消耗掉 sangui_yuanqi 后 +1 四维会永久留下）。重新物化（再次装备）时清除。
+     */
+    #detachedAttached = new Set<string>()
     constructor(build: CharacterBuild) {
         this.build = build
         this.id = build.id
@@ -121,6 +143,7 @@ export class Character {
             if (a.grantsActions) gainedActions.push(...a.grantsActions)
         }
         const weapon = getWeapon(build.weapon)
+        this.currentWeaponId = build.weapon
         // weaponDef（含被动 weapon_tag）由层账重算得出
         this.weaponDef = this.derivedWeaponDef()
         // 副手武器定义缓存（build.offhand 固定；战斗中切主手不影响副手定义）
@@ -182,39 +205,143 @@ export class Character {
      * 等价于旧的逐条 `applyPassiveEffect`，区别是写进层账再重算 —— 因此可以整体撤销、也不会因为
      * 手写反函数而夹取漂移。同名来源重复加入时覆盖（容错）。
      */
-    addSource(sourceId: string, kind: SourceKind, effects: EffectDef[] | undefined, sourceTags?: string[]): void {
+    addSource(
+        sourceId: string,
+        kind: SourceKind,
+        effects: EffectDef[] | undefined,
+        sourceTags?: string[],
+        state?: BattleState,
+    ): void {
         const layer = buildSourceLayer(sourceId, kind, effects, this, sourceTags)
         if (!layer) return
         const idx = this.sourceLayers.findIndex((l) => l.sourceId === sourceId)
         if (idx >= 0) this.sourceLayers[idx] = layer
         else this.sourceLayers.push(layer)
-        this.rebuildSourceDerived()
-    }
-
-    /** 撤销一个来源的全部构造期修正（探云手偷走奇物 / 换武器 / 卸下被动） */
-    removeSource(sourceId: string): boolean {
-        const idx = this.sourceLayers.findIndex((l) => l.sourceId === sourceId)
-        if (idx < 0) return false
-        this.sourceLayers.splice(idx, 1)
-        this.rebuildSourceDerived()
-        return true
-    }
-
-    /** 层账 → 武器定义（基础武器 + 各层 weapon_tag）；武器属性门槛与展示都读它 */
-    private derivedWeaponDef(): WeaponDef {
-        const base = getWeapon(this.build.weapon)
-        const extra = this.sourceLayers.flatMap((l) => l.weaponTags).filter((t) => !base.tags.includes(t))
-        return extra.length > 0 ? { ...base, tags: [...base.tags, ...extra] } : base
+        this.rebuildDerived(state)
     }
 
     /**
-     * 重算层账：attrs = baseAttrs + Σ各层（每层先 converts、再 mods，mods 按 stat_restriction 夹取），
-     * 然后汇总派生值（maxHpMod / triggerSlotMod / 武器 tag / 限制器 / 时长回调 / 触发槽上限）。
+     * 撤销一个来源的全部构造期修正（探云手偷走奇物 / 换武器 / 卸下被动）。
+     *
+     * 战斗中调用必须传 `state`（有 engine 的地方都能拿到）：重算是「来源层 ops + 战斗层 mods」
+     * 一起回放，不传 state 会把战斗层的属性贡献漏掉（内劲/汲取这类当场消失）。
+     * 传了 state 还会把这条来源**附着 buff 物化出来的战斗层**一起删掉（按 originId）。
+     */
+    removeSource(sourceId: string, state?: BattleState): boolean {
+        const idx = this.sourceLayers.findIndex((l) => l.sourceId === sourceId)
+        if (idx < 0) return false
+        this.sourceLayers.splice(idx, 1)
+        if (state) {
+            for (const key of state.pendingBuffs.keysOfOrigin(sourceId)) dropBuffLayer(state, key)
+        }
+        this.rebuildDerived(state)
+        return true
+    }
+
+    /**
+     * 换主手武器：撤旧来源层 → 挂新来源层 → 重建 weaponDef → 物化新武器自带的 buff。
+     *
+     * 这是换武/缴械的唯一入口。旧实现手写逆运算（`revertWeaponStatBuffs` + 直接改 attrs +
+     * 手工换触发），账里仍是旧武器 —— 之后任何一次重算（探云手就会触发）都会把换武悄悄回滚。
+     */
+    setWeapon(weaponId: string, engine?: BattleEngine): void {
+        const oldId = this.currentWeaponId
+        this.weaponPatch = undefined // 换武丢弃附炁改写（旧实现整体覆盖 weaponDef，同口径）
+        this.removeSource(`weapon:${oldId}`, engine?.state)
+        for (const t of getWeapon(oldId).triggers ?? []) {
+            const idx = this.passiveTriggers.indexOf(t)
+            if (idx !== -1) this.passiveTriggers.splice(idx, 1)
+        }
+        this.currentWeaponId = weaponId
+        const weapon = getWeapon(weaponId)
+        // 御物（imperial）武器不自带属性效果：旧 switch_weapon 跳过它们的 stat_buff，这里保持同一口径
+        const effects = weapon.tags.includes('imperial') ? [] : weapon.effects
+        this.addSource(`weapon:${weaponId}`, 'weapon', effects, ['weapon'], engine?.state)
+        for (const t of weapon.triggers ?? []) this.passiveTriggers.push(t)
+        this.weaponDef = this.derivedWeaponDef()
+        if (engine) this.materializeAttached(engine)
+    }
+
+    /** 运行时移除了一条附着 buff 的战斗层 → 连它在来源层账上的属性一起停掉（幂等） */
+    detachAttachedBuff(sourceId: string, buffId: string): void {
+        this.#detachedAttached.add(`${sourceId}::${buffId}`)
+    }
+
+    /** 重新物化（再次装备）时把"已移除"的记录清掉，属性随之回来 */
+    reattachAttachedBuff(sourceId: string, buffId: string): void {
+        this.#detachedAttached.delete(`${sourceId}::${buffId}`)
+    }
+
+    /**
+     * 该附着 buff 是否已被运行时移除（如「三分归元」消耗掉 `sangui_yuanqi`）—— 账上属性已停掉。
+     *
+     * 供 `getBuffsForDisplay` 用：被移除的附着 buff 不能再从 `attachedBuffs` 补进展示列表。
+     */
+    isAttachedBuffDetached(sourceId: string, buffId: string): boolean {
+        return this.#detachedAttached.has(`${sourceId}::${buffId}`)
+    }
+
+    /**
+     * 把各来源**自带的 buff**（顶层 `effects:[add_buff]`）物化成战斗层：开局、换装、被偷到手时调用。
+     *
+     * 附着表记的是**全部**附着 buff（含纯属性携带者，供 buff 列表展示），这里**按需物化**：
+     * 只对 `needsRuntimeLayer(def)` 为真的建层，其余跳过（属性已在来源层账上，建出来只是空壳）。
+     *
+     * 层上打 `originId = sourceId`、标 `attrsInLedger`（属性已折进来源层账，不再二次应用），
+     * 只承载 hooks；撤源时按 originId 整批删。
+     *
+     * 幂等判定必须**带上拥有者**：`originId` 只是来源 id（如 `artifact:金丝手套`），双方各持同一件奇物时
+     * 会共用同一个 originId，只看 `buffId::` 前缀会把对方已有的层当成自己的而跳过（层 key 是
+     * `buffId::角色id`，所以按「`buffId::自己` 或 `buffId::自己::…`」判重）。
+     *
+     * 统一按**来源注册序**物化（来源自带 buff 只在开局、换装、被偷到这三条路径生效）。
+     */
+    materializeAttached(engine: BattleEngine): void {
+        for (const layer of this.sourceLayers) {
+            for (const { buffId, stacks } of layer.attachedBuffs) {
+                const def = getBuff(buffId)
+                if (!def) continue
+                // 纯属性携带者不建层（记录在案，展示由 getBuffsForDisplay 从账上补）
+                if (!needsRuntimeLayer(def)) continue
+                const owned = engine.state.pendingBuffs.keysOfOrigin(layer.sourceId)
+                const prefix = `${buffId}::${this.id}`
+                if (owned.some((k) => k === prefix || k.startsWith(`${prefix}::`))) continue
+                materializeAttachedBuff(engine, this, def, stacks, layer.sourceId)
+            }
+        }
+    }
+
+    /**
+     * 战斗期给主手武器打补丁（附炁与刃）。写 `weaponPatch` 而不是直接写 `weaponDef`，
+     * 这样后续任何一次 `rebuildDerived()` 重算都会把补丁重新叠上去；打完立即重新派生一次，
+     * 让本次动作就能读到新射程/标签。
+     */
+    patchWeapon(patch: { tags?: readonly Tag[]; range?: [number, number] }): void {
+        this.weaponPatch = patch
+        this.weaponDef = this.derivedWeaponDef()
+    }
+
+    /** 层账 → 武器定义（基础武器 + 各层 weapon_tag + 战斗期补丁）；武器属性门槛与展示都读它 */
+    private derivedWeaponDef(): WeaponDef {
+        const base = getWeapon(this.currentWeaponId ?? this.build.weapon)
+        const extra = this.sourceLayers.flatMap((l) => l.weaponTags).filter((t) => !base.tags.includes(t))
+        const patch = this.weaponPatch
+        if (extra.length === 0 && !patch) return base
+        const tags = patch?.tags ? [...new Set([...base.tags, ...extra, ...patch.tags])] : [...base.tags, ...extra]
+        return { ...base, tags, range: patch?.range ?? base.range }
+    }
+
+    /**
+     * 重算属性与派生值：`attrs = baseAttrs`，然后**按序回放**
+     *   1) 来源层 ops（构造期，按层序；层内按 ops 序）
+     *   2) 战斗层 mods（按建层序，需传 `state`）
+     * 再汇总派生值（maxHpMod / triggerSlotMod / 武器 tag / 限制器 / 时长回调 / 触发槽上限）。
      *
      * 幂等：一律从 baseAttrs 起算、只用层上的**请求值**，所以删层后必然精确回退（不依赖任何反函数）。
+     * `applied` 只记本轮实际生效量，供核对/展示，**重算不读它** —— 读它会在夹取边界上漂（棘轮）。
      * 当前 hp/ap 不回填，只在 maxAp 变小时夹住（与既有 `max_ap_mod` 的 `capAp` 口径一致）。
      */
-    private rebuildSourceDerived(): void {
+    rebuildDerived(state?: BattleState): void {
         const base = this.build.baseAttrs as Partial<Record<AttrName, number>>
         for (const attr of ALL_ATTRS) this.attrs.set(attr, base[attr] ?? ATTR_ABSOLUTE_MIN)
         // applied 是"本轮重算的实际生效量"，每轮必须清零重记（重算会被 addSource 多次触发）
@@ -225,6 +352,30 @@ export class Character {
         let maxHpMod = 0
         let triggerSlotMod = 0
         const tags: Tag[] = []
+        // 写一笔属性修正：过限制器（restriction 只拦注册在它后面的）→ 夹取写入 → 记账
+        // `guard=false` 用于**战斗层**回放：层的 mods 已经是"过了限制器之后"的请求值，
+        // 再跑一遍限制器会重新掷骰（玄机的「推演降低 50% 被挡」这类），属性与随机数流都会跑偏。
+        const applyMod = (
+            attr: AttrName,
+            value: number,
+            layerTags: string[] | undefined,
+            track?: ModTable,
+            guard = true,
+        ): void => {
+            let delta = value
+            for (const check of guard ? checks : []) {
+                const result = check(this, attr, this.attrs.get(attr), delta, layerTags, state)
+                if (!result) continue
+                if (result.skip) {
+                    delta = 0
+                    break
+                }
+                if (result.delta !== undefined) delta = result.delta
+            }
+            const before = this.attrs.get(attr)
+            if (delta !== 0) this.attrs.modify(attr, delta)
+            if (track) track[attr] = (track[attr] ?? 0) + (this.attrs.get(attr) - before)
+        }
         for (const layer of this.sourceLayers) {
             // 按层内声明的操作顺序回放：restriction 注册后只拦后面的 mod（与旧逐条应用一致）
             for (const op of layer.ops) {
@@ -232,41 +383,52 @@ export class Character {
                     checks.push(op.check)
                     continue
                 }
+                // 这条修正所属的附着 buff 已被运行时移除 → 账上这部分也停掉
+                if (op.kind === 'mod' && op.fromBuff && this.#detachedAttached.has(`${layer.sourceId}::${op.fromBuff}`))
+                    continue
                 if (op.kind === 'convert') {
                     const src = this.attrs.get(op.from)
                     const delta = op.mode === 'floor' ? Math.floor(src * op.ratio) : Math.round(src * op.ratio)
-                    for (const to of op.to) {
-                        const beforeTo = this.attrs.get(to)
-                        if (delta !== 0) this.attrs.modify(to, delta)
-                        layer.applied[to] = (layer.applied[to] ?? 0) + (this.attrs.get(to) - beforeTo)
-                    }
+                    for (const to of op.to) applyMod(to, delta, layer.sourceTags, layer.applied)
                     continue
                 }
-                const attr = op.attr
-                let delta = op.value
-                // 与旧 stat_buff 同一个夹取口径：限制器可 skip（归零）或用 delta 覆盖
-                for (const check of checks) {
-                    const result = check(this, attr, this.attrs.get(attr), delta, layer.sourceTags)
-                    if (!result) continue
-                    if (result.skip) {
-                        delta = 0
-                        break
-                    }
-                    if (result.delta !== undefined) delta = result.delta
-                }
-                const before = this.attrs.get(attr)
-                if (delta !== 0) this.attrs.modify(attr, delta)
-                layer.applied[attr] = (layer.applied[attr] ?? 0) + (this.attrs.get(attr) - before)
+                applyMod(op.attr, op.value, layer.sourceTags, layer.applied)
             }
             maxHpMod += layer.maxHpMod
             triggerSlotMod += layer.triggerSlotMod
             tags.push(...layer.weaponTags)
         }
+        // 触发槽上限是**构造期口径**（设计文档：「附着 buff 的 attrMods 折进来源层账 → 触发槽上限
+        // 在构造期就算对」）：只认来源层回放出来的推演，不认战斗层。战斗期推演临时增减（汲取抽取、
+        // 七十二变轮转、临时增益）若参与计算，会静默把玩家配置好的触发槽切片切掉 —— 与 HEAD 不一致。
+        const slotWisdom = this.attrs.get('wisdom')
+        // 战斗层：按建层序回放请求值。层里存的是"请求值"，删层只需删条目再重算，没有逆运算。
+        // 附着 buff 的属性已折进来源层账（attrsInLedger），这里跳过，避免二次应用。
+        if (state) {
+            forEachBuffOf(state.pendingBuffs, this.id, (def, layer) => {
+                // 附着层的**静态**属性已折进来源层账（materialize 时 `skipAttrMods`，所以它的 mods
+                // 一开始是空的）；能在这里读到 mods，只可能是运行时钩子写进去的动态修正
+                // （潮汐内力每 tick 的 +3/+1、秋水轮转、七十二变…）—— 必须照常回放，不能整层跳过。
+                for (const [attr, factor] of Object.entries(layer.modsMultiply ?? {})) {
+                    if (!ALL_ATTRS.includes(attr as AttrName)) continue
+                    const a = attr as AttrName
+                    const before = this.attrs.get(a)
+                    this.attrs.set(a, before * (factor as number))
+                    layer.applied = layer.applied ?? {}
+                    layer.applied[a] = (layer.applied[a] ?? 0) + (this.attrs.get(a) - before)
+                }
+                if (!layer.mods) return
+                for (const [attr, value] of Object.entries(layer.mods)) {
+                    if (!ALL_ATTRS.includes(attr as AttrName)) continue
+                    applyMod(attr as AttrName, value as number, def?.tags, layer.applied, false)
+                }
+            })
+        }
         this.statRestrictionChecks = checks
         this.maxHpMod = maxHpMod
         this.triggerSlotMod = triggerSlotMod
         this.weaponDef = this.derivedWeaponDef()
-        this.#maxTriggerSlots = Math.max(1, Math.floor(this.attrs.get('wisdom') / 4)) + this.triggerSlotMod
+        this.#maxTriggerSlots = Math.max(1, Math.floor(slotWisdom / 4)) + this.triggerSlotMod
         this.capAp()
     }
 
@@ -298,6 +460,7 @@ export class Character {
         )
         // triggers
         for (const slot of p.triggers ?? []) this.passiveTriggers.push(slot)
+        // 源自带 buff 的物化槽：插在本源 trigger 的位置上，保证开局建层/日志顺序不变
     }
 
     get maxHp(): number {
@@ -402,17 +565,17 @@ export class Character {
     /**
      * 运行时添加奇物（探云手偷取等）。
      *
-     * 传了 engine 就补触发一遍装备期效果（`on_equip`）—— 与开局 `processOnEquipEffects` 同一个入口，
-     * 否则偷来的奇物只有 `effects` 生效、装备期 buff 静默丢掉（金丝手套的招架率就属于后者）。
+     * 传了 engine 就把该奇物自带的 buff（顶层 `effects:[add_buff]`）物化成战斗层
+     * （`materializeAttached`）——属性在 `addSource` 时已折进层账。
      */
     addArtifact(id: string, engine?: BattleEngine): boolean {
         if (this.artifactDefs.some((a) => a.id === id)) return false
         const def = getArtifact(id)
         if (!def) return false
         this.artifactDefs.push(def)
-        this.addSource(`artifact:${id}`, 'artifact', def.effects)
+        this.addSource(`artifact:${id}`, 'artifact', def.effects, undefined, engine?.state)
         for (const t of def.triggers ?? []) this.passiveTriggers.push(t)
-        if (engine) processOnEquipEffects(engine, this, [def], engine.state.turn.currentTime)
+        if (engine) this.materializeAttached(engine)
 
         // 奇物赋予的招式（偷来的女儿红能喝）
         for (const g of def.grantsActions ?? []) {

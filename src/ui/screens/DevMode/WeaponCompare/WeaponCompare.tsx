@@ -67,7 +67,7 @@ const BENCH_ACTION: ActionDefinition = {
     ],
 }
 
-/** 制造标准测试角色：全属性基准 15，武器 stat_buff 与 on_equip buff 的 attrMods 真实生效 */
+/** 制造标准测试角色：全属性基准 15，武器自带属性 buff 的 attrMods 真实生效 */
 function makeBenchChar(id: string, name: string, weapon: WeaponDef, pendingBuffs: Map<string, BuffLayer>): Character {
     const c = new Character({
         id,
@@ -81,20 +81,10 @@ function makeBenchChar(id: string, name: string, weapon: WeaponDef, pendingBuffs
     c.chan = MAX_CHAN
     c.ap = c.maxAp
     c.hp = Math.round(c.maxHp * 0.49 * 10) / 10
-    for (const t of weapon.triggers ?? []) {
-        if (t.condition.type !== 'on_equip') continue
-        for (const eff of t.effects ?? []) {
-            if (eff.type !== 'add_buff') continue
-            const def = getBuff(eff.buffId)
-            if (!def) continue
-            const stacks = eff.stacks ?? 1
-            if (def.attrMods) {
-                for (const [attr, v] of Object.entries(def.attrMods)) {
-                    c.attrs.modify(attr as never, (v as number) * stacks)
-                }
-            }
-            pendingBuffs.set(`${eff.buffId}::${c.id}`, { restoreValue: stacks })
-        }
+    // 顶层 add_buff（源自带 buff）：属性已由 Character 构造期折进来源层账，这里只补层以承载 hooks
+    for (const eff of weapon.effects ?? []) {
+        if (eff.type !== 'add_buff') continue
+        pendingBuffs.set(`${eff.buffId}::${c.id}`, { restoreValue: eff.stacks ?? 1 })
     }
     return c
 }
@@ -147,7 +137,7 @@ function calcDamageScore(weapon: WeaponDef): { avg: number; delta: number } {
     return { avg: Math.round(avg * 10) / 10, delta }
 }
 
-/** 属性分：Σ 属性增减 × 1（1 属性点 = 1 分，可为负）。汇总 stat_buff 与 on_equip buff 的 attrMods。 */
+/** 属性分：Σ 属性增减 × 1（1 属性点 = 1 分，可为负）。汇总武器顶层 add_buff 的 attrMods。 */
 function calcAttrScore(weapon: WeaponDef): { mods: Record<string, number>; score: number } {
     const mods: Record<string, number> = {}
     const add = (attrs: Record<string, number> | undefined, mult: number) => {
@@ -156,15 +146,9 @@ function calcAttrScore(weapon: WeaponDef): { mods: Record<string, number>; score
         }
     }
     for (const eff of weapon.effects ?? []) {
-        if (eff.type === 'stat_buff') add(eff.attrs, 1)
-    }
-    for (const t of weapon.triggers ?? []) {
-        if (t.condition.type !== 'on_equip') continue
-        for (const eff of t.effects ?? []) {
-            if (eff.type !== 'add_buff') continue
-            const def = getBuff(eff.buffId)
-            if (def?.attrMods) add(def.attrMods, eff.stacks ?? 1)
-        }
+        if (eff.type !== 'add_buff') continue
+        const def = getBuff(eff.buffId)
+        if (def?.attrMods) add(def.attrMods, eff.stacks ?? 1)
     }
     const score = Math.round(Object.values(mods).reduce((s, v) => s + v, 0) * 10) / 10
     return { mods, score }
@@ -202,16 +186,13 @@ function calcSummonScore(weapon: WeaponDef): { count: number; perSummon: number;
 /** 御物耗炁/耗能扣分：按 AP 回复被压掉的比例折算（召唤物 0AP 不吃 AP，扣分只反映失去的普攻 AP 机会） */
 function calcYuwuCost(weapon: WeaponDef): { apPerSec: number; score: number } {
     let apPerSec = 0
-    for (const t of weapon.triggers ?? []) {
-        if (t.condition.type !== 'on_equip') continue
-        for (const eff of t.effects ?? []) {
-            if (eff.type === 'add_buff' && eff.buffId === 'yuwu_cost') {
-                apPerSec += eff.stacks ?? 0
-            }
-            // energy_drain：每层 AP 回复 -0.1/s（引擎口径），折算成 AP/s
-            if (eff.type === 'add_buff' && eff.buffId === 'energy_drain') {
-                apPerSec += (eff.stacks ?? 0) * 0.1
-            }
+    for (const eff of weapon.effects ?? []) {
+        if (eff.type === 'add_buff' && eff.buffId === 'yuwu_cost') {
+            apPerSec += eff.stacks ?? 0
+        }
+        // energy_drain：每层 AP 回复 -0.1/s（引擎口径），折算成 AP/s
+        if (eff.type === 'add_buff' && eff.buffId === 'energy_drain') {
+            apPerSec += (eff.stacks ?? 0) * 0.1
         }
     }
     // 扣分 = 扣掉的 AP 回复比例 × YUWU_SCORE_WEIGHT（基准推演 15 回复 1.5/s）
@@ -260,7 +241,6 @@ const STANDARD_ACTION_POOL = allMainActions.filter(
 function calcTriggerScore(weapon: WeaponDef): number {
     let total = 0
     for (const t of weapon.triggers ?? []) {
-        if (t.condition.type === 'on_equip') continue
         const cond = t.condition.type
         const rate = TRIGGER_RATE[cond] ?? 0.1
         let value = 0

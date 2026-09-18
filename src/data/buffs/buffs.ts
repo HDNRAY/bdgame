@@ -1,6 +1,6 @@
 import { processActionEffect } from '../../engine/combat/effects'
-import { forEachBuffOf, revertBuffMods } from '../../engine/combat/utils'
-import { applyAttrMods } from '../../engine/combat/utils/buff-layer'
+import { forEachBuffOf, dropBuffLayer } from '../../engine/combat/utils'
+import { setLayerMods, addLayerMods } from '../../engine/combat/utils/buff-layer'
 import { rng } from '../../engine/util/rng'
 import { genAppId } from '../../engine/util/buff-utils'
 import {
@@ -18,6 +18,7 @@ import { ActionDefinition } from '../../engine/entities/action'
 import { Tag } from '../../engine/entities/tag'
 import { buffEnhanceActionRange } from './util'
 import { WEAPON_BUFFS } from './weapon'
+import { ATTACHED_BUFFS } from './attached'
 import type { Character } from '../../engine/entities/character'
 import { getPassive } from '../passives'
 import { getArtifact } from '../artifacts'
@@ -83,6 +84,7 @@ export const BUFF_DB: BuffDef[] = [
     ...DAMAGE_BUFFS,
     ...DEFENSE_BUFFS,
     ...WEAPON_BUFFS,
+    ...ATTACHED_BUFFS,
     // ── 战斗状态 ──
     {
         id: 'iaijutsu',
@@ -217,7 +219,6 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'duration_by_attr', attr: 'wisdom', multiplier: 150 },
         stacking: { type: 'independent' },
     },
-    { id: 'stat_buff', name: '内劲', description: '属性临时变化。', tags: [], stacking: { type: 'independent' } },
     {
         id: 'stat_transfer',
         name: '汲取',
@@ -335,12 +336,10 @@ export const BUFF_DB: BuffDef[] = [
         onTickHeal: ({ attacker: char, engine, state, layer }) => {
             const current = layer.restoreValue ?? 0
             const next = current >= 4 ? 0 : current + 1
-            revertBuffMods(layer, char, state)
             const dex = 4 - next
             const ins = next
-            const newMods = applyAttrMods(char, state, { dexterity: dex, insight: ins }, '秋水·盈虚')
-            layer.mods = newMods
             layer.restoreValue = next
+            setLayerMods(layer, char, state, { dexterity: dex, insight: ins })
             engine?.emitLog({
                 type: 'system',
                 message: `[秋水·盈虚] ${char.name} 灵巧${dex} 洞察${ins}`,
@@ -379,11 +378,8 @@ export const BUFF_DB: BuffDef[] = [
             const bonus = (absorb / chanPerStack) * 2
             if (bonus > 0 && engine) {
                 processActionEffect(
-                    {
-                        type: 'stat_buff',
-                        attrs: { strength: bonus, agility: bonus, dexterity: bonus, wisdom: bonus },
-                        durationMs: 6000,
-                    },
+                    // 每 12 缠 1 层：buff 的 attrMods 每层力/身/巧/推演 +2（bonus 恒为偶数，stacks 为整数）
+                    { type: 'add_buff', buffId: 'ju_chan_fa_yi_bonus', stacks: bonus / 2 },
                     { self: target, enemy: target, engine, tMs: engine.state.turn.currentTime },
                 )
             }
@@ -485,6 +481,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '步法精妙，移动消耗最低。',
         tags: [],
         expiry: { type: 'permanent' },
+        // 无钩子但被 AI/引擎按 `pendingBuffs.has('min_move_cost::…')` 探测 → 必须建层
+        needsLayer: true,
     },
     {
         id: 'vitality_regen',
@@ -647,12 +645,10 @@ export const BUFF_DB: BuffDef[] = [
         onTickHeal: ({ attacker: char, engine, state, layer }) => {
             const current = layer.restoreValue ?? 0
             const next = current >= 4 ? 0 : current + 1
-            revertBuffMods(layer, char, state)
             const str = 4 - next
             const agi = next
-            const newMods = applyAttrMods(char, state, { strength: str, agility: agi }, '潮汐内力')
-            layer.mods = newMods
             layer.restoreValue = next
+            setLayerMods(layer, char, state, { strength: str, agility: agi })
             engine?.emitLog({
                 type: 'system',
                 message: `[潮汐内力] ${char.name} 力道${str} 身法${agi}`,
@@ -702,11 +698,9 @@ export const BUFF_DB: BuffDef[] = [
         onTickHeal: ({ attacker: char, state, layer }) => {
             const cycle = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
             const nextIdx = ((layer.restoreValue ?? 0) + 1) % cycle.length
-            revertBuffMods(layer, char, state)
             const stat = cycle[nextIdx]
-            const newMods = applyAttrMods(char, state, { [stat]: 6 }, '七十二变')
-            layer.mods = newMods
             layer.restoreValue = nextIdx
+            setLayerMods(layer, char, state, { [stat]: 6 })
             return 0
         },
     },
@@ -856,6 +850,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['summon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
+        attrMods: { strength: -2 },
         onDealDamage: ({ final, attacker, source, layer }) => {
             if (!source?.tags?.includes('summon')) return final
             // 三分之一力道（向下取整）为固定池：召唤武器招按召唤物数量平分，召唤物技能招（如一夜鱼龙舞）按段数平分
@@ -1010,8 +1005,8 @@ export const BUFF_DB: BuffDef[] = [
             const now = state.turn.currentTime
             const appId = genAppId(now)
             const key = `venom_gland_insight::${self.id}::${appId}`
-            const mods = applyAttrMods(self, state, { insight: 1 }, '毒腺')
-            state.pendingBuffs.set(key, { restoreValue: 1, mods })
+            state.pendingBuffs.set(key, { restoreValue: 1, mods: { insight: 1 }, modsPerStack: { insight: 1 } })
+            self.rebuildDerived(state)
             state.turn.scheduleSystemEventAt(`buff_end_${key}`, now + 30000, 'buff_end')
             engine?.emitLog({
                 type: 'system',
@@ -1209,12 +1204,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'floating_eye_buff',
         name: '浮游眼',
-        description: '洞察流转，预判对手。洞察+4，暴击率+10%。',
+        description: '洞察流转，预判对手。洞察+4，被迷眼时最多 1 层。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { insight: 4 },
-        onCritChance: () => 0.1,
+        onReceiveDebuff: (ctx) => (ctx.buffId === 'sand_blind' && ctx.stacks > 1 ? 1 : undefined),
     },
     // ── 血战到底 ──
     {
@@ -1240,9 +1235,7 @@ export const BUFF_DB: BuffDef[] = [
 
             const prev = layer.extra as Record<string, number> | undefined
             if (prev?.str === str && prev?.agi === agi && prev?.dex === dex) return
-            revertBuffMods(layer, char, state)
-            const newMods = applyAttrMods(char, state, { strength: str, agility: agi, dexterity: dex }, '血战到底')
-            layer.mods = newMods
+            setLayerMods(layer, char, state, { strength: str, agility: agi, dexterity: dex })
             layer.extra = { str, agi, dex }
         },
     },
@@ -1275,9 +1268,7 @@ export const BUFF_DB: BuffDef[] = [
             }
             const prev = layer.extra as Record<string, number> | undefined
             if (prev?.ins === ins && prev?.wis === wis) return
-            revertBuffMods(layer, char, state)
-            const newMods = applyAttrMods(char, state, { insight: ins, wisdom: wis }, '观自在眼')
-            layer.mods = newMods
+            setLayerMods(layer, char, state, { insight: ins, wisdom: wis })
             layer.extra = { ins, wis }
         },
     },
@@ -1310,6 +1301,8 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { strength: 1, agility: 1, dexterity: 1, insight: 1 },
+        // 属性在账上，但「三分归元」要 `remove_buff` 消耗它（连账上属性一起停掉）→ 必须建层
+        needsLayer: true,
     },
     // ── 青囊三卷 ──
     {
@@ -1385,15 +1378,13 @@ export const BUFF_DB: BuffDef[] = [
             if (hit.additive) {
                 hit.layer.restoreValue = (hit.layer.restoreValue ?? 0) - 1
                 if ((hit.layer.restoreValue ?? 0) <= 0) {
-                    // 层清空 → 恢复该层带走的属性修正（身法/灵巧等），再移除
-                    revertBuffMods(hit.layer, target, state)
-                    state.pendingBuffs.delete(hit.key)
+                    // 层清空 → 删层 + 重算（属性自动精确回退）
+                    dropBuffLayer(state, hit.key)
                 }
             } else {
                 // independent 每层独立带属性修正（麻痹/眩晕/虚弱等 attrMods）——
-                // 直接 delete 会永久吞掉身法/灵巧，必须先 revertBuffMods 恢复
-                revertBuffMods(hit.layer, target, state)
-                state.pendingBuffs.delete(hit.key)
+                // 直接 delete 会永久吞掉身法/灵巧，必须走 dropBuffLayer（删层 + 重算）
+                dropBuffLayer(state, hit.key)
             }
             engine.emitLog({
                 type: 'system',
@@ -1565,8 +1556,7 @@ export const BUFF_DB: BuffDef[] = [
             const count = char.artifactDefs.filter((a) => a.tags.some((t) => t === 'craft' || t === 'implant')).length
             const wis = char.attrs.get('wisdom')
             const bonus = Math.floor((count * (wis + 18)) / 56)
-            const mods = applyAttrMods(char, state, { strength: bonus, agility: bonus, dexterity: bonus }, '炁电转换')
-            layer.mods = { ...mods }
+            setLayerMods(layer, char, state, { strength: bonus, agility: bonus, dexterity: bonus })
             layer.extra = { applied: true, count, wis, bonus }
             if (bonus > 0) {
                 engine?.emitLog({
@@ -1621,6 +1611,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
+        attrMods: { insight: -4 },
         onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.003,
         onDodgeChance: ({ target }) => target.attrs.get('wisdom') * 0.005,
         onParryChance: ({ target }) => target.attrs.get('wisdom') * 0.005,
@@ -1649,8 +1640,7 @@ export const BUFF_DB: BuffDef[] = [
             if (stage <= previous) return
             const stageValues = [0, 2, 4, 6]
             const gained = stageValues[stage] - stageValues[previous]
-            const mods = applyAttrMods(self, state, { insight: gained }, '神照')
-            layer.mods = { ...(layer.mods ?? {}), ...mods }
+            addLayerMods(layer, self, state, { insight: gained })
             layer.extra = { ...(layer.extra ?? {}), stage }
             engine.emitLog({
                 type: 'system',

@@ -171,7 +171,7 @@ export class BuffRegistry extends Map<string, BuffLayer> {
         this.#syncHooks(key, layer, buff, 'add')
     }
 
-    /** 移除：同步注销（revertBuffMods 由调用方处理） */
+    /** 移除：同步注销（属性回退不用额外处理 —— 删层后重算即精确回放） */
     unregister(key: string): boolean {
         this.#syncHooks(key, undefined, undefined, 'remove')
         return this.#deleteRaw(key)
@@ -419,7 +419,7 @@ export class BuffRegistry extends Map<string, BuffLayer> {
         return [...(this.bySource.get(originId) ?? [])]
     }
 
-    /** 给已有层补打来源标记（层是先建后认领的场景：探云手偷来后把 on_equip 挂的层认到该奇物名下） */
+    /** 给已有层补打来源标记（层是先建后认领的场景：探云手偷来后把触发槽挂的层认到该奇物名下） */
     tagOrigin(key: string, originId: string): void {
         const layer = super.get(key)
         if (!layer) return

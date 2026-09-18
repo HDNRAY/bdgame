@@ -23,7 +23,7 @@ export const QILAN: OpponentDef = {
         passive('hui_lei_qian'), // 虺雷牵（小白虫）：雷系招式自动寻路跟踪，命中+8%
         passive('baihu_ding'), // 白虎定：闪避回复2点缠劲
         passive('no_parry_style'),
-        // 12
+        // 13
     ],
     actionConfigs: [
         {

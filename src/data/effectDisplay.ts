@@ -1,4 +1,4 @@
-import type { EffectDef, BuffDuration } from '../engine/entities/action'
+import type { EffectDef } from '../engine/entities/action'
 import type { AttrName } from '../engine/entities/attributes'
 import { ATTR_CN } from '../engine/entities/attributes'
 import { getBuff } from './buffs'
@@ -13,12 +13,6 @@ function fmtScaling(scaling: Partial<Record<AttrName, number>>, base?: number): 
     }
     if (base && base > 0) parts.push(`${base}`)
     return parts.join(' + ')
-}
-
-/** 格式化 buff 持续时间为中文 */
-function fmtDuration(duration?: BuffDuration): string {
-    if (!duration) return ''
-    return `属性×${duration.multiplier}`
 }
 
 /** 将 EffectDef 解析为中文描述列表 */
@@ -49,15 +43,6 @@ export function describeEffect(eff: EffectDef): string[] {
             const buff = getBuff(eff.buffId)
             const name = buff?.name ?? statusCN[eff.buffId] ?? eff.buffId
             return [`施加 ${name} ×${eff.stacks} (${(eff.chance * 100).toFixed(0)}%概率)`]
-        }
-        case 'stat_buff': {
-            const parts = Object.entries(eff.attrs).map(([k, v]) => {
-                const name = ATTR_CN[k] ?? k
-                return `${name} ${v > 0 ? '+' : ''}${v}`
-            })
-            const dur = eff.duration ? fmtDuration(eff.duration) : eff.durationMs ? `${eff.durationMs / 1000}秒` : ''
-            const suffix = dur ? ` (${dur})` : ''
-            return [`属性变化: ${parts.join(', ')}${suffix}`]
         }
         case 'stat_multiply':
             return [`${eff.stat} ×${eff.multiplier}`]

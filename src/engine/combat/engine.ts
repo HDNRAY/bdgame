@@ -19,7 +19,7 @@ import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
 import { reduceBleedOnHeal } from './utils/buff-layer'
 import { processActionEffect, processHitCheck, processBuffEnd } from './effects'
-import { processOnEquipEffects, forEachBuffOf, calcExtraMoveEfficiency } from './utils'
+import { forEachBuffOf, calcExtraMoveEfficiency } from './utils'
 import { tickEngine } from './tick-engine'
 import { BuffRegistry } from './utils/buff-registry'
 import { BattleState } from './battle-state'
@@ -89,12 +89,9 @@ export class BattleEngine {
         log.logBattleStart(p.name, o.name, 0, this.getSnapshot())
         this.emit('battle_start', p, o)
         this.emit('battle_start', o, p)
-        // 触发所有 on_equip 效果（主手+奇物+副手）
-        for (const ch of [p, o]) {
-            const items = [getWeapon(ch.build.weapon), ...ch.artifactDefs]
-            if (ch.build.offhand) items.push(getWeapon(ch.build.offhand))
-            processOnEquipEffects(this, ch, items, 0)
-        }
+        // 源自带 buff（顶层 effects:[add_buff]）物化成战斗层：属性已在构造期折进来源层账，
+        // 这里建层只承载 hooks（含 onActivate）。
+        for (const ch of [p, o]) ch.materializeAttached(this)
         // 广播武器变更事件（让被动如行云流水切换架势）
         this.emit('on_weapon_change', p, o)
         this.emit('on_weapon_change', o, p)
@@ -136,12 +133,18 @@ export class BattleEngine {
         }
     }
 
-    /** 获取角色当前活跃 buff 列表 */
+    /**
+     * 获取角色当前活跃 buff 列表（**真实战斗层**口径）：只反映 `pendingBuffs` 里的层。
+     *
+     * 纯属性附着 buff 不建层（属性折在来源层账里），因此不在此列 —— 展示请用 `getBuffsForDisplay`。
+     * 这个「实例」口径不能被展示需求污染：AI/触发器按 `pendingBuffs.has(...)` 判断某状态在不在。
+     */
     getBuffs(charId: string): ActiveBuffSnapshot[] {
         const result: ActiveBuffSnapshot[] = []
         const byBuffId = new Map<string, number>()
         // 只遍历该角色自己的层（BuffRegistry 走 byOwner 索引，不再全表扫 + 解析 key）
         forEachBuffOf(this.state.pendingBuffs, charId, (def, layer, buffId) => {
+            if (def?.hidden) return
             const name = def?.name ?? buffId
             if (buffId === 'stun_track') {
                 const consecutive = (layer.extra?.consecutive as number) ?? 0
@@ -161,6 +164,43 @@ export class BattleEngine {
             }
         })
         for (const [buffId, stacks] of byBuffId) {
+            result.push({ buffId, name: getBuff(buffId)?.name ?? buffId, stacks })
+        }
+        return result
+    }
+
+    /**
+     * 供战斗界面/回放快照**展示**的 buff 列表：`getBuffs`（真实战斗层）＋「来源账上有、但不需
+     * 运行时层」的附着 buff（纯属性携带者，如 `titanium_arm_attr`）。
+     *
+     * 为什么不直接改 `getBuffs`：`getBuffs` 是"实例"口径（AI/触发器按 `pendingBuffs.has(...)` 判断
+     * 某状态在不在），展示补全若混进去会让语义漂移；这里只加一层只读视图，`getSnapshot` 取它填
+     * `characters[].buffs`，任何按 `pendingBuffs` 读代码的地方都不受影响。
+     *
+     * 判重带拥有者前缀（层 key = `buffId::charId[:appId]`）：双方各持同一来源时不会互相误判；
+     * 已有真实层的 buff（含 `hidden` 的内部标记）不重复补。
+     */
+    getBuffsForDisplay(charId: string): ActiveBuffSnapshot[] {
+        const result = this.getBuffs(charId)
+        const char = this.getCharacter(charId)
+        if (!char || char.sourceLayers.length === 0) return result
+        const shown = new Set(result.map((b) => b.buffId))
+        const extra = new Map<string, number>()
+        for (const layer of char.sourceLayers) {
+            for (const { buffId, stacks } of layer.attachedBuffs) {
+                if (shown.has(buffId)) continue
+                const def = getBuff(buffId)
+                if (!def || def.hidden) continue
+                // 已被运行时移除（消耗/净化）的附着 buff 不再显示 —— 账上属性也已停掉
+                if (char.isAttachedBuffDetached(layer.sourceId, buffId)) continue
+                // 该来源下已经有同名层（独立叠层是 `buffId::charId::appId`）→ 不补
+                const prefix = `${buffId}::${charId}`
+                const owned = this.state.pendingBuffs.keysOfOrigin(layer.sourceId)
+                if (owned.some((k) => k === prefix || k.startsWith(`${prefix}::`))) continue
+                extra.set(buffId, Math.max(extra.get(buffId) ?? 0, stacks))
+            }
+        }
+        for (const [buffId, stacks] of extra) {
             result.push({ buffId, name: getBuff(buffId)?.name ?? buffId, stacks })
         }
         return result
@@ -210,9 +250,9 @@ export class BattleEngine {
                     maxAp: characters[0].maxAp,
                     chan: characters[0].chan,
                     pos: position.get(characters[0].id),
-                    weapon: characters[0].build.weapon,
+                    weapon: characters[0].weaponDef?.id ?? characters[0].build.weapon,
                     spriteId: characters[0].build.spriteId ?? 'default',
-                    buffs: this.getBuffs(characters[0].id),
+                    buffs: this.getBuffsForDisplay(characters[0].id),
                     attrs: characters[0].attrs.getAll(),
                     baseAttrs: {
                         ...characters[0].build.baseAttrs,
@@ -228,9 +268,9 @@ export class BattleEngine {
                     maxAp: characters[1].maxAp,
                     chan: characters[1].chan,
                     pos: position.get(characters[1].id),
-                    weapon: characters[1].build.weapon,
+                    weapon: characters[1].weaponDef?.id ?? characters[1].build.weapon,
                     spriteId: characters[1].build.spriteId ?? 'default',
-                    buffs: this.getBuffs(characters[1].id),
+                    buffs: this.getBuffsForDisplay(characters[1].id),
                     attrs: characters[1].attrs.getAll(),
                     baseAttrs: {
                         ...characters[1].build.baseAttrs,
@@ -404,15 +444,95 @@ export class BattleEngine {
         this.state.log.restoreScope(savedScope)
     }
 
+    /**
+     * 公开的**触发招式**入口：给附着 buff 的 `onActivate` 用（如居合道的「居合准备」）。
+     *
+     * 与数据里手写的触发槽走**同一段判定**（`#execTriggerAction`：AP 上限 / canTriggerAction /
+     * 招式次数 / 距离 / requiredTags / self 分支的缠劲），不复制任何一条。
+     * 相位固定按开局算（调用点只有附着 buff 物化，等价于旧的 `battle_start → actionId` 槽）。
+     */
+    fireTriggerAction(self: Character, actionId: string): void {
+        if (!self.isAlive()) return
+        const enemy = this.state.characters.find((c) => c.id !== self.id)
+        if (!enemy) return
+        this.#execTriggerAction(self, enemy, actionId, true)
+    }
+
+    /**
+     * 触发招式的唯一「判定 + 执行」实现（`#processEmit` 的 actionId 分支与 `fireTriggerAction` 共用）。
+     *
+     * 判定顺序与原实现逐条一致，任何一条不满足就直接放弃本次触发（原实现是 `continue` 到下一个槽）。
+     */
+    #execTriggerAction(self: Character, enemy: Character, actionId: string, isInitPhase: boolean): void {
+        const action = getRuntimeAction(actionId, self, this.state) ?? getBaseAction(actionId)
+        if (!action) return
+        // 触发器招式 AP 上限（防止高消耗大招白嫖）
+        if (action.apCost > 2) return
+        // 位移招不当作触发：否则对手每次移动都白嫖一次位移+buff（过于廉价/假）
+        if (action.tags.includes('move')) return
+        // 触发招式判定钩子：任一 buff 的 canTriggerAction 返回 false 则本次触发招式不执行（如觉醒后不再触发）
+        let allowTrigger = true
+        forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
+            if (!def?.canTriggerAction) return
+            if (
+                !def.canTriggerAction({
+                    final: 0,
+                    raw: 0,
+                    target: enemy,
+                    attacker: self,
+                    engine: this,
+                    state: this.state,
+                    layer,
+                    source: action,
+                })
+            ) {
+                allowTrigger = false
+                return false
+            }
+        })
+        if (!allowTrigger) return
+        const inst = self.actions.find((a) => a.id === actionId)
+        if (!inst || !inst.canUse()) return
+
+        if (action.target === 'self') {
+            if (action.canUse && !action.canUse(self, this.state)) return
+            // 触发招式不扣 AP，但要扣缠劲（缠不足则本次触发作废）
+            if (action.chanCost && !self.spendChan(action.chanCost)) return
+            if (!isInitPhase) this.state.log.enterReaction()
+            for (const eff of action.effects ?? []) {
+                processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered: true })
+            }
+            if (!isInitPhase) this.state.log.exitReaction()
+            inst.use()
+        } else {
+            // 触发招式不消耗 AP（apCost 上限 2 已在前过滤），但仍需距离/标签/条件检测
+            // ① canUse 检查（如灵鳌冲 距离 >2m 才触发，太近无需撞）
+            if (action.canUse && !action.canUse(self, this.state)) return
+            // ② 距离检查：用 getActionRange（含 short_dash 延伸）——"dash 能打够"才算够得到。
+            //    灵鳌冲 getRange[0,0] + dash3 → 有效 [0,3]，3m 外够不到不触发。
+            //    射程基准 = 主副手并集（双持时任意一把够得着即触发）
+            const range: [number, number] = getActionRange(action, self.getEffectiveRange(), self)
+            const dist = this.state.position.distance(self.id, enemy.id)
+            if (dist < range[0] || dist > range[1]) return
+            if (action.requiredTags.length > 0) {
+                const hasTag = action.requiredTags.some((tag) => self.getWeaponTags().includes(tag))
+                if (!hasTag) return
+            }
+            this.state.log.enterReaction()
+            this.#executeAction(action, self, enemy, true)
+            inst.use()
+            this.emit('on_action_trigger', self, enemy)
+            tickEngine.onBleedTrigger(self, this)
+            this.state.log.exitReaction()
+        }
+    }
+
     #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
         // 死亡角色不再触发任何招式（先于一切触发处理）
         if (!self.isAlive()) return
         const { moveDelta, position } = this.state
         const isInitPhase =
-            event === 'battle_start' || event === 'on_turn_start' || event === 'on_equip' || event === 'on_turn_end'
-        // 武器射程/tags 在一次触发循环内不变，取一次复用（距离检查用主副并集）
-        const effRange = self.getEffectiveRange()
-        const weaponTags = self.getWeaponTags()
+            event === 'battle_start' || event === 'on_turn_start' || event === 'on_turn_end'
         for (const slot of self.triggers) {
             if (slot.condition.type !== event) continue
             if (slot.condition.buffId && slot.condition.buffId !== buffId) continue
@@ -435,69 +555,10 @@ export class BattleEngine {
                 continue
             }
             if (!slot.actionId) continue
-            const action = getRuntimeAction(slot.actionId, self, this.state) ?? getBaseAction(slot.actionId)
-            if (!action) continue
-            // 触发器招式 AP 上限（防止高消耗大招白嫖）
-            if (action.apCost > 2) continue
-            // 位移招不当作触发：否则对手每次移动都白嫖一次位移+buff（过于廉价/假）
-            if (action.tags.includes('move')) continue
-            // 触发招式判定钩子：任一 buff 的 canTriggerAction 返回 false 则本次触发招式不执行（如觉醒后不再触发）
-            let allowTrigger = true
-            forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
-                if (!def?.canTriggerAction) return
-                if (
-                    !def.canTriggerAction({
-                        final: 0,
-                        raw: 0,
-                        target: enemy,
-                        attacker: self,
-                        engine: this,
-                        state: this.state,
-                        layer,
-                        source: action,
-                    })
-                ) {
-                    allowTrigger = false
-                    return false
-                }
-            })
-            if (!allowTrigger) continue
-            const inst = self.actions.find((a) => a.id === slot.actionId)
-            if (!inst || !inst.canUse()) continue
-
-            if (action.target === 'self') {
-                if (action.canUse && !action.canUse(self, this.state)) continue
-                // 触发招式不扣 AP，但要扣缠劲（缠不足则本次触发作废）
-                if (action.chanCost && !self.spendChan(action.chanCost)) continue
-                if (!isInitPhase) this.state.log.enterReaction()
-                for (const eff of action.effects ?? []) {
-                    processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered: true })
-                }
-                if (!isInitPhase) this.state.log.exitReaction()
-                inst.use()
-            } else {
-                // 触发招式不消耗 AP（apCost 上限 2 已在前过滤），但仍需距离/标签/条件检测
-                // ① canUse 检查（如灵鳌冲 距离 >2m 才触发，太近无需撞）
-                if (action.canUse && !action.canUse(self, this.state)) continue
-                // ② 距离检查：用 getActionRange（含 short_dash 延伸）——"dash 能打够"才算够得到。
-                //    灵鳌冲 getRange[0,0] + dash3 → 有效 [0,3]，3m 外够不到不触发。
-                //    射程基准 = 主副手并集（双持时任意一把够得着即触发）
-                const range: [number, number] = getActionRange(action, effRange, self)
-                const dist = this.state.position.distance(self.id, enemy.id)
-                if (dist < range[0] || dist > range[1]) continue
-                if (action.requiredTags.length > 0) {
-                    const hasTag = action.requiredTags.some((tag) => weaponTags.includes(tag))
-                    if (!hasTag) continue
-                }
-                this.state.log.enterReaction()
-                this.#executeAction(action, self, enemy, true)
-                inst.use()
-                this.emit('on_action_trigger', self, enemy)
-                tickEngine.onBleedTrigger(self, this)
-                this.state.log.exitReaction()
-            }
+            this.#execTriggerAction(self, enemy, slot.actionId, isInitPhase)
         }
     }
+
 
     private execute(cmd: ActionCommand, self: Character, enemy: Character): ActionResult {
         switch (cmd.type) {

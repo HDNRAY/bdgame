@@ -39,7 +39,6 @@ const TRIGGER_NAMES: Record<string, string> = {
     on_stance: '进入架势时',
     chan_overflow: '缠劲溢出时',
     on_action_trigger: '触发器触发时',
-    on_equip: '装备时',
 }
 
 /** 所有触发事件的中文描述 */

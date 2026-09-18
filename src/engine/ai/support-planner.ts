@@ -85,7 +85,7 @@ function hasActiveBuff(
     def: { effects?: { type: string; buffId?: string }[] },
 ): boolean {
     for (const eff of def.effects ?? []) {
-        if (eff.type === 'stat_buff' || eff.type === 'stat_multiply') {
+        if (eff.type === 'stat_multiply') {
             let hasBuff = false
             forEachBuffOf(state.pendingBuffs, attacker.id, (_d, _l, buffId) => {
                 if (buffId === eff.type) {

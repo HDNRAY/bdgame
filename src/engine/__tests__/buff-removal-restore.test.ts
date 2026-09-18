@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
-import { applyBuffLayer, clearCcOnSuperArmor, partialRevertMods } from '../combat/utils/buff-apply'
+import { applyBuffLayer, clearCcOnSuperArmor, removeBuffStacks } from '../combat/utils/buff-apply'
+import { removeBuffLayer } from '../combat/utils'
 import { processActionEffect } from '../combat/effects/action'
 import { getBuff } from '../../data/buffs'
-import type { BuffLayer } from '../combat/types'
 
 /**
  * 「移除 buff 层」必须把这一层加过的属性一起退掉。
@@ -73,17 +73,30 @@ describe('移除 buff 层时属性要跟着退', () => {
         expect([...engine.state.pendingBuffs.keys()].filter((k) => k.startsWith('stun::'))).toHaveLength(0)
     })
 
-    it('部分退层被属性地板夹住时：按「实际退掉多少」记账', () => {
+    it('部分退层：按「每层请求值 × 新层数」重算，撞地板也不漂', () => {
         const me = makeChar('A')
-        // 手搓一层：账上 +2 身法
-        const layer: BuffLayer = { restoreValue: 2, mods: { agility: 2 } }
-        me.attrs.modify('agility', -100) // 压到地板 3，此时「退 1 点」根本退不动
-        expect(me.attrs.get('agility')).toBe(3)
+        const engine = new BattleEngine(me, makeChar('B'), 4)
+        const paralyze = getBuff('paralyze')!
+        const perStack = paralyze.attrMods!.agility as number // 每层身法修正
+        applyBuffLayer(engine, { buff: paralyze, target: me, stacks: 1, tMs: 1 })
+        const key = [...engine.state.pendingBuffs.keys()].find((k) => k.startsWith('paralyze::'))!
+        const layer = engine.state.pendingBuffs.get(key)!
+        expect(layer.mods!.agility).toBe(perStack)
+        // 手搓成两层（麻痹本身不可叠层，这里只测「部分退层按每层请求值重算」）
+        layer.restoreValue = 2
+        layer.modsPerStack = { agility: perStack }
+        layer.mods = { agility: perStack * 2 }
+        me.rebuildDerived(engine.state)
+        expect(me.attrs.get('agility')).toBe(makeChar('A').attrs.get('agility') + perStack * 2)
 
-        partialRevertMods(layer, 1, me)
+        // 压到地板：退层请求值照记（账按请求值走），读数被地板夹住
+        me.attrs.modify('agility', -100)
         expect(me.attrs.get('agility')).toBe(3)
-        // 没退掉的仍然记在账上（旧实现会写成一，凭空少记一点）
-        expect(layer.mods!.agility).toBe(2)
+        removeBuffStacks(engine.state, key, 1)
+        expect(layer.mods!.agility).toBe(perStack) // 请求值按新层数重算
         expect(layer.restoreValue).toBe(1)
+        removeBuffLayer(engine, key)
+        // 全部撤掉后这层没了：属性由重算得出（地板只剩 base 那点，不会凭空少记）
+        expect(engine.state.pendingBuffs.get(key)).toBeUndefined()
     })
 })

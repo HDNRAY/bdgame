@@ -1,23 +1,14 @@
 import type { EffectDef } from '../../entities/action'
 import type { Character } from '../../entities/character'
 import type { BattleEngine } from '../engine'
-import { ATTR_CN, type AttrName } from '../../entities/attributes'
+import type { AttrName } from '../../entities/attributes'
 import { calcBaseDamage, calcPreDelayMs, calcHealAmount, calcRoll } from '../../calc/damage'
 import { getWeapon } from '../../../data/weapons/weapons'
 import { genAppId } from '../../util/buff-utils'
 import { notifyRegenChanged, affectsApRegen } from '../utils/ap-regen'
 import type { Tag } from '../../entities/tag'
-import {
-    scheduleBuffExpiry,
-    revertBuffMods,
-    clearWeaponBuffLayers,
-    removeBuffLayer,
-    executeMove,
-    emitMoveEvents,
-    revertWeaponStatBuffs,
-    processOnEquipEffects,
-    forEachBuffOf,
-} from '../utils'
+import { scheduleBuffExpiry, removeBuffLayer, executeMove, emitMoveEvents, forEachBuffOf } from '../utils'
+import { getBuffMaxOverride, applyStackGainCost } from '../utils/buff-apply'
 import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
 import { MAX_STAT_TRANSFER_LAYERS } from '../../constants'
@@ -26,8 +17,8 @@ import { applyDamage, applyBonusDamage } from './damage'
 import { processHitCheck } from './combat'
 import { processActionEffect } from './action'
 import { tickEngine } from '../tick-engine'
-import { applyAttrMods, scheduleBuffEnd, applyHeal } from '../utils/buff-layer'
-import { applyBuffLayer, partialRevertMods } from '../utils/buff-apply'
+import { scheduleBuffEnd, applyHeal } from '../utils/buff-layer'
+import { applyBuffLayer, removeBuffStacks } from '../utils/buff-apply'
 import { BuffDef, getBuff } from '../../../data/buffs'
 
 /** 检查目标是否有罡体免疫（通过 buff 的 super_armor 标签识别） */
@@ -67,56 +58,36 @@ function finishDebuffApply(ctx: {
     tickEngine.afterApplyDebuff({ enemy, engine, tMs, buffDef: buff, stacks, layerKey, layer })
 }
 
-/** 遍历防御方 buff，检查 onReceiveDebuff 钩子是否完全抵抗本次 debuff */
-function isDebuffResisted(
+/**
+ * 遍历防御方 buff 的 onReceiveDebuff 钩子，返回本次 debuff 的**实际层数**。
+ * 钩子语义（见 `BuffDef.onReceiveDebuff`）：0=完全抵抗，>0=削减到该层数，undefined=不干预；
+ * 多个钩子取最小（削减最狠的生效）。完全抵抗时与旧实现一致：记一条抵抗日志并立即停止遍历。
+ */
+function resolveDebuffStacks(
     engine: BattleEngine,
     buff: BuffDef,
     buffId: string,
     stacks: number,
     self: Character,
     enemy: Character,
-): boolean {
-    let resisted = false
+): number {
+    let final = stacks
     forEachBuffOf(engine.state.pendingBuffs, enemy.id, (bDef) => {
         if (!bDef?.onReceiveDebuff) return
         const result = bDef.onReceiveDebuff({ self: enemy, enemy: self, engine, state: engine.state, buffId, stacks })
+        if (result === undefined) return
         if (result === 0) {
             engine.emitLog({
                 type: 'system',
                 message: `[${bDef.name}] ${enemy.name} 抵抗了${buff.name ?? buffId}`,
                 actorId: enemy.id,
             })
-            resisted = true
+            final = 0
             return false
         }
+        if (result < final) final = Math.max(1, Math.floor(result))
     })
-    return resisted
-}
-
-function getBuffMaxOverride(buff: BuffDef, engine: BattleEngine, charId: string): number {
-    const raw = buff.stacking?.type === 'additive' ? (buff.stacking.max ?? Infinity) : Infinity
-    let override: number | null = null
-    forEachBuffOf(engine.state.pendingBuffs, charId, (bDef) => {
-        const char = engine.getCharacter(charId)
-        if (!char) return
-        if (bDef?.onBuffApply) {
-            const val = bDef.onBuffApply(raw, char, engine)
-            if (val > (override ?? 0)) override = val
-        }
-    })
-    return override ?? raw
-}
-
-/** 收集角色身上所有 onStackGain 限制，取最小允许的 delta（0=拦截叠层） */
-function applyStackGainCost(engine: BattleEngine, char: Character, buffId: string, delta: number): number {
-    let allowed = delta
-    forEachBuffOf(engine.state.pendingBuffs, char.id, (bDef) => {
-        if (bDef?.onStackGain) {
-            const v = bDef.onStackGain({ char, buffId, delta: allowed, engine })
-            if (v < allowed) allowed = v
-        }
-    })
-    return Math.max(0, Math.floor(allowed))
+    return final
 }
 
 export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
@@ -136,8 +107,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             if (perDebuffStacks && perDebuffStacks > 0) {
                 const def = getBuff(buffId)
                 if (def?.stacking?.type === 'additive') {
-                    // 层数减了，属性修正也要按比例退（不能只改层数）
-                    partialRevertMods(layer, Math.min(perDebuffStacks, layer.restoreValue), self)
+                    // 层数减了，属性修正按「每层请求值 × 新层数」重算（不走比例回退记账）
+                    removeBuffStacks(engine.state, k, Math.min(perDebuffStacks, layer.restoreValue))
                     if (layer.restoreValue <= 0) removeBuffLayer(engine, k)
                 } else if (def?.stacking?.type === 'independent') {
                     const remain = left.get(buffId) ?? perDebuffStacks
@@ -188,7 +159,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     ciyuan_init({ self, engine }: EffectCtx) {
         const weapon = self.weaponDef ?? getWeapon(self.build.weapon)
         if (weapon.id === 'bare_hands') {
-            // 走 switch_weapon 流程以确保 passiveTriggers / on_equip 等正确
+            // 走 switch_weapon 流程以确保 passiveTriggers / 武器自带 buff 等正确
             processActionEffect(
                 { type: 'switch_weapon', weaponId: 'ciyuan_blade' },
                 { self, enemy: self, engine, tMs: engine.state.turn.currentTime },
@@ -200,11 +171,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             })
         } else {
             const newMax = Math.max(3, weapon.range[1])
-            self.weaponDef = {
-                ...weapon,
-                tags: [...new Set([...weapon.tags, 'qi' as Tag])],
-                range: [weapon.range[0], newMax] as [number, number],
-            }
+            // 走 weaponPatch：weaponDef 是派生值，直接写会被下一次 rebuildDerived() 抹掉
+            self.patchWeapon({ tags: ['qi' as Tag], range: [weapon.range[0], newMax] })
             engine.emitLog({
                 type: 'system',
                 message: BattleLog.msg('附炁与刃', self.name, `附炁成功，射程扩展至${newMax}`),
@@ -333,8 +301,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const attr = e.stat as AttrName
         const old = self.attrs.get(attr)
         self.attrs.set(attr, old * e.multiplier)
-        // 记「实际生效量」而不是「原值」：写在上限边上会被夹住（20×2 → 30），
-        // 按原值回滚会把多出来的部分一起扣掉（30−20=10）。与 stat_transfer 同一口径。
+        // 实际生效量只用于日志；层里记的是「倍率」本身，重算时按乘回放（不是记一个夹取后的差值）
         const actual = self.attrs.get(attr) - old
         engine.emitLog({
             type: 'stat_change',
@@ -346,34 +313,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.state.pendingBuffs.set(layerKey, {
             buffId: 'stat_multiply',
             restoreValue: old, // 仅供展示/调试：施法前的属性值
-            mods: { [e.stat]: actual },
+            modsMultiply: { [e.stat]: e.multiplier },
         })
         scheduleBuffEnd(engine, layerKey, getBuff('stat_multiply')!, self)
-    },
-    stat_buff({ eff, self, engine, tMs, action }: EffectCtx) {
-        const e = eff as Extract<EffectDef, { type: 'stat_buff' }>
-        const label = action?.name ?? getBuff('stat_buff')?.name ?? '内劲'
-        const mods = applyAttrMods(self, engine.state, e.attrs as Record<string, number>, label)
-        const details = Object.entries(mods)
-            .map(([a, v]) => `${ATTR_CN[a] ?? a}${v > 0 ? '+' : ''}${v}`)
-            .join(', ')
-        if (details) {
-            engine.emitLog({
-                type: 'system',
-                message: `[${label}] ${BattleLog.name(self.name)} ${details}`,
-                actorId: self.id,
-            })
-        }
-        if (e.durationMs) {
-            const appId = genAppId(tMs)
-            const layerKey = `stat_buff::${self.id}::${appId}`
-            engine.state.pendingBuffs.set(layerKey, {
-                buffId: 'stat_buff',
-                restoreValue: 1,
-                mods,
-            })
-            scheduleBuffExpiry(engine, layerKey, e.durationMs)
-        }
     },
     restore_ap({ eff, self, engine }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'restore_ap' }>
@@ -381,7 +323,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         engine.emitLog({ type: 'system', message: BattleLog.msg('回炁', self.name, `AP+${e.value}`), actorId: self.id })
     },
     max_ap_mod({ eff, self }: EffectCtx) {
-        // 御物武器占用 AP 上限（on_equip 触发）：maxApMod 直接累加，改上限后夹住当前 AP
+        // 御物武器占用 AP 上限（开局 battle_start 槽）：maxApMod 直接累加，改上限后夹住当前 AP
         const e = eff as Extract<EffectDef, { type: 'max_ap_mod' }>
         self.maxApMod += e.value
         self.capAp()
@@ -419,8 +361,16 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             restoreValue: actual,
             targetId: enemy.id,
             mods: { [e.stat]: actual },
+            modsPerStack: { [e.stat]: actual },
         })
         scheduleBuffExpiry(engine, layerKey, e.duration)
+        // 被汲取方也要留一条同寿命的条目：否则它一重算（被偷奇物/换武）就把掉掉的属性长回来
+        engine.state.pendingBuffs.set(`stat_transfer_drain::${enemy.id}::${appId}`, {
+            buffId: 'stat_transfer',
+            restoreValue: 1,
+            mods: { [e.stat]: -e.value },
+        })
+        scheduleBuffExpiry(engine, `stat_transfer_drain::${enemy.id}::${appId}`, e.duration)
 
         if (e.stat === 'vitality') {
             self.capAp()
@@ -440,8 +390,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
         if (stacks <= 0) return
 
-        // 防御方 buff 的 onReceiveDebuff 钩子（概率抵抗等）→ 完全抵抗则本次作废
-        if (isDebuffResisted(engine, buff, e.buffId, stacks, self, enemy)) return
+        // 防御方 buff 的 onReceiveDebuff 钩子（概率抵抗 / 层数削减）：完全抵抗则本次作废，>0 则削减到该层数
+        stacks = resolveDebuffStacks(engine, buff, e.buffId, stacks, self, enemy)
+        if (stacks <= 0) return
 
         // 统一核心：叠层/建层、上限、属性缩放、过期调度全部在此完成
         const r = applyBuffLayer(engine, {
@@ -503,19 +454,21 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 架势自动替换：新架势静默覆盖旧架势（回退旧属性、移除旧层）
         let replacedStance = false
         let oldStanceName = ''
+        const staleStanceKeys: string[] = []
         if (buff.tags?.includes('stance')) {
-            forEachBuffOf(engine.state.pendingBuffs, self.id, (existing, layer, buffId, key) => {
+            forEachBuffOf(engine.state.pendingBuffs, self.id, (existing, _layer, buffId, key) => {
                 if (buffId === e.buffId) return
                 if (existing?.tags.includes('stance')) {
                     oldStanceName = existing.name ?? buffId
-                    revertBuffMods(layer, self, engine.state)
-                    engine.state.pendingBuffs.delete(key)
-                    engine.state.turn.removeEvents('buff_end_' + key)
+                    // 撤旧架势 = 删层 + 重算（无逆运算）；遍历中不能改表，先收集
+                    staleStanceKeys.push(key)
                     replacedStance = true
                     return false
                 }
             })
         }
+
+        for (const k of staleStanceKeys) removeBuffLayer(engine, k)
 
         // 统一核心：叠层/建层、上限覆盖(onBuffApply)、资源门槛(onStackGain)、属性缩放全部在此完成
         const r = applyBuffLayer(engine, {
@@ -560,8 +513,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         if (e.stacks != null && layer.restoreValue > e.stacks) {
             const delta = -e.stacks
             if (delta < 0) {
-                // 部分移除：按实际累积 mods 比例回退属性
-                partialRevertMods(layer, -delta, self)
+                // 部分移除：层数减 N，属性按每层请求值重算
+                removeBuffStacks(engine.state, key, -delta)
                 if (e.buffId !== 'disarmed') {
                     engine.emitLog({
                         type: 'system',
@@ -575,9 +528,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         }
 
         const oldStacks = layer.restoreValue
-        revertBuffMods(layer, self, engine.state)
-        engine.state.pendingBuffs.delete(key)
-        engine.state.turn.removeEvents('buff_end_' + key)
+        removeBuffLayer(engine, key)
         if (affectsApRegen(e.buffId)) notifyRegenChanged(engine.state, self)
         const buffName = getBuff(e.buffId)?.name ?? e.buffId
         if (e.buffId !== 'disarmed') {
@@ -719,9 +670,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         // 记录掉落位置（缴对手武器掉原地）
         const dropPosition = engine.state.position.get(enemy.id)
-        revertWeaponStatBuffs(oldWeapon, enemy, engine)
-        clearWeaponBuffLayers(enemy.id, engine)
-        enemy.weaponDef = { ...getWeapon('bare_hands') }
+        enemy.setWeapon('bare_hands', engine)
         engine.state.pendingBuffs.delete(`ciyuan_blade::${enemy.id}`)
         engine.state.pendingBuffs.set(key, { restoreValue: 1, extra: { originalWeapon: oldWeapon.id, dropPosition } })
         engine.emitLog({
@@ -787,7 +736,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 成功概率（初始 60%，成功后减半）
         const trackKey = `steal_artifact_track::${self.id}`
         const track = engine.state.pendingBuffs.get(trackKey)
-        const chance = track?.restoreValue ?? 1
+        const chance = track?.restoreValue ?? 0.6
         const { success } = calcRoll(chance)
         if (!success) {
             engine.emitLog({
@@ -802,8 +751,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const idx = enemy.artifactDefs.indexOf(target)
         if (idx !== -1) enemy.artifactDefs.splice(idx, 1)
         // 撤销奇物给对手带来的构造期修正（属性/上限/触发槽/武器 tag —— 来源层账）
-        enemy.removeSource(`artifact:${target.id}`)
-        // 撤销奇物触发挂上的 buff（金丝手套的「金丝护手」这类没有 effects、只有 on_equip/触发挂 buff 的奇物）
+        enemy.removeSource(`artifact:${target.id}`, engine.state)
+        // 撤销奇物触发挂上的 buff（触发槽里 add_buff 的奇物，如静心符的 on_stance 层）
         const grantedBuffs = new Set<string>()
         for (const t of target.triggers ?? []) {
             for (const e of t.effects ?? []) {
@@ -836,7 +785,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         enemy.removeActionsByIds(target.grantsActions ?? [])
         // 加给自己（含奇物赋予的招式：偷来的酒能喝）
         const originId = `artifact:${target.id}`
-        // 幂等：同来源旧层先按 originId 清掉（bySource 索引），再让 on_equip 重新挂
+        // 幂等：同来源旧层先按 originId 清掉（bySource 索引），再让 addArtifact 重新物化
         for (const k of engine.state.pendingBuffs.keysOfOrigin(originId)) removeBuffLayer(engine, k)
         self.addArtifact(target.id, engine)
         // 给「这件奇物挂上的层」打来源标记，便于后续按来源整体撤销（缴械/被偷回等）
@@ -858,39 +807,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const e = eff as Extract<EffectDef, { type: 'switch_weapon' }>
 
         // const oldWeaponName = (self.weaponDef ?? getWeapon(self.build.weapon)).name
-        const oldWeapon = self.weaponDef ?? getWeapon(self.build.weapon)
-        revertWeaponStatBuffs(oldWeapon, self, engine)
-        clearWeaponBuffLayers(self.id, engine)
-        // 移除旧武器的 passive triggers
-        for (const t of oldWeapon.triggers ?? []) {
-            const idx = self.passiveTriggers.indexOf(t)
-            if (idx !== -1) self.passiveTriggers.splice(idx, 1)
-        }
-
-        const weapon = getWeapon(e.weaponId)
-        self.weaponDef = { ...weapon }
-        // 加入新武器的 passive triggers
-        for (const t of weapon.triggers ?? []) {
-            self.passiveTriggers.push(t)
-        }
-
-        if (!weapon.tags.includes('imperial')) {
-            for (const eff of weapon.effects ?? []) {
-                if (eff.type === 'stat_buff') {
-                    for (const [attr, value] of Object.entries(eff.attrs)) {
-                        self.attrs.modify(attr as AttrName, value)
-                    }
-                }
-            }
-        }
-
-        // engine.emitLog({
-        //     type: 'system',
-        //     message: `[换武] ${self.name} ${oldWeaponName} → ${weapon.name}`,
-        //     actorId: self.id,
-        // })
-        // 仅触发新武器的 on_equip（不触发奇物）
-        processOnEquipEffects(engine, self, [weapon], engine.state.turn.currentTime)
+        // 账里换武器：撤旧来源层（属性/武器 tag/自带 buff 一起撤）→ 挂新来源层 → 物化
+        self.setWeapon(e.weaponId, engine)
         // 广播武器变更事件（让被动如行云流水切换架势）
         engine.emit('on_weapon_change', self, self)
     },
@@ -902,7 +820,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             console.error('retrieve_weapon: missing originalWeapon')
             return
         }
-        // 1. 切回原武器 → 触发 on_equip → 自动加武器 buff
+        // 1. 切回原武器 → 物化武器自带 buff
         processActionEffect(
             { type: 'switch_weapon', weaponId },
             { self, enemy: self, engine, tMs: engine.state.turn.currentTime },

@@ -63,8 +63,36 @@ export interface BuffDef extends GameEntity {
     stacking?: BuffStacking
     /** 同类型钩子处理优先级（默认 0，越小越先执行；用于 onAfterCritDamage 等「返回全量覆盖」钩子，保证某 buff 最后/最先处理） */
     priority?: number
-    /** 每层属性修正 */
+    /**
+     * 每层属性修正。
+     *
+     * 由**来源顶层 `effects:[add_buff]`** 挂上的 buff（附着 buff），其 `attrMods × stacks`
+     * 在构造期就折进 `Character` 的来源层账，战斗界面/构筑面板/触发槽/血量/武器门槛全部按它算。
+     */
     attrMods?: Record<string, number>
+    /**
+     * 不进战斗界面 buff 列表（纯内部标记用，如 `iaijutsu_ready_buff`）。
+     *
+     * 只管**展示口径**，与「是否建运行时层」无关（建层判据见 `needsLayer` 与
+     * `needsRuntimeLayer`）。纯属性附着 buff 现在会显示（账上补进列表），但仍不建层。
+     */
+    hidden?: boolean
+    /**
+     * 显式声明「需要运行时层」，即使这条 buff 没有任何钩子/时长/叠层/maxApMod/tick/回复率。
+     *
+     * 用于无钩子但被引擎按 `pendingBuffs` 探测（`min_move_cost`）或会被 `remove_buff` 消耗
+     * （`sangui_yuanqi`、`muscle_degradation` 物化时还要打「获得状态」日志）的附着 buff ——
+     * 它们没有别的运行时特征，只能由数据显式声明。建层判据见
+     * `needsRuntimeLayer`（src/engine/entities/character/source-layer.ts）。
+     */
+    needsLayer?: boolean
+    /**
+     * 附着 buff 物化成战斗层时触发一次（恒有 engine/state）。
+     *
+     * 用例：`attrMods` 表达不了的"生效时刻行为" —— 例如居合精通要在开局触发一招
+     * （原来是 `battle_start → actionId` 的触发槽）。
+     */
+    onActivate?: (ctx: BuffHookCtx) => void
     /** 每层最大 AP 修正 */
     maxApMod?: number
     /** DOT/tick 间隔（ms） */

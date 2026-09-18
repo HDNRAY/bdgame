@@ -90,7 +90,7 @@ describe('神照（入神坐照）', () => {
     })
 
     it('无明之明的洞察-4不受神照免疫影响', () => {
-        // 无明之明在构造期 stat_buff -4，state 无 → stat_restriction 不拦
+        // 无明之明在构造期 attrMods -4，state 无 → stat_restriction 不拦
         const { p } = setup([SHEN, NOLIGHT])
         // 构造时 -4 已生效（相对 base 10 → 6，神照未累计阶段仍为0）
         expect(p.attrs.get('insight')).toBe(6)

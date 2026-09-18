@@ -14,7 +14,7 @@ import type { TriggerCondition } from '../engine/entities/trigger'
  *  - 玩家可选（进构筑面板下拉）：要求有中文名、且名字互不重复（有测试把关）
  *  - 内部种类（`internal: true`）：只给数据/引擎用，不进下拉
  *
- * 本表是**玩家可选项**，不是全部触发事件：引擎事件里另有 `on_hit` / `on_equip` / `on_stance` / `on_buff` /
+ * 本表是**玩家可选项**，不是全部触发事件：引擎事件里另有 `on_hit` / `on_stance` / `on_buff` /
  * `chan_overflow` / `on_action_trigger` / `on_attack` 等，只给数据层声明用（buff 消耗触发、功法/武器自带触发），
  * 不进玩家下拉。`on_attack` 尤其宽泛——等于「每次攻击都触发」，故不列为玩家选项。
  *

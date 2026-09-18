@@ -1,8 +1,8 @@
 import { round1 } from '../../engine/util/math'
 import type { Character } from '../../engine/entities/character'
 import type { BattleState } from '../../engine/combat/types'
-import { forEachBuffOf, revertBuffMods } from '../../engine/combat/utils'
-import { applyAttrMods } from '../../engine/combat/utils/buff-layer'
+import { forEachBuffOf } from '../../engine/combat/utils'
+import { setLayerMods } from '../../engine/combat/utils/buff-layer'
 import { BuffDef } from './types'
 
 /** 重器负担：力量不足按差值扣身法；身上带 heavy_reduce 标记的 buff（玄剑/潮汐）各减 2 点 */
@@ -38,10 +38,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
             const tier = layer.restoreValue ?? 0
             layer.extra = { inited: true, tier }
             const pen = calcHeavyPenalty(char, tier, state)
-            if (pen > 0) {
-                const mods = applyAttrMods(char, state, { agility: -pen }, '重器负担')
-                layer.mods = mods
-            }
+            if (pen > 0) setLayerMods(layer, char, state, { agility: -pen })
         },
         // 战斗中力道变化（血战到底/七十二变等）在回合末刷新惩罚
         onTurnEnd: ({ attacker: char, state, layer }) => {
@@ -50,13 +47,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
             const pen = calcHeavyPenalty(char, tier, state)
             const current = Math.abs((layer.mods?.agility as number) ?? 0)
             if (current === pen) return
-            if (current > 0) revertBuffMods(layer, char, state)
-            if (pen > 0) {
-                const mods = applyAttrMods(char, state, { agility: -pen }, '重器负担')
-                layer.mods = mods
-            } else {
-                layer.mods = undefined
-            }
+            setLayerMods(layer, char, state, pen > 0 ? { agility: -pen } : {})
         },
     },
     {
@@ -165,6 +156,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
+        attrMods: { agility: 2 },
         onDisarmChance: () => -1,
         // 暴击结算后拆出 50% 穿透：基于含爆伤的伤害拆 → 穿透吃爆伤，且无视招架/减伤/吸收
         onPostCritDamage: ({ final }) => {

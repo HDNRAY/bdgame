@@ -14,7 +14,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         name: '赤手空拳',
         description: '什么都没有，但什么都有可能。',
         tags: ['unarmed'],
-        effects: [{ type: 'stat_buff', attrs: { agility: 2 } }],
+        effects: [{ type: 'add_buff', buffId: 'bare_hands_attr' }],
         range: [0, 2],
     },
     // ── 单手剑 ──
@@ -50,15 +50,13 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         bound: true,
         range: [0, 6],
         // 御物耗炁：每秒扣 1AP（7 丝）。丝 = 高频触发流：短前后摇、绵密输出、射程 7，每击喂 on_hit
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.7 }] },
-        ],
         summon: {
             id: 'silk',
             name: '游丝',
             maxCount: (self) => Math.min(7, 1 + Math.round(self.attrs.get('wisdom') / 2)),
             actionId: '_silk_shot',
         },
+        effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.7 }],
     },
     {
         id: 'tri_orb',
@@ -68,15 +66,13 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         bound: true,
         range: [0, 6],
         // 御物耗炁：每秒扣 0.7AP（3 珠）。珠 = 纯伤害中速
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }] },
-        ],
         summon: {
             id: 'orb',
             name: '法珠',
             maxCount: () => 3,
             actionId: '_orb_shot',
         },
+        effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }],
     },
     {
         id: 'fei_jian',
@@ -86,15 +82,13 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         bound: true,
         range: [0, 6],
         // 御物耗炁：每秒扣 0.4AP（1 剑）。剑 = 慢速重击：单发 WIS×0.5、长前后摇、节奏沉
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }] },
-        ],
         summon: {
             id: 'fei_jian',
             name: '黑云剑',
             maxCount: () => 1,
             actionId: '_fei_jian_shot',
         },
+        effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }],
     },
     // ── 匕首 ──
     {
@@ -102,7 +96,7 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         name: '匕首',
         description: '短小而致命的匕首。',
         tags: ['pierce', 'unarmed', 'parry', 'slash', 'melee', 'one_handed'],
-        effects: [{ type: 'stat_buff', attrs: { agility: 1 } }],
+        effects: [{ type: 'add_buff', buffId: 'dagger_attr' }],
         range: [0, 2],
     },
 ]

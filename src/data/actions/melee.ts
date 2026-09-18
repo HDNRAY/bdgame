@@ -124,7 +124,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 10] as [number, number],
         onActionHitChance: () => 1,
         hookNotes: { hitChance: '必中', critChance: '目标气血低于 30% 时暴击+30%' },
-        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1 }, fixed: 10 }],
+        effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1.2 }, fixed: 10 }],
     },
     {
         id: 'pursuit_thrust',

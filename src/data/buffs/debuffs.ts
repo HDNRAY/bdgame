@@ -1,7 +1,7 @@
 import type { BuffDef } from './types'
 import { rng } from '../../engine/util/rng'
 import { processActionEffect } from '../../engine/combat/effects'
-import { revertBuffMods } from '../../engine/combat/utils/buff-layer'
+import { dropBuffLayer } from '../../engine/combat/utils/buff-layer'
 import { calcApRegenPerSec, calcPoisonTicksPerStack } from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
 import type { Character } from '../../engine/entities/character'
@@ -179,6 +179,8 @@ export const DEBUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         attrMods: { vitality: -2, dexterity: -2 },
+        // 无钩子，但物化时要打「获得状态」日志 / 广播 on_buff（与改动前逐字节一致）→ 必须建层
+        needsLayer: true,
     },
     {
         id: 'ap_drain',
@@ -256,8 +258,7 @@ export const DEBUFF_DB: BuffDef[] = [
             const acc = ((layer.extra?.burnExtra as number) ?? 0) + extra
             if (acc >= 20) {
                 if (engine && target) {
-                    revertBuffMods(layer, target, engine.state)
-                    engine.state.pendingBuffs.delete(`oil_coating::${target.id}`)
+                    dropBuffLayer(engine.state, `oil_coating::${target.id}`)
                     engine.emitLog({
                         type: 'system',
                         message: `[浸油] ${target.name} 身上的油被烧尽了`,

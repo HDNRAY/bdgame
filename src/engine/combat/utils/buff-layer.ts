@@ -19,9 +19,20 @@ export function scheduleBuffExpiry(engine: BattleEngine, layerKey: string, durat
     )
 }
 
+/** 一次属性修正的结果：requested 进层账（重算按它回放），applied 只用于日志 */
+export interface AttrModResult {
+    /** 请求写入的修正（过限制器之后、上下限夹取之前） */
+    requested: Record<string, number>
+    /** 实际写进 attrs 的增减（夹取之后） */
+    applied: Record<string, number>
+}
+
 /**
  * 批量应用属性修正，合并为一条日志。
- * @returns 实际应用的 mods 记录（用于 later reversal）
+ *
+ * 返回值分两笔：`requested` 是**请求值**（层里存这个，重算按它回放），`applied` 是本次实际
+ * 生效量（只用于日志/展示）。**不要拿 applied 做回滚记账** —— 夹取后的数字一旦上下文变化就
+ * 对不上（见 `LayerBase.mods` 的说明）。
  */
 export function applyAttrMods(
     char: Character,
@@ -29,7 +40,8 @@ export function applyAttrMods(
     modsIn: Record<string, number>,
     _label: string,
     sourceTags?: string[],
-): Record<string, number> {
+): AttrModResult {
+    const requested: Record<string, number> = {}
     const applied: Record<string, number> = {}
     for (const [attr, value] of Object.entries(modsIn)) {
         if (value === 0) continue
@@ -45,12 +57,12 @@ export function applyAttrMods(
             if (result.delta !== undefined) delta = result.delta
         }
         if (delta === 0) continue
+        requested[attr] = delta
         const before = char.attrs.get(attr as AttrName)
         char.attrs.modify(attr as AttrName, delta)
         const after = char.attrs.get(attr as AttrName)
         const actual = after - before
-        if (actual === 0) continue
-        applied[attr] = actual
+        if (actual !== 0) applied[attr] = actual
     }
     // 根骨增加 → 按比例增加剩余血量（切走时不降）
     if ('vitality' in applied && applied.vitality > 0) {
@@ -65,47 +77,145 @@ export function applyAttrMods(
     // 属性变化后封顶 hp/ap
     if (char.hp > char.maxHp) char.hp = char.maxHp
     if (char.ap > char.maxAp) char.ap = char.maxAp
-    return applied
+    return { requested, applied }
 }
 
 /**
- * 移除一层 buff：先按「层主」回退它的属性修正，再删层、清掉到期事件。
+ * 移除一层 buff：删层 → 重算该角色属性。
  *
  * **不要直接 `pendingBuffs.delete(key)`** —— 那会把这层加过的属性永久留在角色身上
  * （身法/灵巧/推演被悄悄吃掉，且回不来）。净化、霸体清硬控、消耗型 buff 都踩过这个坑。
- * 层主从 key 推：`buffId::charId[::appId]`。
+ *
+ * 这里没有"反函数"：属性 = base 按序回放（来源层 ops → 战斗层 mods），删层后重算即可，
+ * 夹取边界上也不会像按 `applied` 回退那样漂。
  */
 export function removeBuffLayer(engine: BattleEngine, key: string): void {
-    const layer = engine.state.pendingBuffs.get(key)
-    if (!layer) return
-    const owner = engine.state.characters.find((c) => c.id === key.split('::')[1])
-    if (owner) {
-        revertBuffMods(layer, owner, engine.state)
-        if (typeof layer.mods?.maxApMod === 'number') owner.maxApMod -= layer.mods.maxApMod
-    }
-    engine.state.pendingBuffs.delete(key)
-    engine.state.turn.removeEvents('buff_end_' + key)
+    dropBuffLayer(engine.state, key)
 }
 
-/** 反转 buff 的属性修正 */
-export function revertBuffMods(layer: BuffLayer | undefined, char: Character, state: BattleState): void {
-    if (!layer?.mods) return
-    const oldMaxHp = char.maxHp
-    let wisdomChanged = false
-    for (const [attr, delta] of Object.entries(layer.mods)) {
-        // maxApMod 不是六属性之一，由调用方单独减（buff-end / clearWeaponBuffLayers）
+/**
+ * 删层 + 重算属性，但**不跑属性变化副作用**（血比例调整 / 推演变化重排 AP 回复）。
+ *
+ * 只给「被汲取方的配对账」（`stat_transfer_drain::`）用：它记录的是对方被扣走的那笔属性，
+ * 到期还回去时与改造前（HEAD 的 `target.attrs.modify` 直写）同口径 —— 不额外通知 AP 回复重排，
+ * 也不按根骨变化回调血比例。不这么写会让同一笔属性在两个版本里对 AP 时间轴产生不同影响。
+ */
+export function dropBuffLayerQuiet(state: BattleState, key: string): void {
+    const layer = state.pendingBuffs.get(key)
+    if (!layer) return
+    state.pendingBuffs.delete(key)
+    state.turn.removeEvents('buff_end_' + key)
+    const owner = state.characters.find((c) => c.id === key.split('::')[1])
+    owner?.rebuildDerived(state)
+}
+
+/**
+ * 删层 + 重算（不需要 engine 的版本，数据层 hook 只有 `state` 时用这个）。
+ *
+ * 属性由「base 按序回放」得出，所以删层只需删条目 —— 没有 `revertBuffMods` 那种逆运算，
+ * 也不会像按 `applied` 回退那样在属性上下限边界上漂。
+ */
+export function dropBuffLayer(state: BattleState, key: string): void {
+    const layer = state.pendingBuffs.get(key)
+    if (!layer) return
+    const owner = state.characters.find((c) => c.id === key.split('::')[1])
+    // maxApMod 还没进账（来源层 op 与战斗层各自维护，见 Character.maxApMod），单独退
+    if (owner && typeof layer.mods?.maxApMod === 'number') owner.maxApMod -= layer.mods.maxApMod
+    const hpBefore = owner?.hp ?? 0
+    const maxHpBefore = owner?.maxHp ?? 0
+    const vitBefore = owner?.attrs.get('vitality') ?? 0
+    const wisBefore = owner?.attrs.get('wisdom') ?? 0
+    // 附着 buff（有 originId）被运行时移除（消耗/净化/到期）→ 它在来源层账上的属性也要停掉
+    if (owner && layer.originId) owner.detachAttachedBuff(layer.originId, key.split('::')[0])
+    state.pendingBuffs.delete(key)
+    state.turn.removeEvents('buff_end_' + key)
+    if (owner) {
+        owner.rebuildDerived(state)
+        applyAttrChangeSideEffects(owner, state, hpBefore, maxHpBefore, vitBefore, wisBefore)
+    }
+}
+
+/**
+ * 动态属性修正的唯一入口（数据层 hook 用）：把**请求值**写进层，然后重算。
+ *
+ * 取代旧的「`revertBuffMods` 退掉旧值 → `applyAttrMods` 写新值 → `layer.mods = applied`」三步 ——
+ * 那套记的是夹取后的实际量，重算时对不上（见 `LayerBase.mods`）。
+ */
+export function setLayerMods(
+    layer: BuffLayer,
+    char: Character,
+    state: BattleState,
+    mods: Record<string, number>,
+): void {
+    // 限制器只在"真正改这一层"的时刻跑一次（带概率的限制器会消耗随机数，不能每次重算都掷）；
+    // 结果存进 layer.mods，重算回放时直接写，不再过限制器。
+    const clean: Record<string, number> = {}
+    for (const [attr, v] of Object.entries(mods)) {
+        // maxApMod 不在六属性里，走 applyMaxApMod 单独记账
+        if (v === 0 || attr === 'maxApMod') continue
+        let delta = v
+        for (const check of char.statRestrictionChecks ?? []) {
+            const r = check(char, attr, char.attrs.get(attr as AttrName), delta, undefined, state)
+            if (!r) continue
+            if (r.skip) {
+                delta = 0
+                break
+            }
+            if (r.delta !== undefined) delta = r.delta
+        }
+        if (delta !== 0) clean[attr] = delta
+    }
+    const hpBefore = char.hp
+    const maxHpBefore = char.maxHp
+    const vitBefore = char.attrs.get('vitality')
+    const wisBefore = char.attrs.get('wisdom')
+    layer.mods = Object.keys(clean).length > 0 ? clean : undefined
+    char.rebuildDerived(state)
+    applyAttrChangeSideEffects(char, state, hpBefore, maxHpBefore, vitBefore, wisBefore)
+}
+
+/**
+ * 属性变化的两条副作用，与旧实现同一口径（重算路径也必须补上，否则动态属性修正会比旧实现
+ * 凭空少回血/回炁，或者只上不下、血量随时间往上爬）：
+ *  - 上限掉了（根骨降低）→ 按比例掉血（旧 `revertBuffMods`：`hp × 新上限/旧上限`，保底 1）
+ *  - 根骨增加 → 按比例增加剩余血量（旧 `applyAttrMods`：按 `新上限 − Δ根骨×18` 估旧上限，比例 ≥1 即回满）
+ *  - 推演变化 → AP 回复率变化，重算该角色下次行动时间
+ */
+export function applyAttrChangeSideEffects(
+    char: Character,
+    state: BattleState,
+    hpBefore: number,
+    maxHpBefore: number,
+    vitBefore: number,
+    wisBefore: number,
+): void {
+    const vitAfter = char.attrs.get('vitality')
+    if (char.maxHp < maxHpBefore && maxHpBefore > 0) {
+        char.hp = Math.max(1, Math.round(hpBefore * (char.maxHp / maxHpBefore)))
+    } else if (vitAfter > vitBefore) {
+        const dVit = vitAfter - vitBefore
+        const oldMaxEstimate = char.maxHp - dVit * 18
+        const ratio = oldMaxEstimate > 0 ? hpBefore / oldMaxEstimate : 1
+        char.hp = Math.round(char.maxHp * Math.min(ratio, 1))
+    }
+    if (char.attrs.get('wisdom') !== wisBefore) notifyRegenChanged(state, char)
+}
+
+/** `setLayerMods` 的累加版（神照这类按阶段追加洞察的 buff） */
+export function addLayerMods(
+    layer: BuffLayer,
+    char: Character,
+    state: BattleState,
+    mods: Record<string, number>,
+): void {
+    const merged: Record<string, number> = { ...(layer.mods ?? {}) }
+    for (const [attr, v] of Object.entries(mods)) {
         if (attr === 'maxApMod') continue
-        char.attrs.modify(attr as AttrName, -(delta as number))
-        if (attr === 'wisdom') wisdomChanged = true
+        const next = (merged[attr] ?? 0) + v
+        if (next === 0) delete merged[attr]
+        else merged[attr] = next
     }
-    if (wisdomChanged) notifyRegenChanged(state, char)
-    // 根骨减少 → 按比例减少血量
-    if (oldMaxHp > char.maxHp) {
-        char.hp = Math.max(1, Math.round(char.hp * (char.maxHp / oldMaxHp)))
-    }
-    // 属性下降后封顶 hp/ap
-    if (char.hp > char.maxHp) char.hp = char.maxHp
-    if (char.ap > char.maxAp) char.ap = char.maxAp
+    setLayerMods(layer, char, state, merged)
 }
 
 /** 治疗时减少流血层数：每 healPerStack 点治疗减少 1 层，溢出不累计 */
@@ -189,27 +299,33 @@ export function consumeBuffsByTrigger(charId: string, engine: BattleEngine, trig
     })
 }
 
-/** 缩放并应用 attrMods，返回 { mods, details } */
+/**
+ * 缩放并应用属性修正，返回 `{ perStack, requested, applied, details }`。
+ *
+ * `perStack` 是**每层请求值**（层里存进 `modsPerStack`，掉层时按它重算 `mods`）；
+ * `requested` = 本次全部层数的请求值；`applied` = 本次实际生效量（只用于日志）。
+ */
 export function applyScaledAttrMods(
     buff: BuffDef,
     stacks: number,
     char: Character,
     state: BattleState,
-): { mods: Record<string, number>; details: string[] } {
-    const mods: Record<string, number> = {}
+): { perStack: Record<string, number>; requested: Record<string, number>; applied: Record<string, number>; details: string[] } {
     const details: string[] = []
-    if (!buff.attrMods) return { mods, details }
+    if (!buff.attrMods) return { perStack: {}, requested: {}, applied: {}, details }
+    const perStack: Record<string, number> = {}
     const scaled: Record<string, number> = {}
     for (const [attr, val] of Object.entries(buff.attrMods)) {
+        perStack[attr] = round1(val as number)
         scaled[attr] = round1((val as number) * stacks)
     }
-    const result = applyAttrMods(char, state, scaled, buff.name, buff.tags)
-    for (const [attr, v] of Object.entries(result)) {
-        const rounded = round1(v as number)
+    const { requested, applied } = applyAttrMods(char, state, scaled, buff.name, buff.tags)
+    // 日志优先报实际生效量；被完全夹掉（applied 里没有）时退回请求值，别让玩家看到空行
+    for (const attr of Object.keys(requested)) {
+        const rounded = round1(applied[attr] ?? requested[attr])
         details.push(`${ATTR_CN[attr] ?? attr}${rounded > 0 ? '+' : ''}${rounded}`)
-        mods[attr] = rounded
     }
-    return { mods, details }
+    return { perStack, requested, applied, details }
 }
 
 /** 根据 buff expiry 类型调度到期事件 */

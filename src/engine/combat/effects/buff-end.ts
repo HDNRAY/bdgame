@@ -1,12 +1,16 @@
 import type { BattleEngine } from '../engine'
-import type { AttrName } from '../../entities/attributes'
 import { getBuff } from '../../../data/buffs'
-import { revertBuffMods, forEachBuffOf } from '../utils'
+import { removeBuffLayer, dropBuffLayerQuiet, forEachBuffOf } from '../utils'
 import { affectsApRegen, notifyRegenChanged } from '../utils/ap-regen'
 import { ATTR_CN } from '../../entities/attributes'
 import { BattleLog } from '../battle-log'
 
-/** buff 到期恢复 */
+/**
+ * buff 到期：删层 + 重算（属性由「base 按序回放」得出，没有逆运算）。
+ *
+ * 曾经的 `stat_transfer` 特例（到期时把扣掉的属性加回目标）已经不需要了 ——
+ * 被汲取方自己有一条同寿命的条目，一起删掉、一起重算即自动还回去。
+ */
 export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
     const layer = engine.state.pendingBuffs.get(buffKey)
     if (!layer) return
@@ -15,41 +19,31 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
 
     const buffId = parts[0]
     const charId = parts[1]
+    const char = engine.getCharacter(charId)
 
-    // 2-part keys: 直接删
+    // 2-part keys: 直接删（追击标记这类散落层，没有到期播报）
     if (parts.length === 2) {
-        const char = engine.getCharacter(charId)
-        if (char) {
-            revertBuffMods(layer, char, engine.state)
-            if (typeof layer.mods?.maxApMod === 'number') {
-                char.maxApMod -= layer.mods.maxApMod
-            }
-        }
-        engine.state.pendingBuffs.delete(buffKey)
+        removeBuffLayer(engine, buffKey)
         if (char && affectsApRegen(buffId)) notifyRegenChanged(engine.state, char)
+        return
+    }
+
+    // 被汲取方的配对账（`stat_transfer_drain::`）：静默删层。
+    // 它只是「汲取期间扣掉的那笔属性」的持久化账（否则目标一重算就把掉掉的属性长回来），
+    // 不是独立的一段状态：与改造前同口径，还给目标时既不播报、也不额外触发属性变化副作用。
+    // 正常路径下它已经被汲取方到期时一并带走，这里兜底处理被单独删除/单独到期的情形。
+    if (buffId === 'stat_transfer_drain') {
+        dropBuffLayerQuiet(engine.state, buffKey)
         return
     }
 
     const tag = getBuff(buffId)?.name ?? buffId
 
-    // 通用：反转属性变化
-    const char = engine.getCharacter(charId)
-    if (char) {
-        revertBuffMods(layer, char, engine.state)
-        if (typeof layer.mods?.maxApMod === 'number') {
-            char.maxApMod -= layer.mods.maxApMod
-        }
-    }
-
-    // stat_transfer：正向恢复目标
+    // 汲取方到期：先把被汲取方的配对账还回去，再播报 —— 与改造前一致（那一行的快照里目标属性已恢复）。
     if (buffId === 'stat_transfer' && layer.targetId) {
-        const target = engine.getCharacter(layer.targetId)
-        if (target && layer.mods) {
-            for (const [attr, delta] of Object.entries(layer.mods)) {
-                if (attr === 'maxApMod') continue
-                target.attrs.modify(attr as AttrName, delta)
-            }
-        }
+        const appId = parts.slice(2).join('::')
+        const drainKey = `stat_transfer_drain::${layer.targetId}::${appId}`
+        if (engine.state.pendingBuffs.has(drainKey)) dropBuffLayerQuiet(engine.state, drainKey)
     }
 
     if (char && layer.mods) {
@@ -70,6 +64,8 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
         }
         // 无属性变化可展示的 buff（如竹叶青/烧刀子等纯持续效果）到期时给干净「消失」行，避免空行
         const body = details ? `${BattleLog.name(char.name)} ${details}` : `${BattleLog.name(char.name)} 消失`
+        // 先删层再打日志：日志自带的快照要反映「到期之后」的属性（与旧实现先回退再打日志一致）
+        removeBuffLayer(engine, buffKey)
         engine.emitLog({
             type: 'buff_end',
             buffId,
@@ -78,8 +74,10 @@ export function processBuffEnd(buffKey: string, engine: BattleEngine): void {
             remaining: 0,
             message: remaining > 0 ? `${body} · 剩${remaining}层` : body,
         })
+        if (char && affectsApRegen(buffId)) notifyRegenChanged(engine.state, char)
+        return
     }
 
-    engine.state.pendingBuffs.delete(buffKey)
+    removeBuffLayer(engine, buffKey)
     if (char && affectsApRegen(buffId)) notifyRegenChanged(engine.state, char)
 }

@@ -46,7 +46,6 @@ export type EffectDef =
     // 自效果（无需命中判定，总是生效）
     | { type: 'heal'; value?: number; ratio?: number }
     | { type: 'stat_multiply'; stat: string; multiplier: number }
-    | { type: 'stat_buff'; attrs: Record<string, number>; duration?: BuffDuration; durationMs?: number }
     | { type: 'restore_ap'; value: number }
     | { type: 'stat_transfer'; stat: string; value: number; duration: number }
     // 义体效果
@@ -55,6 +54,10 @@ export type EffectDef =
     // 功法/奇物效果
     | { type: 'trigger_slot_mod'; value?: number; fn?: (char: Character) => number }
     | { type: 'buff_duration_mult'; eval?: (char: Character) => number }
+    /**
+     * 挂一个 buff。作为**源的顶层效果**时 = 这条来源自带的 buff：`attrMods` 折进来源层账
+     * （构造期生效），开局/换装/被偷到手时物化成战斗层承载 hooks。
+     */
     | { type: 'add_buff'; buffId: string; stacks?: number }
     | { type: 'remove_buff'; buffId: string; stacks?: number }
     | { type: 'ciyuan_init' }

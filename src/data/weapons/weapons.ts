@@ -26,9 +26,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '经特殊药水浸泡多年的竹枝，坚如钢铁，轻如竹羽。招架后减免3点伤害。',
         tags: ['parry', 'polearm', 'blunt', 'buff'],
         range: [1, 4],
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'po_lang_zhu_zhi_buff' }] },
-        ],
+        effects: [{ type: 'add_buff', buffId: 'po_lang_zhu_zhi_buff' }],
     },
     // ── 三节枪 ──
     {
@@ -45,8 +43,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '一枚古朴的白玉环，以炁驱动时延展覆盖整条手臂，化作无形护甲。拳劲透体，伤人于无形。',
         tags: ['unarmed', 'parry'],
         range: [0, 2],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'iron_back_buff' }] }],
-        effects: [{ type: 'stat_buff', attrs: { agility: 2 } }],
+        effects: [{ type: 'add_buff', buffId: 'iron_back_buff' }],
     },
     {
         id: 'broken_blade',
@@ -54,8 +51,8 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '一把残损的断刀。加装锁链，免疫缴械。',
         tags: ['slash', 'parry', 'melee', 'one_handed', 'buff'],
         range: [0, 2],
+        effects: [{ type: 'add_buff', buffId: 'broken_blade_lock' }],
         triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'broken_blade_lock' }] },
             { condition: { type: 'on_opponent_move_away' }, actionId: '_shuai_ren' },
         ],
     },
@@ -65,9 +62,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '军方特制电击匕首。耗1缠劲，追加电伤并麻痹目标。',
         tags: ['pierce', 'unarmed', 'parry', 'slash', 'melee', 'one_handed', 'electric', 'chan', 'buff'],
         range: [0, 2],
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'special_forces_dagger' }] },
-        ],
+        effects: [{ type: 'add_buff', buffId: 'special_forces_dagger' }],
     },
     {
         id: 'iron_spear',
@@ -75,10 +70,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '丈二铁枪，势大力沉。出枪迅猛，暴击更盛。',
         tags: ['pierce', 'parry', 'polearm', 'heavy', 'buff'],
         range: [1, 4],
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 6 }] },
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'po_jun_buff' }] },
-        ],
+        effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 6 }, { type: 'add_buff', buffId: 'po_jun_buff' }],
     },
     {
         id: 'fusi_sword',
@@ -114,15 +106,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '绣冬长三尺二寸，势沉力猛。力道化为锋芒，越重越利。',
         tags: ['slash', 'parry', 'melee', 'heavy', 'one_handed', 'buff'],
         range: [1, 3],
-        triggers: [
-            {
-                condition: { type: 'on_equip' },
-                effects: [
-                    { type: 'add_buff', buffId: 'heavy_load', stacks: 10 },
-                    { type: 'add_buff', buffId: 'xiu_dong_buff' },
-                ],
-            },
-        ],
+        effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 10 }, { type: 'add_buff', buffId: 'xiu_dong_buff' }],
     },
     {
         id: 'chun_lei',
@@ -130,7 +114,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '轻灵迅捷，见血封喉。灵巧化为致命锋芒。',
         tags: ['slash', 'parry', 'melee', 'one_handed', 'buff'],
         range: [0, 2],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'chun_lei_buff' }] }],
+        effects: [{ type: 'add_buff', buffId: 'chun_lei_buff' }],
     },
     {
         id: 'overlord_blade',
@@ -138,15 +122,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '与身同高的巨刃，离心力驱动，势不可挡。',
         tags: ['slash', 'parry', 'heavy', 'melee', 'buff'],
         range: [1, 4],
-        triggers: [
-            {
-                condition: { type: 'on_equip' },
-                effects: [
-                    { type: 'add_buff', buffId: 'heavy_load', stacks: 14 },
-                    { type: 'add_buff', buffId: 'overlord_blade' },
-                ],
-            },
-        ],
+        effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 14 }, { type: 'add_buff', buffId: 'overlord_blade' }],
     },
     {
         id: 'dark_iron_sword',
@@ -154,10 +130,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '与身同高的玄铁巨剑，重六十四斤，无锋无刃。大巧不工，以力破万法。',
         tags: ['heavy', 'blunt', 'slash', 'pierce', 'parry', 'melee'],
         range: [1, 4],
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 14 }] },
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dark_iron_weight' }] },
-        ],
+        effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 14 }, { type: 'add_buff', buffId: 'dark_iron_weight' }],
     },
     {
         id: 'heshan_sword',
@@ -174,10 +147,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '对传说中兵器的仿制品。由天外陨铁打造，由使用者的炁激活，伸缩自如。',
         tags: ['parry', 'polearm', 'heavy'],
         range: [1, 6],
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 16 }] },
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'dinghai_pressure' }] },
-        ],
+        effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 16 }, { type: 'add_buff', buffId: 'dinghai_pressure' }],
     },
     {
         id: 'yanling_blade',
@@ -185,7 +155,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '薄刃轻刀，雁翎般轻灵。',
         tags: ['slash', 'parry', 'melee', 'one_handed'],
         range: [0, 2],
-        effects: [{ type: 'stat_buff', attrs: { agility: 1, dexterity: 2, strength: 1 } }],
+        effects: [{ type: 'add_buff', buffId: 'yanling_blade_attr' }],
     },
     {
         id: 'qianji',
@@ -193,7 +163,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '漆黑纳米长棍，可在相似尺寸的固态构造间快速切换——箫、笛、细剑、长短棍、手杖乃至遮阳伞。',
         tags: ['melee', 'pierce', 'parry', 'slash', 'blunt', 'unarmed', 'polearm', 'one_handed'],
         range: [0, 3],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'qianji_crit' }] }],
+        effects: [{ type: 'add_buff', buffId: 'qianji_crit' }],
     },
     // ── 引擎铁锤（天工·千星） ──
     {
@@ -202,14 +172,8 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '天工锻造的电磁锤，以炁驱动，雷火交加。。',
         tags: ['blunt', 'electric', 'qi', 'craft', 'polearm', 'burn'],
         range: [0, 2],
+        effects: [{ type: 'add_buff', buffId: 'engine_hammer_buff' }, { type: 'add_buff', buffId: 'energy_drain', stacks: 0.6 }],
         triggers: [
-            {
-                condition: { type: 'on_equip' },
-                effects: [
-                    { type: 'add_buff', buffId: 'engine_hammer_buff' },
-                    { type: 'add_buff', buffId: 'energy_drain', stacks: 0.6 },
-                ],
-            },
             {
                 condition: { type: 'on_hit' },
                 effects: [{ type: 'add_debuff', buffId: 'burn', stacks: 1, chance: 0.8 }],
@@ -224,15 +188,13 @@ export const WEAPON_DB: WeaponDef[] = [
         bound: true,
         range: [0, 6],
         // 御物耗炁：每秒扣 0.5AP（5 环）。无人环 = 中速钝击流（1伤 + 30%麻痹），无穿透
-        triggers: [
-            { condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }] },
-        ],
         summon: {
             id: 'hover_drone',
             name: '无人环',
             maxCount: (self) => Math.min(5, 1 + Math.round(self.attrs.get('wisdom') / 4)),
             actionId: '_huan_shot',
         },
+        effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }],
     },
     {
         id: 'ninja_sword',
@@ -240,7 +202,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '忍者短刀，轻如风，快过影。可藏于袖中，出手极速。',
         tags: ['slash', 'pierce', 'parry', 'melee', 'unarmed', 'one_handed'],
         range: [0, 2],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'ninja_sword_haste' }] }],
+        effects: [{ type: 'add_buff', buffId: 'ninja_sword_haste' }],
     },
     {
         id: 'zhen_bei_ji',
@@ -249,15 +211,8 @@ export const WEAPON_DB: WeaponDef[] = [
             '姬家世代相传的战戟，曾为守关领袖所用。经千星重铸为赛博战戟，可将使用者的炁转化为冰电之力。暴击时冰封对手。',
         tags: ['polearm', 'parry', 'pierce', 'blunt', 'electric', 'heavy', 'debuff', 'frost', 'paralyze'],
         range: [1, 4],
+        effects: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 10 }, { type: 'add_buff', buffId: 'energy_drain', stacks: 1 }],
         triggers: [
-            {
-                condition: { type: 'on_equip' },
-                effects: [
-                    { type: 'add_buff', buffId: 'heavy_load', stacks: 10 },
-                    { type: 'add_buff', buffId: 'energy_drain', stacks: 1 },
-                ],
-            },
-            // 暴击时施加霜冻（冰封）
             {
                 condition: { type: 'on_crit' },
                 effects: [{ type: 'add_debuff', buffId: 'frost', stacks: 3, chance: 1 }],
@@ -277,7 +232,7 @@ export const WEAPON_DB: WeaponDef[] = [
         description: '最快的剑之一，起手暴击大增但身法略滞，逐回合恢复。',
         tags: ['pierce', 'slash', 'parry', 'melee', 'one_handed', 'buff'],
         range: [1, 3],
-        triggers: [{ condition: { type: 'on_equip' }, effects: [{ type: 'add_buff', buffId: 'buer_sword' }] }],
+        effects: [{ type: 'add_buff', buffId: 'buer_sword' }],
     },
     {
         id: 'ganjiang_sword',

@@ -1,4 +1,5 @@
 import type { BuffDef } from './types'
+import { rng } from '../../engine/util/rng'
 import { MAX_CHAN } from '../../engine/constants'
 import type { ActionDefinition } from '../../engine/entities/action'
 import { processActionEffect } from '../../engine/combat/effects'
@@ -105,7 +106,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'thunder_bonus',
         name: '雷法',
-        description: '攻击附加2点雷击伤害（1点穿透）。',
+        description: '攻击附加2点伤害，其中1点穿透。',
         tags: ['qi', 'electric'],
         expiry: { type: 'permanent' },
         onAfterDealDamage: ({ attacker }) => {
@@ -148,7 +149,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         },
         onAction: ({ attacker, layer }) => {
             const stacks = layer.restoreValue ?? 0
-            if (Math.random() < (stacks / 19) ** 2) return
+            if (rng.chance((stacks / 19) ** 2)) return
             if (!attacker.spendChan(1)) return
             layer.restoreValue = Math.min(19, stacks + 1)
         },
@@ -178,7 +179,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, target, engine, state }) => {
             // 攻击造成伤害时概率上「不幸」（降敌命中/闪避/招架/暴击）
-            if (engine && Math.random() < 0.8) {
+            if (engine && rng.chance(0.8)) {
                 processActionEffect(
                     { type: 'add_debuff', buffId: 'bu_xing', stacks: 1, chance: 1 },
                     { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
@@ -190,17 +191,17 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'golden_light',
         name: '金光',
-        description: '金光咒护体，受伤时消耗1层缠劲减免2点；非御物攻击消耗1层缠劲附加2点伤害。',
+        description: '金光咒护体，受伤时消耗1层缠劲减免3点；非御物攻击消耗1层缠劲附加2点伤害。',
         tags: ['qi', 'defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, target, engine }) => {
             if (!target.spendChan(1)) return final
             engine?.emitLog({
                 type: 'system',
-                message: `[金光咒] ${target.name} 消耗1层缠劲减免2点（剩${target.chan}层）`,
+                message: `[金光咒] ${target.name} 消耗1层缠劲减免3点（剩${target.chan}层）`,
                 actorId: target.id,
             })
-            return round1(final - 2)
+            return round1(final - 3)
         },
         onAfterDealDamage: ({ source, attacker }) => {
             if (source?.tags?.includes('imperial')) return 0

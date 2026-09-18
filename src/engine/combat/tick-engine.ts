@@ -61,12 +61,15 @@ export class TickEngine {
         if (agiDelta !== 0) stunMods.agility = agiDelta
         if (insDelta !== 0) stunMods.insight = insDelta
         if (Object.keys(stunMods).length > 0) {
-            const result = applyAttrMods(enemy, engine.state, stunMods, '眩晕')
-            // 存入 layer.mods 供 processBuffEnd 正确回退
+            const { requested, applied } = applyAttrMods(enemy, engine.state, stunMods, '眩晕')
+            // 层里存请求值（重算按它回放）；日志报实际生效量
             if (!layer.mods) layer.mods = {}
-            Object.assign(layer.mods, result)
-            const details = Object.entries(result)
-                .map(([a, v]) => `${ATTR_CN[a] ?? a}${v > 0 ? '+' : ''}${v}`)
+            for (const [a, v] of Object.entries(requested)) layer.mods[a] = (layer.mods[a] ?? 0) + v
+            const details = Object.entries(requested)
+                .map(([a]) => {
+                    const v = applied[a] ?? requested[a]
+                    return `${ATTR_CN[a] ?? a}${v > 0 ? '+' : ''}${v}`
+                })
                 .join(', ')
             if (details) {
                 engine.emitLog({

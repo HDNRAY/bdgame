@@ -171,14 +171,14 @@ function calcExpectedDamageInner(
     // 克隆可变参数（钩子篡改只影响克隆，不影响原件）；资源流水必须自带一份，见 Character.forkForSim
     const safeAtk = attacker.forkForSim()
     const safeDef = defender.forkForSim()
-    // 沙盒 state：克隆两个角色的 buff 层及其 hook 注册（钩子只读写这些角色的层），
-    // 轻量浅克隆替代 structuredClone 全量深拷贝（热路径 ~44% 开销）。
-    // state 恒为 BattleState class（生产与 DevMode 评估均构造真 class），cloneFor 必然存在
+    // 沙盒 state：只克隆**评估路径会读到的**层（EVAL_HOOKS 命中的那些），比全量克隆快一截。
     //
-    // 注意：`cloneForHooks(..., EVAL_HOOKS)`（只克隆 EVAL_HOOKS 命中的层）实测更快（-21%），
-    // 但**会改变沙盒对全局 Math.random 的消耗次数**（473 vs 410 次/场）→ RNG 流分叉 →
-    // 对局结果变化（实测 陶朵 -9pp）。要启用它，必须先把推演沙盒的随机数与主战斗解耦。
-    const safeState = state.cloneFor([safeAtk.id, safeDef.id])
+    // 以前它被搁置，是因为"少克隆几层"会改变沙盒消耗随机数的次数 → 主战斗的随机数流分叉；
+    // 现在沙盒自带随机数流（`rng.enterSandbox`，见本函数上下的 enter/exit），主战斗不再受影响，
+    // 而且 `expected-damage-clone-parity.test.ts` 钉住了「受限克隆 ≡ 全量克隆」的逐位一致性。
+    //
+    // state 恒为 BattleState class（生产与 DevMode 评估均构造真 class），cloneForHooks 必然存在
+    const safeState = state.cloneForHooks([safeAtk.id, safeDef.id], EVAL_HOOKS)
 
     // 钩子存在性视图：下面每处「遍历双方层找某钩子」前先判空——一个层都不带该钩子就整段跳过扫描。
     // 视图与 forEachBuffOf 同源（按 byOwner + def 的注册钩子），按 registry 结构 revision 缓存；

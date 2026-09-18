@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Character } from '../entities/character'
@@ -33,6 +33,10 @@ const golden = JSON.parse(
 const stealable = ARTIFACTS.filter(
     (a) => !a.tags.includes('inherent') && !a.tags.includes('implant') && !a.tags.includes('imperial'),
 )
+
+// 偷取有概率（首偷 60%）→ 本文件相关用例把随机数钉成 0（必成），只验证层视图语义
+beforeEach(() => vi.spyOn(Math, 'random').mockReturnValue(0))
+afterEach(() => vi.restoreAllMocks())
 
 describe('layersOf：来源层与战斗层的统一读视图', () => {
     it('不变式：所有来源层的实际生效量之和 == attrs − baseAttrs（316 个 build 全覆盖）', () => {

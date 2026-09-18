@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { processActionEffect } from '../combat/effects/action'
@@ -10,6 +10,9 @@ import type { Reward } from '../../game/entities/reward'
 
 /**
  * 探云手偷奇物：被偷的人必须**彻底失去**这件奇物带来的一切。
+ *
+ * 偷取有概率（首偷 60%，成功后减半），本文件的用例只验证"偷到之后"的语义，
+ * 所以统一把随机数钉成 0（< 0.6 → 必成），避免随概率变成 flaky。
  *
  * 以前只删了 `artifactDefs` / triggers / 招式，构造期属性修正和触发挂上的 buff 都留在受害者身上，
  * 而小偷照拿一份 → 实测「双方都有 +15% 招架」「双方属性都 +3 洞察 +2 推演」。现在：
@@ -61,6 +64,9 @@ const layerIdsOf = (c: Character, engine: BattleEngine) => {
 const stealable = ARTIFACTS.filter(
     (a) => !a.tags.includes('inherent') && !a.tags.includes('implant') && !a.tags.includes('imperial'),
 )
+
+beforeEach(() => vi.spyOn(Math, 'random').mockReturnValue(0))
+afterEach(() => vi.restoreAllMocks())
 
 describe('探云手：偷走后受害者不再持有该奇物的一切', () => {
     it('触发挂 buff 型（金丝手套）：受害者失去金丝护手与招架加成，小偷拿到', () => {
@@ -124,5 +130,30 @@ describe('探云手：偷走后受害者不再持有该奇物的一切', () => {
         }
         expect(stealable.length).toBe(50)
         expect(diffs).toEqual([])
+    })
+})
+
+describe('探云手：偷取概率（首偷 60%，成功后减半）', () => {
+    function setup() {
+        const thief = makeChar('A')
+        const victim = makeChar('B', [reward('iron_mask')])
+        const engine = new BattleEngine(thief, victim, 4)
+        return { thief, victim, engine }
+    }
+    it('随机数 < 0.6 → 首次得手，并把下次概率降到 0.3', () => {
+        const spy = vi.spyOn(Math, 'random').mockReturnValue(0.59)
+        const { thief, victim, engine } = setup()
+        processActionEffect({ type: 'steal_artifact' }, { self: thief, enemy: victim, engine, tMs: 100 })
+        expect(victim.artifactDefs.some((a) => a.id === 'iron_mask')).toBe(false)
+        expect(engine.state.pendingBuffs.get(`steal_artifact_track::${thief.id}`)?.restoreValue).toBe(0.3)
+        spy.mockRestore()
+    })
+    it('随机数 ≥ 0.6 → 首次失手，奇物不动、概率不降', () => {
+        const spy = vi.spyOn(Math, 'random').mockReturnValue(0.61)
+        const { thief, victim, engine } = setup()
+        processActionEffect({ type: 'steal_artifact' }, { self: thief, enemy: victim, engine, tMs: 100 })
+        expect(victim.artifactDefs.some((a) => a.id === 'iron_mask')).toBe(true)
+        expect(engine.state.pendingBuffs.get(`steal_artifact_track::${thief.id}`)).toBeUndefined()
+        spy.mockRestore()
     })
 })

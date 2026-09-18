@@ -6,10 +6,31 @@ import { Tooltip } from '../ui/Tooltip/Tooltip'
 import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
 import './BattleStatusPanel.scss'
 
-/** 从活跃 buff 中汇总各属性的临时修正值 */
-function sumBuffAttrMods(buffs: ActiveBuffSnapshot[]): Record<string, number> {
+/**
+ * 从活跃 buff 中汇总各属性的临时修正值。
+ *
+ * 只算**真实战斗层**（`snapshot.pendingBuffs` 里存在的 buffId）：来源附着 buff 的属性已经折进
+ * `attrBreakdown` 的功法/奇物/武器桶，`getBuffsForDisplay` 从账上补进列表的纯属性条目若再算一次
+ * 会重复。运行时属性 buff（内劲、炁体源流等）照常计入。
+ */
+function sumBuffAttrMods(
+    buffs: ActiveBuffSnapshot[],
+    charId: string,
+    snapshot: BattleSnapshot,
+): Record<string, number> {
+    const liveBuffIds = new Set<string>()
+    for (const [key] of snapshot.pendingBuffs) {
+        const sep = key.indexOf('::')
+        if (sep < 0) continue
+        const rest = key.slice(sep + 2)
+        const sep2 = rest.indexOf('::')
+        const owner = sep2 < 0 ? rest : rest.slice(0, sep2)
+        if (owner !== charId) continue
+        liveBuffIds.add(key.slice(0, sep))
+    }
     const mods: Record<string, number> = {}
     for (const b of buffs) {
+        if (!liveBuffIds.has(b.buffId)) continue
         const def = getBuff(b.buffId)
         if (def?.attrMods) {
             for (const [attr, val] of Object.entries(def.attrMods)) {
@@ -50,7 +71,7 @@ export function BattleStatusPanel({ snapshot, charAName, charBName, ap }: Battle
                     // 内息：播放中插值 AP（跟随动画节奏），缺省用快照值
                     const dispAp = ap ? (c.id === a.id ? ap.a : ap.b) : c.ap
                     const apPct = c.maxAp > 0 ? (dispAp / c.maxAp) * 100 : 0
-                    const buffAttrMods = sumBuffAttrMods(c.buffs)
+                    const buffAttrMods = sumBuffAttrMods(c.buffs, c.id, snapshot)
                     return (
                         <div key={c.id} className="char-col">
                             <div className="hp-text">

@@ -26,7 +26,7 @@ import { EntityItem } from '../ui/EntityItem/EntityItem'
 import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
 import './CharacterPanel.scss'
 
-/** 计算某属性的来源分解 */
+/** 计算某属性的来源分解（读来源层账的实际生效量，与战斗面板同源） */
 function getAttrBreakdown(
     attr: AttrName,
     character: Character,
@@ -35,28 +35,13 @@ function getAttrBreakdown(
     let passives = 0,
         artifacts = 0,
         weapons = 0
-    for (const p of character.passiveDefs)
-        for (const e of p.effects ?? []) {
-            if (e.type === 'stat_buff') {
-                const s = e as Extract<typeof e, { type: 'stat_buff' }>
-                passives += s.attrs?.[attr] ?? 0
-            }
-        }
-    for (const a of character.artifactDefs)
-        for (const e of a.effects ?? []) {
-            if (e.type === 'stat_buff') {
-                const s = e as Extract<typeof e, { type: 'stat_buff' }>
-                artifacts += s.attrs?.[attr] ?? 0
-            }
-        }
-    const w = character.weaponDef
-    if (w)
-        for (const e of w.effects ?? []) {
-            if (e.type === 'stat_buff') {
-                const s = e as Extract<typeof e, { type: 'stat_buff' }>
-                weapons += s.attrs?.[attr] ?? 0
-            }
-        }
+    for (const layer of character.sourceLayers) {
+        const delta = layer.applied[attr] ?? 0
+        if (delta === 0) continue
+        if (layer.kind === 'artifact') artifacts += delta
+        else if (layer.kind === 'weapon' || layer.kind === 'offhand') weapons += delta
+        else passives += delta
+    }
     return { base, passives, artifacts, weapons }
 }
 

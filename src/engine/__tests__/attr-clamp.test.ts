@@ -1,17 +1,20 @@
 import { describe, it, expect } from 'vitest'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
-import { applyAttrMods, revertBuffMods } from '../combat/utils/buff-layer'
+import { applyAttrMods, setLayerMods } from '../combat/utils/buff-layer'
+import { removeBuffLayer } from '../combat/utils'
+import { getBuff } from '../../data/buffs'
+import { applyBuffLayer } from '../combat/utils/buff-apply'
 import { processActionEffect } from '../combat/effects/action'
 import { processBuffEnd } from '../combat/effects/buff-end'
 import { ATTR_ABSOLUTE_MAX, ATTR_ABSOLUTE_MIN } from '../entities/attributes'
 
 /**
- * 「属性写入时夹取 + 按实际生效量记账」这一族的一致性。
+ * 「属性写入即夹取 + 层里存请求值 + 重算按序回放」这一族的一致性。
  *
- * 原来 `AttributeSet.get()` 是读时地板，`applyAttrMods` 又按 `get()` 的前后差记账 ——
- * 被地板/上限截掉的部分不记账，回滚时自然还不回来，属性会被**永久**吃掉（棘轮）。
- * 这里钉住：写入即夹取 → 记账精确 → 回滚精确。
+ * 旧实现按「实际生效量」记账（读时地板 + 前后差），夹掉的部分不记账、回滚时还不回来，
+ * 属性会被永久吃掉（棘轮）。现在层里存的是**请求值**，属性一律由重算得出：
+ * 夹取只影响当前读数，不影响账；删条目重算必然回到正确值。
  */
 function makeChar(id: string, attrs: Partial<Record<string, number>> = {}): Character {
     return new Character({
@@ -32,32 +35,39 @@ function makeChar(id: string, attrs: Partial<Record<string, number>> = {}): Char
     })
 }
 
-describe('属性夹取与回滚', () => {
-    it('增益撞上限后回滚，回到原值（不是回滚成「上限 − 原值」）', () => {
+describe('属性夹取与回放', () => {
+    it('增益撞上限：请求值照记，实际生效量只用于展示', () => {
         const c = makeChar('A', { strength: 20 })
         const engine = new BattleEngine(c, makeChar('B'), 4)
         expect(c.attrs.get('strength')).toBe(20)
 
-        const mods = applyAttrMods(c, engine.state, { strength: 20 }, '测试') // 想加到 40，被 30 夹住
+        const { requested, applied } = applyAttrMods(c, engine.state, { strength: 20 }, '测试') // 想加到 40
         expect(c.attrs.get('strength')).toBe(ATTR_ABSOLUTE_MAX)
-        expect(mods.strength).toBe(10) // 实际只生效了 +10
+        expect(requested.strength).toBe(20) // 账上是请求值
+        expect(applied.strength).toBe(10) // 实际只生效 +10
 
-        revertBuffMods({ restoreValue: 0, mods }, c, engine.state)
+        // 把请求值写进一层再删掉：重算回原值
+        engine.state.pendingBuffs.set('probe::A', { restoreValue: 1, mods: { ...requested } })
+        c.rebuildDerived(engine.state)
+        expect(c.attrs.get('strength')).toBe(ATTR_ABSOLUTE_MAX)
+        removeBuffLayer(engine, 'probe::A')
         expect(c.attrs.get('strength')).toBe(20)
     })
 
-    it('减益撞下限后回滚，回到原值', () => {
+    it('减益撞下限：删条目后精确回到原值', () => {
         const c = makeChar('A', { agility: 6 })
         const engine = new BattleEngine(c, makeChar('B'), 4)
         const start = c.attrs.get('agility') // 赤手空拳自带 +2 身法，不写死
-        const mods = applyAttrMods(c, engine.state, { agility: -20 }, '测试')
+        const { requested } = applyAttrMods(c, engine.state, { agility: -20 }, '测试')
         expect(c.attrs.get('agility')).toBe(ATTR_ABSOLUTE_MIN)
-        expect(mods.agility).toBe(ATTR_ABSOLUTE_MIN - start)
-        revertBuffMods({ restoreValue: 0, mods }, c, engine.state)
+        engine.state.pendingBuffs.set('probe::A', { restoreValue: 1, mods: { ...requested } })
+        c.rebuildDerived(engine.state)
+        expect(c.attrs.get('agility')).toBe(ATTR_ABSOLUTE_MIN)
+        removeBuffLayer(engine, 'probe::A')
         expect(c.attrs.get('agility')).toBe(start)
     })
 
-    it('超越（属性倍增）：撞上限也按实际生效量回滚，且不再假设倍率是 2', () => {
+    it('超越（属性倍增）：按倍率回放，到期回原值，且不假设倍率是 2', () => {
         const c = makeChar('A', { strength: 20 })
         const enemy = makeChar('B')
         const engine = new BattleEngine(c, enemy, 4)
@@ -66,6 +76,9 @@ describe('属性夹取与回滚', () => {
             { type: 'stat_multiply', stat: 'strength', multiplier: 2 },
             { self: c, enemy, engine, tMs: 0 },
         )
+        expect(c.attrs.get('strength')).toBe(ATTR_ABSOLUTE_MAX)
+        // 中途来一次重算：倍率条目复现，读数不变
+        c.rebuildDerived(engine.state)
         expect(c.attrs.get('strength')).toBe(ATTR_ABSOLUTE_MAX)
         const key = [...engine.state.pendingBuffs.keys()].find((k) => k.startsWith('stat_multiply::'))!
         processBuffEnd(key, engine)
@@ -82,5 +95,20 @@ describe('属性夹取与回滚', () => {
         const key2 = [...engine2.state.pendingBuffs.keys()].find((k) => k.startsWith('stat_multiply::'))!
         processBuffEnd(key2, engine2)
         expect(d.attrs.get('strength')).toBe(10)
+    })
+
+    it('数据层动态属性修正：setLayerMods 直接换请求值，重算得出结果', () => {
+        const c = makeChar('A')
+        const engine = new BattleEngine(c, makeChar('B'), 4)
+        const buff = getBuff('paralyze')!
+        applyBuffLayer(engine, { buff, target: c, stacks: 1, tMs: 1 })
+        // 注意：开局还会物化出附着 buff 的层（attrsInLedger，不参与属性），要按前缀挑目标层
+        const key = [...engine.state.pendingBuffs.keys()].find((k) => k.startsWith('paralyze::'))!
+        const layer = engine.state.pendingBuffs.get(key)!
+        const naked = makeChar('A').attrs.get('agility') // 赤手空拳自带 +2 身法
+        setLayerMods(layer, c, engine.state, { agility: -4 })
+        expect(c.attrs.get('agility')).toBe(naked - 4)
+        setLayerMods(layer, c, engine.state, {})
+        expect(c.attrs.get('agility')).toBe(naked)
     })
 })

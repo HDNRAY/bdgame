@@ -35,7 +35,6 @@ export type TriggerEvent =
     | 'on_turn_end'
     | 'hp_below'
     | 'battle_start'
-    | 'on_equip'
     | 'on_crit'
     | 'chan_overflow'
     | 'on_action_trigger'
@@ -80,6 +79,7 @@ export interface TriggerSlot {
     /** 内联效果（优先于 actionId） */
     effects?: EffectDef[]
 }
+
 
 /** 计算触发槽数: max(1, floor(wisdom/4)) */
 export function calcTriggerSlots(wisdom: number): number {

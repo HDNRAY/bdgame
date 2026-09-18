@@ -64,11 +64,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
             { type: 'add_buff', buffId: 'qi_shield', stacks: 10 },
             // 觉醒状态：不再触发招式（canTriggerAction 钩子拦截）
             { type: 'add_buff', buffId: 'qiti_awaken_buff' },
-            {
-                // 六维各 +2（AP 回复不降，灵巧/洞察↑ 雷法收益照吃）
-                type: 'stat_buff',
-                attrs: { strength: 2, vitality: 2, agility: 2, dexterity: 2, insight: 2, wisdom: 2 },
-            },
+            // 六维各 +2（AP 回复不降，灵巧/洞察↑ 雷法收益照吃）
+            { type: 'add_buff', buffId: 'qiti_awaken_attr' },
         ],
     },
     {
@@ -100,7 +97,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['trigger', 'electric', 'counter', 'internal'],
         target: 'enemy',
-        effects: [{ type: 'damage', scaling: { insight: 0.2 }, piercing: 1 }],
+        effects: [{ type: 'damage', scaling: { dexterity: 0.1, insight: 0.1 } }],
     },
     {
         // 通用反击（无 tag，任何武器可用）：逆转经脉等被暴击反击直接引用
@@ -262,7 +259,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['trigger', 'buff', 'internal'],
         target: 'self',
-        effects: [{ type: 'stat_buff', attrs: { dodgeChance: 0.02 }, durationMs: 3000 }],
+        effects: [{ type: 'add_buff', buffId: 'lingbo_step_dodge' }],
     },
     {
         id: '_golden_bell_swing',

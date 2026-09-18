@@ -4,6 +4,8 @@ import type { Tag } from '../tag'
 import type { Character } from '.'
 import type { BattleState, LayerBase, ModTable } from '../../combat/types'
 import { forEachBuffOf } from '../../combat/utils/buff-loop'
+import { getBuff, type BuffDef } from '../../../data/buffs'
+import { round1 } from '../../util/math'
 
 /** 构造期属性限制回调（stat_restriction） */
 export type StatRestrictionCheck = (
@@ -27,7 +29,8 @@ export type SourceKind = 'passive' | 'talent' | 'artifact' | 'weapon' | 'offhand
  */
 export type SourceOp =
     | { kind: 'convert'; from: AttrName; to: AttrName[]; ratio: number; mode: 'round' | 'floor' }
-    | { kind: 'mod'; attr: AttrName; value: number }
+    /** `fromBuff` = 这条修正来自该来源自带的哪条附着 buff（运行时被消耗/移除时要能单独撤掉） */
+    | { kind: 'mod'; attr: AttrName; value: number; fromBuff?: string }
     | { kind: 'restriction'; check: StatRestrictionCheck }
 
 /** 属性换算（attr_convert）：重算时读「已应用到此」的属性值，与旧的逐条应用语义一致 */
@@ -67,10 +70,44 @@ export interface SourceLayer extends LayerBase {
     durationMults: ((char: Character) => number)[]
     /** 传给属性限制回调的来源标签（武器用 ['weapon']，其余空） */
     sourceTags?: string[]
+    /**
+     * 这条来源**自带的 buff**（顶层 `effects:[add_buff]`）—— 记录**全部**（含纯属性携带者）。
+     *
+     * 属性部分已经折进 `mods`/`ops`（构造期生效）；这份记录有两个用途：
+     *  1) 物化：`materializeAttached` 只对 `needsRuntimeLayer(def)` 为真的建战斗层（承载 hooks）；
+     *  2) 展示：`Engine.getBuffsForDisplay` 把「账上有、但没建层」的补进战斗界面 buff 列表。
+     */
+    attachedBuffs: { buffId: string; stacks: number }[]
 }
 
-const CONSTRUCTION_EFFECTS = new Set([
-    'stat_buff',
+/**
+ * 这条附着 buff 是否需要**运行时实例**（战斗层）。
+ *
+ * 纯属性携带者（只有 `attrMods`、无钩子/时长/叠层/maxApMod 等）不需要建层：属性已经折进来源层账，
+ * 建出来只会是一层空壳。判据 = 任何可能在战斗中表现出的行为（钩子、非永久时长、AP 上限、tick、
+ * 回复、叠层），或数据显式声明的 `needsLayer` —— 后者用于「无钩子但被引擎按 `pendingBuffs` 探测
+ * （`min_move_cost`）或会被 `remove_buff` 消耗（`sangui_yuanqi`）、物化时要播报
+ * （`muscle_degradation`）」这类没有别的运行时特征的标记 buff。
+ *
+ * **不再看 `hidden`**：`hidden` 只表示"不进 buff 列表"（展示口径），与是否建层无关。纯属性 buff
+ * 现在会显示（`getBuffsForDisplay` 从账上补），但依然不建层。
+ */
+export function needsRuntimeLayer(def: BuffDef): boolean {
+    if (def.needsLayer) return true
+    if (def.expiry && def.expiry.type !== 'permanent') return true
+    if (def.maxApMod || def.tickInterval) return true
+    if (def.apRegenPerSec || def.chanRegenPerSec) return true
+    if (def.stacking && def.stacking.type !== 'none') return true
+    if (Object.keys(def).some((k) => /^on[A-Z]/.test(k))) return true
+    return false
+}
+
+/**
+ * 源顶层 `effects` 里**构造期认**的效果类型（其余写在这里就是死数据 —— 引擎不会执行）。
+ * 数据审计测试拿它当白名单（历史上 floating_eye 的顶层 `add_buff` 就踩过这个坑）。
+ */
+export const CONSTRUCTION_EFFECTS = new Set([
+    'add_buff',
     'stat_restriction',
     'attr_convert',
     'max_hp_mod',
@@ -110,14 +147,27 @@ export function buildSourceLayer(
         weaponTags: [],
         durationMults: [],
         sourceTags,
+        attachedBuffs: [],
     }
     for (const eff of list) {
         switch (eff.type) {
-            case 'stat_buff': {
-                for (const [attr, value] of Object.entries(eff.attrs)) {
+            case 'add_buff': {
+                const def = getBuff(eff.buffId)
+                if (!def) {
+                    console.warn(`[source-layer] ${sourceId} 引用了不存在的 buff: ${eff.buffId}`)
+                    break
+                }
+                const stacks = eff.stacks ?? 1
+                // 记录全部（含纯属性携带者）：物化时再按 `needsRuntimeLayer` 决定是否建层，
+                // 没建层的由 `getBuffsForDisplay` 从这份记录补进展示列表
+                layer.attachedBuffs.push({ buffId: eff.buffId, stacks })
+                // 属性部分折进账（构造期就生效）；战斗层物化时只承载 hooks，不再二次应用
+                for (const [attr, val] of Object.entries(def.attrMods ?? {})) {
                     const a = attr as AttrName
-                    layer.mods[a] = (layer.mods[a] ?? 0) + (value as number)
-                    layer.ops.push({ kind: 'mod', attr: a, value: value as number })
+                    const value = round1((val as number) * stacks)
+                    if (value === 0) continue
+                    layer.mods[a] = (layer.mods[a] ?? 0) + value
+                    layer.ops.push({ kind: 'mod', attr: a, value, fromBuff: eff.buffId })
                 }
                 break
             }

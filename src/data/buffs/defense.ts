@@ -1,6 +1,7 @@
 import { processActionEffect } from '../../engine/combat/effects'
 import { countDrunkLayers } from '../../engine/combat/utils'
 import type { BuffDef } from './types'
+import { rng } from '../../engine/util/rng'
 import { Tag } from '../../engine/entities/tag'
 import { round1 } from '../../engine/util/math'
 import { calcRoll } from '../../engine/calc/damage'
@@ -222,6 +223,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '毒抗+50%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
+        attrMods: { dexterity: 1, agility: 1 },
         // 毒伤 DOT 减免 50%（承受 50%）；与其他 onDebuffTick 钩子链式叠加
         onDebuffTick: ({ buffId, damage }) => (buffId === 'poison' ? round1(damage * 0.5) : undefined),
     },
@@ -330,7 +332,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
                 source?.tags?.includes('unarmed') &&
                 !source?.tags?.includes('qi') &&
                 !source?.tags?.includes('range') &&
-                Math.random() < 0.8 // 80% 概率触发反伤流血
+                rng.chance(0.8) // 80% 概率触发反伤流血
             ) {
                 const bleedKey = `bleed::${attacker.id}`
                 const existing = state.pendingBuffs.get(bleedKey)
@@ -400,7 +402,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, attacker, target, engine, state }) => {
-            if (attacker === target || Math.random() >= 0.1) return final
+            if (attacker === target || !rng.chance(0.1)) return final
             const drunkLevel = countDrunkLayers(state, target.id)
             const reflectDmg = Math.min(Math.round(final), 4 + drunkLevel)
             if (reflectDmg <= 0) return final
@@ -434,6 +436,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '非炁伤害减免2点, 炁伤害减免1点。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
+        attrMods: { agility: -2 },
         onTakeDamage: ({ final, source, attacker }) => {
             const isQi = source?.tags?.includes('qi') || attacker?.weaponDef?.tags?.includes('qi')
             if (final <= 0) return final
@@ -581,6 +584,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
+        attrMods: { insight: 4 },
         onParryReduction: ({ final, target }) => round1(final - target.attrs.get('insight') * 0.1),
     },
     {
@@ -682,6 +686,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
+        attrMods: { wisdom: 3 },
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId !== 'fumble_chance_temp') return undefined
             const { success } = calcRoll(0.5)
@@ -809,12 +814,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'yao_xin_shi_buff',
         name: '药心石',
-        description: '药屋世代相传的护心石，危急时凝炁护心。每2秒自动防御1次，减免3点伤害；持续耗炁0.1AP/s。',
+        description: '药屋世代相传的护心石，危急时凝炁护心。每2秒自动防御1次，减免5点伤害；持续耗炁0.1AP/s。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         apRegenPerSec: () => -0.1,
-        // 2 秒冷却窗口：tick 重置可用；受击时若可用则减免 3 点（伤害≤3 → 归零）
+        // 2 秒冷却窗口：tick 重置可用；受击时若可用则减免 5 点（伤害≤5 → 归零）
         tickInterval: 2000,
         onTickHeal: ({ layer }) => {
             layer.extra = { ...(layer.extra ?? {}), ready: true }
@@ -827,10 +832,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             const ready = layer.extra?.ready ?? false
             if (!ready || final <= 0) return final
             layer.extra = { ...(layer.extra ?? {}), ready: false }
-            const reduced = round1(final - 3)
+            const reduced = round1(final - 5)
             engine?.emitLog({
                 type: 'system',
-                message: `[药心石] ${target.name} 凝炁护心，减免3点（剩${reduced}）`,
+                message: `[药心石] ${target.name} 凝炁护心，减免5点（剩${reduced}）`,
                 actorId: target.id,
             })
             return reduced
