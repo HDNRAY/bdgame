@@ -351,7 +351,7 @@ describe('add_debuff', () => {
         // 攻击方挂一个 on_poison 触发槽：施加中毒时给自己叠「定心清香」
         a.passiveTriggers.push({
             condition: { type: 'on_poison' },
-            effects: [{ type: 'add_buff', buffId: 'calming_fragrance', stacks: 1 }],
+            apply: [{ type: 'add_buff', buffId: 'calming_fragrance', stacks: 1 }],
         })
 
         apply(engine, { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 }, a)
@@ -365,7 +365,7 @@ describe('add_debuff', () => {
         const { engine, a } = makeFixture()
         a.passiveTriggers.push({
             condition: { type: 'on_bleed' },
-            effects: [{ type: 'add_buff', buffId: 'calming_fragrance', stacks: 1 }],
+            apply: [{ type: 'add_buff', buffId: 'calming_fragrance', stacks: 1 }],
         })
 
         apply(engine, { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 1 }, a)
@@ -379,7 +379,7 @@ describe('add_debuff', () => {
         // 受害者 b 挂 on_debuff + buffId=poison 触发槽：中毒时给自己叠「定心清香」
         b.passiveTriggers.push({
             condition: { type: 'on_debuff', buffId: 'poison', check: () => true },
-            effects: [{ type: 'add_buff', buffId: 'calming_fragrance', stacks: 1 }],
+            apply: [{ type: 'add_buff', buffId: 'calming_fragrance', stacks: 1 }],
         })
 
         apply(engine, { type: 'add_debuff', buffId: 'poison', stacks: 1, chance: 1 }, a)

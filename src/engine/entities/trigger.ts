@@ -38,6 +38,8 @@ export type TriggerEvent =
     | 'on_crit'
     | 'chan_overflow'
     | 'on_action_trigger'
+    /** 构造期（内部时机）：源的顶层 effects 迁移后的载体，只在 Character 构造时读一次，运行时永不派发 */
+    | 'on_construct'
 
 /** 触发条件上下文 */
 export interface ConditionContext {
@@ -72,12 +74,51 @@ export interface TriggerCondition extends Condition {
     internal?: boolean
 }
 
-/** 玩家装备的触发器槽 */
-export interface TriggerSlot {
+/**
+ * 一条「时机 → 效果」槽（`EffectSlot`）。
+ *
+ * 数据里的源（功法/天赋/奇物/武器）与玩家构筑的触发槽都用它：`condition` 是时机，
+ * `actionId`（执行一个招式）或 `apply`（直接施加一组效果）是效果本体。
+ */
+export interface EffectSlot {
     condition: Condition
     actionId?: string
     /** 内联效果（优先于 actionId） */
-    effects?: EffectDef[]
+    apply?: EffectDef[]
+}
+
+/**
+ * 构造期时机（内部）。
+ *
+ * 源（功法/天赋/奇物/武器）过去把「构造期贡献」直接写成顶层 `effects:[add_buff]`；现在统一挂到
+ * 一条 `condition.type === 'on_construct'` 的槽下 —— 源上只剩 `effects` 一个列表：
+ * 时机（含构造期这个内部时机）→ 效果本体。
+ */
+export const CONSTRUCT_TRIGGER = 'on_construct'
+
+/** 是否构造期槽（内部时机）：运行时永不派发，只由 `constructEffectsOf` 在构造期取用 */
+export function isConstructSlot(slot: EffectSlot): boolean {
+    return slot.condition.type === CONSTRUCT_TRIGGER
+}
+
+/**
+ * 取出一个源的**构造期 effects**：按 `on_construct` 槽的声明顺序拼接各槽的 `apply`。
+ *
+ * 这是「源顶层 effects」迁移后的唯一读取点，顺序语义与旧顶层 effects 数组完全等价
+ * （槽顺序 × 槽内声明顺序）。构造期贡献一律由 `buildSourceLayer` 从这些 `add_buff` 派生。
+ */
+export function constructEffectsOf(source: { effects?: readonly EffectSlot[] }): EffectDef[] {
+    const out: EffectDef[] = []
+    for (const slot of source.effects ?? []) {
+        if (!isConstructSlot(slot)) continue
+        out.push(...(slot.apply ?? []))
+    }
+    return out
+}
+
+/** 取出一个源的**运行时槽**（排除构造期 `on_construct`）：进 `passiveTriggers` / 参与运行时派发 */
+export function runtimeSlotsOf(source: { effects?: readonly EffectSlot[] }): EffectSlot[] {
+    return (source.effects ?? []).filter((slot) => !isConstructSlot(slot))
 }
 
 

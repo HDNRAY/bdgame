@@ -1,5 +1,6 @@
 import type { EffectDef } from '../../entities/action'
 import type { Character } from '../../entities/character'
+import { runtimeSlotsOf } from '../../entities/trigger'
 import type { BattleEngine } from '../engine'
 import type { AttrName } from '../../entities/attributes'
 import { calcBaseDamage, calcPreDelayMs, calcHealAmount, calcRoll } from '../../calc/damage'
@@ -754,8 +755,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 分身球的 AP 上限载体）：删除这些层时 maxApMod 等由层账自动回退（dropBuffLayer），
         // 不需要再写「直接改角色字段」的反函数。
         const grantedBuffs = new Set<string>()
-        for (const t of target.triggers ?? []) {
-            for (const e of t.effects ?? []) {
+        for (const t of runtimeSlotsOf(target)) {
+            for (const e of t.apply ?? []) {
                 if (e.type === 'add_buff' && e.buffId) grantedBuffs.add(e.buffId)
             }
         }
@@ -767,7 +768,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             for (const k of keys) removeBuffLayer(engine, k)
         }
         // 移除对手的奇物 triggers
-        for (const t of target.triggers ?? []) {
+        for (const t of runtimeSlotsOf(target)) {
             const tIdx = enemy.passiveTriggers.indexOf(t)
             if (tIdx !== -1) enemy.passiveTriggers.splice(tIdx, 1)
         }

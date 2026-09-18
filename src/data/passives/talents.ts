@@ -9,10 +9,15 @@ export const TALENTS: Talent[] = [
         tags: ['talent', 'buff'],
         requireAttrsMin: { agility: 20 },
         effects: [
-            // 身法不低于 16：战中被减身法时兜住（与「洞察降低减半」同一套 stat_restriction 机制）
-            { type: 'add_buff', buffId: 'ling_bo_wei_bu_guard' },
-            { type: 'add_buff', buffId: 'min_move_cost' },
-            { type: 'add_buff', buffId: 'ling_bo_wei_bu_buff' },
+            {
+                condition: { type: 'on_construct' },
+                apply: [
+                    // 身法不低于 16：战中被减身法时兜住（与「洞察降低减半」同一套 stat_restriction 机制）
+                    { type: 'add_buff', buffId: 'ling_bo_wei_bu_guard' },
+                    { type: 'add_buff', buffId: 'min_move_cost' },
+                    { type: 'add_buff', buffId: 'ling_bo_wei_bu_buff' },
+                ],
+            },
         ],
     },
     {
@@ -22,7 +27,12 @@ export const TALENTS: Talent[] = [
         tags: ['talent', 'buff'],
         requireAttrsMin: { dexterity: 18 },
         requireAttrsMax: { wisdom: 4 },
-        effects: [{ type: 'add_buff', buffId: 'zuoyou_hubo' }],
+        effects: [
+            {
+                condition: { type: 'on_construct' },
+                apply: [{ type: 'add_buff', buffId: 'zuoyou_hubo' }],
+            },
+        ],
     },
     {
         id: 'vitality_regen',
@@ -30,7 +40,12 @@ export const TALENTS: Talent[] = [
         description: '根骨强健，每3秒回复1+缺失生命的1%。',
         tags: ['heal', 'talent', 'buff'],
         requireAttrsMin: { vitality: 20 },
-        effects: [{ type: 'add_buff', buffId: 'vitality_regen' }],
+        effects: [
+            {
+                condition: { type: 'on_construct' },
+                apply: [{ type: 'add_buff', buffId: 'vitality_regen' }],
+            },
+        ],
     },
     {
         id: 'xiu_li_xuan_ji',
@@ -39,9 +54,12 @@ export const TALENTS: Talent[] = [
             '千丝万缕，只在衣袖之间。闪避获得1层缠劲；受伤消耗1层缠劲减免3点。每次触发招式叠1层玄机，9层满时下一招非辅助招式强化（必中、无视招架、必定暴击）。',
         tags: ['talent', 'buff', 'qi'],
         requireAttrsMin: { wisdom: 20 },
-        effects: [{ type: 'add_buff', buffId: 'xiu_li' }],
-        triggers: [
-            { condition: { type: 'on_action_trigger' }, effects: [{ type: 'add_buff', buffId: 'xuan_ji', stacks: 1 }] },
+        effects: [
+            {
+                condition: { type: 'on_construct' },
+                apply: [{ type: 'add_buff', buffId: 'xiu_li' }],
+            },
+            { condition: { type: 'on_action_trigger' }, apply: [{ type: 'add_buff', buffId: 'xuan_ji', stacks: 1 }] },
             {
                 condition: {
                     type: 'on_buff',
@@ -51,7 +69,7 @@ export const TALENTS: Talent[] = [
                         return !!layer && layer.restoreValue >= 9
                     },
                 },
-                effects: [{ type: 'add_buff', buffId: 'tianji_ready' }],
+                apply: [{ type: 'add_buff', buffId: 'tianji_ready' }],
             },
         ],
     },
@@ -62,7 +80,12 @@ export const TALENTS: Talent[] = [
             '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（各收敛至7%）。',
         tags: ['talent', 'buff'],
         requireAttrsMin: { insight: 20 },
-        effects: [{ type: 'add_buff', buffId: 'dongyou_zhuwei' }],
+        effects: [
+            {
+                condition: { type: 'on_construct' },
+                apply: [{ type: 'add_buff', buffId: 'dongyou_zhuwei' }],
+            },
+        ],
     },
     {
         id: 'yuanting_yuezhi',
@@ -71,8 +94,13 @@ export const TALENTS: Talent[] = [
         tags: ['talent', 'buff', 'defense'],
         requireAttrsMin: { strength: 20 },
         effects: [
-            { type: 'add_buff', buffId: 'yuanting_yuezhi_guard' },
-            { type: 'add_buff', buffId: 'yuanting_yuezhi' },
+            {
+                condition: { type: 'on_construct' },
+                apply: [
+                    { type: 'add_buff', buffId: 'yuanting_yuezhi_guard' },
+                    { type: 'add_buff', buffId: 'yuanting_yuezhi' },
+                ],
+            },
         ],
     },
 ]

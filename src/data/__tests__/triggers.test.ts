@@ -8,6 +8,7 @@ import { WEAPON_DB } from '../weapons/weapons'
 import { STARTING_WEAPONS } from '../weapons/starting-weapons'
 import { getAction } from '../actions'
 import { canBeTriggerAction } from '../../game/entities/action-config'
+import { runtimeSlotsOf } from '../../engine/entities/trigger'
 
 /**
  * 触发条件表的三条不变量：
@@ -43,7 +44,10 @@ describe('触发条件表', () => {
     })
 
     it('内部种类仍留在总表里（数据/引擎按 id 引用时还能解析）', () => {
-        expect(TRIGGER_CONDITIONS.filter((t) => t.internal).map((t) => t.id)).toEqual(['on_took_damage'])
+        expect(TRIGGER_CONDITIONS.filter((t) => t.internal).map((t) => t.id)).toEqual([
+            'on_took_damage',
+            'on_construct',
+        ])
     })
 
     it('不收自身状态门槛：表里没有 hp_below 之类的自查条件', () => {
@@ -58,13 +62,13 @@ describe('触发条件表', () => {
 })
 
 describe('触发绑定的合法性', () => {
-    /** 数据里所有触发绑定：对手的 actionConfigs + 功法/奇物/武器自带的触发 */
+    /** 数据里所有运行时触发绑定：对手的 actionConfigs + 功法/奇物/武器自带的运行时槽 */
     const bindings: { owner: string; actionId: string }[] = []
     for (const d of OPPONENTS) {
         for (const ac of d.actionConfigs ?? []) if (ac.triggerId) bindings.push({ owner: d.id, actionId: ac.actionId })
     }
     for (const e of [...PASSIVES, ...ARTIFACTS, ...WEAPON_DB, ...STARTING_WEAPONS]) {
-        for (const slot of e.triggers ?? []) if (slot.actionId) bindings.push({ owner: e.id, actionId: slot.actionId })
+        for (const slot of runtimeSlotsOf(e)) if (slot.actionId) bindings.push({ owner: e.id, actionId: slot.actionId })
     }
 
     it('引用的招式都存在', () => {

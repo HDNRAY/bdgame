@@ -67,7 +67,7 @@ export interface SourceLayer extends LayerBase {
     /** 传给属性限制回调的来源标签（武器用 ['weapon']，其余空） */
     sourceTags?: string[]
     /**
-     * 这条来源**自带的 buff**（顶层 `effects:[add_buff]`）—— 记录**全部**（含纯属性携带者）。
+     * 这条来源**自带的 buff**（`on_construct` 槽 `apply:[add_buff]`）—— 记录**全部**（含纯属性携带者）。
      *
      * 属性部分已经折进 `mods`/`ops`（构造期生效）；这份记录有两个用途：
      *  1) 物化：`materializeAttached` 只对 `needsRuntimeLayer(def)` 为真的建战斗层（承载 hooks）；
@@ -118,12 +118,13 @@ export function isApOnlyCarrier(def: BuffDef): boolean {
 }
 
 /**
- * 把来源声明的 effects 翻译成一条层账（构造期唯一入口）。
+ * 把来源的**构造期 effects** 翻译成一条层账（构造期唯一入口）。
  *
  * 这就是「来源 buff 的 onInit」：只在来源建立时跑一次，**只写账、不碰角色字段**。
- * 源顶层 `effects` 只认 `add_buff`（其余类型写在顶层就是死数据 —— 引擎不会执行）；构造期的一切
- * 贡献都从该 `BuffDef` 派生：`attrMods` / `maxHpMod` / `triggerSlotMod` / `attrConvert` /
- * `weaponTags` / `buffDurationFn` / `statRestriction`。
+ * `constructEffects` 由 `constructEffectsOf(source)` 从源的 `on_construct` 槽取出（唯一读取点），
+ * 只认 `add_buff`（其余类型写在构造槽里就是死数据 —— 引擎不会执行）；构造期的一切贡献都从该
+ * `BuffDef` 派生：`attrMods` / `maxHpMod` / `triggerSlotMod` / `attrConvert` / `weaponTags` /
+ * `buffDurationFn` / `statRestriction`。
  *
  * `char` 只在附着 buff 的动态钩子（`triggerSlotModFn` / `buffDurationFn`）求值时用到 ——
  * 与旧实现一致，求值发生在「轮到这条来源」的时刻。
@@ -132,12 +133,12 @@ export function isApOnlyCarrier(def: BuffDef): boolean {
 export function buildSourceLayer(
     sourceId: string,
     kind: SourceKind,
-    effects: EffectDef[] | undefined,
+    constructEffects: EffectDef[] | undefined,
     char: Character,
     sourceTags?: string[],
 ): SourceLayer | null {
     // 单遍：只有真的带附着 buff 才建层（纯效果为空的来源不占层）
-    if (!(effects ?? []).some((e) => e.type === 'add_buff')) return null
+    if (!(constructEffects ?? []).some((e) => e.type === 'add_buff')) return null
     const layer: SourceLayer = {
         id: sourceId,
         origin: 'source',
@@ -152,7 +153,7 @@ export function buildSourceLayer(
         sourceTags,
         attachedBuffs: [],
     }
-    for (const eff of effects ?? []) {
+    for (const eff of constructEffects ?? []) {
         if (eff.type !== 'add_buff') continue
         const def = getBuff(eff.buffId)
         if (!def) {

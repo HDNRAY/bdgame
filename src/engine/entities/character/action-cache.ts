@@ -1,5 +1,5 @@
 import { Action, type ActionDefinition } from '../action'
-import type { TriggerSlot } from '../trigger'
+import type { EffectSlot } from '../trigger'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import { getAction as getActionDef } from '../../../data/actions'
 import { getWeapon } from '../../../data/weapons/weapons'
@@ -13,7 +13,7 @@ import { getWeapon } from '../../../data/weapons/weapons'
 export function buildActionCache(
     build: CharacterBuild,
     gainedActions: readonly string[],
-    passiveTriggers: readonly TriggerSlot[],
+    passiveTriggers: readonly EffectSlot[],
     enhance: (def: ActionDefinition) => ActionDefinition,
 ): Action[] {
     const cache = gainedActions

@@ -1,7 +1,6 @@
 import type { GameEntity } from './base'
 import type { Tag } from './tag'
-import type { EffectDef } from './action'
-import type { TriggerSlot } from './trigger'
+import type { EffectSlot } from './trigger'
 import type { SummonDef } from './summon'
 
 import type { ActionEnhancer } from './passive'
@@ -9,10 +8,10 @@ import type { ActionEnhancer } from './passive'
 /** 奇物 */
 export interface Artifact extends GameEntity {
     tags: Tag[]
-    /** 奇物效果（构造期执行） */
-    effects?: EffectDef[]
-    /** 奇物触发（运行时） */
-    triggers?: TriggerSlot[]
+    /**
+     * 时机 → 效果列表：构造期贡献在 `on_construct` 槽（`apply` 走来源层账），其余槽是运行时触发。
+     */
+    effects?: EffectSlot[]
     /** 义体赋予角色的招式 */
     grantsActions?: string[]
     /** 召唤物（御物类奇物使用） */

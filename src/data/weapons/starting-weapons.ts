@@ -14,7 +14,12 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         name: '赤手空拳',
         description: '什么都没有，但什么都有可能。',
         tags: ['unarmed'],
-        effects: [{ type: 'add_buff', buffId: 'bare_hands_attr' }],
+        effects: [
+            {
+                condition: { type: 'on_construct' },
+                apply: [{ type: 'add_buff', buffId: 'bare_hands_attr' }],
+            },
+        ],
         range: [0, 2],
     },
     // ── 单手剑 ──
@@ -56,7 +61,12 @@ export const STARTING_WEAPONS: WeaponDef[] = [
             maxCount: (self) => Math.min(7, 1 + Math.round(self.attrs.get('wisdom') / 2)),
             actionId: '_silk_shot',
         },
-        effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.7 }],
+        effects: [
+            {
+                condition: { type: 'on_construct' },
+                apply: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.7 }],
+            },
+        ],
     },
     {
         id: 'tri_orb',
@@ -72,7 +82,12 @@ export const STARTING_WEAPONS: WeaponDef[] = [
             maxCount: () => 3,
             actionId: '_orb_shot',
         },
-        effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }],
+        effects: [
+            {
+                condition: { type: 'on_construct' },
+                apply: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }],
+            },
+        ],
     },
     {
         id: 'fei_jian',
@@ -88,7 +103,12 @@ export const STARTING_WEAPONS: WeaponDef[] = [
             maxCount: () => 1,
             actionId: '_fei_jian_shot',
         },
-        effects: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }],
+        effects: [
+            {
+                condition: { type: 'on_construct' },
+                apply: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }],
+            },
+        ],
     },
     // ── 匕首 ──
     {
@@ -96,7 +116,12 @@ export const STARTING_WEAPONS: WeaponDef[] = [
         name: '匕首',
         description: '短小而致命的匕首。',
         tags: ['pierce', 'unarmed', 'parry', 'slash', 'melee', 'one_handed'],
-        effects: [{ type: 'add_buff', buffId: 'dagger_attr' }],
+        effects: [
+            {
+                condition: { type: 'on_construct' },
+                apply: [{ type: 'add_buff', buffId: 'dagger_attr' }],
+            },
+        ],
         range: [0, 2],
     },
 ]

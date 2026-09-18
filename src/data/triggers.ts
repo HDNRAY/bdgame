@@ -18,7 +18,7 @@ import type { TriggerCondition } from '../engine/entities/trigger'
  * `chan_overflow` / `on_action_trigger` / `on_attack` 等，只给数据层声明用（buff 消耗触发、功法/武器自带触发），
  * 不进玩家下拉。`on_attack` 尤其宽泛——等于「每次攻击都触发」，故不列为玩家选项。
  *
- * 数据层自带触发（功法/奇物/武器/被动）是直接写 `TriggerSlot` 对象（`{ type, check }`），不经过本表的 id。
+ * 数据层自带槽（功法/奇物/武器/被动）是直接写 `EffectSlot` 对象（`{ condition, actionId | apply }`），不经过本表的 id。
  * 所以**引擎的触发事件可以不出现在本表里**：例如 `hp_below` 只服务数据里声明的「濒危反应」被动
  * （三分归元气 HP<30%、炁体源流 HP<20%），属内部触发，与玩家可选表无关 —— 不要因为本表没有就去删事件。
  */
@@ -50,6 +50,8 @@ export const TRIGGER_CONDITIONS: TriggerCondition[] = [
     { id: 'on_opponent_move_away', type: 'on_opponent_move_away' },
     { id: 'on_crit', type: 'on_crit' },
     { id: 'battle_start', type: 'battle_start' },
+    // 内部：构造期时机（源 `on_construct` 槽的载体）。只在角色构造时读一次，运行时永不派发，不进玩家下拉
+    { id: 'on_construct', type: 'on_construct', internal: true },
 ]
 
 /** 玩家在构筑面板能选的触发条件（过滤掉内部种类） */

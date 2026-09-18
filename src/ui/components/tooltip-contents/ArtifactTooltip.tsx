@@ -1,5 +1,6 @@
 import type { Artifact } from '../../../engine/entities/artifact'
 import type { EffectDef } from '../../../engine/entities/action'
+import { constructEffectsOf } from '../../../engine/entities/trigger'
 import { describeEffect } from '../../../data/effectDisplay'
 import { getAction } from '../../../data/actions'
 import { TagList } from '../ui/TagList/TagList'
@@ -12,9 +13,10 @@ interface ArtifactTooltipProps {
 
 /** 奇物 tooltip 内容 */
 export function ArtifactTooltip({ artifact }: ArtifactTooltipProps) {
+    // 「自带效果」= 源的构造期槽（on_construct）的 apply；运行时触发由 TriggerEffects 展示
     const sideEffects: EffectDef[] = []
     const mainEffects: EffectDef[] = []
-    for (const eff of artifact.effects ?? []) {
+    for (const eff of constructEffectsOf(artifact)) {
         if (eff.type === 'add_debuff') sideEffects.push(eff)
         else mainEffects.push(eff)
     }
@@ -41,7 +43,7 @@ export function ArtifactTooltip({ artifact }: ArtifactTooltipProps) {
                     </div>
                 </div>
             )}
-            {artifact.triggers && artifact.triggers.length > 0 && <TriggerEffects triggers={artifact.triggers} />}
+            {artifact.effects && artifact.effects.length > 0 && <TriggerEffects triggers={artifact.effects} />}
         </div>
     )
 }

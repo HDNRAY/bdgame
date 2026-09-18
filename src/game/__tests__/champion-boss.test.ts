@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { getArtifact } from '../../data/artifacts'
 import { getBuff } from '../../data/buffs'
 import { Character } from '../../engine/entities/character'
+import { constructEffectsOf } from '../../engine/entities/trigger'
 import { TALENTS } from '../../data/passives/talents'
 import type { CharacterBuild } from '../entities/character-build'
 import type { Passive } from '../../engine/entities/passive'
@@ -35,8 +36,8 @@ function artifactGrants(build: CharacterBuild): Partial<Record<AttrName, number>
     for (const r of build.rewards) {
         if (r.type !== 'artifact') continue
         const def = getArtifact(r.id)
-        for (const e of def?.effects ?? []) {
-            // 属性加成现在写在 buff 的 attrMods 里（来源顶层 effects 只声明挂哪个 buff）
+        for (const e of def ? constructEffectsOf(def) : []) {
+            // 属性加成现在写在 buff 的 attrMods 里（来源的 on_construct 槽只声明挂哪个 buff）
             const attrs =
                 e.type === 'add_buff' ? getBuff(e.buffId)?.attrMods : (e as { attrs?: Record<string, number> }).attrs
             if (!attrs) continue
@@ -57,10 +58,10 @@ function effective(build: CharacterBuild): Record<AttrName, number> {
     return out
 }
 
-/** 天赋是否生效：建了来源层（顶层 effects）或挂上了触发槽（无 effects 的天赋仍是触发槽形态） */
+/** 天赋是否生效：建了来源层（`on_construct` 槽的 apply）或挂上了触发槽（无构造槽的天赋仍是触发槽形态） */
 function talentApplied(char: Character, talent: Passive): boolean {
     if (char.sourceLayers.some((l) => l.sourceId === `passive:${talent.id}`)) return true
-    return (talent.triggers ?? []).some((slot) => char.passiveTriggers.includes(slot))
+    return (talent.effects ?? []).some((slot) => char.passiveTriggers.includes(slot))
 }
 
 describe('champion-boss（隐藏boss 构造）', () => {
@@ -90,8 +91,8 @@ describe('champion-boss（隐藏boss 构造）', () => {
     })
 
     it('14 件义体一共给 42 点属性（平均每项 7 点，含失重/失感的负项）', () => {
-        // 迁移后义体的全部属性修正都在顶层 `effects` 里（以前 overload / muscle_degradation 挂在装备期
-        // 触发槽，这个只读顶层 effects 的助手看不到负项，所以旧口径是 48）。战斗属性不变：开局两条路径都会应用。
+        // 迁移后义体的全部属性修正都在构造期槽（`on_construct`）里（以前 overload / muscle_degradation 挂在装备期
+        // 触发槽，这个只读构造期槽的助手看不到负项，所以旧口径是 48）。战斗属性不变：开局两条路径都会应用。
         const boss = championBossBuild(baseBuild())
         const grants = artifactGrants(boss)
         const total = ALL_ATTRS.reduce((sum, a) => sum + (grants[a] ?? 0), 0)

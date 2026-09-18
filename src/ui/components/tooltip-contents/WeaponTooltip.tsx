@@ -1,5 +1,6 @@
 import type { WeaponDef } from '../../../data/weapons/weapons'
 import type { Character } from '../../../engine/entities/character'
+import { constructEffectsOf } from '../../../engine/entities/trigger'
 import { getAction } from '../../../data/actions'
 import { TagList } from '../ui/TagList/TagList'
 import { EffectList } from '../ui/EffectList/EffectList'
@@ -15,6 +16,8 @@ const MAX_SUMMON_DEMO = { attrs: { get: () => 20 } } as unknown as Character
 
 /** 武器 tooltip 内容 */
 export function WeaponTooltip({ weapon }: WeaponTooltipProps) {
+    // 「自带效果」= 源的构造期槽（on_construct）的 apply；运行时触发由 TriggerEffects 展示
+    const selfEffects = constructEffectsOf(weapon)
     return (
         <div>
             <div className="tt-name">{weapon.name}</div>
@@ -32,7 +35,7 @@ export function WeaponTooltip({ weapon }: WeaponTooltipProps) {
                         .join(', ')}
                 </div>
             )}
-            {weapon.effects && weapon.effects.length > 0 && <EffectList effects={weapon.effects} />}
+            {selfEffects.length > 0 && <EffectList effects={selfEffects} />}
             {weapon.grantsActions && weapon.grantsActions.length > 0 && (
                 <div className="tt-extra" style={{ marginTop: 'var(--sp-xxs)' }}>
                     <div className="tt-label">赋予招式:</div>
@@ -59,7 +62,7 @@ export function WeaponTooltip({ weapon }: WeaponTooltipProps) {
                     </div>
                 </div>
             )}
-            {weapon.triggers && weapon.triggers.length > 0 && <TriggerEffects triggers={weapon.triggers} />}
+            {weapon.effects && weapon.effects.length > 0 && <TriggerEffects triggers={weapon.effects} />}
         </div>
     )
 }

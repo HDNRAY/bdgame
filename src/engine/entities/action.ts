@@ -49,11 +49,11 @@ export type EffectDef =
     | { type: 'restore_ap'; value: number }
     | { type: 'stat_transfer'; stat: string; value: number; duration: number }
     /**
-     * 挂一个 buff。作为**源的顶层效果**时 = 这条来源自带的 buff：`attrMods` / `maxHpMod` /
+     * 挂一个 buff。写在源的 `on_construct` 槽 `apply` 里 = 这条来源自带的 buff：`attrMods` / `maxHpMod` /
      * `triggerSlotMod` / `attrConvert` / `weaponTags` / `buffDurationFn` / `statRestriction` 等构造期
      * 贡献折进来源层账（构造期生效），开局/换装/被偷到手时物化成战斗层承载 hooks。
      *
-     * 源顶层 `effects` 只认这一种类型（`buildSourceLayer`）。
+     * 构造期（`on_construct` 槽的 `apply`）只认这一种类型（`buildSourceLayer`）。
      */
     | { type: 'add_buff'; buffId: string; stacks?: number }
     | { type: 'remove_buff'; buffId: string; stacks?: number }

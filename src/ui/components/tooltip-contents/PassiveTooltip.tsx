@@ -1,4 +1,5 @@
 import type { Passive } from '../../../engine/entities/passive'
+import { constructEffectsOf } from '../../../engine/entities/trigger'
 import { describeEffects } from '../../../data/effectDisplay'
 import { getAction } from '../../../data/actions'
 import { TagList } from '../ui/TagList/TagList'
@@ -11,13 +12,15 @@ interface PassiveTooltipProps {
 
 /** 功法 tooltip 内容 */
 export function PassiveTooltip({ passive }: PassiveTooltipProps) {
+    // 「自带效果」= 源的构造期槽（on_construct）的 apply；运行时触发由 TriggerEffects 展示
+    const selfEffects = constructEffectsOf(passive)
     return (
         <div>
             <div className="tt-name">{passive.name}</div>
             {passive.tags.length > 0 && <TagList tags={passive.tags} />}
             {passive.description && <div className="tt-desc">{passive.description}</div>}
-            {passive.effects && passive.effects.length > 0 && (
-                <div className="tt-extra tt-extra-dim">{describeEffects(passive.effects).join('；')}</div>
+            {selfEffects.length > 0 && (
+                <div className="tt-extra tt-extra-dim">{describeEffects(selfEffects).join('；')}</div>
             )}
             {passive.grantsActions && passive.grantsActions.length > 0 && (
                 <div className="tt-extra" style={{ marginTop: 'var(--sp-xxs)' }}>
@@ -30,7 +33,7 @@ export function PassiveTooltip({ passive }: PassiveTooltipProps) {
                     </div>
                 </div>
             )}
-            {passive.triggers && passive.triggers.length > 0 && <TriggerEffects triggers={passive.triggers} />}
+            {passive.effects && passive.effects.length > 0 && <TriggerEffects triggers={passive.effects} />}
         </div>
     )
 }

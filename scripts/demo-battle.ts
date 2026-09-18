@@ -85,7 +85,7 @@ function show(c: Character) {
     if (c.actions.length) console.log(`  招式: ${c.actions.map((i) => i.name).join(', ')}`)
     if (c.triggers.length)
         console.log(
-            `  触发: ${c.triggers.map((s) => `${s.condition.type}→${s.actionId ?? s.effects?.map((e) => e.type).join(',') ?? '?'}`).join(', ')}`,
+            `  触发: ${c.triggers.map((s) => `${s.condition.type}→${s.actionId ?? s.apply?.map((e) => e.type).join(',') ?? '?'}`).join(', ')}`,
         )
 }
 

@@ -1,4 +1,4 @@
-import type { TriggerSlot } from '../trigger'
+import type { EffectSlot } from '../trigger'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import { TRIGGER_CONDITIONS } from '../../../data/triggers'
 
@@ -7,8 +7,8 @@ import { TRIGGER_CONDITIONS } from '../../../data/triggers'
  *
  * 一个触发条件只能被一个招式使用 —— 重复直接抛：否则战斗中哪一招先响应是不确定的。
  */
-export function buildConfigTriggers(build: CharacterBuild): TriggerSlot[] {
-    const result: TriggerSlot[] = []
+export function buildConfigTriggers(build: CharacterBuild): EffectSlot[] {
+    const result: EffectSlot[] = []
     const seen = new Set<string>()
     for (const ac of build.actionConfigs ?? []) {
         if (!ac.triggerId) continue

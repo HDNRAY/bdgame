@@ -4,7 +4,7 @@ import type { CharacterBuild } from '../../../game/entities/character-build'
 import type { ActionConfig } from '../../../game/entities/action-config'
 import type { Passive, Talent } from '../passive'
 import type { Artifact } from '../artifact'
-import type { TriggerSlot } from '../trigger'
+import type { EffectSlot } from '../trigger'
 import type { Tag } from '../tag'
 import type { WeaponDef } from '../../../data/weapons/weapons'
 import type { AttackStyle } from '../../ai/planner'
@@ -27,6 +27,7 @@ import { emptyResourceTally, type ResourceTally } from './resource-tally'
 import { collectRewards } from './reward-collect'
 import { buildActionCache } from './action-cache'
 import { buildConfigTriggers } from './trigger-slots'
+import { constructEffectsOf, runtimeSlotsOf } from '../trigger'
 import {
     buildSourceLayer,
     isApOnlyCarrier,
@@ -69,9 +70,9 @@ export class Character {
     /** 已解析的被动对象列表 */
     passiveDefs: Passive[] = []
     /** 被动注入的额外 trigger */
-    passiveTriggers: TriggerSlot[] = []
+    passiveTriggers: EffectSlot[] = []
     /** 缓存：从 actionConfigs 解析的触发条件 */
-    #configTriggers: TriggerSlot[] = []
+    #configTriggers: EffectSlot[] = []
     /** 构造时固定的触发槽上限 */
     #maxTriggerSlots = 0
     /** 武器定义的 clone（含被动修改） */
@@ -138,8 +139,8 @@ export class Character {
             if (p.grantsActions) gainedActions.push(...p.grantsActions)
         }
         for (const a of this.artifactDefs) {
-            this.addSource(`artifact:${a.id}`, 'artifact', a.effects)
-            for (const t of a.triggers ?? []) this.passiveTriggers.push(t)
+            this.addSource(`artifact:${a.id}`, 'artifact', constructEffectsOf(a))
+            for (const t of runtimeSlotsOf(a)) this.passiveTriggers.push(t)
             // 义体赋予的招式
             if (a.grantsActions) gainedActions.push(...a.grantsActions)
         }
@@ -158,16 +159,16 @@ export class Character {
             !weapon.requireAttrsMin ||
             Object.entries(weapon.requireAttrsMin).every(([attr, req]) => this.attrs.get(attr as AttrName) >= req!)
         if (weaponOk) {
-            this.addSource(`weapon:${build.weapon}`, 'weapon', weapon.effects, ['weapon'])
-            for (const t of weapon.triggers ?? []) this.passiveTriggers.push(t)
+            this.addSource(`weapon:${build.weapon}`, 'weapon', constructEffectsOf(weapon), ['weapon'])
+            for (const t of runtimeSlotsOf(weapon)) this.passiveTriggers.push(t)
             if (weapon.grantsActions) gainedActions.push(...weapon.grantsActions)
         }
 
         // 副手武器：只处理 effects/triggers/grantsActions，不处理 tag，不含 range/战斗逻辑
         if (build.offhand) {
             const offhand = getWeapon(build.offhand)
-            this.addSource(`offhand:${build.offhand}`, 'offhand', offhand.effects, ['weapon'])
-            for (const t of offhand.triggers ?? []) this.passiveTriggers.push(t)
+            this.addSource(`offhand:${build.offhand}`, 'offhand', constructEffectsOf(offhand), ['weapon'])
+            for (const t of runtimeSlotsOf(offhand)) this.passiveTriggers.push(t)
             if (offhand.grantsActions) gainedActions.push(...offhand.grantsActions)
         }
 
@@ -203,17 +204,18 @@ export class Character {
     /**
      * 记入一个来源的构造期修正（功法/天赋/奇物/武器/副手）。
      *
+     * `constructEffects` 由 `constructEffectsOf(source)` 从该源的 `on_construct` 槽取出（唯一读取点）。
      * 等价于旧的逐条 `applyPassiveEffect`，区别是写进层账再重算 —— 因此可以整体撤销、也不会因为
      * 手写反函数而夹取漂移。同名来源重复加入时覆盖（容错）。
      */
     addSource(
         sourceId: string,
         kind: SourceKind,
-        effects: EffectDef[] | undefined,
+        constructEffects: EffectDef[] | undefined,
         sourceTags?: string[],
         state?: BattleState,
     ): void {
-        const layer = buildSourceLayer(sourceId, kind, effects, this, sourceTags)
+        const layer = buildSourceLayer(sourceId, kind, constructEffects, this, sourceTags)
         if (!layer) return
         const idx = this.sourceLayers.findIndex((l) => l.sourceId === sourceId)
         if (idx >= 0) this.sourceLayers[idx] = layer
@@ -249,16 +251,16 @@ export class Character {
         const oldId = this.currentWeaponId
         this.weaponPatch = undefined // 换武丢弃附炁改写（旧实现整体覆盖 weaponDef，同口径）
         this.removeSource(`weapon:${oldId}`, engine?.state)
-        for (const t of getWeapon(oldId).triggers ?? []) {
+        for (const t of runtimeSlotsOf(getWeapon(oldId))) {
             const idx = this.passiveTriggers.indexOf(t)
             if (idx !== -1) this.passiveTriggers.splice(idx, 1)
         }
         this.currentWeaponId = weaponId
         const weapon = getWeapon(weaponId)
         // 御物（imperial）武器不自带属性效果：旧 switch_weapon 跳过它们的 stat_buff，这里保持同一口径
-        const effects = weapon.tags.includes('imperial') ? [] : weapon.effects
+        const effects = weapon.tags.includes('imperial') ? [] : constructEffectsOf(weapon)
         this.addSource(`weapon:${weaponId}`, 'weapon', effects, ['weapon'], engine?.state)
-        for (const t of weapon.triggers ?? []) this.passiveTriggers.push(t)
+        for (const t of runtimeSlotsOf(weapon)) this.passiveTriggers.push(t)
         this.weaponDef = this.derivedWeaponDef()
         if (engine) this.materializeAttached(engine)
     }
@@ -303,7 +305,7 @@ export class Character {
     }
 
     /**
-     * 把各来源**自带的 buff**（顶层 `effects:[add_buff]`）物化成战斗层：开局、换装、被偷到手时调用。
+     * 把各来源**自带的 buff**（`on_construct` 槽的 `apply:[add_buff]`）物化成战斗层：开局、换装、被偷到手时调用。
      *
      * 附着表记的是**全部**附着 buff（含纯属性携带者，供 buff 列表展示），这里**按需物化**：
      * 只对 `needsRuntimeLayer(def)` 为真的建层，其余跳过（属性已在来源层账上，建出来只是空壳）。
@@ -481,10 +483,10 @@ export class Character {
         this.addSource(
             `passive:${p.id}`,
             p.tags.includes('talent') ? 'talent' : 'passive',
-            p.effects,
+            constructEffectsOf(p),
         )
         // triggers
-        for (const slot of p.triggers ?? []) this.passiveTriggers.push(slot)
+        for (const slot of runtimeSlotsOf(p)) this.passiveTriggers.push(slot)
         // 源自带 buff 的物化槽：插在本源 trigger 的位置上，保证开局建层/日志顺序不变
     }
 
@@ -496,7 +498,7 @@ export class Character {
         return calcMaxAp(this.attrs.get('vitality'), this.maxApMod)
     }
 
-    get triggers(): TriggerSlot[] {
+    get triggers(): EffectSlot[] {
         return [...this.#configTriggers.slice(0, this.#maxTriggerSlots), ...this.passiveTriggers]
     }
 
@@ -590,7 +592,7 @@ export class Character {
     /**
      * 运行时添加奇物（探云手偷取等）。
      *
-     * 传了 engine 就把该奇物自带的 buff（顶层 `effects:[add_buff]`）物化成战斗层
+     * 传了 engine 就把该奇物自带的 buff（`on_construct` 槽的 `apply:[add_buff]`）物化成战斗层
      * （`materializeAttached`）——属性在 `addSource` 时已折进层账。
      */
     addArtifact(id: string, engine?: BattleEngine): boolean {
@@ -598,8 +600,8 @@ export class Character {
         const def = getArtifact(id)
         if (!def) return false
         this.artifactDefs.push(def)
-        this.addSource(`artifact:${id}`, 'artifact', def.effects, undefined, engine?.state)
-        for (const t of def.triggers ?? []) this.passiveTriggers.push(t)
+        this.addSource(`artifact:${id}`, 'artifact', constructEffectsOf(def), undefined, engine?.state)
+        for (const t of runtimeSlotsOf(def)) this.passiveTriggers.push(t)
         if (engine) this.materializeAttached(engine)
 
         // 奇物赋予的招式（偷来的女儿红能喝）

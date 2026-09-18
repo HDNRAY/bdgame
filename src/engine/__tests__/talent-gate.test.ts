@@ -27,16 +27,16 @@ const artifact = (id: string): Reward => ({ type: 'artifact', id, name: id, desc
 const passive = (id: string): Reward => ({ type: 'passive', id, name: id, description: '', tags: [] })
 
 /**
- * 天赋是否生效：达标就建了**来源层**（`passive:<id>`，顶层 `effects` 走层账）或挂上了触发槽。
+ * 天赋是否生效：达标就建了**来源层**（`passive:<id>`，`on_construct` 槽的 apply 走层账）或挂上了触发槽。
  *
  * 迁移前天赋的 buff 挂在 `battle_start` 触发槽上，所以这里当初按「触发槽在不在」判断；
- * 现在 buff 在顶层 `effects` 里，判定换成来源层（无 effects 的天赋仍保留触发槽形态）。
+ * 现在构造期 buff 在 `on_construct` 槽里，判定换成来源层（无构造槽的天赋仍保留触发槽形态）。
  */
 function applied(build: CharacterBuild, talentId: string): boolean {
     const t = TALENTS.find((x) => x.id === talentId)!
     const c = new Character(build)
     if (c.sourceLayers.some((l) => l.sourceId === `passive:${talentId}`)) return true
-    return (t.triggers ?? []).some((slot) => c.passiveTriggers.includes(slot))
+    return (t.effects ?? []).some((slot) => c.passiveTriggers.includes(slot))
 }
 
 describe('天赋解锁只看原始属性', () => {

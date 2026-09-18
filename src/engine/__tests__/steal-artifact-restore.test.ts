@@ -3,6 +3,7 @@ import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { processActionEffect } from '../combat/effects/action'
 import { forEachBuffOf } from '../combat/utils'
+import { runtimeSlotsOf } from '../entities/trigger'
 import { ARTIFACTS, getArtifact } from '../../data/artifacts'
 import { ALL_ATTRS } from '../entities/attributes'
 import type { CharacterBuild } from '../../game/entities/character-build'
@@ -45,12 +46,12 @@ const parryBonus = (c: Character, engine: BattleEngine) => {
     })
     return sum
 }
-/** 该奇物 triggers 里声明的 add_buff 目标（盗走后应当从受害者身上消失） */
+/** 该奇物运行时槽里声明的 add_buff 目标（盗走后应当从受害者身上消失） */
 const grantedBuffIds = (artifactId: string) => {
     const def = getArtifact(artifactId)!
     const out = new Set<string>()
-    for (const t of def.triggers ?? []) {
-        for (const e of t.effects ?? []) if (e.type === 'add_buff' && e.buffId) out.add(e.buffId)
+    for (const t of runtimeSlotsOf(def)) {
+        for (const e of t.apply ?? []) if (e.type === 'add_buff' && e.buffId) out.add(e.buffId)
     }
     return [...out]
 }

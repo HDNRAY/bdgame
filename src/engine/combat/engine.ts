@@ -531,6 +531,8 @@ export class BattleEngine {
     }
 
     #processEmit(event: TriggerEvent, self: Character, enemy: Character, buffId?: string) {
+        // 构造期时机（on_construct）只在 Character 构造时由 buildSourceLayer 取用，永不派发
+        if (event === 'on_construct') return
         // 死亡角色不再触发任何招式（先于一切触发处理）
         if (!self.isAlive()) return
         const { moveDelta, position } = this.state
@@ -550,9 +552,9 @@ export class BattleEngine {
             )
                 continue
 
-            if (slot.effects) {
+            if (slot.apply) {
                 // 非招式触发效果：在招式自身作用域内处理（不新增 scope 层）
-                for (const eff of slot.effects) {
+                for (const eff of slot.apply) {
                     processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs })
                 }
                 continue

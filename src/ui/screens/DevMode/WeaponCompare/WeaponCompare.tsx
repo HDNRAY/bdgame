@@ -11,6 +11,7 @@
 
 import { useMemo, useState } from 'react'
 import { Character } from '../../../../engine/entities/character'
+import { constructEffectsOf, runtimeSlotsOf } from '../../../../engine/entities/trigger'
 import { WEAPON_DB, getWeapon, type WeaponDef } from '../../../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { calcExpectedDamage } from '../../../../engine/ai/expected-damage'
@@ -81,8 +82,8 @@ function makeBenchChar(id: string, name: string, weapon: WeaponDef, pendingBuffs
     c.chan = MAX_CHAN
     c.ap = c.maxAp
     c.hp = Math.round(c.maxHp * 0.49 * 10) / 10
-    // 顶层 add_buff（源自带 buff）：属性已由 Character 构造期折进来源层账，这里只补层以承载 hooks
-    for (const eff of weapon.effects ?? []) {
+    // 构造期附着 buff（on_construct 槽）：属性已由 Character 构造期折进来源层账，这里只补层以承载 hooks
+    for (const eff of constructEffectsOf(weapon)) {
         if (eff.type !== 'add_buff') continue
         pendingBuffs.set(`${eff.buffId}::${c.id}`, { restoreValue: eff.stacks ?? 1 })
     }
@@ -137,7 +138,7 @@ function calcDamageScore(weapon: WeaponDef): { avg: number; delta: number } {
     return { avg: Math.round(avg * 10) / 10, delta }
 }
 
-/** 属性分：Σ 属性增减 × 1（1 属性点 = 1 分，可为负）。汇总武器顶层 add_buff 的 attrMods。 */
+/** 属性分：Σ 属性增减 × 1（1 属性点 = 1 分，可为负）。汇总武器构造期 add_buff 的 attrMods。 */
 function calcAttrScore(weapon: WeaponDef): { mods: Record<string, number>; score: number } {
     const mods: Record<string, number> = {}
     const add = (attrs: Record<string, number> | undefined, mult: number) => {
@@ -145,7 +146,7 @@ function calcAttrScore(weapon: WeaponDef): { mods: Record<string, number>; score
             mods[attr] = (mods[attr] ?? 0) + (v as number) * mult
         }
     }
-    for (const eff of weapon.effects ?? []) {
+    for (const eff of constructEffectsOf(weapon)) {
         if (eff.type !== 'add_buff') continue
         const def = getBuff(eff.buffId)
         if (def?.attrMods) add(def.attrMods, eff.stacks ?? 1)
@@ -186,7 +187,7 @@ function calcSummonScore(weapon: WeaponDef): { count: number; perSummon: number;
 /** 御物耗炁/耗能扣分：按 AP 回复被压掉的比例折算（召唤物 0AP 不吃 AP，扣分只反映失去的普攻 AP 机会） */
 function calcYuwuCost(weapon: WeaponDef): { apPerSec: number; score: number } {
     let apPerSec = 0
-    for (const eff of weapon.effects ?? []) {
+    for (const eff of constructEffectsOf(weapon)) {
         if (eff.type === 'add_buff' && eff.buffId === 'yuwu_cost') {
             apPerSec += eff.stacks ?? 0
         }
@@ -240,7 +241,7 @@ const STANDARD_ACTION_POOL = allMainActions.filter(
  */
 function calcTriggerScore(weapon: WeaponDef): number {
     let total = 0
-    for (const t of weapon.triggers ?? []) {
+    for (const t of runtimeSlotsOf(weapon)) {
         const cond = t.condition.type
         const rate = TRIGGER_RATE[cond] ?? 0.1
         let value = 0
@@ -257,7 +258,7 @@ function calcTriggerScore(weapon: WeaponDef): number {
                 value = Math.round(est * 10) / 10
             }
         }
-        for (const eff of t.effects ?? []) {
+        for (const eff of t.apply ?? []) {
             if (eff.type === 'add_debuff')
                 value += (eff.stacks ?? 1) * (eff.chance ?? 1) * (DEBUFF_DOT_DMG[eff.buffId] ?? 0)
         }

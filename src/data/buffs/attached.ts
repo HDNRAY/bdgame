@@ -6,7 +6,7 @@ import { insightReductionHalfCheck } from '../utils/insightGuard'
  * 属性类 buff：`stat_buff` 效果类型删除后的唯一属性加成载体。
  *
  * 分四组：
- *  1. 来源附着 buff：由来源顶层 `effects:[add_buff]` 挂上，`attrMods × stacks` 在构造期就折进
+ *  1. 来源附着 buff：由来源 `on_construct` 槽的 `apply:[add_buff]` 挂上，`attrMods × stacks` 在构造期就折进
  *     来源层账。纯属性携带者（无钩子/时长/叠层等）**不建战斗层**，但会由 `getBuffsForDisplay`
  *     从账上补进战斗界面 buff 列表（属性来源另见 `attrBreakdown`）。
  *  2. 战斗期具名属性 buff：`_qiti_awaken` 的六维强化与凌波微步的闪避。
