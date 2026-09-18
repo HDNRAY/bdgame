@@ -19,7 +19,7 @@ import type { Tag } from '../../../../engine/entities/tag'
 import { calcChanCostInAp } from '../../../../engine/calc/chan-value'
 import type { ActionDefinition } from '../../../../engine/entities/action'
 import { EntityItem } from '../../../components/ui/EntityItem/EntityItem'
-import { Tag as TagBadge } from '../../../components/ui/Tag/Tag'
+import { TAG_CN } from '../../../../bridge/tagDisplay'
 import './ActionCompare.scss'
 import { allMainActions } from '../../../../engine'
 import { collectTagOptions, filterActions, getCandidateActions, parseTagParam } from './filter'
@@ -349,13 +349,13 @@ export function ActionCompare() {
                     onBlur={(e) => commitSearch(e.target.value)}
                 />
             </div>
-            {/* 标签多选：选项只列候选池里实际存在的 tag（中文名/颜色取自 tagDisplay，经 Tag 原子组件渲染） */}
+            {/* 标签多选：选项只列候选池里实际存在的 tag，纯中文名文字（不用 Tag 徽章，避免一屏几十个彩色块） */}
             <div className="ac-controls ac-controls-tags">
                 <span className="ac-label">标签（多选）：</span>
                 {TAG_OPTIONS.map((tag) => (
                     <label key={tag} className={`ac-chip${selectedTags.includes(tag) ? ' ac-chip-on' : ''}`}>
                         <input type="checkbox" checked={selectedTags.includes(tag)} onChange={() => toggleTag(tag)} />
-                        <TagBadge tag={tag} />
+                        {TAG_CN[tag] ?? tag}
                     </label>
                 ))}
                 <button type="button" className="ac-clear" onClick={clearTags} disabled={selectedTags.length === 0}>
