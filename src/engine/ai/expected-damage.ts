@@ -28,9 +28,14 @@ import { calcChokeTickDamage } from '../../data/buffs/debuffs'
  * 除下方直接出现的 def.onXxx，还包含间接读取：
  *  - onRuntimeAction：getRuntimeAction(action.id, attacker, safeState) 内部按攻击方 buff 修正运行时招式
  *  - onDebuffTick / onDebuffApplied：DoT 期望与施毒钩子链（见 applyDotTickHooks / applyDebuffAppliedHooks）
+ *  - onActionCost：estimateApCost 累加 AP 折扣（空手道/漫天花雨/明镜止水/分心错手…），
+ *    漏掉它会让这些层不进沙盒、`DamageEstimate.apCost` 恒为折前值
+ *  - onHaste：actionApCost → getHaste(safeState) → calcExtraHaste 读的急速（风切/身法护持…），
+ *    漏掉它沙盒算出的身法减免与真源不一致
  */
 export const EVAL_HOOKS: readonly RegisteredHook[] = [
     'onAction',
+    'onActionCost',
     'onAfterCritDamage',
     'onCanBeParried',
     'onCanParry',
@@ -42,6 +47,7 @@ export const EVAL_HOOKS: readonly RegisteredHook[] = [
     'onDebuffApplied',
     'onDebuffTick',
     'onDodgeChance',
+    'onHaste',
     'onHitChance',
     'onParryChance',
     'onParryPenetration',
@@ -544,7 +550,47 @@ function calcExpectedDamageInner(
         expectedDamage: expected,
         hitChance,
         canReach,
-        apCost: attacker.actionApCost(action.apCost, state),
+        apCost: estimateApCost(action, safeAtk, safeDef, safeState),
         chanCost: action.chanCost ?? 0,
     }
+}
+
+/**
+ * 本招的 AP 成本：`baseApCost + Σ onActionCost`（每个 buff 各自 clamp 最低 1）→ 过身法/急速减免。
+ *
+ * 与引擎真实扣费同口径（`engine.ts` 的 `#executeAction`、`action-executor.canExecuteAction`、
+ * `planner.actionCostAt` 都是 `max(1, cost + hook())` 再 `actionApCost`）。此前这里只做
+ * `actionApCost(action.apCost)`，于是 `DamageEstimate.apCost` 比实扣高一截（桑原·空手道实测：
+ * 手刀 1.7 vs 实扣 1.5、回旋踢 4.3 vs 4.1），而 planner 拿它当 `baseApCost` 做效率排序 ——
+ * 所有被 onActionCost 折扣的招式（空手道/漫天花雨/明镜止水/独臂/以力驭剑/分心错手）在 AI 眼里系统性偏贵。
+ *
+ * 钩子在**沙盒** layer 上跑：分心错手这类有状态钩子（写 `layer.extra.firstActionDone`）不会污染真源，
+ * 而它读到的正是"本回合是否已出过主招"的真实状态。
+ */
+function estimateApCost(
+    action: ActionDefinition,
+    safeAtk: Character,
+    safeDef: Character,
+    safeState: BattleState,
+): number {
+    // 0 成本招式（御物召唤等）天然免费：引擎跳过整段 AP 计算，不校验也不打折
+    if (action.apCost <= 0) return action.apCost
+    let cost = action.apCost
+    forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
+        if (!def?.onActionCost) return
+        cost = Math.max(
+            1,
+            cost +
+                def.onActionCost({
+                    final: 0,
+                    raw: 0,
+                    attacker: safeAtk,
+                    target: safeDef,
+                    state: safeState,
+                    layer,
+                    source: action,
+                }),
+        )
+    })
+    return safeAtk.actionApCost(cost, safeState)
 }

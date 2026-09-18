@@ -280,7 +280,9 @@ export const BUFF_DB: BuffDef[] = [
         onActionCost: ({ source }) => {
             const act = source as ActionDefinition
             if (!act || !act.tags.includes('unarmed')) return 0
-            return -0.2
+            // 文案是「消耗-20%」→ 按招式 AP 取比例（与漫天花雨 -25%、明镜止水 -15% 同口径）。
+            // 原先是写死的 -0.2：2AP 招只省 10%、5AP 招只省 4%，与文案对不上。
+            return -act.apCost * 0.2
         },
     },
     // ── 练打秘诀 ──

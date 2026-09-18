@@ -45,7 +45,10 @@ interface UsableAction {
     def: ActionDefinition
     /** 显式出招优先级（1 起，越小越优先）；0 = 未设 */
     priority: number
-    /** 身法减免后的基础 AP 成本（不含 onActionCost 连招减免，引擎动态算） */
+    /**
+     * 身法/急速减免 + onActionCost 折扣后的 AP 成本（= `calcExpectedDamage().apCost`，与引擎实扣同口径）。
+     * 效率排序用它；真正的扣费/预算仍由 `actionCostAt` 按出手顺序重算（分心错手这类"第几招才算"的折扣只有那里知道）。
+     */
     baseApCost: number
     /** 缠劲成本（机会成本折算到 AP） */
     chanCostAp: number
