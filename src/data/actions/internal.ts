@@ -494,7 +494,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'ignore_parry' },
             { type: 'damage', scaling: { wisdom: 0.2 } },
-            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
+            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 1, chance: 1 },
         ],
     },
     {

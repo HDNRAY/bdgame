@@ -1,6 +1,7 @@
 import type { ActionDefinition } from '../../engine/entities/action'
 import { MAX_STAT_TRANSFER_LAYERS } from '../../engine/constants'
 import { forEachBuffOf } from '../../engine/combat/utils'
+import { round1 } from '../../engine/util/math'
 
 /**
  * 辅助招式（非战斗直接伤害，含 buff / 位移 / 缴械回复 / 净化等）。
@@ -61,7 +62,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'blood_qi_protection',
         name: '血炁护体',
-        description: '释放10%当前气血换取护体真气。',
+        description: '释放15%当前气血换取护体真气。',
         requiredTags: ['unarmed'],
         apCost: 0,
         tags: ['pre_action', 'buff', 'heal', 'defense', 'self_damage', 'low_hp'],
@@ -76,7 +77,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
             {
                 type: 'functional_damage',
                 fn: ({ self, state, engine }) => {
-                    const cost = Math.max(1, Math.round(self.hp * 0.1 * 10) / 10)
+                    const cost = Math.max(1, round1(self.hp * 0.15))
                     if (self.hp <= cost) return 0
                     // spendHp：卖血触发 onHpChange（血战到底联动），但不回缠
                     self.spendHp(cost, engine)
@@ -87,7 +88,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
                     if (layer) layer.restoreValue = totalRecovery
                     return 0
                 },
-                note: '消耗当前气血 10% 转为护体（血太少则无法发动）',
+                note: '消耗当前气血 15% 转为护体（血太少则无法发动）',
             },
         ],
     },
@@ -203,7 +204,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '如凤迴旋，瞬移至对手身后。',
         requiredTags: [],
         apCost: 1,
-        tags: ['move', 'pre_action'],
+        tags: ['move', 'pre_action', 'post_action'],
         target: 'self',
         effects: [{ type: 'dash', maxRange: 8, targetDist: 0, useAp: false }],
     },
@@ -301,7 +302,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         chanCost: 7,
-        tags: ['debuff', 'post_action', 'qi', 'range', 'chan'],
+        tags: ['debuff', 'post_action', 'qi', 'chan'],
         getRange: () => [0, 4] as [number, number],
         effects: [{ type: 'add_debuff', buffId: 'weakness', stacks: 3, chance: 1 }],
     },

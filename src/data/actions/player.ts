@@ -347,10 +347,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                     const dmgEff = act?.effects?.find((e) => e.type === 'damage')
                     let baseHit = 0
                     if (dmgEff?.type === 'damage') baseHit = (dmgEff.fixed ?? 0) + wis * (dmgEff.scaling?.wisdom ?? 0)
-                    // 固定基础 9 + 数量 × (原本单发 + 推演×0.1 附伤)
-                    return round1(count * (baseHit + wis * 0.01))
+                    return round1(count * (baseHit + wis / 3))
                 },
-                note: '按当前召唤物数量倾泻伤害（数量 × (单发 + wis * 0.01附伤)）',
+                note: '按当前召唤物数量倾泻伤害（数量 × (武器单发 + wis / 3)）',
             },
         ],
     },

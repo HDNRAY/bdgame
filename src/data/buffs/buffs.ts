@@ -542,11 +542,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'yun_yin',
         name: '云隐',
-        description: '剑气化云，身形隐没。每层闪避+5%。最多2层。',
+        description: '剑气化云，身形隐没。每层闪避+4%。最多2层。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 30000 },
+        expiry: { type: 'duration', ms: 15000 },
         stacking: { type: 'additive', max: 2 },
-        onDodgeChance: ({ layer }) => (layer.restoreValue ?? 0) * 0.05,
+        onDodgeChance: ({ layer }) => (layer.restoreValue ?? 0) * 0.04,
     },
     {
         id: 'herb_pouch',
@@ -1547,7 +1547,7 @@ export const BUFF_DB: BuffDef[] = [
         onTurnEnd: ({ layer }) => {
             if (Math.random() < 0.5) layer.restoreValue = Math.min(3, (layer.restoreValue ?? 0) + 1)
         },
-        onHitChance: ({ layer }) => layer.restoreValue * 0.03,
+        onHitChance: ({ layer }) => layer.restoreValue * 0.02,
         onCritChance: ({ layer }) => layer.restoreValue * 0.03,
     },
     {

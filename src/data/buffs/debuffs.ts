@@ -234,7 +234,7 @@ export const DEBUFF_DB: BuffDef[] = [
         description: '持续灼烧伤害。',
         tags: ['debuff'],
         expiry: { type: 'permanent' },
-        tickInterval: 3000,
+        tickInterval: 5000,
         // 层数 = 每跳最大气血百分比（value:1 = 1%）
         onTickDamage: ({ target, layer }) => Math.max(1, Math.round((target.maxHp * (layer?.restoreValue ?? 1)) / 100)),
     },

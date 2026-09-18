@@ -113,7 +113,6 @@ export const ARTIFACTS: Artifact[] = [
                 condition: { type: 'battle_start' },
                 effects: [
                     { type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 3 },
-                    // 过热：每跳最大气血 1%（permanent_burn 层数即百分比）
                     { type: 'add_buff', buffId: 'permanent_burn', stacks: 1 },
                 ],
             },
@@ -144,13 +143,13 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'doctor_chip',
         name: '战斗芯片·改',
-        description: '博士特制的战斗分析芯片，推演+4，回合开始时有概率叠加战斗数据。',
+        description: '博士特制的战斗分析芯片，推演+2，回合开始时有概率叠加战斗数据。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'stat_buff', attrs: { wisdom: 4 } }],
+        effects: [{ type: 'stat_buff', attrs: { wisdom: 2 } }],
         triggers: [
             {
                 condition: { type: 'on_equip' },
-                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 1 }],
+                effects: [{ type: 'add_buff', buffId: 'fumble_chance', stacks: 2 }],
             },
             { condition: { type: 'battle_start' }, effects: [{ type: 'add_buff', buffId: 'combat_chip' }] },
         ],
