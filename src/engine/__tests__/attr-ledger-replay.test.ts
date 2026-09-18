@@ -18,6 +18,12 @@ import type { CharacterBuild } from '../../game/entities/character-build'
  *  2. 战斗期属性 buff（内劲）被来源层重算抹掉、到期再扣一次（13 → 10 → 7）。
  *  3. 汲取扣掉的属性在对方重算时长回来（9 → 6 → 9）。
  */
+/**
+ * 中性探针来源：只挂一条不动属性的附着 buff（最大气血 +60），用来触发一次「来源层变动 → 重算」。
+ * 构造期贡献现在全部收敛到 `add_buff`，没有单独的 `max_hp_mod` 效果类型了。
+ */
+const NEUTRAL_PROBE = { type: 'add_buff' as const, buffId: 'marrow_pump_hp' }
+
 function makeChar(id: string, base = 10): Character {
     const build: CharacterBuild = {
         id,
@@ -68,7 +74,7 @@ describe('属性账按序回放', () => {
         expect(buffed).toBe(start + 3)
 
         // 战斗中撤掉一个来源（探云手偷奇物那条路径）：战斗层属性必须留着
-        a.addSource('probe', 'passive', [{ type: 'max_hp_mod', value: 0 }])
+        a.addSource('probe', 'passive', [NEUTRAL_PROBE])
         a.removeSource('probe', engine.state)
         expect(a.attrs.get('strength')).toBe(buffed)
 
@@ -89,7 +95,7 @@ describe('属性账按序回放', () => {
         expect(a.attrs.get('strength')).toBe(before + 3)
 
         // 被汲取方触发一次重算（来源层变动）：掉掉的属性不能长回来
-        b.addSource('probe', 'passive', [{ type: 'max_hp_mod', value: 0 }])
+        b.addSource('probe', 'passive', [NEUTRAL_PROBE])
         b.removeSource('probe', engine.state)
         expect(b.attrs.get('strength')).toBe(before - 3)
 
@@ -136,13 +142,8 @@ describe('属性账按序回放', () => {
         try {
             const a = makeChar('A')
             // 玄机那类：50% 挡下推演降低
-            a.addSource('restrict', 'passive', [
-                {
-                    type: 'stat_restriction',
-                    check: (_c, attr, _cur, delta) =>
-                        attr === 'wisdom' && delta < 0 && Math.random() < 0.5 ? { skip: true } : null,
-                },
-            ])
+            // 菩提头环那类：50% 挡下推演降低（限制器回调存在 `pu_ti_tou_huan_guard` 上）
+            a.addSource('restrict', 'passive', [{ type: 'add_buff', buffId: 'pu_ti_tou_huan_guard' }])
             const engine = new BattleEngine(a, makeChar('B'), 4)
             engine.state.pendingBuffs.set('probe::A', { restoreValue: 1, mods: { wisdom: -1 } })
             a.rebuildDerived(engine.state)
@@ -173,7 +174,7 @@ describe('属性账按序回放', () => {
         const switched = a.attrs.getAll()
 
         // 任何一次后续重算都不许把换武回滚（旧实现账里仍是旧武器 → 重算后 weaponDef 变回赤手空拳）
-        a.addSource('probe', 'passive', [{ type: 'max_hp_mod', value: 0 }])
+        a.addSource('probe', 'passive', [NEUTRAL_PROBE])
         a.removeSource('probe', engine.state)
         expect(a.weaponDef?.id).toBe('yanling_blade')
         expect(a.attrs.getAll()).toEqual(switched)

@@ -1,14 +1,20 @@
 import type { BuffDef } from './types'
+import { rng } from '../../engine/util/rng'
+import { insightReductionHalfCheck } from '../utils/insightGuard'
 
 /**
  * 属性类 buff：`stat_buff` 效果类型删除后的唯一属性加成载体。
  *
- * 分三组：
+ * 分四组：
  *  1. 来源附着 buff：由来源顶层 `effects:[add_buff]` 挂上，`attrMods × stacks` 在构造期就折进
  *     来源层账。纯属性携带者（无钩子/时长/叠层等）**不建战斗层**，但会由 `getBuffsForDisplay`
  *     从账上补进战斗界面 buff 列表（属性来源另见 `attrBreakdown`）。
  *  2. 战斗期具名属性 buff：`_qiti_awaken` 的六维强化与凌波微步的闪避。
  *  3. 聚缠法衣吸收缠劲换来的临时属性（independent 每层独立计时）。
+ *  4. 构造期载体 buff：`attrMods` 之外的那几类构造期贡献（`maxHpMod` / `triggerSlotMod` /
+ *     `attrConvert` / `weaponTags` / `buffDurationFn` / `statRestriction`）。它们只在
+ *     `buildSourceLayer` 建来源层时被读一次，一般**不建战斗层**（`needsRuntimeLayer` 为假），
+ *     但同时承载来源 tooltip 的说明文字（`describeEffect` 走 `add_buff` 分支）。
  *
  * 只有「玩家不该在 buff 栏看到」的纯内部标记才保留 `hidden: true`（见 `iaijutsu_ready_buff`）。
  */
@@ -254,5 +260,170 @@ export const ATTACHED_BUFFS: BuffDef[] = [
         hidden: true,
         // 物化成战斗层时触发一次「居合准备」——等价于旧的 `battle_start → actionId: _iaijutsu_ready` 触发槽
         onActivate: (ctx) => ctx.engine?.fireTriggerAction(ctx.target, '_iaijutsu_ready'),
+    },
+    // ── 构造期载体 buff：最大气血 ──
+    {
+        id: 'marrow_pump_hp',
+        name: '骨髓泵',
+        description: '骨髓泵持续刺激造血，最大气血+60。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        maxHpMod: 60,
+    },
+    // ── 构造期载体 buff：AP 上限（顶层 effects 附着，物化时写进战斗层账） ──
+    {
+        id: 'power_furnace_ap',
+        name: '核炉蓄炁',
+        description: '核动力炉输出炁态能量，内息上限+1。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        // 内部标记：数值由战斗层账（applyMaxApMod）静默应用，不播报、不进 buff 列表
+        hidden: true,
+        maxApMod: 1,
+    },
+    {
+        id: 'fen_shen_qiu_ap',
+        name: '分身占炁',
+        description: '分身分摊内息，内息上限-1。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        hidden: true,
+        maxApMod: -1,
+    },
+    {
+        id: 'golden_light_ap',
+        name: '金光凝炁',
+        description: '金光护体，内息上限-1。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        hidden: true,
+        maxApMod: -1,
+    },
+    // ── 构造期载体 buff：触发槽 ──
+    {
+        id: 'wisdom_talisman_slot',
+        name: '开悟通明',
+        description: '开悟通明，额外承载一道触发。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        triggerSlotMod: 1,
+    },
+    {
+        id: 'sword_capture_slot',
+        name: '空手入白刃',
+        description: '空手入白刃，额外承载一道触发。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        triggerSlotMod: 1,
+    },
+    {
+        id: 'combat_instinct_slot',
+        name: '本能特训',
+        description: '每5点洞察额外承载一道触发。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        triggerSlotModFn: (char) => Math.floor(char.attrs.get('insight') / 5),
+    },
+    // ── 构造期载体 buff：属性转化 ──
+    {
+        id: 'yu_yang_shi_ba_shi_convert',
+        name: '渔阳十八势',
+        description: '身法×0.3 转化为感知。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        attrConvert: [{ from: 'agility', to: ['insight'], ratio: 0.3 }],
+    },
+    {
+        id: 'inner_power_convert',
+        name: '归元化劲',
+        description: '推演×0.1 转化为力道、根骨、身法、灵巧。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        attrConvert: [{ from: 'wisdom', to: ['strength', 'vitality', 'agility', 'dexterity'], ratio: 0.1 }],
+    },
+    {
+        id: 'xuannv_sword_convert',
+        name: '玄女剑法',
+        description: '灵巧×0.3 转化为力道（向下取整）。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        attrConvert: [{ from: 'dexterity', to: ['strength'], ratio: 0.3, mode: 'floor' }],
+    },
+    {
+        id: 'qian_chui_bai_lian_convert',
+        name: '百炼化力',
+        description: '根骨×0.25 转化为力道（向下取整）。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        attrConvert: [{ from: 'vitality', to: ['strength'], ratio: 0.25, mode: 'floor' }],
+    },
+    // ── 构造期载体 buff：武器标签 ──
+    {
+        id: 'dark_iron_sword_art_tag',
+        name: '玄剑秘册',
+        description: '以剑意施展手上功夫（武器视为空手）。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        weaponTags: ['unarmed'],
+    },
+    // ── 构造期载体 buff：增益时长倍率 ──
+    {
+        id: 'nei_xi_mian_chang_duration',
+        name: '炁蕴绵长',
+        description: '每点推演使自身增益时长+5%。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        buffDurationFn: (char) => 1 + char.attrs.get('wisdom') * 0.05,
+    },
+    // ── 构造期载体 buff：属性限制（注册后只拦后面的修正） ──
+    {
+        id: 'insight_guard',
+        name: '洞察护持',
+        description: '洞察被降低时效果减半。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        statRestriction: insightReductionHalfCheck(),
+    },
+    {
+        id: 'pu_ti_tou_huan_guard',
+        name: '菩提澄心',
+        description: '50%抵抗推演降低。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        statRestriction: (_char, attr, _cur, delta) =>
+            attr === 'wisdom' && delta < 0 && rng.chance(0.5) ? { skip: true } : null,
+    },
+    {
+        id: 'ru_shen_zuo_zhao_guard',
+        name: '神照圆满',
+        description: '神照圆满后，洞察减益不能动摇心神。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        statRestriction: (char, attr, _cur, delta, _src, state) => {
+            if (attr !== 'insight' || delta >= 0) return null
+            const layer = state?.pendingBuffs.get(`shen_zhao::${char.id}`)
+            if ((layer?.extra?.stage as number | undefined) === 3) return { skip: true }
+            return null
+        },
+    },
+    {
+        id: 'ling_bo_wei_bu_guard',
+        name: '身法护持',
+        description: '身法不低于16。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        statRestriction: (_char, attr, current, delta) =>
+            attr === 'agility' && delta < 0 && current + delta < 16 ? { delta: 16 - current } : null,
+    },
+    {
+        id: 'yuanting_yuezhi_guard',
+        name: '罡体护持',
+        description: '力道、身法、灵巧无法被降低。',
+        tags: [],
+        expiry: { type: 'permanent' },
+        statRestriction: (_char, attr, _cur, delta) => {
+            if ((attr === 'strength' || attr === 'agility' || attr === 'dexterity') && delta < 0) return { skip: true }
+            return null
+        },
     },
 ]

@@ -1,6 +1,4 @@
 import type { Artifact } from '../engine/entities/artifact'
-import { rng } from '../engine/util/rng'
-import { insightReductionHalf } from './utils/insightGuard'
 
 /** 所有可获取物品：义体（带副作用） + 奇物（特殊效果） */
 export const ARTIFACTS: Artifact[] = [
@@ -29,7 +27,11 @@ export const ARTIFACTS: Artifact[] = [
         name: '机械眼球',
         description: '精密光学义眼，洞察入微，洞察降低效果减半。',
         tags: ['implant', 'inherent', 'defense'],
-        effects: [{ type: 'add_buff', buffId: 'mechanical_eye_attr' }, insightReductionHalf(), { type: 'add_buff', buffId: 'ap_drain', stacks: 1 }],
+        effects: [
+            { type: 'add_buff', buffId: 'mechanical_eye_attr' },
+            { type: 'add_buff', buffId: 'insight_guard' },
+            { type: 'add_buff', buffId: 'ap_drain', stacks: 1 },
+        ],
     },
     {
         id: 'muscle_boost',
@@ -71,9 +73,12 @@ export const ARTIFACTS: Artifact[] = [
         name: '便携式核动力炉',
         description: '微型核聚变动力炉，输出炁态能量供炼炁士使用，加速炁的恢复。',
         tags: ['implant', 'inherent', 'buff'],
-        effects: [{ type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 3 }, { type: 'add_buff', buffId: 'permanent_burn', stacks: 1 }],
-        // 占内息上限：开局生效（原先的装备期槽在开局与 battle_start 完全等价）
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'max_ap_mod', value: 1 }] }],
+        // 占内息上限的载体排在最前：物化顺序与旧的 battle_start 槽同一时刻（先改上限，再挂其他状态）
+        effects: [
+            { type: 'add_buff', buffId: 'power_furnace_ap' },
+            { type: 'add_buff', buffId: 'nei_xi_peng_pai', stacks: 3 },
+            { type: 'add_buff', buffId: 'permanent_burn', stacks: 1 },
+        ],
     },
     {
         id: 'venom_gland',
@@ -87,7 +92,7 @@ export const ARTIFACTS: Artifact[] = [
         name: '髓泵',
         description: '植入脊椎的骨髓增强装置，持续刺激造血干细胞。最大气血+60，但装置耗能。',
         tags: ['implant', 'inherent'],
-        effects: [{ type: 'max_hp_mod', value: 60 }, { type: 'add_buff', buffId: 'ap_drain', stacks: 1 }],
+        effects: [{ type: 'add_buff', buffId: 'marrow_pump_hp' }, { type: 'add_buff', buffId: 'ap_drain', stacks: 1 }],
     },
     {
         id: 'cochlear_implant',
@@ -135,9 +140,11 @@ export const ARTIFACTS: Artifact[] = [
             maxCount: (self) => Math.max(1, Math.min(3, Math.ceil(self.attrs.get('vitality') / 5))),
             actionId: '_fen_shen_shot',
         },
-        effects: [{ type: 'add_buff', buffId: 'fen_shen_cost' }],
-        // 占内息上限：开局生效（原先的装备期槽在开局与 battle_start 完全等价）
-        triggers: [{ condition: { type: 'battle_start' }, effects: [{ type: 'max_ap_mod', value: -1 }] }],
+        // 占内息上限的载体排在最前：物化顺序与旧的 battle_start 槽同一时刻
+        effects: [
+            { type: 'add_buff', buffId: 'fen_shen_qiu_ap' },
+            { type: 'add_buff', buffId: 'fen_shen_cost' },
+        ],
     },
     {
         id: 'pu_ti_tou_huan',
@@ -146,13 +153,7 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['buff', 'defense'],
         effects: [
             { type: 'add_buff', buffId: 'pu_ti_tou_huan_attr' },
-            {
-                type: 'stat_restriction',
-                check: (_char, attr, _cur, delta) => {
-                    if (attr === 'wisdom' && delta < 0 && rng.chance(0.5)) return { skip: true }
-                    return null
-                },
-            },
+            { type: 'add_buff', buffId: 'pu_ti_tou_huan_guard' },
         ],
     },
     {
@@ -177,7 +178,7 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['buff'],
         effects: [
             { type: 'add_buff', buffId: 'wisdom_talisman_attr' },
-            { type: 'trigger_slot_mod', value: 1 },
+            { type: 'add_buff', buffId: 'wisdom_talisman_slot' },
         ],
     },
     {
@@ -541,7 +542,10 @@ export const ARTIFACTS: Artifact[] = [
         name: '战术护目镜',
         description: '天工出品的多功能战术护目镜，集成分析仪与辅助瞄准系统，洞察降低效果减半。',
         tags: ['craft', 'buff'],
-        effects: [{ type: 'add_buff', buffId: 'tactical_goggles_attr' }, insightReductionHalf()],
+        effects: [
+            { type: 'add_buff', buffId: 'tactical_goggles_attr' },
+            { type: 'add_buff', buffId: 'insight_guard' },
+        ],
     },
     {
         id: 'nano_exoskeleton',

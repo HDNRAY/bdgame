@@ -103,25 +103,35 @@ export function needsRuntimeLayer(def: BuffDef): boolean {
 }
 
 /**
- * 源顶层 `effects` 里**构造期认**的效果类型（其余写在这里就是死数据 —— 引擎不会执行）。
- * 数据审计测试拿它当白名单（历史上 floating_eye 的顶层 `add_buff` 就踩过这个坑）。
+ * 「只承载 AP 上限」的附着 buff：除 `maxApMod` 外没有任何运行时特征（`ap_drain` 那种带叠层的
+ * 不算——它有自己的战斗层与播报）。
+ *
+ * 为什么单独认这一类：旧实现把「占内息上限」写成 `battle_start → max_ap_mod` 槽，它在
+ * `materializeAttached` **之前**生效；现在它是顶层附着 buff，默认会在自己的来源位置才物化，
+ * 开局几条「获得状态」日志里的 `maxAp` 会晚一格。`Character.materializeApCarriers` 因此
+ * 在物化前先把这类载体应用掉，逐事件快照与改造前一致。
  */
-export const CONSTRUCTION_EFFECTS = new Set([
-    'add_buff',
-    'stat_restriction',
-    'attr_convert',
-    'max_hp_mod',
-    'trigger_slot_mod',
-    'weapon_tag',
-    'buff_duration_mult',
-])
+export function isApOnlyCarrier(def: BuffDef): boolean {
+    if (!def.maxApMod) return false
+    if (def.needsLayer) return false
+    if (def.expiry && def.expiry.type !== 'permanent') return false
+    if (def.tickInterval || def.apRegenPerSec || def.chanRegenPerSec) return false
+    if (def.stacking && def.stacking.type !== 'none') return false
+    if (Object.keys(def).some((k) => /^on[A-Z]/.test(k))) return false
+    return true
+}
 
 /**
  * 把来源声明的 effects 翻译成一条层账（构造期唯一入口）。
  *
  * 这就是「来源 buff 的 onInit」：只在来源建立时跑一次，**只写账、不碰角色字段**。
- * `char` 只在 `trigger_slot_mod.fn` 求值时用到 —— 与旧实现一致，求值发生在「轮到这条来源」的时刻。
- * 返回 null 表示这条来源没有任何构造期修正（不必占一层）。
+ * 源顶层 `effects` 只认 `add_buff`（其余类型写在顶层就是死数据 —— 引擎不会执行）；构造期的一切
+ * 贡献都从该 `BuffDef` 派生：`attrMods` / `maxHpMod` / `triggerSlotMod` / `attrConvert` /
+ * `weaponTags` / `buffDurationFn` / `statRestriction`。
+ *
+ * `char` 只在附着 buff 的动态钩子（`triggerSlotModFn` / `buffDurationFn`）求值时用到 ——
+ * 与旧实现一致，求值发生在「轮到这条来源」的时刻。
+ * 返回 null 表示这条来源没有任何附着 buff（不必占一层）。
  */
 export function buildSourceLayer(
     sourceId: string,
@@ -130,8 +140,8 @@ export function buildSourceLayer(
     char: Character,
     sourceTags?: string[],
 ): SourceLayer | null {
-    const list = (effects ?? []).filter((e) => CONSTRUCTION_EFFECTS.has(e.type))
-    if (list.length === 0) return null
+    const list = effects ?? []
+    if (!list.some((e) => e.type === 'add_buff')) return null
     const layer: SourceLayer = {
         id: sourceId,
         origin: 'source',
@@ -150,54 +160,49 @@ export function buildSourceLayer(
         attachedBuffs: [],
     }
     for (const eff of list) {
-        switch (eff.type) {
-            case 'add_buff': {
-                const def = getBuff(eff.buffId)
-                if (!def) {
-                    console.warn(`[source-layer] ${sourceId} 引用了不存在的 buff: ${eff.buffId}`)
-                    break
-                }
-                const stacks = eff.stacks ?? 1
-                // 记录全部（含纯属性携带者）：物化时再按 `needsRuntimeLayer` 决定是否建层，
-                // 没建层的由 `getBuffsForDisplay` 从这份记录补进展示列表
-                layer.attachedBuffs.push({ buffId: eff.buffId, stacks })
-                // 属性部分折进账（构造期就生效）；战斗层物化时只承载 hooks，不再二次应用
-                for (const [attr, val] of Object.entries(def.attrMods ?? {})) {
-                    const a = attr as AttrName
-                    const value = round1((val as number) * stacks)
-                    if (value === 0) continue
-                    layer.mods[a] = (layer.mods[a] ?? 0) + value
-                    layer.ops.push({ kind: 'mod', attr: a, value, fromBuff: eff.buffId })
-                }
-                break
+        if (eff.type !== 'add_buff') continue
+        const def = getBuff(eff.buffId)
+        if (!def) {
+            console.warn(`[source-layer] ${sourceId} 引用了不存在的 buff: ${eff.buffId}`)
+            continue
+        }
+        const stacks = eff.stacks ?? 1
+        // 记录全部（含纯属性携带者）：物化时再按 `needsRuntimeLayer` 决定是否建层，
+        // 没建层的由 `getBuffsForDisplay` 从这份记录补进展示列表
+        layer.attachedBuffs.push({ buffId: eff.buffId, stacks })
+        // 层内 ops 顺序固定为 mods → converts → restriction，与旧「按 effects 声明顺序逐条应用」等价：
+        // 数据里 7 个限制器要么排在同一来源的属性修正之后，要么本就排在最前（与转换/限制互不交叠）。
+        // 属性部分折进账（构造期就生效）；战斗层物化时只承载 hooks，不再二次应用
+        for (const [attr, val] of Object.entries(def.attrMods ?? {})) {
+            const a = attr as AttrName
+            const value = round1((val as number) * stacks)
+            if (value === 0) continue
+            layer.mods[a] = (layer.mods[a] ?? 0) + value
+            layer.ops.push({ kind: 'mod', attr: a, value, fromBuff: eff.buffId })
+        }
+        // 最大气血：与 attrMods 同口径折进来源层（`rebuildDerived` 汇总成 char.maxHpMod）
+        if (def.maxHpMod) layer.maxHpMod += def.maxHpMod * stacks
+        // 触发槽：静态值优先，动态钩子在此刻求值一次（与旧 `trigger_slot_mod.fn(char)` 同一时刻）
+        layer.triggerSlotMod += def.triggerSlotMod ?? def.triggerSlotModFn?.(char) ?? 0
+        // 属性转化：按声明顺序 push（保序回放；重算时读「已应用到此」的属性值）
+        for (const cv of def.attrConvert ?? []) {
+            const convert: SourceConvert = {
+                from: cv.from,
+                to: cv.to,
+                ratio: cv.ratio,
+                mode: cv.mode === 'floor' ? 'floor' : 'round',
             }
-            case 'stat_restriction':
-                layer.restrictions.push(eff.check)
-                layer.ops.push({ kind: 'restriction', check: eff.check })
-                break
-            case 'attr_convert': {
-                const cv: SourceConvert = {
-                    from: eff.from,
-                    to: eff.to,
-                    ratio: eff.ratio,
-                    mode: eff.mode === 'floor' ? 'floor' : 'round',
-                }
-                layer.converts.push(cv)
-                layer.ops.push({ kind: 'convert', ...cv })
-                break
-            }
-            case 'max_hp_mod':
-                layer.maxHpMod += eff.value
-                break
-            case 'trigger_slot_mod':
-                layer.triggerSlotMod += eff.fn ? eff.fn(char) : (eff.value ?? 0)
-                break
-            case 'weapon_tag':
-                layer.weaponTags.push(eff.tag)
-                break
-            case 'buff_duration_mult':
-                if (eff.eval) layer.durationMults.push(eff.eval)
-                break
+            layer.converts.push(convert)
+            layer.ops.push({ kind: 'convert', ...convert })
+        }
+        for (const t of def.weaponTags ?? []) layer.weaponTags.push(t)
+        if (def.buffDurationFn) {
+            const fn = def.buffDurationFn
+            layer.durationMults.push((c) => fn(c))
+        }
+        if (def.statRestriction) {
+            layer.restrictions.push(def.statRestriction)
+            layer.ops.push({ kind: 'restriction', check: def.statRestriction })
         }
     }
     return layer

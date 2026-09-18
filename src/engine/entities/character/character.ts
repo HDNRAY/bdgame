@@ -29,6 +29,7 @@ import { buildActionCache } from './action-cache'
 import { buildConfigTriggers } from './trigger-slots'
 import {
     buildSourceLayer,
+    isApOnlyCarrier,
     needsRuntimeLayer,
     type SourceKind,
     type SourceLayer,
@@ -282,10 +283,32 @@ export class Character {
     }
 
     /**
+     * 先物化「只承载 AP 上限」的附着 buff（`isApOnlyCarrier`，hidden 的内部载体）。
+     *
+     * 这类载体等价于旧的 `battle_start → max_ap_mod` 槽：必须在任何「获得状态」日志**之前**生效，
+     * 否则开局几条日志快照里的 `maxAp` 会晚一格（回放逐帧对不上）。`engine.init` 对双方各调一次，
+     * 分别早于各自的 `materializeAttached`。
+     */
+    materializeApCarriers(engine: BattleEngine): void {
+        for (const layer of this.sourceLayers) {
+            for (const { buffId, stacks } of layer.attachedBuffs) {
+                const def = getBuff(buffId)
+                if (!def || !isApOnlyCarrier(def)) continue
+                const prefix = `${buffId}::${this.id}`
+                const owned = engine.state.pendingBuffs.keysOfOrigin(layer.sourceId)
+                if (owned.some((k) => k === prefix || k.startsWith(`${prefix}::`))) continue
+                materializeAttachedBuff(engine, this, def, stacks, layer.sourceId)
+            }
+        }
+    }
+
+    /**
      * 把各来源**自带的 buff**（顶层 `effects:[add_buff]`）物化成战斗层：开局、换装、被偷到手时调用。
      *
      * 附着表记的是**全部**附着 buff（含纯属性携带者，供 buff 列表展示），这里**按需物化**：
      * 只对 `needsRuntimeLayer(def)` 为真的建层，其余跳过（属性已在来源层账上，建出来只是空壳）。
+     * 「只承载 AP 上限」的载体（`isApOnlyCarrier`）**只在开局**由 `materializeApCarriers` 应用：
+     * 它等价于旧的 `battle_start → max_ap_mod` 槽，换装/被偷到手时那个槽本来就不会触发。
      *
      * 层上打 `originId = sourceId`、标 `attrsInLedger`（属性已折进来源层账，不再二次应用），
      * 只承载 hooks；撤源时按 originId 整批删。
@@ -303,6 +326,8 @@ export class Character {
                 if (!def) continue
                 // 纯属性携带者不建层（记录在案，展示由 getBuffsForDisplay 从账上补）
                 if (!needsRuntimeLayer(def)) continue
+                // AP 上限载体只在开局生效（见上：与旧 battle_start 槽同口径）
+                if (isApOnlyCarrier(def)) continue
                 const owned = engine.state.pendingBuffs.keysOfOrigin(layer.sourceId)
                 const prefix = `${buffId}::${this.id}`
                 if (owned.some((k) => k === prefix || k.startsWith(`${prefix}::`))) continue

@@ -322,12 +322,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         self.gainAp(e.value)
         engine.emitLog({ type: 'system', message: BattleLog.msg('回炁', self.name, `AP+${e.value}`), actorId: self.id })
     },
-    max_ap_mod({ eff, self }: EffectCtx) {
-        // 御物武器占用 AP 上限（开局 battle_start 槽）：maxApMod 直接累加，改上限后夹住当前 AP
-        const e = eff as Extract<EffectDef, { type: 'max_ap_mod' }>
-        self.maxApMod += e.value
-        self.capAp()
-    },
     stat_transfer({ eff, self, enemy, engine, tMs }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'stat_transfer' }>
         const attr = e.stat as AttrName
@@ -483,6 +477,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         })
         // 幂等（none 已存在）/ 已达上限 / 资源不足 → 静默
         if (r.noop) return
+
+        // 纯内部标记（hidden）：只建层承载行为，不播报、不广播 on_buff —— 与附着 buff 物化
+        // （materializeAttachedBuff）同一口径。`getBuffs` / `getBuffsForDisplay` 本来就跳过 hidden 层。
+        if (buff.hidden) return
 
         // 日志
         const label = buff.name ?? e.buffId
@@ -752,7 +750,9 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         if (idx !== -1) enemy.artifactDefs.splice(idx, 1)
         // 撤销奇物给对手带来的构造期修正（属性/上限/触发槽/武器 tag —— 来源层账）
         enemy.removeSource(`artifact:${target.id}`, engine.state)
-        // 撤销奇物触发挂上的 buff（触发槽里 add_buff 的奇物，如静心符的 on_stance 层）
+        // 撤销奇物触发挂上的 buff（触发槽里 add_buff 的奇物，如静心符的 on_stance 层、
+        // 分身球的 AP 上限载体）：删除这些层时 maxApMod 等由层账自动回退（dropBuffLayer），
+        // 不需要再写「直接改角色字段」的反函数。
         const grantedBuffs = new Set<string>()
         for (const t of target.triggers ?? []) {
             for (const e of t.effects ?? []) {
@@ -765,16 +765,6 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 if (grantedBuffs.has(buffId)) keys.push(key)
             })
             for (const k of keys) removeBuffLayer(engine, k)
-        }
-        // 撤销奇物触发里「直接改角色字段」的效果（目前只有 max_ap_mod：分身球占内息上限）
-        // 这类效果还没走层账，属于本轮的已知遗留；将来把它也做成层就不需要这段反函数。
-        for (const t of target.triggers ?? []) {
-            for (const e of t.effects ?? []) {
-                if (e.type === 'max_ap_mod') {
-                    enemy.maxApMod -= e.value
-                    enemy.capAp()
-                }
-            }
         }
         // 移除对手的奇物 triggers
         for (const t of target.triggers ?? []) {

@@ -4,6 +4,8 @@ import type { Character } from '../../engine/entities/character'
 import type { BattleEngine } from '../../engine/combat/engine'
 import type { BattleState, BuffLayer } from '../../engine/combat/types'
 import type { TriggerEvent } from '../../engine/entities/trigger'
+import type { Tag } from '../../engine/entities/tag'
+import type { StatRestrictionCheck } from '../../engine/entities/character/source-layer'
 
 /** 运行时招式的最小接口（供 onRuntimeAction 使用） */
 export interface RuntimeAction {
@@ -71,6 +73,42 @@ export interface BuffDef extends GameEntity {
      */
     attrMods?: Record<string, number>
     /**
+     * 每层最大气血修正。
+     *
+     * 由**来源顶层 `effects:[add_buff]`** 挂上的附着 buff，其 `maxHpMod × stacks` 在构造期折进
+     * `SourceLayer.maxHpMod`（`Character.rebuildDerived` 汇总成 `char.maxHpMod`）—— 与 `attrMods` 同口径。
+     */
+    maxHpMod?: number
+    /**
+     * 构造期额外触发槽（附着 buff 专用）。
+     *
+     * 与 `triggerSlotModFn` 二选一：静态值优先（`triggerSlotMod ?? triggerSlotModFn(char)`），
+     * 在建来源层那一刻求值一次，折进 `SourceLayer.triggerSlotMod`。
+     */
+    triggerSlotMod?: number
+    /** 构造期触发槽的**动态**版本（每 N 点洞察 +1 之类）；求值时机与旧的 `trigger_slot_mod.fn(char)` 相同 */
+    triggerSlotModFn?: (char: Character) => number
+    /**
+     * 构造期属性转化（按声明顺序回放）：`from × ratio` 加到 `to` 上，与旧的 `attr_convert` 同语义。
+     *
+     * 折成 `SourceLayer` 的 `convert` op，位置 = 该附着 buff 在 effects 里的位置（保序，限制器只拦后面的）。
+     */
+    attrConvert?: { from: AttrName; to: AttrName[]; ratio: number; mode?: 'round' | 'floor' }[]
+    /** 构造期给主手武器补的标签（如玄剑秘册的 `unarmed`） */
+    weaponTags?: Tag[]
+    /**
+     * 构造期增益时长倍率（炁蕴绵长：每点推演 +5%）。
+     *
+     * 折进 `SourceLayer.durationMults`，调用时机与旧的 `buff_duration_mult.eval(char)` 相同（乘算）。
+     */
+    buffDurationFn?: (char: Character) => number
+    /**
+     * 构造期属性限制回调（迷眼减半 / 属性下限等），折成 `SourceLayer` 的 `restriction` op。
+     *
+     * 与旧的 `stat_restriction` 同一套语义：**注册后**才拦后续 mod，回调在回放到该位置时被调用。
+     */
+    statRestriction?: StatRestrictionCheck
+    /**
      * 不进战斗界面 buff 列表（纯内部标记用，如 `iaijutsu_ready_buff`）。
      *
      * 只管**展示口径**，与「是否建运行时层」无关（建层判据见 `needsLayer` 与
@@ -93,7 +131,9 @@ export interface BuffDef extends GameEntity {
      * （原来是 `battle_start → actionId` 的触发槽）。
      */
     onActivate?: (ctx: BuffHookCtx) => void
-    /** 每层最大 AP 修正 */
+    /** 每层最大 AP 修正（由 `applyMaxApMod` 写进战斗层账，删层时 `dropBuffLayer` 精确回退）。
+     *  顶层 `effects:[add_buff]` 上的此类载体（`isApOnlyCarrier`）在开局物化，等价于旧的
+     *  `battle_start → max_ap_mod` 槽。 */
     maxApMod?: number
     /** DOT/tick 间隔（ms） */
     tickInterval?: number

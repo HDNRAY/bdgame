@@ -6,15 +6,15 @@ import { WEAPON_DB } from '../weapons/weapons'
 import { STARTING_WEAPONS } from '../weapons/starting-weapons'
 import { allMainActions } from '../actions'
 import { getBuff } from '../buffs'
-import { CONSTRUCTION_EFFECTS } from '../../engine/entities/character/source-layer'
 import type { EffectDef } from '../../engine/entities/action'
 
 /**
  * 数据审计：源（功法/天赋/奇物/武器）顶层 `effects` 只能写**构造期认**的效果类型。
  *
- * 为什么值得钉：顶层 `effects` 走的是 `buildSourceLayer`，只有 `CONSTRUCTION_EFFECTS` 里的类型会被执行；
- * 想挂自带 buff 必须写 `add_buff`（它的 attrMods 会折进来源层账、开局物化成战斗层）。
- * 历史上玄机的顶层 `effects:[add_buff]` 就是死数据（不生效、也没人报错），靠肉眼很难发现。
+ * 为什么值得钉：顶层 `effects` 走的是 `buildSourceLayer`，它**只认 `add_buff`**（构造期贡献从
+ * BuffDef 派生：attrMods / maxHpMod / triggerSlotMod / attrConvert / weaponTags / buffDurationFn /
+ * statRestriction）；其他类型写在顶层就是死数据（不生效、也没人报错），靠肉眼很难发现。
+ * 历史上玄机的顶层 `effects:[add_buff]` 就踩过这个坑。
  */
 interface SourceLike {
     id: string
@@ -30,12 +30,12 @@ const SOURCES: { kind: string; list: SourceLike[] }[] = [
 ]
 
 describe('数据审计：源顶层 effects / buffId', () => {
-    it('顶层 effects 里没有构造期不认的效果（死数据）', () => {
+    it('顶层 effects 只允许 add_buff（其余类型都是死数据）', () => {
         const dead: string[] = []
         for (const { kind, list } of SOURCES) {
             for (const s of list) {
                 for (const e of s.effects ?? []) {
-                    if (!CONSTRUCTION_EFFECTS.has(e.type)) dead.push(`${kind}:${s.id} → ${e.type}`)
+                    if (e.type !== 'add_buff') dead.push(`${kind}:${s.id} → ${e.type}`)
                 }
             }
         }

@@ -48,15 +48,12 @@ export type EffectDef =
     | { type: 'stat_multiply'; stat: string; multiplier: number }
     | { type: 'restore_ap'; value: number }
     | { type: 'stat_transfer'; stat: string; value: number; duration: number }
-    // 义体效果
-    | { type: 'max_ap_mod'; value: number }
-    | { type: 'max_hp_mod'; value: number }
-    // 功法/奇物效果
-    | { type: 'trigger_slot_mod'; value?: number; fn?: (char: Character) => number }
-    | { type: 'buff_duration_mult'; eval?: (char: Character) => number }
     /**
-     * 挂一个 buff。作为**源的顶层效果**时 = 这条来源自带的 buff：`attrMods` 折进来源层账
-     * （构造期生效），开局/换装/被偷到手时物化成战斗层承载 hooks。
+     * 挂一个 buff。作为**源的顶层效果**时 = 这条来源自带的 buff：`attrMods` / `maxHpMod` /
+     * `triggerSlotMod` / `attrConvert` / `weaponTags` / `buffDurationFn` / `statRestriction` 等构造期
+     * 贡献折进来源层账（构造期生效），开局/换装/被偷到手时物化成战斗层承载 hooks。
+     *
+     * 源顶层 `effects` 只认这一种类型（`buildSourceLayer`）。
      */
     | { type: 'add_buff'; buffId: string; stacks?: number }
     | { type: 'remove_buff'; buffId: string; stacks?: number }
@@ -69,20 +66,7 @@ export type EffectDef =
     | { type: 'step_back'; distance?: number }
     | { type: 'disarm'; chance?: number }
     | { type: 'self_disarm'; dropAt?: 'ground' | 'opponent' }
-    | { type: 'attr_convert'; from: AttrName; to: AttrName[]; ratio: number; mode?: 'round' | 'floor' }
     | { type: 'steal_artifact' }
-    | { type: 'weapon_tag'; tag: Tag }
-    | {
-          type: 'stat_restriction'
-          check: (
-              char: Character,
-              attr: string,
-              current: number,
-              delta: number,
-              sourceTags?: string[],
-              state?: BattleState,
-          ) => { skip?: boolean; delta?: number } | null
-      }
     | { type: 'functional_damage'; fn: (ctx: FunctionalEffectCtx) => number; piercing?: number; note?: string }
     | { type: 'functional_heal'; fn: (ctx: FunctionalEffectCtx) => number; note?: string }
 

@@ -1,7 +1,6 @@
 import type { Passive } from '../../engine/entities/passive'
 import { getWeapon } from '../weapons/weapons'
 import { Tag } from '../../engine/entities/tag'
-import { insightReductionHalf } from '../utils/insightGuard'
 
 export const PASSIVES: Passive[] = [
     {
@@ -181,7 +180,7 @@ export const PASSIVES: Passive[] = [
         name: '炁蕴绵长',
         description: '内息悠长，增益久驻。每点推演使自身 buff 时长+5%。',
         tags: ['defense'],
-        effects: [{ type: 'buff_duration_mult', eval: (char) => 1 + char.attrs.get('wisdom') * 0.05 }],
+        effects: [{ type: 'add_buff', buffId: 'nei_xi_mian_chang_duration' }],
     },
     {
         id: 'overlord_art',
@@ -200,7 +199,7 @@ export const PASSIVES: Passive[] = [
         name: '渔阳十八势',
         description: '利用灵活的身法，寻找并感知对方。身法转化感知。',
         tags: ['buff', 'defense'],
-        effects: [{ type: 'attr_convert', from: 'agility', to: ['insight'], ratio: 0.3 }],
+        effects: [{ type: 'add_buff', buffId: 'yu_yang_shi_ba_shi_convert' }],
     },
     {
         id: 'yi_dian_po_xiao',
@@ -215,7 +214,7 @@ export const PASSIVES: Passive[] = [
         description: '内力深厚。每点推演提升力道，根骨，身法，灵巧。',
         tags: ['buff'],
         effects: [
-            { type: 'attr_convert', from: 'wisdom', to: ['strength', 'vitality', 'agility', 'dexterity'], ratio: 0.1 },
+            { type: 'add_buff', buffId: 'inner_power_convert' },
             { type: 'add_buff', buffId: 'inner_power_cost' },
         ],
     },
@@ -274,7 +273,10 @@ export const PASSIVES: Passive[] = [
         name: '周氏秘法',
         description: '周氏秘法，雷电锻体，免疫麻痹并减免雷系伤害。',
         tags: ['buff', 'electric', 'inherent', 'defense'],
-        effects: [{ type: 'add_buff', buffId: 'paralyze_immunity' }, { type: 'add_buff', buffId: 'thunder_constitution' }],
+        effects: [
+            { type: 'add_buff', buffId: 'paralyze_immunity' },
+            { type: 'add_buff', buffId: 'thunder_constitution' },
+        ],
     },
     {
         id: 'hui_lei_qian',
@@ -390,7 +392,10 @@ export const PASSIVES: Passive[] = [
         name: '暗室抓雀功',
         description: '古墓中蒙眼抓雀练就的身法与感知。身法+2，灵巧+2，洞察降低效果减半。',
         tags: ['defense'],
-        effects: [{ type: 'add_buff', buffId: 'dark_room_catch_attr' }, insightReductionHalf()],
+        effects: [
+            { type: 'add_buff', buffId: 'dark_room_catch_attr' },
+            { type: 'add_buff', buffId: 'insight_guard' },
+        ],
     },
     {
         id: 'yue_nv_sword',
@@ -434,7 +439,10 @@ export const PASSIVES: Passive[] = [
         description:
             '玄门流落在外的秘籍，虽无玄门血脉，亦可以炁御物。无法精巧御物，但可减少重器的身法负担，并以剑意施展手上功夫。',
         tags: ['buff', 'heavy', 'heavy_reduce'],
-        effects: [{ type: 'weapon_tag', tag: 'unarmed' }, { type: 'add_buff', buffId: 'heavy_training' }],
+        effects: [
+            { type: 'add_buff', buffId: 'dark_iron_sword_art_tag' },
+            { type: 'add_buff', buffId: 'heavy_training' },
+        ],
     },
     {
         id: 'tide_inner_power',
@@ -448,14 +456,17 @@ export const PASSIVES: Passive[] = [
         name: '神行百变',
         description: '铁剑门绝学，身法灵动百变，极难捉摸。',
         tags: ['defense'],
-        effects: [{ type: 'add_buff', buffId: 'min_move_cost' }, { type: 'add_buff', buffId: 'shenxing_baibian_buff' }],
+        effects: [
+            { type: 'add_buff', buffId: 'min_move_cost' },
+            { type: 'add_buff', buffId: 'shenxing_baibian_buff' },
+        ],
     },
     {
         id: 'xuannv_sword',
         name: '玄女剑法',
         description: '独臂神尼所创上乘剑法，以巧借力、以奇制胜，灵巧化为力道。',
         tags: ['buff'],
-        effects: [{ type: 'attr_convert', from: 'dexterity', to: ['strength'], ratio: 0.3, mode: 'floor' }],
+        effects: [{ type: 'add_buff', buffId: 'xuannv_sword_convert' }],
     },
     {
         id: 'zhu_huo_jue',
@@ -548,14 +559,10 @@ export const PASSIVES: Passive[] = [
         name: '金光咒',
         description: '金光护体，AP上限-1。',
         tags: ['buff', 'defense', 'qi'],
-        effects: [{ type: 'add_buff', buffId: 'golden_light' }],
-        triggers: [
-            {
-                condition: { type: 'battle_start' },
-                effects: [
-                    { type: 'max_ap_mod', value: -1 },
-                ],
-            },
+        // 占内息上限的载体排在最前：物化顺序与旧的 battle_start 槽同一时刻
+        effects: [
+            { type: 'add_buff', buffId: 'golden_light_ap' },
+            { type: 'add_buff', buffId: 'golden_light' },
         ],
     },
     {
@@ -612,6 +619,7 @@ export const PASSIVES: Passive[] = [
         // 太上御法（玄门祖传）：召唤物命中时微量回血
         id: 'tai_shang_yu_fa',
         name: '太上御法',
+        requiredTags: ['imperial'],
         description: '玄门祖传御法。御物命中时，回炁养身，回复1点气血。',
         tags: ['qi', 'heal'],
         triggers: [{ condition: { type: 'on_summon_hit' }, actionId: '_tai_shang_heal' }],
@@ -724,7 +732,10 @@ export const PASSIVES: Passive[] = [
         name: '无刀取',
         description: '空手入白刃。获得1个额外触发槽，空手可招架，招架成功后有概率缴械对手。',
         tags: ['buff', 'defense', 'debuff'],
-        effects: [{ type: 'trigger_slot_mod', value: 1 }, { type: 'add_buff', buffId: 'sword_capture' }],
+        effects: [
+            { type: 'add_buff', buffId: 'sword_capture_slot' },
+            { type: 'add_buff', buffId: 'sword_capture' },
+        ],
     },
     {
         id: 'ru_yi_jin',
@@ -798,7 +809,7 @@ export const PASSIVES: Passive[] = [
         name: '本能特训',
         description: '经过特训，将战斗本能化为直觉反应。每5点洞察增加1触发槽。',
         tags: ['buff'],
-        effects: [{ type: 'trigger_slot_mod', fn: (char) => Math.floor(char.attrs.get('insight') / 5) }],
+        effects: [{ type: 'add_buff', buffId: 'combat_instinct_slot' }],
     },
     {
         id: 'insight_awareness',
@@ -848,9 +859,7 @@ export const PASSIVES: Passive[] = [
         description: '逆转经脉运行，概率抵抗麻痹，降低被暴击伤害，被暴击时反击。',
         tags: ['defense', 'counter'],
         effects: [{ type: 'add_buff', buffId: 'ni_zhuan_jing_mai' }],
-        triggers: [
-            { condition: { type: 'on_was_crit' }, actionId: '_generic_counter' },
-        ],
+        triggers: [{ condition: { type: 'on_was_crit' }, actionId: '_generic_counter' }],
     },
     {
         id: 'ling_ao_bu',
@@ -888,7 +897,10 @@ export const PASSIVES: Passive[] = [
         description: '千锤百炼，水火不侵。所受灼烧伤害-30%；以根骨化力道（根骨每4点力道+1）。',
         tags: ['buff', 'defense', 'inherent'],
         // 根骨化力道：构造期一次性转化（attr_convert 快照，floor 与「每4点+1」同源）
-        effects: [{ type: 'attr_convert', from: 'vitality', to: ['strength'], ratio: 0.25, mode: 'floor' }, { type: 'add_buff', buffId: 'qian_chui_bai_lian_buff' }],
+        effects: [
+            { type: 'add_buff', buffId: 'qian_chui_bai_lian_convert' },
+            { type: 'add_buff', buffId: 'qian_chui_bai_lian_buff' },
+        ],
     },
     // ── 无明之明 ──
     {
@@ -904,15 +916,7 @@ export const PASSIVES: Passive[] = [
         description: '神意澄明。累计消耗AP，分四档提升洞察；神照圆满后，洞察减益不能动摇心神。',
         tags: ['buff', 'defense'],
         effects: [
-            {
-                type: 'stat_restriction',
-                check: (char, attr, _cur, delta, _src, state) => {
-                    if (attr !== 'insight' || delta >= 0) return null
-                    const layer = state?.pendingBuffs.get(`shen_zhao::${char.id}`)
-                    if ((layer?.extra?.stage as number | undefined) === 3) return { skip: true }
-                    return null
-                },
-            },
+            { type: 'add_buff', buffId: 'ru_shen_zuo_zhao_guard' },
             { type: 'add_buff', buffId: 'shen_zhao' },
         ],
     },

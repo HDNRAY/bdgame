@@ -10,11 +10,7 @@ export const TALENTS: Talent[] = [
         requireAttrsMin: { agility: 20 },
         effects: [
             // 身法不低于 16：战中被减身法时兜住（与「洞察降低减半」同一套 stat_restriction 机制）
-            {
-                type: 'stat_restriction',
-                check: (_char, attr, current, delta) =>
-                    attr === 'agility' && delta < 0 && current + delta < 16 ? { delta: 16 - current } : null,
-            },
+            { type: 'add_buff', buffId: 'ling_bo_wei_bu_guard' },
             { type: 'add_buff', buffId: 'min_move_cost' },
             { type: 'add_buff', buffId: 'ling_bo_wei_bu_buff' },
         ],
@@ -75,14 +71,7 @@ export const TALENTS: Talent[] = [
         tags: ['talent', 'buff', 'defense'],
         requireAttrsMin: { strength: 20 },
         effects: [
-            {
-                type: 'stat_restriction',
-                check: (_char, attr, _cur, delta) => {
-                    if ((attr === 'strength' || attr === 'agility' || attr === 'dexterity') && delta < 0)
-                        return { skip: true }
-                    return null
-                },
-            },
+            { type: 'add_buff', buffId: 'yuanting_yuezhi_guard' },
             { type: 'add_buff', buffId: 'yuanting_yuezhi' },
         ],
     },

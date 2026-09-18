@@ -119,7 +119,8 @@ export function dropBuffLayer(state: BattleState, key: string): void {
     const layer = state.pendingBuffs.get(key)
     if (!layer) return
     const owner = state.characters.find((c) => c.id === key.split('::')[1])
-    // maxApMod 还没进账（来源层 op 与战斗层各自维护，见 Character.maxApMod），单独退
+    // maxApMod 不在六属性里、`rebuildDerived` 也不回放它（`applyMaxApMod` 直接记在角色字段上），
+    // 所以删层时必须在这里单独退——附着 buff 的 AP 上限载体（占内息上限）也走这条账。
     if (owner && typeof layer.mods?.maxApMod === 'number') owner.maxApMod -= layer.mods.maxApMod
     const hpBefore = owner?.hp ?? 0
     const maxHpBefore = owner?.maxHp ?? 0

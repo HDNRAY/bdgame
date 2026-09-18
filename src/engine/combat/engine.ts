@@ -91,6 +91,9 @@ export class BattleEngine {
         this.emit('battle_start', o, p)
         // 源自带 buff（顶层 effects:[add_buff]）物化成战斗层：属性已在构造期折进来源层账，
         // 这里建层只承载 hooks（含 onActivate）。
+        // 先应用「只承载 AP 上限」的载体（等价于旧的 battle_start → max_ap_mod 槽的时机），
+        // 双方都应用完再物化其余层 —— 保证开局日志快照里的 maxAp 与改造前逐帧一致。
+        for (const ch of [p, o]) ch.materializeApCarriers(this)
         for (const ch of [p, o]) ch.materializeAttached(this)
         // 广播武器变更事件（让被动如行云流水切换架势）
         this.emit('on_weapon_change', p, o)

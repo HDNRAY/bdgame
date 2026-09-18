@@ -48,10 +48,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`${eff.stat} ×${eff.multiplier}`]
         case 'restore_ap':
             return [`回复 AP: ${eff.value}`]
-        case 'max_ap_mod':
-            return [`最大AP ${eff.value > 0 ? '+' : ''}${eff.value}`]
-        case 'max_hp_mod':
-            return [`最大HP ${eff.value > 0 ? '+' : ''}${eff.value}`]
         case 'missing_hp_damage':
             return [`造成目标已损失HP×${eff.ratio} 的伤害`]
         case 'self_missing_hp_damage':
@@ -64,8 +60,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`消耗当前气血${(eff.ratio * 100).toFixed(0)}%`]
         case 'cleanse':
             return eff.buffIds && eff.buffIds.length > 0 ? [`净化: ${eff.buffIds.join(', ')}`] : ['净化所有负面状态']
-        case 'buff_duration_mult':
-            return ['增益时长: 随推演提升']
         case 'knockback':
             return [`击退: ${eff.distance}格`]
         case 'dash': {
@@ -83,8 +77,6 @@ export function describeEffect(eff: EffectDef): string[] {
             return ['卸除武器']
         case 'ignore_parry':
             return ['无视招架']
-        case 'trigger_slot_mod':
-            return [`触发槽 ${eff.value && eff.value > 0 ? '+' : ''}${eff.value ?? '?'}`]
         case 'add_buff': {
             const buff = getBuff(eff.buffId)
             const name = buff?.name ?? eff.buffId
@@ -117,21 +109,12 @@ export function describeEffect(eff: EffectDef): string[] {
             return [`属性转移: ${eff.stat} → +${eff.value}`]
         case 'ciyuan_init':
             return ['次元初始化']
-        case 'attr_convert': {
-            const src = ATTR_CN[eff.from] ?? eff.from
-            const names = eff.to.map((a) => ATTR_CN[a] ?? a).join('、')
-            return [`属性转化: ${src}×${eff.ratio} → ${names}`]
-        }
         case 'functional_damage':
             return eff.note ? [eff.note] : ['函数伤害: 视条件而定']
         case 'functional_heal':
             return eff.note ? [eff.note] : ['函数回复: 视条件而定']
         case 'self_disarm':
             return [eff.dropAt === 'opponent' ? '自卸武器（兵器飞向对手）' : '自卸武器']
-        case 'weapon_tag':
-            return [`武器标签: ${eff.tag}`]
-        case 'stat_restriction':
-            return ['属性限制']
         default:
             return [`[未知效果: ${effType}]`]
     }
