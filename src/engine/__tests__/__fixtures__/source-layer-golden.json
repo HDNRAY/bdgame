@@ -1,0 +1,7271 @@
+{
+ "opp:qilan:10": {
+  "id": "qilan:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 8,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:qilan:20": {
+  "id": "qilan:20",
+  "attrs": {
+   "strength": 9,
+   "vitality": 9,
+   "agility": 11,
+   "dexterity": 9,
+   "insight": 9,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 224,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:qilan:33": {
+  "id": "qilan:33",
+  "attrs": {
+   "strength": 14,
+   "vitality": 10,
+   "agility": 16,
+   "dexterity": 14,
+   "insight": 15,
+   "wisdom": 14
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:laifeng:10": {
+  "id": "laifeng:10",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 6,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:laifeng:20": {
+  "id": "laifeng:20",
+  "attrs": {
+   "strength": 11,
+   "vitality": 9,
+   "agility": 13,
+   "dexterity": 11,
+   "insight": 10,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 224,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:laifeng:33": {
+  "id": "laifeng:33",
+  "attrs": {
+   "strength": 15,
+   "vitality": 9,
+   "agility": 24,
+   "dexterity": 14,
+   "insight": 11,
+   "wisdom": 12
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 224,
+  "maxAp": 6,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:chanzi:10": {
+  "id": "chanzi:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 8,
+   "agility": 8,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 208,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:chanzi:20": {
+  "id": "chanzi:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 11,
+   "agility": 11,
+   "dexterity": 8,
+   "insight": 9,
+   "wisdom": 11
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 256,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:chanzi:33": {
+  "id": "chanzi:33",
+  "attrs": {
+   "strength": 16,
+   "vitality": 18,
+   "agility": 11,
+   "dexterity": 8,
+   "insight": 11,
+   "wisdom": 21
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 368,
+  "maxAp": 9,
+  "maxTriggerSlots": 5,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:wuzui:10": {
+  "id": "wuzui:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 8,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:wuzui:20": {
+  "id": "wuzui:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 9,
+   "agility": 11,
+   "dexterity": 9,
+   "insight": 9,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 224,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:wuzui:33": {
+  "id": "wuzui:33",
+  "attrs": {
+   "strength": 12,
+   "vitality": 20,
+   "agility": 14,
+   "dexterity": 14,
+   "insight": 10,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 400,
+  "maxAp": 9,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:sangyuan:10": {
+  "id": "sangyuan:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 8,
+   "dexterity": 6,
+   "insight": 6,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:sangyuan:20": {
+  "id": "sangyuan:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 12,
+   "dexterity": 10,
+   "insight": 10,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:sangyuan:33": {
+  "id": "sangyuan:33",
+  "attrs": {
+   "strength": 14,
+   "vitality": 20,
+   "agility": 14,
+   "dexterity": 12,
+   "insight": 14,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 400,
+  "maxAp": 9,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:xiaohua:10": {
+  "id": "xiaohua:10",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 6,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:xiaohua:20": {
+  "id": "xiaohua:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 12,
+   "dexterity": 10,
+   "insight": 6,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:xiaohua:33": {
+  "id": "xiaohua:33",
+  "attrs": {
+   "strength": 15,
+   "vitality": 13,
+   "agility": 17,
+   "dexterity": 15,
+   "insight": 7,
+   "wisdom": 16
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 288,
+  "maxAp": 7,
+  "maxTriggerSlots": 4,
+  "weaponTags": [
+   "parry",
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:hongti:10": {
+  "id": "hongti:10",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 7,
+   "dexterity": 8,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:hongti:20": {
+  "id": "hongti:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 11,
+   "insight": 11,
+   "wisdom": 11
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:hongti:33": {
+  "id": "hongti:33",
+  "attrs": {
+   "strength": 12,
+   "vitality": 12,
+   "agility": 12,
+   "dexterity": 13,
+   "insight": 17,
+   "wisdom": 22
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 272,
+  "maxAp": 7,
+  "maxTriggerSlots": 5,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:ajiu:10": {
+  "id": "ajiu:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 6,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "buff",
+   "melee",
+   "one_handed",
+   "parry",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:ajiu:20": {
+  "id": "ajiu:20",
+  "attrs": {
+   "strength": 12,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 12,
+   "insight": 14,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "buff",
+   "melee",
+   "one_handed",
+   "parry",
+   "slash"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:ajiu:33": {
+  "id": "ajiu:33",
+  "attrs": {
+   "strength": 25,
+   "vitality": 10,
+   "agility": 23,
+   "dexterity": 16,
+   "insight": 20,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "buff",
+   "melee",
+   "one_handed",
+   "parry",
+   "slash"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:fengshui:10": {
+  "id": "fengshui:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 7,
+   "dexterity": 6,
+   "insight": 6,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:fengshui:20": {
+  "id": "fengshui:20",
+  "attrs": {
+   "strength": 11,
+   "vitality": 10,
+   "agility": 11,
+   "dexterity": 12,
+   "insight": 10,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:fengshui:33": {
+  "id": "fengshui:33",
+  "attrs": {
+   "strength": 16,
+   "vitality": 12,
+   "agility": 17,
+   "dexterity": 18,
+   "insight": 17,
+   "wisdom": 6
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 272,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:haoran:10": {
+  "id": "haoran:10",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 7,
+   "dexterity": 7,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:haoran:20": {
+  "id": "haoran:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 10,
+   "insight": 9,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:haoran:33": {
+  "id": "haoran:33",
+  "attrs": {
+   "strength": 14,
+   "vitality": 14,
+   "agility": 16,
+   "dexterity": 16,
+   "insight": 14,
+   "wisdom": 15
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 304,
+  "maxAp": 8,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:orange:10": {
+  "id": "orange:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 7,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:orange:20": {
+  "id": "orange:20",
+  "attrs": {
+   "strength": 9,
+   "vitality": 9,
+   "agility": 9,
+   "dexterity": 9,
+   "insight": 5,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 224,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:orange:33": {
+  "id": "orange:33",
+  "attrs": {
+   "strength": 12,
+   "vitality": 10,
+   "agility": 16,
+   "dexterity": 16,
+   "insight": 6,
+   "wisdom": 14
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:yidao:10": {
+  "id": "yidao:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:yidao:20": {
+  "id": "yidao:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 9,
+   "insight": 9,
+   "wisdom": 6
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "stance"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:yidao:33": {
+  "id": "yidao:33",
+  "attrs": {
+   "strength": 18,
+   "vitality": 10,
+   "agility": 15,
+   "dexterity": 14,
+   "insight": 18,
+   "wisdom": 6
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "stance"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:layue:10": {
+  "id": "layue:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 6,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:layue:20": {
+  "id": "layue:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 10,
+   "insight": 10,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "buff",
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:layue:33": {
+  "id": "layue:33",
+  "attrs": {
+   "strength": 14,
+   "vitality": 10,
+   "agility": 20,
+   "dexterity": 16,
+   "insight": 17,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "buff",
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:baihu:10": {
+  "id": "baihu:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 6,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:baihu:20": {
+  "id": "baihu:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 10,
+   "insight": 11,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "buff",
+   "heavy",
+   "melee",
+   "one_handed",
+   "parry",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:baihu:33": {
+  "id": "baihu:33",
+  "attrs": {
+   "strength": 14,
+   "vitality": 14,
+   "agility": 16,
+   "dexterity": 16,
+   "insight": 15,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 304,
+  "maxAp": 8,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "buff",
+   "heavy",
+   "melee",
+   "one_handed",
+   "parry",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:longnv:10": {
+  "id": "longnv:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 8,
+   "dexterity": 8,
+   "insight": 6,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:longnv:20": {
+  "id": "longnv:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 12,
+   "dexterity": 12,
+   "insight": 10,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:longnv:33": {
+  "id": "longnv:33",
+  "attrs": {
+   "strength": 16,
+   "vitality": 10,
+   "agility": 17,
+   "dexterity": 20,
+   "insight": 12,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "buff",
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:wukong:10": {
+  "id": "wukong:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 6,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "blunt",
+   "parry",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:wukong:20": {
+  "id": "wukong:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 10,
+   "insight": 15,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "blunt",
+   "parry",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:wukong:33": {
+  "id": "wukong:33",
+  "attrs": {
+   "strength": 20,
+   "vitality": 10,
+   "agility": 14,
+   "dexterity": 16,
+   "insight": 15,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "heavy",
+   "parry",
+   "polearm"
+  ],
+  "restrictions": 2,
+  "durationMults": 0
+ },
+ "opp:bamboo:10": {
+  "id": "bamboo:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "blunt",
+   "parry",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:bamboo:20": {
+  "id": "bamboo:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 9,
+   "insight": 9,
+   "wisdom": 6
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "blunt",
+   "parry",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:bamboo:33": {
+  "id": "bamboo:33",
+  "attrs": {
+   "strength": 13,
+   "vitality": 13,
+   "agility": 10,
+   "dexterity": 18,
+   "insight": 16,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 288,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "blunt",
+   "buff",
+   "parry",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:daixuan:10": {
+  "id": "daixuan:10",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 7,
+   "dexterity": 7,
+   "insight": 10,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "blunt",
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "polearm",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:daixuan:20": {
+  "id": "daixuan:20",
+  "attrs": {
+   "strength": 11,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 10,
+   "insight": 18,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "blunt",
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "polearm",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:daixuan:33": {
+  "id": "daixuan:33",
+  "attrs": {
+   "strength": 15,
+   "vitality": 11,
+   "agility": 15,
+   "dexterity": 18,
+   "insight": 27,
+   "wisdom": 11
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 256,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "blunt",
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "polearm",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:fanglie:10": {
+  "id": "fanglie:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 6,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "parry",
+   "pierce",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:fanglie:20": {
+  "id": "fanglie:20",
+  "attrs": {
+   "strength": 12,
+   "vitality": 10,
+   "agility": 13,
+   "dexterity": 15,
+   "insight": 11,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "parry",
+   "pierce",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:fanglie:33": {
+  "id": "fanglie:33",
+  "attrs": {
+   "strength": 18,
+   "vitality": 13,
+   "agility": 20,
+   "dexterity": 19,
+   "insight": 14,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 288,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "buff",
+   "heavy",
+   "parry",
+   "pierce",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:otsu:10": {
+  "id": "otsu:10",
+  "attrs": {
+   "strength": 8,
+   "vitality": 4,
+   "agility": 8,
+   "dexterity": 8,
+   "insight": 8,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 144,
+  "maxAp": 5,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "parry",
+   "pierce",
+   "polearm",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:otsu:20": {
+  "id": "otsu:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 6,
+   "agility": 14,
+   "dexterity": 13,
+   "insight": 13,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 2,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "parry",
+   "pierce",
+   "polearm",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:otsu:33": {
+  "id": "otsu:33",
+  "attrs": {
+   "strength": 11,
+   "vitality": 8,
+   "agility": 21,
+   "dexterity": 20,
+   "insight": 18,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 3,
+  "maxHp": 208,
+  "maxAp": 6,
+  "maxTriggerSlots": 4,
+  "weaponTags": [
+   "parry",
+   "pierce",
+   "polearm",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:jiran:10": {
+  "id": "jiran:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "parry",
+   "pierce",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:jiran:20": {
+  "id": "jiran:20",
+  "attrs": {
+   "strength": 9,
+   "vitality": 9,
+   "agility": 9,
+   "dexterity": 9,
+   "insight": 9,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 224,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "blunt",
+   "debuff",
+   "electric",
+   "frost",
+   "heavy",
+   "paralyze",
+   "parry",
+   "pierce",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 1
+ },
+ "opp:jiran:33": {
+  "id": "jiran:33",
+  "attrs": {
+   "strength": 14,
+   "vitality": 12,
+   "agility": 14,
+   "dexterity": 14,
+   "insight": 16,
+   "wisdom": 16
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 272,
+  "maxAp": 7,
+  "maxTriggerSlots": 4,
+  "weaponTags": [
+   "blunt",
+   "debuff",
+   "electric",
+   "frost",
+   "heavy",
+   "paralyze",
+   "parry",
+   "pierce",
+   "polearm"
+  ],
+  "restrictions": 0,
+  "durationMults": 1
+ },
+ "opp:liuxigua:10": {
+  "id": "liuxigua:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 6,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:liuxigua:20": {
+  "id": "liuxigua:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 10,
+   "insight": 10,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "buff",
+   "heavy",
+   "melee",
+   "parry",
+   "slash"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:liuxigua:33": {
+  "id": "liuxigua:33",
+  "attrs": {
+   "strength": 14,
+   "vitality": 10,
+   "agility": 20,
+   "dexterity": 14,
+   "insight": 20,
+   "wisdom": 4
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "buff",
+   "heavy",
+   "melee",
+   "parry",
+   "slash"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:yangguo:10": {
+  "id": "yangguo:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 8,
+   "dexterity": 8,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:yangguo:20": {
+  "id": "yangguo:20",
+  "attrs": {
+   "strength": 12,
+   "vitality": 11,
+   "agility": 11,
+   "dexterity": 11,
+   "insight": 9,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 256,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "blunt",
+   "heavy",
+   "melee",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:yangguo:33": {
+  "id": "yangguo:33",
+  "attrs": {
+   "strength": 12,
+   "vitality": 12,
+   "agility": 16,
+   "dexterity": 16,
+   "insight": 20,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 272,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "blunt",
+   "heavy",
+   "melee",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:qianxing:10": {
+  "id": "qianxing:10",
+  "attrs": {
+   "strength": 9,
+   "vitality": 6,
+   "agility": 9,
+   "dexterity": 6,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "blunt",
+   "burn",
+   "craft",
+   "electric",
+   "polearm",
+   "qi"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:qianxing:20": {
+  "id": "qianxing:20",
+  "attrs": {
+   "strength": 12,
+   "vitality": 9,
+   "agility": 12,
+   "dexterity": 9,
+   "insight": 11,
+   "wisdom": 11
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 224,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "blunt",
+   "burn",
+   "craft",
+   "electric",
+   "polearm",
+   "qi"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:qianxing:33": {
+  "id": "qianxing:33",
+  "attrs": {
+   "strength": 21,
+   "vitality": 16,
+   "agility": 13,
+   "dexterity": 16,
+   "insight": 12,
+   "wisdom": 14
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 336,
+  "maxAp": 8,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "blunt",
+   "burn",
+   "craft",
+   "electric",
+   "polearm",
+   "qi"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:lueying:10": {
+  "id": "lueying:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 7,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:lueying:20": {
+  "id": "lueying:20",
+  "attrs": {
+   "strength": 6,
+   "vitality": 10,
+   "agility": 11,
+   "dexterity": 10,
+   "insight": 9,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:lueying:33": {
+  "id": "lueying:33",
+  "attrs": {
+   "strength": 6,
+   "vitality": 10,
+   "agility": 16,
+   "dexterity": 16,
+   "insight": 16,
+   "wisdom": 12
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "buff",
+   "chan",
+   "electric",
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:duoer:10": {
+  "id": "duoer:10",
+  "attrs": {
+   "strength": 4,
+   "vitality": 6,
+   "agility": 7,
+   "dexterity": 6,
+   "insight": 6,
+   "wisdom": 6
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:duoer:20": {
+  "id": "duoer:20",
+  "attrs": {
+   "strength": 4,
+   "vitality": 11,
+   "agility": 12,
+   "dexterity": 10,
+   "insight": 10,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 256,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:duoer:33": {
+  "id": "duoer:33",
+  "attrs": {
+   "strength": 4,
+   "vitality": 20,
+   "agility": 19,
+   "dexterity": 12,
+   "insight": 10,
+   "wisdom": 13
+  },
+  "maxHpMod": 60,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 460,
+  "maxAp": 9,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "melee",
+   "one_handed",
+   "parry",
+   "pierce",
+   "slash",
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:xunxiang:10": {
+  "id": "xunxiang:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 8,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:xunxiang:20": {
+  "id": "xunxiang:20",
+  "attrs": {
+   "strength": 8,
+   "vitality": 6,
+   "agility": 12,
+   "dexterity": 10,
+   "insight": 10,
+   "wisdom": 10
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:xunxiang:33": {
+  "id": "xunxiang:33",
+  "attrs": {
+   "strength": 8,
+   "vitality": 6,
+   "agility": 16,
+   "dexterity": 14,
+   "insight": 14,
+   "wisdom": 20
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 5,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:tangrou:10": {
+  "id": "tangrou:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 8,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:tangrou:20": {
+  "id": "tangrou:20",
+  "attrs": {
+   "strength": 6,
+   "vitality": 10,
+   "agility": 12,
+   "dexterity": 10,
+   "insight": 10,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:tangrou:33": {
+  "id": "tangrou:33",
+  "attrs": {
+   "strength": 6,
+   "vitality": 10,
+   "agility": 16,
+   "dexterity": 20,
+   "insight": 16,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:xuanji:10": {
+  "id": "xuanji:10",
+  "attrs": {
+   "strength": 6,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "blunt",
+   "imperial",
+   "parry",
+   "range",
+   "summon"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:xuanji:20": {
+  "id": "xuanji:20",
+  "attrs": {
+   "strength": 6,
+   "vitality": 10,
+   "agility": 10,
+   "dexterity": 10,
+   "insight": 9,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "blunt",
+   "imperial",
+   "parry",
+   "range",
+   "summon"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:xuanji:33": {
+  "id": "xuanji:33",
+  "attrs": {
+   "strength": 6,
+   "vitality": 10,
+   "agility": 14,
+   "dexterity": 15,
+   "insight": 14,
+   "wisdom": 18
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 4,
+  "weaponTags": [
+   "blunt",
+   "imperial",
+   "parry",
+   "range",
+   "summon"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:junshi:10": {
+  "id": "junshi:10",
+  "attrs": {
+   "strength": 4,
+   "vitality": 6,
+   "agility": 7,
+   "dexterity": 10,
+   "insight": 7,
+   "wisdom": 6
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "imperial",
+   "parry",
+   "pierce",
+   "range",
+   "summon"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:junshi:20": {
+  "id": "junshi:20",
+  "attrs": {
+   "strength": 6,
+   "vitality": 10,
+   "agility": 13,
+   "dexterity": 15,
+   "insight": 11,
+   "wisdom": 10
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "imperial",
+   "parry",
+   "pierce",
+   "range",
+   "summon"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:junshi:33": {
+  "id": "junshi:33",
+  "attrs": {
+   "strength": 6,
+   "vitality": 16,
+   "agility": 13,
+   "dexterity": 19,
+   "insight": 17,
+   "wisdom": 20
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 336,
+  "maxAp": 8,
+  "maxTriggerSlots": 5,
+  "weaponTags": [
+   "imperial",
+   "parry",
+   "pierce",
+   "range",
+   "summon"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:heiyun:10": {
+  "id": "heiyun:10",
+  "attrs": {
+   "strength": 4,
+   "vitality": 6,
+   "agility": 6,
+   "dexterity": 6,
+   "insight": 5,
+   "wisdom": 5
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 176,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "heavy",
+   "imperial",
+   "parry",
+   "pierce",
+   "range",
+   "slash",
+   "summon"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:heiyun:20": {
+  "id": "heiyun:20",
+  "attrs": {
+   "strength": 6,
+   "vitality": 10,
+   "agility": 9,
+   "dexterity": 9,
+   "insight": 9,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 240,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "heavy",
+   "imperial",
+   "parry",
+   "pierce",
+   "range",
+   "slash",
+   "summon"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:heiyun:33": {
+  "id": "heiyun:33",
+  "attrs": {
+   "strength": 6,
+   "vitality": 14,
+   "agility": 12,
+   "dexterity": 12,
+   "insight": 14,
+   "wisdom": 18
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 304,
+  "maxAp": 8,
+  "maxTriggerSlots": 4,
+  "weaponTags": [
+   "heavy",
+   "imperial",
+   "parry",
+   "pierce",
+   "range",
+   "slash",
+   "summon"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:doctor:10": {
+  "id": "doctor:10",
+  "attrs": {
+   "strength": 5,
+   "vitality": 8,
+   "agility": 7,
+   "dexterity": 6,
+   "insight": 6,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 208,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "blunt",
+   "imperial",
+   "range",
+   "summon"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "opp:doctor:20": {
+  "id": "doctor:20",
+  "attrs": {
+   "strength": 5,
+   "vitality": 12,
+   "agility": 7,
+   "dexterity": 12,
+   "insight": 15,
+   "wisdom": 13
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 272,
+  "maxAp": 7,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "blunt",
+   "imperial",
+   "range",
+   "summon"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "opp:doctor:33": {
+  "id": "doctor:33",
+  "attrs": {
+   "strength": 5,
+   "vitality": 12,
+   "agility": 6,
+   "dexterity": 22,
+   "insight": 25,
+   "wisdom": 21
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 272,
+  "maxAp": 7,
+  "maxTriggerSlots": 5,
+  "weaponTags": [
+   "blunt",
+   "imperial",
+   "range",
+   "summon"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "art:fen_shen_qiu": {
+  "id": "art:fen_shen_qiu",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:pu_ti_tou_huan": {
+  "id": "art:pu_ti_tou_huan",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 11
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "art:blood_thorn_ring": {
+  "id": "art:blood_thorn_ring",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:blood_thorn_earring": {
+  "id": "art:blood_thorn_earring",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:wisdom_talisman": {
+  "id": "art:wisdom_talisman",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 8,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:tiger_eye": {
+  "id": "art:tiger_eye",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:calming_talisman": {
+  "id": "art:calming_talisman",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:qi_guard": {
+  "id": "art:qi_guard",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:iron_will": {
+  "id": "art:iron_will",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:qi_amplifier": {
+  "id": "art:qi_amplifier",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:bamboo_hat": {
+  "id": "art:bamboo_hat",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:frost_silk_robe": {
+  "id": "art:frost_silk_robe",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:poison_coating": {
+  "id": "art:poison_coating",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:shixiang_ruanjin_san": {
+  "id": "art:shixiang_ruanjin_san",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:western_poison": {
+  "id": "art:western_poison",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:other_mountain": {
+  "id": "art:other_mountain",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 8,
+   "insight": 9,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:yao_xin_shi": {
+  "id": "art:yao_xin_shi",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:golden_silk_gloves": {
+  "id": "art:golden_silk_gloves",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:herb_pouch": {
+  "id": "art:herb_pouch",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:soft_hedgehog_mail": {
+  "id": "art:soft_hedgehog_mail",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:golden_bell_rope": {
+  "id": "art:golden_bell_rope",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:chan_orb": {
+  "id": "art:chan_orb",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:jiu_yin_zhen_jing": {
+  "id": "art:jiu_yin_zhen_jing",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:blood_sacrifice_armband": {
+  "id": "art:blood_sacrifice_armband",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:wakizashi": {
+  "id": "art:wakizashi",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:iron_mask": {
+  "id": "art:iron_mask",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 10,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:hui_xiang_dou": {
+  "id": "art:hui_xiang_dou",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:nv_er_hong": {
+  "id": "art:nv_er_hong",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:ba_wang_zui": {
+  "id": "art:ba_wang_zui",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:zhu_ye_qing": {
+  "id": "art:zhu_ye_qing",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:shao_dao_zi": {
+  "id": "art:shao_dao_zi",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:bu_lao_quan": {
+  "id": "art:bu_lao_quan",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:qing_nang_san_bao": {
+  "id": "art:qing_nang_san_bao",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:pu_ti_zhu": {
+  "id": "art:pu_ti_zhu",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 10
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:bai_na_zhu": {
+  "id": "art:bai_na_zhu",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:combat_armor": {
+  "id": "art:combat_armor",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 7,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:ju_chan_fa_yi": {
+  "id": "art:ju_chan_fa_yi",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:tactical_pouch": {
+  "id": "art:tactical_pouch",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:tempest": {
+  "id": "art:tempest",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:tactical_goggles": {
+  "id": "art:tactical_goggles",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 9,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "art:nano_exoskeleton": {
+  "id": "art:nano_exoskeleton",
+  "attrs": {
+   "strength": 10,
+   "vitality": 7,
+   "agility": 12,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:jet_drive": {
+  "id": "art:jet_drive",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:energy_shield": {
+  "id": "art:energy_shield",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:qi_battery": {
+  "id": "art:qi_battery",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:ci_magnetic_coil": {
+  "id": "art:ci_magnetic_coil",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:ninja_tool_kit": {
+  "id": "art:ninja_tool_kit",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:wuxue_baodian_zonggang": {
+  "id": "art:wuxue_baodian_zonggang",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:wuxue_baodian_shang": {
+  "id": "art:wuxue_baodian_shang",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:wuxue_baodian_xia": {
+  "id": "art:wuxue_baodian_xia",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "art:auto_purify_vest": {
+  "id": "art:auto_purify_vest",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:forge": {
+  "id": "pas:forge",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:iron_bone": {
+  "id": "pas:iron_bone",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ji_lie_zhi_lie": {
+  "id": "pas:ji_lie_zhi_lie",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:spirit_resonance": {
+  "id": "pas:spirit_resonance",
+  "attrs": {
+   "strength": 5,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:sword_dominion": {
+  "id": "pas:sword_dominion",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:last_sword": {
+  "id": "pas:last_sword",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:iaijutsu_mastery": {
+  "id": "pas:iaijutsu_mastery",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:yi_dao_liu": {
+  "id": "pas:yi_dao_liu",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:dragon_palace_style": {
+  "id": "pas:dragon_palace_style",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:extreme": {
+  "id": "pas:extreme",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:zhou_liu_bu_xi": {
+  "id": "pas:zhou_liu_bu_xi",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:human_radar": {
+  "id": "pas:human_radar",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ice_heart": {
+  "id": "pas:ice_heart",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:frost_mastery": {
+  "id": "pas:frost_mastery",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:nineteen_stops": {
+  "id": "pas:nineteen_stops",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ordinary_training": {
+  "id": "pas:ordinary_training",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:daily_grind": {
+  "id": "pas:daily_grind",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:momentum_mastery": {
+  "id": "pas:momentum_mastery",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:nei_xi_mian_chang": {
+  "id": "pas:nei_xi_mian_chang",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 1
+ },
+ "pas:overlord_art": {
+  "id": "pas:overlord_art",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:yu_yang_shi_ba_shi": {
+  "id": "pas:yu_yang_shi_ba_shi",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 9,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:yi_dian_po_xiao": {
+  "id": "pas:yi_dian_po_xiao",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:inner_power": {
+  "id": "pas:inner_power",
+  "attrs": {
+   "strength": 8,
+   "vitality": 8,
+   "agility": 10,
+   "dexterity": 8,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 208,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:tai_chi_mastery": {
+  "id": "pas:tai_chi_mastery",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:godspeed": {
+  "id": "pas:godspeed",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:thunder_art": {
+  "id": "pas:thunder_art",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:zoldyck_art": {
+  "id": "pas:zoldyck_art",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:hui_lei_qian": {
+  "id": "pas:hui_lei_qian",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:baihu_ding": {
+  "id": "pas:baihu_ding",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:qiti_source": {
+  "id": "pas:qiti_source",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:yin_shi_li_dao": {
+  "id": "pas:yin_shi_li_dao",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:stance_time": {
+  "id": "pas:stance_time",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:weapon_stance": {
+  "id": "pas:weapon_stance",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:dark_room_catch": {
+  "id": "pas:dark_room_catch",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 11,
+   "dexterity": 9,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "pas:yue_nv_sword": {
+  "id": "pas:yue_nv_sword",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:bu_zhi_yu_wu": {
+  "id": "pas:bu_zhi_yu_wu",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:one_arm": {
+  "id": "pas:one_arm",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:dark_iron_sword_art": {
+  "id": "pas:dark_iron_sword_art",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:tide_inner_power": {
+  "id": "pas:tide_inner_power",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:shenxing_baibian": {
+  "id": "pas:shenxing_baibian",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:xuannv_sword": {
+  "id": "pas:xuannv_sword",
+  "attrs": {
+   "strength": 9,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:zhu_huo_jue": {
+  "id": "pas:zhu_huo_jue",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:wan_xiang_jian_yi": {
+  "id": "pas:wan_xiang_jian_yi",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:stone_skin": {
+  "id": "pas:stone_skin",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:qishier_bian": {
+  "id": "pas:qishier_bian",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:hua_gun": {
+  "id": "pas:hua_gun",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:feng_mo_gong": {
+  "id": "pas:feng_mo_gong",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:frost_step": {
+  "id": "pas:frost_step",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:yuxin_sword_mastery": {
+  "id": "pas:yuxin_sword_mastery",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:lingxi_finger": {
+  "id": "pas:lingxi_finger",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:feng_wu_jiu_tian": {
+  "id": "pas:feng_wu_jiu_tian",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:beiming": {
+  "id": "pas:beiming",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:golden_light": {
+  "id": "pas:golden_light",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:sword_intent_tempering": {
+  "id": "pas:sword_intent_tempering",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:yu_du_shu": {
+  "id": "pas:yu_du_shu",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:yi_ma_xin_yuan": {
+  "id": "pas:yi_ma_xin_yuan",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:tongtian": {
+  "id": "pas:tongtian",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:no_parry_style": {
+  "id": "pas:no_parry_style",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:yun_long_san_xian": {
+  "id": "pas:yun_long_san_xian",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:dan_dao_fa_xuan": {
+  "id": "pas:dan_dao_fa_xuan",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:tai_shang_yu_fa": {
+  "id": "pas:tai_shang_yu_fa",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:bai_ju_guo_xi": {
+  "id": "pas:bai_ju_guo_xi",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:chou_dao_duan_shui": {
+  "id": "pas:chou_dao_duan_shui",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:jing_luo_chu_jian": {
+  "id": "pas:jing_luo_chu_jian",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:dian_xue_passive": {
+  "id": "pas:dian_xue_passive",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:li_wu_xu_fa": {
+  "id": "pas:li_wu_xu_fa",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:zui_quan": {
+  "id": "pas:zui_quan",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:jiu_yang_shen_gong": {
+  "id": "pas:jiu_yang_shen_gong",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:hun_yuan_gong": {
+  "id": "pas:hun_yuan_gong",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:qian_kun_da_nuo_yi": {
+  "id": "pas:qian_kun_da_nuo_yi",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:sword_focus": {
+  "id": "pas:sword_focus",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:drunken_step": {
+  "id": "pas:drunken_step",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ningqi_jue": {
+  "id": "pas:ningqi_jue",
+  "attrs": {
+   "strength": 8,
+   "vitality": 8,
+   "agility": 10,
+   "dexterity": 8,
+   "insight": 8,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 208,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:rui_qi_jue": {
+  "id": "pas:rui_qi_jue",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:sword_capture": {
+  "id": "pas:sword_capture",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ru_yi_jin": {
+  "id": "pas:ru_yi_jin",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:blood_rage": {
+  "id": "pas:blood_rage",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:gear_shift": {
+  "id": "pas:gear_shift",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:shen_zhao_jing": {
+  "id": "pas:shen_zhao_jing",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:karate": {
+  "id": "pas:karate",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:fei_hua_shou": {
+  "id": "pas:fei_hua_shou",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:lian_da_mi_jue": {
+  "id": "pas:lian_da_mi_jue",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:du_yao_da_shi": {
+  "id": "pas:du_yao_da_shi",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:sekai_heroism": {
+  "id": "pas:sekai_heroism",
+  "attrs": {
+   "strength": 9,
+   "vitality": 5,
+   "agility": 11,
+   "dexterity": 9,
+   "insight": 9,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 160,
+  "maxAp": 5,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:combat_instinct": {
+  "id": "pas:combat_instinct",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:insight_awareness": {
+  "id": "pas:insight_awareness",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:wolf_hunting": {
+  "id": "pas:wolf_hunting",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:no_way_win": {
+  "id": "pas:no_way_win",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ling_long_xin_qiao": {
+  "id": "pas:ling_long_xin_qiao",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:autumn_water": {
+  "id": "pas:autumn_water",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:bu_dong_ming_wang": {
+  "id": "pas:bu_dong_ming_wang",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ni_zhuan_jing_mai": {
+  "id": "pas:ni_zhuan_jing_mai",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ling_ao_bu": {
+  "id": "pas:ling_ao_bu",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:luo_ying_shen_jian": {
+  "id": "pas:luo_ying_shen_jian",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:enhanced_vision": {
+  "id": "pas:enhanced_vision",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 11,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:qi_electric_conversion": {
+  "id": "pas:qi_electric_conversion",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:qian_chui_bai_lian": {
+  "id": "pas:qian_chui_bai_lian",
+  "attrs": {
+   "strength": 8,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:no_light_wisdom": {
+  "id": "pas:no_light_wisdom",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 3,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ru_shen_zuo_zhao": {
+  "id": "pas:ru_shen_zuo_zhao",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "pas:hearing_power": {
+  "id": "pas:hearing_power",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:mingjing_zhishui": {
+  "id": "pas:mingjing_zhishui",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:can_ying_bu": {
+  "id": "pas:can_ying_bu",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ba_gua_gun_fa": {
+  "id": "pas:ba_gua_gun_fa",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:guan_zi_zai_yan": {
+  "id": "pas:guan_zi_zai_yan",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:yi_jin_jing": {
+  "id": "pas:yi_jin_jing",
+  "attrs": {
+   "strength": 7,
+   "vitality": 9,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 224,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:chanzi_chan_regen": {
+  "id": "pas:chanzi_chan_regen",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:chan_ding": {
+  "id": "pas:chan_ding",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:qing_long_ding": {
+  "id": "pas:qing_long_ding",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:chan_xin_hui_yan": {
+  "id": "pas:chan_xin_hui_yan",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "pas:ku_chan_shen_gong": {
+  "id": "pas:ku_chan_shen_gong",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:0": {
+  "id": "mix:0",
+  "attrs": {
+   "strength": 12,
+   "vitality": 7,
+   "agility": 14,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:1": {
+  "id": "mix:1",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 12
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:2": {
+  "id": "mix:2",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:3": {
+  "id": "mix:3",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:4": {
+  "id": "mix:4",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 11
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "mix:5": {
+  "id": "mix:5",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:6": {
+  "id": "mix:6",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 11,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "mix:7": {
+  "id": "mix:7",
+  "attrs": {
+   "strength": 8,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:8": {
+  "id": "mix:8",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 14,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:9": {
+  "id": "mix:9",
+  "attrs": {
+   "strength": 8,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:10": {
+  "id": "mix:10",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:11": {
+  "id": "mix:11",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:12": {
+  "id": "mix:12",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:13": {
+  "id": "mix:13",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:14": {
+  "id": "mix:14",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:15": {
+  "id": "mix:15",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:16": {
+  "id": "mix:16",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 11
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "mix:17": {
+  "id": "mix:17",
+  "attrs": {
+   "strength": 9,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 9,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:18": {
+  "id": "mix:18",
+  "attrs": {
+   "strength": 9,
+   "vitality": 7,
+   "agility": 11,
+   "dexterity": 8,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 1
+ },
+ "mix:19": {
+  "id": "mix:19",
+  "attrs": {
+   "strength": 8,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 9,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "mix:20": {
+  "id": "mix:20",
+  "attrs": {
+   "strength": 10,
+   "vitality": 7,
+   "agility": 12,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:21": {
+  "id": "mix:21",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:22": {
+  "id": "mix:22",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:23": {
+  "id": "mix:23",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:24": {
+  "id": "mix:24",
+  "attrs": {
+   "strength": 9,
+   "vitality": 7,
+   "agility": 7,
+   "dexterity": 9,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:25": {
+  "id": "mix:25",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 11,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:26": {
+  "id": "mix:26",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 11,
+   "dexterity": 9,
+   "insight": 11,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 2,
+  "durationMults": 0
+ },
+ "mix:27": {
+  "id": "mix:27",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:28": {
+  "id": "mix:28",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:29": {
+  "id": "mix:29",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:30": {
+  "id": "mix:30",
+  "attrs": {
+   "strength": 7,
+   "vitality": 12,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 272,
+  "maxAp": 7,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:31": {
+  "id": "mix:31",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 11,
+   "dexterity": 9,
+   "insight": 12,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "mix:32": {
+  "id": "mix:32",
+  "attrs": {
+   "strength": 8,
+   "vitality": 8,
+   "agility": 10,
+   "dexterity": 8,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 208,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:33": {
+  "id": "mix:33",
+  "attrs": {
+   "strength": 7,
+   "vitality": 12,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 9,
+   "wisdom": 10
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 272,
+  "maxAp": 7,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:34": {
+  "id": "mix:34",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:35": {
+  "id": "mix:35",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:36": {
+  "id": "mix:36",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:37": {
+  "id": "mix:37",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 1
+ },
+ "mix:38": {
+  "id": "mix:38",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 9,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:39": {
+  "id": "mix:39",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 12,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:40": {
+  "id": "mix:40",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:41": {
+  "id": "mix:41",
+  "attrs": {
+   "strength": 8,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:42": {
+  "id": "mix:42",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:43": {
+  "id": "mix:43",
+  "attrs": {
+   "strength": 5,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 9,
+   "wisdom": 9
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "mix:44": {
+  "id": "mix:44",
+  "attrs": {
+   "strength": 10,
+   "vitality": 7,
+   "agility": 12,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:45": {
+  "id": "mix:45",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:46": {
+  "id": "mix:46",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 11,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:47": {
+  "id": "mix:47",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 10,
+   "dexterity": 8,
+   "insight": 7,
+   "wisdom": 11
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "mix:48": {
+  "id": "mix:48",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 11,
+   "dexterity": 9,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 2,
+  "durationMults": 0
+ },
+ "mix:49": {
+  "id": "mix:49",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 60,
+  "maxApMod": 0,
+  "triggerSlotMod": 1,
+  "maxHp": 252,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:50": {
+  "id": "mix:50",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:51": {
+  "id": "mix:51",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 3,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:52": {
+  "id": "mix:52",
+  "attrs": {
+   "strength": 9,
+   "vitality": 5,
+   "agility": 11,
+   "dexterity": 9,
+   "insight": 9,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 160,
+  "maxAp": 5,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:53": {
+  "id": "mix:53",
+  "attrs": {
+   "strength": 9,
+   "vitality": 7,
+   "agility": 11,
+   "dexterity": 8,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:54": {
+  "id": "mix:54",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 7,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 12
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 3,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:55": {
+  "id": "mix:55",
+  "attrs": {
+   "strength": 9,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 9,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:56": {
+  "id": "mix:56",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 11,
+   "wisdom": 8
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 2,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:57": {
+  "id": "mix:57",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ },
+ "mix:58": {
+  "id": "mix:58",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 11,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 1,
+  "durationMults": 0
+ },
+ "mix:59": {
+  "id": "mix:59",
+  "attrs": {
+   "strength": 7,
+   "vitality": 7,
+   "agility": 9,
+   "dexterity": 7,
+   "insight": 7,
+   "wisdom": 7
+  },
+  "maxHpMod": 0,
+  "maxApMod": 0,
+  "triggerSlotMod": 0,
+  "maxHp": 192,
+  "maxAp": 6,
+  "maxTriggerSlots": 1,
+  "weaponTags": [
+   "unarmed"
+  ],
+  "restrictions": 0,
+  "durationMults": 0
+ }
+}

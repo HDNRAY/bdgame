@@ -72,11 +72,13 @@ describe('急速全部由 buff 承载', () => {
         expect(onHasteOf('zhuixing', 2)).toBeCloseTo(onHasteOf('zhuixing', 1) * 2)
     })
 
-    it('神行百变：实时读推演，斜率 1/2（推演 +4 → 急速 +2）', () => {
+    it('神行百变：实时读推演（推演越高急速越高；斜率是可调平衡项，不写死）', () => {
         const a = onHasteOf('shenxing_baibian_buff', 1, makeChar('A', { wisdom: 8 }))
         const b = onHasteOf('shenxing_baibian_buff', 1, makeChar('B', { wisdom: 12 }))
-        expect(b - a).toBeCloseTo(2)
+        const c = onHasteOf('shenxing_baibian_buff', 1, makeChar('C', { wisdom: 20 }))
         expect(a).toBeGreaterThan(0)
+        expect(b).toBeGreaterThan(a)
+        expect(c).toBeGreaterThan(b)
     })
 
     it('战斗里真的挂上、并且真的减免招式成本（凌波微步 / 风切）', () => {

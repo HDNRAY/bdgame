@@ -124,24 +124,26 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const { buffIds, allDebuffs, perDebuffStacks } = eff as Extract<EffectDef, { type: 'cleanse' }>
         const targets = buffIds ?? ['paralyze', 'poison']
         // perDebuffStacks：每类 debuff 减 N 层（additive 减 restoreValue；independent 每种独立计数移除 N 层；其余整体清除）
+        // 只净化自己身上的（所有使用者都是 target: 'self'，不过滤会等于资敌）：
+        // 走 byOwner 索引只遍历自己的层，并先收集再删，避免边遍历边改。
+        const hits: { key: string; buffId: string; layer: BuffLayer }[] = []
+        forEachBuffOf(engine.state.pendingBuffs, self.id, (def, layer, buffId, key) => {
+            const matches = allDebuffs ? (def?.tags?.includes('debuff') ?? false) : targets.includes(buffId)
+            if (matches) hits.push({ key, buffId, layer })
+        })
         const left = new Map<string, number>()
-        for (const [k, layer] of engine.state.pendingBuffs) {
-            const [prefix, ownerId] = k.split('::')
-            // 只净化自己身上的：所有使用者都是 target: 'self'，不过滤会把对手的毒/麻痹/流血也清掉（等于资敌）
-            if (ownerId !== self.id) continue
-            const matches = allDebuffs ? (getBuff(prefix)?.tags?.includes('debuff') ?? false) : targets.includes(prefix)
-            if (!matches) continue
+        for (const { key: k, buffId, layer } of hits) {
             if (perDebuffStacks && perDebuffStacks > 0) {
-                const def = getBuff(prefix)
+                const def = getBuff(buffId)
                 if (def?.stacking?.type === 'additive') {
                     // 层数减了，属性修正也要按比例退（不能只改层数）
                     partialRevertMods(layer, Math.min(perDebuffStacks, layer.restoreValue), self)
                     if (layer.restoreValue <= 0) removeBuffLayer(engine, k)
                 } else if (def?.stacking?.type === 'independent') {
-                    const remain = left.get(prefix) ?? perDebuffStacks
+                    const remain = left.get(buffId) ?? perDebuffStacks
                     if (remain > 0) {
                         removeBuffLayer(engine, k)
-                        left.set(prefix, remain - 1)
+                        left.set(buffId, remain - 1)
                     }
                 } else {
                     removeBuffLayer(engine, k)
@@ -799,6 +801,32 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const target = stealable[0]
         const idx = enemy.artifactDefs.indexOf(target)
         if (idx !== -1) enemy.artifactDefs.splice(idx, 1)
+        // 撤销奇物给对手带来的构造期修正（属性/上限/触发槽/武器 tag —— 来源层账）
+        enemy.removeSource(`artifact:${target.id}`)
+        // 撤销奇物触发挂上的 buff（金丝手套的「金丝护手」这类没有 effects、只有 on_equip/触发挂 buff 的奇物）
+        const grantedBuffs = new Set<string>()
+        for (const t of target.triggers ?? []) {
+            for (const e of t.effects ?? []) {
+                if (e.type === 'add_buff' && e.buffId) grantedBuffs.add(e.buffId)
+            }
+        }
+        if (grantedBuffs.size > 0) {
+            const keys: string[] = []
+            forEachBuffOf(engine.state.pendingBuffs, enemy.id, (_def, _layer, buffId, key) => {
+                if (grantedBuffs.has(buffId)) keys.push(key)
+            })
+            for (const k of keys) removeBuffLayer(engine, k)
+        }
+        // 撤销奇物触发里「直接改角色字段」的效果（目前只有 max_ap_mod：分身球占内息上限）
+        // 这类效果还没走层账，属于本轮的已知遗留；将来把它也做成层就不需要这段反函数。
+        for (const t of target.triggers ?? []) {
+            for (const e of t.effects ?? []) {
+                if (e.type === 'max_ap_mod') {
+                    enemy.maxApMod -= e.value
+                    enemy.capAp()
+                }
+            }
+        }
         // 移除对手的奇物 triggers
         for (const t of target.triggers ?? []) {
             const tIdx = enemy.passiveTriggers.indexOf(t)
@@ -807,7 +835,17 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // 移除奇物赋予的招式（酒被偷走 → 不能再喝）
         enemy.removeActionsByIds(target.grantsActions ?? [])
         // 加给自己（含奇物赋予的招式：偷来的酒能喝）
+        const originId = `artifact:${target.id}`
+        // 幂等：同来源旧层先按 originId 清掉（bySource 索引），再让 on_equip 重新挂
+        for (const k of engine.state.pendingBuffs.keysOfOrigin(originId)) removeBuffLayer(engine, k)
         self.addArtifact(target.id, engine)
+        // 给「这件奇物挂上的层」打来源标记，便于后续按来源整体撤销（缴械/被偷回等）
+        const granted = new Set(grantedBuffs)
+        for (const k of granted.size > 0 ? [...engine.state.pendingBuffs.keys()] : []) {
+            if (!k.endsWith(`::${self.id}`)) continue
+            const buffId = k.slice(0, k.indexOf('::'))
+            if (granted.has(buffId)) engine.state.pendingBuffs.tagOrigin(k, originId)
+        }
         // 更新成功概率（减半）
         engine.state.pendingBuffs.set(trackKey, { restoreValue: chance / 2 })
         engine.emitLog({

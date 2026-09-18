@@ -1,5 +1,5 @@
-import { AttributeSet, type AttrName } from '../attributes'
-import { Action, type ActionDefinition } from '../action'
+import { ALL_ATTRS, ATTR_ABSOLUTE_MIN, AttributeSet, type AttrName } from '../attributes'
+import { Action, type ActionDefinition, type EffectDef } from '../action'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import type { ActionConfig } from '../../../game/entities/action-config'
 import type { Passive, Talent } from '../passive'
@@ -24,7 +24,12 @@ import { emptyResourceTally, type ResourceTally } from './resource-tally'
 import { collectRewards } from './reward-collect'
 import { buildActionCache } from './action-cache'
 import { buildConfigTriggers } from './trigger-slots'
-import { applyPassiveEffect } from './passive-effects'
+import {
+    buildSourceLayer,
+    type SourceKind,
+    type SourceLayer,
+    type StatRestrictionCheck,
+} from './source-layer'
 
 export class Character {
     readonly build: CharacterBuild
@@ -68,8 +73,6 @@ export class Character {
     weaponDef?: WeaponDef
     /** 副手武器定义缓存（构造时解析；主手可能在战斗中切换，副手武器一般固定） */
     private offhandDef?: WeaponDef
-    /** 待应用的 weapon_tag（构造时先记录，武器设置后统一应用） */
-    pendingWeaponTags: Tag[] = []
     /** 已解析的奇物/义体列表 */
     artifactDefs: Artifact[] = []
     /** 义体/效果修正 */
@@ -78,22 +81,17 @@ export class Character {
 
     /** 战斗风格（build.battleStyle 显式必填，不再自动判定） */
     battleStyle: AttackStyle
-    /** 身法相关独立加速（凌波微步等） */
     /** buff 时长倍率回调列表（炁蕴绵长等功法，构造期收集，乘算） */
     buffDurationCallbacks: Array<(char: Character) => number> = []
     /** 额外触发槽位（奇物提供） */
     triggerSlotMod = 0
-    /** stat_restriction 回调列表 */
-    statRestrictionChecks: Array<
-        (
-            char: Character,
-            attr: string,
-            current: number,
-            delta: number,
-            sourceTags?: string[],
-            state?: BattleState,
-        ) => { skip?: boolean; delta?: number } | null
-    > = []
+    /** stat_restriction 回调列表（由来源层账推导，不再逐条 push，因此可整体撤销） */
+    statRestrictionChecks: StatRestrictionCheck[] = []
+    /**
+     * 构造期来源层账（顺序 = 加入顺序）：attrs = baseAttrs + Σ 各层修正。
+     * 公开是为了 `forkForSim` 能给沙盒一份自己的数组副本（层对象只读共享）。
+     */
+    sourceLayers: SourceLayer[] = []
     constructor(build: CharacterBuild) {
         this.build = build
         this.id = build.id
@@ -117,19 +115,14 @@ export class Character {
             if (p.grantsActions) gainedActions.push(...p.grantsActions)
         }
         for (const a of this.artifactDefs) {
-            for (const eff of a.effects ?? []) applyPassiveEffect(eff.type, this, eff)
+            this.addSource(`artifact:${a.id}`, 'artifact', a.effects)
             for (const t of a.triggers ?? []) this.passiveTriggers.push(t)
             // 义体赋予的招式
             if (a.grantsActions) gainedActions.push(...a.grantsActions)
         }
         const weapon = getWeapon(build.weapon)
-        this.weaponDef = weapon
-        // 应用被动的 weapon_tag
-        for (const tag of this.pendingWeaponTags) {
-            if (!weapon.tags.includes(tag)) {
-                this.weaponDef = { ...weapon, tags: [...weapon.tags, tag] }
-            }
-        }
+        // weaponDef（含被动 weapon_tag）由层账重算得出
+        this.weaponDef = this.derivedWeaponDef()
         // 副手武器定义缓存（build.offhand 固定；战斗中切主手不影响副手定义）
         if (build.offhand) {
             this.offhandDef = getWeapon(build.offhand)
@@ -141,16 +134,15 @@ export class Character {
             !weapon.requireAttrsMin ||
             Object.entries(weapon.requireAttrsMin).every(([attr, req]) => this.attrs.get(attr as AttrName) >= req!)
         if (weaponOk) {
-            const activeWeapon = this.weaponDef ?? weapon
-            for (const eff of activeWeapon.effects ?? []) applyPassiveEffect(eff.type, this, eff, ['weapon'])
-            for (const t of activeWeapon.triggers ?? []) this.passiveTriggers.push(t)
-            if (activeWeapon.grantsActions) gainedActions.push(...activeWeapon.grantsActions)
+            this.addSource(`weapon:${build.weapon}`, 'weapon', weapon.effects, ['weapon'])
+            for (const t of weapon.triggers ?? []) this.passiveTriggers.push(t)
+            if (weapon.grantsActions) gainedActions.push(...weapon.grantsActions)
         }
 
         // 副手武器：只处理 effects/triggers/grantsActions，不处理 tag，不含 range/战斗逻辑
         if (build.offhand) {
             const offhand = getWeapon(build.offhand)
-            for (const eff of offhand.effects ?? []) applyPassiveEffect(eff.type, this, eff, ['weapon'])
+            this.addSource(`offhand:${build.offhand}`, 'offhand', offhand.effects, ['weapon'])
             for (const t of offhand.triggers ?? []) this.passiveTriggers.push(t)
             if (offhand.grantsActions) gainedActions.push(...offhand.grantsActions)
         }
@@ -184,8 +176,102 @@ export class Character {
         return this.#maxTriggerSlots
     }
 
-    /** 应用被动：达标检测 → effects + triggers */
-    applyPassive(p: Passive): void {
+    /**
+     * 记入一个来源的构造期修正（功法/天赋/奇物/武器/副手）。
+     *
+     * 等价于旧的逐条 `applyPassiveEffect`，区别是写进层账再重算 —— 因此可以整体撤销、也不会因为
+     * 手写反函数而夹取漂移。同名来源重复加入时覆盖（容错）。
+     */
+    addSource(sourceId: string, kind: SourceKind, effects: EffectDef[] | undefined, sourceTags?: string[]): void {
+        const layer = buildSourceLayer(sourceId, kind, effects, this, sourceTags)
+        if (!layer) return
+        const idx = this.sourceLayers.findIndex((l) => l.sourceId === sourceId)
+        if (idx >= 0) this.sourceLayers[idx] = layer
+        else this.sourceLayers.push(layer)
+        this.rebuildSourceDerived()
+    }
+
+    /** 撤销一个来源的全部构造期修正（探云手偷走奇物 / 换武器 / 卸下被动） */
+    removeSource(sourceId: string): boolean {
+        const idx = this.sourceLayers.findIndex((l) => l.sourceId === sourceId)
+        if (idx < 0) return false
+        this.sourceLayers.splice(idx, 1)
+        this.rebuildSourceDerived()
+        return true
+    }
+
+    /** 层账 → 武器定义（基础武器 + 各层 weapon_tag）；武器属性门槛与展示都读它 */
+    private derivedWeaponDef(): WeaponDef {
+        const base = getWeapon(this.build.weapon)
+        const extra = this.sourceLayers.flatMap((l) => l.weaponTags).filter((t) => !base.tags.includes(t))
+        return extra.length > 0 ? { ...base, tags: [...base.tags, ...extra] } : base
+    }
+
+    /**
+     * 重算层账：attrs = baseAttrs + Σ各层（每层先 converts、再 mods，mods 按 stat_restriction 夹取），
+     * 然后汇总派生值（maxHpMod / triggerSlotMod / 武器 tag / 限制器 / 时长回调 / 触发槽上限）。
+     *
+     * 幂等：一律从 baseAttrs 起算、只用层上的**请求值**，所以删层后必然精确回退（不依赖任何反函数）。
+     * 当前 hp/ap 不回填，只在 maxAp 变小时夹住（与既有 `max_ap_mod` 的 `capAp` 口径一致）。
+     */
+    private rebuildSourceDerived(): void {
+        const base = this.build.baseAttrs as Partial<Record<AttrName, number>>
+        for (const attr of ALL_ATTRS) this.attrs.set(attr, base[attr] ?? ATTR_ABSOLUTE_MIN)
+        // applied 是"本轮重算的实际生效量"，每轮必须清零重记（重算会被 addSource 多次触发）
+        for (const layer of this.sourceLayers) layer.applied = {}
+        // 限制器 / 时长回调由层推导（旧实现是往数组里 push，撤不掉）
+        this.buffDurationCallbacks = this.sourceLayers.flatMap((l) => l.durationMults)
+        const checks: StatRestrictionCheck[] = []
+        let maxHpMod = 0
+        let triggerSlotMod = 0
+        const tags: Tag[] = []
+        for (const layer of this.sourceLayers) {
+            // 按层内声明的操作顺序回放：restriction 注册后只拦后面的 mod（与旧逐条应用一致）
+            for (const op of layer.ops) {
+                if (op.kind === 'restriction') {
+                    checks.push(op.check)
+                    continue
+                }
+                if (op.kind === 'convert') {
+                    const src = this.attrs.get(op.from)
+                    const delta = op.mode === 'floor' ? Math.floor(src * op.ratio) : Math.round(src * op.ratio)
+                    for (const to of op.to) {
+                        const beforeTo = this.attrs.get(to)
+                        if (delta !== 0) this.attrs.modify(to, delta)
+                        layer.applied[to] = (layer.applied[to] ?? 0) + (this.attrs.get(to) - beforeTo)
+                    }
+                    continue
+                }
+                const attr = op.attr
+                let delta = op.value
+                // 与旧 stat_buff 同一个夹取口径：限制器可 skip（归零）或用 delta 覆盖
+                for (const check of checks) {
+                    const result = check(this, attr, this.attrs.get(attr), delta, layer.sourceTags)
+                    if (!result) continue
+                    if (result.skip) {
+                        delta = 0
+                        break
+                    }
+                    if (result.delta !== undefined) delta = result.delta
+                }
+                const before = this.attrs.get(attr)
+                if (delta !== 0) this.attrs.modify(attr, delta)
+                layer.applied[attr] = (layer.applied[attr] ?? 0) + (this.attrs.get(attr) - before)
+            }
+            maxHpMod += layer.maxHpMod
+            triggerSlotMod += layer.triggerSlotMod
+            tags.push(...layer.weaponTags)
+        }
+        this.statRestrictionChecks = checks
+        this.maxHpMod = maxHpMod
+        this.triggerSlotMod = triggerSlotMod
+        this.weaponDef = this.derivedWeaponDef()
+        this.#maxTriggerSlots = Math.max(1, Math.floor(this.attrs.get('wisdom') / 4)) + this.triggerSlotMod
+        this.capAp()
+    }
+
+    /** 应用被动：达标检测 → effects（记层账）+ triggers */
+    private applyPassive(p: Passive): void {
         // 属性要求检测（不达标则不生效）。
         // 天赋只看**原始属性** baseAttrs：它由构造时的 checkTalents(baseAttrs) 决定，
         // 不能因为装备/功法的加减属性而出现或消失；其余被动沿用生效属性。
@@ -204,8 +290,12 @@ export class Character {
             )
             if (!maxOk) return
         }
-        // effects
-        for (const eff of p.effects ?? []) applyPassiveEffect(eff.type, this, eff)
+        // effects（记入来源层账，可整体撤销）
+        this.addSource(
+            `passive:${p.id}`,
+            p.tags.includes('talent') ? 'talent' : 'passive',
+            p.effects,
+        )
         // triggers
         for (const slot of p.triggers ?? []) this.passiveTriggers.push(slot)
     }
@@ -320,7 +410,7 @@ export class Character {
         const def = getArtifact(id)
         if (!def) return false
         this.artifactDefs.push(def)
-        for (const eff of def.effects ?? []) applyPassiveEffect(eff.type, this, eff)
+        this.addSource(`artifact:${id}`, 'artifact', def.effects)
         for (const t of def.triggers ?? []) this.passiveTriggers.push(t)
         if (engine) processOnEquipEffects(engine, this, [def], engine.state.turn.currentTime)
 
@@ -467,6 +557,8 @@ export class Character {
     forkForSim(): Character {
         const c = Object.create(this) as Character
         c.res = emptyResourceTally()
+        // 层账也不能被沙盒污染（同 res 那个坑）：沙盒自带一份数组（层对象只读共享，沙盒不重算也不改层）
+        c.sourceLayers = [...this.sourceLayers]
         return c
     }
 }

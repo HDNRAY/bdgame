@@ -4,6 +4,7 @@ import { TurnManager } from './turn'
 import { BattleLog } from './battle-log'
 import { getWeapon } from '../../data/weapons/weapons'
 import { calcSummonInterval, calcApRegen, calcActionDurationMs, MIN_TURN_DELAY_MS } from '../calc/damage'
+import { layersOf } from '../entities/character/source-layer'
 import { canExecuteAction } from '../calc/action-executor'
 import { calcEffectiveApRegenPerSec, calcExtraApRegenPerSec } from './utils/ap-regen'
 import { calcEffectiveChanRegenPerSec } from './utils/chan-regen'
@@ -12,7 +13,7 @@ import { getRuntimeAction } from '../../data/actions'
 import { getBuff } from '../../data/buffs'
 import { checkCondition } from '../../game/entities/action-config'
 import { resolveCondition } from '../../data/conditions'
-import type { ActionDefinition, EffectDef } from '../entities/action'
+import type { ActionDefinition } from '../entities/action'
 import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
 import { reduceBleedOnHeal } from './utils/buff-layer'
@@ -138,16 +139,13 @@ export class BattleEngine {
     getBuffs(charId: string): ActiveBuffSnapshot[] {
         const result: ActiveBuffSnapshot[] = []
         const byBuffId = new Map<string, number>()
-        for (const [key, layer] of this.state.pendingBuffs) {
-            const parts = key.split('::')
-            if (parts.length < 2 || parts[1] !== charId) continue
-            const buffId = parts[0]
-            const def = getBuff(buffId)
+        // 只遍历该角色自己的层（BuffRegistry 走 byOwner 索引，不再全表扫 + 解析 key）
+        forEachBuffOf(this.state.pendingBuffs, charId, (def, layer, buffId) => {
             const name = def?.name ?? buffId
             if (buffId === 'stun_track') {
                 const consecutive = (layer.extra?.consecutive as number) ?? 0
                 result.push({ buffId, name, stacks: consecutive })
-                continue
+                return
             }
             if (!byBuffId.has(buffId)) {
                 byBuffId.set(buffId, 0)
@@ -160,32 +158,31 @@ export class BattleEngine {
                 // none / independent: count layers
                 byBuffId.set(buffId, (byBuffId.get(buffId) ?? 0) + 1)
             }
-        }
+        })
         for (const [buffId, stacks] of byBuffId) {
             result.push({ buffId, name: getBuff(buffId)?.name ?? buffId, stacks })
         }
         return result
     }
 
-    /** 构建当前战斗快照 */
-    private sumAttrMods(effects: EffectDef[]): Record<string, number> {
-        const mods: Record<string, number> = {}
-        for (const e of effects) {
-            if (e.type === 'stat_buff' && e.attrs) {
-                for (const [attr, val] of Object.entries(e.attrs)) {
-                    mods[attr] = (mods[attr] ?? 0) + val
-                }
+    /**
+     * 属性来源拆分：直接读来源层账的**实际生效量**（layersOf），不再回头把 defs 的 `stat_buff`
+     * 重新求和 —— 面板读数因此与真实 `attrs` 天然一致（含 attr_convert 的贡献，也含被
+     * stat_restriction 夹取掉的部分）。
+     */
+    private getAttrBreakdown(c: Character): AttrSourceBreakdown {
+        const out: AttrSourceBreakdown = { passives: {}, artifacts: {}, weapons: {} }
+        for (const v of layersOf(c)) {
+            const l = v.sourceLayer
+            if (!l) continue
+            const bucket =
+                l.kind === 'artifact' ? out.artifacts : l.kind === 'weapon' || l.kind === 'offhand' ? out.weapons : out.passives
+            for (const [attr, delta] of Object.entries(l.applied)) {
+                if (delta === 0) continue
+                bucket[attr] = (bucket[attr] ?? 0) + delta
             }
         }
-        return mods
-    }
-
-    private getAttrBreakdown(c: Character): AttrSourceBreakdown {
-        return {
-            passives: this.sumAttrMods(c.passiveDefs.flatMap((p) => p.effects ?? [])),
-            artifacts: this.sumAttrMods(c.artifactDefs.flatMap((a) => a.effects ?? [])),
-            weapons: this.sumAttrMods(c.weaponDef?.effects ?? []),
-        }
+        return out
     }
 
     /** 快照内息 = 已含「自上次恢复参考点以来」的回复（引擎惰性回复实时化，仅显示用，不改状态） */
