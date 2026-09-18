@@ -4,6 +4,7 @@ import type { TurnManager } from './turn'
 import type { BattleLog } from './battle-log'
 import type { BuffLayer, BattlePhase } from './types'
 import { BuffRegistry } from './utils/buff-registry'
+import type { RegisteredHook } from './utils/buff-registry'
 
 /**
  * 战斗状态：由纯 interface 升级为 class，buff 存取/遍历收口到 BuffRegistry。
@@ -42,6 +43,25 @@ export class BattleState {
         s.eventActorId = this.eventActorId
         s.eventTime = this.eventTime
         s.pendingBuffs = this.pendingBuffs.cloneFor(charIds)
+        s.lastWinner = this.lastWinner
+        s.actionCount = this.actionCount
+        s.isEmitting = this.isEmitting
+        s.moveDelta = this.moveDelta
+        s.triggeredThisChain = this.triggeredThisChain
+        return s
+    }
+
+    /** 受限版 cloneFor：buff 只克隆「指定角色且 def 命中 hooks 白名单」的层，其余状态照 cloneFor 处理 */
+    cloneForHooks(charIds: readonly string[], hooks: readonly RegisteredHook[]): BattleState {
+        const s = new BattleState()
+        s.phase = this.phase
+        s.characters = this.characters
+        s.position = this.position
+        s.turn = this.turn
+        s.log = this.log
+        s.eventActorId = this.eventActorId
+        s.eventTime = this.eventTime
+        s.pendingBuffs = this.pendingBuffs.cloneForHooks(charIds, hooks)
         s.lastWinner = this.lastWinner
         s.actionCount = this.actionCount
         s.isEmitting = this.isEmitting

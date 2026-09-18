@@ -15,7 +15,39 @@ import {
 } from '../calc/damage'
 import { DMG_PER_POISON_TICK } from '../constants'
 import { forEachBuffOf } from '../combat/utils'
+import type { RegisteredHook } from '../combat/utils/buff-registry'
 import { calcChokeTickDamage } from '../../data/buffs/debuffs'
+
+/**
+ * 本函数会读取到的全部 buff 钩子白名单（用于受限沙盒克隆 cloneForHooks）。
+ *
+ * 只有 def 命中本白名单（拥有其中任一钩子）的层才会被克隆进 safeState；因此
+ * 「在 calcExpectedDamage 里新读取了某个 def.onXxx」时必须同步加到这里，否则该层会被沙盒漏掉、期望伤害失真。
+ * 除下方直接出现的 def.onXxx，还包含间接读取：
+ *  - onRuntimeAction：getRuntimeAction(action.id, attacker, safeState) 内部按攻击方 buff 修正运行时招式
+ *  - onDebuffTick / onDebuffApplied：DoT 期望与施毒钩子链（见 applyDotTickHooks / applyDebuffAppliedHooks）
+ */
+export const EVAL_HOOKS: readonly RegisteredHook[] = [
+    'onAction',
+    'onAfterCritDamage',
+    'onCanBeParried',
+    'onCanParry',
+    'onCritChance',
+    'onCritDamage',
+    'onCritTakenChance',
+    'onCritTakenDamage',
+    'onDealDamage',
+    'onDebuffApplied',
+    'onDebuffTick',
+    'onDodgeChance',
+    'onHitChance',
+    'onParryChance',
+    'onParryPenetration',
+    'onParryReduction',
+    'onPostCritDamage',
+    'onRuntimeAction',
+    'onTakeDamage',
+]
 
 export interface DamageEstimate {
     actionId: string
@@ -81,9 +113,13 @@ export function calcExpectedDamage(
     // 克隆可变参数（钩子篡改只影响克隆，不影响原件）；资源流水必须自带一份，见 Character.forkForSim
     const safeAtk = attacker.forkForSim()
     const safeDef = defender.forkForSim()
-    // 沙盒 state：只克隆两个角色的 buff 层及其 hook 注册（钩子只读写这些角色的层），
+    // 沙盒 state：克隆两个角色的 buff 层及其 hook 注册（钩子只读写这些角色的层），
     // 轻量浅克隆替代 structuredClone 全量深拷贝（热路径 ~44% 开销）。
     // state 恒为 BattleState class（生产与 DevMode 评估均构造真 class），cloneFor 必然存在
+    //
+    // 注意：`cloneForHooks(..., EVAL_HOOKS)`（只克隆 EVAL_HOOKS 命中的层）实测更快（-21%），
+    // 但**会改变沙盒对全局 Math.random 的消耗次数**（473 vs 410 次/场）→ RNG 流分叉 →
+    // 对局结果变化（实测 陶朵 -9pp）。要启用它，必须先把推演沙盒的随机数与主战斗解耦。
     const safeState = state.cloneFor([safeAtk.id, safeDef.id])
 
     // atDistance 提供时用指定距离评估（planner 在 target 落点评估段2 招式，避免用当前距离失真）

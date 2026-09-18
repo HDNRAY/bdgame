@@ -12,8 +12,10 @@ import type { BuffLayer } from '../types'
  *
  * 注册时机：建层/叠层时按 def 有哪些钩子登记；移除时按 key 注销。
  * 不注册的钩子（建层/叠层/移除时单点调用，不靠遍历找）：onBuffApplied / onStackGain /
- * onDebuffApply / onReceiveDebuff / onBuffApply / onRuntimeAction / getExtraAttack / canTriggerAction /
- * logFormat / onDebuffApplied（由攻击方触发时单点）等——凡「结算时遍历某角色所有层找钩子」的才注册。
+ * onDebuffApply / onReceiveDebuff / onBuffApply / getExtraAttack / canTriggerAction /
+ * logFormat 等——凡「结算时遍历某角色所有层找钩子」的才注册。
+ * 例外：onDebuffApplied / onRuntimeAction 结算时不走 hooks 遍历直达（由攻方单点调用），
+ * 但 AI 期望伤害评估的按钩子受限克隆（cloneForHooks）需要按桶选中它们，故也登记。
  */
 
 /** 需要注册的「结算遍历类」钩子字段（遍历某角色层找带此钩子的 buff 调用） */
@@ -42,6 +44,7 @@ const REGISTERED_HOOKS = [
     'onCritTakenDamage',
     'onActionCost',
     'onAction',
+    'onRuntimeAction',
     'onOpponentAction',
     'onApSpent',
     'onTurnEnd',    'onReceiveHeal',
@@ -51,6 +54,7 @@ const REGISTERED_HOOKS = [
     'onMoveEfficiency',
     'onDisarmChance',
     'onDebuffTick',
+    'onDebuffApplied',
     'apRegenPerSec',
     'chanRegenPerSec',
 ] as const
@@ -113,6 +117,11 @@ export class BuffRegistry extends Map<string, BuffLayer> {
     private keyToHooks = new Map<string, RegisteredHook[]>()
     /** key → ownerId 缓存（set 高频路径避免重复 slice 解析） */
     private ownerCache = new Map<string, string>()
+    /** key → 建层序号（首次写入时分配；受限克隆按它回放，保证 byOwner 遍历顺序与全量克隆一致） */
+    private keySeq = new Map<string, number>()
+    /** originId → 该来源拥有的层 keys（来源层撤销走它，O(该来源的层)） */
+    private bySource = new Map<string, Set<string>>()
+    private nextSeq = 0
 
     /** 建层/叠层：写入真源并同步 byOwner/hooks（真源写入走 super.set 避免重复解析 owner） */
     register(key: string, layer: BuffLayer, buff: BuffDef): void {
@@ -192,7 +201,40 @@ export class BuffRegistry extends Map<string, BuffLayer> {
         return out
     }
 
-    /** 全量重建所有层的 hook 注册（cloneFor 后如需 forEachHook 直达时调用） */
+    /**
+     * 按钩子白名单过滤的克隆（AI 期望伤害评估专用）：只复制「属于 charIds 且 def 命中 hooks 白名单」的层。
+     * 直接按 hooks 桶遍历取层（不扫 byOwner 全量层、不逐层判 def），只克隆真正会被读取的层；
+     * 再按真源建层序号回放，保证克隆后 byOwner 遍历顺序与 cloneFor 一致（钩子链顺序敏感）；
+     * 最后调用 resyncAllHooks() 重建完整 hooks 索引。
+     * 语义对齐 cloneFor 的过滤版：其他状态不处理，调用方按需补。
+     */
+    cloneForHooks(charIds: readonly string[], hooks: readonly RegisteredHook[]): BuffRegistry {
+        const out = new BuffRegistry()
+        const owners = new Set(charIds)
+        // 选层：只走 hooks 桶，不扫 byOwner 全量层
+        const selected = new Map<string, BuffEntry>()
+        for (const hook of hooks) {
+            const entries = this.hooks.get(hook)
+            if (!entries) continue
+            for (const e of entries) {
+                if (selected.has(e.key) || !owners.has(e.ownerId)) continue
+                selected.set(e.key, e)
+            }
+        }
+        // 按真源建层序号回放：钩子桶遍历不保证全局顺序，而 onDealDamage/onPostCritDamage 等是链式
+        // （顺序敏感），必须让克隆后的 byOwner 遍历顺序与 cloneFor 完全一致。
+        const ordered = [...selected.values()].sort((a, b) => (this.keySeq.get(a.key) ?? 0) - (this.keySeq.get(b.key) ?? 0))
+        for (const e of ordered) {
+            const layer = super.get(e.key)
+            if (!layer) continue
+            out.set(e.key, cloneBuffLayer(layer))
+        }
+        // 复制后按已有层重建 hook 索引（与建层时 register 的注册结果一致，含白名单之外的钩子）
+        out.resyncAllHooks()
+        return out
+    }
+
+    /** 全量重建所有层的 hook 注册（cloneForHooks 复制后调用；武器切换等场景亦可用来补齐） */
     resyncAllHooks(): void {
         for (const [key, layer] of super.entries()) {
             const buffId = key.slice(0, key.indexOf('::'))
@@ -238,6 +280,8 @@ export class BuffRegistry extends Map<string, BuffLayer> {
     /** 真源写入 + byOwner 同步（不建 hooks） */
     #setRaw(key: string, layer: BuffLayer): void {
         super.set(key, layer)
+        // 首次写入时分配建层序号（重复 set 同一 key 不改变顺序，与 byOwner Set 语义一致）
+        if (!this.keySeq.has(key)) this.keySeq.set(key, this.nextSeq++)
         const owner = this.#ownerOf(key)
         if (owner) {
             let keys = this.byOwner.get(owner)
@@ -247,10 +291,46 @@ export class BuffRegistry extends Map<string, BuffLayer> {
             }
             keys.add(key)
         }
+        const originId = layer.originId
+        if (originId) {
+            let keys = this.bySource.get(originId)
+            if (!keys) {
+                keys = new Set()
+                this.bySource.set(originId, keys)
+            }
+            keys.add(key)
+        }
+    }
+
+    /** 某个来源（originId）当前拥有的层 key 列表 */
+    keysOfOrigin(originId: string): string[] {
+        return [...(this.bySource.get(originId) ?? [])]
+    }
+
+    /** 给已有层补打来源标记（层是先建后认领的场景：探云手偷来后把 on_equip 挂的层认到该奇物名下） */
+    tagOrigin(key: string, originId: string): void {
+        const layer = super.get(key)
+        if (!layer) return
+        layer.originId = originId
+        let keys = this.bySource.get(originId)
+        if (!keys) {
+            keys = new Set()
+            this.bySource.set(originId, keys)
+        }
+        keys.add(key)
     }
 
     /** 真源删除 + byOwner 同步（不注销 hooks，调用方负责 #syncHooks remove） */
     #deleteRaw(key: string): boolean {
+        const layer = super.get(key)
+        const originId = layer?.originId
+        if (originId) {
+            const keys = this.bySource.get(originId)
+            if (keys) {
+                keys.delete(key)
+                if (keys.size === 0) this.bySource.delete(originId)
+            }
+        }
         const owner = this.#ownerOf(key)
         if (owner) {
             const keys = this.byOwner.get(owner)
@@ -259,6 +339,8 @@ export class BuffRegistry extends Map<string, BuffLayer> {
                 if (keys.size === 0) this.byOwner.delete(owner)
             }
         }
+        // 同步清建层序号：删后重加视为新层（与 byOwner 末尾追加的顺序一致）
+        this.keySeq.delete(key)
         return super.delete(key)
     }
 

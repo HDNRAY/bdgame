@@ -5,6 +5,7 @@ import type { BattleState, BuffLayer } from '../types'
 import type { BuffDef } from '../../../data/buffs'
 import { genAppId } from '../../util/buff-utils'
 import { applyScaledAttrMods, scheduleBuffEnd, removeBuffLayer } from './buff-layer'
+import { forEachBuffOf } from './buff-loop'
 
 /** super_armor 施加时清除的硬控 debuff */
 const CC_DEBUFF_IDS = ['stun', 'knockdown', 'disarmed'] as const
@@ -47,24 +48,25 @@ export function applyMaxApMod(target: Character, layer: BuffLayer, buff: BuffDef
     layer.mods.maxApMod = (layer.mods.maxApMod ?? 0) + buff.maxApMod * stacks
 }
 
-/** 统计某角色某 independent buff 的当前总层数 */
+/** 统计某角色某 independent buff 的当前总层数（只遍历该角色自己的层，走 byOwner 索引） */
 export function countIndependentLayers(state: BattleState, buffId: string, charId: string): number {
-    const prefix = `${buffId}::${charId}::`
     let n = 0
-    for (const k of state.pendingBuffs.keys()) if (k.startsWith(prefix)) n++
+    forEachBuffOf(state.pendingBuffs, charId, (_def, _layer, id, key) => {
+        // independent 的 key 是 `buff::charId::appId`；非 independent 的同名层不算（与旧实现的前缀口径一致）
+        if (id !== buffId) return
+        if (key.indexOf('::', key.indexOf('::') + 2) < 0) return
+        n++
+    })
     return n
 }
 
-/** super_armor 施加时清除目标身上的硬控 */
+/** super_armor 施加时清除目标身上的硬控（只遍历该角色的层，先收集再删） */
 export function clearCcOnSuperArmor(engine: BattleEngine, charId: string): void {
-    for (const id of CC_DEBUFF_IDS) {
-        const prefix = `${id}::${charId}`
-        // independent 叠层的 key 是 `buff::charId::appId`，所以按前缀扫，别只查两段 key
-        for (const ck of [...engine.state.pendingBuffs.keys()]) {
-            if (ck !== prefix && !ck.startsWith(`${prefix}::`)) continue
-            removeBuffLayer(engine, ck)
-        }
-    }
+    const keys: string[] = []
+    forEachBuffOf(engine.state.pendingBuffs, charId, (_def, _layer, buffId, key) => {
+        if ((CC_DEBUFF_IDS as readonly string[]).includes(buffId)) keys.push(key)
+    })
+    for (const key of keys) removeBuffLayer(engine, key)
 }
 
 /** 有 tickInterval 的 buff 建层后调度 tick 事件 */

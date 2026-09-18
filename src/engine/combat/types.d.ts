@@ -21,12 +21,35 @@ export interface ActionResult {
 
 export type BattlePhase = 'idle' | 'fighting' | 'finished'
 
-export interface BuffLayer {
+/** 属性修正表（键是属性名；`maxApMod` 这类非属性修正也用同一张表，所以键是 string） */
+export type ModTable = Record<string, number>
+
+/**
+ * 层的公共面：构造期「来源层」与战斗期「buff 层」都实现它。
+ *
+ * 结构上一个类型、逻辑上两类（来源固有 vs 战斗内挂上）、存储上物理分开：
+ * 来源层住在 `Character.sourceLayers`（不进 AI 沙盒克隆），战斗层住在 `state.pendingBuffs`。
+ * 合并视图用 `layersOf()` 读。
+ */
+export interface LayerBase {
+    /** 统一标识：来源层 = sourceId（'artifact:iron_mask'）；战斗层 = buffId */
+    id?: string
+    /** source = 构造期来源固有层；battle = 战斗中挂上的层（默认） */
+    origin?: 'battle' | 'source'
+    /** 属性修正（来源层里是"请求值"，实际生效量看 applied） */
+    mods?: ModTable
+    /** 实际生效的属性增减（夹取之后，供核对/展示） */
+    applied?: ModTable
+}
+
+export interface BuffLayer extends LayerBase {
     buffId?: string
     restoreValue: number
     targetId?: string
+    /** 施加者 id（既有语义，勿与 originId 混用） */
     sourceId?: string
-    mods?: Record<string, number>
+    /** origin === 'source' 时：拥有这条层的来源（'artifact:iron_mask' / 'weapon:yanling_blade'） */
+    originId?: string
     extra?: Record<string, number | string | boolean | number[] | string[]>
 }
 
@@ -50,6 +73,11 @@ export interface BattleState {
     triggeredThisChain: Set<string> | null
     /** AI 评估沙盒：克隆只含指定角色层的新 state（实现见 battle-state.ts BattleState） */
     cloneFor(charIds: readonly string[]): BattleState
+    /** AI 评估沙盒（受限版）：只克隆指定角色中 def 命中 hooks 白名单的 buff 层 */
+    cloneForHooks(
+        charIds: readonly string[],
+        hooks: readonly import('./utils/buff-registry').RegisteredHook[],
+    ): BattleState
     /** 快照输出：等价 [...pendingBuffs.entries()] */
     toSnapshotEntries(): [string, BuffLayer][]
 }
