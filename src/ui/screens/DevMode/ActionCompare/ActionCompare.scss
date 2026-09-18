@@ -21,6 +21,34 @@
         margin-left: var(--sp-lg);
     }
 
+    // 标签多选单独一行：条目多，避免与 AP/搜索挤在同一行
+    &-controls-tags {
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    // 清空按钮：沿用 chip 的描边/圆角，视觉与 AP 选择器一致
+    &-clear {
+        padding: 4px 10px;
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: none;
+        color: var(--color-text-dim);
+        font-family: inherit;
+        font-size: var(--font-sm);
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+    }
+
     &-chip {
         display: inline-flex;
         align-items: center;

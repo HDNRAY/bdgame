@@ -1,6 +1,7 @@
 // ════════════════════════════════════════
 //  ActionCompare — 招式 AP 档横向对比（DevMode）
 //    - AP 成本为多选过滤（选中几档就对比几档，0-5AP 可任意勾选）
+//    - 标签多选过滤（OR：命中任一即保留；选项只列候选池里实际出现过的 tag）
 //    - 不再特例"顺水推舟"——选中 4AP 自然包含它（它是 4AP 招式）
 //  口径：全属性 15 · 缠 50 · 满 AP · 49% 血(斩杀档 25%) · 距离 4
 // ════════════════════════════════════════
@@ -18,8 +19,10 @@ import type { Tag } from '../../../../engine/entities/tag'
 import { calcChanCostInAp } from '../../../../engine/calc/chan-value'
 import type { ActionDefinition } from '../../../../engine/entities/action'
 import { EntityItem } from '../../../components/ui/EntityItem/EntityItem'
+import { Tag as TagBadge } from '../../../components/ui/Tag/Tag'
 import './ActionCompare.scss'
 import { allMainActions } from '../../../../engine'
+import { collectTagOptions, filterActions, getCandidateActions, parseTagParam } from './filter'
 
 const ATTRS = { strength: 15, vitality: 15, agility: 15, dexterity: 15, insight: 15, wisdom: 15 }
 // 兜底武器：无属性加成的中性空手（真实 bare_hands 自带 +2 身法会污染伤害评估，这里造一把"计算用空手"）
@@ -31,6 +34,12 @@ const CALC_BARE_HANDS: WeaponDef = {
     range: [0, 2],
 }
 const ALL_AP = [0, 1, 2, 3, 4, 5]
+
+/** 候选池 = 对比表展示的招式全集（全部主招，去掉前置/后置辅助招） */
+const CANDIDATE_ACTIONS = getCandidateActions(allMainActions)
+/** 标签选项：只列候选池里实际出现过的 tag（不铺满 53 种），按 tagDisplay 中文名排序 */
+const TAG_OPTIONS: Tag[] = collectTagOptions(CANDIDATE_ACTIONS)
+const TAG_OPTION_SET = new Set<Tag>(TAG_OPTIONS)
 
 // 加分/惩罚系数
 // 射程/位移统一单价：位移 1 米 ≈ 射程 1 米（都能扩大这招的打击范围，同价计）
@@ -264,6 +273,9 @@ export function ActionCompare() {
         return Number.isFinite(raw) ? Math.min(MAX_CHAN, Math.max(0, raw)) : 35
     }, [searchParams])
 
+    // 标签多选（?tags=stun,paralyze）：与 AP 同样走 URL，分享/刷新/HMR 不丢；脏值（不在候选池）丢弃
+    const selectedTags: Tag[] = useMemo(() => parseTagParam(searchParams.get('tags'), TAG_OPTION_SET), [searchParams])
+
     // 搜索词：本地 state 实时输入（IME 组合不被 URL 重渲染打断——受控 value 直接绑 URL 时，
     // 中文输入每键触发 setSearchParams 重渲染，组合中的拼音被 URL 旧值覆盖 → 输入即消失），
     // 失焦（blur）时才写回 URL（保留 ?q= 持久化/HMR 恢复；输入过程中不写 URL）
@@ -285,20 +297,22 @@ export function ActionCompare() {
         patchParams({ ap: next.length > 0 ? next.join(',') : null })
     }
 
+    // 选中项按 TAG_OPTIONS（中文名）顺序写回 URL，链接稳定可分享
+    const toggleTag = (tag: Tag) => {
+        const next = selectedTags.includes(tag)
+            ? selectedTags.filter((t) => t !== tag)
+            : TAG_OPTIONS.filter((t) => t === tag || selectedTags.includes(t))
+        patchParams({ tags: next.length > 0 ? next.join(',') : null })
+    }
+
+    const clearTags = () => patchParams({ tags: null })
+
     const rows = useMemo<Row[]>(() => {
-        const isSupport = (a: ActionDefinition) => a.tags.includes('pre_action') || a.tags.includes('post_action')
-        const query = search.trim().toLocaleLowerCase()
-        return allMainActions
-            .filter((a) => {
-                // 不选任何 AP 档 = 显示全部（不做 AP 过滤）
-                if (selected.length > 0 && !selected.includes(a.apCost)) return false
-                if (isSupport(a)) return false
-                if (!query) return true
-                return [a.name, a.id, ...a.tags].some((value) => value.toLocaleLowerCase().includes(query))
-            })
+        // AP（多选）× 标签（OR）× 搜索 串联：三者都生效，任一不通过即剔除
+        return filterActions(CANDIDATE_ACTIONS, { ap: selected, tags: selectedTags, query: search })
             .map((a) => buildRow(a, a.apCost, chanNow))
             .sort((x, y) => y.score - x.score)
-    }, [selected, chanNow, search])
+    }, [selected, selectedTags, chanNow, search])
 
     return (
         <div className="ac">
@@ -335,6 +349,20 @@ export function ActionCompare() {
                     onBlur={(e) => commitSearch(e.target.value)}
                 />
             </div>
+            {/* 标签多选：选项只列候选池里实际存在的 tag（中文名/颜色取自 tagDisplay，经 Tag 原子组件渲染） */}
+            <div className="ac-controls ac-controls-tags">
+                <span className="ac-label">标签（多选）：</span>
+                {TAG_OPTIONS.map((tag) => (
+                    <label key={tag} className={`ac-chip${selectedTags.includes(tag) ? ' ac-chip-on' : ''}`}>
+                        <input type="checkbox" checked={selectedTags.includes(tag)} onChange={() => toggleTag(tag)} />
+                        <TagBadge tag={tag} />
+                    </label>
+                ))}
+                <button type="button" className="ac-clear" onClick={clearTags} disabled={selectedTags.length === 0}>
+                    清空
+                </button>
+                <span className="ac-label">（命中任一即保留）</span>
+            </div>
             <p className="ac-note">
                 双方全属性 15 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。{' '}
                 {COMPARE_DEFENSE_NOTE}，期望伤已按防御方减伤折算。 效率 = 期望伤 /（折前AP +
@@ -345,7 +373,7 @@ export function ActionCompare() {
                 斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）− 自耗血（比例×10）。
             </p>
             {rows.length === 0 ? (
-                <p className="ac-note">无匹配招式（搜索无结果）。</p>
+                <p className="ac-note">无匹配招式（当前 AP 档 / 标签 / 搜索条件无结果）。</p>
             ) : (
                 <table className="ac-table">
                     <thead>
