@@ -6,6 +6,7 @@ import { WEAPON_DB } from '../weapons/weapons'
 import { STARTING_WEAPONS } from '../weapons/starting-weapons'
 import { allMainActions } from '../actions'
 import { getBuff } from '../buffs'
+import { BUFF_DB } from '../buffs/buffs'
 import { CONSTRUCT_TRIGGER, type EffectSlot } from '../../engine/entities/trigger'
 import type { EffectDef } from '../../engine/entities/action'
 
@@ -59,5 +60,17 @@ describe('数据审计：源构造期槽 / buffId', () => {
         }
         for (const a of allMainActions) check(`招式:${a.id}`, a.effects)
         expect(missing).toEqual([])
+    })
+
+    it('动态属性 buff 不声明 attrMods（贡献只写 description）', () => {
+        // 判据：def 上任何一个函数钩子体内出现 `setLayerMods` —— 说明它的属性是运行期算出来的。
+        // 这类 buff 再声明 attrMods 只会骗界面：tooltip 把它当静态加成念出来，而每 tick 写进去的
+        // mods 是另一套数（秋水·盈虚 / 潮汐内力都踩过，见 docs/design-principles.md 第 2 条）。
+        const offenders: string[] = []
+        for (const def of BUFF_DB) {
+            const dynamic = Object.values(def).some((v) => typeof v === 'function' && String(v).includes('setLayerMods'))
+            if (dynamic && def.attrMods) offenders.push(`${def.id} → ${JSON.stringify(def.attrMods)}`)
+        }
+        expect(offenders).toEqual([])
     })
 })

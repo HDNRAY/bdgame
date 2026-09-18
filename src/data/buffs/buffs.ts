@@ -332,7 +332,8 @@ export const BUFF_DB: BuffDef[] = [
         description: '秋水时至，盈虚消长。灵巧与洞察之间每2秒挪移1点（最多4点），移动效率+10%。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
-        attrMods: { dexterity: 4, insight: 0 },
+        // 动态属性 buff：**不声明 attrMods**（那会被当静态加成展示，与实际每 tick 写进去的 mods 冲突），
+        // 贡献只写在 description 里 —— 见 docs/design-principles.md 第 2 条
         onMoveEfficiency: () => 0.1,
         tickInterval: 2000,
         onTickHeal: ({ attacker: char, engine, state, layer }) => {
@@ -642,7 +643,7 @@ export const BUFF_DB: BuffDef[] = [
         description: '内力如潮汐涨落，力道和身法之间每2秒挪移1点（最多4点）。',
         tags: ['heavy_reduce'],
         expiry: { type: 'permanent' },
-        attrMods: { strength: 4, agility: 0 },
+        // 同秋水·盈虚：动态属性只写 description，不声明 attrMods
         tickInterval: 2000,
         onTickHeal: ({ attacker: char, engine, state, layer }) => {
             const current = layer.restoreValue ?? 0
