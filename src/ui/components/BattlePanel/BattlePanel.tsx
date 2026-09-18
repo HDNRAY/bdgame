@@ -9,7 +9,9 @@ import { AnimationPanel, type AnimationPanelHandle } from '../AnimationPanel/Ani
 import { ControlsBar } from '../ControlsBar/ControlsBar'
 import { BattleStatusPanel } from '../BattleStatusPanel/BattleStatusPanel'
 import { LogPanel } from '../LogPanel/LogPanel'
+import { BattleStatsPanel } from '../BattleStatsPanel/BattleStatsPanel'
 import type { BattleSnapshot } from '../../../engine/combat/types'
+import type { BattleStatsSnapshot } from '../../../engine/combat/battle-stats'
 import './BattlePanel.scss'
 
 export interface BattlePanelProps {
@@ -36,6 +38,8 @@ export interface BattleData {
     snapshots: BattleSnapshot[]
     charAInfo: { id: string; name: string; color: string }
     charBInfo: { id: string; name: string; color: string }
+    /** 本场统计（单挑/肉鸽回放都能带上；缺省则底部不显示「统计」页签） */
+    stats?: BattleStatsSnapshot
 }
 
 export const BattlePanel = forwardRef<BattlePanelHandle, BattlePanelProps>(function BattlePanel(
@@ -44,19 +48,23 @@ export const BattlePanel = forwardRef<BattlePanelHandle, BattlePanelProps>(funct
 ) {
     const [battleKey] = useState(0)
     const battleEndedRef = useRef(false)
+    /** 底部页签：日志 / 本场统计 */
+    const [bottomTab, setBottomTab] = useState<'log' | 'stats'>('log')
 
     // 战斗数据：在 render 阶段计算（同步），通过 battleKey 触发重打
     const battleData: BattleData = useMemo(() => {
         if (initialData) return initialData
         const a = new Character(buildA)
         const b = new Character(buildB)
-        const { engine } = runBattle(a, b, undefined, 6)
+        // 带统计跑一场：单挑/肉鸽的底部「统计」页签读它（level 2 = 与构筑模拟同一口径）
+        const { engine } = runBattle(a, b, undefined, 6, false, { statsLevel: 2 })
         const snapshots = engine.state.log.getAll().map((e) => e.event.snapshot)
         const { lines: log, eventToLine } = formatBattleLog(engine.state.log)
         return {
             entries: engine.state.log.getAll() as LogEntry[],
             logLines: log,
             eventToLine,
+            stats: engine.stats?.snapshot(),
             snapshots,
             charAInfo: {
                 id: engine.state.characters[0].id,
@@ -180,12 +188,36 @@ export const BattlePanel = forwardRef<BattlePanelHandle, BattlePanelProps>(funct
                         ap={charAp ?? undefined}
                     />
                 )}
-                <LogPanel
-                    logLines={logLines}
-                    currentLine={currentLine}
-                    lineTimelineMs={lineTimelineMs}
-                    speed={playState.speed}
-                />
+                {battleData.stats && (
+                    <div className="bp-bottom-tabs">
+                        <button
+                            className={bottomTab === 'log' ? 'bp-tab is-active' : 'bp-tab'}
+                            onClick={() => setBottomTab('log')}
+                        >
+                            日志
+                        </button>
+                        <button
+                            className={bottomTab === 'stats' ? 'bp-tab is-active' : 'bp-tab'}
+                            onClick={() => setBottomTab('stats')}
+                        >
+                            统计
+                        </button>
+                    </div>
+                )}
+                {bottomTab === 'stats' && battleData.stats ? (
+                    <BattleStatsPanel
+                        snapshot={battleData.stats}
+                        names={{ [charAInfo.id]: charAInfo.name, [charBInfo.id]: charBInfo.name }}
+                        selfId={charAInfo.id}
+                    />
+                ) : (
+                    <LogPanel
+                        logLines={logLines}
+                        currentLine={currentLine}
+                        lineTimelineMs={lineTimelineMs}
+                        speed={playState.speed}
+                    />
+                )}
             </div>
             {showSidePanels && (
                 <div className="bp-side">

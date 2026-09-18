@@ -28,3 +28,28 @@
     font-family: var(--font-mono);
     font-size: var(--font-lg);
 }
+
+.bp-bottom-tabs {
+    display: flex;
+    gap: 2px;
+    border: var(--border-width) solid var(--color-border);
+    border-bottom: none;
+    background: var(--color-bg);
+
+    .bp-tab {
+        flex: 0 0 auto;
+        padding: 2px var(--sp-sm);
+        background: transparent;
+        border: none;
+        border-right: var(--border-width) solid var(--color-border);
+        color: var(--color-text-dim);
+        font-family: var(--font-mono);
+        font-size: var(--font-sm);
+        cursor: pointer;
+
+        &.is-active {
+            background: var(--color-bg-alt);
+            color: var(--color-text);
+        }
+    }
+}

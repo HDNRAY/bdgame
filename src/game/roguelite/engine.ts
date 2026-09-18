@@ -28,6 +28,7 @@ import { Character } from '../../engine/entities/character'
 import { classifyAttackStyle } from '../../engine/ai/planner'
 import { gen, getOpponentDef, pickRandomOpponentId } from '../../data/opponents/index'
 import { runBattle } from '../../engine/battle-runner'
+import type { BattleStatsSnapshot } from '../../engine/combat/battle-stats'
 
 export class RogueliteRun implements RogueliteEngine {
     private _listeners = new Set<(state: GameState) => void>()
@@ -38,7 +39,9 @@ export class RogueliteRun implements RogueliteEngine {
     /** 结局是否已写进元进度（一场只写一次） */
     private _endingRecorded = false
     /** 最近一场战斗回放原始日志（不进 state，避免每次 structuredClone 复制大数组；UI 播放用） */
-    private _battleReplay: { roundId: string; entries: { event: unknown; timelineMs: number }[] } | undefined =
+    private _battleReplay:
+        | { roundId: string; entries: { event: unknown; timelineMs: number }[]; stats?: BattleStatsSnapshot }
+        | undefined =
         undefined
     /** 大会对手（processTournament 产出）：注入到 id 为 match/group_r0 的战斗轮 */
     private _pendingTournamentEnemy: string | undefined = undefined
@@ -119,7 +122,9 @@ export class RogueliteRun implements RogueliteEngine {
     }
 
     /** 指定轮次的战斗回放原始日志（若该轮为最近一场战斗/教学）。 */
-    getBattleReplay(roundId: string): { entries: { event: unknown; timelineMs: number }[] } | undefined {
+    getBattleReplay(
+        roundId: string,
+    ): { entries: { event: unknown; timelineMs: number }[]; stats?: BattleStatsSnapshot } | undefined {
         return this._battleReplay?.roundId === roundId ? this._battleReplay : undefined
     }
 
@@ -317,8 +322,12 @@ export class RogueliteRun implements RogueliteEngine {
             if (aDef && bDef) {
                 const a = new Character(gen(aDef, t.level ?? 33))
                 const b = new Character(gen(bDef, t.level ?? 33))
-                const { engine } = runBattle(a, b)
-                this._battleReplay = { roundId: copy.id, entries: engine.state.log.getAll() }
+                const { engine } = runBattle(a, b, undefined, 4, false, { statsLevel: 2 })
+                this._battleReplay = {
+                    roundId: copy.id,
+                    entries: engine.state.log.getAll(),
+                    stats: engine.stats?.snapshot(),
+                }
             }
             delete copy.enemyId
             delete copy.enemyPool
@@ -505,9 +514,13 @@ export class RogueliteRun implements RogueliteEngine {
         if (round.bossName) enemyBuild.name = round.bossName
         const enemy = new Character(enemyBuild)
 
-        const { winner, engine } = runBattle(player, enemy)
-        // 保留本场回放日志（UI 用 initialData 播 log；不进 state，避免每次克隆大数组）
-        this._battleReplay = { roundId: round.id, entries: engine.state.log.getAll() }
+        const { winner, engine } = runBattle(player, enemy, undefined, 4, false, { statsLevel: 2 })
+        // 保留本场回放日志 + 本场统计（UI 用 initialData 播 log；不进 state，避免每次克隆大数组）
+        this._battleReplay = {
+            roundId: round.id,
+            entries: engine.state.log.getAll(),
+            stats: engine.stats?.snapshot(),
+        }
         const lost = winner === enemy.id
         const injuryGained = lost ? injuryForNode(this._state.nodeIndex) : 0
 
