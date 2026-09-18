@@ -41,7 +41,11 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 1. **Zero `as any`** — use discriminated union + switch for type narrowing. If unavoidable, justify with a comment.
 2. **Zero unused variables/imports** — `noUnusedLocals: true` + `noUnusedParameters: true` in tsconfig. Parameters that MUST exist for type signature but are truly unused get `_` prefix. Never use a `_`-prefixed variable in code.
 3. **不要硬编码业务逻辑到 engine** — 优先用 buff hook（`onCritDamage` / `onAfterCritDamage` / `onDealDamage` 等）、artifact/passive effect、trigger action 等已有扩展点实现特性。避免直接修改 `src/engine/` 下的核心战斗管道。
-4. **Always run after every change (not just before commit):**
+4. **不要动态 `import()`** —— 引擎 / 数据 / 脚本 / 测试里一律用顶层静态 `import`；类型也一样：写顶层 `import type { X } from '…'`，**不要**写行内 `import('…').X`。
+   动态 import 会把依赖关系藏起来、破坏类型检查与 tree-shaking，在 vitest/tsx 下还容易制造隐性 async 边界；它历史上被用来绕过循环依赖 —— 那应该改成拆模块，或用惰性索引（参考 `src/data/buffs/index.ts` 的懒构建），而不是动态 import。
+   唯一例外：UI 的路由级代码分割（`React.lazy(() => import('./ui/screens/…'))`，见 `src/App.tsx`）。
+
+5. **Always run after every change (not just before commit):**
     ```bash
     npx tsc --noEmit -p tsconfig.app.json  # strict type check
     npx eslint src/ --quiet                # eslint zero errors

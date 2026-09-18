@@ -1,3 +1,4 @@
+import type { Effect } from '../../game/entities/effect'
 import type { EventDef } from '../../game/entities/event'
 import type { When } from '../../game/entities/condition'
 import { POOL_NODES, STAGE1_END, STAGE3_PRE } from './layout'
@@ -365,7 +366,7 @@ export const MEMORY_REWARDS: {
     label: string
     description: string
     when?: When
-    effects?: import('../../game/entities/effect').Effect[]
+    effects?: Effect[]
 }[] = [
     {
         id: 'one_arm',

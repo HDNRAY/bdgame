@@ -2,7 +2,7 @@ import type { AttrName } from '../attributes'
 import type { EffectDef } from '../action'
 import type { Tag } from '../tag'
 import type { Character } from '.'
-import type { BattleState, LayerBase, ModTable } from '../../combat/types'
+import type { BattleState, BuffLayer, LayerBase, ModTable } from '../../combat/types'
 import { forEachBuffOf } from '../../combat/utils/buff-loop'
 import { getBuff, type BuffDef } from '../../../data/buffs'
 import { round1 } from '../../util/math'
@@ -206,7 +206,7 @@ export interface LayerView {
     /** 来源层本体（origin === 'source' 时） */
     sourceLayer?: SourceLayer
     /** 战斗层本体与其 registry key（origin === 'battle' 时，需传 state） */
-    buffLayer?: import('../../combat/types').BuffLayer
+    buffLayer?: BuffLayer
     key?: string
 }
 

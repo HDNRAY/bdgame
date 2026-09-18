@@ -9,7 +9,7 @@ import type { StatRestrictionCheck } from '../../engine/entities/character/sourc
 
 /** 运行时招式的最小接口（供 onRuntimeAction 使用） */
 export interface RuntimeAction {
-    tags: import('../../engine/entities/tag').Tag[]
+    tags: Tag[]
     getRange?(weaponRange: [number, number], self?: Character): [number, number]
 }
 

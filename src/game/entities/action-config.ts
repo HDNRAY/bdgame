@@ -1,3 +1,4 @@
+import type { Tag } from '../../engine/entities/tag'
 import type { BattleState } from '../../engine/combat/types'
 import type { Character } from '../../engine/entities/character'
 import type { ActionDefinition } from '../../engine/entities/action'
@@ -112,7 +113,7 @@ export function checkCondition(cond: RequiredCondition, self: Character, state: 
         case 'no_buff_with_tag': {
             let hasTag = false
             forEachBuffOf(state.pendingBuffs, self.id, (buff) => {
-                if (buff?.tags.includes(cond.tag as import('../../engine/entities/tag').Tag)) {
+                if (buff?.tags.includes(cond.tag as Tag)) {
                     hasTag = true
                     return false
                 }

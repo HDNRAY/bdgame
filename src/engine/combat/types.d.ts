@@ -2,6 +2,7 @@ import type { Character } from '../entities/character'
 import type { PositionSystem } from './position'
 import type { TurnManager } from './turn'
 import type { BattleLog } from './battle-log'
+import type { BuffRegistry, RegisteredHook } from './utils/buff-registry'
 
 // ── Engine types ──
 export interface ActionCommand {
@@ -77,7 +78,7 @@ export interface BattleState {
     eventActorId: string | null
     eventTime: number
     /** buff 注册表（BuffRegistry extends Map，.set/.delete/.get/.entries 语义不变） */
-    pendingBuffs: import('./utils/buff-registry').BuffRegistry
+    pendingBuffs: BuffRegistry
     lastWinner?: string
     actionCount: number
     /** 防止触发递归 */
@@ -91,7 +92,7 @@ export interface BattleState {
     /** AI 评估沙盒（受限版）：只克隆指定角色中 def 命中 hooks 白名单的 buff 层 */
     cloneForHooks(
         charIds: readonly string[],
-        hooks: readonly import('./utils/buff-registry').RegisteredHook[],
+        hooks: readonly RegisteredHook[],
     ): BattleState
     /** 快照输出：等价 [...pendingBuffs.entries()] */
     toSnapshotEntries(): [string, BuffLayer][]
