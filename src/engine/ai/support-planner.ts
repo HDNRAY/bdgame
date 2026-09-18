@@ -2,6 +2,7 @@ import type { Character } from '../entities/character'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getBuff } from '../../data/buffs'
 import { forEachBuffOf } from '../combat/utils'
+import { calcActionChanCost } from '../combat/utils/action-cost'
 import { checkCondition } from '../../game/entities/action-config'
 import { resolveCondition } from '../../data/conditions'
 
@@ -26,7 +27,7 @@ export function planSupportActions(
             if (!inst.canUse()) return false
             if (blacklist?.includes(inst.id)) return false
             // 缠劲不够的辅助招（挂需 50 缠等）引擎会跳过，别占用计划 AP
-            if (inst.def.chanCost && attacker.chan < inst.def.chanCost) return false
+            if (inst.def.chanCost && attacker.chan < calcActionChanCost(state, attacker, inst.def)) return false
             // 检查武器标签兼容性（双持时任一武器满足即可）
             if (inst.def.requiredTags.length > 0) {
                 const hasTag = inst.def.requiredTags.some((tag) => weaponTags.includes(tag))

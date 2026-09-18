@@ -39,18 +39,19 @@ describe('轮舞月斩 overlord_art', () => {
         expect(buff.onCritChance).toBeTypeOf('function')
     })
 
-    it('重器：命中+8%，不给暴击', () => {
+    // 数值随平衡调整，测试只钉「哪一档吃哪一个」——回归点是 onCritChance 曾照抄 onHitChance 的条件（两档同时生效/非重器全 0）
+    it('重器：吃命中、不给暴击', () => {
         const heavy = hookCtx('overlord_blade')
         expect(getWeapon('overlord_blade').tags).toContain('heavy')
-        expect(buff.onHitChance!(heavy)).toBe(0.08)
+        expect(buff.onHitChance!(heavy)).toBeGreaterThan(0)
         expect(buff.onCritChance!(heavy)).toBe(0)
     })
 
-    it('非重器：暴击+15%，不给命中（旧实现这里是 0/0，整条被动失效）', () => {
+    it('非重器：吃暴击、不给命中（旧实现这里是 0/0，整条被动失效）', () => {
         const light = hookCtx('three_section_spear')
         expect(getWeapon('three_section_spear').tags).not.toContain('heavy')
         expect(buff.onHitChance!(light)).toBe(0)
-        expect(buff.onCritChance!(light)).toBe(0.15)
+        expect(buff.onCritChance!(light)).toBeGreaterThan(0)
     })
 
     it('被动仍给 slash 招式加突进、并授予 retrieve_blade', () => {

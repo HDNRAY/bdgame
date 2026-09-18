@@ -20,6 +20,7 @@ import { getAction, getActionRange, getRuntimeAction } from '../../data/actions'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../../data/weapons/weapons'
 import { forEachBuffOf, calcExtraMoveEfficiency } from '../combat/utils'
+import { calcActionChanCost } from '../combat/utils/action-cost'
 import { PositionSystem } from '../combat/position'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
 import { chanOpportunityCost, calcChanCostInAp } from '../calc/chan-value'
@@ -209,7 +210,7 @@ export function planMove(
     for (const inst of self.actions) {
         const dashEff = inst.def.effects?.find((e): e is Extract<EffectDef, { type: 'dash' }> => e.type === 'dash')
         if (!dashEff) continue
-        if (inst.def.chanCost && self.chan < inst.def.chanCost) continue
+        if (inst.def.chanCost && self.chan < calcActionChanCost(state, self, inst.def)) continue
         if (inst.def.canUse && !inst.def.canUse(self, state)) continue
         const { minRange = 0, maxRange = Infinity, targetDist: rawTarget } = dashEff
         const targetDist = rawTarget < 0 ? (cachedMaxRange ??= self.getMaxActionRange(state)) : rawTarget

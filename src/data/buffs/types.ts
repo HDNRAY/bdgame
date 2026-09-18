@@ -169,6 +169,13 @@ export interface BuffDef extends GameEntity {
     onDodgeChance?: (ctx: BuffHookCtx) => number
     /** AP 消耗修正钩子（返回加算值，负=更省，最低1） */
     onActionCost?: (ctx: BuffHookCtx) => number
+    /**
+     * 缠劲消耗修正钩子（返回加算值，负=更省；总消耗 clamp 到 ≥0，0 成本招式保持 0）。
+     *
+     * 与 `onActionCost` 同构，覆盖主招与前后摇辅助招的 `chanCost`；不覆盖武器/奇物自扣的散点 `spendChan`。
+     * 引擎侧与 AI 估算统一走 `calcActionChanCost()` —— 别再各写一份（AP 那边就是散成四份才出的口径漂移）。
+     */
+    onActionChanCost?: (ctx: BuffHookCtx) => number
     /** AP 成功扣除后的通知钩子 */
     onApSpent?: (ctx: {
         self: Character

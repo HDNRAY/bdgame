@@ -15,6 +15,7 @@ import {
 } from '../calc/damage'
 import { DMG_PER_POISON_TICK } from '../constants'
 import { forEachBuffOf } from '../combat/utils'
+import { calcActionChanCost } from '../combat/utils/action-cost'
 import { rng } from '../util/rng'
 import { buffPresence, hookMaskOf } from '../combat/utils/buff-registry'
 import type { HookPresence, RegisteredHook } from '../combat/utils/buff-registry'
@@ -32,10 +33,12 @@ import { calcChokeTickDamage } from '../../data/buffs/debuffs'
  *    漏掉它会让这些层不进沙盒、`DamageEstimate.apCost` 恒为折前值
  *  - onHaste：actionApCost → getHaste(safeState) → calcExtraHaste 读的急速（风切/身法护持…），
  *    漏掉它沙盒算出的身法减免与真源不一致
+ *  - onActionChanCost：calcActionChanCost 累加缠劲折扣（明镜止水…），漏掉它 AI 会按原价估缠劲
  */
 export const EVAL_HOOKS: readonly RegisteredHook[] = [
     'onAction',
     'onActionCost',
+    'onActionChanCost',
     'onAfterCritDamage',
     'onCanBeParried',
     'onCanParry',
@@ -551,7 +554,7 @@ function calcExpectedDamageInner(
         hitChance,
         canReach,
         apCost: estimateApCost(action, safeAtk, safeDef, safeState),
-        chanCost: action.chanCost ?? 0,
+        chanCost: calcActionChanCost(safeState, safeAtk, action, safeDef),
     }
 }
 

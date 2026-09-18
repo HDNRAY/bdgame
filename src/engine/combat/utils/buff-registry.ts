@@ -43,6 +43,7 @@ const REGISTERED_HOOKS = [
     'onCritDamage',
     'onCritTakenDamage',
     'onActionCost',
+    'onActionChanCost',
     'onAction',
     'onRuntimeAction',
     'onOpponentAction',

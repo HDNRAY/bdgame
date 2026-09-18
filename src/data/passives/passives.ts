@@ -1353,7 +1353,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'mingjing_zhishui',
         name: '明镜止水',
-        description: '心如明镜止水，神清目明。免疫迷惑，抵抗失心，出招省AP。',
+        description: '心如明镜止水，神清目明。免疫迷惑，抵抗失心；心不散则炁不泄，招式AP与缠劲消耗各-15%。',
         tags: ['buff', 'defense'],
         effects: [
             {

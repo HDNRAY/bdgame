@@ -20,6 +20,7 @@ import { matchCondition } from './trigger-system'
 import { reduceBleedOnHeal } from './utils/buff-layer'
 import { processActionEffect, processHitCheck, processBuffEnd } from './effects'
 import { forEachBuffOf, calcExtraMoveEfficiency } from './utils'
+import { calcActionChanCost } from './utils/action-cost'
 import { tickEngine } from './tick-engine'
 import { BuffRegistry } from './utils/buff-registry'
 import { BattleState } from './battle-state'
@@ -500,7 +501,7 @@ export class BattleEngine {
         if (action.target === 'self') {
             if (action.canUse && !action.canUse(self, this.state)) return
             // 触发招式不扣 AP，但要扣缠劲（缠不足则本次触发作废）
-            if (action.chanCost && !self.spendChan(action.chanCost)) return
+            if (action.chanCost && !self.spendChan(calcActionChanCost(this.state, self, action, enemy))) return
             if (!isInitPhase) this.state.log.enterReaction()
             for (const eff of action.effects ?? []) {
                 processActionEffect(eff, { self, enemy, engine: this, tMs: this.#tMs, action, triggered: true })
@@ -770,7 +771,7 @@ export class BattleEngine {
         }
 
         // 缠劲消耗独立于 AP 门槛：0 成本招式（restore_ap 等）与触发招式同样扣缠；缠不足则作废
-        if (action.chanCost && !self.spendChan(action.chanCost)) return r
+        if (action.chanCost && !self.spendChan(calcActionChanCost(this.state, self, action, enemy))) return r
         let finalCost = action.apCost
         // 0 成本招式（御物召唤等）跳过 AP 消耗（onActionCost/身法减免/spendAp）
         if (!triggered && action.apCost > 0) {
@@ -934,7 +935,7 @@ export class BattleEngine {
         const cond = resolveCondition(self.getConfig(inst.id))
         if (cond && !checkCondition(cond, self, this.state)) return r
         // 缠劲不足的辅助招不释放（不扣 AP、不扣缠劲）
-        if (inst.def.chanCost && !self.spendChan(inst.def.chanCost)) return r
+        if (inst.def.chanCost && !self.spendChan(calcActionChanCost(this.state, self, inst.def, enemy))) return r
         const supportApCost = self.actionApCost(inst.apCost, this.state)
         if (!self.spendAp(supportApCost)) {
             return r
@@ -956,7 +957,7 @@ export class BattleEngine {
                 sourceId: self.id,
                 targetId: self.id,
                 apCost: self.actionApCost(inst.apCost, this.state),
-                chanCost: inst.def.chanCost ?? 0,
+                chanCost: calcActionChanCost(this.state, self, inst.def, enemy),
             })
         }
         for (const eff of inst.def.effects ?? []) {

@@ -1694,7 +1694,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'mingjing_zhishui_buff',
         name: '明镜止水',
-        description: '心如明镜，神清目明。招式AP消耗-15%。',
+        description: '心如明镜，神清目明。招式AP与缠劲消耗各-15%。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -1709,6 +1709,11 @@ export const BUFF_DB: BuffDef[] = [
             const act = source as ActionDefinition
             if (!act) return 0
             return -act.apCost * 0.15
+        },
+        // 心不散则炁不泄：缠劲消耗同幅 -15%（缠劲才是「三寸光」这类招式的真门槛）
+        onActionChanCost: ({ source }) => {
+            const chan = (source as ActionDefinition | undefined)?.chanCost ?? 0
+            return chan > 0 ? -chan * 0.15 : 0
         },
     },
     {
