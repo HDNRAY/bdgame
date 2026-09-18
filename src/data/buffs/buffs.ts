@@ -179,8 +179,10 @@ export const BUFF_DB: BuffDef[] = [
         description: '长兵轮转如月，重器加持命中+8%；否则暴击+15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.1 : 0),
-        onCritChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.15 : 0),
+        // 两档互斥：重器吃命中、非重器吃暴击。早先 onCritChance 把上面那行的条件照抄了一遍，
+        // 于是「否则」分支从未生效——非重器用（otsu·春翁）整个 buff 是死的，重器用则两条全吃。
+        onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.08 : 0),
+        onCritChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0 : 0.15),
     },
     {
         id: 'li_wu_xu_fa',
