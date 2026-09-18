@@ -44,8 +44,8 @@ describe('附着 buff', () => {
         // 属性照旧在账上；附着表**记录全部**（供展示），物化时再按 needsRuntimeLayer 过滤（不建空壳层）
         const layer = c.sourceLayers.find((l) => l.sourceId === 'artifact:titanium_arm')!
         expect(layer.attachedBuffs).toEqual([{ buffId: 'titanium_arm_attr', stacks: 1 }])
-        expect(layer.mods.insight ?? 0).toBe(0) // 钛合金臂：力道/灵巧
-        expect(layer.mods.strength).toBe(mods.strength)
+        expect(layer.applied.insight ?? 0).toBe(0) // 钛合金臂：力道/灵巧
+        expect(layer.applied.strength).toBe(mods.strength)
     })
 
     it('带钩子的附着 buff 才物化成战斗层：originId 指回来源，属性不二次应用', () => {

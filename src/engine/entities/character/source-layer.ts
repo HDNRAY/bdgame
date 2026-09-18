@@ -48,7 +48,7 @@ export interface SourceConvert {
  * statRestrictionChecks / buffDurationCallbacks）、没有账本，所以撤不掉（探云手偷奇物后对方还留着加成、
  * 切武器只能手写反函数）。现在它们统一记在层账上：
  *   attrs = baseAttrs + Σ 各层修正，撤销 = 删层 + 重算。
- * 各字段都是「请求值」，重算时按 restrictions 夹取后写入 attrs 并回填 applied（便于核对）。
+ * 各字段都是「请求值」；重算按 `ops` 顺序回放（restriction 夹取后写入 attrs）并回填 `applied`。
  */
 export interface SourceLayer extends LayerBase {
     /** 统一标识 = sourceId（与 LayerBase.id 同值，便于两边用同一套读代码） */
@@ -56,13 +56,9 @@ export interface SourceLayer extends LayerBase {
     origin: 'source'
     sourceId: string
     kind: SourceKind
-    /** 来源 effect 的属性增减请求（同名属性累加） */
-    mods: ModTable
-    /** 重算时实际生效的属性增减（夹取/取整之后；仅用于核对与展示，重算一律按 ops 回放） */
+    /** 重算时**实际生效**的属性增减（夹取/取整之后；展示用，重算一律按 `ops` 回放） */
     applied: ModTable
-    converts: SourceConvert[]
-    restrictions: StatRestrictionCheck[]
-    /** 有序操作（重算按此回放；聚合字段只作展示/汇总） */
+    /** 有序操作（重算按此回放）：mods → converts → restriction，顺序即语义 */
     ops: SourceOp[]
     maxHpMod: number
     triggerSlotMod: number
@@ -140,17 +136,14 @@ export function buildSourceLayer(
     char: Character,
     sourceTags?: string[],
 ): SourceLayer | null {
-    const list = effects ?? []
-    if (!list.some((e) => e.type === 'add_buff')) return null
+    // 单遍：只有真的带附着 buff 才建层（纯效果为空的来源不占层）
+    if (!(effects ?? []).some((e) => e.type === 'add_buff')) return null
     const layer: SourceLayer = {
         id: sourceId,
         origin: 'source',
         sourceId,
         kind,
-        mods: {},
         applied: {},
-        converts: [],
-        restrictions: [],
         ops: [],
         maxHpMod: 0,
         triggerSlotMod: 0,
@@ -159,7 +152,7 @@ export function buildSourceLayer(
         sourceTags,
         attachedBuffs: [],
     }
-    for (const eff of list) {
+    for (const eff of effects ?? []) {
         if (eff.type !== 'add_buff') continue
         const def = getBuff(eff.buffId)
         if (!def) {
@@ -177,7 +170,6 @@ export function buildSourceLayer(
             const a = attr as AttrName
             const value = round1((val as number) * stacks)
             if (value === 0) continue
-            layer.mods[a] = (layer.mods[a] ?? 0) + value
             layer.ops.push({ kind: 'mod', attr: a, value, fromBuff: eff.buffId })
         }
         // 最大气血：与 attrMods 同口径折进来源层（`rebuildDerived` 汇总成 char.maxHpMod）
@@ -192,7 +184,6 @@ export function buildSourceLayer(
                 ratio: cv.ratio,
                 mode: cv.mode === 'floor' ? 'floor' : 'round',
             }
-            layer.converts.push(convert)
             layer.ops.push({ kind: 'convert', ...convert })
         }
         for (const t of def.weaponTags ?? []) layer.weaponTags.push(t)
@@ -200,10 +191,7 @@ export function buildSourceLayer(
             const fn = def.buffDurationFn
             layer.durationMults.push((c) => fn(c))
         }
-        if (def.statRestriction) {
-            layer.restrictions.push(def.statRestriction)
-            layer.ops.push({ kind: 'restriction', check: def.statRestriction })
-        }
+        if (def.statRestriction) layer.ops.push({ kind: 'restriction', check: def.statRestriction })
     }
     return layer
 }
