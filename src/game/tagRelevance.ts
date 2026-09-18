@@ -1,4 +1,5 @@
 import type { Tag } from '../engine/entities/tag'
+import { rng } from '../engine/util/rng'
 
 // ── tag 分级 ──
 // 每类赋予不同权重，匹配时累加 score，用 2^score 做加权随机
@@ -61,7 +62,7 @@ export function pickWeightedByTags<T extends { id: string; tags: Tag[] }>(
         })
 
         const total = weights.reduce((a, b) => a + b, 0)
-        let rand = Math.random() * total
+        let rand = rng.next() * total
         let picked = 0
         for (let j = 0; j < pool.length; j++) {
             rand -= weights[j]

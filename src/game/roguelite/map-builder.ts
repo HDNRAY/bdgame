@@ -1,4 +1,5 @@
 import type { EventDef } from '../entities/event'
+import { rng } from '../../engine/util/rng'
 import type { Candidate, NodeResolution, NodeSpec, Placement } from '../entities/node-spec'
 import { evaluateWhen } from '../entities/condition'
 
@@ -51,7 +52,7 @@ export function weightedSample<T extends { weight?: number }>(candidates: T[], n
     const result: T[] = []
     while (result.length < n && copy.length > 0) {
         const total = copy.reduce((s, c) => s + (c.weight ?? 1), 0)
-        let r = Math.random() * total
+        let r = rng.next() * total
         let idx = 0
         for (let i = 0; i < copy.length; i++) {
             r -= copy[i].weight ?? 1

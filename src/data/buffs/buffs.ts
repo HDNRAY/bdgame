@@ -1,6 +1,8 @@
 import { processActionEffect } from '../../engine/combat/effects'
 import { forEachBuffOf, revertBuffMods } from '../../engine/combat/utils'
 import { applyAttrMods } from '../../engine/combat/utils/buff-layer'
+import { rng } from '../../engine/util/rng'
+import { genAppId } from '../../engine/util/buff-utils'
 import {
     calcParryChance,
     calcApRegenPerSec,
@@ -914,7 +916,7 @@ export const BUFF_DB: BuffDef[] = [
         // 毒体对自身毒素减免75%（承受25%）
         onDebuffTick: ({ buffId, damage }) => (buffId === 'poison' ? round1(damage * 0.25) : undefined),
         onDealDamage: ({ final, target, attacker, engine, source }) => {
-            if (source?.tags?.includes('unarmed') && Math.random() < 0.4) {
+            if (source?.tags?.includes('unarmed') && rng.chance(0.4)) {
                 attacker.spendAp(1)
                 if (engine) {
                     const tMs = engine.state.turn.currentTime
@@ -959,7 +961,7 @@ export const BUFF_DB: BuffDef[] = [
             const now = engine.state.eventTime
             // 同一 tick 事件只加深一次（防止叠加层→立即结算→再叠的连环爆炸）
             if (layer.extra?.lastTick === now) return undefined
-            if (Math.random() >= 0.15) return undefined
+            if (!rng.chance(0.15)) return undefined
             const sourceId = (layer.extra?.sourceId as string) ?? target.id
             const atk = engine.getCharacter(sourceId)
             if (!atk || !atk.isAlive()) return undefined
@@ -1006,7 +1008,7 @@ export const BUFF_DB: BuffDef[] = [
                 state.turn.removeEvents(`tick_poison_${self.id}`)
             }
             const now = state.turn.currentTime
-            const appId = `${now}_${Math.random().toString(36).slice(2, 6)}`
+            const appId = genAppId(now)
             const key = `venom_gland_insight::${self.id}::${appId}`
             const mods = applyAttrMods(self, state, { insight: 1 }, '毒腺')
             state.pendingBuffs.set(key, { restoreValue: 1, mods })
@@ -1545,7 +1547,7 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 3 },
         onTurnEnd: ({ layer }) => {
-            if (Math.random() < 0.5) layer.restoreValue = Math.min(3, (layer.restoreValue ?? 0) + 1)
+            if (rng.chance(0.5)) layer.restoreValue = Math.min(3, (layer.restoreValue ?? 0) + 1)
         },
         onHitChance: ({ layer }) => layer.restoreValue * 0.02,
         onCritChance: ({ layer }) => layer.restoreValue * 0.03,

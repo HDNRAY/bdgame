@@ -5,6 +5,7 @@ import { BattleLog } from './battle-log'
 import { getWeapon } from '../../data/weapons/weapons'
 import { calcSummonInterval, calcApRegen, calcActionDurationMs, MIN_TURN_DELAY_MS } from '../calc/damage'
 import { layersOf } from '../entities/character/source-layer'
+import { rng } from '../util/rng'
 import { canExecuteAction } from '../calc/action-executor'
 import { calcEffectiveApRegenPerSec, calcExtraApRegenPerSec } from './utils/ap-regen'
 import { calcEffectiveChanRegenPerSec } from './utils/chan-regen'
@@ -696,7 +697,7 @@ export class BattleEngine {
             const tempRate = fcTempLayer
                 ? ((fcTempLayer.extra?.fumbleRate as number | undefined) ?? fcTempLayer.restoreValue * 0.05)
                 : 0
-            if (Math.random() < permRate + tempRate) {
+            if (rng.chance(permRate + tempRate)) {
                 this.emitLog({ type: 'fumble', sourceId: self.id })
                 return r
             }

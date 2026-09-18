@@ -33,6 +33,7 @@ export { JIRAN } from './jiran'
 import type { CharacterBuild, BattleStyle } from '../../game/entities/character-build'
 import type { BattleState, ActionCommand } from '../../engine/combat/types'
 import type { Character } from '../../engine/entities/character'
+import { rng } from '../../engine/util/rng'
 import type { Reward } from '../../game/entities/reward'
 import type { ActionConfig } from '../../game/entities/action-config'
 import { simpleGenerate } from '../../game/character-gen'
@@ -141,5 +142,5 @@ export function getOpponentDef(id: string): OpponentDef | undefined {
 
 /** 随机挑一个对手（通用 Boss 未指定敌人时使用）；可选限定池。 */
 export function pickRandomOpponentId(pool: string[] = OPPONENTS.map((o) => o.id)): string {
-    return pool[Math.floor(Math.random() * pool.length)] ?? ''
+    return rng.pick(pool) ?? ''
 }

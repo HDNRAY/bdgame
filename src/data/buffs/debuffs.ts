@@ -1,4 +1,5 @@
 import type { BuffDef } from './types'
+import { rng } from '../../engine/util/rng'
 import { processActionEffect } from '../../engine/combat/effects'
 import { revertBuffMods } from '../../engine/combat/utils/buff-layer'
 import { calcApRegenPerSec, calcPoisonTicksPerStack } from '../../engine/calc/damage'
@@ -346,7 +347,7 @@ export const DEBUFF_DB: BuffDef[] = [
             // 力道挣脱 → 松脱但仍结算本秒伤害
             const vicStr = defender.attrs.get('strength')
             const atkStr = atk.attrs.get('strength')
-            if (vicStr > atkStr && Math.random() < (vicStr - atkStr) * 0.1) {
+            if (vicStr > atkStr && rng.chance((vicStr - atkStr) * 0.1)) {
                 engine!.state.pendingBuffs.delete(`choke::${defender.id}`)
                 engine!.emitLog({
                     type: 'system',

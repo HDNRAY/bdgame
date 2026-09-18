@@ -1,4 +1,5 @@
 import type { Artifact } from '../engine/entities/artifact'
+import { rng } from '../engine/util/rng'
 import { insightReductionHalf } from './utils/insightGuard'
 
 /** 所有可获取物品：义体（带副作用） + 奇物（特殊效果） */
@@ -201,7 +202,7 @@ export const ARTIFACTS: Artifact[] = [
             {
                 type: 'stat_restriction',
                 check: (_char, attr, _cur, delta) => {
-                    if (attr === 'wisdom' && delta < 0 && Math.random() < 0.5) return { skip: true }
+                    if (attr === 'wisdom' && delta < 0 && rng.chance(0.5)) return { skip: true }
                     return null
                 },
             },

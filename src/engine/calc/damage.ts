@@ -1,6 +1,7 @@
 import type { AttrName } from '../entities/attributes'
 import { round1 } from '../util/math'
 import { MOVE_BASE, MOVE_RATE } from '../constants'
+import { rng } from '../util/rng'
 
 /** 基础前摇（所有角色统一） */
 export const BASE_PRE_DELAY = 400
@@ -203,7 +204,7 @@ export function calcBleedDamage(stacks: number): number {
 
 /** 掷骰：返回 roll 结果和是否成功 */
 export function calcRoll(chance: number): { roll: number; success: boolean } {
-    const roll = Math.random()
+    const roll = rng.next()
     return { roll, success: roll < chance }
 }
 

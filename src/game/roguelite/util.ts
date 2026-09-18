@@ -1,4 +1,5 @@
 import type { RewardEntity } from '../../game/entities/reward'
+import { rng } from '../../engine/util/rng'
 import { MAX_POINTS_REWARDS, TOTAL_REWARD_SLOTS } from '../../game/entities/reward'
 import type { Tag } from '../../engine/entities/tag'
 import type { NodeSpec } from '../../game/entities/node-spec'
@@ -8,7 +9,7 @@ export function pickRandom<T>(arr: T[], n: number): T[] {
     const copy = [...arr]
     const result: T[] = []
     for (let i = 0; i < n && copy.length > 0; i++) {
-        const idx = Math.floor(Math.random() * copy.length)
+        const idx = rng.int(copy.length)
         result.push(copy[idx])
         copy.splice(idx, 1)
     }
@@ -90,7 +91,7 @@ export function resolveQuotaRewardType(
 
     const denom = Math.min(slotsLeft, Math.max(opportunities, 1))
     const prob = need / denom
-    if (Math.random() < prob) {
+    if (rng.chance(prob)) {
         return 'points' // 按概率给修炼点：差得远就多出现，给多了就少出现
     }
     return 'item'

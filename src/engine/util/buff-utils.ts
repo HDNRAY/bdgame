@@ -13,7 +13,9 @@ export function decodeBuffKey(key: string): { actionId: string; characterId: str
     }
 }
 
-/** 生成唯一 appId，用于可叠层 buff 的独立层标识 */
+/** 生成唯一 appId，用于可叠层 buff 的独立层标识（走计数器，不消耗随机流） */
+import { rng } from './rng'
+
 export function genAppId(tMs: number): string {
-    return `${tMs}_${Math.random().toString(36).slice(2, 6)}`
+    return `${tMs}_${rng.token()}`
 }
