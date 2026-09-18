@@ -263,11 +263,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'stance_armor',
         name: '罡体',
-        description: '刚体护身，免疫眩晕、击退、打断、缴械、击倒，并减伤10%。',
+        description: '刚体护身，免疫眩晕、击退、打断、缴械、击倒，并减伤12%。',
         tags: ['super_armor', 'defense'],
-        expiry: { type: 'duration', ms: 10000 },
+        expiry: { type: 'duration', ms: 15000 },
         stacking: { type: 'none' },
-        onTakeDamage: ({ final }) => round1(final * 0.9),
+        onTakeDamage: ({ final }) => round1(final * 0.88),
         onReceiveDebuff: (ctx) => {
             if (['stun', 'knockdown', 'disarmed', 'knockback'].includes(ctx.buffId)) return 0
             return undefined
@@ -276,14 +276,14 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'lingxi_finger',
         name: '灵犀一指',
-        description: '灵犀一指，空手可格挡兵刃，招架时有25%几率缴械对手。',
+        description: '灵犀一指，空手可格挡兵刃，招架时有20%几率缴械对手。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         attrMods: { strength: 1, dexterity: 3 },
         onCanParry: () => true,
         onParry: ({ target, attacker, engine, state }) => {
             processActionEffect(
-                { type: 'disarm', chance: 0.25 },
+                { type: 'disarm', chance: 0.2 },
                 { self: target, enemy: attacker, engine: engine!, tMs: state.turn.currentTime },
             )
         },
@@ -455,11 +455,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'blood_qi_protection',
         name: '血炁护体',
-        description: '减伤10%并持续恢复消耗的气血。',
+        description: '减伤12%并持续恢复消耗的气血。',
         tags: ['buff', 'defense'],
         expiry: { type: 'duration', ms: 10000 },
         stacking: { type: 'none' },
-        onTakeDamage: ({ final }) => Math.round(final * 0.9 * 10) / 10,
+        onTakeDamage: ({ final }) => round1(final * 0.88),
         tickInterval: 1000,
         onTickHeal: ({ layer }) => Math.max(0.1, round1(layer.restoreValue / 10)),
     },

@@ -24,7 +24,7 @@ export const ORANGE: OpponentDef = {
         weapon('broken_blade'),
         action('horizontal_slash'),
         artifact('fen_shen_qiu'),
-        // 12
+        // 13
     ],
     actionConfigs: [
         { actionId: 'dart_throw', triggerId: 'on_dodge' },

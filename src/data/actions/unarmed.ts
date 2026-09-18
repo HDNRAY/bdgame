@@ -46,9 +46,9 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         apCost: 2,
         tags: ['unarmed', 'debuff', 'knockdown'],
-        getRange: () => [1, 2],
+        getRange: () => [0, 2],
         effects: [
-            { type: 'short_dash', maxDistance: 2 },
+            { type: 'short_dash', maxDistance: 1 },
             { type: 'damage', scaling: { strength: 0.1, agility: 0.3 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.3 },
         ],
@@ -60,8 +60,9 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['unarmed', 'debuff', 'knockdown'],
-        getRange: () => [0, 3],
+        getRange: () => [0, 1],
         effects: [
+            { type: 'short_dash', maxDistance: 2 },
             { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.4 },
         ],

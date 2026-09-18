@@ -99,12 +99,12 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'engine_hammer_buff',
         name: '引擎铁锤',
-        description: '天工锻造的电磁锤。所有伤害附加推演×0.1。',
-        tags: ['weapon', 'electric', 'blunt', 'heavy'],
+        description: '天工锻造的电磁锤。所有伤害附加推演×0.2。',
+        tags: ['weapon', 'electric', 'blunt'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onDealDamage: ({ final, attacker }) => {
-            const bonus = round1(attacker.attrs.get('wisdom') * 0.1)
+            const bonus = round1(attacker.attrs.get('wisdom') * 0.2)
             return final + bonus
         },
     },
@@ -158,7 +158,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         stacking: { type: 'none' },
         attrMods: { agility: 2 },
         onDisarmChance: () => -1,
-        // 玉环化甲：招架成功额外减免 2 点（与破狼竹枝的「招架后减免3点」同口径，取更小值）
+        // 玉环化甲：招架成功时额外减免 2 点（与破狼竹枝的「招架后减免3点」同口径，取更小值）
         onParryReduction: ({ final }) => Math.max(0, round1(final - 2)),
         // 暴击结算后拆出 50% 穿透：基于含爆伤的伤害拆 → 穿透吃爆伤，且无视招架/减伤/吸收
         onPostCritDamage: ({ final }) => {

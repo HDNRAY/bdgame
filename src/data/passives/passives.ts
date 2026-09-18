@@ -1057,7 +1057,7 @@ export const PASSIVES: Passive[] = [
     },
     {
         id: 'blood_rage',
-        name: '血战到底',
+        name: '困兽犹斗',
         description: '气血越低属性加成越高。力道、身法、灵巧随血量减少而提升。',
         tags: ['buff', 'low_hp'],
         effects: [
@@ -1213,7 +1213,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'autumn_water',
         name: '秋水论',
-        description: '秋水时至，盈虚消长。灵巧与洞察之间每2秒挪移1点，如潮汐涨落；移动效率提高。',
+        description: '秋水时至，盈虚消长。灵巧与洞察之间随时间切换，如潮汐涨落；移动效率提高。',
         tags: ['buff'],
         effects: [
             {
@@ -1244,7 +1244,8 @@ export const PASSIVES: Passive[] = [
                 condition: { type: 'on_construct' },
                 apply: [{ type: 'add_buff', buffId: 'ni_zhuan_jing_mai' }],
             },
-            { condition: { type: 'on_was_crit' }, actionId: '_generic_counter' }],
+            { condition: { type: 'on_was_crit' }, actionId: '_generic_counter' },
+        ],
     },
     {
         id: 'ling_ao_bu',

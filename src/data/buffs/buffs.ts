@@ -115,11 +115,11 @@ export const BUFF_DB: BuffDef[] = [
         // 因势利导：进架势后借势，下一次出招暴击，用后消散
         id: 'yin_shi_li_dao',
         name: '因势利导',
-        description: '借架势之势，下一次出招暴击率+20%。',
+        description: '借架势之势，下一次出招暴击率+30%。',
         tags: ['buff'],
         expiry: { type: 'consumed', trigger: 'on_crit' },
         stacking: { type: 'additive', max: 1 },
-        onCritChance: () => 0.2,
+        onCritChance: () => 0.3,
     },
     {
         id: 'mind_eye',
@@ -176,13 +176,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'overlord_art_buff',
         name: '轮舞月斩',
-        description: '长兵轮转如月，重器加持命中+8%；否则暴击+15%。',
+        description: '长兵轮转如月，重器加持命中+5%；否则暴击+10%。',
         tags: [],
         expiry: { type: 'permanent' },
-        // 两档互斥：重器吃命中、非重器吃暴击。早先 onCritChance 把上面那行的条件照抄了一遍，
-        // 于是「否则」分支从未生效——非重器用（otsu·春翁）整个 buff 是死的，重器用则两条全吃。
-        onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.08 : 0),
-        onCritChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0 : 0.15),
+        onHitChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0.05 : 0),
+        onCritChance: ({ attacker }) => (attacker.weaponDef?.tags.includes('heavy') ? 0 : 0.1),
     },
     {
         id: 'li_wu_xu_fa',

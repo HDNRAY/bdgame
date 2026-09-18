@@ -259,7 +259,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '凝炁为刃，隔空斩击。',
         requiredTags: ['slash'],
         apCost: 2,
-        tags: ['slash', 'qi', 'melee'],
+        tags: ['slash', 'qi', 'melee', 'range_up'],
         getRange: (wr) => [wr[0], wr[1] + 1],
         hookNotes: { range: '武器范围 +1' },
         effects: [{ type: 'damage', scaling: { strength: 0.2, wisdom: 0.2 } }],
@@ -270,7 +270,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         description: '以炁化焰，隔空斩击，距离比兵刃更远。',
         requiredTags: ['slash', 'pierce'],
         apCost: 2,
-        tags: ['slash', 'pierce', 'burn', 'melee'],
+        tags: ['slash', 'pierce', 'burn', 'melee', 'range_up'],
         getRange: (wr) => [wr[0], wr[1] + 1],
         hookNotes: { range: '武器范围 +1' },
         effects: [

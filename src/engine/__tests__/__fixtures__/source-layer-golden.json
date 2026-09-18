@@ -1532,8 +1532,6 @@
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
-   "blunt",
-   "debuff",
    "electric",
    "frost",
    "heavy",
@@ -1562,8 +1560,6 @@
   "maxAp": 7,
   "maxTriggerSlots": 4,
   "weaponTags": [
-   "blunt",
-   "debuff",
    "electric",
    "frost",
    "heavy",

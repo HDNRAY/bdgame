@@ -78,7 +78,7 @@ export const DEBUFF_DB: BuffDef[] = [
         tags: ['debuff'],
         expiry: { type: 'duration_by_attr', attr: 'agility', multiplier: 2000 },
         stacking: { type: 'independent' },
-        attrMods: { agility: -4 },
+        attrMods: { agility: -6 },
     },
     {
         id: 'burn',

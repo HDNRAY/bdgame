@@ -31,7 +31,7 @@ export const DUOER: OpponentDef = {
         { actionId: 'rear_naked_choke', condition: { type: 'distance_less_than', meters: 2 } },
         { actionId: 'lion_roar', condition: { type: 'distance_greater_than', meters: 3 } },
         { actionId: 'blood_droplet', triggerId: 'on_opponent_move_away' }, // AI 出招顺序
-        { actionId: 'sweep_kick', triggerId: 'on_dodged' },
+        { actionId: 'sweep_kick', triggerId: 'on_dodge' },
     ],
     taunt: () => '对不起……我没得选。',
 }

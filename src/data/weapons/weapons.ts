@@ -92,7 +92,10 @@ export const WEAPON_DB: WeaponDef[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 6 }, { type: 'add_buff', buffId: 'po_jun_buff' }],
+                apply: [
+                    { type: 'add_buff', buffId: 'heavy_load', stacks: 6 },
+                    { type: 'add_buff', buffId: 'po_jun_buff' },
+                ],
             },
         ],
     },
@@ -133,7 +136,10 @@ export const WEAPON_DB: WeaponDef[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 10 }, { type: 'add_buff', buffId: 'xiu_dong_buff' }],
+                apply: [
+                    { type: 'add_buff', buffId: 'heavy_load', stacks: 10 },
+                    { type: 'add_buff', buffId: 'xiu_dong_buff' },
+                ],
             },
         ],
     },
@@ -159,7 +165,10 @@ export const WEAPON_DB: WeaponDef[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 14 }, { type: 'add_buff', buffId: 'overlord_blade' }],
+                apply: [
+                    { type: 'add_buff', buffId: 'heavy_load', stacks: 14 },
+                    { type: 'add_buff', buffId: 'overlord_blade' },
+                ],
             },
         ],
     },
@@ -172,7 +181,10 @@ export const WEAPON_DB: WeaponDef[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 14 }, { type: 'add_buff', buffId: 'dark_iron_weight' }],
+                apply: [
+                    { type: 'add_buff', buffId: 'heavy_load', stacks: 14 },
+                    { type: 'add_buff', buffId: 'dark_iron_weight' },
+                ],
             },
         ],
     },
@@ -194,7 +206,10 @@ export const WEAPON_DB: WeaponDef[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 16 }, { type: 'add_buff', buffId: 'dinghai_pressure' }],
+                apply: [
+                    { type: 'add_buff', buffId: 'heavy_load', stacks: 16 },
+                    { type: 'add_buff', buffId: 'dinghai_pressure' },
+                ],
             },
         ],
     },
@@ -234,11 +249,17 @@ export const WEAPON_DB: WeaponDef[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'engine_hammer_buff' }, { type: 'add_buff', buffId: 'energy_drain', stacks: 0.6 }],
+                apply: [
+                    { type: 'add_buff', buffId: 'engine_hammer_buff' },
+                    { type: 'add_buff', buffId: 'energy_drain', stacks: 0.6 },
+                ],
             },
             {
                 condition: { type: 'on_hit' },
-                apply: [{ type: 'add_debuff', buffId: 'burn', stacks: 1, chance: 0.8 }],
+                apply: [
+                    { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 0.6 },
+                    { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.6 },
+                ],
             },
         ],
     },
@@ -281,23 +302,26 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '镇北戟',
         description:
             '姬家世代相传的战戟，曾为守关领袖所用。经千星重铸为赛博战戟，可将使用者的炁转化为冰电之力。暴击时冰封对手。',
-        tags: ['polearm', 'parry', 'pierce', 'blunt', 'electric', 'heavy', 'debuff', 'frost', 'paralyze'],
+        tags: ['polearm', 'parry', 'pierce', 'electric', 'heavy', 'frost', 'paralyze'],
         range: [1, 4],
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'heavy_load', stacks: 10 }, { type: 'add_buff', buffId: 'energy_drain', stacks: 1 }],
+                apply: [
+                    { type: 'add_buff', buffId: 'heavy_load', stacks: 10 },
+                    { type: 'add_buff', buffId: 'energy_drain', stacks: 1 },
+                ],
             },
             {
                 condition: { type: 'on_crit' },
-                apply: [{ type: 'add_debuff', buffId: 'frost', stacks: 3, chance: 1 }],
+                apply: [{ type: 'add_debuff', buffId: 'frost', stacks: 2, chance: 1 }],
             },
             // 攻击被闪避 → 攻击者叠游身（步法追击）
             { condition: { type: 'on_dodged' }, apply: [{ type: 'add_buff', buffId: 'you_shen', stacks: 1 }] },
             // 攻击被招架 → 招架方麻痹（电流反噬）
             {
                 condition: { type: 'on_parried' },
-                apply: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 1 }],
+                apply: [{ type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.8 }],
             },
         ],
     },
