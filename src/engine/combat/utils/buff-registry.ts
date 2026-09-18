@@ -61,6 +61,43 @@ const REGISTERED_HOOKS = [
 
 export type RegisteredHook = (typeof REGISTERED_HOOKS)[number]
 
+/**
+ * 钩子存在性掩码：注册钩子有 38 个，超出单个 int32 的 31 个可用正位，故拆成 lo(索引 0..30) /
+ * hi(索引 31..) 两段。目的是让「这一组钩子里有没有任意一个」在热路径用两次位与回答（零分配、零字符串比较）。
+ */
+export interface HookMask {
+    readonly lo: number
+    readonly hi: number
+}
+
+/** 钩子 → 位掩码（模块级预计算，索引顺序即 REGISTERED_HOOKS 顺序） */
+const HOOK_BIT_OF = new Map<RegisteredHook, HookMask>(
+    REGISTERED_HOOKS.map((hook, i) => [hook, i < 31 ? { lo: 1 << i, hi: 0 } : { lo: 0, hi: 1 << (i - 31) }]),
+)
+
+/** 把一组钩子编译成掩码（调用方在模块级预计算一次，热路径只做位与） */
+export function hookMaskOf(hooks: readonly RegisteredHook[]): HookMask {
+    let lo = 0
+    let hi = 0
+    for (const hook of hooks) {
+        const bit = HOOK_BIT_OF.get(hook)
+        if (!bit) continue
+        lo |= bit.lo
+        hi |= bit.hi
+    }
+    return { lo, hi }
+}
+
+/**
+ * 钩子存在性视图：回答「查询角色们的层里有没有某个钩子 / 某一组钩子里的任意一个」。
+ * 与 forEachBuffOf 同源（都按 byOwner + getBuff 解析 def），因此「视图说不存在」等价于
+ * 「forEachBuffOf 扫过去一个都不会命中」，守卫可以安全跳过整段扫描。
+ */
+export interface HookPresence {
+    has(hook: RegisteredHook): boolean
+    hasAny(mask: HookMask): boolean
+}
+
 /** def → 它拥有的注册钩子列表缓存（def 静态，避免每次建层扫 33 个字段判断） */
 const hookListCache = new WeakMap<BuffDef, RegisteredHook[]>()
 
@@ -122,6 +159,11 @@ export class BuffRegistry extends Map<string, BuffLayer> {
     /** originId → 该来源拥有的层 keys（来源层撤销走它，O(该来源的层)） */
     private bySource = new Map<string, Set<string>>()
     private nextSeq = 0
+    /** 结构 revision：任何可能改变「有哪些层」的写入（建层/删层）都自增，用于失效钩子存在性缓存 */
+    private revision = 0
+    /** ownerId → 该角色层里出现的注册钩子掩码（结构 revision 变化时整体作废重算） */
+    private ownerHookMask = new Map<string, HookMask>()
+    private ownerHookMaskRevision = -1
 
     /** 建层/叠层：写入真源并同步 byOwner/hooks（真源写入走 super.set 避免重复解析 owner） */
     register(key: string, layer: BuffLayer, buff: BuffDef): void {
@@ -144,6 +186,41 @@ export class BuffRegistry extends Map<string, BuffLayer> {
     /** ownerId → keys 是否存在（hasNoStance 等只想知道有无） */
     hasOwner(ownerId: string): boolean {
         return this.byOwner.has(ownerId)
+    }
+
+    /**
+     * 钩子存在性视图（AI 期望伤害评估守卫用）：O(1) 回答「这些角色的层里有没有某钩子」。
+     * 视图持有一份掩码，registry 结构变化（建层/删层 → revision 自增）后首次查询时自动重算；
+     * 同一 revision 内多次查询直接复用（每次评估新建视图也只做 nOwners 次位或）。
+     */
+    presenceOf(charIds: string | readonly string[]): HookPresence {
+        const ids = typeof charIds === 'string' ? [charIds] : [...charIds]
+        let cachedRevision = -1
+        let lo = 0
+        let hi = 0
+        const refresh = (): void => {
+            let mlo = 0
+            let mhi = 0
+            for (const id of ids) {
+                const m = this.#ownerHookMask(id)
+                mlo |= m.lo
+                mhi |= m.hi
+            }
+            lo = mlo
+            hi = mhi
+            cachedRevision = this.revision
+        }
+        return {
+            has: (hook: RegisteredHook): boolean => {
+                if (cachedRevision !== this.revision) refresh()
+                const bit = HOOK_BIT_OF.get(hook)
+                return bit ? (lo & bit.lo) !== 0 || (hi & bit.hi) !== 0 : false
+            },
+            hasAny: (mask: HookMask): boolean => {
+                if (cachedRevision !== this.revision) refresh()
+                return (lo & mask.lo) !== 0 || (hi & mask.hi) !== 0
+            },
+        }
     }
 
     /** 遍历某角色（们）的层，回调 (def, layer, buffId, key, ownerId)。语义与旧 forEachBuffOf 一致 */
@@ -268,6 +345,39 @@ export class BuffRegistry extends Map<string, BuffLayer> {
 
     // ── 内部 ──
 
+    /**
+     * 某角色层里出现的注册钩子掩码（带缓存，按结构 revision 整体失效）。
+     * 与 forEachBuffOf 同源：按 byOwner 的 key 抠 buffId → getBuff → def 的注册钩子，
+     * 因此不会漏掉任何 forEachBuffOf 能扫到的层（含用裸 set 写入、hooks 桶里没登记的层）。
+     */
+    #ownerHookMask(ownerId: string): HookMask {
+        if (this.ownerHookMaskRevision !== this.revision) {
+            this.ownerHookMask.clear()
+            this.ownerHookMaskRevision = this.revision
+        }
+        const cached = this.ownerHookMask.get(ownerId)
+        if (cached) return cached
+        let lo = 0
+        let hi = 0
+        const keys = this.byOwner.get(ownerId)
+        if (keys) {
+            for (const key of keys) {
+                const sep = key.indexOf('::')
+                const def = getBuff(sep < 0 ? key : key.slice(0, sep))
+                if (!def) continue
+                for (const hook of hooksOfDef(def)) {
+                    const bit = HOOK_BIT_OF.get(hook)
+                    if (!bit) continue
+                    lo |= bit.lo
+                    hi |= bit.hi
+                }
+            }
+        }
+        const mask: HookMask = { lo, hi }
+        this.ownerHookMask.set(ownerId, mask)
+        return mask
+    }
+
     /** 解析 ownerId 并缓存（set/delete/遍历高频路径避免重复 slice） */
     #ownerOf(key: string): string {
         let owner = this.ownerCache.get(key)
@@ -280,6 +390,8 @@ export class BuffRegistry extends Map<string, BuffLayer> {
     /** 真源写入 + byOwner 同步（不建 hooks） */
     #setRaw(key: string, layer: BuffLayer): void {
         super.set(key, layer)
+        // 层结构可能变化 → 存在性缓存作废（同一 key 覆盖写也自增：多算一次无害，漏算会误判「不存在」）
+        this.revision++
         // 首次写入时分配建层序号（重复 set 同一 key 不改变顺序，与 byOwner Set 语义一致）
         if (!this.keySeq.has(key)) this.keySeq.set(key, this.nextSeq++)
         const owner = this.#ownerOf(key)
@@ -323,6 +435,8 @@ export class BuffRegistry extends Map<string, BuffLayer> {
     /** 真源删除 + byOwner 同步（不注销 hooks，调用方负责 #syncHooks remove） */
     #deleteRaw(key: string): boolean {
         const layer = super.get(key)
+        // 层结构变化 → 存在性缓存作废
+        this.revision++
         const originId = layer?.originId
         if (originId) {
             const keys = this.bySource.get(originId)
@@ -375,5 +489,20 @@ export class BuffRegistry extends Map<string, BuffLayer> {
             bucket.push({ key, buffId, ownerId, def: buff, layer })
         }
         this.keyToHooks.set(key, registered)
+    }
+}
+
+/**
+ * 取钩子存在性视图：pendingBuffs 是 BuffRegistry 时走索引；否则（测试手搓裸 Map，
+ * 无 byOwner 索引可查）保守返回「所有钩子都存在」，守卫一律放行，语义与优化前完全一致。
+ */
+export function buffPresence(
+    pendingBuffs: Map<string, BuffLayer>,
+    charIds: string | readonly string[],
+): HookPresence {
+    if (pendingBuffs instanceof BuffRegistry) return pendingBuffs.presenceOf(charIds)
+    return {
+        has: () => true,
+        hasAny: () => true,
     }
 }

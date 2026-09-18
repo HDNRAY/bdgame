@@ -15,7 +15,9 @@ import {
 } from '../calc/damage'
 import { DMG_PER_POISON_TICK } from '../constants'
 import { forEachBuffOf } from '../combat/utils'
-import type { RegisteredHook } from '../combat/utils/buff-registry'
+import { rng } from '../util/rng'
+import { buffPresence, hookMaskOf } from '../combat/utils/buff-registry'
+import type { HookPresence, RegisteredHook } from '../combat/utils/buff-registry'
 import { calcChokeTickDamage } from '../../data/buffs/debuffs'
 
 /**
@@ -49,6 +51,27 @@ export const EVAL_HOOKS: readonly RegisteredHook[] = [
     'onTakeDamage',
 ]
 
+/**
+ * 第 2 段「双方层单循环收集修正值」会读取的全部钩子。这些钩子一个都不存在时，整个循环可跳过。
+ * （循环内的钩子调用顺序敏感——onAction 必须先于同层其他钩子、且按层顺序交错，故只能整段守卫，不能拆成多个子循环。）
+ */
+const COLLECT_LOOP_HOOKS: readonly RegisteredHook[] = [
+    'onAction',
+    'onDodgeChance',
+    'onHitChance',
+    'onParryChance',
+    'onCritChance',
+    'onCritDamage',
+    'onCritTakenChance',
+    'onCritTakenDamage',
+    'onCanBeParried',
+    'onCanParry',
+    'onAfterCritDamage',
+]
+
+/** COLLECT_LOOP_HOOKS 的预计算掩码（热路径判空零分配） */
+const COLLECT_LOOP_MASK = hookMaskOf(COLLECT_LOOP_HOOKS)
+
 export interface DamageEstimate {
     actionId: string
     rawDamage: number
@@ -65,10 +88,14 @@ export interface DamageEstimate {
  */
 function applyDotTickHooks(
     pendings: Map<string, BuffLayer>,
+    present: HookPresence,
     target: Character,
     buffId: 'burn' | 'poison' | 'bleed',
     damage: number,
 ): number {
+    // 目标身上一个 onDebuffTick 层都没有（多数对局如此）→ 整段扫描跳过。
+    // present 按「双方层」查询，是目标层的超集：只可能少跳过，不可能误跳过。
+    if (!present.has('onDebuffTick')) return damage
     let final = damage
     forEachBuffOf(pendings, target.id, (def, layer) => {
         if (!def?.onDebuffTick) return
@@ -85,6 +112,7 @@ function applyDotTickHooks(
  */
 function applyDebuffAppliedHooks(
     pendings: Map<string, BuffLayer>,
+    present: HookPresence,
     attacker: Character,
     defender: Character,
     buffId: 'burn' | 'poison',
@@ -93,6 +121,8 @@ function applyDebuffAppliedHooks(
 ): BuffLayer {
     // 克隆 layer 供钩子修正（真实路径传入的是刚施加/叠加的 burn/poison 层数据）
     const layer: BuffLayer = { restoreValue: stacks, extra: {} }
+    // 攻击方一个 onDebuffApplied 层都没有 → 没有钩子能改写 layer，直接返回初值
+    if (!present.has('onDebuffApplied')) return layer
     forEachBuffOf(pendings, attacker.id, (def) => {
         if (!def?.onDebuffApplied) return
         def.onDebuffApplied({ self: attacker, enemy: defender, buffId, stacks, layer, state })
@@ -101,7 +131,35 @@ function applyDebuffAppliedHooks(
 }
 
 /** 计算招式对目标的期望伤害（含全部 buff 钩子） */
+/**
+ * 推演沙盒的固定种子。
+ *
+ * 每次评估都从同一颗种子开始 → 同一个候选每次估值完全一致（可复现、无噪声），
+ * 而且**主战斗的随机流一个数都不会被动到**（否则 AI 试算会吃掉真实战斗的骰子，
+ * 沙盒一改就移动平衡）。
+ */
+const SIM_SEED = 0x5eed5eed
+
+
+/** 期望伤害评估：外层只负责进出推演沙盒，逻辑在 Inner 里（保证所有 return 路径都会退出沙盒） */
 export function calcExpectedDamage(
+    action: ActionDefinition,
+    attacker: Character,
+    defender: Character,
+    weaponRange: [number, number],
+    state: BattleState,
+    atDistance?: number,
+    opts?: { applyDefenseReduction?: boolean },
+): DamageEstimate {
+    rng.enterSandbox(SIM_SEED)
+    try {
+        return calcExpectedDamageInner(action, attacker, defender, weaponRange, state, atDistance, opts)
+    } finally {
+        rng.exitSandbox()
+    }
+}
+
+function calcExpectedDamageInner(
     action: ActionDefinition,
     attacker: Character,
     defender: Character,
@@ -121,6 +179,11 @@ export function calcExpectedDamage(
     // 但**会改变沙盒对全局 Math.random 的消耗次数**（473 vs 410 次/场）→ RNG 流分叉 →
     // 对局结果变化（实测 陶朵 -9pp）。要启用它，必须先把推演沙盒的随机数与主战斗解耦。
     const safeState = state.cloneFor([safeAtk.id, safeDef.id])
+
+    // 钩子存在性视图：下面每处「遍历双方层找某钩子」前先判空——一个层都不带该钩子就整段跳过扫描。
+    // 视图与 forEachBuffOf 同源（按 byOwner + def 的注册钩子），按 registry 结构 revision 缓存；
+    // 同一 revision 内查询为位运算 O(1)，层增删后自动重算。语义等价，只是不扫空桶。
+    const present = buffPresence(safeState.pendingBuffs, [safeAtk.id, safeDef.id])
 
     // atDistance 提供时用指定距离评估（planner 在 target 落点评估段2 招式，避免用当前距离失真）
     const distance = atDistance !== undefined ? atDistance : state.position.distance(safeAtk.id, safeDef.id)
@@ -164,6 +227,7 @@ export function calcExpectedDamage(
                 // 攻击者 onDebuffApplied（铸火诀 WIS≥15 +2 否则 +1 等）作用于克隆层
                 const appliedLayer = applyDebuffAppliedHooks(
                     safeState.pendingBuffs,
+                    present,
                     safeAtk,
                     safeDef,
                     'burn',
@@ -173,13 +237,14 @@ export function calcExpectedDamage(
                 const n = appliedLayer.restoreValue
                 // 真实衰减灼烧：N 层逐跳 2N, 2(N-1), …, 2，每跳过目标 onDebuffTick 钩子（泼油×2/铸火×0.5 等自动生效）
                 for (let k = n; k >= 1; k--) {
-                    rawDamage += applyDotTickHooks(safeState.pendingBuffs, safeDef, 'burn', 2 * k)
+                    rawDamage += applyDotTickHooks(safeState.pendingBuffs, present, safeDef, 'burn', 2 * k)
                 }
             } else if (eff.buffId === 'poison') {
                 const stacks = eff.stacks * (eff.chance ?? 1)
                 // 七心海棠等 onDebuffApplied 设 poisonMult=2（作用于克隆 layer，不改真实）
                 const appliedLayer = applyDebuffAppliedHooks(
                     safeState.pendingBuffs,
+                    present,
                     safeAtk,
                     safeDef,
                     'poison',
@@ -189,11 +254,23 @@ export function calcExpectedDamage(
                 const mult = (appliedLayer.extra?.poisonMult as number | undefined) ?? 1
                 const ticks = calcPoisonTicksPerStack(safeDef.attrs.get('wisdom'))
                 for (let i = 0; i < ticks; i++) {
-                    rawDamage += applyDotTickHooks(safeState.pendingBuffs, safeDef, 'poison', stacks * DMG_PER_POISON_TICK * mult)
+                    rawDamage += applyDotTickHooks(
+                        safeState.pendingBuffs,
+                        present,
+                        safeDef,
+                        'poison',
+                        stacks * DMG_PER_POISON_TICK * mult,
+                    )
                 }
             } else if (eff.buffId === 'bleed') {
                 // 流血按 ~2 次触发估，每跳走 onDebuffTick 钩子
-                rawDamage += applyDotTickHooks(safeState.pendingBuffs, safeDef, 'bleed', eff.stacks * 3 * (eff.chance ?? 1))
+                rawDamage += applyDotTickHooks(
+                    safeState.pendingBuffs,
+                    present,
+                    safeDef,
+                    'bleed',
+                    eff.stacks * 3 * (eff.chance ?? 1),
+                )
             } else if (eff.buffId === 'choke') {
                 // 窒息（裸绞）：tick_buff 通道每秒绞杀，不走 onDebuffTick 链（不吃泼油/毒体等修正）。
                 // 每跳伤害直接调 buff 自身共享公式 calcChokeTickDamage（与引擎 tick 同一份代码）；
@@ -217,39 +294,41 @@ export function calcExpectedDamage(
     let dodgeMod = 0
     let parryMod = 0
     const critHooks: { def: BuffDef; layer: BuffLayer }[] = []
-    forEachBuffOf(safeState.pendingBuffs, [safeAtk.id, safeDef.id], (def, layer, _b, _k, ownerId) => {
-        if (!def) return
-        const ctx = { final: 0, raw: 0, target: safeDef, attacker: safeAtk, state: safeState, layer, source: action }
-        // onAction 必须在其他钩子之前调用（如抽刀断水需要先算 diff）
-        if (ownerId === safeAtk.id && def.onAction) def.onAction(ctx)
-        if (ownerId === safeDef.id && def.onDodgeChance) dodgeMod += def.onDodgeChance(ctx)
-        if (ownerId === safeAtk.id && def.onHitChance) hitMod += def.onHitChance(ctx)
-        if (ownerId === safeDef.id && def.onParryChance) parryMod += def.onParryChance(ctx)
-        if (ownerId === safeAtk.id && def.onCritChance) critChanceMod += def.onCritChance(ctx)
-        if (ownerId === safeAtk.id && def.onCritDamage) critDamageMod += def.onCritDamage(ctx)
-        // 防御方降被暴击率/被爆伤（逆转经脉、百纳珠等）
-        if (ownerId === safeDef.id && def.onCritTakenChance) critTakenChanceMod += def.onCritTakenChance(ctx)
-        if (ownerId === safeDef.id && def.onCritTakenDamage) critTakenDamageMod += def.onCritTakenDamage(ctx)
-        // 招架可能性（引擎 resolveParry）：onCanBeParried=false → 不可被招架；onCanParry 任一 false → 不可招架
-        if (ownerId === safeAtk.id && def.onCanBeParried) {
-            // 钩子只读 self/source；engine 无实例，占位（真实钩子不访问）
-            if (!def.onCanBeParried({ self: safeAtk, source: action, engine: undefined as unknown as BattleEngine })) {
-                cannotBeParried = true
+    if (present.hasAny(COLLECT_LOOP_MASK)) {
+        forEachBuffOf(safeState.pendingBuffs, [safeAtk.id, safeDef.id], (def, layer, _b, _k, ownerId) => {
+            if (!def) return
+            const ctx = { final: 0, raw: 0, target: safeDef, attacker: safeAtk, state: safeState, layer, source: action }
+            // onAction 必须在其他钩子之前调用（如抽刀断水需要先算 diff）
+            if (ownerId === safeAtk.id && def.onAction) def.onAction(ctx)
+            if (ownerId === safeDef.id && def.onDodgeChance) dodgeMod += def.onDodgeChance(ctx)
+            if (ownerId === safeAtk.id && def.onHitChance) hitMod += def.onHitChance(ctx)
+            if (ownerId === safeDef.id && def.onParryChance) parryMod += def.onParryChance(ctx)
+            if (ownerId === safeAtk.id && def.onCritChance) critChanceMod += def.onCritChance(ctx)
+            if (ownerId === safeAtk.id && def.onCritDamage) critDamageMod += def.onCritDamage(ctx)
+            // 防御方降被暴击率/被爆伤（逆转经脉、百纳珠等）
+            if (ownerId === safeDef.id && def.onCritTakenChance) critTakenChanceMod += def.onCritTakenChance(ctx)
+            if (ownerId === safeDef.id && def.onCritTakenDamage) critTakenDamageMod += def.onCritTakenDamage(ctx)
+            // 招架可能性（引擎 resolveParry）：onCanBeParried=false → 不可被招架；onCanParry 任一 false → 不可招架
+            if (ownerId === safeAtk.id && def.onCanBeParried) {
+                // 钩子只读 self/source；engine 无实例，占位（真实钩子不访问）
+                if (!def.onCanBeParried({ self: safeAtk, source: action, engine: undefined as unknown as BattleEngine })) {
+                    cannotBeParried = true
+                }
             }
-        }
-        if (ownerId === safeDef.id && def.onCanParry) {
-            // 引擎语义：任一 onCanParry 返回 false → 不可招架（false 永久锁定，不再被后续 true 覆盖）
-            if (def.onCanParry({ self: safeDef, engine: undefined as unknown as BattleEngine })) {
-                if (buffCanParry !== false) buffCanParry = true
-            } else {
-                buffCanParry = false
+            if (ownerId === safeDef.id && def.onCanParry) {
+                // 引擎语义：任一 onCanParry 返回 false → 不可招架（false 永久锁定，不再被后续 true 覆盖）
+                if (def.onCanParry({ self: safeDef, engine: undefined as unknown as BattleEngine })) {
+                    if (buffCanParry !== false) buffCanParry = true
+                } else {
+                    buffCanParry = false
+                }
             }
-        }
-        // onAfterCritDamage 钩子收集（暴击分支用，按 priority 排序后应用）
-        if (ownerId === safeAtk.id && def.onAfterCritDamage) {
-            critHooks.push({ def, layer })
-        }
-    })
+            // onAfterCritDamage 钩子收集（暴击分支用，按 priority 排序后应用）
+            if (ownerId === safeAtk.id && def.onAfterCritDamage) {
+                critHooks.push({ def, layer })
+            }
+        })
+    }
     // 招式自带爆伤加成（返回最终爆伤修正，覆盖而非累加）
     if (action.onActionCritDamage) critDamageMod = action.onActionCritDamage(critDamageMod, state, attacker)
 
@@ -287,26 +366,28 @@ export function calcExpectedDamage(
     //    攻击方自身增伤（onDealDamage：狼狩/血祭/空手道等）作用于裸伤（算，属于攻击力）。
     let buffed = rawDamage
     let buffPiercing = 0
-    forEachBuffOf(safeState.pendingBuffs, [safeDef.id, safeAtk.id], (def, layer, _b, _k, ownerId) => {
-        if (!def) return
-        if (ownerId === safeAtk.id && def.onDealDamage) {
-            const result = def.onDealDamage({
-                final: buffed,
-                raw: rawDamage,
-                target: safeDef,
-                attacker: safeAtk,
-                state: safeState,
-                layer,
-                source: action,
-            })
-            if (typeof result === 'object') {
-                buffed = result.normal
-                buffPiercing += result.piercing ?? 0
-            } else {
-                buffed = result
+    if (present.has('onDealDamage')) {
+        forEachBuffOf(safeState.pendingBuffs, [safeDef.id, safeAtk.id], (def, layer, _b, _k, ownerId) => {
+            if (!def) return
+            if (ownerId === safeAtk.id && def.onDealDamage) {
+                const result = def.onDealDamage({
+                    final: buffed,
+                    raw: rawDamage,
+                    target: safeDef,
+                    attacker: safeAtk,
+                    state: safeState,
+                    layer,
+                    source: action,
+                })
+                if (typeof result === 'object') {
+                    buffed = result.normal
+                    buffPiercing += result.piercing ?? 0
+                } else {
+                    buffed = result
+                }
             }
-        }
-    })
+        })
+    }
 
     // 招架段：先按裸招架减伤算，再叠加防御方 onParryReduction 与攻击方 onParryPenetration（引擎同序）。
     // 引擎顺序：暴击+爆伤 → onAfterCritDamage → 穿透拆出 → 招架（只作用于 non-pierce 部分）。
@@ -316,25 +397,10 @@ export function calcExpectedDamage(
     // 注：eval 按用户口径不算防御方减伤/吸收（onTakeDamage/onAbsorb），招架概率仍算。
     const parriedOf = (x: number): number => {
         let pd = calcParriedDamage(x, safeDef.attrs.get('strength'))
-        forEachBuffOf(safeState.pendingBuffs, safeDef.id, (def, layer) => {
-            if (!def?.onParryReduction) return
-            pd = def.onParryReduction({
-                final: pd,
-                raw: x,
-                target: safeDef,
-                attacker: safeAtk,
-                state: safeState,
-                layer,
-                source: action,
-            })
-        })
-        // 攻击方穿透：收集穿掉的伤害值，加法聚合后 clamp 到 blocked
-        const blocked = x - pd
-        if (blocked > 0) {
-            let piercedTotal = 0
-            forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
-                if (!def?.onParryPenetration) return
-                const pierced = def.onParryPenetration({
+        if (present.has('onParryReduction')) {
+            forEachBuffOf(safeState.pendingBuffs, safeDef.id, (def, layer) => {
+                if (!def?.onParryReduction) return
+                pd = def.onParryReduction({
                     final: pd,
                     raw: x,
                     target: safeDef,
@@ -343,8 +409,27 @@ export function calcExpectedDamage(
                     layer,
                     source: action,
                 })
-                if (pierced > 0) piercedTotal += pierced
             })
+        }
+        // 攻击方穿透：收集穿掉的伤害值，加法聚合后 clamp 到 blocked
+        const blocked = x - pd
+        if (blocked > 0) {
+            let piercedTotal = 0
+            if (present.has('onParryPenetration')) {
+                forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
+                    if (!def?.onParryPenetration) return
+                    const pierced = def.onParryPenetration({
+                        final: pd,
+                        raw: x,
+                        target: safeDef,
+                        attacker: safeAtk,
+                        state: safeState,
+                        layer,
+                        source: action,
+                    })
+                    if (pierced > 0) piercedTotal += pierced
+                })
+            }
             pd = Math.round((pd + Math.min(piercedTotal, blocked)) * 10) / 10
         }
         return Math.round(pd * 10) / 10
@@ -361,24 +446,26 @@ export function calcExpectedDamage(
     /** 对某分支伤害做穿透拆分：返回 { normal, pierce }，穿透比例加算、上限 100% */
     const splitPierce = (base: number): { normal: number; pierce: number } => {
         let pierceRatio = actionPierceRatio
-        forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
-            if (!def?.onPostCritDamage) return
-            const r = def.onPostCritDamage({
-                final: base,
-                raw: rawDamage,
-                target: safeDef,
-                attacker: safeAtk,
-                state: safeState,
-                layer,
-                source: action,
+        if (present.has('onPostCritDamage')) {
+            forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
+                if (!def?.onPostCritDamage) return
+                const r = def.onPostCritDamage({
+                    final: base,
+                    raw: rawDamage,
+                    target: safeDef,
+                    attacker: safeAtk,
+                    state: safeState,
+                    layer,
+                    source: action,
+                })
+                if (typeof r === 'object') {
+                    const total = r.normal + (r.piercing ?? 0)
+                    if (total > 0) pierceRatio += (r.piercing ?? 0) / total
+                } else {
+                    base = r
+                }
             })
-            if (typeof r === 'object') {
-                const total = r.normal + (r.piercing ?? 0)
-                if (total > 0) pierceRatio += (r.piercing ?? 0) / total
-            } else {
-                base = r
-            }
-        })
+        }
         pierceRatio = Math.min(1, pierceRatio)
         return { normal: Math.round(base * (1 - pierceRatio) * 10) / 10, pierce: Math.round(base * pierceRatio * 10) / 10 }
     }
@@ -418,7 +505,7 @@ export function calcExpectedDamage(
     // AI 决策默认不开——避免对手肉导致 AI 放弃攻击/护盾永不破死锁，见函数头注释）。
     // 命中期望上遍历防御方 onTakeDamage（铁布衫/石肤 ×0.85/×0.9 等），招架混合已在 condFinal 内。
     // 近似：穿透部分引擎免减伤，此处按全量打折（compare 精度可接受）。
-    if (opts?.applyDefenseReduction) {
+    if (opts?.applyDefenseReduction && present.has('onTakeDamage')) {
         forEachBuffOf(safeState.pendingBuffs, safeDef.id, (def, layer) => {
             if (!def?.onTakeDamage) return
             expected = def.onTakeDamage({
