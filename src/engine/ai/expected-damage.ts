@@ -159,6 +159,14 @@ export function calcExpectedDamage(
     }
 }
 
+/**
+ * 招式是否含「不透明效果」——`functional_damage` / `functional_heal` 的 fn 是任意代码，
+ * 不受钩子白名单约束（可直读任意层、也可遍历某角色全部层），故这类招式必须用全量克隆评估。
+ */
+function hasOpaqueFn(action: ActionDefinition): boolean {
+    return (action.effects ?? []).some((e) => e.type === 'functional_damage' || e.type === 'functional_heal')
+}
+
 function calcExpectedDamageInner(
     action: ActionDefinition,
     attacker: Character,
@@ -177,8 +185,18 @@ function calcExpectedDamageInner(
     // 现在沙盒自带随机数流（`rng.enterSandbox`，见本函数上下的 enter/exit），主战斗不再受影响，
     // 而且 `expected-damage-clone-parity.test.ts` 钉住了「受限克隆 ≡ 全量克隆」的逐位一致性。
     //
-    // state 恒为 BattleState class（生产与 DevMode 评估均构造真 class），cloneForHooks 必然存在
-    const safeState = state.cloneForHooks([safeAtk.id, safeDef.id], EVAL_HOOKS)
+    // 例外：含 `functional_*` 效果的招式不能走受限克隆。
+    //
+    // fn 是任意代码，可以按 key 直读任意层（毒素引爆读 `poison::<目标>` 的 remainingTicks）、
+    // 或遍历某角色的**全部**层（推演数自身非永久层数）。按「def 有没有白名单钩子」筛层时，
+    // 这些层可能因为一个「结算遍历类」钩子都没有而被整体漏掉（中毒层只有 onDebuffApply，
+    // 那是施加时的单点回调、不进 hooks 桶），于是期望伤害静默算成 0 —— AI 永远不出这张牌。
+    // 这类招式退回全量克隆（只影响含 fn 的少数招式，代价可忽略）。
+    //
+    // state 恒为 BattleState class（生产与 DevMode 评估均构造真 class）
+    const safeState = hasOpaqueFn(action)
+        ? state.cloneFor([safeAtk.id, safeDef.id])
+        : state.cloneForHooks([safeAtk.id, safeDef.id], EVAL_HOOKS)
 
     // 钩子存在性视图：下面每处「遍历双方层找某钩子」前先判空——一个层都不带该钩子就整段跳过扫描。
     // 视图与 forEachBuffOf 同源（按 byOwner + def 的注册钩子），按 registry 结构 revision 缓存；

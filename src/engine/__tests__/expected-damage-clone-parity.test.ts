@@ -11,7 +11,11 @@ import type { RegisteredHook } from '../combat/utils/buff-registry'
 /**
  * 一致性测试：受限克隆（cloneForHooks + EVAL_HOOKS 白名单）与全量克隆（cloneFor）下，
  * calcExpectedDamage 的输出必须逐位相同。两边都用「原型打补丁」显式指定口径，
- * 与生产路径当前用哪个无关（生产因 RNG 消耗差异暂时用全量克隆，见 expected-damage.ts 注释）。
+ * 与生产路径当前用哪个无关（生产用受限克隆，含 `functional_*` 的招式例外，见 expected-damage.ts）。
+ *
+ * 注意本测试的局限：**开局状态没有 DoT 层**，所以「层被白名单漏掉」这类失真测不出来
+ * （真实 bug：中毒层只带 onDebuffApply、不进 hooks 桶，被整层漏掉）——
+ * 那一类由 `expected-damage-opaque-clone.test.ts` 覆盖。
  *
  * 覆盖：全部 32 个对手各挑 3 个目标（共 96 对），每对跑攻方全部招式，比较
  * expectedDamage / hitChance / canReach / apCost。
