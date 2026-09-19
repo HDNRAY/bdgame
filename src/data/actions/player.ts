@@ -399,7 +399,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
     {
         id: 'steal_artifact',
         name: '探云手',
-        description: '神偷绝技，偷取对手一件奇物。每次成功后概率减半。',
+        description: '神偷绝技，偷取对手一件奇物。初始成功率81%，每得手一次减至三分之一。',
         requiredTags: [],
         apCost: 1,
         tags: [],

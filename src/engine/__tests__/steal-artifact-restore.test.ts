@@ -12,8 +12,8 @@ import type { Reward } from '../../game/entities/reward'
 /**
  * 探云手偷奇物：被偷的人必须**彻底失去**这件奇物带来的一切。
  *
- * 偷取有概率（首偷 60%，成功后减半），本文件的用例只验证"偷到之后"的语义，
- * 所以统一把随机数钉成 0（< 0.6 → 必成），避免随概率变成 flaky。
+ * 偷取有概率（首偷 81%，每得手一次减 2/3），本文件的用例只验证"偷到之后"的语义，
+ * 所以统一把随机数钉成 0（< 0.81 → 必成），避免随概率变成 flaky。
  *
  * 以前只删了 `artifactDefs` / triggers / 招式，构造期属性修正和触发挂上的 buff 都留在受害者身上，
  * 而小偷照拿一份 → 实测「双方都有 +15% 招架」「双方属性都 +3 洞察 +2 推演」。现在：
@@ -134,27 +134,47 @@ describe('探云手：偷走后受害者不再持有该奇物的一切', () => {
     })
 })
 
-describe('探云手：偷取概率（首偷 60%，成功后减半）', () => {
+describe('探云手：偷取概率（首偷 81%，每得手一次减 2/3）', () => {
     function setup() {
         const thief = makeChar('A')
         const victim = makeChar('B', [reward('iron_mask')])
         const engine = new BattleEngine(thief, victim, 4)
         return { thief, victim, engine }
     }
-    it('随机数 < 0.6 → 首次得手，并把下次概率降到 0.3', () => {
-        const spy = vi.spyOn(Math, 'random').mockReturnValue(0.59)
+    it('随机数 < 0.81 → 首次得手，并把下次概率降到 0.27', () => {
+        const spy = vi.spyOn(Math, 'random').mockReturnValue(0.8)
         const { thief, victim, engine } = setup()
         processActionEffect({ type: 'steal_artifact' }, { self: thief, enemy: victim, engine, tMs: 100 })
         expect(victim.artifactDefs.some((a) => a.id === 'iron_mask')).toBe(false)
-        expect(engine.state.pendingBuffs.get(`steal_artifact_track::${thief.id}`)?.restoreValue).toBe(0.3)
+        expect(engine.state.pendingBuffs.get(`steal_artifact_track::${thief.id}`)?.restoreValue).toBe(0.27)
         spy.mockRestore()
     })
-    it('随机数 ≥ 0.6 → 首次失手，奇物不动、概率不降', () => {
-        const spy = vi.spyOn(Math, 'random').mockReturnValue(0.61)
+    it('随机数 ≥ 0.81 → 首次失手，奇物不动、概率不降', () => {
+        const spy = vi.spyOn(Math, 'random').mockReturnValue(0.82)
         const { thief, victim, engine } = setup()
         processActionEffect({ type: 'steal_artifact' }, { self: thief, enemy: victim, engine, tMs: 100 })
         expect(victim.artifactDefs.some((a) => a.id === 'iron_mask')).toBe(true)
         expect(engine.state.pendingBuffs.get(`steal_artifact_track::${thief.id}`)).toBeUndefined()
+        spy.mockRestore()
+    })
+    it('连续得手：0.27 → 0.09 → 0.03（每次都乘 1/3）', () => {
+        const spy = vi.spyOn(Math, 'random').mockReturnValue(0)
+        const thief = makeChar('A')
+        // 对手带 3 件**真的可偷**的奇物（inherent/implant/imperial 偷不走，按 handler 同一套过滤）
+        const three = ARTIFACTS.filter(
+            (a) => !a.tags.includes('inherent') && !a.tags.includes('implant') && !a.tags.includes('imperial'),
+        )
+            .slice(0, 3)
+            .map((a) => reward(a.id))
+        const victim = makeChar('B', three)
+        const engine = new BattleEngine(thief, victim, 4)
+        const chance = () => engine.state.pendingBuffs.get(`steal_artifact_track::${thief.id}`)?.restoreValue
+        processActionEffect({ type: 'steal_artifact' }, { self: thief, enemy: victim, engine, tMs: 100 })
+        expect(chance()).toBe(0.27)
+        processActionEffect({ type: 'steal_artifact' }, { self: thief, enemy: victim, engine, tMs: 101 })
+        expect(chance()).toBe(0.09)
+        processActionEffect({ type: 'steal_artifact' }, { self: thief, enemy: victim, engine, tMs: 102 })
+        expect(chance()).toBe(0.03)
         spy.mockRestore()
     })
 })

@@ -732,10 +732,10 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             engine.emitLog({ type: 'system', message: `[探云手] 对手无可偷取奇物`, actorId: self.id })
             return
         }
-        // 成功概率（初始 60%，成功后减半）
+        // 成功概率（初始 81%，每得手一次减 2/3 → 乘 1/3）
         const trackKey = `steal_artifact_track::${self.id}`
         const track = engine.state.pendingBuffs.get(trackKey)
-        const chance = track?.restoreValue ?? 0.6
+        const chance = track?.restoreValue ?? 0.81
         const { success } = calcRoll(chance)
         if (!success) {
             engine.emitLog({
@@ -786,11 +786,12 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             const buffId = k.slice(0, k.indexOf('::'))
             if (granted.has(buffId)) engine.state.pendingBuffs.tagOrigin(k, originId)
         }
-        // 更新成功概率（减半）
-        engine.state.pendingBuffs.set(trackKey, { restoreValue: chance / 2 })
+        // 更新成功概率（每次得手减 2/3）。留 3 位小数：0.81 → 0.27 → 0.09 → 0.03（round1 会把 0.27 变成 0.3）
+        const nextChance = Math.round((chance / 3) * 1000) / 1000
+        engine.state.pendingBuffs.set(trackKey, { restoreValue: nextChance })
         engine.emitLog({
             type: 'system',
-            message: `[探云手] 得手！偷取了「${target.name}」（下次${Math.round((chance / 2) * 100)}%）`,
+            message: `[探云手] 得手！偷取了「${target.name}」（下次${Math.round(nextChance * 100)}%）`,
             actorId: self.id,
         })
     },
