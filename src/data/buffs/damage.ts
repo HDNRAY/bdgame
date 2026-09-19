@@ -121,7 +121,8 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         expiry: { type: 'permanent' },
         onAfterDealDamage: ({ attacker }) => {
             attacker.spendChan(1)
-            return { normal: 1, piercing: 1 }
+            // 共 2 点，其中 1 点穿透（normal 是总额，见 BuffDef.onAfterDealDamage 注释）
+            return { normal: 2, piercing: 1 }
         },
     },
     {
@@ -318,7 +319,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'wolf_hunting_buff',
         name: '狼狩法则',
-        description: '善用自重、惯性与借力造成额外伤害。消耗2层缠劲，附加（力道+根骨+身法+灵巧）×5%额外伤害。',
+        description: '善用自重、惯性与借力造成额外伤害。消耗2层缠劲，附加（力道+根骨+身法+灵巧）×0.04额外伤害。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -329,7 +330,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
                 (['vitality', 'agility', 'strength', 'dexterity'] as const).reduce(
                     (sum, v) => sum + attacker.attrs.get(v),
                     0,
-                ) * 0.05,
+                ) * 0.04,
             )
             return round1(final + bonus)
         },

@@ -145,13 +145,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'ordinary_training',
         name: '平平无奇的锻炼',
-        description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升招架。',
+        description: '日复一日的刻苦锻炼，身法提升闪避，灵巧提升命中。',
         tags: ['defense', 'inherent'],
         expiry: { type: 'permanent' },
         onDodgeChance: ({ target }) => {
             return target.attrs.get('agility') * 0.004
         },
-        onParryChance: ({ target }) => {
+        onHitChance: ({ target }) => {
             return target.attrs.get('dexterity') * 0.004
         },
     },
@@ -223,7 +223,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '毒抗+50%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        attrMods: { dexterity: 1, agility: 1 },
+        attrMods: { dexterity: 2, agility: 2 },
         // 毒伤 DOT 减免 50%（承受 50%）；与其他 onDebuffTick 钩子链式叠加
         onDebuffTick: ({ buffId, damage }) => (buffId === 'poison' ? round1(damage * 0.5) : undefined),
     },

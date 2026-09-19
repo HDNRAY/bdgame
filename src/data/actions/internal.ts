@@ -339,7 +339,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         id: '_shuai_ren',
         name: '甩刃',
         description: '断刀锁链甩出，如灵蛇出洞。',
-        requiredTags: ['slash'],
+        requiredTags: [],
         apCost: 2,
         tags: ['slash', 'internal', 'trigger'],
         getRange: () => [2, 4] as [number, number],

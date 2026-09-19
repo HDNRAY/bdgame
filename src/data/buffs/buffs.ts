@@ -1584,7 +1584,8 @@ export const BUFF_DB: BuffDef[] = [
                 { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.4 },
                 { self: attacker, enemy: target, engine: engine!, tMs: state.turn.currentTime },
             )
-            return { normal: 1, piercing: 1 }
+            // 共 2 点，其中 1 点穿透
+            return { normal: 2, piercing: 1 }
         },
     },
     // ── 磁暴线圈（天工·千星·电系增幅） ──

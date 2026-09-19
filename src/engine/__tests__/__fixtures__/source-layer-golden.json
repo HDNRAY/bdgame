@@ -92,8 +92,8 @@
   "attrs": {
    "strength": 12,
    "vitality": 9,
-   "agility": 14,
-   "dexterity": 12,
+   "agility": 15,
+   "dexterity": 13,
    "insight": 11,
    "wisdom": 9
   },
@@ -114,8 +114,8 @@
   "attrs": {
    "strength": 16,
    "vitality": 9,
-   "agility": 25,
-   "dexterity": 15,
+   "agility": 26,
+   "dexterity": 16,
    "insight": 12,
    "wisdom": 12
   },
@@ -6983,8 +6983,8 @@
   "attrs": {
    "strength": 7,
    "vitality": 7,
-   "agility": 10,
-   "dexterity": 8,
+   "agility": 11,
+   "dexterity": 9,
    "insight": 7,
    "wisdom": 11
   },

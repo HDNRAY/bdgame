@@ -24,7 +24,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
         description: '刀轻如风：出招更省内息、起手更快。急速10。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
-        onHaste: () => 10,
+        onHaste: () => 12,
     },
     {
         id: 'heavy_load',

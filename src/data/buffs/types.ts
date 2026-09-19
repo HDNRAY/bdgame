@@ -149,7 +149,13 @@ export interface BuffDef extends GameEntity {
     onTickHeal?: (ctx: BuffHookCtx) => number
     /** 攻击伤害修正（buff 持有者造成伤害时调用） */
     onDealDamage?: (ctx: BuffHookCtx) => number | { normal: number; piercing: number }
-    /** 造成伤害后追加独立伤害（返回 >0 则额外调 applyBonusDamage） */
+    /**
+     * 造成伤害后追加独立伤害（返回 >0 则额外调 applyBonusDamage）。
+     *
+     * 返回对象时**与 `onPostCritDamage` / `onDealDamage` 同口径**：`normal` 是这次追加的**总额**，
+     * `piercing` 是其中"无视减免"的那部分（穿透 = 结算方式，不是额外一笔）——
+     * 写 `{ normal: 2, piercing: 1 }` 就是"共追 2 点，其中 1 点必进"，不是"1 点普通 + 1 点穿透"。
+     */
     onAfterDealDamage?: (ctx: BuffHookCtx) => number | { normal: number; piercing: number }
     /** 受击伤害修正（buff 持有者受到伤害时调用；减伤阶段，招架后结算，含反伤/回缠类） */
     onTakeDamage?: (ctx: BuffHookCtx) => number

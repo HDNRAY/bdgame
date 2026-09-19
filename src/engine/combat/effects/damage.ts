@@ -58,6 +58,12 @@ interface ApplyDamageModifiersOptions {
  * 独立追加伤害（跳过招架/暴击/命中，吃 onDealDamage/onTakeDamage 修正）
  * 用于 buff 的 onAfterDealDamage 或 action effect 的独立伤害
  */
+/**
+ * 追加一笔伤害的底层原语：`piercing` 无视减免、`raw` 走减伤链，**两者相加**才是总伤害。
+ *
+ * 注意这是内部原语口径，与 `onAfterDealDamage` 钩子的 `{ normal, piercing }`（normal = 总额）不同 ——
+ * 钩子那边由消费处先拆好（`raw = normal - piercing`）再调这里。
+ */
 export function applyBonusDamage({
     raw,
     target,
@@ -265,17 +271,21 @@ export function applyDamage({
         }
         const bonusResult = def.onAfterDealDamage(ctx)
         if (typeof bonusResult === 'object') {
-            const { normal = 0, piercing: p = 0 } = bonusResult
-            if (normal > 0 || p > 0) {
+            // 与 onPostCritDamage / onDealDamage 同口径：`normal` 是**总额**，`piercing` 是其中
+            // 无视减免的那部分（穿透是结算方式，不是额外一笔）。引擎把它拆成
+            // 「走减伤的 normal-piercing」+「无视减免的 piercing」两段，总额 = normal。
+            const total = Math.max(0, bonusResult.normal ?? 0)
+            const pierce = Math.max(0, Math.min(bonusResult.piercing ?? 0, total))
+            if (total > 0) {
                 applyBonusDamage({
-                    raw: normal,
+                    raw: total - pierce,
                     target,
                     attacker,
                     engine,
                     source: def,
                     label: def.name,
                     labelId: def.id,
-                    piercing: p,
+                    piercing: pierce,
                 })
             }
         } else if (bonusResult > 0) {

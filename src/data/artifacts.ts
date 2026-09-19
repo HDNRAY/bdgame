@@ -498,7 +498,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'snake_gall',
         name: '菩斯曲蛇胆',
-        description: '普斯曲蛇的蛇胆，强筋健骨。力道+2，根骨+2。',
+        description: '普斯曲蛇的蛇胆，强筋健骨。',
         tags: ['buff', 'inherent'],
         effects: [
             {
@@ -510,7 +510,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'frog_gall',
         name: '莽牯朱蛤',
-        description: '万毒之王，莽牯朱蛤，百毒不侵。灵巧+1，身法+1。',
+        description: '万毒之王，莽牯朱蛤，百毒不侵。',
         tags: ['buff', 'inherent'],
         effects: [
             {
