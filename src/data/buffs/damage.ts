@@ -4,6 +4,15 @@ import { MAX_CHAN } from '../../engine/constants'
 import type { ActionDefinition } from '../../engine/entities/action'
 import { processActionEffect } from '../../engine/combat/effects'
 import { round1 } from '../../engine/util/math'
+import type { AttrName } from '../../engine/entities/attributes'
+import type { Character } from '../../engine/entities/character'
+
+/** 力道 / 身法 / 灵巧 / 推演 —— 「不滞于物」按这四项里最高的算 */
+const MARTIAL_ATTRS: readonly AttrName[] = ['strength', 'agility', 'dexterity', 'wisdom']
+
+function bestOfFour(char: Character): number {
+    return Math.max(...MARTIAL_ATTRS.map((a) => char.attrs.get(a)))
+}
 
 export const DAMAGE_BUFFS: BuffDef[] = [
     {
@@ -98,10 +107,11 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'bu_zhi_yu_wu',
         name: '不滞于物',
-        description: '不滞于物，草木竹石皆可为剑。附加推演×0.05伤害。',
+        description: '不滞于物，草木竹石皆可为剑。附加力道、身法、灵巧、推演中最高者的×0.05伤害。',
         tags: [],
         expiry: { type: 'permanent' },
-        onDealDamage: ({ final, attacker }) => round1(final + attacker.attrs.get('wisdom') * 0.05),
+        // 取四者最高：不挑路子，哪一项练出来了就吃哪一项（原先固定吃推演）
+        onDealDamage: ({ final, attacker }) => round1(final + bestOfFour(attacker) * 0.05),
     },
     {
         id: 'thunder_bonus',
