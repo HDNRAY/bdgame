@@ -6,7 +6,7 @@ import { PositionSystem } from '../combat/position'
 import { MIN_MOVE_PER_AP } from '../constants'
 import { calcSelfDamage } from '../calc/damage'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
-import { generatePlans, bestPlan, type AttackStyle } from './planner'
+import { generatePlans, bestPlan, intentGoal } from './planner'
 import { planSupportActions } from './support-planner'
 import { checkCondition } from '../../game/entities/action-config'
 import { resolveCondition } from '../../data/conditions'
@@ -120,17 +120,16 @@ export function planEvent(self: Character, state: BattleState): ActionCommand[] 
     const plans = generatePlans(self, state, candDefs, apBudget, precomputed)
     const best = bestPlan(plans)
     if (!best) {
-        // 没有可行攻击计划：朝风格理想距离移动（clinch/melee 贴脸靠近、ranged/mid 风筝远离），
-        // clamp 到理想距离不过冲——贴脸时不再无效靠近（move[-] 原地空转）、风筝时不再盲目冲
-        const style: AttackStyle = self.battleStyle
-        const effRange = self.getEffectiveRange()
-        const goal = style === 'clinch' || style === 'melee' ? effRange[0] : effRange[1]
+        // 没有可行攻击计划：朝「最优射程带」的意图端移动 —— 与 generatePlans 同一套判据
+        // （风格只决定往带子的哪一端站；已在想要的位置就不动，把 AP 留给下回合更早行动）。
+        // 这里不像 intentTarget 那样留一招的 AP：既然本回合打不到，就把预算全用在走路上。
         const dist = enemy ? state.position.distance(self.id, enemy.id) : 4
+        const goal = enemy ? intentGoal(self, state, candDefs, dist) : null
         const perAp = PositionSystem.apToRange(self.attrs.get('agility')) * (1 + calcExtraMoveEfficiency(state, self))
-        const moveM = Math.min(perAp * Math.max(0, apBudget), Math.abs(dist - goal))
+        const moveM = goal === null ? 0 : Math.min(perAp * Math.max(0, apBudget), Math.abs(dist - goal))
         const moveAp = moveM > 0 ? PositionSystem.moveApFor(moveM, perAp) : 0
         const fallbackMove: ActionCommand[] =
-            moveAp > 0 ? [{ type: 'move', bestDistance: (dist > goal ? -1 : 1) * moveAp }] : []
+            moveAp > 0 && goal !== null ? [{ type: 'move', bestDistance: (dist > goal ? -1 : 1) * moveAp }] : []
         if (preCmds.length > 0) return [...preCmds, ...fallbackMove]
         return fallbackMove
     }

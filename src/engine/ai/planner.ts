@@ -8,12 +8,13 @@
  *   2. 连发（分心错手/漫天花雨 getExtraAttack）与移动脱节，从不联合规划。
  *   3. 移动目标按风格硬编码（melee 必贴脸），不考虑"省 AP 给连发"。
  *
- * 新模型：对每个关键移动落点，生成「段1(移动前打) → 移动 → 段2(移动后打) → 收尾移动」
+ * 新模型：对「当前距离 + 由风格意图算出的目标距离」生成「段1(移动前打) → 移动 → 段2(移动后打)」
  * 的完整序列，按 伤害/AP 效率 评估（效率相同取总伤害高者），选最优计划。
+ * 移动落点**算出来而不是穷举**：最优射程带（每 AP 期望伤害最高那一档招式的射程并集）
+ * 定「站哪一段」，风格意图定「站哪一端」，AP 预算定「这一回合能走多远」，走不满就走到头。
+ * 没有收尾走位：剩余 AP 不再盲走一段，留给下回合更早行动。
  */
 
-/** 落点偏好权重：对手近战 → 风筝（走最远）、对手远程 → 贴脸（走最近）的评分加成（"首选"倾向） */
-const LANDING_PREF_WEIGHT = 0.5
 import type { Character } from '../entities/character'
 import type { ActionDefinition, EffectDef } from '../entities/action'
 import { getAction, getActionRange, getRuntimeAction } from '../../data/actions'
@@ -272,54 +273,159 @@ function summonMinRange(self: Character): number | null {
     return Number.isFinite(max) ? max : null
 }
 
-/**
- * 生成关键移动落点：站桩点 + 可攻击区间内的 4 个点（射程最小/最大 + 中间 2 点）。
- * 不再按风格只给 1-2 个点——所有点都参与评分，对手风格决定偏好侧（generatePlans 加权：
- * 对手近战→风筝走最远、对手远程→贴脸走最近）。落点由 AP 预算自然筛选（走太远 AP 不够的计划
- * 评分低/被拒），中间点覆盖"移动成本 vs 剩余攻击 AP"的折中。
- */
-export function keyDistances(self: Character, state: BattleState, candidates: ActionDefinition[]): number[] {
-    const enemy = state.characters.find((c) => c.id !== self.id)
-    const current = enemy ? state.position.distance(self.id, enemy.id) : 4
-    // 站桩点不能低于召唤物射程下限：贴 0 时三相珠等召唤物失效（主输出全丢）
-    const summonMin = summonMinRange(self)
-    const standPoint = summonMin !== null ? Math.max(current, summonMin) : current
-    const dists = new Set<number>([standPoint])
+/** 「每 AP 期望伤害」用的评估器（generatePlans 传入带缓存的版本） */
+type EvalAt = (dist: number, def: ActionDefinition) => DamageEstimate
 
-    if (candidates.length === 0) return [...dists]
+/** 速率同档容差：落在这之内视为「一样好的招」，射程并起来算最优带 */
+const RATE_TOL = 0.15
+/** 目标距离离带边界留的余量：引擎按 AP 取整位移会过冲，贴边容易被 planMove 判出射程 */
+const BAND_MARGIN = 0.15
 
-    // 武器射程在本次调用内不变，取一次复用
+/** 某招的射程（运行时招式 + 武器射程） */
+function rangeOf(self: Character, state: BattleState, def: ActionDefinition): [number, number] {
+    const runtime = getRuntimeAction(def.id, self, state) ?? def
+    return getActionRange(runtime, self.getEffectiveRange(), self)
+}
+
+/** 默认评估器（无缓存时用；generatePlans 传自己的 evalAt 复用缓存） */
+function defaultEvalAt(self: Character, state: BattleState, enemy: Character): EvalAt {
     const effRange = self.getEffectiveRange()
-    const ranges = candidates.map((a) => {
-        const runtime = getRuntimeAction(a.id, self, state) ?? a
-        return getActionRange(runtime, effRange, self)
-    })
-    const rangeMaxes = ranges.map(([, hi]) => hi)
-    const rangeMins = ranges.map(([lo]) => lo)
-    // 落点区间上限：近战风格（melee/clinch）用武器射程 cap——风筝基准以武器距离为准，
-    // 不被超程大招（如燎天 8m）拉远（燎天 0-8 ⊂ 武器 1-4，站桩即可用，无需为它跑远）。
-    // ranged/mid 角色靠远程招式输出（唐柔空手 + 暗器 range 2-6），风筝基准按招式射程并集，
-    // 武器（常为副手/空手 [0,2]）不参与 cap，否则永远拉不到暗器射程。
-    const myStyle = self.build.battleStyle
-    const maxRange =
-        myStyle === 'ranged' || myStyle === 'mid'
-            ? Math.max(...rangeMaxes)
-            : Math.min(Math.max(...rangeMaxes), effRange[1])
-    const minRange = Math.min(...rangeMins)
-    // 贴脸点：本体招下限与召唤物射程下限取大（贴脸 = 攻击距离下限，不是 0）。
-    // 注意：不在此处 +short_dash——垫步只在攻击时距离超出武器射程才发生且距离动态
-    // （min(距离, maxDistance)），移动补偿放在 generatePlans 的 planMove 里统一处理
-    const meleePoint = summonMin !== null ? Math.max(minRange, summonMin) : minRange
+    return (dist, def) => calcExpectedDamage(def, self, enemy, effRange, state, dist)
+}
 
-    // 可攻击区间 [meleePoint, maxRange] 内 4 点：最小 / 1/3 / 2/3 / 最大
-    if (Number.isFinite(meleePoint)) dists.add(meleePoint)
-    if (Number.isFinite(maxRange) && maxRange > meleePoint + 0.01) {
-        const step = (maxRange - meleePoint) / 3
-        dists.add(Math.round((meleePoint + step) * 100) / 100)
-        dists.add(Math.round((meleePoint + 2 * step) * 100) / 100)
-        dists.add(maxRange)
+/** 最优射程带 + 该档最省一招的 AP */
+export interface OptimalBand {
+    lo: number
+    hi: number
+    /** 该档最省一招的 AP（含缠的机会成本）——留够它，移动之后本回合还能出手 */
+    attackAp: number
+}
+
+/**
+ * 「最优射程带」：每 AP 期望伤害达到最高档（容差内）的招式的射程并集。
+ *
+ * 为什么能算而不是穷举：伤害与距离无关（`calcFinalDamage` 的距离乘数恒为 1），
+ * 所以每张招在自己的射程内是常数 ⇒「每 AP 期望伤害」关于距离是**分段常数**函数，
+ * 极值只在各招射程端点处变化。于是每张招在射程内取一点估速率，就能定出最优带。
+ */
+export function optimalRangeBand(
+    self: Character,
+    state: BattleState,
+    candidates: ActionDefinition[],
+    current: number,
+    evalAtArg?: EvalAt,
+): OptimalBand | null {
+    const enemy = state.characters.find((c) => c.id !== self.id)
+    if (!enemy || candidates.length === 0) return null
+    const evalAt = evalAtArg ?? defaultEvalAt(self, state, enemy)
+    const rated = candidates.map((def) => {
+        const range = rangeOf(self, state, def)
+        // 在射程内取离当前距离最近的点：速率与距离无关，取哪都一样，这样最省评估（还能命中 evalCache）
+        const d = Math.min(Math.max(current, range[0]), range[1])
+        const est = evalAt(d, def)
+        const ap = Math.max(0.01, est.apCost + chanOpportunityCost(self, est.chanCost ?? 0))
+        return { range, ap, rate: est.expectedDamage / ap }
+    })
+    const maxRate = Math.max(...rated.map((r) => r.rate))
+    if (!(maxRate > 0)) return null
+    const best = rated.filter((r) => r.rate >= maxRate * (1 - RATE_TOL))
+    return {
+        lo: Math.min(...best.map((r) => r.range[0])),
+        hi: Math.max(...best.map((r) => r.range[1])),
+        attackAp: Math.min(...best.map((r) => r.ap)),
     }
-    return [...dists].sort((a, b) => a - b)
+}
+
+/**
+ * 意图方向：**风格差距决定「往最优带的哪一端站」**，它不参与定价（不乘分数）。
+ * 'far' = 站到远端（把对手挡在它射程外 —— 距离唯一的真实收益）；'near' = 够得到就行。
+ * 表沿用原设计意图：ranged 恒远端；clinch 恒近端；melee 对 clinch 拉远、否则近端；
+ * mid 看对手（对手近战/贴身 → 拉远，否则近端）。
+ */
+export function intentDirection(self: Character, enemy: Character): 'far' | 'near' {
+    const enemyStyle: AttackStyle = enemy.build.battleStyle
+    const kiting = enemyStyle === 'melee' || enemyStyle === 'clinch'
+    switch (self.build.battleStyle) {
+        case 'ranged':
+            return 'far'
+        case 'clinch':
+            return 'near'
+        case 'melee':
+            return enemyStyle === 'clinch' ? 'far' : 'near'
+        case 'mid':
+        default:
+            return kiting ? 'far' : 'near'
+    }
+}
+
+/** 没有任何「能打出伤害的候选招」时的兜底带：直接用武器射程（贴脸下限仍受召唤物约束） */
+function weaponBand(self: Character): OptimalBand | null {
+    const eff = self.getEffectiveRange()
+    const lo = Math.max(eff[0], summonMinRange(self) ?? -Infinity)
+    if (!(eff[1] >= lo)) return null
+    return { lo, hi: eff[1], attackAp: 1 }
+}
+
+/** 意图目标距离 + 该档一招的 AP（不含预算夹取）；null = 已经在想要的位置 */
+function bandGoal(
+    self: Character,
+    state: BattleState,
+    candidates: ActionDefinition[],
+    current: number,
+    evalAtArg?: EvalAt,
+): { goal: number; attackAp: number } | null {
+    // 没有可用招（无奖励/全在冷却/资源不足）时退回武器射程，避免「站着不动一回合」
+    const band = optimalRangeBand(self, state, candidates, current, evalAtArg) ?? weaponBand(self)
+    if (!band) return null
+    const enemy = state.characters.find((c) => c.id !== self.id)
+    if (!enemy) return null
+    // 进带子的入口：贴太近会让三相珠这类召唤物失效，所以下限不能低于召唤物射程下限
+    const entryLo = Math.max(band.lo + BAND_MARGIN, summonMinRange(self) ?? -Infinity)
+    const farPoint = Math.max(entryLo, band.hi - BAND_MARGIN)
+    const dir = intentDirection(self, enemy)
+    let goal: number | null
+    if (current < band.lo - 0.01) {
+        // 太近（打不到）：near 取最近入口；far 直接奔远端
+        goal = dir === 'far' ? farPoint : entryLo
+    } else if (current > band.hi + 0.01) {
+        // 太远（打不到）：从远侧进入，最近入口就是远端
+        goal = farPoint
+    } else {
+        // 已经够得到：near 不再无脑贴脸（伤害与距离无关，贴近没有收益）；far 继续站到远端
+        goal = dir === 'far' ? farPoint : null
+    }
+    if (goal === null || Math.abs(goal - current) < 0.05) return null
+    return { goal, attackAp: band.attackAp }
+}
+
+/** 意图目标距离（不含预算）：给「没有可行攻击计划」时的兜底走位用 */
+export function intentGoal(
+    self: Character,
+    state: BattleState,
+    candidates: ActionDefinition[],
+    current: number,
+    evalAtArg?: EvalAt,
+): number | null {
+    return bandGoal(self, state, candidates, current, evalAtArg)?.goal ?? null
+}
+
+/**
+ * 本回合的意图目标距离（含 AP 预算）：走不到目标就走到**预算允许的最远处**（留够至少一招的 AP），
+ * 而不是把这一档整条丢掉。返回 null = 本回合不移动。
+ */
+export function intentTarget(
+    self: Character,
+    state: BattleState,
+    candidates: ActionDefinition[],
+    current: number,
+    apBudget: number,
+    evalAtArg?: EvalAt,
+): number | null {
+    const g = bandGoal(self, state, candidates, current, evalAtArg)
+    if (!g) return null
+    const maxStep = movePerAp(self, state) * Math.max(0, apBudget - g.attackAp)
+    const target = g.goal > current ? Math.min(g.goal, current + maxStep) : Math.max(g.goal, current - maxStep)
+    return Math.abs(target - current) < 0.05 ? null : target
 }
 
 /**
@@ -349,7 +455,6 @@ export function generatePlans(
 ): ActionPlan[] {
     const enemy = state.characters.find((c) => c.id !== self.id)
     if (!enemy) return []
-    const style: AttackStyle = self.battleStyle
     const current = state.position.distance(self.id, enemy.id)
     // 武器射程在计划生成期间不变（换武器是效果层事件，不在本回合计划内发生）——取一次复用
     const effRange = self.getEffectiveRange()
@@ -412,7 +517,11 @@ export function generatePlans(
     }
 
     const plans: ActionPlan[] = []
-    const targetDists = keyDistances(self, state, candidates)
+    // 落点：站桩点 + 由「风格意图」算出来的目标距离（走不到就夹到预算允许处）。
+    // 意图是规则不是加分：意图要动时不再生成站桩计划，否则 伤害/AP 恒偏好不动，风筝永远发生不了；
+    // 「够得到就别乱动」由 intentTarget 返回 null 表达。
+    const intentDist = intentTarget(self, state, candidates, current, apBudget, evalAt)
+    const targetDists = intentDist === null ? [current] : [intentDist]
     // 连发数（分心错手 +1、漫天花雨暗器 +2）决定本回合总招数上限：主招 1 + 连发 N
     const extraN = maxExtraAttack(self)
     const totalHitsMax = 1 + extraN
@@ -427,23 +536,7 @@ export function generatePlans(
             return dash?.maxDistance ?? 0
         }),
     )
-    // 落点偏好（对手风格）：对手近战 → 风筝（偏最远）；对手远程 → 贴脸（偏最近）。
-    // 仅作评分加权（"首选"），AP 不足时仍会自然选可行侧。目标区间 [meleePoint, maxRange]
-    const enemyStyle: AttackStyle = enemy.build.battleStyle
-    const rangeMin = Math.min(...pool.map((a) => a.range[0]))
-    const rangeMax = Math.max(...pool.map((a) => a.range[1]))
-    const meleePoint = Math.max(rangeMin, summonMinRange(self) ?? -Infinity)
-    const prefSpan = Math.max(0.01, rangeMax - meleePoint)
-
     for (const target of targetDists) {
-        // 落点偏好乘数：对手 melee/clinch → 目标越远加成越高；对手 ranged → 目标越近加成越高；mid 无偏好
-        const norm = (target - meleePoint) / prefSpan
-        const prefMult =
-            enemyStyle === 'melee' || enemyStyle === 'clinch'
-                ? 1 + LANDING_PREF_WEIGHT * Math.min(1, Math.max(0, norm))
-                : enemyStyle === 'ranged'
-                  ? 1 + LANDING_PREF_WEIGHT * Math.min(1, Math.max(0, 1 - norm))
-                  : 1
         // 段1：移动前（当前距离）能打。仅当有连发时允许起手 1 招（起手占用连发名额，
         // 否则主招+连发已是上限，段1 会超招）。无连发时段1 恒空。
         const seg1Max = extraN > 0 ? 1 : 0
@@ -464,7 +557,9 @@ export function generatePlans(
         let movePlan: MovePlan | null = null
         let moveAp = 0
         if (needMove) {
-            const moveTarget = target < current ? Math.max(target, Math.min(current, target + maxDash)) : target
+            const rawMoveTarget = target < current ? Math.max(target, Math.min(current, target + maxDash)) : target
+            // 垫步补偿不能把落点推出「所有招的射程并集」——否则 planMove 的落点校验会否掉整条计划
+            const moveTarget = Math.min(Math.max(rawMoveTarget, allCandRange[0]), allCandRange[1])
             movePlan = planMove(self, state, current, moveTarget, apBudget - seg1Ap, allCandRange)
             if (!movePlan) continue
             moveAp = movePlan.apCost
@@ -483,20 +578,14 @@ export function generatePlans(
         const totalAp = seg1Ap + moveAp + seg2.totalAp
         if (totalAp > apBudget + 1e-9) continue
 
-        // 收尾：剩余 AP 做战术移动（有 AP 才动，AP 不足不动）。收尾移动也消耗 AP、
-        // 影响下回合间隙 → 计入 totalAp 参与效率评分。当前距离用真实落点（target 可能 ≠ 落点）
-        const remainAp = apBudget - totalAp
-        const tail = tacticalMove(self, state, style, seg2Dist, remainAp)
-        const tailAp = tail ? tail.apCost : 0
-        const totalApWithTail = totalAp + tailAp
-        if (totalApWithTail > apBudget + 1e-9) continue
+        // 剩余 AP 不再做「收尾走位」：意图已经由 target 表达，留下的 AP 换成下回合更早行动
+        // （engine 的行动间隔 = 未花掉 AP 的回复时间），比盲走一段更有价值。
 
         // 组装指令
         const cmds: ActionCommand[] = []
         for (const a of seg1.actions) cmds.push({ type: 'attack', actionId: a.id })
         if (movePlan) cmds.push(movePlan.cmd)
         for (const a of seg2.actions) cmds.push({ type: 'attack', actionId: a.id })
-        if (tail) cmds.push(tail.cmd)
 
         // 连发校验：段1+段2 总招数 ≤ 1 + 主招连发（简化：段2 max 已含连发，段1 起手 1 招）
         // 伤害 = 段1 + 段2；缠劲成本 = 段1+段2 总消耗按既有公式一次性折算（阈值跌破 30 只看总消耗）
@@ -505,50 +594,12 @@ export function generatePlans(
         const totalChanCost =
             seg1.actions.reduce((s, a) => s + a.chanCost, 0) + seg2.actions.reduce((s, a) => s + a.chanCost, 0)
         const totalChan = calcChanCostInAp(self.chan, totalChanCost)
-        const totalCost = totalApWithTail + totalChan
-        const score = totalCost > 0 ? (totalDamage / totalCost) * prefMult : 0
-        plans.push({ cmds, totalDamage, totalAp: totalApWithTail, totalChan, score })
+        const totalCost = totalAp + totalChan
+        const score = totalCost > 0 ? totalDamage / totalCost : 0
+        plans.push({ cmds, totalDamage, totalAp, totalChan, score })
     }
 
     return plans
-}
-
-/** 收尾战术移动：有剩余 AP 才动；melee 贴脸，ranged/mid 风筝（向风格目标距离靠拢） */
-function tacticalMove(
-    self: Character,
-    state: BattleState,
-    style: AttackStyle,
-    target: number,
-    remainAp: number,
-): MovePlan | null {
-    if (remainAp < 0.1) return null
-    const effRange = self.getEffectiveRange()
-    const enemy = state.characters.find((c) => c.id !== self.id)
-    if (!enemy) return null
-    const enemyStyle: AttackStyle = enemy.build.battleStyle
-
-    // 当前战斗距离（段2 结束后 ≈ target）
-    const dist = target
-    // 贴脸下限：本体招下限与召唤物射程下限取大（贴脸不能让召唤物失效——三相珠 [1,10] 贴 0m 打不到）
-    const summonMin = summonMinRange(self)
-    const meleeGoal = summonMin !== null ? Math.max(effRange[0], summonMin) : effRange[0]
-    // 战术目标距离：clinch 贴脸（射程下限 0）；melee 对手贴身则拉开到射程上限，否则贴脸；
-    // ranged 风筝（射程最远），mid 看对手
-    const kiting = enemyStyle === 'melee' || enemyStyle === 'clinch' // 对手近身 → 我方拉开
-    const goal = (() => {
-        switch (style) {
-            case 'clinch':
-                return meleeGoal // 贴身风格：贴到射程下限
-            case 'ranged':
-                return effRange[1] // 远程风格：风筝到射程最远
-            case 'melee':
-                return enemyStyle === 'clinch' ? effRange[1] : meleeGoal // 对手贴身则拉开，否则贴脸
-            case 'mid':
-            default:
-                return kiting ? effRange[1] : meleeGoal // 对手近身则风筝，否则贴脸
-        }
-    })()
-    return planMove(self, state, dist, goal, remainAp)
 }
 
 /** 选择最优计划：效率最高，效率相同取总伤害高者 */

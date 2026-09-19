@@ -4,7 +4,8 @@ import type { BattleState } from '../combat/types'
 import { gen } from '../../data/opponents/index'
 import { OTSU, FANGLIE, DOCTOR } from '../../data/opponents/index'
 import { BattleEngine } from '../combat/engine'
-import { generatePlans, bestPlan, keyDistances } from '../ai/planner'
+import { generatePlans, bestPlan, optimalRangeBand, intentDirection, intentGoal, intentTarget } from '../ai/planner'
+import type { ActionDefinition } from '../entities/action'
 
 function makeChar(id: string, name: string, preset: unknown): Character {
     const build = gen(preset as never, 33)
@@ -17,35 +18,63 @@ function makeState(self: Character, enemy: Character, distance = 4): BattleState
     return engine.state
 }
 
-describe('planner · 关键移动落点（三风格）', () => {
-    it('melee 大津：落点含当前距离/进射程/贴脸', () => {
-        const self = makeChar('A', '大津', OTSU)
-        const enemy = makeChar('B', '方烈', FANGLIE)
-        const state = makeState(self, enemy, 4)
-        const cands = self.actions
-            .map((a) => a.def)
-            .filter((d) => !d.tags.some((t) => ['pre_action', 'post_action', 'internal'].includes(t)))
-        const dists = keyDistances(self, state, cands)
-        // 当前 4m + 落点区间 [minRange, maxRange] 内 4 点（min=0 贴脸、max=武器射程上限）
-        // 注：风筝基准 = 武器射程（春翁 [1,3]），超武器射程招（落月 [3,5]）下界在 3m 可达；
-        // 不再按招式/overlord dash 并集把落点拉到 6-7m。站桩点(当前 4m)可能高于区间上限。
-        expect(dists).toContain(4) // 当前
-        expect(dists[0]).toBe(0) // 贴脸（射程下限）
-        expect(dists).toContain(3) // 最远落点 = 武器射程上限（春翁 [1,3]）
-        expect(dists.some((d) => d >= 2 && d <= 3)).toBe(true) // 中段落点
-    })
+const candsOf = (c: Character): ActionDefinition[] =>
+    c.actions
+        .map((a) => a.def)
+        .filter((d) => !d.tags.some((t) => ['pre_action', 'post_action', 'internal'].includes(t)))
 
-    it('ranged 博士：落点含当前距离/风筝最远', () => {
+describe('planner · 落点由「最优射程带 + 风格意图」算出（不穷举）', () => {
+    it('ranged：意图是远端 → 目标往外走，且不超出最优带', () => {
         const self = makeChar('A', '博士', DOCTOR)
         const enemy = makeChar('B', '方烈', FANGLIE)
         const state = makeState(self, enemy, 4)
-        const cands = self.actions
-            .map((a) => a.def)
-            .filter((d) => !d.tags.some((t) => ['pre_action', 'post_action', 'internal'].includes(t)))
-        const dists = keyDistances(self, state, cands)
-        expect(dists).toContain(4) // 当前
-        // 有武器射程上限（hover_drone [0,6] 或招式范围）
-        expect(dists.some((d) => d >= 6)).toBe(true)
+        const cands = candsOf(self)
+        const band = optimalRangeBand(self, state, cands, 4)
+        expect(band).not.toBeNull()
+        expect(intentDirection(self, enemy)).toBe('far')
+        const target = intentTarget(self, state, cands, 4, self.maxAp)
+        // 要么已经在远端（null），要么往外走
+        expect(target === null || target > 4).toBe(true)
+        if (target !== null) expect(target).toBeLessThanOrEqual(band!.hi + 1e-6)
+    })
+
+    it('melee：已在最优带内就不移动（不再无脑贴脸/追）', () => {
+        const self = makeChar('A', '大津', OTSU)
+        const enemy = makeChar('B', '方烈', FANGLIE)
+        const probe = makeState(self, enemy, 4)
+        const band = optimalRangeBand(self, probe, candsOf(self), 4)
+        expect(band).not.toBeNull()
+        const mid = (band!.lo + band!.hi) / 2
+        const state = makeState(self, enemy, mid)
+        const cands = candsOf(self)
+        expect(intentDirection(self, enemy)).toBe('near')
+        expect(intentGoal(self, state, cands, mid)).toBeNull()
+        expect(intentTarget(self, state, cands, mid, self.maxAp)).toBeNull()
+    })
+
+    it('melee：打不到时必须进带子（走到预算允许处，不整档作废）', () => {
+        const self = makeChar('A', '大津', OTSU)
+        const enemy = makeChar('B', '方烈', FANGLIE)
+        const state = makeState(self, enemy, 9)
+        const cands = candsOf(self)
+        const band = optimalRangeBand(self, state, cands, 9)!
+        const target = intentTarget(self, state, cands, 9, self.maxAp)
+        expect(target).not.toBeNull()
+        expect(target!).toBeLessThan(9) // 朝带子靠近
+        // 不会越过「远端入口」（预算不足就是走到头，下回合继续）
+        expect(target!).toBeGreaterThanOrEqual(band.hi - 0.15 - 1e-6)
+    })
+
+    it('计划里最多一次移动（收尾走位已删除）', () => {
+        const self = makeChar('A', '大津', OTSU)
+        const enemy = makeChar('B', '方烈', FANGLIE)
+        const state = makeState(self, enemy, 4)
+        self.ap = self.maxAp
+        const plans = generatePlans(self, state, candsOf(self), self.ap)
+        expect(plans.length).toBeGreaterThan(0)
+        for (const p of plans) {
+            expect(p.cmds.filter((c) => c.type === 'move').length).toBeLessThanOrEqual(1)
+        }
     })
 })
 
@@ -67,19 +96,27 @@ describe('planner · 回合计划生成（大津场景）', () => {
         }
     })
 
-    it('存在「段1 攻击 + 移动 + 段2 攻击」跨移动分段计划', () => {
-        const self = makeChar('A', '大津', OTSU)
+    it('存在「段1 攻击 + 移动 + 段2 攻击」跨移动分段计划（连发 + 风筝意图）', () => {
+        // 段1（移动前先打）只在有连发时才有内容；再叠加「ranged 意图往远端走」才会同回合既打又走
+        const self = new Character({
+            id: 'A',
+            name: 'A',
+            story: '',
+            weapon: 'bare_hands',
+            battleStyle: 'ranged',
+            // 灵巧 16：漫天花雨有 requireAttrsMin 门槛，够不到就不生效
+            baseAttrs: { strength: 16, vitality: 16, agility: 16, dexterity: 16, insight: 16, wisdom: 16 },
+            rewards: [
+                // 两张暗器招：段1 用一张起手，段2 才能用另一张接着打（同招不重复入段）
+                { type: 'action' as const, id: 'dart_throw', name: '镖', description: '', tags: [] as never[] },
+                { type: 'action' as const, id: 'throwing_knife', name: '飞刀', description: '', tags: [] as never[] },
+                { type: 'passive' as const, id: 'fei_hua_shou', name: '漫天花雨', description: '', tags: [] as never[] },
+            ],
+        })
         const enemy = makeChar('B', '方烈', FANGLIE)
-        const state = makeState(self, enemy, 4)
+        const state = makeState(self, enemy, 3)
         self.ap = self.maxAp
-        const cands = self.actions
-            .map((a) => a.def)
-            .filter((d) => !d.tags.some((t) => ['pre_action', 'post_action', 'internal'].includes(t)))
-        const plans = generatePlans(self, state, cands, self.ap)
-        // planner 模型：段1(移动前打) → 移动 → 段2(移动后打) → 收尾移动。
-        // 应存在跨移动的分段计划：移动指令前后都有攻击招。
-        // 注：轮舞月斩给 slash 招 short_dash+2 后，穿云等近战招在 4m 也能打到且效率更高，
-        // 段1 起手招由效率排序决定，不再固定是落月。
+        const plans = generatePlans(self, state, candsOf(self), self.ap)
         const mixed = plans.find((p) => {
             const moveIdx = p.cmds.findIndex((c) => c.type === 'move')
             if (moveIdx <= 0) return false
@@ -107,16 +144,13 @@ describe('planner · 回合计划生成（大津场景）', () => {
     })
 })
 
-describe('planner · 收尾移动（有 AP 才动）', () => {
-    it('AP 用尽时不追加移动', () => {
+describe('planner · 移动预算', () => {
+    it('AP 很少时计划不超预算', () => {
         const self = makeChar('A', '大津', OTSU)
         const enemy = makeChar('B', '方烈', FANGLIE)
         const state = makeState(self, enemy, 4)
         self.ap = 2 // AP 很少，勉强够一招
-        const cands = self.actions
-            .map((a) => a.def)
-            .filter((d) => !d.tags.some((t) => ['pre_action', 'post_action', 'internal'].includes(t)))
-        const plans = generatePlans(self, state, cands, self.ap)
+        const plans = generatePlans(self, state, candsOf(self), self.ap)
         for (const p of plans) {
             expect(p.totalAp).toBeLessThanOrEqual(self.ap + 1e-6)
         }
