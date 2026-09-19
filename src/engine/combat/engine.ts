@@ -857,7 +857,7 @@ export class BattleEngine {
             }
         }
         // 战斗判定
-        if (!processHitCheck(action, r, self, enemy, this)) return r
+        if (!processHitCheck(action, r, self, enemy, this, false, triggered)) return r
         // 效果应用
         this.#finalizeAttack(action, r, self, enemy, triggered)
         // 天机消耗已由 tianji_ready 自身 onCritical 钩子处理（必中必暴→必然暴击→结算后自删+重置玄机）

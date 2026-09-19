@@ -13,6 +13,7 @@ export function processHitCheck(
     enemy: Character,
     engine: BattleEngine,
     suppressTriggers = false,
+    triggered = false,
 ): boolean {
     if (!suppressTriggers) engine.emit('on_attack', self, enemy)
     let defenderDodgeMod = 0
@@ -51,6 +52,8 @@ export function processHitCheck(
             engine,
             state: engine.state,
             layer,
+            // suppressTriggers 兼顾「多段命中的非末段」，不能当 triggered 用 → 单独传
+            triggered,
         })
         hc = hc + hcMod
     })

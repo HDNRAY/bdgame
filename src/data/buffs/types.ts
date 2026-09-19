@@ -209,7 +209,7 @@ export interface BuffDef extends GameEntity {
     /** 允许自行选择可招架（返回 true 则允许招架） */
     onCanParry?: (ctx: { self: Character; engine: BattleEngine }) => boolean
     /** 攻击方能否被招架（返回 false 则无法招架此攻击） */
-    onCanBeParried?: (ctx: { self: Character; engine: BattleEngine; source?: ActionDefinition }) => boolean
+    onCanBeParried?: (ctx: { self: Character; engine: BattleEngine; source?: ActionDefinition; triggered?: boolean }) => boolean
     /** 缴械概率修正钩子（disarm handler 中自动调用，返回加算值，负=更难被缴械） */
     onDisarmChance?: (ctx: BuffHookCtx) => number
     /** 暴击率修正钩子（applyDamage 暴击判定前自动调用，遍历攻击方 buff，返回加算值） */

@@ -126,7 +126,7 @@ export function applyDamage({
         triggered,
     })
     // ② 暴击判定 + 爆伤（基于增伤后裸伤，不再受招架/减伤削减）
-    const { isCrit, final: afterCrit } = resolveCrit(buffed, buffed, target, attacker, engine, act)
+    const { isCrit, final: afterCrit } = resolveCrit(buffed, buffed, target, attacker, engine, act, triggered)
 
     // onAfterCritDamage 钩子：暴击后、穿透拆出前，可将爆伤转为其他效果
     // 返回全量：钩子返回本次暴击应造成的完整伤害，引擎以该值覆盖（按 priority 升序链式，final 传入当前值）
@@ -198,7 +198,7 @@ export function applyDamage({
     const totalPiercing = round1(base * pierceRatio) + piercing + buffPiercing
 
     // ④ 招架（仅作用于非穿透部分）
-    const { parried, final: afterParry } = resolveParry(normalFinal, target, attacker, engine, act)
+    const { parried, final: afterParry } = resolveParry(normalFinal, target, attacker, engine, act, triggered)
     const blocked = normalFinal - afterParry
 
     // ⑤ 减伤 → ⑥ 吸收（防御方 onTakeDamage 减伤/反伤回缠，再 onAbsorb 护盾池，最后结算）
@@ -244,6 +244,7 @@ export function applyDamage({
                 state: engine.state,
                 layer,
                 source: act,
+                triggered,
             })
         })
     }
@@ -300,13 +301,14 @@ function resolveParry(
     attacker: Character,
     engine: BattleEngine,
     act: ActionDefinition | undefined,
+    triggered = false,
 ): { parried: boolean; final: number } {
     // ── 1. 攻击方能否被招架 ──
     const cannotBeParried = (() => {
         let result = false
         forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def) => {
             if (!def?.onCanBeParried) return
-            if (!def.onCanBeParried({ self: attacker, engine, source: act })) {
+            if (!def.onCanBeParried({ self: attacker, engine, source: act, triggered })) {
                 result = true
                 return false
             }
@@ -456,6 +458,7 @@ function resolveCrit(
     attacker: Character,
     engine: BattleEngine,
     act: ActionDefinition | undefined,
+    triggered = false,
 ): { isCrit: boolean; final: number } {
     let bonus = 0
     forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
@@ -470,6 +473,7 @@ function resolveCrit(
                 state: engine.state,
                 layer,
                 source: act,
+                triggered,
             })
     })
     // 遍历防御方 buff，降低被暴击率

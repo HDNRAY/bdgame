@@ -215,7 +215,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 distanceDelta: 0,
             }
             const isLast = i === independentHits - 1
-            if (!processHitCheck(action!, r, self, enemy, engine, !isLast)) continue
+            if (!processHitCheck(action!, r, self, enemy, engine, !isLast, triggered)) continue
             if (r.dodged) continue
             applyDamage({
                 raw,

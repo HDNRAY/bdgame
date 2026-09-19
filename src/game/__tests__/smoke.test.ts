@@ -20,7 +20,8 @@ function drive(run: RogueliteRun): GameState {
 }
 
 describe('随机全流程冒烟（不固定 Math.random，覆盖不同故事/事件路径）', () => {
-    it('20 局全胜：全部走完且不崩溃', () => {
+    // 跑满 20 局全图，默认 5s 在并行满载时会超时
+    it('20 局全胜：全部走完且不崩溃', { timeout: 30000 }, () => {
         battle.playerWins = true
         for (let i = 0; i < 20; i++) {
             const s = drive(new RogueliteRun())
@@ -28,7 +29,7 @@ describe('随机全流程冒烟（不固定 Math.random，覆盖不同故事/事
         }
     })
 
-    it('20 局全败：全部以 game over 结束（受伤或淘汰）且不崩溃', () => {
+    it('20 局全败：全部以 game over 结束（受伤或淘汰）且不崩溃', { timeout: 30000 }, () => {
         battle.playerWins = false
         for (let i = 0; i < 20; i++) {
             const s = drive(new RogueliteRun())

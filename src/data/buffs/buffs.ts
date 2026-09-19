@@ -62,9 +62,17 @@ function kanpoRate(source: { tags?: readonly string[] } | undefined, layer: Buff
 }
 
 /** 是否为「非辅助主招」：天机只对这类招式生效并消耗（召唤物/辅招不吃必中必暴） */
-function isMainMove(source: { tags: readonly string[] } | undefined): boolean {
+/**
+ * 是否「玩家主动出手的主招」：**触发招不算**（`triggered`），辅助招 / 召唤物也不算。
+ *
+ * 触发招为什么必须排除：像天机这类「攒满给下一招」的一次性增益，是靠**触发**攒起来的
+ * （袖里玄机每触发一次 +1 层），若触发招也吃，就会「攒满 → 下一发自动反击吃掉」，
+ * 玩家自己选的那一招永远吃不到。传 `triggered` 才会把它算进去（不传 = 旧行为）。
+ */
+function isMainMove(source: { tags: readonly string[] } | undefined, triggered?: boolean): boolean {
     return (
         !!source &&
+        !triggered &&
         !source.tags.includes('pre_action') &&
         !source.tags.includes('post_action') &&
         !source.tags.includes('summon')
@@ -771,12 +779,12 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff'],
         expiry: { type: 'permanent' },
         // 仅对「下一招非辅助主招」生效：召唤物/辅招不吃必中必暴（消耗前不泄漏）
-        onHitChance: ({ source }) => (isMainMove(source) ? 1 : 0),
-        onCanBeParried: ({ source }) => (isMainMove(source) ? false : true),
-        onCritChance: ({ source }) => (isMainMove(source) ? 1 : 0),
+        onHitChance: ({ source, triggered }) => (isMainMove(source, triggered) ? 1 : 0),
+        onCanBeParried: ({ source, triggered }) => (isMainMove(source, triggered) ? false : true),
+        onCritChance: ({ source, triggered }) => (isMainMove(source, triggered) ? 1 : 0),
         // 自包含消耗：主招必中必暴 → 必然暴击，暴击结算后删除自身并重置玄机（不再由引擎硬编码）
-        onCritical: ({ attacker, engine, state, source }) => {
-            if (!isMainMove(source)) return
+        onCritical: ({ attacker, engine, state, source, triggered }) => {
+            if (!isMainMove(source, triggered)) return
             state.pendingBuffs.delete(`tianji_ready::${attacker.id}`)
             state.pendingBuffs.delete(`xuan_ji::${attacker.id}`)
             engine?.emitLog({
