@@ -75,7 +75,7 @@ describe('探云手：偷走后受害者不再持有该奇物的一切', () => {
         const victim = makeChar('B', [reward('golden_silk_gloves')])
         const engine = new BattleEngine(thief, victim, 4)
         expect(engine.state.pendingBuffs.has(`silk_guard::${victim.id}`)).toBe(true)
-        expect(parryBonus(victim, engine)).toBeCloseTo(0.15)
+        expect(parryBonus(victim, engine)).toBeCloseTo(0.2)
 
         processActionEffect({ type: 'steal_artifact' }, { self: thief, enemy: victim, engine, tMs: 100 })
 
@@ -85,7 +85,7 @@ describe('探云手：偷走后受害者不再持有该奇物的一切', () => {
         // 小偷拿到奇物与 buff（不再出现"两边都有"）
         expect(thief.artifactDefs.some((a) => a.id === 'golden_silk_gloves')).toBe(true)
         expect(engine.state.pendingBuffs.has(`silk_guard::${thief.id}`)).toBe(true)
-        expect(parryBonus(thief, engine)).toBeCloseTo(0.15)
+        expect(parryBonus(thief, engine)).toBeCloseTo(0.2)
         // 小偷这层带来源标记（bySource 索引可用：将来缴械/被偷回可整来源撤销）
         expect(engine.state.pendingBuffs.get(`silk_guard::${thief.id}`)?.originId).toBe(
             'artifact:golden_silk_gloves',

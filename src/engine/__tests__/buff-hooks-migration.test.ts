@@ -100,7 +100,7 @@ describe('闪避 / 招架改由 buff 承载', () => {
         thief.addArtifact('golden_silk_gloves', engine)
         expect(thief.artifactDefs.some((a) => a.id === 'golden_silk_gloves')).toBe(true)
         expect(engine.state.pendingBuffs.has(`silk_guard::${thief.id}`)).toBe(true)
-        expect(sumHook(thief, engine, 'onParryChance')).toBeCloseTo(0.15)
+        expect(sumHook(thief, engine, 'onParryChance')).toBeCloseTo(0.2)
 
         // 不带 engine 的旧调用方（构造/测试）不能炸
         const other = makeChar('C', '丙')
