@@ -44,6 +44,15 @@ const hasTianji = (a: Character, engine: BattleEngine) => engine.state.pendingBu
 const xuanji = (a: Character, engine: BattleEngine) => engine.state.pendingBuffs.get(`xuan_ji::${a.id}`)?.restoreValue ?? 0
 
 /** 钩子口径：ctx.triggered 决定算不算「主招」 */
+/** onCanBeParried 的 ctx 形状与 BuffHookCtx 不同（只有 self/engine/source/triggered） */
+const parryCtx = (source: Partial<ActionDefinition>, triggered: boolean) =>
+    ({
+        self: {} as never,
+        engine: {} as never,
+        source: { tags: [], apCost: 2, ...source } as ActionDefinition,
+        triggered,
+    })
+
 const hookCtx = (source: Partial<ActionDefinition>, triggered: boolean, layer: BuffLayer) =>
     ({
         final: 0,
@@ -67,14 +76,14 @@ describe('天机：只认主动主招', () => {
         const layer = { restoreValue: 1 }
         expect(tianji.onHitChance!(hookCtx({ tags: ['melee'] }, true, layer))).toBe(0)
         expect(tianji.onCritChance!(hookCtx({ tags: ['melee'] }, true, layer))).toBe(0)
-        expect(tianji.onCanBeParried!(hookCtx({ tags: ['melee'] }, true, layer))).toBe(true)
+        expect(tianji.onCanBeParried!(parryCtx({ tags: ['melee'] }, true))).toBe(true)
     })
 
     it('主动主招：三个钩子都生效', () => {
         const layer = { restoreValue: 1 }
         expect(tianji.onHitChance!(hookCtx({ tags: ['melee'] }, false, layer))).toBe(1)
         expect(tianji.onCritChance!(hookCtx({ tags: ['melee'] }, false, layer))).toBe(1)
-        expect(tianji.onCanBeParried!(hookCtx({ tags: ['melee'] }, false, layer))).toBe(false)
+        expect(tianji.onCanBeParried!(parryCtx({ tags: ['melee'] }, false))).toBe(false)
     })
 
     it('辅助招（pre/post）无论是否触发都不算主招', () => {
@@ -92,8 +101,12 @@ describe('天机：只认主动主招', () => {
     })
 
     it('主动出招：天机被消耗，玄机归零', () => {
-        const { a, b, engine } = setup()
-        engine.execute({ type: 'attack', actionId: 'straight_punch' }, a, b)
+        const { a, engine } = setup()
+        // execute 是私有的：用公开的 runEvent 驱动回合（plan 直接给一条出招指令）；
+        // 首个事件可能是系统 tick，所以循环推进到出招发生
+        for (let i = 0; i < 10 && hasTianji(a, engine); i++) {
+            engine.runEvent(() => [{ type: 'attack', actionId: 'straight_punch' }])
+        }
         expect(hasTianji(a, engine)).toBe(false)
         expect(xuanji(a, engine)).toBe(0)
     })
