@@ -532,8 +532,8 @@
  "opp:ajiu:33": {
   "id": "ajiu:33",
   "attrs": {
-   "strength": 25,
-   "vitality": 8,
+   "strength": 23,
+   "vitality": 10,
    "agility": 22,
    "dexterity": 14,
    "insight": 20,
@@ -542,8 +542,8 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 208,
-  "maxAp": 6,
+  "maxHp": 240,
+  "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
    "buff",

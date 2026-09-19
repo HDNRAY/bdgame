@@ -1,7 +1,7 @@
 import { OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
-const AJIU_ATTRS = { strength: 14, vitality: 10, agility: 18, dexterity: 14, insight: 16, wisdom: 4 }
+const AJIU_ATTRS = { strength: 12, vitality: 12, agility: 18, dexterity: 14, insight: 16, wisdom: 4 }
 
 export const AJIU: OpponentDef = {
     id: 'ajiu',

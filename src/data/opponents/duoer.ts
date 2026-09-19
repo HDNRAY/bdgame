@@ -29,7 +29,7 @@ export const DUOER: OpponentDef = {
     actionConfigs: [
         { actionId: 'poison_detonate', condition: { type: 'enemy_hp_below', ratio: 0.3 } },
         { actionId: 'rear_naked_choke', condition: { type: 'distance_less_than', meters: 2 } },
-        { actionId: 'lion_roar', condition: { type: 'distance_greater_than', meters: 3 } },
+        { actionId: 'lion_roar', condition: { type: 'distance_greater_than', meters: 3 }, triggerId: 'on_dodged' },
         { actionId: 'blood_droplet', triggerId: 'on_opponent_move_away' }, // AI 出招顺序
         { actionId: 'sweep_kick', triggerId: 'on_dodge' },
     ],

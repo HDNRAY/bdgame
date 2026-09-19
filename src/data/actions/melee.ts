@@ -239,7 +239,8 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         tags: ['slash', 'range', 'chan', 'thrown'],
         getRange: () => [0, 8],
         onActionHitChance: (base) => base + 0.05,
-        hookNotes: { hitChance: '+5%' },
+        onActionCritChance: (base) => base + 0.05,
+        hookNotes: { hitChance: '+5%', critChance: '+5%' },
         effects: [
             // 基础10 + 力/身/巧 scaling（命中结算）
             { type: 'damage', scaling: { strength: 0.6, agility: 0.6, dexterity: 0.6 }, fixed: 10 },
@@ -275,7 +276,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         hookNotes: { range: '武器范围 +1' },
         effects: [
             { type: 'damage', scaling: { strength: 0.2, wisdom: 0.1 } },
-            { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 0.4 },
+            { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 0.35 },
         ],
     },
     {

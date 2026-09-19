@@ -194,10 +194,10 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'li_wu_xu_fa',
         name: '例无虚发',
-        description: '暗器命中率+50%。',
+        description: '暗器命中率+40%。',
         tags: [],
         expiry: { type: 'permanent' },
-        onHitChance: ({ source }) => (source?.tags?.includes('thrown') ? 0.5 : 0),
+        onHitChance: ({ source }) => (source?.tags?.includes('thrown') ? 0.4 : 0),
     },
     {
         id: 'hui_lei_qian',
@@ -482,9 +482,9 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'phantom_step',
         name: '魅影',
-        description: '身法+1，持续5秒。可独立叠加。',
+        description: '身法+1，持续3秒。可独立叠加。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 5000 },
+        expiry: { type: 'duration', ms: 3000 },
         stacking: { type: 'independent' },
         attrMods: { agility: 1 },
     },

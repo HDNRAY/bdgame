@@ -276,14 +276,14 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'lingxi_finger',
         name: '灵犀一指',
-        description: '灵犀一指，空手可格挡兵刃，招架时有20%几率缴械对手。',
+        description: '灵犀一指，空手可格挡兵刃，招架时有15%几率缴械对手。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         attrMods: { strength: 1, dexterity: 3 },
         onCanParry: () => true,
         onParry: ({ target, attacker, engine, state }) => {
             processActionEffect(
-                { type: 'disarm', chance: 0.2 },
+                { type: 'disarm', chance: 0.15 },
                 { self: target, enemy: attacker, engine: engine!, tMs: state.turn.currentTime },
             )
         },
