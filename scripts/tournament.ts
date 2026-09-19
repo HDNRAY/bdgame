@@ -1,6 +1,7 @@
 // npx tsx scripts/tournament.ts [id] [N=10]
 // 主进程切块后以 `node <tsx loader> tournament.ts --worker` 派生子进程并行跑对局，
 // 子进程从 stdin 读任务、把 JSON 结果写回 stdout；安静模式(quiet)跳过日志构建提速。
+// 并行度默认 6 个 worker（`TOUR_WORKERS=<n>` 可覆盖），配对按轮转分配以摊平成本差异。
 /// <reference types="node" />
 import { readFileSync, writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
@@ -158,11 +159,21 @@ async function main(): Promise<void> {
         }
     }
 
-    // 2. 按 CPU 核数切块，多进程并行（每块独立跑 N 场，安静模式省日志）
-    const numWorkers = Math.max(1, Math.min(cpus().length, 8, pairs.length))
-    const chunkSize = Math.ceil(pairs.length / numWorkers)
-    const chunks: Job[][] = []
-    for (let w = 0; w < numWorkers; w++) chunks.push(pairs.slice(w * chunkSize, (w + 1) * chunkSize))
+    // 2. 切块并行（每块独立跑 N 场，安静模式省日志）
+    //
+    // worker 数：不是越多越快 —— 每个 node 进程自带 GC/编译线程，进程数贴近核数时它们互相抢核，
+    // 吞吐反而停滞（实测 M1 Pro 8P：4→18.2s、6→15.8s、8→16.3s、10→16.4s，且 user CPU 从 78s 涨到 109s）。
+    // 默认取 6（并留 `TOUR_WORKERS` 环境变量给别的机器覆盖）。
+    const cpuCount = cpus().length
+    const envWorkers = parseInt(process.env.TOUR_WORKERS ?? '', 10)
+    const numWorkers = Math.max(
+        1,
+        Math.min(Number.isFinite(envWorkers) && envWorkers > 0 ? envWorkers : 6, cpuCount, pairs.length),
+    )
+    // 轮转分配：每对成本差很大（实测 p99/中位 ≈ 3.4×、max 7×），连续切块会把慢对连成一片，
+    // 实测 makespan 1.24× 理想、轮转 1.07×（496 对 / 8 worker 模拟）。
+    const chunks: Job[][] = Array.from({ length: numWorkers }, () => [])
+    pairs.forEach((p, i) => chunks[i % numWorkers].push(p))
 
     const selfEntry = fileURLToPath(import.meta.url)
 
