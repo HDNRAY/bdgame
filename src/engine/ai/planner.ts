@@ -225,6 +225,10 @@ export function planMove(
             ? landDist >= acceptableRange[0] - 0.01 && landDist <= acceptableRange[1] + 0.01
             : Math.abs(landDist - to) <= 0.6
         if (!inRange) continue
+        // 位移落点还必须「不比原地更远离本次意图目标」：凤迴(落 0)/凤反(落最大射程) 这类
+        // 目标距离写死的位移招，只按「落点在可打区间内」判定会把意图做反
+        // （意图拉开却被瞬移贴脸，且位移只要 1 AP，比走路便宜得多）。
+        if (Math.abs(landDist - to) > Math.abs(from - to) + 0.01) continue
         const dashAp = dashEff.useAp
             ? Math.max(1, Math.ceil(Math.abs(travel) * 0.4))
             : self.actionApCost(inst.apCost, state)

@@ -1765,7 +1765,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 2),
+        onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 1),
         onDealDamage: ({ final, source }) => {
             const ap = Math.max(1, (source as ActionDefinition | undefined)?.apCost ?? 0)
             return round1(final + Math.sqrt(ap) / actionHits(source as ActionDefinition))
