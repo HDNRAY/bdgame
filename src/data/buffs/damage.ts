@@ -394,11 +394,11 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'martial_arts_crit',
         name: '武学·破',
-        description: '推演出的破绽洞察，每层暴击+2%、爆伤+5%。',
+        description: '推演出的破绽洞察，每层暴击+3%、爆伤+5%。',
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
-        onCritChance: ({ layer }) => layer.restoreValue * 0.02,
+        onCritChance: ({ layer }) => layer.restoreValue * 0.03,
         onCritDamage: ({ layer }) => layer.restoreValue * 0.05,
     },
     {

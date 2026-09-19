@@ -11,7 +11,10 @@ export const ARTIFACTS: Artifact[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'titanium_arm_attr' }, { type: 'add_buff', buffId: 'overload', stacks: 1 }],
+                apply: [
+                    { type: 'add_buff', buffId: 'titanium_arm_attr' },
+                    { type: 'add_buff', buffId: 'overload', stacks: 1 },
+                ],
             },
         ],
         grantsActions: ['_arm_explosion'],
@@ -28,7 +31,10 @@ export const ARTIFACTS: Artifact[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'overload', stacks: 2 }, { type: 'add_buff', buffId: 'hydraulic_leg_speed' }],
+                apply: [
+                    { type: 'add_buff', buffId: 'overload', stacks: 2 },
+                    { type: 'add_buff', buffId: 'hydraulic_leg_speed' },
+                ],
             },
         ],
     },
@@ -56,7 +62,10 @@ export const ARTIFACTS: Artifact[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'muscle_boost_attr' }, { type: 'add_buff', buffId: 'muscle_degradation', stacks: 1 }],
+                apply: [
+                    { type: 'add_buff', buffId: 'muscle_boost_attr' },
+                    { type: 'add_buff', buffId: 'muscle_degradation', stacks: 1 },
+                ],
             },
         ],
     },
@@ -68,7 +77,10 @@ export const ARTIFACTS: Artifact[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'nano_metal_heart_attr' }, { type: 'add_buff', buffId: 'ap_drain', stacks: 1 }],
+                apply: [
+                    { type: 'add_buff', buffId: 'nano_metal_heart_attr' },
+                    { type: 'add_buff', buffId: 'ap_drain', stacks: 1 },
+                ],
             },
         ],
     },
@@ -92,7 +104,10 @@ export const ARTIFACTS: Artifact[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'neural_net_attr' }, { type: 'add_buff', buffId: 'fumble_chance', stacks: 2 }],
+                apply: [
+                    { type: 'add_buff', buffId: 'neural_net_attr' },
+                    { type: 'add_buff', buffId: 'fumble_chance', stacks: 2 },
+                ],
             },
         ],
     },
@@ -104,7 +119,10 @@ export const ARTIFACTS: Artifact[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'combat_chip_attr' }, { type: 'add_buff', buffId: 'fumble_chance', stacks: 1 }],
+                apply: [
+                    { type: 'add_buff', buffId: 'combat_chip_attr' },
+                    { type: 'add_buff', buffId: 'fumble_chance', stacks: 1 },
+                ],
             },
         ],
     },
@@ -146,7 +164,10 @@ export const ARTIFACTS: Artifact[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'marrow_pump_hp' }, { type: 'add_buff', buffId: 'ap_drain', stacks: 1 }],
+                apply: [
+                    { type: 'add_buff', buffId: 'marrow_pump_hp' },
+                    { type: 'add_buff', buffId: 'ap_drain', stacks: 1 },
+                ],
             },
         ],
     },
@@ -170,7 +191,11 @@ export const ARTIFACTS: Artifact[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'doctor_chip_attr' }, { type: 'add_buff', buffId: 'fumble_chance', stacks: 2 }, { type: 'add_buff', buffId: 'combat_chip' }],
+                apply: [
+                    { type: 'add_buff', buffId: 'doctor_chip_attr' },
+                    { type: 'add_buff', buffId: 'fumble_chance', stacks: 2 },
+                    { type: 'add_buff', buffId: 'combat_chip' },
+                ],
             },
         ],
     },
@@ -449,7 +474,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'golden_silk_gloves',
         name: '金丝手套',
-        description: '天工锻造的金丝手套，空手亦可格挡兵刃。招架率+15%，空手可招架。',
+        description: '天工锻造的金丝手套，空手亦可格挡兵刃。',
         tags: ['defense', 'craft', 'parry'],
         effects: [
             {
@@ -807,7 +832,10 @@ export const ARTIFACTS: Artifact[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'nano_exoskeleton_attr' }, { type: 'add_buff', buffId: 'energy_drain', stacks: 1 }],
+                apply: [
+                    { type: 'add_buff', buffId: 'nano_exoskeleton_attr' },
+                    { type: 'add_buff', buffId: 'energy_drain', stacks: 1 },
+                ],
             },
         ],
     },
@@ -819,7 +847,10 @@ export const ARTIFACTS: Artifact[] = [
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'rocket_boost' }, { type: 'add_buff', buffId: 'jet_drive_speed' }],
+                apply: [
+                    { type: 'add_buff', buffId: 'rocket_boost' },
+                    { type: 'add_buff', buffId: 'jet_drive_speed' },
+                ],
             },
         ],
     },

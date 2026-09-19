@@ -1141,7 +1141,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'sekai_heroism',
         name: '舍得心法',
-        description: '舍得心法，有舍有得。以根骨换取极致的速度与感知。根骨-2，力道+2、身法+2、灵巧+2、洞察+2。',
+        description: '舍得心法，有舍有得。以根骨换取极致的速度与感知。',
         tags: ['buff'],
         effects: [
             {

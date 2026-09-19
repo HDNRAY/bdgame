@@ -169,12 +169,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'silk_guard',
         name: '金丝护手',
-        description: '金丝手套护持，无刃亦可格挡兵刃。招架率+15%，缴械抗性+30%。',
+        description: '金丝手套护持，无刃亦可格挡兵刃。招架率+20%，缴械抗性+30%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onCanParry: () => true,
         onDisarmChance: () => -0.3,
-        onParryChance: () => 0.15,
+        onParryChance: () => 0.2,
     },
     {
         id: 'shenxing_baibian_buff',
@@ -613,11 +613,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'martial_arts_dodge',
         name: '武学·避',
-        description: '暴击推演出的闪避预判，每层闪避+1%、招架+3%。',
+        description: '暴击推演出的闪避预判，每层闪避+2%、招架+3%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
-        onDodgeChance: ({ layer }) => layer.restoreValue * 0.01,
+        onDodgeChance: ({ layer }) => layer.restoreValue * 0.02,
         onParryChance: ({ layer }) => layer.restoreValue * 0.03,
     },
     {
