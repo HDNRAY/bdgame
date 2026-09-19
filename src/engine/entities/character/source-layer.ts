@@ -28,7 +28,7 @@ export type SourceKind = 'passive' | 'talent' | 'artifact' | 'weapon' | 'offhand
  * 因此层里除了聚合字段，还要留下这份有序操作表，重算时按它回放才能与旧行为逐字节一致。
  */
 export type SourceOp =
-    | { kind: 'convert'; from: AttrName; to: AttrName[]; ratio: number; mode: 'round' | 'floor' }
+    | { kind: 'convert'; from: AttrName; to: AttrName[]; ratio: number }
     /** `fromBuff` = 这条修正来自该来源自带的哪条附着 buff（运行时被消耗/移除时要能单独撤掉） */
     | { kind: 'mod'; attr: AttrName; value: number; fromBuff?: string }
     | { kind: 'restriction'; check: StatRestrictionCheck }
@@ -38,7 +38,6 @@ export interface SourceConvert {
     from: AttrName
     to: AttrName[]
     ratio: number
-    mode: 'round' | 'floor'
 }
 
 /**
@@ -179,12 +178,7 @@ export function buildSourceLayer(
         layer.triggerSlotMod += def.triggerSlotMod ?? def.triggerSlotModFn?.(char) ?? 0
         // 属性转化：按声明顺序 push（保序回放；重算时读「已应用到此」的属性值）
         for (const cv of def.attrConvert ?? []) {
-            const convert: SourceConvert = {
-                from: cv.from,
-                to: cv.to,
-                ratio: cv.ratio,
-                mode: cv.mode === 'floor' ? 'floor' : 'round',
-            }
+            const convert: SourceConvert = { from: cv.from, to: cv.to, ratio: cv.ratio }
             layer.ops.push({ kind: 'convert', ...convert })
         }
         for (const t of def.weaponTags ?? []) layer.weaponTags.push(t)

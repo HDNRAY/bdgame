@@ -5639,7 +5639,7 @@
  "pas:qian_chui_bai_lian": {
   "id": "pas:qian_chui_bai_lian",
   "attrs": {
-   "strength": 8,
+   "strength": 9,
    "vitality": 7,
    "agility": 9,
    "dexterity": 7,
@@ -6101,7 +6101,7 @@
  "mix:7": {
   "id": "mix:7",
   "attrs": {
-   "strength": 8,
+   "strength": 9,
    "vitality": 7,
    "agility": 9,
    "dexterity": 7,
@@ -6145,7 +6145,7 @@
  "mix:9": {
   "id": "mix:9",
   "attrs": {
-   "strength": 8,
+   "strength": 9,
    "vitality": 7,
    "agility": 9,
    "dexterity": 7,
@@ -6365,7 +6365,7 @@
  "mix:19": {
   "id": "mix:19",
   "attrs": {
-   "strength": 8,
+   "strength": 9,
    "vitality": 7,
    "agility": 9,
    "dexterity": 7,
@@ -6849,7 +6849,7 @@
  "mix:41": {
   "id": "mix:41",
   "attrs": {
-   "strength": 8,
+   "strength": 9,
    "vitality": 7,
    "agility": 7,
    "dexterity": 7,

@@ -21,7 +21,7 @@ import { MAX_CHAN } from '../../constants'
 import type { BattleEngine } from '../../combat/engine'
 import type { BattleState, ModTable } from '../../combat/types'
 import type { BuffHookCtx, RuntimeAction } from '../../../data/buffs/types'
-import { round1 } from '../../util/math'
+import { convertAttrAmount, round1 } from '../../util/math'
 import { emptyResourceTally, type ResourceTally } from './resource-tally'
 
 import { collectRewards } from './reward-collect'
@@ -415,7 +415,7 @@ export class Character {
                     continue
                 if (op.kind === 'convert') {
                     const src = this.attrs.get(op.from)
-                    const delta = op.mode === 'floor' ? Math.floor(src * op.ratio) : Math.round(src * op.ratio)
+                    const delta = convertAttrAmount(src, op.ratio)
                     for (const to of op.to) applyMod(to, delta, layer.sourceTags, layer.applied)
                     continue
                 }

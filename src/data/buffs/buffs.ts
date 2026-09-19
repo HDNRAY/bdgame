@@ -2,6 +2,7 @@ import { processActionEffect } from '../../engine/combat/effects'
 import { forEachBuffOf, dropBuffLayer } from '../../engine/combat/utils'
 import { setLayerMods, addLayerMods } from '../../engine/combat/utils/buff-layer'
 import { rng } from '../../engine/util/rng'
+import { convertAttrAmount } from '../../engine/util/math'
 import { genAppId } from '../../engine/util/buff-utils'
 import {
     calcParryChance,
@@ -304,10 +305,11 @@ export const BUFF_DB: BuffDef[] = [
         tags: [],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        // 内耗与归元劲收益挂钩：归元劲 attr_convert(推演×0.1 → 四维全属性, round 取整)实际加 N 点全属性，
-        // 每秒扣 N×0.1 AP——推演越高转化收益越大，维持代价也越高；取整公式与 attr_convert 同源。
+        // 内耗与归元劲收益挂钩：归元劲 attrConvert(推演×0.1 → 四维全属性) 实际加 N 点全属性，
+        // 每秒扣 N×0.15 AP —— 推演越高转化收益越大，维持代价也越高。
+        // N 必须走 convertAttrAmount（与转化同一口径），否则会出现「按 round 收钱、按 floor 给属性」。
         apRegenPerSec: ({ target }) => {
-            const gained = Math.round(target.attrs.get('wisdom') * 0.1)
+            const gained = convertAttrAmount(target.attrs.get('wisdom'), 0.1)
             return -round1(gained * 0.15)
         },
     },

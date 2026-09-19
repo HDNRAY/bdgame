@@ -344,18 +344,18 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     {
         id: 'xuannv_sword_convert',
         name: '玄女剑法',
-        description: '灵巧×0.3 转化为力道（向下取整）。',
+        description: '灵巧×0.3 转化为力道。',
         tags: [],
         expiry: { type: 'permanent' },
-        attrConvert: [{ from: 'dexterity', to: ['strength'], ratio: 0.3, mode: 'floor' }],
+        attrConvert: [{ from: 'dexterity', to: ['strength'], ratio: 0.3 }],
     },
     {
         id: 'qian_chui_bai_lian_convert',
         name: '百炼化力',
-        description: '根骨×0.25 转化为力道（向下取整）。',
+        description: '根骨×0.25 转化为力道。',
         tags: [],
         expiry: { type: 'permanent' },
-        attrConvert: [{ from: 'vitality', to: ['strength'], ratio: 0.25, mode: 'floor' }],
+        attrConvert: [{ from: 'vitality', to: ['strength'], ratio: 0.25 }],
     },
     // ── 构造期载体 buff：武器标签 ──
     {

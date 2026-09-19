@@ -89,11 +89,11 @@ export interface BuffDef extends GameEntity {
     /** 构造期触发槽的**动态**版本（每 N 点洞察 +1 之类）；求值时机与旧的 `trigger_slot_mod.fn(char)` 相同 */
     triggerSlotModFn?: (char: Character) => number
     /**
-     * 构造期属性转化（按声明顺序回放）：`from × ratio` 加到 `to` 上，与旧的 `attr_convert` 同语义。
+     * 构造期属性转化（按声明顺序回放）：`floor(from × ratio)` 加到 `to` 上。取整口径只有一个（`convertAttrAmount`），不要在数据里再分 round/floor。
      *
      * 折成 `SourceLayer` 的 `convert` op，位置 = 该附着 buff 在 effects 里的位置（保序，限制器只拦后面的）。
      */
-    attrConvert?: { from: AttrName; to: AttrName[]; ratio: number; mode?: 'round' | 'floor' }[]
+    attrConvert?: { from: AttrName; to: AttrName[]; ratio: number }[]
     /** 构造期给主手武器补的标签（如玄剑秘册的 `unarmed`） */
     weaponTags?: Tag[]
     /**
