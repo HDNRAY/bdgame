@@ -47,11 +47,17 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 
 5. **Always run after every change (not just before commit):**
     ```bash
-    npx tsc --noEmit -p tsconfig.app.json  # strict type check
+    npx tsc --noEmit -p tsconfig.app.json  # strict type check（覆盖 src，含 __tests__）
     npx eslint src/ --quiet                # eslint zero errors
     npx vitest run                         # all tests pass
     grep -rn ' as any' src/engine/         # zero as any
     ```
+    **`tsc` 必须带 `-p tsconfig.app.json`。** 根 `tsconfig.json` 是 `files: []` + `references` 的
+    solution 配置，不带 `-p` 时一个文件都不查 —— 所以 `npx tsc --noEmit`（以及 `rtk tsc`）打印的
+    "No errors found" 是**假绿**。vitest 只转译、不做类型检查，测试文件里的类型错误只能靠这条命令拦住
+    （历史上漏过：`engine.execute` 是私有方法、钩子 ctx 形状不匹配）。
+    `scripts/` 目前**不在任何 tsconfig 的 include 里**（app 只含 `src`，node 只含 `vite.config.ts`），
+    且 `eslint src/` 不覆盖它 —— 改脚本时顺手跑 `npx eslint scripts/<file>`。
 
 ## UI 组件架构
 
