@@ -490,7 +490,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         // 疯魔功：battle_start 建 1 层满足引擎(onBuffApplied 归零到 0)，命中手动叠层，越战越疯
         id: 'feng_mo_gong',
         name: '疯魔',
-        description: '势如疯魔，不守反攻。招式命中叠1层（最多9层），每层自身伤害+2%、受到伤害+2%、AP回复+0.03/秒。',
+        description: '势如疯魔，不守反攻。招式命中叠1层（最多9层），每层自身伤害+2%、受到伤害+1%、AP回复+0.02/秒。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 9 },
@@ -526,9 +526,9 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onTakeDamage: ({ final, layer }) => {
             const stacks = layer.restoreValue ?? 0
             if (stacks <= 0) return final
-            return round1(final * (1 + stacks * 0.02))
+            return round1(final * (1 + stacks * 0.01))
         },
-        // 越疯动作越快：每层 AP 回复 +0.03/s
-        apRegenPerSec: ({ layer }) => 0.03 * (layer.restoreValue ?? 0),
+        // 越疯动作越快：每层 AP 回复 +0.02/s
+        apRegenPerSec: ({ layer }) => 0.02 * (layer.restoreValue ?? 0),
     },
 ]

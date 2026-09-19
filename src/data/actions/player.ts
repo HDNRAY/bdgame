@@ -220,7 +220,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         tags: ['blunt', 'polearm', 'debuff', 'knockdown'],
         getRange: () => [1, 4],
         effects: [
-            { type: 'damage', scaling: { strength: 0.2, agility: 0.1 } },
+            { type: 'damage', scaling: { strength: 0.1, vitality: 0.1, agility: 0.1 } },
             { type: 'add_debuff', buffId: 'knockdown', stacks: 1, chance: 0.8 },
         ],
     },

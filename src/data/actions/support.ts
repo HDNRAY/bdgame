@@ -136,17 +136,6 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         hookNotes: { canUse: '已入戏时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'dao_ma_dan' }],
     },
-    {
-        id: 'scan_analysis',
-        name: '扫描分析',
-        description: '无人机扫描对手，分析战斗数据，提升命中与暴击。',
-        requiredTags: ['imperial'],
-        apCost: 1,
-        tags: ['pre_action', 'buff', 'summon', 'imperial'],
-        target: 'self',
-        maxUses: 3,
-        effects: [{ type: 'add_buff', buffId: 'scan_analysis', stacks: 1 }],
-    },
     // ── 位移 ──
     {
         id: 'swift_step',

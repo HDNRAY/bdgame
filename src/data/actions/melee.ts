@@ -296,9 +296,9 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 2,
         tags: ['slash', 'melee'],
-        onActionCritChance: (base) => base + 0.1,
-        hookNotes: { critChance: '+10%' },
-        effects: [{ type: 'damage', scaling: { strength: 0.2, dexterity: 0.2 } }],
+        onActionCritChance: (base) => base + 0.15,
+        hookNotes: { critChance: '+15%' },
+        effects: [{ type: 'damage', scaling: { strength: 0.15, dexterity: 0.2 } }],
     },
     {
         id: 'follow_the_current',
