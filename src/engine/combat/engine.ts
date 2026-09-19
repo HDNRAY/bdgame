@@ -19,7 +19,7 @@ import type { TriggerEvent } from '../entities/trigger'
 import { matchCondition } from './trigger-system'
 import { reduceBleedOnHeal } from './utils/buff-layer'
 import { processActionEffect, processHitCheck, processBuffEnd } from './effects'
-import { forEachBuffOf, calcExtraMoveEfficiency } from './utils'
+import { forEachBuffOf, forEachHookOf, calcExtraMoveEfficiency } from './utils'
 import { calcActionChanCost } from './utils/action-cost'
 import { tickEngine } from './tick-engine'
 import { BuffRegistry } from './utils/buff-registry'
@@ -378,18 +378,16 @@ export class BattleEngine {
 
         // endEvent
         // ── Buff onTurnEnd 钩子（不依赖命中） ──
-        forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
-            if (def?.onTurnEnd) {
-                def.onTurnEnd({
-                    final: 0,
-                    raw: 0,
-                    attacker: self,
-                    target: enemy,
-                    engine: this,
-                    state: this.state,
-                    layer,
-                })
-            }
+        forEachHookOf(this.state.pendingBuffs, 'onTurnEnd', self.id, (def, layer) => {
+            def.onTurnEnd?.({
+                final: 0,
+                raw: 0,
+                attacker: self,
+                target: enemy,
+                engine: this,
+                state: this.state,
+                layer,
+            })
         })
         this.emit('on_turn_end', self, enemy)
         this.state.turn.next(self.id)
@@ -476,10 +474,9 @@ export class BattleEngine {
         if (action.tags.includes('move')) return
         // 触发招式判定钩子：任一 buff 的 canTriggerAction 返回 false 则本次触发招式不执行（如觉醒后不再触发）
         let allowTrigger = true
-        forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
-            if (!def?.canTriggerAction) return
+        forEachHookOf(this.state.pendingBuffs, 'canTriggerAction', self.id, (def, layer) => {
             if (
-                !def.canTriggerAction({
+                !def.canTriggerAction?.({
                     final: 0,
                     raw: 0,
                     target: enemy,
@@ -628,8 +625,8 @@ export class BattleEngine {
 
     #notifyApSpent(char: Character, amount: number): void {
         if (amount <= 0) return
-        forEachBuffOf(this.state.pendingBuffs, char.id, (def, layer) => {
-            def?.onApSpent?.({ self: char, amount, engine: this, state: this.state, layer })
+        forEachHookOf(this.state.pendingBuffs, 'onApSpent', char.id, (def, layer) => {
+            def.onApSpent?.({ self: char, amount, engine: this, state: this.state, layer })
         })
     }
 
@@ -776,22 +773,18 @@ export class BattleEngine {
         // 0 成本招式（御物召唤等）跳过 AP 消耗（onActionCost/身法减免/spendAp）
         if (!triggered && action.apCost > 0) {
             let cost = action.apCost
-            forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
-                if (!def?.onActionCost) return
-                cost = Math.max(
-                    1,
-                    cost +
-                        def.onActionCost({
-                            final: 0,
-                            raw: 0,
-                            attacker: self,
-                            target: enemy,
-                            engine: this,
-                            state: this.state,
-                            layer,
-                            source: action,
-                        }),
-                )
+            forEachHookOf(this.state.pendingBuffs, 'onActionCost', self.id, (def, layer) => {
+                const delta = def.onActionCost?.({
+                    final: 0,
+                    raw: 0,
+                    attacker: self,
+                    target: enemy,
+                    engine: this,
+                    state: this.state,
+                    layer,
+                    source: action,
+                })
+                if (delta) cost = Math.max(1, cost + delta)
             })
             finalCost = self.actionApCost(cost, this.state)
             if (!self.spendAp(finalCost)) return r
@@ -823,9 +816,8 @@ export class BattleEngine {
             chanCost: action.chanCost ?? 0,
         })
         // buff onAction 钩子（出招即触发，不受命中影响）——前摇窗口内
-        forEachBuffOf(this.state.pendingBuffs, self.id, (def, layer) => {
-            if (!def?.onAction) return
-            def.onAction({
+        forEachHookOf(this.state.pendingBuffs, 'onAction', self.id, (def, layer) => {
+            def.onAction?.({
                 final: 0,
                 raw: 0,
                 target: enemy,
@@ -837,9 +829,8 @@ export class BattleEngine {
             })
         })
         // buff onOpponentAction 钩子（对方出招即触发，不受命中影响）——通知防御方 buff（看破类效果用）
-        forEachBuffOf(this.state.pendingBuffs, enemy.id, (def, layer) => {
-            if (!def?.onOpponentAction) return
-            def.onOpponentAction({
+        forEachHookOf(this.state.pendingBuffs, 'onOpponentAction', enemy.id, (def, layer) => {
+            def.onOpponentAction?.({
                 final: 0,
                 raw: 0,
                 target: enemy,
@@ -1002,9 +993,8 @@ export class BattleEngine {
         this.state.turn.next(e.id)
         // 御物加速：遍历主人 buff 的 onSummonInterval 钩子，累乘前后摇乘数（不硬编码 buff id）
         let hasteMult = 1
-        forEachBuffOf(this.state.pendingBuffs, owner.id, (def, layer) => {
-            if (!def?.onSummonInterval) return
-            hasteMult *= def.onSummonInterval({
+        forEachHookOf(this.state.pendingBuffs, 'onSummonInterval', owner.id, (def, layer) => {
+            const mult = def.onSummonInterval?.({
                 final: 0,
                 raw: 0,
                 attacker: owner,
@@ -1013,6 +1003,7 @@ export class BattleEngine {
                 state: this.state,
                 layer,
             })
+            if (mult) hasteMult *= mult
         })
         const interval = calcSummonInterval(
             owner.attrs.get('wisdom'),
@@ -1107,18 +1098,16 @@ export class BattleEngine {
                             overheal: Math.round((amt - healed) * 10) / 10,
                         })
                         // 通知所有 buff 持有者收到治疗
-                        forEachBuffOf(this.state.pendingBuffs, char.id, (def, layer) => {
-                            if (def?.onReceiveHeal) {
-                                def.onReceiveHeal({
-                                    final: amt,
-                                    raw: amt,
-                                    target: char,
-                                    attacker: char,
-                                    engine: this,
-                                    state: this.state,
-                                    layer,
-                                })
-                            }
+                        forEachHookOf(this.state.pendingBuffs, 'onReceiveHeal', char.id, (def, layer) => {
+                            def.onReceiveHeal?.({
+                                final: amt,
+                                raw: amt,
+                                target: char,
+                                attacker: char,
+                                engine: this,
+                                state: this.state,
+                                layer,
+                            })
                         })
                     }
                 }
@@ -1156,9 +1145,8 @@ export class BattleEngine {
                     })
                     // 缠满后的溢出量 → 通知身上声明 onChanOverflow 的 buff（周流不息等溢出转化）
                     if (overflow > 0) {
-                        forEachBuffOf(this.state.pendingBuffs, char.id, (def, layer) => {
-                            if (!def?.onChanOverflow) return
-                            def.onChanOverflow({
+                        forEachHookOf(this.state.pendingBuffs, 'onChanOverflow', char.id, (def, layer) => {
+                            def.onChanOverflow?.({
                                 final: 0,
                                 raw: 0,
                                 target: char,

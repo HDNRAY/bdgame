@@ -2,7 +2,7 @@ import type { Character } from '../entities/character'
 import type { BattleEngine } from './engine'
 import { calcPoisonTickInterval, calcStunAttrRatio, calcStunAttrDelta, calcBleedDamage } from '../calc/damage'
 import { getBuff } from '../../data/buffs'
-import { forEachBuffOf } from './utils/buff-loop'
+import { forEachHookOf } from './utils/buff-loop'
 import type { BuffDef } from '../../data/buffs'
 import { BattleLog } from './battle-log'
 import { applyAttrMods } from './utils/buff-layer'
@@ -114,9 +114,8 @@ export class TickEngine {
         // 毒抗（poison_resist 等）由目标 buff 的 onDebuffTick 钩子处理（下方统一遍历）
         // onDebuffTick：遍历目标 buff 修改 DOT 伤害（与 onPoisonTick 一致，毒体/铸火/蛇毒不侵等生效）
         let finalDmg = dmg
-        forEachBuffOf(engine.state.pendingBuffs, enemy.id, (bDef, layer2) => {
-            if (!bDef?.onDebuffTick) return
-            const result = bDef.onDebuffTick({
+        forEachHookOf(engine.state.pendingBuffs, 'onDebuffTick', enemy.id, (bDef, layer2) => {
+            const result = bDef.onDebuffTick?.({
                 buffId: 'poison',
                 target: enemy,
                 damage: finalDmg,
@@ -186,9 +185,8 @@ export class TickEngine {
         // 毒抗（poison_resist 等）由目标 buff 的 onDebuffTick 钩子处理（下方统一遍历）
         // onDebuffTick：遍历目标 buff 修改 DOT 伤害
         let finalDmg = dmg
-        forEachBuffOf(engine.state.pendingBuffs, charId, (bDef, layer2) => {
-            if (!bDef?.onDebuffTick) return
-            const result = bDef.onDebuffTick({
+        forEachHookOf(engine.state.pendingBuffs, 'onDebuffTick', charId, (bDef, layer2) => {
+            const result = bDef.onDebuffTick?.({
                 buffId: 'poison',
                 target: char,
                 damage: finalDmg,
@@ -256,9 +254,8 @@ export class TickEngine {
         if (!char) return { nextInterval: 0 }
         // onDebuffTick：遍历目标 buff 修改 DOT 伤害（铸火诀减半等），与 poison/bleed 一致
         let finalDmg = dmg
-        forEachBuffOf(engine.state.pendingBuffs, charId, (bDef, layer2) => {
-            if (!bDef?.onDebuffTick) return
-            const result = bDef.onDebuffTick({
+        forEachHookOf(engine.state.pendingBuffs, 'onDebuffTick', charId, (bDef, layer2) => {
+            const result = bDef.onDebuffTick?.({
                 buffId: 'burn',
                 target: char,
                 damage: finalDmg,
@@ -301,15 +298,14 @@ export class TickEngine {
         if (dmg > 0) {
             // onDebuffTick：遍历目标 buff 修改 DOT 伤害
             let finalDmg = dmg
-            forEachBuffOf(engine.state.pendingBuffs, owner.id, (bDef, layer2) => {
-                if (!bDef?.onDebuffTick) return
-                const result = bDef.onDebuffTick({
+            forEachHookOf(engine.state.pendingBuffs, 'onDebuffTick', owner.id, (bDef, layer2) => {
+                const result = bDef.onDebuffTick?.({
                     buffId: 'bleed',
                     target: owner,
                     damage: finalDmg,
                     engine,
                     layer: layer2,
-                })
+                    })
                 if (result !== undefined) finalDmg = result
             })
             owner.takeDamage(finalDmg, engine)

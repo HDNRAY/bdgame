@@ -3,7 +3,7 @@ import type { BattleEngine } from '../engine'
 import type { ActionDefinition } from '../../entities/action'
 import { calcHitChance, calcRoll } from '../../calc/damage'
 import type { ActionResult } from '../types'
-import { consumeBuffsByTrigger, forEachBuffOf } from '../utils'
+import { consumeBuffsByTrigger, forEachBuffOf, forEachHookOf } from '../utils'
 
 /** 命中判定，返回 false 则攻击终止 */
 export function processHitCheck(
@@ -41,9 +41,8 @@ export function processHitCheck(
     })
     let hc = action.onActionHitChance?.(baseHc, engine.state, self) ?? baseHc
     // buff 命中率钩子
-    forEachBuffOf(engine.state.pendingBuffs, self.id, (def, layer) => {
-        if (!def?.onHitChance) return
-        const hcMod = def.onHitChance({
+    forEachHookOf(engine.state.pendingBuffs, 'onHitChance', self.id, (def, layer) => {
+        const hcMod = def.onHitChance?.({
             final: 0,
             raw: 0,
             attacker: self,
@@ -55,7 +54,7 @@ export function processHitCheck(
             // suppressTriggers 兼顾「多段命中的非末段」，不能当 triggered 用 → 单独传
             triggered,
         })
-        hc = hc + hcMod
+        if (hcMod) hc += hcMod
     })
     const hitResult = calcRoll(hc)
     r.hit = hitResult.success
@@ -75,9 +74,8 @@ export function processHitCheck(
         if (!suppressTriggers) {
             engine.emit('on_dodged', self, enemy)
             // 攻击方 buff onDodged 钩子（自己攻击被对方闪避；遍历攻击方 buff，与 trigger on_dodged 同义）
-            forEachBuffOf(engine.state.pendingBuffs, self.id, (def, layer) => {
-                if (!def?.onDodged) return
-                def.onDodged({
+            forEachHookOf(engine.state.pendingBuffs, 'onDodged', self.id, (def, layer) => {
+                def.onDodged?.({
                     final: 0,
                     raw: 0,
                     attacker: self,
@@ -89,9 +87,8 @@ export function processHitCheck(
                 })
             })
             // 防御方 buff onDodge 钩子（自己成功闪避；遍历防御方 buff，与 trigger on_dodge 同义）
-            forEachBuffOf(engine.state.pendingBuffs, enemy.id, (def, layer) => {
-                if (!def?.onDodge) return
-                def.onDodge({
+            forEachHookOf(engine.state.pendingBuffs, 'onDodge', enemy.id, (def, layer) => {
+                def.onDodge?.({
                     final: 0,
                     raw: 0,
                     attacker: self,

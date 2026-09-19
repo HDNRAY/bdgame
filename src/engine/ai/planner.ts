@@ -19,7 +19,7 @@ import type { ActionDefinition, EffectDef } from '../entities/action'
 import { getAction, getActionRange, getRuntimeAction } from '../../data/actions'
 import type { BattleState, ActionCommand } from '../combat/types'
 import { getWeapon } from '../../data/weapons/weapons'
-import { forEachBuffOf, calcExtraMoveEfficiency } from '../combat/utils'
+import { forEachHookOf, calcExtraMoveEfficiency } from '../combat/utils'
 import { calcActionChanCost } from '../combat/utils/action-cost'
 import { PositionSystem } from '../combat/position'
 import { calcExpectedDamage, type DamageEstimate } from './expected-damage'
@@ -140,10 +140,9 @@ function actionCostAt(
 ): number {
     const enemy = state.characters.find((c) => c.id !== self.id) ?? self
     let cost = a.def.apCost
-    forEachBuffOf(state.pendingBuffs, self.id, (_def, _layer) => {
-        if (!_def?.onActionCost) return
+    forEachHookOf(state.pendingBuffs, 'onActionCost', self.id, (_def, _layer) => {
         // 用 mock layer 代替真实 layer（钩子读写 firstActionDone，避免污染）
-        const r = _def.onActionCost({
+        const r = _def.onActionCost?.({
             final: 0,
             raw: 0,
             attacker: self,
@@ -152,7 +151,7 @@ function actionCostAt(
             layer: mockLayer as unknown as typeof _layer,
             source: a.def,
         })
-        cost = Math.max(1, cost + r)
+        cost = Math.max(1, cost + (r ?? 0))
     })
     return self.actionApCost(cost, state)
 }
@@ -399,8 +398,8 @@ export function generatePlans(
     // （分心错手 +1、漫天花雨暗器 +2；保守取 max，段2 容量 = 1 主招 + 连发数）
     const maxExtraAttack = (self2: Character): number => {
         let n = 0
-        forEachBuffOf(state.pendingBuffs, self2.id, (def) => {
-            if (!def?.getExtraAttack) return
+        forEachHookOf(state.pendingBuffs, 'getExtraAttack', self2.id, (def) => {
+            if (!def.getExtraAttack) return
             // 用池子里任意招试（分心错手无条件、漫天花雨看 thrown tag——取最大可能值）
             let best = 0
             for (const c of pool) {

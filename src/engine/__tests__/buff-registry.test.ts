@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { BuffRegistry } from '../combat/utils/buff-registry'
-import { forEachBuffOf } from '../combat/utils/buff-loop'
+import { forEachBuffOf, forEachHookOf } from '../combat/utils/buff-loop'
+import { getBuff } from '../../data/buffs'
 
 describe('BuffRegistry', () => {
     function mkRegistry(): BuffRegistry {
@@ -97,13 +98,14 @@ describe('BuffRegistry', () => {
         expect(c.size).toBe(2)
         expect(real.size).toBe(2)
         expect(real.has('extra::a')).toBe(false)
-        // clone 默认不重建 hook 注册(沙盒走 forEachBuffOf/byOwner);resyncAllHooks 可补齐
+        // 克隆自带 hook 注册（set 覆写按 key 解析 def 补登记；qi_shield 在真库中可解析）
         let hookCount = 0
         c.forEachHook('onAbsorb', undefined, () => {
             hookCount++
             return undefined
         })
-        expect(hookCount).toBe(0)
+        expect(hookCount).toBe(1)
+        // resyncAllHooks 幂等：不产生重复条目（重复会让钩子触发两次）
         c.resyncAllHooks()
         hookCount = 0
         c.forEachHook('onAbsorb', undefined, () => {
@@ -133,5 +135,81 @@ describe('BuffRegistry', () => {
         expect(seen).toBe(0)
         // cloneFor 也不带
         expect(r.cloneFor(['a']).size).toBe(0)
+    })
+    // ── 走桶遍历（forEachHook / forEachHookOf）：单钩子扫描改走桶的前提 ──
+    // 注意：扫描路径按 key 用 getBuff 解析 def，桶里存的是登记时的 def —— 两边一致的前提是
+    // 「key 能在真库里解析到同一个 def」（生产恒成立），所以这组用例用真 buff id 而不是 mock def。
+
+    function mkRealRegistry(): BuffRegistry {
+        const r = new BuffRegistry()
+        r.register('li_wu_xu_fa::a', { restoreValue: 1 }, getBuff('li_wu_xu_fa')!)
+        r.register('yan_qi::a', { restoreValue: 1 }, getBuff('yan_qi')!)
+        r.register('qi_shield::b', { restoreValue: 1 }, getBuff('qi_shield')!)
+        return r
+    }
+
+    it('forEachHookOf 与扫描结果一致（含 owner 过滤）', () => {
+        const r = mkRealRegistry()
+        const scanOf = (owner: string | undefined, hook: 'onHitChance' | 'onDealDamage' | 'onAbsorb'): string[] => {
+            const out: string[] = []
+            forEachBuffOf(r, owner ?? ['a', 'b'], (def, _l, _b, key) => {
+                if (def?.[hook]) out.push(key)
+            })
+            return out.sort()
+        }
+        const bucketOf = (owner: string | undefined, hook: 'onHitChance' | 'onDealDamage' | 'onAbsorb'): string[] => {
+            const out: string[] = []
+            forEachHookOf(r, hook, owner, (_def, _l, _o, key) => {
+                out.push(key)
+            })
+            return out.sort()
+        }
+        for (const hook of ['onHitChance', 'onDealDamage', 'onAbsorb'] as const) {
+            expect(bucketOf('a', hook)).toEqual(scanOf('a', hook))
+            expect(bucketOf(undefined, hook)).toEqual(scanOf(undefined, hook))
+        }
+        expect(bucketOf('a', 'onHitChance')).toEqual(['li_wu_xu_fa::a'])
+        expect(bucketOf('b', 'onAbsorb')).toEqual(['qi_shield::b'])
+    })
+
+    it('裸 set 写入、def 带钩子的层也会登记进桶（否则走桶会漏层）', () => {
+        const r = new BuffRegistry()
+        // ciyuan_blade 的 def 带 onParryPenetration，历史上就是裸 set 写的
+        r.set('ciyuan_blade::a', { restoreValue: 1 })
+        const seen: string[] = []
+        r.forEachHook('onParryPenetration', 'a', (_def, _l, _o, key) => {
+            seen.push(key)
+        })
+        expect(seen).toEqual(['ciyuan_blade::a'])
+        // 覆盖写同一 key 不产生重复登记（重复会让钩子触发两次）
+        r.set('ciyuan_blade::a', { restoreValue: 2 })
+        let count = 0
+        r.forEachHook('onParryPenetration', 'a', () => {
+            count++
+        })
+        expect(count).toBe(1)
+        // 无 def 的散落层（追踪标记）不进桶，也不报错
+        r.set('fumble_track::a', { restoreValue: 1 })
+        expect(r.has('fumble_track::a')).toBe(true)
+    })
+
+    it('cloneFor 克隆带桶（沙盒里走桶的扫描能读到钩子）', () => {
+        const c = mkRealRegistry().cloneFor(['a', 'b'])
+        const keys: string[] = []
+        c.forEachHook('onHitChance', 'a', (_def, _l, _o, key) => {
+            keys.push(key)
+        })
+        expect(keys).toEqual(['li_wu_xu_fa::a'])
+    })
+
+    it('forEachHookOf 对裸 Map 退回扫描（测试/手搓 state）', () => {
+        const pending = new Map<string, { restoreValue: number }>()
+        pending.set('li_wu_xu_fa::a', { restoreValue: 1 })
+        pending.set('qi_shield::b', { restoreValue: 1 })
+        const keys: string[] = []
+        forEachHookOf(pending as never, 'onHitChance', 'a', (_def, _l, _o, key) => {
+            keys.push(key)
+        })
+        expect(keys).toEqual(['li_wu_xu_fa::a'])
     })
 })

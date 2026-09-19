@@ -8,7 +8,7 @@ import { getWeapon } from '../../../data/weapons/weapons'
 import { genAppId } from '../../util/buff-utils'
 import { notifyRegenChanged, affectsApRegen } from '../utils/ap-regen'
 import type { Tag } from '../../entities/tag'
-import { scheduleBuffExpiry, removeBuffLayer, executeMove, emitMoveEvents, forEachBuffOf } from '../utils'
+import { scheduleBuffExpiry, removeBuffLayer, executeMove, emitMoveEvents, forEachBuffOf, forEachHookOf } from '../utils'
 import { getBuffMaxOverride, applyStackGainCost } from '../utils/buff-apply'
 import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
@@ -642,9 +642,8 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const e = eff as Extract<EffectDef, { type: 'disarm' }>
         let chance = e.chance ?? 1
         // 防御方 buff 缴械抗性
-        forEachBuffOf(engine.state.pendingBuffs, enemy.id, (def, layer) => {
-            if (!def?.onDisarmChance) return
-            chance += def.onDisarmChance({
+        forEachHookOf(engine.state.pendingBuffs, 'onDisarmChance', enemy.id, (def, layer) => {
+            const disarmMod = def.onDisarmChance?.({
                 final: 0,
                 raw: 0,
                 attacker: self,
@@ -654,6 +653,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
                 layer,
                 source: action,
             })
+            if (disarmMod) chance += disarmMod
         })
         chance = Math.max(0, Math.min(1, chance))
         if (chance < 1) {

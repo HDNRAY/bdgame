@@ -14,7 +14,7 @@ import {
     calcPoisonTicksPerStack,
 } from '../calc/damage'
 import { DMG_PER_POISON_TICK } from '../constants'
-import { forEachBuffOf } from '../combat/utils'
+import { forEachBuffOf, forEachHookOf } from '../combat/utils'
 import { calcActionChanCost } from '../combat/utils/action-cost'
 import { rng } from '../util/rng'
 import { buffPresence, hookMaskOf } from '../combat/utils/buff-registry'
@@ -106,9 +106,8 @@ function applyDotTickHooks(
     // present 按「双方层」查询，是目标层的超集：只可能少跳过，不可能误跳过。
     if (!present.has('onDebuffTick')) return damage
     let final = damage
-    forEachBuffOf(pendings, target.id, (def, layer) => {
-        if (!def?.onDebuffTick) return
-        const result = def.onDebuffTick({ buffId, target, damage: final, layer })
+    forEachHookOf(pendings, 'onDebuffTick', target.id, (def, layer) => {
+        const result = def.onDebuffTick?.({ buffId, target, damage: final, layer })
         if (result !== undefined) final = result
     })
     return final
@@ -132,9 +131,8 @@ function applyDebuffAppliedHooks(
     const layer: BuffLayer = { restoreValue: stacks, extra: {} }
     // 攻击方一个 onDebuffApplied 层都没有 → 没有钩子能改写 layer，直接返回初值
     if (!present.has('onDebuffApplied')) return layer
-    forEachBuffOf(pendings, attacker.id, (def) => {
-        if (!def?.onDebuffApplied) return
-        def.onDebuffApplied({ self: attacker, enemy: defender, buffId, stacks, layer, state })
+    forEachHookOf(pendings, 'onDebuffApplied', attacker.id, (def) => {
+        def.onDebuffApplied?.({ self: attacker, enemy: defender, buffId, stacks, layer, state })
     })
     return layer
 }
@@ -394,24 +392,21 @@ function calcExpectedDamageInner(
     let buffed = rawDamage
     let buffPiercing = 0
     if (present.has('onDealDamage')) {
-        forEachBuffOf(safeState.pendingBuffs, [safeDef.id, safeAtk.id], (def, layer, _b, _k, ownerId) => {
-            if (!def) return
-            if (ownerId === safeAtk.id && def.onDealDamage) {
-                const result = def.onDealDamage({
-                    final: buffed,
-                    raw: rawDamage,
-                    target: safeDef,
-                    attacker: safeAtk,
-                    state: safeState,
-                    layer,
-                    source: action,
-                })
-                if (typeof result === 'object') {
-                    buffed = result.normal
-                    buffPiercing += result.piercing ?? 0
-                } else {
-                    buffed = result
-                }
+        forEachHookOf(safeState.pendingBuffs, 'onDealDamage', safeAtk.id, (def, layer) => {
+            const result = def.onDealDamage?.({
+                final: buffed,
+                raw: rawDamage,
+                target: safeDef,
+                attacker: safeAtk,
+                state: safeState,
+                layer,
+                source: action,
+            })
+            if (typeof result === 'object') {
+                buffed = result.normal
+                buffPiercing += result.piercing ?? 0
+            } else if (typeof result === 'number') {
+                buffed = result
             }
         })
     }
@@ -425,9 +420,8 @@ function calcExpectedDamageInner(
     const parriedOf = (x: number): number => {
         let pd = calcParriedDamage(x, safeDef.attrs.get('strength'))
         if (present.has('onParryReduction')) {
-            forEachBuffOf(safeState.pendingBuffs, safeDef.id, (def, layer) => {
-                if (!def?.onParryReduction) return
-                pd = def.onParryReduction({
+            forEachHookOf(safeState.pendingBuffs, 'onParryReduction', safeDef.id, (def, layer) => {
+                const reduced = def.onParryReduction?.({
                     final: pd,
                     raw: x,
                     target: safeDef,
@@ -436,6 +430,7 @@ function calcExpectedDamageInner(
                     layer,
                     source: action,
                 })
+                if (reduced !== undefined) pd = reduced
             })
         }
         // 攻击方穿透：收集穿掉的伤害值，加法聚合后 clamp 到 blocked
@@ -443,9 +438,8 @@ function calcExpectedDamageInner(
         if (blocked > 0) {
             let piercedTotal = 0
             if (present.has('onParryPenetration')) {
-                forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
-                    if (!def?.onParryPenetration) return
-                    const pierced = def.onParryPenetration({
+                forEachHookOf(safeState.pendingBuffs, 'onParryPenetration', safeAtk.id, (def, layer) => {
+                    const pierced = def.onParryPenetration?.({
                         final: pd,
                         raw: x,
                         target: safeDef,
@@ -454,7 +448,7 @@ function calcExpectedDamageInner(
                         layer,
                         source: action,
                     })
-                    if (pierced > 0) piercedTotal += pierced
+                    if (pierced && pierced > 0) piercedTotal += pierced
                 })
             }
             pd = Math.round((pd + Math.min(piercedTotal, blocked)) * 10) / 10
@@ -474,9 +468,8 @@ function calcExpectedDamageInner(
     const splitPierce = (base: number): { normal: number; pierce: number } => {
         let pierceRatio = actionPierceRatio
         if (present.has('onPostCritDamage')) {
-            forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
-                if (!def?.onPostCritDamage) return
-                const r = def.onPostCritDamage({
+            forEachHookOf(safeState.pendingBuffs, 'onPostCritDamage', safeAtk.id, (def, layer) => {
+                const r = def.onPostCritDamage?.({
                     final: base,
                     raw: rawDamage,
                     target: safeDef,
@@ -488,7 +481,7 @@ function calcExpectedDamageInner(
                 if (typeof r === 'object') {
                     const total = r.normal + (r.piercing ?? 0)
                     if (total > 0) pierceRatio += (r.piercing ?? 0) / total
-                } else {
+                } else if (typeof r === 'number') {
                     base = r
                 }
             })
@@ -533,9 +526,8 @@ function calcExpectedDamageInner(
     // 命中期望上遍历防御方 onTakeDamage（铁布衫/石肤 ×0.85/×0.9 等），招架混合已在 condFinal 内。
     // 近似：穿透部分引擎免减伤，此处按全量打折（compare 精度可接受）。
     if (opts?.applyDefenseReduction && present.has('onTakeDamage')) {
-        forEachBuffOf(safeState.pendingBuffs, safeDef.id, (def, layer) => {
-            if (!def?.onTakeDamage) return
-            expected = def.onTakeDamage({
+        forEachHookOf(safeState.pendingBuffs, 'onTakeDamage', safeDef.id, (def, layer) => {
+            const taken = def.onTakeDamage?.({
                 final: expected,
                 raw: rawDamage,
                 target: safeDef,
@@ -544,6 +536,7 @@ function calcExpectedDamageInner(
                 layer,
                 source: action,
             })
+            if (taken !== undefined) expected = taken
         })
     }
 
@@ -579,21 +572,17 @@ function estimateApCost(
     // 0 成本招式（御物召唤等）天然免费：引擎跳过整段 AP 计算，不校验也不打折
     if (action.apCost <= 0) return action.apCost
     let cost = action.apCost
-    forEachBuffOf(safeState.pendingBuffs, safeAtk.id, (def, layer) => {
-        if (!def?.onActionCost) return
-        cost = Math.max(
-            1,
-            cost +
-                def.onActionCost({
-                    final: 0,
-                    raw: 0,
-                    attacker: safeAtk,
-                    target: safeDef,
-                    state: safeState,
-                    layer,
-                    source: action,
-                }),
-        )
+    forEachHookOf(safeState.pendingBuffs, 'onActionCost', safeAtk.id, (def, layer) => {
+        const delta = def.onActionCost?.({
+            final: 0,
+            raw: 0,
+            attacker: safeAtk,
+            target: safeDef,
+    state: safeState,
+    layer,
+    source: action,
+})
+        if (delta) cost = Math.max(1, cost + delta)
     })
     return safeAtk.actionApCost(cost, safeState)
 }

@@ -2,7 +2,7 @@ import type { Character } from '../../entities/character'
 import type { BattleState } from '../types'
 import { calcApRegenPerSec } from '../../calc/damage'
 import { getBuff } from '../../../data/buffs'
-import { forEachBuffOf } from './buff-loop'
+import { forEachHookOf } from './buff-loop'
 
 /** 该 buff 是否影响 AP 回复（具备 apRegenPerSec 钩子）——能力检查，不认 ID */
 export function affectsApRegen(buffId: string): boolean {
@@ -12,8 +12,8 @@ export function affectsApRegen(buffId: string): boolean {
 /** 该角色来自 buff 的额外 AP 回复速度（每秒，可正可负） */
 export function calcExtraApRegenPerSec(state: BattleState, char: Character): number {
     let extra = 0
-    forEachBuffOf(state.pendingBuffs, char.id, (def, layer) => {
-        const contrib = def?.apRegenPerSec?.({
+    forEachHookOf(state.pendingBuffs, 'apRegenPerSec', char.id, (def, layer) => {
+        const contrib = def.apRegenPerSec?.({
             final: 0,
             raw: 0,
             target: char,

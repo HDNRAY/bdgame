@@ -14,7 +14,7 @@ import { getAction as getActionDef } from '../../../data/actions'
 import { getWeapon } from '../../../data/weapons/weapons'
 import { getPassive } from '../../../data/passives'
 import { getArtifact } from '../../../data/artifacts'
-import { forEachBuffOf, calcExtraHaste, dropBuffLayer } from '../../combat/utils'
+import { forEachBuffOf, forEachHookOf, calcExtraHaste, dropBuffLayer } from '../../combat/utils'
 import { materializeAttachedBuff } from '../../combat/utils/buff-apply'
 import { getBuff } from '../../../data/buffs'
 import { MAX_CHAN } from '../../constants'
@@ -530,8 +530,8 @@ export class Character {
         const map = new Map<string, ActionDefinition>()
         for (const a of this.actions) {
             let cur: ActionDefinition | RuntimeAction = a.def
-            forEachBuffOf(state.pendingBuffs, this.id, (buff, layer) => {
-                if (!buff?.onRuntimeAction) return
+            forEachHookOf(state.pendingBuffs, 'onRuntimeAction', this.id, (buff, layer) => {
+                if (!buff.onRuntimeAction) return
                 cur = buff.onRuntimeAction(
                     { final: 0, raw: 0, target: this, attacker: this, engine: undefined, state, layer } as BuffHookCtx,
                     cur,
@@ -651,8 +651,8 @@ export class Character {
 
     /** 触发 onHpChange 钩子 */
     #fireHpChange(engine: BattleEngine): void {
-        forEachBuffOf(engine.state.pendingBuffs, this.id, (def, layer) => {
-            if (def?.onHpChange) {
+        forEachHookOf(engine.state.pendingBuffs, 'onHpChange', this.id, (def, layer) => {
+            if (def.onHpChange) {
                 def.onHpChange({
                     final: 0,
                     raw: 0,

@@ -13,7 +13,7 @@ import {
     calcRoll,
 } from '../../calc/damage'
 import { getWeapon } from '../../../data/weapons/weapons'
-import { consumeBuffsByTrigger, forEachBuffOf } from '../utils'
+import { consumeBuffsByTrigger, forEachHookOf } from '../utils'
 import { round1 } from '../../util/math'
 
 // ── Options 类型 ──
@@ -142,8 +142,7 @@ export function applyDamage({
         const critDamage = afterCrit
         let finalCrit = critDamage
         const critHooks: { def: BuffDef; layer: BuffLayer }[] = []
-        forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
-            if (!def?.onAfterCritDamage) return
+        forEachHookOf(engine.state.pendingBuffs, 'onAfterCritDamage', attacker.id, (def, layer) => {
             critHooks.push({ def, layer })
         })
         critHooks.sort((a, b) => (a.def.priority ?? 0) - (b.def.priority ?? 0))
@@ -179,9 +178,8 @@ export function applyDamage({
         }
     }
     // 攻击方 buff 穿透钩子：每个钩子基于当前 base 返回拆分，引擎反推其穿透比例（加算）
-    forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
-        if (!def?.onPostCritDamage) return
-        const r = def.onPostCritDamage({
+    forEachHookOf(engine.state.pendingBuffs, 'onPostCritDamage', attacker.id, (def, layer) => {
+        const r = def.onPostCritDamage?.({
             final: base,
             raw,
             target,
@@ -194,7 +192,7 @@ export function applyDamage({
         if (typeof r === 'object') {
             const total = r.normal + (r.piercing ?? 0)
             if (total > 0) pierceRatio += (r.piercing ?? 0) / total
-        } else {
+        } else if (typeof r === 'number') {
             base = r
         }
     })
@@ -239,9 +237,8 @@ export function applyDamage({
         // 被暴击事件（防御方触发，逆转经脉等反击）；召唤物攻击不触发反应
         if (!act?.tags.includes('summon')) engine.emit('on_was_crit', target, attacker)
         // 攻击方 buff onCritical 钩子（在招式作用域内，渲染层 +1 缩进）
-        forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
-            if (!def?.onCritical) return
-            def.onCritical({
+        forEachHookOf(engine.state.pendingBuffs, 'onCritical', attacker.id, (def, layer) => {
+            def.onCritical?.({
                 final,
                 raw,
                 target,
@@ -256,8 +253,7 @@ export function applyDamage({
     }
 
     // ── buff 独立追加伤害（onAfterDealDamage） ──
-    forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
-        if (!def?.onAfterDealDamage) return
+    forEachHookOf(engine.state.pendingBuffs, 'onAfterDealDamage', attacker.id, (def, layer) => {
         const ctx = {
             final,
             raw,
@@ -269,7 +265,8 @@ export function applyDamage({
             buffOwnerId: attacker.id,
             source: def,
         }
-        const bonusResult = def.onAfterDealDamage(ctx)
+        const bonusResult = def.onAfterDealDamage?.(ctx)
+        if (bonusResult === undefined) return
         if (typeof bonusResult === 'object') {
             // 与 onPostCritDamage / onDealDamage 同口径：`normal` 是**总额**，`piercing` 是其中
             // 无视减免的那部分（穿透是结算方式，不是额外一笔）。引擎把它拆成
@@ -316,9 +313,8 @@ function resolveParry(
     // ── 1. 攻击方能否被招架 ──
     const cannotBeParried = (() => {
         let result = false
-        forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def) => {
-            if (!def?.onCanBeParried) return
-            if (!def.onCanBeParried({ self: attacker, engine, source: act, triggered })) {
+        forEachHookOf(engine.state.pendingBuffs, 'onCanBeParried', attacker.id, (def) => {
+            if (!def.onCanBeParried?.({ self: attacker, engine, source: act, triggered })) {
                 result = true
                 return false
             }
@@ -334,9 +330,8 @@ function resolveParry(
     const hasParryTag = weapon.tags.includes('parry')
 
     let buffCanParry: boolean | undefined
-    forEachBuffOf(engine.state.pendingBuffs, target.id, (def) => {
-        if (!def?.onCanParry) return
-        const result = def.onCanParry({ self: target, engine })
+    forEachHookOf(engine.state.pendingBuffs, 'onCanParry', target.id, (def) => {
+        const result = def.onCanParry?.({ self: target, engine })
         if (!result) {
             buffCanParry = false
             return false
@@ -350,9 +345,8 @@ function resolveParry(
     // ── 2. 招架概率 ──
     let pc = calcParryChance(target.attrs.get('dexterity'), target.attrs.get('insight'))
     if (act) {
-        forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
-            if (!def?.onParryChance) return
-            const bonus = def.onParryChance({
+        forEachHookOf(engine.state.pendingBuffs, 'onParryChance', target.id, (def, layer) => {
+            const bonus = def.onParryChance?.({
                 final: raw,
                 raw,
                 target,
@@ -362,7 +356,7 @@ function resolveParry(
                 layer,
                 source: act,
             })
-            pc = pc + bonus
+            pc = pc + (bonus ?? 0)
         })
     }
 
@@ -383,9 +377,8 @@ function resolveParry(
     engine.emit('on_parry', target, attacker)
     engine.emit('on_parried', attacker, target)
     // 防御方 buff onParry 钩子（自己成功招架；遍历防御方 buff，与 trigger on_parry 同义）
-    forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
-        if (!def?.onParry) return
-        def.onParry({
+    forEachHookOf(engine.state.pendingBuffs, 'onParry', target.id, (def, layer) => {
+        def.onParry?.({
             final: raw,
             raw,
             target,
@@ -397,9 +390,8 @@ function resolveParry(
         })
     })
     // 攻击方 buff onParried 钩子（自己攻击被对方招架；遍历攻击方 buff，与 trigger on_parried 同义）
-    forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
-        if (!def?.onParried) return
-        def.onParried({
+    forEachHookOf(engine.state.pendingBuffs, 'onParried', attacker.id, (def, layer) => {
+        def.onParried?.({
             final: raw,
             raw,
             target,
@@ -415,9 +407,8 @@ function resolveParry(
     let final = calcParriedDamage(raw, target.attrs.get('strength'))
     if (act) {
         // 5a. 目标方 buff 修正招架减伤(含固定减免 -2/-3 等,全部先结算)
-        forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
-            if (!def?.onParryReduction) return
-            final = def.onParryReduction({
+        forEachHookOf(engine.state.pendingBuffs, 'onParryReduction', target.id, (def, layer) => {
+            const reduced = def.onParryReduction?.({
                 final,
                 raw,
                 target,
@@ -427,6 +418,7 @@ function resolveParry(
                 layer,
                 source: act,
             })
+            if (reduced !== undefined) final = reduced
         })
         // 5b. 攻击方 buff 招架穿透(玄铁剑/霸刀/次元刃等):
         //     每个 onParryPenetration 返回「本次穿掉的伤害值」(基于 final/raw 自行计算),
@@ -436,9 +428,8 @@ function resolveParry(
         const blocked = raw - final
         if (blocked > 0) {
             let piercedTotal = 0
-            forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
-                if (!def?.onParryPenetration) return
-                const pierced = def.onParryPenetration({
+            forEachHookOf(engine.state.pendingBuffs, 'onParryPenetration', attacker.id, (def, layer) => {
+                const pierced = def.onParryPenetration?.({
                     final,
                     raw,
                     target,
@@ -448,7 +439,7 @@ function resolveParry(
                     layer,
                     source: act,
                 })
-                if (pierced > 0) piercedTotal += pierced
+                if (pierced && pierced > 0) piercedTotal += pierced
             })
             const pierced = Math.min(piercedTotal, blocked)
             final = Math.round((final + pierced) * 10) / 10
@@ -471,10 +462,10 @@ function resolveCrit(
     triggered = false,
 ): { isCrit: boolean; final: number } {
     let bonus = 0
-    forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
+    forEachHookOf(engine.state.pendingBuffs, 'onCritChance', attacker.id, (def, layer) => {
         if (!act) return false
-        if (def?.onCritChance)
-            bonus += def.onCritChance({
+        const chanceMod = def.onCritChance?.(
+            {
                 final: damage,
                 raw,
                 target,
@@ -484,21 +475,23 @@ function resolveCrit(
                 layer,
                 source: act,
                 triggered,
-            })
+            },
+        )
+        if (chanceMod) bonus += chanceMod
     })
     // 遍历防御方 buff，降低被暴击率
-    forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
-        if (def?.onCritTakenChance)
-            bonus += def.onCritTakenChance({
-                final: damage,
-                raw,
-                target,
-                attacker,
-                engine,
-                state: engine.state,
-                layer,
-                source: act,
-            })
+    forEachHookOf(engine.state.pendingBuffs, 'onCritTakenChance', target.id, (def, layer) => {
+        const takenMod = def.onCritTakenChance?.({
+            final: damage,
+            raw,
+            target,
+            attacker,
+            engine,
+            state: engine.state,
+            layer,
+            source: act,
+        })
+        if (takenMod) bonus += takenMod
     })
     let critChance = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), bonus)
     if (act?.onActionCritChance) critChance = act.onActionCritChance(critChance, engine.state, attacker)
@@ -508,32 +501,32 @@ function resolveCrit(
     let critDmgMod = 0
     critDmgMod += calcBaseCritDamage(attacker.attrs.get('dexterity'))
     if (act) {
-        forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
-            if (def?.onCritDamage)
-                critDmgMod += def.onCritDamage({
-                    final: damage,
-                    raw,
-                    target,
-                    attacker,
-                    engine,
-                    state: engine.state,
-                    layer,
-                    source: act,
-                })
+        forEachHookOf(engine.state.pendingBuffs, 'onCritDamage', attacker.id, (def, layer) => {
+            const mod = def.onCritDamage?.({
+                final: damage,
+                raw,
+                target,
+                attacker,
+                engine,
+                state: engine.state,
+                layer,
+                source: act,
+            })
+            if (mod) critDmgMod += mod
         })
         // 防御方减爆伤（负=更难被暴击伤害，如逆转经脉 -0.5 → 爆伤 1.5→1.0）
-        forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
-            if (def?.onCritTakenDamage)
-                critDmgMod += def.onCritTakenDamage({
-                    final: damage,
-                    raw,
-                    target,
-                    attacker,
-                    engine,
-                    state: engine.state,
-                    layer,
-                    source: act,
-                })
+        forEachHookOf(engine.state.pendingBuffs, 'onCritTakenDamage', target.id, (def, layer) => {
+            const mod = def.onCritTakenDamage?.({
+                final: damage,
+                raw,
+                target,
+                attacker,
+                engine,
+                state: engine.state,
+                layer,
+                source: act,
+            })
+            if (mod) critDmgMod += mod
         })
         if (act.onActionCritDamage) critDmgMod = act.onActionCritDamage(critDmgMod, engine.state, attacker)
     }
@@ -555,7 +548,7 @@ function applyDamageModifiers({
     triggered,
 }: ApplyDamageModifiersOptions): { damage: number; piercing: number } {
     let piercing = 0
-    forEachBuffOf(engine.state.pendingBuffs, attacker.id, (def, layer) => {
+    forEachHookOf(engine.state.pendingBuffs, 'onDealDamage', attacker.id, (def, layer) => {
         if (!source) return
         const ctx = {
             final,
@@ -593,9 +586,8 @@ function applyDefenseStages(
     triggered?: boolean,
 ): number {
     // 减伤
-    forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
-        if (!def?.onTakeDamage) return
-        final = def.onTakeDamage({
+    forEachHookOf(engine.state.pendingBuffs, 'onTakeDamage', target.id, (def, layer) => {
+        const taken = def.onTakeDamage?.({
             final,
             raw,
             target,
@@ -606,11 +598,11 @@ function applyDefenseStages(
             source,
             triggered,
         })
+        if (taken !== undefined) final = taken
     })
     // 吸收
-    forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
-        if (!def?.onAbsorb) return
-        final = def.onAbsorb({
+    forEachHookOf(engine.state.pendingBuffs, 'onAbsorb', target.id, (def, layer) => {
+        const absorbed = def.onAbsorb?.({
             final,
             raw,
             target,
@@ -621,6 +613,7 @@ function applyDefenseStages(
             source,
             triggered,
         })
+        if (absorbed !== undefined) final = absorbed
     })
     return final
 }

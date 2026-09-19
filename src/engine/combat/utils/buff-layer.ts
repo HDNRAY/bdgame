@@ -3,7 +3,7 @@ import type { Character } from '../../entities/character'
 import { ATTR_CN, type AttrName } from '../../entities/attributes'
 import type { BattleState, BuffLayer } from '../types'
 import type { BuffDef } from '../../../data/buffs'
-import { forEachBuffOf } from './buff-loop'
+import { forEachBuffOf, forEachHookOf } from './buff-loop'
 import { BattleLog } from '../battle-log'
 import type { TriggerEvent } from '../../entities/trigger'
 import { calcDebuffDuration, calcBuffDuration } from '../../calc/damage'
@@ -259,8 +259,8 @@ export function applyHeal(
         overheal: Math.round((amount - healed) * 10) / 10,
     })
     // 通知所有 buff 持有者收到治疗
-    forEachBuffOf(engine.state.pendingBuffs, target.id, (def, layer) => {
-        if (def?.onReceiveHeal) {
+    forEachHookOf(engine.state.pendingBuffs, 'onReceiveHeal', target.id, (def, layer) => {
+        if (def.onReceiveHeal) {
             def.onReceiveHeal({
                 final: amount,
                 raw: amount,

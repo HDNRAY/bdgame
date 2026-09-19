@@ -2,7 +2,7 @@ import type { ActionDefinition } from '../entities/action'
 import type { Character } from '../entities/character'
 import type { BattleState, BuffLayer } from '../combat/types'
 import { getActionRange, getRuntimeAction } from '../../data/actions'
-import { forEachBuffOf } from '../combat/utils'
+import { forEachHookOf } from '../combat/utils'
 import { calcActionChanCost } from '../combat/utils/action-cost'
 import { BattleEngine } from '../combat/engine'
 
@@ -20,10 +20,9 @@ export function canExecuteAction(
     // 0 成本招式（御物召唤等）天然免费：calcActionCostAfterSpeed 对 0 成本返回 0，不校验 AP。
     let cost = action.apCost
     if (action.apCost > 0) {
-        forEachBuffOf(state.pendingBuffs, attacker.id, (def, layer) => {
-            if (!def?.onActionCost) return
+        forEachHookOf(state.pendingBuffs, 'onActionCost', attacker.id, (def, layer) => {
             const clone: BuffLayer = { ...layer, extra: layer.extra ? { ...layer.extra } : undefined }
-            const r = def.onActionCost({
+            const r = def.onActionCost?.({
                 final: 0,
                 raw: 0,
                 attacker,
@@ -32,7 +31,7 @@ export function canExecuteAction(
                 layer: clone,
                 source: action,
             })
-            cost = Math.max(1, cost + r)
+            cost = Math.max(1, cost + (r ?? 0))
         })
     }
     const discounted = attacker.actionApCost(cost, state)

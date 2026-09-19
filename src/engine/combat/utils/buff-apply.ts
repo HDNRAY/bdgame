@@ -4,7 +4,7 @@ import type { BattleState, BuffLayer } from '../types'
 import type { BuffDef } from '../../../data/buffs'
 import { genAppId } from '../../util/buff-utils'
 import { applyScaledAttrMods, scheduleBuffEnd, removeBuffLayer } from './buff-layer'
-import { forEachBuffOf } from './buff-loop'
+import { forEachBuffOf, forEachHookOf } from './buff-loop'
 import { notifyRegenChanged, affectsApRegen } from './ap-regen'
 import { BattleLog } from '../battle-log'
 
@@ -34,10 +34,10 @@ export function refreshBuffExpiry(engine: BattleEngine, key: string, buff: BuffD
 export function getBuffMaxOverride(buff: BuffDef, engine: BattleEngine, charId: string): number {
     const raw = buff.stacking?.type === 'additive' ? (buff.stacking.max ?? Infinity) : Infinity
     let override: number | null = null
-    forEachBuffOf(engine.state.pendingBuffs, charId, (bDef) => {
+    forEachHookOf(engine.state.pendingBuffs, 'onBuffApply', charId, (bDef) => {
         const char = engine.getCharacter(charId)
         if (!char) return
-        if (bDef?.onBuffApply) {
+        if (bDef.onBuffApply) {
             const val = bDef.onBuffApply(raw, char, engine)
             if (val > (override ?? 0)) override = val
         }
@@ -48,8 +48,8 @@ export function getBuffMaxOverride(buff: BuffDef, engine: BattleEngine, charId: 
 /** 收集角色身上所有 onStackGain 限制，取最小允许的 delta（0=拦截叠层；无钩子时仍按整数层取整） */
 export function applyStackGainCost(engine: BattleEngine, char: Character, buffId: string, delta: number): number {
     let allowed = delta
-    forEachBuffOf(engine.state.pendingBuffs, char.id, (bDef) => {
-        if (bDef?.onStackGain) {
+    forEachHookOf(engine.state.pendingBuffs, 'onStackGain', char.id, (bDef) => {
+        if (bDef.onStackGain) {
             const v = bDef.onStackGain({ char, buffId, delta: allowed, engine })
             if (v < allowed) allowed = v
         }

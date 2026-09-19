@@ -58,6 +58,12 @@ const REGISTERED_HOOKS = [
     'onDebuffApplied',
     'apRegenPerSec',
     'chanRegenPerSec',
+    // 以下 5 个此前只有扫描在读，为了让「走桶」覆盖全部单钩子扫描而补登记（追加在末尾，不动已有位序）
+    'onBuffApply',
+    'onStackGain',
+    'getExtraAttack',
+    'onHpChange',
+    'canTriggerAction',
 ] as const
 
 export type RegisteredHook = (typeof REGISTERED_HOOKS)[number]
@@ -276,6 +282,7 @@ export class BuffRegistry extends Map<string, BuffLayer> {
                 out.set(key, cloneBuffLayer(layer))
             }
         }
+        // 桶由 out.set 逐层建立（见 set 覆写），无需再 resync
         return out
     }
 
@@ -307,8 +314,7 @@ export class BuffRegistry extends Map<string, BuffLayer> {
             if (!layer) continue
             out.set(e.key, cloneBuffLayer(layer))
         }
-        // 复制后按已有层重建 hook 索引（与建层时 register 的注册结果一致，含白名单之外的钩子）
-        out.resyncAllHooks()
+        // 桶由 out.set 逐层建立（见 set 覆写）；不能叠加 resync（重复登记会让钩子触发两次）
         return out
     }
 
@@ -333,8 +339,16 @@ export class BuffRegistry extends Map<string, BuffLayer> {
     // ── Map 覆写：直接 set/delete 也同步 byOwner（hooks 需 def，走 register/resyncHooks） ──
 
     override set(key: string, layer: BuffLayer): this {
-        // 直接 set（无 def 的散落层，如追踪标记）：同步 byOwner 即可，hooks 由 register 负责
+        // 直接 set：同步 byOwner；能解析到 def 的层同时补登记 hooks ——
+        // 否则「走桶」的遍历（forEachHook）会漏掉这些层（shi_gu_deepen / ciyuan_blade 就是裸 set 写的）
         this.#setRaw(key, layer)
+        const sep = key.indexOf('::')
+        const def = getBuff(sep < 0 ? key : key.slice(0, sep))
+        if (def) {
+            // 覆盖写同一 key 时先注销旧登记，避免桶里重复条目（钩子被触发两次）
+            this.#syncHooks(key, undefined, undefined, 'remove')
+            this.#syncHooks(key, layer, def, 'add')
+        }
         return this
     }
 
@@ -475,8 +489,9 @@ export class BuffRegistry extends Map<string, BuffLayer> {
             this.keyToHooks.delete(key)
             return
         }
-        // add：登记 def 有的每个注册钩子
+        // add：登记 def 有的每个注册钩子（幂等：同 key 重复登记前先注销，避免钩子被触发两次）
         if (!layer || !buff) return
+        if (this.keyToHooks.has(key)) this.#syncHooks(key, undefined, undefined, 'remove')
         const buffId = key.slice(0, key.indexOf('::'))
         const ownerId = parseOwnerFromKey(key)
         const registered = hooksOfDef(buff)

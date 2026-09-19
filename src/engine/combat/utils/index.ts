@@ -1,5 +1,5 @@
 export { scheduleBuffExpiry, removeBuffLayer, dropBuffLayer, dropBuffLayerQuiet, consumeBuffsByTrigger, hasNoStance } from './buff-layer'
-export { forEachBuffOf, cloneBuffsFor } from './buff-loop'
+export { forEachBuffOf, forEachHookOf, cloneBuffsFor } from './buff-loop'
 export { calcExtraMoveEfficiency } from './move-efficiency'
 export { executeMove, emitMoveEvents } from './move'
 export { countDrunkLayers } from './drunk'

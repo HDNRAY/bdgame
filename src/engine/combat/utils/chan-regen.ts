@@ -1,7 +1,7 @@
 import type { Character } from '../../entities/character'
 import type { BattleState } from '../types'
 import { getBuff } from '../../../data/buffs'
-import { forEachBuffOf } from './buff-loop'
+import { forEachHookOf } from './buff-loop'
 
 /** 该 buff 是否影响缠劲回复（具备 chanRegenPerSec 钩子）——能力检查，不认 ID */
 export function affectsChanRegen(buffId: string): boolean {
@@ -14,8 +14,8 @@ export function affectsChanRegen(buffId: string): boolean {
  */
 export function calcEffectiveChanRegenPerSec(state: BattleState, char: Character): number {
     let total = 0
-    forEachBuffOf(state.pendingBuffs, char.id, (def, layer) => {
-        const contrib = def?.chanRegenPerSec?.({
+    forEachHookOf(state.pendingBuffs, 'chanRegenPerSec', char.id, (def, layer) => {
+        const contrib = def.chanRegenPerSec?.({
             final: 0,
             raw: 0,
             target: char,

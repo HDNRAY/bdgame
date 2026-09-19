@@ -2,7 +2,7 @@ import type { ActionDefinition } from '../../entities/action'
 import type { Character } from '../../entities/character'
 import type { BattleState } from '../types'
 import { round1 } from '../../util/math'
-import { forEachBuffOf } from './buff-loop'
+import { forEachHookOf } from './buff-loop'
 
 /**
  * 招式实际缠劲消耗 = `action.chanCost + Σ onActionChanCost`（负=更省），每个 buff 各自 clamp 到 ≥0。
@@ -23,21 +23,17 @@ export function calcActionChanCost(
     // 0 成本招式保持 0：不能因为折扣变成"倒赚缠劲"
     if (base <= 0) return base
     let cost = base
-    forEachBuffOf(state.pendingBuffs, self.id, (def, layer) => {
-        if (!def?.onActionChanCost) return
-        cost = Math.max(
-            0,
-            cost +
-                def.onActionChanCost({
-                    final: 0,
-                    raw: 0,
-                    attacker: self,
-                    target: target ?? self,
-                    state,
-                    layer,
-                    source: action,
-                }),
-        )
+    forEachHookOf(state.pendingBuffs, 'onActionChanCost', self.id, (def, layer) => {
+        const delta = def.onActionChanCost?.({
+            final: 0,
+            raw: 0,
+            attacker: self,
+            target: target ?? self,
+    state,
+    layer,
+    source: action,
+})
+        if (delta) cost = Math.max(0, cost + delta)
     })
     return round1(cost)
 }
