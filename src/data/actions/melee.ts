@@ -123,7 +123,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         tags: ['pierce', 'range', 'chan', 'ignore_parry'],
         getRange: () => [0, 10] as [number, number],
         onActionHitChance: () => 1,
-        hookNotes: { hitChance: '必中', critChance: '目标气血低于 30% 时暴击+30%' },
+        hookNotes: { hitChance: '必中' },
         effects: [{ type: 'ignore_parry' }, { type: 'damage', scaling: { wisdom: 1.2 }, fixed: 10 }],
     },
     {
