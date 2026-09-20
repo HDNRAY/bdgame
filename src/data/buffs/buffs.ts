@@ -1367,11 +1367,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'auto_purify',
         name: '自动净化',
-        description: '每4秒：若身中可净化的负面状态，消耗1点缠劲，净化1层；无负面则不消耗。',
+        description: '每3秒：若身中可净化的负面状态，净化1层；无负面则回复1点气血。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        tickInterval: 4000,
+        tickInterval: 3000,
         onTickHeal: ({ target, engine, state }) => {
             if (!engine) return 0
             // 可净化白名单（按净化优先级排列）：流血/毒/烧 → 麻痹/霜冻 → 其余削弱控制。
@@ -1387,7 +1387,7 @@ export const BUFF_DB: BuffDef[] = [
                 'fumble_chance_temp',
                 'duan_qi',
             ]
-            // 遍历目标身上所有层，取白名单中优先级最高的那一个（每 5 秒只净化 1 层）
+            // 遍历目标身上所有层，取白名单中优先级最高的那一个（每 3 秒只净化 1 层）
             let hit: { key: string; layer: BuffLayer; additive: boolean; name: string } | undefined
             let bestIdx = Infinity
             forEachBuffOf(state.pendingBuffs, target.id, (def, layer, buffId, key) => {
@@ -1399,10 +1399,9 @@ export const BUFF_DB: BuffDef[] = [
                 bestIdx = idx
                 hit = { key, layer, additive: st === 'additive', name: def?.name ?? buffId }
             })
-            // 无任何可净化负面 → 不消耗缠劲
-            if (!hit) return 0
-            // 有则消耗 1 点缠劲，净化 1 层（additive 减 1；independent/none 移除本条）
-            // if (!target.spendChan(1)) return 0
+            // 无任何可净化负面 → 回 1 点气血（onTickHeal 的返回值就是治疗量）
+            if (!hit) return 1
+            // 有则净化 1 层（当前不消耗缠劲；曾试过 spendChan(1)，要恢复就在这里加回并 return 0）
             if (hit.additive) {
                 hit.layer.restoreValue = (hit.layer.restoreValue ?? 0) - 1
                 if ((hit.layer.restoreValue ?? 0) <= 0) {
@@ -1416,7 +1415,7 @@ export const BUFF_DB: BuffDef[] = [
             }
             engine.emitLog({
                 type: 'system',
-                message: `[自动净化] ${target.name} 消耗1点缠劲，净化1层${hit.name}`,
+                message: `[自动净化] ${target.name} 净化1层${hit.name}`,
                 actorId: target.id,
             })
             return 0
