@@ -1761,14 +1761,16 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'sword_dominion',
         name: '御剑诀',
-        description: '以炁御剑，剑随意动。延长攻击距离，按招式内息消耗附加伤害。',
+        description: '以炁御剑，剑随意动。延长攻击距离；命中附加少量增伤，增伤不超过原伤害的 25%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 1),
         onDealDamage: ({ final, source }) => {
             const ap = Math.max(1, (source as ActionDefinition | undefined)?.apCost ?? 0)
-            return round1(final + Math.sqrt(ap) / actionHits(source as ActionDefinition))
+            // 增伤封顶：不超过原伤害的 25%（多段招按每段算，否则弱击/多段会被这一项抬得过多）
+            const bonus = Math.min(Math.sqrt(ap) / actionHits(source as ActionDefinition), final * 0.25)
+            return round1(final + bonus)
         },
     },
     // ── 刃炁精通（攻击侧：持刃攻击令对手叠刃炁） ──
