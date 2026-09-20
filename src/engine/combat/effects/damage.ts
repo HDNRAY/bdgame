@@ -5,7 +5,6 @@ import type { GameEntity } from '../../entities/base'
 import type { BuffDef } from '../../../data/buffs/types'
 import type { BuffLayer } from '../types'
 import {
-    calcCritChance,
     calcBaseCritDamage,
     calcFinalDamage,
     calcParriedDamage,
@@ -13,7 +12,7 @@ import {
     calcRoll,
 } from '../../calc/damage'
 import { getWeapon } from '../../../data/weapons/weapons'
-import { consumeBuffsByTrigger, forEachHookOf } from '../utils'
+import { calcEffectiveCritChance, consumeBuffsByTrigger, forEachHookOf } from '../utils'
 import { round1 } from '../../util/math'
 
 // ── Options 类型 ──
@@ -461,40 +460,13 @@ function resolveCrit(
     act: ActionDefinition | undefined,
     triggered = false,
 ): { isCrit: boolean; final: number } {
-    let bonus = 0
-    forEachHookOf(engine.state.pendingBuffs, 'onCritChance', attacker.id, (def, layer) => {
-        if (!act) return false
-        const chanceMod = def.onCritChance?.(
-            {
-                final: damage,
-                raw,
-                target,
-                attacker,
-                engine,
-                state: engine.state,
-                layer,
-                source: act,
-                triggered,
-            },
-        )
-        if (chanceMod) bonus += chanceMod
+    // 实时暴击率与 utils/crit 同一真源（铸火诀/焰炁/毒药大师按暴击率触发时也读它，避免两处口径漂移）
+    const critChance = calcEffectiveCritChance(engine.state, attacker, target, act, {
+        damage,
+        raw,
+        triggered,
+        engine,
     })
-    // 遍历防御方 buff，降低被暴击率
-    forEachHookOf(engine.state.pendingBuffs, 'onCritTakenChance', target.id, (def, layer) => {
-        const takenMod = def.onCritTakenChance?.({
-            final: damage,
-            raw,
-            target,
-            attacker,
-            engine,
-            state: engine.state,
-            layer,
-            source: act,
-        })
-        if (takenMod) bonus += takenMod
-    })
-    let critChance = calcCritChance(attacker.attrs.get('dexterity'), attacker.attrs.get('insight'), bonus)
-    if (act?.onActionCritChance) critChance = act.onActionCritChance(critChance, engine.state, attacker)
     const critRoll = calcRoll(critChance)
     const isCrit = critRoll.success
 

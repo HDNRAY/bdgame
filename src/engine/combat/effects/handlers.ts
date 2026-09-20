@@ -1,4 +1,4 @@
-import type { EffectDef } from '../../entities/action'
+import type { ActionDefinition, EffectDef } from '../../entities/action'
 import type { Character } from '../../entities/character'
 import { runtimeSlotsOf } from '../../entities/trigger'
 import type { BattleEngine } from '../engine'
@@ -45,15 +45,17 @@ function finishDebuffApply(ctx: {
     layer: BuffLayer
     layerKey: string
     tMs: number
+    /** 施加这次 debuff 的招式（供「按实时暴击率触发」的钩子算 onActionCritChance） */
+    action?: ActionDefinition
 }): void {
-    const { engine, buffId, buff, self, enemy, stacks, layer, layerKey, tMs } = ctx
+    const { engine, buffId, buff, self, enemy, stacks, layer, layerKey, tMs, action } = ctx
     // 受害者侧广播（携带 buffId 供 condition.buffId 过滤，如战术腰包「中毒≥4 自动解毒」）
     engine.emit('on_debuff', enemy, self, buffId)
     // debuff 自定钩子（设置 extra 数据）
-    buff.onDebuffApply?.({ self, enemy, engine, state: engine.state, stacks, layer, buffId })
+    buff.onDebuffApply?.({ self, enemy, engine, state: engine.state, stacks, layer, buffId, source: action })
     // 攻击者施加 debuff 时回调（遍历攻击者身上的 buff，如血棘·压制对流血目标追击）
     forEachBuffOf(engine.state.pendingBuffs, self.id, (bDef) => {
-        bDef?.onDebuffApplied?.({ self, enemy, engine, state: engine.state, stacks, layer, buffId })
+        bDef?.onDebuffApplied?.({ self, enemy, engine, state: engine.state, stacks, layer, buffId, source: action })
     })
     // 后处理（stun/poison/burn 额外逻辑），传入 layer 引用，让 tick engine 可以直接修改 mods
     tickEngine.afterApplyDebuff({ enemy, engine, tMs, buffDef: buff, stacks, layerKey, layer })
@@ -372,7 +374,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
             enemy.capAp()
         }
     },
-    add_debuff({ eff, self, enemy, engine, tMs }: EffectCtx) {
+    add_debuff({ eff, self, enemy, engine, tMs, action }: EffectCtx) {
         const e = eff as Extract<EffectDef, { type: 'add_debuff' }>
         const buff = getBuff(e.buffId)
         if (!buff) return
@@ -430,6 +432,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
 
         // 统一收尾：广播 on_debuff + 自定钩子（数据内声明，如 bleed 广播 on_bleed）+ tick 引擎
         finishDebuffApply({
+            action,
             engine,
             buffId: e.buffId,
             buff,

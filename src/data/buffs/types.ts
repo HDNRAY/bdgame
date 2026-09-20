@@ -286,6 +286,11 @@ export interface DebuffApplyCtx {
     buffId: string
     /** debuff 的层数据（onReceiveDebuff 在施加前调用，无 layer） */
     layer?: BuffLayer
+    /**
+     * 施加这次 debuff 的招式/效果（`add_debuff` 效果的来源）。
+     * 「按实时暴击率触发」的钩子要用它算 `onActionCritChance`（铸火诀/毒药大师）。
+     */
+    source?: GameEntity
 }
 
 /** onStackGain 钩子上下文 */

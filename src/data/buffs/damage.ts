@@ -3,6 +3,7 @@ import { rng } from '../../engine/util/rng'
 import { MAX_CHAN } from '../../engine/constants'
 import type { ActionDefinition } from '../../engine/entities/action'
 import { processActionEffect } from '../../engine/combat/effects'
+import { calcEffectiveCritChance } from '../../engine/combat/utils'
 import { round1 } from '../../engine/util/math'
 import type { AttrName } from '../../engine/entities/attributes'
 import type { Character } from '../../engine/entities/character'
@@ -339,16 +340,23 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'yan_qi',
         name: '焰炁',
-        description: '拳刃凝焰，任何伤害都有40%独立概率令目标叠2层灼烧。',
+        description: '拳刃凝焰，任何伤害都按暴击几率令目标叠2层灼烧（每层独立判定）。',
         tags: ['buff'],
         expiry: { type: 'duration', ms: 15000 },
         stacking: { type: 'none' },
-        onDealDamage: ({ final, attacker, target, engine, state, source }) => {
+        onDealDamage: ({ final, raw, attacker, target, engine, state, source }) => {
             if (!engine || !target) return final
             // 本体伤害才触发；分身/召唤物（summon/imperial）不叠，避免高频白嫖灼烧
             if (source?.tags?.includes('summon') || source?.tags?.includes('imperial')) return final
+            // 概率 = 实时暴击率（含暴击 buff 与招式自带 onActionCritChance，与引擎那一次判定同口径）
+            const chance = calcEffectiveCritChance(state, attacker, target, source as ActionDefinition | undefined, {
+                damage: final,
+                raw,
+                engine,
+            })
+            if (chance <= 0) return final
             processActionEffect(
-                { type: 'add_debuff', buffId: 'burn', stacks: 2, chance: 0.5 },
+                { type: 'add_debuff', buffId: 'burn', stacks: 2, chance },
                 { self: attacker, enemy: target, engine, tMs: state.turn.currentTime },
             )
             return final

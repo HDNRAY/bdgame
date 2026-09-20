@@ -8,10 +8,10 @@ import {
     calcParryChance,
     calcApRegenPerSec,
     calcRoll,
-    calcCritChance,
     calcPoisonTicksPerStack,
 } from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
+import { calcEffectiveCritChance } from '../../engine/combat/utils'
 import type { BuffDef } from './types'
 import { DEFENSE_BUFFS } from './defense'
 import { DAMAGE_BUFFS } from './damage'
@@ -612,9 +612,10 @@ export const BUFF_DB: BuffDef[] = [
         // 施加灼烧时追加层数：独立判定 1 + floor(灵巧/6) 次，每次以当前暴击率为概率 +1 层
         // （阿九灵巧 14 → 判定 3 次、每次 22% → 期望 +0.66 层；灵巧再高也是至少 1 次）。
         // 骰子走 rng：真实战斗吃主随机流；AI 期望伤害评估在 enterSandbox(SIM_SEED) 里，不会动主随机流。
-        onDebuffApplied: ({ layer, self, buffId }) => {
+        onDebuffApplied: ({ layer, self, enemy, engine, state, buffId, source }) => {
             if (buffId !== 'burn' || !layer) return
-            const crit = calcCritChance(self.attrs.get('dexterity'), self.attrs.get('insight'))
+            // 实时暴击率（含暴击 buff / 招式自带加成），与引擎那一次判定同口径
+            const crit = calcEffectiveCritChance(state, self, enemy, source as ActionDefinition | undefined, { engine })
             if (crit <= 0) return
             const rolls = 1 + Math.floor(self.attrs.get('dexterity') / 6)
             let extra = 0
@@ -1459,23 +1460,11 @@ export const BUFF_DB: BuffDef[] = [
         description: '唐门制毒世家，施毒精微。施毒暴击时，每6点灵巧多叠1层毒。',
         tags: ['poison'],
         expiry: { type: 'permanent' },
-        onDebuffApplied: ({ self, enemy, engine, state, layer, buffId }) => {
+        onDebuffApplied: ({ self, enemy, engine, state, layer, buffId, source }) => {
             if (!layer || buffId !== 'poison' || !engine) return
-            // 自身当前暴击率（基础 + 经络初鉴等 onCritChance 修正）
-            let bonus = 0
-            forEachBuffOf(state.pendingBuffs, self.id, (def, l) => {
-                if (def?.onCritChance)
-                    bonus += def.onCritChance({
-                        final: 0,
-                        raw: 0,
-                        target: enemy,
-                        attacker: self,
-                        engine,
-                        state,
-                        layer: l,
-                    })
-            })
-            const crit = calcCritChance(self.attrs.get('dexterity'), self.attrs.get('insight'), bonus)
+            // 实时暴击率（含 onCritChance 修正、被暴击率削减与招式自带加成）——原来手写遍历漏传 source，
+            // 依赖招式 tag 的暴击 buff 会恒为 0
+            const crit = calcEffectiveCritChance(state, self, enemy, source as ActionDefinition | undefined, { engine })
             if (calcRoll(crit).success) {
                 // 层数随灵巧成长：每 6 点灵巧多叠 1 层，至少 1 层
                 const layers = Math.max(1, Math.floor(self.attrs.get('dexterity') / 6))

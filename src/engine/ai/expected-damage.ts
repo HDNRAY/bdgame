@@ -126,13 +126,14 @@ function applyDebuffAppliedHooks(
     buffId: 'burn' | 'poison',
     stacks: number,
     state: BattleState,
+    action?: ActionDefinition,
 ): BuffLayer {
     // 克隆 layer 供钩子修正（真实路径传入的是刚施加/叠加的 burn/poison 层数据）
     const layer: BuffLayer = { restoreValue: stacks, extra: {} }
     // 攻击方一个 onDebuffApplied 层都没有 → 没有钩子能改写 layer，直接返回初值
     if (!present.has('onDebuffApplied')) return layer
     forEachHookOf(pendings, 'onDebuffApplied', attacker.id, (def) => {
-        def.onDebuffApplied?.({ self: attacker, enemy: defender, buffId, stacks, layer, state })
+        def.onDebuffApplied?.({ self: attacker, enemy: defender, buffId, stacks, layer, state, source: action })
     })
     return layer
 }
@@ -258,6 +259,7 @@ function calcExpectedDamageInner(
                     'burn',
                     hitStacks,
                     safeState,
+                    action,
                 )
                 const n = appliedLayer.restoreValue
                 // 真实衰减灼烧：N 层逐跳 2N, 2(N-1), …, 2，每跳过目标 onDebuffTick 钩子（泼油×2/铸火×0.5 等自动生效）
