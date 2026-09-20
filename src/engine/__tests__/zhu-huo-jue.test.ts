@@ -29,12 +29,12 @@ describe('铸火诀 · 铸火', () => {
         expect(buff.onDebuffTick).toBeTypeOf('function') // 自身受灼烧减半保留
     })
 
-    it('每次施加：判定 floor(灵巧/6) 次，每次以暴击率为概率 +1 层', () => {
-        const atk = makeChar('A', '甲', 14, 20) // 灵巧 14 → 判定 2 次
+    it('每次施加：独立判定 1 + floor(灵巧/6) 次，每次以暴击率为概率 +1 层', () => {
+        const atk = makeChar('A', '甲', 14, 20) // 灵巧 14 → 1 + 2 = 判定 3 次
         const crit = calcCritChance(atk.attrs.get('dexterity'), atk.attrs.get('insight'))
         expect(crit).toBeGreaterThan(0)
-        const rolls = Math.floor(atk.attrs.get('dexterity') / 6)
-        expect(rolls).toBe(2)
+        const rolls = 1 + Math.floor(atk.attrs.get('dexterity') / 6)
+        expect(rolls).toBe(3)
 
         rng.seedMain(123)
         const N = 4000
@@ -51,17 +51,24 @@ describe('铸火诀 · 铸火', () => {
         expect(maxOne).toBe(rolls) // 4000 次里必定出现过全中
     })
 
-    it('灵巧不足 6 点 → 不判定、不追加', () => {
+    it('灵巧不足 6 点仍有 1 次判定（不是不判定）', () => {
         const atk = makeChar('A', '甲', 5, 20)
+        const crit = calcCritChance(atk.attrs.get('dexterity'), atk.attrs.get('insight'))
         rng.seedMain(1)
-        for (let i = 0; i < 200; i++) {
+        let total = 0
+        let maxOne = 0
+        const N = 2000
+        for (let i = 0; i < N; i++) {
             const layer = { restoreValue: 0 }
             applyBurn(atk, layer)
-            expect(layer.restoreValue).toBe(0)
+            total += layer.restoreValue
+            if (layer.restoreValue > maxOne) maxOne = layer.restoreValue
         }
+        expect(maxOne).toBe(1) // 只能 +1（1 次判定）
+        expect(total / N).toBeCloseTo(crit, 1)
     })
 
-    it('灵巧越高判定次数越多：灵巧 18（3 次）比 12（2 次）期望增量更大', () => {
+    it('灵巧越高判定次数越多：灵巧 18（4 次）比 12（3 次）期望增量更大', () => {
         const low = makeChar('A', '甲', 12, 20)
         const high = makeChar('B', '乙', 18, 20)
         const avg = (c: Character) => {
