@@ -77,7 +77,7 @@ export const TALENTS: Talent[] = [
         id: 'dongyou_zhuwei',
         name: '洞幽烛微',
         description:
-            '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（各收敛至5%）。',
+            '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（约 7 次看破收敛至 5%）。',
         tags: ['talent', 'buff'],
         requireAttrsMin: { insight: 20 },
         effects: [

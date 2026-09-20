@@ -29,16 +29,17 @@ describe('dongyou_zhuwei 洞幽烛微', () => {
         expect(l.extra?.['kanpo_burn']).toBe(2)
     })
 
-    it('看破率 = min(5%, 2%×log2(1+各tag次数之和))', () => {
+    it('看破率 = min(5%, 1.7%×log2(1+各tag次数之和))，约 7 次看破封顶', () => {
         const rate1 = buff.onDodgeChance!({ final: 0, raw: 0, target: {} as never, attacker: {} as never, state: {} as never, layer: layer({ kanpo_slash: 1 }), source: { tags: ['slash'] } as never })
-        expect(rate1).toBeCloseTo(0.02, 5)
-        // 3 次 → 2×log2(4) = 4%
+        expect(rate1).toBeCloseTo(0.017, 5)
+        // 3 次 → 1.7×log2(4) = 3.4%
         const rate3 = buff.onDodgeChance!({ final: 0, raw: 0, target: {} as never, attacker: {} as never, state: {} as never, layer: layer({ kanpo_slash: 3 }), source: { tags: ['slash'] } as never })
-        expect(rate3).toBeCloseTo(0.04, 5)
-        // 5 次 → 2×log2(6) ≈ 5.17% → 已顶到 5%
+        expect(rate3).toBeCloseTo(0.034, 5)
+        // 5 次 → 1.7×log2(6) ≈ 4.39% → 还没封顶
         const rate5 = buff.onDodgeChance!({ final: 0, raw: 0, target: {} as never, attacker: {} as never, state: {} as never, layer: layer({ kanpo_slash: 5 }), source: { tags: ['slash'] } as never })
-        expect(rate5).toBe(0.05)
-        // 7 次 → 2×log2(8) = 6% → 截断到 5%
+        expect(rate5).toBeCloseTo(0.0439, 4)
+        expect(rate5).toBeLessThan(0.05)
+        // 7 次 → 1.7×log2(8) = 5.1% → 截断到 5%（封顶点就在这里）
         const rate7 = buff.onDodgeChance!({ final: 0, raw: 0, target: {} as never, attacker: {} as never, state: {} as never, layer: layer({ kanpo_slash: 7 }), source: { tags: ['slash'] } as never })
         expect(rate7).toBe(0.05)
         // 100 次仍封顶 5%
@@ -47,9 +48,9 @@ describe('dongyou_zhuwei 洞幽烛微', () => {
     })
 
     it('多 tag 招式取各 tag 次数之和', () => {
-        // slash 1 + burn 1 → 共 2 次 → 2×log2(3) ≈ 3.17%
+        // slash 1 + burn 1 → 共 2 次 → 1.7×log2(3) ≈ 2.69%
         const rate = buff.onDodgeChance!({ final: 0, raw: 0, target: {} as never, attacker: {} as never, state: {} as never, layer: layer({ kanpo_slash: 1, kanpo_burn: 1 }), source: { tags: ['slash', 'burn'] } as never })
-        expect(rate).toBeCloseTo(2 * Math.log2(3) / 100, 5)
+        expect(rate).toBeCloseTo((1.7 * Math.log2(3)) / 100, 5)
     })
 
     it('未看破的 tag 不加成', () => {
@@ -59,7 +60,7 @@ describe('dongyou_zhuwei 洞幽烛微', () => {
 
     it('减伤按看破率等比削减', () => {
         const final = buff.onTakeDamage!({ final: 100, raw: 100, target: {} as never, attacker: {} as never, state: {} as never, layer: layer({ kanpo_slash: 3 }), source: { tags: ['slash'] } as never })
-        expect(final).toBe(96) // 100 × (1 - 0.04)
+        expect(final).toBe(96.6) // 100 × (1 - 0.034)
         const capped = buff.onTakeDamage!({ final: 100, raw: 100, target: {} as never, attacker: {} as never, state: {} as never, layer: layer({ kanpo_slash: 50 }), source: { tags: ['slash'] } as never })
         expect(capped).toBe(95) // 封顶 5% → 100 × 0.95
     })
