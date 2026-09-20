@@ -1,7 +1,11 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { canExecuteAction } from '../calc/action-executor'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 /** 造双持角色：主手绣冬 [1,3] + 副手春雷 [0,2] */
 function dualWield(): Character {

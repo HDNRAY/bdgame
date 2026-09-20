@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { processActionEffect } from '../combat/effects/action'
@@ -10,6 +11,9 @@ import { MAX_HP_PER_VIT } from '../calc/stats'
 import { setLayerMods } from '../combat/utils/buff-layer'
 import { vi } from 'vitest'
 import type { CharacterBuild } from '../../game/entities/character-build'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 /**
  * 属性账：`attrs = base` 后**按序回放**（来源层 ops → 战斗层 mods），删条目即重算。

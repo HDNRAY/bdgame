@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { calcExpectedDamage } from '../ai/expected-damage'
@@ -11,6 +12,9 @@ import { gen } from '../../data/opponents/index'
 import type { ActionDefinition } from '../entities/action'
 import type { WeaponDef } from '../../data/weapons/weapons'
 import type { CharacterBuild } from '../../game/entities/character-build'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 /**
  * 轮舞月斩（passive `overlord_art` / buff `overlord_art_buff`）：重器与轻兵**两档互斥**。

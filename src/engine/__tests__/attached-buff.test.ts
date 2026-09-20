@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { applyBuffLayer } from '../combat/utils/buff-apply'
@@ -6,6 +7,9 @@ import { getBuff } from '../../data/buffs'
 import type { BuffDef } from '../../data/buffs'
 import { ALL_ATTRS } from '../entities/attributes'
 import type { CharacterBuild } from '../../game/entities/character-build'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 /**
  * 附着 buff：源顶层 `effects:[{type:'add_buff'}]` = 这条来源自带的 buff。

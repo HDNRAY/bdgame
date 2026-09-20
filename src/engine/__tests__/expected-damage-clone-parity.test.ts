@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, vi , beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { calcExpectedDamage, EVAL_HOOKS } from '../ai/expected-damage'
@@ -7,6 +8,9 @@ import { getBuff } from '../../data/buffs'
 import type { BattleState } from '../combat/types'
 import type { BuffDef } from '../../data/buffs/types'
 import type { RegisteredHook } from '../combat/utils/buff-registry'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 /**
  * 一致性测试：受限克隆（cloneForHooks + EVAL_HOOKS 白名单）与全量克隆（cloneFor）下，

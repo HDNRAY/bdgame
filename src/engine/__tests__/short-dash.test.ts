@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { processActionEffect } from '../combat/effects/action'
@@ -6,6 +7,9 @@ import { getWeapon } from '../../data/weapons/weapons'
 import { getActionRange } from '../../data/actions'
 import { canExecuteAction } from '../calc/action-executor'
 import type { ActionDefinition } from '../entities/action'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 const mk = (id: string, name: string) =>
     new Character({

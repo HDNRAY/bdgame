@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { runBattle } from '../battle-runner'
@@ -7,6 +8,9 @@ import { calcApCostReduction, calcActionCostAfterSpeed, SPEED_AP_COST_CAP } from
 import type { BuffLayer } from '../combat/types'
 import type { CharacterBuild } from '../../game/entities/character-build'
 import type { Reward } from '../../game/entities/reward'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 /**
  * 急速改成「与身法同刻度」（1 点 = 1%），数值整体 ÷10；

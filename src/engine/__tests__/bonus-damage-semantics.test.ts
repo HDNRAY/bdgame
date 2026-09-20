@@ -1,9 +1,13 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach , beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { processActionEffect } from '../combat/effects/action'
 import { getBuff } from '../../data/buffs'
 import { ALL_ATTRS } from '../entities/attributes'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 /**
  * `onAfterDealDamage` 返回 `{ normal, piercing }` 时，`normal` 是**总额**、

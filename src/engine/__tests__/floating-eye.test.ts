@@ -1,9 +1,13 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { BattleEngine } from '../combat/engine'
 import { processActionEffect } from '../combat/effects/action'
 import { Character } from '../entities/character'
 import type { EffectDef } from '../entities/action'
 import type { Reward } from '../../game/entities/reward'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 /**
  * 浮游眼（imperial 奇物）的防御效果：被施加「迷眼」时最多 1 层。

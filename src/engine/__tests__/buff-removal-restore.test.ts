@@ -1,10 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { applyBuffLayer, clearCcOnSuperArmor, removeBuffStacks } from '../combat/utils/buff-apply'
 import { removeBuffLayer } from '../combat/utils'
 import { processActionEffect } from '../combat/effects/action'
 import { getBuff } from '../../data/buffs'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 /**
  * 「移除 buff 层」必须把这一层加过的属性一起退掉。

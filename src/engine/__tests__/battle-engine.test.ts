@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { seedBattleRandom } from './seed-battle-random'
 import { BattleEngine } from '../combat/engine'
 import type { EventPlan } from '../combat/types'
 import type { BattleState } from '../combat/types'
@@ -8,6 +9,9 @@ import { getBuff } from '../../data/buffs'
 import type { BuffHookCtx } from '../../data/buffs/types'
 import type { BuffLayer } from '../../engine/combat/types'
 import { gen, getOpponentDef } from '../../data/opponents/index'
+
+// 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
+beforeEach(() => seedBattleRandom())
 
 function makeChar(
     id: string,
