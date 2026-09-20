@@ -599,7 +599,8 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'zhu_huo_jue_buff',
         name: '铸火',
-        description: '聚炁化火，火中淬炼不伤。自身受到的灼烧伤害减半；施加的灼烧层数提升1层。',
+        description:
+            '聚炁化火，火中淬炼不伤。自身受到的灼烧伤害减半；施加灼烧时按暴击几率追加层数（每 6 点灵巧判定一次，每次以暴击率为概率 +1 层）。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -608,9 +609,18 @@ export const BUFF_DB: BuffDef[] = [
             if (buffId !== 'burn') return undefined
             return Math.max(0, round1(damage * 0.5))
         },
-        onDebuffApplied: ({ layer, buffId }) => {
+        // 施加灼烧时追加层数：判定 floor(灵巧/6) 次，每次以当前暴击率为概率 +1 层
+        // （阿九灵巧 14 → 判定 2 次、每次 22% → 期望 +0.44 层）。
+        // 骰子走 rng：真实战斗吃主随机流；AI 期望伤害评估在 enterSandbox(SIM_SEED) 里，不会动主随机流。
+        onDebuffApplied: ({ layer, self, buffId }) => {
             if (buffId !== 'burn' || !layer) return
-            layer.restoreValue += 1
+            const rolls = Math.floor(self.attrs.get('dexterity') / 6)
+            if (rolls <= 0) return
+            const crit = calcCritChance(self.attrs.get('dexterity'), self.attrs.get('insight'))
+            if (crit <= 0) return
+            let extra = 0
+            for (let i = 0; i < rolls; i++) if (calcRoll(crit).success) extra++
+            if (extra > 0) layer.restoreValue += extra
         },
     },
     // ── 千锤百炼（天工·千星·特性：灼烧-30%；根骨化力道已移至被动 attr_convert 构造期结算） ──
