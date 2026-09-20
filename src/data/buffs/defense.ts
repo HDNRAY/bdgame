@@ -302,6 +302,17 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         description: '千丝万缕，只在他衣袖之间。闪避获得1层缠劲；受伤消耗1层缠劲减免2点。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
+        // 闪避回缠：与白虎定同一口径（addChan 后要 checkChanOverflow，赛满时的溢出走 onChanOverflow）
+        onDodge: ({ target, engine }) => {
+            if (!engine) return
+            target.addChan(1)
+            engine.checkChanOverflow(target.id)
+            engine.emitLog({
+                type: 'system',
+                message: `[袖里] ${target.name} 闪避回复1点缠劲（${target.chan}）`,
+                actorId: target.id,
+            })
+        },
         onTakeDamage: ({ final, target, engine }) => {
             if (!target.spendChan(1)) return final
             engine?.emitLog({

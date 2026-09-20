@@ -51,7 +51,7 @@ export const TALENTS: Talent[] = [
         id: 'xiu_li_xuan_ji',
         name: '袖里玄机',
         description:
-            '千丝万缕，只在衣袖之间。闪避获得1层缠劲；受伤消耗1层缠劲减免3点。每次触发招式叠1层玄机，9层满时下一招非辅助招式强化（必中、无视招架、必定暴击）。',
+            '千丝万缕，只在衣袖之间。闪避获得1层缠劲；受伤消耗1层缠劲减免2点。每次触发招式叠1层玄机，9层满时下一招非辅助招式强化（必中、无视招架、必定暴击）。',
         tags: ['talent', 'buff', 'qi'],
         requireAttrsMin: { wisdom: 20 },
         effects: [

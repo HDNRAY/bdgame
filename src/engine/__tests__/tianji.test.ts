@@ -10,6 +10,7 @@ import type { CharacterBuild } from '../../game/entities/character-build'
 import type { AttrName } from '../entities/attributes'
 import type { ActionDefinition } from '../entities/action'
 import type { BuffLayer } from '../combat/types'
+import { MAX_CHAN } from '../constants'
 
 // 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
 beforeEach(() => seedBattleRandom())
@@ -68,6 +69,39 @@ const hookCtx = (source: Partial<ActionDefinition>, triggered: boolean, layer: B
         source: { tags: [], apCost: 2, ...source } as ActionDefinition,
         triggered,
     })
+
+describe('袖里：闪避回缠', () => {
+    const xiu = getBuff('xiu_li')!
+
+    /** 直接调数据钩子（onDodge 由战斗闪避分支触发，见 combat.ts 的 onDodge 遍历） */
+    function dodge(a: Character, b: Character, engine: BattleEngine): void {
+        xiu.onDodge!({
+            final: 0,
+            raw: 0,
+            target: a,
+            attacker: b,
+            engine,
+            state: engine.state,
+            layer: { restoreValue: 1 },
+        } as never)
+    }
+
+    it('闪避成功回复 1 层缠劲', () => {
+        const { a, b, engine } = setup()
+        const before = a.chan
+        dodge(a, b, engine)
+        expect(a.chan).toBe(before + 1)
+    })
+
+    it('缠劲已满时不再超出上限，溢出记进流水（并走 onChanOverflow）', () => {
+        const { a, b, engine } = setup()
+        a.chan = MAX_CHAN
+        const overflowBefore = a.res.chanOverflow
+        dodge(a, b, engine)
+        expect(a.chan).toBe(MAX_CHAN)
+        expect(a.res.chanOverflow).toBeCloseTo(overflowBefore + 1)
+    })
+})
 
 describe('天机：只认主动主招', () => {
     it('玄机 9 层 → 天机就绪', () => {
