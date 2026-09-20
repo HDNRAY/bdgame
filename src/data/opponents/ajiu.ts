@@ -1,7 +1,7 @@
 import { OpponentDef } from '.'
 import { action, artifact, passive, weapon } from '../../engine/util/reward-utils'
 
-const AJIU_ATTRS = { strength: 12, vitality: 12, agility: 18, dexterity: 14, insight: 16, wisdom: 4 }
+const AJIU_ATTRS = { strength: 10, vitality: 14, agility: 18, dexterity: 14, insight: 16, wisdom: 4 }
 
 export const AJIU: OpponentDef = {
     id: 'ajiu',
@@ -30,7 +30,7 @@ export const AJIU: OpponentDef = {
             actionId: 'blaze_strike',
             triggerId: 'on_dodged',
         },
-        { actionId: '_arm_explosion', condition: { type: 'hp_below', ratio: 0.5 } },
+        { actionId: '_arm_explosion', condition: { type: 'hp_below', ratio: 0.4 } },
     ],
     taunt: () => '……让开。',
 }

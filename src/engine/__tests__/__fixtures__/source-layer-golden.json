@@ -12,7 +12,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -34,7 +34,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 224,
+  "maxHp": 235,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -56,7 +56,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -78,7 +78,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -100,7 +100,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 224,
+  "maxHp": 235,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -122,7 +122,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 224,
+  "maxHp": 235,
   "maxAp": 6,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -144,7 +144,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 208,
+  "maxHp": 220,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -166,7 +166,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 256,
+  "maxHp": 265,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -188,7 +188,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 368,
+  "maxHp": 370,
   "maxAp": 9,
   "maxTriggerSlots": 5,
   "weaponTags": [
@@ -210,7 +210,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -232,7 +232,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 224,
+  "maxHp": 235,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -276,7 +276,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -298,7 +298,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -342,7 +342,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -364,7 +364,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -386,7 +386,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 288,
+  "maxHp": 295,
   "maxAp": 7,
   "maxTriggerSlots": 4,
   "weaponTags": [
@@ -409,7 +409,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -436,7 +436,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -463,7 +463,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 272,
+  "maxHp": 280,
   "maxAp": 7,
   "maxTriggerSlots": 5,
   "weaponTags": [
@@ -490,7 +490,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -516,7 +516,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -532,8 +532,8 @@
  "opp:ajiu:33": {
   "id": "ajiu:33",
   "attrs": {
-   "strength": 23,
-   "vitality": 10,
+   "strength": 21,
+   "vitality": 12,
    "agility": 22,
    "dexterity": 14,
    "insight": 20,
@@ -542,7 +542,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 280,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -568,7 +568,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -595,7 +595,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -620,7 +620,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 272,
+  "maxHp": 280,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -645,7 +645,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -671,7 +671,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -697,7 +697,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 304,
+  "maxHp": 310,
   "maxAp": 8,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -723,7 +723,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -750,7 +750,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 224,
+  "maxHp": 235,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -777,7 +777,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -804,7 +804,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -830,7 +830,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -857,7 +857,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -884,7 +884,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -910,7 +910,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -937,7 +937,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -964,7 +964,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -990,7 +990,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1017,7 +1017,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 304,
+  "maxHp": 310,
   "maxAp": 8,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1044,7 +1044,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1070,7 +1070,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1096,7 +1096,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1123,7 +1123,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1147,7 +1147,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1171,7 +1171,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1195,7 +1195,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1219,7 +1219,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1243,7 +1243,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 288,
+  "maxHp": 295,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1268,7 +1268,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1297,7 +1297,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1326,7 +1326,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 256,
+  "maxHp": 265,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1355,7 +1355,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1379,7 +1379,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1403,7 +1403,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 288,
+  "maxHp": 295,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1429,7 +1429,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 144,
+  "maxHp": 160,
   "maxAp": 5,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1454,7 +1454,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 2,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -1479,7 +1479,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 3,
-  "maxHp": 208,
+  "maxHp": 220,
   "maxAp": 6,
   "maxTriggerSlots": 4,
   "weaponTags": [
@@ -1504,7 +1504,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1528,7 +1528,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 224,
+  "maxHp": 235,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1556,7 +1556,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 272,
+  "maxHp": 280,
   "maxAp": 7,
   "maxTriggerSlots": 4,
   "weaponTags": [
@@ -1584,7 +1584,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1610,7 +1610,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1636,7 +1636,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1662,7 +1662,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1688,7 +1688,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 256,
+  "maxHp": 265,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1716,7 +1716,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 272,
+  "maxHp": 280,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1744,7 +1744,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1771,7 +1771,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 224,
+  "maxHp": 235,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1798,7 +1798,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 336,
+  "maxHp": 340,
   "maxAp": 8,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -1825,7 +1825,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1852,7 +1852,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1879,7 +1879,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -1909,7 +1909,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -1936,7 +1936,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1990,7 +1990,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2012,7 +2012,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -2034,7 +2034,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 5,
   "weaponTags": [
@@ -2056,7 +2056,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2078,7 +2078,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -2100,7 +2100,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -2122,7 +2122,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2148,7 +2148,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -2174,7 +2174,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 4,
   "weaponTags": [
@@ -2200,7 +2200,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2226,7 +2226,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -2252,7 +2252,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 336,
+  "maxHp": 340,
   "maxAp": 8,
   "maxTriggerSlots": 5,
   "weaponTags": [
@@ -2278,7 +2278,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 190,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2306,7 +2306,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 240,
+  "maxHp": 250,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -2334,7 +2334,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 304,
+  "maxHp": 310,
   "maxAp": 8,
   "maxTriggerSlots": 4,
   "weaponTags": [
@@ -2362,7 +2362,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 208,
+  "maxHp": 220,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -2387,7 +2387,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 272,
+  "maxHp": 280,
   "maxAp": 7,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -2412,7 +2412,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 272,
+  "maxHp": 280,
   "maxAp": 7,
   "maxTriggerSlots": 5,
   "weaponTags": [
@@ -2437,7 +2437,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2459,7 +2459,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -2481,7 +2481,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2503,7 +2503,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2525,7 +2525,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -2547,7 +2547,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2569,7 +2569,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2591,7 +2591,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2613,7 +2613,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2635,7 +2635,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2657,7 +2657,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2679,7 +2679,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2701,7 +2701,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2723,7 +2723,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2745,7 +2745,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2767,7 +2767,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -2789,7 +2789,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2811,7 +2811,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2833,7 +2833,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2855,7 +2855,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2877,7 +2877,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2899,7 +2899,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2921,7 +2921,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2943,7 +2943,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2965,7 +2965,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -2987,7 +2987,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -3009,7 +3009,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3031,7 +3031,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3053,7 +3053,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3075,7 +3075,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3097,7 +3097,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3119,7 +3119,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3141,7 +3141,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3163,7 +3163,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -3185,7 +3185,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3207,7 +3207,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3229,7 +3229,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3251,7 +3251,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3273,7 +3273,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3295,7 +3295,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -3317,7 +3317,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3339,7 +3339,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3361,7 +3361,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3383,7 +3383,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3405,7 +3405,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3427,7 +3427,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3449,7 +3449,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3471,7 +3471,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3493,7 +3493,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3515,7 +3515,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3537,7 +3537,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3559,7 +3559,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3581,7 +3581,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3603,7 +3603,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3625,7 +3625,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3647,7 +3647,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3669,7 +3669,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3691,7 +3691,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3713,7 +3713,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3735,7 +3735,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3757,7 +3757,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3779,7 +3779,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3801,7 +3801,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3823,7 +3823,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3845,7 +3845,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3867,7 +3867,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3889,7 +3889,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3911,7 +3911,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3933,7 +3933,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3955,7 +3955,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3977,7 +3977,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -3999,7 +3999,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4021,7 +4021,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 208,
+  "maxHp": 220,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4043,7 +4043,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4065,7 +4065,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4087,7 +4087,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4109,7 +4109,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4131,7 +4131,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4153,7 +4153,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4175,7 +4175,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4197,7 +4197,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4219,7 +4219,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4241,7 +4241,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4263,7 +4263,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4285,7 +4285,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4307,7 +4307,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4329,7 +4329,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4351,7 +4351,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4373,7 +4373,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4395,7 +4395,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4417,7 +4417,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4439,7 +4439,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4461,7 +4461,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4483,7 +4483,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4505,7 +4505,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4527,7 +4527,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4549,7 +4549,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4571,7 +4571,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4593,7 +4593,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4615,7 +4615,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4637,7 +4637,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4659,7 +4659,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4681,7 +4681,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4703,7 +4703,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4725,7 +4725,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4747,7 +4747,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4769,7 +4769,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4791,7 +4791,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4813,7 +4813,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4835,7 +4835,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4857,7 +4857,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4879,7 +4879,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4901,7 +4901,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4923,7 +4923,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4945,7 +4945,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4967,7 +4967,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -4989,7 +4989,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5011,7 +5011,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5033,7 +5033,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5055,7 +5055,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5077,7 +5077,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5099,7 +5099,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5121,7 +5121,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 208,
+  "maxHp": 220,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5143,7 +5143,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5165,7 +5165,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -5187,7 +5187,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5209,7 +5209,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5231,7 +5231,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5253,7 +5253,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5275,7 +5275,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5297,7 +5297,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5319,7 +5319,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5341,7 +5341,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5363,7 +5363,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 160,
+  "maxHp": 175,
   "maxAp": 5,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5385,7 +5385,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -5407,7 +5407,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5429,7 +5429,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5451,7 +5451,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5473,7 +5473,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5495,7 +5495,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5517,7 +5517,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5539,7 +5539,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5561,7 +5561,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5583,7 +5583,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5605,7 +5605,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5627,7 +5627,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5649,7 +5649,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5671,7 +5671,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5693,7 +5693,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5715,7 +5715,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5737,7 +5737,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5759,7 +5759,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5781,7 +5781,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5803,7 +5803,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5825,7 +5825,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 224,
+  "maxHp": 235,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -5847,7 +5847,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5869,7 +5869,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5891,7 +5891,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5913,7 +5913,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5935,7 +5935,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5957,7 +5957,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 160,
+  "maxHp": 175,
   "maxAp": 5,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -5979,7 +5979,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -6001,7 +6001,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6023,7 +6023,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6045,7 +6045,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -6067,7 +6067,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6089,7 +6089,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6111,7 +6111,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6133,7 +6133,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6155,7 +6155,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6177,7 +6177,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6199,7 +6199,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6221,7 +6221,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6243,7 +6243,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6265,7 +6265,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6287,7 +6287,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6309,7 +6309,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -6331,7 +6331,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6353,7 +6353,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6375,7 +6375,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -6397,7 +6397,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6419,7 +6419,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6441,7 +6441,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6463,7 +6463,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6485,7 +6485,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6507,7 +6507,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6529,7 +6529,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6551,7 +6551,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6573,7 +6573,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6595,7 +6595,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6617,7 +6617,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 272,
+  "maxHp": 280,
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6639,7 +6639,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6661,7 +6661,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 208,
+  "maxHp": 220,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6683,7 +6683,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 272,
+  "maxHp": 280,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -6705,7 +6705,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6727,7 +6727,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6749,7 +6749,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6771,7 +6771,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6793,7 +6793,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6815,7 +6815,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6837,7 +6837,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -6859,7 +6859,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6881,7 +6881,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6903,7 +6903,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -6925,7 +6925,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6947,7 +6947,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -6969,7 +6969,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -6991,7 +6991,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -7013,7 +7013,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -7035,7 +7035,7 @@
   "maxHpMod": 60,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 252,
+  "maxHp": 265,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -7057,7 +7057,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -7079,7 +7079,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -7101,7 +7101,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 160,
+  "maxHp": 175,
   "maxAp": 5,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -7123,7 +7123,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -7145,7 +7145,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 3,
   "weaponTags": [
@@ -7167,7 +7167,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -7189,7 +7189,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -7211,7 +7211,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -7233,7 +7233,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -7255,7 +7255,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 205,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
