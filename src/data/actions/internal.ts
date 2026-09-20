@@ -342,8 +342,8 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 2,
         tags: ['slash', 'internal', 'trigger'],
-        // 射程要够得着「后撤那一下」的实际落点：风筝手一步能退到 6m（凤反等），原 [2,4] 永远打空
-        getRange: () => [2, 6] as [number, number],
+        // 射程 1-5：覆盖「后撤/靠近那一下」的常见落点（风筝手一步能退到 6m，但贴身段交给她自己走）
+        getRange: () => [1, 5] as [number, number],
         effects: [
             // 锁链回收：借力把自己拉回近身（触发招的 short_dash 是「冲过去」，不做已在射程内判断）
             { type: 'short_dash', maxDistance: 2 },

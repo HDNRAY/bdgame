@@ -68,6 +68,8 @@ export const WEAPON_DB: WeaponDef[] = [
                 apply: [{ type: 'add_buff', buffId: 'broken_blade_lock' }],
             },
             { condition: { type: 'on_opponent_move_away' }, actionId: '_shuai_ren' },
+            // 对手靠近也甩：锁链不看方向，只看「距离在变」
+            { condition: { type: 'on_opponent_move_closer' }, actionId: '_shuai_ren' },
         ],
     },
     {
