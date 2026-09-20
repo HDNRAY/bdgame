@@ -901,16 +901,23 @@ export const ARTIFACTS: Artifact[] = [
         tags: ['craft', 'burn'],
         grantsActions: ['_oil_splash'],
     },
-    // ── 悬浮座椅（博士·义体） ──
+    // ── 悬浮风火轮（博士·义体） ──
     {
         id: 'wheelchair_lightness',
-        name: '悬浮座椅',
-        description: '悬浮座椅，以炁驱动。',
+        name: '悬浮风火轮',
+        description: '悬浮风火轮，以炁驱动。',
         tags: ['implant', 'inherent', 'buff'],
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'wheelchair_speed' }],
+                apply: [
+                    { type: 'add_buff', buffId: 'wheelchair_speed' },
+                    {
+                        type: 'add_buff',
+                        buffId: 'energy_drain',
+                        stacks: 1,
+                    },
+                ],
             },
         ],
     },

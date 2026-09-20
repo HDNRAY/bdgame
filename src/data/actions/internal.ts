@@ -18,7 +18,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         hookNotes: { canUse: '居合架势中才可释放' },
         effects: [
             { type: 'short_dash', maxDistance: 1 },
-            { type: 'damage', scaling: { strength: 1.9 } },
+            { type: 'damage', scaling: { strength: 2.1 } },
             { type: 'remove_buff', buffId: 'iaijutsu' },
         ],
     },
@@ -474,7 +474,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         },
         hookNotes: { canUse: '距离大于1m时触发' },
         effects: [
-            { type: 'short_dash', maxDistance: 3 },
+            { type: 'short_dash', maxDistance: 4 },
             { type: 'damage', scaling: { strength: 0.1, agility: 0.1, vitality: 0.1 } },
             { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.6 },
         ],

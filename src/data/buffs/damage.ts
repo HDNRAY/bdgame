@@ -264,7 +264,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'luo_ying_shen_jian_buff',
         name: '落英神剑',
-        description: '所有伤害的20%寄存于神剑印，当次伤害只生效80%。暴击时引爆神剑印，造成双倍寄存伤害。',
+        description: '所有伤害的30%寄存于神剑印，当次伤害只生效70%。暴击时引爆神剑印，造成双倍寄存伤害。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -274,7 +274,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             if (ctx.triggered) return damage
             if (ctx.attacker.chan < 1) return damage
 
-            const stored = round1(damage * 0.2)
+            const stored = round1(damage * 0.3)
             if (stored <= 0) return damage
 
             const { state, engine } = ctx
@@ -369,15 +369,15 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'chou_dao_duan_shui_buff',
         name: '抽刀断水',
-        description: '暴击时对方气息一滞，AP-0.5。',
+        description: '暴击时对方气息一滞，AP-1。',
         tags: ['buff'],
         stacking: { type: 'none' },
         onCritical: ({ attacker, target, engine, state }) => {
             if (!target || !engine) return
-            target.reduceAp(0.5, state.turn.currentTime)
+            target.reduceAp(1, state.turn.currentTime)
             engine.emitLog({
                 type: 'system',
-                message: `[抽刀断水] 「${target.name}」 气息一滞，AP-0.5`,
+                message: `[抽刀断水] 「${target.name}」 气息一滞，AP-1`,
                 actorId: attacker.id,
             })
         },

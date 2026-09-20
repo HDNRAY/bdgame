@@ -274,13 +274,13 @@ export const WEAPON_DB: WeaponDef[] = [
         summon: {
             id: 'hover_drone',
             name: '无人环',
-            maxCount: (self) => Math.min(5, 1 + Math.round(self.attrs.get('wisdom') / 4)),
+            maxCount: (self) => Math.min(5, 1 + Math.round(self.attrs.get('wisdom') / 5)),
             actionId: '_huan_shot',
         },
         effects: [
             {
                 condition: { type: 'on_construct' },
-                apply: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.4 }],
+                apply: [{ type: 'add_buff', buffId: 'yuwu_cost', stacks: 0.5 }],
             },
         ],
     },

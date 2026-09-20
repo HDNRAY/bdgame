@@ -1899,12 +1899,12 @@
  "opp:duoer:10": {
   "id": "duoer:10",
   "attrs": {
-   "strength": 4,
+   "strength": 6,
    "vitality": 6,
    "agility": 7,
    "dexterity": 6,
-   "insight": 6,
-   "wisdom": 6
+   "insight": 5,
+   "wisdom": 5
   },
   "maxHpMod": 0,
   "maxApMod": 0,
@@ -1926,17 +1926,17 @@
  "opp:duoer:20": {
   "id": "duoer:20",
   "attrs": {
-   "strength": 4,
-   "vitality": 11,
-   "agility": 12,
-   "dexterity": 10,
-   "insight": 10,
+   "strength": 8,
+   "vitality": 10,
+   "agility": 11,
+   "dexterity": 9,
+   "insight": 9,
    "wisdom": 8
   },
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 256,
+  "maxHp": 240,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1953,11 +1953,11 @@
  "opp:duoer:33": {
   "id": "duoer:33",
   "attrs": {
-   "strength": 4,
+   "strength": 8,
    "vitality": 20,
-   "agility": 19,
-   "dexterity": 12,
-   "insight": 10,
+   "agility": 15,
+   "dexterity": 14,
+   "insight": 12,
    "wisdom": 13
   },
   "maxHpMod": 60,

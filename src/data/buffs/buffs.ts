@@ -434,8 +434,8 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'wheelchair_speed',
-        name: '悬浮座椅',
-        description: '悬浮座椅，以炁驱动。移动效率+20%，身法+2。',
+        name: '悬浮风火轮',
+        description: '悬浮风火轮，以炁驱动。移动效率+20%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -484,7 +484,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '魅影',
         description: '身法+1，持续3秒。可独立叠加。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 3000 },
+        expiry: { type: 'duration', ms: 5000 },
         stacking: { type: 'independent' },
         attrMods: { agility: 1 },
     },
@@ -1063,12 +1063,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'wuxue_baodian_shang',
         name: '武学宝典上',
-        description: '通晓天下武学路数。自身每有1个奖励标签，伤害+1%，上限15%。',
+        description: '通晓天下武学路数。自身每有1个奖励标签，伤害+1.5%，上限15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        // 每 tag +1% 伤害（上限 15%）
+        // 每 tag +1.5% 伤害（上限 15%）
         onDealDamage: ({ final, attacker }) => {
-            const pct = Math.min(0.15, countRewardTags(attacker) * 0.01)
+            const pct = Math.min(0.15, countRewardTags(attacker) * 0.015)
             if (pct <= 0) return final
             return round1(final * (1 + pct))
         },
@@ -1076,12 +1076,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'wuxue_baodian_xia',
         name: '武学宝典下',
-        description: '通晓天下武学路数。自身每有1个奖励标签，受到伤害-1%，上限15%。',
+        description: '通晓天下武学路数。自身每有1个奖励标签，受到伤害-1.5%，上限15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        // 每 tag -1% 受到伤害（上限 15%）
+        // 每 tag -1.5% 受到伤害（上限 15%）
         onTakeDamage: ({ final, target }) => {
-            const pct = Math.min(0.15, countRewardTags(target) * 0.01)
+            const pct = Math.min(0.15, countRewardTags(target) * 0.015)
             if (pct <= 0) return final
             return round1(final * (1 - pct))
         },

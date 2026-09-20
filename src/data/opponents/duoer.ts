@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive } from '../../engine/util/reward-utils'
 
-const DUOER_ATTRS = { strength: 4, vitality: 20, agility: 18, dexterity: 12, insight: 10, wisdom: 8 }
+const DUOER_ATTRS = { strength: 8, vitality: 20, agility: 14, dexterity: 14, insight: 12, wisdom: 8 }
 
 export const DUOER: OpponentDef = {
     id: 'duoer',

@@ -29,7 +29,7 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         description: '以血为引，凝炁成滴，射向对手。消耗10%当前气血。',
         requiredTags: [],
         apCost: 1,
-        tags: ['qi', 'unarmed', 'range', 'thrown', 'low_hp', 'self_damage'],
+        tags: ['qi', 'unarmed', 'range', 'thrown', 'low_hp', 'self_damage', 'ignore_parry'],
         getRange: () => [1, 4],
         onActionHitChance: (base) => base + 0.3,
         hookNotes: { hitChance: '+30%' },
@@ -41,6 +41,9 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                 type: 'functional_damage',
                 fn: ({ self }) => round1(self.hp / 9),
                 note: '造成与所耗等额伤害（1:1 换血）',
+            },
+            {
+                type: 'ignore_parry',
             },
             // 血炁入体：命中后令对手「断炁」——AP 回复 -0.1/s（叠层上限 3）、8 秒
             { type: 'add_debuff', buffId: 'duan_qi', stacks: 1, chance: 1 },

@@ -146,7 +146,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         tags: ['move', 'pre_action'],
         target: 'self',
         effects: [
-            { type: 'dash', maxRange: 2, targetDist: 0, useAp: true },
+            { type: 'dash', maxRange: 3, targetDist: 0, useAp: true },
             { type: 'add_buff', buffId: 'phantom_step' },
         ],
     },
