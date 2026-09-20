@@ -338,12 +338,19 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
     {
         id: '_shuai_ren',
         name: '甩刃',
-        description: '断刀锁链甩出，如灵蛇出洞。',
+        description: '断刀锁链甩出，如灵蛇出洞。刃随链回，把逃开的人重新拽回刀下。',
         requiredTags: [],
         apCost: 2,
         tags: ['slash', 'internal', 'trigger'],
-        getRange: () => [2, 4] as [number, number],
-        effects: [{ type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } }],
+        // 射程要够得着「后撤那一下」的实际落点：风筝手一步能退到 6m（凤反等），原 [2,4] 永远打空
+        getRange: () => [2, 6] as [number, number],
+        effects: [
+            // 锁链回收：借力把自己拉回近身（触发招的 short_dash 是「冲过去」，不做已在射程内判断）
+            { type: 'short_dash', maxDistance: 2 },
+            { type: 'damage', scaling: { strength: 0.2, dexterity: 0.3 } },
+            // 残刃拉出的伤口
+            { type: 'add_debuff', buffId: 'bleed', stacks: 1, chance: 0.5 },
+        ],
     },
     {
         id: '_braid_blade',
