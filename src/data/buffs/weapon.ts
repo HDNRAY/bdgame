@@ -67,10 +67,10 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'dark_iron_weight',
         name: '玄铁剑重',
-        description: '玄铁重剑，无锋无刃。命中+10%，招架减免减少30%',
+        description: '玄铁重剑，无锋无刃。命中+5%，招架减免减少30%',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
-        onHitChance: () => 0.1,
+        onHitChance: () => 0.05,
         onParryPenetration: ({ final, raw }) => {
             // 返回穿掉的伤害值: 招架减免减少30%
             const blocked = raw - final

@@ -351,7 +351,8 @@ export function intentDirection(self: Character, enemy: Character): 'far' | 'nea
     const kiting = enemyStyle === 'melee' || enemyStyle === 'clinch'
     switch (self.build.battleStyle) {
         case 'ranged':
-            return 'far'
+            // 同风格不贴脸也不风筝：双方都够得到时拉开零收益（打得到就行）
+            return enemyStyle === 'ranged' ? 'near' : 'far'
         case 'clinch':
             return 'near'
         case 'melee':
