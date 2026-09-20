@@ -45,7 +45,7 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
                                 </tr>
                                 <tr>
                                     <td>根骨</td>
-                                    <td>气血(100+根骨×15) · 缩短负面状态时长</td>
+                                    <td>气血(80+根骨×16) · 缩短负面状态时长</td>
                                 </tr>
                                 <tr>
                                     <td>身法</td>

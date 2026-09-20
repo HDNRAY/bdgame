@@ -5,7 +5,7 @@ export const ALL_ATTRS: AttrName[] = ['strength', 'vitality', 'agility', 'dexter
 
 export const ATTR_CN: Record<string, string> = {
     strength: '力道', // 伤害缩放、招架减伤
-    vitality: '根骨', // 气血上限 = 100 + 根骨×15；AP 上限 = round(4 + 根骨×0.25)；debuff 时长减免
+    vitality: '根骨', // 气血上限 = 80 + 根骨×16；AP 上限 = round(4 + 根骨×0.25)；debuff 时长减免
     agility: '身法', // 闪避(防御方)、移动效率(agi/20 档/AP)、回合间隔(2.8/(1+agi×0.25))
     dexterity: '灵巧', // 命中(攻击方)、暴击率(与洞察叠加)
     insight: '洞察', // 命中(攻防双方)、暴击率(与灵巧叠加)、招架率

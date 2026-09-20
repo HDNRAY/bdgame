@@ -1,6 +1,6 @@
 /** 根据根骨计算最大 HP */
-const MAX_HP_BASE = 100
-const MAX_HP_PER_VIT = 15
+const MAX_HP_BASE = 80
+const MAX_HP_PER_VIT = 16
 
 /** 根据根骨计算最大 HP */
 export function calcMaxHp(vitality: number): number {
