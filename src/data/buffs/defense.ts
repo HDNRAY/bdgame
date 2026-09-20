@@ -517,10 +517,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'ba_wang_zui',
         name: '霸王醉',
-        description: '每层每秒回复1点缠劲，持续9秒。',
+        description: '每次饮用独立持续9秒，每层每秒回复1点缠劲，最多3层。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
-        stacking: { type: 'additive', max: 3 },
+        // 与竹叶青同口径：independent —— 每次饮用自己一层、自己一条 9 秒计时，逐层到期。
+        // 上限 3 层由 `_jiu_ba_wang_zui` 的 canUse 兜（满层不再饮，白花 1 AP）。
+        stacking: { type: 'independent' },
         chanRegenPerSec: ({ layer }) => layer.restoreValue ?? 1,
     },
     {

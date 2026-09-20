@@ -304,6 +304,10 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['pre_action', 'buff', 'jiu', 'internal'],
         target: 'self',
+        // 霸王醉是 independent 叠层（每层自己一条 9 秒计时），上限只能在这里兜：
+        // 满 3 层别再喝（engine 执行 support 时会复验 canUse，不满足不扣 AP）。
+        canUse: (attacker, state) => countIndependentLayers(state, 'ba_wang_zui', attacker.id) < 3,
+        hookNotes: { canUse: '已满3层时不再饮用' },
         effects: [{ type: 'add_buff', buffId: 'ba_wang_zui' }],
     },
     {

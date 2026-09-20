@@ -652,7 +652,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'ba_wang_zui',
         name: '霸王醉',
-        description: '烈酒入喉，缠劲熊熊。花1AP饮用，每层每秒回复1点缠劲，持续9秒，最多3层。',
+        description: '烈酒入喉，缠劲熊熊。花1AP饮用，每次独立持续9秒，每层每秒回复1点缠劲，最多3层。',
         tags: ['jiu', 'chan'],
         grantsActions: ['_jiu_ba_wang_zui'],
     },
