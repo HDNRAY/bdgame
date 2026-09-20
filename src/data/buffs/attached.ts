@@ -202,10 +202,11 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     {
         id: 'yanling_blade_attr',
         name: '惊鸿',
-        description: '身法+1、灵巧+2、力道+1。',
+        description: '身法+1、灵巧+2、力道+1。急速+2。',
         tags: [],
         expiry: { type: 'permanent' },
         attrMods: { agility: 1, dexterity: 2, strength: 1 },
+        onHaste: () => 2,
     },
     {
         id: 'bare_hands_attr',
