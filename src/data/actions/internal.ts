@@ -504,12 +504,12 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
     {
         // 太上御法：召唤物命中时微量回血
         id: '_tai_shang_heal',
-        name: '太上御法·回炁',
+        name: '太上御法',
         description: '',
         requiredTags: [],
         apCost: 0,
         tags: ['trigger', 'heal', 'internal'],
         target: 'self',
-        effects: [{ type: 'heal', value: 1 }],
+        effects: [{ type: 'heal', value: 2 }],
     },
 ]

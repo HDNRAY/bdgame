@@ -25,5 +25,11 @@ export const LONGNV: OpponentDef = {
         artifact('jiu_yin_zhen_jing'),
         // 13
     ],
-    actionConfigs: [{ actionId: 'yufeng_needle', triggerId: 'on_opponent_move_away' }],
+    actionConfigs: [
+        { actionId: 'yufeng_needle' },
+        {
+            actionId: 'quanzhen_sword',
+            triggerId: 'on_dodge',
+        },
+    ],
 }

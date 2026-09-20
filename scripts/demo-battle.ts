@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { Character } from '../src/engine/entities/character'
 import { calcMaxHp, calcMaxAp } from '../src/engine/calc/stats'
-import { gen, AJIU, OTSU } from '../src/data/opponents/index'
+import { gen, OTSU, XUANJI } from '../src/data/opponents/index'
 import { getWeapon } from '../src/data/weapons/weapons'
 import { runBattle } from '../src/engine/battle-runner'
 import { formatBattleLog } from '../src/engine/format-log'
@@ -13,7 +13,7 @@ import { BattleStats } from '../src/engine/combat/battle-stats'
 
 // ── 满配对手（n=33） ──
 const pBuild = gen(OTSU, 33)
-const oBuild = gen(AJIU, 33)
+const oBuild = gen(XUANJI, 33)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const logPath = join(__dirname, 'battle-log.txt')

@@ -28,7 +28,7 @@ export const QILAN: OpponentDef = {
     actionConfigs: [
         {
             actionId: 'electric_yoyo',
-            triggerId: 'on_opponent_move_away',
+            triggerId: 'on_dodge',
         },
         {
             actionId: 'liu_yang_zhang',

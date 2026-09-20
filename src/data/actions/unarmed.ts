@@ -135,7 +135,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
-            { type: 'stat_transfer', stat: 'dexterity', value: 1, duration: 3000 },
+            { type: 'stat_transfer', stat: 'dexterity', value: 1, duration: 2500 },
         ],
     },
     {
@@ -201,8 +201,9 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '近距离冲撞，附带眩晕效果。',
         requiredTags: ['unarmed'],
         apCost: 3,
-        onActionHitChance: (base) => base + 0.2,
-        hookNotes: { hitChance: '+20%' },
+        onActionHitChance: (base) => base + 0.15,
+        hookNotes: { hitChance: '+15%' },
+        getRange: () => [0, 0],
         tags: ['stun', 'self_damage', 'unarmed', 'melee', 'debuff'],
         effects: [
             { type: 'short_dash', maxDistance: 1 },
@@ -236,8 +237,6 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'qi', 'chan'],
         getRange: () => [0, 4],
         chanCost: 18,
-        onActionHitChance: (base) => base + 0.05,
-        hookNotes: { hitChance: '+5%' },
         effects: [{ type: 'damage', scaling: { strength: 0.6, agility: 0.6, wisdom: 0.6 } }],
     },
     {

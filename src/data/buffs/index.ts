@@ -3,7 +3,7 @@ import { DEBUFF_DB } from './debuffs'
 import { BuffDef } from './types'
 
 export type { BuffHookCtx, BuffExpiry, BuffStacking, BuffDef } from './types'
-export { BUFF_DB } from './buffs'
+export { BUFF_DB, SWORD_DOMINION_CAP } from './buffs'
 export { DEBUFF_DB } from './debuffs'
 export { buffEnhanceActionRange } from './util'
 

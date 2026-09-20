@@ -175,11 +175,11 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'silk_guard',
         name: '金丝护手',
-        description: '金丝手套护持，无刃亦可格挡兵刃。招架率+20%，缴械抗性+30%。',
+        description: '金丝手套护持，无刃亦可格挡兵刃。招架率+20%，缴械抗性+50%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onCanParry: () => true,
-        onDisarmChance: () => -0.3,
+        onDisarmChance: () => -0.5,
         onParryChance: () => 0.2,
     },
     {
@@ -213,25 +213,26 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'thunder_constitution',
         name: '雷电锻体',
-        description: '雷系伤害减免80%，其他伤害减免10%。',
+        description: '雷系伤害减免60%，其他伤害减免8%。',
         tags: ['defense', 'electric'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, source }) => {
+            // 描述写「雷系减免60%」→ 承受 40%
             if (source?.tags?.includes('electric')) {
-                return Math.round(final * 0.2 * 10) / 10
+                return round1(final * 0.4)
             }
-            return Math.round(final * 0.9 * 10) / 10
+            return round1(final * 0.92)
         },
     },
     {
         id: 'poison_resist',
         name: '百毒不侵',
-        description: '毒抗+50%。',
+        description: '中毒伤害减免60%。身法+2，灵巧+2。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         attrMods: { dexterity: 2, agility: 2 },
-        // 毒伤 DOT 减免 50%（承受 50%）；与其他 onDebuffTick 钩子链式叠加
-        onDebuffTick: ({ buffId, damage }) => (buffId === 'poison' ? round1(damage * 0.5) : undefined),
+        // 毒伤 DOT 减免 60%（承受 40%）；与其他 onDebuffTick 钩子链式叠加
+        onDebuffTick: ({ buffId, damage }) => (buffId === 'poison' ? round1(damage * 0.4) : undefined),
     },
     {
         id: 'iron_defense',
@@ -364,7 +365,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'golden_bell_guard',
         name: '金玲',
-        description: '金玲索护体，炁伤-1；招架时额外减免2点。',
+        description: '金玲索护体，炁伤-1；招架时额外减免1点。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onTakeDamage: ({ final, source }) => {
@@ -373,7 +374,7 @@ export const DEFENSE_BUFFS: BuffDef[] = [
             }
             return final
         },
-        onParryReduction: ({ final }) => Math.max(0, round1(final - 2)),
+        onParryReduction: ({ final }) => Math.max(0, round1(final - 1)),
     },
     {
         id: 'sword_intent_tempering',
@@ -628,12 +629,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'martial_arts_dodge',
         name: '武学·避',
-        description: '暴击推演出的闪避预判，每层闪避+2%、招架+3%。',
+        description: '暴击推演出的闪避预判，每层闪避+2%、招架+4%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'additive', max: 2 },
         onDodgeChance: ({ layer }) => layer.restoreValue * 0.02,
-        onParryChance: ({ layer }) => layer.restoreValue * 0.03,
+        onParryChance: ({ layer }) => layer.restoreValue * 0.04,
     },
     {
         id: 'rocket_boost',

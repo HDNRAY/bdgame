@@ -1393,7 +1393,7 @@ export const PASSIVES: Passive[] = [
     // ── 姬然 ──
     {
         id: 'guan_zi_zai_yan',
-        name: '观自在眼',
+        name: '回光返照',
         description: '心境通明，气血波动中窥见武道真意。气血越低，洞察、推演越高。',
         tags: ['buff', 'low_hp'],
         effects: [

@@ -8,7 +8,14 @@ import { getWeapon } from '../../../data/weapons/weapons'
 import { genAppId } from '../../util/buff-utils'
 import { notifyRegenChanged, affectsApRegen } from '../utils/ap-regen'
 import type { Tag } from '../../entities/tag'
-import { scheduleBuffExpiry, removeBuffLayer, executeMove, emitMoveEvents, forEachBuffOf, forEachHookOf } from '../utils'
+import {
+    scheduleBuffExpiry,
+    removeBuffLayer,
+    executeMove,
+    emitMoveEvents,
+    forEachBuffOf,
+    forEachHookOf,
+} from '../utils'
 import { getBuffMaxOverride, applyStackGainCost } from '../utils/buff-apply'
 import { BattleLog } from '../battle-log'
 import type { EffectCtx } from './types'
@@ -234,7 +241,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
     self_damage({ eff, self, engine }: EffectCtx) {
         const { ratio } = eff as Extract<EffectDef, { type: 'self_damage' }>
         const dmg = Math.round(self.maxHp * ratio)
-        // spendHp：自伤触发 onHpChange（血战到底等联动），但不回缠
+        // spendHp：自伤触发 onHpChange（困兽犹斗等联动），但不回缠
         self.spendHp(dmg, engine)
         engine.emitLog({
             type: 'damage',
@@ -255,7 +262,7 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         const { ratio } = eff as Extract<EffectDef, { type: 'self_hp_cost' }>
         const cost = Math.round(self.hp * ratio)
         if (cost <= 0) return
-        // spendHp：卖血触发 onHpChange（血战到底联动），但不回缠（自伤不走受击回缠）
+        // spendHp：卖血触发 onHpChange（困兽犹斗联动），但不回缠（自伤不走受击回缠）
         self.spendHp(cost, engine)
         engine.emitLog({
             type: 'system',

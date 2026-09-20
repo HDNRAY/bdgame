@@ -480,11 +480,7 @@ export class Character {
             if (!maxOk) return
         }
         // effects（记入来源层账，可整体撤销）
-        this.addSource(
-            `passive:${p.id}`,
-            p.tags.includes('talent') ? 'talent' : 'passive',
-            constructEffectsOf(p),
-        )
+        this.addSource(`passive:${p.id}`, p.tags.includes('talent') ? 'talent' : 'passive', constructEffectsOf(p))
         // triggers
         for (const slot of runtimeSlotsOf(p)) this.passiveTriggers.push(slot)
         // 源自带 buff 的物化槽：插在本源 trigger 的位置上，保证开局建层/日志顺序不变
@@ -637,7 +633,7 @@ export class Character {
         if (engine && dealt > 0) this.#fireHpChange(engine)
     }
     /** 自伤：扣血但不触发受击回缠（takeDamage 的 addChan 是"被打回气"，自伤不应享受），
-     *  仍触发 onHpChange（血战到底等随血量变化的 buff 联动）。血祭/血滴子/血炁护体等卖血用。 */
+     *  仍触发 onHpChange（困兽犹斗等随血量变化的 buff 联动）。血祭/血滴子/血炁护体等卖血用。 */
     spendHp(amount: number, engine?: BattleEngine): void {
         const prevHp = this.hp
         this.hp = Math.max(0, this.hp - amount)

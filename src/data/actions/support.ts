@@ -80,7 +80,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
                 fn: ({ self, state, engine }) => {
                     const cost = Math.max(1, round1(self.hp * 0.15))
                     if (self.hp <= cost) return 0
-                    // spendHp：卖血触发 onHpChange（血战到底联动），但不回缠
+                    // spendHp：卖血触发 onHpChange（困兽犹斗联动），但不回缠
                     self.spendHp(cost, engine)
                     // 100% 回复
                     const totalRecovery = cost

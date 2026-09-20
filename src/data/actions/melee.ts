@@ -23,7 +23,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         requiredTags: ['pierce'],
         apCost: 4,
         tags: ['pierce', 'melee'],
-        effects: [{ type: 'damage', scaling: { strength: 0.6, agility: 0.6 }, piercingRatio: 0.1 }],
+        effects: [{ type: 'damage', scaling: { strength: 0.8, agility: 0.4 }, piercingRatio: 0.1 }],
     },
     {
         id: 'quanzhen_sword',

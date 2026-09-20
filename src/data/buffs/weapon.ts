@@ -40,7 +40,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
             const pen = calcHeavyPenalty(char, tier, state)
             if (pen > 0) setLayerMods(layer, char, state, { agility: -pen })
         },
-        // 战斗中力道变化（血战到底/七十二变等）在回合末刷新惩罚
+        // 战斗中力道变化（困兽犹斗/七十二变等）在回合末刷新惩罚
         onTurnEnd: ({ attacker: char, state, layer }) => {
             if (!layer.extra?.inited) return
             const tier = (layer.extra.tier as number) ?? 0
@@ -123,11 +123,11 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'po_jun_buff',
         name: '破军',
-        description: '丈二铁枪，势大力沉。暴击率+5%，暴击伤害+10%。',
+        description: '丈二铁枪，势大力沉。暴击率+10%，暴击伤害+20%。',
         tags: ['weapon', 'pierce'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onCritChance: () => 0.05,
+        onCritChance: () => 0.1,
         onCritDamage: () => 0.2,
     },
     {

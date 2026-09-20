@@ -117,13 +117,13 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'thunder_bonus',
         name: '雷法',
-        description: '攻击附加2点伤害，其中1点穿透。',
+        description: '攻击附加3点伤害，其中1点穿透。',
         tags: ['qi', 'electric'],
         expiry: { type: 'permanent' },
         onAfterDealDamage: ({ attacker }) => {
             attacker.spendChan(1)
-            // 共 2 点，其中 1 点穿透（normal 是总额，见 BuffDef.onAfterDealDamage 注释）
-            return { normal: 2, piercing: 1 }
+            // 共 3 点，其中 1 点穿透（normal 是总额，见 BuffDef.onAfterDealDamage 注释）
+            return { normal: 3, piercing: 1 }
         },
     },
     {
@@ -234,7 +234,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             const hpCostPercent = 0.01
             const cost = Math.max(1, round1(attacker.maxHp * hpCostPercent))
             if (attacker.hp <= cost) return
-            // spendHp：卖血触发 onHpChange（血战到底联动），但不回缠（自伤不走受击回缠）
+            // spendHp：卖血触发 onHpChange（困兽犹斗联动），但不回缠（自伤不走受击回缠）
             attacker.spendHp(cost, engine)
             layer.restoreValue = cost
             if (engine) {
@@ -494,7 +494,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         // 锐炁诀：与凝炁诀联动（全招带炁 → 全招 40% 穿透）。穿透是「结算方式」非增伤，总伤害不膨胀
         id: 'rui_qi_jue',
         name: '锐炁诀',
-        description: '炁凝如锋，锐不可当。带炁的招式，30%伤害转为穿透，无视招架与减伤。',
+        description: '炁凝如锋，锐不可当。带炁的招式，40%伤害转为穿透，无视招架与减伤。',
         tags: ['qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },

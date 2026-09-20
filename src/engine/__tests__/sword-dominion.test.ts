@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getBuff } from '../../data/buffs'
+import { getBuff, SWORD_DOMINION_CAP } from '../../data/buffs'
 import { getAction } from '../../data/actions'
 
 const buff = getBuff('sword_dominion')!
@@ -18,19 +18,25 @@ describe('御剑诀 · 增伤封顶', () => {
         expect(buff.onDealDamage).toBeTypeOf('function')
     })
 
-    it('增伤不超过原伤害的 25%：弱击被夹住', () => {
-        const heavy = getAction('follow_the_current')! // 4 AP 单段：sqrt(4)=2 增伤，上限 25%
-        // 原伤害 20 → 上限 5 > 2 → 按 2 增伤
+    // 期望值从数据的封顶常量算，免得每次调数值都要改测试（曾经 25%→20%→15%→10% 连改四次）
+    const cap = (final: number) => Math.min(2, final * SWORD_DOMINION_CAP)
+    const round1 = (v: number) => Math.round(v * 10) / 10 // 钩子返回前按 1 位小数取整
+
+    it(`增伤不超过原伤害的 ${SWORD_DOMINION_CAP * 100}%：弱击被夹住`, () => {
+        const heavy = getAction('follow_the_current')! // 4 AP 单段：sqrt(4)=2 增伤
+        // 原伤害 20 → 上限 2 ≥ 2 → 按 2 增伤（正好贴上限）
         expect(hit(20, heavy)).toBeCloseTo(22)
-        // 原伤害 4 → 上限 1 < 2 → 夹到 1（25%）
-        expect(hit(4, heavy)).toBeCloseTo(5)
-        // 原伤害 2 → 上限 0.5
-        expect(hit(2, heavy)).toBeCloseTo(2.5)
+        // 弱击被夹到上限
+        expect(hit(4, heavy)).toBeCloseTo(4 + cap(4))
+        expect(hit(2, heavy)).toBeCloseTo(2 + cap(2))
+        // 封顶确实生效：没被 sqrt(ap)=2 抬高
+        expect(hit(4, heavy)).toBeLessThan(6)
     })
 
     it('多段招按每段算：27 段的暴雨梨花每段增伤极小，不会被抬高', () => {
-        const many = getAction('tempest')! // ap5 / independentHits 27 → 每段 sqrt(5)/27 ≈ 0.08
-        expect(hit(3, many)).toBeCloseTo(3.1)
-        expect(hit(0.2, many)).toBeCloseTo(0.3) // 上限 0.05 < 0.083 → 夹到 0.05，再按 1 位小数取整
+        const many = getAction('tempest')! // ap5 / independentHits 27 → 每段 sqrt(5)/27 ≈ 0.083
+        const perHit = Math.sqrt(5) / 27
+        expect(hit(3, many)).toBeCloseTo(round1(3 + Math.min(perHit, 3 * SWORD_DOMINION_CAP)))
+        expect(hit(0.2, many)).toBeLessThan(0.2 + perHit) // 被每段上限夹住
     })
 })

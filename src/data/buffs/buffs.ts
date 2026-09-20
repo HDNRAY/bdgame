@@ -22,6 +22,9 @@ import { getAction as getActionDef } from '../actions'
 import { getWeapon } from '../weapons/weapons'
 import type { BuffLayer } from '../../engine/combat/types'
 
+/** 御剑诀：命中增伤不超过原伤害的这个比例（多段招按每段算） */
+export const SWORD_DOMINION_CAP = 0.1
+
 /** 统计角色所有奖励（功法/奇物/招式/武器）的标签总数（去重；只算 build.rewards，克隆安全） */
 function countRewardTags(char: Character): number {
     const set = new Set<string>()
@@ -511,7 +514,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff'],
         expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
-        attrMods: { strength: 4, agility: -2 },
+        attrMods: { strength: 3, agility: -1 },
     },
     {
         id: 'gentle_stance',
@@ -520,7 +523,7 @@ export const BUFF_DB: BuffDef[] = [
         tags: ['buff'],
         expiry: { type: 'duration', ms: 20000 },
         stacking: { type: 'additive', max: 2 },
-        attrMods: { agility: 4, strength: -2 },
+        attrMods: { agility: 3, strength: -1 },
     },
     {
         id: 'thunder_swift',
@@ -1237,10 +1240,10 @@ export const BUFF_DB: BuffDef[] = [
         attrMods: { insight: 4 },
         onReceiveDebuff: (ctx) => (ctx.buffId === 'sand_blind' && ctx.stacks > 1 ? 1 : undefined),
     },
-    // ── 血战到底 ──
+    // ── 困兽犹斗 ──
     {
         id: 'blood_rage',
-        name: '血战到底',
+        name: '困兽犹斗',
         description: '气血越低属性加成越高。力道、身法、灵巧随血量减少而提升。',
         tags: ['low_hp'],
         expiry: { type: 'permanent' },
@@ -1274,10 +1277,9 @@ export const BUFF_DB: BuffDef[] = [
         expiry: { type: 'permanent' },
         apRegenPerSec: ({ target }) => 0.4 * (1 - target.hp / target.maxHp),
     },
-    // ── 观自在眼（姬然） ──
     {
         id: 'guan_zi_zai_yan',
-        name: '观自在眼',
+        name: '回光返照',
         description: '气血越低，洞察、推演越高。',
         tags: ['low_hp'],
         expiry: { type: 'permanent' },
@@ -1628,7 +1630,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'shen_zhao',
         name: '神照',
-        description: '入神坐照。累计消耗15AP，提升2点洞察，最多3层；满3层后免疫所有洞察减益。',
+        description: '入神坐照。累计消耗20AP，提升2点洞察，最多3层；满3层后免疫所有洞察减益。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -1638,7 +1640,7 @@ export const BUFF_DB: BuffDef[] = [
         },
         onApSpent: ({ self, amount, engine, state, layer }) => {
             const total = (layer.restoreValue ?? 0) + amount
-            const stage = Math.min(3, Math.floor(total / 15))
+            const stage = Math.min(3, Math.floor(total / 20))
             const previous = (layer.extra?.stage as number | undefined) ?? 0
             layer.restoreValue = total
             if (stage <= previous) return
@@ -1760,17 +1762,18 @@ export const BUFF_DB: BuffDef[] = [
         },
     },
     {
+        // 增伤封顶：改上限只改这个常量（描述里的百分数是手写的，记得一起改）。
+        // 多段招按每段算，否则弱击/多段会被这一项抬得过多。
         id: 'sword_dominion',
         name: '御剑诀',
-        description: '以炁御剑，剑随意动。延长攻击距离；命中附加少量增伤，增伤不超过原伤害的 25%。',
+        description: '以炁御剑，剑随意动。延长攻击距离；命中附加少量增伤，增伤不超过原伤害的 10%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onRuntimeAction: (_ctx, action) => buffEnhanceActionRange(action, 1),
         onDealDamage: ({ final, source }) => {
             const ap = Math.max(1, (source as ActionDefinition | undefined)?.apCost ?? 0)
-            // 增伤封顶：不超过原伤害的 25%（多段招按每段算，否则弱击/多段会被这一项抬得过多）
-            const bonus = Math.min(Math.sqrt(ap) / actionHits(source as ActionDefinition), final * 0.25)
+            const bonus = Math.min(Math.sqrt(ap) / actionHits(source as ActionDefinition), final * SWORD_DOMINION_CAP)
             return round1(final + bonus)
         },
     },

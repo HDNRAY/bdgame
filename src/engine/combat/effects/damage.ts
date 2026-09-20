@@ -11,7 +11,6 @@ import {
     calcParryChance,
     calcRoll,
 } from '../../calc/damage'
-import { getWeapon } from '../../../data/weapons/weapons'
 import {
     calcEffectiveCritChance,
     collectConsumedBuffs,
@@ -336,8 +335,9 @@ function resolveParry(
     if (cannotBeParried || actionIgnoresParry) return { parried: false, final: raw }
 
     // ── 2. 目标能否招架（buff onCanParry 覆盖武器标签） ──
-    const weapon = target.weaponDef ?? getWeapon(target.build.weapon)
-    const hasParryTag = weapon.tags.includes('parry')
+    // 武器标签取**主副手并集**（与 getWeaponTags / getEffectiveRange 同口径）：缴械只脱主手，
+    // 副手还握着招架武器时照旧能招架。之前这里单看 weaponDef，双持被缴械会连骰都不掷。
+    const hasParryTag = target.getWeaponTags().includes('parry')
 
     let buffCanParry: boolean | undefined
     forEachHookOf(engine.state.pendingBuffs, 'onCanParry', target.id, (def) => {

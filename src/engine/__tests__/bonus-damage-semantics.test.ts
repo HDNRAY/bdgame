@@ -45,17 +45,26 @@ function hpDrop(withThunder: boolean): number {
 }
 
 describe('追加伤害 { normal, piercing } 的口径', () => {
-    it('雷法/特种兵匕首：normal 是总额（2 点，其中 1 点穿透）', () => {
+    it('雷法/特种兵匕首：normal 是总额，piercing 只是其中那部分', () => {
         const atk = makeChar('A')
         atk.addChan(10)
-        expect(getBuff('thunder_bonus')!.onAfterDealDamage!({ attacker: atk } as never)).toEqual({ normal: 2, piercing: 1 })
+        const r = getBuff('thunder_bonus')!.onAfterDealDamage!({ attacker: atk } as never) as {
+            normal: number
+            piercing: number
+        }
+        // 钉的是形状与关系，不是具体点数（点数随平衡调整：曾经 2，现在 3）
+        expect(r.piercing).toBeGreaterThan(0)
+        expect(r.piercing).toBeLessThanOrEqual(r.normal)
         expect(getBuff('special_forces_dagger')!.onAfterDealDamage).toBeTypeOf('function')
     })
 
-    it('雷法的追加伤害总额 = 2（不是 2+1=3）', () => {
+    it('雷法：实际多掉的血 = normal（不是 normal+piercing）', () => {
         const withThunder = hpDrop(true)
         const without = hpDrop(false)
         expect(without).toBeGreaterThan(0)
-        expect(withThunder - without).toBe(2)
+        const atk = makeChar('A')
+        atk.addChan(10)
+        const r = getBuff('thunder_bonus')!.onAfterDealDamage!({ attacker: atk } as never) as { normal: number }
+        expect(withThunder - without).toBe(r.normal)
     })
 })

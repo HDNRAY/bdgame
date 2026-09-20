@@ -5,6 +5,11 @@ import { processActionEffect } from '../combat/effects/action'
 import { Character } from '../entities/character'
 import type { EffectDef } from '../entities/action'
 import type { BuffLayer } from '../combat/types'
+import { getBuff } from '../../data/buffs'
+
+// 刚劲的每层属性修正从数据读：这些断言考的是「每层缩放/上限截断/移除回退」，不该被调数值绊倒
+const VIGOR_STR = getBuff('vigor_stance')!.attrMods!.strength ?? 0
+const VIGOR_AGI = getBuff('vigor_stance')!.attrMods!.agility ?? 0
 
 // 战斗测试统一播种（见 seed-battle-random.ts：走 Math.random spy，自己接管骰子的测试仍然说了算）
 beforeEach(() => seedBattleRandom())
@@ -89,18 +94,18 @@ describe('add_buff', () => {
     it('additive buff stacks and caps at max, scaling attrMods per layer', () => {
         const { engine, a } = makeFixture()
         apply(engine, { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 }, a)
-        expect(a.attrs.get('strength')).toBe(14)
-        expect(a.attrs.get('agility')).toBe(8)
+        expect(a.attrs.get('strength')).toBe(10 + VIGOR_STR)
+        expect(a.attrs.get('agility')).toBe(10 + VIGOR_AGI)
 
         apply(engine, { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 }, a)
         expect(layer(engine, 'vigor_stance', 'a')!.restoreValue).toBe(2)
-        expect(a.attrs.get('strength')).toBe(18)
-        expect(a.attrs.get('agility')).toBe(6)
+        expect(a.attrs.get('strength')).toBe(10 + VIGOR_STR * 2)
+        expect(a.attrs.get('agility')).toBe(10 + VIGOR_AGI * 2)
 
         // 已达上限（max:2），再多叠不上去
         apply(engine, { type: 'add_buff', buffId: 'vigor_stance', stacks: 3 }, a)
         expect(layer(engine, 'vigor_stance', 'a')!.restoreValue).toBe(2)
-        expect(a.attrs.get('strength')).toBe(18)
+        expect(a.attrs.get('strength')).toBe(10 + VIGOR_STR * 2)
     })
 
     it('additive buff with stacks:0 is skipped (no layer created)', () => {
@@ -403,7 +408,7 @@ describe('remove_buff', () => {
         const { engine, a } = makeFixture()
         apply(engine, { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 }, a)
         apply(engine, { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 }, a)
-        expect(a.attrs.get('strength')).toBe(18)
+        expect(a.attrs.get('strength')).toBe(10 + VIGOR_STR * 2)
 
         apply(engine, { type: 'remove_buff', buffId: 'vigor_stance' }, a)
 
@@ -438,19 +443,19 @@ describe('remove_buff', () => {
 
     it('partial removal reverts attrMods proportionally to removed stacks', () => {
         const { engine, a } = makeFixture()
-        // 2 层 vigor_stance：力量 +8、身法 -4
+        // 2 层 vigor_stance
         apply(engine, { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 }, a)
         apply(engine, { type: 'add_buff', buffId: 'vigor_stance', stacks: 1 }, a)
-        expect(a.attrs.get('strength')).toBe(18)
-        expect(a.attrs.get('agility')).toBe(6)
+        expect(a.attrs.get('strength')).toBe(10 + VIGOR_STR * 2)
+        expect(a.attrs.get('agility')).toBe(10 + VIGOR_AGI * 2)
 
-        // 移除 1/2 层 → 回退一半：力量 +8→+4、身法 -4→-2
+        // 移除 1/2 层 → 回退一半
         apply(engine, { type: 'remove_buff', buffId: 'vigor_stance', stacks: 1 }, a)
         const l = layer(engine, 'vigor_stance', 'a')!
         expect(l.restoreValue).toBe(1)
-        expect(a.attrs.get('strength')).toBe(14)
-        expect(a.attrs.get('agility')).toBe(8)
-        expect(l.mods).toMatchObject({ strength: 4, agility: -2 })
+        expect(a.attrs.get('strength')).toBe(10 + VIGOR_STR)
+        expect(a.attrs.get('agility')).toBe(10 + VIGOR_AGI)
+        expect(l.mods).toMatchObject({ strength: VIGOR_STR, agility: VIGOR_AGI })
     })
 
     it('partial removal with stacks >= layer goes through full removal', () => {

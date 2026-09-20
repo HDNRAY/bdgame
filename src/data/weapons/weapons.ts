@@ -330,7 +330,7 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'buer_sword',
         name: '不二剑',
-        description: '最快的剑之一，起手暴击大增但身法略滞，逐回合恢复。',
+        description: '最快的剑之二。',
         tags: ['pierce', 'slash', 'parry', 'melee', 'one_handed', 'buff'],
         range: [1, 3],
         effects: [
