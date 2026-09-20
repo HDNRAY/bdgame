@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { getBuff } from '../../data/buffs'
+import { getPassive } from '../../data/passives'
 import { rng } from '../util/rng'
 
 const buff = getBuff('elemental_immunity')!
@@ -56,5 +57,20 @@ describe('冰心 · 减益免疫', () => {
         for (const id of ['poison', 'bleed', 'weakness']) {
             expect(receive(id)).toBeUndefined()
         }
+    })
+
+    it('冰心诀不给属性：不带属性修正（暂时只保留免疫）', () => {
+        expect(getPassive('ice_heart')).toBeDefined()
+        expect(buff.attrMods).toBeUndefined()
+        const plain = makeChar('A', '甲')
+        const withIce = new Character({
+            id: 'B',
+            name: '乙',
+            weapon: 'peach_sword',
+            baseAttrs: { strength: 10, vitality: 10, agility: 10, dexterity: 10, insight: 10, wisdom: 8 },
+            battleStyle: 'melee' as const,
+            rewards: [{ type: 'passive', id: 'ice_heart', name: '冰心诀', description: '', tags: [] }],
+        })
+        expect(withIce.attrs.get('vitality')).toBeCloseTo(plain.attrs.get('vitality'))
     })
 })

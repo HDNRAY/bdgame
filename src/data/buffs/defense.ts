@@ -137,10 +137,9 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'elemental_immunity',
         name: '冰心',
-        description: '冰心玉壶，根骨+1；免疫霜冻，对麻痹、灼烧、不幸、迷惑有50%几率免疫。',
+        description: '冰心玉壶，免疫霜冻；对麻痹、灼烧、不幸、迷惑有50%几率免疫。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        attrMods: { vitality: 1 },
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId === 'frost') return 0
             if (HALF_IMMUNE_DEBUFFS.includes(ctx.buffId)) {
