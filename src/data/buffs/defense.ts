@@ -507,12 +507,12 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'nv_er_hong',
         name: '女儿红',
-        description: '每秒回复1.5点气血，持续9秒。',
+        description: '每层闪避+4%，持续9秒，最多3层。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
         stacking: { type: 'additive', max: 3 },
-        tickInterval: 1000,
-        onTickHeal: () => 1.5,
+        // 与云隐同一口径：每层 +4% 闪避（原为每秒回 1.5 气血，改掉了）
+        onDodgeChance: ({ layer }) => (layer.restoreValue ?? 0) * 0.04,
     },
     {
         id: 'ba_wang_zui',

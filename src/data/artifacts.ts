@@ -645,8 +645,8 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'nv_er_hong',
         name: '女儿红',
-        description: '温润醇厚的黄酒，饮后气血奔涌。花1AP饮用，每秒回复1.5点气血，持续9秒，最多3层。',
-        tags: ['jiu', 'heal'],
+        description: '温润醇厚的黄酒，饮后身形飘忽。花1AP饮用，每层闪避+4%，持续9秒，最多3层。',
+        tags: ['jiu', 'defense'],
         grantsActions: ['_jiu_nv_er_hong'],
     },
     {
