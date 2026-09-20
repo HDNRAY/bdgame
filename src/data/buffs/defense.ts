@@ -257,14 +257,14 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'hua_gun_parry',
         name: '舞花棍',
-        description: '灵巧×1%转化为招架率；距离≥4m时招架率加倍。',
+        description: '灵巧×2%转化为招架率；距离≥4m时改为灵巧×3%。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         // 远程与否看**实时距离**（与斗笠掩踪同一口径：≥4m），不看招式 tag —— 棍花兜不兜得住，
         // 取决于对手此刻离你多远，而不是这一击在数据里被标成什么。
         onParryChance: ({ target, attacker, state }) => {
             const dex = target.attrs.get('dexterity')
-            return state.position.distance(target.id, attacker.id) >= 4 ? dex * 0.02 : dex * 0.01
+            return state.position.distance(target.id, attacker.id) >= 4 ? dex * 0.03 : dex * 0.02
         },
     },
     {

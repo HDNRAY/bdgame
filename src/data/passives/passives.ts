@@ -676,7 +676,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'hua_gun',
         name: '舞花棍',
-        description: '以灵巧驾驭长兵，棍花如屏。灵巧越高招架越强，距离≥4m时加倍。',
+        description: '以灵巧驾驭长兵，棍花如屏。灵巧越高招架越强，距离≥4m时更强。',
         tags: ['defense', 'buff', 'polearm'],
         effects: [
             {

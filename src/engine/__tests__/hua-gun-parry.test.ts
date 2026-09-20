@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
 import { getBuff } from '../../data/buffs'
@@ -17,7 +17,7 @@ function makeChar(id: string, name: string): Character {
     })
 }
 
-/** 在给定间距上读一次 onParryChance 的返回值（灵巧 16 → ×1% = 0.16，加倍 = 0.32） */
+/** 在给定间距上读一次 onParryChance 的返回值（灵巧 16 → 近距离 ×2% = 0.32，≥4m ×3% = 0.48） */
 function parryBonus(dist: number, actionId: string): number {
     const me = makeChar('A', '甲')
     const foe = makeChar('B', '乙')
@@ -35,18 +35,18 @@ function parryBonus(dist: number, actionId: string): number {
 }
 
 describe('舞花棍 · 招架率看实时距离（不看招式 tag）', () => {
-    it('距离 ≥4m 加倍，近距离只有基础值', () => {
-        expect(parryBonus(1, 'light_slash')).toBeCloseTo(0.16)
-        expect(parryBonus(3, 'light_slash')).toBeCloseTo(0.16)
-        expect(parryBonus(4, 'light_slash')).toBeCloseTo(0.32)
-        expect(parryBonus(6, 'light_slash')).toBeCloseTo(0.32)
+    it('距离 ≥4m 时灵巧×3%，近距离灵巧×2%', () => {
+        expect(parryBonus(1, 'light_slash')).toBeCloseTo(0.32)
+        expect(parryBonus(3, 'light_slash')).toBeCloseTo(0.32)
+        expect(parryBonus(4, 'light_slash')).toBeCloseTo(0.48)
+        expect(parryBonus(6, 'light_slash')).toBeCloseTo(0.48)
     })
 
-    it('判据是距离不是 tag：远距离的近战招式照样加倍', () => {
+    it('判据是距离不是 tag：远距离的近战招式照样 ×3%', () => {
         // light_slash 不带 range tag，_luo_yue 带 —— 同一距离上两者应给出相同加成
         expect(parryBonus(5, '_luo_yue')).toBeCloseTo(parryBonus(5, 'light_slash'))
-        expect(parryBonus(5, '_luo_yue')).toBeCloseTo(0.32)
-        // 反之，带 range tag 的招式贴脸打也只有基础值
-        expect(parryBonus(2, '_luo_yue')).toBeCloseTo(0.16)
+        expect(parryBonus(5, '_luo_yue')).toBeCloseTo(0.48)
+        // 反之，带 range tag 的招式贴脸打也只有近距离那一档
+        expect(parryBonus(2, '_luo_yue')).toBeCloseTo(0.32)
     })
 })
