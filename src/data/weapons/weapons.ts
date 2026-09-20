@@ -24,7 +24,7 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'po_lang_zhu_zhi',
         name: '破狼竹枝',
-        description: '经特殊药水浸泡多年的竹枝，坚如钢铁，轻如竹羽。招架后减免3点伤害。',
+        description: '经特殊药水浸泡多年的竹枝，坚如钢铁，轻如竹羽。招架后消耗1点缠劲，减免3点伤害。',
         tags: ['parry', 'polearm', 'blunt', 'buff'],
         range: [1, 4],
         effects: [

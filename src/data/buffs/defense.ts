@@ -520,10 +520,18 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'po_lang_zhu_zhi_buff',
         name: '破狼竹枝',
-        description: '招架后减免3点伤害。',
+        description: '招架后消耗1点缠劲，减免3点伤害。缠劲不足时不触发。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onParryReduction: ({ final }) => round1(final - 3),
+        onParryReduction: ({ final, target, engine }) => {
+            if (!target.spendChan(1)) return final
+            engine?.emitLog({
+                type: 'system',
+                message: `[破狼竹枝] ${target.name} 招架卸力，消耗1缠减免3点（剩${target.chan}层）`,
+                actorId: target.id,
+            })
+            return Math.max(0, round1(final - 3))
+        },
     },
     {
         id: 'bu_dong_ming_wang_buff',
