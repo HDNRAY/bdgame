@@ -50,7 +50,7 @@ function countRewardTags(char: Character): number {
     return set.size
 }
 
-/** 洞幽烛微看破率：min(7%, 2% × log2(1 + 该招式各 tag 看破次数之和))。多 tag 招式取各 tag 次数之和，各自封顶 7%。 */
+/** 洞幽烛微看破率：min(5%, 2% × log2(1 + 该招式各 tag 看破次数之和))。多 tag 招式取各 tag 次数之和，各自封顶 5%。 */
 function kanpoRate(source: { tags?: readonly string[] } | undefined, layer: BuffLayer): number {
     if (!source?.tags?.length) return 0
     let total = 0
@@ -58,7 +58,7 @@ function kanpoRate(source: { tags?: readonly string[] } | undefined, layer: Buff
         total += (layer.extra?.[`kanpo_${t}`] as number | undefined) ?? 0
     }
     if (total <= 0) return 0
-    return Math.min(0.07, 0.02 * Math.log2(1 + total))
+    return Math.min(0.05, 0.02 * Math.log2(1 + total))
 }
 
 /** 是否为「非辅助主招」：天机只对这类招式生效并消耗（召唤物/辅招不吃必中必暴） */
@@ -1105,7 +1105,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'dongyou_zhuwei',
         name: '洞幽烛微',
         description:
-            '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（各收敛至7%）。',
+            '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（各收敛至5%）。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
