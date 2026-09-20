@@ -286,18 +286,52 @@ export function hasNoStance(pendingBuffs: Map<string, unknown>, charId: string):
     return !hasStance
 }
 
-/** 根据 trigger 消耗该角色的 consumed buff */
-export function consumeBuffsByTrigger(charId: string, engine: BattleEngine, trigger: TriggerEvent): void {
-    forEachBuffOf(engine.state.pendingBuffs, charId, (def, _layer, buffId, key) => {
+/** 一个待消耗的层：除 key 外还带层对象本身，收尾时用来确认「还是当时那一层」 */
+export interface ConsumedBuffRef {
+    key: string
+    layer: BuffLayer
+    buffId: string
+    ownerId: string
+    name: string
+}
+
+/**
+ * 收集该角色身上「应被 `trigger` 消耗」的层，但**不删**（配套 `removeCollectedBuffs`）。
+ *
+ * 给「反应先跑、消耗收尾」的时机（目前只有招架）：同时声明 `expiry.consumed/on_parry`
+ * 和 `onParry` 钩子的 buff（听潮式=招架回气），若先删层，它自己的钩子就永远等不到。
+ */
+export function collectConsumedBuffs(charId: string, engine: BattleEngine, trigger: TriggerEvent): ConsumedBuffRef[] {
+    const refs: ConsumedBuffRef[] = []
+    forEachBuffOf(engine.state.pendingBuffs, charId, (def, layer, buffId, key, ownerId) => {
         if (def?.expiry?.type !== 'consumed' || def.expiry.trigger !== trigger) return
-        removeBuffLayer(engine, key)
+        refs.push({ key, layer, buffId, ownerId, name: def.name ?? buffId })
+    })
+    return refs
+}
+
+/**
+ * 删除 `collectConsumedBuffs` 收集到的层，并补一条「状态消耗」日志。
+ *
+ * 只删「还是当时那一层」的条目：收集与删除之间会跑反应（触发器招式 / buff 钩子），
+ * 反应里若重新施加了同一 id 的 buff（招架后重新起式那类），那是**新层**，不能被误删。
+ */
+export function removeCollectedBuffs(engine: BattleEngine, refs: readonly ConsumedBuffRef[]): void {
+    for (const ref of refs) {
+        if (engine.state.pendingBuffs.get(ref.key) !== ref.layer) continue
+        removeBuffLayer(engine, ref.key)
         // 触发型消耗：记录一条「状态消耗」日志（惊击/心眼/看破 等一次性 buff 被触发消耗）
         engine.emitLog({
             type: 'system',
-            message: BattleLog.msg(def.name ?? buffId, engine.getCharacter(charId)?.name ?? charId, '状态消耗'),
-            actorId: charId,
+            message: BattleLog.msg(ref.name, engine.getCharacter(ref.ownerId)?.name ?? ref.ownerId, '状态消耗'),
+            actorId: ref.ownerId,
         })
-    })
+    }
+}
+
+/** 根据 trigger 消耗该角色的 consumed buff（收集完立刻删） */
+export function consumeBuffsByTrigger(charId: string, engine: BattleEngine, trigger: TriggerEvent): void {
+    removeCollectedBuffs(engine, collectConsumedBuffs(charId, engine, trigger))
 }
 
 /**

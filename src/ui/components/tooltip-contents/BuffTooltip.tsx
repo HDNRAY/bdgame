@@ -1,6 +1,7 @@
 import type { BuffDef } from '../../../data/buffs/types'
 import { TagList } from '../ui/TagList/TagList'
 import { ATTR_CN } from '../../../engine/entities/attributes'
+import { getTriggerName } from '../../../bridge/triggerDisplay'
 
 interface BuffTooltipProps {
     buff: BuffDef
@@ -23,7 +24,7 @@ export function BuffTooltip({ buff }: BuffTooltipProps) {
                 <div className="tt-extra tt-extra-dim">
                     {buff.expiry.type === 'duration' && `持续 ${buff.expiry.ms / 1000}秒`}
                     {buff.expiry.type === 'permanent' && '永久'}
-                    {buff.expiry.type === 'consumed' && `消耗: ${buff.expiry.trigger}`}
+                    {buff.expiry.type === 'consumed' && `消耗: ${getTriggerName(buff.expiry.trigger)}`}
                     {buff.stacking?.type === 'additive' && ` · 最多 ${buff.stacking.max ?? '∞'}层`}
                     {buff.stacking?.type === 'none' && ' · 不可叠层'}
                     {buff.stacking?.type === 'independent' && ' · 独立叠层'}

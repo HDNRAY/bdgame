@@ -12,7 +12,13 @@ import {
     calcRoll,
 } from '../../calc/damage'
 import { getWeapon } from '../../../data/weapons/weapons'
-import { calcEffectiveCritChance, consumeBuffsByTrigger, forEachHookOf } from '../utils'
+import {
+    calcEffectiveCritChance,
+    collectConsumedBuffs,
+    removeCollectedBuffs,
+    consumeBuffsByTrigger,
+    forEachHookOf,
+} from '../utils'
 import { round1 } from '../../util/math'
 
 // ── Options 类型 ──
@@ -376,8 +382,11 @@ function resolveParry(
     })
     if (!parried) return { parried: false, final: raw }
 
-    // ── 4. 消耗 on_parry 类 buff（看破等） ──
-    consumeBuffsByTrigger(target.id, engine, 'on_parry')
+    // ── 4. 招架反应：先把反应跑完（触发器 + 双方钩子），消耗放到招架段最后 ──
+    // 顺序为什么是「反应 → 消耗」：同时声明 `expiry.consumed/on_parry` 和 `onParry` 钩子的 buff
+    // （听潮式=招架回气+招架后消失）需要在自己被消耗前收到这一次招架，先删层就永远等不到。
+    // 先收集不删，是因为消耗与反应之间隔着触发器招式：反应里重新起同一 id 的 buff 不该被误删。
+    const consumedOnParry = collectConsumedBuffs(target.id, engine, 'on_parry')
     engine.emit('on_parry', target, attacker)
     engine.emit('on_parried', attacker, target)
     // 防御方 buff onParry 钩子（自己成功招架；遍历防御方 buff，与 trigger on_parry 同义）
@@ -449,6 +458,8 @@ function resolveParry(
             final = Math.round((final + pierced) * 10) / 10
         }
     }
+    // 招架段（反应 + 减免 + 穿透）全部结算完，才真正消耗本次招架该消耗的层
+    removeCollectedBuffs(engine, consumedOnParry)
     final = Math.round(final * 10) / 10
     return { parried: true, final }
 }

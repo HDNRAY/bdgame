@@ -1,4 +1,14 @@
-export { scheduleBuffExpiry, removeBuffLayer, dropBuffLayer, dropBuffLayerQuiet, consumeBuffsByTrigger, hasNoStance } from './buff-layer'
+export {
+    scheduleBuffExpiry,
+    removeBuffLayer,
+    dropBuffLayer,
+    dropBuffLayerQuiet,
+    consumeBuffsByTrigger,
+    collectConsumedBuffs,
+    removeCollectedBuffs,
+    hasNoStance,
+} from './buff-layer'
+export type { ConsumedBuffRef } from './buff-layer'
 export { forEachBuffOf, forEachHookOf, cloneBuffsFor } from './buff-loop'
 export { calcExtraMoveEfficiency } from './move-efficiency'
 export { executeMove, emitMoveEvents } from './move'

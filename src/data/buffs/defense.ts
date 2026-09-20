@@ -50,12 +50,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'guard_up',
         name: '守势',
-        description: '凝神防守，招架率大幅提升；招架成功回复 1 点内息。',
+        description: '凝神防守，招架率大幅提升；招架成功后消耗守势，回复 1 点内息。',
         tags: ['defense', 'stance'],
-        expiry: { type: 'duration', ms: 6000 },
+        // 招架即消耗：不设持续时间，没招架到就一直挂着（起式一次，见 guard 的 canUse）
+        expiry: { type: 'consumed', trigger: 'on_parry' },
         stacking: { type: 'none' },
         onParryChance: () => 0.5,
-        // 招架成功回 1 AP（听潮 = 守势反击）。
+        // 招架成功回 1 AP（听潮 = 守势反击）。本钩子跑在消耗之前（resolveParry 第 4 步：反应 → 消耗）。
         // 回合外补的 AP 若不重排，会在她按原定时刻满槽进回合时被 cap 掉（gainAp 夹到 maxAp →
         // res.apWasted），所以顺手 notifyRegenChanged：recalcRegenDelay 会把缺口算小、下一动真的提前。
         onParry: ({ target, engine }) => {
