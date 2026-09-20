@@ -659,7 +659,7 @@ export const ARTIFACTS: Artifact[] = [
     {
         id: 'zhu_ye_qing',
         name: '竹叶青',
-        description: '翠竹清冽的药酒，饮后内息奔涌。花1AP饮用，每层AP恢复+0.3/秒，持续9秒，最多3层。',
+        description: '翠竹清冽的药酒，饮后内息奔涌。花1AP饮用，每次独立持续9秒，每层AP恢复+0.3/秒，最多3层。',
         tags: ['jiu'],
         grantsActions: ['_zhu_ye_qing'],
     },

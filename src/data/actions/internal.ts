@@ -1,5 +1,6 @@
 import type { ActionDefinition } from '../../engine/entities/action'
 import { hasNoStance } from '../../engine/combat/utils'
+import { countIndependentLayers } from '../../engine/combat/utils/buff-apply'
 import { round1 } from '../../engine/util/math'
 import { MAX_CHAN } from '../../engine/constants'
 
@@ -313,6 +314,10 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['pre_action', 'buff', 'jiu', 'internal'],
         target: 'self',
+        // 竹叶青是 independent 叠层（每层自己一条 9 秒计时），层数上限只能在这里兜：
+        // 满 3 层就别再喝了，否则白花 1 AP（engine 执行 support 时也会复验 canUse，不会扣 AP）。
+        canUse: (attacker, state) => countIndependentLayers(state, 'zhu_ye_qing', attacker.id) < 3,
+        hookNotes: { canUse: '已满3层时不再饮用' },
         effects: [{ type: 'add_buff', buffId: 'zhu_ye_qing' }],
     },
     {

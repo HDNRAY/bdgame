@@ -485,10 +485,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'zhu_ye_qing',
         name: '竹叶青',
-        description: '翠竹清冽，饮后内息奔涌。每层AP恢复+0.3/秒，持续9秒。',
+        description: '翠竹清冽，饮后内息奔涌。每次饮用独立持续9秒，每层AP恢复+0.3/秒，最多3层。',
         tags: ['defense', 'jiu'],
         expiry: { type: 'duration', ms: 9000 },
-        stacking: { type: 'additive', max: 3 },
+        // independent：每次饮用是**自己一层、自己一条 9 秒计时**（3 层就是 3 条独立倒计时，
+        // 依次到期、逐层掉），不再是 additive 那种「共享一条计时器 + 续饮只刷新」——
+        // 后者满层续饮常常只买到一两秒。层数上限由 `_zhu_ye_qing` 的 canUse 兜（满 3 层不再饮）。
+        stacking: { type: 'independent' },
         apRegenPerSec: ({ layer }) => 0.3 * (layer.restoreValue ?? 1),
     },
     {
