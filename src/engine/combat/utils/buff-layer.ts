@@ -7,6 +7,7 @@ import { forEachBuffOf, forEachHookOf } from './buff-loop'
 import { BattleLog } from '../battle-log'
 import type { TriggerEvent } from '../../entities/trigger'
 import { calcDebuffDuration, calcBuffDuration } from '../../calc/damage'
+import { MAX_HP_PER_VIT } from '../../calc/stats'
 import { notifyRegenChanged } from './ap-regen'
 import { round1 } from '../../util/math'
 
@@ -66,7 +67,7 @@ export function applyAttrMods(
     }
     // 根骨增加 → 按比例增加剩余血量（切走时不降）
     if ('vitality' in applied && applied.vitality > 0) {
-        const oldMax = char.maxHp - applied.vitality * 18
+        const oldMax = char.maxHp - applied.vitality * MAX_HP_PER_VIT
         const ratio = oldMax > 0 ? char.hp / oldMax : 1
         char.hp = Math.round(char.maxHp * Math.min(ratio, 1))
     }
@@ -179,7 +180,7 @@ export function setLayerMods(
  * 属性变化的两条副作用，与旧实现同一口径（重算路径也必须补上，否则动态属性修正会比旧实现
  * 凭空少回血/回炁，或者只上不下、血量随时间往上爬）：
  *  - 上限掉了（根骨降低）→ 按比例掉血（旧 `revertBuffMods`：`hp × 新上限/旧上限`，保底 1）
- *  - 根骨增加 → 按比例增加剩余血量（旧 `applyAttrMods`：按 `新上限 − Δ根骨×18` 估旧上限，比例 ≥1 即回满）
+ *  - 根骨增加 → 按比例增加剩余血量（旧 `applyAttrMods`：按 `新上限 − Δ根骨×每点根骨气血` 估旧上限，比例 ≥1 即回满）
  *  - 推演变化 → AP 回复率变化，重算该角色下次行动时间
  */
 export function applyAttrChangeSideEffects(
@@ -195,7 +196,7 @@ export function applyAttrChangeSideEffects(
         char.hp = Math.max(1, Math.round(hpBefore * (char.maxHp / maxHpBefore)))
     } else if (vitAfter > vitBefore) {
         const dVit = vitAfter - vitBefore
-        const oldMaxEstimate = char.maxHp - dVit * 18
+        const oldMaxEstimate = char.maxHp - dVit * MAX_HP_PER_VIT
         const ratio = oldMaxEstimate > 0 ? hpBefore / oldMaxEstimate : 1
         char.hp = Math.round(char.maxHp * Math.min(ratio, 1))
     }

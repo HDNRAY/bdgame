@@ -6,6 +6,7 @@ import { processBuffEnd } from '../combat/effects/buff-end'
 import { ALL_ATTRS } from '../entities/attributes'
 import { getBuff } from '../../data/buffs'
 import { dropBuffLayer } from '../combat/utils'
+import { MAX_HP_PER_VIT } from '../calc/stats'
 import { setLayerMods } from '../combat/utils/buff-layer'
 import { vi } from 'vitest'
 import type { CharacterBuild } from '../../game/entities/character-build'
@@ -121,8 +122,8 @@ describe('属性账按序回放', () => {
 
         setLayerMods(layer, a, engine.state, { vitality: 6 })
         expect(a.maxHp).toBeGreaterThan(maxBefore)
-        // 旧 applyAttrMods 口径：新上限 − Δ根骨×18 估旧上限，比例 ≥1 即回满
-        const ratio = hpBefore / (a.maxHp - 6 * 18)
+        // 旧 applyAttrMods 口径：新上限 − Δ根骨×每点根骨气血 估旧上限，比例 ≥1 即回满
+        const ratio = hpBefore / (a.maxHp - 6 * MAX_HP_PER_VIT)
         expect(a.hp).toBe(Math.round(a.maxHp * Math.min(ratio, 1)))
 
         const hpAfterBuff = a.hp
