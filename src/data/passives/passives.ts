@@ -166,7 +166,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'ice_heart',
         name: '冰心诀',
-        description: '冰心玉壶，免疫霜冻；对麻痹、灼烧、不幸、迷惑有50%几率免疫。',
+        description: '冰心玉壶，根骨+1；免疫霜冻，对麻痹、灼烧、不幸、迷惑有50%几率免疫。',
         tags: ['defense', 'buff'],
         effects: [
             {

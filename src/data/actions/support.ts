@@ -17,6 +17,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         apCost: 1,
         tags: ['buff', 'defense', 'post_action', 'stance', 'parry'],
         target: 'self',
+        canUse: (attacker, state) => !state.pendingBuffs.has(`guard_up::${attacker.id}`),
         effects: [{ type: 'add_buff', buffId: 'guard_up' }],
         hookNotes: { canUse: '已有听潮状态时不可重复' },
     },

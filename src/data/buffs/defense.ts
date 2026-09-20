@@ -1,5 +1,6 @@
 import { processActionEffect } from '../../engine/combat/effects'
 import { countDrunkLayers } from '../../engine/combat/utils'
+import { notifyRegenChanged } from '../../engine/combat/utils/ap-regen'
 import type { BuffDef } from './types'
 import { rng } from '../../engine/util/rng'
 import { Tag } from '../../engine/entities/tag'
@@ -49,11 +50,17 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'guard_up',
         name: '守势',
-        description: '凝神防守，招架率大幅提升。',
+        description: '凝神防守，招架率大幅提升；招架成功回复 1 点内息。',
         tags: ['defense', 'stance'],
         expiry: { type: 'duration', ms: 6000 },
         stacking: { type: 'none' },
         onParryChance: () => 0.5,
+        // 招架成功回 1 AP（听潮 = 守势反击）。
+        // 回合外补的 AP 若不重排，会在她按原定时刻满槽进回合时被 cap 掉（gainAp 夹到 maxAp →
+        // res.apWasted），所以顺手 notifyRegenChanged：recalcRegenDelay 会把缺口算小、下一动真的提前。
+        onParry: ({ target, engine }) => {
+            if (target.gainAp(1) > 0 && engine) notifyRegenChanged(engine.state, target)
+        },
     },
     {
         id: 'wind_hear_buff',
@@ -129,9 +136,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'elemental_immunity',
         name: '冰心',
-        description: '冰心玉壶，免疫霜冻；对麻痹、灼烧、不幸、迷惑有50%几率免疫。',
+        description: '冰心玉壶，根骨+1；免疫霜冻，对麻痹、灼烧、不幸、迷惑有50%几率免疫。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
+        attrMods: { vitality: 1 },
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId === 'frost') return 0
             if (HALF_IMMUNE_DEBUFFS.includes(ctx.buffId)) {

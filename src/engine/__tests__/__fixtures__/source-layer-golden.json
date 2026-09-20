@@ -955,7 +955,7 @@
   "id": "baihu:10",
   "attrs": {
    "strength": 6,
-   "vitality": 6,
+   "vitality": 7,
    "agility": 6,
    "dexterity": 6,
    "insight": 6,
@@ -964,7 +964,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 176,
+  "maxHp": 192,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
@@ -981,7 +981,7 @@
   "id": "baihu:20",
   "attrs": {
    "strength": 10,
-   "vitality": 10,
+   "vitality": 11,
    "agility": 10,
    "dexterity": 10,
    "insight": 11,
@@ -990,7 +990,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 240,
+  "maxHp": 256,
   "maxAp": 7,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -1008,7 +1008,7 @@
   "id": "baihu:33",
   "attrs": {
    "strength": 14,
-   "vitality": 14,
+   "vitality": 15,
    "agility": 16,
    "dexterity": 16,
    "insight": 15,
@@ -1017,7 +1017,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 1,
-  "maxHp": 304,
+  "maxHp": 320,
   "maxAp": 8,
   "maxTriggerSlots": 2,
   "weaponTags": [
@@ -3792,7 +3792,7 @@
   "id": "pas:ice_heart",
   "attrs": {
    "strength": 7,
-   "vitality": 7,
+   "vitality": 8,
    "agility": 9,
    "dexterity": 7,
    "insight": 7,
@@ -3801,7 +3801,7 @@
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
-  "maxHp": 192,
+  "maxHp": 208,
   "maxAp": 6,
   "maxTriggerSlots": 1,
   "weaponTags": [
