@@ -1063,12 +1063,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'wuxue_baodian_shang',
         name: '武学宝典上',
-        description: '通晓天下武学路数。自身每有1个奖励标签，伤害+1.5%，上限15%。',
+        description: '通晓天下武学路数。自身每有1个奖励标签，伤害+1%，上限15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        // 每 tag +1.5% 伤害（上限 15%）
+        // 每 tag +1% 伤害（上限 15%）
         onDealDamage: ({ final, attacker }) => {
-            const pct = Math.min(0.15, countRewardTags(attacker) * 0.015)
+            const pct = Math.min(0.15, countRewardTags(attacker) * 0.01)
             if (pct <= 0) return final
             return round1(final * (1 + pct))
         },
@@ -1076,12 +1076,12 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'wuxue_baodian_xia',
         name: '武学宝典下',
-        description: '通晓天下武学路数。自身每有1个奖励标签，受到伤害-1.5%，上限15%。',
+        description: '通晓天下武学路数。自身每有1个奖励标签，受到伤害-1%，上限15%。',
         tags: [],
         expiry: { type: 'permanent' },
-        // 每 tag -1.5% 受到伤害（上限 15%）
+        // 每 tag -1% 受到伤害（上限 15%）
         onTakeDamage: ({ final, target }) => {
-            const pct = Math.min(0.15, countRewardTags(target) * 0.015)
+            const pct = Math.min(0.15, countRewardTags(target) * 0.01)
             if (pct <= 0) return final
             return round1(final * (1 - pct))
         },
