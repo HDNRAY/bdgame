@@ -194,10 +194,10 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'ling_bo_wei_bu_buff',
         name: '凌波微步',
-        description: '步法精妙，出招更省内息、起手更快。急速16。',
+        description: '步法精妙，出招更省内息、起手更快。急速15。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
-        onHaste: () => 16,
+        onHaste: () => 15,
     },
     {
         id: 'paralyze_immunity',
@@ -789,16 +789,16 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'chan_ding_buff',
         name: '朱雀定',
-        description: '朱雀定息，以火炼炁。受击回复2点缠劲。',
+        description: '朱雀定息，以火炼炁。受击回复1点缠劲。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onTakeDamage: ({ final, target, engine }) => {
             if (final <= 0) return final
-            target.addChan(2)
+            target.addChan(1)
             engine?.emitLog({
                 type: 'system',
-                message: `[朱雀定] ${target.name} 受击化炁，缠劲+2`,
+                message: `[朱雀定] ${target.name} 受击化炁，缠劲+1`,
                 actorId: target.id,
             })
             return final

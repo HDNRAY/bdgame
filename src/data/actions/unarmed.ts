@@ -159,12 +159,12 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         chanCost: 20,
         tags: ['unarmed', 'melee', 'chan'],
-        onActionCritChance: (base) => base + 0.15,
-        hookNotes: { critChance: '+15%' },
+        onActionCritChance: (base) => base + 0.2,
+        hookNotes: { critChance: '+2%' },
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
-            { type: 'missing_hp_damage', ratio: 0.2 },
+            { type: 'missing_hp_damage', ratio: 0.18 },
         ],
     },
     {
@@ -179,7 +179,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.1, wisdom: 0.1 } },
             { type: 'self_missing_hp_damage', ratio: 0.18 },
-            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
+            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 1, chance: 1 },
         ],
     },
     {
@@ -296,7 +296,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         tags: ['unarmed', 'qi', 'pierce', 'chan', 'melee'],
         effects: [
             { type: 'short_dash', maxDistance: 2 },
-            { type: 'damage', scaling: { strength: 0.8, wisdom: 0.8, agility: 0.2 }, piercingRatio: 0.5 },
+            { type: 'damage', scaling: { strength: 0.8, wisdom: 0.8, agility: 0.2 }, piercingRatio: 0.4 },
         ],
     },
     {
@@ -319,7 +319,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         description: '掌含如来真意，掌未至，意已到。极难闪避，以根骨与推演之力伤敌。',
         requiredTags: ['unarmed'],
         apCost: 5,
-        chanCost: 20,
+        chanCost: 24,
         tags: ['unarmed', 'qi', 'chan'],
         getRange: () => [0, 2] as [number, number],
         onActionHitChance: (base) => base + 0.2,
@@ -327,7 +327,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         hookNotes: { hitChance: '+20%', critChance: '+30%' },
         effects: [
             { type: 'short_dash', maxDistance: 5 },
-            { type: 'damage', scaling: { strength: 0.5, vitality: 0.6, wisdom: 0.6 } },
+            { type: 'damage', scaling: { strength: 0.6, vitality: 0.6, wisdom: 0.6 } },
         ],
     },
     {

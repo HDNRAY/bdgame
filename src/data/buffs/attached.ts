@@ -55,7 +55,7 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     {
         id: 'synthetic_lung_attr',
         name: '合成肺叶',
-        description: '体质+2、力道+1、身法+1。',
+        description: '根骨+2、力道+1、身法+1。',
         tags: [],
         expiry: { type: 'permanent' },
         attrMods: { vitality: 2, strength: 1, agility: 1 },
@@ -95,7 +95,7 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     {
         id: 'titanium_spine_attr',
         name: '钛合金脊椎',
-        description: '体质+5。',
+        description: '根骨+5。',
         tags: [],
         expiry: { type: 'permanent' },
         attrMods: { vitality: 5 },
@@ -128,7 +128,7 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     {
         id: 'snake_gall_attr',
         name: '菩斯曲蛇胆',
-        description: '力道+2、体质+2。',
+        description: '力道+2、根骨+2。',
         tags: [],
         expiry: { type: 'permanent' },
         attrMods: { strength: 2, vitality: 2 },
@@ -177,7 +177,7 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     {
         id: 'ningqi_jue_attr',
         name: '凝炁诀',
-        description: '力道+1、体质+1、身法+1、灵巧+1、洞察+1。',
+        description: '力道+1、根骨+1、身法+1、灵巧+1、洞察+1。',
         tags: [],
         expiry: { type: 'permanent' },
         attrMods: { strength: 1, vitality: 1, agility: 1, dexterity: 1, insight: 1 },
@@ -185,7 +185,7 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     {
         id: 'sekai_heroism_attr',
         name: '舍得心法',
-        description: '体质-2、力道+2、身法+2、灵巧+2、洞察+2。',
+        description: '根骨-2、力道+2、身法+2、灵巧+2、洞察+2。',
         tags: [],
         expiry: { type: 'permanent' },
         attrMods: { vitality: -2, strength: 2, agility: 2, dexterity: 2, insight: 2 },
@@ -193,7 +193,7 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     {
         id: 'yi_jin_jing_attr',
         name: '易筋经',
-        description: '体质+2、推演+2。',
+        description: '根骨+2、推演+2。',
         tags: [],
         expiry: { type: 'permanent' },
         attrMods: { vitality: 2, wisdom: 2 },
@@ -228,7 +228,7 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     {
         id: 'qiti_awaken_attr',
         name: '炁体源流·觉醒',
-        description: '力道+2、体质+2、身法+2、灵巧+2、洞察+2、推演+2。',
+        description: '力道+2、根骨+2、身法+2、灵巧+2、洞察+2、推演+2。',
         tags: [],
         expiry: { type: 'permanent' },
         attrMods: { strength: 2, vitality: 2, agility: 2, dexterity: 2, insight: 2, wisdom: 2 },
@@ -410,11 +410,11 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     {
         id: 'ling_bo_wei_bu_guard',
         name: '身法护持',
-        description: '身法不低于16。',
+        description: '身法不低于15。',
         tags: [],
         expiry: { type: 'permanent' },
         statRestriction: (_char, attr, current, delta) =>
-            attr === 'agility' && delta < 0 && current + delta < 16 ? { delta: 16 - current } : null,
+            attr === 'agility' && delta < 0 && current + delta < 15 ? { delta: 15 - current } : null,
     },
     {
         id: 'yuanting_yuezhi_guard',

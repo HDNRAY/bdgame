@@ -12,6 +12,7 @@
 4. 修掉现存三个 bug（见 §3）。
 
 不做（下一阶段）：
+
 - 153 处"纯行为" `on_equip`/`battle_start` 触发器的迁移（它们不涉及属性，迁移无功能收益）。
 - 因此 `battle_start` 作为**玩家可选触发条件**与 `on_equip` 事件名暂时都在；等那 153 处迁完再一起删。
 
@@ -41,17 +42,18 @@
 ```
 
 规则：
+
 - 源的顶层 `effects` 与触发器里的 `add_buff` **语义相同**（都是"挂一个 buff"）；顶层 = 构造期挂（属性立刻生效），触发器 = 事件驱动。
 - 附着 buff 的 `attrMods × stacks` + `maxApMod` 折进来源层账 → 构筑面板、触发槽上限、开局血量、武器 `requireAttrsMin` 门槛全部照旧在构造期就算对。
 - 纯属性附着 buff（只有 `attrMods`/`maxApMod`，无 hooks）标 `hidden`，目的是保持现在的观感：账上的属性加成今天不进 buff 列表。有 hooks 的照旧显示。
 
 ## 3. 现存 bug（都要修）
 
-| # | 现象 | 实测 |
-| --- | --- | --- |
-| 1 | 战斗期 buff 的属性贡献被来源层重算抹掉，层里的 `mods` 还在 → 到期再扣一次 | 内劲 +3 力道：13 → 重算后 10 → 层移除后 **7**（扣两次） |
-| 2 | 汲取对目标的永久扣减没有账，任何一次重算都会还回去 | 对方 9 → 汲取 3 点 6 → 重算后 **9** |
-| 3 | `switch_weapon` 用逆运算改属性、不动来源层账 → 账说旧武器、`weaponDef` 说新武器，之后任何重算（探云手即触发）悄悄回滚换武 | 换武后 11/11/12、账 `weapon:bare_hands`；重算后 10/10/10、`weaponDef` 回到 `bare_hands` |
+| #   | 现象                                                                                                                      | 实测                                                                                    |
+| --- | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 1   | 战斗期 buff 的属性贡献被来源层重算抹掉，层里的 `mods` 还在 → 到期再扣一次                                                 | 内劲 +3 力道：13 → 重算后 10 → 层移除后 **7**（扣两次）                                 |
+| 2   | 汲取对目标的永久扣减没有账，任何一次重算都会还回去                                                                        | 对方 9 → 汲取 3 点 6 → 重算后 **9**                                                     |
+| 3   | `switch_weapon` 用逆运算改属性、不动来源层账 → 账说旧武器、`weaponDef` 说新武器，之后任何重算（探云手即触发）悄悄回滚换武 | 换武后 11/11/12、账 `weapon:bare_hands`；重算后 10/10/10、`weaponDef` 回到 `bare_hands` |
 
 触发点：探云手偷奇物（全库唯一战斗中 `removeSource`）、换武。`addSource` 只在构建期。
 
@@ -100,9 +102,9 @@ weaponDef = derivedWeaponDef()
 ## 5. 迁移清单
 
 - `stat_buff` 站点 32 个：
-  - 可并入该源**已有的专属** buff（8）：`muscle_boost→muscle_degradation`、`frog_gall→poison_resist`、`pu_ti_zhu→pu_ti_zhu_buff`、`combat_armor→combat_armor_def`、`spirit_resonance→spirit_resonance_buff`、`enhanced_vision→enhanced_vision_buff`、`no_light_wisdom→no_light_buff`、`iron_back_hand→iron_back_buff`。
-  - 需新开 buff（24）：其余（`titanium_arm`、`mechanical_eye`、`nano_metal_heart`、`synthetic_lung`、`neural_net`、`combat_chip`、`cochlear_implant`、`doctor_chip`、`pu_ti_tou_huan`、`wisdom_talisman`、`other_mountain`、`snake_gall`、`fiery_eyes`、`iron_mask`、`tactical_goggles`、`nano_exoskeleton`、`titanium_spine`、`dark_room_catch`、`ningqi_jue`、`sekai_heroism`、`yi_jin_jing`、`yanling_blade`、`bare_hands`、`dagger`）。名字用来源名，`hidden: true`。
-  - 战斗期 2 个（`internal.ts` 3000ms 闪避、`buffs.ts` 6000ms）→ 具名 buff + `expiry:{type:'duration'}`，不隐藏。
+    - 可并入该源**已有的专属** buff（8）：`muscle_boost→muscle_degradation`、`frog_gall→poison_resist`、`pu_ti_zhu→pu_ti_zhu_buff`、`combat_armor→combat_armor_def`、`spirit_resonance→spirit_resonance_buff`、`enhanced_vision→enhanced_vision_buff`、`no_light_wisdom→no_light_buff`、`iron_back_hand→iron_back_buff`。
+    - 需新开 buff（24）：其余（`titanium_arm`、`mechanical_eye`、`nano_metal_heart`、`synthetic_lung`、`neural_net`、`combat_chip`、`cochlear_implant`、`doctor_chip`、`pu_ti_tou_huan`、`wisdom_talisman`、`other_mountain`、`snake_gall`、`fiery_eyes`、`iron_mask`、`tactical_goggles`、`nano_exoskeleton`、`titanium_spine`、`dark_room_catch`、`ningqi_jue`、`sekai_heroism`、`yi_jin_jing`、`yanling_blade`、`bare_hands`、`dagger`）。名字用来源名，`hidden: true`。
+    - 战斗期 2 个（`internal.ts` 3000ms 闪避、`buffs.ts` 6000ms）→ 具名 buff + `expiry:{type:'duration'}`，不隐藏。
 - `on_equip`/`battle_start` 里**带属性的** 12 处 → 顶层 `effects:[add_buff]`（其中 8 处与上面并入的是同一批 buff，属性直接落在 buff 的 `attrMods` 上）。
 - `max_ap_mod` 3 处 → 保持账 op（或 buff 的 `maxApMod`，实现时按哪边简单挑）。
 - 删除：`stat_buff` 效果类型与 handler、`on_equip` 触发条件（数据上迁完后无使用）、`equip.ts` 的 `processOnEquipEffects`、`effectDisplay`/`triggerDisplay` 对应分支、DevMode `WeaponCompare` 里按 `on_equip` 模拟的三处（改读账）。
@@ -134,16 +136,17 @@ weaponDef = derivedWeaponDef()
 
 S1 + S2 机制已完成并验证：`tsc` 0 / `eslint` 0 / `src/engine/` 无 `as any` / 64 文件 576 测试通过。
 
-| 场景 | 修复后 | 旧实现 |
-| --- | --- | --- |
-| 内劲 +3 → 来源层重算 → 到期 | 13 → 13 → 10 | 13 → 10 → 7 |
-| 被汲取 → 对方重算 → 到期还回 | 7 → 7 → 10 | 6 → 9（提前长回来） |
-| 夹取边界撤来源（base 9 + A10 + B20 撤 A） | 29 | 增量平移会得 20（漂 9 点） |
-| 换武后账/weaponDef/属性 | 三者一致，重算不回滚 | 账说旧武器，重算回滚换武 |
+| 场景                                      | 修复后               | 旧实现                     |
+| ----------------------------------------- | -------------------- | -------------------------- |
+| 内劲 +3 → 来源层重算 → 到期               | 13 → 13 → 10         | 13 → 10 → 7                |
+| 被汲取 → 对方重算 → 到期还回              | 7 → 7 → 10           | 6 → 9（提前长回来）        |
+| 夹取边界撤来源（base 9 + A10 + B20 撤 A） | 29                   | 增量平移会得 20（漂 9 点） |
+| 换武后账/weaponDef/属性                   | 三者一致，重算不回滚 | 账说旧武器，重算回滚换武   |
 
 删掉的逆运算：`revertBuffMods`、`partialRevertMods`、`revertWeaponStatBuffs`、`clearWeaponBuffLayers`、`buff-end` 的 `stat_transfer` 特例。
 
 ### 范围调整（相对 §1）
+
 - **触发条件大迁移推迟**：`on_equip`（48 槽）+ `battle_start`（115 槽）里只有 11 处挂的 buff 自带 `attrMods`。
   把这 11 处上移到源顶层 `effects` 会让它们的属性从"开局生效"变成"构造期生效"—— 构筑面板显示值、
   触发槽上限（洞察/推演类）、开局血量都会变，属**平衡变动**且会让 316 条 golden 失效。
@@ -156,15 +159,16 @@ S1 + S2 机制已完成并验证：`tsc` 0 / `eslint` 0 / `src/engine/` 无 `as 
 
 这三条是同一类错误：**把某个「构造期冻结/派生」的量改成战斗期可重算/派生后，没有同步处理旧的直接读取点与直接写入点**。都用「HEAD 基线树 + 固定种子逐事件 diff」定位，不要只看终局属性 —— 三条都会出现「终局属性完全一致、行为已经不同」的现象。
 
-| # | 根因 | 症状 | 修法 | 验收 |
-| --- | --- | --- | --- | --- |
-| 1 | `rebuildDerived()` 用**活属性**重算 `#maxTriggerSlots`（HEAD 冻结在构造期） | 战斗期推演被汲取/被减 → `floor(推演/4)` 变小 → `#configTriggers.slice(0, cap)` **静默切掉**玩家配置的触发槽 → 触发招式不再执行 | 来源层回放结束后抓 `slotWisdom`，触发槽上限只认来源层（与 ctor 注释「战斗期间固定」一致） | 悟空 `wr.ts` 135/280 = HEAD；laifeng 15/20；随机数流 127 = HEAD |
-| 2 | `ciyuan_init`（灵剑·附炁与刃）**直接手写派生值 `weaponDef`** | 下一次任意 `rebuildDerived()` 用 `derivedWeaponDef()` 把手写的 `qi` 标签抹掉 → `qi_amplify`（炁意）恒 no-op → 碧落剑法少 ≈+17% 伤害 | `Character.weaponPatch` + `patchWeapon()`，`derivedWeaponDef()` 叠加补丁，`setWeapon()` 换武清空（= 旧版整体覆盖语义） | 纯重构树 haoran 169/620 → **272/620 = 43.9%**（HEAD 264/620 = 42.6%）；影响面仅 haoran/ajiu（全库只有他俩带 `spirit_sword`） |
-| 3 | 战斗期属性写入的**副作用**与**概率限制器**在重算路径上丢失/重放 | ① 七十二变轮体质不再按“根骨↑回血”口径回血；② 概率限制器（50% 挡推演降低）每次重算重新掷骰 → 属性与随机数流双分叉 | ① `setLayerMods`/`dropBuffLayer` 补 `applyAttrChangeSideEffects`（根骨↑回血、上限掉按比例掉血、推演变化通知回炁）；② 限制器只在**真正施加**时掷一次，层里存“过了限制器的请求值”，回放不再过限制器 | 内劲 13→13→10（旧：13→10→7）；汲取 7→7→10（旧：6→9） |
+| #   | 根因                                                                        | 症状                                                                                                                                | 修法                                                                                                                                                                                              | 验收                                                                                                                         |
+| --- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `rebuildDerived()` 用**活属性**重算 `#maxTriggerSlots`（HEAD 冻结在构造期） | 战斗期推演被汲取/被减 → `floor(推演/4)` 变小 → `#configTriggers.slice(0, cap)` **静默切掉**玩家配置的触发槽 → 触发招式不再执行      | 来源层回放结束后抓 `slotWisdom`，触发槽上限只认来源层（与 ctor 注释「战斗期间固定」一致）                                                                                                         | 悟空 `wr.ts` 135/280 = HEAD；laifeng 15/20；随机数流 127 = HEAD                                                              |
+| 2   | `ciyuan_init`（灵剑·附炁与刃）**直接手写派生值 `weaponDef`**                | 下一次任意 `rebuildDerived()` 用 `derivedWeaponDef()` 把手写的 `qi` 标签抹掉 → `qi_amplify`（炁意）恒 no-op → 碧落剑法少 ≈+17% 伤害 | `Character.weaponPatch` + `patchWeapon()`，`derivedWeaponDef()` 叠加补丁，`setWeapon()` 换武清空（= 旧版整体覆盖语义）                                                                            | 纯重构树 haoran 169/620 → **272/620 = 43.9%**（HEAD 264/620 = 42.6%）；影响面仅 haoran/ajiu（全库只有他俩带 `spirit_sword`） |
+| 3   | 战斗期属性写入的**副作用**与**概率限制器**在重算路径上丢失/重放             | ① 七十二变轮根骨不再按“根骨↑回血”口径回血；② 概率限制器（50% 挡推演降低）每次重算重新掷骰 → 属性与随机数流双分叉                    | ① `setLayerMods`/`dropBuffLayer` 补 `applyAttrChangeSideEffects`（根骨↑回血、上限掉按比例掉血、推演变化通知回炁）；② 限制器只在**真正施加**时掷一次，层里存“过了限制器的请求值”，回放不再过限制器 | 内劲 13→13→10（旧：13→10→7）；汲取 7→7→10（旧：6→9）                                                                         |
 
 配套：`dropBuffLayerQuiet`（被汲取方的配对账到期时不播报、不跑血量/回炁副作用 —— HEAD 对目标的还原是直写 `attrs.modify`，多一次 `notifyRegenChanged` 就会让随机数从 127 变 125）。
 
 ### 同类隐患的封闭检查（已做）
+
 - `grep -rn "weaponDef\s*=" src/engine src/data` → 除 `this.weaponDef = this.derivedWeaponDef()` 外**无**手写。
 - `#configTriggers` / `offhandDef` 只在构造期赋值；`#actionCache` 由来源驱动增删；`buffDurationCallbacks` / `statRestrictionChecks` / `triggerSlotMod` / `maxHpMod` / `weaponDef` 全部由**来源层**派生。
 - 唯一已知未进账项：`max_ap_mod` 仍 `self.maxApMod += e.value`（不会重现本类 bug，但换武/on_equip 重入可能重复累加）。
@@ -173,12 +177,12 @@ S1 + S2 机制已完成并验证：`tsc` 0 / `eslint` 0 / `src/engine/` 无 `as 
 
 现状：`on_equip` 50 槽 / `battle_start` 109 槽，合计 **166 个 `add_buff` 效果**。
 
-| 类别 | 处数 | 迁到顶层 `effects:[add_buff]` 的影响 |
-| --- | --- | --- |
-| 带钩子（无 `attrMods`） | 132 | 行为等价（同一时刻建同一层、同批钩子）；唯一可观测差异是 t=0 建层/日志顺序 |
-| 纯行为（无钩子无属性） | 24 | 同上 |
-| `actionId` 型（居合 `_iaijutsu_ready`） | 1 | 用 `BuffDef.onActivate` 承载 |
-| **带 `attrMods`** | **10** | **会影响平衡，实测不建议直接迁**（见下） |
+| 类别                                    | 处数   | 迁到顶层 `effects:[add_buff]` 的影响                                       |
+| --------------------------------------- | ------ | -------------------------------------------------------------------------- |
+| 带钩子（无 `attrMods`）                 | 132    | 行为等价（同一时刻建同一层、同批钩子）；唯一可观测差异是 t=0 建层/日志顺序 |
+| 纯行为（无钩子无属性）                  | 24     | 同上                                                                       |
+| `actionId` 型（居合 `_iaijutsu_ready`） | 1      | 用 `BuffDef.onActivate` 承载                                               |
+| **带 `attrMods`**                       | **10** | **会影响平衡，实测不建议直接迁**（见下）                                   |
 
 带 `attrMods` 的 10 处：`titanium_arm`/`hydraulic_leg` 的 overload、`muscle_boost` 的失感、`floating_eye`、`wheelchair_lightness`、`forge`、`one_arm`、`tide_inner_power`、`lingxi_finger`、`autumn_water`。
 
@@ -188,6 +192,7 @@ S1 + S2 机制已完成并验证：`tsc` 0 / `eslint` 0 / `src/engine/` 无 `as 
 - golden：**14 条 build** 的 attrs 变化（阿九另有 maxHp/maxAp）。
 
 三条机制：
+
 1. 构造期属性变化 → 武器/功法 `requireAttrsMin` 门槛、`#maxTriggerSlots`、开局 `hp/maxAp` 跟着变；
 2. `stat_restriction` 的交互位置变化（属性落在限制器注册之前/之后不同）；
 3. **随机数流位移**：HEAD 那次开局施加会走带概率的限制器（掷骰）+ `notifyRegenChanged`，提前到构造期后调用时刻/次数改变 → 主战斗随机流整体平移 → 终局六维/血量/层数完全一致但胜负不同（实证：`yangguo vs qilan` battle_start 快照逐字段相同）。
@@ -210,18 +215,20 @@ S1 + S2 机制已完成并验证：`tsc` 0 / `eslint` 0 / `src/engine/` 无 `as 
 - 居合：`battle_start → actionId:_iaijutsu_ready` 改成隐藏 buff `iaijutsu_ready_buff` 的 `onActivate` → `engine.fireTriggerAction()`（该方法是把 `#processEmit` 的 actionId 判定**抽成私有方法后暴露**，无第二份实现）；`iaijutsu_mastery.grantsActions` 补 `_iaijutsu_ready`。
 - `on_equip` 机制删除：`TriggerEvent` 联合、`equip.ts`、ctor/`addArtifact`/`switch_weapon` 调用、`triggerDisplay`、DevMode `WeaponCompare`。**`battle_start` 作为玩家可选条件保留**（表项与 `emit` 未动）；残留 `on_equip`/`attachPhase` 引用 = 0。
 - 迁移中顺手修掉的三个真问题（都在 `needsRuntimeLayer`/`materializeAttached*`）：
-  1. 判据不能把**非 hidden** 的 buff 当空壳 → 否则 `min_move_cost`（被 `pendingBuffs.has` 读的标记）、`sangui_yuanqi`（被 `_sangui_heal` 消耗）、`muscle_degradation`（可见减益）整条消失；
-  2. 物化要带上 `max`/`stackGate`（否则开局与战斗中同一条数据不一致：2.5 层不 floor、叠层缠劲消耗丢失）；
-  3. 幂等判定要用**拥有者前缀**（`buffId::自己id`，原为 `buffId::`）→ 否则双方各持同一件奇物时第二个人被跳过。
+    1. 判据不能把**非 hidden** 的 buff 当空壳 → 否则 `min_move_cost`（被 `pendingBuffs.has` 读的标记）、`sangui_yuanqi`（被 `_sangui_heal` 消耗）、`muscle_degradation`（可见减益）整条消失；
+    2. 物化要带上 `max`/`stackGate`（否则开局与战斗中同一条数据不一致：2.5 层不 floor、叠层缠劲消耗丢失）；
+    3. 幂等判定要用**拥有者前缀**（`buffId::自己id`，原为 `buffId::`）→ 否则双方各持同一件奇物时第二个人被跳过。
 
 ### 行为影响分解（32 角色 × 31 对手 × 12 场 = 11904 场，迁移前 vs 迁移后）
-| 来源 | 份额 | 判定 |
-| --- | --- | --- |
-| 10 个站点属性提前到构造期 | ≈**13 场（0.11%）** | 本轮**有意**的修复（属性本就该在构造期算）；golden 36 条 build 变化逐条 = 被迁走的 `attrMods×stacks` 之和 |
-| 被消耗/移除的附着 buff 属性不退（`sangui_yuanqi` 等） | ≈1 场 | **bug，已修**：`SourceOp.fromBuff` + `Character.#detachedAttached` + `dropBuffLayer` 登记 + 重新物化时清除 |
-| 132 个带钩子 buff 的**层创建顺序**变化 | ≈**24 场（0.2%）** | **不是 bug**（数据/逻辑无错），是顺序敏感链（`onDealDamage`/`onTakeDamage`/`onParryPenetration`）取整差被混沌放大 |
+
+| 来源                                                  | 份额                | 判定                                                                                                              |
+| ----------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 10 个站点属性提前到构造期                             | ≈**13 场（0.11%）** | 本轮**有意**的修复（属性本就该在构造期算）；golden 36 条 build 变化逐条 = 被迁走的 `attrMods×stacks` 之和         |
+| 被消耗/移除的附着 buff 属性不退（`sangui_yuanqi` 等） | ≈1 场               | **bug，已修**：`SourceOp.fromBuff` + `Character.#detachedAttached` + `dropBuffLayer` 登记 + 重新物化时清除        |
+| 132 个带钩子 buff 的**层创建顺序**变化                | ≈**24 场（0.2%）**  | **不是 bug**（数据/逻辑无错），是顺序敏感链（`onDealDamage`/`onTakeDamage`/`onParryPenetration`）取整差被混沌放大 |
 
 **决定：接受 0.32% 总漂移。** 要压到 0 需记"迁移前位置"（phase + 相位内序号，可从 git 历史机械恢复）并按原序物化；`attachPhase` 本身作为**字段**没必要（曾留过死字段，已清），但"顺序影响数值"这一点成立 —— 早先"顺序是纯观感"的结论只验证了 hook-less 的隐藏层，不适用于带钩子的层。
 
 ### `hidden` 的语义收窄
+
 `hidden` 曾同时承担"不进 buff 列表"与"不建层"两件事，导致"想显示属性 buff 就得把空壳层建回来"。现在收窄为**只表示"不进 buff 列表"**：`attachedBuffs` 记录**全部**附着 buff，`materializeAttached` 只对 `needsRuntimeLayer(def)` 为真的建层，buff 列表在遍历层之后再**从来源层账补全**"有账无层"的条目（纯展示，不建层、不打日志、零行为变化）。

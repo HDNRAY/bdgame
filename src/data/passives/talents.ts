@@ -5,7 +5,7 @@ export const TALENTS: Talent[] = [
     {
         id: 'ling_bo_wei_bu',
         name: '凌波微步',
-        description: '绝世轻功，身法达到一定境界后自然领悟。步法精妙，身法不低于16。',
+        description: '绝世轻功，身法达到一定境界后自然领悟。步法精妙，身法不低于15。',
         tags: ['talent', 'buff'],
         requireAttrsMin: { agility: 20 },
         effects: [

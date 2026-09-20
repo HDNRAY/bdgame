@@ -1,7 +1,7 @@
 import { type OpponentDef } from '.'
 import { action, artifact, passive } from '../../engine/util/reward-utils'
 
-const ATTRS = { strength: 12, vitality: 12, agility: 14, dexterity: 14, insight: 14, wisdom: 15 }
+const ATTRS = { strength: 10, vitality: 12, agility: 14, dexterity: 14, insight: 14, wisdom: 16 }
 
 export const HAORAN: OpponentDef = {
     id: 'haoran',
@@ -31,6 +31,7 @@ export const HAORAN: OpponentDef = {
         {
             actionId: 'spring_bamboo_sword',
             condition: { type: 'hp_below', ratio: 0.7 },
+            triggerId: 'on_parry',
         },
         {
             actionId: 'swift_thunder_sword',

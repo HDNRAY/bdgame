@@ -78,12 +78,12 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
     {
         id: 'blowing_snow_sword',
         name: '吹雪剑法',
-        description: '一剑西来，天外飞仙。剑气凛冽如雪。',
+        description: '吹雪如刀，寒意刺骨。',
         requiredTags: ['pierce', 'melee'],
         apCost: 2,
         tags: ['pierce', 'melee', 'buff', 'debuff', 'frost'],
         effects: [
-            { type: 'add_debuff', buffId: 'frost', stacks: 2, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'frost', stacks: 2, chance: 0.3 },
             { type: 'add_buff', buffId: 'chill_blade', stacks: 1 },
             { type: 'damage', scaling: { strength: 0.1, agility: 0.1, dexterity: 0.1 } },
         ],
@@ -98,7 +98,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         getRange: () => [1, 4],
         effects: [
             { type: 'add_buff', buffId: 'bamboo_regen', stacks: 1 },
-            { type: 'damage', scaling: { wisdom: 0.2, dexterity: 0.15 } },
+            { type: 'damage', scaling: { strength: 0.1, wisdom: 0.1, dexterity: 0.1 } },
         ],
     },
     {

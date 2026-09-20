@@ -543,11 +543,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'bamboo_regen',
         name: '回春',
-        description: '剑气如春竹吐纳，生生不息。',
+        description: '剑气如春竹吐纳，生生不息。每3秒恢复层数数值的生命。',
         tags: ['heal', 'buff'],
         expiry: { type: 'duration', ms: 30000 },
         stacking: { type: 'additive', max: 2 },
-        tickInterval: 2000,
+        tickInterval: 3000,
         onTickHeal: ({ layer }) => layer.restoreValue,
     },
     {
@@ -717,7 +717,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'qishier_bian',
         name: '七十二变',
-        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧、洞察、推演增加6点。',
+        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、根骨、身法、灵巧、洞察、推演增加6点。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         tickInterval: 6000,
@@ -1184,7 +1184,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '游身',
         description: '游身步法。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 2500 },
+        expiry: { type: 'duration', ms: 2000 },
         stacking: { type: 'independent' },
         attrMods: { agility: 1, dexterity: 1 },
     },
@@ -1221,9 +1221,9 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'adrenaline_rush',
         name: '肾上腺素',
-        description: 'AP恢复速度翻倍，持续12秒。',
+        description: 'AP恢复速度翻倍，持续10秒。',
         tags: ['buff'],
-        expiry: { type: 'duration', ms: 12000 },
+        expiry: { type: 'duration', ms: 10000 },
         apRegenPerSec: ({ target }) => Math.max(1, Math.round(Math.max(2, target.attrs.get('wisdom') * 0.1))),
     },
     // ── 浮游眼 ──
@@ -1365,11 +1365,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'auto_purify',
         name: '自动净化',
-        description: '每5秒：若身中可净化的负面状态，消耗1点缠劲，净化1层；无负面则不消耗。',
+        description: '每4秒：若身中可净化的负面状态，消耗1点缠劲，净化1层；无负面则不消耗。',
         tags: ['heal'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        tickInterval: 5000,
+        tickInterval: 4000,
         onTickHeal: ({ target, engine, state }) => {
             if (!engine) return 0
             // 可净化白名单（按净化优先级排列）：流血/毒/烧 → 麻痹/霜冻 → 其余削弱控制。
@@ -1830,11 +1830,11 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'chan_xin_hui_yan_buff',
         name: '禅心慧眼',
-        description: '禅心通明，慧眼洞悉破绽。以推演窥破对手招式轨迹，每点推演+0.5%命中、+0.2%暴击。',
+        description: '禅心通明，慧眼洞悉破绽。以推演窥破对手招式轨迹，每点推演+0.3%命中、+0.5%暴击。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.004,
+        onHitChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.003,
         onCritChance: ({ attacker }) => attacker.attrs.get('wisdom') * 0.005,
     },
     // ── 枯蝉（阿九·锁血：致死伤害无效1次，触发后蜕壳） ──

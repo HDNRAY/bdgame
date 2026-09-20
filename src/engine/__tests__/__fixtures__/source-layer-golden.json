@@ -687,19 +687,19 @@
  "opp:haoran:33": {
   "id": "haoran:33",
   "attrs": {
-   "strength": 14,
+   "strength": 12,
    "vitality": 14,
    "agility": 16,
    "dexterity": 16,
    "insight": 14,
-   "wisdom": 15
+   "wisdom": 16
   },
   "maxHpMod": 0,
   "maxApMod": 0,
   "triggerSlotMod": 0,
   "maxHp": 304,
   "maxAp": 8,
-  "maxTriggerSlots": 3,
+  "maxTriggerSlots": 4,
   "weaponTags": [
    "melee",
    "one_handed",

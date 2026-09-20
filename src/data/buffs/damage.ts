@@ -320,7 +320,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'wolf_hunting_buff',
         name: '狼狩法则',
-        description: '善用自重、惯性与借力造成额外伤害。消耗2层缠劲，附加（力道+根骨+身法+灵巧）×0.04额外伤害。',
+        description: '善用自重、惯性与借力造成额外伤害。消耗2层缠劲，附加（力道+根骨+身法+灵巧）×0.05额外伤害。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -331,7 +331,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
                 (['vitality', 'agility', 'strength', 'dexterity'] as const).reduce(
                     (sum, v) => sum + attacker.attrs.get(v),
                     0,
-                ) * 0.04,
+                ) * 0.05,
             )
             return round1(final + bonus)
         },
@@ -477,7 +477,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'yi_dian_po_xiao_buff',
         name: '一点破晓',
-        description: '刺击招式伤害的50%转为穿透。',
+        description: '刺击招式伤害的80%转为穿透。',
         tags: ['pierce'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -486,7 +486,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             // pierce 判断：仅招式标签（非刺击招式不触发）
             const isPierce = source?.tags?.includes('pierce')
             if (!isPierce) return final
-            const pierce = round1(final * 0.5)
+            const pierce = round1(final * 0.8)
             return { normal: round1(final - pierce), piercing: pierce }
         },
     },

@@ -6,7 +6,7 @@ import { calcApRegenPerSec, calcPoisonTicksPerStack } from '../../engine/calc/da
 import { round1 } from '../../engine/util/math'
 import type { Character } from '../../engine/entities/character'
 
-/** 窒息每跳绞杀伤害：裸绞施加后每秒结算（力道×0.2+体质×0.2）。
+/** 窒息每跳绞杀伤害：裸绞施加后每秒结算（力道×0.2+根骨×0.2）。
  *  引擎 tick 与 AI 伤害评估共用同一份公式，改动只需在此一处。 */
 export function calcChokeTickDamage(atk: Character): number {
     return round1(atk.attrs.get('strength') * 0.2 + atk.attrs.get('vitality') * 0.2)
@@ -174,7 +174,7 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'muscle_degradation',
         name: '失感',
-        description: '肌肉负担过重，体质与技巧下降。',
+        description: '肌肉负担过重，根骨与技巧下降。',
         tags: ['debuff', 'implant'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },

@@ -53,34 +53,34 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'overlord_blade',
         name: '霸刀在手',
-        description: '离心力驱动的巨刃，势不可挡。近战招架率+20%，远程+40%，招架减免减少30%',
+        description: '离心力驱动的巨刃，势不可挡。近战招架率+25%，远程+50%，招架减免减少25%',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.4 : 0.2),
+        onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.5 : 0.25),
         onParryPenetration: ({ final, raw }) => {
-            // 返回穿掉的伤害值: 招架减免减少30%
+            // 返回穿掉的伤害值: 招架减免减少25%
             const blocked = raw - final
-            return round1(blocked * 0.3)
+            return round1(blocked * 0.25)
         },
     },
     {
         id: 'dark_iron_weight',
         name: '玄铁剑重',
-        description: '玄铁重剑，无锋无刃。命中+5%，招架减免减少30%',
+        description: '玄铁重剑，无锋无刃。命中+3%，招架减免减少25%',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
-        onHitChance: () => 0.05,
+        onHitChance: () => 0.03,
         onParryPenetration: ({ final, raw }) => {
-            // 返回穿掉的伤害值: 招架减免减少30%
+            // 返回穿掉的伤害值: 招架减免减少25%
             const blocked = raw - final
-            return round1(blocked * 0.3)
+            return round1(blocked * 0.25)
         },
     },
     {
         id: 'dinghai_pressure',
         name: '定海',
-        description: '锭海神铁的压制力场，距离越近伤害越高。招架减免减少30%。',
+        description: '锭海神铁的压制力场，距离越近伤害越高。招架减免减少25%。',
         tags: ['weapon', 'heavy'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, target, state, source }) => {
@@ -91,9 +91,9 @@ export const WEAPON_BUFFS: BuffDef[] = [
             return round1(final + bonus)
         },
         onParryPenetration: ({ final, raw }) => {
-            // 返回穿掉的伤害值: 招架减免减少30%
+            // 返回穿掉的伤害值: 招架减免减少25%
             const blocked = raw - final
-            return round1(blocked * 0.3)
+            return round1(blocked * 0.25)
         },
     },
     {
@@ -111,7 +111,7 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'xiu_dong_buff',
         name: '绣冬',
-        description: '势沉力猛，力道化为锋芒。力道×10%附加伤害。',
+        description: '势沉力猛，力道化为锋芒。力道×0.1附加伤害。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -133,11 +133,11 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'chun_lei_buff',
         name: '春雷',
-        description: '春雷灵巧加成，灵巧×8%增伤。',
+        description: '春雷灵巧加成，灵巧×0.1增伤。',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker }) => {
-            const bonus = round1(attacker.attrs.get('dexterity') * 0.08)
+            const bonus = round1(attacker.attrs.get('dexterity') * 0.1)
             return final + bonus
         },
     },

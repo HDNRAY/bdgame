@@ -117,7 +117,7 @@ describe('属性账按序回放', () => {
     it('动态属性修正：根骨↑按口径回血、轮离根骨按比例掉血（七十二变那类）', () => {
         const a = makeChar('A')
         const engine = new BattleEngine(a, makeChar('B'), 4)
-        // 造一条"七十二变式"的动态属性层：先给体质，再换到身法
+        // 造一条"七十二变式"的动态属性层：先给根骨，再换到身法
         engine.state.pendingBuffs.set('dyn::A', { restoreValue: 0, mods: {}, modsPerStack: {} })
         const layer = engine.state.pendingBuffs.get('dyn::A')!
         a.hp = Math.round(a.maxHp * 0.5) // 半血，便于观察比例

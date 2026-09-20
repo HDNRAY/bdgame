@@ -178,15 +178,15 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
     {
         id: 'jindou',
         name: '筋斗',
-        description: '一个筋斗翻腾而出，瞬间近身。范围1~8m。需身法≥10。',
+        description: '一个筋斗翻腾而出，瞬间近身。范围1~7m。需身法≥10。',
         requiredTags: [],
         apCost: 2,
-        chanCost: 3,
+        chanCost: 2,
         tags: ['move', 'pre_action', 'chan'],
         target: 'self',
         canUse: (attacker) => attacker.attrs.get('agility') >= 10,
         hookNotes: { canUse: '身法不足时不可使用' },
-        effects: [{ type: 'dash', minRange: 1, maxRange: 8, targetDist: 1 }],
+        effects: [{ type: 'dash', minRange: 1, maxRange: 7, targetDist: 1 }],
     },
     {
         id: 'feng_hui',
@@ -378,7 +378,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         description: '禅心化露，回气疗伤。',
         requiredTags: [],
         apCost: 1,
-        chanCost: 10,
+        chanCost: 7,
         tags: ['heal', 'qi', 'pre_action', 'chan'],
         target: 'self',
         effects: [
