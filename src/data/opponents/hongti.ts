@@ -8,7 +8,7 @@ export const HONGTI: OpponentDef = {
     name: '白山月',
     weapon: 'dagger',
     targetAttrs: HONGTI_ATTRS,
-    battleStyle: 'melee',
+    battleStyle: 'clinch',
     rewards: [
         action('cun_mang'),
         passive('inner_power'),
@@ -33,7 +33,7 @@ export const HONGTI: OpponentDef = {
         {
             actionId: 'qi_bolt',
             triggerId: 'on_opponent_move_away',
-            condition: { type: 'distance_greater_than', meters: 4 },
+            // condition: { type: 'distance_greater_than', meters: 4 },
         },
     ],
 }

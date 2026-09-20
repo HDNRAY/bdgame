@@ -440,7 +440,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'stance_time',
         name: '转换时刻',
-        description: '进入架势时罡气护体，5秒内免疫眩晕、击退、打断、缴械、击倒，并减伤10%。',
+        description: '进入架势时罡气护体。',
         tags: ['buff', 'defense', 'super_armor'],
         requiredTags: ['stance'],
         effects: [

@@ -29,8 +29,8 @@ export const DAIXUAN: OpponentDef = {
     actionConfigs: [
         { actionId: 'yi_hui' },
         { actionId: 'bi_hai_chao_sheng_qu', condition: { type: 'distance_greater_than', meters: 4 } },
-        { actionId: 'flick', triggerId: 'on_opponent_move_away' },
-        { actionId: 'yu_xiao_jian_fa', triggerId: 'on_parry' },
+        { actionId: 'flick', triggerId: 'on_dodged' },
+        { actionId: 'yu_xiao_jian_fa', triggerId: 'on_dodge' },
     ],
     taunt: () => '……',
 }

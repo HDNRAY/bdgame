@@ -53,11 +53,11 @@ export const WEAPON_BUFFS: BuffDef[] = [
     {
         id: 'overlord_blade',
         name: '霸刀在手',
-        description: '离心力驱动的巨刃，势不可挡。近战招架率+25%，远程+50%，招架减免减少25%',
+        description: '离心力驱动的巨刃，势不可挡。近战招架率+30%，远程+50%，招架减免减少25%',
         tags: ['weapon'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
-        onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.5 : 0.25),
+        onParryChance: ({ source }) => (source?.tags.includes('range') ? 0.5 : 0.3),
         onParryPenetration: ({ final, raw }) => {
             // 返回穿掉的伤害值: 招架减免减少25%
             const blocked = raw - final

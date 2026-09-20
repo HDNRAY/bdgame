@@ -70,9 +70,9 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         apCost: 2,
         tags: ['pierce', 'melee', 'buff', 'debuff'],
         effects: [
-            { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 0.5 },
+            { type: 'add_debuff', buffId: 'sand_blind', stacks: 1, chance: 0.3 },
             { type: 'add_buff', buffId: 'thunder_swift', stacks: 1 },
-            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.2 } },
+            { type: 'damage', scaling: { strength: 0.1, dexterity: 0.1, agility: 0.1 } },
         ],
     },
     {
@@ -166,7 +166,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         apCost: 5,
         chanCost: 30,
         tags: ['pierce', 'qi', 'melee', 'chan'],
-        onActionCritDamage: (base) => base + 0.2,
+        onActionCritDamage: (base) => base + 0.3,
         onActionCritChance: (base) => base + 0.2,
         onActionHitChance: (base, state, self) => {
             const enemy = state.characters.find((c) => c.id !== self.id)
@@ -174,7 +174,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
             return 1
         },
         getRange: () => [0, 3],
-        hookNotes: { critChance: '+20%', critDamage: '+20%', hitChance: '目标气血低于 50% 时必中' },
+        hookNotes: { critChance: '+20%', critDamage: '+30%', hitChance: '目标气血低于 50% 时必中' },
         effects: [
             { type: 'short_dash', maxDistance: 3 },
             { type: 'damage', scaling: { strength: 0.6, agility: 0.6, dexterity: 0.6 }, piercingRatio: 0.5 },
@@ -198,7 +198,7 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         apCost: 4,
         chanCost: 10,
         tags: ['slash', 'chan', 'melee'],
-        effects: [{ type: 'damage', scaling: { strength: 1.5, dexterity: 0.2, agility: 0.2 } }],
+        effects: [{ type: 'damage', scaling: { strength: 1.5, dexterity: 0.3, agility: 0.2 } }],
     },
     {
         id: 'gash',
@@ -229,7 +229,9 @@ export const MELEE_ACTIONS: ActionDefinition[] = [
         requiredTags: ['slash'],
         apCost: 4,
         tags: ['slash', 'melee'],
-        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, fixed: 3, independentHits: 2 }],
+        onActionHitChance: (base) => base + 0.05,
+        hookNotes: { hitChance: '+5%' },
+        effects: [{ type: 'damage', scaling: { strength: 0.2, agility: 0.2 }, fixed: 2, independentHits: 2 }],
     },
     {
         id: 'sky_burner',

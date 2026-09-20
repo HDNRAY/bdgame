@@ -160,7 +160,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         chanCost: 20,
         tags: ['unarmed', 'melee', 'chan'],
         onActionCritChance: (base) => base + 0.2,
-        hookNotes: { critChance: '+2%' },
+        hookNotes: { critChance: '+20%' },
         getRange: () => [0, 2],
         effects: [
             { type: 'damage', scaling: { strength: 0.4 } },
@@ -179,7 +179,7 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         effects: [
             { type: 'damage', scaling: { strength: 0.1, wisdom: 0.1 } },
             { type: 'self_missing_hp_damage', ratio: 0.18 },
-            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 1, chance: 1 },
+            { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 0.4 },
         ],
     },
     {
@@ -189,11 +189,12 @@ export const UNARMED_ACTIONS: ActionDefinition[] = [
         requiredTags: ['unarmed'],
         requireAttrsMin: { strength: 14 },
         apCost: 4,
+        chanCost: 10,
         tags: ['unarmed', 'melee'],
         getRange: () => [0, 0] as [number, number],
-        onActionHitChance: (base) => base + 0.2,
-        hookNotes: { hitChance: '+20%' },
-        effects: [{ type: 'damage', scaling: { strength: 1.1 } }],
+        onActionHitChance: (base) => base + 0.3,
+        hookNotes: { hitChance: '+30%' },
+        effects: [{ type: 'damage', scaling: { strength: 1.5 }, piercing: 0.4 }],
     },
     {
         id: 'iron_charge',

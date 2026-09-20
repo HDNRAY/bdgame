@@ -125,11 +125,11 @@ export const BUFF_DB: BuffDef[] = [
         // 因势利导：进架势后借势，下一次出招暴击，用后消散
         id: 'yin_shi_li_dao',
         name: '因势利导',
-        description: '借架势之势，下一次出招暴击率+30%。',
+        description: '借架势之势，下一次出招暴击率+50%。',
         tags: ['buff'],
         expiry: { type: 'consumed', trigger: 'on_crit' },
         stacking: { type: 'additive', max: 1 },
-        onCritChance: () => 0.3,
+        onCritChance: () => 0.5,
     },
     {
         id: 'mind_eye',
@@ -143,35 +143,35 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'jing_ji',
         name: '惊击',
-        description: '闪避后蓄势，下一击暴击率+25%。',
+        description: '闪避后蓄势，下一击暴击率+30%。',
         tags: ['buff'],
         expiry: { type: 'consumed', trigger: 'on_crit' },
         stacking: { type: 'none' },
-        onCritChance: () => 0.25,
+        onCritChance: () => 0.3,
     },
     {
         id: 'melee_stance',
         name: '守拙',
-        description: '持械架势，招架率+10%。',
+        description: '持械架势，招架率+15%。',
         tags: ['stance'],
         expiry: { type: 'permanent' },
-        onParryChance: () => 0.1,
+        onParryChance: () => 0.15,
     },
     {
         id: 'polearm_stance',
         name: '撼岳',
-        description: '重器架势，命中率+10%。',
+        description: '重器架势，命中率+8%。',
         tags: ['stance'],
         expiry: { type: 'permanent' },
-        onHitChance: () => 0.1,
+        onHitChance: () => 0.08,
     },
     {
         id: 'fist_stance',
         name: '穿花',
-        description: '空手架势，闪避率+10%。',
+        description: '空手架势，闪避率+8%。',
         tags: ['stance'],
         expiry: { type: 'permanent' },
-        onDodgeChance: () => 0.1,
+        onDodgeChance: () => 0.08,
     },
     {
         id: 'circle',
@@ -376,7 +376,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'ju_chan_fa_yi',
         name: '聚缠法衣',
-        description: '每5秒吸收整12的缠劲（余数保留），每12缠化为力道、身法、灵巧、推演+2，持续5秒。',
+        description: '每6秒吸收整12的缠劲（余数保留），每12缠化为力道、身法、灵巧、推演+2，持续6秒。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -1145,7 +1145,7 @@ export const BUFF_DB: BuffDef[] = [
         name: '云龙三现',
         tags: ['slash'],
         description:
-            '龙游云中，见首不见尾。交替使用斩击可叠加增伤（至多3层）；紧接重复上一招不归零、只是不再叠加，连打同一招会逐渐回落。每层附加身法+灵巧伤害。',
+            '龙游云中，见首不见尾。交替使用斩击可叠加增伤（至多3层）；紧接重复上一招不归零、只是不再叠加，连打同一招会逐渐回落。每层附加（身法+灵巧）×0.05伤害。',
         stacking: { type: 'none' },
         // 层数 = 最近 3 招窗口里与当前不同的招式数（上限3，×1.1^层）；紧接重复（diff=0）保持层数不归零
         // 窗口模型让 AI 有动机保持窗口多样（连打会掉层），比 streak 模型更不会只主用单招
@@ -1165,8 +1165,8 @@ export const BUFF_DB: BuffDef[] = [
             if (!source || !source.tags.includes('slash')) return final
             const diff = layer.restoreValue ?? 0
             if (diff === 0) return final
-            // 每层附加 (身法+灵巧)×0.1 伤害
-            const bonus = round1((attacker.attrs.get('agility') + attacker.attrs.get('dexterity')) * 0.03 * diff)
+            // 每层附加 (身法+灵巧)×0.05 伤害
+            const bonus = round1((attacker.attrs.get('agility') + attacker.attrs.get('dexterity')) * 0.05 * diff)
             if (engine) {
                 engine.emitLog({ type: 'system', message: `[云龙三现] ${diff}层·+${bonus}伤害`, actorId: attacker.id })
             }

@@ -46,7 +46,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         target: 'self',
         maxUses: 1,
         effects: [
-            { type: 'heal', ratio: 0.2 },
+            { type: 'heal', ratio: 0.18 },
             { type: 'remove_buff', buffId: 'sangui_yuanqi' },
         ],
     },
@@ -98,7 +98,7 @@ export const INTERNAL_ACTIONS: ActionDefinition[] = [
         apCost: 0,
         tags: ['trigger', 'electric', 'counter', 'internal'],
         target: 'enemy',
-        effects: [{ type: 'damage', scaling: { dexterity: 0.1, insight: 0.1 } }],
+        effects: [{ type: 'damage', scaling: { dexterity: 0.1 } }],
     },
     {
         // 通用反击（无 tag，任何武器可用）：逆转经脉等被暴击反击直接引用

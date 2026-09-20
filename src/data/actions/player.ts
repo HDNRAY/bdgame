@@ -367,10 +367,10 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 3,
         tags: ['qi', 'range', 'debuff', 'ignore_parry'],
-        getRange: () => [0, 9],
+        getRange: () => [0, 7],
         effects: [
             { type: 'ignore_parry' },
-            { type: 'damage', scaling: { dexterity: 0.2, wisdom: 0.3 } },
+            { type: 'damage', scaling: { dexterity: 0.2, wisdom: 0.4 } },
             { type: 'add_debuff', buffId: 'fumble_chance_temp', stacks: 2, chance: 1 },
         ],
     },
