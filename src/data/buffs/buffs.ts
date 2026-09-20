@@ -4,12 +4,7 @@ import { setLayerMods, addLayerMods } from '../../engine/combat/utils/buff-layer
 import { rng } from '../../engine/util/rng'
 import { convertAttrAmount } from '../../engine/util/math'
 import { genAppId } from '../../engine/util/buff-utils'
-import {
-    calcParryChance,
-    calcApRegenPerSec,
-    calcRoll,
-    calcPoisonTicksPerStack,
-} from '../../engine/calc/damage'
+import { calcParryChance, calcApRegenPerSec, calcRoll, calcPoisonTicksPerStack } from '../../engine/calc/damage'
 import { round1 } from '../../engine/util/math'
 import { calcEffectiveCritChance } from '../../engine/combat/utils'
 import type { BuffDef } from './types'
@@ -603,7 +598,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'zhu_huo_jue_buff',
         name: '铸火',
         description:
-            '聚炁化火，火中淬炼不伤。自身受到的灼烧伤害减半；施加灼烧时按暴击几率追加层数（判定 1 + 灵巧/6 次，每次以暴击率为概率 +1 层）。',
+            '聚炁化火，火中淬炼不伤。自身受到的灼烧伤害减半；施加灼烧时按暴击几率追加层数。判定 1 + 灵巧/6 次，每次以暴击率为概率 +1 层。',
         tags: ['buff', 'qi'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
@@ -1108,7 +1103,7 @@ export const BUFF_DB: BuffDef[] = [
         id: 'dongyou_zhuwei',
         name: '洞幽烛微',
         description:
-            '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高（约 7 次看破收敛至 5%）。',
+            '洞察幽微，看破对手武学路数。对手每使用带某标签的招式，看破该标签一层；看破越深，该标签招式对你的闪避与减伤越高。约 7 次看破收敛至 5%。',
         tags: ['buff'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },

@@ -340,7 +340,7 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'yan_qi',
         name: '焰炁',
-        description: '拳刃凝焰，任何伤害都按暴击几率令目标叠2层灼烧（每层独立判定）。',
+        description: '拳刃凝焰，任何伤害都按暴击几率令目标叠2层灼烧，每层独立判定。',
         tags: ['buff'],
         expiry: { type: 'duration', ms: 15000 },
         stacking: { type: 'none' },
