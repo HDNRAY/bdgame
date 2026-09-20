@@ -493,16 +493,23 @@ export const effectHandlers: Record<string, (ctx: EffectCtx) => void> = {
         // （materializeAttachedBuff）同一口径。`getBuffs` / `getBuffsForDisplay` 本来就跳过 hidden 层。
         if (buff.hidden) return
 
-        // 日志
+        // 日志（logFormat 优先于描述，与 add_debuff 同口径；第二个参数是持有者，能算出真实数值）
         const label = buff.name ?? e.buffId
+        const desc = r.layer && buff.logFormat ? buff.logFormat(r.layer, self.name, self) : undefined
+        const lvLabel =
+            buff.stacking?.type === 'additive'
+                ? ` Lv.${r.added}${buff.stacking?.max ? `/${buff.stacking.max}` : ''}`
+                : buff.stacking?.type === 'independent'
+                  ? ` 第${r.totalIndependent}层`
+                  : ''
         engine.emitLog({
             type: 'system',
             message: r.created
                 ? replacedStance
                     ? `切换架势: ${oldStanceName} → ${label}`
                     : r.modsDetails.length
-                      ? `${BattleLog.buffApply(label, self.name, buff.description)} ${r.modsDetails.join(', ')}${buff.stacking?.type === 'additive' ? ` Lv.${r.added}${buff.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff.stacking?.type === 'independent' ? ` 第${r.totalIndependent}层` : ''}`
-                      : `${BattleLog.buffApply(label, self.name, buff.description)}${buff.stacking?.type === 'additive' ? ` Lv.${r.added}${buff.stacking?.max ? `/${buff.stacking.max}` : ''}` : ''}${buff.stacking?.type === 'independent' ? ` 第${r.totalIndependent}层` : ''}`
+                      ? `${BattleLog.buffApply(label, self.name, desc ?? buff.description)} ${r.modsDetails.join(', ')}${lvLabel}`
+                      : `${BattleLog.buffApply(label, self.name, desc ?? buff.description)}${lvLabel}`
                 : `${BattleLog.buffApply(label, self.name)} Lv.${r.layer!.restoreValue}${r.max < Infinity ? `/${r.max}` : ''}`,
             actorId: self.id,
         })

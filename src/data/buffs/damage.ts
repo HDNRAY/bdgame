@@ -104,6 +104,11 @@ export const DAMAGE_BUFFS: BuffDef[] = [
             if (!isBlade) return final
             return round1(final + attacker.attrs.get('dexterity') * 0.04)
         },
+        // 建层日志里直接报出这一剑附加多少（数值随持有者灵巧变，所以要用第三个参数拿角色）
+        logFormat: (_layer, _name, char) =>
+            char
+                ? `附加灵巧×0.04 = ${round1(char.attrs.get('dexterity') * 0.04)} 伤害（仅劈砍/戳刺招式，灵巧 ${char.attrs.get('dexterity')}）`
+                : undefined,
     },
     {
         id: 'bu_zhi_yu_wu',
@@ -118,6 +123,12 @@ export const DAMAGE_BUFFS: BuffDef[] = [
         onDealDamage: ({ final, attacker }) => {
             if (!attacker.spendChan(1)) return final
             return round1(final + bestOfFour(attacker) * 0.05)
+        },
+        // 同上：报出真实附加量（四维最高者 × 0.05）与缠劲代价
+        logFormat: (_layer, _name, char) => {
+            if (!char) return undefined
+            const best = bestOfFour(char)
+            return `每次命中消耗1缠劲，附加四维最高者（${best}）×0.05 = ${round1(best * 0.05)} 伤害；缠劲不足不触发`
         },
     },
     {

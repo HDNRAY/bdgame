@@ -254,8 +254,13 @@ export interface BuffDef extends GameEntity {
     onRuntimeAction?: (ctx: BuffHookCtx, action: RuntimeAction) => RuntimeAction
     /** 额外攻击钩子（返回额外攻击次数，AI 自动循环调用 pickBestSecondary） */
     getExtraAttack?: (ctx: { source: GameEntity }) => number
-    /** 自定义日志格式（覆盖默认的"获得状态"消息，返回整个消息体，不含 [BuffName] 前缀） */
-    logFormat?: (layer: BuffLayer, targetName: string) => string | undefined
+    /**
+     * 自定义日志格式（覆盖默认的"获得状态"消息里的描述段，返回消息体，不含 [BuffName]「名字」获得状态 前缀）。
+     *
+     * 第三个参数是**层持有者**：想让消息带上真实数值（如「附加灵巧×0.04 = 0.4」）就得靠它，
+     * 层本身只存层数/额外数据。buff 与 debuff 的建层日志都认它（attach 物化 + add_buff + add_debuff）。
+     */
+    logFormat?: (layer: BuffLayer, targetName: string, char?: Character) => string | undefined
     /** 触发招式判定钩子（返回 false 则本次触发招式不执行；attacker=触发者，target=目标，source=触发招式，可自由做条件，如觉醒后不再触发） */
     canTriggerAction?: (ctx: BuffHookCtx) => boolean
 }

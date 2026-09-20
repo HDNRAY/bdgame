@@ -314,10 +314,11 @@ export function materializeAttachedBuff(
             : buff.stacking?.type === 'independent'
               ? ` 第${r.totalIndependent}层`
               : ''
+    const desc = r.layer && buff.logFormat ? buff.logFormat(r.layer, target.name, target) : undefined
     engine.emitLog({
         type: 'system',
         message: r.created
-            ? `${BattleLog.buffApply(label, target.name, buff.description)}${lv}`
+            ? `${BattleLog.buffApply(label, target.name, desc ?? buff.description)}${lv}`
             : `${BattleLog.buffApply(label, target.name)} Lv.${r.layer?.restoreValue ?? 0}${r.max < Infinity ? `/${r.max}` : ''}`,
         actorId: target.id,
     })
