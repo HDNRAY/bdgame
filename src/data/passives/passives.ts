@@ -954,7 +954,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'hun_yuan_gong',
         name: '混元功',
-        description: '混元护体，受到超过8点或炁伤害时护体：近身反伤并击退对手，远程以缠抵伤（耗缠为伤害一半，减伤一半）。',
+        description: '混元护体，受到超过10点或炁伤害时护体：近身反伤并击退对手，远程以缠抵伤（耗缠为伤害一半，减伤一半）。',
         tags: ['qi', 'defense', 'chan', 'counter', 'knockback'],
         effects: [
             {

@@ -73,7 +73,7 @@ describe('混元功 · 混元炁', () => {
         expect(me.chan).toBe(0)
     })
 
-    it('1m 外：门槛与近身共用 —— 不到8点且非炁不触发，炁伤害再轻也抵', () => {
+    it('1m 外：门槛与近身共用 —— 不到10点且非炁不触发，炁伤害再轻也抵', () => {
         const me = makeChar('B', '乙')
         const foe = makeChar('A', '甲')
         const engine = new BattleEngine(foe, me, 4)
@@ -82,6 +82,17 @@ describe('混元功 · 混元炁', () => {
         expect(me.chan).toBe(50)
         expect(takeHit(engine, me, foe, 5, ['qi'])).toBe(2.5) // 炁：抵一半
         expect(me.chan).toBe(47.5)
+    })
+
+    it('阈值是「超过10点」：10 点不触发、11 点触发', () => {
+        const me = makeChar('B', '乙')
+        const foe = makeChar('A', '甲')
+        const engine = new BattleEngine(foe, me, 4)
+        me.chan = 50
+        expect(takeHit(engine, me, foe, 10, ['slash'])).toBe(10) // 恰好 10 不打折
+        expect(me.chan).toBe(50)
+        expect(takeHit(engine, me, foe, 11, ['slash'])).toBe(5.5) // 超过 10 → 抵一半
+        expect(me.chan).toBe(44.5)
     })
 
     it('1m 内：仍是反伤（自身承全额、耗等量缠反伤并击退），不走抵伤', () => {
@@ -95,7 +106,7 @@ describe('混元功 · 混元炁', () => {
         expect(hpBefore - foe.hp).toBe(10)
     })
 
-    it('1m 内：不满足「超过8点或炁」就不触发', () => {
+    it('1m 内：不满足「超过10点或炁」就不触发', () => {
         const me = makeChar('B', '乙')
         const foe = makeChar('A', '甲')
         const engine = new BattleEngine(foe, me, 1)
