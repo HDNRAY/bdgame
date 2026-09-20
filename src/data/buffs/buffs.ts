@@ -673,10 +673,15 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'heavy_training',
         name: '玄剑',
-        description: '以力驭剑，化繁为简。重器身法负担-2，招式AP消耗-0.1。',
+        description: '以力驭剑，化繁为简。重器身法负担-2，招式AP消耗-5%。',
         tags: ['heavy_reduce'],
         expiry: { type: 'permanent' },
-        onActionCost: () => -0.1,
+        // 原为固定 -0.1：钩子生效但被「折前先 ×身法减免、再 round1 到 1 位小数」取整吃掉
+        // （5AP 招 3.9 与 4.0 都落到 3.40；2AP 招更撞上 max(1,·) 地板），改成基础 AP 的百分比折扣
+        onActionCost: ({ source }) => {
+            const base = (source as ActionDefinition | undefined)?.apCost ?? 0
+            return base > 0 ? -round1(Math.max(0.1, base * 0.05)) : 0
+        },
     },
     {
         id: 'santou_liubi',
