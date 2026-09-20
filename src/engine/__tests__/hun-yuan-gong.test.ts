@@ -73,6 +73,17 @@ describe('混元功 · 混元炁', () => {
         expect(me.chan).toBe(0)
     })
 
+    it('1m 外：门槛与近身共用 —— 不到8点且非炁不触发，炁伤害再轻也抵', () => {
+        const me = makeChar('B', '乙')
+        const foe = makeChar('A', '甲')
+        const engine = new BattleEngine(foe, me, 4)
+        me.chan = 50
+        expect(takeHit(engine, me, foe, 5, ['slash'])).toBe(5) // 轻击：不抵
+        expect(me.chan).toBe(50)
+        expect(takeHit(engine, me, foe, 5, ['qi'])).toBe(2.5) // 炁：抵一半
+        expect(me.chan).toBe(47.5)
+    })
+
     it('1m 内：仍是反伤（自身承全额、耗等量缠反伤并击退），不走抵伤', () => {
         const me = makeChar('B', '乙')
         const foe = makeChar('A', '甲')

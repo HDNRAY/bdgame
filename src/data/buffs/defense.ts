@@ -636,13 +636,17 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         id: 'hun_yuan_gong_buff',
         name: '混元炁',
         description:
-            '混元护体：1m 内受到超过8点或炁伤害时反伤所受伤害的一半（缠耗等量），自身仍承受全额伤害并击退对手；1m 外的远程伤害以缠抵伤，消耗伤害一半的缠、减掉一半伤害，缠不够就按能付的减（1 缠抵 1 伤）。',
+            '混元护体：受到超过8点或炁伤害时护体 —— 1m 内反伤所受伤害的一半（缠耗等量）并击退对手，自身仍承受全额伤害；1m 外以缠抵伤，消耗伤害一半的缠、减掉一半伤害，缠不够就按能付的减（1 缠抵 1 伤）。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onTakeDamage: ({ final, attacker, target, engine, state, source }) => {
             if (final <= 0 || !engine || attacker === target) return final
             const dist = state.position.distance(target.id, attacker.id)
+            // 触发门槛两条分支共用：打够重（>8）或者是炁伤害
+            const isHeavyHit = final > 8
+            const isQiHit = source?.tags.includes('qi') ?? false
+            if (!isHeavyHit && !isQiHit) return final
             // 1m 外（远程）：以缠抵伤 —— 消耗「伤害的一半」的缠减掉一半伤害；
             // 缠不够就按能付的减（1 缠抵 1 伤害），付不出就不减（沙盒推演没有 engine，不会走到这）。
             if (dist > 1) {
@@ -657,11 +661,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
                 })
                 return reduced
             }
-            const isHeavyHit = final > 8
-            const isQiHit = source?.tags.includes('qi') ?? false
-            if (!isHeavyHit && !isQiHit) return final
 
-            // 反伤所受伤害的一半，消耗等量的缠，缠不足则不反伤
+            // 近身：反伤所受伤害的一半，消耗等量的缠，缠不足则不反伤
             const reflectDmg = Math.max(1, round1(final * 0.5))
             if (!target.spendChan(reflectDmg)) return final
             attacker.takeDamage(reflectDmg, engine)
