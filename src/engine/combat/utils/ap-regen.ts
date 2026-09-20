@@ -28,10 +28,14 @@ export function calcExtraApRegenPerSec(state: BattleState, char: Character): num
 
 /**
  * 该角色的有效 AP 回复速度（每秒）：
- * 基础(推演) + 各 buff 的 apRegenPerSec 钩子贡献
+ * 基础(推演) + 各 buff 的 apRegenPerSec 钩子贡献。
+ *
+ * 净回复恒为正：`turn.recalcRegenDelay` 用 `max(0.001, regenPerSec)` 兜底，回复速度 ≤0 等于把该角色
+ * 永久冻住（再也排不到行动），所以减回复类 debuff（断炁/紊乱/御物耗炁…）叠起来最多压到基础的 25%。
  */
 export function calcEffectiveApRegenPerSec(state: BattleState, char: Character): number {
-    return calcApRegenPerSec(char.attrs.get('wisdom')) + calcExtraApRegenPerSec(state, char)
+    const base = calcApRegenPerSec(char.attrs.get('wisdom'))
+    return Math.max(base * 0.25, base + calcExtraApRegenPerSec(state, char))
 }
 
 /**
