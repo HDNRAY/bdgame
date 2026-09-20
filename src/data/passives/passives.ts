@@ -166,7 +166,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'ice_heart',
         name: '冰心诀',
-        description: '冰心玉壶，免疫霜冻，对麻痹、灼烧有50%几率免疫。',
+        description: '冰心玉壶，免疫霜冻；对麻痹、灼烧、不幸、迷惑有50%几率免疫。',
         tags: ['defense', 'buff'],
         effects: [
             {
@@ -664,7 +664,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'qishier_bian',
         name: '七十二变',
-        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、体质、身法、灵巧、洞察、推演提升。',
+        description: '地煞七十二变，夺天地之造化。每6秒轮流使力道、根骨、身法、灵巧、洞察、推演提升。',
         tags: ['buff'],
         effects: [
             {
@@ -954,7 +954,8 @@ export const PASSIVES: Passive[] = [
     {
         id: 'hun_yuan_gong',
         name: '混元功',
-        description: '混元护体，受到超过8点或炁伤害时护体：近身反伤三分之一并击退对手，远程以缠抵伤（耗缠为伤害三分之一，减伤三分之一）。',
+        description:
+            '混元护体，受到超过8点或炁伤害时护体：近身反伤三分之一并击退对手，远程以缠抵伤（耗缠为伤害三分之一，减伤三分之一）。',
         tags: ['qi', 'defense', 'chan', 'counter', 'knockback'],
         effects: [
             {

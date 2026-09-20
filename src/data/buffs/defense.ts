@@ -6,6 +6,9 @@ import { Tag } from '../../engine/entities/tag'
 import { round1 } from '../../engine/util/math'
 import { calcRoll } from '../../engine/calc/damage'
 
+/** 冰心：50% 几率免疫的减益（霜冻是 100% 免疫，不在此列） */
+const HALF_IMMUNE_DEBUFFS: readonly string[] = ['paralyze', 'burn', 'bu_xing', 'confuse']
+
 export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'qi_shield',
@@ -126,18 +129,13 @@ export const DEFENSE_BUFFS: BuffDef[] = [
     {
         id: 'elemental_immunity',
         name: '冰心',
-        description: '冰心玉壶，免疫霜冻，对麻痹、灼烧有50%几率免疫。',
+        description: '冰心玉壶，免疫霜冻；对麻痹、灼烧、不幸、迷惑有50%几率免疫。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         onReceiveDebuff: (ctx) => {
             if (ctx.buffId === 'frost') return 0
-            if (ctx.buffId === 'paralyze') {
-                const { success } = calcRoll(0.5)
-                if (success) return 0
-            }
-            if (ctx.buffId === 'burn') {
-                const { success } = calcRoll(0.5)
-                if (success) return 0
+            if (HALF_IMMUNE_DEBUFFS.includes(ctx.buffId)) {
+                if (calcRoll(0.5).success) return 0
             }
             return undefined
         },
