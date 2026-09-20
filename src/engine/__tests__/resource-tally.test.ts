@@ -80,11 +80,17 @@ describe('资源流水对账（真实战斗）', () => {
         for (const id of ids) {
             const base = new Character(gen(id, 33))
             const opp = new Character(gen(id === XUNXIANG ? LUEYING : XUNXIANG, 33))
+            // 起手内息 = 开局那一刻的上限 × 0.5（见 BattleEngine.init）。必须在开打前取，
+            // 不能读终局 c.maxAp：中途根骨/上限修正会改 maxAp，基准跟着漂就会假红（唐柔 +根骨 7→8 那次）。
+            const startAp = new Map([
+                [base.id, base.maxAp * 0.5],
+                [opp.id, opp.maxAp * 0.5],
+            ])
             const { engine } = runBattle(base, opp, undefined, 4, true, { statsLevel: 2 })
             const stats = engine.stats!
             for (const c of engine.state.characters) {
                 const r = c.res
-                const apExpect = c.maxAp * 0.5 + r.apGained - r.apSpent - r.apDrained
+                const apExpect = startAp.get(c.id)! + r.apGained - r.apSpent - r.apDrained
                 expect(r.apSpent).toBeGreaterThan(0)
                 expect(r.apGained).toBeGreaterThan(0)
                 expect(Math.abs(apExpect - c.ap)).toBeLessThan(0.11)
