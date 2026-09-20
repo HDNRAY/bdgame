@@ -42,8 +42,8 @@ export const PLAYER_ACTIONS: ActionDefinition[] = [
                 fn: ({ self }) => round1(self.hp / 9),
                 note: '造成与所耗等额伤害（1:1 换血）',
             },
-            // 血炁入体：命中后令对手「紊乱」——AP 回复 -0.1/s，独立叠层、每层 5 秒
-            { type: 'add_debuff', buffId: 'wen_luan', stacks: 1, chance: 1 },
+            // 血炁入体：命中后令对手「断炁」——AP 回复 -0.1/s（叠层上限 3）、8 秒
+            { type: 'add_debuff', buffId: 'duan_qi', stacks: 1, chance: 1 },
         ],
     },
     {

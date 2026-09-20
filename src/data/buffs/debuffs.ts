@@ -203,21 +203,11 @@ export const DEBUFF_DB: BuffDef[] = [
     {
         id: 'duan_qi',
         name: '断炁',
-        description: '封脉断炁，每层AP回复-0.1/s，最多5层。',
+        description: '封脉断炁，每层AP回复-0.1/s，最多3层。',
         tags: ['debuff', 'qi'],
         expiry: { type: 'duration', ms: 8000 },
         stacking: { type: 'additive', max: 3 },
         apRegenPerSec: ({ layer }) => -((layer.restoreValue ?? 0) * 0.1),
-    },
-    {
-        id: 'wen_luan',
-        name: '紊乱',
-        description: '气息紊乱，每层AP回复-0.1/s。独立叠层，每层5秒。',
-        tags: ['debuff', 'qi'],
-        expiry: { type: 'duration', ms: 5000 },
-        // 独立叠层：每次施加各占一层、各自 5 秒到期（key 带 appId），层数无上限
-        stacking: { type: 'independent' },
-        apRegenPerSec: ({ layer }) => -((layer.restoreValue ?? 1) * 0.1),
     },
     {
         id: 'yuwu_cost',
