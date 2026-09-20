@@ -1575,14 +1575,14 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'special_forces_dagger',
         name: '特种兵匕首',
-        description: '耗1缠劲，追加1点电伤、1点穿透电伤，并有40%概率使目标麻痹1层。',
+        description: '耗1缠劲，追加1点电伤、1点穿透电伤，并有30%概率使目标麻痹1层。',
         tags: ['electric'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onAfterDealDamage: ({ attacker, target, engine, state }) => {
             if (!attacker.spendChan(1)) return 0
             processActionEffect(
-                { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.4 },
+                { type: 'add_debuff', buffId: 'paralyze', stacks: 1, chance: 0.3 },
                 { self: attacker, enemy: target, engine: engine!, tMs: state.turn.currentTime },
             )
             // 共 2 点，其中 1 点穿透

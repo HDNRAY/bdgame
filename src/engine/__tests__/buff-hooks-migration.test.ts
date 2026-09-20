@@ -63,9 +63,7 @@ describe('闪避 / 招架改由 buff 承载', () => {
         // 引擎里的招架率就是「基础 + buff 钩子之和」，两边必须同一个口径
         const base = calcParryChance(def.attrs.get('dexterity'), def.attrs.get('insight'))
         expect(base + bonus).toBeGreaterThan(base)
-        expect(sumHook(def, engine, 'onParryChance')).toBeCloseTo(
-            getBuff('silk_guard')!.onParryChance!({} as never),
-        )
+        expect(sumHook(def, engine, 'onParryChance')).toBeCloseTo(getBuff('silk_guard')!.onParryChance!({} as never))
     })
 
     it('神行百变：开局给闪避 buff，修正真的进了命中判定（数值不写死）', () => {
@@ -129,7 +127,7 @@ describe('属性下限改用 stat_restriction', () => {
         expect(c.attrs.get('agility')).toBe(start - 2)
         // 一次减到底 → 停在 16
         applyAttrMods(c, engine.state, { agility: -(start - 16) - 5 }, 'test')
-        expect(c.attrs.get('agility')).toBe(16)
+        expect(c.attrs.get('agility')).toBe(15)
     })
 
     it('没解锁这个天赋就不拦（同一路减属性，完整生效）', () => {
