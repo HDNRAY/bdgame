@@ -41,6 +41,7 @@ describe('buff 的 logFormat', () => {
         const line = sysLines(engine).find((m) => m.includes('越女剑意'))
         expect(line).toBeDefined()
         expect(line).toContain('附加灵巧×0.04 = 1') // logFormat 的数值段
+        expect(line).toContain('缠劲不足则不触发')
         expect(line).not.toContain('白猿授剑') // 描述被覆盖
     })
 
@@ -52,6 +53,7 @@ describe('buff 的 logFormat', () => {
         const line = sysLines(engine).find((m) => m.includes('越女剑意'))
         expect(line).toBeDefined()
         expect(line).toContain('附加灵巧×0.04 = 0.4') // 灵巧 10 × 0.04
+        expect(line).toContain('消耗1缠劲')
     })
 
     it('不滞于物：logFormat 报四维最高者 ×0.05 与缠劲代价', () => {

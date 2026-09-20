@@ -95,19 +95,21 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'yue_nv_buff',
         name: '越女剑意',
-        description: '白猿授剑，灵巧化为剑势，附加灵巧×0.04伤害（仅劈砍/戳刺招式）。',
+        description:
+            '白猿授剑，灵巧化为剑势。劈砍或戳刺招式命中时消耗1点缠劲，附加灵巧×0.04伤害；缠劲不足则不触发。',
         tags: ['pierce', 'slash'],
         expiry: { type: 'permanent' },
         onDealDamage: ({ final, attacker, source }) => {
             // 仅 pierce 或 slash 招式生效（配合「不滞于物」的全招 pierce 标记可全招生效）
             const isBlade = source?.tags?.includes('pierce') || source?.tags?.includes('slash')
             if (!isBlade) return final
+            if (!attacker.spendChan(1)) return final
             return round1(final + attacker.attrs.get('dexterity') * 0.04)
         },
         // 建层日志里直接报出这一剑附加多少（数值随持有者灵巧变，所以要用第三个参数拿角色）
         logFormat: (_layer, _name, char) =>
             char
-                ? `附加灵巧×0.04 = ${round1(char.attrs.get('dexterity') * 0.04)} 伤害（仅劈砍/戳刺招式，灵巧 ${char.attrs.get('dexterity')}）`
+                ? `劈砍/戳刺命中消耗1缠劲，附加灵巧×0.04 = ${round1(char.attrs.get('dexterity') * 0.04)} 伤害（灵巧 ${char.attrs.get('dexterity')}）；缠劲不足则不触发`
                 : undefined,
     },
     {
