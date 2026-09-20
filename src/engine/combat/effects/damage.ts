@@ -309,6 +309,11 @@ function resolveParry(
     act: ActionDefinition | undefined,
     triggered = false,
 ): { parried: boolean; final: number } {
+    // 全穿透的一击：普通段为 0（伤害全走 piercingRatio / piercing），没有可招架的东西。
+    // 不早退的话会照常掷骰、判定成功、发 on_parry/on_parried、消耗防守方 on_parry 层，
+    // 还会把 isParried=true 且 blocked=0 写进日志（100% 穿透时必现：银针0.5+一点破晓0.5）。
+    if (raw <= 0) return { parried: false, final: 0 }
+
     // ── 1. 攻击方能否被招架 ──
     const cannotBeParried = (() => {
         let result = false
