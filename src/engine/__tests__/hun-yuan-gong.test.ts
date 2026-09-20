@@ -46,20 +46,20 @@ describe('混元功 · 混元炁', () => {
         expect(buff.onTakeDamage).toBeTypeOf('function')
     })
 
-    it('1m 外：消耗「伤害一半」的缠，减掉一半伤害', () => {
+    it('1m 外：消耗「伤害三分之一」的缠，减掉三分之一伤害', () => {
         const me = makeChar('B', '乙')
         const foe = makeChar('A', '甲')
         const engine = new BattleEngine(foe, me, 4) // 距离 4m
         me.chan = 50
-        expect(takeHit(engine, me, foe, 20, ['slash'])).toBe(10)
-        expect(me.chan).toBe(40)
+        expect(takeHit(engine, me, foe, 20, ['slash'])).toBeCloseTo(13.3) // 20 − 6.7
+        expect(me.chan).toBe(43.3)
     })
 
     it('1m 外：缠不够就按能付的减（1 缠抵 1 伤）', () => {
         const me = makeChar('B', '乙')
         const foe = makeChar('A', '甲')
         const engine = new BattleEngine(foe, me, 4)
-        me.chan = 3
+        me.chan = 3 // 上限 6.7 付不起
         expect(takeHit(engine, me, foe, 20, ['slash'])).toBe(17)
         expect(me.chan).toBe(0)
     })
@@ -73,26 +73,26 @@ describe('混元功 · 混元炁', () => {
         expect(me.chan).toBe(0)
     })
 
-    it('1m 外：门槛与近身共用 —— 不到10点且非炁不触发，炁伤害再轻也抵', () => {
+    it('1m 外：门槛与近身共用 —— 不到9点且非炁不触发，炁伤害再轻也抵', () => {
         const me = makeChar('B', '乙')
         const foe = makeChar('A', '甲')
         const engine = new BattleEngine(foe, me, 4)
         me.chan = 50
         expect(takeHit(engine, me, foe, 5, ['slash'])).toBe(5) // 轻击：不抵
         expect(me.chan).toBe(50)
-        expect(takeHit(engine, me, foe, 5, ['qi'])).toBe(2.5) // 炁：抵一半
-        expect(me.chan).toBe(47.5)
+        expect(takeHit(engine, me, foe, 5, ['qi'])).toBeCloseTo(3.3) // 炁：抵三分之一
+        expect(me.chan).toBe(48.3)
     })
 
-    it('阈值是「超过10点」：10 点不触发、11 点触发', () => {
+    it('阈值是「超过9点」：9 点不触发、10 点触发', () => {
         const me = makeChar('B', '乙')
         const foe = makeChar('A', '甲')
         const engine = new BattleEngine(foe, me, 4)
         me.chan = 50
-        expect(takeHit(engine, me, foe, 10, ['slash'])).toBe(10) // 恰好 10 不打折
+        expect(takeHit(engine, me, foe, 9, ['slash'])).toBe(9) // 恰好 9 不打折
         expect(me.chan).toBe(50)
-        expect(takeHit(engine, me, foe, 11, ['slash'])).toBe(5.5) // 超过 10 → 抵一半
-        expect(me.chan).toBe(44.5)
+        expect(takeHit(engine, me, foe, 10, ['slash'])).toBeCloseTo(6.7) // 超过 9 → 抵三分之一
+        expect(me.chan).toBe(46.7)
     })
 
     it('1m 内：仍是反伤（自身承全额、耗等量缠反伤并击退），不走抵伤', () => {
@@ -102,11 +102,11 @@ describe('混元功 · 混元炁', () => {
         me.chan = 50
         const hpBefore = foe.hp
         expect(takeHit(engine, me, foe, 20, ['slash'])).toBe(20) // 全额
-        expect(me.chan).toBe(40) // 反伤 10 消耗 10 缠
-        expect(hpBefore - foe.hp).toBe(10)
+        expect(me.chan).toBe(43.3) // 反伤 6.7 消耗 6.7 缠
+        expect(hpBefore - foe.hp).toBeCloseTo(6.7)
     })
 
-    it('1m 内：不满足「超过10点或炁」就不触发', () => {
+    it('1m 内：不满足「超过9点或炁」就不触发', () => {
         const me = makeChar('B', '乙')
         const foe = makeChar('A', '甲')
         const engine = new BattleEngine(foe, me, 1)

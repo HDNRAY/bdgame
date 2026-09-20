@@ -636,22 +636,22 @@ export const DEFENSE_BUFFS: BuffDef[] = [
         id: 'hun_yuan_gong_buff',
         name: '混元炁',
         description:
-            '混元护体：受到超过10点或炁伤害时护体 —— 1m 内反伤所受伤害的一半（缠耗等量）并击退对手，自身仍承受全额伤害；1m 外以缠抵伤，消耗伤害一半的缠、减掉一半伤害，缠不够就按能付的减（1 缠抵 1 伤）。',
+            '混元护体：受到超过9点或炁伤害时护体 —— 1m 内反伤所受伤害的三分之一（缠耗等量）并击退对手，自身仍承受全额伤害；1m 外以缠抵伤，消耗伤害三分之一的缠、减掉三分之一伤害，缠不够就按能付的减（1 缠抵 1 伤）。',
         tags: ['defense'],
         expiry: { type: 'permanent' },
         stacking: { type: 'none' },
         onTakeDamage: ({ final, attacker, target, engine, state, source }) => {
             if (final <= 0 || !engine || attacker === target) return final
             const dist = state.position.distance(target.id, attacker.id)
-            // 触发门槛两条分支共用：打够重（>10）或者是炁伤害
-            const isHeavyHit = final > 10
+            // 触发门槛两条分支共用：打够重（>9）或者是炁伤害
+            const isHeavyHit = final > 9
             const isQiHit = source?.tags.includes('qi') ?? false
             if (!isHeavyHit && !isQiHit) return final
-            // 1m 外（远程）：以缠抵伤 —— 消耗「伤害的一半」的缠减掉一半伤害；
+            // 1m 外（远程）：以缠抵伤 —— 消耗「伤害的三分之一」的缠减掉三分之一伤害；
             // 缠不够就按能付的减（1 缠抵 1 伤害），付不出就不减（沙盒推演没有 engine，不会走到这）。
             if (dist > 1) {
-                const half = round1(final * 0.5)
-                const pay = Math.min(half, round1(target.chan))
+                const cut = round1(final / 3)
+                const pay = Math.min(cut, round1(target.chan))
                 if (pay <= 0 || !target.spendChan(pay)) return final
                 const reduced = Math.max(0, round1(final - pay))
                 engine.emitLog({
@@ -662,8 +662,8 @@ export const DEFENSE_BUFFS: BuffDef[] = [
                 return reduced
             }
 
-            // 近身：反伤所受伤害的一半，消耗等量的缠，缠不足则不反伤
-            const reflectDmg = Math.max(1, round1(final * 0.5))
+            // 近身：反伤所受伤害的三分之一，消耗等量的缠，缠不足则不反伤
+            const reflectDmg = Math.max(1, round1(final / 3))
             if (!target.spendChan(reflectDmg)) return final
             attacker.takeDamage(reflectDmg, engine)
             // 反伤补发 damage 事件，计入伤害统计
