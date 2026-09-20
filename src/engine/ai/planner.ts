@@ -8,11 +8,18 @@
  *   2. 连发（分心错手/漫天花雨 getExtraAttack）与移动脱节，从不联合规划。
  *   3. 移动目标按风格硬编码（melee 必贴脸），不考虑"省 AP 给连发"。
  *
- * 新模型：对「当前距离 + 由风格意图算出的目标距离」生成「段1(移动前打) → 移动 → 段2(移动后打)」
+ * 新模型：对「当前距离 + 由风格意图算出的目标距离」生成「段1(当前位置打) → 移动 → 段2(落点打)」
  * 的完整序列，按 伤害/AP 效率 评估（效率相同取总伤害高者），选最优计划。
  * 移动落点**算出来而不是穷举**：最优射程带（每 AP 期望伤害最高那一档招式的射程并集）
  * 定「站哪一段」，风格意图定「站哪一端」，AP 预算定「这一回合能走多远」，走不满就走到头。
- * 没有收尾走位：剩余 AP 不再盲走一段，留给下回合更早行动。
+ *
+ * 两种形状（进同一套评分里比）：
+ * - 先动后打：走到意图目标再出招（当前距离打不到时必须先动）；
+ * - 先打后动（后置移动）：在当前距离把招打完，再用剩余 AP 退到意图位置。天外飞仙这类自带
+ *   `short_dash` 的冲脸招会把自己拖到贴身，不退开就等于站进对手射程。
+ * 计划评估按招式自带位移（short_dash / dash / step_back / knockback）结算**真实落点**，
+ * 并用 `positionRuleOk` 把「位置」当规则而不是加分：结束位置必须满足本次意图；走不到目标时
+ * 必须把没花在招式上的 AP 全用在朝意图方向移动上 —— 否则 伤害/AP 恒偏好「多打一招、原地不动」。
  */
 
 import type { Character } from '../entities/character'
@@ -371,17 +378,16 @@ function weaponBand(self: Character): OptimalBand | null {
     return { lo, hi: eff[1], attackAp: 1 }
 }
 
-/** 意图目标距离 + 该档一招的 AP（不含预算夹取）；null = 已经在想要的位置 */
-function bandGoal(
+/**
+ * 从最优带算出「本次意图该站的点」（不含 AP 夹取）；null = 已经在想要的位置。
+ * 与 `bandGoal` 分开是因为位置校验要在**打完段1的位置**上重算同一个意图（带本身与距离无关）。
+ */
+function goalFromBand(
     self: Character,
     state: BattleState,
-    candidates: ActionDefinition[],
+    band: OptimalBand,
     current: number,
-    evalAtArg?: EvalAt,
 ): { goal: number; attackAp: number } | null {
-    // 没有可用招（无奖励/全在冷却/资源不足）时退回武器射程，避免「站着不动一回合」
-    const band = optimalRangeBand(self, state, candidates, current, evalAtArg) ?? weaponBand(self)
-    if (!band) return null
     const enemy = state.characters.find((c) => c.id !== self.id)
     if (!enemy) return null
     // 进带子的入口：贴太近会让三相珠这类召唤物失效，所以下限不能低于召唤物射程下限
@@ -401,6 +407,88 @@ function bandGoal(
     }
     if (goal === null || Math.abs(goal - current) < 0.05) return null
     return { goal, attackAp: band.attackAp }
+}
+
+/** 意图目标距离 + 该档一招的 AP（不含预算夹取）；null = 已经在想要的位置 */
+function bandGoal(
+    self: Character,
+    state: BattleState,
+    candidates: ActionDefinition[],
+    current: number,
+    evalAtArg?: EvalAt,
+): { goal: number; attackAp: number } | null {
+    // 没有可用招（无奖励/全在冷却/资源不足）时退回武器射程，避免「站着不动一回合」
+    const band = optimalRangeBand(self, state, candidates, current, evalAtArg) ?? weaponBand(self)
+    return band ? goalFromBand(self, state, band, current) : null
+}
+
+/**
+ * 招式自带位移结算后的距离（对齐引擎 handlers 的规则与顺序）。
+ * 计划评估必须算进它，否则「天外飞仙」这种靠 `short_dash` 冲脸的招会被当成还站在远端：
+ * 它实际把施法者拖到武器射程上限（贴身），下一回合就吃对手一套。
+ * - `short_dash`（主招双向垫步）：距离超过武器射程上限 → 冲近 min(超出量, maxDistance)；低于下限 → 后退到下限
+ * - `dash`：朝 targetDist 位移 min(超出量, maxRange)（targetDist < 0 = 自身最大招射程）
+ * - `step_back`：命中后自身后退 distance 米（对掌弹开类）
+ * - `knockback`：把对手推开 distance 米（距离同样变大）
+ */
+function postDistanceAfter(self: Character, state: BattleState, from: number, actions: UsableAction[]): number {
+    let dist = from
+    const effRange = self.getEffectiveRange()
+    for (const a of actions) {
+        const runtime = getRuntimeAction(a.id, self, state) ?? a.def
+        for (const eff of runtime.effects ?? []) {
+            if (eff.type === 'short_dash') {
+                const maxDash = eff.maxDistance ?? 2
+                if (dist > effRange[1]) dist -= Math.min(dist - effRange[1], maxDash)
+                else if (dist < effRange[0]) dist += Math.min(effRange[0] - dist, maxDash)
+            } else if (eff.type === 'dash') {
+                const targetDist = eff.targetDist < 0 ? self.getMaxActionRange(state) : eff.targetDist
+                const desired = dist - targetDist
+                if (desired !== 0 && Math.abs(desired) >= (eff.minRange ?? 0)) {
+                    dist -= Math.sign(desired) * Math.min(Math.abs(desired), eff.maxRange ?? Infinity)
+                }
+            } else if (eff.type === 'step_back') {
+                // 缺少 distance 时引擎按 1 米算（handlers 的默认值）
+                dist += eff.distance ?? 1
+            } else if (eff.type === 'knockback' && eff.distance > 0) {
+                dist += eff.distance
+            }
+        }
+    }
+    return Math.max(0, dist)
+}
+
+/**
+ * 位置规则（结束位置校验）：意图决定「该站哪」，它是规则不是加分。
+ * - dir='far'：站到最优带远端；dir='near'：够得到就行（带内任意点都算满足）
+ * - 够不到目标时，要求把「没花在招式上的 AP」**全部**用于朝目标方向移动
+ *   （`apBudget - attacksAp` 折算的距离就是本次允许的极限）—— 否则 伤害/AP 恒偏好
+ *   「多打一招、原地不动或被冲脸招拖近」，「打完就走」永远不会发生。
+ * @param anchor 段1（移动前的招）结算后的距离
+ * @param end 整条计划结算后的距离（含招式自带位移）
+ */
+function positionRuleOk(
+    self: Character,
+    state: BattleState,
+    enemy: Character,
+    band: OptimalBand,
+    anchor: number,
+    end: number,
+    attacksAp: number,
+    apBudget: number,
+): boolean {
+    const perAp = movePerAp(self, state)
+    const tol = perAp + 0.05 // 位移按 perAp×AP 走，落点是离散的 → 留一步的容差
+    const entryLo = Math.max(band.lo + BAND_MARGIN, summonMinRange(self) ?? -Infinity)
+    const farPoint = Math.max(entryLo, band.hi - BAND_MARGIN)
+    const dir = intentDirection(self, enemy)
+    // 够得到就行：带内（含被招拖到带内别处）就算满足
+    if (dir === 'near' && end >= band.lo - tol && end <= band.hi + tol) return true
+    // 否则朝意图端站：far 奔远端；near 打不到时进带子（太近进近端、太远进远端）
+    const goal = dir === 'far' ? farPoint : end < band.lo ? entryLo : farPoint
+    const step = perAp * Math.max(0, apBudget - attacksAp)
+    const ideal = goal >= anchor ? Math.min(goal, anchor + step) : Math.max(goal, anchor - step)
+    return goal >= anchor ? end >= ideal - tol : end <= ideal + tol
 }
 
 /** 意图目标距离（不含预算）：给「没有可行攻击计划」时的兜底走位用 */
@@ -522,7 +610,9 @@ export function generatePlans(
     }
 
     const plans: ActionPlan[] = []
-    // 落点：站桩点 + 由「风格意图」算出来的目标距离（走不到就夹到预算允许处）。
+    // 位置规则要用最优带：与 bandGoal 同一套（没有可用招时退回武器射程）
+    const band = optimalRangeBand(self, state, candidates, current, evalAt) ?? weaponBand(self)
+    // 落点：由「风格意图」算出的目标距离（走不到就夹到预算允许处）。
     // 意图是规则不是加分：意图要动时不再生成站桩计划，否则 伤害/AP 恒偏好不动，风筝永远发生不了；
     // 「够得到就别乱动」由 intentTarget 返回 null 表达。
     const intentDist = intentTarget(self, state, candidates, current, apBudget, evalAt)
@@ -541,67 +631,129 @@ export function generatePlans(
             return dash?.maxDistance ?? 0
         }),
     )
-    for (const target of targetDists) {
-        // 段1：移动前（当前距离）能打。仅当有连发时允许起手 1 招（起手占用连发名额，
-        // 否则主招+连发已是上限，段1 会超招）。无连发时段1 恒空。
-        const seg1Max = extraN > 0 ? 1 : 0
-        // 连发减免的 firstActionDone 是回合级标记：段1/段2 共享（真实引擎 onTurnEnd 才重置）
-        const mockLayer: { restoreValue: number; extra: Record<string, unknown> } = { restoreValue: 1, extra: {} }
-        const seg1 = pickActions(self, state, pool, current, apBudget, seg1Max, new Set(), mockLayer, evalAt)
-        const seg1Ap = seg1.totalAp
-        if (seg1Ap > apBudget + 1e-9) continue
 
-        // 移动：当前 → target（优先位移招式，如虎跃/筋斗；否则走路）。
+    // 连发减免的 firstActionDone 是回合级标记：同一条计划的段1/段2 共享（真实引擎 onTurnEnd 才重置），
+    // 但不同候选计划之间必须各算各的 → 每次试算都开新层
+    const freshLayer = (): { restoreValue: number; extra: Record<string, unknown> } => ({ restoreValue: 1, extra: {} })
+    const pushed = new Set<string>()
+    const EMPTY: PickResult = { actions: [], totalDamage: 0, totalAp: 0 }
+
+    /** 组装一条计划：查预算 → 过位置规则 → 去重 → 计分 */
+    const pushPlan = (seg1: PickResult, movePlan: MovePlan | null, seg2: PickResult): void => {
+        const moveAp = movePlan ? movePlan.apCost : 0
+        const totalAp = seg1.totalAp + moveAp + seg2.totalAp
+        if (totalAp > apBudget + 1e-9) return
+        const totalDamage = seg1.totalDamage + seg2.totalDamage
+        if (totalDamage <= 0) return
+        // 真实落点：招式自带位移（天外飞仙的 short_dash 等）也要算进结束位置
+        const anchor = postDistanceAfter(self, state, current, seg1.actions)
+        const end = postDistanceAfter(self, state, movePlan ? movePlan.landDist : anchor, seg2.actions)
+        if (band && !positionRuleOk(self, state, enemy, band, anchor, end, totalAp - moveAp, apBudget)) return
+        const cmds: ActionCommand[] = []
+        for (const a of seg1.actions) cmds.push({ type: 'attack', actionId: a.id })
+        if (movePlan) cmds.push(movePlan.cmd)
+        for (const a of seg2.actions) cmds.push({ type: 'attack', actionId: a.id })
+        const sig = cmds.map((c) => (c.type === 'move' ? `move:${c.bestDistance}` : `${c.type}:${c.actionId}`)).join('|')
+        if (pushed.has(sig)) return
+        pushed.add(sig)
+        // 伤害 = 段1 + 段2；缠劲成本 = 段1+段2 总消耗按既有公式一次性折算（阈值跌破 30 只看总消耗）
+        const totalChanCost =
+            seg1.actions.reduce((s, a) => s + a.chanCost, 0) + seg2.actions.reduce((s, a) => s + a.chanCost, 0)
+        const totalChan = calcChanCostInAp(self.chan, totalChanCost)
+        const totalCost = totalAp + totalChan
+        plans.push({ cmds, totalDamage, totalAp, totalChan, score: totalCost > 0 ? totalDamage / totalCost : 0 })
+    }
+
+    // 形状 A（先动后打）：走到意图目标再出招；意图要求「够得到就别乱动」时就是站桩打。
+    // 段1：移动前（当前距离）能打。仅当有连发时允许起手 1 招（起手占用连发名额，
+    // 否则主招+连发已是上限，段1 会超招）。无连发时段1 恒空 —— 那种情况下「先打后动」由形状 B 负责。
+    for (const target of targetDists) {
+        const mockLayer = freshLayer()
+        const seg1Max = extraN > 0 ? 1 : 0
+        const seg1 = pickActions(self, state, pool, current, apBudget, seg1Max, new Set(), mockLayer, evalAt)
+        if (seg1.totalAp > apBudget + 1e-9) continue
+        // 段1 自带位移后的真实起点（如带 short_dash 的起手招会先冲近）
+        const anchor = postDistanceAfter(self, state, current, seg1.actions)
+
+        // 移动：anchor → target（优先位移招式，如虎跃/筋斗；否则走路）。
         // acceptableRange = 候选招射程并集：dash 落点落入任一候选招射程即可（big_leap 贴脸也能用）。
-        // target == 当前距离时无需移动（站桩打，如大津 4m 落月），planMove 返回 null 是合法的空移动。
+        // target == anchor 时无需移动（站桩打，如大津 4m 落月），planMove 返回 null 是合法的空移动。
         // 攻击招自带 short_dash（霸刀刀法等）：攻击时若距离超出武器射程会再垫步靠近（实际 = min(距离, maxDistance)），
-        // 所以靠近移动（target < current）时可以少走 maxDash——走到 target+maxDash（不超当前距离），
-        // 攻击垫步后落到 target 附近，省 maxDash 米裸身移动。退向 target（贴脸 target > current）时垫步
+        // 所以靠近移动（target < anchor）时可以少走 maxDash——走到 target+maxDash（不超 anchor），
+        // 攻击垫步后落到 target 附近，省 maxDash 米裸身移动。退向 target（贴脸 target > anchor）时垫步
         // 方向相反用不上，直接走到 target。无 short_dash 招时 maxDash=0，行为不变。
-        const needMove = Math.abs(current - target) >= 0.05
+        const needMove = Math.abs(anchor - target) >= 0.05
         let movePlan: MovePlan | null = null
-        let moveAp = 0
         if (needMove) {
-            const rawMoveTarget = target < current ? Math.max(target, Math.min(current, target + maxDash)) : target
+            const rawMoveTarget = target < anchor ? Math.max(target, Math.min(anchor, target + maxDash)) : target
             // 垫步补偿不能把落点推出「所有招的射程并集」——否则 planMove 的落点校验会否掉整条计划
             const moveTarget = Math.min(Math.max(rawMoveTarget, allCandRange[0]), allCandRange[1])
-            movePlan = planMove(self, state, current, moveTarget, apBudget - seg1Ap, allCandRange)
+            movePlan = planMove(self, state, anchor, moveTarget, apBudget - seg1.totalAp, allCandRange)
             if (!movePlan) continue
-            moveAp = movePlan.apCost
         }
-        if (seg1Ap + moveAp > apBudget + 1e-9) continue
 
         // 段2：在真实落点评估。带 short_dash 的招其射程已在 getActionRange 扩展（base+dash），
         // 站桩超武器射程时 AI 会靠 dash 招自身的扩展射程够到；无 dash 招不被误判为可垫步。
         // 不再做全局 maxDash 距离修正——那会把「别招的自带 dash」误用到无 dash 招上，
         // 生成引擎实际打不到的计划（如 7m 站桩却选 4m 射程招）。
-        const seg2Dist = movePlan ? movePlan.landDist : current
-        const seg2Budget = apBudget - seg1Ap - moveAp
+        const seg2Dist = movePlan ? movePlan.landDist : anchor
+        const seg2Budget = apBudget - seg1.totalAp - (movePlan ? movePlan.apCost : 0)
         const seg2Max = totalHitsMax - seg1.actions.length
         const exclude = new Set<string>(seg1.actions.map((a) => a.id))
         const seg2 = pickActions(self, state, pool, seg2Dist, seg2Budget, seg2Max, exclude, mockLayer, evalAt)
-        const totalAp = seg1Ap + moveAp + seg2.totalAp
-        if (totalAp > apBudget + 1e-9) continue
+        pushPlan(seg1, movePlan, seg2)
+    }
 
-        // 剩余 AP 不再做「收尾走位」：意图已经由 target 表达，留下的 AP 换成下回合更早行动
-        // （engine 的行动间隔 = 未花掉 AP 的回复时间），比盲走一段更有价值。
-
-        // 组装指令
-        const cmds: ActionCommand[] = []
-        for (const a of seg1.actions) cmds.push({ type: 'attack', actionId: a.id })
-        if (movePlan) cmds.push(movePlan.cmd)
-        for (const a of seg2.actions) cmds.push({ type: 'attack', actionId: a.id })
-
-        // 连发校验：段1+段2 总招数 ≤ 1 + 主招连发（简化：段2 max 已含连发，段1 起手 1 招）
-        // 伤害 = 段1 + 段2；缠劲成本 = 段1+段2 总消耗按既有公式一次性折算（阈值跌破 30 只看总消耗）
-        const totalDamage = seg1.totalDamage + seg2.totalDamage
-        if (totalDamage <= 0) continue
-        const totalChanCost =
-            seg1.actions.reduce((s, a) => s + a.chanCost, 0) + seg2.actions.reduce((s, a) => s + a.chanCost, 0)
-        const totalChan = calcChanCostInAp(self.chan, totalChanCost)
-        const totalCost = totalAp + totalChan
-        const score = totalCost > 0 ? totalDamage / totalCost : 0
-        plans.push({ cmds, totalDamage, totalAp, totalChan, score })
+    // 形状 B（先打后动 / 后置移动）：在当前距离把招打完，再用剩余 AP 退到意图位置。
+    // 为什么必须有这条形状：天外飞仙这类自带 short_dash 的冲脸招「攻击时」就把自己拖到武器射程内，
+    // 形状 A 的「先走到远端再出招」会把它刚走出来的位置又还回去（结束位置贴身）→ 位置规则会否掉它。
+    // 「位移优先于额外招，但保底最强一招」：先按满预算试打一次拿到真实落点，算出退到意图位置要多少 AP，
+    // 把它从预算里扣掉再正式选招 —— 否则 伤害/AP 恒偏好「多打一招、原地不动」，打完就走永远不会发生。
+    {
+        const trial = pickActions(self, state, pool, current, apBudget, totalHitsMax, new Set(), freshLayer(), evalAt)
+        if (trial.actions.length > 0) {
+            const trialAnchor = postDistanceAfter(self, state, current, trial.actions)
+            const trialGoal = band ? goalFromBand(self, state, band, trialAnchor) : null
+            const bestOne = pickActions(self, state, pool, current, apBudget, 1, new Set(), freshLayer(), evalAt)
+            const need = trialGoal ? moveCost(self, state, trialAnchor, trialGoal.goal) : 0
+            const reserve = Math.min(need, Math.max(0, apBudget - bestOne.totalAp))
+            const seg1 = pickActions(
+                self,
+                state,
+                pool,
+                current,
+                Math.max(0, apBudget - reserve),
+                totalHitsMax,
+                new Set(),
+                freshLayer(),
+                evalAt,
+            )
+            const anchor = postDistanceAfter(self, state, current, seg1.actions)
+            const tailBudget = apBudget - seg1.totalAp
+            const tailGoal = band ? goalFromBand(self, state, band, anchor) : null
+            let tail: MovePlan | null = null
+            if (tailGoal && tailBudget > 0 && Math.abs(tailGoal.goal - anchor) >= 0.05) {
+                const goal = Math.min(Math.max(tailGoal.goal, allCandRange[0]), allCandRange[1])
+                // 先按完整意图目标试：位移招（凤反这类 1 AP 瞬移到最大射程）允许一步到位，
+                // 走路够不到就由 planMove 自己否掉；再退回「预算允许的最远处」走路。
+                // 不能只传夹短后的目标——否则位移落点会被「离夹短目标更远」的守卫误杀，
+                // 「AP 少但刚好够一次瞬移」的退位计划就永远生成不出来。
+                tail = planMove(self, state, anchor, goal, tailBudget, allCandRange)
+                if (!tail) {
+                    const step = movePerAp(self, state) * tailBudget
+                    const want =
+                        tailGoal.goal >= anchor
+                            ? Math.min(tailGoal.goal, anchor + step)
+                            : Math.max(tailGoal.goal, anchor - step)
+                    if (Math.abs(want - anchor) >= 0.05) {
+                        const partial = Math.min(Math.max(want, allCandRange[0]), allCandRange[1])
+                        tail = planMove(self, state, anchor, partial, tailBudget, allCandRange)
+                    }
+                }
+            }
+            // 打完还在意图位置上 → 就是站桩打（pushPlan 会去重掉和形状 A 重复的那条）
+            pushPlan(seg1, tail, EMPTY)
+        }
     }
 
     return plans

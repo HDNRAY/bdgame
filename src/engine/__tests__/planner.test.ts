@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { Character } from '../entities/character'
 import type { BattleState } from '../combat/types'
 import { gen } from '../../data/opponents/index'
-import { OTSU, FANGLIE, DOCTOR } from '../../data/opponents/index'
+import { OTSU, FANGLIE, DOCTOR, XUNXIANG, AJIU } from '../../data/opponents/index'
 import { BattleEngine } from '../combat/engine'
 import { generatePlans, bestPlan, optimalRangeBand, intentDirection, intentGoal, intentTarget } from '../ai/planner'
 import type { ActionDefinition } from '../entities/action'
@@ -65,7 +65,7 @@ describe('planner · 落点由「最优射程带 + 风格意图」算出（不�
         expect(target!).toBeGreaterThanOrEqual(band.hi - 0.15 - 1e-6)
     })
 
-    it('计划里最多一次移动（收尾走位已删除）', () => {
+    it('计划里最多一次移动（后置移动是「先打后动」，不是额外再走一段）', () => {
         const self = makeChar('A', '大津', OTSU)
         const enemy = makeChar('B', '方烈', FANGLIE)
         const state = makeState(self, enemy, 4)
@@ -75,6 +75,25 @@ describe('planner · 落点由「最优射程带 + 风格意图」算出（不�
         for (const p of plans) {
             expect(p.cmds.filter((c) => c.type === 'move').length).toBeLessThanOrEqual(1)
         }
+    })
+})
+
+describe('planner · 后置移动（先打后动）', () => {
+    it('冲脸招（天外飞仙 short_dash 5）打完能退开：位移排在出招之后', () => {
+        // 天外飞仙 自带 short_dash 5：从 4m 用出去会把自己拖到武器射程内（贴身），
+        // 所以必须有「先出招、再用剩余 AP 退到意图位置」的计划，否则打近战没法风筝。
+        const self = makeChar('A', '凤寻香', XUNXIANG)
+        const enemy = makeChar('B', '阿九', AJIU)
+        const state = makeState(self, enemy, 4)
+        self.ap = 6
+        self.chan = 50 // 天外飞仙 消耗 MAX_CHAN
+        const plans = generatePlans(self, state, candsOf(self), self.ap)
+        expect(plans.length).toBeGreaterThan(0)
+        const best = bestPlan(plans)!
+        const atk = best.cmds.findIndex((c) => c.type === 'attack' && c.actionId === 'tian_wai_fei_xian')
+        const mv = best.cmds.findIndex((c) => c.type !== 'attack')
+        expect(atk).toBeGreaterThanOrEqual(0)
+        expect(mv).toBeGreaterThan(atk) // 后置移动：先出招，再位移
     })
 })
 
