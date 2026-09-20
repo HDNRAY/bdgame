@@ -108,11 +108,17 @@ export const DAMAGE_BUFFS: BuffDef[] = [
     {
         id: 'bu_zhi_yu_wu',
         name: '不滞于物',
-        description: '不滞于物，草木竹石皆可为剑。附加力道、身法、灵巧、推演中最高者的×0.05伤害。',
+        description:
+            '不滞于物，草木竹石皆可为剑。每次命中消耗1点缠劲，附加力道、身法、灵巧、推演中最高者的×0.05伤害；缠劲不足则不触发。',
         tags: [],
         expiry: { type: 'permanent' },
-        // 取四者最高：不挑路子，哪一项练出来了就吃哪一项（原先固定吃推演）
-        onDealDamage: ({ final, attacker }) => round1(final + bestOfFour(attacker) * 0.05),
+        // 取四者最高：不挑路子，哪一项练出来了就吃哪一项（原先固定吃推演）。
+        // 每次命中花 1 缠：缠劲不足就不附加（与破狼竹枝/不动明王同一口径）。命中太频繁，
+        // 不写日志（与雷法一致），否则每一下都要刷一行。
+        onDealDamage: ({ final, attacker }) => {
+            if (!attacker.spendChan(1)) return final
+            return round1(final + bestOfFour(attacker) * 0.05)
+        },
     },
     {
         id: 'thunder_bonus',

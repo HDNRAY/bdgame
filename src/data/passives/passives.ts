@@ -542,7 +542,7 @@ export const PASSIVES: Passive[] = [
         // 不滞于物：万兵在手皆可为剑——所有伤害招式带 pierce 标记（供越女剑意全招生效），并按推演加伤
         id: 'bu_zhi_yu_wu',
         name: '不滞于物',
-        description: '不滞于物，草木竹石皆可为剑。按推演附加伤害。',
+        description: '不滞于物，草木竹石皆可为剑。招式皆带刺击；命中时消耗1点缠劲附加伤害。',
         tags: ['buff'],
         actionEnhancer: (def) => {
             if (!def.effects?.some((e) => e.type === 'damage')) return def
