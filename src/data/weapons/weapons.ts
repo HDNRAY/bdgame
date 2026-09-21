@@ -132,7 +132,7 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'xiu_dong',
         name: '绣冬',
-        description: '绣冬长三尺二寸，势沉力猛。力道化为锋芒，越重越利。',
+        description: '绣冬长三尺二寸，重十斤九两。炼刀人不求锐利，反其道行之：钝锋。势沉力猛，力道化为锋芒。',
         tags: ['slash', 'parry', 'melee', 'heavy', 'one_handed', 'buff'],
         range: [1, 3],
         effects: [
@@ -148,7 +148,7 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'chun_lei',
         name: '春雷',
-        description: '轻灵迅捷，见血封喉。灵巧化为致命锋芒。',
+        description: '春雷长二尺四寸，重一斤三两。吹毛断发，可轻易破开重甲。灵巧化为致命锋芒。',
         tags: ['slash', 'parry', 'melee', 'one_handed', 'buff'],
         range: [0, 2],
         effects: [

@@ -17,7 +17,9 @@ import {
     autoOutline,
     blankPixelMap,
     fillRegion,
+    buildPalette,
     formatAnchorSnippet,
+    formatCharacterColorsSnippet,
     formatPixelMapJson,
     formatPixelMapLiteral,
     formatPixelMapSource,
@@ -27,18 +29,19 @@ import {
     getCell,
     getSpriteOutlineColor,
     hitAnchor,
-    makeCharacterSprite,
     moveAnchor,
     paintCell,
     paintLine,
+    parseEditorState,
     parsePixelMap,
     parseWeaponOverlay,
+    serializeEditorState,
     resolveWeaponPixels,
     snapAnchorToSkin,
     stringifyPixelMap,
     unpadRenderedFrame,
 } from '../../../pixel-sprites'
-import type { HandAnchorData, PixelMap } from '../../../pixel-sprites'
+import type { HandAnchorData, PixelEditorSavedState, PixelMap } from '../../../pixel-sprites'
 import {
     DEFAULT_ATTACK,
     DEFAULT_BUFF,
@@ -47,17 +50,21 @@ import {
     DEFAULT_IDLE,
     DEFAULT_PARRY,
 } from '../../../pixel-sprites/sprites'
-import { CHARACTER_COLORS, CHARACTER_SPRITE_MAP } from '../../../pixel-sprites/palette'
+import { CHARACTER_COLORS, CHARACTER_SPRITE_MAP, DEFAULT_COLORS } from '../../../pixel-sprites/palette'
+import type { CharacterColors } from '../../../pixel-sprites/palette'
 import { OPPONENTS } from '../../../../data/opponents'
 import { WEAPON_DB } from '../../../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { PixelCanvas } from '../../../components/ui/PixelCanvas/PixelCanvas'
 import { SearchSelect } from '../../../components/ui/SearchSelect/SearchSelect'
 import { useAppStore, getEffectiveTheme } from '../../../stores/app-store'
+import { WeaponMountPanel } from './WeaponMountPanel'
+import type { WeaponPoseConfig } from '../../../pixel-sprites'
+
 import './PixelEditor.scss'
 
 /** 编辑对象：身体姿势帧（48×48 槽位图）或武器图（32×32 自由配色） */
-type EditorMode = 'frame' | 'weapon'
+type EditorMode = 'frame' | 'weapon' | 'mount'
 type Tool = 'pen' | 'eraser' | 'picker' | 'fill'
 
 /**
@@ -103,6 +110,15 @@ const SLOT_TIPS: Record<number, string> = {
     6: '装饰：腰带、鞋等点缀（快捷键 6）',
     7: '白：特效白（快捷键 7）',
     9: '金边：爆气光环（快捷键 9）',
+}
+
+/** 身体帧里「跟角色配色走」的槽位 → CHARACTER_COLORS 的字段（这几个槽位可以在编辑器里改色） */
+const SLOT_TO_COLOR_KEY: Record<number, keyof CharacterColors> = {
+    2: 'hair',
+    3: 'skin',
+    4: 'eyes',
+    5: 'accent',
+    6: 'decoration',
 }
 
 /** 槽位兜底色：调色板缺某个槽位（旧页面热更等）时也不至于「涂上去看不见」 */
@@ -222,28 +238,50 @@ function weaponGridToJson(grid: PixelMap, palette: string[]): string {
     return JSON.stringify({ pixels, palette: {} }, null, 1)
 }
 
+const EDITOR_STATE_KEY = 'dantiao:pixel-editor:state:v1'
+
+/** 读一次本地存档（页面重载 / Vite 重载后恢复；读写失败都当没有） */
+function readSavedState(): PixelEditorSavedState | null {
+    try {
+        if (typeof localStorage === 'undefined') return null
+        return parseEditorState(localStorage.getItem(EDITOR_STATE_KEY))
+    } catch {
+        return null
+    }
+}
+
 export function PixelEditor() {
-    const [mode, setMode] = useState<EditorMode>('frame')
+    // 只读一次：用它作为各 state 的初值
+    const saved = useMemo(() => readSavedState(), [])
+    const [mode, setMode] = useState<EditorMode>(saved?.mode ?? 'frame')
+    /** 武器挂点实验：武器 id → 姿势 → 改过的配置（空 = 用 weapons.ts 登记值） */
+    const [mountConfigs, setMountConfigs] = useState<Record<string, Record<string, Partial<WeaponPoseConfig>>>>(
+        () => saved?.mountConfigs ?? {},
+    )
 
     // ── 身体帧 ──
-    const [map, setMap] = useState<PixelMap>(() => cloneMap(DEFAULT_BUFF))
-    const [poseName, setPoseName] = useState('buff')
-    const [constName, setConstName] = useState('DEFAULT_BUFF')
-    const [sourceKey, setSourceKey] = useState('buff')
+    const [map, setMap] = useState<PixelMap>(() => cloneMap(saved?.frame.map ?? DEFAULT_BUFF))
+    const [poseName, setPoseName] = useState(saved?.frame.poseName ?? 'buff')
+    const [constName, setConstName] = useState(saved?.frame.constName ?? 'DEFAULT_BUFF')
+    const [sourceKey, setSourceKey] = useState(saved?.frame.sourceKey ?? 'buff')
 
     // ── 武器图 ──
     const firstWeaponId = WEAPON_IDS_WITH_ART[0] ?? 'dark_iron_sword'
-    const [weaponId, setWeaponId] = useState(firstWeaponId)
-    const [weaponGrid, setWeaponGrid] = useState<PixelMap>(() => weaponOverlayToGrid(firstWeaponId).grid)
-    const [weaponPalette, setWeaponPalette] = useState<string[]>(() => weaponOverlayToGrid(firstWeaponId).palette)
+    const [weaponId, setWeaponId] = useState(saved?.weapon.id ?? firstWeaponId)
+    const [weaponGrid, setWeaponGrid] = useState<PixelMap>(
+        () => saved?.weapon.grid ?? weaponOverlayToGrid(firstWeaponId).grid,
+    )
+    const [weaponPalette, setWeaponPalette] = useState<string[]>(
+        () => saved?.weapon.palette ?? weaponOverlayToGrid(firstWeaponId).palette,
+    )
 
     // ── 工具/颜色 ──
-    const [tool, setTool] = useState<Tool>('pen')
-    const [slot, setSlot] = useState(1)
-    const [mirror, setMirror] = useState(false)
-    const [manualZoom, setManualZoom] = useState<number | null>(null)
-    const [showGrid, setShowGrid] = useState(true)
-    const [showAnchors, setShowAnchors] = useState(true)
+    const [tool, setTool] = useState<Tool>(saved?.tool ?? 'pen')
+    const [slot, setSlot] = useState(saved?.slot ?? 1)
+    const [mirror, setMirror] = useState(saved?.mirror ?? false)
+    const [manualZoom, setManualZoom] = useState<number | null>(saved?.manualZoom ?? null)
+    const [showGrid, setShowGrid] = useState(saved?.showGrid ?? true)
+    const [showAnchors, setShowAnchors] = useState(saved?.showAnchors ?? true)
     /** 底板色系（记住上次选择） */
     const [backdropId, setBackdropId] = useState<string>(() => {
         try {
@@ -292,13 +330,21 @@ export function PixelEditor() {
 
     // ── 预览 ──
     const [charId, setCharId] = useState('yidao')
+    /** 改过的角色配色（按角色 id；空 = 用 palette.ts 里登记的值） */
+    const [colorOverrides, setColorOverrides] = useState<Record<string, Partial<CharacterColors>>>(
+        () => saved?.colorOverrides ?? {},
+    )
+    /** 改过的固定槽位色（描边 1 / 白 7 / 金边 9；这几色不随角色变） */
+    const [fixedSlotOverrides, setFixedSlotOverrides] = useState<Record<number, string>>(
+        () => saved?.fixedSlotOverrides ?? {},
+    )
     const [previewWeaponId, setPreviewWeaponId] = useState('peach_sword')
 
     // ── 历史 / 导入导出 ──
     const historyRef = useRef<{ past: PixelMap[]; future: PixelMap[] }>({ past: [], future: [] })
     const [, bumpHistory] = useState(0)
     const [pasteText, setPasteText] = useState('')
-    const [status, setStatus] = useState('')
+    const [status, setStatus] = useState(saved ? '已恢复上次的编辑内容（保存代码触发的整页刷新不会丢）' : '')
     const warnedTransparentRef = useRef(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -323,7 +369,17 @@ export function PixelEditor() {
     // ── 调色板 ──
     const themeMode = useAppStore((s) => s.uiConfig.theme)
     const outlineColor = getSpriteOutlineColor(getEffectiveTheme(themeMode))
-    const charPalette = useMemo(() => makeCharacterSprite(charId, '#4ecdc4', outlineColor).palette, [charId, outlineColor])
+    /** 当前角色的有效配色（登记值 + 编辑器里的改动） */
+    const baseColors: CharacterColors = CHARACTER_COLORS[charId] ?? DEFAULT_COLORS
+    const effectiveColors: CharacterColors = { ...baseColors, ...(colorOverrides[charId] ?? {}) }
+    const colorOverridden =
+        Object.keys(colorOverrides[charId] ?? {}).length > 0 || Object.keys(fixedSlotOverrides).length > 0
+    const charPalette = useMemo(() => {
+        const base = buildPalette(charId, undefined, outlineColor, effectiveColors)
+        const out: Record<string, string> = { ...base }
+        for (const [slot, color] of Object.entries(fixedSlotOverrides)) out[slot] = color
+        return out
+    }, [charId, outlineColor, effectiveColors, fixedSlotOverrides])
     const { palette: framePalette, missingSlots } = useMemo(() => {
         const missing: number[] = []
         const merged: Record<string, string> = { ...charPalette }
@@ -638,8 +694,40 @@ export function PixelEditor() {
         historyRef.current = { past: [], future: [] }
         setSlot(1)
         setPasteText('')
-        setStatus(next === 'weapon' ? '武器模式：32×32，颜色任选（调色板里可加/改/删）' : '身体帧模式：槽位 0~7、9')
+        setStatus(
+            next === 'weapon'
+                ? '武器图：32×32，颜色任选（调色板里可加/改/删）'
+                : next === 'mount'
+                  ? '武器挂点：拖动 = 移，Shift/右键拖 = 旋转；右下角可复制 WEAPON_POSES 片段'
+                  : '身体帧：槽位 0~7、9',
+        )
     }
+
+    // ── 写本地存档（防抖 400ms；拖笔时不至于每格都写一次）──
+    useEffect(() => {
+        const payload: PixelEditorSavedState = {
+            mode,
+            frame: { map, constName, poseName, sourceKey },
+            weapon: { id: weaponId, grid: weaponGrid, palette: weaponPalette },
+            colorOverrides,
+            fixedSlotOverrides,
+            mountConfigs,
+            tool,
+            slot,
+            mirror,
+            showGrid,
+            showAnchors,
+            manualZoom,
+        }
+        const timer = window.setTimeout(() => {
+            try {
+                localStorage.setItem(EDITOR_STATE_KEY, serializeEditorState(payload))
+            } catch {
+                /* 存不下就算了，不影响编辑 */
+            }
+        }, 400)
+        return () => window.clearTimeout(timer)
+    }, [mode, map, constName, poseName, sourceKey, weaponId, weaponGrid, weaponPalette, colorOverrides, fixedSlotOverrides, mountConfigs, tool, slot, mirror, showGrid, showAnchors, manualZoom])
 
     // ── 快捷键 ──
     useEffect(() => {
@@ -661,7 +749,8 @@ export function PixelEditor() {
             if (mod) return
             const k = e.key.toLowerCase()
             if (k === 'b') setTool('pen')
-            else if (k === 'e') setTool('eraser')
+            // E：画笔 ↔ 橡皮 一键来回切（和 PS 一样，不用鼠标去点按钮）
+            else if (k === 'e') setTool((t) => (t === 'eraser' ? 'pen' : 'eraser'))
             else if (k === 'i') setTool('picker')
             else if (k === 'g') setTool('fill')
             else if (k === 'x') setMirror((v) => !v)
@@ -761,10 +850,10 @@ export function PixelEditor() {
                 if (file) void importFile(file)
             }}
         >
-            {/* ── 左：工具栏 + 画布 + 预览 ── */}
+            {/* ── 左：工具栏 + 画布 + 预览（武器挂点模式换成实验台） ── */}
             <div className="pixel-editor-main" ref={mainRef}>
-                <div className="pixel-editor-toolbar">
-                    <div className="pixel-editor-row">
+                {/* 模式切换：三种模式都常驻（挂点模式下也要能切回去） */}
+                <div className="pixel-editor-row">
                         <div className="pixel-editor-seg">
                             <button
                                 className={`pixel-editor-tool ${mode === 'frame' ? 'active' : ''}`}
@@ -778,14 +867,46 @@ export function PixelEditor() {
                                 title="编辑武器图（32×32，颜色任选）"
                                 onClick={() => switchMode('weapon')}
                             >
-                                武器
+                                武器图
+                            </button>
+                            <button
+                                className={`pixel-editor-tool ${mode === 'mount' ? 'active' : ''}`}
+                                title="实验武器挂在身上哪里、倾角多少（不同动作不同），导出 WEAPON_POSES 片段"
+                                onClick={() => switchMode('mount')}
+                            >
+                                武器挂点
                             </button>
                         </div>
+                </div>
+                {mode === 'mount' ? (
+                    <WeaponMountPanel
+                        configs={mountConfigs}
+                        onChange={(w, p, cfg) =>
+                            setMountConfigs((prev) => {
+                                const next = { ...prev, [w]: { ...(prev[w] ?? {}) } }
+                                if (cfg === null) delete next[w][p]
+                                else next[w][p] = cfg
+                                return next
+                            })
+                        }
+                        charId={charId}
+                        setStatus={setStatus}
+                    />
+                ) : (
+                    <>
+                <div className="pixel-editor-toolbar">
+                    <div className="pixel-editor-row">
                         {TOOLS.map((t) => (
                             <button
                                 key={t.id}
                                 className={`pixel-editor-tool ${tool === t.id ? 'active' : ''}`}
-                                title={`${t.label}（快捷键 ${t.key}）`}
+                                title={
+                                    t.id === 'pen'
+                                        ? '画笔（B）；按 E 可与橡皮一键来回切'
+                                        : t.id === 'eraser'
+                                          ? '橡皮（E；再按一次 E 切回画笔；画布上右键也是擦除）'
+                                          : `${t.label}（快捷键 ${t.key}）`
+                                }
                                 onClick={() => setTool(t.id)}
                             >
                                 {t.label}
@@ -977,9 +1098,10 @@ export function PixelEditor() {
                             pose={poseName}
                             weaponId={previewWeaponId}
                             overlay={WEAPON_OVERLAYS[previewWeaponId]}
-                            canvasCols={SPRITE_WIDTH}
-                            canvasRows={SPRITE_HEIGHT}
-                            contentOffsetX={0}
+                            // 与「像素图测试」同视口：120×54，人偏右，挥砍时不裁武器
+                            canvasCols={120}
+                            canvasRows={54}
+                            contentOffsetX={45}
                             className="pixel-editor-preview-canvas"
                         />
                     ) : (
@@ -996,9 +1118,12 @@ export function PixelEditor() {
                         />
                     )}
                 </div>
+                    </>
+                )}
             </div>
 
-            {/* ── 右：设置面板（说明都在 tooltip 里）── */}
+            {/* ── 右：设置面板（说明都在 tooltip 里）；武器挂点模式自带全套控件，右栏整个让开 ── */}
+            {mode !== 'mount' && (
             <aside className="pixel-editor-side">
                 <section className="pixel-editor-panel">
                     {mode === 'frame' ? (
@@ -1086,6 +1211,33 @@ export function PixelEditor() {
                                         <span className="pixel-editor-swatch-label">{SLOT_LABELS[i] ?? i}</span>
                                     )}
                                 </button>
+                                {mode === 'frame' && !SLOT_TO_COLOR_KEY[i] && i !== 0 && (
+                                    <span className="pixel-editor-swatch-tools">
+                                        <input
+                                            type="color"
+                                            title={`改「${SLOT_LABELS[i]}」的颜色（槽位 ${i}；只影响编辑器预览）`}
+                                            value={colorOf(i) ?? '#000000'}
+                                            onChange={(e) =>
+                                                setFixedSlotOverrides((prev) => ({ ...prev, [i]: e.target.value }))
+                                            }
+                                        />
+                                    </span>
+                                )}
+                                {mode === 'frame' && SLOT_TO_COLOR_KEY[i] && (
+                                    <span className="pixel-editor-swatch-tools">
+                                        <input
+                                            type="color"
+                                            title={`改「${SLOT_LABELS[i]}」的颜色（只影响编辑器预览；用下面的「复制配色片段」落回 palette.ts）`}
+                                            value={effectiveColors[SLOT_TO_COLOR_KEY[i]]}
+                                            onChange={(e) =>
+                                                setColorOverrides((prev) => ({
+                                                    ...prev,
+                                                    [charId]: { ...prev[charId], [SLOT_TO_COLOR_KEY[i]]: e.target.value },
+                                                }))
+                                            }
+                                        />
+                                    </span>
+                                )}
                                 {mode === 'weapon' && (
                                     <span className="pixel-editor-swatch-tools">
                                         <input
@@ -1117,7 +1269,7 @@ export function PixelEditor() {
                         </p>
                     )}
                     {mode === 'frame' && (
-                        <div className="pixel-editor-field" title="配色预览：槽位色随角色变化">
+                        <div className="pixel-editor-field" title="配色预览：槽位色随角色变化；发色/皮肤/瞳色/衣物/装饰都可以改">
                             <span>角色配色</span>
                             <SearchSelect
                                 value={charId}
@@ -1126,6 +1278,67 @@ export function PixelEditor() {
                                 searchPlaceholder="搜索角色…"
                             />
                         </div>
+                    )}
+                    {mode === 'frame' && (
+                        <div className="pixel-editor-row">
+                            <span
+                                className="pixel-editor-colorline"
+                                title="改过的角色配色（发色等）；没改过的槽位维持 palette.ts 的登记值"
+                            >
+                                {colorOverridden ? '配色已改动' : '配色＝palette.ts 登记值'}
+                            </span>
+                            <button
+                                className="pixel-editor-btn"
+                                title="复制这段粘进 palette.ts 的 CHARACTER_COLORS，改色就落到代码里"
+                                onClick={() =>
+                                    copy(formatCharacterColorsSnippet(charId, effectiveColors), '配色片段已复制')
+                                }
+                            >
+                                复制配色片段
+                            </button>
+                            <button
+                                className="pixel-editor-btn"
+                                disabled={!colorOverridden}
+                                title="丢弃本角色的改色，回到 palette.ts 的登记值"
+                                onClick={() => {
+                                    setColorOverrides((prev) => {
+                                        const next = { ...prev }
+                                        delete next[charId]
+                                        return next
+                                    })
+                                    setFixedSlotOverrides({})
+                                    setStatus(`「${NAME_BY_ID[charId] ?? charId}」的配色已恢复为 palette.ts 的登记值`)
+                                }}
+                            >
+                                重置配色
+                            </button>
+                        </div>
+                    )}
+                    {mode === 'frame' && (
+                        <details className="pixel-editor-code">
+                            <summary title="展开看配色对应的 palette.ts 文本（剪贴板不可用时从这里手动复制）">
+                                查看配色代码
+                            </summary>
+                            <textarea
+                                className="pixel-editor-textarea pixel-editor-textarea--export"
+                                readOnly
+                                rows={1}
+                                value={formatCharacterColorsSnippet(charId, effectiveColors)}
+                            />
+                            {Object.keys(fixedSlotOverrides).length > 0 && (
+                                <textarea
+                                    className="pixel-editor-textarea pixel-editor-textarea--export"
+                                    readOnly
+                                    rows={3}
+                                    title="固定槽位（描边/白/金边）改动的落点：palette.ts 的 buildPalette / 主题描边常量"
+                                    value={[
+                                        `// palette.ts · buildPalette 里的固定槽位`,
+                                        `'1': '${colorOf(1) ?? '#000000'}', '7': '${colorOf(7) ?? '#ffffff'}', '9': '${colorOf(9) ?? '#ffd24a'}',`,
+                                        `// 描边想换：改 SPRITE_OUTLINE_LIGHT（浅色主题）/ SPRITE_OUTLINE_DARK（深色主题）`,
+                                    ].join('\n')}
+                                />
+                            )}
+                        </details>
                     )}
                     {mode === 'frame' && (
                         <div className="pixel-editor-field" title="预览里挂的武器">
@@ -1200,12 +1413,6 @@ export function PixelEditor() {
                         />
                     </div>
 
-                    <textarea
-                        className="pixel-editor-textarea pixel-editor-textarea--export"
-                        readOnly
-                        value={exported}
-                        rows={7}
-                    />
                     <div className="pixel-editor-row">
                         <button
                             className="pixel-editor-btn"
@@ -1233,7 +1440,45 @@ export function PixelEditor() {
                         <button className="pixel-editor-btn" onClick={download}>
                             下载 .json
                         </button>
+                        <button
+                            className="pixel-editor-btn"
+                            title="清掉本地存档并回到默认状态（默认身体帧 buff + 默认武器）。平时不用点：保存代码触发的整页刷新会自动恢复"
+                            onClick={() => {
+                                try {
+                                    localStorage.removeItem(EDITOR_STATE_KEY)
+                                } catch {
+                                    /* 忽略 */
+                                }
+                                setMap(cloneMap(DEFAULT_BUFF))
+                                setPoseName('buff')
+                                setConstName('DEFAULT_BUFF')
+                                setSourceKey('buff')
+                                const d = weaponOverlayToGrid(firstWeaponId)
+                                setWeaponId(firstWeaponId)
+                                setWeaponGrid(d.grid)
+                                setWeaponPalette(d.palette)
+                                setSlot(1)
+                                setManualZoom(null)
+                                setColorOverrides({})
+                                setFixedSlotOverrides({})
+                                historyRef.current = { past: [], future: [] }
+                                setStatus('已清掉本地存档，回到默认状态')
+                            }}
+                        >
+                            清存档
+                        </button>
                     </div>
+                    <details className="pixel-editor-code">
+                        <summary title="展开看导出的代码文本（上面的按钮已经能直接复制，这里只是方便手动查看/复制）">
+                            查看代码
+                        </summary>
+                        <textarea
+                            className="pixel-editor-textarea pixel-editor-textarea--export"
+                            readOnly
+                            value={exported}
+                            rows={7}
+                        />
+                    </details>
                 </section>
 
                 {mode === 'frame' && (
@@ -1284,19 +1529,22 @@ export function PixelEditor() {
                                 重置
                             </button>
                         </div>
-                        <textarea
-                            className="pixel-editor-textarea pixel-editor-textarea--export"
-                            readOnly
-                            value={anchorSnippet}
-                            rows={6}
-                        />
                         <button className="pixel-editor-btn" onClick={() => copy(anchorSnippet, '锚点片段已复制')}>
                             复制锚点片段
                         </button>
+                        <details className="pixel-editor-code">
+                            <summary title="展开看 weapons.ts 的四张表片段（剪贴板不可用时手动复制）">查看锚点代码</summary>
+                            <textarea
+                                className="pixel-editor-textarea pixel-editor-textarea--export"
+                                readOnly
+                                value={anchorSnippet}
+                                rows={6}
+                            />
+                        </details>
                     </details>
                 )}
-
             </aside>
+            )}
         </div>
     )
 }

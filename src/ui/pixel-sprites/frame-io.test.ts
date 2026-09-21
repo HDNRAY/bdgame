@@ -5,6 +5,7 @@ import {
     formatPixelMapLiteral,
     formatPixelMapSource,
     parsePixelMap,
+    formatCharacterColorsSnippet,
     formatWeaponOverlaySnippet,
     parseWeaponOverlay,
     stringifyPixelMap,
@@ -155,5 +156,20 @@ describe('武器图导入导出', () => {
         expect(parseWeaponOverlay('{ pixels: [[1, 1, 9]], palette: { "1": "#fff" } }').ok).toBe(false)
         expect(parseWeaponOverlay('{ pixels: [], palette: {} }').ok).toBe(false)
         expect(parseWeaponOverlay('[[1,2,3]]').ok).toBe(false)
+    })
+})
+
+describe('角色配色片段', () => {
+    it('按 palette.ts 的写法输出一行，可直接粘进 CHARACTER_COLORS', () => {
+        const line = formatCharacterColorsSnippet('yidao', {
+            skin: '#f5d6c6',
+            hair: '#123456',
+            eyes: '#b71902',
+            accent: '#8c1d18',
+            decoration: '#d4a848',
+        })
+        expect(line).toBe(
+            "    yidao: { skin: '#f5d6c6', hair: '#123456', eyes: '#b71902', accent: '#8c1d18', decoration: '#d4a848' },",
+        )
     })
 })

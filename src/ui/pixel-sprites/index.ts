@@ -28,7 +28,7 @@ export {
     AVATAR_COL_END,
 } from './constants'
 
-export { CHARACTER_COLORS, CHARACTER_SPRITE_MAP, getSpriteOutlineColor } from './palette'
+export { CHARACTER_COLORS, CHARACTER_SPRITE_MAP, DEFAULT_COLORS, buildPalette, getSpriteOutlineColor } from './palette'
 export { SPRITE_OUTLINE_LIGHT, SPRITE_OUTLINE_DARK } from './palette'
 export type { CharacterColors } from './palette'
 
@@ -60,7 +60,9 @@ export type { Cell, FrameStats, HandAnchorData, PaintOptions } from './frame-edi
 export {
     blankPixelMap,
     formatAnchorSnippet,
+    formatCharacterColorsSnippet,
     formatWeaponOverlaySnippet,
+    formatWeaponPoseSnippet,
     formatPixelMapJson,
     formatPixelMapLiteral,
     formatPixelMapSource,
@@ -70,6 +72,9 @@ export {
     unpadRenderedFrame,
 } from './frame-io'
 export type { ParsePixelMapResult, ParseWeaponResult, UnpadResult, WeaponGridData } from './frame-io'
+
+export { parseEditorState, serializeEditorState } from './editor-storage'
+export type { EditorMode, EditorTool, PixelEditorSavedState } from './editor-storage'
 
 export {
     HAND_POINTS,

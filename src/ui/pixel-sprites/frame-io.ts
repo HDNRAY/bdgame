@@ -10,6 +10,8 @@
  * 避免把多张数组首尾接起来当一张解析（历史上 `第一个 [` 到 `最后一个 ]` 就是这么错的）。
  */
 import type { HandAnchorData } from './frame-edit'
+import type { CharacterColors } from './palette'
+import type { WeaponPoseConfig } from './types'
 import type { PixelMap } from './types'
 import { SPRITE_HEIGHT, SPRITE_PAD_LEFT, SPRITE_WIDTH } from './constants'
 
@@ -428,4 +430,91 @@ function findBalancedObject(text: string, start: number): { body: string; next: 
         }
     }
     return null
+}
+
+/**
+ * 生成 CHARACTER_COLORS 的条目片段（可直接粘进 palette.ts）。
+ * 编辑器里改过发色/皮肤等之后，用它把配色落回代码。
+ */
+export function formatCharacterColorsSnippet(charId: string, colors: CharacterColors): string {
+    return (
+        `    ${charId}: { skin: '${colors.skin}', hair: '${colors.hair}', eyes: '${colors.eyes}', ` +
+        `accent: '${colors.accent}', decoration: '${colors.decoration}' },`
+    )
+}
+
+/** 挂点配置里「同一把武器所有姿势共用」的字段（导出时放进 makePoses 的基底） */
+const POSE_BASE_KEYS: (keyof WeaponPoseConfig)[] = [
+    'gripX',
+    'gripY',
+    'grip2X',
+    'grip2Y',
+    'flip',
+    'anchorHand',
+    'noHandCover',
+]
+
+function fmtNum(v: number): string {
+    return Number.isInteger(v) ? String(v) : String(Math.round(v * 10000) / 10000)
+}
+
+/** 角度：是「整数/半度」就写成 (15 * Math.PI) / 180，否则按弧度原值写（与 weapons.ts 里的习惯一致） */
+function fmtAngle(rad: number): string {
+    const deg = (rad * 180) / Math.PI
+    const halfSteps = Math.round(deg * 2) / 2
+    if (Math.abs(deg - halfSteps) < 0.01) return `(${fmtNum(halfSteps)} * Math.PI) / 180`
+    return fmtNum(rad)
+}
+
+function fmtPoseFields(cfg: Partial<WeaponPoseConfig>, keys: (keyof WeaponPoseConfig)[]): string {
+    return keys
+        .filter((k) => cfg[k] !== undefined)
+        .map((k) => {
+            const v = cfg[k]
+            if (typeof v !== 'number') return `${k}: ${String(v)}`
+            return `${k}: ${k === 'angle' ? fmtAngle(v) : fmtNum(v)}`
+        })
+        .join(', ')
+}
+
+/**
+ * 生成 WEAPON_POSES 的条目片段（可直接粘进 weapons.ts）。
+ * 基底取 idle 的共用字段（grip/flip/第二握点…），与基底不同的姿势再单独列出。
+ */
+export function formatWeaponPoseSnippet(
+    weaponId: string,
+    configs: Record<string, Partial<WeaponPoseConfig>>,
+    poses: string[],
+): string {
+    const idle = configs.idle ?? {}
+    const base = POSE_BASE_KEYS.filter((k) => idle[k] !== undefined)
+    const baseFields = fmtPoseFields(idle, base)
+    const lines: string[] = [`    ${weaponId}: {`]
+    lines.push(baseFields ? `        ...makePoses({ ${baseFields} }),` : '        ...makePoses({}),')
+    const perPoseKeys: (keyof WeaponPoseConfig)[] = [
+        'gripX',
+        'gripY',
+        'grip2X',
+        'grip2Y',
+        'handX',
+        'handY',
+        'targetX',
+        'targetY',
+        'angle',
+        'flip',
+        'anchorHand',
+        'noHandCover',
+    ]
+    for (const pose of poses) {
+        if (pose === 'idle') continue
+        const cfg = configs[pose]
+        if (!cfg) continue
+        const sameAsBase =
+            base.every((k) => cfg[k] === idle[k]) &&
+            perPoseKeys.every((k) => !(k in cfg && !base.includes(k)) || cfg[k] === idle[k])
+        if (sameAsBase) continue
+        lines.push(`        ${pose}: { ${fmtPoseFields(cfg, perPoseKeys)} },`)
+    }
+    lines.push('    },')
+    return lines.join('\n')
 }

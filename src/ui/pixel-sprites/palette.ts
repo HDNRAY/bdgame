@@ -30,7 +30,7 @@ export interface CharacterColors {
     decoration: string // 装饰色
 }
 
-const DEFAULT_COLORS: CharacterColors = {
+export const DEFAULT_COLORS: CharacterColors = {
     skin: '#FFCC99',
     hair: '#555555',
     eyes: '#00A0FF',
@@ -46,7 +46,7 @@ export const CHARACTER_COLORS: Record<string, CharacterColors> = {
     // ── heavy 体型 ──
     fanglie: { skin: '#d8a878', hair: '#2c2c2c', eyes: '#8B4513', accent: '#5d5d5d', decoration: '#a4a4a4' },
     sangyuan: { skin: '#f5d6c6', hair: '#3a3a3a', eyes: '#c0392b', accent: '#ca7932', decoration: '#e8d8a0' }, // 红眼·桑原：红眼
-    baihu: { skin: '#f8f0f0', hair: '#e8e8f0', eyes: '#ff6347', accent: '#f8f8ff', decoration: '#ffb0c0' },
+    baihu: { skin: '#ffded6', hair: '#000000', eyes: '#3c3534', accent: '#f8f8ff', decoration: '#d9d9d9' },
     // ── slender 体型 ──
     laifeng: { skin: '#fce4d6', hair: '#3a2a1a', eyes: '#5d4037', accent: '#4a90a4', decoration: '#c0d8e0' },
     layue: { skin: '#f8f4ec', hair: '#d8d8e8', eyes: '#6a7fd8', accent: '#e0e8f8', decoration: '#9fb6e8' },
@@ -121,9 +121,17 @@ export function getSpriteBodyType(charId: string): string {
     return CHARACTER_SPRITE_MAP[charId] ?? 'default'
 }
 
-/** 合并角色配色到调色板 */
-export function buildPalette(charId: string, accentColor?: string, outlineColor?: string): Palette {
-    const c = CHARACTER_COLORS[charId] ?? DEFAULT_COLORS
+/**
+ * 合并角色配色到调色板。
+ * @param colors 覆盖角色配色（编辑器里改发色/皮肤等用；不传就用 CHARACTER_COLORS 里登记的）
+ */
+export function buildPalette(
+    charId: string,
+    accentColor?: string,
+    outlineColor?: string,
+    colors?: CharacterColors,
+): Palette {
+    const c = colors ?? CHARACTER_COLORS[charId] ?? DEFAULT_COLORS
     void accentColor
     return {
         // 槽位 1=描边（light 默认黑 / dark 浅灰，主题化）

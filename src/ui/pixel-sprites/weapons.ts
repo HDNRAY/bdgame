@@ -360,26 +360,119 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     xiu_dong: {
+        palette: {
+            '1': '#6c767f',
+            '2': '#8896a5',
+            '3': '#d6dee6',
+            '4': '#113540',
+            '5': '#0b252d',
+            '6': '#1d2835',
+            '7': '#384452',
+            '8': '#bac4c9',
+        },
         pixels: [
-            [5, 4, '#a8d8ff'],
-            [6, 4, '#a8d8ff'],
-            [6, 5, '#c9e4ff'],
-            [7, 6, '#c9e4ff'],
-            [5, 7, '#7fb3d5'],
-            [9, 7, '#7fb3d5'],
+            [9, 6, 1],
+            [9, 7, 1],
+            [10, 7, 1],
+            [9, 8, 1],
+            [10, 8, 8],
+            [11, 8, 1],
+            [10, 9, 1],
+            [11, 9, 8],
+            [12, 9, 1],
+            [11, 10, 1],
+            [12, 10, 8],
+            [13, 10, 1],
+            [12, 11, 2],
+            [13, 11, 8],
+            [14, 11, 1],
+            [13, 12, 2],
+            [14, 12, 3],
+            [15, 12, 1],
+            [14, 13, 2],
+            [15, 13, 3],
+            [16, 13, 1],
+            [15, 14, 2],
+            [16, 14, 3],
+            [17, 14, 1],
+            [16, 15, 2],
+            [17, 15, 3],
+            [18, 15, 1],
+            [17, 16, 2],
+            [18, 16, 3],
+            [19, 16, 1],
+            [18, 17, 2],
+            [19, 17, 3],
+            [20, 17, 1],
+            [19, 18, 2],
+            [20, 18, 3],
+            [21, 18, 1],
+            [24, 18, 4],
+            [20, 19, 2],
+            [21, 19, 3],
+            [22, 19, 1],
+            [23, 19, 5],
+            [24, 19, 4],
+            [21, 20, 2],
+            [22, 20, 5],
+            [23, 20, 5],
+            [21, 21, 4],
+            [22, 21, 4],
+            [23, 21, 6],
+            [20, 22, 5],
+            [21, 22, 5],
+            [23, 22, 7],
+            [24, 22, 6],
+            [24, 23, 7],
+            [25, 23, 6],
+            [25, 24, 7],
+            [26, 24, 6],
+            [26, 25, 7],
         ],
     },
     chun_lei: {
+        palette: {
+            '1': '#eef0f1',
+            '2': '#dfe3e7',
+            '3': '#bfe9ff',
+            '4': '#2f3a4a',
+            '5': '#1d2430',
+            '6': '#ffffff',
+        },
         pixels: [
-            [5, 4, '#a8d8ff'],
-            [6, 4, '#a8d8ff'],
-            [6, 5, '#c9e4ff'],
-            [7, 6, '#c9e4ff'],
-            [9, 4, '#a8d8ff'],
-            [10, 4, '#a8d8ff'],
-            [10, 5, '#c9e4ff'],
-            [5, 7, '#7fb3d5'],
-            [9, 7, '#7fb3d5'],
+            [12, 10, 6],
+            [12, 11, 1],
+            [13, 11, 6],
+            [12, 12, 2],
+            [13, 12, 1],
+            [14, 12, 6],
+            [13, 13, 2],
+            [14, 13, 1],
+            [15, 13, 6],
+            [14, 14, 2],
+            [15, 14, 1],
+            [16, 14, 6],
+            [15, 15, 2],
+            [16, 15, 1],
+            [17, 15, 6],
+            [16, 16, 2],
+            [17, 16, 1],
+            [18, 16, 6],
+            [17, 17, 2],
+            [18, 17, 1],
+            [19, 17, 6],
+            [20, 17, 4],
+            [18, 18, 2],
+            [19, 18, 4],
+            [20, 18, 4],
+            [18, 19, 4],
+            [19, 19, 4],
+            [20, 19, 5],
+            [20, 20, 4],
+            [21, 20, 5],
+            [21, 21, 5],
+            [22, 21, 5],
+            [22, 22, 3],
         ],
     },
     heshan_sword: {
@@ -920,8 +1013,30 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
         },
         hit: { gripX: 9, gripY: 22, noHandCover: true, angle: (-37 * Math.PI) / 180 }, // 与 idle 一致
     },
-    xiu_dong: makePoses({ gripX: 8, gripY: 7 }),
-    chun_lei: makePoses({ gripX: 8, gripY: 7 }),
+    // 绣冬：点位与桃木剑逐字一致（握点 24,24 + 同一套 parry/hit 角度），便于对照与替换
+    xiu_dong: {
+        ...makePoses({ gripX: 24, gripY: 24 }),
+        parry: { gripX: 24, gripY: 24, angle: 2.6857 }, // 刀尖朝右下斜下（穿过副手）
+        hit: {
+            gripX: 24,
+            gripY: 24,
+            handX: HAND_POINTS.hit.x,
+            handY: HAND_POINTS.hit.y - 5,
+            angle: (15 * Math.PI) / 180,
+        },
+    },
+    // 春雷（二尺四寸 / 一斤三两 / 吹毛断发）：轻短弧刃，握点取柄的质心
+    chun_lei: {
+        ...makePoses({ gripX: 20.5, gripY: 20.5 }),
+        parry: { gripX: 20.5, gripY: 20.5, angle: 2.6857 },
+        hit: {
+            gripX: 20.5,
+            gripY: 20.5,
+            handX: HAND_POINTS.hit.x,
+            handY: HAND_POINTS.hit.y - 5,
+            angle: (15 * Math.PI) / 180,
+        },
+    },
     heshan_sword: makePoses({ gripX: 8, gripY: 7 }),
     dagger: makePoses({ gripX: 8, gripY: -3 }),
     // 铁枪·破军（双手长枪）：握持配置与破狼竹枝逐字一致（含 flip；虎牙刃在美术左上端，与竹枝嫩竹同端）
@@ -1313,7 +1428,12 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
 const DEFAULT_POSE: WeaponPoseConfig = { gripX: 0, gripY: 0 }
 
 /** 获取武器在某姿势的握持配置（该姿势未定义时回落 idle；武器未登记时兜底 grip 0,0） */
-export function getWeaponPoseConfig(weaponId: string, pose: string): WeaponPoseConfig {
+export function getWeaponPoseConfig(
+    weaponId: string,
+    pose: string,
+    override?: Partial<WeaponPoseConfig>,
+): WeaponPoseConfig {
+    if (override) return override as WeaponPoseConfig // 编辑器「武器挂点」实验用：临时用一份未落库的配置
     const set = WEAPON_POSES[weaponId]
     return set?.[pose] ?? set?.idle ?? DEFAULT_POSE
 }
@@ -1356,8 +1476,12 @@ function getDualHandPoints(pose: string): { anchor: { x: number; y: number }; ta
  * - 姿势配置显式给了 handX/handY → 直接用
  * - 否则按 anchorHand（默认：单手=主手，双手=副手）查全局手部表
  */
-export function getWeaponHand(weaponId: string, pose: string): { x: number; y: number } {
-    const cfg = getWeaponPoseConfig(weaponId, pose)
+export function getWeaponHand(
+    weaponId: string,
+    pose: string,
+    override?: Partial<WeaponPoseConfig>,
+): { x: number; y: number } {
+    const cfg = getWeaponPoseConfig(weaponId, pose, override)
     if (cfg.handX !== undefined && cfg.handY !== undefined) {
         return { x: cfg.handX, y: cfg.handY }
     }
@@ -1422,8 +1546,13 @@ export function shouldDrawHandCover(pose: string): boolean {
  *   角度 = 副手→主手连线方向角 − 武器轴线（主握点→第二握点）方向角。
  *   朝左时人物与武器水平镜像，需用镜像后的方向重新计算。
  */
-export function getWeaponAngle(weaponId: string, pose: string, facingRight: boolean): number {
-    const cfg = getWeaponPoseConfig(weaponId, pose)
+export function getWeaponAngle(
+    weaponId: string,
+    pose: string,
+    facingRight: boolean,
+    override?: Partial<WeaponPoseConfig>,
+): number {
+    const cfg = getWeaponPoseConfig(weaponId, pose, override)
     const flip = cfg.flip ? Math.PI : 0
     if (cfg.angle !== undefined) {
         return (facingRight ? cfg.angle : -cfg.angle) + flip

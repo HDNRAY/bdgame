@@ -184,9 +184,10 @@
         opacity: 0.7;
     }
 
+    /* 预览画布按 120×54 视口比例（20:9），避免拉伸 */
     &-preview-canvas {
-        width: 180px;
-        height: 144px;
+        width: 360px;
+        height: 162px;
         image-rendering: pixelated;
     }
 
@@ -307,6 +308,11 @@
         background-position: 0 0, 0 3px, 3px -3px, -3px 0;
     }
 
+    &-colorline {
+        opacity: 0.75;
+        font-size: var(--font-xs);
+    }
+
     &-swatch-tools {
         display: flex;
         align-items: center;
@@ -353,6 +359,134 @@
         &.active {
             border-color: var(--color-accent);
             color: var(--color-accent);
+        }
+    }
+
+    /* ── 武器挂点实验台 ── */
+    /* 设置在上、画布在下铺满宽度 */
+    &-mount {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-sm);
+        width: 100%;
+    }
+
+    &-mount-canvas {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--sp-xs);
+    }
+
+    &-mount-stack {
+        padding: var(--sp-xs);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg-panel);
+    }
+
+    /* 尺寸由 canvas 缓冲（120×54 × scale）决定，铺满可用宽度 */
+    &-mount-image {
+        display: block;
+        image-rendering: pixelated;
+    }
+
+    /* 交互层盖在合成图上面（透明，只画握点标记） */
+    &-mount-overlay {
+        position: absolute;
+        inset: var(--sp-xs);
+        width: calc(100% - var(--sp-xs) * 2) !important;
+        height: calc(100% - var(--sp-xs) * 2) !important;
+        image-rendering: pixelated;
+        touch-action: none;
+    }
+
+    &-mount-tip {
+        margin: 0;
+        max-width: 46rem;
+        font-size: var(--font-xs);
+        line-height: 1.5;
+        opacity: 0.75;
+    }
+
+    /* 三栏分组，宽屏铺满、窄屏自动堆叠 */
+    &-mount-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+        gap: var(--sp-sm);
+        align-items: start;
+        width: 100%;
+    }
+
+    &-mount-col {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-xs);
+        min-width: 0;
+
+        h4 {
+            margin: 0;
+            font-size: var(--font-xs);
+            letter-spacing: 0.06em;
+            opacity: 0.6;
+            cursor: help;
+        }
+    }
+
+    /* 姿势按钮：整齐两行三列，不再挤成一坨 */
+    &-pose-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+        gap: var(--sp-xxs);
+    }
+
+    &-mount-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+        gap: var(--sp-xs);
+    }
+
+    &-num-field {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--sp-xxs);
+        font-size: var(--font-xs);
+
+        span {
+            opacity: 0.8;
+        }
+
+        input {
+            width: 5rem;
+            padding: 2px var(--sp-xxs);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            background: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-mono);
+            font-size: var(--font-xs);
+        }
+    }
+
+    &-field--inline {
+        flex: 0 0 auto;
+    }
+
+    /* 折叠的代码查看区（默认收起，省右栏高度；上面的复制按钮照常用） */
+    &-code {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-xs);
+
+        summary {
+            font-size: var(--font-xs);
+            opacity: 0.7;
+            cursor: pointer;
+
+            &:hover {
+                opacity: 1;
+            }
         }
     }
 

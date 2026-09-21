@@ -64,6 +64,29 @@ describe('PixelEditor 渲染冒烟', () => {
         expect(html).toContain('适应')
     })
 
+    it('支持一键切换画笔/橡皮，并有本地存档相关入口', () => {
+        const html = renderToStaticMarkup(<PixelEditor />)
+        expect(html).toContain('按 E 可与橡皮一键来回切')
+        expect(html).toContain('右键也是擦除')
+        expect(html).toContain('清存档')
+    })
+
+    it('角色配色（发色等）可改：每个角色槽位带取色器 + 配色片段导出', () => {
+        const html = renderToStaticMarkup(<PixelEditor />)
+        expect(html).toContain('复制配色片段')
+        expect(html).toContain('重置配色')
+        expect(html).toMatch(/title="改「发色」的颜色[^"]*"/)
+        expect(html).toMatch(/title="改「皮肤」的颜色[^"]*"/)
+    })
+
+    it('所有槽位都能改色：描边/白/金边也有取色器', () => {
+        const html = renderToStaticMarkup(<PixelEditor />)
+        expect(html).toMatch(/title="改「描边」的颜色[^"]*"/)
+        expect(html).toMatch(/title="改「白」的颜色[^"]*"/)
+        expect(html).toMatch(/title="改「金边」的颜色[^"]*"/)
+
+    })
+
     it('说明文字进了 tooltip（面板标题带 title）', () => {
         const html = renderToStaticMarkup(<PixelEditor />)
         expect(html).toMatch(/<h3 title="[^"]+">导入 \/ 导出<\/h3>/)

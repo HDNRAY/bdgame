@@ -516,7 +516,6 @@ export function PixelInspector() {
                                     scale={zoom}
                                     pose={name}
                                     weaponId={compositeWeapon ? weaponId : undefined}
-                                    angle={!dualWield && name === 'attack' ? -Math.PI / 4 : undefined}
                                     overlay={compositeWeapon ? overlay : undefined}
                                     secondWeaponId={compositeWeapon && dualWield ? offhandId : undefined}
                                     dualMainAngle={compositeWeapon && dualWield ? getDualMainAngle(weaponId, name, true) : undefined}

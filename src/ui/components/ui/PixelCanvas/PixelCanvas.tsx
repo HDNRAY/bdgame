@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react'
 import type { CSSProperties } from 'react'
-import type { PixelMap, Palette, WeaponOverlay } from '../../../pixel-sprites'
+import type { PixelMap, Palette, WeaponOverlay, WeaponPoseConfig } from '../../../pixel-sprites'
 import {
     HAND_COVER,
     HAND_POINTS,
@@ -32,6 +32,8 @@ interface PixelCanvasProps {
     weaponId?: string
     /** 角色姿势（用于查找手部位置），默认 'idle' */
     pose?: string
+    /** 临时覆盖握持配置（编辑器「武器挂点」实验用；不传则按 weapons.ts 的登记值） */
+    poseConfig?: Partial<WeaponPoseConfig>
     /** 旋转角度（弧度），武器绕握柄旋转后叠加 */
     angle?: number
     /** CSS 类名 — 显示尺寸由 CSS 控制 */
@@ -60,6 +62,7 @@ export function PixelCanvas({
     overlayScale: osProp,
     weaponId,
     pose = 'idle',
+    poseConfig: poseConfigProp,
     angle,
     className,
     style,
@@ -109,8 +112,8 @@ export function PixelCanvas({
 
         ctx.clearRect(0, 0, bufW, bufH)
 
-        // 握持行为配置（合成模式按 武器+姿势 查表；图标模式无意义）
-        const poseConfig = weaponId ? getWeaponPoseConfig(weaponId, pose) : undefined
+        // 握持行为配置（合成模式按 武器+姿势 查表；编辑器可用 poseConfig 临时覆盖）
+        const poseConfig = weaponId ? getWeaponPoseConfig(weaponId, pose, poseConfigProp) : undefined
 
         // 渲染像素图（居中）
         if (pixels && palette) {
@@ -164,15 +167,17 @@ export function PixelCanvas({
         if (overlay && overlay.pixels.length > 0) {
             if (hasPixels) {
                 // 合成模式：锚定手（单手=主手；双手武器=副手）
-                const hand = weaponId ? getWeaponHand(weaponId, pose) : (HAND_POINTS[pose] ?? HAND_POINTS.idle)
+                const hand = weaponId
+                    ? getWeaponHand(weaponId, pose, poseConfigProp)
+                    : (HAND_POINTS[pose] ?? HAND_POINTS.idle)
                 // 双手武器：握点连线自动决定角度（不被双持主手角度覆盖）
+                // 角度：有武器就统一走引擎的 getWeaponAngle（显式 angle > 双手两手连线 > 单手默认 0°/攻击 -45°），
+                // 这样预览与战斗渲染器完全一致；没有武器（图标模式）才用传进来的 angle。
+                // 注意：之前只在配置写了显式 angle 时才调 getWeaponAngle，导致单手 attack 的 -45° 在预览里丢了。
                 const effAngle =
-                    poseConfig?.grip2X !== undefined
-                        ? getWeaponAngle(weaponId ?? '', pose, true)
-                        : (dualMainAngle ??
-                          (weaponId && poseConfig?.angle !== undefined
-                              ? getWeaponAngle(weaponId, pose, true)
-                              : (angle ?? 0)))
+                    weaponId !== undefined
+                        ? (dualMainAngle ?? getWeaponAngle(weaponId, pose, true, poseConfigProp))
+                        : (angle ?? 0)
                 paintRotatedWeapon(overlay, poseConfig?.gripX ?? 0, poseConfig?.gripY ?? 0, hand, effAngle)
             } else {
                 // 武器图标模式：按完整 32×32 网格 + 原始坐标绘制，保留武器设计时的空白
@@ -188,7 +193,10 @@ export function PixelCanvas({
         const offhandOverlay = secondWeaponId ? getWeaponOverlay(secondWeaponId) : undefined
         const offhandConfig = secondWeaponId ? getWeaponPoseConfig(secondWeaponId, pose) : undefined
         if (hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0) {
-            const offHand = OTHER_HAND_POINT[pose] ?? OTHER_HAND_POINT.idle
+            const offHand =
+                poseConfigProp?.targetX !== undefined && poseConfigProp?.targetY !== undefined
+                    ? { x: poseConfigProp.targetX, y: poseConfigProp.targetY }
+                    : (OTHER_HAND_POINT[pose] ?? OTHER_HAND_POINT.idle)
             const offAngle = secondAngle ?? getDualOffhandAngle(pose, true)
             paintRotatedWeapon(offhandOverlay, offhandConfig?.gripX ?? 0, offhandConfig?.gripY ?? 0, offHand, offAngle)
         }
@@ -242,6 +250,8 @@ export function PixelCanvas({
         secondWeaponId,
         secondAngle,
         dualMainAngle,
+        // 挂持配置是「对象」：编辑器拖动/改数值每次都换新对象，必须进依赖，否则预览不重绘
+        poseConfigProp,
     ])
 
     return <canvas ref={ref} width={bufW} height={bufH} className={className} style={style} />
