@@ -125,4 +125,13 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 - 握点与姿势独立登记在 `WEAPON_POSES`：单手武器锚主手；双手武器给 `gripX/gripY` + `grip2X/grip2Y`，角度由两手连线自动算（`getWeaponAngle`），可用 `handX/handY/targetX/targetY/angle` 逐姿势覆盖。**每把武器独立写配置，同族也不共享常量**，便于逐把微调。
 - 改手位或轴向后必须同步 `HAND_POINTS` / `OTHER_HAND_POINT` / `HAND_COVER` / `LEFT_HAND_COVER`。
 
+**像素编辑器**：DevMode 的「像素编辑器」tab（`/dev?tab=editor`，源码 `src/ui/screens/DevMode/PixelEditor/`），两种模式：
+
+- **身体帧**（48×48，槽位 0~9）：槽位涂格、镜像、油漆桶、一键自动描边/加金边；**手部锚点可直接拖动**并导出
+  `weapons.ts` 的四张表片段（握点 + 2×2 遮罩格，还能自动吸附到最近的皮肤块）；导入导出都是「一张图」，
+  导出片段与 `sprites.ts` 字面量逐字符同构，可整段替换。老版本导出的渲染帧（60×48）载入时会自动裁掉左侧留白。
+- **武器**（32×32，颜色任选）：调色板可加/改/删颜色，导出 `WEAPON_OVERLAYS` 条目片段（`palette` + 稀疏 `pixels`）。
+
+改任何 `DEFAULT_<POSE>` 都走它，不要手工逐格描边；规则不用背，右侧面板只显示尺寸/统计。
+
 **预览工具**：`npm run pixel -- <武器ID[,ID...]> [姿势|all] [缩放]` 输出 `scripts/preview/*.png`（旋转方式与游戏一致：旋转整张位图 + 反向最近邻采样；不要用逐像素取整，会把 2 格宽的杆挤成 1 格）。新增武器后在 DevMode 的像素查看器确认五个姿势的包围盒都落在 120×54 画布内。

@@ -35,6 +35,43 @@ export type { CharacterColors } from './palette'
 export { makeCharacterSprite, getCharacterAvatar, renderAvatarToCanvas } from './character'
 
 export {
+    SPRITE_AURA_SLOT,
+    SPRITE_MAX_SLOT,
+    SPRITE_OUTLINE_SLOT,
+    addAuraRing,
+    autoOutline,
+    coverBlock,
+    fillAll,
+    fillRegion,
+    frameSize,
+    frameStats,
+    getCell,
+    hitAnchor,
+    isBodySlot,
+    lineCells,
+    moveAnchor,
+    paintCell,
+    paintLine,
+    shiftFrame,
+    snapAnchorToSkin,
+} from './frame-edit'
+export type { Cell, FrameStats, HandAnchorData, PaintOptions } from './frame-edit'
+
+export {
+    blankPixelMap,
+    formatAnchorSnippet,
+    formatWeaponOverlaySnippet,
+    formatPixelMapJson,
+    formatPixelMapLiteral,
+    formatPixelMapSource,
+    parsePixelMap,
+    parseWeaponOverlay,
+    stringifyPixelMap,
+    unpadRenderedFrame,
+} from './frame-io'
+export type { ParsePixelMapResult, ParseWeaponResult, UnpadResult, WeaponGridData } from './frame-io'
+
+export {
     HAND_POINTS,
     HAND_COVER,
     LEFT_HAND_COVER,

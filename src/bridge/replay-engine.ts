@@ -14,6 +14,42 @@
  */
 
 import type { BattleEvent, CharacterSnapshot, BattleSnapshot } from '../engine/combat/types'
+import { getAction } from '../data/actions'
+
+/**
+ * 是否为「加状态」招式（回放用 buff 姿势播放）。
+ *
+ * 判定规则（只靠招式定义，不新增标签）：
+ * 1. 是辅助招（pre_action / post_action）—— 会被引擎记成 support 事件；
+ * 2. 效果里有 add_buff —— 确实在给自己挂状态；
+ * 3. 没有位移标签（move）—— 纯位移招（魅影步/云步）按移动演出；
+ * 4. 没有任何伤害效果 —— 带伤害的吸血/叠劲攻击（如流萤剑法）仍是攻击动作。
+ *
+ * 反例校验：yunv_sword（有 add_buff 但有 damage）→ false；yun_bu（add_buff + move）→ false。
+ */
+const buffMoveCache = new Map<string, boolean>()
+
+export function isBuffMove(actionId: string): boolean {
+    const cached = buffMoveCache.get(actionId)
+    if (cached !== undefined) return cached
+    let result = false
+    const def = getAction(actionId)
+    if (def) {
+        const tags = def.tags ?? []
+        const effects = def.effects ?? []
+        const isSupportMove = tags.includes('pre_action') || tags.includes('post_action')
+        const hasDamage = effects.some(
+            (e) => e.type === 'damage' || e.type === 'functional_damage' || e.type === 'missing_hp_damage',
+        )
+        result =
+            isSupportMove &&
+            !tags.includes('move') &&
+            !hasDamage &&
+            effects.some((e) => e.type === 'add_buff')
+    }
+    buffMoveCache.set(actionId, result)
+    return result
+}
 
 // ── 帧状态 ──
 export interface Frame {
@@ -40,7 +76,7 @@ export interface FrameChar {
     maxAp: number
     weaponId: string
     spriteId: string
-    pose: 'idle' | 'attack' | 'hit' | 'move'
+    pose: 'idle' | 'attack' | 'hit' | 'move' | 'buff'
     waitProgress: number // 0~1，等待下次行动进度
     isActing: boolean // 当前正在主动行动
 }
@@ -666,7 +702,7 @@ export class ReplayEngine {
         cur?: BattleEvent,
         _next?: BattleEvent,
         ratio: number = 1,
-    ): 'idle' | 'attack' | 'hit' | 'move' {
+    ): 'idle' | 'attack' | 'hit' | 'move' | 'buff' {
         if (!cur) return 'idle'
 
         const isActor = 'actor' in cur && cur.actor === charId
@@ -679,6 +715,11 @@ export class ReplayEngine {
 
             case 'damage':
                 if (isTarget && ratio < 0.25) return 'hit'
+                return 'idle'
+
+            case 'support':
+                // 辅助招：加状态类用 buff 姿势（双手运气），其余辅助招保持待机
+                if (isActor && isBuffMove(cur.actionId)) return 'buff'
                 return 'idle'
 
             case 'dodge':

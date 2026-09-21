@@ -1,0 +1,410 @@
+.pixel-editor {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-md);
+    font-size: var(--font-sm);
+
+    /* 左：工具栏 + 画布 + 预览。flex 让它吃掉剩余宽度，避免中间留一大片空白 */
+    &-main {
+        display: flex;
+        flex: 1 1 520px;
+        flex-direction: column;
+        gap: var(--sp-xs);
+        min-width: 0;
+    }
+
+    &-toolbar {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-xs);
+    }
+
+    &-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--sp-xs);
+    }
+
+    /* 身体帧 / 武器 分段开关 */
+    &-seg {
+        display: flex;
+        gap: 2px;
+        padding: 2px;
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-sm);
+        background: var(--color-bg-panel);
+
+        .pixel-editor-tool {
+            border-color: transparent;
+        }
+    }
+
+    &-tool {
+        padding: var(--sp-xxs) var(--sp-sm);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-sm);
+        background: var(--color-bg-panel);
+        color: var(--color-text);
+        font-family: var(--font-mono);
+        font-size: var(--font-sm);
+        cursor: pointer;
+
+        &:hover {
+            background: var(--color-bg-hover);
+        }
+
+        &.active {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+    }
+
+    &-toggle {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-xxs);
+        cursor: pointer;
+
+        input {
+            accent-color: var(--color-accent);
+        }
+    }
+
+    /* 底板色系选择 */
+    &-backdrop {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-xxs);
+
+        select {
+            padding: var(--sp-xxs);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            background: var(--color-bg-panel);
+            color: var(--color-text);
+            font-family: var(--font-mono);
+            font-size: var(--font-sm);
+        }
+
+        input[type='color'] {
+            width: 1.6rem;
+            height: 1.6rem;
+            padding: 0;
+            border: 1px solid var(--color-border);
+            background: none;
+            cursor: pointer;
+        }
+    }
+
+    &-zoom {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-xxs);
+
+        input {
+            width: 7rem;
+        }
+    }
+
+    /**
+     * 读数：锚点模式与画笔模式共用这一格，固定高度。
+     * 之前锚点读数会多出一块、把下面的画布顶下去 —— 拖锚点时布局会跳。
+     */
+    &-readout {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-xs);
+        height: 1.8em;
+        padding: 0 var(--sp-xs);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-sm);
+        background: var(--color-bg-panel);
+        white-space: nowrap;
+
+        &.warn {
+            border-color: #ffb86b;
+            color: #ffb86b;
+        }
+
+        &.anchor {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+    }
+
+    /* 常驻状态行：固定高度，出现提示时不会把画布顶下去 */
+    &-status {
+        margin: 0;
+        min-height: 1.3em;
+        color: var(--color-accent);
+    }
+
+    &-canvas-wrap {
+        /* 框贴着画布：不然框比画布宽，右侧一片空白会被当成画布 */
+        width: fit-content;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: var(--sp-xs);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg-panel);
+        overflow: auto;
+    }
+
+    &-canvas {
+        display: block;
+        image-rendering: pixelated;
+        cursor: crosshair;
+        touch-action: none;
+        outline: 1px solid var(--color-border);
+    }
+
+    &-canvas--anchor {
+        cursor: move;
+    }
+
+    /* 信息一行（栅格 / 画布 / 统计） */
+    &-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-md);
+        opacity: 0.75;
+        font-size: var(--font-xs);
+    }
+
+    /* 预览：合成图放在画布下方，不占右栏 */
+    &-preview-row {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-sm);
+    }
+
+    &-preview-label {
+        opacity: 0.7;
+    }
+
+    &-preview-canvas {
+        width: 180px;
+        height: 144px;
+        image-rendering: pixelated;
+    }
+
+    &-preview-canvas--weapon {
+        width: 160px;
+        height: 160px;
+    }
+
+    /* 右：设置面板。宽度可伸缩，宽屏时把空间用起来 */
+    &-side {
+        display: flex;
+        flex: 0 1 380px;
+        flex-direction: column;
+        gap: var(--sp-sm);
+        min-width: 300px;
+        max-width: 520px;
+    }
+
+    &-panel {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-xs);
+        padding: var(--sp-sm);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg-panel);
+
+        h3,
+        summary {
+            margin: 0;
+            font-size: var(--font-sm);
+            letter-spacing: 0.05em;
+            opacity: 0.85;
+            cursor: pointer;
+        }
+    }
+
+    &-field {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--sp-xs);
+
+        > span:first-child {
+            opacity: 0.8;
+            cursor: help;
+        }
+
+        input[type='text'],
+        select {
+            padding: var(--sp-xxs) var(--sp-xs);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            background: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-mono);
+            font-size: var(--font-sm);
+        }
+
+        input[type='text'] {
+            width: 9rem;
+        }
+
+        .ss {
+            width: 9rem;
+        }
+    }
+
+    /* 调色板：紧凑色块，名称进 tooltip */
+    &-palette {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-xxs);
+    }
+
+    &-swatch-wrap {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    &-swatch {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-xxs);
+        padding: 2px var(--sp-xxs);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-sm);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-mono);
+        font-size: var(--font-xs);
+        cursor: pointer;
+
+        &:hover {
+            background: var(--color-bg-hover);
+        }
+
+        &.active {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 1px var(--color-accent);
+        }
+    }
+
+    &-swatch-label {
+        opacity: 0.85;
+    }
+
+    &-swatch-color {
+        width: 13px;
+        height: 13px;
+        flex: 0 0 auto;
+        border: 1px solid var(--color-border);
+        background-image: linear-gradient(45deg, #444 25%, transparent 25%),
+            linear-gradient(-45deg, #444 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #444 75%),
+            linear-gradient(-45deg, transparent 75%, #444 75%);
+        background-size: 6px 6px;
+        background-position: 0 0, 0 3px, 3px -3px, -3px 0;
+    }
+
+    &-swatch-tools {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+
+        input[type='color'] {
+            width: 1.2rem;
+            height: 1.2rem;
+            padding: 0;
+            border: 1px solid var(--color-border);
+            background: none;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 0 3px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            background: var(--color-bg);
+            color: var(--color-text);
+            cursor: pointer;
+        }
+    }
+
+    &-btn {
+        padding: var(--sp-xxs) var(--sp-sm);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-sm);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-mono);
+        font-size: var(--font-sm);
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            background: var(--color-bg-hover);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        &.active {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+    }
+
+    /* 隐藏的文件选择框（用按钮触发） */
+    &-file {
+        display: none;
+    }
+
+    &-textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: var(--sp-xs);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-mono);
+        font-size: var(--font-xs);
+        line-height: 1.4;
+        resize: vertical;
+
+        &--export {
+            white-space: pre;
+            overflow-x: auto;
+        }
+    }
+
+    &-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin: 0;
+
+        div {
+            display: flex;
+            gap: var(--sp-xs);
+        }
+
+        dt {
+            width: 7rem;
+            flex: 0 0 auto;
+            opacity: 0.7;
+        }
+
+        dd {
+            margin: 0;
+        }
+    }
+
+    &-warn {
+        margin: 0;
+        color: #ffb86b;
+        font-size: var(--font-xs);
+    }
+}

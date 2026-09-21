@@ -1,5 +1,6 @@
 import { useSearchParams } from 'react-router-dom'
 import { PixelInspector } from './PixelInspector/PixelInspector'
+import { PixelEditor } from './PixelEditor/PixelEditor'
 import { TournamentSim } from './TournamentSim/TournamentSim'
 import { ActionCompare } from './ActionCompare/ActionCompare'
 import { WeaponCompare } from './WeaponCompare/WeaponCompare'
@@ -9,6 +10,7 @@ import './DevMode.scss'
 
 const NAV_ITEMS = [
     { id: 'pixel', label: '像素图测试' },
+    { id: 'editor', label: '像素编辑器' },
     { id: 'buildsim', label: '构筑试炼' },
     { id: 'tournament', label: '大会模拟' },
     { id: 'meta', label: '元进度' },
@@ -53,6 +55,11 @@ export function DevMode() {
                     <>
                         <h2>像素图测试</h2>
                         <PixelInspector />
+                    </>
+                ) : activeId === 'editor' ? (
+                    <>
+                        <h2>像素编辑器</h2>
+                        <PixelEditor />
                     </>
                 ) : activeId === 'buildsim' ? (
                     <BuildSim />

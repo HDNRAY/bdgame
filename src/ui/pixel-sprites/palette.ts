@@ -129,6 +129,7 @@ export function buildPalette(charId: string, accentColor?: string, outlineColor?
         // 槽位 1=描边（light 默认黑 / dark 浅灰，主题化）
         '1': outlineColor ?? MONO_PALETTE['1'],
         // 固定槽位 2=发色 3=皮肤 4=瞳色 5=衣物 6=装饰 7=受击白眼/特效白 8=受击星光（固定金黄）
+        // 9=爆气光环金边（固定金黄；与 8 分开，这样「金边」不会被受击星光混掉，lint 也能把光环排除在剪影之外）
         '2': c.hair,
         '3': c.skin,
         '4': c.eyes,
@@ -137,5 +138,7 @@ export function buildPalette(charId: string, accentColor?: string, outlineColor?
         '7': '#ffffff',
         // 8=受击星光（固定金黄，与角色衣物/装饰色无关）
         '8': '#ffd24a',
+        // 9=爆气光环（固定金黄，同上）
+        '9': '#ffd24a',
     }
 }

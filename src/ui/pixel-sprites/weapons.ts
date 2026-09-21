@@ -10,6 +10,8 @@ export const HAND_POINTS: Record<string, { x: number; y: number }> = {
     hit: { x: 23.5 + SPRITE_PAD_LEFT, y: 34.5 }, // 受击：武器被打飞（左 10 后再右移 2、下 3）
     // 招架：主手（右手）在面前抬起握拳（DEFAULT_PARRY 皮肤像素 28-29,24-25 中心）
     parry: { x: 28.5 + SPRITE_PAD_LEFT, y: 24.5 },
+    // 加状态（爆气）：主手是胸前握紧的拳（DEFAULT_BUFF 皮肤像素 28-29,29-30，取左下角）
+    buff: { x: 28 + SPRITE_PAD_LEFT, y: 30 },
 }
 
 /**
@@ -24,6 +26,8 @@ export const OTHER_HAND_POINT: Record<string, { x: number; y: number }> = {
     hit: { x: 43.5 + SPRITE_PAD_LEFT, y: 34.5 }, // 受击：副手武器右移 2、下移 3 格
     // 招架：副手（左手）在腰间握持（下移 1 格）
     parry: { x: 40 + SPRITE_PAD_LEFT, y: 28.5 },
+    // 加状态（爆气）：副手是另一侧的拳（DEFAULT_BUFF 皮肤像素 43-44,29-30 中心）
+    buff: { x: 43.5 + SPRITE_PAD_LEFT, y: 29.5 },
 }
 
 /** 各姿势手部覆盖像素（人物精灵坐标）— 用角色皮肤色绘制在握柄上方，制造"握着"效果 */
@@ -52,6 +56,13 @@ export const HAND_COVER: Record<string, [number, number][]> = {
         [29 + SPRITE_PAD_LEFT, 24],
         [28 + SPRITE_PAD_LEFT, 25],
         [29 + SPRITE_PAD_LEFT, 25],
+    ],
+    // 加状态（爆气）：胸前握紧的主手（DEFAULT_BUFF 皮肤像素 28-29,29-30）
+    buff: [
+        [28 + SPRITE_PAD_LEFT, 29],
+        [29 + SPRITE_PAD_LEFT, 29],
+        [28 + SPRITE_PAD_LEFT, 30],
+        [29 + SPRITE_PAD_LEFT, 30],
     ],
 }
 
@@ -86,6 +97,13 @@ export const LEFT_HAND_COVER: Record<string, [number, number][]> = {
         [41 + SPRITE_PAD_LEFT, 27],
         [40 + SPRITE_PAD_LEFT, 28],
         [41 + SPRITE_PAD_LEFT, 28],
+    ],
+    // 加状态（爆气）：胸前握紧的副手（DEFAULT_BUFF 皮肤像素 43-44,29-30）
+    buff: [
+        [43 + SPRITE_PAD_LEFT, 29],
+        [44 + SPRITE_PAD_LEFT, 29],
+        [43 + SPRITE_PAD_LEFT, 30],
+        [44 + SPRITE_PAD_LEFT, 30],
     ],
 }
 
@@ -865,7 +883,7 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
 }
 
 /** 全部姿势名 */
-export const POSE_NAMES = ['idle', 'attack', 'dodge', 'parry', 'hit'] as const
+export const POSE_NAMES = ['idle', 'attack', 'dodge', 'parry', 'hit', 'buff'] as const
 
 /** 生成所有姿势同一握持配置的便捷函数 — 特定姿势需单独调整时再覆盖该 key */
 function makePoses(base: WeaponPoseConfig): Record<string, WeaponPoseConfig> {
