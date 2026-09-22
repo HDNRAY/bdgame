@@ -175,11 +175,16 @@ export const dark_iron_sword: { overlay?: WeaponOverlay; poses: WeaponPoseTable 
             [26, 28, 7],
         ],
     },
-    // weapons/entries/dark_iron_sword.ts → poses:
+    // weapons/entries/dagger.ts → poses:
     poses: {
-        ...makePoses({ gripX: 23.5, gripY: 23.5 }),
+        ...makePoses({ gripX: 20.5, gripY: 19.5, anchorHand: 'main' }),
         attack: { gripDX: 0.5 },
-        parry: { gripDX: 1.5, gripDY: 1.5, angle: 2.6857 },
-        hit: { gripDX: 1.5, gripDY: 1.5, angle: (15 * Math.PI) / 180 },
+        parry: { gripDY: 1.5 },
+        hit: { handDX: 2.5, handDY: -4.5 },
+        off: {
+            ...makePoses({}),
+            hit: { handDX: 4.5, handDY: -4 },
+            buff: { angle: (90 * Math.PI) / 180, handDX: 1 },
+        },
     },
 }

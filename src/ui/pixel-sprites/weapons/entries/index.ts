@@ -3,7 +3,7 @@
  * 两个表的键顺序沿用拆分前（渲染顺序 / 面板顺序依赖它）。
  */
 import type { WeaponOverlay } from '../../types'
-import type { WeaponPoseTable } from '../poses' 
+import type { WeaponPoseTable } from '../poses'
 import { bare_hands } from './bare_hands'
 import { zantetsu } from './zantetsu'
 import { ciyuan_blade } from './ciyuan_blade'
@@ -13,6 +13,7 @@ import { xiu_dong } from './xiu_dong'
 import { chun_lei } from './chun_lei'
 import { heshan_sword } from './heshan_sword'
 import { dagger } from './dagger'
+import { special_forces_dagger } from './special_forces_dagger'
 import { iron_spear } from './iron_spear'
 import { zhen_bei_ji } from './zhen_bei_ji'
 import { peach_sword } from './peach_sword'
@@ -23,13 +24,15 @@ import { dinghai_shen_tie } from './dinghai_shen_tie'
 import { long_spear } from './long_spear'
 
 /** 武器 id → 条目 */
-export const WEAPON_ENTRIES: Record<string, { overlay?: WeaponOverlay; poses: WeaponPoseTable }> = { bare_hands,
+export const WEAPON_ENTRIES: Record<string, { overlay?: WeaponOverlay; poses: WeaponPoseTable }> = {
+    bare_hands,
     dark_iron_sword,
     tri_orb,
     xiu_dong,
     chun_lei,
     heshan_sword,
     dagger,
+    special_forces_dagger,
     iron_spear,
     zhen_bei_ji,
     peach_sword,
@@ -39,16 +42,54 @@ export const WEAPON_ENTRIES: Record<string, { overlay?: WeaponOverlay; poses: We
     long_spear,
     zantetsu,
     ciyuan_blade,
-    overlord_blade }
+    overlord_blade,
+}
 
 /** 武器叠加层（纯美术） */
-export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = { }
-for (const id of ['bare_hands', 'dark_iron_sword', 'tri_orb', 'xiu_dong', 'chun_lei', 'heshan_sword', 'dagger', 'iron_spear', 'zhen_bei_ji', 'peach_sword', 'qimei_staff', 'po_lang_zhu_zhi', 'dinghai_shen_tie', 'long_spear']) { const entry = WEAPON_ENTRIES[id]
+export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {}
+for (const id of [
+    'bare_hands',
+    'dark_iron_sword',
+    'tri_orb',
+    'xiu_dong',
+    'chun_lei',
+    'heshan_sword',
+    'special_forces_dagger',
+    'dagger',
+    'iron_spear',
+    'zhen_bei_ji',
+    'peach_sword',
+    'qimei_staff',
+    'po_lang_zhu_zhi',
+    'dinghai_shen_tie',
+    'long_spear',
+]) {
+    const entry = WEAPON_ENTRIES[id]
     if (entry?.overlay) WEAPON_OVERLAYS[id] = entry.overlay
 }
 
 /** 每武器·每姿势挂点配置 */
-export const WEAPON_POSES: Record<string, WeaponPoseTable> = { }
-for (const id of ['bare_hands', 'zantetsu', 'ciyuan_blade', 'overlord_blade', 'tri_orb', 'xiu_dong', 'chun_lei', 'heshan_sword', 'dagger', 'iron_spear', 'zhen_bei_ji', 'peach_sword', 'qimei_staff', 'dark_iron_sword', 'po_lang_zhu_zhi', 'dinghai_shen_tie', 'long_spear']) { const entry = WEAPON_ENTRIES[id]
+export const WEAPON_POSES: Record<string, WeaponPoseTable> = {}
+for (const id of [
+    'bare_hands',
+    'zantetsu',
+    'ciyuan_blade',
+    'overlord_blade',
+    'tri_orb',
+    'xiu_dong',
+    'chun_lei',
+    'heshan_sword',
+    'dagger',
+    'special_forces_dagger',
+    'iron_spear',
+    'zhen_bei_ji',
+    'peach_sword',
+    'qimei_staff',
+    'dark_iron_sword',
+    'po_lang_zhu_zhi',
+    'dinghai_shen_tie',
+    'long_spear',
+]) {
+    const entry = WEAPON_ENTRIES[id]
     if (entry) WEAPON_POSES[id] = entry.poses
 }
