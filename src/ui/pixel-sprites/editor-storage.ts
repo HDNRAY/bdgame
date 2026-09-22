@@ -9,6 +9,7 @@
  */
 import type { CharacterColors } from './palette'
 import type { PixelMap, WeaponPoseConfig } from './types'
+import { getWeaponPoseConfig } from './weapons'
 import { POSE_NAMES } from './weapons'
 
 export type EditorMode = 'frame' | 'weapon' | 'mount'
@@ -125,16 +126,12 @@ export function parseEditorState(text: string | null | undefined): PixelEditorSa
         const NUMERIC: (keyof WeaponPoseConfig)[] = [
             'gripX',
             'gripY',
-            'grip2X',
-            'grip2Y',
+            'gripDX',
+            'gripDY',
             'handX',
             'handY',
             'handDX',
             'handDY',
-            'targetX',
-            'targetY',
-            'targetDX',
-            'targetDY',
             'angle',
         ]
         for (const [weaponId, bySlot] of Object.entries(rawMount as Record<string, unknown>)) {
@@ -181,6 +178,50 @@ export function parseEditorState(text: string | null | undefined): PixelEditorSa
                 merged[slotName] = entries
             }
             mountConfigs[weaponId] = merged
+        }
+
+        /**
+         * 归一化握点表示法（兼容旧存档）：
+         * 旧存档给姿势存的是**整份快照**，里面既有绝对握点、又可能带 gripDX，解析时会重复计入。
+         * 这里按「实际画出来的值」折算成统一模型：武器握点（主手 idle）+ 该姿势的 gripDX/gripDY。
+         */
+        for (const [weaponId, slots] of Object.entries(mountConfigs)) {
+            const idle = slots.main.idle ?? {}
+            const registered = getWeaponPoseConfig(weaponId, 'idle', 'main')
+            const weaponGrip = {
+                gripX: idle.gripX ?? registered.gripX,
+                gripY: idle.gripY ?? registered.gripY,
+            }
+            for (const slotName of ['main', 'off'] as const) {
+                const axes = [
+                    ['gripX', 'gripDX'],
+                    ['gripY', 'gripDY'],
+                ] as const
+                for (const [pose, cfg] of Object.entries(slots[slotName])) {
+                    if (slotName === 'main' && pose === 'idle') continue
+                    const out: Partial<WeaponPoseConfig> = {}
+                    for (const [absKey, offKey] of axes) {
+                        const base = weaponGrip[absKey]
+                        const abs = cfg[absKey]
+                        const off = cfg[offKey]
+                        if (abs === undefined && off === undefined) continue
+                        if (base === undefined) {
+                            // 武器没有这个握点（比如单手武器的 grip2）→ 保留原样
+                            if (abs !== undefined) out[absKey] = abs
+                            if (off !== undefined) out[offKey] = off
+                            continue
+                        }
+                        const effective = (abs ?? base) + (off ?? 0)
+                        const diff = Math.round((effective - base) * 1e4) / 1e4
+                        if (diff !== 0) out[offKey] = diff
+                    }
+                    for (const [k, v] of Object.entries(cfg)) {
+                        if ((axes as readonly (readonly [string, string])[]).some(([a, o]) => a === k || o === k)) continue
+                        ;(out as Record<string, unknown>)[k] = v
+                    }
+                    slots[slotName][pose] = out
+                }
+            }
         }
     }
 

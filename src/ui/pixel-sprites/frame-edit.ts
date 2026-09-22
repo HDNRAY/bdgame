@@ -6,7 +6,7 @@
  *
  * 槽位约定同 palette.ts：0 透明 1 描边 2 发色 3 皮肤 4 瞳色 5 衣物 6 装饰 7 白 8 受击星光 9 爆气光环金边
  */
-import { baseAnchorHand, baseTargetHand } from './weapons'
+import { baseAnchorHand } from './weapons'
 import type { PixelMap, WeaponPoseConfig } from './types'
 import type { WeaponSlot } from './weapons'
 
@@ -312,17 +312,6 @@ export function dragHandOffset(
     return { handDX: round(startHand.x - base.x + deltaX), handDY: round(startHand.y - base.y + deltaY) }
 }
 
-/** 拖动双手武器的第二只手后的目标手偏移（相对目标手基准） */
-export function dragTargetOffset(
-    pose: string,
-    startTarget: { x: number; y: number },
-    deltaX: number,
-    deltaY: number,
-): { targetDX: number; targetDY: number } {
-    const base = baseTargetHand(pose)
-    const round = (v: number) => Math.round(v * 2) / 2
-    return { targetDX: round(startTarget.x - base.x + deltaX), targetDY: round(startTarget.y - base.y + deltaY) }
-}
 
 /**
  * 删掉调色板里的一个颜色 —— 返回新的画布与调色板。

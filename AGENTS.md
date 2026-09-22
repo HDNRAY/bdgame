@@ -117,24 +117,32 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 
 **可靠参照只有三把**：桃木剑、齐眉棍、玄铁重剑（人工逐格调过，可当模板）。其余武器图为早期 AI 生成，不可当参照。
 
-**画法约定**（`src/ui/pixel-sprites/weapons.ts`）：
+**文件结构**（`src/ui/pixel-sprites/`）：武器数据与挂点**一个武器一个文件**，公共逻辑单独成模块 ——
+`weapons/entries/<武器>.ts`（美术 + 各姿势挂点，改某个武器只看这一个文件）、`weapons/hands.ts`（手部锚点/遮罩表，
+全局按姿势）、`weapons/poses.ts`（`POSE_NAMES`/`makePoses`/表类型）、`weapons/mount.ts`（`resolveWeaponMount` 等解析）、
+`weapons/dual.ts`（双持与双手角度规则）、`weapons/overlay.ts`（美术查询）；`weapons.ts` 只是汇总 barrel（导出名与拆分前一致）。
+身体帧同理：`sprites/<姿势>.ts`（idle/attack/hit/dodge/parry/buff），`sprites/index.ts` 汇总成 `SPRITES`，`sprites.ts` 是 barrel。
+
+**画法约定**（`src/ui/pixel-sprites/weapons/entries/`）：
 
 - 一律按轴向几何生成：`u = (A - x - y)·√½`（沿轴，越大越靠尖端/左上）、`v = (y - x)·√½`（横向，符号决定受光/背光侧），`A` 取该武器轴起点的 `x + y`。禁止「按行阶梯」画斜线（会斜掉）。
 - 刃/尖端一律画在美术网格的**左上端**（沿轴坐标 `k = x+y-6` 的小端）。要让长端朝角色正面，用握点/`flip` 去解决，不要反过来画刃（所有兵器点阵同源才好复用）。
 - 武器美术画在 32×32 网格（`constants.ts` 的 `WEAPON_WIDTH/HEIGHT`）；像素颜色索引必须写**数字**（字符串会被当成颜色字面量，渲染成黑色）。
-- 握点与姿势独立登记在 `WEAPON_POSES`：单手武器锚主手；双手武器给 `gripX/gripY` + `grip2X/grip2Y`，角度由两手连线自动算（`getWeaponAngle`），可用 `handX/handY/targetX/targetY/angle` 逐姿势覆盖。**每把武器独立写配置，同族也不共享常量**，便于逐把微调。
-- **手位覆盖一律写「相对偏移」**：`handDX/handDY`（相对 `HAND_POINTS[pose]`，副手槽相对 `OTHER_HAND_POINT[pose]`）、`targetDX/targetDY`（双手武器相对目标手基准）。优先级：绝对 `handX/handY`/`targetX/targetY`（旧数据仍支持）> 相对偏移 > 基准。编辑器拖动/输入写的都是偏移，`编辑器导出`也把绝对值折算成偏移，所以导出贴回后武器仍然**跟随全局手位表**（`HAND_POINTS` 一改全体跟着动），不会把自己锁死在绝对坐标上。基准解析唯一入口 `baseAnchorHand(cfg, pose, slot)` / `baseTargetHand(pose)`。
-- **导出片段的压缩语义**：表里的姿势条目是**整体替换** `...makePoses(基底)` 的同名条目（不是合并），因此写出来的条目必须自包含；只有与基底完全相同的姿势才省略。基底里出现非 0 偏移时，某姿势要 0 偏移必须显式写 `handDX: 0`。
-- **槽位（主手 / 副手）是一等维度**：`WEAPON_POSES[武器][姿势]` 是主手槽；副手槽写可选的 `off` 子表（`WEAPON_POSES[武器].off[姿势]`）。副手没登记时按「副手默认」：握柄沿用主手表，手位取全局 `OTHER_HAND_POINT[pose]`、角度取 `DUAL_OFFHAND_ANGLE[pose]`（双手武器挂副手槽则直接沿用主手配置）。解析入口只有 `resolveWeaponMount(weaponId, pose, { slot, config?, facingRight? })`，战斗渲染器 / 像素预览 / 编辑器都走它，不要各算一套。
+- 握点与姿势独立登记在 `WEAPON_POSES`：**一把武器只有一个握点**（写在 `...makePoses({ gripX, gripY })` 基底里），姿势要调就写 `gripDX/gripDY` 偏移；角度逐姿势显式写 `angle`（弧度或 `(N * Math.PI) / 180`）。**每把武器独立写配置，同族也不共享常量**，便于逐把微调。（历史包袱已删：第二握点 `grip2*` 与目标手 `target*` —— 它们原本只为"两手连线自动算角度"存在，现在角度自由编辑，模型简化为「一个握点 + 角度 + 手位偏移」；长柄武器的 `anchorHand: 'off'` 保留，它同时表示"另一只手也在杆上"（渲染时多盖一只手的皮肤）。）
+- **手位覆盖一律写「相对偏移」**：`handDX/handDY`（相对 `HAND_POINTS[pose]`；锚副手的武器相对 `OTHER_HAND_POINT[pose]`）。优先级：绝对 `handX/handY`（旧数据仍支持）> 相对偏移 > 基准。编辑器拖动/输入写的都是偏移，`编辑器导出`也把绝对值折算成偏移，所以导出贴回后武器仍然**跟随全局手位表**（`HAND_POINTS` 一改全体跟着动），不会把自己锁死在绝对坐标上。基准解析唯一入口 `baseAnchorHand(cfg, pose, slot)`。
+- **导出片段的压缩语义**：表里的姿势条目是**整体替换** `...makePoses(基底)` 的同名条目（不是合并），因此写出来的条目必须自包含；只有与基底完全相同的姿势才省略。偏移为 0 一律不写（省略即 0，不需要显式写 `handDX: 0`）。
+- **槽位（主手 / 副手）是一等维度**：`WEAPON_POSES[武器][姿势]` 是主手槽；副手槽写可选的 `off` 子表（`WEAPON_POSES[武器].off[姿势]`）。副手没登记时按「副手默认」：握柄沿用主手表，手位取全局 `OTHER_HAND_POINT[pose]`、角度取 `DUAL_OFFHAND_ANGLE[pose]`（长柄这类 `anchorHand: 'off'` 的武器挂副手槽则直接沿用主手配置）。面板只在武器带 `one_handed` 标签（引擎数据）时才显示副手槽。解析入口只有 `resolveWeaponMount(weaponId, pose, { slot, config?, facingRight? })`，战斗渲染器 / 像素预览 / 编辑器都走它，不要各算一套。
 - **双持会画两把**：`CharacterSnapshot.offhand`（来自 `build.offhand`，战斗中固定）→ 渲染器为每个角色多两组 Graphics（副手武器画在主手武器**下面**，副手手部遮罩用另一侧的手）。
 - 改手位或轴向后必须同步 `HAND_POINTS` / `OTHER_HAND_POINT` / `HAND_COVER` / `LEFT_HAND_COVER`。
 
 **像素编辑器**：DevMode 的「像素编辑器」tab（`/dev?tab=editor`，源码 `src/ui/screens/DevMode/PixelEditor/`），两种模式：
 
 - **身体帧**（48×48，槽位 0~9）：槽位涂格、镜像、油漆桶、一键自动描边/加金边；**手部锚点可直接拖动**并导出
-  `weapons.ts` 的四张表片段（握点 + 2×2 遮罩格，还能自动吸附到最近的皮肤块）；导入导出都是「一张图」，
-  导出片段与 `sprites.ts` 字面量逐字符同构，可整段替换。老版本导出的渲染帧（60×48）载入时会自动裁掉左侧留白。
-- **武器**（32×32，颜色任选）：调色板可加/改/删颜色，导出 `WEAPON_OVERLAYS` 条目片段（`palette` + 稀疏 `pixels`）。
+  `weapons/hands.ts` 的四张表片段（握点 + 2×2 遮罩格，还能自动吸附到最近的皮肤块）；导入导出都是「一张图」，
+  导出片段与 `sprites/<姿势>.ts` 的字面量逐字符同构，可整段替换；手部锚点导出的是 `weapons/hands.ts` 的片段。老版本导出的渲染帧（60×48）载入时会自动裁掉左侧留白。
+- **武器**（32×32，颜色任选）：调色板可加/改/删颜色，导出该武器文件里的 `overlay:` 块（`palette` + 稀疏 `pixels`）；
+  「武器挂点」模式导出 `poses:` 块。两者都粘进 `weapons/entries/<武器>.ts`（片段首行注释写了目标文件），
+  也可以只粘其中一块（换美术不动挂点、换挂点不动美术）。
 
 改任何 `DEFAULT_<POSE>` 都走它，不要手工逐格描边；规则不用背，右侧面板只显示尺寸/统计。
 

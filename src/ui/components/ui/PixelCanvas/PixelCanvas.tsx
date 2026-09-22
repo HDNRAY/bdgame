@@ -218,11 +218,11 @@ export function PixelCanvas({
                 }
             }
         }
-        // 第二只手：双手武器（grip2）或双持副手武器时，盖住副手握点
+        // 第二只手：双手长兵（锚副手）或双持副手武器时，盖住副手握点
         const needsLeftCover =
             shouldDrawHandCover(pose) &&
             hasPixels &&
-            ((poseConfig?.grip2X !== undefined && overlay && overlay.pixels.length > 0) ||
+            ((poseConfig?.anchorHand === 'off' && overlay && overlay.pixels.length > 0) ||
                 (!!offhandOverlay && offhandOverlay.pixels.length > 0 && !(offhandConfig?.noHandCover ?? false)))
         if (needsLeftCover) {
             const skin = palette?.['3'] ?? '#f5d6c6'

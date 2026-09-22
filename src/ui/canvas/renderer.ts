@@ -423,8 +423,8 @@ export class CanvasRenderer {
             cg.rect(ox + fx * PIXEL, oy + cy * PIXEL, PIXEL, PIXEL).fill(skin)
         }
         for (const [cx, cy] of primary) paint(cx, cy)
-        // 双手武器（有 grip2）：额外盖住另一只手
-        if (mount.grip2X !== undefined) {
+        // 双手长兵（锚副手）：另一只手也在杆上 → 额外盖住另一只手
+        if (mount.config.anchorHand === 'off') {
             const secondary = secondaryTable[c.pose] ?? secondaryTable.idle
             for (const [cx, cy] of secondary) paint(cx, cy)
         }

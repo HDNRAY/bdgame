@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { HAND_COVER, LEFT_HAND_COVER } from './weapons'
-import { dragHandOffset, dragTargetOffset } from './frame-edit'
+import { dragHandOffset } from './frame-edit'
 import {
     DUAL_OFFHAND_ANGLE,
     baseAnchorHand,
@@ -50,8 +50,9 @@ describe('武器槽位：主手 / 副手', () => {
                 const m = resolveWeaponMount(id, pose, { slot: 'off' })
                 const cfg = getWeaponPoseConfig(id, pose, 'off')
                 expect(m.usingOffhandDefault, `${id}/${pose}`).toBe(false)
-                expect(m.gripX, `${id}/${pose}`).toBeCloseTo(cfg.gripX, 6)
-                expect(m.gripY, `${id}/${pose}`).toBeCloseTo(cfg.gripY, 6)
+                // 生效握点 = 武器握点（基底）+ 该姿势的握点偏移
+                expect(m.gripX, `${id}/${pose}`).toBeCloseTo(cfg.gripX + (cfg.gripDX ?? 0), 6)
+                expect(m.gripY, `${id}/${pose}`).toBeCloseTo(cfg.gripY + (cfg.gripDY ?? 0), 6)
             }
         }
     })
@@ -86,7 +87,6 @@ describe('武器槽位：主手 / 副手', () => {
             expect(off.usingOffhandDefault).toBe(true)
             expect(off.hand).toEqual(main.hand)
             expect(off.angle).toBeCloseTo(main.angle, 6)
-            expect(off.grip2X).toBe(main.grip2X)
         })
     })
 
@@ -177,11 +177,6 @@ describe('编辑器拖动折算与手部遮罩选择', () => {
                 handDY: start.y - base.y - 1,
             })
         }
-    })
-
-    it('双手武器的目标手偏移同样按目标手基准折算', () => {
-        const t = dragTargetOffset('idle', { x: HAND_POINTS.idle.x + 1, y: HAND_POINTS.idle.y }, 0, 0)
-        expect(t).toEqual({ targetDX: 1, targetDY: 0 })
     })
 
     it('手部遮罩按槽位互换：主手槽盖主手、副手槽盖副手', () => {

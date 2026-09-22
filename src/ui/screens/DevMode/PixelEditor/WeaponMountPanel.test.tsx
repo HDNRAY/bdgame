@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { WeaponMountPanel } from './WeaponMountPanel'
+import { HAND_POINTS, OTHER_HAND_POINT } from '../../../pixel-sprites'
 
 /**
  * 武器挂点实验台的渲染冒烟：字段/按钮/片段齐全，渲染期不抛错。
@@ -22,37 +23,33 @@ describe('WeaponMountPanel 渲染冒烟', () => {
             expect(html, pose).toContain(`>${pose}</button>`)
         }
         expect(html).toContain('角度(度)')
-        expect(html).toContain('握点 X')
-        expect(html).toContain('第二握点 X')
+        expect(html).toContain('武器共用')
+        expect(html).toContain('本姿势')
+        expect(html).toContain('武器握点 X')
+        expect(html).toContain('武器握点 Y')
+        expect(html).toContain('握点偏移 X')
+        expect(html).toContain('握点偏移 Y')
         expect(html).toContain('挂点偏移 X')
-        expect(html).toContain('目标手偏移 X')
         expect(html).toContain('复制挂点片段')
         // 槽位切换
-        expect(html).toContain('>主手</button>')
-        expect(html).toContain('>副手</button>')
+        // 默认选中玄铁重剑（非 one_handed）→ 没有副手槽，槽位切换整行不显示
+        expect(html).not.toContain('>副手</button>')
         expect(html).toMatch(/<summary[^>]*>查看挂点代码<\/summary>/)
     })
 
-    it('锚定手：主手槽下说明「单手武器默认锚主手」且可选；副手槽下禁用并说明原因', () => {
-        const mainSlot = renderToStaticMarkup(
-            <WeaponMountPanel configs={{}} onChange={() => {}} charId="yidao" setStatus={() => {}} />,
+    it('长柄武器不显示副手槽；单手武器才显示，且副手槽下「锚定手」禁用并说明原因', () => {
+        const twoHand = renderToStaticMarkup(
+            <WeaponMountPanel configs={{}} onChange={() => {}} charId="yidao" setStatus={() => {}} initialWeaponId="qimei_staff" />,
         )
-        expect(mainSlot).toContain('单手武器默认锚主手')
-        expect(mainSlot).not.toContain('<span>锚定手</span><select disabled')
-
-        const offSlot = renderToStaticMarkup(
-            <WeaponMountPanel
-                configs={{}}
-                onChange={() => {}}
-                charId="yidao"
-                setStatus={() => {}}
-                initialSlot="off"
-            />,
+        expect(twoHand).not.toContain('>副手</button>')
+        const oneHand = renderToStaticMarkup(
+            <WeaponMountPanel configs={{}} onChange={() => {}} charId="yidao" setStatus={() => {}} initialWeaponId="xiu_dong" initialSlot="off" />,
         )
-        // 副手槽固定用全局副手手位 → 该选项禁用
-        expect(offSlot).toContain('<span>锚定手</span><select disabled')
-        expect(offSlot).toContain('副手槽的落点固定用全局副手手位')
+        expect(oneHand).toContain('>副手</button>')
+        expect(oneHand).toContain('副手槽的落点固定用全局副手手位')
+        expect(oneHand).toContain('<span>锚定手</span><select disabled')
     })
+
 
     it('副手槽的改动会导出成 off 块（与主手同一套压缩规则）', () => {
         const html = renderToStaticMarkup(
@@ -70,8 +67,14 @@ describe('WeaponMountPanel 渲染冒烟', () => {
             />,
         )
         expect(html).toContain('off: {')
-        // 副手基准 = OTHER_HAND_POINT.idle (46.5, 32) → 41 折算成 handDX: -5.5
-        expect(html).toContain('idle: { gripX: 25, gripY: 25, angle: 0, handDX: -5.5, handDY: 0 }')
+        // 副手默认继承主手的武器握点；只有副手自己声明了不同的握点才会写出来（这里 off.idle 显式给了 25,25）
+        expect(html).toContain('...makePoses({ gripX: 25, gripY: 25 })')
+        const dx = 41 - OTHER_HAND_POINT.idle.x
+        const dy = 32 - OTHER_HAND_POINT.idle.y
+        const parts = ['angle: 0']
+        if (dx) parts.push(`handDX: ${dx}`)
+        if (dy) parts.push(`handDY: ${dy}`)
+        expect(html).toContain(`idle: { ${parts.join(', ')} }`)
     })
 
     it('改过的配置会体现在导出片段里（attack 单独列出）', () => {
@@ -79,7 +82,10 @@ describe('WeaponMountPanel 渲染冒烟', () => {
             <WeaponMountPanel
                 configs={{
                     dark_iron_sword: {
-                        main: { attack: { gripX: 25, gripY: 25, handX: 30.5, handY: 31, angle: -0.0762 } },
+                        main: {
+                            idle: { gripX: 25, gripY: 25 },
+                            attack: { gripX: 25, gripY: 25, handX: 30.5, handY: 31, angle: -0.0762 },
+                        },
                         off: {},
                     },
                 }}
@@ -88,7 +94,13 @@ describe('WeaponMountPanel 渲染冒烟', () => {
                 setStatus={() => {}}
             />,
         )
-        // 主手基准 = HAND_POINTS.attack (24.5, 27.5) → (30.5, 31) 折算成 handDX: 6, handDY: 3.5
-        expect(html).toContain('attack: { gripX: 25, gripY: 25, angle: -0.0762, handDX: 6, handDY: 3.5 },')
+        // 主手基准 = HAND_POINTS.attack → (30.5, 31) 折算成相对偏移
+        const dx = 30.5 - HAND_POINTS.attack.x
+        const dy = 31 - HAND_POINTS.attack.y
+        expect(html).toContain('...makePoses({ gripX: 25, gripY: 25 })')
+        const parts = ['angle: -0.0762']
+        if (dx) parts.push(`handDX: ${dx}`)
+        if (dy) parts.push(`handDY: ${dy}`)
+        expect(html).toContain(`attack: { ${parts.join(', ')} },`)
     })
 })

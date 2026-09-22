@@ -99,7 +99,10 @@ export {
     baseAnchorHand,
     poseConfigIn,
     handCoverTables,
-    baseTargetHand,
     resolveWeaponMount,
+    makePoses,
+    mergePoseConfig,
+    sharedOf,
+    SHARED_KEYS,
 } from './weapons'
 export type { PoseKey, WeaponMount, WeaponPoseTable, WeaponSlot } from './weapons'

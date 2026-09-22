@@ -586,7 +586,6 @@ export function PixelInspector() {
                         </div>
                         <figcaption className="pixel-inspector-weapon-caption">
                             weapon · {weaponId}（{weaponW}×{weaponH}，grip {idlePose.gripX},{idlePose.gripY}
-                            {idlePose.grip2X !== undefined ? ` / 2nd ${idlePose.grip2X},${idlePose.grip2Y}` : ''}
                             {hasWeaponArt ? '' : '，未绘制'}）
                         </figcaption>
                     </figure>

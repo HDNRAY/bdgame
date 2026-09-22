@@ -261,7 +261,7 @@ export function PixelEditor() {
     // 只读一次：用它作为各 state 的初值
     const saved = useMemo(() => readSavedState(), [])
     const [mode, setMode] = useState<EditorMode>(saved?.mode ?? 'frame')
-    /** 武器挂点实验：武器 id → 姿势 → 改过的配置（空 = 用 weapons.ts 登记值） */
+    /** 武器挂点实验：武器 id → 姿势 → 改过的配置（空 = 用武器文件里登记的挂点） */
     const [mountConfigs, setMountConfigs] = useState<
         Record<string, Record<WeaponSlot, Record<string, Partial<WeaponPoseConfig>>>>
     >(
@@ -488,7 +488,7 @@ export function PixelEditor() {
         () =>
             anchorData
                 ? formatAnchorSnippet(poseName, anchorData.main, anchorData.off)
-                : `// 姿势 ${poseName} 在 weapons.ts 里还没有登记锚点`,
+                : `// 姿势 ${poseName} 在武器文件里还没有登记锚点`,
         [anchorData, poseName],
     )
 
@@ -897,7 +897,7 @@ export function PixelEditor() {
                             </button>
                             <button
                                 className={`pixel-editor-tool ${mode === 'mount' ? 'active' : ''}`}
-                                title="实验武器挂在身上哪里、倾角多少（不同动作不同），导出 WEAPON_POSES 片段"
+                                title="实验武器挂在身上哪里、倾角多少（不同动作不同），导出武器文件里的 poses 块"
                                 onClick={() => switchMode('mount')}
                             >
                                 武器挂点
@@ -1389,8 +1389,8 @@ export function PixelEditor() {
                     <h3
                         title={
                             mode === 'frame'
-                                ? '导入：粘贴 sprites.ts 的整段或导出的 JSON（也可把 .json/.txt 拖到页面上）｜导出：TS 片段可直接替换 sprites.ts 的常量'
-                                : '导入：粘贴武器条目 { pixels, palette }｜导出：片段可直接粘进 WEAPON_OVERLAYS'
+                                ? '导入：粘贴姿势帧文件的整段或导出的 JSON（也可把 .json/.txt 拖到页面上）｜导出：TS 片段可直接替换 sprites/<姿势>.ts 的常量'
+                                : '导入：粘贴武器文件里的 overlay 块或 { pixels, palette }｜导出：overlay 块可直接粘进 weapons/entries/<武器>.ts'
                         }
                     >
                         导入 / 导出
@@ -1512,7 +1512,7 @@ export function PixelEditor() {
 
                 {mode === 'frame' && (
                     <details className="pixel-editor-panel" open={anchorEdit}>
-                        <summary title="手部锚点决定武器挂在哪：握点 + 2×2 遮罩格，对应 weapons.ts 的四张表">
+                        <summary title="手部锚点决定武器挂在哪：握点 + 2×2 遮罩格，对应 weapons/hands.ts 的四张表">
                             手部锚点{anchorDirty ? '（已改动）' : ''}
                         </summary>
                         <div className="pixel-editor-row">
@@ -1552,7 +1552,7 @@ export function PixelEditor() {
                                 disabled={!anchorDirty}
                                 onClick={() => {
                                     setAnchorOverride(null)
-                                    setStatus('已恢复 weapons.ts 的登记值')
+                                    setStatus('已恢复武器文件里的登记值')
                                 }}
                             >
                                 重置
@@ -1562,7 +1562,7 @@ export function PixelEditor() {
                             复制锚点片段
                         </button>
                         <details className="pixel-editor-code">
-                            <summary title="展开看 weapons.ts 的四张表片段（剪贴板不可用时手动复制）">查看锚点代码</summary>
+                            <summary title="展开看 weapons/hands.ts 的四张表片段（剪贴板不可用时手动复制）">查看锚点代码</summary>
                             <textarea
                                 className="pixel-editor-textarea pixel-editor-textarea--export"
                                 readOnly

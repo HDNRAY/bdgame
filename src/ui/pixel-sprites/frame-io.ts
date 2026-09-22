@@ -12,7 +12,7 @@
 import type { HandAnchorData } from './frame-edit'
 import type { CharacterColors } from './palette'
 import type { WeaponPoseConfig } from './types'
-import { baseAnchorHand, baseTargetHand } from './weapons'
+import { baseAnchorHand } from './weapons'
 import type { PixelMap } from './types'
 import { SPRITE_HEIGHT, SPRITE_PAD_LEFT, SPRITE_WIDTH } from './constants'
 
@@ -56,7 +56,7 @@ function dropTrailingCommas(json: string): string {
  *  - 未加引号的键（`pixels:`）→ 加引号
  *  - 行注释与块注释都去掉
  *  - 行尾多余逗号 → 去掉
- * 这样从 weapons.ts 直接复制出来的条目也能读。
+ * 这样从旧的 weapons.ts 直接复制出来的条目也能读。
  */
 function normalizeTsLiteral(src: string): string {
     let out = ''
@@ -254,14 +254,14 @@ export function formatPixelMapJson(map: PixelMap): string {
     return `[\n${rows.join(',\n')}\n]`
 }
 
-/** 数值写成 `x + SPRITE_PAD_LEFT` 的形式（与 weapons.ts 里的写法一致；半格写作 31.5） */
+/** 数值写成 `x + SPRITE_PAD_LEFT` 的形式（与 weapons/hands.ts 里的写法一致；半格写作 31.5） */
 function anchorValue(v: number): string {
     const n = v - SPRITE_PAD_LEFT
     return Number.isInteger(n) ? `${n} + SPRITE_PAD_LEFT` : `${n} + SPRITE_PAD_LEFT`
 }
 
 /**
- * 生成手部锚点的 TS 片段（可直接粘进 weapons.ts 的
+ * 生成手部锚点的 TS 片段（可直接粘进 weapons/hands.ts 的
  * HAND_POINTS / OTHER_HAND_POINT / HAND_COVER / LEFT_HAND_COVER 里对应姿势那一条）。
  */
 export function formatAnchorSnippet(pose: string, main: HandAnchorData, off: HandAnchorData): string {
@@ -294,7 +294,7 @@ export interface WeaponGridData {
 }
 
 /**
- * 生成 WEAPON_OVERLAYS 的条目片段（可直接粘进 weapons.ts）。
+ * 生成武器美术片段：`overlay:` 块（粘进 weapons/entries/<武器>.ts 里，与 poses: 并列）。
  * 下标会重新编号成 1..n（紧凑），调色板只输出用到的颜色。
  */
 export function formatWeaponOverlaySnippet(weaponId: string, grid: PixelMap, palette: string[]): string {
@@ -302,21 +302,22 @@ export function formatWeaponOverlaySnippet(weaponId: string, grid: PixelMap, pal
     for (const row of grid) for (const v of row) if (v > 0) used.add(v)
     const indices = [...used].sort((a, b) => a - b)
     const keyOf = (i: number) => String(indices.indexOf(i) + 1)
-    const lines: string[] = [`    ${weaponId}: {`]
+    // 片段给出该武器文件里的 `overlay:` 块（与 poses: 并列）
+    const lines: string[] = [`// weapons/entries/${weaponId}.ts → overlay:`, 'overlay: {']
     if (indices.length > 0) {
-        lines.push('        palette: {')
-        for (const i of indices) lines.push(`            '${keyOf(i)}': '${palette[i] ?? '#000000'}',`)
-        lines.push('        },')
+        lines.push('    palette: {')
+        for (const i of indices) lines.push(`        '${keyOf(i)}': '${palette[i] ?? '#000000'}',`)
+        lines.push('    },')
     }
-    lines.push('        pixels: [')
+    lines.push('    pixels: [')
     for (let y = 0; y < grid.length; y++) {
         for (let x = 0; x < grid[y].length; x++) {
             const v = grid[y][x]
-            if (v > 0) lines.push(`            [${x}, ${y}, ${keyOf(v)}],`)
+            if (v > 0) lines.push(`        [${x}, ${y}, ${keyOf(v)}],`)
         }
     }
-    lines.push('        ],')
-    lines.push('    },')
+    lines.push('    ],')
+    lines.push('},')
     return lines.join('\n')
 }
 
@@ -341,8 +342,12 @@ export function parseWeaponOverlay(text: string, width = 32, height = 32): Parse
     let obj = parsed.value
     let id: string | undefined
     // `test_blade: { ... }` 这种「键在前、对象在后」的条目：从花括号前面认 id
+    // 新格式片段首行注释里带目标文件：`// weapons/entries/<id>.ts → overlay:`
+    const fromComment = trimmed.match(/weapons\/entries\/([A-Za-z_0-9]+)\.ts/)
+    if (fromComment) id = fromComment[1]
     const beforeKey = trimmed.slice(0, start).match(/([A-Za-z_$][\w$]*)\s*:\s*$/)
-    if (beforeKey) id = beforeKey[1]
+    // `overlay:` / `poses:` 是结构键，不是武器 id
+    if (!id && beforeKey && beforeKey[1] !== 'overlay' && beforeKey[1] !== 'poses') id = beforeKey[1]
     if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
         const entries = Object.entries(obj as Record<string, unknown>)
         const inner = entries.find(
@@ -448,7 +453,7 @@ function fmtNum(v: number): string {
     return Number.isInteger(v) ? String(v) : String(Math.round(v * 10000) / 10000)
 }
 
-/** 角度：是「整数/半度」就写成 (15 * Math.PI) / 180，否则按弧度原值写（与 weapons.ts 里的习惯一致） */
+/** 角度：是「整数/半度」就写成 (15 * Math.PI) / 180，否则按弧度原值写（与武器条目里的习惯一致） */
 function fmtAngle(rad: number): string {
     if (rad === 0) return '0'
     const deg = (rad * 180) / Math.PI
@@ -458,23 +463,21 @@ function fmtAngle(rad: number): string {
 }
 
 /** 能被 makePoses 基底携带的字段（所有姿势一致时才放进基底） */
-const BASE_CANDIDATES: (keyof WeaponPoseConfig)[] = [
-    'gripX',
-    'gripY',
-    'grip2X',
-    'grip2Y',
-    'flip',
-    'anchorHand',
-    'noHandCover',
-]
+/** 两个可能为空的数字之差；任一为空则视为 0（不写偏移） */
+function offsetOfNum(a: number | undefined, b: number | undefined): number {
+    if (a === undefined || b === undefined) return 0
+    return Math.round((a - b) * 1e4) / 1e4
+}
+
+const BASE_CANDIDATES: (keyof WeaponPoseConfig)[] = ['gripX', 'gripY', 'flip', 'anchorHand', 'noHandCover']
 /** 相对偏移字段（写进基底会"继承"，所以判定差异时按 0 兜底） */
-const OFFSET_KEYS: (keyof WeaponPoseConfig)[] = ['handDX', 'handDY', 'targetDX', 'targetDY']
+const OFFSET_KEYS: (keyof WeaponPoseConfig)[] = ['handDX', 'handDY']
 /** 其余逐姿势字段 */
 const POSE_KEYS: (keyof WeaponPoseConfig)[] = ['angle']
 
 /**
- * 把一条配置折算成「导出形态」：绝对手位/目标手 → 相对偏移。
- * - handX/handY（或 targetX/targetY）成对出现才折算，单个轴保留原样（引擎本来就只认成对）；
+ * 把一条配置折算成「导出形态」：绝对手位 → 相对偏移（handDX/handDY）。
+ * - handX/handY 成对出现才折算，单个轴保留原样（引擎本来就只认成对）；
  * - 折算出的偏移按 0 兜底参与比较，避免"没写 = 继承基底"把别的姿势的偏移也继承过去。
  */
 function toExportShape(
@@ -490,15 +493,6 @@ function toExportShape(
         out.handDY = Math.round((cfg.handY! - base.y) * 10000) / 10000
         delete out.handX
         delete out.handY
-    }
-    const dual = cfg.grip2X !== undefined && cfg.grip2Y !== undefined
-    const targetPair = typeof cfg.targetX === 'number' && typeof cfg.targetY === 'number'
-    if (dual && targetPair) {
-        const base = baseTargetHand(pose)
-        out.targetDX = Math.round((cfg.targetX! - base.x) * 10000) / 10000
-        out.targetDY = Math.round((cfg.targetY! - base.y) * 10000) / 10000
-        delete out.targetX
-        delete out.targetY
     }
     return out
 }
@@ -518,7 +512,7 @@ function formatKey(key: keyof WeaponPoseConfig, cfg: Partial<WeaponPoseConfig>):
 }
 
 /**
- * 生成 WEAPON_POSES 的条目片段（可直接粘进 weapons.ts）。
+ * 生成挂点片段：`poses:` 块（粘进 weapons/entries/<武器>.ts 里，与 overlay: 并列）。
  * 基底取 idle 的共用字段（grip/flip/第二握点…），与基底不同的姿势再单独列出。
  */
 export function formatWeaponPoseSnippet(
@@ -544,6 +538,8 @@ export function formatWeaponPoseSnippet(
         table: Record<string, Partial<WeaponPoseConfig>>,
         indent: string,
         slot: 'main' | 'off',
+        /** 副手表：从主手基底继承的结构性字段（相同就不重复写，姿势偏移也相对它计算） */
+        inherit?: Partial<WeaponPoseConfig>,
     ): string[] => {
         const shaped: Record<string, Partial<WeaponPoseConfig>> = {}
         for (const pose of poses) {
@@ -551,52 +547,74 @@ export function formatWeaponPoseSnippet(
             if (cfg) shaped[pose] = toExportShape(cfg, pose, slot)
         }
         const idle = shaped.idle ?? {}
-        const baseKeys = BASE_CANDIDATES.filter((k) => idle[k] !== undefined)
-        const baseOffsets = OFFSET_KEYS.filter((k) => offsetOf(idle, k) !== 0)
-        // gripX/gripY 是 WeaponPoseConfig 的必填字段 → 基底行必须带上，否则会导出 makePoses({})（类型错）
-        const grip: Partial<WeaponPoseConfig> = {
-            gripX: typeof idle.gripX === 'number' ? idle.gripX : 0,
-            gripY: typeof idle.gripY === 'number' ? idle.gripY : 0,
+        // 基底：只写结构性字段（握点/第二握点/翻转/锚定手/不遮手）——姿势条目会继承它们
+        const baseParts: string[] = []
+        for (const k of BASE_CANDIDATES) {
+            if (k === 'gripX' || k === 'gripY') continue
+            if (idle[k] !== undefined) baseParts.push(formatKey(k, idle))
         }
-        const baseLine = ['gripX' as const, 'gripY' as const, ...baseKeys.filter((k) => k !== 'gripX' && k !== 'gripY'), ...baseOffsets]
-        const baseFields = baseLine.map((k) => formatKey(k, grip[k] !== undefined ? grip : idle)).join(', ')
-        const out: string[] = []
-        out.push(baseFields ? `${indent}...makePoses({ ${baseFields} }),` : `${indent}...makePoses({}),`)
+        // 只有基底真的写了握点才输出；副手表里与主手基底相同的握点不写（继承主手）
+        const gripParts: string[] = []
+        if (typeof idle.gripX === 'number' && idle.gripX !== inherit?.gripX) gripParts.push(`gripX: ${fmtNum(idle.gripX)}`)
+        if (typeof idle.gripY === 'number' && idle.gripY !== inherit?.gripY) gripParts.push(`gripY: ${fmtNum(idle.gripY)}`)
+        const inheritBase = inherit ?? idle
+        const allParts = [
+            ...gripParts,
+            ...baseParts.filter((line) => {
+                const k = line.slice(0, line.indexOf(':')) as keyof WeaponPoseConfig
+                return idle[k] !== inherit?.[k]
+            }),
+        ]
+        void inheritBase
+        const out: string[] = [`${indent}...makePoses({${allParts.length ? ' ' + allParts.join(', ') + ' ' : ''}}),`]
 
         for (const pose of poses) {
             const cfg = shaped[pose]
             if (!cfg) continue
-            const sameAsBase =
-                baseKeys.every((k) => cfg[k] === idle[k]) &&
-                OFFSET_KEYS.every((k) => offsetOf(cfg, k) === offsetOf(idle, k)) &&
-                POSE_KEYS.every((k) => cfg[k] === undefined) &&
-                cfg.handX === undefined &&
-                cfg.targetX === undefined
-            if (sameAsBase) continue
-
             const parts: string[] = []
-            for (const k of BASE_CANDIDATES) if (cfg[k] !== undefined) parts.push(formatKey(k, cfg))
+            // 握点：武器端只有一个（在基底），姿势要调就写偏移
+            // 优先用配置里显式写的偏移（编辑器写的就是它）；旧数据写的是绝对握点 → 折算成偏移
+            // 偏移基准：主手表 = 自己的基底；副手表默认 = 主手基底（继承），
+            // 但副手表自己声明了不同的握点（基底行会写出来）时，偏移相对副手基底算，避免重复计入。
+            const offOwnGrip =
+                inherit !== undefined &&
+                ((idle.gripX !== undefined && idle.gripX !== inherit.gripX) ||
+                    (idle.gripY !== undefined && idle.gripY !== inherit.gripY))
+            const gripBase = offOwnGrip ? idle : (inherit ?? idle)
+            const gripOffsets: [keyof WeaponPoseConfig, keyof WeaponPoseConfig, number][] = [
+                ['gripDX', 'gripX', cfg.gripDX !== undefined ? cfg.gripDX : offsetOfNum(cfg.gripX, gripBase.gripX)],
+                ['gripDY', 'gripY', cfg.gripDY !== undefined ? cfg.gripDY : offsetOfNum(cfg.gripY, gripBase.gripY)],
+            ]
+            for (const [outKey, , v] of gripOffsets) if (v !== 0) parts.push(`${outKey}: ${fmtNum(v)}`)
+            // 结构性字段里与基底不同的（翻转/锚定手/不遮手…；握点已在上面按偏移处理）
+            for (const k of BASE_CANDIDATES) {
+                if (k === 'gripX' || k === 'gripY') continue
+                if (cfg[k] !== undefined && cfg[k] !== (inherit ? inherit[k] : idle[k])) parts.push(formatKey(k, cfg))
+            }
             for (const k of POSE_KEYS) if (cfg[k] !== undefined) parts.push(formatKey(k, cfg))
+            // 偏移：只写非 0（不继承基底，省略即 0）
             for (const k of OFFSET_KEYS) {
-                if (cfg[k] !== undefined) parts.push(formatKey(k, cfg))
-                // 基底有非 0 偏移、本姿势要归零 → 显式写 0
-                else if (baseOffsets.includes(k)) parts.push(`${k}: 0`)
+                const v = offsetOf(cfg, k)
+                if (v !== 0) parts.push(`${k}: ${fmtNum(v)}`)
             }
-            for (const k of ['handX', 'handY', 'targetX', 'targetY'] as const) {
-                if (cfg[k] !== undefined) parts.push(formatKey(k, cfg))
+            for (const k of ['handX', 'handY'] as const) {
+                if (cfg[k] !== undefined && cfg[k] !== 0) parts.push(formatKey(k, cfg))
             }
+            if (parts.length === 0) continue
             out.push(`${indent}${pose}: { ${parts.join(', ')} },`)
         }
         return out
     }
 
-    const lines: string[] = [`    ${weaponId}: {`]
-    lines.push(...writeTable(configs, '        ', 'main'))
+    // 现在是「一个武器一个文件」：片段直接给出该文件里的 `poses:` 块
+    const shapedMainIdle = toExportShape(configs.idle ?? {}, 'idle', 'main')
+    const lines: string[] = [`// weapons/entries/${weaponId}.ts → poses:`, 'poses: {']
+    lines.push(...writeTable(configs, '    ', 'main'))
     if (opts.offTable && Object.keys(opts.offTable).length > 0) {
-        lines.push('        off: {')
-        lines.push(...writeTable(opts.offTable, '            ', 'off'))
-        lines.push('        },')
+        lines.push('    off: {')
+        lines.push(...writeTable(opts.offTable, '        ', 'off', shapedMainIdle))
+        lines.push('    },')
     }
-    lines.push('    },')
+    lines.push('},')
     return lines.join('\n')
 }

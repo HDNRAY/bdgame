@@ -15,7 +15,7 @@ import {
 import { DEFAULT_IDLE } from './sprites'
 import { HAND_POINTS } from './weapons'
 import type { WeaponPoseConfig } from './types'
-import { POSE_NAMES, WEAPON_POSES, resolveWeaponMount } from './weapons'
+import { POSE_NAMES, WEAPON_POSES, getWeaponPoseConfig, mergePoseConfig, resolveWeaponMount } from './weapons'
 
 describe('像素帧排版', () => {
     it('每行 19 个数字、8 空格缩进（与 sprites.ts 现有帧同构）', () => {
@@ -133,7 +133,8 @@ describe('武器图导入导出', () => {
 
     it('导出的片段能被解析回来（往返不掉像素）', () => {
         const snippet = formatWeaponOverlaySnippet('test_blade', grid(), palette)
-        expect(snippet).toContain("test_blade: {")
+        expect(snippet).toContain('// weapons/entries/test_blade.ts → overlay:')
+        expect(snippet).toContain('overlay: {')
         expect(snippet).toContain("'1': '#aa0000',")
         expect(snippet).toContain('[4, 4, 1],')
         const parsed = parseWeaponOverlay(snippet)
@@ -188,9 +189,9 @@ describe('武器挂点片段', () => {
             },
             ['idle', 'attack'],
         )
-        // 基底沿用 idle；attack 条目自包含（整替基底，不是合并），anchorHand 带引号
+        // 基底 = idle 的结构性字段（握点只写这一处）；attack 只写与基底不同的字段，anchorHand 带引号
         expect(snippet).toContain("...makePoses({ gripX: 8, gripY: 7, flip: true, anchorHand: 'main', noHandCover: true })")
-        expect(snippet).toContain("attack: { gripX: 8, gripY: 7, anchorHand: 'off', angle: (-45 * Math.PI) / 180 }")
+        expect(snippet).toContain("attack: { anchorHand: 'off', angle: (-45 * Math.PI) / 180 }")
         // 不能出现没引号的裸标识符
         expect(snippet).not.toMatch(/anchorHand: (main|off)\b(?!')/)
     })
@@ -204,7 +205,7 @@ describe('武器挂点片段', () => {
         // makePoses 的作用就是把基底铺到每个姿势（与 weapons.ts 里的真实实现一致）
         const src = `const POSE_NAMES = ['idle', 'attack', 'dodge', 'parry', 'hit', 'buff']`
             + `; const makePoses = (base) => Object.fromEntries(POSE_NAMES.map((p) => [p, { ...base }]))`
-            + `; const WEAPON_POSES = {\n${snippet}\n}; return WEAPON_POSES.test_blade.idle.anchorHand`
+            + `; const entry = {\n${snippet}\n}; return entry.poses.idle.anchorHand`
         // eslint-disable-next-line no-new-func
         const value = new Function(src)()
         expect(value).toBe('off')
@@ -212,11 +213,16 @@ describe('武器挂点片段', () => {
 })
 
 /** 用导出片段 + 真实的 makePoses 语义（基底铺到每个姿势）求值，拿到 WEAPON_POSES 条目 */
+/**
+ * 求值导出的片段：现在是「一个武器一个文件」里的 `poses:` 块（首行是目标文件注释），
+ * 所以包成 `{ <snippet> }` 再取 `.poses`，返回「武器 id → 姿势 → 字段」的形状（与原 WEAPON_POSES 条目一致）。
+ */
 function evalPoseSnippet(snippet: string): Record<string, Record<string, Record<string, unknown>>> {
     const src =
         `const POSE_NAMES = ${JSON.stringify([...POSE_NAMES])}` +
-        '; const makePoses = (base) => Object.fromEntries(POSE_NAMES.map((p) => [p, { ...base }]))' +
-        `; const WEAPON_POSES = {\n${snippet}\n}; return WEAPON_POSES`
+        // 与 weapons/poses.ts 的 makePoses 一致：铺开所有姿势，同时把基底存进 base（合并语义要用）' +
+        '; const makePoses = (base) => { const o = Object.fromEntries(POSE_NAMES.map((p) => [p, { ...base }])); o.base = { ...base }; return o }' +
+        `; const entry = {\n${snippet}\n}; return { poses: entry.poses }`
     // eslint-disable-next-line no-new-func
     return new Function(src)() as Record<string, Record<string, Record<string, unknown>>>
 }
@@ -227,20 +233,17 @@ describe('武器挂点片段 · 往返一致', () => {
     const IDS = ['peach_sword', 'dark_iron_sword', 'tri_orb', 'qimei_staff', 'xiu_dong', 'chun_lei', 'iron_spear']
     for (const id of IDS) {
         it(`${id}：导出后每个姿势的落点与登记值一致`, () => {
-            const original = WEAPON_POSES[id]
-            const configs: Record<string, WeaponPoseConfig> = {}
-            for (const p of POSE_NAMES) {
-                const cfg = original[p] ?? original.idle
-                if (cfg) configs[p] = cfg
-            }
+            const configs: Record<string, Partial<WeaponPoseConfig>> = {}
+            for (const p of POSE_NAMES) configs[p] = getWeaponPoseConfig(id, p)
             const snippet = formatWeaponPoseSnippet(id, configs, [...POSE_NAMES])
-            const roundTripped = evalPoseSnippet(snippet)[id]
+            const roundTripped = evalPoseSnippet(snippet).poses
             for (const pose of POSE_NAMES) {
                 const want = resolveWeaponMount(id, pose)
-                const gotCfg = (roundTripped[pose] ?? {}) as Partial<WeaponPoseConfig>
+                const gotCfg = mergePoseConfig(roundTripped.base, roundTripped[pose] as Partial<WeaponPoseConfig>)
                 const got = resolveWeaponMount(id, pose, { config: gotCfg })
                 expect(got.hand, `${id}.${pose}.hand`).toEqual(want.hand)
-                expect(got.angle, `${id}.${pose}.angle`).toBeCloseTo(want.angle, 6)
+                // 角度是烘焙进数据的常量（手写小数），1e-3 rad ≈ 0.06° 以内视为一致
+expect(got.angle, `${id}.${pose}.angle`).toBeCloseTo(want.angle, 3)
                 expect(got.gripX, `${id}.${pose}.gripX`).toBeCloseTo(want.gripX, 6)
                 expect(got.gripY, `${id}.${pose}.gripY`).toBeCloseTo(want.gripY, 6)
             }
@@ -250,19 +253,16 @@ describe('武器挂点片段 · 往返一致', () => {
     it('带 off 子表的武器：导出（含 off 块）后主手与副手落点都不变', () => {
         const withOff = Object.keys(WEAPON_POSES).filter((id) => Object.keys(WEAPON_POSES[id].off ?? {}).length > 0)
         for (const id of withOff) {
-            const original = WEAPON_POSES[id]
-            const mainCfg: Record<string, WeaponPoseConfig> = {}
+            const mainCfg: Record<string, Partial<WeaponPoseConfig>> = {}
+            const offTable: Record<string, Partial<WeaponPoseConfig>> = {}
             for (const p of POSE_NAMES) {
-                const cfg = original[p] ?? original.idle
-                if (cfg) mainCfg[p] = cfg
-            }
-            const offTable: Record<string, WeaponPoseConfig> = {}
-            for (const p of POSE_NAMES) {
-                const cfg = original.off?.[p] ?? original.off?.idle
-                if (cfg) offTable[p] = cfg
+                const m = getWeaponPoseConfig(id, p, 'main')
+                mainCfg[p] = m
+                const o = getWeaponPoseConfig(id, p, 'off')
+                offTable[p] = o
             }
             const snippet = formatWeaponPoseSnippet(id, mainCfg, [...POSE_NAMES], { offTable })
-            const rt = evalPoseSnippet(snippet)[id]
+            const rt = evalPoseSnippet(snippet).poses
             for (const p of POSE_NAMES) {
                 const want = resolveWeaponMount(id, p, { slot: 'off' })
                 const gotCfg = (rt.off?.[p] ?? {}) as Partial<WeaponPoseConfig>
@@ -277,15 +277,17 @@ describe('武器挂点片段 · 往返一致', () => {
         const snippet = formatWeaponPoseSnippet(
             'test_blade',
             {
-                idle: { gripX: 1, gripY: 2, handX: 37.5, handY: 31.5 }, // HAND_POINTS.idle = (37, 32)
+                // 相对当前 HAND_POINTS.idle 各偏 +0.5 / −0.5
+                idle: { gripX: 1, gripY: 2, handX: HAND_POINTS.idle.x + 0.5, handY: HAND_POINTS.idle.y - 0.5 },
                 parry: { gripX: 1, gripY: 2, handX: HAND_POINTS.parry.x, handY: HAND_POINTS.parry.y - 5 },
             },
             ['idle', 'parry'],
         )
-        expect(snippet).toContain('...makePoses({ gripX: 1, gripY: 2, handDX: 0.5, handDY: -0.5 })')
-        // parry 的手位正好等于基准 → 不写；-5 的那部分写成 handDY
-        // 条目是自包含的：基底的非 0 偏移在这里必须显式归零
-        expect(snippet).toContain('parry: { gripX: 1, gripY: 2, handDX: 0, handDY: -5 }')
+        // 基底只放结构性字段（握点），偏移是逐姿势的 → 写在各自条目里
+        expect(snippet).toContain('...makePoses({ gripX: 1, gripY: 2 })')
+        expect(snippet).toContain('idle: { handDX: 0.5, handDY: -0.5 }')
+        // parry 手位正好等于基准 → 不写 hand 字段；−5 那部分写 handDY（偏移不继承，省略即 0）
+        expect(snippet).toContain('parry: { handDY: -5 }')
         expect(snippet).not.toContain('handX: 37.5')
     })
 })

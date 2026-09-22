@@ -411,10 +411,10 @@
 
     /* 三栏分组，宽屏铺满、窄屏自动堆叠 */
     &-mount-form {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+        display: flex;
+        flex-wrap: wrap;
         gap: var(--sp-sm);
-        align-items: start;
+        align-items: flex-start;
         width: 100%;
     }
 
@@ -423,6 +423,19 @@
         flex-direction: column;
         gap: var(--sp-xs);
         min-width: 0;
+
+        /* 第一列（武器/槽位/姿势）与第三列（开关/导出）收紧，把宽度让给中间的挂点字段 */
+        &:first-child {
+            flex: 1 1 13rem;
+        }
+
+        &:nth-child(2) {
+            flex: 3 1 24rem;
+        }
+
+        &:last-child {
+            flex: 2 1 18rem;
+        }
 
         h4 {
             margin: 0;
@@ -448,7 +461,7 @@
     /* 姿势按钮：整齐两行三列，不再挤成一坨 */
     &-pose-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(4.5rem, 1fr));
         gap: var(--sp-xxs);
     }
 
@@ -456,6 +469,21 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
         gap: var(--sp-xs);
+    }
+
+    /* 分组：标题单独一行，字段各成网格（标题不再混进输入框那一行） */
+    &-mount-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-xxs);
+    }
+
+    &-mount-group-title {
+        font-size: var(--font-xs);
+        letter-spacing: 0.06em;
+        opacity: 0.65;
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 2px;
     }
 
     &-num-field {

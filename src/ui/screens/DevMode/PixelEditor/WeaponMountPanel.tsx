@@ -1,23 +1,22 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
-    OTHER_HAND_POINT,
     POSE_NAMES,
     WEAPON_OVERLAYS,
     WEAPON_POSES,
     formatWeaponPoseSnippet,
     baseAnchorHand,
-    baseTargetHand,
     poseConfigIn,
     resolveWeaponMount,
+    sharedOf,
     getSpriteOutlineColor,
     buildPalette,
 } from '../../../pixel-sprites'
 import type { PixelMap, WeaponPoseConfig, WeaponSlot } from '../../../pixel-sprites'
 import { CHARACTER_COLORS, DEFAULT_COLORS } from '../../../pixel-sprites/palette'
 import { SPRITES } from '../../../pixel-sprites/sprites'
-import { dragHandOffset, dragTargetOffset } from '../../../pixel-sprites/frame-edit'
+import { dragHandOffset } from '../../../pixel-sprites/frame-edit'
 import { PixelCanvas } from '../../../components/ui/PixelCanvas/PixelCanvas'
-import { WEAPON_DB } from '../../../../data/weapons/weapons'
+import { WEAPON_DB, getWeapon } from '../../../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { SearchSelect } from '../../../components/ui/SearchSelect/SearchSelect'
 import { useAppStore, getEffectiveTheme } from '../../../stores/app-store'
@@ -56,12 +55,14 @@ const BODY_FRAMES: Record<string, PixelMap> = {
 export interface WeaponMountPanelProps {
     /** 改过的挂点配置：武器 id → 槽位 → 姿势 → 配置（未改过的姿势不出现在这里） */
     configs: Record<string, Record<WeaponSlot, Record<string, PoseCfg>>>
-    /** 写入一条配置；传 null 表示恢复 weapons.ts 的登记值 */
+    /** 写入一条配置；传 null 表示恢复武器文件里登记的挂点 */
     onChange: (weaponId: string, slot: WeaponSlot, pose: string, cfg: PoseCfg | null) => void
     charId: string
     setStatus: (msg: string) => void
     /** 初始编辑哪个槽位（默认主手） */
     initialSlot?: WeaponSlot
+    /** 初始选中的武器（测试 / 深链用）；默认列表第一把 */
+    initialWeaponId?: string
 }
 
 /** 武器挂点 / 旋转的实验台：拖动改手部锚点，Shift（或右键）拖动绕握点旋转，导出 WEAPON_POSES 片段 */
@@ -71,11 +72,23 @@ export function WeaponMountPanel({
     charId,
     setStatus,
     initialSlot = 'main',
+    initialWeaponId,
 }: WeaponMountPanelProps) {
-    const [weaponId, setWeaponId] = useState(WEAPON_IDS[0] ?? 'xiu_dong')
+    const [weaponId, setWeaponId] = useState(initialWeaponId ?? WEAPON_IDS[0] ?? 'xiu_dong')
     const [pose, setPose] = useState('idle')
     /** 编辑哪个槽位：主手（表在 WEAPON_POSES[w][pose]）或副手（WEAPON_POSES[w].off[pose]） */
-    const [slot, setSlot] = useState<WeaponSlot>(initialSlot)
+    const [slotState, setSlot] = useState<WeaponSlot>(initialSlot)
+    /** 能不能挂副手：看引擎数据里的 one_handed 标签（长柄 polearm 之类不能双持 → 不显示副手槽） */
+    const canOffhand = useMemo(() => {
+        try {
+            return getWeapon(weaponId).tags.includes('one_handed')
+        } catch {
+            return true // 引擎里查不到（比如纯测试用的临时 id）→ 保守显示
+        }
+    }, [weaponId])
+    const isTwoHandedWeapon = !canOffhand
+    /** 双手武器不能双持：没有副手槽，一律按主手编辑 */
+    const slot: WeaponSlot = isTwoHandedWeapon ? 'main' : slotState
 
     // ── 画布自适应：铺满可用宽度（同时受视口高度限制），取整数倍保证像素清晰 ──
     const rootRef = useRef<HTMLDivElement>(null)
@@ -128,38 +141,59 @@ export function WeaponMountPanel({
      */
     const resolved = useMemo(() => resolveWeaponMount(weaponId, pose, { slot }), [weaponId, pose, slot])
     const rawRegistered = WEAPON_POSES[weaponId] ?? {}
-    /** 该槽位是否在 weapons.ts 里有显式登记（副手没登记时用的是默认） */
+    /** 该槽位是否在武器文件里有显式登记（副手没登记时用的是默认） */
     const registeredHere =
         slot === 'main'
             ? Boolean(poseConfigIn(rawRegistered, pose) ?? rawRegistered.idle)
             : Boolean(poseConfigIn(rawRegistered.off, pose) ?? rawRegistered.off?.idle)
-    const registered = resolved.config
-    const effective = configs[weaponId]?.[slot]?.[pose] ?? registered
+    /**
+     * 武器级覆盖：编辑器里改的「武器握点」（写在主手 idle 上）只取**结构性字段**，
+     * 叠到当前槽位/姿势的登记值上 —— 这样在任何姿势、任何槽位改武器握点，预览与导出生效。
+     */
+    const baseOverlay = useMemo(
+        () => sharedOf((configs[weaponId]?.main?.idle ?? {}) as PoseCfg),
+        [configs, weaponId],
+    )
+    const registered = useMemo(() => ({ ...resolved.config, ...baseOverlay }), [resolved, baseOverlay])
+    /** 编辑器给当前（槽位×姿势）存的覆盖：现在只存「改过的字段」，不是整份快照 */
+    const poseEntry = configs[weaponId]?.[slot]?.[pose]
+    const effective = useMemo(
+        () => (poseEntry ? { ...registered, ...poseEntry } : registered),
+        [registered, poseEntry],
+    )
+    /**
+     * 输入框只显示**本姿势覆盖里写的值**（空 = 没覆盖，用登记值）。
+     * 生效值放在占位提示里 —— 这样「填 0」和「清空」都有明确含义：填 0 = 显式归零，清空 = 回到登记值。
+     */
+    const overrideValue = (key: keyof WeaponPoseConfig): number | undefined => {
+        const v = poseEntry?.[key]
+        return typeof v === 'number' ? v : undefined
+    }
+
     const dirty = Boolean(configs[weaponId]?.[slot]?.[pose])
     const handBase = useMemo(() => baseAnchorHand(effective, pose, slot), [effective, pose, slot])
-    const targetBase = useMemo(() => baseTargetHand(pose), [pose])
     const showOffhandDefaultHint = slot === 'off' && resolved.usingOffhandDefault && !dirty
-    const isDualWeapon = effective.grip2X !== undefined && effective.grip2Y !== undefined
     const anchorHandTip =
         slot === 'off'
             ? '副手槽的落点固定用全局副手手位（OTHER_HAND_POINT），这个选项对副手槽没有作用'
-            : isDualWeapon
-              ? '双手武器：杆身轴心锚哪只手（默认副手）。选「主手」= 绕主手转（打点/角度都会变）'
-              : '单手武器默认锚主手；选「副手」= 把这把武器锚到副手位（等价于把它当副手武器）'
+            : '单手武器默认锚主手；选「副手」= 把这把武器锚到副手位（长柄武器在武器文件里已显式锚副手）'
 
     const patch = useCallback(
         (fields: PoseCfg) => {
-            onChange(weaponId, slot, pose, { ...effective, ...fields })
+            // 只存改过的字段：这样「武器共用」的设定（握点等）始终能透过姿势条目生效
+            const next: PoseCfg = { ...(configs[weaponId]?.[slot]?.[pose] ?? {}), ...fields }
+            for (const k of Object.keys(next)) if (next[k as keyof PoseCfg] === undefined) delete next[k as keyof PoseCfg]
+            onChange(weaponId, slot, pose, Object.keys(next).length ? next : null)
         },
-        [effective, onChange, pose, slot, weaponId],
+        [configs, onChange, pose, slot, weaponId],
     )
     const clearField = useCallback(
         (key: keyof WeaponPoseConfig) => {
-            const next: PoseCfg = { ...effective }
+            const next: PoseCfg = { ...(configs[weaponId]?.[slot]?.[pose] ?? {}) }
             delete next[key]
-            onChange(weaponId, slot, pose, next)
+            onChange(weaponId, slot, pose, Object.keys(next).length ? next : null)
         },
-        [effective, onChange, pose, slot, weaponId],
+        [configs, onChange, pose, slot, weaponId],
     )
 
     /** 某槽位所有姿势的配置（导出用）：改过的用改过的，没改的用引擎解析值 */
@@ -167,11 +201,13 @@ export function WeaponMountPanel({
         (which: WeaponSlot) => {
             const out: Record<string, PoseCfg> = {}
             for (const p of POSES) {
-                out[p] = configs[weaponId]?.[which]?.[p] ?? resolveWeaponMount(weaponId, p, { slot: which }).config
+                out[p] =
+                    configs[weaponId]?.[which]?.[p] ??
+                    { ...resolveWeaponMount(weaponId, p, { slot: which }).config, ...baseOverlay }
             }
             return out
         },
-        [configs, weaponId],
+        [configs, weaponId, baseOverlay],
     )
     const snippet = useMemo(() => {
         const offEdited = Object.keys(configs[weaponId]?.off ?? {}).length > 0
@@ -184,10 +220,11 @@ export function WeaponMountPanel({
     // ── 交互：拖动移动 / Shift（右键）拖动旋转 ──
     const overlayRef = useRef<HTMLCanvasElement>(null)
     const dragRef = useRef<{
-        mode: 'move' | 'rotate'
+        mode: 'move' | 'rotate' | 'target'
         startPointer: { x: number; y: number }
         startCfg: PoseCfg
         startAngle: number
+        startTarget?: { x: number; y: number }
     } | null>(null)
     const [hover, setHover] = useState(false)
 
@@ -195,13 +232,11 @@ export function WeaponMountPanel({
         () => resolveWeaponMount(weaponId, pose, { slot, config: effective }).hand,
         [weaponId, pose, slot, effective],
     )
-    const targetHand = useMemo(() => {
-        const dual = effective.grip2X !== undefined && effective.grip2Y !== undefined
-        if (!dual) return null
-        return effective.targetX !== undefined && effective.targetY !== undefined
-            ? { x: effective.targetX, y: effective.targetY }
-            : (OTHER_HAND_POINT[pose] ?? OTHER_HAND_POINT.idle)
-    }, [effective, pose])
+    /** 配置角度（不含 flip）——只显示本姿势覆盖里写的值；生效角度见右栏读数 */
+    const cfgAngleDeg = useMemo(() => {
+        const a = overrideValue('angle')
+        return a !== undefined ? Math.round(((a * 180) / Math.PI) * 10) / 10 : undefined
+    }, [poseEntry])
     const angleDeg = useMemo(
         () =>
             Math.round(
@@ -229,7 +264,7 @@ export function WeaponMountPanel({
             startCfg: effective,
             startAngle: resolveWeaponMount(weaponId, pose, { slot, config: effective }).angle,
         }
-        setStatus(rotate ? '按住拖动：绕握点旋转（改角度）' : '拖动：移动武器（改手部锚点；双手武器会一起平移第二握点）')
+        setStatus(rotate ? '按住拖动：绕握点旋转（改角度）' : '拖动：移动武器（改手部锚点）')
     }
 
     const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -243,38 +278,29 @@ export function WeaponMountPanel({
             // 拖动写「相对基准的偏移」（handDX/handDY），不再写绝对坐标 —— 导出也是相对值，
             // 这样基准（HAND_POINTS / 副手表）一改，武器跟着动。
             const startHand = resolveWeaponMount(weaponId, pose, { slot, config: base }).hand
-            const next: PoseCfg = { ...base, ...dragHandOffset(base, pose, slot, startHand, dx, dy) }
-            delete next.handX
-            delete next.handY
-            // 双手武器：目标手一起平移，保持角度不变
-            if (base.grip2X !== undefined && base.grip2Y !== undefined) {
-                const targetBase = baseTargetHand(pose)
-                const startTarget =
-                    base.targetX !== undefined && base.targetY !== undefined
-                        ? { x: base.targetX, y: base.targetY }
-                        : { x: targetBase.x + (base.targetDX ?? 0), y: targetBase.y + (base.targetDY ?? 0) }
-                Object.assign(next, dragTargetOffset(pose, startTarget, dx, dy))
-                delete next.targetX
-                delete next.targetY
-            }
-            onChange(weaponId, slot, pose, next)
+            patch(dragHandOffset(base, pose, slot, startHand, dx, dy))
             return
         }
         // 旋转：从握点指向鼠标的角度差
         const anchor = resolveWeaponMount(weaponId, pose, { slot, config: drag.startCfg }).hand
         const a0 = Math.atan2(drag.startPointer.y - anchor.y, drag.startPointer.x - anchor.x)
         const a1 = Math.atan2(p.y - anchor.y, p.x - anchor.x)
+        // startAngle 是「最终角度」（含 flip）；配置里的 angle 不含 flip，写回前要减掉，否则翻转类武器会差 180°
         let next = drag.startAngle + (a1 - a0)
         // 收进 -180..180
         while (next > Math.PI) next -= Math.PI * 2
         while (next < -Math.PI) next += Math.PI * 2
-        onChange(weaponId, slot, pose, { ...drag.startCfg, angle: Math.round(next * 10000) / 10000 })
+        const flip = drag.startCfg.flip ? Math.PI : 0
+        let cfgAngle = next - flip
+        while (cfgAngle > Math.PI) cfgAngle -= Math.PI * 2
+        while (cfgAngle < -Math.PI) cfgAngle += Math.PI * 2
+        patch({ angle: Math.round(cfgAngle * 10000) / 10000 })
     }
 
     const endDrag = () => {
         if (!dragRef.current) return
         dragRef.current = null
-        setStatus('挂点已改动 —— 用「复制挂点片段」导出，整段替换 weapons.ts 里的 WEAPON_POSES 条目')
+        setStatus(`挂点已改动 —— 用「复制挂点片段」导出 poses 块，粘进 weapons/entries/' + weaponId + '.ts`)
     }
 
     /** 交互层：握点 / 目标手十字标记（画在透明层上，不遮住像素） */
@@ -303,41 +329,105 @@ export function WeaponMountPanel({
                 ctx.fillText(label, cx + scale * 1.8, cy - scale * 0.6)
             }
             cross(anchorHand.x, anchorHand.y, '#4ecdc4', '握')
-            if (targetHand) cross(targetHand.x, targetHand.y, '#ffd166', '二')
         },
-        [anchorHand, targetHand, scale],
+        [anchorHand, scale],
     )
 
-    /** 登记值（weapons.ts 里那条配置）；用来做空字段的占位提示 */
-    const registeredValue = (key: keyof WeaponPoseConfig): string => {
-        if (key === 'handDX') return `基准 ${handBase.x}`
-        if (key === 'handDY') return `基准 ${handBase.y}`
-        if (key === 'targetDX') return `基准 ${targetBase.x}`
-        if (key === 'targetDY') return `基准 ${targetBase.y}`
-        const v = registered[key]
-        if (v === undefined) return '自动'
-        return `登记 ${typeof v === 'number' ? Math.round(v * 10000) / 10000 : String(v)}`
-    }
 
-    const numField = (label: string, key: keyof WeaponPoseConfig, step = 0.5, hint = '') => (
+    /**
+     * 武器级握点：同一把武器（跨姿势、跨主副手）只有**一个**握点，写在主手 idle 上（= 导出片段里的
+     * `...makePoses({ gripX, gripY })`）。姿势要单独调，用下面的「握点偏移」（gripDX/gripDY）。
+     */
+    const weaponGrip = useMemo(() => {
+        const idleEdited = configs[weaponId]?.main?.idle
+        const base = resolveWeaponMount(weaponId, 'idle', { slot: 'main' }).config
+        return { ...base, ...(idleEdited ?? {}) }
+    }, [configs, weaponId])
+    const setWeaponGrip = useCallback(
+        (key: 'gripX' | 'gripY', value: number | null) => {
+            const next: PoseCfg = { ...(configs[weaponId]?.main?.idle ?? {}) }
+            if (value === null) delete next[key]
+            else next[key] = value
+            onChange(weaponId, 'main', 'idle', Object.keys(next).length ? next : null)
+            // 姿势条目里如果还留着旧的绝对握点，会盖住新的武器握点 → 清掉（姿势偏移 gripDX/gripDY 保留）
+            for (const which of ['main', 'off'] as const) {
+                for (const [p, cfg] of Object.entries(configs[weaponId]?.[which] ?? {})) {
+                    if (p === 'idle' && which === 'main') continue
+                    if (cfg.gripX === undefined && cfg.gripY === undefined) continue
+                    const cleaned: PoseCfg = { ...cfg }
+                    delete cleaned.gripX
+                    delete cleaned.gripY
+                    onChange(weaponId, which, p, Object.keys(cleaned).length ? cleaned : null)
+                }
+            }
+        },
+        [configs, onChange, weaponId],
+    )
+    /** 武器握点的「覆盖」= 主手 idle 条目里写的值（空 = 用文件里的登记值） */
+    const weaponGripOverride = (key: 'gripX' | 'gripY'): number | undefined => {
+        const v = configs[weaponId]?.main?.idle?.[key]
+        return typeof v === 'number' ? v : undefined
+    }
+    const weaponGripField = (label: string, key: 'gripX' | 'gripY', step = 0.5, hint = '') => (
         <label
             className="pixel-editor-num-field"
-            title={`${hint || label}（${String(key)}）：留空 = 用 weapons.ts 的登记值 / 引擎自动规则`}
+            title={`${hint || label}（${key}）：同一把武器只有一个握点（写在 poses 基底的 makePoses 里），跨姿势、跨主副手共用；姿势要单独调请用「握点偏移」`}
         >
             <span>{label}</span>
             <input
                 type="number"
                 step={step}
-                value={typeof effective[key] === 'number' ? (effective[key] as number) : ''}
-                placeholder={registeredValue(key)}
-                onChange={(e) => {
-                    const raw = e.target.value
-                    if (raw === '') clearField(key)
-                    else patch({ [key]: Number(raw) } as PoseCfg)
-                }}
+                value={weaponGripOverride(key) ?? ''}
+                placeholder={typeof weaponGrip[key] === 'number' ? `登记 ${weaponGrip[key]}` : '武器握点'}
+                onChange={(e) => setWeaponGrip(key, e.target.value === '' ? null : Number(e.target.value))}
             />
         </label>
     )
+
+    /** 登记值（武器文件里那条配置）；用来做空字段的占位提示 */
+    const registeredValue = (key: keyof WeaponPoseConfig): string => {
+        // 偏移类：空 = 用文件里登记的偏移（没有就 0）；括号里给出基准位置方便对照
+        if (key === 'handDX' || key === 'handDY') {
+            const base = key === 'handDX' ? handBase.x : handBase.y
+            const v = registered[key]
+            return typeof v === 'number' ? `登记 ${v}（基准 ${base}）` : `0（基准 ${base}）`
+        }
+        if (key === 'gripDX' || key === 'gripDY') {
+            const v = registered[key]
+            return typeof v === 'number' ? `登记 ${v}` : '0'
+        }
+        const v = registered[key]
+        if (v === undefined) return '自动'
+        return `登记 ${typeof v === 'number' ? Math.round(v * 10000) / 10000 : String(v)}`
+    }
+
+
+    /** 偏移类字段：清空 = 0（显式归零）；其它字段：清空 = 回到文件里的登记值 / 自动规则 */
+    const OFFSET_KEYS_IN_PANEL = ['handDX', 'handDY', 'gripDX', 'gripDY']
+    const numField = (label: string, key: keyof WeaponPoseConfig, step = 0.5, hint = '') => {
+        const isOffset = OFFSET_KEYS_IN_PANEL.includes(String(key))
+        return (
+            <label
+                className="pixel-editor-num-field"
+                title={`${hint || label}（${String(key)}）：留空 = ${isOffset ? '0（不偏移）' : '用武器文件里的登记值 / 引擎自动规则'}`}
+            >
+                <span>{label}</span>
+                <input
+                    type="number"
+                    step={step}
+                    value={overrideValue(key) ?? ''}
+                    placeholder={registeredValue(key)}
+                    onChange={(e) => {
+                        const raw = e.target.value
+                        if (raw === '') {
+                            if (isOffset) patch({ [key]: 0 } as PoseCfg)
+                            else clearField(key)
+                        } else patch({ [key]: Number(raw) } as PoseCfg)
+                    }}
+                />
+            </label>
+        )
+    }
 
     return (
         <div className="pixel-editor-mount" ref={rootRef}>
@@ -354,6 +444,7 @@ export function WeaponMountPanel({
                             searchPlaceholder="搜索武器…"
                         />
                     </div>
+                    {isTwoHandedWeapon ? null : (
                     <div className="pixel-editor-slot-row">
                         <span className="pixel-editor-col-label" title="编辑哪个槽位的挂点：同一把武器可以主手、副手两套">
                             槽位
@@ -373,6 +464,7 @@ export function WeaponMountPanel({
                             </button>
                         ))}
                     </div>
+                    )}
                     <div className="pixel-editor-pose-grid">
                         {POSES.map((p) => (
                             <button
@@ -389,17 +481,35 @@ export function WeaponMountPanel({
 
                 {/* 第二栏：挂点字段（自带握点 / 身上手位） */}
                 <section className="pixel-editor-mount-col">
-                    <h4 title="留空 = 用 weapons.ts 的登记值；真正的自动值看右栏「当前」一行">挂点</h4>
-                    <div className="pixel-editor-mount-grid">
-                        <label
+                    <h4 title="留空 = 用武器文件里的登记值；真正的自动值看右栏「当前」一行">挂点</h4>
+                    {/* ── 武器共用（跨姿势、跨主副手）── */}
+                    <div className="pixel-editor-mount-group">
+                        <span
+                            className="pixel-editor-mount-group-title"
+                            title="同一把武器（不管哪个姿势、哪个槽位）只有这一个握点；写进武器文件的 poses 基底"
+                        >
+                            武器共用
+                        </span>
+                            <div className="pixel-editor-mount-grid">
+                                {weaponGripField('武器握点 X', 'gripX', 0.5, '武器图内的握柄坐标（美术坐标 32×32）；同一把武器只有这一个')}
+                                {weaponGripField('武器握点 Y', 'gripY')}
+                            </div>
+                        </div>
+                        {/* ── 本姿势 ── */}
+                        <div className="pixel-editor-mount-group">
+                            <span className="pixel-editor-mount-group-title" title={`下面这些只作用于当前姿势（${pose}）`}>
+                                本姿势（{pose}）
+                            </span>
+                            <div className="pixel-editor-mount-grid">
+                                                <label
                             className="pixel-editor-num-field"
-                            title="武器倾角（度）。留空 = 自动（单手默认 0°/攻击 -45°；双手由两手连线算）"
+                            title="配置倾角（度，不含「翻转」那 180°）。留空 = 自动（单手默认 0°/攻击 -45°；双手由两手连线算）；最终角度看右栏读数"
                         >
                             <span>角度(度)</span>
                             <input
                                 type="number"
                                 step={1}
-                                value={effective.angle !== undefined ? angleDeg : ''}
+                                value={cfgAngleDeg !== undefined ? cfgAngleDeg : ''}
                                 placeholder={
                                     registered.angle !== undefined
                                         ? `登记 ${Math.round(((registered.angle * 180) / Math.PI) * 10) / 10}`
@@ -412,15 +522,12 @@ export function WeaponMountPanel({
                                 }}
                             />
                         </label>
-                        {numField('握点 X', 'gripX', 0.5, '武器图内的握柄坐标（美术坐标 32×32）；改这个 = 换握持位置')}
-                        {numField('握点 Y', 'gripY')}
-                        {numField('第二握点 X', 'grip2X', 0.5, '双手武器：第二个握柄（填了就按两手连线自动算角度）')}
-                        {numField('第二握点 Y', 'grip2Y')}
+                        {numField('握点偏移 X', 'gripDX', 0.5, '本姿势相对「武器握点」的偏移——要微调只用这个，不要改武器握点')}
+                        {numField('握点偏移 Y', 'gripDY')}
                         {numField('挂点偏移 X', 'handDX', 0.5, '相对基准手位的偏移；拖动/输入的都是这个。基准见占位提示，最终落点看右栏「当前」一行')}
                         {numField('挂点偏移 Y', 'handDY')}
-                        {numField('目标手偏移 X', 'targetDX', 0.5, '双手武器：相对目标手基准的偏移')}
-                        {numField('目标手偏移 Y', 'targetDY')}
-                    </div>
+                            </div>
+                        </div>
                 </section>
 
                 {/* 第三栏：开关 + 读数 + 操作 */}
@@ -431,7 +538,7 @@ export function WeaponMountPanel({
                             <input
                                 type="checkbox"
                                 checked={Boolean(effective.flip)}
-                                onChange={(e) => patch({ flip: e.target.checked || undefined })}
+                                onChange={(e) => patch({ flip: e.target.checked })}
                             />
                             翻转
                         </label>
@@ -439,7 +546,7 @@ export function WeaponMountPanel({
                             <input
                                 type="checkbox"
                                 checked={Boolean(effective.noHandCover)}
-                                onChange={(e) => patch({ noHandCover: e.target.checked || undefined })}
+                                onChange={(e) => patch({ noHandCover: e.target.checked })}
                             />
                             不遮手
                         </label>
@@ -471,14 +578,14 @@ export function WeaponMountPanel({
                                 : `${slot === 'off' ? '副手' : '主手'}槽的最终落点 = 基准 + 偏移；基准见各字段占位提示`
                         }
                     >
-                        {slot === 'off' ? '副手' : '主手'} · 当前：角度 {angleDeg}° · 握点 (
+                        {slot === 'off' ? '副手' : '主手'} · 最终角度 {angleDeg}° · 握在 (
                         {Math.round(anchorHand.x * 2) / 2}, {Math.round(anchorHand.y * 2) / 2})
-                        {dirty ? ' · 已改动' : registeredHere ? ' · weapons.ts 登记值' : ' · 未登记（用默认）'}
+                        {dirty ? ' · 已改动' : registeredHere ? ' · 武器文件登记值' : ' · 未登记（用默认）'}
                     </span>
                     <div className="pixel-editor-row">
                         <button
                             className="pixel-editor-btn"
-                            title="复制这段整段替换 weapons.ts 的 WEAPON_POSES 条目"
+                            title="复制 poses 块（粘进 weapons/entries/<武器>.ts 里，与 overlay: 并列；整块替换）"
                             onClick={async () => {
                                 try {
                                     await navigator.clipboard.writeText(snippet)
@@ -492,18 +599,18 @@ export function WeaponMountPanel({
                         </button>
                         <button
                             className="pixel-editor-btn"
-                            title="只把当前这个姿势的改动清掉，回到 weapons.ts 的登记值"
+                            title="只把当前这个姿势的改动清掉，回到武器文件里的登记值"
                             disabled={!dirty}
                             onClick={() => {
                                 onChange(weaponId, slot, pose, null)
-                                setStatus(`${slot === 'off' ? '副手' : '主手'} ${pose} 已恢复为 weapons.ts 的登记值`)
+                                setStatus(`${slot === 'off' ? '副手' : '主手'} ${pose} 已恢复为武器文件里的登记值`)
                             }}
                         >
                             恢复本姿势
                         </button>
                         <button
                             className="pixel-editor-btn"
-                            title="本武器两个槽位、所有姿势的改动都清掉，回到 weapons.ts 的登记值"
+                            title="本武器两个槽位、所有姿势的改动都清掉，回到武器文件里的登记值"
                             disabled={
                                 Object.keys(configs[weaponId]?.main ?? {}).length === 0 &&
                                 Object.keys(configs[weaponId]?.off ?? {}).length === 0
@@ -568,7 +675,8 @@ export function WeaponMountPanel({
                 </div>
                 <p className="pixel-editor-mount-tip">
                     画布上<b>拖动 = 移武器</b>（改手部锚点 handX/handY）；<b>Shift + 拖动</b>（或右键拖）={' '}
-                    <b>绕握点旋转</b>（改角度）。青圈 = 握点，黄圈 = 第二握点（双手武器）。
+                    <b>绕握点旋转</b>（改角度）；<b>拖黄圈</b> = 单独挪第二握点（改目标手偏移，角度跟着变）。
+                    青圈 = 握点，黄圈 = 第二握点（双手武器才有）。
                 </p>
             </div>
 

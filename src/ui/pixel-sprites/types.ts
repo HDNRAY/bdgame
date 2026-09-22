@@ -30,10 +30,10 @@ export interface WeaponPoseConfig {
     gripX: number
     /** 第一握柄 Y */
     gripY: number
-    /** 第二握柄 X（双手武器）— 可选 */
-    grip2X?: number
-    /** 第二握柄 Y — 可选 */
-    grip2Y?: number
+    /** 逐姿势：握柄相对武器握点（基底 gripX/gripY）的偏移 X —— 武器端只有「一个握点」，姿势要调就写偏移 */
+    gripDX?: number
+    /** 逐姿势：握柄偏移 Y */
+    gripDY?: number
     /** 覆盖锚定手位置 X（角色精灵坐标）— 不填则用 anchorHand/全局手部表 */
     handX?: number
     /** 覆盖锚定手位置 Y（角色精灵坐标） */
@@ -42,14 +42,6 @@ export interface WeaponPoseConfig {
     handDX?: number
     /** 相对「基准手位」的偏移 Y */
     handDY?: number
-    /** 双手武器：覆盖"另一只手"（目标手）位置 X —— 与 handX/handY 一起决定轴线角度 */
-    targetX?: number
-    /** 双手武器：覆盖"另一只手"（目标手）位置 Y */
-    targetY?: number
-    /** 双手武器：相对目标手基准位置的偏移 X */
-    targetDX?: number
-    /** 双手武器：相对目标手基准位置的偏移 Y */
-    targetDY?: number
     /** 锚定哪只手：'main'=主手(HAND_POINTS)、'off'=副手(OTHER_HAND_POINT)；默认单手=main、双手=off */
     anchorHand?: 'main' | 'off'
     /** 该姿势最终旋转角（弧度）— 覆盖自动规则，朝左镜像取反 */
