@@ -55,30 +55,25 @@
     flex: 1;
     overflow-y: auto;
     padding: var(--sp-md) var(--sp-lg);
-    /* 宽屏双列：长公式行不至于在窄栏里折成一团 */
-    column-count: 2;
-    column-gap: var(--sp-lg);
+    /* 从上到下单一栏（知识点顺序读） */
     overflow-wrap: break-word;
 }
 
 .gameplay-section {
-    break-inside: avoid;
     margin-bottom: var(--sp-md);
+    padding-left: var(--sp-sm);
+    border-left: 2px solid var(--section-accent, var(--color-accent));
 
     &:last-child {
         margin-bottom: 0;
     }
 }
 
-/* 公式最密的一节横跨两列，整行都能展开 */
-.gameplay-section-wide {
-    column-span: all;
-}
-
 .gameplay-section-title {
     font-size: var(--font-lg);
     font-weight: 600;
-    color: var(--color-accent);
+    /* 每个知识点用自己的强调色（由 <Section> 传入 --section-accent） */
+    color: var(--section-accent, var(--color-accent));
     margin-bottom: var(--sp-xs);
     font-family: var(--font-mono);
 }
@@ -153,6 +148,7 @@
 
 /* 窄屏回到单列，弹窗仍可用 */
 @media (max-width: 760px) {
+    /* 单栏本来就窄屏友好，这里只调左右留白 */
     .gameplay-body {
         column-count: 1;
     }

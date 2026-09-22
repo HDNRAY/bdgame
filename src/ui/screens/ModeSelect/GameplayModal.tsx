@@ -76,7 +76,7 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
                         </p>
                     </Section>
 
-                    <Section title="命中 · 暴击 · 招架 · 穿透" wide>
+                    <Section title="命中 · 暴击 · 招架 · 穿透">
                         <p>
                             命中：净差 = (灵巧 + 洞察×0.8)÷80 − 身法÷80 − 洞察÷80 − 闪避修正；命中率 = 1 ÷ (1 + e^(−5×净差 + b))，常数
                             b 让净差为 0 时命中 75%。净差越大越接近必中，越小越接近必失；再叠加攻方命中加成与招式自带修正。
@@ -156,9 +156,30 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
     )
 }
 
-function Section({ title, wide, children }: { title: string; wide?: boolean; children: ReactNode }) {
+/** 每个知识点的强调色（中调色，深浅主题下都读得清） */
+const SECTION_COLORS: Record<string, string> = {
+    基础: '#6fb3d9',
+    六大属性: '#7fc98a',
+    '内息与缠劲': '#d9a441',
+    '命中 · 暴击 · 招架 · 穿透': '#e0736c',
+    三种持续伤害: '#a98bd6',
+    战斗风格: '#4fb3a5',
+    出招条件: '#d68fb0',
+    触发槽: '#c2a25a',
+}
+const SECTION_FALLBACK = Object.values(SECTION_COLORS)
+
+/** 标题 → 颜色：优先查表，查不到就按标题字符和取色（同样的标题永远同色，重渲染不变） */
+function sectionColor(title: string): string {
+    if (SECTION_COLORS[title]) return SECTION_COLORS[title]
+    let h = 0
+    for (const ch of title) h = (h * 31 + ch.codePointAt(0)!) % 9973
+    return SECTION_FALLBACK[h % SECTION_FALLBACK.length]
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
     return (
-        <div className={wide ? 'gameplay-section gameplay-section-wide' : 'gameplay-section'}>
+        <div className="gameplay-section" style={{ ['--section-accent' as string]: sectionColor(title) }}>
             <div className="gameplay-section-title">{title}</div>
             <div className="gameplay-section-body">{children}</div>
         </div>
