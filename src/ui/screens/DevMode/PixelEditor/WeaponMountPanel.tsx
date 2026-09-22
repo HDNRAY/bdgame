@@ -145,8 +145,9 @@ export function WeaponMountPanel({
      * 叠到当前槽位/姿势的登记值上 —— 这样在任何姿势、任何槽位改这些，预览与导出都生效。
      */
     const baseOverlay = useMemo(
-        () => sharedOf((configs[weaponId]?.main?.idle ?? {}) as PoseCfg),
-        [configs, weaponId],
+        // 槽位各有一套「本槽位共用」：主手写主手 idle，副手写副手 idle；副手没填的字段会继承主手（解析层合并规则）
+        () => sharedOf((configs[weaponId]?.[slot]?.idle ?? {}) as PoseCfg),
+        [configs, slot, weaponId],
     )
     const registered = useMemo(() => ({ ...resolved.config, ...baseOverlay }), [resolved, baseOverlay])
     /** 编辑器给当前（槽位×姿势）存的覆盖：只存「改过的字段」，不是整份快照 */
@@ -325,34 +326,45 @@ export function WeaponMountPanel({
      * 武器级握点：同一把武器（跨姿势、跨主副手）只有**一个**握点，写在主手 idle 上（= 导出片段里的
      * `...makePoses({ gripX, gripY })`）。姿势要单独调，用下面的「握点偏移」（gripDX/gripDY）。
      */
+    /** 本槽位共用的登记值（副手未登记时，解析结果里已经是继承主手的值） */
+    const slotShared = useMemo(() => resolveWeaponMount(weaponId, 'idle', { slot }).config, [weaponId, slot])
     const weaponGrip = useMemo(() => {
-        const idleEdited = configs[weaponId]?.main?.idle
-        const base = resolveWeaponMount(weaponId, 'idle', { slot: 'main' }).config
-        return { ...base, ...(idleEdited ?? {}) }
-    }, [configs, weaponId])
+        const idleEdited = configs[weaponId]?.[slot]?.idle
+        return { ...slotShared, ...(idleEdited ?? {}) }
+    }, [configs, slot, slotShared, weaponId])
+    /** 本槽位 idle 上写了的字段（空 = 用登记值；副手为空时 = 继承主手） */
+    const slotIdleOverride = useCallback(
+        (key: keyof WeaponPoseConfig): number | boolean | 'main' | 'off' | undefined =>
+            configs[weaponId]?.[slot]?.idle?.[key],
+        [configs, slot, weaponId],
+    )
+    const writeSlotIdle = useCallback(
+        (key: keyof WeaponPoseConfig, value: unknown) => {
+            const next: PoseCfg = { ...(configs[weaponId]?.[slot]?.idle ?? {}) }
+            if (value === undefined || value === null) delete next[key]
+            else (next as Record<string, unknown>)[key] = value
+            onChange(weaponId, slot, 'idle', Object.keys(next).length ? next : null)
+        },
+        [configs, onChange, slot, weaponId],
+    )
     const setWeaponGrip = useCallback(
         (key: 'gripX' | 'gripY', value: number | null) => {
-            const next: PoseCfg = { ...(configs[weaponId]?.main?.idle ?? {}) }
-            if (value === null) delete next[key]
-            else next[key] = value
-            onChange(weaponId, 'main', 'idle', Object.keys(next).length ? next : null)
-            // 姿势条目里如果还留着旧的绝对握点，会盖住新的武器握点 → 清掉（姿势偏移 gripDX/gripDY 保留）
-            for (const which of ['main', 'off'] as const) {
-                for (const [p, cfg] of Object.entries(configs[weaponId]?.[which] ?? {})) {
-                    if (p === 'idle' && which === 'main') continue
-                    if (cfg.gripX === undefined && cfg.gripY === undefined) continue
-                    const cleaned: PoseCfg = { ...cfg }
-                    delete cleaned.gripX
-                    delete cleaned.gripY
-                    onChange(weaponId, which, p, Object.keys(cleaned).length ? cleaned : null)
-                }
+            writeSlotIdle(key, value === null ? undefined : value)
+            // 本槽位姿势条目里若还留着旧的绝对握点，会盖住新的槽位握点 → 清掉（姿势偏移 gripDX/gripDY 保留）
+            for (const [p, cfg] of Object.entries(configs[weaponId]?.[slot] ?? {})) {
+                if (p === 'idle') continue
+                if (cfg.gripX === undefined && cfg.gripY === undefined) continue
+                const cleaned: PoseCfg = { ...cfg }
+                delete cleaned.gripX
+                delete cleaned.gripY
+                onChange(weaponId, slot, p, Object.keys(cleaned).length ? cleaned : null)
             }
         },
-        [configs, onChange, weaponId],
+        [configs, onChange, slot, weaponId, writeSlotIdle],
     )
-    /** 武器握点的「覆盖」= 主手 idle 条目里写的值（空 = 用文件里的登记值） */
+    /** 握点输入框显示的是「本槽位 idle 上写的值」（空 = 继承；副手空时继承主手） */
     const weaponGripOverride = (key: 'gripX' | 'gripY'): number | undefined => {
-        const v = configs[weaponId]?.main?.idle?.[key]
+        const v = slotIdleOverride(key)
         return typeof v === 'number' ? v : undefined
     }
     /** 布尔三级下拉：undefined = 「自动」（该层没写覆盖，回落到下一层/引擎规则） */
@@ -510,40 +522,36 @@ export function WeaponMountPanel({
                         ))}
 
                     </div>
-                    {/* ── 武器共用（跨姿势、跨主副手）── */}
+                    {/* ── 本槽位共用（跨姿势；主手 / 副手各有一套，副手没填就继承主手）── */}
                     <div className="pixel-editor-mount-group">
                         <span
                             className="pixel-editor-mount-group-title"
-                            title="同一把武器（不管哪个姿势、哪个槽位）只有这一个握点；写进武器文件的 poses 基底"
+                            title={
+                                slot === 'off'
+                                    ? '副手槽自己的一套握点/翻转（写进武器文件的 off 子表基底）；没填的字段自动继承主手'
+                                    : '主手槽自己的一套握点/翻转（写进武器文件的 poses 基底）；副手没填时会继承这里'
+                            }
                         >
-                            武器共用
+                            {slot === 'off' ? '副手共用' : '主手共用'}
                         </span>
                             <div className="pixel-editor-mount-grid">
-                                {weaponGripField('握点 X', 'gripX', 0.5, '武器图内的握柄坐标（美术坐标 32×32）；同一把武器只有这一个')}
+                                {weaponGripField('握点 X', 'gripX', 0.5, '武器图内的握柄坐标（美术坐标 32×32）；本槽位共用（跨姿势）')}
                                 {weaponGripField('握点 Y', 'gripY')}
                                 {boolSelect(
                                     '翻转',
-                                    configs[weaponId]?.main?.idle?.flip,
-                                    (v) => {
-                                        const next: PoseCfg = { ...(configs[weaponId]?.main?.idle ?? {}) }
-                                        if (v === undefined) delete next.flip
-                                        else next.flip = v
-                                        onChange(weaponId, 'main', 'idle', Object.keys(next).length ? next : null)
-                                    },
-                                    '整体镜像 180°（长杆"掉头"拿）。全武器共用；某个姿势要单独调，就在下面「本姿势」里改',
+                                    slotIdleOverride('flip') as boolean | undefined,
+                                    (v) => writeSlotIdle('flip', v),
+                                    slot === 'off'
+                                        ? '副手槽的翻转；「自动」= 继承主手。某个姿势要单独调，就在下面「本姿势」里改'
+                                        : '主手槽的翻转（整体镜像 180°）。某个姿势要单独调，就在下面「本姿势」里改',
                                     '翻转',
                                     '不翻转',
                                 )}
                                 {anchorSelect(
                                     '锚定手',
-                                    configs[weaponId]?.main?.idle?.anchorHand,
-                                    (v) => {
-                                        const next: PoseCfg = { ...(configs[weaponId]?.main?.idle ?? {}) }
-                                        if (v === undefined) delete next.anchorHand
-                                        else next.anchorHand = v
-                                        onChange(weaponId, 'main', 'idle', Object.keys(next).length ? next : null)
-                                    },
-                                    '全武器共用的锚定手：主手 = 锚 HAND_POINTS、副手 = 锚 OTHER_HAND_POINT。留「自动」= 用武器文件里的登记值 / 引擎规则',
+                                    slotIdleOverride('anchorHand') as 'main' | 'off' | undefined,
+                                    (v) => writeSlotIdle('anchorHand', v),
+                                    '本槽位共用的锚定手；副手槽固定锚副手，所以这个选项只在主手槽有意义',
                                 )}
                             </div>
                         </div>

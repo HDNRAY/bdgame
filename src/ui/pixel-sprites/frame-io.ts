@@ -587,9 +587,10 @@ export function formatWeaponPoseSnippet(
             ]
             for (const [outKey, , v] of gripOffsets) if (v !== 0) parts.push(`${outKey}: ${fmtNum(v)}`)
             // 结构性字段里与基底不同的（翻转/锚定手/不遮手…；握点已在上面按偏移处理）
+            // 姿势差异跟「本表基底」比（副手表基底就是 off idle；inherit 只用于决定基底行写不写）
             for (const k of BASE_CANDIDATES) {
                 if (k === 'gripX' || k === 'gripY') continue
-                if (cfg[k] !== undefined && cfg[k] !== (inherit ? inherit[k] : idle[k])) parts.push(formatKey(k, cfg))
+                if (cfg[k] !== undefined && cfg[k] !== idle[k]) parts.push(formatKey(k, cfg))
             }
             for (const k of POSE_KEYS) if (cfg[k] !== undefined) parts.push(formatKey(k, cfg))
             // 偏移：只写非 0（不继承基底，省略即 0）
