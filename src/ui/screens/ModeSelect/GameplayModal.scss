@@ -79,7 +79,8 @@
 }
 
 .gameplay-sub {
-    border-left: 2px solid var(--color-gold);
+    /* 竖条与所在大标题同色（不是金色：金色只给名称文字） */
+    border-left: 2px solid var(--section-accent, var(--color-border));
     padding-left: var(--sp-sm);
     margin-bottom: var(--sp-xs);
 
