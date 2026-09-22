@@ -7,9 +7,11 @@
 import type { WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
-
 // 破狼竹枝 / 陨铁神珍（双手长杆）：握点同上（杆中点落在主手）；hit 照齐眉棍的脱手姿势
-export const po_lang_zhu_zhi: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = { overlay: { palette: { '0': '#2f9e70', // 竹身（碧玉，中）
+export const po_lang_zhu_zhi: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+    overlay: {
+        palette: {
+            '0': '#2f9e70', // 竹身（碧玉，中）
             '1': '#1a6647', // 竹身暗侧（碧玉，深）
             '2': '#55d69c', // 梢部嫩竹（碧玉，亮）
             '3': '#114632', // 竹节暗
@@ -66,14 +68,15 @@ export const po_lang_zhu_zhi: { overlay?: WeaponOverlay; poses: WeaponPoseTable 
             [26, 26, 1],
             [27, 26, 5],
             [27, 27, 1],
-        ] },
+        ],
+    },
     poses: {
-        ...makePoses({ gripX: 21, gripY: 21.7, flip: true, anchorHand: 'off' }),
+        ...makePoses({ anchorHand: 'off', gripX: 22.5, gripY: 21, flip: true }),
         idle: { angle: (135 * Math.PI) / 180 },
-        attack: { gripDX: 2.8, gripDY: 2.1, angle: 2.397837, handDY: 0.5 },
+        attack: { gripDX: 2, gripDY: 2, angle: 2.2759 },
         dodge: { angle: (135 * Math.PI) / 180 },
-        parry: { gripDX: 2.6, gripDY: 1.9, angle: 2.611377 },
-        hit: { gripDX: -14, gripDY: -14.7, angle: (-125 * Math.PI) / 180 },
+        parry: { gripDY: 0.5, angle: (149 * Math.PI) / 180 },
+        hit: { flip: false, angle: (-120 * Math.PI) / 180, handDX: -18, handDY: -20 },
         buff: { angle: (135 * Math.PI) / 180 },
     },
 }

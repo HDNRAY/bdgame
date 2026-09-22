@@ -5,7 +5,6 @@ import {
     WEAPON_POSES,
     formatWeaponPoseSnippet,
     baseAnchorHand,
-    poseConfigIn,
     resolveWeaponMount,
     sharedOf,
     getSpriteOutlineColor,
@@ -141,21 +140,16 @@ export function WeaponMountPanel({
      */
     const resolved = useMemo(() => resolveWeaponMount(weaponId, pose, { slot }), [weaponId, pose, slot])
     const rawRegistered = WEAPON_POSES[weaponId] ?? {}
-    /** 该槽位是否在武器文件里有显式登记（副手没登记时用的是默认） */
-    const registeredHere =
-        slot === 'main'
-            ? Boolean(poseConfigIn(rawRegistered, pose) ?? rawRegistered.idle)
-            : Boolean(poseConfigIn(rawRegistered.off, pose) ?? rawRegistered.off?.idle)
     /**
-     * 武器级覆盖：编辑器里改的「武器握点」（写在主手 idle 上）只取**结构性字段**，
-     * 叠到当前槽位/姿势的登记值上 —— 这样在任何姿势、任何槽位改武器握点，预览与导出生效。
+     * 武器级覆盖：编辑器里改的「武器握点 / 翻转 / 锚定手」（写在主手 idle 上）只取**结构性字段**，
+     * 叠到当前槽位/姿势的登记值上 —— 这样在任何姿势、任何槽位改这些，预览与导出都生效。
      */
     const baseOverlay = useMemo(
         () => sharedOf((configs[weaponId]?.main?.idle ?? {}) as PoseCfg),
         [configs, weaponId],
     )
     const registered = useMemo(() => ({ ...resolved.config, ...baseOverlay }), [resolved, baseOverlay])
-    /** 编辑器给当前（槽位×姿势）存的覆盖：现在只存「改过的字段」，不是整份快照 */
+    /** 编辑器给当前（槽位×姿势）存的覆盖：只存「改过的字段」，不是整份快照 */
     const poseEntry = configs[weaponId]?.[slot]?.[pose]
     const effective = useMemo(
         () => (poseEntry ? { ...registered, ...poseEntry } : registered),
@@ -169,10 +163,8 @@ export function WeaponMountPanel({
         const v = poseEntry?.[key]
         return typeof v === 'number' ? v : undefined
     }
-
     const dirty = Boolean(configs[weaponId]?.[slot]?.[pose])
     const handBase = useMemo(() => baseAnchorHand(effective, pose, slot), [effective, pose, slot])
-    const showOffhandDefaultHint = slot === 'off' && resolved.usingOffhandDefault && !dirty
     const anchorHandTip =
         slot === 'off'
             ? '副手槽的落点固定用全局副手手位（OTHER_HAND_POINT），这个选项对副手槽没有作用'
@@ -212,10 +204,12 @@ export function WeaponMountPanel({
     const snippet = useMemo(() => {
         const offEdited = Object.keys(configs[weaponId]?.off ?? {}).length > 0
         const offRegistered = Object.keys(rawRegistered.off ?? {}).length > 0
+        // 非单手武器（长柄/双手重剑…）根本没有副手槽：导出里也不要出现 off 块
+        const wantOff = canOffhand && (offEdited || offRegistered)
         return formatWeaponPoseSnippet(weaponId, tableFor('main'), POSES, {
-            offTable: offEdited || offRegistered ? tableFor('off') : undefined,
+            offTable: wantOff ? tableFor('off') : undefined,
         })
-    }, [configs, weaponId, tableFor, rawRegistered])
+    }, [canOffhand, configs, weaponId, tableFor, rawRegistered])
 
     // ── 交互：拖动移动 / Shift（右键）拖动旋转 ──
     const overlayRef = useRef<HTMLCanvasElement>(null)
@@ -237,13 +231,6 @@ export function WeaponMountPanel({
         const a = overrideValue('angle')
         return a !== undefined ? Math.round(((a * 180) / Math.PI) * 10) / 10 : undefined
     }, [poseEntry])
-    const angleDeg = useMemo(
-        () =>
-            Math.round(
-                ((resolveWeaponMount(weaponId, pose, { slot, config: effective }).angle * 180) / Math.PI) * 10,
-            ) / 10,
-        [weaponId, pose, slot, effective],
-    )
 
     /** 鼠标位置 → 精灵格坐标（视口 120×54，内容偏右 45 格 / 偏下 3 格，与 PixelCanvas 的 offX/offY 一致） */
     const toSprite = (e: { currentTarget: HTMLCanvasElement; clientX: number; clientY: number }) => {
@@ -368,6 +355,51 @@ export function WeaponMountPanel({
         const v = configs[weaponId]?.main?.idle?.[key]
         return typeof v === 'number' ? v : undefined
     }
+    /** 布尔三级下拉：undefined = 「自动」（该层没写覆盖，回落到下一层/引擎规则） */
+    const boolSelect = (
+        label: string,
+        value: boolean | undefined,
+        onPick: (v: boolean | undefined) => void,
+        hint: string,
+        onLabel = '是',
+        offLabel = '否',
+    ) => (
+        <label className="pixel-editor-field pixel-editor-field--inline" title={hint}>
+            <span>{label}</span>
+            <select
+                value={value === undefined ? 'auto' : value ? 'yes' : 'no'}
+                onChange={(e) =>
+                    onPick(e.target.value === 'auto' ? undefined : e.target.value === 'yes')
+                }
+            >
+                <option value="auto">自动</option>
+                <option value="yes">{onLabel}</option>
+                <option value="no">{offLabel}</option>
+            </select>
+        </label>
+    )
+
+    /** 锚定手下拉：value=undefined 表示「自动」（该层没写覆盖，回落到下一层/引擎规则） */
+    const anchorSelect = (
+        label: string,
+        value: 'main' | 'off' | undefined,
+        onPick: (v: 'main' | 'off' | undefined) => void,
+        hint: string,
+    ) => (
+        <label className="pixel-editor-field pixel-editor-field--inline" title={hint}>
+            <span>{label}</span>
+            <select
+                value={value ?? 'auto'}
+                disabled={slot === 'off'}
+                onChange={(e) => onPick(e.target.value === 'auto' ? undefined : (e.target.value as 'main' | 'off'))}
+            >
+                <option value="auto">自动</option>
+                <option value="main">主手</option>
+                <option value="off">副手</option>
+            </select>
+        </label>
+    )
+
     const weaponGripField = (label: string, key: 'gripX' | 'gripY', step = 0.5, hint = '') => (
         <label
             className="pixel-editor-num-field"
@@ -476,12 +508,8 @@ export function WeaponMountPanel({
                                 {p}
                             </button>
                         ))}
-                    </div>
-                </section>
 
-                {/* 第二栏：挂点字段（自带握点 / 身上手位） */}
-                <section className="pixel-editor-mount-col">
-                    <h4 title="留空 = 用武器文件里的登记值；真正的自动值看右栏「当前」一行">挂点</h4>
+                    </div>
                     {/* ── 武器共用（跨姿势、跨主副手）── */}
                     <div className="pixel-editor-mount-group">
                         <span
@@ -491,10 +519,39 @@ export function WeaponMountPanel({
                             武器共用
                         </span>
                             <div className="pixel-editor-mount-grid">
-                                {weaponGripField('武器握点 X', 'gripX', 0.5, '武器图内的握柄坐标（美术坐标 32×32）；同一把武器只有这一个')}
-                                {weaponGripField('武器握点 Y', 'gripY')}
+                                {weaponGripField('握点 X', 'gripX', 0.5, '武器图内的握柄坐标（美术坐标 32×32）；同一把武器只有这一个')}
+                                {weaponGripField('握点 Y', 'gripY')}
+                                {boolSelect(
+                                    '翻转',
+                                    configs[weaponId]?.main?.idle?.flip,
+                                    (v) => {
+                                        const next: PoseCfg = { ...(configs[weaponId]?.main?.idle ?? {}) }
+                                        if (v === undefined) delete next.flip
+                                        else next.flip = v
+                                        onChange(weaponId, 'main', 'idle', Object.keys(next).length ? next : null)
+                                    },
+                                    '整体镜像 180°（长杆"掉头"拿）。全武器共用；某个姿势要单独调，就在下面「本姿势」里改',
+                                    '翻转',
+                                    '不翻转',
+                                )}
+                                {anchorSelect(
+                                    '锚定手',
+                                    configs[weaponId]?.main?.idle?.anchorHand,
+                                    (v) => {
+                                        const next: PoseCfg = { ...(configs[weaponId]?.main?.idle ?? {}) }
+                                        if (v === undefined) delete next.anchorHand
+                                        else next.anchorHand = v
+                                        onChange(weaponId, 'main', 'idle', Object.keys(next).length ? next : null)
+                                    },
+                                    '全武器共用的锚定手：主手 = 锚 HAND_POINTS、副手 = 锚 OTHER_HAND_POINT。留「自动」= 用武器文件里的登记值 / 引擎规则',
+                                )}
                             </div>
                         </div>
+                </section>
+
+                {/* 第二栏：挂点字段（自带握点 / 身上手位） */}
+                <section className="pixel-editor-mount-col">
+                    <h4 title="留空 = 用武器文件里的登记值；真正的自动值看右栏「当前」一行">挂点</h4>
                         {/* ── 本姿势 ── */}
                         <div className="pixel-editor-mount-group">
                             <span className="pixel-editor-mount-group-title" title={`下面这些只作用于当前姿势（${pose}）`}>
@@ -503,7 +560,7 @@ export function WeaponMountPanel({
                             <div className="pixel-editor-mount-grid">
                                                 <label
                             className="pixel-editor-num-field"
-                            title="配置倾角（度，不含「翻转」那 180°）。留空 = 自动（单手默认 0°/攻击 -45°；双手由两手连线算）；最终角度看右栏读数"
+                            title="配置倾角（度，不含「翻转」那 180°）。留空 = 自动（默认 0°、攻击 -45°）；最终角度看右栏读数"
                         >
                             <span>角度(度)</span>
                             <input
@@ -522,6 +579,15 @@ export function WeaponMountPanel({
                                 }}
                             />
                         </label>
+                        {boolSelect(
+                            '翻转',
+                            poseEntry?.flip,
+                            (v) => patch({ flip: v }),
+                            '本姿势是否整体镜像 180°；「自动」= 跟随「武器共用」里的设定',
+                            '翻转',
+                            '不翻转',
+                        )}
+                        {anchorSelect('锚定手', poseEntry?.anchorHand, (v) => patch({ anchorHand: v }), anchorHandTip)}
                         {numField('握点偏移 X', 'gripDX', 0.5, '本姿势相对「武器握点」的偏移——要微调只用这个，不要改武器握点')}
                         {numField('握点偏移 Y', 'gripDY')}
                         {numField('挂点偏移 X', 'handDX', 0.5, '相对基准手位的偏移；拖动/输入的都是这个。基准见占位提示，最终落点看右栏「当前」一行')}
@@ -532,56 +598,7 @@ export function WeaponMountPanel({
 
                 {/* 第三栏：开关 + 读数 + 操作 */}
                 <section className="pixel-editor-mount-col">
-                    <h4 title="翻转/不遮手/锚定手，以及导出与重置">开关 · 导出</h4>
-                    <div className="pixel-editor-row">
-                        <label className="pixel-editor-toggle" title="整体镜像（画朝左时用）">
-                            <input
-                                type="checkbox"
-                                checked={Boolean(effective.flip)}
-                                onChange={(e) => patch({ flip: e.target.checked })}
-                            />
-                            翻转
-                        </label>
-                        <label className="pixel-editor-toggle" title="不画手部遮罩（浮空类武器用）">
-                            <input
-                                type="checkbox"
-                                checked={Boolean(effective.noHandCover)}
-                                onChange={(e) => patch({ noHandCover: e.target.checked })}
-                            />
-                            不遮手
-                        </label>
-                        <label
-                            className="pixel-editor-field pixel-editor-field--inline"
-                            title={anchorHandTip}
-                        >
-                            <span>锚定手</span>
-                            <select
-                                value={effective.anchorHand ?? 'auto'}
-                                disabled={slot === 'off'}
-                                onChange={(e) =>
-                                    e.target.value === 'auto'
-                                        ? clearField('anchorHand')
-                                        : patch({ anchorHand: e.target.value as 'main' | 'off' })
-                                }
-                            >
-                                <option value="auto">自动</option>
-                                <option value="main">主手</option>
-                                <option value="off">副手</option>
-                            </select>
-                        </label>
-                    </div>
-                    <span
-                        className="pixel-editor-colorline"
-                        title={
-                            showOffhandDefaultHint
-                                ? '副手槽没登记：现在按「副手默认」画（全局副手手位 OTHER_HAND_POINT + 副手角度 DUAL_OFFHAND_ANGLE）。改任一字段（或拖动画布）就会写入这把武器的 off 表。'
-                                : `${slot === 'off' ? '副手' : '主手'}槽的最终落点 = 基准 + 偏移；基准见各字段占位提示`
-                        }
-                    >
-                        {slot === 'off' ? '副手' : '主手'} · 最终角度 {angleDeg}° · 握在 (
-                        {Math.round(anchorHand.x * 2) / 2}, {Math.round(anchorHand.y * 2) / 2})
-                        {dirty ? ' · 已改动' : registeredHere ? ' · 武器文件登记值' : ' · 未登记（用默认）'}
-                    </span>
+                    <h4 title="整把武器共用（握点/翻转/锚定手）、当前落点读数、导出与重置">读数 · 导出</h4>
                     <div className="pixel-editor-row">
                         <button
                             className="pixel-editor-btn"

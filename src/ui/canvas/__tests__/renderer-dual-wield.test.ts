@@ -127,7 +127,7 @@ describe('战斗渲染器 · 双持', () => {
     it('装了副手武器 → 主手和副手两组 Graphics 都画了，且落点不同', () => {
         const renderer = new CanvasRenderer()
         renderer.registerChar('A', '甲', '#ffffff')
-        renderFrame(renderer, [makeChar('A', 'chun_lei'), makeChar('B')])
+        renderFrame(renderer, [makeChar('A', 'xiu_dong'), makeChar('B')])
 
         const g = internals(renderer)
         const main = g.weaponSprites.get('A')!
@@ -147,10 +147,10 @@ describe('战斗渲染器 · 双持', () => {
         expect(g.offhandWeaponSprites.get('A')!.rects.length).toBe(0)
     })
 
-    it('副手武器的手部遮罩独立绘制（用另一侧的手）', () => {
+    it('副手武器的手部遮罩独立绘制（主手遮主手、副手遮副手）', () => {
         const renderer = new CanvasRenderer()
         renderer.registerChar('A', '甲', '#ffffff')
-        renderFrame(renderer, [makeChar('A', 'chun_lei'), makeChar('B')])
+        renderFrame(renderer, [makeChar('A', 'xiu_dong'), makeChar('B')])
         const g = internals(renderer)
         const mainCover = g.handCoverSprites.get('A')!
         const offCover = g.offhandCoverSprites.get('A')!

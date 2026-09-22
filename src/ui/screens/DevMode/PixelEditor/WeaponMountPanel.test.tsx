@@ -25,8 +25,8 @@ describe('WeaponMountPanel 渲染冒烟', () => {
         expect(html).toContain('角度(度)')
         expect(html).toContain('武器共用')
         expect(html).toContain('本姿势')
-        expect(html).toContain('武器握点 X')
-        expect(html).toContain('武器握点 Y')
+        expect(html).toContain('握点 X')
+        expect(html).toContain('握点 Y')
         expect(html).toContain('握点偏移 X')
         expect(html).toContain('握点偏移 Y')
         expect(html).toContain('挂点偏移 X')
@@ -55,8 +55,8 @@ describe('WeaponMountPanel 渲染冒烟', () => {
         const html = renderToStaticMarkup(
             <WeaponMountPanel
                 configs={{
-                    // 面板默认选中的是列表第一把武器（玄铁重剑）
-                    dark_iron_sword: {
+                    // 单手武器才有副手槽（绣冬）
+                    xiu_dong: {
                         main: {},
                         off: { idle: { gripX: 25, gripY: 25, handX: 41, handY: 32, angle: 0 } },
                     },
@@ -64,6 +64,7 @@ describe('WeaponMountPanel 渲染冒烟', () => {
                 onChange={() => {}}
                 charId="yidao"
                 setStatus={() => {}}
+                initialWeaponId="xiu_dong"
             />,
         )
         expect(html).toContain('off: {')
@@ -75,6 +76,29 @@ describe('WeaponMountPanel 渲染冒烟', () => {
         if (dx) parts.push(`handDX: ${dx}`)
         if (dy) parts.push(`handDY: ${dy}`)
         expect(html).toContain(`idle: { ${parts.join(', ')} }`)
+    })
+
+    it('非单手武器不导出 off 块（即使编辑器里残留了副手覆盖）', () => {
+        const html = renderToStaticMarkup(
+            <WeaponMountPanel
+                configs={{ iron_spear: { main: {}, off: { idle: { handDX: 1 } } } }}
+                onChange={() => {}}
+                charId="yidao"
+                setStatus={() => {}}
+                initialWeaponId="iron_spear"
+            />,
+        )
+        expect(html).not.toContain('off: {')
+        const oneHand = renderToStaticMarkup(
+            <WeaponMountPanel
+                configs={{ xiu_dong: { main: {}, off: { idle: { handDX: 1 } } } }}
+                onChange={() => {}}
+                charId="yidao"
+                setStatus={() => {}}
+                initialWeaponId="xiu_dong"
+            />,
+        )
+        expect(oneHand).toContain('off: {')
     })
 
     it('改过的配置会体现在导出片段里（attack 单独列出）', () => {

@@ -7,8 +7,10 @@
 import type { WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
-
-export const dinghai_shen_tie: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = { overlay: { palette: { '0': '#525a68', // 柱身（中，深色铁）
+export const dinghai_shen_tie: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+    overlay: {
+        palette: {
+            '0': '#525a68', // 柱身（中，深色铁）
             '1': '#343a45', // 柱身暗侧
             '4': '#c9973a', // 金箍（中）
             '5': '#8a6522', // 金箍暗侧
@@ -64,14 +66,15 @@ export const dinghai_shen_tie: { overlay?: WeaponOverlay; poses: WeaponPoseTable
             [26, 26, 4],
             [27, 26, 5],
             [27, 27, 6],
-        ] },
+        ],
+    },
     poses: {
-        ...makePoses({ gripX: 21, gripY: 21.7, flip: true, anchorHand: 'off' }),
+        ...makePoses({ anchorHand: 'off', gripX: 22.5, gripY: 21, flip: true }),
         idle: { angle: (135 * Math.PI) / 180 },
-        attack: { gripDX: 2.8, gripDY: 2.1, angle: 2.397837, handDY: 0.5 },
+        attack: { gripDX: 2, gripDY: 2, angle: 2.2759 },
         dodge: { angle: (135 * Math.PI) / 180 },
-        parry: { gripDX: 2.6, gripDY: 1.9, angle: 2.611377 },
-        hit: { gripDX: -14, gripDY: -14.7, angle: (-125 * Math.PI) / 180 },
+        parry: { gripDY: 0.5, angle: (149 * Math.PI) / 180 },
+        hit: { flip: false, angle: (-120 * Math.PI) / 180, handDX: -18, handDY: -20 },
         buff: { angle: (135 * Math.PI) / 180 },
     },
 }

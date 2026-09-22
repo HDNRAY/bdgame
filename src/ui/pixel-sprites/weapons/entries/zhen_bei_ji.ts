@@ -7,9 +7,11 @@
 import type { WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
-
 // 镇北戟（双手长戟）：握持配置与破狼竹枝逐字一致（含 flip；戟头在美术左上端）
-export const zhen_bei_ji: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = { overlay: { palette: { '0': '#8b95a6', // 戟头 中
+export const zhen_bei_ji: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+    overlay: {
+        palette: {
+            '0': '#8b95a6', // 戟头 中
             '1': '#596273', // 戟头 暗
             '2': '#d5dded', // 戟头 亮
             '3': '#23272e', // 吞口 深铁
@@ -74,14 +76,15 @@ export const zhen_bei_ji: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = 
             [26, 26, 7],
             [27, 26, 8],
             [27, 27, 7],
-        ] },
+        ],
+    },
     poses: {
-        ...makePoses({ gripX: 21, gripY: 21.7, flip: true, anchorHand: 'off' }),
+        ...makePoses({ anchorHand: 'off', gripX: 22.5, gripY: 21, flip: true }),
         idle: { angle: (135 * Math.PI) / 180 },
-        attack: { gripDX: 2.8, gripDY: 2.1, angle: 2.397837, handDY: 0.5 },
+        attack: { gripDX: 2, gripDY: 2, angle: 2.2759 },
         dodge: { angle: (135 * Math.PI) / 180 },
-        parry: { gripDX: 2.6, gripDY: 1.9, angle: 2.611377 },
-        hit: { gripDX: -14, gripDY: -14.7, angle: (-125 * Math.PI) / 180 },
+        parry: { gripDY: 0.5, angle: (149 * Math.PI) / 180 },
+        hit: { flip: false, angle: (-120 * Math.PI) / 180, handDX: -18, handDY: -20 },
         buff: { angle: (135 * Math.PI) / 180 },
     },
 }

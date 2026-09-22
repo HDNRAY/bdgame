@@ -48,9 +48,9 @@ export const weaponFileShape: Record<string, WeaponFileShape> = {
     },
     example_floating: {
         poses: {
-            ...makePoses({ gripX: 9, gripY: 22, noHandCover: true }),
-            idle: { gripX: 9, gripY: 22, noHandCover: true, angle: (-37 * Math.PI) / 180 },
-            buff: { gripX: 9, gripY: 22, noHandCover: true, anchorHand: 'main', angle: 0 },
+            ...makePoses({ gripX: 9, gripY: 22 }),
+            idle: { gripX: 9, gripY: 22, angle: (-37 * Math.PI) / 180 },
+            buff: { gripX: 9, gripY: 22, anchorHand: 'main', angle: 0 },
         },
     },
 }

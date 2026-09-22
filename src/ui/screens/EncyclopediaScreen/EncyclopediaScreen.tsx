@@ -7,7 +7,7 @@ import { TALENTS } from '../../../data/passives/talents'
 import { ARTIFACTS } from '../../../data/artifacts'
 import { SUPPORT_ACTIONS, allMainActions } from '../../../data/actions'
 import { TAG_CN } from '../../../bridge/tagDisplay'
-import { EntityItem } from '../../components/ui/EntityItem/EntityItem'
+import { entityTooltipContent } from '../../components/tooltip-contents/entityTooltipContent'
 import type { EntityDef } from '../../../bridge/entity-tooltip'
 import type { EntityType } from '../../../bridge/entity-tooltip'
 import './EncyclopediaScreen.scss'
@@ -138,24 +138,14 @@ export function EncyclopediaScreen() {
                 {filtered.length === 0 ? (
                     <div className="encyclopedia-empty">未找到匹配项</div>
                 ) : (
-                    filtered.map((item, i) => (
-                        <div key={`${item.type}-${i}`} className="encyclopedia-item">
-                            <EntityItem entity={item.entity} type={item.type} />
-                            <div className="encyclopedia-item-desc">{item.description}</div>
-                            {item.tags.length > 0 && (
-                                <div className="encyclopedia-item-tags">
-                                    {item.tags.map((tag) => {
-                                        const cn = (TAG_CN as Record<string, string>)[tag]
-                                        return cn ? (
-                                            <span key={tag} className="encyclopedia-tag">
-                                                {cn}
-                                            </span>
-                                        ) : null
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    ))
+                    /* 直接铺开完整内容（名字/标签/属性/效果/触发…），不再需要悬浮才看详情 */
+                    <div className="encyclopedia-grid">
+                        {filtered.map((item, i) => (
+                            <article key={`${item.type}-${i}`} className="encyclopedia-card">
+                                <div className="tt-content">{entityTooltipContent(item.entity, item.type)}</div>
+                            </article>
+                        ))}
+                    </div>
                 )}
             </div>
         </div>

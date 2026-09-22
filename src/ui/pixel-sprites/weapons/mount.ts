@@ -92,7 +92,6 @@ export interface WeaponMount {
     /** 最终旋转角（已含 flip 的 180°） */
     angle: number
     flip: boolean
-    noHandCover: boolean
 }
 
 export function resolveWeaponMount(
@@ -132,8 +131,7 @@ export function resolveWeaponMount(
                           gripX: registered.gripX,
                           gripY: registered.gripY,
                           flip: registered.flip,
-                          noHandCover: registered.noHandCover,
-                          handX: offBase.x,
+                              handX: offBase.x,
                           handY: offBase.y,
                           angle: DUAL_OFFHAND_ANGLE[pose] ?? 0,
                       }
@@ -169,5 +167,5 @@ export function resolveWeaponMount(
         hand,
         angle,
         flip: cfg.flip === true,
-        noHandCover: cfg.noHandCover === true }
+}
 }

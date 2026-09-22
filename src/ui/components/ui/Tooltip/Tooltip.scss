@@ -23,7 +23,11 @@
     &.show {
         opacity: 1;
     }
+}
 
+/* tooltip 内容排版：弹层与图鉴内联卡片共用 */
+.tooltip-popup,
+.tt-content {
     .tt-name {
         /* md（12px）：与 tooltip 正文同号，靠加粗与标题色拉开层级 */
         font-size: var(--font-md);

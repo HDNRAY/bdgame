@@ -426,15 +426,21 @@
 
         /* 第一列（武器/槽位/姿势）与第三列（开关/导出）收紧，把宽度让给中间的挂点字段 */
         &:first-child {
-            flex: 1 1 13rem;
+            flex: 3 1 22rem;
         }
 
         &:nth-child(2) {
-            flex: 3 1 24rem;
+            flex: 2 1 18rem;
         }
 
+        /* 右栏只剩读数 + 三个按钮：收窄，按钮竖排 */
         &:last-child {
-            flex: 2 1 18rem;
+            flex: 1 1 9.5rem;
+
+            .pixel-editor-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
         }
 
         h4 {
@@ -509,8 +515,28 @@
         }
     }
 
+    &-mount .pixel-editor-field--inline {
+        font-size: var(--font-xs);
+
+        > span {
+            font-size: var(--font-xs);
+        }
+    }
+
     &-field--inline {
         flex: 0 0 auto;
+
+    }
+
+    /* 数字输入与下拉统一成同一个盒模型（否则下拉天生比 input 高一截） */
+    &-num-field input,
+    &-field--inline select {
+        box-sizing: border-box;
+        height: 1.45rem;
+        padding: 2px var(--sp-xxs);
+        font-family: var(--font-mono);
+        font-size: var(--font-xs);
+        line-height: 1.2;
     }
 
     /* 折叠的代码查看区（默认收起，省右栏高度；上面的复制按钮照常用） */

@@ -104,10 +104,6 @@
     &-list {
         flex: 1;
         overflow-y: auto;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 6px;
-        align-content: start;
         padding-right: 4px;
 
         &::-webkit-scrollbar {
@@ -122,6 +118,25 @@
         }
     }
 
+    /* 卡片网格：每张卡直接铺开完整内容（名字/标签/属性/效果/触发…） */
+    &-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+        gap: var(--sp-sm);
+        align-content: start;
+    }
+
+    &-card {
+        background: var(--color-tooltip-bg);
+        border: var(--border-width) solid var(--color-tooltip-border);
+        border-radius: var(--radius-sm);
+        padding: var(--sp-xs) var(--sp-sm);
+        color: var(--color-tooltip-text);
+        font-size: var(--font-sm);
+        line-height: 1.5;
+        min-width: 0;
+    }
+
     &-empty {
         text-align: center;
         color: var(--color-text-dim);
@@ -129,42 +144,4 @@
         font-size: var(--font-lg);
     }
 
-    &-item {
-        background: var(--color-bg-panel);
-        border: var(--border-width) solid var(--color-border);
-        border-radius: var(--radius-sm);
-        padding: var(--sp-xs) var(--sp-xs);
-        text-align: left;
-
-        .entity-item {
-            font-size: var(--font-lg);
-            font-weight: 600;
-            color: var(--color-text-h);
-        }
-
-        &-desc {
-            font-size: var(--font-xs);
-            font-family: var(--font-family-small);
-            color: var(--color-text-dim);
-            margin-top: var(--sp-xxs);
-            line-height: 1.4;
-        }
-
-        &-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--sp-xxs);
-            margin-top: var(--sp-xxs);
-        }
-    }
-
-    &-tag {
-        font-size: var(--font-xxs);
-        font-family: var(--font-family-small);
-        padding: 1px var(--sp-xxs);
-        background: var(--color-entity-bg);
-        color: var(--color-text);
-        border-radius: var(--radius-sm);
-        border: var(--border-width) solid var(--color-entity-border);
-    }
 }

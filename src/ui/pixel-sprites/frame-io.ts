@@ -469,7 +469,7 @@ function offsetOfNum(a: number | undefined, b: number | undefined): number {
     return Math.round((a - b) * 1e4) / 1e4
 }
 
-const BASE_CANDIDATES: (keyof WeaponPoseConfig)[] = ['gripX', 'gripY', 'flip', 'anchorHand', 'noHandCover']
+const BASE_CANDIDATES: (keyof WeaponPoseConfig)[] = ['gripX', 'gripY', 'flip', 'anchorHand']
 /** 相对偏移字段（写进基底会"继承"，所以判定差异时按 0 兜底） */
 const OFFSET_KEYS: (keyof WeaponPoseConfig)[] = ['handDX', 'handDY']
 /** 其余逐姿势字段 */

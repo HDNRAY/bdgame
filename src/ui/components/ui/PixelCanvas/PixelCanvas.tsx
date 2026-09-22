@@ -190,47 +190,36 @@ export function PixelCanvas({
         // 副手武器（双持）：统一走 resolveWeaponMount 的副手规则 ——
         // 武器登记了 off 配置就用它，否则用「副手默认」（全局副手手位 OTHER_HAND_POINT + DUAL_OFFHAND_ANGLE）
         const offhandOverlay = secondWeaponId ? getWeaponOverlay(secondWeaponId) : undefined
-        const offhandConfig = secondWeaponId
-            ? resolveWeaponMount(secondWeaponId, pose, { slot: 'off' }).config
-            : undefined
         if (hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0 && secondWeaponId) {
             const offMount = resolveWeaponMount(secondWeaponId, pose, { slot: 'off' })
             const offAngle = secondAngle ?? offMount.angle
             paintRotatedWeapon(offhandOverlay, offMount.gripX, offMount.gripY, offMount.hand, offAngle)
         }
 
-        // 哪个槽位盖哪只手（统一入口）
-        const { primary: primaryCover, secondary: secondaryCover } = handCoverTables(weaponSlot)
-        // 渲染手部覆盖层 — 仅在合成武器时（有角色像素）绘制，用皮肤色盖住握柄（漂浮类武器/武器脱手时跳过）
-        if (
-            hasPixels &&
-            overlay &&
-            overlay.pixels.length > 0 &&
-            !(poseConfig?.noHandCover ?? false) &&
-            shouldDrawHandCover(pose)
-        ) {
+        // 手部遮罩：只遮「锚定的那只手」；长柄（anchorHand: 'off'，两只手都在杆上）两只都遮。
+        // 双持时：主手武器遮主手、副手武器遮副手（各自的锚定手）。
+        const { primary: primaryCoverTable, secondary: secondaryCoverTable } = handCoverTables(weaponSlot)
+        const anchorOff = poseConfig?.anchorHand === 'off'
+        const drawMainCover = hasPixels && !!overlay && overlay.pixels.length > 0 && shouldDrawHandCover(pose)
+        const drawOffhandCover = !!offhandOverlay && offhandOverlay.pixels.length > 0 && shouldDrawHandCover(pose)
+        if (drawMainCover || drawOffhandCover) {
             const skin = palette?.['3'] ?? '#f5d6c6'
             ctx.fillStyle = skin
-            const cover = primaryCover[pose] ?? primaryCover.idle
-            if (cover) {
-                for (const [cx, cy] of cover) {
-                    ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
-                }
+            const cells = new Set<string>()
+            const addCells = (table: Record<string, [number, number][]>) => {
+                for (const [cx, cy] of table[pose] ?? table.idle) cells.add(`${cx},${cy}`)
             }
-        }
-        // 第二只手：双手长兵（锚副手）或双持副手武器时，盖住副手握点
-        const needsLeftCover =
-            shouldDrawHandCover(pose) &&
-            hasPixels &&
-            ((poseConfig?.anchorHand === 'off' && overlay && overlay.pixels.length > 0) ||
-                (!!offhandOverlay && offhandOverlay.pixels.length > 0 && !(offhandConfig?.noHandCover ?? false)))
-        if (needsLeftCover) {
-            const skin = palette?.['3'] ?? '#f5d6c6'
-            ctx.fillStyle = skin
-            const leftCover = secondaryCover[pose] ?? secondaryCover.idle
-            for (const [cx, cy] of leftCover) {
+            if (drawMainCover) {
+                addCells(anchorOff ? secondaryCoverTable : primaryCoverTable)
+                if (anchorOff) addCells(primaryCoverTable)
+            }
+            if (drawOffhandCover) {
+                addCells(anchorOff ? primaryCoverTable : secondaryCoverTable)
+            }
+            for (const key of cells) {
+                const [cx, cy] = key.split(',').map(Number)
                 ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
-            }
+        }
         }
     }, [
         bufW,

@@ -50,7 +50,7 @@ export const tri_orb: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = { ov
             [26, 25, '#262626'],
         ] },
     poses: {
-        ...makePoses({ gripX: 9, gripY: 22, noHandCover: true }),
+        ...makePoses({ gripX: 9, gripY: 22 }),
         idle: { angle: (-37 * Math.PI) / 180 },
         attack: { angle: (-80 * Math.PI) / 180, handDX: -34, handDY: 5.5 },
         dodge: { angle: (-37 * Math.PI) / 180, handDX: -2 },

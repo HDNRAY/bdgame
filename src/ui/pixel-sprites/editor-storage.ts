@@ -163,11 +163,6 @@ export function parseEditorState(text: string | null | undefined): PixelEditorSa
                     if (typeof flip !== 'boolean') return null
                     out.flip = flip
                 }
-                const noHandCover = (cfg as Record<string, unknown>).noHandCover
-                if (noHandCover !== undefined) {
-                    if (typeof noHandCover !== 'boolean') return null
-                    out.noHandCover = noHandCover
-                }
                 const anchorHand = (cfg as Record<string, unknown>).anchorHand
                 if (anchorHand !== undefined) {
                     if (anchorHand !== 'main' && anchorHand !== 'off') return null

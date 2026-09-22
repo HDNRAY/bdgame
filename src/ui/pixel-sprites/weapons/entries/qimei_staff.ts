@@ -7,11 +7,13 @@
 import type { WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
-
 // 齐眉棍（双手长杆）：握点取「杆中点落在主手（画面左侧那只手）」的位置
 // 两手间距 idle/dodge 9.5 格、attack 12.5 格、parry 12.2 格 → attack/parry 握点相应前移
 // flip 为反向握持（整根杆掉头，长端朝角色正面）
-export const qimei_staff: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = { overlay: { palette: { '0': '#9a6d33', // 棍身 亮
+export const qimei_staff: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+    overlay: {
+        palette: {
+            '0': '#9a6d33', // 棍身 亮
             '1': '#6e441a', // 棍身 暗
         },
         pixels: [
@@ -69,14 +71,15 @@ export const qimei_staff: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = 
             [27, 26, 1],
             [27, 27, 0],
             [28, 27, 1],
-        ] },
+        ],
+    },
     poses: {
-        ...makePoses({ gripX: 21.3, gripY: 22, flip: true, anchorHand: 'off' }),
+        ...makePoses({ anchorHand: 'off', gripX: 22.5, gripY: 21, flip: true }),
         idle: { angle: (135 * Math.PI) / 180 },
-        attack: { gripDX: 2.8, gripDY: 2.1, angle: 2.397837, handDY: 0.5 },
+        attack: { gripDX: 2, gripDY: 2, angle: 2.2759 },
         dodge: { angle: (135 * Math.PI) / 180 },
-        parry: { gripDX: 2.2, gripDY: 1.8, angle: 2.611377 },
-        hit: { gripDX: -14.3, gripDY: -15, angle: (-125 * Math.PI) / 180 },
+        parry: { gripDY: 0.5, angle: (149 * Math.PI) / 180 },
+        hit: { flip: false, angle: (-120 * Math.PI) / 180, handDX: -18, handDY: -20 },
         buff: { angle: (135 * Math.PI) / 180 },
     },
 }

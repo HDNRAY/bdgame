@@ -2,6 +2,7 @@
  * CanvasRenderer — 基于 PixiJS 的像素战斗画面渲染器
  */
 
+import { isPolearm } from '../pixel-sprites/weapon-tags'
 import * as PIXI from 'pixi.js'
 import type { Frame, FrameChar, LogEntry } from '../../bridge/replay-engine'
 import type { WeaponSlot } from '../pixel-sprites'
@@ -410,9 +411,7 @@ export class CanvasRenderer {
         if (!weaponId) return
         // 命中（hit）：武器被打飞脱手 → 不画握持手
         if (!shouldDrawHandCover(c.pose)) return
-        // 握持行为按武器+姿势查配置：漂浮类武器（如三相珠）无握柄手部覆盖
         const mount = resolveWeaponMount(weaponId, c.pose, { slot, facingRight })
-        if (mount.noHandCover) return
         // 哪个槽位盖哪只手：统一走 handCoverTables（副手槽盖副手）
         const { primary: primaryTable, secondary: secondaryTable } = handCoverTables(slot)
         const primary = primaryTable[c.pose] ?? primaryTable.idle
@@ -422,9 +421,11 @@ export class CanvasRenderer {
             const fx = facingRight ? cx : SPRITE_WIDTH - 1 - cx
             cg.rect(ox + fx * PIXEL, oy + cy * PIXEL, PIXEL, PIXEL).fill(skin)
         }
-        for (const [cx, cy] of primary) paint(cx, cy)
-        // 双手长兵（锚副手）：另一只手也在杆上 → 额外盖住另一只手
-        if (mount.config.anchorHand === 'off') {
+        const anchorOff = mount.config.anchorHand === 'off'
+        const primaryCells = anchorOff ? secondaryTable[c.pose] ?? secondaryTable.idle : primary
+        for (const [cx, cy] of primaryCells) paint(cx, cy)
+        // 只遮「锚定的那只手」；长柄（polearm，两只手都在杆上）两只都遮
+        if (isPolearm(weaponId)) {
             const secondary = secondaryTable[c.pose] ?? secondaryTable.idle
             for (const [cx, cy] of secondary) paint(cx, cy)
         }

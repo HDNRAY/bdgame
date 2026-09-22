@@ -184,13 +184,13 @@ describe('武器挂点片段', () => {
         const snippet = formatWeaponPoseSnippet(
             'test_blade',
             {
-                idle: { gripX: 8, gripY: 7, flip: true, noHandCover: true, anchorHand: 'main' },
+                idle: { gripX: 8, gripY: 7, flip: true, anchorHand: 'main' },
                 attack: { gripX: 8, gripY: 7, anchorHand: 'off', angle: -Math.PI / 4 },
             },
             ['idle', 'attack'],
         )
         // 基底 = idle 的结构性字段（握点只写这一处）；attack 只写与基底不同的字段，anchorHand 带引号
-        expect(snippet).toContain("...makePoses({ gripX: 8, gripY: 7, flip: true, anchorHand: 'main', noHandCover: true })")
+        expect(snippet).toContain("...makePoses({ gripX: 8, gripY: 7, flip: true, anchorHand: 'main' })")
         expect(snippet).toContain("attack: { anchorHand: 'off', angle: (-45 * Math.PI) / 180 }")
         // 不能出现没引号的裸标识符
         expect(snippet).not.toMatch(/anchorHand: (main|off)\b(?!')/)
