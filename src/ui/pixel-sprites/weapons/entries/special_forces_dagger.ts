@@ -44,23 +44,17 @@ export const special_forces_dagger: { overlay?: WeaponOverlay; poses: WeaponPose
             [23, 22, 3],
         ],
     },
-    // weapons/entries/chun_lei.ts → poses:
+    // weapons/entries/special_forces_dagger.ts → poses:
     poses: {
-        ...makePoses({ gripX: 20, gripY: 19.5, anchorHand: 'off' }),
-        idle: { handDX: -10 },
-        attack: { gripDY: -0.5, handDY: 0.5 },
-        dodge: { gripDY: -1 },
-        parry: { angle: 2.1276, handDX: -11.5, handDY: -3 },
-        hit: { gripDX: 0.5, gripDY: 1, angle: (15 * Math.PI) / 180, handDX: 1.5, handDY: -5.5 },
-        buff: { gripDY: -1, anchorHand: 'main' },
+        ...makePoses({ gripX: 20.5, gripY: 20, anchorHand: 'main' }),
+        attack: { gripDX: 1, gripDY: 0.5 },
+        parry: { gripDY: 2 },
         off: {
-            ...makePoses({ gripX: 21, gripY: 20.5 }),
-            idle: { gripDX: -0.5, gripDY: -1, angle: 0 },
-            attack: { gripDY: -0.5, angle: (-35 * Math.PI) / 180 },
-            dodge: { gripDX: -0.5, gripDY: -1, angle: 0 },
-            parry: { gripDY: -0.5, angle: (-8 * Math.PI) / 180, handDX: 0.5 },
-            hit: { gripDX: -0.5, angle: (58 * Math.PI) / 180, handDX: 4.5, handDY: -4 },
-            buff: { angle: (90 * Math.PI) / 180 },
+            ...makePoses({}),
+            attack: { gripDX: 0.5 },
+            parry: { handDX: 0.5 },
+            hit: { handDX: 4.5, handDY: -4 },
+            buff: { gripDY: 0.5 },
         },
     },
 }
