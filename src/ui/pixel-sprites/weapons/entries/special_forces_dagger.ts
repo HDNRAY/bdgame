@@ -50,15 +50,16 @@ export const special_forces_dagger: { overlay?: WeaponOverlay; poses: WeaponPose
     },
     // weapons/entries/special_forces_dagger.ts → poses:
     poses: {
-        ...makePoses({ gripX: 20.5, gripY: 20, anchorHand: 'main' }),
+        ...makePoses({ gripX: 18.5, gripY: 18, anchorHand: 'main' }),
         attack: { gripDX: 1, gripDY: 0.5 },
-        parry: { gripDY: 2 },
+        parry: { gripDY: 1.5, angle: (105 * Math.PI) / 180 },
+        hit: { angle: (29 * Math.PI) / 180, handDX: 2, handDY: -4.5 },
         off: {
             ...makePoses({}),
-            attack: { gripDX: 0.5 },
-            parry: { handDX: 0.5 },
-            hit: { handDX: 4.5, handDY: -4 },
-            buff: { gripDY: 0.5 },
+            attack: { gripDX: 0.5, angle: (-27 * Math.PI) / 180 },
+            parry: { angle: (-6 * Math.PI) / 180, handDX: 0.5 },
+            hit: { angle: (57 * Math.PI) / 180, handDX: 4.5, handDY: -4 },
+            buff: { gripDX: -2.5, gripDY: -0.5, flip: true, angle: (-91 * Math.PI) / 180 },
         },
     },
 }
