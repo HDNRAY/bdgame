@@ -22,6 +22,7 @@ import { dark_iron_sword } from './dark_iron_sword'
 import { po_lang_zhu_zhi } from './po_lang_zhu_zhi'
 import { dinghai_shen_tie } from './dinghai_shen_tie'
 import { long_spear } from './long_spear'
+import { ninja_sword } from './ninja_sword'
 
 /** 武器 id → 条目 */
 export const WEAPON_ENTRIES: Record<string, { overlay?: WeaponOverlay; poses: WeaponPoseTable }> = {
@@ -35,6 +36,7 @@ export const WEAPON_ENTRIES: Record<string, { overlay?: WeaponOverlay; poses: We
     special_forces_dagger,
     iron_spear,
     zhen_bei_ji,
+    ninja_sword,
     peach_sword,
     qimei_staff,
     po_lang_zhu_zhi,
@@ -45,9 +47,7 @@ export const WEAPON_ENTRIES: Record<string, { overlay?: WeaponOverlay; poses: We
     overlord_blade,
 }
 
-/** 武器叠加层（纯美术） */
-export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {}
-for (const id of [
+const weaponIds = [
     'bare_hands',
     'dark_iron_sword',
     'tri_orb',
@@ -56,6 +56,7 @@ for (const id of [
     'heshan_sword',
     'special_forces_dagger',
     'dagger',
+    'ninja_sword',
     'iron_spear',
     'zhen_bei_ji',
     'peach_sword',
@@ -63,33 +64,18 @@ for (const id of [
     'po_lang_zhu_zhi',
     'dinghai_shen_tie',
     'long_spear',
-]) {
+]
+
+/** 武器叠加层（纯美术） */
+export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {}
+for (const id of weaponIds) {
     const entry = WEAPON_ENTRIES[id]
     if (entry?.overlay) WEAPON_OVERLAYS[id] = entry.overlay
 }
 
 /** 每武器·每姿势挂点配置 */
 export const WEAPON_POSES: Record<string, WeaponPoseTable> = {}
-for (const id of [
-    'bare_hands',
-    'zantetsu',
-    'ciyuan_blade',
-    'overlord_blade',
-    'tri_orb',
-    'xiu_dong',
-    'chun_lei',
-    'heshan_sword',
-    'dagger',
-    'special_forces_dagger',
-    'iron_spear',
-    'zhen_bei_ji',
-    'peach_sword',
-    'qimei_staff',
-    'dark_iron_sword',
-    'po_lang_zhu_zhi',
-    'dinghai_shen_tie',
-    'long_spear',
-]) {
+for (const id of weaponIds) {
     const entry = WEAPON_ENTRIES[id]
     if (entry) WEAPON_POSES[id] = entry.poses
 }
