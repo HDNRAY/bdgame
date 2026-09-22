@@ -94,12 +94,6 @@
     }
 }
 
-.gameplay-table tr {
-    td:first-child {
-        color: var(--color-gold);
-        font-weight: 600;
-    }
-}
 
 .gameplay-section-body {
     font-size: var(--font-md);
@@ -112,37 +106,6 @@
         &:last-child {
             margin-bottom: 0;
         }
-    }
-}
-
-.gameplay-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--font-sm);
-
-    th,
-    td {
-        text-align: left;
-        padding: var(--sp-xxs) var(--sp-xs);
-        border-bottom: var(--border-width) solid var(--color-border);
-        vertical-align: top;
-    }
-
-    th {
-        color: var(--color-text-dim);
-        font-weight: 600;
-        white-space: nowrap;
-        font-family: var(--font-mono);
-    }
-
-    td:first-child {
-        white-space: nowrap;
-        color: var(--color-gold);
-        font-family: var(--font-mono);
-    }
-
-    tr:last-child td {
-        border-bottom: none;
     }
 }
 
