@@ -2,6 +2,8 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
     POSE_NAMES,
     WEAPON_OVERLAYS,
+    getWeaponArt,
+    weaponHasArt,
     WEAPON_POSES,
     formatWeaponPoseSnippet,
     baseAnchorHand,
@@ -35,7 +37,8 @@ const VIEW_OFF_Y = 3
 const WEAPON_NAME: Record<string, string> = Object.fromEntries(
     [...WEAPON_DB, ...STARTING_WEAPONS].map((w) => [w.id, w.name]),
 )
-const WEAPON_IDS = Object.keys(WEAPON_OVERLAYS).filter((id) => (WEAPON_OVERLAYS[id]?.pixels.length ?? 0) > 0)
+// 只画了逐姿势美术、没有通用图的武器也要能选（weaponHasArt 认两种）
+const WEAPON_IDS = Object.keys(WEAPON_OVERLAYS).filter((id) => weaponHasArt(id))
 
 const POSES = [...POSE_NAMES]
 
@@ -135,7 +138,8 @@ export function WeaponMountPanel({
         [charId, outlineColor],
     )
     const bodyFrame = BODY_FRAMES[pose] ?? BODY_FRAMES.idle
-    const overlay = WEAPON_OVERLAYS[weaponId]
+    // 按当前姿势取图：逐姿势美术（刀鞘 vs 刀身）的握点相对位置不同，必须用这一姿势的那张
+    const overlay = useMemo(() => getWeaponArt(weaponId, pose), [weaponId, pose])
 
     /**
      * 当前（武器 × 槽位 × 姿势）生效的配置：
