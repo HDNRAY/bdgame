@@ -12,8 +12,7 @@ import {
     resolveWeaponMount,
     resolveWeaponPixels,
     shouldDrawHandCover,
-    HAND_COVER,
-    LEFT_HAND_COVER,
+    handCoverTables,
     SPRITE_WIDTH,
     SPRITE_HEIGHT,
     SPRITE_PAD_BOTTOM,
@@ -414,9 +413,9 @@ export class CanvasRenderer {
         // 握持行为按武器+姿势查配置：漂浮类武器（如三相珠）无握柄手部覆盖
         const mount = resolveWeaponMount(weaponId, c.pose, { slot, facingRight })
         if (mount.noHandCover) return
-        // 主手槽：主手遮罩（+ 双手武器再盖副手）；副手槽：反过来
-        const primary = (slot === 'off' ? LEFT_HAND_COVER : HAND_COVER)[c.pose] ?? HAND_COVER.idle
-        const secondaryTable = slot === 'off' ? HAND_COVER : LEFT_HAND_COVER
+        // 哪个槽位盖哪只手：统一走 handCoverTables（副手槽盖副手）
+        const { primary: primaryTable, secondary: secondaryTable } = handCoverTables(slot)
+        const primary = primaryTable[c.pose] ?? primaryTable.idle
         const skin = palette['3'] ?? '#f5d6c6'
         const paint = (cx: number, cy: number) => {
             // 覆盖层跟随角色精灵镜像（与角色渲染一致：sx = facingRight ? x : width-1-x）

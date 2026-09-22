@@ -275,47 +275,6 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
             [26, 28, 7],
         ],
     },
-    zantetsu: {
-        pixels: [
-            [9, 0, '#3a3a3a'],
-            [10, 1, '#3a3a3a'],
-            [10, 2, '#4a4a4a'],
-            [11, 2, '#3a3a3a'],
-            [11, 3, '#4a4a4a'],
-            [12, 4, '#3a3a3a'],
-            [12, 5, '#4a4a4a'],
-            [13, 6, '#3a3a3a'],
-            [8, 7, '#ffd700'],
-            [9, 7, '#ffed4e'],
-            [10, 7, '#ffd700'],
-        ],
-    },
-    ciyuan_blade: {
-        pixels: [
-            [7, 2, '#b366ff'],
-            [8, 3, '#b366ff'],
-            [8, 4, '#a855ff'],
-            [9, 4, '#b366ff'],
-            [9, 5, '#a855ff'],
-            [10, 6, '#b366ff'],
-            [7, 7, '#ffed4e'],
-            [8, 7, '#ffed4e'],
-        ],
-    },
-    overlord_blade: {
-        pixels: [
-            [9, 1, '#ff5555'],
-            [10, 2, '#ff5555'],
-            [10, 3, '#dd3333'],
-            [11, 3, '#ff5555'],
-            [11, 4, '#dd3333'],
-            [12, 5, '#ff5555'],
-            [12, 6, '#dd3333'],
-            [8, 7, '#1a1a1a'],
-            [9, 7, '#1a1a1a'],
-            [10, 7, '#1a1a1a'],
-        ],
-    },
     tri_orb: {
         pixels: [
             // 上珠（白）— 偏白渐变，高光→底色→阴影
@@ -362,72 +321,68 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
     xiu_dong: {
         palette: {
             '1': '#6c767f',
-            '2': '#8896a5',
-            '3': '#d6dee6',
-            '4': '#113540',
-            '5': '#0b252d',
-            '6': '#1d2835',
-            '7': '#384452',
-            '8': '#bac4c9',
+            '2': '#bac4c9',
+            '3': '#8896a5',
+            '4': '#d6dee6',
+            '5': '#113540',
+            '6': '#0b252d',
+            '7': '#1d2835',
+            '8': '#384452',
         },
         pixels: [
             [9, 6, 1],
             [9, 7, 1],
             [10, 7, 1],
             [9, 8, 1],
-            [10, 8, 8],
+            [10, 8, 2],
             [11, 8, 1],
             [10, 9, 1],
-            [11, 9, 8],
+            [11, 9, 2],
             [12, 9, 1],
             [11, 10, 1],
-            [12, 10, 8],
+            [12, 10, 2],
             [13, 10, 1],
-            [12, 11, 2],
-            [13, 11, 8],
+            [12, 11, 3],
+            [13, 11, 2],
             [14, 11, 1],
-            [13, 12, 2],
-            [14, 12, 3],
+            [13, 12, 3],
+            [14, 12, 4],
             [15, 12, 1],
-            [14, 13, 2],
-            [15, 13, 3],
+            [14, 13, 3],
+            [15, 13, 4],
             [16, 13, 1],
-            [15, 14, 2],
-            [16, 14, 3],
+            [15, 14, 3],
+            [16, 14, 4],
             [17, 14, 1],
-            [16, 15, 2],
-            [17, 15, 3],
+            [16, 15, 3],
+            [17, 15, 4],
             [18, 15, 1],
-            [17, 16, 2],
-            [18, 16, 3],
+            [17, 16, 3],
+            [18, 16, 4],
             [19, 16, 1],
-            [18, 17, 2],
-            [19, 17, 3],
+            [18, 17, 3],
+            [19, 17, 4],
             [20, 17, 1],
-            [19, 18, 2],
-            [20, 18, 3],
+            [19, 18, 3],
+            [20, 18, 4],
             [21, 18, 1],
-            [24, 18, 4],
-            [20, 19, 2],
-            [21, 19, 3],
+            [20, 19, 3],
+            [21, 19, 4],
             [22, 19, 1],
-            [23, 19, 5],
-            [24, 19, 4],
-            [21, 20, 2],
-            [22, 20, 5],
-            [23, 20, 5],
-            [21, 21, 4],
-            [22, 21, 4],
-            [23, 21, 6],
-            [20, 22, 5],
-            [21, 22, 5],
-            [23, 22, 7],
-            [24, 22, 6],
-            [24, 23, 7],
-            [25, 23, 6],
-            [25, 24, 7],
-            [26, 24, 6],
-            [26, 25, 7],
+            [23, 19, 6],
+            [21, 20, 3],
+            [22, 20, 6],
+            [23, 20, 6],
+            [21, 21, 5],
+            [22, 21, 5],
+            [23, 21, 7],
+            [23, 22, 8],
+            [24, 22, 7],
+            [24, 23, 8],
+            [25, 23, 7],
+            [25, 24, 8],
+            [26, 24, 7],
+            [26, 25, 8],
         ],
     },
     chun_lei: {
@@ -476,14 +431,67 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {
         ],
     },
     heshan_sword: {
+        palette: {
+            '1': '#a7bedc',
+            '2': '#ffffff',
+            '3': '#c4a875',
+            '4': '#1c386f',
+            '5': '#4980da',
+        },
         pixels: [
-            [8, 3, '#ffb366'],
-            [9, 3, '#ffb366'],
-            [9, 4, '#ff9944'],
-            [10, 5, '#ffb366'],
-            [10, 6, '#ff9944'],
-            [7, 7, '#ff6b6b'],
-            [8, 7, '#ff6b6b'],
+            [6, 4, 5],
+            [7, 5, 1],
+            [7, 6, 2],
+            [8, 6, 1],
+            [10, 6, 5],
+            [8, 7, 2],
+            [9, 7, 1],
+            [8, 8, 5],
+            [9, 8, 2],
+            [10, 8, 5],
+            [10, 9, 2],
+            [11, 9, 1],
+            [13, 9, 5],
+            [8, 10, 5],
+            [10, 10, 5],
+            [11, 10, 2],
+            [12, 10, 1],
+            [12, 11, 2],
+            [13, 11, 1],
+            [13, 12, 2],
+            [14, 12, 1],
+            [15, 12, 5],
+            [18, 12, 5],
+            [14, 13, 2],
+            [15, 13, 1],
+            [13, 14, 5],
+            [15, 14, 2],
+            [16, 14, 1],
+            [19, 14, 5],
+            [16, 15, 2],
+            [17, 15, 1],
+            [18, 15, 5],
+            [17, 16, 2],
+            [18, 16, 1],
+            [20, 16, 5],
+            [18, 17, 2],
+            [19, 17, 1],
+            [16, 18, 5],
+            [19, 18, 2],
+            [20, 18, 1],
+            [20, 19, 2],
+            [21, 19, 3],
+            [21, 20, 3],
+            [22, 20, 4],
+            [22, 21, 4],
+            [23, 21, 4],
+            [23, 22, 4],
+            [24, 22, 4],
+            [24, 23, 4],
+            [25, 23, 4],
+            [25, 24, 3],
+            [26, 24, 3],
+            [26, 25, 3],
         ],
     },
     dagger: {
@@ -1002,7 +1010,12 @@ export type WeaponSlot = 'main' | 'off'
  *
  * 每武器·每姿势握持配置 — 独立于武器美术。未覆盖字段回落全局 HAND_POINTS / 自动角度规则。
  */
-export type WeaponPoseTable = Record<string, WeaponPoseConfig> & { off?: Record<string, WeaponPoseConfig> }
+/** 姿势名（含渲染器用的 move）——用显式键而不是索引签名：索引签名会要求 `off` 也是 WeaponPoseConfig，
+ *  与 `off?: Record<...>` 自相矛盾（粘贴带 off 块的导出片段就会报类型错）。 */
+export type PoseKey = 'idle' | 'attack' | 'dodge' | 'parry' | 'hit' | 'buff' | 'move'
+export type WeaponPoseTable = Partial<Record<PoseKey, WeaponPoseConfig>> & {
+    off?: Partial<Record<PoseKey, WeaponPoseConfig>>
+}
 
 export const WEAPON_POSES: Record<string, WeaponPoseTable> = {
     // 每个武器独立设定（哪怕同类型也不共享），便于逐武器微调 grip/角度/锚定手
@@ -1030,24 +1043,65 @@ export const WEAPON_POSES: Record<string, WeaponPoseTable> = {
     },
     // 绣冬：点位与桃木剑逐字一致（握点 24,24 + 同一套 parry/hit 角度），便于对照与替换
     xiu_dong: {
-        ...makePoses({ gripX: 24.5, gripY: 23, grip2Y: 0, anchorHand: 'main' }),
-        attack: { gripX: 25, gripY: 22.5, handDY: -1 },
+        ...makePoses({ gripX: 24, gripY: 22.5, grip2Y: 0, anchorHand: 'main', handDX: 0.5, handDY: -0.5 }),
+        idle: {
+            gripX: 24,
+            gripY: 22.5,
+            grip2Y: 0,
+            anchorHand: 'main',
+            angle: 0,
+            handDX: 0.5,
+            handDY: -0.5,
+            targetY: 0,
+        },
+        attack: { gripX: 24, gripY: 22, handDX: 0, handDY: -1 },
         dodge: { gripX: 24, gripY: 22.5, handDX: 0.5, handDY: -0.5 },
-        parry: { gripX: 25, gripY: 24, angle: 2.6857 },
-        hit: { gripX: 24, gripY: 22.5, handDX: 1, handDY: -2.5, angle: (18 * Math.PI) / 180 },
-        buff: { gripX: 25, gripY: 23.5, handDX: 0.5, handDY: -0.5 },
+        parry: { gripX: 24, gripY: 23, angle: 2.6857, handDX: 0, handDY: 0 },
+        hit: { gripX: 24, gripY: 22.5, angle: (18 * Math.PI) / 180, handDX: 1, handDY: -2.5 },
+        buff: { gripX: 24, gripY: 22.5, anchorHand: 'main', handDX: 0.5, handDY: -0.5 },
+        off: {
+            ...makePoses({ gripX: 24, gripY: 22, grip2X: 0, handDX: 1, handDY: -0.5 }),
+            idle: { gripX: 24, gripY: 22, grip2X: 0, angle: 0, handDX: 1, handDY: -0.5 },
+            attack: { gripX: 23.5, gripY: 22, angle: 0, handDX: -0.5, handDY: -1 },
+            dodge: { gripX: 24, gripY: 22.5, angle: 0, handDX: 1, handDY: -0.5 },
+            parry: { gripX: 24, gripY: 22, angle: (-10 * Math.PI) / 180, handDX: 0.5, handDY: -1 },
+            hit: { gripX: 24, gripY: 22.5, angle: (58 * Math.PI) / 180, handDX: 5.5, handDY: -3 },
+            buff: { gripX: 23.5, gripY: 22.5, angle: (90 * Math.PI) / 180, handDX: 0, handDY: 0 },
+        },
     },
     // 春雷（二尺四寸 / 一斤三两 / 吹毛断发）：轻短弧刃，握点取柄的质心
     chun_lei: {
-        ...makePoses({ gripX: 21, gripY: 20.5 }),
-        idle: { gripX: 21, gripY: 20.5, handDX: 0.5, handDY: -0.5 },
-        attack: { gripX: 21, gripY: 20, handDY: -1 },
+        ...makePoses({ gripX: 21, gripY: 20.5, anchorHand: 'off', handDX: -9, handDY: -0.5 }),
+        attack: { gripX: 21, gripY: 20, handDX: 0, handDY: -1 },
         dodge: { gripX: 20.5, gripY: 20.5, handDX: 0.5, handDY: -0.5 },
-        parry: { gripX: 21, gripY: 21, angle: 2.6857 },
-        hit: { gripX: 20.5, gripY: 20.5, handDX: 1.5, handDY: -5.5, angle: (15 * Math.PI) / 180 },
+        parry: { gripX: 21, gripY: 21, angle: 2.6857, handDX: 0, handDY: 0 },
+        hit: { gripX: 20.5, gripY: 20.5, angle: (15 * Math.PI) / 180, handDX: 1.5, handDY: -5.5 },
         buff: { gripX: 20.5, gripY: 20.5, anchorHand: 'main', handDX: 0.5, handDY: -0.5 },
+        off: {
+            ...makePoses({ gripX: 21, gripY: 20.5, handDX: 1, handDY: -0.5 }),
+            idle: { gripX: 21, gripY: 20.5, angle: 0, handDX: 1, handDY: -0.5 },
+            attack: { gripX: 21, gripY: 20, angle: (-35 * Math.PI) / 180, handDX: -0.5, handDY: -1 },
+            dodge: { gripX: 21, gripY: 20.5, angle: 0, handDX: 1, handDY: -0.5 },
+            parry: { gripX: 21, gripY: 20, angle: (-8 * Math.PI) / 180, handDX: 0.5, handDY: -1 },
+            hit: { gripX: 20.5, gripY: 20.5, angle: (58 * Math.PI) / 180, handDX: 4.5, handDY: -4 },
+            buff: { gripX: 20.5, gripY: 20.5, angle: (90 * Math.PI) / 180, handDX: 0, handDY: 0 },
+        },
     },
-    heshan_sword: makePoses({ gripX: 8, gripY: 7 }),
+    heshan_sword: {
+        ...makePoses({ gripX: 22.5, gripY: 20.5, handDX: 0.5, handDY: -0.5 }),
+        attack: { gripX: 23, gripY: 21, handDX: 0, handDY: -1 },
+        parry: { gripX: 23, gripY: 22, angle: (120 * Math.PI) / 180, handDX: 0, handDY: 0 },
+        hit: { gripX: 23, gripY: 22, angle: (15 * Math.PI) / 180, handDX: 1.5, handDY: -2 },
+        off: {
+            ...makePoses({ gripX: 21.5, gripY: 21 }),
+            idle: { gripX: 21.5, gripY: 21, angle: 0, handDX: 0, handDY: 0 },
+            attack: { gripX: 22.5, gripY: 20.5, angle: (-4 * Math.PI) / 180, handDX: -0.5, handDY: -1 },
+            dodge: { gripX: 22.5, gripY: 20.5, angle: 0, handDX: 1, handDY: -0.5 },
+            parry: { gripX: 23, gripY: 21, angle: (-10 * Math.PI) / 180, handDX: 0.5, handDY: -1 },
+            hit: { gripX: 22, gripY: 21, angle: (60 * Math.PI) / 180, handDX: 4, handDY: -2 },
+            buff: { gripX: 22.5, gripY: 21.5, angle: (90 * Math.PI) / 180, handDX: 0, handDY: 0 },
+        },
+    },
     dagger: makePoses({ gripX: 8, gripY: -3 }),
     // 铁枪·破军（双手长枪）：握持配置与破狼竹枝逐字一致（含 flip；虎牙刃在美术左上端，与竹枝嫩竹同端）
     iron_spear: {
@@ -1168,14 +1222,16 @@ export const WEAPON_POSES: Record<string, WeaponPoseTable> = {
     // 桃木剑：单手剑。招架时主手锚定（面前抬手），剑身旋转斜穿副手（腰间握持），只给主手遮罩
     peach_sword: {
         ...makePoses({ gripX: 24, gripY: 24 }),
-        parry: { gripX: 24, gripY: 24, angle: 2.6857 }, // 剑尖朝右下斜下（穿过副手）
-        // hit：整体上移 5 格（锚点跟手上移）→ 再以柄为轴顺时针 15°
-        hit: {
-            gripX: 24,
-            gripY: 24,
-            handX: HAND_POINTS.hit.x,
-            handY: HAND_POINTS.hit.y - 5,
-            angle: (15 * Math.PI) / 180,
+        parry: { gripX: 24, gripY: 24, angle: 2.6857 },
+        hit: { gripX: 24, gripY: 24, angle: (15 * Math.PI) / 180, handDX: 1.5, handDY: -2.5 },
+        off: {
+            ...makePoses({ gripX: 24, gripY: 23, handDX: 1, handDY: -0.5 }),
+            idle: { gripX: 24, gripY: 23, angle: 0, handDX: 1, handDY: -0.5 },
+            attack: { gripX: 24, gripY: 23, angle: (-12 * Math.PI) / 180, handDX: -0.5, handDY: -1 },
+            dodge: { gripX: 24, gripY: 23, angle: 0, handDX: 1, handDY: -0.5 },
+            parry: { gripX: 24, gripY: 23, angle: (-10 * Math.PI) / 180, handDX: 0.5, handDY: -1 },
+            hit: { gripX: 24, gripY: 24, angle: (58 * Math.PI) / 180, handDX: 3, handDY: -2 },
+            buff: { gripX: 24, gripY: 24, angle: (90 * Math.PI) / 180, handDX: 0, handDY: 0 },
         },
     },
     // 齐眉棍（双手长杆）：握点取「杆中点落在主手（画面左侧那只手）」的位置
@@ -1428,21 +1484,38 @@ export const WEAPON_POSES: Record<string, WeaponPoseTable> = {
 const DEFAULT_POSE: WeaponPoseConfig = { gripX: 0, gripY: 0 }
 
 /** 获取武器在某姿势的握持配置（该姿势未定义时回落 idle；武器未登记时兜底 grip 0,0） */
-export function getWeaponPoseConfig(
-    weaponId: string,
-    pose: string,
-    override?: Partial<WeaponPoseConfig>,
-    slot: WeaponSlot = 'main',
-): WeaponPoseConfig {
-    if (override) return override as WeaponPoseConfig // 编辑器「武器挂点」实验用：临时用一份未落库的配置
+/**
+ * 查表取握持配置（不含编辑器临时覆盖）。
+ * 注意：**临时覆盖只能通过 `resolveWeaponMount({ slot, config })` 传入** —— 这里刻意不收 override，
+ * 就是为了从类型上杜绝"传了覆盖却忘了带槽位"（副手槽按主手基准算 → 武器与握点相对位置跳）。
+ */
+/** 表里按姿势名取配置（姿势名来自引擎是 string，这里统一收窄到 PoseKey） */
+export function poseConfigIn<T>(table: Partial<Record<PoseKey, T>> | undefined, pose: string): T | undefined {
+    return table?.[pose as PoseKey]
+}
+
+export function getWeaponPoseConfig(weaponId: string, pose: string, slot: WeaponSlot = 'main'): WeaponPoseConfig {
     const set = WEAPON_POSES[weaponId]
     if (!set) return DEFAULT_POSE
     if (slot === 'off') {
         // 副手槽：只认显式登记的 off 子表；没登记就交给 resolveWeaponMount 走「副手默认」
-        const offCfg = set.off?.[pose] ?? set.off?.idle
+        const offCfg = poseConfigIn(set.off, pose) ?? set.off?.idle
         if (offCfg) return offCfg
     }
-    return set[pose] ?? set.idle ?? DEFAULT_POSE
+    return poseConfigIn(set, pose) ?? set.idle ?? DEFAULT_POSE
+}
+
+/**
+ * 手部遮罩表的选择——"哪个槽位盖哪只手"只有这一处判断（渲染器与像素预览共用）。
+ * 主手槽：主手遮罩为主、双手武器再盖副手；副手槽：反过来。
+ */
+export function handCoverTables(slot: WeaponSlot): {
+    primary: Record<string, [number, number][]>
+    secondary: Record<string, [number, number][]>
+} {
+    return slot === 'off'
+        ? { primary: LEFT_HAND_COVER, secondary: HAND_COVER }
+        : { primary: HAND_COVER, secondary: LEFT_HAND_COVER }
 }
 
 /** 姿势配置里"锚定哪只手"的判定（显式 anchorHand 优先；单手默认主手、双手默认副手） */
@@ -1460,9 +1533,11 @@ export function baseAnchorHand(
     pose: string,
     slot: WeaponSlot = 'main',
 ): { x: number; y: number } {
-    // 副手槽：默认锚副手（除非配置显式写了 anchorHand: 'main'）；主手槽按 anchorHand/双手规则
-    const off = slot === 'off' ? cfg.anchorHand !== 'main' : anchorIsOff(cfg)
-    return off ? getDualHandPoints(pose).anchor : (HAND_POINTS[pose] ?? HAND_POINTS.idle)
+    // 副手槽：基准 = 全局副手手位（**不含** DUAL_ATTACK_ADJUST —— 那是给双手长兵两手连线用的），
+    // 与「副手默认」合成出来的落点必须完全一致，否则基准与默认值差半格，拖动会莫名偏移。
+    // 主手槽：显式 anchorHand: 'off' 或双手武器 → 双手锚点；否则主手手位。
+    if (slot === 'off') return OTHER_HAND_POINT[pose] ?? OTHER_HAND_POINT.idle
+    return anchorIsOff(cfg) ? getDualHandPoints(pose).anchor : (HAND_POINTS[pose] ?? HAND_POINTS.idle)
 }
 
 /** 基准目标手（双手武器的另一端；不含 targetX/targetY、targetDX/targetDY 覆盖） */
@@ -1502,14 +1577,16 @@ export function resolveWeaponMount(
 ): WeaponMount {
     const slot: WeaponSlot = opts.slot ?? 'main'
     const facingRight = opts.facingRight ?? true
-    const registered = getWeaponPoseConfig(weaponId, pose, opts.config, slot)
+    const registered = opts.config ? (opts.config as WeaponPoseConfig) : getWeaponPoseConfig(weaponId, pose, slot)
     const registeredDual = registered.grip2X !== undefined && registered.grip2Y !== undefined
 
     let cfg = registered
     let usingOffhandDefault = false
     if (slot === 'off' && !opts.config) {
-        const hasOffTable = Boolean(WEAPON_POSES[weaponId]?.off?.[pose] ?? WEAPON_POSES[weaponId]?.off?.idle)
+        const offTable = WEAPON_POSES[weaponId]?.off
+        const hasOffTable = Boolean(poseConfigIn(offTable, pose) ?? offTable?.idle)
         if (!hasOffTable) {
+            const offBase = baseAnchorHand(registered, pose, 'off')
             cfg = registeredDual
                 ? registered // 双手武器：沿用主手配置
                 : {
@@ -1517,8 +1594,8 @@ export function resolveWeaponMount(
                       gripY: registered.gripY,
                       flip: registered.flip,
                       noHandCover: registered.noHandCover,
-                      handX: (OTHER_HAND_POINT[pose] ?? OTHER_HAND_POINT.idle).x,
-                      handY: (OTHER_HAND_POINT[pose] ?? OTHER_HAND_POINT.idle).y,
+                      handX: offBase.x,
+                      handY: offBase.y,
                       angle: DUAL_OFFHAND_ANGLE[pose] ?? 0,
                   }
             usingOffhandDefault = true
@@ -1607,13 +1684,8 @@ function getDualHandPoints(pose: string): { anchor: { x: number; y: number }; ta
  * - 姿势配置显式给了 handX/handY → 直接用
  * - 否则按 anchorHand（默认：单手=主手，双手=副手）查全局手部表
  */
-export function getWeaponHand(
-    weaponId: string,
-    pose: string,
-    override?: Partial<WeaponPoseConfig>,
-    slot: WeaponSlot = 'main',
-): { x: number; y: number } {
-    return resolveWeaponMount(weaponId, pose, { slot, config: override }).hand
+export function getWeaponHand(weaponId: string, pose: string, slot: WeaponSlot = 'main'): { x: number; y: number } {
+    return resolveWeaponMount(weaponId, pose, { slot }).hand
 }
 
 /**
@@ -1675,8 +1747,7 @@ export function getWeaponAngle(
     weaponId: string,
     pose: string,
     facingRight: boolean,
-    override?: Partial<WeaponPoseConfig>,
     slot: WeaponSlot = 'main',
 ): number {
-    return resolveWeaponMount(weaponId, pose, { slot, config: override, facingRight }).angle
+    return resolveWeaponMount(weaponId, pose, { slot, facingRight }).angle
 }

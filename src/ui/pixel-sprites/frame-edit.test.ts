@@ -1,3 +1,4 @@
+import { removePaletteColor } from './frame-edit'
 import { describe, expect, it } from 'vitest'
 import {
     SPRITE_AURA_SLOT,
@@ -193,5 +194,58 @@ describe('手部锚点：拖动 / 吸附 / 导出', () => {
         expect(snip).toContain('[24 + SPRITE_PAD_LEFT, 27],')
         expect(snip).toContain('HAND_POINTS')
         expect(snip).toContain('LEFT_HAND_COVER')
+    })
+})
+
+describe('调色板删色：索引前移，画面颜色不变', () => {
+    const palette = ['', '#111111', '#222222', '#333333', '#444444']
+    // 画布上同时用了索引 1/2/4（留 3 没用，用来测"删没用的颜色"）
+    const grid = [
+        [1, 2, 0],
+        [4, 1, 0],
+    ]
+
+    it('删掉中间一个没用到的颜色：其余索引整体前移，颜色不变', () => {
+        const before = grid.map((row) => row.map((v) => palette[v]))
+        const res = removePaletteColor(grid, palette, 3)
+        expect(res.blocked).toBe(false)
+        expect(res.palette).toEqual(['', '#111111', '#222222', '#444444'])
+        const after = res.grid.map((row) => row.map((v) => res.palette[v]))
+        expect(after).toEqual(before) // ← 关键：逐格颜色一致
+        expect(res.grid).toEqual([
+            [1, 2, 0],
+            [3, 1, 0],
+        ])
+    })
+
+    it('删掉最前面一个颜色（索引 1）：后面全部前移', () => {
+        // 这组不用索引 1（否则会被"还在用"挡住）
+        const g2 = [
+            [2, 3, 0],
+            [4, 2, 0],
+        ]
+        const res = removePaletteColor(g2, palette, 1)
+        expect(res.blocked).toBe(false)
+        expect(res.palette).toEqual(['', '#222222', '#333333', '#444444'])
+        expect(res.grid).toEqual([
+            [1, 2, 0],
+            [3, 1, 0],
+        ])
+        // 逐格颜色与删之前一致
+        expect(res.grid.map((row) => row.map((v) => res.palette[v]))).toEqual(
+            g2.map((row) => row.map((v) => palette[v])),
+        )
+    })
+
+    it('颜色还在用 → 不删', () => {
+        const res = removePaletteColor(grid, palette, 2)
+        expect(res.blocked).toBe(true)
+        expect(res.grid).toBe(grid)
+        expect(res.palette).toBe(palette)
+    })
+
+    it('索引 0（透明）与越界不处理', () => {
+        expect(removePaletteColor(grid, palette, 0).palette).toBe(palette)
+        expect(removePaletteColor(grid, palette, 99).palette).toBe(palette)
     })
 })

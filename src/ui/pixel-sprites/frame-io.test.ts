@@ -228,7 +228,11 @@ describe('武器挂点片段 · 往返一致', () => {
     for (const id of IDS) {
         it(`${id}：导出后每个姿势的落点与登记值一致`, () => {
             const original = WEAPON_POSES[id]
-            const configs = Object.fromEntries([...POSE_NAMES].map((p) => [p, original[p] ?? original.idle]))
+            const configs: Record<string, WeaponPoseConfig> = {}
+            for (const p of POSE_NAMES) {
+                const cfg = original[p] ?? original.idle
+                if (cfg) configs[p] = cfg
+            }
             const snippet = formatWeaponPoseSnippet(id, configs, [...POSE_NAMES])
             const roundTripped = evalPoseSnippet(snippet)[id]
             for (const pose of POSE_NAMES) {
@@ -242,6 +246,32 @@ describe('武器挂点片段 · 往返一致', () => {
             }
         })
     }
+
+    it('带 off 子表的武器：导出（含 off 块）后主手与副手落点都不变', () => {
+        const withOff = Object.keys(WEAPON_POSES).filter((id) => Object.keys(WEAPON_POSES[id].off ?? {}).length > 0)
+        for (const id of withOff) {
+            const original = WEAPON_POSES[id]
+            const mainCfg: Record<string, WeaponPoseConfig> = {}
+            for (const p of POSE_NAMES) {
+                const cfg = original[p] ?? original.idle
+                if (cfg) mainCfg[p] = cfg
+            }
+            const offTable: Record<string, WeaponPoseConfig> = {}
+            for (const p of POSE_NAMES) {
+                const cfg = original.off?.[p] ?? original.off?.idle
+                if (cfg) offTable[p] = cfg
+            }
+            const snippet = formatWeaponPoseSnippet(id, mainCfg, [...POSE_NAMES], { offTable })
+            const rt = evalPoseSnippet(snippet)[id]
+            for (const p of POSE_NAMES) {
+                const want = resolveWeaponMount(id, p, { slot: 'off' })
+                const gotCfg = (rt.off?.[p] ?? {}) as Partial<WeaponPoseConfig>
+                const got = resolveWeaponMount(id, p, { slot: 'off', config: gotCfg })
+                expect(got.hand, `${id}.off.${p}.hand`).toEqual(want.hand)
+                expect(got.angle, `${id}.off.${p}.angle`).toBeCloseTo(want.angle, 6)
+            }
+        }
+    })
 
     it('绝对坐标折算成相对偏移：等于基准就不写，偏离基准写 handDX/handDY', () => {
         const snippet = formatWeaponPoseSnippet(

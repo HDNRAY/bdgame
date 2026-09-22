@@ -17,6 +17,7 @@ import {
     autoOutline,
     blankPixelMap,
     fillRegion,
+    removePaletteColor,
     buildPalette,
     formatAnchorSnippet,
     formatCharacterColorsSnippet,
@@ -78,6 +79,12 @@ const DEFAULT_ZOOM = 12
 const ZOOM_MIN = 4
 const ZOOM_MAX = 20
 const HISTORY_LIMIT = 100
+
+/** 一步编辑的快照（画布 + 该步生效的调色板） */
+interface EditSnapshot {
+    map: PixelMap
+    palette: string[]
+}
 
 const TOOLS: { id: Tool; label: string; key: string }[] = [
     { id: 'pen', label: '画笔', key: 'B' },
@@ -276,6 +283,10 @@ export function PixelEditor() {
     const [weaponPalette, setWeaponPalette] = useState<string[]>(
         () => saved?.weapon.palette ?? weaponOverlayToGrid(firstWeaponId).palette,
     )
+    const weaponPaletteRef = useRef(weaponPalette)
+    useEffect(() => {
+        weaponPaletteRef.current = weaponPalette
+    }, [weaponPalette])
 
     // ── 工具/颜色 ──
     const [tool, setTool] = useState<Tool>(saved?.tool ?? 'pen')
@@ -343,7 +354,12 @@ export function PixelEditor() {
     const [previewWeaponId, setPreviewWeaponId] = useState('peach_sword')
 
     // ── 历史 / 导入导出 ──
-    const historyRef = useRef<{ past: PixelMap[]; future: PixelMap[] }>({ past: [], future: [] })
+    /**
+     * 撤销历史：画布 + 调色板一起存。
+     * 只存画布会错位——删掉一个颜色后画布索引整体前移，若撤销只还原画布，
+     * 索引就会指到已缩短的调色板上（颜色错乱）。
+     */
+    const historyRef = useRef<{ past: EditSnapshot[]; future: EditSnapshot[] }>({ past: [], future: [] })
     const [, bumpHistory] = useState(0)
     const [pasteText, setPasteText] = useState('')
     const [status, setStatus] = useState(saved ? '已恢复上次的编辑内容（保存代码触发的整页刷新不会丢）' : '')
@@ -567,12 +583,14 @@ export function PixelEditor() {
         return { x, y }
     }
 
-    const beginStroke = () => {
-        historyRef.current.past.push(cloneMap(activeRef.current))
+    /** 记一步历史（画布 + 调色板）——画笔落笔、调色板增删改都调它 */
+    const pushHistory = useCallback(() => {
+        historyRef.current.past.push({ map: cloneMap(activeRef.current), palette: [...weaponPaletteRef.current] })
         if (historyRef.current.past.length > HISTORY_LIMIT) historyRef.current.past.shift()
         historyRef.current.future = []
         bumpHistory((v) => v + 1)
-    }
+    }, [])
+    const beginStroke = () => pushHistory()
 
     const applyCell = (c: { x: number; y: number }, from?: { x: number; y: number }) => {
         const value = tool === 'eraser' ? 0 : slot
@@ -653,8 +671,9 @@ export function PixelEditor() {
         const h = historyRef.current
         const prev = h.past.pop()
         if (!prev) return
-        h.future.push(cloneMap(activeRef.current))
-        setActive(prev)
+        h.future.push({ map: cloneMap(activeRef.current), palette: [...weaponPaletteRef.current] })
+        setActive(prev.map)
+        setWeaponPalette(prev.palette)
         bumpHistory((v) => v + 1)
     }, [setActive])
 
@@ -662,8 +681,9 @@ export function PixelEditor() {
         const h = historyRef.current
         const next = h.future.pop()
         if (!next) return
-        h.past.push(cloneMap(activeRef.current))
-        setActive(next)
+        h.past.push({ map: cloneMap(activeRef.current), palette: [...weaponPaletteRef.current] })
+        setActive(next.map)
+        setWeaponPalette(next.palette)
         bumpHistory((v) => v + 1)
     }, [setActive])
 
@@ -766,23 +786,27 @@ export function PixelEditor() {
 
     // ── 武器调色板操作 ──
     const addWeaponColor = () => {
+        pushHistory()
         setSlot(weaponPalette.length)
         setWeaponPalette((p) => [...p, '#ffffff'])
         setStatus('已加一个颜色（用色块旁的取色器改成想要的颜色）')
     }
     const setWeaponColorAt = (idx: number, color: string) => {
+        pushHistory()
         setWeaponPalette((p) => p.map((c, i) => (i === idx ? color : c)))
     }
     const removeWeaponColor = (idx: number) => {
-        let used = false
-        for (const row of weaponGrid) for (const v of row) if (v === idx) used = true
-        if (used) {
+        const res = removePaletteColor(weaponGrid, weaponPalette, idx)
+        if (res.blocked) {
             setStatus('这个颜色还在画布上用着，先把用它的格子擦掉或换色')
             return
         }
-        setWeaponPalette((p) => p.filter((_, i) => i !== idx))
-        if (slot === idx) setSlot(1)
-        setStatus('已删掉这个颜色')
+        pushHistory()
+        // 索引前移后，画布上的颜色保持不变（不做这步就会整片错位）
+        setWeaponGrid(res.grid)
+        setWeaponPalette(res.palette)
+        setSlot((s) => (s === idx ? 1 : s > idx ? s - 1 : s))
+        setStatus('已删掉这个颜色（其余颜色的索引已同步前移，画面不变）')
     }
 
     // ── 导入 / 导出 ──

@@ -33,6 +33,27 @@ describe('WeaponMountPanel 渲染冒烟', () => {
         expect(html).toMatch(/<summary[^>]*>查看挂点代码<\/summary>/)
     })
 
+    it('锚定手：主手槽下说明「单手武器默认锚主手」且可选；副手槽下禁用并说明原因', () => {
+        const mainSlot = renderToStaticMarkup(
+            <WeaponMountPanel configs={{}} onChange={() => {}} charId="yidao" setStatus={() => {}} />,
+        )
+        expect(mainSlot).toContain('单手武器默认锚主手')
+        expect(mainSlot).not.toContain('<span>锚定手</span><select disabled')
+
+        const offSlot = renderToStaticMarkup(
+            <WeaponMountPanel
+                configs={{}}
+                onChange={() => {}}
+                charId="yidao"
+                setStatus={() => {}}
+                initialSlot="off"
+            />,
+        )
+        // 副手槽固定用全局副手手位 → 该选项禁用
+        expect(offSlot).toContain('<span>锚定手</span><select disabled')
+        expect(offSlot).toContain('副手槽的落点固定用全局副手手位')
+    })
+
     it('副手槽的改动会导出成 off 块（与主手同一套压缩规则）', () => {
         const html = renderToStaticMarkup(
             <WeaponMountPanel

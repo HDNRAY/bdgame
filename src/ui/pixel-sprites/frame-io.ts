@@ -553,8 +553,13 @@ export function formatWeaponPoseSnippet(
         const idle = shaped.idle ?? {}
         const baseKeys = BASE_CANDIDATES.filter((k) => idle[k] !== undefined)
         const baseOffsets = OFFSET_KEYS.filter((k) => offsetOf(idle, k) !== 0)
-        const baseLine = [...baseKeys, ...baseOffsets]
-        const baseFields = baseLine.map((k) => formatKey(k, idle)).join(', ')
+        // gripX/gripY 是 WeaponPoseConfig 的必填字段 → 基底行必须带上，否则会导出 makePoses({})（类型错）
+        const grip: Partial<WeaponPoseConfig> = {
+            gripX: typeof idle.gripX === 'number' ? idle.gripX : 0,
+            gripY: typeof idle.gripY === 'number' ? idle.gripY : 0,
+        }
+        const baseLine = ['gripX' as const, 'gripY' as const, ...baseKeys.filter((k) => k !== 'gripX' && k !== 'gripY'), ...baseOffsets]
+        const baseFields = baseLine.map((k) => formatKey(k, grip[k] !== undefined ? grip : idle)).join(', ')
         const out: string[] = []
         out.push(baseFields ? `${indent}...makePoses({ ${baseFields} }),` : `${indent}...makePoses({}),`)
 

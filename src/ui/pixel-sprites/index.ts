@@ -45,6 +45,7 @@ export {
     fillRegion,
     frameSize,
     frameStats,
+    removePaletteColor,
     getCell,
     hitAnchor,
     isBodySlot,
@@ -96,7 +97,9 @@ export {
     getWeaponAngle,
     getWeaponHand,
     baseAnchorHand,
+    poseConfigIn,
+    handCoverTables,
     baseTargetHand,
     resolveWeaponMount,
 } from './weapons'
-export type { WeaponMount, WeaponPoseTable, WeaponSlot } from './weapons'
+export type { PoseKey, WeaponMount, WeaponPoseTable, WeaponSlot } from './weapons'

@@ -7,6 +7,7 @@ import {
     formatWeaponPoseSnippet,
     baseAnchorHand,
     baseTargetHand,
+    poseConfigIn,
     resolveWeaponMount,
     getSpriteOutlineColor,
     buildPalette,
@@ -14,6 +15,7 @@ import {
 import type { PixelMap, WeaponPoseConfig, WeaponSlot } from '../../../pixel-sprites'
 import { CHARACTER_COLORS, DEFAULT_COLORS } from '../../../pixel-sprites/palette'
 import { SPRITES } from '../../../pixel-sprites/sprites'
+import { dragHandOffset, dragTargetOffset } from '../../../pixel-sprites/frame-edit'
 import { PixelCanvas } from '../../../components/ui/PixelCanvas/PixelCanvas'
 import { WEAPON_DB } from '../../../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
@@ -58,14 +60,22 @@ export interface WeaponMountPanelProps {
     onChange: (weaponId: string, slot: WeaponSlot, pose: string, cfg: PoseCfg | null) => void
     charId: string
     setStatus: (msg: string) => void
+    /** 初始编辑哪个槽位（默认主手） */
+    initialSlot?: WeaponSlot
 }
 
 /** 武器挂点 / 旋转的实验台：拖动改手部锚点，Shift（或右键）拖动绕握点旋转，导出 WEAPON_POSES 片段 */
-export function WeaponMountPanel({ configs, onChange, charId, setStatus }: WeaponMountPanelProps) {
+export function WeaponMountPanel({
+    configs,
+    onChange,
+    charId,
+    setStatus,
+    initialSlot = 'main',
+}: WeaponMountPanelProps) {
     const [weaponId, setWeaponId] = useState(WEAPON_IDS[0] ?? 'xiu_dong')
     const [pose, setPose] = useState('idle')
     /** 编辑哪个槽位：主手（表在 WEAPON_POSES[w][pose]）或副手（WEAPON_POSES[w].off[pose]） */
-    const [slot, setSlot] = useState<WeaponSlot>('main')
+    const [slot, setSlot] = useState<WeaponSlot>(initialSlot)
 
     // ── 画布自适应：铺满可用宽度（同时受视口高度限制），取整数倍保证像素清晰 ──
     const rootRef = useRef<HTMLDivElement>(null)
@@ -119,13 +129,23 @@ export function WeaponMountPanel({ configs, onChange, charId, setStatus }: Weapo
     const resolved = useMemo(() => resolveWeaponMount(weaponId, pose, { slot }), [weaponId, pose, slot])
     const rawRegistered = WEAPON_POSES[weaponId] ?? {}
     /** 该槽位是否在 weapons.ts 里有显式登记（副手没登记时用的是默认） */
-    const registeredHere = slot === 'main' ? Boolean(rawRegistered[pose] ?? rawRegistered.idle) : Boolean(rawRegistered.off?.[pose] ?? rawRegistered.off?.idle)
+    const registeredHere =
+        slot === 'main'
+            ? Boolean(poseConfigIn(rawRegistered, pose) ?? rawRegistered.idle)
+            : Boolean(poseConfigIn(rawRegistered.off, pose) ?? rawRegistered.off?.idle)
     const registered = resolved.config
     const effective = configs[weaponId]?.[slot]?.[pose] ?? registered
     const dirty = Boolean(configs[weaponId]?.[slot]?.[pose])
-    const handBase = useMemo(() => baseAnchorHand(effective, pose), [effective, pose])
+    const handBase = useMemo(() => baseAnchorHand(effective, pose, slot), [effective, pose, slot])
     const targetBase = useMemo(() => baseTargetHand(pose), [pose])
     const showOffhandDefaultHint = slot === 'off' && resolved.usingOffhandDefault && !dirty
+    const isDualWeapon = effective.grip2X !== undefined && effective.grip2Y !== undefined
+    const anchorHandTip =
+        slot === 'off'
+            ? '副手槽的落点固定用全局副手手位（OTHER_HAND_POINT），这个选项对副手槽没有作用'
+            : isDualWeapon
+              ? '双手武器：杆身轴心锚哪只手（默认副手）。选「主手」= 绕主手转（打点/角度都会变）'
+              : '单手武器默认锚主手；选「副手」= 把这把武器锚到副手位（等价于把它当副手武器）'
 
     const patch = useCallback(
         (fields: PoseCfg) => {
@@ -222,13 +242,8 @@ export function WeaponMountPanel({ configs, onChange, charId, setStatus }: Weapo
             const base = drag.startCfg
             // 拖动写「相对基准的偏移」（handDX/handDY），不再写绝对坐标 —— 导出也是相对值，
             // 这样基准（HAND_POINTS / 副手表）一改，武器跟着动。
-            const handBase = baseAnchorHand(base, pose)
             const startHand = resolveWeaponMount(weaponId, pose, { slot, config: base }).hand
-            const next: PoseCfg = {
-                ...base,
-                handDX: Math.round((startHand.x - handBase.x + dx) * 2) / 2,
-                handDY: Math.round((startHand.y - handBase.y + dy) * 2) / 2,
-            }
+            const next: PoseCfg = { ...base, ...dragHandOffset(base, pose, slot, startHand, dx, dy) }
             delete next.handX
             delete next.handY
             // 双手武器：目标手一起平移，保持角度不变
@@ -238,8 +253,7 @@ export function WeaponMountPanel({ configs, onChange, charId, setStatus }: Weapo
                     base.targetX !== undefined && base.targetY !== undefined
                         ? { x: base.targetX, y: base.targetY }
                         : { x: targetBase.x + (base.targetDX ?? 0), y: targetBase.y + (base.targetDY ?? 0) }
-                next.targetDX = Math.round((startTarget.x - targetBase.x + dx) * 2) / 2
-                next.targetDY = Math.round((startTarget.y - targetBase.y + dy) * 2) / 2
+                Object.assign(next, dragTargetOffset(pose, startTarget, dx, dy))
                 delete next.targetX
                 delete next.targetY
             }
@@ -351,7 +365,7 @@ export function WeaponMountPanel({ configs, onChange, charId, setStatus }: Weapo
                                 title={
                                     s2 === 'main'
                                         ? '主手槽：配置写在 WEAPON_POSES[武器][姿势]'
-                                        : '副手槽：配置写在 WEAPON_POSES[武器].off[姿势]（没登记时用副手默认）'
+                                        : '副手槽：配置写在 WEAPON_POSES[武器].off[姿势]；没登记时按「副手默认」画（全局副手手位 OTHER_HAND_POINT + 副手角度 DUAL_OFFHAND_ANGLE），改任一字段即写入 off 表'
                                 }
                                 onClick={() => setSlot(s2)}
                             >
@@ -429,10 +443,14 @@ export function WeaponMountPanel({ configs, onChange, charId, setStatus }: Weapo
                             />
                             不遮手
                         </label>
-                        <label className="pixel-editor-field pixel-editor-field--inline" title="武器锚在角色的哪只手">
+                        <label
+                            className="pixel-editor-field pixel-editor-field--inline"
+                            title={anchorHandTip}
+                        >
                             <span>锚定手</span>
                             <select
                                 value={effective.anchorHand ?? 'auto'}
+                                disabled={slot === 'off'}
                                 onChange={(e) =>
                                     e.target.value === 'auto'
                                         ? clearField('anchorHand')
@@ -445,17 +463,18 @@ export function WeaponMountPanel({ configs, onChange, charId, setStatus }: Weapo
                             </select>
                         </label>
                     </div>
-                    <span className="pixel-editor-colorline">
+                    <span
+                        className="pixel-editor-colorline"
+                        title={
+                            showOffhandDefaultHint
+                                ? '副手槽没登记：现在按「副手默认」画（全局副手手位 OTHER_HAND_POINT + 副手角度 DUAL_OFFHAND_ANGLE）。改任一字段（或拖动画布）就会写入这把武器的 off 表。'
+                                : `${slot === 'off' ? '副手' : '主手'}槽的最终落点 = 基准 + 偏移；基准见各字段占位提示`
+                        }
+                    >
                         {slot === 'off' ? '副手' : '主手'} · 当前：角度 {angleDeg}° · 握点 (
                         {Math.round(anchorHand.x * 2) / 2}, {Math.round(anchorHand.y * 2) / 2})
                         {dirty ? ' · 已改动' : registeredHere ? ' · weapons.ts 登记值' : ' · 未登记（用默认）'}
                     </span>
-                    {showOffhandDefaultHint && (
-                        <span className="pixel-editor-mount-note">
-                            副手槽没登记：现在按「副手默认」画（全局副手手位 OTHER_HAND_POINT + 副手角度 DUAL_OFFHAND_ANGLE）。
-                            改任一字段（或拖动画布）就会写入这把武器的 off 表。
-                        </span>
-                    )}
                     <div className="pixel-editor-row">
                         <button
                             className="pixel-editor-btn"
@@ -521,6 +540,7 @@ export function WeaponMountPanel({ configs, onChange, charId, setStatus }: Weapo
                         weaponId={weaponId}
                         overlay={overlay}
                         poseConfig={effective}
+                        weaponSlot={slot}
                         canvasCols={VIEW_COLS}
                         canvasRows={VIEW_ROWS}
                         contentOffsetX={VIEW_OFF_X}

@@ -2,16 +2,12 @@ import { useRef, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import type { PixelMap, Palette, WeaponOverlay, WeaponPoseConfig } from '../../../pixel-sprites'
 import {
-    HAND_COVER,
+    handCoverTables,
     HAND_POINTS,
-    LEFT_HAND_COVER,
     WEAPON_WIDTH,
     WEAPON_HEIGHT,
-    getWeaponAngle,
-    getWeaponHand,
     getWeaponOverlay,
     resolveWeaponMount,
-    getWeaponPoseConfig,
     shouldDrawHandCover,
     resolveWeaponPixels,
 } from '../../../pixel-sprites'
@@ -33,6 +29,8 @@ interface PixelCanvasProps {
     pose?: string
     /** 临时覆盖握持配置（编辑器「武器挂点」实验用；不传则按 weapons.ts 的登记值） */
     poseConfig?: Partial<WeaponPoseConfig>
+    /** 主武器挂在哪个槽位（决定手部覆盖画在哪只手上）：默认 'main' */
+    weaponSlot?: 'main' | 'off'
     /** 旋转角度（弧度），武器绕握柄旋转后叠加 */
     angle?: number
     /** CSS 类名 — 显示尺寸由 CSS 控制 */
@@ -62,6 +60,7 @@ export function PixelCanvas({
     weaponId,
     pose = 'idle',
     poseConfig: poseConfigProp,
+    weaponSlot = 'main',
     angle,
     className,
     style,
@@ -112,7 +111,12 @@ export function PixelCanvas({
         ctx.clearRect(0, 0, bufW, bufH)
 
         // 握持行为配置（合成模式按 武器+姿势 查表；编辑器可用 poseConfig 临时覆盖）
-        const poseConfig = weaponId ? getWeaponPoseConfig(weaponId, pose, poseConfigProp) : undefined
+        // 握持配置统一用 resolveWeaponMount 解析（**必须带槽位**：副手槽的基准是 OTHER_HAND_POINT，
+        // 少了 slot 会按主手基准算，拖动后就"武器与握点相对位置跳"）。
+        const mount = weaponId
+            ? resolveWeaponMount(weaponId, pose, { slot: weaponSlot, config: poseConfigProp })
+            : undefined
+        const poseConfig = mount?.config
 
         // 渲染像素图（居中）
         if (pixels && palette) {
@@ -166,18 +170,13 @@ export function PixelCanvas({
         if (overlay && overlay.pixels.length > 0) {
             if (hasPixels) {
                 // 合成模式：锚定手（单手=主手；双手武器=副手）
-                const hand = weaponId
-                    ? getWeaponHand(weaponId, pose, poseConfigProp)
-                    : (HAND_POINTS[pose] ?? HAND_POINTS.idle)
+                const hand = mount?.hand ?? HAND_POINTS[pose] ?? HAND_POINTS.idle
                 // 双手武器：握点连线自动决定角度（不被双持主手角度覆盖）
                 // 角度：有武器就统一走引擎的 getWeaponAngle（显式 angle > 双手两手连线 > 单手默认 0°/攻击 -45°），
                 // 这样预览与战斗渲染器完全一致；没有武器（图标模式）才用传进来的 angle。
                 // 注意：之前只在配置写了显式 angle 时才调 getWeaponAngle，导致单手 attack 的 -45° 在预览里丢了。
-                const effAngle =
-                    weaponId !== undefined
-                        ? (dualMainAngle ?? getWeaponAngle(weaponId, pose, true, poseConfigProp))
-                        : (angle ?? 0)
-                paintRotatedWeapon(overlay, poseConfig?.gripX ?? 0, poseConfig?.gripY ?? 0, hand, effAngle)
+                const effAngle = mount ? (dualMainAngle ?? mount.angle) : (angle ?? 0)
+                paintRotatedWeapon(overlay, mount?.gripX ?? 0, mount?.gripY ?? 0, hand, effAngle)
             } else {
                 // 武器图标模式：按完整 32×32 网格 + 原始坐标绘制，保留武器设计时的空白
                 ctx.imageSmoothingEnabled = false
@@ -191,13 +190,17 @@ export function PixelCanvas({
         // 副手武器（双持）：统一走 resolveWeaponMount 的副手规则 ——
         // 武器登记了 off 配置就用它，否则用「副手默认」（全局副手手位 OTHER_HAND_POINT + DUAL_OFFHAND_ANGLE）
         const offhandOverlay = secondWeaponId ? getWeaponOverlay(secondWeaponId) : undefined
-        const offhandConfig = secondWeaponId ? getWeaponPoseConfig(secondWeaponId, pose, undefined, 'off') : undefined
+        const offhandConfig = secondWeaponId
+            ? resolveWeaponMount(secondWeaponId, pose, { slot: 'off' }).config
+            : undefined
         if (hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0 && secondWeaponId) {
             const offMount = resolveWeaponMount(secondWeaponId, pose, { slot: 'off' })
             const offAngle = secondAngle ?? offMount.angle
             paintRotatedWeapon(offhandOverlay, offMount.gripX, offMount.gripY, offMount.hand, offAngle)
         }
 
+        // 哪个槽位盖哪只手（统一入口）
+        const { primary: primaryCover, secondary: secondaryCover } = handCoverTables(weaponSlot)
         // 渲染手部覆盖层 — 仅在合成武器时（有角色像素）绘制，用皮肤色盖住握柄（漂浮类武器/武器脱手时跳过）
         if (
             hasPixels &&
@@ -208,7 +211,7 @@ export function PixelCanvas({
         ) {
             const skin = palette?.['3'] ?? '#f5d6c6'
             ctx.fillStyle = skin
-            const cover = HAND_COVER[pose]
+            const cover = primaryCover[pose] ?? primaryCover.idle
             if (cover) {
                 for (const [cx, cy] of cover) {
                     ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
@@ -224,7 +227,7 @@ export function PixelCanvas({
         if (needsLeftCover) {
             const skin = palette?.['3'] ?? '#f5d6c6'
             ctx.fillStyle = skin
-            const leftCover = LEFT_HAND_COVER[pose] ?? LEFT_HAND_COVER.idle
+            const leftCover = secondaryCover[pose] ?? secondaryCover.idle
             for (const [cx, cy] of leftCover) {
                 ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
             }
@@ -249,6 +252,7 @@ export function PixelCanvas({
         dualMainAngle,
         // 挂持配置是「对象」：编辑器拖动/改数值每次都换新对象，必须进依赖，否则预览不重绘
         poseConfigProp,
+        weaponSlot,
     ])
 
     return <canvas ref={ref} width={bufW} height={bufH} className={className} style={style} />

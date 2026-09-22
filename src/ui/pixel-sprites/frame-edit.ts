@@ -6,7 +6,9 @@
  *
  * 槽位约定同 palette.ts：0 透明 1 描边 2 发色 3 皮肤 4 瞳色 5 衣物 6 装饰 7 白 8 受击星光 9 爆气光环金边
  */
-import type { PixelMap } from './types'
+import { baseAnchorHand, baseTargetHand } from './weapons'
+import type { PixelMap, WeaponPoseConfig } from './types'
+import type { WeaponSlot } from './weapons'
 
 export const SPRITE_OUTLINE_SLOT = 1
 /** 合法槽位上限（0..9，见 palette.ts） */
@@ -289,4 +291,55 @@ export function frameStats(map: PixelMap): FrameStats {
         }
     }
     return { width: map[0]?.length ?? 0, height: map.length, outline, body, aura }
+}
+
+/**
+ * 拖动武器后的手位偏移（相对基准）——编辑器「武器挂点」拖动用。
+ *
+ * 基准必须按**槽位**取（主手 = HAND_POINTS、副手 = OTHER_HAND_POINT），
+ * 否则副手槽拖动会按主手基准折算，松手时武器会"跳"一个基准差。
+ */
+export function dragHandOffset(
+    cfg: Partial<WeaponPoseConfig>,
+    pose: string,
+    slot: WeaponSlot,
+    startHand: { x: number; y: number },
+    deltaX: number,
+    deltaY: number,
+): { handDX: number; handDY: number } {
+    const base = baseAnchorHand(cfg, pose, slot)
+    const round = (v: number) => Math.round(v * 2) / 2
+    return { handDX: round(startHand.x - base.x + deltaX), handDY: round(startHand.y - base.y + deltaY) }
+}
+
+/** 拖动双手武器的第二只手后的目标手偏移（相对目标手基准） */
+export function dragTargetOffset(
+    pose: string,
+    startTarget: { x: number; y: number },
+    deltaX: number,
+    deltaY: number,
+): { targetDX: number; targetDY: number } {
+    const base = baseTargetHand(pose)
+    const round = (v: number) => Math.round(v * 2) / 2
+    return { targetDX: round(startTarget.x - base.x + deltaX), targetDY: round(startTarget.y - base.y + deltaY) }
+}
+
+/**
+ * 删掉调色板里的一个颜色 —— 返回新的画布与调色板。
+ *
+ * 关键：索引 0 是透明（不能删）；删掉 idx 之后，**所有比它大的索引必须整体前移 1**，
+ * 否则画布上引用 3/4/5… 的格子会指到别的颜色上（图上"错位"）。
+ * 颜色还在用时不删（让用户先擦掉或换色），返回 `blocked: true`。
+ */
+export function removePaletteColor(
+    grid: PixelMap,
+    palette: string[],
+    idx: number,
+): { grid: PixelMap; palette: string[]; blocked: boolean } {
+    if (idx <= 0 || idx >= palette.length) return { grid, palette, blocked: false }
+    const used = grid.some((row) => row.some((v) => v === idx))
+    if (used) return { grid, palette, blocked: true }
+    const nextGrid = grid.map((row) => row.map((v) => (v > idx ? v - 1 : v)))
+    const nextPalette = palette.filter((_, i) => i !== idx)
+    return { grid: nextGrid, palette: nextPalette, blocked: false }
 }
