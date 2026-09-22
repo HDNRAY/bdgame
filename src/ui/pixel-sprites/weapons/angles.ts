@@ -2,7 +2,6 @@
  * 单/双手武器的角度入口（对 resolveWeaponMount 的薄封装，渲染器与脚本用）。
  */
 import { resolveWeaponMount } from './mount'
-import { DUAL_MAIN_ANGLE } from './dual'
 import type { WeaponSlot } from './poses'
 
 /**
@@ -33,7 +32,6 @@ export function getWeaponAngle(
 
 /** 双持时主手角度（未覆盖的姿势沿用单手规则） */
 export function getDualMainAngle(weaponId: string, pose: string, facingRight: boolean): number {
-    const override = DUAL_MAIN_ANGLE[pose]
-    if (override !== undefined) return facingRight ? override : -override
+    // 双持时主手也用这把武器自己的角度（不再有全局覆盖表，保证双持/不双持一致）
     return getWeaponAngle(weaponId, pose, facingRight)
 }

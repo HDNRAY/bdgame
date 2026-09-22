@@ -85,7 +85,6 @@ export {
     POSE_NAMES,
     WEAPON_OVERLAYS,
     WEAPON_POSES,
-    DUAL_MAIN_ANGLE,
     DUAL_OFFHAND_ANGLE,
     getDualMainAngle,
     getDualOffhandAngle,

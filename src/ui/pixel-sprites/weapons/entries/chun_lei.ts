@@ -59,11 +59,11 @@ export const chun_lei: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
     poses: {
         ...makePoses({ gripX: 19.5, gripY: 18.5 }),
         idle: { angle: 0 },
-        attack: { gripDX: 0.5, gripDY: 0.5, angle: (-45 * Math.PI) / 180, anchorHand: 'off' },
-        dodge: { angle: 0, anchorHand: 'off' },
-        parry: { gripDX: 0.5, gripDY: 1.5, angle: 2.0403 },
-        hit: { angle: (15 * Math.PI) / 180, anchorHand: 'off', handDX: 1.5, handDY: -5.5 },
-        buff: { angle: 0 },
+        attack: { gripDX: 0.5, gripDY: 0.5, anchorHand: 'off', angle: (-45 * Math.PI) / 180 },
+        dodge: { anchorHand: 'off', angle: 0 },
+        parry: { gripDY: 1.5, anchorHand: 'off', angle: 1.9705, handDX: -11.5, handDY: -3 },
+        hit: { anchorHand: 'off', angle: (15 * Math.PI) / 180, handDX: -17.5, handDY: -4 },
+        buff: { anchorHand: 'main', angle: 0 },
         off: {
             ...makePoses({}),
             idle: { angle: 0 },

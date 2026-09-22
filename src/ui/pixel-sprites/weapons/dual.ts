@@ -6,16 +6,6 @@
  * 双手武器攻击姿势的手部视觉微调（格）：
  * 主握点锚定副手（图右），主手端升 1 格、副手端降 1 格，使棍身更贴合双手。
  */
-/**
- * 双持（主手 + 副手各一把单手武器）的角度规则。
- * 机制上一次只出一招：主手挥击、副手保持握持待机 —— 副手取「同向轻前倾」，
- * 招架（parry）时两把武器在身前交叉（数值为初值，可在像素查看器里看后微调）。
- */
-export const DUAL_MAIN_ANGLE: Record<string, number> = {
-    // 招架：主手向前上方，与副手交叉
-    parry: (100 * Math.PI) / 180,
-    // 受击：主手武器被打飞时的朝向（0 = 保持原角度）
-    hit: (20 * Math.PI) / 180 }
 
 export const DUAL_OFFHAND_ANGLE: Record<string, number> = {
     idle: 0,
