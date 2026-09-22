@@ -5,13 +5,12 @@ import {
     HAND_COVER,
     HAND_POINTS,
     LEFT_HAND_COVER,
-    OTHER_HAND_POINT,
     WEAPON_WIDTH,
     WEAPON_HEIGHT,
-    getDualOffhandAngle,
     getWeaponAngle,
     getWeaponHand,
     getWeaponOverlay,
+    resolveWeaponMount,
     getWeaponPoseConfig,
     shouldDrawHandCover,
     resolveWeaponPixels,
@@ -189,16 +188,14 @@ export function PixelCanvas({
             }
         }
 
-        // 副手武器（双持）：锚定副手位、角度取双持规则
+        // 副手武器（双持）：统一走 resolveWeaponMount 的副手规则 ——
+        // 武器登记了 off 配置就用它，否则用「副手默认」（全局副手手位 OTHER_HAND_POINT + DUAL_OFFHAND_ANGLE）
         const offhandOverlay = secondWeaponId ? getWeaponOverlay(secondWeaponId) : undefined
-        const offhandConfig = secondWeaponId ? getWeaponPoseConfig(secondWeaponId, pose) : undefined
-        if (hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0) {
-            const offHand =
-                poseConfigProp?.targetX !== undefined && poseConfigProp?.targetY !== undefined
-                    ? { x: poseConfigProp.targetX, y: poseConfigProp.targetY }
-                    : (OTHER_HAND_POINT[pose] ?? OTHER_HAND_POINT.idle)
-            const offAngle = secondAngle ?? getDualOffhandAngle(pose, true)
-            paintRotatedWeapon(offhandOverlay, offhandConfig?.gripX ?? 0, offhandConfig?.gripY ?? 0, offHand, offAngle)
+        const offhandConfig = secondWeaponId ? getWeaponPoseConfig(secondWeaponId, pose, undefined, 'off') : undefined
+        if (hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0 && secondWeaponId) {
+            const offMount = resolveWeaponMount(secondWeaponId, pose, { slot: 'off' })
+            const offAngle = secondAngle ?? offMount.angle
+            paintRotatedWeapon(offhandOverlay, offMount.gripX, offMount.gripY, offMount.hand, offAngle)
         }
 
         // 渲染手部覆盖层 — 仅在合成武器时（有角色像素）绘制，用皮肤色盖住握柄（漂浮类武器/武器脱手时跳过）

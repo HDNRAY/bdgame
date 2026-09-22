@@ -985,8 +985,26 @@ function makePoses(base: WeaponPoseConfig): Record<string, WeaponPoseConfig> {
     return out
 }
 
-/** 每武器·每姿势握持配置 — 独立于武器美术。未覆盖字段回落全局 HAND_POINTS / 自动角度规则 */
-export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
+/** 武器槽位：主手 / 副手。同一把武器在两个槽位可以有各自的挂点与角度 */
+export type WeaponSlot = 'main' | 'off'
+
+/**
+ * 一把武器的挂点表：键是姿势名（**主手槽**，沿用原有结构）；可选的 `off` 子表是**副手槽**专用配置。
+ *
+ * 为什么不像 `{ main, off }` 那样整体拆两层：现有 16 把武器的表都是逐把手工调过的，
+ * 整体重排等于把调好的数据全铺开成 diff；用 `off` 子表则主手部分**一字不动**，
+ * 只有需要单独调副手的武器才多写一段（`off` 不会和姿势名冲突：姿势只有 idle/attack/dodge/parry/hit/buff）。
+ *
+ * 副手槽没写 `off` 时的默认（见 resolveWeaponMount）：
+ *  - 单手武器：握柄沿用主手表的 grip，手位取全局副手 `OTHER_HAND_POINT[pose]`、角度取 `DUAL_OFFHAND_ANGLE[pose]`
+ *    （与原先「双持预览」的表现一致）；
+ *  - 双手武器：直接沿用主手配置（双手武器本来就锚副手）。
+ *
+ * 每武器·每姿势握持配置 — 独立于武器美术。未覆盖字段回落全局 HAND_POINTS / 自动角度规则。
+ */
+export type WeaponPoseTable = Record<string, WeaponPoseConfig> & { off?: Record<string, WeaponPoseConfig> }
+
+export const WEAPON_POSES: Record<string, WeaponPoseTable> = {
     // 每个武器独立设定（哪怕同类型也不共享），便于逐武器微调 grip/角度/锚定手
     bare_hands: makePoses({ gripX: 0, gripY: 0 }),
     zantetsu: makePoses({ gripX: 9, gripY: 7 }),
@@ -994,59 +1012,51 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
     overlord_blade: makePoses({ gripX: 9, gripY: 7 }),
     tri_orb: {
         ...makePoses({ gripX: 9, gripY: 22, noHandCover: true }),
-        idle: { gripX: 9, gripY: 22, noHandCover: true, angle: (-37 * Math.PI) / 180 }, // 逆时针 37°
-        attack: {
+        idle: { gripX: 9, gripY: 22, noHandCover: true, angle: (-37 * Math.PI) / 180 },
+        attack: { gripX: 9, gripY: 22, noHandCover: true, angle: (-80 * Math.PI) / 180, handDX: -34, handDY: 5.5 },
+        dodge: { gripX: 9, gripY: 22, noHandCover: true, angle: (-37 * Math.PI) / 180, handDX: -2, handDY: 0 },
+        parry: { gripX: 15, gripY: 15, noHandCover: true, angle: (204 * Math.PI) / 180, handDX: 3.5, handDY: 2.5 },
+        hit: {
             gripX: 9,
             gripY: 22,
             noHandCover: true,
-            handX: 16.5, // 锚点左挪 8（HAND_POINTS.attack.x = 24.5）
-            handY: 32,
-            angle: (-80 * Math.PI) / 180, // 逆时针 45°
+            angle: (-20 * Math.PI) / 180,
+            handDX: 7,
+            handDY: -9,
+            targetDX: -2,
+            targetDY: -2,
         },
-        dodge: {
-            gripX: 9,
-            gripY: 22,
-            noHandCover: true,
-            handX: 35, // 锚点左挪 4（HAND_POINTS.dodge.x = 39）
-            handY: 32,
-            angle: (-37 * Math.PI) / 180, // 与 idle 一致
-        },
-        hit: { gripX: 9, gripY: 22, noHandCover: true, angle: (-37 * Math.PI) / 180 }, // 与 idle 一致
+        buff: { gripX: 16, gripY: 16, noHandCover: true, angle: (-60 * Math.PI) / 180, handDX: 6.5, handDY: -11 },
     },
     // 绣冬：点位与桃木剑逐字一致（握点 24,24 + 同一套 parry/hit 角度），便于对照与替换
     xiu_dong: {
-        ...makePoses({ gripX: 24, gripY: 24 }),
-        parry: { gripX: 24, gripY: 24, angle: 2.6857 }, // 刀尖朝右下斜下（穿过副手）
-        hit: {
-            gripX: 24,
-            gripY: 24,
-            handX: HAND_POINTS.hit.x,
-            handY: HAND_POINTS.hit.y - 5,
-            angle: (15 * Math.PI) / 180,
-        },
+        ...makePoses({ gripX: 24.5, gripY: 23, grip2Y: 0, anchorHand: 'main' }),
+        attack: { gripX: 25, gripY: 22.5, handDY: -1 },
+        dodge: { gripX: 24, gripY: 22.5, handDX: 0.5, handDY: -0.5 },
+        parry: { gripX: 25, gripY: 24, angle: 2.6857 },
+        hit: { gripX: 24, gripY: 22.5, handDX: 1, handDY: -2.5, angle: (18 * Math.PI) / 180 },
+        buff: { gripX: 25, gripY: 23.5, handDX: 0.5, handDY: -0.5 },
     },
     // 春雷（二尺四寸 / 一斤三两 / 吹毛断发）：轻短弧刃，握点取柄的质心
     chun_lei: {
-        ...makePoses({ gripX: 20.5, gripY: 20.5 }),
-        parry: { gripX: 20.5, gripY: 20.5, angle: 2.6857 },
-        hit: {
-            gripX: 20.5,
-            gripY: 20.5,
-            handX: HAND_POINTS.hit.x,
-            handY: HAND_POINTS.hit.y - 5,
-            angle: (15 * Math.PI) / 180,
-        },
+        ...makePoses({ gripX: 21, gripY: 20.5 }),
+        idle: { gripX: 21, gripY: 20.5, handDX: 0.5, handDY: -0.5 },
+        attack: { gripX: 21, gripY: 20, handDY: -1 },
+        dodge: { gripX: 20.5, gripY: 20.5, handDX: 0.5, handDY: -0.5 },
+        parry: { gripX: 21, gripY: 21, angle: 2.6857 },
+        hit: { gripX: 20.5, gripY: 20.5, handDX: 1.5, handDY: -5.5, angle: (15 * Math.PI) / 180 },
+        buff: { gripX: 20.5, gripY: 20.5, anchorHand: 'main', handDX: 0.5, handDY: -0.5 },
     },
     heshan_sword: makePoses({ gripX: 8, gripY: 7 }),
     dagger: makePoses({ gripX: 8, gripY: -3 }),
     // 铁枪·破军（双手长枪）：握持配置与破狼竹枝逐字一致（含 flip；虎牙刃在美术左上端，与竹枝嫩竹同端）
     iron_spear: {
-        ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
+        ...makePoses({ gripX: 21, gripY: 21.7, grip2X: 38, grip2Y: 38.7, flip: true }),
         // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
         idle: {
-            gripX: 21.0,
+            gripX: 21,
             gripY: 21.7,
-            grip2X: 38.0,
+            grip2X: 38,
             grip2Y: 38.7,
             flip: true,
             handX: OTHER_HAND_POINT.idle.x,
@@ -1055,9 +1065,9 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             targetY: HAND_POINTS.idle.y + 1,
         },
         dodge: {
-            gripX: 21.0,
+            gripX: 21,
             gripY: 21.7,
-            grip2X: 38.0,
+            grip2X: 38,
             grip2Y: 38.7,
             flip: true,
             handX: OTHER_HAND_POINT.dodge.x,
@@ -1093,19 +1103,18 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             gripY: 7,
             grip2X: 24,
             grip2Y: 24,
-            handX: 24 + SPRITE_PAD_LEFT,
-            handY: 34.5,
+            handDX: -19.5,
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
     },
     // 镇北戟（双手长戟）：握持配置与破狼竹枝逐字一致（含 flip；戟头在美术左上端）
     zhen_bei_ji: {
-        ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
+        ...makePoses({ gripX: 21, gripY: 21.7, grip2X: 38, grip2Y: 38.7, flip: true }),
         // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
         idle: {
-            gripX: 21.0,
+            gripX: 21,
             gripY: 21.7,
-            grip2X: 38.0,
+            grip2X: 38,
             grip2Y: 38.7,
             flip: true,
             handX: OTHER_HAND_POINT.idle.x,
@@ -1114,9 +1123,9 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             targetY: HAND_POINTS.idle.y + 1,
         },
         dodge: {
-            gripX: 21.0,
+            gripX: 21,
             gripY: 21.7,
-            grip2X: 38.0,
+            grip2X: 38,
             grip2Y: 38.7,
             flip: true,
             handX: OTHER_HAND_POINT.dodge.x,
@@ -1152,8 +1161,7 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             gripY: 7,
             grip2X: 24,
             grip2Y: 24,
-            handX: 24 + SPRITE_PAD_LEFT,
-            handY: 34.5,
+            handDX: -19.5,
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
     },
@@ -1174,13 +1182,13 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
     // 两手间距 idle/dodge 9.5 格、attack 12.5 格、parry 12.2 格 → attack/parry 握点相应前移
     // flip 为反向握持（整根杆掉头，长端朝角色正面）
     qimei_staff: {
-        ...makePoses({ gripX: 21.3, gripY: 22.0, grip2X: 38.3, grip2Y: 39.0, flip: true }),
+        ...makePoses({ gripX: 21.3, gripY: 22, grip2X: 38.3, grip2Y: 39, flip: true }),
         // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
         idle: {
             gripX: 21.3,
-            gripY: 22.0,
+            gripY: 22,
             grip2X: 38.3,
-            grip2Y: 39.0,
+            grip2Y: 39,
             flip: true,
             handX: OTHER_HAND_POINT.idle.x,
             handY: OTHER_HAND_POINT.idle.y + 1,
@@ -1189,9 +1197,9 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
         },
         dodge: {
             gripX: 21.3,
-            gripY: 22.0,
+            gripY: 22,
             grip2X: 38.3,
-            grip2Y: 39.0,
+            grip2Y: 39,
             flip: true,
             handX: OTHER_HAND_POINT.dodge.x,
             handY: OTHER_HAND_POINT.dodge.y + 1,
@@ -1226,8 +1234,7 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             gripY: 7,
             grip2X: 24,
             grip2Y: 24,
-            handX: 24 + SPRITE_PAD_LEFT, // 12 + 12（右移 12 格）
-            handY: 34.5,
+            handDX: -19.5, // 12 + 12（右移 12 格）
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
     },
@@ -1235,25 +1242,21 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
     // 握点在剑柄中心 25,25（不是护手处）
     dark_iron_sword: {
         ...makePoses({ gripX: 25, gripY: 25 }),
-        // parry：借「单持桃木剑」的角度（153.9°）→ 剑尖朝右下斜下、扫过身前
-        parry: { gripX: 25, gripY: 25, angle: 2.6857 },
-        // hit：整体上移 5 格（锚点跟手上移）→ 再以柄为轴顺时针 15°
-        hit: {
-            gripX: 25,
-            gripY: 25,
-            handX: HAND_POINTS.hit.x,
-            handY: HAND_POINTS.hit.y - 5,
-            angle: (15 * Math.PI) / 180,
-        },
+        idle: { gripX: 25, gripY: 25, handDX: 0.5, handDY: -0.5 },
+        attack: { gripX: 25, gripY: 24.5, handDY: -1 },
+        dodge: { gripX: 25, gripY: 25, handDX: 0.5, handDY: -0.5 },
+        parry: { gripX: 25, gripY: 25.5, angle: 2.6857 },
+        hit: { gripX: 25, gripY: 25, handDX: 2, handDY: -1.5, angle: (15 * Math.PI) / 180 },
+        buff: { gripX: 25, gripY: 25, handDX: 0.5, handDY: -0.5 },
     },
     // 破狼竹枝 / 陨铁神珍（双手长杆）：握点同上（杆中点落在主手）；hit 照齐眉棍的脱手姿势
     po_lang_zhu_zhi: {
-        ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
+        ...makePoses({ gripX: 21, gripY: 21.7, grip2X: 38, grip2Y: 38.7, flip: true }),
         // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
         idle: {
-            gripX: 21.0,
+            gripX: 21,
             gripY: 21.7,
-            grip2X: 38.0,
+            grip2X: 38,
             grip2Y: 38.7,
             flip: true,
             handX: OTHER_HAND_POINT.idle.x,
@@ -1262,9 +1265,9 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             targetY: HAND_POINTS.idle.y + 1,
         },
         dodge: {
-            gripX: 21.0,
+            gripX: 21,
             gripY: 21.7,
-            grip2X: 38.0,
+            grip2X: 38,
             grip2Y: 38.7,
             flip: true,
             handX: OTHER_HAND_POINT.dodge.x,
@@ -1300,18 +1303,17 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             gripY: 7,
             grip2X: 24,
             grip2Y: 24,
-            handX: 24 + SPRITE_PAD_LEFT,
-            handY: 34.5,
+            handDX: -19.5,
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
     },
     dinghai_shen_tie: {
-        ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
+        ...makePoses({ gripX: 21, gripY: 21.7, grip2X: 38, grip2Y: 38.7, flip: true }),
         // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
         idle: {
-            gripX: 21.0,
+            gripX: 21,
             gripY: 21.7,
-            grip2X: 38.0,
+            grip2X: 38,
             grip2Y: 38.7,
             flip: true,
             handX: OTHER_HAND_POINT.idle.x,
@@ -1320,9 +1322,9 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             targetY: HAND_POINTS.idle.y + 1,
         },
         dodge: {
-            gripX: 21.0,
+            gripX: 21,
             gripY: 21.7,
-            grip2X: 38.0,
+            grip2X: 38,
             grip2Y: 38.7,
             flip: true,
             handX: OTHER_HAND_POINT.dodge.x,
@@ -1358,19 +1360,18 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             gripY: 7,
             grip2X: 24,
             grip2Y: 24,
-            handX: 24 + SPRITE_PAD_LEFT,
-            handY: 34.5,
+            handDX: -19.5,
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
     },
     // 长枪（双手长杆 + 枪头）：握持配置与破狼竹枝逐字一致（含 flip；枪头在美术左上端，与竹枝嫩竹同端）
     long_spear: {
-        ...makePoses({ gripX: 21.0, gripY: 21.7, grip2X: 38.0, grip2Y: 38.7, flip: true }),
+        ...makePoses({ gripX: 21, gripY: 21.7, grip2X: 38, grip2Y: 38.7, flip: true }),
         // 微调：idle / dodge 主副手锚点都下移 1 格；attack / parry 主手锚点下移 1 格、副手锚点上移 1 格
         idle: {
-            gripX: 21.0,
+            gripX: 21,
             gripY: 21.7,
-            grip2X: 38.0,
+            grip2X: 38,
             grip2Y: 38.7,
             flip: true,
             handX: OTHER_HAND_POINT.idle.x,
@@ -1379,9 +1380,9 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             targetY: HAND_POINTS.idle.y + 1,
         },
         dodge: {
-            gripX: 21.0,
+            gripX: 21,
             gripY: 21.7,
-            grip2X: 38.0,
+            grip2X: 38,
             grip2Y: 38.7,
             flip: true,
             handX: OTHER_HAND_POINT.dodge.x,
@@ -1417,8 +1418,7 @@ export const WEAPON_POSES: Record<string, Record<string, WeaponPoseConfig>> = {
             gripY: 7,
             grip2X: 24,
             grip2Y: 24,
-            handX: 24 + SPRITE_PAD_LEFT,
-            handY: 34.5,
+            handDX: -19.5,
             angle: (-3 * Math.PI) / 4 + (10 * Math.PI) / 180, // 长端朝上竖直 → 顺时针 10°
         },
     },
@@ -1432,12 +1432,143 @@ export function getWeaponPoseConfig(
     weaponId: string,
     pose: string,
     override?: Partial<WeaponPoseConfig>,
+    slot: WeaponSlot = 'main',
 ): WeaponPoseConfig {
     if (override) return override as WeaponPoseConfig // 编辑器「武器挂点」实验用：临时用一份未落库的配置
     const set = WEAPON_POSES[weaponId]
-    return set?.[pose] ?? set?.idle ?? DEFAULT_POSE
+    if (!set) return DEFAULT_POSE
+    if (slot === 'off') {
+        // 副手槽：只认显式登记的 off 子表；没登记就交给 resolveWeaponMount 走「副手默认」
+        const offCfg = set.off?.[pose] ?? set.off?.idle
+        if (offCfg) return offCfg
+    }
+    return set[pose] ?? set.idle ?? DEFAULT_POSE
 }
 
+/** 姿势配置里"锚定哪只手"的判定（显式 anchorHand 优先；单手默认主手、双手默认副手） */
+function anchorIsOff(cfg: Partial<WeaponPoseConfig>): boolean {
+    const dual = cfg.grip2X !== undefined && cfg.grip2Y !== undefined
+    return cfg.anchorHand === 'off' || (cfg.anchorHand === undefined && dual)
+}
+
+/**
+ * 基准锚定手（不含 handX/handY、handDX/handDY 覆盖）——全局手位表 + anchorHand/双手规则。
+ * 解析器与导出（相对偏移）共用这一处，保证"导出的相对值"和"引擎实际用的基准"永远一致。
+ */
+export function baseAnchorHand(
+    cfg: Partial<WeaponPoseConfig>,
+    pose: string,
+    slot: WeaponSlot = 'main',
+): { x: number; y: number } {
+    // 副手槽：默认锚副手（除非配置显式写了 anchorHand: 'main'）；主手槽按 anchorHand/双手规则
+    const off = slot === 'off' ? cfg.anchorHand !== 'main' : anchorIsOff(cfg)
+    return off ? getDualHandPoints(pose).anchor : (HAND_POINTS[pose] ?? HAND_POINTS.idle)
+}
+
+/** 基准目标手（双手武器的另一端；不含 targetX/targetY、targetDX/targetDY 覆盖） */
+export function baseTargetHand(pose: string): { x: number; y: number } {
+    return getDualHandPoints(pose).target
+}
+
+/**
+ * 解析「这把武器挂在某个槽位的某个姿势」的最终落点 —— 渲染层 / 预览 / 编辑器统一走这一处。
+ *
+ * 主手：手位 = handX/handY → anchorHand('main'/'off'，默认单手 main、双手 off) → 全局手位表；
+ *       角度 = angle → 双手两手连线 → 单手规则(0°，attack ∓45°) → 叠 flip。
+ * 副手（未登记 off 子表时的默认）：
+ *       单手武器 = 握柄沿用主手表 + 手位取全局副手 OTHER_HAND_POINT + 角度取 DUAL_OFFHAND_ANGLE；
+ *       双手武器 = 直接沿用主手配置（双手武器本来就锚副手）。
+ */
+export interface WeaponMount {
+    config: WeaponPoseConfig
+    /** true = 用的是「副手默认」，而不是武器自己登记的 off 配置 */
+    usingOffhandDefault: boolean
+    gripX: number
+    gripY: number
+    grip2X?: number
+    grip2Y?: number
+    /** 锚定手（精灵坐标） */
+    hand: { x: number; y: number }
+    /** 最终旋转角（已含 flip 的 180°） */
+    angle: number
+    flip: boolean
+    noHandCover: boolean
+}
+
+export function resolveWeaponMount(
+    weaponId: string,
+    pose: string,
+    opts: { slot?: WeaponSlot; config?: Partial<WeaponPoseConfig>; facingRight?: boolean } = {},
+): WeaponMount {
+    const slot: WeaponSlot = opts.slot ?? 'main'
+    const facingRight = opts.facingRight ?? true
+    const registered = getWeaponPoseConfig(weaponId, pose, opts.config, slot)
+    const registeredDual = registered.grip2X !== undefined && registered.grip2Y !== undefined
+
+    let cfg = registered
+    let usingOffhandDefault = false
+    if (slot === 'off' && !opts.config) {
+        const hasOffTable = Boolean(WEAPON_POSES[weaponId]?.off?.[pose] ?? WEAPON_POSES[weaponId]?.off?.idle)
+        if (!hasOffTable) {
+            cfg = registeredDual
+                ? registered // 双手武器：沿用主手配置
+                : {
+                      gripX: registered.gripX,
+                      gripY: registered.gripY,
+                      flip: registered.flip,
+                      noHandCover: registered.noHandCover,
+                      handX: (OTHER_HAND_POINT[pose] ?? OTHER_HAND_POINT.idle).x,
+                      handY: (OTHER_HAND_POINT[pose] ?? OTHER_HAND_POINT.idle).y,
+                      angle: DUAL_OFFHAND_ANGLE[pose] ?? 0,
+                  }
+            usingOffhandDefault = true
+        }
+    }
+
+    // 手位：绝对 handX/handY > 相对偏移 handDX/handDY > 基准（全局表 + anchorHand/双手规则）
+    const handBase = baseAnchorHand(cfg, pose, slot)
+    const hand: { x: number; y: number } =
+        cfg.handX !== undefined && cfg.handY !== undefined
+            ? { x: cfg.handX, y: cfg.handY }
+            : { x: handBase.x + (cfg.handDX ?? 0), y: handBase.y + (cfg.handDY ?? 0) }
+
+    // 角度
+    const flip = cfg.flip ? Math.PI : 0
+    let angle: number
+    if (cfg.angle !== undefined) {
+        angle = (facingRight ? cfg.angle : -cfg.angle) + flip
+    } else if (cfg.grip2X === undefined || cfg.grip2Y === undefined) {
+        angle = pose === 'attack' ? (facingRight ? -Math.PI / 4 : Math.PI / 4) + flip : flip
+    } else {
+        // 锚点手 = 已解析的 hand（含绝对/相对覆盖）；目标手 = 绝对 > 相对偏移 > 基准
+        const baseTarget = baseTargetHand(pose)
+        const anchor = hand
+        const target =
+            cfg.targetX !== undefined && cfg.targetY !== undefined
+                ? { x: cfg.targetX, y: cfg.targetY }
+                : { x: baseTarget.x + (cfg.targetDX ?? 0), y: baseTarget.y + (cfg.targetDY ?? 0) }
+        const dx = target.x - anchor.x
+        const dy = target.y - anchor.y
+        const wdx = cfg.grip2X - cfg.gripX
+        const wdy = cfg.grip2Y - cfg.gripY
+        angle = facingRight
+            ? Math.atan2(dy, dx) - Math.atan2(wdy, wdx) + flip
+            : Math.atan2(dy, -dx) - Math.atan2(wdy, -wdx) + flip
+    }
+
+    return {
+        config: cfg,
+        usingOffhandDefault,
+        gripX: cfg.gripX,
+        gripY: cfg.gripY,
+        grip2X: cfg.grip2X,
+        grip2Y: cfg.grip2Y,
+        hand,
+        angle,
+        flip: cfg.flip === true,
+        noHandCover: cfg.noHandCover === true,
+    }
+}
 /** 根据武器 ID 获取叠加层（纯美术） */
 export function getWeaponOverlay(weaponId: string): WeaponOverlay {
     return WEAPON_OVERLAYS[weaponId] ?? WEAPON_OVERLAYS.bare_hands
@@ -1480,15 +1611,9 @@ export function getWeaponHand(
     weaponId: string,
     pose: string,
     override?: Partial<WeaponPoseConfig>,
+    slot: WeaponSlot = 'main',
 ): { x: number; y: number } {
-    const cfg = getWeaponPoseConfig(weaponId, pose, override)
-    if (cfg.handX !== undefined && cfg.handY !== undefined) {
-        return { x: cfg.handX, y: cfg.handY }
-    }
-    const dual = cfg.grip2X !== undefined && cfg.grip2Y !== undefined
-    const useOff = cfg.anchorHand === 'off' || (cfg.anchorHand === undefined && dual)
-    if (useOff) return getDualHandPoints(pose).anchor
-    return HAND_POINTS[pose] ?? HAND_POINTS.idle
+    return resolveWeaponMount(weaponId, pose, { slot, config: override }).hand
 }
 
 /**
@@ -1551,26 +1676,7 @@ export function getWeaponAngle(
     pose: string,
     facingRight: boolean,
     override?: Partial<WeaponPoseConfig>,
+    slot: WeaponSlot = 'main',
 ): number {
-    const cfg = getWeaponPoseConfig(weaponId, pose, override)
-    const flip = cfg.flip ? Math.PI : 0
-    if (cfg.angle !== undefined) {
-        return (facingRight ? cfg.angle : -cfg.angle) + flip
-    }
-    if (cfg.grip2X === undefined || cfg.grip2Y === undefined) {
-        if (pose !== 'attack') return flip
-        return (facingRight ? -Math.PI / 4 : Math.PI / 4) + flip
-    }
-    // 锚点 = 副手（左手），目标 = 主手（右手）；两者均可被该武器的姿势配置覆盖
-    const { anchor: baseAnchor, target: baseTarget } = getDualHandPoints(pose)
-    const anchor = cfg.handX !== undefined && cfg.handY !== undefined ? { x: cfg.handX, y: cfg.handY } : baseAnchor
-    const target =
-        cfg.targetX !== undefined && cfg.targetY !== undefined ? { x: cfg.targetX, y: cfg.targetY } : baseTarget
-    const dx = target.x - anchor.x
-    const dy = target.y - anchor.y
-    const wdx = cfg.grip2X - cfg.gripX
-    const wdy = cfg.grip2Y - cfg.gripY
-    if (facingRight) return Math.atan2(dy, dx) - Math.atan2(wdy, wdx) + flip
-    // 朝左：武器本地 x 镜像为 -wdx，锚点/目标 x 亦镜像为 -dx
-    return Math.atan2(dy, -dx) - Math.atan2(wdy, -wdx) + flip
+    return resolveWeaponMount(weaponId, pose, { slot, config: override, facingRight }).angle
 }

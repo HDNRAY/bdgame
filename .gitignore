@@ -11,7 +11,14 @@ dev-dist/
 scripts/*.txt
 scripts/preview/
 .tmp-chrome/
-# 无头 Chrome 验证用的临时目录（截图/CDP）
+# 无头 Chrome 验证用的临时目录（截图/CDP）——以后统一用 .tmp-chrome/<名字>（见上一行）
 .shot*/
 .hl*/
+.hc*/
+.hd*/
+.hm*/
+.ho*/
+.hp*/
+.hr*/
+.hs*/
 .headless/

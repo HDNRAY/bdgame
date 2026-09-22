@@ -9,6 +9,7 @@
  */
 import type { CharacterColors } from './palette'
 import type { PixelMap, WeaponPoseConfig } from './types'
+import { POSE_NAMES } from './weapons'
 
 export type EditorMode = 'frame' | 'weapon' | 'mount'
 export type EditorTool = 'pen' | 'eraser' | 'picker' | 'fill'
@@ -30,8 +31,8 @@ export interface PixelEditorSavedState {
     colorOverrides: Record<string, Partial<CharacterColors>>
     /** 改过的「固定槽位」颜色（1 描边 / 7 白 / 8 受击星光 / 9 金边），键是槽位号 */
     fixedSlotOverrides: Record<number, string>
-    /** 武器挂点实验：武器 id → 姿势 → 改过的配置（只存出现过的字段） */
-    mountConfigs: Record<string, Record<string, Partial<WeaponPoseConfig>>>
+    /** 武器挂点实验：武器 id → 槽位 → 姿势 → 改过的配置（只存出现过的字段） */
+    mountConfigs: Record<string, Record<'main' | 'off', Record<string, Partial<WeaponPoseConfig>>>>
     tool: EditorTool
     slot: number
     mirror: boolean
@@ -119,7 +120,7 @@ export function parseEditorState(text: string | null | undefined): PixelEditorSa
     }
 
     const rawMount = s.mountConfigs
-    const mountConfigs: Record<string, Record<string, Partial<WeaponPoseConfig>>> = {}
+    const mountConfigs: Record<string, Record<'main' | 'off', Record<string, Partial<WeaponPoseConfig>>>> = {}
     if (rawMount && typeof rawMount === 'object' && !Array.isArray(rawMount)) {
         const NUMERIC: (keyof WeaponPoseConfig)[] = [
             'gripX',
@@ -128,14 +129,30 @@ export function parseEditorState(text: string | null | undefined): PixelEditorSa
             'grip2Y',
             'handX',
             'handY',
+            'handDX',
+            'handDY',
             'targetX',
             'targetY',
+            'targetDX',
+            'targetDY',
             'angle',
         ]
-        for (const [weaponId, poses] of Object.entries(rawMount as Record<string, unknown>)) {
-            if (!poses || typeof poses !== 'object' || Array.isArray(poses)) return null
-            const entries: Record<string, Partial<WeaponPoseConfig>> = {}
-            for (const [pose, cfg] of Object.entries(poses as Record<string, unknown>)) {
+        for (const [weaponId, bySlot] of Object.entries(rawMount as Record<string, unknown>)) {
+            if (!bySlot || typeof bySlot !== 'object' || Array.isArray(bySlot)) return null
+            // 兼容旧存档（v1 是「武器 → 姿势 → 配置」，没有槽位那一层）：整体当主手
+            const obj = bySlot as Record<string, unknown>
+            const looksLikeSlots = 'main' in obj || 'off' in obj
+            const slots: Record<string, unknown> = looksLikeSlots
+                ? obj
+                : { main: obj }
+            const merged: Record<'main' | 'off', Record<string, Partial<WeaponPoseConfig>>> = { main: {}, off: {} }
+            for (const [slotName, poses] of Object.entries(slots)) {
+                if (slotName !== 'main' && slotName !== 'off') return null
+                if (!poses || typeof poses !== 'object' || Array.isArray(poses)) return null
+                const entries: Record<string, Partial<WeaponPoseConfig>> = {}
+                for (const [pose, cfg] of Object.entries(poses as Record<string, unknown>)) {
+                // 姿势名必须在白名单里（'move' 是渲染器会用到的姿势：编辑器不编辑它，但允许存在）
+                if (!(POSE_NAMES as readonly string[]).includes(pose) && pose !== 'move') return null
                 if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) return null
                 const out: Record<string, unknown> = {}
                 for (const k of NUMERIC) {
@@ -159,9 +176,11 @@ export function parseEditorState(text: string | null | undefined): PixelEditorSa
                     if (anchorHand !== 'main' && anchorHand !== 'off') return null
                     out.anchorHand = anchorHand
                 }
-                entries[pose] = out as Partial<WeaponPoseConfig>
+                    entries[pose] = out as Partial<WeaponPoseConfig>
+                }
+                merged[slotName] = entries
             }
-            mountConfigs[weaponId] = entries
+            mountConfigs[weaponId] = merged
         }
     }
 

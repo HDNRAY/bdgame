@@ -9,7 +9,7 @@ const base = (): PixelEditorSavedState => ({
     weapon: { id: 'xiu_dong', grid: blankPixelMap(32, 32), palette: ['', '#ffffff'] },
     colorOverrides: {},
     fixedSlotOverrides: {},
-    mountConfigs: {},
+    mountConfigs: { xiu_dong: { main: {}, off: {} } },
     tool: 'pen',
     slot: 1,
     mirror: false,
@@ -26,7 +26,12 @@ describe('编辑器存档', () => {
         s.manualZoom = 12
         s.colorOverrides = { yidao: { hair: '#123456' } }
         s.fixedSlotOverrides = { 9: '#00ff00' }
-        s.mountConfigs = { xiu_dong: { attack: { gripX: 21.5, gripY: 22.5, angle: -0.7854 } } }
+        s.mountConfigs = {
+            xiu_dong: {
+                main: { attack: { gripX: 21.5, gripY: 22.5, angle: -0.7854 } },
+                off: { idle: { gripX: 21.5, gripY: 22.5, handX: 41, handY: 32 } },
+            },
+        }
         const back = parseEditorState(serializeEditorState(s))
         expect(back).not.toBeNull()
         expect(back!.frame.map[1][2]).toBe(9)
@@ -35,7 +40,8 @@ describe('编辑器存档', () => {
         expect(back!.weapon.palette).toEqual(['', '#ffffff'])
         expect(back!.colorOverrides.yidao.hair).toBe('#123456')
         expect(back!.fixedSlotOverrides[9]).toBe('#00ff00')
-        expect(back!.mountConfigs.xiu_dong.attack.angle).toBeCloseTo(-0.7854, 6)
+        expect(back!.mountConfigs.xiu_dong.main.attack.angle).toBeCloseTo(-0.7854, 6)
+        expect(back!.mountConfigs.xiu_dong.off.idle.handX).toBeCloseTo(41, 6)
     })
 
     it('缺字段 / 坏数据 / 空串一律返回 null（回到默认，而不是半截脏数据）', () => {
@@ -66,7 +72,34 @@ describe('编辑器存档', () => {
         s7.fixedSlotOverrides = { 9: 'gold' } as never
         expect(parseEditorState(serializeEditorState(s7))).toBeNull()
         const s8 = base()
-        s8.mountConfigs = { xiu_dong: { attack: { gripX: 'x' } } } as never
+        s8.mountConfigs = { xiu_dong: { main: { attack: { gripX: 'x' } } } } as never
         expect(parseEditorState(serializeEditorState(s8))).toBeNull()
+        // 非法槽位名
+        const s9 = base()
+        s9.mountConfigs = { xiu_dong: { middle: {} } } as never
+        expect(parseEditorState(serializeEditorState(s9))).toBeNull()
+    })
+})
+
+describe('编辑器存档 · 旧版挂点配置迁移', () => {
+    it('v1 的「武器 → 姿势 → 配置」（没有槽位层）载入后归到主手槽', () => {
+        const legacy = {
+            mode: 'mount',
+            frame: { map: [[0, 0]], constName: 'X', poseName: 'idle', sourceKey: 'idle' },
+            weapon: { id: 'xiu_dong', grid: [[0, 0]], palette: [''] },
+            colorOverrides: {},
+            fixedSlotOverrides: {},
+            mountConfigs: { xiu_dong: { attack: { gripX: 21.5, angle: -0.5 } } },
+            tool: 'pen',
+            slot: 1,
+            mirror: false,
+            showGrid: true,
+            showAnchors: true,
+            manualZoom: null,
+        }
+        const parsed = parseEditorState(JSON.stringify(legacy))
+        expect(parsed).not.toBeNull()
+        expect(parsed!.mountConfigs.xiu_dong.main.attack.angle).toBeCloseTo(-0.5, 6)
+        expect(parsed!.mountConfigs.xiu_dong.off).toEqual({})
     })
 })

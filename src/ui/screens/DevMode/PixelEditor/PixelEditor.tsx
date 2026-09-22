@@ -59,7 +59,7 @@ import { PixelCanvas } from '../../../components/ui/PixelCanvas/PixelCanvas'
 import { SearchSelect } from '../../../components/ui/SearchSelect/SearchSelect'
 import { useAppStore, getEffectiveTheme } from '../../../stores/app-store'
 import { WeaponMountPanel } from './WeaponMountPanel'
-import type { WeaponPoseConfig } from '../../../pixel-sprites'
+import type { WeaponPoseConfig, WeaponSlot } from '../../../pixel-sprites'
 
 import './PixelEditor.scss'
 
@@ -255,7 +255,9 @@ export function PixelEditor() {
     const saved = useMemo(() => readSavedState(), [])
     const [mode, setMode] = useState<EditorMode>(saved?.mode ?? 'frame')
     /** 武器挂点实验：武器 id → 姿势 → 改过的配置（空 = 用 weapons.ts 登记值） */
-    const [mountConfigs, setMountConfigs] = useState<Record<string, Record<string, Partial<WeaponPoseConfig>>>>(
+    const [mountConfigs, setMountConfigs] = useState<
+        Record<string, Record<WeaponSlot, Record<string, Partial<WeaponPoseConfig>>>>
+    >(
         () => saved?.mountConfigs ?? {},
     )
 
@@ -881,12 +883,15 @@ export function PixelEditor() {
                 {mode === 'mount' ? (
                     <WeaponMountPanel
                         configs={mountConfigs}
-                        onChange={(w, p, cfg) =>
+                        onChange={(w: string, slot: WeaponSlot, p: string, cfg: Partial<WeaponPoseConfig> | null) =>
                             setMountConfigs((prev) => {
-                                const next = { ...prev, [w]: { ...(prev[w] ?? {}) } }
-                                if (cfg === null) delete next[w][p]
-                                else next[w][p] = cfg
-                                return next
+                                const slots = {
+                                    main: { ...(prev[w]?.main ?? {}) },
+                                    off: { ...(prev[w]?.off ?? {}) },
+                                }
+                                if (cfg === null) delete slots[slot][p]
+                                else slots[slot][p] = cfg
+                                return { ...prev, [w]: slots }
                             })
                         }
                         charId={charId}

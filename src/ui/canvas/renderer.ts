@@ -4,13 +4,12 @@
 
 import * as PIXI from 'pixi.js'
 import type { Frame, FrameChar, LogEntry } from '../../bridge/replay-engine'
+import type { WeaponSlot } from '../pixel-sprites'
 import {
     makeCharacterSprite,
     getSpriteOutlineColor,
     getWeaponOverlay,
-    getWeaponPoseConfig,
-    getWeaponAngle,
-    getWeaponHand,
+    resolveWeaponMount,
     resolveWeaponPixels,
     shouldDrawHandCover,
     HAND_COVER,
@@ -52,6 +51,9 @@ export class CanvasRenderer {
     private charSprites: Map<string, PIXI.Graphics> = new Map()
     private weaponSprites: Map<string, PIXI.Graphics> = new Map()
     private handCoverSprites: Map<string, PIXI.Graphics> = new Map()
+    /** 副手武器（双持）：与主手各一组 Graphics，绘制顺序在主手武器之下 */
+    private offhandWeaponSprites: Map<string, PIXI.Graphics> = new Map()
+    private offhandCoverSprites: Map<string, PIXI.Graphics> = new Map()
     private groundGfx: PIXI.Graphics
     private charColors: Map<string, string> = new Map()
     /** 角色精灵缓存（spriteId+主色+主题描边 → 精灵），避免每帧重复生成 */
@@ -153,10 +155,17 @@ export class CanvasRenderer {
         const g = new PIXI.Graphics()
         this.charSprites.set(charId, g)
         this.container.addChild(g)
+        // 副手武器先入容器（先画 → 在下面），再画主手武器；手部覆盖层最后（最上面）
+        const owg = new PIXI.Graphics()
+        this.offhandWeaponSprites.set(charId, owg)
+        this.container.addChild(owg)
         const wg = new PIXI.Graphics()
         this.weaponSprites.set(charId, wg)
         this.container.addChild(wg)
         // 手部覆盖层 Graphics：在武器之上绘制（人物坐标），制造"握着"效果
+        const ocg = new PIXI.Graphics()
+        this.offhandCoverSprites.set(charId, ocg)
+        this.container.addChild(ocg)
         const cg = new PIXI.Graphics()
         this.handCoverSprites.set(charId, cg)
         this.container.addChild(cg)
@@ -333,6 +342,9 @@ export class CanvasRenderer {
 
         this.renderWeapon(c, ox, oy, facingRight)
         this.renderHandCover(c, ox, oy, facingRight, sprite.palette)
+        // 双持：副手武器（build.offhand 固定；没装就没有）
+        this.renderWeapon(c, ox, oy, facingRight, 'off')
+        this.renderHandCover(c, ox, oy, facingRight, sprite.palette, 'off')
 
         // 等待条：竖直「蜡烛」（内息黄，随 AP 回复从顶部一点点烧矮），立在人物背后侧，避免与对手重叠
         const CANDLE_W = 3
@@ -354,30 +366,32 @@ export class CanvasRenderer {
         }
     }
 
-    private renderWeapon(c: FrameChar, ox: number, oy: number, facingRight: boolean): void {
-        const wg = this.weaponSprites.get(c.id)
+    /**
+     * 画一把武器。slot='off' 时画副手那把（双持）——位置/角度走 resolveWeaponMount 的副手规则：
+     * 武器自己登记了 off 配置就用它，否则用「副手默认」（全局副手手位 + 副手角度）。
+     */
+    private renderWeapon(c: FrameChar, ox: number, oy: number, facingRight: boolean, slot: WeaponSlot = 'main'): void {
+        const wg = slot === 'off' ? this.offhandWeaponSprites.get(c.id) : this.weaponSprites.get(c.id)
         if (!wg) return
         wg.clear()
-        const overlay = getWeaponOverlay(c.weaponId)
+        const weaponId = slot === 'off' ? c.offhand : c.weaponId
+        if (!weaponId) return
+        const overlay = getWeaponOverlay(weaponId)
         if (overlay.pixels.length === 0) return
 
-        // 握持行为（grip/角度/锚定手）按武器+姿势查配置
-        const poseConfig = getWeaponPoseConfig(c.weaponId, c.pose)
-        const hand = getWeaponHand(c.weaponId, c.pose)
-        const gripX = poseConfig.gripX
-        const gripY = poseConfig.gripY
+        const mount = resolveWeaponMount(weaponId, c.pose, { slot, facingRight })
 
         // 武器 Graphics：position = 锚定手，本地坐标相对主握点（px-gripX, py-gripY），
         // pivot 保持 (0,0) 使旋转绕锚定手进行（避免双重偏移把武器抬离手部）。
         // 旋转角度：单手武器 idle=0 / attack=±45°；双手武器绕副手旋转使棍身轴线穿过主手。
-        const handX = facingRight ? hand.x : SPRITE_WIDTH - 1 - hand.x
-        wg.position.set(ox + handX * PIXEL, oy + hand.y * PIXEL)
+        const handX = facingRight ? mount.hand.x : SPRITE_WIDTH - 1 - mount.hand.x
+        wg.position.set(ox + handX * PIXEL, oy + mount.hand.y * PIXEL)
         wg.pivot.set(0, 0)
-        wg.rotation = getWeaponAngle(c.weaponId, c.pose, facingRight)
+        wg.rotation = mount.angle
 
         for (const [px, py, color] of resolveWeaponPixels(overlay)) {
-            const fx = facingRight ? px - gripX : -(px - gripX)
-            wg.rect(fx * PIXEL, (py - gripY) * PIXEL, PIXEL, PIXEL).fill(color)
+            const fx = facingRight ? px - mount.gripX : -(px - mount.gripX)
+            wg.rect(fx * PIXEL, (py - mount.gripY) * PIXEL, PIXEL, PIXEL).fill(color)
         }
     }
 
@@ -388,27 +402,32 @@ export class CanvasRenderer {
         oy: number,
         facingRight: boolean,
         palette: Record<string, string>,
+        slot: WeaponSlot = 'main',
     ): void {
-        const cg = this.handCoverSprites.get(c.id)
+        const cg = slot === 'off' ? this.offhandCoverSprites.get(c.id) : this.handCoverSprites.get(c.id)
         if (!cg) return
         cg.clear()
+        const weaponId = slot === 'off' ? c.offhand : c.weaponId
+        if (!weaponId) return
         // 命中（hit）：武器被打飞脱手 → 不画握持手
         if (!shouldDrawHandCover(c.pose)) return
         // 握持行为按武器+姿势查配置：漂浮类武器（如三相珠）无握柄手部覆盖
-        const poseConfig = getWeaponPoseConfig(c.weaponId, c.pose)
-        if (poseConfig.noHandCover) return
-        const cover = HAND_COVER[c.pose] ?? HAND_COVER.idle
+        const mount = resolveWeaponMount(weaponId, c.pose, { slot, facingRight })
+        if (mount.noHandCover) return
+        // 主手槽：主手遮罩（+ 双手武器再盖副手）；副手槽：反过来
+        const primary = (slot === 'off' ? LEFT_HAND_COVER : HAND_COVER)[c.pose] ?? HAND_COVER.idle
+        const secondaryTable = slot === 'off' ? HAND_COVER : LEFT_HAND_COVER
         const skin = palette['3'] ?? '#f5d6c6'
         const paint = (cx: number, cy: number) => {
             // 覆盖层跟随角色精灵镜像（与角色渲染一致：sx = facingRight ? x : width-1-x）
             const fx = facingRight ? cx : SPRITE_WIDTH - 1 - cx
             cg.rect(ox + fx * PIXEL, oy + cy * PIXEL, PIXEL, PIXEL).fill(skin)
         }
-        for (const [cx, cy] of cover) paint(cx, cy)
-        // 双手武器（有 grip2）：额外盖住第二只手（左手）
-        if (poseConfig.grip2X !== undefined) {
-            const leftCover = LEFT_HAND_COVER[c.pose] ?? LEFT_HAND_COVER.idle
-            for (const [cx, cy] of leftCover) paint(cx, cy)
+        for (const [cx, cy] of primary) paint(cx, cy)
+        // 双手武器（有 grip2）：额外盖住另一只手
+        if (mount.grip2X !== undefined) {
+            const secondary = secondaryTable[c.pose] ?? secondaryTable.idle
+            for (const [cx, cy] of secondary) paint(cx, cy)
         }
     }
 

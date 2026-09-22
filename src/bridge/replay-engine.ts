@@ -75,6 +75,8 @@ export interface FrameChar {
     ap: number
     maxAp: number
     weaponId: string
+    /** 副手武器（双持时才有；来自 build.offhand，战斗中固定） */
+    offhand?: string
     spriteId: string
     pose: 'idle' | 'attack' | 'hit' | 'move' | 'buff'
     waitProgress: number // 0~1，等待下次行动进度
@@ -660,6 +662,7 @@ export class ReplayEngine {
             waitProgress,
             isActing,
             weaponId: c.weapon,
+            offhand: c.offhand,
             spriteId: c.spriteId,
             pose,
         }

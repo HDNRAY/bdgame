@@ -123,6 +123,10 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 - 刃/尖端一律画在美术网格的**左上端**（沿轴坐标 `k = x+y-6` 的小端）。要让长端朝角色正面，用握点/`flip` 去解决，不要反过来画刃（所有兵器点阵同源才好复用）。
 - 武器美术画在 32×32 网格（`constants.ts` 的 `WEAPON_WIDTH/HEIGHT`）；像素颜色索引必须写**数字**（字符串会被当成颜色字面量，渲染成黑色）。
 - 握点与姿势独立登记在 `WEAPON_POSES`：单手武器锚主手；双手武器给 `gripX/gripY` + `grip2X/grip2Y`，角度由两手连线自动算（`getWeaponAngle`），可用 `handX/handY/targetX/targetY/angle` 逐姿势覆盖。**每把武器独立写配置，同族也不共享常量**，便于逐把微调。
+- **手位覆盖一律写「相对偏移」**：`handDX/handDY`（相对 `HAND_POINTS[pose]`，副手槽相对 `OTHER_HAND_POINT[pose]`）、`targetDX/targetDY`（双手武器相对目标手基准）。优先级：绝对 `handX/handY`/`targetX/targetY`（旧数据仍支持）> 相对偏移 > 基准。编辑器拖动/输入写的都是偏移，`编辑器导出`也把绝对值折算成偏移，所以导出贴回后武器仍然**跟随全局手位表**（`HAND_POINTS` 一改全体跟着动），不会把自己锁死在绝对坐标上。基准解析唯一入口 `baseAnchorHand(cfg, pose, slot)` / `baseTargetHand(pose)`。
+- **导出片段的压缩语义**：表里的姿势条目是**整体替换** `...makePoses(基底)` 的同名条目（不是合并），因此写出来的条目必须自包含；只有与基底完全相同的姿势才省略。基底里出现非 0 偏移时，某姿势要 0 偏移必须显式写 `handDX: 0`。
+- **槽位（主手 / 副手）是一等维度**：`WEAPON_POSES[武器][姿势]` 是主手槽；副手槽写可选的 `off` 子表（`WEAPON_POSES[武器].off[姿势]`）。副手没登记时按「副手默认」：握柄沿用主手表，手位取全局 `OTHER_HAND_POINT[pose]`、角度取 `DUAL_OFFHAND_ANGLE[pose]`（双手武器挂副手槽则直接沿用主手配置）。解析入口只有 `resolveWeaponMount(weaponId, pose, { slot, config?, facingRight? })`，战斗渲染器 / 像素预览 / 编辑器都走它，不要各算一套。
+- **双持会画两把**：`CharacterSnapshot.offhand`（来自 `build.offhand`，战斗中固定）→ 渲染器为每个角色多两组 Graphics（副手武器画在主手武器**下面**，副手手部遮罩用另一侧的手）。
 - 改手位或轴向后必须同步 `HAND_POINTS` / `OTHER_HAND_POINT` / `HAND_COVER` / `LEFT_HAND_COVER`。
 
 **像素编辑器**：DevMode 的「像素编辑器」tab（`/dev?tab=editor`，源码 `src/ui/screens/DevMode/PixelEditor/`），两种模式：

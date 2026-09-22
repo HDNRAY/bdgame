@@ -7,11 +7,15 @@ import {
     parsePixelMap,
     formatCharacterColorsSnippet,
     formatWeaponOverlaySnippet,
+    formatWeaponPoseSnippet,
     parseWeaponOverlay,
     stringifyPixelMap,
     unpadRenderedFrame,
 } from './frame-io'
 import { DEFAULT_IDLE } from './sprites'
+import { HAND_POINTS } from './weapons'
+import type { WeaponPoseConfig } from './types'
+import { POSE_NAMES, WEAPON_POSES, resolveWeaponMount } from './weapons'
 
 describe('像素帧排版', () => {
     it('每行 19 个数字、8 空格缩进（与 sprites.ts 现有帧同构）', () => {
@@ -171,5 +175,87 @@ describe('角色配色片段', () => {
         expect(line).toBe(
             "    yidao: { skin: '#f5d6c6', hair: '#123456', eyes: '#b71902', accent: '#8c1d18', decoration: '#d4a848' },",
         )
+    })
+})
+
+describe('武器挂点片段', () => {
+    it('字符串字段带引号（anchorHand）、布尔字段不带引号', () => {
+        const snippet = formatWeaponPoseSnippet(
+            'test_blade',
+            {
+                idle: { gripX: 8, gripY: 7, flip: true, noHandCover: true, anchorHand: 'main' },
+                attack: { gripX: 8, gripY: 7, anchorHand: 'off', angle: -Math.PI / 4 },
+            },
+            ['idle', 'attack'],
+        )
+        // 基底沿用 idle；attack 条目自包含（整替基底，不是合并），anchorHand 带引号
+        expect(snippet).toContain("...makePoses({ gripX: 8, gripY: 7, flip: true, anchorHand: 'main', noHandCover: true })")
+        expect(snippet).toContain("attack: { gripX: 8, gripY: 7, anchorHand: 'off', angle: (-45 * Math.PI) / 180 }")
+        // 不能出现没引号的裸标识符
+        expect(snippet).not.toMatch(/anchorHand: (main|off)\b(?!')/)
+    })
+
+    it('单引号包裹后是合法 TS（用 Function 解析一遍）', () => {
+        const snippet = formatWeaponPoseSnippet(
+            'test_blade',
+            { idle: { gripX: 1, gripY: 2, anchorHand: 'off' } },
+            ['idle'],
+        )
+        // makePoses 的作用就是把基底铺到每个姿势（与 weapons.ts 里的真实实现一致）
+        const src = `const POSE_NAMES = ['idle', 'attack', 'dodge', 'parry', 'hit', 'buff']`
+            + `; const makePoses = (base) => Object.fromEntries(POSE_NAMES.map((p) => [p, { ...base }]))`
+            + `; const WEAPON_POSES = {\n${snippet}\n}; return WEAPON_POSES.test_blade.idle.anchorHand`
+        // eslint-disable-next-line no-new-func
+        const value = new Function(src)()
+        expect(value).toBe('off')
+    })
+})
+
+/** 用导出片段 + 真实的 makePoses 语义（基底铺到每个姿势）求值，拿到 WEAPON_POSES 条目 */
+function evalPoseSnippet(snippet: string): Record<string, Record<string, Record<string, unknown>>> {
+    const src =
+        `const POSE_NAMES = ${JSON.stringify([...POSE_NAMES])}` +
+        '; const makePoses = (base) => Object.fromEntries(POSE_NAMES.map((p) => [p, { ...base }]))' +
+        `; const WEAPON_POSES = {\n${snippet}\n}; return WEAPON_POSES`
+    // eslint-disable-next-line no-new-func
+    return new Function(src)() as Record<string, Record<string, Record<string, unknown>>>
+}
+
+describe('武器挂点片段 · 往返一致', () => {
+    // 导出再求值后，引擎解析出的落点（手位/角度/握柄）必须完全一致。
+    // 注意：导出会把绝对坐标 handX/handY 折算成相对偏移 handDX/handDY，所以比对的是"解析结果"而不是字段名。
+    const IDS = ['peach_sword', 'dark_iron_sword', 'tri_orb', 'qimei_staff', 'xiu_dong', 'chun_lei', 'iron_spear']
+    for (const id of IDS) {
+        it(`${id}：导出后每个姿势的落点与登记值一致`, () => {
+            const original = WEAPON_POSES[id]
+            const configs = Object.fromEntries([...POSE_NAMES].map((p) => [p, original[p] ?? original.idle]))
+            const snippet = formatWeaponPoseSnippet(id, configs, [...POSE_NAMES])
+            const roundTripped = evalPoseSnippet(snippet)[id]
+            for (const pose of POSE_NAMES) {
+                const want = resolveWeaponMount(id, pose)
+                const gotCfg = (roundTripped[pose] ?? {}) as Partial<WeaponPoseConfig>
+                const got = resolveWeaponMount(id, pose, { config: gotCfg })
+                expect(got.hand, `${id}.${pose}.hand`).toEqual(want.hand)
+                expect(got.angle, `${id}.${pose}.angle`).toBeCloseTo(want.angle, 6)
+                expect(got.gripX, `${id}.${pose}.gripX`).toBeCloseTo(want.gripX, 6)
+                expect(got.gripY, `${id}.${pose}.gripY`).toBeCloseTo(want.gripY, 6)
+            }
+        })
+    }
+
+    it('绝对坐标折算成相对偏移：等于基准就不写，偏离基准写 handDX/handDY', () => {
+        const snippet = formatWeaponPoseSnippet(
+            'test_blade',
+            {
+                idle: { gripX: 1, gripY: 2, handX: 37.5, handY: 31.5 }, // HAND_POINTS.idle = (37, 32)
+                parry: { gripX: 1, gripY: 2, handX: HAND_POINTS.parry.x, handY: HAND_POINTS.parry.y - 5 },
+            },
+            ['idle', 'parry'],
+        )
+        expect(snippet).toContain('...makePoses({ gripX: 1, gripY: 2, handDX: 0.5, handDY: -0.5 })')
+        // parry 的手位正好等于基准 → 不写；-5 的那部分写成 handDY
+        // 条目是自包含的：基底的非 0 偏移在这里必须显式归零
+        expect(snippet).toContain('parry: { gripX: 1, gripY: 2, handDX: 0, handDY: -5 }')
+        expect(snippet).not.toContain('handX: 37.5')
     })
 })

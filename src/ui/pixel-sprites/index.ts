@@ -95,4 +95,8 @@ export {
     resolveWeaponPixels,
     getWeaponAngle,
     getWeaponHand,
+    baseAnchorHand,
+    baseTargetHand,
+    resolveWeaponMount,
 } from './weapons'
+export type { WeaponMount, WeaponPoseTable, WeaponSlot } from './weapons'

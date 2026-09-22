@@ -433,6 +433,29 @@
         }
     }
 
+    /* 槽位切换（主手 / 副手） */
+    &-slot-row {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-xxs);
+    }
+
+    &-col-label {
+        font-size: var(--font-xs);
+        opacity: 0.7;
+    }
+
+    /* 副手未登记时的说明 */
+    &-mount-note {
+        padding: var(--sp-xxs) var(--sp-xs);
+        border-left: 2px solid var(--color-accent);
+        border-radius: var(--radius-sm);
+        background: var(--color-bg-hover);
+        font-size: var(--font-xs);
+        line-height: 1.5;
+        opacity: 0.85;
+    }
+
     /* 姿势按钮：整齐两行三列，不再挤成一坨 */
     &-pose-grid {
         display: grid;

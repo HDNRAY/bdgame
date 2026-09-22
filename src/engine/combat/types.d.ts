@@ -125,6 +125,8 @@ export interface CharacterSnapshot {
     chan: number
     pos: number
     weapon: string
+    /** 副手武器 id（build.offhand；没有就不带这个字段） */
+    offhand?: string
     spriteId: string
     attrs: Record<string, number>
     baseAttrs: Record<string, number>

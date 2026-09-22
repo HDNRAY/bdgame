@@ -12,6 +12,7 @@
 import type { HandAnchorData } from './frame-edit'
 import type { CharacterColors } from './palette'
 import type { WeaponPoseConfig } from './types'
+import { baseAnchorHand, baseTargetHand } from './weapons'
 import type { PixelMap } from './types'
 import { SPRITE_HEIGHT, SPRITE_PAD_LEFT, SPRITE_WIDTH } from './constants'
 
@@ -443,8 +444,21 @@ export function formatCharacterColorsSnippet(charId: string, colors: CharacterCo
     )
 }
 
-/** 挂点配置里「同一把武器所有姿势共用」的字段（导出时放进 makePoses 的基底） */
-const POSE_BASE_KEYS: (keyof WeaponPoseConfig)[] = [
+function fmtNum(v: number): string {
+    return Number.isInteger(v) ? String(v) : String(Math.round(v * 10000) / 10000)
+}
+
+/** 角度：是「整数/半度」就写成 (15 * Math.PI) / 180，否则按弧度原值写（与 weapons.ts 里的习惯一致） */
+function fmtAngle(rad: number): string {
+    if (rad === 0) return '0'
+    const deg = (rad * 180) / Math.PI
+    const halfSteps = Math.round(deg * 2) / 2
+    if (Math.abs(deg - halfSteps) < 0.01) return `(${fmtNum(halfSteps)} * Math.PI) / 180`
+    return fmtNum(rad)
+}
+
+/** 能被 makePoses 基底携带的字段（所有姿势一致时才放进基底） */
+const BASE_CANDIDATES: (keyof WeaponPoseConfig)[] = [
     'gripX',
     'gripY',
     'grip2X',
@@ -453,28 +467,54 @@ const POSE_BASE_KEYS: (keyof WeaponPoseConfig)[] = [
     'anchorHand',
     'noHandCover',
 ]
+/** 相对偏移字段（写进基底会"继承"，所以判定差异时按 0 兜底） */
+const OFFSET_KEYS: (keyof WeaponPoseConfig)[] = ['handDX', 'handDY', 'targetDX', 'targetDY']
+/** 其余逐姿势字段 */
+const POSE_KEYS: (keyof WeaponPoseConfig)[] = ['angle']
 
-function fmtNum(v: number): string {
-    return Number.isInteger(v) ? String(v) : String(Math.round(v * 10000) / 10000)
+/**
+ * 把一条配置折算成「导出形态」：绝对手位/目标手 → 相对偏移。
+ * - handX/handY（或 targetX/targetY）成对出现才折算，单个轴保留原样（引擎本来就只认成对）；
+ * - 折算出的偏移按 0 兜底参与比较，避免"没写 = 继承基底"把别的姿势的偏移也继承过去。
+ */
+function toExportShape(
+    cfg: Partial<WeaponPoseConfig>,
+    pose: string,
+    slot: 'main' | 'off',
+): Partial<WeaponPoseConfig> {
+    const out: Partial<WeaponPoseConfig> = { ...cfg }
+    const handPair = typeof cfg.handX === 'number' && typeof cfg.handY === 'number'
+    if (handPair) {
+        const base = baseAnchorHand(cfg, pose, slot)
+        out.handDX = Math.round((cfg.handX! - base.x) * 10000) / 10000
+        out.handDY = Math.round((cfg.handY! - base.y) * 10000) / 10000
+        delete out.handX
+        delete out.handY
+    }
+    const dual = cfg.grip2X !== undefined && cfg.grip2Y !== undefined
+    const targetPair = typeof cfg.targetX === 'number' && typeof cfg.targetY === 'number'
+    if (dual && targetPair) {
+        const base = baseTargetHand(pose)
+        out.targetDX = Math.round((cfg.targetX! - base.x) * 10000) / 10000
+        out.targetDY = Math.round((cfg.targetY! - base.y) * 10000) / 10000
+        delete out.targetX
+        delete out.targetY
+    }
+    return out
 }
 
-/** 角度：是「整数/半度」就写成 (15 * Math.PI) / 180，否则按弧度原值写（与 weapons.ts 里的习惯一致） */
-function fmtAngle(rad: number): string {
-    const deg = (rad * 180) / Math.PI
-    const halfSteps = Math.round(deg * 2) / 2
-    if (Math.abs(deg - halfSteps) < 0.01) return `(${fmtNum(halfSteps)} * Math.PI) / 180`
-    return fmtNum(rad)
+function offsetOf(cfg: Partial<WeaponPoseConfig>, key: keyof WeaponPoseConfig): number {
+    const v = cfg[key]
+    return typeof v === 'number' ? v : 0
 }
 
-function fmtPoseFields(cfg: Partial<WeaponPoseConfig>, keys: (keyof WeaponPoseConfig)[]): string {
-    return keys
-        .filter((k) => cfg[k] !== undefined)
-        .map((k) => {
-            const v = cfg[k]
-            if (typeof v !== 'number') return `${k}: ${String(v)}`
-            return `${k}: ${k === 'angle' ? fmtAngle(v) : fmtNum(v)}`
-        })
-        .join(', ')
+function formatKey(key: keyof WeaponPoseConfig, cfg: Partial<WeaponPoseConfig>): string {
+    const v = cfg[key]
+    if (typeof v === 'boolean') return `${key}: ${v}`
+    // 字符串字段（目前只有 anchorHand: 'main' | 'off'）必须带引号，否则导出的 TS 不合法
+    if (typeof v === 'string') return `${key}: '${v}'`
+    if (typeof v === 'number') return `${key}: ${key === 'angle' ? fmtAngle(v) : fmtNum(v)}`
+    return `${key}: ${String(v)}`
 }
 
 /**
@@ -485,35 +525,72 @@ export function formatWeaponPoseSnippet(
     weaponId: string,
     configs: Record<string, Partial<WeaponPoseConfig>>,
     poses: string[],
+    opts: {
+        /** 副手槽子表：传了就写一段 `off:` 块（与主手同一套压缩规则） */
+        offTable?: Record<string, Partial<WeaponPoseConfig>>
+    } = {},
 ): string {
-    const idle = configs.idle ?? {}
-    const base = POSE_BASE_KEYS.filter((k) => idle[k] !== undefined)
-    const baseFields = fmtPoseFields(idle, base)
+    /**
+     * 写一张表（主手 or 副手）。
+     *
+     * 关键语义：表里的姿势条目是**整体替换** `...makePoses(基底)` 生成的同名条目（不是合并），
+     * 所以每个写出来的条目必须**自包含**（该姿势需要的字段全写出来）；
+     * 只有和基底完全一样的姿势才可以省略（它会原样继承基底那份）。
+     *
+     * 偏移字段（handDX/handDY/targetDX/targetDY）额外注意：基底里写了非 0 偏移时，
+     * 某个姿势若需要 0 偏移，必须显式写 `handDX: 0`，否则会继承基底的偏移。
+     */
+    const writeTable = (
+        table: Record<string, Partial<WeaponPoseConfig>>,
+        indent: string,
+        slot: 'main' | 'off',
+    ): string[] => {
+        const shaped: Record<string, Partial<WeaponPoseConfig>> = {}
+        for (const pose of poses) {
+            const cfg = table[pose]
+            if (cfg) shaped[pose] = toExportShape(cfg, pose, slot)
+        }
+        const idle = shaped.idle ?? {}
+        const baseKeys = BASE_CANDIDATES.filter((k) => idle[k] !== undefined)
+        const baseOffsets = OFFSET_KEYS.filter((k) => offsetOf(idle, k) !== 0)
+        const baseLine = [...baseKeys, ...baseOffsets]
+        const baseFields = baseLine.map((k) => formatKey(k, idle)).join(', ')
+        const out: string[] = []
+        out.push(baseFields ? `${indent}...makePoses({ ${baseFields} }),` : `${indent}...makePoses({}),`)
+
+        for (const pose of poses) {
+            const cfg = shaped[pose]
+            if (!cfg) continue
+            const sameAsBase =
+                baseKeys.every((k) => cfg[k] === idle[k]) &&
+                OFFSET_KEYS.every((k) => offsetOf(cfg, k) === offsetOf(idle, k)) &&
+                POSE_KEYS.every((k) => cfg[k] === undefined) &&
+                cfg.handX === undefined &&
+                cfg.targetX === undefined
+            if (sameAsBase) continue
+
+            const parts: string[] = []
+            for (const k of BASE_CANDIDATES) if (cfg[k] !== undefined) parts.push(formatKey(k, cfg))
+            for (const k of POSE_KEYS) if (cfg[k] !== undefined) parts.push(formatKey(k, cfg))
+            for (const k of OFFSET_KEYS) {
+                if (cfg[k] !== undefined) parts.push(formatKey(k, cfg))
+                // 基底有非 0 偏移、本姿势要归零 → 显式写 0
+                else if (baseOffsets.includes(k)) parts.push(`${k}: 0`)
+            }
+            for (const k of ['handX', 'handY', 'targetX', 'targetY'] as const) {
+                if (cfg[k] !== undefined) parts.push(formatKey(k, cfg))
+            }
+            out.push(`${indent}${pose}: { ${parts.join(', ')} },`)
+        }
+        return out
+    }
+
     const lines: string[] = [`    ${weaponId}: {`]
-    lines.push(baseFields ? `        ...makePoses({ ${baseFields} }),` : '        ...makePoses({}),')
-    const perPoseKeys: (keyof WeaponPoseConfig)[] = [
-        'gripX',
-        'gripY',
-        'grip2X',
-        'grip2Y',
-        'handX',
-        'handY',
-        'targetX',
-        'targetY',
-        'angle',
-        'flip',
-        'anchorHand',
-        'noHandCover',
-    ]
-    for (const pose of poses) {
-        if (pose === 'idle') continue
-        const cfg = configs[pose]
-        if (!cfg) continue
-        const sameAsBase =
-            base.every((k) => cfg[k] === idle[k]) &&
-            perPoseKeys.every((k) => !(k in cfg && !base.includes(k)) || cfg[k] === idle[k])
-        if (sameAsBase) continue
-        lines.push(`        ${pose}: { ${fmtPoseFields(cfg, perPoseKeys)} },`)
+    lines.push(...writeTable(configs, '        ', 'main'))
+    if (opts.offTable && Object.keys(opts.offTable).length > 0) {
+        lines.push('        off: {')
+        lines.push(...writeTable(opts.offTable, '            ', 'off'))
+        lines.push('        },')
     }
     lines.push('    },')
     return lines.join('\n')
