@@ -71,10 +71,11 @@ export const peach_sword: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = 
         ],
     },
     // weapons/entries/peach_sword.ts → poses:
+    // weapons/entries/peach_sword.ts → poses:
     poses: {
         ...makePoses({ gripX: 21.5, gripY: 20.5 }),
         attack: { gripDX: 0.5 },
-        parry: { gripDX: 0.5, gripDY: 0.5, angle: 2.6857 },
+        parry: { gripDY: 1, angle: 2.0577 },
         hit: { angle: (23 * Math.PI) / 180, handDX: 1.5, handDY: -2.5 },
         off: {
             ...makePoses({}),

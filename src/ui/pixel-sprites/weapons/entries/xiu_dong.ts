@@ -89,7 +89,7 @@ export const xiu_dong: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
             idle: { angle: 0 },
             attack: { angle: 0 },
             dodge: { angle: 0 },
-            parry: { gripDX: 0.5, angle: (-10 * Math.PI) / 180, handDX: 0.5 },
+            parry: { angle: (-10 * Math.PI) / 180 },
             hit: { angle: (58 * Math.PI) / 180, handDX: 5.5, handDY: -3 },
             buff: { gripDY: 1, flip: true, angle: (-90 * Math.PI) / 180 },
         },
