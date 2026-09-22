@@ -1575,7 +1575,7 @@ export const BUFF_DB: BuffDef[] = [
     },
     {
         id: 'special_forces_dagger',
-        name: '特种兵匕首',
+        name: '电磁战术刀',
         description: '耗1缠劲，追加1点电伤、1点穿透电伤，并有30%概率使目标麻痹1层。',
         tags: ['electric'],
         expiry: { type: 'permanent' },

@@ -105,7 +105,7 @@ describe('资源流水对账（真实战斗）', () => {
         }
     })
 
-    it('武器自扣的缠劲也算进总账（特种兵匕首：命中即耗 1 缠）', () => {
+    it('武器自扣的缠劲也算进总账（电磁战术刀：命中即耗 1 缠）', () => {
         const base = new Character(gen(LUEYING, 33))
         const opp = new Character(gen(XUNXIANG, 33))
         const { engine } = runBattle(base, opp, undefined, 4, true, { statsLevel: 2 })

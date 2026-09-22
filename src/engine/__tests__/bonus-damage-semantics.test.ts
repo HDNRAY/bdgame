@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach , beforeEach } from 'vitest'
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { seedBattleRandom } from './seed-battle-random'
 import { Character } from '../entities/character'
 import { BattleEngine } from '../combat/engine'
@@ -15,7 +15,7 @@ beforeEach(() => seedBattleRandom())
  *
  * 回归点：这个钩子原先按「两笔相加」解释（`raw = normal`，穿透再额外加一笔），
  * 同一形状在两个钩子里语义相反。改口径后数据同步成 `{ normal: 2, piercing: 1 }`，
- * 雷法/特种兵匕首的实际伤害保持"共 2 点、其中 1 点穿透"不变。
+ * 雷法/电磁战术刀的实际伤害保持"共 2 点、其中 1 点穿透"不变。
  */
 function makeChar(id: string): Character {
     return new Character({
@@ -45,7 +45,7 @@ function hpDrop(withThunder: boolean): number {
 }
 
 describe('追加伤害 { normal, piercing } 的口径', () => {
-    it('雷法/特种兵匕首：normal 是总额，piercing 只是其中那部分', () => {
+    it('雷法/电磁战术刀：normal 是总额，piercing 只是其中那部分', () => {
         const atk = makeChar('A')
         atk.addChan(10)
         const r = getBuff('thunder_bonus')!.onAfterDealDamage!({ attacker: atk } as never) as {

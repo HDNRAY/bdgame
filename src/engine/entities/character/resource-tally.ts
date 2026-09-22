@@ -2,7 +2,7 @@
  * 一场战斗内的资源流水（内息 / 缠劲）—— `Character.res` 的类型。
  *
  * 每个数字都由 `Character` 的资源方法自己记账（`spendAp` / `gainAp` / `addChan` / `spendChan`），
- * 这是唯一权威口径：招式消耗、移动消耗、被打断扣气、武器/奇物自扣（如特种兵匕首 `spendChan(1)`）、
+ * 这是唯一权威口径：招式消耗、移动消耗、被打断扣气、武器/奇物自扣（如电磁战术刀 `spendChan(1)`）、
  * 时间回复、受击回气、上限溢出，全都经过这些方法，所以统计不必再去猜事件字段。
  * 战斗结束时由引擎一次性同步给 `BattleStats`（见 `docs/battle-stats-design.md`）。
  */
