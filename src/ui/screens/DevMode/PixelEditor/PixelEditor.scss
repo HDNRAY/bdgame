@@ -19,6 +19,10 @@
         gap: var(--sp-xs);
     }
 
+    &-row--end {
+        margin-left: auto;
+    }
+
     &-row {
         display: flex;
         flex-wrap: wrap;

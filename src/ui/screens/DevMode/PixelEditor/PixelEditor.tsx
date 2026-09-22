@@ -1013,25 +1013,7 @@ export function PixelEditor() {
                         </button>
                     </div>
 
-                    {mode === 'weapon' && (
-                        <div className="pixel-editor-row">
-                            <span className="pixel-editor-col-label" title="把这张武器图里所有已画的像素一起平移（挪出画布的点会丢）">
-                                整图平移
-                            </span>
-                            <button className="pixel-editor-tool" title="整体上移 1 格" onClick={() => nudgeWeapon(0, -1)}>
-                                ↑
-                            </button>
-                            <button className="pixel-editor-tool" title="整体下移 1 格" onClick={() => nudgeWeapon(0, 1)}>
-                                ↓
-                            </button>
-                            <button className="pixel-editor-tool" title="整体左移 1 格" onClick={() => nudgeWeapon(-1, 0)}>
-                                ←
-                            </button>
-                            <button className="pixel-editor-tool" title="整体右移 1 格" onClick={() => nudgeWeapon(1, 0)}>
-                                →
-                            </button>
-                        </div>
-                    )}
+
 
                     <div className="pixel-editor-row">
                         <label className="pixel-editor-toggle" title="显示像素网格">
@@ -1098,12 +1080,34 @@ export function PixelEditor() {
                                         className="pixel-editor-swatch-color"
                                         style={{ background: colorOf(slot) ?? 'transparent' }}
                                     />
-                                    {TOOLS.find((t) => t.id === tool)?.label} · {SLOT_LABELS[slot] ?? `颜色 ${slot}`}
-                                    {slot === 0 ? '（＝橡皮）' : ''}
+                                    {TOOLS.find((t) => t.id === tool)?.label}
+                                    {mode === 'frame'
+                                        ? ` · ${SLOT_LABELS[slot] ?? `颜色 ${slot}`}${slot === 0 ? '（＝橡皮）' : ''}`
+                                        : ''}
                                 </>
                             )}
                         </span>
-                    </div>
+                    
+                    {mode === 'weapon' && (
+                        <div className="pixel-editor-row pixel-editor-row--end">
+                            <span className="pixel-editor-col-label" title="把这张武器图里所有已画的像素一起平移（挪出画布的点会丢）">
+                                整图平移
+                            </span>
+                            <button className="pixel-editor-tool" title="整体上移 1 格" onClick={() => nudgeWeapon(0, -1)}>
+                                ↑
+                            </button>
+                            <button className="pixel-editor-tool" title="整体下移 1 格" onClick={() => nudgeWeapon(0, 1)}>
+                                ↓
+                            </button>
+                            <button className="pixel-editor-tool" title="整体左移 1 格" onClick={() => nudgeWeapon(-1, 0)}>
+                                ←
+                            </button>
+                            <button className="pixel-editor-tool" title="整体右移 1 格" onClick={() => nudgeWeapon(1, 0)}>
+                                →
+                            </button>
+                        </div>
+                    )}
+</div>
 
                     <p className="pixel-editor-status">
                         {status || '\u00a0'}
