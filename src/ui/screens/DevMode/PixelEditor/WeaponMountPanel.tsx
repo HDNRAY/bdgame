@@ -196,14 +196,17 @@ export function WeaponMountPanel({
     const tableFor = useCallback(
         (which: WeaponSlot) => {
             const out: Record<string, PoseCfg> = {}
+            // 该槽位自己的「共用」覆盖（主手 idle / 副手 idle）
+            const idleOverlay = sharedOf((configs[weaponId]?.[which]?.idle ?? {}) as PoseCfg)
             for (const p of POSES) {
-                out[p] =
-                    configs[weaponId]?.[which]?.[p] ??
-                    { ...resolveWeaponMount(weaponId, p, { slot: which }).config, ...baseOverlay }
+                // 登记值打底，再叠该姿势的覆盖 —— 覆盖里没写的字段（角度、握点…）必须保留登记值，
+                // 否则"只要这个姿势被编辑过，登记的角度/握点就丢"。
+                const base = { ...resolveWeaponMount(weaponId, p, { slot: which }).config, ...idleOverlay }
+                out[p] = { ...base, ...(configs[weaponId]?.[which]?.[p] ?? {}) }
             }
             return out
         },
-        [configs, weaponId, baseOverlay],
+        [configs, weaponId],
     )
     const snippet = useMemo(() => {
         const offEdited = Object.keys(configs[weaponId]?.off ?? {}).length > 0
@@ -232,9 +235,12 @@ export function WeaponMountPanel({
     )
     /** 配置角度（不含 flip）——只显示本姿势覆盖里写的值；生效角度见右栏读数 */
     const cfgAngleDeg = useMemo(() => {
-        const a = overrideValue('angle')
-        return a !== undefined ? Math.round(((a * 180) / Math.PI) * 10) / 10 : undefined
-    }, [poseEntry])
+        // 显示的是**配置角度**（不含 flip 那 180°）：覆盖 > 登记值 > 引擎默认规则（0° / 攻击 -45°）。
+        // 不含 flip 很关键 —— 否则把最终角度写回配置会再加一次 180°。
+        const a = overrideValue('angle') ?? effective.angle
+        const deg = a !== undefined ? (a * 180) / Math.PI : pose === 'attack' ? -45 : 0
+        return Math.round(deg * 10) / 10
+    }, [effective, pose, poseEntry])
 
     /** 鼠标位置 → 精灵格坐标（视口 120×54，内容偏右 45 格 / 偏下 3 格，与 PixelCanvas 的 offX/offY 一致） */
     const toSprite = (e: { currentTarget: HTMLCanvasElement; clientX: number; clientY: number }) => {
@@ -577,11 +583,9 @@ export function WeaponMountPanel({
                             <input
                                 type="number"
                                 step={1}
-                                value={cfgAngleDeg !== undefined ? cfgAngleDeg : ''}
+                                value={cfgAngleDeg}
                                 placeholder={
-                                    registered.angle !== undefined
-                                        ? `登记 ${Math.round(((registered.angle * 180) / Math.PI) * 10) / 10}`
-                                        : '自动'
+                                    '清空 = 回到登记值'
                                 }
                                 onChange={(e) => {
                                     const raw = e.target.value

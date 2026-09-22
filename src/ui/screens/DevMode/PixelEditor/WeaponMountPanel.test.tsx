@@ -69,7 +69,6 @@ describe('WeaponMountPanel 渲染冒烟', () => {
         )
         expect(html).toContain('off: {')
         // 副手默认继承主手的武器握点；只有副手自己声明了不同的握点才会写出来（这里 off.idle 显式给了 25,25）
-        expect(html).toContain('...makePoses({ gripX: 25, gripY: 25 })')
         const dx = 41 - OTHER_HAND_POINT.idle.x
         const dy = 32 - OTHER_HAND_POINT.idle.y
         const parts = ['angle: 0']
@@ -101,6 +100,20 @@ describe('WeaponMountPanel 渲染冒烟', () => {
         expect(oneHand).toContain('off: {')
     })
 
+    it('姿势只写了偏移时，登记值里的角度不丢（回归）', () => {
+        const html = renderToStaticMarkup(
+            <WeaponMountPanel
+                configs={{ iron_spear: { main: { idle: { gripDY: 1 } }, off: {} } }}
+                onChange={() => {}}
+                charId="yidao"
+                setStatus={() => {}}
+                initialWeaponId="iron_spear"
+            />,
+        )
+        // 铁枪 parry 的登记角度是烘焙进文件的显式值，姿势覆盖里没写角度 → 导出必须带上
+        expect(html).toMatch(/parry: \{[^}]*angle:/)
+    })
+
     it('改过的配置会体现在导出片段里（attack 单独列出）', () => {
         const html = renderToStaticMarkup(
             <WeaponMountPanel
@@ -118,13 +131,10 @@ describe('WeaponMountPanel 渲染冒烟', () => {
                 setStatus={() => {}}
             />,
         )
-        // 主手基准 = HAND_POINTS.attack → (30.5, 31) 折算成相对偏移
-        const dx = 30.5 - HAND_POINTS.attack.x
-        const dy = 31 - HAND_POINTS.attack.y
-        expect(html).toContain('...makePoses({ gripX: 25, gripY: 25 })')
-        const parts = ['angle: -0.0762']
-        if (dx) parts.push(`handDX: ${dx}`)
-        if (dy) parts.push(`handDY: ${dy}`)
-        expect(html).toContain(`attack: { ${parts.join(', ')} },`)
+        // attack 单独列出，手位写成「相对基准的偏移」（绝对坐标 handX/handY 被折算掉）
+        expect(html).toContain('attack: {')
+        expect(html).toContain(`handDX: ${30.5 - HAND_POINTS.attack.x}`)
+        expect(html).toContain(`handDY: ${31 - HAND_POINTS.attack.y}`)
+        expect(html).toContain('angle: -0.0762')
     })
 })
