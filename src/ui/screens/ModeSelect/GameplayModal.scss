@@ -16,7 +16,7 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     width: 100%;
-    max-width: 34rem;
+    max-width: min(56rem, 92vw);
     max-height: 82dvh;
     display: flex;
     flex-direction: column;
@@ -55,9 +55,24 @@
     flex: 1;
     overflow-y: auto;
     padding: var(--sp-md) var(--sp-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-md);
+    /* 宽屏双列：长公式行不至于在窄栏里折成一团 */
+    column-count: 2;
+    column-gap: var(--sp-lg);
+    overflow-wrap: break-word;
+}
+
+.gameplay-section {
+    break-inside: avoid;
+    margin-bottom: var(--sp-md);
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* 公式最密的一节横跨两列，整行都能展开 */
+.gameplay-section-wide {
+    column-span: all;
 }
 
 .gameplay-section-title {
@@ -133,5 +148,12 @@
     &:hover {
         background: var(--color-bg-hover);
         border-color: var(--color-accent);
+    }
+}
+
+/* 窄屏回到单列，弹窗仍可用 */
+@media (max-width: 760px) {
+    .gameplay-body {
+        column-count: 1;
     }
 }
