@@ -41,10 +41,6 @@ interface PixelCanvasProps {
     style?: CSSProperties
     /** 副手武器 ID（提供时按双持渲染：锚定副手、角度取双持规则） */
     secondWeaponId?: string
-    /** 副手角度覆盖（不填用 getDualOffhandAngle） */
-    secondAngle?: number
-    /** 双持时主手角度覆盖（不填用 getDualMainAngle） */
-    dualMainAngle?: number
     /** 画布列数（格）——不填则用 max(内容宽高) 的方形画布；武器/长兵器可指定更宽 */
     canvasCols?: number
     /** 画布行数（格）——不填同 canvasCols 的逻辑 */
@@ -68,8 +64,6 @@ export function PixelCanvas({
     className,
     style,
     secondWeaponId,
-    secondAngle,
-    dualMainAngle,
     canvasCols,
     canvasRows,
     contentOffsetX,
@@ -187,7 +181,8 @@ export function PixelCanvas({
                 // 角度：有武器就统一走引擎的 getWeaponAngle（显式 angle > 双手两手连线 > 单手默认 0°/攻击 -45°），
                 // 这样预览与战斗渲染器完全一致；没有武器（图标模式）才用传进来的 angle。
                 // 注意：之前只在配置写了显式 angle 时才调 getWeaponAngle，导致单手 attack 的 -45° 在预览里丢了。
-                const effAngle = mount ? (dualMainAngle ?? mount.angle) : (angle ?? 0)
+                // 双持时主手也用武器自己的角度（不再有全局覆盖）
+                const effAngle = mount ? mount.angle : (angle ?? 0)
                 paintRotatedWeapon(overlay, mount?.gripX ?? 0, mount?.gripY ?? 0, hand, effAngle)
             } else {
                 // 武器图标模式：按完整 32×32 网格 + 原始坐标绘制，保留武器设计时的空白
@@ -204,7 +199,7 @@ export function PixelCanvas({
         const offhandOverlay = secondWeaponId ? getWeaponOverlay(secondWeaponId) : undefined
         if (hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0 && secondWeaponId) {
             const offMount = resolveWeaponMount(secondWeaponId, pose, { slot: 'off' })
-            const offAngle = secondAngle ?? offMount.angle
+            const offAngle = offMount.angle
             paintRotatedWeapon(offhandOverlay, offMount.gripX, offMount.gripY, offMount.hand, offAngle)
         }
 
@@ -249,9 +244,7 @@ export function PixelCanvas({
         hasPixels,
         contentW,
         secondWeaponId,
-        secondAngle,
-        dualMainAngle,
-        // 挂持配置是「对象」：编辑器拖动/改数值每次都换新对象，必须进依赖，否则预览不重绘
+                // 挂持配置是「对象」：编辑器拖动/改数值每次都换新对象，必须进依赖，否则预览不重绘
         poseConfigProp,
         weaponSlot,
     ])

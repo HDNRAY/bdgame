@@ -30,8 +30,3 @@ export function getWeaponAngle(
     return resolveWeaponMount(weaponId, pose, { slot, facingRight }).angle
 }
 
-/** 双持时主手角度（未覆盖的姿势沿用单手规则） */
-export function getDualMainAngle(weaponId: string, pose: string, facingRight: boolean): number {
-    // 双持时主手也用这把武器自己的角度（不再有全局覆盖表，保证双持/不双持一致）
-    return getWeaponAngle(weaponId, pose, facingRight)
-}

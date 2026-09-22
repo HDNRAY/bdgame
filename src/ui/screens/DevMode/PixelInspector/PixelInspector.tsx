@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom'
 import { useAppStore, getEffectiveTheme } from '../../../stores/app-store'
 import {
     getCharacterAvatar,
-    getDualMainAngle,
     getSpriteOutlineColor,
     getWeaponPoseConfig,
     makeCharacterSprite,
@@ -518,7 +517,6 @@ export function PixelInspector() {
                                     weaponId={compositeWeapon ? weaponId : undefined}
                                     overlay={compositeWeapon ? overlay : undefined}
                                     secondWeaponId={compositeWeapon && dualWield ? offhandId : undefined}
-                                    dualMainAngle={compositeWeapon && dualWield ? getDualMainAngle(weaponId, name, true) : undefined}
                                     canvasCols={canvasCols}
                                     canvasRows={canvasRows}
                                     contentOffsetX={offX}

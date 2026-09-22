@@ -24,5 +24,5 @@ export {
 } from './weapons/mount'
 export type { WeaponMount } from './weapons/mount'
 export { getWeaponOverlay, getWeaponPixelColor, resolveWeaponPixels } from './weapons/overlay'
-export { DUAL_OFFHAND_ANGLE, getDualOffhandAngle, shouldDrawHandCover } from './weapons/dual'
-export { getWeaponHand, getWeaponAngle, getDualMainAngle } from './weapons/angles'
+export { shouldDrawHandCover } from './weapons/dual'
+export { getWeaponHand, getWeaponAngle } from './weapons/angles'

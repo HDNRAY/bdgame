@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { HAND_COVER, LEFT_HAND_COVER } from './weapons'
 import { dragHandOffset } from './frame-edit'
 import {
-    DUAL_OFFHAND_ANGLE,
     baseAnchorHand,
     handCoverTables,
     HAND_POINTS,
@@ -27,16 +26,24 @@ function withoutOffTable<T>(weaponId: string, fn: () => T): T {
 }
 
 describe('武器槽位：主手 / 副手', () => {
-    it('副手默认 = 全局副手手位 + DUAL_OFFHAND_ANGLE（未登记 off 的单手武器）', () => {
+    it('副手默认 = 全局副手手位 + 沿用主手（该姿势）的握点/角度（未登记 off 的单手武器）', () => {
         withoutOffTable('peach_sword', () => {
             for (const pose of POSE_NAMES) {
                 const m = resolveWeaponMount('peach_sword', pose, { slot: 'off' })
+                const main = resolveWeaponMount('peach_sword', pose, { slot: 'main' })
                 expect(m.usingOffhandDefault).toBe(true)
-                expect(m.hand).toEqual(OTHER_HAND_POINT[pose])
-                expect(m.hand).not.toEqual(HAND_POINTS[pose])
-                expect(m.angle).toBeCloseTo((DUAL_OFFHAND_ANGLE[pose] ?? 0) + (m.flip ? Math.PI : 0), 6)
-                // 握柄沿用主手表（武器图里握哪一格不该因为槽位而变）
-                expect(m.gripX).toBe(getWeaponPoseConfig('peach_sword', pose).gripX)
+                // 手位基准是全局副手手位（该姿势主手的 handDX/handDY 会一起继承，所以是基准 + 同样的偏移）
+                expect(baseAnchorHand(getWeaponPoseConfig('peach_sword', pose, 'main'), pose, 'off')).toEqual(
+                    OTHER_HAND_POINT[pose],
+                )
+                const mainCfg = getWeaponPoseConfig('peach_sword', pose, 'main')
+                expect(m.hand.x).toBeCloseTo(OTHER_HAND_POINT[pose].x + (mainCfg.handDX ?? 0), 6)
+                expect(m.hand.y).toBeCloseTo(OTHER_HAND_POINT[pose].y + (mainCfg.handDY ?? 0), 6)
+                // 角度沿用这把武器自己的角度（副手已无全局默认角度表）
+                expect(m.angle).toBeCloseTo(main.angle, 6)
+                // 握柄沿用主手表该姿势的握点（武器图里握哪一格不该因为槽位而变）
+                expect(m.gripX).toBeCloseTo(main.gripX, 6)
+                expect(m.gripY).toBeCloseTo(main.gripY, 6)
             }
         })
     })
@@ -142,27 +149,25 @@ describe('编辑器拖动折算与手部遮罩选择', () => {
         expect(m.hand).toEqual({ x: offBase.x + 2, y: offBase.y - 1 })
     })
 
-    it('副手基准必须等于「副手默认」落点（每个姿势，含带 DUAL_ATTACK_ADJUST 的 attack）', () => {
+    it('副手基准 = 全局副手手位（默认落点会继承主手该姿势的手位偏移）', () => {
         // 用「未登记 off」的武器测默认路径（库里已有几把登记过副手）
         withoutOffTable('peach_sword', () => {
             for (const pose of POSE_NAMES) {
                 const base = baseAnchorHand({}, pose, 'off')
-                const defaultMount = resolveWeaponMount('peach_sword', pose, { slot: 'off' })
-                expect(defaultMount.hand, `off/${pose}`).toEqual(base)
-                // 也等于全局副手手位（attack 不再叠加双手连线用的修正）
-                expect(base).toEqual(OTHER_HAND_POINT[pose])
+                expect(base, `off/${pose}`).toEqual(OTHER_HAND_POINT[pose])
             }
         })
     })
 
-    it('副手槽拖动：偏移量 == 拖动位移（基准与默认落点一致，不掺基准差）', () => {
+    it('副手槽拖动：渲染位移 == 拖动位移（偏移里含继承量，但落点只挪拖动那么多）', () => {
         withoutOffTable('peach_sword', () => {
             for (const pose of POSE_NAMES) {
-                const cfg = WEAPON_POSES.peach_sword[pose] ?? WEAPON_POSES.peach_sword.idle ?? {}
+                const cfg = getWeaponPoseConfig('peach_sword', pose, 'main')
                 const start = resolveWeaponMount('peach_sword', pose, { slot: 'off' }).hand
-                // 副手槽基准必须正好等于默认落点 → 拖动位移原样进偏移
-                expect(baseAnchorHand(cfg, pose, 'off'), `off/${pose}`).toEqual(start)
-                expect(dragHandOffset(cfg, pose, 'off', start, 2, -1), `off/${pose}`).toEqual({ handDX: 2, handDY: -1 })
+                const fields = dragHandOffset(cfg, pose, 'off', start, 2, -1)
+                const after = resolveWeaponMount('peach_sword', pose, { slot: 'off', config: { ...cfg, ...fields } }).hand
+                expect(after.x - start.x, `off/${pose}`).toBeCloseTo(2, 6)
+                expect(after.y - start.y, `off/${pose}`).toBeCloseTo(-1, 6)
             }
         })
     })

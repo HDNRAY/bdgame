@@ -6,7 +6,6 @@
  */
 import type { WeaponPoseConfig } from '../types'
 import { HAND_COVER, HAND_POINTS, LEFT_HAND_COVER, OTHER_HAND_POINT } from './hands'
-import { DUAL_OFFHAND_ANGLE } from './dual'
 import { mergePoseConfig, sharedOf, type PoseKey, type WeaponSlot } from './poses'
 import { WEAPON_POSES } from './entries/index'
 
@@ -78,7 +77,7 @@ export function baseAnchorHand(
  * 主手：手位 = handX/handY → anchorHand('main'/'off'，默认单手 main、双手 off) → 全局手位表；
  *       角度 = angle → 双手两手连线 → 单手规则(0°，attack ∓45°) → 叠 flip。
  * 副手（未登记 off 子表时的默认）：
- *       单手武器 = 握柄沿用主手表 + 手位取全局副手 OTHER_HAND_POINT + 角度取 DUAL_OFFHAND_ANGLE；
+ *       单手武器 = 握柄与角度沿用主手表 + 手位取全局副手 OTHER_HAND_POINT；
  *       双手武器 = 直接沿用主手配置（双手武器本来就锚副手）。
  */
 export interface WeaponMount {
@@ -122,19 +121,8 @@ export function resolveWeaponMount(
         const offTable = WEAPON_POSES[weaponId]?.off
         const hasOffTable = Boolean(poseConfigIn(offTable, pose) ?? offTable?.idle)
         if (!hasOffTable) {
-            const offBase = baseAnchorHand(registered, pose, 'off')
-            // 长柄武器（显式锚副手）挂到副手槽时沿用主手配置；单手武器走「副手默认」。
-            cfg =
-                registered.anchorHand === 'off'
-                    ? getWeaponPoseConfig(weaponId, pose, 'main') // 长柄：沿用**主手**那份（逐姿势角度都在主手表里）
-                    : {
-                          gripX: registered.gripX,
-                          gripY: registered.gripY,
-                          flip: registered.flip,
-                              handX: offBase.x,
-                          handY: offBase.y,
-                          angle: DUAL_OFFHAND_ANGLE[pose] ?? 0,
-                      }
+            // 副手没登记：直接用这把武器自己的配置（握点/角度都跟随主手）——副手角度不再有全局默认
+            cfg = getWeaponPoseConfig(weaponId, pose, 'main')
             usingOffhandDefault = true
         }
     }
