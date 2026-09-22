@@ -78,6 +78,29 @@
     font-family: var(--font-mono);
 }
 
+.gameplay-sub {
+    border-left: 2px solid var(--sub-accent, var(--section-accent));
+    padding-left: var(--sp-sm);
+    margin-bottom: var(--sp-xs);
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    /* 二级知识点的标签（<b>流血</b>：…）用同一个色 */
+    b:first-child,
+    strong:first-child {
+        color: var(--sub-accent, var(--section-accent));
+    }
+}
+
+.gameplay-table tr {
+    td:first-child {
+        color: var(--sub-accent, var(--color-text));
+        font-weight: 600;
+    }
+}
+
 .gameplay-section-body {
     font-size: var(--font-md);
     color: var(--color-text);

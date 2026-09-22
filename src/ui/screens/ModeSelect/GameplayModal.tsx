@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { Children, type ReactNode } from 'react'
 import './GameplayModal.scss'
 
 interface GameplayModalProps {
@@ -39,27 +39,27 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
+                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[0] }}>
                                     <td>力道</td>
                                     <td>招式伤害缩放 · 招架后减免伤害（力道÷70，20%~60%）</td>
                                 </tr>
-                                <tr>
+                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[1] }}>
                                     <td>根骨</td>
                                     <td>气血（80+根骨×16） · 内息上限（4+根骨×0.25） · 缩短以根骨为基准的负面状态时长（眩晕、麻痹等）</td>
                                 </tr>
-                                <tr>
+                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[2] }}>
                                     <td>身法</td>
                                     <td>防守端命中对抗（身法÷80） · 移动（0.25+身法÷60 米/点） · 出手更省（内息减免）</td>
                                 </tr>
-                                <tr>
+                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[3] }}>
                                     <td>灵巧</td>
                                     <td>命中（主，权重 1） · 暴击率 · 暴击伤害（超出 4 每点 +3%） · 招架率（×1.1）</td>
                                 </tr>
-                                <tr>
+                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[4] }}>
                                     <td>洞察</td>
                                     <td>命中（攻防两端：攻 0.8 / 守 1） · 暴击率 · 招架率</td>
                                 </tr>
-                                <tr>
+                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[5] }}>
                                     <td>推演</td>
                                     <td>内息回复 · 触发槽 max(1, 推演÷4) · 毒退散更快 · 召唤间隔 · 炁/御物招式</td>
                                 </tr>
@@ -177,11 +177,24 @@ function sectionColor(title: string): string {
     return SECTION_FALLBACK[h % SECTION_FALLBACK.length]
 }
 
+/** 二级知识点取色：以本节颜色为起点在调色板里错开，保证同节内相邻条目不同色、且稳定 */
+function subColor(title: string, index: number): string {
+    const base = SECTION_FALLBACK.indexOf(sectionColor(title))
+    return SECTION_FALLBACK[(Math.max(0, base) + index + 1) % SECTION_FALLBACK.length]
+}
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
+    const items = Children.toArray(children)
     return (
         <div className="gameplay-section" style={{ ['--section-accent' as string]: sectionColor(title) }}>
             <div className="gameplay-section-title">{title}</div>
-            <div className="gameplay-section-body">{children}</div>
+            <div className="gameplay-section-body">
+                {items.map((child, i) => (
+                    <div key={i} className="gameplay-sub" style={{ ['--sub-accent' as string]: subColor(title, i) }}>
+                        {child}
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
