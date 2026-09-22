@@ -46,7 +46,8 @@ export const WEAPON_DB: WeaponDef[] = [
     {
         id: 'iron_back_hand',
         name: '素手无相',
-        description: '一枚古朴的白玉环，以炁驱动时延展覆盖整条手臂，化作无形护甲。拳劲透体，伤人于无形。',
+        description:
+            '一枚古朴的白玉环，实际由纳米材料构成，以炁驱动时延展覆盖手与小臂，化作银白护甲。拳劲透体，伤人于无形。',
         tags: ['unarmed', 'parry'],
         range: [0, 2],
         effects: [
