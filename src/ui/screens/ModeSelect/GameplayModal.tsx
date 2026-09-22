@@ -68,7 +68,7 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
                         <p>内息：上限与秒回由根骨、推演决定，招式消耗内息；身法与急速合计按每点 1% 减免，上限 40%，0 消耗仍是 0，非 0 最低 1 点。</p>
                         <p>内息上限、秒回与减免后的实际消耗，算法见「数值公式」一节。节奏是：一回合内把想做的事做完，再等内息回满才轮到下一次行动。</p>
                         <p>
-                            缠劲（上限 50）：花 1 点内息攒 1 点；挨打回气（真掉血×0.5，自伤不回）；功法、奇物可按秒回缠。缠劲到 30 得「周」全属性 +2，花缠跌破 30 就失去——所以 30 附近的缠最值钱。
+                            缠劲：上限 50。花 1 点内息攒 1 点；挨打回气（真掉血×0.5，自伤不回）；功法、奇物可按秒回缠。缠劲到 30 得「周」全属性 +2，花缠跌破 30 就失去——所以 30 附近的缠最值钱。
                         </p>
                     </Section>
 
@@ -176,10 +176,35 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
     )
 }
 
-/** 知识点统一用主题的「属性黄」（--color-gold）：一级标题、二级条目、属性表首列都是它 */
+/**
+ * 颜色分两层（见 CSS）：
+ * - 一级知识点（节标题：「基础」「六大属性」…）各用一个颜色，见 SECTION_COLORS
+ * - 二级知识点（子条目：力道、暴击、内息、中毒…）统一用主题的「属性黄」--color-gold
+ */
+const SECTION_COLORS: Record<string, string> = {
+    基础: '#6fb3d9',
+    六大属性: '#7fc98a',
+    内息与缠劲: '#d9a441',
+    数值公式: '#e0736c',
+    '值得知道的机制': '#c2a25a',
+    三种持续伤害: '#a98bd6',
+    站位风格与打法: '#4fb3a5',
+    出招条件: '#d68fb0',
+    触发槽: '#7fa8d9',
+}
+const SECTION_FALLBACK = Object.values(SECTION_COLORS)
+
+/** 节标题 → 颜色：查表，查不到按标题字符和取（同标题永远同色，重渲染不变） */
+function sectionColor(title: string): string {
+    if (SECTION_COLORS[title]) return SECTION_COLORS[title]
+    let h = 0
+    for (const ch of title) h = (h * 31 + ch.codePointAt(0)!) % 9973
+    return SECTION_FALLBACK[h % SECTION_FALLBACK.length]
+}
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
     return (
-        <div className="gameplay-section">
+        <div className="gameplay-section" style={{ ['--section-accent' as string]: sectionColor(title) }}>
             <div className="gameplay-section-title">{title}</div>
             <div className="gameplay-section-body">
                 {Children.toArray(children).map((child, i) => (

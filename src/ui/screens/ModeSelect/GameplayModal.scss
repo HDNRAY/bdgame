@@ -72,8 +72,8 @@
 .gameplay-section-title {
     font-size: var(--font-lg);
     font-weight: 600;
-    /* 知识点统一用主题的「属性黄」 */
-    color: var(--color-gold);
+    /* 一级知识点：逐节自己的颜色（<Section> 传入 --section-accent） */
+    color: var(--section-accent, var(--color-gold));
     margin-bottom: var(--sp-xs);
     font-family: var(--font-mono);
 }
