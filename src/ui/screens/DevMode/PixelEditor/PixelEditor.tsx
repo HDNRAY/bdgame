@@ -592,6 +592,27 @@ export function PixelEditor() {
     }, [])
     const beginStroke = () => pushHistory()
 
+    /** 整体平移武器图（所有已画的像素一起挪；挪出画布的点丢弃） */
+    const nudgeWeapon = useCallback(
+        (dx: number, dy: number) => {
+            pushHistory()
+            const w = weaponGrid[0]?.length ?? 0
+            const next = weaponGrid.map((row) => row.map(() => 0))
+            for (let y = 0; y < weaponGrid.length; y++) {
+                for (let x = 0; x < w; x++) {
+                    const v = weaponGrid[y][x]
+                    if (!v) continue
+                    const nx = x + dx
+                    const ny = y + dy
+                    if (nx < 0 || ny < 0 || ny >= next.length || nx >= w) continue
+                    next[ny][nx] = v
+                }
+            }
+            setWeaponGrid(next)
+        },
+        [pushHistory, weaponGrid],
+    )
+
     const applyCell = (c: { x: number; y: number }, from?: { x: number; y: number }) => {
         const value = tool === 'eraser' ? 0 : slot
         if (tool === 'fill') {
@@ -906,6 +927,7 @@ export function PixelEditor() {
                 </div>
                 {mode === 'mount' ? (
                     <WeaponMountPanel
+                        backdrop={backdrop}
                         configs={mountConfigs}
                         onChange={(w: string, slot: WeaponSlot, p: string, cfg: Partial<WeaponPoseConfig> | null) =>
                             setMountConfigs((prev) => {
@@ -990,6 +1012,26 @@ export function PixelEditor() {
                             清空
                         </button>
                     </div>
+
+                    {mode === 'weapon' && (
+                        <div className="pixel-editor-row">
+                            <span className="pixel-editor-col-label" title="把这张武器图里所有已画的像素一起平移（挪出画布的点会丢）">
+                                整图平移
+                            </span>
+                            <button className="pixel-editor-tool" title="整体上移 1 格" onClick={() => nudgeWeapon(0, -1)}>
+                                ↑
+                            </button>
+                            <button className="pixel-editor-tool" title="整体下移 1 格" onClick={() => nudgeWeapon(0, 1)}>
+                                ↓
+                            </button>
+                            <button className="pixel-editor-tool" title="整体左移 1 格" onClick={() => nudgeWeapon(-1, 0)}>
+                                ←
+                            </button>
+                            <button className="pixel-editor-tool" title="整体右移 1 格" onClick={() => nudgeWeapon(1, 0)}>
+                                →
+                            </button>
+                        </div>
+                    )}
 
                     <div className="pixel-editor-row">
                         <label className="pixel-editor-toggle" title="显示像素网格">

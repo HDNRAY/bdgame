@@ -62,6 +62,8 @@ export interface WeaponMountPanelProps {
     initialSlot?: WeaponSlot
     /** 初始选中的武器（测试 / 深链用）；默认列表第一把 */
     initialWeaponId?: string
+    /** 底板（透明区棋盘），与编辑器主画布共用 */
+    backdrop?: { a: string; b: string }
 }
 
 /** 武器挂点 / 旋转的实验台：拖动改手部锚点，Shift（或右键）拖动绕握点旋转，导出 WEAPON_POSES 片段 */
@@ -72,6 +74,7 @@ export function WeaponMountPanel({
     setStatus,
     initialSlot = 'main',
     initialWeaponId,
+    backdrop,
 }: WeaponMountPanelProps) {
     const [weaponId, setWeaponId] = useState(initialWeaponId ?? WEAPON_IDS[0] ?? 'xiu_dong')
     const [pose, setPose] = useState('idle')
@@ -672,6 +675,7 @@ export function WeaponMountPanel({
                         weaponId={weaponId}
                         overlay={overlay}
                         poseConfig={effective}
+                        backdrop={backdrop}
                         weaponSlot={slot}
                         canvasCols={VIEW_COLS}
                         canvasRows={VIEW_ROWS}

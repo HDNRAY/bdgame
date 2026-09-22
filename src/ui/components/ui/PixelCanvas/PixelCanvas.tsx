@@ -29,6 +29,8 @@ interface PixelCanvasProps {
     pose?: string
     /** 临时覆盖握持配置（编辑器「武器挂点」实验用；不传则按 weapons.ts 的登记值） */
     poseConfig?: Partial<WeaponPoseConfig>
+    /** 底板：透明区画棋盘（与编辑器主画布同一套底色） */
+    backdrop?: { a: string; b: string }
     /** 主武器挂在哪个槽位（决定手部覆盖画在哪只手上）：默认 'main' */
     weaponSlot?: 'main' | 'off'
     /** 旋转角度（弧度），武器绕握柄旋转后叠加 */
@@ -60,6 +62,7 @@ export function PixelCanvas({
     weaponId,
     pose = 'idle',
     poseConfig: poseConfigProp,
+    backdrop,
     weaponSlot = 'main',
     angle,
     className,
@@ -109,6 +112,15 @@ export function PixelCanvas({
         if (!ctx) return
 
         ctx.clearRect(0, 0, bufW, bufH)
+        // 底板棋盘（跟随编辑器的底板设置；不传就保持透明）
+        if (backdrop) {
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    ctx.fillStyle = (x + y) % 2 ? backdrop.a : backdrop.b
+                    ctx.fillRect(x * scale, y * scale, scale, scale)
+                }
+            }
+        }
 
         // 握持行为配置（合成模式按 武器+姿势 查表；编辑器可用 poseConfig 临时覆盖）
         // 握持配置统一用 resolveWeaponMount 解析（**必须带槽位**：副手槽的基准是 OTHER_HAND_POINT，
