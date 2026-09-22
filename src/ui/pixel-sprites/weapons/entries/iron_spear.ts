@@ -11,7 +11,7 @@ import { makePoses, type WeaponPoseTable } from '../poses'
 export const iron_spear: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
     overlay: {
         palette: {
-            '0': '#9aa4b4', // 锋刃 中（提亮）
+            '5': '#9aa4b4', // 锋刃 中（提亮）
             '1': '#5b6373', // 锋刃 暗（提亮）
             '2': '#e8edf5', // 锋刃 亮（提亮）
             '3': '#23272e', // 虎口 深铁
@@ -21,20 +21,20 @@ export const iron_spear: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses:
         },
         pixels: [
             [3, 3, 2],
-            [4, 3, 0],
-            [3, 4, 0],
+            [4, 3, 5],
+            [3, 4, 5],
             [4, 4, 2],
-            [5, 4, 0],
-            [4, 5, 0],
+            [5, 4, 5],
+            [4, 5, 5],
             [5, 5, 2],
-            [6, 5, 0],
+            [6, 5, 5],
             [7, 5, 1],
-            [5, 6, 0],
+            [5, 6, 5],
             [6, 6, 2],
-            [7, 6, 0],
+            [7, 6, 5],
             [8, 6, 1],
             [5, 7, 1],
-            [6, 7, 0],
+            [6, 7, 5],
             [7, 7, 2],
             [8, 7, 3],
             [9, 7, 3],

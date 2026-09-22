@@ -11,7 +11,7 @@ import { makePoses, type WeaponPoseTable } from '../poses'
 export const long_spear: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
     overlay: {
         palette: {
-            '0': '#8a90a0', // 枪头 中
+            '3': '#8a90a0', // 枪头 中
             '1': '#5b6270', // 枪头 暗
             '2': '#d0d6e0', // 枪头 亮
             '4': '#b08a3c', // 铜箍 中
@@ -22,13 +22,13 @@ export const long_spear: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses:
         },
         pixels: [
             [3, 3, 2],
-            [4, 3, 0],
+            [4, 3, 3],
             [4, 4, 2],
-            [5, 4, 0],
+            [5, 4, 3],
             [5, 5, 2],
-            [6, 5, 0],
+            [6, 5, 3],
             [6, 6, 2],
-            [7, 6, 0],
+            [7, 6, 3],
             [7, 7, 2],
             [8, 7, 4],
             [8, 8, 6],

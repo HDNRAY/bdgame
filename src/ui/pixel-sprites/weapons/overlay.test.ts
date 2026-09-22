@@ -135,3 +135,21 @@ describe('向后兼容：没有 art 的武器逐像素不变', () => {
         expect(resolveWeaponPixels(getWeaponOverlay('__no_such_weapon'))).toEqual([])
     })
 })
+
+describe('武器美术的下标约定', () => {
+    it('没有武器把颜色写在下标 0 上（0 是「空」的保留号）', () => {
+        // 0 在编辑器里就是"没画"（blankPixelMap 填 0、gridHasPixels 判 v > 0、导出只写 v > 0），
+        // 帧格式的槽位 0 也是透明。写在 0 上的颜色编辑器显示不出来，导出还会被当空格子丢掉。
+        for (const overlay of Object.values(WEAPON_OVERLAYS)) {
+            expect(Object.keys(overlay.palette ?? {})).not.toContain('0')
+            expect(overlay.pixels.some(([, , color]) => color === 0)).toBe(false)
+        }
+        for (const [id, table] of Object.entries(WEAPON_ARTS)) {
+            for (const [pose, block] of Object.entries(table)) {
+                if (!block) continue
+                expect(Object.keys(block.palette ?? {}), `${id}.${pose}`).not.toContain('0')
+                expect(block.pixels.some(([, , color]) => color === 0), `${id}.${pose}`).toBe(false)
+            }
+        }
+    })
+})
