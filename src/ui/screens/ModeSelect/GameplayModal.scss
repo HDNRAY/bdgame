@@ -62,7 +62,7 @@
 .gameplay-section {
     margin-bottom: var(--sp-md);
     padding-left: var(--sp-sm);
-    border-left: 2px solid var(--section-accent, var(--color-accent));
+    border-left: 2px solid var(--color-gold);
 
     &:last-child {
         margin-bottom: 0;
@@ -72,14 +72,14 @@
 .gameplay-section-title {
     font-size: var(--font-lg);
     font-weight: 600;
-    /* 每个知识点用自己的强调色（由 <Section> 传入 --section-accent） */
-    color: var(--section-accent, var(--color-accent));
+    /* 知识点统一用主题的「属性黄」 */
+    color: var(--color-gold);
     margin-bottom: var(--sp-xs);
     font-family: var(--font-mono);
 }
 
 .gameplay-sub {
-    border-left: 2px solid var(--sub-accent, var(--section-accent));
+    border-left: 2px solid var(--color-gold);
     padding-left: var(--sp-sm);
     margin-bottom: var(--sp-xs);
 
@@ -90,13 +90,13 @@
     /* 二级知识点的标签（<b>流血</b>：…）用同一个色 */
     b:first-child,
     strong:first-child {
-        color: var(--sub-accent, var(--section-accent));
+        color: var(--color-gold);
     }
 }
 
 .gameplay-table tr {
     td:first-child {
-        color: var(--sub-accent, var(--color-text));
+        color: var(--color-gold);
         font-weight: 600;
     }
 }

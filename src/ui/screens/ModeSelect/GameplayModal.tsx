@@ -39,27 +39,27 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[0] }}>
+                                <tr>
                                     <td>力道</td>
                                     <td>招式伤害缩放 · 招架后减免伤害（力道÷70，20%~60%）</td>
                                 </tr>
-                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[1] }}>
+                                <tr>
                                     <td>根骨</td>
                                     <td>气血（80+根骨×16） · 内息上限（4+根骨×0.25） · 缩短以根骨为基准的负面状态时长（眩晕、麻痹等）</td>
                                 </tr>
-                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[2] }}>
+                                <tr>
                                     <td>身法</td>
                                     <td>防守端命中对抗（身法÷80） · 移动（0.25+身法÷60 米/点） · 出手更省（内息减免）</td>
                                 </tr>
-                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[3] }}>
+                                <tr>
                                     <td>灵巧</td>
                                     <td>命中（主，权重 1） · 暴击率 · 暴击伤害（超出 4 每点 +3%） · 招架率（×1.1）</td>
                                 </tr>
-                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[4] }}>
+                                <tr>
                                     <td>洞察</td>
                                     <td>命中（攻防两端：攻 0.8 / 守 1） · 暴击率 · 招架率</td>
                                 </tr>
-                                <tr style={{ ['--sub-accent' as string]: SECTION_FALLBACK[5] }}>
+                                <tr>
                                     <td>推演</td>
                                     <td>内息回复 · 触发槽 max(1, 推演÷4) · 毒退散更快 · 召唤间隔 · 炁/御物招式</td>
                                 </tr>
@@ -156,41 +156,14 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
     )
 }
 
-/** 每个知识点的强调色（中调色，深浅主题下都读得清） */
-const SECTION_COLORS: Record<string, string> = {
-    基础: '#6fb3d9',
-    六大属性: '#7fc98a',
-    '内息与缠劲': '#d9a441',
-    '命中 · 暴击 · 招架 · 穿透': '#e0736c',
-    三种持续伤害: '#a98bd6',
-    战斗风格: '#4fb3a5',
-    出招条件: '#d68fb0',
-    触发槽: '#c2a25a',
-}
-const SECTION_FALLBACK = Object.values(SECTION_COLORS)
-
-/** 标题 → 颜色：优先查表，查不到就按标题字符和取色（同样的标题永远同色，重渲染不变） */
-function sectionColor(title: string): string {
-    if (SECTION_COLORS[title]) return SECTION_COLORS[title]
-    let h = 0
-    for (const ch of title) h = (h * 31 + ch.codePointAt(0)!) % 9973
-    return SECTION_FALLBACK[h % SECTION_FALLBACK.length]
-}
-
-/** 二级知识点取色：以本节颜色为起点在调色板里错开，保证同节内相邻条目不同色、且稳定 */
-function subColor(title: string, index: number): string {
-    const base = SECTION_FALLBACK.indexOf(sectionColor(title))
-    return SECTION_FALLBACK[(Math.max(0, base) + index + 1) % SECTION_FALLBACK.length]
-}
-
+/** 知识点统一用主题的「属性黄」（--color-gold）：一级标题、二级条目、属性表首列都是它 */
 function Section({ title, children }: { title: string; children: ReactNode }) {
-    const items = Children.toArray(children)
     return (
-        <div className="gameplay-section" style={{ ['--section-accent' as string]: sectionColor(title) }}>
+        <div className="gameplay-section">
             <div className="gameplay-section-title">{title}</div>
             <div className="gameplay-section-body">
-                {items.map((child, i) => (
-                    <div key={i} className="gameplay-sub" style={{ ['--sub-accent' as string]: subColor(title, i) }}>
+                {Children.toArray(children).map((child, i) => (
+                    <div key={i} className="gameplay-sub">
                         {child}
                     </div>
                 ))}
