@@ -1,4 +1,4 @@
-import { WEAPON_OVERLAYS, WEAPON_HEIGHT, WEAPON_WIDTH } from '../../../../pixel-sprites'
+import { WEAPON_HEIGHT, WEAPON_WIDTH } from '../../../../pixel-sprites'
 import type { PixelMap } from '../../../../pixel-sprites'
 import { PixelCanvas } from '../../../../components/ui/PixelCanvas/PixelCanvas'
 import type { EditorMode } from './constants'
@@ -49,7 +49,7 @@ export function EditorPreview({
                     scale={3}
                     pose={poseName}
                     weaponId={previewWeaponId}
-                    overlay={WEAPON_OVERLAYS[previewWeaponId]}
+                    // 不传 overlay：PixelCanvas 按 weaponId + pose 走逐姿势取图（art[pose] → art.idle → overlay）
                     // 与「像素图测试」同视口：120×54，人偏右，挥砍时不裁武器
                     canvasCols={120}
                     canvasRows={54}

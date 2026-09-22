@@ -18,7 +18,7 @@ import { RewardPicker, type PickKind } from './RewardPicker'
 import { ConditionButton, ConditionEditor } from './ConditionEditor'
 import { rowIndexAtY } from './rowDrag'
 import { SearchSelect } from '../ui/SearchSelect/SearchSelect'
-import { getCharacterAvatar, getSpriteOutlineColor, getWeaponOverlay } from '../../../ui/pixel-sprites'
+import { getCharacterAvatar, getSpriteOutlineColor } from '../../../ui/pixel-sprites'
 import { useBuildCharacter, cultCost } from '../../hooks/useBuildCharacter'
 import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
 import { BattleStyleSelector } from './BattleStyleSelector'
@@ -236,7 +236,7 @@ export function CharacterPanel({
                             </div>
                             <div className="cp-info-row">
                                 <PixelCanvas
-                                    overlay={getWeaponOverlay(character.build.weapon)}
+                                    weaponId={character.build.weapon}
                                     className="cp-weapon-art"
                                 />
                                 {weapon && <EntityItem entity={weapon} type="weapon" />}

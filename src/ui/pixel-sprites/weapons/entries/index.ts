@@ -2,7 +2,7 @@
  * 武器登记表：把「一个武器一个文件」的条目汇总成 WEAPON_OVERLAYS（美术）与 WEAPON_POSES（挂点）。
  * 两个表的键顺序沿用拆分前（渲染顺序 / 面板顺序依赖它）。
  */
-import type { WeaponOverlay } from '../../types'
+import type { WeaponArtTable, WeaponOverlay } from '../../types'
 import type { WeaponPoseTable } from '../poses'
 import { bare_hands } from './bare_hands'
 import { zantetsu } from './zantetsu'
@@ -25,7 +25,10 @@ import { long_spear } from './long_spear'
 import { ninja_sword } from './ninja_sword'
 
 /** 武器 id → 条目 */
-export const WEAPON_ENTRIES: Record<string, { overlay?: WeaponOverlay; poses: WeaponPoseTable }> = {
+export const WEAPON_ENTRIES: Record<
+    string,
+    { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable }
+> = {
     bare_hands,
     dark_iron_sword,
     tri_orb,
@@ -71,6 +74,13 @@ export const WEAPON_OVERLAYS: Record<string, WeaponOverlay> = {}
 for (const id of weaponIds) {
     const entry = WEAPON_ENTRIES[id]
     if (entry?.overlay) WEAPON_OVERLAYS[id] = entry.overlay
+}
+
+/** 逐姿势美术（只含登记了 art 的武器；缺的姿势由 getWeaponArt 逐级坍缩） */
+export const WEAPON_ARTS: Record<string, WeaponArtTable> = {}
+for (const id of weaponIds) {
+    const entry = WEAPON_ENTRIES[id]
+    if (entry?.art) WEAPON_ARTS[id] = entry.art
 }
 
 /** 每武器·每姿势挂点配置 */

@@ -12,8 +12,8 @@ import type { PixelSprite } from '../../src/ui/pixel-sprites/types'
 import {
     HAND_COVER,
     LEFT_HAND_COVER,
-    WEAPON_OVERLAYS,
     getWeaponAngle,
+    getWeaponArt,
     getWeaponHand,
     getWeaponPoseConfig,
     resolveWeaponPixels,
@@ -141,9 +141,9 @@ export function drawSpriteFrame(g: Grid, sprite: PixelSprite, pose: string, oy: 
     return palette
 }
 
-/** 武器美术像素表：`x,y` → 颜色 */
-export function artMap(weaponId: string): Map<string, string> {
-    const overlay = WEAPON_OVERLAYS[weaponId]
+/** 武器美术像素表：`x,y` → 颜色（逐姿势取图：art[pose] → art.idle → overlay） */
+export function artMap(weaponId: string, pose = 'idle'): Map<string, string> {
+    const overlay = getWeaponArt(weaponId, pose)
     const map = new Map<string, string>()
     if (!overlay) return map
     for (const [x, y, color] of resolveWeaponPixels(overlay)) map.set(`${x},${y}`, color)
@@ -156,7 +156,7 @@ export function drawWeapon(g: Grid, weaponId: string, pose: string, oy: number, 
     const cfg = getWeaponPoseConfig(weaponId, pose)
     const hand = getWeaponHand(weaponId, pose)
     const angle = getWeaponAngle(weaponId, pose, true)
-    const art = artMap(weaponId)
+    const art = artMap(weaponId, pose)
     const cos = Math.cos(-angle)
     const sin = Math.sin(-angle)
     const radius = Math.ceil(Math.hypot(ART, ART)) + 2

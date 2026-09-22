@@ -106,3 +106,49 @@ describe('编辑器存档 · 旧版挂点配置迁移', () => {
         expect(parsed!.mountConfigs.xiu_dong.off).toEqual({})
     })
 })
+
+describe('编辑器存档 · 逐姿势美术', () => {
+    it('逐姿势图 + 当前槽位往返一致（六张图共用同一份 palette）', () => {
+        const s = base()
+        s.weapon.poses = { idle: blankPixelMap(4, 3), attack: blankPixelMap(4, 3) }
+        s.weapon.poses.attack[1][2] = 3
+        s.weapon.pose = 'attack'
+        const back = parseEditorState(serializeEditorState(s))
+        expect(back).not.toBeNull()
+        expect(back!.weapon.pose).toBe('attack')
+        expect(back!.weapon.poses?.attack[1][2]).toBe(3)
+        expect(back!.weapon.poses?.idle[1][2]).toBe(0)
+        // 通用图与调色板都不受影响
+        expect(back!.weapon.grid).toEqual(s.weapon.grid)
+        expect(back!.weapon.palette).toEqual(['', '#ffffff'])
+    })
+
+    it('老存档（只有一张图、没有 poses / pose）载入后 = 那张图是通用图，不崩不丢', () => {
+        const raw = base() as unknown as Record<string, unknown>
+        const weapon = { ...(raw.weapon as Record<string, unknown>) }
+        delete weapon.poses
+        delete weapon.pose
+        ;(weapon.grid as number[][])[3][4] = 2
+        raw.weapon = weapon
+        const back = parseEditorState(JSON.stringify(raw))
+        expect(back).not.toBeNull()
+        expect(back!.weapon.grid[3][4]).toBe(2)
+        expect(back!.weapon.poses).toEqual({})
+        expect(back!.weapon.pose).toBe('base')
+    })
+
+    it('非法姿势名 / 坏网格 / 非法当前槽一律 null', () => {
+        const s1 = base()
+        s1.weapon.poses = { nope: blankPixelMap(4, 3) } as never
+        expect(parseEditorState(serializeEditorState(s1))).toBeNull()
+        const s2 = base()
+        s2.weapon.poses = { idle: [[0, 0], [0]] } as never
+        expect(parseEditorState(serializeEditorState(s2))).toBeNull()
+        const s3 = base()
+        s3.weapon.pose = 'laser'
+        expect(parseEditorState(serializeEditorState(s3))).toBeNull()
+        const s4 = base()
+        s4.weapon.poses = [] as never
+        expect(parseEditorState(serializeEditorState(s4))).toBeNull()
+    })
+})

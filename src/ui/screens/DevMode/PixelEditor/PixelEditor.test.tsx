@@ -95,3 +95,77 @@ describe('PixelEditor 渲染冒烟', () => {
         expect(html).toMatch(/<details class="pixel-editor-panel"[^>]*><summary/)
     })
 })
+
+/** 武器图模式（逐姿势）的存档样本 */
+function weaponState(): Record<string, unknown> {
+    return {
+        mode: 'weapon',
+        frame: { map: [[0]], constName: 'DEFAULT_BUFF', poseName: 'buff', sourceKey: 'buff' },
+        weapon: {
+            id: 'peach_sword',
+            grid: [[0, 0], [0, 0]],
+            palette: ['', '#ff0000'],
+            poses: { idle: [[1, 0], [0, 0]], attack: [[0, 0], [0, 0]] },
+            pose: 'idle',
+        },
+        colorOverrides: {},
+        fixedSlotOverrides: {},
+        mountConfigs: {},
+        tool: 'pen',
+        slot: 1,
+        mirror: false,
+        showGrid: true,
+        showAnchors: true,
+        manualZoom: null,
+    }
+}
+
+describe('PixelEditor 武器图模式 · 逐姿势美术', () => {
+    let stored: string | null = null
+
+    beforeAll(() => {
+        vi.stubGlobal('window', { matchMedia: () => ({ matches: false }) })
+        vi.stubGlobal('localStorage', {
+            getItem: () => stored,
+            setItem: () => {},
+            removeItem: () => {},
+        })
+    })
+    afterAll(() => {
+        vi.stubGlobal('localStorage', undefined)
+        vi.unstubAllGlobals()
+    })
+
+    it('六个姿势按钮 + 复制/清空都在；有姿势图时导出 art 块（空的姿势不写）', () => {
+        stored = JSON.stringify(weaponState())
+        const html = renderToStaticMarkup(<PixelEditor />)
+        expect(html).toContain('复制当前→其它')
+        expect(html).toContain('清空本站势')
+        expect(html).toContain('>通用<')
+        expect(html).toContain('>idle<span')
+        expect(html).toContain('>buff<span')
+        // 当前槽 idle 已画 → 导出 art 块；attack 是空的 → 不写
+        expect(html).toContain('// weapons/entries/peach_sword.ts → art:')
+        expect(html).toContain('    idle: {')
+        expect(html).not.toContain('    attack: {')
+        expect(html).toContain('[0, 0, 1],')
+    })
+
+    it('老存档（只有一张图）：六个姿势全空，导出 overlay 块（保持现状），不崩不丢', () => {
+        const legacy = weaponState()
+        const weapon = { ...(legacy.weapon as Record<string, unknown>) }
+        delete weapon.poses
+        delete weapon.pose
+        weapon.grid = [
+            [0, 2],
+            [0, 0],
+        ]
+        legacy.weapon = weapon
+        stored = JSON.stringify(legacy)
+        const html = renderToStaticMarkup(<PixelEditor />)
+        expect(html).toContain('// weapons/entries/peach_sword.ts → overlay:')
+        expect(html).toContain('overlay: {')
+        expect(html).toContain('[1, 0, 1],')
+        expect(html).not.toContain('→ art:')
+    })
+})

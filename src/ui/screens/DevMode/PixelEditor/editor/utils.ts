@@ -1,7 +1,9 @@
 import {
+    POSE_NAMES,
     SPRITE_HEIGHT,
     SPRITE_PAD_LEFT,
     SPRITE_WIDTH,
+    WEAPON_ARTS,
     WEAPON_HEIGHT,
     WEAPON_OVERLAYS,
     WEAPON_WIDTH,
@@ -9,7 +11,7 @@ import {
     parseEditorState,
     resolveWeaponPixels,
 } from '../../../../pixel-sprites'
-import type { PixelEditorSavedState, PixelMap } from '../../../../pixel-sprites'
+import type { PixelEditorSavedState, PixelMap, WeaponOverlay } from '../../../../pixel-sprites'
 import { EDITOR_STATE_KEY } from './constants'
 
 /** 判断底板亮不亮（网格线/hover 框取反色才看得见） */
@@ -51,24 +53,43 @@ export function padForPreview(map: PixelMap): PixelMap {
     return out
 }
 
-/** 武器图 → 32×32 网格 + 调色板（下标 0 占位） */
-export function weaponOverlayToGrid(weaponId: string): { grid: PixelMap; palette: string[] } {
-    const grid = blankPixelMap(WEAPON_WIDTH, WEAPON_HEIGHT)
+/** 网格上有没有画东西（决定姿势按钮「已填/未填」与 art 块是否导出） */
+export function gridHasPixels(grid: PixelMap): boolean {
+    return grid.some((row) => row.some((v) => v > 0))
+}
+
+/**
+ * 武器美术 → 通用图 + 六张姿势图 + **共用的一份**调色板（下标 0 占位）。
+ * 六张图与通用图的颜色都进同一个 palette / 同一套下标，符合「每把武器只有一份 palette」的约定。
+ */
+export function weaponArtToGrids(weaponId: string): {
+    grid: PixelMap
+    poses: Record<string, PixelMap>
+    palette: string[]
+} {
     const palette: string[] = ['']
     const index = new Map<string, number>()
-    const overlay = WEAPON_OVERLAYS[weaponId]
-    if (overlay) {
-        for (const [x, y, color] of resolveWeaponPixels(overlay)) {
-            let idx = index.get(color)
-            if (!idx) {
-                palette.push(color)
-                idx = palette.length - 1
-                index.set(color, idx)
-            }
-            if (x >= 0 && x < WEAPON_WIDTH && y >= 0 && y < WEAPON_HEIGHT) grid[y][x] = idx
-        }
+    const idxOf = (color: string): number => {
+        const found = index.get(color)
+        if (found !== undefined) return found
+        palette.push(color)
+        const idx = palette.length - 1
+        index.set(color, idx)
+        return idx
     }
-    return { grid, palette }
+    const toGrid = (overlay?: WeaponOverlay): PixelMap => {
+        const grid = blankPixelMap(WEAPON_WIDTH, WEAPON_HEIGHT)
+        if (overlay) {
+            for (const [x, y, color] of resolveWeaponPixels(overlay)) {
+                if (x >= 0 && x < WEAPON_WIDTH && y >= 0 && y < WEAPON_HEIGHT) grid[y][x] = idxOf(color)
+            }
+        }
+        return grid
+    }
+    const grid = toGrid(WEAPON_OVERLAYS[weaponId])
+    const poses: Record<string, PixelMap> = {}
+    for (const pose of POSE_NAMES) poses[pose] = toGrid(WEAPON_ARTS[weaponId]?.[pose])
+    return { grid, poses, palette }
 }
 
 /** 武器图 → 可下载/可再导入的 JSON（颜色直接写色值） */

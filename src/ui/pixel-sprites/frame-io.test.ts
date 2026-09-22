@@ -6,8 +6,10 @@ import {
     formatPixelMapSource,
     parsePixelMap,
     formatCharacterColorsSnippet,
+    formatWeaponArtSnippet,
     formatWeaponOverlaySnippet,
     formatWeaponPoseSnippet,
+    parseWeaponArtSnippet,
     parseWeaponOverlay,
     stringifyPixelMap,
     unpadRenderedFrame,
@@ -161,6 +163,97 @@ describe('武器图导入导出', () => {
         expect(parseWeaponOverlay('{ pixels: [[1, 1, 9]], palette: { "1": "#fff" } }').ok).toBe(false)
         expect(parseWeaponOverlay('{ pixels: [], palette: {} }').ok).toBe(false)
         expect(parseWeaponOverlay('[[1,2,3]]').ok).toBe(false)
+    })
+})
+
+describe('逐姿势美术片段', () => {
+    const gridWith = (cells: [number, number, number][]) => {
+        const g = blankPixelMap(32, 32)
+        for (const [x, y, v] of cells) g[y][x] = v
+        return g
+    }
+    const palette = ['', '#aa0000', '#00bb00']
+
+    it('导出 art 块：每块与 overlay 块同构、共用同一份 palette、空的姿势不写', () => {
+        const snippet = formatWeaponArtSnippet(
+            'test_blade',
+            [
+                { pose: 'idle', grid: gridWith([[4, 4, 1]]) },
+                { pose: 'attack', grid: gridWith([[5, 5, 2]]) },
+                { pose: 'parry', grid: blankPixelMap(32, 32) },
+            ],
+            palette,
+        )
+        expect(snippet.startsWith('// weapons/entries/test_blade.ts → art:')).toBe(true)
+        expect(snippet).toContain('    idle: {')
+        expect(snippet).toContain('    attack: {')
+        expect(snippet).not.toContain('    parry: {')
+        expect(snippet).toContain('[4, 4, 1],')
+        expect(snippet).toContain('[5, 5, 2],')
+        // 两块 palette 完全一致（同一份压缩映射，六张图共用一份 palette）
+        const blocks = snippet.split('    palette: {').slice(1)
+        expect(blocks).toHaveLength(2)
+        for (const block of blocks) {
+            const body = block.slice(0, block.indexOf('}'))
+            expect(body).toContain("'1': '#aa0000',")
+            expect(body).toContain("'2': '#00bb00',")
+        }
+    })
+
+    it('art 片段能被解析回来（往返不掉像素）', () => {
+        const snippet = formatWeaponArtSnippet(
+            'test_blade',
+            [
+                { pose: 'idle', grid: gridWith([[4, 4, 1]]) },
+                {
+                    pose: 'attack',
+                    grid: gridWith([
+                        [5, 5, 2],
+                        [6, 6, 2],
+                    ]),
+                },
+            ],
+            palette,
+        )
+        const parsed = parseWeaponArtSnippet(snippet)
+        expect(parsed.ok).toBe(true)
+        if (!parsed.ok) return
+        expect(parsed.id).toBe('test_blade')
+        expect(parsed.blocks.map((b) => b.pose)).toEqual(['idle', 'attack'])
+        const idle = parsed.blocks[0]
+        const attack = parsed.blocks[1]
+        expect(idle.grid[4][4]).toBeGreaterThan(0)
+        expect(attack.grid[5][5]).toBe(attack.grid[6][6]) // 同色合并成同一下标
+        // 单块的 palette 会裁到该块用到的最大下标；解析结果额外给一份合并后的（六张图共用）
+        expect(idle.palette[1]).toBe('#aa0000')
+        expect(parsed.palette.filter(Boolean)).toEqual(['#aa0000', '#00bb00'])
+    })
+
+    it('可以只粘一块：单个姿势块 / 通用 overlay 块 / 裸像素对象', () => {
+        const onlyPose = parseWeaponArtSnippet(`attack: { pixels: [[2, 3, '#112233']], palette: {} }`)
+        expect(onlyPose.ok).toBe(true)
+        if (onlyPose.ok) {
+            expect(onlyPose.blocks).toHaveLength(1)
+            expect(onlyPose.blocks[0].pose).toBe('attack')
+            expect(onlyPose.blocks[0].grid[3][2]).toBeGreaterThan(0)
+        }
+        const generic = parseWeaponArtSnippet(formatWeaponOverlaySnippet('test_blade', gridWith([[4, 4, 1]]), palette))
+        expect(generic.ok).toBe(true)
+        if (generic.ok) {
+            expect(generic.blocks).toHaveLength(1)
+            expect(generic.blocks[0].pose).toBeNull()
+        }
+        const bare = parseWeaponArtSnippet(`{ pixels: [[1, 1, 1]], palette: { '1': '#fff' } }`)
+        expect(bare.ok).toBe(true)
+        if (bare.ok) expect(bare.blocks[0].pose).toBeNull()
+    })
+
+    it('坏数据给明确报错', () => {
+        expect(parseWeaponArtSnippet('').ok).toBe(false)
+        expect(parseWeaponArtSnippet('art: { nope: { pixels: [[1, 1, 1]] } }').ok).toBe(false)
+        expect(parseWeaponArtSnippet('art: {}').ok).toBe(false)
+        expect(parseWeaponArtSnippet('art: { idle: { pixels: [] } }').ok).toBe(false)
+        expect(parseWeaponArtSnippet('pixels: [[1, 1, 1]]').ok).toBe(false)
     })
 })
 

@@ -4,11 +4,11 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponOverlay } from '../../types'
+import type { WeaponArtTable, WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
 // 破狼竹枝 / 陨铁神珍（双手长杆）：握点同上（杆中点落在主手）；hit 照齐眉棍的脱手姿势
-export const po_lang_zhu_zhi: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const po_lang_zhu_zhi: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
     overlay: {
         palette: {
             '0': '#2f9e70', // 竹身（碧玉，中）

@@ -27,6 +27,13 @@ export interface PixelEditorSavedState {
         id: string
         grid: PixelMap
         palette: string[]
+        /**
+         * 逐姿势美术：姿势名 → 网格（每张图与 grid 共用同一份 palette；缺项 = 那个姿势没画）。
+         * 老存档没有这一层 —— 载入后等价于「grid 就是通用图」，不会崩也不会丢。
+         */
+        poses?: Record<string, PixelMap>
+        /** 当前在编辑哪个槽：'base' = 通用图（overlay），其余是姿势名 */
+        pose?: string
     }
     /** 改过的角色配色（按角色 id；只存改动的槽位） */
     colorOverrides: Record<string, Partial<CharacterColors>>
@@ -91,6 +98,22 @@ export function parseEditorState(text: string | null | undefined): PixelEditorSa
     if (typeof frame.constName !== 'string' || typeof frame.poseName !== 'string') return null
     if (typeof frame.sourceKey !== 'string') return null
     if (typeof weapon.id !== 'string') return null
+    if (
+        weapon.pose !== undefined &&
+        (typeof weapon.pose !== 'string' ||
+            (weapon.pose !== 'base' && !(POSE_NAMES as readonly string[]).includes(weapon.pose)))
+    ) {
+        return null
+    }
+    const weaponPoses: Record<string, PixelMap> = {}
+    if (weapon.poses !== undefined) {
+        if (!weapon.poses || typeof weapon.poses !== 'object' || Array.isArray(weapon.poses)) return null
+        for (const [pose, grid] of Object.entries(weapon.poses as Record<string, unknown>)) {
+            if (!(POSE_NAMES as readonly string[]).includes(pose)) return null
+            if (!isPixelMap(grid)) return null
+            weaponPoses[pose] = grid
+        }
+    }
 
     const rawOverrides = s.colorOverrides
     const colorOverrides: Record<string, Partial<CharacterColors>> = {}
@@ -253,6 +276,8 @@ export function parseEditorState(text: string | null | undefined): PixelEditorSa
             id: weapon.id,
             grid: weapon.grid,
             palette: weapon.palette as string[],
+            poses: weaponPoses,
+            pose: typeof weapon.pose === 'string' ? weapon.pose : 'base',
         },
         colorOverrides,
         fixedSlotOverrides,

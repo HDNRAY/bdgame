@@ -10,16 +10,17 @@
  * 带 off，所以 tsc 一直是绿的）。现在类型改成显式姿势键，并由本文件钉死。
  */
 import { WEAPON_POSES, type WeaponPoseTable } from './weapons'
-import type { WeaponPoseConfig, WeaponOverlay } from './types'
+import type { WeaponArtTable, WeaponPoseConfig, WeaponOverlay } from './types'
 
 // 与 weapons/poses.ts 里的 makePoses 同签名
 function makePoses(base: Partial<WeaponPoseConfig>): Record<string, Partial<WeaponPoseConfig>> {
     return { idle: { ...base }, attack: { ...base } }
 }
 
-/** 武器文件的形状：overlay（美术）+ poses（挂点） */
+/** 武器文件的形状：overlay（通用美术）+ art（逐姿势美术）+ poses（挂点） */
 export interface WeaponFileShape {
     overlay?: WeaponOverlay
+    art?: WeaponArtTable
     poses: WeaponPoseTable
 }
 
@@ -52,6 +53,15 @@ export const weaponFileShape: Record<string, WeaponFileShape> = {
             idle: { gripX: 9, gripY: 22, angle: (-37 * Math.PI) / 180 },
             buff: { gripX: 9, gripY: 22, anchorHand: 'main', angle: 0 },
         },
+    },
+    /** 逐姿势美术：编辑器导出的 `art:` 块（每块与 overlay: 块同构，可只写需要的姿势） */
+    example_pose_art: {
+        overlay: { pixels: [[0, 0, 1]], palette: { '1': '#ffffff' } },
+        art: {
+            idle: { pixels: [[1, 1, 1]], palette: { '1': '#ffffff' } },
+            attack: { pixels: [[2, 2, '#ff0000']] },
+        },
+        poses: makePoses({ gripX: 24, gripY: 24 }),
     },
 }
 

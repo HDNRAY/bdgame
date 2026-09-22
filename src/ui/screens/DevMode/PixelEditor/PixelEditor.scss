@@ -62,6 +62,37 @@
             border-color: var(--color-accent);
             color: var(--color-accent);
         }
+
+        /* 逐姿势美术：这个姿势已经画过（有 = 已填样式） */
+        &.filled {
+            border-color: var(--color-accent);
+            background: var(--color-bg-hover);
+            font-weight: 600;
+        }
+    }
+
+    /* 武器图模式的逐姿势工具条：通用 + 六个姿势 + 两个批量动作 */
+    &-art-bar {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-xxs);
+    }
+
+    &-art-pose-grid {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--sp-xxs);
+
+        .pixel-editor-art-action {
+            margin-left: var(--sp-xxs);
+        }
+    }
+
+    &-pose-mark {
+        margin-left: 0.4em;
+        font-size: var(--font-xs);
+        opacity: 0.7;
     }
 
     &-toggle {

@@ -9,7 +9,7 @@ import type { WeaponSlot } from '../pixel-sprites'
 import {
     makeCharacterSprite,
     getSpriteOutlineColor,
-    getWeaponOverlay,
+    getWeaponArt,
     resolveWeaponMount,
     resolveWeaponPixels,
     shouldDrawHandCover,
@@ -376,8 +376,9 @@ export class CanvasRenderer {
         wg.clear()
         const weaponId = slot === 'off' ? c.offhand : c.weaponId
         if (!weaponId) return
-        const overlay = getWeaponOverlay(weaponId)
-        if (overlay.pixels.length === 0) return
+        // 逐姿势美术唯一入口：art[pose] → art.idle → overlay（没有可画像素时返回 undefined）
+        const overlay = getWeaponArt(weaponId, c.pose)
+        if (!overlay) return
 
         const mount = resolveWeaponMount(weaponId, c.pose, { slot, facingRight })
 

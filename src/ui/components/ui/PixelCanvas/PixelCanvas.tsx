@@ -6,7 +6,7 @@ import {
     HAND_POINTS,
     WEAPON_WIDTH,
     WEAPON_HEIGHT,
-    getWeaponOverlay,
+    getWeaponArt,
     resolveWeaponMount,
     shouldDrawHandCover,
     resolveWeaponPixels,
@@ -23,7 +23,7 @@ interface PixelCanvasProps {
     overlay?: WeaponOverlay
     /** 叠加层放大倍数（默认与 scale 相同，无 pixels 时默认 3） */
     overlayScale?: number
-    /** 武器 ID — 合成模式按 武器+姿势 查握持配置（grip/角度/锚定手） */
+    /** 武器 ID — 合成模式按 武器+姿势 查握持配置（grip/角度/锚定手）；没传 overlay 时也按它走逐姿势取图 */
     weaponId?: string
     /** 角色姿势（用于查找手部位置），默认 'idle' */
     pose?: string
@@ -73,6 +73,14 @@ export function PixelCanvas({
     // 叠加层放大倍数
     const os = osProp ?? (pixels ? scale : 3)
 
+    /**
+     * 主手武器美术：
+     * - 传了 overlay（编辑器临时覆盖 / 图标用法）就原样用 —— 不破坏既有行为；
+     * - 否则按 weaponId + pose 走逐姿势取图（art[pose] → art.idle → overlay）。
+     * 返回值来自模块级常量表，引用稳定，可直接进 effect 依赖。
+     */
+    const mainOverlay = overlay ?? (weaponId ? getWeaponArt(weaponId, pose) : undefined)
+
     // 是否有角色像素图（区分「武器图标居中」与「角色+武器合成」两种模式）
     const hasPixels = Boolean(pixels && pixels.length > 0)
 
@@ -82,7 +90,7 @@ export function PixelCanvas({
     if (pixels) {
         contentW = pixels[0].length
         contentH = pixels.length
-    } else if (overlay && overlay.pixels.length > 0) {
+    } else if (mainOverlay && mainOverlay.pixels.length > 0) {
         // 武器图标模式：按完整武器网格尺寸（32×32，含原始空白）
         contentW = WEAPON_WIDTH
         contentH = WEAPON_HEIGHT
@@ -173,7 +181,7 @@ export function PixelCanvas({
         }
 
         // 渲染武器叠加层
-        if (overlay && overlay.pixels.length > 0) {
+        if (mainOverlay && mainOverlay.pixels.length > 0) {
             if (hasPixels) {
                 // 合成模式：锚定手（单手=主手；双手武器=副手）
                 const hand = mount?.hand ?? HAND_POINTS[pose] ?? HAND_POINTS.idle
@@ -183,11 +191,11 @@ export function PixelCanvas({
                 // 注意：之前只在配置写了显式 angle 时才调 getWeaponAngle，导致单手 attack 的 -45° 在预览里丢了。
                 // 双持时主手也用武器自己的角度（不再有全局覆盖）
                 const effAngle = mount ? mount.angle : (angle ?? 0)
-                paintRotatedWeapon(overlay, mount?.gripX ?? 0, mount?.gripY ?? 0, hand, effAngle)
+                paintRotatedWeapon(mainOverlay, mount?.gripX ?? 0, mount?.gripY ?? 0, hand, effAngle)
             } else {
                 // 武器图标模式：按完整 32×32 网格 + 原始坐标绘制，保留武器设计时的空白
                 ctx.imageSmoothingEnabled = false
-                for (const [px, py, color] of resolveWeaponPixels(overlay)) {
+                for (const [px, py, color] of resolveWeaponPixels(mainOverlay)) {
                     ctx.fillStyle = color
                     ctx.fillRect(px * os, py * os, os, os)
                 }
@@ -196,7 +204,7 @@ export function PixelCanvas({
 
         // 副手武器（双持）：统一走 resolveWeaponMount 的副手规则 ——
         // 武器登记了 off 配置就用它，否则用「副手默认」（全局副手手位 OTHER_HAND_POINT + DUAL_OFFHAND_ANGLE）
-        const offhandOverlay = secondWeaponId ? getWeaponOverlay(secondWeaponId) : undefined
+        const offhandOverlay = secondWeaponId ? getWeaponArt(secondWeaponId, pose) : undefined
         if (hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0 && secondWeaponId) {
             const offMount = resolveWeaponMount(secondWeaponId, pose, { slot: 'off' })
             const offAngle = offMount.angle
@@ -207,7 +215,7 @@ export function PixelCanvas({
         // 双持时：主手武器遮主手、副手武器遮副手（各自的锚定手）。
         const { primary: primaryCoverTable, secondary: secondaryCoverTable } = handCoverTables(weaponSlot)
         const anchorOff = poseConfig?.anchorHand === 'off'
-        const drawMainCover = hasPixels && !!overlay && overlay.pixels.length > 0 && shouldDrawHandCover(pose)
+        const drawMainCover = hasPixels && !!mainOverlay && shouldDrawHandCover(pose)
         const drawOffhandCover = !!offhandOverlay && offhandOverlay.pixels.length > 0 && shouldDrawHandCover(pose)
         if (drawMainCover || drawOffhandCover) {
             const skin = palette?.['3'] ?? '#f5d6c6'
@@ -234,7 +242,7 @@ export function PixelCanvas({
         pixels,
         palette,
         scale,
-        overlay,
+        mainOverlay,
         os,
         weaponId,
         pose,

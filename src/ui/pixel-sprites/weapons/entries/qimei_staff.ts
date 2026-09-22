@@ -4,13 +4,13 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponOverlay } from '../../types'
+import type { WeaponArtTable, WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
 // 齐眉棍（双手长杆）：握点取「杆中点落在主手（画面左侧那只手）」的位置
 // 两手间距 idle/dodge 9.5 格、attack 12.5 格、parry 12.2 格 → attack/parry 握点相应前移
 // flip 为反向握持（整根杆掉头，长端朝角色正面）
-export const qimei_staff: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const qimei_staff: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
     overlay: {
         palette: {
             '0': '#9a6d33', // 棍身 亮

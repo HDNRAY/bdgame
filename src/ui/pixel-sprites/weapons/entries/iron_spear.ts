@@ -4,11 +4,11 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponOverlay } from '../../types'
+import type { WeaponArtTable, WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
 // 铁枪·破军（双手长枪）：握持配置与破狼竹枝逐字一致（含 flip；虎牙刃在美术左上端，与竹枝嫩竹同端）
-export const iron_spear: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const iron_spear: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
     overlay: {
         palette: {
             '0': '#9aa4b4', // 锋刃 中（提亮）

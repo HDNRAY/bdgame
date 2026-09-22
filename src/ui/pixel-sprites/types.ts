@@ -24,6 +24,13 @@ export interface WeaponOverlay {
     palette?: Palette
 }
 
+/**
+ * 逐姿势美术：键是姿势名（idle/attack/dodge/parry/hit/buff），值是那个姿势的一张图。
+ * 只写需要的姿势，缺项 = 该姿势没有专门图（渲染时按 `art[pose] → art.idle → overlay` 坍缩）。
+ * 调色盘约定：每把武器仍只有一份 palette，六张图共用。
+ */
+export type WeaponArtTable = Partial<Record<string, WeaponOverlay>>
+
 /** 每武器·每姿势的握持配置（独立于武器美术，见 weapons.ts WEAPON_POSES） */
 export interface WeaponPoseConfig {
     /** 第一握柄 X（武器自身坐标），对齐到角色手部 */

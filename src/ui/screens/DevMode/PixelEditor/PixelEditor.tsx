@@ -1,6 +1,7 @@
 import type { ChangeEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+    POSE_NAMES,
     SPRITE_HEIGHT,
     SPRITE_PAD_LEFT,
     SPRITE_WIDTH,
@@ -13,11 +14,12 @@ import {
     formatPixelMapJson,
     formatPixelMapLiteral,
     formatPixelMapSource,
+    formatWeaponArtSnippet,
     formatWeaponOverlaySnippet,
     frameSize,
     frameStats,
     parsePixelMap,
-    parseWeaponOverlay,
+    parseWeaponArtSnippet,
     snapAnchorToSkin,
     stringifyPixelMap,
     unpadRenderedFrame,
@@ -41,6 +43,7 @@ import { useFrameAnchors } from './editor/hooks/useFrameAnchors'
 import type { AnchorOverride } from './editor/hooks/useFrameAnchors'
 import { ExportBar } from './editor/ExportBar'
 import { PalettePanel } from './editor/PalettePanel'
+import { PoseArtBar } from './editor/PoseArtBar'
 import { SourcePanel } from './editor/SourcePanel'
 import type { WeaponPoseConfig, WeaponSlot } from '../../../pixel-sprites'
 import {
@@ -49,16 +52,12 @@ import {
     FRAME_SLOT_ORDER,
     SOURCE_H,
     SOURCE_W,
+    WEAPON_BASE_SLOT,
     WEAPON_IDS_WITH_ART,
     WEAPON_NAME,
 } from './editor/constants'
 import type { EditorMode, Tool } from './editor/constants'
-import {
-    cloneMap,
-    readSavedState,
-    weaponGridToJson,
-    weaponOverlayToGrid,
-} from './editor/utils'
+import { cloneMap, gridHasPixels, readSavedState, weaponArtToGrids, weaponGridToJson } from './editor/utils'
 
 import './PixelEditor.scss'
 
@@ -79,19 +78,41 @@ export function PixelEditor() {
     const [constName, setConstName] = useState(saved?.frame.constName ?? 'DEFAULT_BUFF')
     const [sourceKey, setSourceKey] = useState(saved?.frame.sourceKey ?? 'buff')
 
-    // ── 武器图 ──
+    // ── 武器图（通用图 + 六个姿势，共用一份 palette）──
     const firstWeaponId = WEAPON_IDS_WITH_ART[0] ?? 'dark_iron_sword'
     const [weaponId, setWeaponId] = useState(saved?.weapon.id ?? firstWeaponId)
+    /** 通用图（武器文件里的 overlay:） */
     const [weaponGrid, setWeaponGrid] = useState<PixelMap>(
-        () => saved?.weapon.grid ?? weaponOverlayToGrid(firstWeaponId).grid,
+        () => saved?.weapon.grid ?? weaponArtToGrids(firstWeaponId).grid,
     )
+    /** 逐姿势美术：六个槽始终存在（全 0 = 那个姿势没画，渲染时坍缩） */
+    const [weaponPoses, setWeaponPoses] = useState<Record<string, PixelMap>>(() => {
+        const out: Record<string, PixelMap> = {}
+        const raw = saved?.weapon.poses
+        const hasSavedPoses = raw !== undefined && Object.keys(raw).length > 0
+        if (saved && !hasSavedPoses) {
+            // 老存档：只有一张通用图 —— 六个姿势都还没有图（这张图就是通用图）
+            for (const pose of POSE_NAMES) out[pose] = blankPixelMap(WEAPON_WIDTH, WEAPON_HEIGHT)
+            return out
+        }
+        const fromFile = weaponArtToGrids(saved?.weapon.id ?? firstWeaponId).poses
+        for (const pose of POSE_NAMES) out[pose] = cloneMap(raw?.[pose] ?? fromFile[pose])
+        return out
+    })
+    /** 当前编辑的槽：'base' = 通用图（overlay），其余是姿势名 */
+    const [weaponPose, setWeaponPose] = useState<string>(saved?.weapon.pose ?? WEAPON_BASE_SLOT)
     const [weaponPalette, setWeaponPalette] = useState<string[]>(
-        () => saved?.weapon.palette ?? weaponOverlayToGrid(firstWeaponId).palette,
+        () => saved?.weapon.palette ?? weaponArtToGrids(firstWeaponId).palette,
     )
     const weaponPaletteRef = useRef(weaponPalette)
     useEffect(() => {
         weaponPaletteRef.current = weaponPalette
     }, [weaponPalette])
+    /** 逐姿势表快照用（批量操作「复制当前→其它」要能整体撤销） */
+    const weaponPosesRef = useRef(weaponPoses)
+    useEffect(() => {
+        weaponPosesRef.current = weaponPoses
+    }, [weaponPoses])
 
     // ── 工具/颜色 ──
     const [tool, setTool] = useState<Tool>(saved?.tool ?? 'pen')
@@ -125,8 +146,10 @@ export function PixelEditor() {
     const warnedTransparentRef = useRef(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
-    /** 当前编辑的数据（身体帧 / 武器图共用一套绘制与历史逻辑） */
-    const active = mode === 'frame' ? map : weaponGrid
+    /** 武器模式当前槽的图（画布 / 预览 / 下载共用） */
+    const weaponSlotGrid = weaponPose === WEAPON_BASE_SLOT ? weaponGrid : weaponPoses[weaponPose]
+    /** 当前编辑的数据（身体帧 / 武器图共用一套绘制与历史逻辑）；武器模式跟随当前槽（通用图或某个姿势） */
+    const active = mode === 'frame' ? map : weaponSlotGrid
     /** 事件回调里读当前数据用（在 effect 里同步，避免渲染期写 ref） */
     const activeRef = useRef(active)
     useEffect(() => {
@@ -135,9 +158,10 @@ export function PixelEditor() {
     const setActive = useCallback(
         (next: PixelMap) => {
             if (mode === 'frame') setMap(next)
-            else setWeaponGrid(next)
+            else if (weaponPose === WEAPON_BASE_SLOT) setWeaponGrid(next)
+            else setWeaponPoses((prev) => ({ ...prev, [weaponPose]: next }))
         },
-        [mode],
+        [mode, weaponPose],
     )
 
     const { width: gridW, height: gridH } = useMemo(() => frameSize(active), [active])
@@ -193,6 +217,8 @@ export function PixelEditor() {
         weaponPaletteRef,
         setActive,
         setWeaponPalette,
+        weaponPosesRef,
+        setWeaponPoses,
     )
 
     // ── 绘制交互 ──
@@ -217,15 +243,16 @@ export function PixelEditor() {
         beginStroke,
     })
 
-    /** 整体平移武器图（所有已画的像素一起挪；挪出画布的点丢弃） */
+    /** 整体平移当前槽的武器图（所有已画的像素一起挪；挪出画布的点丢弃） */
     const nudgeWeapon = useCallback(
         (dx: number, dy: number) => {
             pushHistory()
-            const w = weaponGrid[0]?.length ?? 0
-            const next = weaponGrid.map((row) => row.map(() => 0))
-            for (let y = 0; y < weaponGrid.length; y++) {
+            const src = activeRef.current
+            const w = src[0]?.length ?? 0
+            const next = src.map((row) => row.map(() => 0))
+            for (let y = 0; y < src.length; y++) {
                 for (let x = 0; x < w; x++) {
-                    const v = weaponGrid[y][x]
+                    const v = src[y][x]
                     if (!v) continue
                     const nx = x + dx
                     const ny = y + dy
@@ -233,15 +260,70 @@ export function PixelEditor() {
                     next[ny][nx] = v
                 }
             }
-            setWeaponGrid(next)
+            setActive(next)
         },
-        [pushHistory, weaponGrid],
+        [pushHistory, setActive],
     )
 
     const selectSlot = useCallback((next: number) => {
         setSlot(next)
         warnedTransparentRef.current = false
     }, [])
+
+    /** 切换武器图编辑的槽：各槽是独立 state，当前内容留在原槽（不串）；历史清空，避免跨槽撤销串图 */
+    const switchWeaponPose = (next: string) => {
+        if (next === weaponPose) return
+        setWeaponPose(next)
+        resetHistory()
+        setStatus(
+            next === WEAPON_BASE_SLOT
+                ? '通用图（overlay）：没有逐姿势美术时，所有姿势都用它'
+                : `正在编辑「${next}」姿势的美术${
+                      gridHasPixels(weaponPoses[next]) ? '' : '（还没画 —— 渲染时坍缩到 idle，再坍缩到通用图）'
+                  }`,
+        )
+    }
+
+    /** 姿势按钮上的「已 / 未」：槽里有像素 = 已画 */
+    const filledPoses = useMemo(() => {
+        const out: Record<string, boolean> = {}
+        for (const pose of POSE_NAMES) out[pose] = gridHasPixels(weaponPoses[pose])
+        return out
+    }, [weaponPoses])
+
+    /** 复制当前→其它：当前 = 通用图时铺到六个姿势；当前 = 姿势时铺到其它五个（覆盖它们现有的图） */
+    const copyPoseToOthers = () => {
+        pushHistory()
+        const src = cloneMap(weaponSlotGrid)
+        if (weaponPose === WEAPON_BASE_SLOT) {
+            setWeaponPoses((prev) => {
+                const out = { ...prev }
+                for (const pose of POSE_NAMES) out[pose] = cloneMap(src)
+                return out
+            })
+            setStatus('已把通用图铺到六个姿势')
+            return
+        }
+        setWeaponPoses((prev) => {
+            const out = { ...prev }
+            for (const pose of POSE_NAMES) if (pose !== weaponPose) out[pose] = cloneMap(src)
+            return out
+        })
+        setStatus(`已把「${weaponPose}」铺到其它五个姿势`)
+    }
+
+    /** 清空本站势：清空后该槽触发坍缩（渲染走 idle / 通用图，导出也不写这块） */
+    const clearCurrentPose = () => {
+        pushHistory()
+        const blank = blankPixelMap(WEAPON_WIDTH, WEAPON_HEIGHT)
+        if (weaponPose === WEAPON_BASE_SLOT) {
+            setWeaponGrid(blank)
+            setStatus('已清空通用图')
+            return
+        }
+        setWeaponPoses((prev) => ({ ...prev, [weaponPose]: blank }))
+        setStatus(`已清空「${weaponPose}」—— 该姿势渲染时坍缩到 idle / 通用图，导出也不写这一块`)
+    }
 
     /** 载入（身体帧会识别渲染帧并裁掉留白；两种模式都回到「适应」并清空历史） */
     const loadMap = (next: PixelMap, note: string, palette?: string[]) => {
@@ -251,7 +333,7 @@ export function PixelEditor() {
             setMap(cloneMap(normalized))
             setStatus(cropped ? `${note} —— 这是渲染帧（60 宽），已裁掉左侧 ${SPRITE_PAD_LEFT} 列留白` : note)
         } else {
-            setWeaponGrid(cloneMap(next))
+            setActive(cloneMap(next))
             if (palette) setWeaponPalette(palette)
             setStatus(note)
         }
@@ -281,7 +363,7 @@ export function PixelEditor() {
         () => ({
             mode,
             frame: { map, constName, poseName, sourceKey },
-            weapon: { id: weaponId, grid: weaponGrid, palette: weaponPalette },
+            weapon: { id: weaponId, grid: weaponGrid, palette: weaponPalette, poses: weaponPoses, pose: weaponPose },
             colorOverrides,
             fixedSlotOverrides,
             mountConfigs,
@@ -292,7 +374,7 @@ export function PixelEditor() {
             showAnchors,
             manualZoom,
         }),
-        [mode, map, constName, poseName, sourceKey, weaponId, weaponGrid, weaponPalette, colorOverrides, fixedSlotOverrides, mountConfigs, tool, slot, mirror, showGrid, showAnchors, manualZoom],
+        [mode, map, constName, poseName, sourceKey, weaponId, weaponGrid, weaponPoses, weaponPose, weaponPalette, colorOverrides, fixedSlotOverrides, mountConfigs, tool, slot, mirror, showGrid, showAnchors, manualZoom],
     )
     useEditorAutosave(savePayload)
 
@@ -335,13 +417,34 @@ export function PixelEditor() {
             const size = frameSize(parsed.map)
             loadMap(parsed.map, `已载入 ${source}（${size.width}×${size.height}）`)
         } else {
-            const parsed = parseWeaponOverlay(text, WEAPON_WIDTH, WEAPON_HEIGHT)
+            const parsed = parseWeaponArtSnippet(text, WEAPON_WIDTH, WEAPON_HEIGHT)
             if (!parsed.ok) {
                 setStatus(`${source} 失败：${parsed.error}`)
                 return
             }
             if (parsed.id) setWeaponId(parsed.id)
-            loadMap(parsed.grid, `已载入 ${source}${parsed.id ? `（${parsed.id}）` : ''}`, parsed.palette)
+            resetHistory()
+            // 一次可以只粘一块：通用图块写 overlay 槽，姿势块写对应姿势槽
+            let landed = WEAPON_BASE_SLOT
+            for (const block of parsed.blocks) {
+                if (block.pose === null) {
+                    setWeaponGrid(cloneMap(block.grid))
+                    landed = WEAPON_BASE_SLOT
+                } else {
+                    const pose = block.pose
+                    setWeaponPoses((prev) => ({ ...prev, [pose]: cloneMap(block.grid) }))
+                    landed = pose
+                }
+            }
+            // 每把武器只有一份 palette：用片段合并后的那一份（导出片段每块都写同一份）
+            setWeaponPalette(parsed.palette)
+            setWeaponPose(landed)
+            setManualZoom(null)
+            setStatus(
+                `已载入 ${source}${parsed.id ? `（${parsed.id}）` : ''}：${parsed.blocks
+                    .map((b) => b.pose ?? '通用图')
+                    .join(' / ')}`,
+            )
         }
     }
 
@@ -353,10 +456,23 @@ export function PixelEditor() {
         }
     }
 
+    /** 已画的姿势：有任何一个就导出 `art:` 块，否则维持现状导出 `overlay:` 块 */
+    const drawnPoses = useMemo(
+        () => POSE_NAMES.filter((pose) => gridHasPixels(weaponPoses[pose])),
+        [weaponPoses],
+    )
+
     const exported = useMemo(() => {
         if (mode === 'frame') return formatPixelMapSource(constName || 'DEFAULT_FRAME', map)
+        if (drawnPoses.length > 0) {
+            return formatWeaponArtSnippet(
+                weaponId,
+                drawnPoses.map((pose) => ({ pose, grid: weaponPoses[pose] })),
+                weaponPalette,
+            )
+        }
         return formatWeaponOverlaySnippet(weaponId, weaponGrid, weaponPalette)
-    }, [mode, constName, map, weaponId, weaponGrid, weaponPalette])
+    }, [mode, constName, map, weaponId, weaponGrid, weaponPoses, weaponPalette, drawnPoses])
 
     const copy = async (text: string, note: string) => {
         try {
@@ -370,7 +486,7 @@ export function PixelEditor() {
     const download = () => {
         const isFrame = mode === 'frame'
         const name = isFrame ? (constName || 'frame').toLowerCase() : weaponId
-        const body = isFrame ? formatPixelMapJson(map) : weaponGridToJson(weaponGrid, weaponPalette)
+        const body = isFrame ? formatPixelMapJson(map) : weaponGridToJson(weaponSlotGrid, weaponPalette)
         const blob = new Blob([body + '\n'], { type: 'application/json' })
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
@@ -390,10 +506,14 @@ export function PixelEditor() {
     }
 
     const handleNewBlank = () => {
+        if (mode === 'frame') {
+            loadMap(blankPixelMap(SOURCE_W, SOURCE_H), '已新建空白图')
+            return
+        }
+        // 只清当前槽；palette 是六张图共用的，不能跟着清（否则别的槽颜色全错）
         loadMap(
-            blankPixelMap(mode === 'frame' ? SOURCE_W : WEAPON_WIDTH, mode === 'frame' ? SOURCE_H : WEAPON_HEIGHT),
-            '已新建空白图',
-            mode === 'weapon' ? [''] : undefined,
+            blankPixelMap(WEAPON_WIDTH, WEAPON_HEIGHT),
+            `已新建空白图（${weaponPose === WEAPON_BASE_SLOT ? '通用图' : weaponPose}；共用调色板保留）`,
         )
     }
 
@@ -413,9 +533,11 @@ export function PixelEditor() {
         setPoseName('buff')
         setConstName('DEFAULT_BUFF')
         setSourceKey('buff')
-        const d = weaponOverlayToGrid(firstWeaponId)
+        const d = weaponArtToGrids(firstWeaponId)
         setWeaponId(firstWeaponId)
         setWeaponGrid(d.grid)
+        setWeaponPoses(d.poses)
+        setWeaponPose(WEAPON_BASE_SLOT)
         setWeaponPalette(d.palette)
         setSlot(1)
         setManualZoom(null)
@@ -475,8 +597,14 @@ export function PixelEditor() {
 
     const loadWeapon = (id: string) => {
         setWeaponId(id)
-        const { grid, palette } = weaponOverlayToGrid(id)
-        loadMap(grid, `已载入武器「${WEAPON_NAME[id] ?? id}」`, palette)
+        const { grid, poses, palette } = weaponArtToGrids(id)
+        resetHistory()
+        setWeaponGrid(grid)
+        setWeaponPoses(poses)
+        setWeaponPose(WEAPON_BASE_SLOT)
+        setWeaponPalette(palette)
+        setManualZoom(null)
+        setStatus(`已载入武器「${WEAPON_NAME[id] ?? id}」`)
     }
 
     return (
@@ -573,6 +701,18 @@ export function PixelEditor() {
                     gridW={gridW}
                 />
 
+                {/* 武器图：逐姿势美术工具条（通用图 + 六个姿势 + 复制/清空） */}
+                {mode === 'weapon' && (
+                    <PoseArtBar
+                        current={weaponPose}
+                        filled={filledPoses}
+                        baseFilled={gridHasPixels(weaponGrid)}
+                        onSelect={switchWeaponPose}
+                        onCopyToOthers={copyPoseToOthers}
+                        onClearCurrent={clearCurrentPose}
+                    />
+                )}
+
                 <div className="pixel-editor-canvas-wrap" ref={wrapRef}>
                     <canvas
                         ref={canvasRef}
@@ -609,7 +749,7 @@ export function PixelEditor() {
                     framePalette={framePalette}
                     poseName={poseName}
                     previewWeaponId={previewWeaponId}
-                    weaponGrid={weaponGrid}
+                    weaponGrid={weaponSlotGrid}
                     weaponPalette={weaponPalette}
                     backdrop={backdrop}
                 />

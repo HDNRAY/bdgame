@@ -1,4 +1,4 @@
-import { WEAPON_OVERLAYS } from '../../../../pixel-sprites'
+import { WEAPON_ARTS, WEAPON_OVERLAYS, weaponHasArt } from '../../../../pixel-sprites'
 import type { PixelMap } from '../../../../pixel-sprites'
 import {
     DEFAULT_ATTACK,
@@ -30,10 +30,12 @@ export const ZOOM_MIN = 4
 export const ZOOM_MAX = 20
 export const HISTORY_LIMIT = 100
 
-/** 一步编辑的快照（画布 + 该步生效的调色板） */
+/** 一步编辑的快照（画布 + 该步生效的调色板；武器模式还会带上整张逐姿势表） */
 export interface EditSnapshot {
     map: PixelMap
     palette: string[]
+    /** 武器模式：六个姿势的整体快照（批量操作要能整体撤销；身体帧不写） */
+    poses?: Record<string, PixelMap>
 }
 
 export const TOOLS: { id: Tool; label: string; key: string }[] = [
@@ -107,15 +109,18 @@ export const BACKDROP_STORAGE_KEY = 'dantiao:pixel-editor:backdrop'
 
 export const EDITOR_STATE_KEY = 'dantiao:pixel-editor:state:v1'
 
+/** 武器图模式的「通用图」槽名（对应武器文件里的 overlay:；其余槽名就是姿势名） */
+export const WEAPON_BASE_SLOT = 'base'
+
 export const CHARACTER_IDS = Object.keys(CHARACTER_COLORS).filter((id) => CHARACTER_SPRITE_MAP[id])
 export const NAME_BY_ID: Record<string, string> = Object.fromEntries(OPPONENTS.map((o) => [o.id, o.name]))
 export const WEAPON_NAME: Record<string, string> = Object.fromEntries(
     [...WEAPON_DB, ...STARTING_WEAPONS].map((w) => [w.id, w.name]),
 )
-/** 已画好美术的武器（可载入当底稿） */
-export const WEAPON_IDS_WITH_ART = Object.entries(WEAPON_OVERLAYS)
-    .filter(([, ov]) => ov.pixels.length > 0)
-    .map(([id]) => id)
+/** 已画好美术的武器（通用图或逐姿势图，可载入当底稿） */
+export const WEAPON_IDS_WITH_ART = Array.from(
+    new Set([...Object.keys(WEAPON_OVERLAYS), ...Object.keys(WEAPON_ARTS)]),
+).filter((id) => weaponHasArt(id))
 
 export const BUILTIN_FRAMES: { key: string; label: string; map: PixelMap }[] = [
     { key: 'idle', label: 'idle', map: DEFAULT_IDLE },

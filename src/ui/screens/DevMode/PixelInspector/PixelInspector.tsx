@@ -4,9 +4,10 @@ import { useAppStore, getEffectiveTheme } from '../../../stores/app-store'
 import {
     getCharacterAvatar,
     getSpriteOutlineColor,
+    getWeaponArt,
     getWeaponPoseConfig,
     makeCharacterSprite,
-    WEAPON_OVERLAYS,
+    weaponHasArt,
     WEAPON_WIDTH,
     WEAPON_HEIGHT,
     resolveWeaponPixels,
@@ -40,11 +41,9 @@ const NAME_BY_ID: Record<string, string> = Object.fromEntries(OPPONENTS.map((o) 
 /** 武器 ID 列表：起始武器 + 武器库全量（含有数据但尚未绘制像素图的武器，便于对照还缺哪些美术） */
 const WEAPON_IDS = Array.from(new Set([...STARTING_WEAPONS, ...WEAPON_DB].map((w) => w.id)))
 
-/** 武器 ID → 是否已有像素图（没有美术的武器在查看器里只能看到角色空手） */
-const WEAPON_HAS_ART: Record<string, boolean> = {
-    ...Object.fromEntries(Object.entries(WEAPON_OVERLAYS).map(([id, ov]) => [id, ov.pixels.length > 0])),
-    // 空手本来就没有武器图，不算"未绘制"
-    bare_hands: true,
+/** 武器 ID → 是否已有像素图（通用图或任一姿势图；空手本来就没有武器图，不算「未绘制」） */
+function hasWeaponArt(weaponId: string): boolean {
+    return weaponId === 'bare_hands' || weaponHasArt(weaponId)
 }
 
 /** 武器 ID → 中文名（来自 data/weapons，找不到则回退为 id 本身） */
@@ -54,7 +53,7 @@ const WEAPON_NAME: Record<string, string> = Object.fromEntries(
 
 /** 下拉项文案：未绘制像素图的武器标注出来 */
 function weaponLabel(id: string): string {
-    return `${WEAPON_NAME[id] ?? id}${WEAPON_HAS_ART[id] ? '' : '（未绘制）'}`
+    return `${WEAPON_NAME[id] ?? id}${hasWeaponArt(id) ? '' : '（未绘制）'}`
 }
 
 interface PixelInfo {
@@ -129,9 +128,9 @@ export function PixelInspector() {
     const [offhandId, setOffhandId] = useState('peach_sword')
     /** 姿势帧缩放：每像素格的显示尺寸（画布缓冲同步，保证 1:1 清晰） */
     const [zoom, setZoom] = useState(DEFAULT_ZOOM)
-    const overlay = useMemo(() => WEAPON_OVERLAYS[weaponId] ?? WEAPON_OVERLAYS.bare_hands, [weaponId])
-    const hasWeaponArt = WEAPON_HAS_ART[weaponId] ?? false
-    const hasOffhandArt = WEAPON_HAS_ART[offhandId] ?? false
+    const overlay = useMemo(() => getWeaponArt(weaponId, 'idle'), [weaponId])
+    const hasArt = hasWeaponArt(weaponId)
+    const hasOffhandArt = hasWeaponArt(offhandId)
     const idlePose = useMemo(() => getWeaponPoseConfig(weaponId, 'idle'), [weaponId])
     // 武器坐标系尺寸（显示整个网格，见 constants.ts）
     const weaponW = WEAPON_WIDTH
@@ -154,11 +153,13 @@ export function PixelInspector() {
             }
             arr[y][x] = colorIdx.get(color)!
         }
-        for (const [px, py, color] of resolveWeaponPixels(overlay)) {
-            paint(px, py, color)
+        if (overlay) {
+            for (const [px, py, color] of resolveWeaponPixels(overlay)) {
+                paint(px, py, color)
+            }
         }
         return { pixels: arr, palette: viewPalette }
-    }, [overlay.pixels, weaponH, weaponW])
+    }, [overlay, weaponH, weaponW])
 
     const height = idlePixels.length
     const width = idlePixels[0].length
@@ -192,12 +193,12 @@ export function PixelInspector() {
         return stats
     }, [weaponViewPixels])
 
-    /** 武器原图里 颜色 → 原始调色板键（让面板显示 weapons.ts 里写的那个索引） */
+    /** 武器原图里 颜色 → 原始调色板键（让面板显示武器文件里写的那个索引） */
     const weaponKeyByColor = useMemo(() => {
         const map = new Map<string, string>()
-        for (const [key, color] of Object.entries(WEAPON_OVERLAYS[weaponId]?.palette ?? {})) map.set(color, key)
+        for (const [key, color] of Object.entries(overlay?.palette ?? {})) map.set(color, key)
         return map
-    }, [weaponId])
+    }, [overlay])
 
     const infoFor = (
         pixels: number[][],
@@ -402,11 +403,11 @@ export function PixelInspector() {
                         </label>
                     </div>
 
-                    {!hasWeaponArt && (
+                    {!hasArt && (
                         <p className="pixel-inspector-hint">
                             「{WEAPON_NAME[weaponId] ?? weaponId}」尚未绘制像素图 —— 画面只显示角色空手。
-                            补图方式：在 weapons.ts 的 WEAPON_OVERLAYS 里加一张 {weaponW}×{weaponH} 网格的叠加图，
-                            并在 WEAPON_POSES 里登记握点/角度。
+                            补图方式：在 weapons/entries/{weaponId}.ts 里加一张 {weaponW}×{weaponH} 网格的叠加图
+                            （通用图 `overlay` 或逐姿势 `art`），并在 `poses` 里登记握点/角度。
                         </p>
                     )}
                     {dualWield && !hasOffhandArt && (
@@ -515,7 +516,6 @@ export function PixelInspector() {
                                     scale={zoom}
                                     pose={name}
                                     weaponId={compositeWeapon ? weaponId : undefined}
-                                    overlay={compositeWeapon ? overlay : undefined}
                                     secondWeaponId={compositeWeapon && dualWield ? offhandId : undefined}
                                     canvasCols={canvasCols}
                                     canvasRows={canvasRows}
@@ -584,7 +584,7 @@ export function PixelInspector() {
                         </div>
                         <figcaption className="pixel-inspector-weapon-caption">
                             weapon · {weaponId}（{weaponW}×{weaponH}，grip {idlePose.gripX},{idlePose.gripY}
-                            {hasWeaponArt ? '' : '，未绘制'}）
+                            {hasArt ? '' : '，未绘制'}）
                         </figcaption>
                     </figure>
                 </div>

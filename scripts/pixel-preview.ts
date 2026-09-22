@@ -14,7 +14,15 @@
  * 共用绘图工具见 scripts/lib/pixel-canvas.ts（与 pose-preview.ts 共用，保证渲染一致）。
  */
 import { resolve } from 'node:path'
-import { getWeaponAngle, getWeaponHand, makeCharacterSprite, POSE_NAMES, WEAPON_OVERLAYS } from '../src/ui/pixel-sprites'
+import {
+    getWeaponAngle,
+    getWeaponHand,
+    makeCharacterSprite,
+    POSE_NAMES,
+    WEAPON_ARTS,
+    WEAPON_OVERLAYS,
+    weaponHasArt,
+} from '../src/ui/pixel-sprites'
 import {
     ART,
     COLS,
@@ -28,6 +36,11 @@ import {
     separator,
     writePng,
 } from './lib/pixel-canvas'
+
+/** 有美术的武器（通用图或逐姿势图） */
+const ART_WEAPON_IDS = Array.from(
+    new Set([...Object.keys(WEAPON_OVERLAYS), ...Object.keys(WEAPON_ARTS)]),
+).filter((id) => weaponHasArt(id))
 
 /** 角色精灵（各姿势共用同一张 idle 身体，姿势差异只体现在武器上） */
 function drawCharacter(g: Grid, charId: string, oy: number) {
@@ -82,11 +95,11 @@ function main(): void {
     if (!idsArg || idsArg === '--help' || idsArg === '-h') {
         console.log('用法: npm run pixel -- <武器ID[,武器ID...]> [姿势|all] [缩放]')
         console.log('可用姿势:', POSE_NAMES.join(' / '))
-        console.log('已有像素图的武器:', Object.keys(WEAPON_OVERLAYS).join(', '))
+        console.log('已有像素图的武器:', ART_WEAPON_IDS.join(', '))
         process.exit(idsArg ? 0 : 1)
     }
     const ids = idsArg.split(',').map((s) => s.trim())
-    const unknown = ids.filter((id) => !WEAPON_OVERLAYS[id])
+    const unknown = ids.filter((id) => !weaponHasArt(id))
     if (unknown.length) {
         console.error('未找到武器叠加图:', unknown.join(', '))
         process.exit(1)

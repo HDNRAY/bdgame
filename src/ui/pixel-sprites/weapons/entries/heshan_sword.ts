@@ -4,10 +4,10 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponOverlay } from '../../types'
+import type { WeaponArtTable, WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
-export const heshan_sword: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const heshan_sword: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
     overlay: {
         palette: { '1': '#4980da', '2': '#a7bedc', '3': '#ffffff', '4': '#c4a875', '5': '#1c386f', '6': '#00ffff' },
         pixels: [

@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
-import { WEAPON_OVERLAYS, formatCharacterColorsSnippet } from '../../../../pixel-sprites'
+import { WEAPON_ARTS, WEAPON_OVERLAYS, formatCharacterColorsSnippet } from '../../../../pixel-sprites'
 import type { CharacterColors } from '../../../../pixel-sprites/palette'
 import { SearchSelect } from '../../../../components/ui/SearchSelect/SearchSelect'
 import { CHARACTER_IDS, NAME_BY_ID, SLOT_LABELS, SLOT_TIPS, SLOT_TO_COLOR_KEY, WEAPON_NAME } from './constants'
@@ -219,7 +219,9 @@ export function PalettePanel({
                     <span>预览武器</span>
                     <SearchSelect
                         value={previewWeaponId}
-                        options={Object.keys(WEAPON_OVERLAYS).map((id) => ({
+                        options={Array.from(
+                            new Set([...Object.keys(WEAPON_OVERLAYS), ...Object.keys(WEAPON_ARTS)]),
+                        ).map((id) => ({
                             value: id,
                             label: WEAPON_NAME[id] ?? id,
                         }))}

@@ -4,11 +4,11 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponOverlay } from '../../types'
+import type { WeaponArtTable, WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
 // 春雷（二尺四寸 / 一斤三两 / 吹毛断发）：轻短弧刃，握点取柄的质心
-export const chun_lei: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const chun_lei: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
     // weapons/entries/chun_lei.ts → overlay:
     overlay: {
         palette: {

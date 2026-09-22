@@ -14,7 +14,7 @@
 export { HAND_POINTS, OTHER_HAND_POINT, HAND_COVER, LEFT_HAND_COVER } from './weapons/hands'
 export { POSE_NAMES, makePoses, mergePoseConfig, sharedOf, SHARED_KEYS } from './weapons/poses'
 export type { PoseKey, WeaponPoseTable, WeaponSlot } from './weapons/poses'
-export { WEAPON_ENTRIES, WEAPON_OVERLAYS, WEAPON_POSES } from './weapons/entries/index'
+export { WEAPON_ENTRIES, WEAPON_OVERLAYS, WEAPON_ARTS, WEAPON_POSES } from './weapons/entries/index'
 export {
     poseConfigIn,
     getWeaponPoseConfig,
@@ -23,6 +23,6 @@ export {
     resolveWeaponMount,
 } from './weapons/mount'
 export type { WeaponMount } from './weapons/mount'
-export { getWeaponOverlay, getWeaponPixelColor, resolveWeaponPixels } from './weapons/overlay'
+export { getWeaponOverlay, getWeaponArt, weaponHasArt, getWeaponPixelColor, resolveWeaponPixels } from './weapons/overlay'
 export { shouldDrawHandCover } from './weapons/dual'
 export { getWeaponHand, getWeaponAngle } from './weapons/angles'

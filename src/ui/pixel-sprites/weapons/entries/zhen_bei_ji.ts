@@ -4,11 +4,11 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponOverlay } from '../../types'
+import type { WeaponArtTable, WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
 // 镇北戟（双手长戟）：握持配置与破狼竹枝逐字一致（含 flip；戟头在美术左上端）
-export const zhen_bei_ji: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const zhen_bei_ji: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
     // weapons/entries/zhen_bei_ji.ts → overlay:
     overlay: {
         palette: {

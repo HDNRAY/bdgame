@@ -4,7 +4,7 @@ import { OPPONENTS, gen } from '../../../data/opponents/index'
 import type { OpponentDef } from '../../../data/opponents/index'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import { Character } from '../../../engine/entities/character'
-import { getCharacterAvatar, getSpriteOutlineColor, getWeaponOverlay } from '../../pixel-sprites'
+import { getCharacterAvatar, getSpriteOutlineColor } from '../../pixel-sprites'
 import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
 import { runBattle } from '../../../engine/battle-runner'
@@ -190,8 +190,7 @@ function OpponentAvatarSprite({ opponentId }: { opponentId: string }) {
     return <PixelCanvas pixels={avatar.pixels} palette={avatar.palette} scale={4} className="avatar-sprite" />
 }
 
-/** 武器小图标 */
+/** 武器小图标（走 PixelCanvas 的逐姿势取图入口：图标 = idle 那张） */
 function WeaponIconSprite({ weaponId }: { weaponId: string }) {
-    const overlay = getWeaponOverlay(weaponId)
-    return <PixelCanvas overlay={overlay} className="weapon-icon" />
+    return <PixelCanvas weaponId={weaponId} className="weapon-icon" />
 }

@@ -12,7 +12,7 @@
 import type { HandAnchorData } from './frame-edit'
 import type { CharacterColors } from './palette'
 import type { WeaponPoseConfig } from './types'
-import { baseAnchorHand } from './weapons'
+import { baseAnchorHand, POSE_NAMES } from './weapons'
 import type { PixelMap } from './types'
 import { SPRITE_HEIGHT, SPRITE_PAD_LEFT, SPRITE_WIDTH } from './constants'
 
@@ -293,30 +293,67 @@ export interface WeaponGridData {
     palette: string[]
 }
 
+/** 收集若干张图用到的调色板下标（并集、升序）——art 的六块共用同一份 palette，编号必须一致 */
+function usedIndices(grids: PixelMap[]): number[] {
+    const used = new Set<number>()
+    for (const grid of grids) for (const row of grid) for (const v of row) if (v > 0) used.add(v)
+    return [...used].sort((a, b) => a - b)
+}
+
+/**
+ * 生成 overlay 的内层块（`palette` + 稀疏 `pixels`）行 —— 只有「外壳」由调用方给。
+ * `overlay:` 块与 `art:` 里的每一块共用它，保证两种片段逐字符同构。
+ * `indices` 决定调色板的紧凑编号（下标重新编号成 1..n）。
+ */
+function overlayBodyLines(grid: PixelMap, palette: string[], indices: number[], indent: string): string[] {
+    const keyOf = (i: number) => String(indices.indexOf(i) + 1)
+    const lines: string[] = []
+    if (indices.length > 0) {
+        lines.push(`${indent}palette: {`)
+        for (const i of indices) lines.push(`${indent}    '${keyOf(i)}': '${palette[i] ?? '#000000'}',`)
+        lines.push(`${indent}},`)
+    }
+    lines.push(`${indent}pixels: [`)
+    for (let y = 0; y < grid.length; y++) {
+        for (let x = 0; x < grid[y].length; x++) {
+            const v = grid[y][x]
+            if (v > 0) lines.push(`${indent}    [${x}, ${y}, ${keyOf(v)}],`)
+        }
+    }
+    lines.push(`${indent}],`)
+    return lines
+}
+
 /**
  * 生成武器美术片段：`overlay:` 块（粘进 weapons/entries/<武器>.ts 里，与 poses: 并列）。
  * 下标会重新编号成 1..n（紧凑），调色板只输出用到的颜色。
  */
 export function formatWeaponOverlaySnippet(weaponId: string, grid: PixelMap, palette: string[]): string {
-    const used = new Set<number>()
-    for (const row of grid) for (const v of row) if (v > 0) used.add(v)
-    const indices = [...used].sort((a, b) => a - b)
-    const keyOf = (i: number) => String(indices.indexOf(i) + 1)
     // 片段给出该武器文件里的 `overlay:` 块（与 poses: 并列）
     const lines: string[] = [`// weapons/entries/${weaponId}.ts → overlay:`, 'overlay: {']
-    if (indices.length > 0) {
-        lines.push('    palette: {')
-        for (const i of indices) lines.push(`        '${keyOf(i)}': '${palette[i] ?? '#000000'}',`)
+    lines.push(...overlayBodyLines(grid, palette, usedIndices([grid]), '    '))
+    lines.push('},')
+    return lines.join('\n')
+}
+
+/**
+ * 生成逐姿势美术片段：`art:` 块（每块与 `overlay:` 块同构，只在有画的姿势上写）。
+ * 调色板约定：每把武器只有一份 palette，六张图共用 —— 所有块输出同一份调色板（取这些图用到的颜色并集）。
+ */
+export function formatWeaponArtSnippet(
+    weaponId: string,
+    blocks: { pose: string; grid: PixelMap }[],
+    palette: string[],
+): string {
+    // 空的姿势不写（没有像素的图渲染时本来就会坍缩）
+    const drawn = blocks.filter((block) => block.grid.some((row) => row.some((v) => v > 0)))
+    const indices = usedIndices(drawn.map((b) => b.grid))
+    const lines: string[] = [`// weapons/entries/${weaponId}.ts → art:`, 'art: {']
+    for (const block of drawn) {
+        lines.push(`    ${block.pose}: {`)
+        lines.push(...overlayBodyLines(block.grid, palette, indices, '        '))
         lines.push('    },')
     }
-    lines.push('    pixels: [')
-    for (let y = 0; y < grid.length; y++) {
-        for (let x = 0; x < grid[y].length; x++) {
-            const v = grid[y][x]
-            if (v > 0) lines.push(`        [${x}, ${y}, ${keyOf(v)}],`)
-        }
-    }
-    lines.push('    ],')
     lines.push('},')
     return lines.join('\n')
 }
@@ -358,6 +395,20 @@ export function parseWeaponOverlay(text: string, width = 32, height = 32): Parse
             obj = inner[1]
         }
     }
+    const converted = overlayObjectToGrid(obj, width, height)
+    if (!converted.ok) return converted
+    return { ...converted, id }
+}
+
+/**
+ * 把 `{ pixels, palette }` 对象转成网格 + 调色板（下标 0 占位）。
+ * parseWeaponOverlay（单张通用图）与 parseWeaponArtSnippet（逐姿势块）共用这一套像素解析。
+ */
+function overlayObjectToGrid(
+    obj: unknown,
+    width: number,
+    height: number,
+): { ok: true; grid: PixelMap; palette: string[] } | { ok: false; error: string } {
     if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return { ok: false, error: '不是武器图对象' }
     const pixels = (obj as { pixels?: unknown }).pixels
     if (!Array.isArray(pixels)) return { ok: false, error: '缺少 pixels 数组' }
@@ -410,7 +461,111 @@ export function parseWeaponOverlay(text: string, width = 32, height = 32): Parse
     }
     if (placed === 0) return { ok: false, error: 'pixels 是空的' }
     const maxIdx = Math.max(...grid.flat())
-    return { ok: true, grid, palette: palette.slice(0, maxIdx + 1), id }
+    return { ok: true, grid, palette: palette.slice(0, maxIdx + 1) }
+}
+
+export interface ParsedWeaponArtBlock {
+    /** 姿势名；null = 通用图（`overlay:` 块或裸 `{ pixels, palette }`） */
+    pose: string | null
+    grid: PixelMap
+    palette: string[]
+}
+
+export type ParseWeaponArtResult =
+    | { ok: true; blocks: ParsedWeaponArtBlock[]; palette: string[]; id?: string }
+    | { ok: false; error: string }
+
+/** 把各块的调色板按下标合并成一份（导出片段每块都写同一份，合并后仍然是那一份） */
+function mergeBlockPalettes(blocks: ParsedWeaponArtBlock[]): string[] {
+    const out: string[] = ['']
+    for (const block of blocks) {
+        for (let i = 1; i < block.palette.length; i++) {
+            const color = block.palette[i]
+            if (color) out[i] = color
+        }
+    }
+    return out
+}
+
+/** 是不是 `{ pixels: [...] }` 形状 */
+function hasPixels(v: unknown): boolean {
+    return Boolean(v) && typeof v === 'object' && !Array.isArray(v) && Array.isArray((v as { pixels?: unknown }).pixels)
+}
+
+function isPoseName(name: string): boolean {
+    return (POSE_NAMES as readonly string[]).includes(name)
+}
+
+/**
+ * 解析武器美术片段，能吃四种写法（**一次只处理一段**，可以只粘一块）：
+ *  - `overlay: { pixels, palette }` 或裸 `{ pixels, palette }` → 通用图（pose = null）；
+ *  - `attack: { pixels, palette }`（单个姿势块）→ 该姿势；
+ *  - `art: { idle: {...}, attack: {...} }` 或裸的姿势表 → 逐姿势块（可以有多个）。
+ * 输出每次都是「一块或多块」，调用方自己决定写进编辑器哪个槽（通用图 / 姿势）。
+ */
+export function parseWeaponArtSnippet(text: string, width = 32, height = 32): ParseWeaponArtResult {
+    const trimmed = text.trim()
+    if (!trimmed) return { ok: false, error: '内容为空' }
+    // 片段首行注释里带目标文件：`// weapons/entries/<id>.ts → art:`
+    const fromComment = trimmed.match(/weapons\/entries\/([A-Za-z_0-9]+)\.ts/)
+    const id = fromComment?.[1]
+    const start = trimmed.indexOf('{')
+    if (start < 0) return { ok: false, error: '找不到对象（需要 overlay / art / 单个姿势块）' }
+    const balanced = findBalancedObject(trimmed, start)
+    if (!balanced) return { ok: false, error: '花括号不配平' }
+    const parsed = tryParseJson(balanced.body)
+    if (!parsed.ok) return parsed
+    const obj = parsed.value
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return { ok: false, error: '不是武器图对象' }
+
+    // 花括号前面的键：`art:` / `overlay:` / 某个姿势名（也可能什么都没有）
+    const beforeKey = trimmed.slice(0, start).match(/([A-Za-z_$][\w$]*)\s*:\s*$/)
+    const outerKey = beforeKey?.[1]
+    const entries = Object.entries(obj as Record<string, unknown>)
+
+    // 外面可能裹了一层：武器 id / `overlay:` / `art:`
+    const overlayEntry = entries.find(([k, v]) => k === 'overlay' && hasPixels(v))
+    const artEntry = entries.find(([k, v]) => k === 'art' && !hasPixels(v) && Boolean(v) && typeof v === 'object')
+
+    let artContainer: unknown
+    let single: unknown
+    let singlePose: string | null = null
+    if (overlayEntry) {
+        single = overlayEntry[1]
+    } else if (artEntry) {
+        artContainer = artEntry[1]
+    } else if (outerKey === 'art') {
+        artContainer = obj
+    } else if (outerKey !== undefined && isPoseName(outerKey)) {
+        singlePose = outerKey
+        single = obj
+    } else if (hasPixels(obj)) {
+        single = obj
+    } else if (entries.length > 0 && entries.every(([k]) => isPoseName(k))) {
+        artContainer = obj
+    } else {
+        return { ok: false, error: '认不出这段：需要 overlay 块、art 块或单个姿势块' }
+    }
+
+    if (artContainer !== undefined) {
+        if (!artContainer || typeof artContainer !== 'object' || Array.isArray(artContainer)) {
+            return { ok: false, error: 'art 不是对象' }
+        }
+        const blocks: ParsedWeaponArtBlock[] = []
+        for (const [pose, value] of Object.entries(artContainer as Record<string, unknown>)) {
+            if (!isPoseName(pose)) return { ok: false, error: `art 里的键「${pose}」不是姿势名` }
+            const converted = overlayObjectToGrid(value, width, height)
+            if (!converted.ok) return { ok: false, error: `art.${pose}：${converted.error}` }
+            blocks.push({ pose, grid: converted.grid, palette: converted.palette })
+        }
+        if (blocks.length === 0) return { ok: false, error: 'art 里没有任何姿势块' }
+        return { ok: true, blocks, palette: mergeBlockPalettes(blocks), id }
+    }
+
+    const converted = overlayObjectToGrid(single, width, height)
+    if (!converted.ok) return converted
+    const blocks: ParsedWeaponArtBlock[] = [{ pose: singlePose, grid: converted.grid, palette: converted.palette }]
+    return { ok: true, blocks, palette: mergeBlockPalettes(blocks), id }
 }
 
 /** 从 text[start] 处（必须是 `{`）取出配平的对象片段 */

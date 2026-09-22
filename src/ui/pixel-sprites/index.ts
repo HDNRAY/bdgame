@@ -11,6 +11,7 @@ export type {
     PixelSprite,
     AvatarData,
     WeaponOverlay,
+    WeaponArtTable,
     WeaponPixelColor,
     WeaponPoseConfig,
 } from './types'
@@ -62,17 +63,26 @@ export {
     blankPixelMap,
     formatAnchorSnippet,
     formatCharacterColorsSnippet,
+    formatWeaponArtSnippet,
     formatWeaponOverlaySnippet,
     formatWeaponPoseSnippet,
     formatPixelMapJson,
     formatPixelMapLiteral,
     formatPixelMapSource,
     parsePixelMap,
+    parseWeaponArtSnippet,
     parseWeaponOverlay,
     stringifyPixelMap,
     unpadRenderedFrame,
 } from './frame-io'
-export type { ParsePixelMapResult, ParseWeaponResult, UnpadResult, WeaponGridData } from './frame-io'
+export type {
+    ParsePixelMapResult,
+    ParseWeaponArtResult,
+    ParseWeaponResult,
+    ParsedWeaponArtBlock,
+    UnpadResult,
+    WeaponGridData,
+} from './frame-io'
 
 export { parseEditorState, serializeEditorState } from './editor-storage'
 export type { EditorMode, EditorTool, PixelEditorSavedState } from './editor-storage'
@@ -84,9 +94,12 @@ export {
     OTHER_HAND_POINT,
     POSE_NAMES,
     WEAPON_OVERLAYS,
+    WEAPON_ARTS,
     WEAPON_POSES,
     shouldDrawHandCover,
     getWeaponOverlay,
+    getWeaponArt,
+    weaponHasArt,
     getWeaponPoseConfig,
     getWeaponPixelColor,
     resolveWeaponPixels,
