@@ -1177,6 +1177,7 @@ export function PixelEditor() {
                             canvasCols={120}
                             canvasRows={54}
                             contentOffsetX={45}
+                            backdrop={backdrop}
                             className="pixel-editor-preview-canvas"
                         />
                     ) : (
@@ -1189,6 +1190,7 @@ export function PixelEditor() {
                             canvasCols={WEAPON_WIDTH}
                             canvasRows={WEAPON_HEIGHT}
                             contentOffsetX={0}
+                            backdrop={backdrop}
                             className="pixel-editor-preview-canvas pixel-editor-preview-canvas--weapon"
                         />
                     )}
