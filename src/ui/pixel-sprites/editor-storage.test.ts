@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { OTHER_HAND_POINT } from './weapons'
 import { parseEditorState, serializeEditorState } from './editor-storage'
 import type { PixelEditorSavedState } from './editor-storage'
 import { blankPixelMap } from './frame-io'
@@ -41,7 +42,9 @@ describe('编辑器存档', () => {
         expect(back!.colorOverrides.yidao.hair).toBe('#123456')
         expect(back!.fixedSlotOverrides[9]).toBe('#00ff00')
         expect(back!.mountConfigs.xiu_dong.main.attack.angle).toBeCloseTo(-0.7854, 6)
-        expect(back!.mountConfigs.xiu_dong.off.idle.handX).toBeCloseTo(41, 6)
+        // 旧格式的绝对坐标会在载入时归一化成相对偏移（绝对坐标被丢弃）
+        expect(back!.mountConfigs.xiu_dong.off.idle.handX).toBeUndefined()
+        expect(back!.mountConfigs.xiu_dong.off.idle.handDX).toBeCloseTo(41 - OTHER_HAND_POINT.idle.x, 6)
     })
 
     it('缺字段 / 坏数据 / 空串一律返回 null（回到默认，而不是半截脏数据）', () => {

@@ -9,7 +9,7 @@
  */
 import type { CharacterColors } from './palette'
 import type { PixelMap, WeaponPoseConfig } from './types'
-import { getWeaponPoseConfig } from './weapons'
+import { baseAnchorHand, getWeaponPoseConfig } from './weapons'
 import { POSE_NAMES } from './weapons'
 
 export type EditorMode = 'frame' | 'weapon' | 'mount'
@@ -192,6 +192,10 @@ export function parseEditorState(text: string | null | undefined): PixelEditorSa
                     ['gripX', 'gripDX'],
                     ['gripY', 'gripDY'],
                 ] as const
+                const handAxes = [
+                    ['handX', 'handDX'],
+                    ['handY', 'handDY'],
+                ] as const
                 for (const [pose, cfg] of Object.entries(slots[slotName])) {
                     if (slotName === 'main' && pose === 'idle') continue
                     const out: Partial<WeaponPoseConfig> = {}
@@ -210,8 +214,20 @@ export function parseEditorState(text: string | null | undefined): PixelEditorSa
                         const diff = Math.round((effective - base) * 1e4) / 1e4
                         if (diff !== 0) out[offKey] = diff
                     }
+                    // 手位：旧存档存的是绝对百分比坐标 → 折算成「基准 + 偏移」，绝对坐标丢弃
+                    for (const [absKey, offKey] of handAxes) {
+                        const abs = cfg[absKey]
+                        const off = cfg[offKey]
+                        if (abs === undefined && off === undefined) continue
+                        const base = baseAnchorHand(cfg, pose, slotName)
+                        const axisBase = absKey === 'handX' ? base.x : base.y
+                        const effective = (abs ?? axisBase) + (off ?? 0)
+                        const diff = Math.round((effective - axisBase) * 1e4) / 1e4
+                        if (diff !== 0) out[offKey] = diff
+                    }
                     for (const [k, v] of Object.entries(cfg)) {
                         if ((axes as readonly (readonly [string, string])[]).some(([a, o]) => a === k || o === k)) continue
+                        if ((handAxes as readonly (readonly [string, string])[]).some(([a, o]) => a === k || o === k)) continue
                         ;(out as Record<string, unknown>)[k] = v
                     }
                     slots[slotName][pose] = out

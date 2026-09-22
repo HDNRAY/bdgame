@@ -178,6 +178,11 @@ export function WeaponMountPanel({
         (fields: PoseCfg) => {
             // 只存改过的字段：这样「武器共用」的设定（握点等）始终能透过姿势条目生效
             const next: PoseCfg = { ...(configs[weaponId]?.[slot]?.[pose] ?? {}), ...fields }
+            // 旧的绝对坐标优先级高于偏移，会把偏移/拖拽"压住" → 一旦写偏移就清掉它
+            if ('handDX' in fields || 'handDY' in fields) {
+                delete next.handX
+                delete next.handY
+            }
             for (const k of Object.keys(next)) if (next[k as keyof PoseCfg] === undefined) delete next[k as keyof PoseCfg]
             onChange(weaponId, slot, pose, Object.keys(next).length ? next : null)
         },
