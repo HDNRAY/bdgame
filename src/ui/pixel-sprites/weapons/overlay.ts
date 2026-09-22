@@ -4,6 +4,10 @@
  * 逐姿势美术（`art`）与通用图（`overlay`）的取图链只有这里一个入口：
  * `art[pose] → art.idle → overlay`（空条目 / 空 pixels 视为「没有」，继续往下塌）。
  * 所有按姿势渲染武器的地方都走 getWeaponArt，不要各写一套。
+ *
+ * **一把武器只有一份调色板**：它声明在通用图（`overlay.palette`）上，姿势块自己不写，
+ * 取图时由这里兜上去（见 `withSharedPalette`）。所以「一份调色板 + 一套下标」是数据层面的事实，
+ * 而不是靠约定维持 —— 导出片段也因此不必再带 palette。
  */
 import type { WeaponArtTable, WeaponOverlay } from '../types'
 import { WEAPON_ARTS, WEAPON_OVERLAYS } from './entries/index'
@@ -19,16 +23,29 @@ function drawable(overlay: WeaponOverlay | undefined): overlay is WeaponOverlay 
 }
 
 /**
- * 取某姿势的武器美术：`art[pose] → art.idle → overlay`。
+ * 把「这把武器共用的那份调色板」兜到块上。
+ *
+ * 块自己写了 `palette` 就以它为准（老武器文件、测试里临时合成的条目都还这么写）；
+ * 没写就继承通用图那份 —— 姿势块于是在文件里可以只写 `pixels`，下标仍指向同一套颜色。
+ * 一份都没有时原样返回（像素会解析成洋红，等于明确画错了）。
+ */
+function withSharedPalette(block: WeaponOverlay | undefined, weaponId: string): WeaponOverlay | undefined {
+    if (!block || block.palette !== undefined) return block
+    const shared = WEAPON_OVERLAYS[weaponId]?.palette
+    return shared === undefined ? block : { ...block, palette: shared }
+}
+
+/**
+ * 取某姿势的武器美术：`art[pose] → art.idle → overlay`（调色板已按上面的规则兜好）。
  * 逐级都为空时返回 undefined（= 没有任何可画的像素）；没有 art 字段的武器结果与
  * `getWeaponOverlay` 完全等价（有像素时返回的就是同一个对象）。
  */
 export function getWeaponArt(weaponId: string, pose: string): WeaponOverlay | undefined {
     const art: WeaponArtTable | undefined = WEAPON_ARTS[weaponId]
     const posed = art?.[pose]
-    if (drawable(posed)) return posed
+    if (drawable(posed)) return withSharedPalette(posed, weaponId)
     const idle = art?.idle
-    if (drawable(idle)) return idle
+    if (drawable(idle)) return withSharedPalette(idle, weaponId)
     const base = WEAPON_OVERLAYS[weaponId] ?? WEAPON_OVERLAYS.bare_hands
     return drawable(base) ? base : undefined
 }

@@ -410,9 +410,9 @@ export class CanvasRenderer {
         cg.clear()
         const weaponId = slot === 'off' ? c.offhand : c.weaponId
         if (!weaponId) return
-        // 命中（hit）：武器被打飞脱手 → 不画握持手
-        if (!shouldDrawHandCover(c.pose)) return
         const mount = resolveWeaponMount(weaponId, c.pose, { slot, facingRight })
+        // hit（武器脱手）或该武器/该姿势关掉了手部覆盖 → 不画握持手
+        if (!shouldDrawHandCover(c.pose, mount.config)) return
         // 哪个槽位盖哪只手：统一走 handCoverTables（副手槽盖副手）
         const { primary: primaryTable, secondary: secondaryTable } = handCoverTables(slot)
         const primary = primaryTable[c.pose] ?? primaryTable.idle

@@ -30,7 +30,7 @@ export type WeaponSlot = 'main' | 'off'
 export type PoseKey = 'idle' | 'attack' | 'dodge' | 'parry' | 'hit' | 'buff' | 'move'
 
 /** 基底能提供的结构性字段：这些字段在姿势间共享，写一次即可 */
-export const SHARED_KEYS: (keyof WeaponPoseConfig)[] = ['gripX', 'gripY', 'flip', 'anchorHand']
+export const SHARED_KEYS: (keyof WeaponPoseConfig)[] = ['gripX', 'gripY', 'flip', 'anchorHand', 'handCover']
 
 /** 每姿势的配置：只需写与基底不同的字段（握点类字段可省，会从基底继承） */
 export type PoseConfig = Partial<WeaponPoseConfig>

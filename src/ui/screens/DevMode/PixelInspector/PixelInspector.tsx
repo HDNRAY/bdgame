@@ -4,7 +4,7 @@ import { useAppStore, getEffectiveTheme } from '../../../stores/app-store'
 import {
     getCharacterAvatar,
     getSpriteOutlineColor,
-    getWeaponArt,
+    getWeaponOverlay,
     getWeaponPoseConfig,
     makeCharacterSprite,
     weaponHasArt,
@@ -128,7 +128,8 @@ export function PixelInspector() {
     const [offhandId, setOffhandId] = useState('peach_sword')
     /** 姿势帧缩放：每像素格的显示尺寸（画布缓冲同步，保证 1:1 清晰） */
     const [zoom, setZoom] = useState(DEFAULT_ZOOM)
-    const overlay = useMemo(() => getWeaponArt(weaponId, 'idle'), [weaponId])
+    /** 「武器原图」= 武器本体那张（通用图 overlay），不是战斗里按姿势延展的形态 */
+    const overlay = useMemo(() => getWeaponOverlay(weaponId), [weaponId])
     const hasArt = hasWeaponArt(weaponId)
     const hasOffhandArt = hasWeaponArt(offhandId)
     const idlePose = useMemo(() => getWeaponPoseConfig(weaponId, 'idle'), [weaponId])

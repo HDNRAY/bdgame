@@ -16,6 +16,10 @@ export interface ExportBarProps {
     /** 新建空白图（身体帧 48×48 / 武器图 32×32） */
     onNewBlank: () => void
     onCopyExported: () => void
+    /** 只复制当前在编辑的那一条（通用图 / 某个姿势） */
+    onCopyCurrentEntry: () => void
+    /** 复制这把武器共用的调色板片段（文件顶部的 const PALETTE） */
+    onCopyPalette: () => void
     onCopyLiteral: () => void
     onCopySingleLine: () => void
     onDownload: () => void
@@ -36,6 +40,8 @@ export function ExportBar({
     onFileInputChange,
     onNewBlank,
     onCopyExported,
+    onCopyCurrentEntry,
+    onCopyPalette,
     onCopyLiteral,
     onCopySingleLine,
     onDownload,
@@ -88,9 +94,31 @@ export function ExportBar({
             </div>
 
             <div className="pixel-editor-row">
-                <button className="pixel-editor-btn" title="复制导出片段" onClick={onCopyExported}>
+                <button
+                    className="pixel-editor-btn"
+                    title="复制当前槽要粘回武器文件的那一块：在通用图导出 overlay 块，在某个姿势导出 art 块"
+                    onClick={onCopyExported}
+                >
                     复制片段
                 </button>
+                {mode === 'weapon' && (
+                    <>
+                        <button
+                            className="pixel-editor-btn"
+                            title="只复制当前在编辑的那一条（通用图 → overlay 那一条；某个姿势 → 该姿势那一条），用来替换文件里对应的那一条，别的姿势不动"
+                            onClick={onCopyCurrentEntry}
+                        >
+                            复制当前条目
+                        </button>
+                        <button
+                            className="pixel-editor-btn"
+                            title="复制这把武器共用的调色板片段：文件顶部的 const PALETTE（键就是下标，删过的空位不写）。只有在改过调色板时才需要"
+                            onClick={onCopyPalette}
+                        >
+                            复制调色板
+                        </button>
+                    </>
+                )}
                 {mode === 'frame' && (
                     <>
                         <button className="pixel-editor-btn" onClick={onCopyLiteral}>

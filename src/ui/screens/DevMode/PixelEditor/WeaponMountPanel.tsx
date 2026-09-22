@@ -571,6 +571,16 @@ export function WeaponMountPanel({
                                     (v) => writeSlotIdle('anchorHand', v),
                                     '本槽位共用的锚定手；副手槽固定锚副手，所以这个选项只在主手槽有意义',
                                 )}
+                                {boolSelect(
+                                    '手部覆盖',
+                                    slotIdleOverride('handCover') as boolean | undefined,
+                                    (v) => writeSlotIdle('handCover', v),
+                                    slot === 'off'
+                                        ? '副手槽默认是否盖「握着」的手部皮肤；「自动」= 继承主手。某个姿势要单独调，就在「本姿势」里改'
+                                        : '本槽位默认是否盖「握着」的手部皮肤（写进 poses 基底）。拳套/护手这类"甲片本身就是手"的武器选「不覆盖」——手交给武器美术自己画。某个姿势要单独调，就在「本姿势」里改',
+                                    '覆盖',
+                                    '不覆盖',
+                                )}
                             </div>
                         </div>
                 </section>
@@ -612,6 +622,14 @@ export function WeaponMountPanel({
                             '不翻转',
                         )}
                         {anchorSelect('锚定手', poseEntry?.anchorHand, (v) => patch({ anchorHand: v }), anchorHandTip)}
+                        {boolSelect(
+                            '手部覆盖',
+                            poseEntry?.handCover,
+                            (v) => patch({ handCover: v }),
+                            '本姿势是否盖「握着」的手部皮肤；「自动」= 跟随「本槽位共用」里的设定',
+                            '覆盖',
+                            '不覆盖',
+                        )}
                         {numField('握点偏移 X', 'gripDX', 0.5, '本姿势相对「武器握点」的偏移——要微调只用这个，不要改武器握点')}
                         {numField('握点偏移 Y', 'gripDY')}
                         {numField('挂点偏移 X', 'handDX', 0.5, '相对基准手位的偏移；拖动/输入的都是这个。基准见占位提示，最终落点看右栏「当前」一行')}

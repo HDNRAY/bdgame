@@ -6,6 +6,10 @@ import type { Tool } from '../constants'
 export interface EditorHotkeysOptions {
     undo: () => void
     redo: () => void
+    /** 复制当前槽那张图到编辑器内部剪贴板 */
+    copy: () => void
+    /** 把内部剪贴板贴进当前槽（可撤销） */
+    paste: () => void
     /** 当前槽位（[ ] 在它基础上加减） */
     slot: number
     selectSlot: (next: number) => void
@@ -13,10 +17,20 @@ export interface EditorHotkeysOptions {
     setMirror: Dispatch<SetStateAction<boolean>>
 }
 
-/** 编辑器快捷键：Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y、B/E/I/G、X、[ ]、0~9 */
-export function useEditorHotkeys({ undo, redo, slot, selectSlot, setTool, setMirror }: EditorHotkeysOptions) {
+/** 编辑器快捷键：Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y、Ctrl+C / Ctrl+V、B/E/I/G、X、[ ]、0~9 */
+export function useEditorHotkeys({
+    undo,
+    redo,
+    copy,
+    paste,
+    slot,
+    selectSlot,
+    setTool,
+    setMirror,
+}: EditorHotkeysOptions) {
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
+            // 输入框 / 文本域里一律不接管：导入区的「粘贴内容」文本框要靠这条才能正常用系统粘贴
             const el = e.target as HTMLElement | null
             if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return
             const mod = e.ctrlKey || e.metaKey
@@ -29,6 +43,16 @@ export function useEditorHotkeys({ undo, redo, slot, selectSlot, setTool, setMir
             if (mod && e.key.toLowerCase() === 'y') {
                 e.preventDefault()
                 redo()
+                return
+            }
+            if (mod && e.key.toLowerCase() === 'c') {
+                e.preventDefault()
+                copy()
+                return
+            }
+            if (mod && e.key.toLowerCase() === 'v') {
+                e.preventDefault()
+                paste()
                 return
             }
             if (mod) return
@@ -45,5 +69,5 @@ export function useEditorHotkeys({ undo, redo, slot, selectSlot, setTool, setMir
         }
         window.addEventListener('keydown', onKey)
         return () => window.removeEventListener('keydown', onKey)
-    }, [undo, redo, selectSlot, slot])
+    }, [undo, redo, copy, paste, selectSlot, slot, setTool, setMirror])
 }

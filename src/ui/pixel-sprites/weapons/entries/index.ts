@@ -23,6 +23,7 @@ import { po_lang_zhu_zhi } from './po_lang_zhu_zhi'
 import { dinghai_shen_tie } from './dinghai_shen_tie'
 import { long_spear } from './long_spear'
 import { ninja_sword } from './ninja_sword'
+import { iron_back_hand } from './iron_back_hand'
 
 /** 武器 id → 条目 */
 export const WEAPON_ENTRIES: Record<
@@ -40,6 +41,7 @@ export const WEAPON_ENTRIES: Record<
     iron_spear,
     zhen_bei_ji,
     ninja_sword,
+    iron_back_hand,
     peach_sword,
     qimei_staff,
     po_lang_zhu_zhi,
@@ -60,6 +62,7 @@ const weaponIds = [
     'special_forces_dagger',
     'dagger',
     'ninja_sword',
+    'iron_back_hand',
     'iron_spear',
     'zhen_bei_ji',
     'peach_sword',

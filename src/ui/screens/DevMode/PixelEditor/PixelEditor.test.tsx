@@ -1,6 +1,18 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { PixelEditor } from './PixelEditor'
+import { PalettePanel } from './editor/PalettePanel'
+
+/** 取出导出文本框里的文本（HTML 转义还原一下，断言更直观） */
+function exportText(html: string): string {
+    const m = /pixel-editor-textarea--export"[^>]*>([\s\S]*?)<\/textarea>/.exec(html)
+    return (m?.[1] ?? '')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&#x27;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+}
 
 /**
  * 渲染冒烟测试：编辑器渲染期一旦抛错（访问 undefined、函数签名变了等）这里立刻红。
@@ -23,7 +35,13 @@ describe('PixelEditor 渲染冒烟', () => {
         expect(html).toContain('载入粘贴')
         expect(html).toContain('复制片段')
         expect(html).toContain('pixel-editor-info')
+        // 复制 / 粘贴按钮在工具栏（挨着撤销重做）；用 </button> 收尾以区分「复制片段」那种导出按钮
+        expect(html).toContain('>撤销</button>')
+        expect(html).toContain('>重做</button>')
+        expect(html).toContain('>复制</button>')
+        expect(html).toContain('>粘贴</button>')
     })
+
 
     it('两种模式都在（身体帧 / 武器）', () => {
         const html = renderToStaticMarkup(<PixelEditor />)
@@ -136,36 +154,139 @@ describe('PixelEditor 武器图模式 · 逐姿势美术', () => {
         vi.unstubAllGlobals()
     })
 
-    it('六个姿势按钮 + 复制/清空都在；有姿势图时导出 art 块（空的姿势不写）', () => {
+    it('六个姿势按钮 + 清空都在；有姿势图时导出 art 块（空的姿势不写）', () => {
         stored = JSON.stringify(weaponState())
         const html = renderToStaticMarkup(<PixelEditor />)
-        expect(html).toContain('复制当前→其它')
         expect(html).toContain('清空本站势')
+        expect(html).not.toContain('复制当前→其它')
         expect(html).toContain('>通用<')
         expect(html).toContain('>idle<span')
         expect(html).toContain('>buff<span')
         // 当前槽 idle 已画 → 导出 art 块；attack 是空的 → 不写
-        expect(html).toContain('// weapons/entries/peach_sword.ts → art:')
-        expect(html).toContain('    idle: {')
-        expect(html).not.toContain('    attack: {')
-        expect(html).toContain('[0, 0, 1],')
+        const text = exportText(html)
+        expect(text).toContain('// weapons/entries/peach_sword.ts → art:')
+        expect(text).toContain('    idle: {')
+        expect(text).toContain('        pixels: [')
+        expect(text).not.toContain('    attack: {')
+        // 片段只给像素：不写 palette（调色板走「复制调色板」按钮），下标沿用文件里的号不重编号
+        expect(text).not.toContain('palette:')
+        expect(text).not.toContain('const PALETTE')
+        expect(text).toContain('[0, 0, 8],')
     })
 
-    it('老存档（只有一张图）：六个姿势全空，导出 overlay 块（保持现状），不崩不丢', () => {
+    it('导出面板三个复制按钮：片段（整块）/ 当前条目（只这一条）/ 调色板', () => {
+        stored = JSON.stringify(weaponState())
+        const html = renderToStaticMarkup(<PixelEditor />)
+        expect(html).toContain('>复制片段</button>')
+        expect(html).toContain('>复制当前条目</button>')
+        expect(html).toContain('>复制调色板</button>')
+        // 「复制片段」给的是像素，调色板不在里面（要调色板请点「复制调色板」）
+        expect(exportText(html)).not.toContain('const PALETTE')
+    })
+
+    it('老存档（没有 poses）+ 文件里也没有逐姿势美术：六个姿势仍空，导出 overlay 块', () => {
         const legacy = weaponState()
         const weapon = { ...(legacy.weapon as Record<string, unknown>) }
         delete weapon.poses
         delete weapon.pose
         weapon.grid = [
-            [0, 2],
+            [0, 1],
             [0, 0],
         ]
         legacy.weapon = weapon
         stored = JSON.stringify(legacy)
         const html = renderToStaticMarkup(<PixelEditor />)
+        const text = exportText(html)
+        expect(text).toContain('// weapons/entries/peach_sword.ts → overlay:')
+        expect(text).toContain('overlay: {')
+        expect(text).toContain('    pixels: [')
+        // 下标沿用文件里的号（存档那支新色补在下标 8），不重编号
+        expect(text).toContain('[1, 0, 8],')
+        expect(text).not.toContain('→ art:')
+        expect(text).not.toContain('palette:')
+    })
+
+    it('老存档（没有 poses）不再清空逐姿势美术：改从文件取图（素手无相 idle 有画）', () => {
+        const legacy = weaponState()
+        const weapon = { ...(legacy.weapon as Record<string, unknown>) }
+        delete weapon.poses
+        delete weapon.pose
+        weapon.id = 'iron_back_hand'
+        legacy.weapon = weapon
+        stored = JSON.stringify(legacy)
+        const html = renderToStaticMarkup(<PixelEditor />)
+        // 回归：以前这里会把六个姿势一律清空 → 按钮显示「未」
+        expect(html).toContain('>idle<span class="pixel-editor-pose-mark">已<')
+        // 老存档没有 pose 字段 → 落在通用图槽（默认 base），所以导出的是 overlay 块
+        expect(html).toContain('// weapons/entries/iron_back_hand.ts → overlay:')
+    })
+
+    it('复制片段跟着当前槽：在通用图导出 overlay 块，不是 idle 的 art 块', () => {
+        // 存档里 idle 有画（所以旧逻辑会导出 art 块），但当前槽是通用图
+        const s = weaponState()
+        const weapon = { ...(s.weapon as Record<string, unknown>) }
+        weapon.pose = 'base'
+        s.weapon = weapon
+        stored = JSON.stringify(s)
+        const html = renderToStaticMarkup(<PixelEditor />)
         expect(html).toContain('// weapons/entries/peach_sword.ts → overlay:')
-        expect(html).toContain('overlay: {')
-        expect(html).toContain('[1, 0, 1],')
         expect(html).not.toContain('→ art:')
+    })
+
+    it('在姿势槽、但一个姿势都没画：退回 overlay 块（那张图本来就来自通用图）', () => {
+        const s = weaponState()
+        const weapon = { ...(s.weapon as Record<string, unknown>) }
+        weapon.pose = 'idle'
+        weapon.poses = { idle: [[0, 0], [0, 0]], attack: [[0, 0], [0, 0]] }
+        s.weapon = weapon
+        stored = JSON.stringify(s)
+        const html = renderToStaticMarkup(<PixelEditor />)
+        expect(html).toContain('// weapons/entries/peach_sword.ts → overlay:')
+        expect(html).not.toContain('→ art:')
+    })
+})
+
+describe('调色板面板 · 空位（下标留着但没颜色）', () => {
+    const noop = () => {}
+    const propsFor = (weaponPalette: string[]) => ({
+        mode: 'weapon' as const,
+        slotList: weaponPalette.map((_, i) => i).filter((i) => i > 0),
+        slot: 1,
+        selectSlot: noop,
+        colorOf: (v: number) => weaponPalette[v],
+        weaponPalette,
+        effectiveColors: { skin: '#000000', hair: '#000000', eyes: '#000000', accent: '#000000', decoration: '#000000' },
+        charId: 'yidao',
+        setCharId: noop,
+        colorOverridden: false,
+        missingSlots: [],
+        fixedSlotOverrides: {},
+        setFixedSlotOverrides: noop,
+        setColorOverrides: noop,
+        setStatus: noop,
+        copy: noop,
+        setWeaponColorAt: noop,
+        removeWeaponColor: noop,
+        addWeaponColor: noop,
+        previewWeaponId: 'peach_sword',
+        setPreviewWeaponId: noop,
+    })
+
+    it('空位被过滤掉：不渲染色块，只显示有颜色的下标', () => {
+        const html = renderToStaticMarkup(<PalettePanel {...propsFor(['', '#ff0000', '', '#00ff00'])} />)
+        // 下标 2 是空位 → 整格不出现（连 title 都没有）
+        expect(html).not.toContain('下标 2')
+        expect(html).not.toContain('空位')
+        // 有颜色的 1 / 3 照常显示，各自带删除按钮与取色器
+        expect(html).toContain('颜色 1（#ff0000）')
+        expect(html).toContain('颜色 3（#00ff00）')
+        expect(html.match(/删掉这个颜色/g)).toHaveLength(2)
+        expect(html.match(/type="color"/g)).toHaveLength(2)
+    })
+
+    it('全是空位时一个色块都不渲染（列表为空，只剩「+ 加色」）', () => {
+        const html = renderToStaticMarkup(<PalettePanel {...propsFor(['', '', ''])} />)
+        expect(html).not.toContain('pixel-editor-swatch-wrap')
+        expect(html).toContain('加一个颜色')
     })
 })

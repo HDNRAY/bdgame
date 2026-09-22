@@ -105,12 +105,26 @@ describe('向后兼容：没有 art 的武器逐像素不变', () => {
                     continue
                 }
 
-                // 有 art 的武器：逐姿势取到的必须是 art[pose] / art.idle / overlay 三者之一
-                const candidates = [art?.[pose], art?.idle, base].filter((ov): ov is WeaponOverlay => Boolean(ov))
+                // 有 art 的武器：取图链 art[pose] → art.idle → overlay 里第一个可画的块
+                // （块自己的像素没变；只是姿势块没写 palette 时取到的是继承共用那份后的**新对象**，
+                //  所以引用相等不再成立，要比逐像素。）
+                const chain = [art?.[pose], art?.idle, base].filter(
+                    (ov): ov is WeaponOverlay => Boolean(ov && Array.isArray(ov.pixels) && ov.pixels.length > 0),
+                )
+                const picked = chain[0]
                 if (got === undefined) {
-                    expect(candidates.every((ov) => ov.pixels.length === 0), `${id}.${pose}`).toBe(true)
-                } else {
-                    expect(candidates, `${id}.${pose}`).toContain(got)
+                    expect(picked, `${id}.${pose} 取图链应全空`).toBeUndefined()
+                    continue
+                }
+                expect(picked, `${id}.${pose} 应有可画的那一块`).toBeDefined()
+                // 逐像素一致：给没写 palette 的块兜上这把武器共用那份再解析
+                const pickedPalette = picked!.palette ?? base.palette
+                expect(resolveWeaponPixels(got), `${id}.${pose} 像素`).toEqual(
+                    resolveWeaponPixels({ ...picked!, palette: pickedPalette }),
+                )
+                // 姿势块没写 palette → 取到的块 palette 就是该武器 overlay 的那份（内容相同）
+                if (picked!.palette === undefined) {
+                    expect(got.palette, `${id}.${pose} 应继承武器共用调色板`).toBe(WEAPON_OVERLAYS[id].palette)
                 }
             }
         }

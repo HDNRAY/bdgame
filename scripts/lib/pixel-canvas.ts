@@ -19,6 +19,7 @@ import {
     resolveWeaponPixels,
     shouldDrawHandCover,
 } from '../../src/ui/pixel-sprites'
+import { isPolearm } from '../../src/ui/pixel-sprites/weapon-tags'
 
 /** 画布格数：与像素查看器保持一致（内容 60×48，左留 45、上留 3） */
 export const COLS = 120
@@ -170,12 +171,12 @@ export function drawWeapon(g: Grid, weaponId: string, pose: string, oy: number, 
             if (color) g.fill(hx + dx, hy + dy + oy, color)
         }
     }
-    // 手部遮罩画在武器之上
-    if (shouldDrawHandCover(pose) && !cfg.noHandCover) {
+    // 手部遮罩画在武器之上；盖不盖由 shouldDrawHandCover 统一判（hit 脱手 / handCover: false）
+    if (shouldDrawHandCover(pose, cfg)) {
         const skin = palette['3'] ?? '#f5d6c6'
         for (const [cx, cy] of HAND_COVER[pose] ?? []) g.fill(cx + OFF_X, cy + OFF_Y + oy, skin)
-        // 双手武器（或双持副手）才画第二只手
-        if (cfg.grip2X !== undefined) {
+        // 长柄：两只手都在杆上，两只都盖（与渲染器一致；旧代码读已删除的 grip2X，导致预览永远不画第二只手）
+        if (isPolearm(weaponId)) {
             for (const [cx, cy] of LEFT_HAND_COVER[pose] ?? []) g.fill(cx + OFF_X, cy + OFF_Y + oy, skin)
         }
     }

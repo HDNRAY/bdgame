@@ -18,19 +18,18 @@ function render(current: string, filled: Record<string, boolean>, baseFilled: bo
             filled={filled}
             baseFilled={baseFilled}
             onSelect={noop}
-            onCopyToOthers={noop}
             onClearCurrent={noop}
         />,
     )
 }
 
 describe('PoseArtBar（武器图逐姿势工具条）', () => {
-    it('通用 + 六个姿势 + 两个批量动作都在', () => {
+    it('通用 + 六个姿势 + 清空都在；「复制当前→其它」已删（改走工具栏的复制/粘贴）', () => {
         const html = render('idle', { idle: true }, false)
         expect(html).toContain('>通用<')
         for (const pose of POSE_NAMES) expect(html).toContain(pose)
-        expect(html).toContain('复制当前→其它')
         expect(html).toContain('清空本站势')
+        expect(html).not.toContain('复制当前→其它')
     })
 
     it('已画的槽带 filled 样式与「已」标记，未画的带「未」', () => {

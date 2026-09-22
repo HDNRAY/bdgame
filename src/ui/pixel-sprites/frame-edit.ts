@@ -314,21 +314,26 @@ export function dragHandOffset(
 
 
 /**
- * 删掉调色板里的一个颜色 —— 返回新的画布与调色板。
+ * 删掉调色板里的一个颜色 —— **只把这一格留空，下标不重排**。
  *
- * 关键：索引 0 是透明（不能删）；删掉 idx 之后，**所有比它大的索引必须整体前移 1**，
- * 否则画布上引用 3/4/5… 的格子会指到别的颜色上（图上"错位"）。
- * 颜色还在用时不删（让用户先擦掉或换色），返回 `blocked: true`。
+ * 一把武器的所有图共用**一套下标**（下标 = 文件里 palette 的键），所以删色不能重排：
+ * 重排就得把所有引用它的图一起搬，那正是"删个颜色图就错位"的来源。留空则别的下标一个不动。
+ * 还有图在引用它时不允许删（空位上的像素会解析成洋红）。
+ *
+ * @param grids - 共用这份 palette 的所有图（只用来判"还在用"）。
+ * @param palette - 共用调色板（下标 0 占位）。
+ * @param idx - 要留空的下标。
+ * @returns 新的调色板；`blocked: true` 表示还有图在用，原样返回。
  */
 export function removePaletteColor(
-    grid: PixelMap,
+    grids: PixelMap[],
     palette: string[],
     idx: number,
-): { grid: PixelMap; palette: string[]; blocked: boolean } {
-    if (idx <= 0 || idx >= palette.length) return { grid, palette, blocked: false }
-    const used = grid.some((row) => row.some((v) => v === idx))
-    if (used) return { grid, palette, blocked: true }
-    const nextGrid = grid.map((row) => row.map((v) => (v > idx ? v - 1 : v)))
-    const nextPalette = palette.filter((_, i) => i !== idx)
-    return { grid: nextGrid, palette: nextPalette, blocked: false }
+): { palette: string[]; blocked: boolean } {
+    if (idx <= 0 || idx >= palette.length) return { palette, blocked: false }
+    const used = grids.some((grid) => grid.some((row) => row.some((v) => v === idx)))
+    if (used) return { palette, blocked: true }
+    const nextPalette = [...palette]
+    nextPalette[idx] = ''
+    return { palette: nextPalette, blocked: false }
 }

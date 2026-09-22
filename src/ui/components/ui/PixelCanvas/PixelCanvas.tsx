@@ -205,18 +205,23 @@ export function PixelCanvas({
         // 副手武器（双持）：统一走 resolveWeaponMount 的副手规则 ——
         // 武器登记了 off 配置就用它，否则用「副手默认」（全局副手手位 OTHER_HAND_POINT + DUAL_OFFHAND_ANGLE）
         const offhandOverlay = secondWeaponId ? getWeaponArt(secondWeaponId, pose) : undefined
-        if (hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0 && secondWeaponId) {
-            const offMount = resolveWeaponMount(secondWeaponId, pose, { slot: 'off' })
-            const offAngle = offMount.angle
-            paintRotatedWeapon(offhandOverlay, offMount.gripX, offMount.gripY, offMount.hand, offAngle)
+        const offMount =
+            hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0 && secondWeaponId
+                ? resolveWeaponMount(secondWeaponId, pose, { slot: 'off' })
+                : undefined
+        if (offMount && offhandOverlay) {
+            paintRotatedWeapon(offhandOverlay, offMount.gripX, offMount.gripY, offMount.hand, offMount.angle)
         }
 
         // 手部遮罩：只遮「锚定的那只手」；长柄（anchorHand: 'off'，两只手都在杆上）两只都遮。
         // 双持时：主手武器遮主手、副手武器遮副手（各自的锚定手）。
+        // 盖不盖由 shouldDrawHandCover 统一判（hit 脱手 / handCover: false）——**每把武器用自己的配置**，
+        // 所以副手不能用主手的 poseConfig，否则主手关掉遮手会连带副手一起关。
         const { primary: primaryCoverTable, secondary: secondaryCoverTable } = handCoverTables(weaponSlot)
         const anchorOff = poseConfig?.anchorHand === 'off'
-        const drawMainCover = hasPixels && !!mainOverlay && shouldDrawHandCover(pose)
-        const drawOffhandCover = !!offhandOverlay && offhandOverlay.pixels.length > 0 && shouldDrawHandCover(pose)
+        const drawMainCover = hasPixels && !!mainOverlay && shouldDrawHandCover(pose, poseConfig)
+        const drawOffhandCover =
+            !!offhandOverlay && offhandOverlay.pixels.length > 0 && shouldDrawHandCover(pose, offMount?.config)
         if (drawMainCover || drawOffhandCover) {
             const skin = palette?.['3'] ?? '#f5d6c6'
             ctx.fillStyle = skin
@@ -234,7 +239,7 @@ export function PixelCanvas({
             for (const key of cells) {
                 const [cx, cy] = key.split(',').map(Number)
                 ctx.fillRect((cx + offX) * scale, (cy + offY) * scale, scale, scale)
-        }
+            }
         }
     }, [
         bufW,
@@ -252,9 +257,11 @@ export function PixelCanvas({
         hasPixels,
         contentW,
         secondWeaponId,
-                // 挂持配置是「对象」：编辑器拖动/改数值每次都换新对象，必须进依赖，否则预览不重绘
         poseConfigProp,
         weaponSlot,
+        backdrop,
+        rows,
+        cols,
     ])
 
     return <canvas ref={ref} width={bufW} height={bufH} className={className} style={style} />

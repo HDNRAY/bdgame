@@ -11,7 +11,12 @@ import {
     getWeaponHand,
     getWeaponPoseConfig,
     resolveWeaponMount,
+    shouldDrawHandCover,
 } from './weapons'
+import { makePoses } from './weapons/poses'
+
+/** 测试用的临时武器 id（只在 WEAPON_POSES 里挂一下，不进武器库） */
+const COVER_TEST = '__test_hand_cover'
 
 /** 临时摘掉某武器的 off 子表，测完还原（避免测试依赖"库里有没有人登记副手"） */
 function withoutOffTable<T>(weaponId: string, fn: () => T): T {
@@ -191,5 +196,44 @@ describe('编辑器拖动折算与手部遮罩选择', () => {
         const off = handCoverTables('off')
         expect(off.primary).toBe(LEFT_HAND_COVER)
         expect(off.secondary).toBe(HAND_COVER)
+    })
+})
+
+describe('手部覆盖开关（handCover，与 flip 同级）', () => {
+    it('不填 = 覆盖；只有显式 false 才不覆盖', () => {
+        expect(shouldDrawHandCover('idle', {})).toBe(true)
+        expect(shouldDrawHandCover('idle', undefined)).toBe(true)
+        expect(shouldDrawHandCover('idle', { handCover: true })).toBe(true)
+        expect(shouldDrawHandCover('idle', { handCover: false })).toBe(false)
+    })
+
+    it('hit 一律不覆盖（武器脱手），跟 handCover 写什么无关', () => {
+        expect(shouldDrawHandCover('hit', {})).toBe(false)
+        expect(shouldDrawHandCover('hit', { handCover: true })).toBe(false)
+    })
+
+    it('写在 poses 基底里 = 整把武器的默认', () => {
+        WEAPON_POSES[COVER_TEST] = { ...makePoses({ gripX: 1, gripY: 2, handCover: false }) }
+        try {
+            for (const pose of POSE_NAMES) {
+                expect(getWeaponPoseConfig(COVER_TEST, pose).handCover, pose).toBe(false)
+            }
+        } finally {
+            delete WEAPON_POSES[COVER_TEST]
+        }
+    })
+
+    it('单个姿势条目可覆盖基底（和 flip 一样的合并语义），基底其它字段不丢', () => {
+        WEAPON_POSES[COVER_TEST] = {
+            ...makePoses({ gripX: 1, gripY: 2, handCover: false }),
+            idle: { handCover: true },
+        }
+        try {
+            expect(getWeaponPoseConfig(COVER_TEST, 'idle').handCover).toBe(true)
+            expect(getWeaponPoseConfig(COVER_TEST, 'attack').handCover).toBe(false)
+            expect(getWeaponPoseConfig(COVER_TEST, 'idle').gripX).toBe(1)
+        } finally {
+            delete WEAPON_POSES[COVER_TEST]
+        }
     })
 })

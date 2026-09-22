@@ -12,6 +12,10 @@ export interface EditorToolbarProps {
     onToggleMirror: () => void
     onUndo: () => void
     onRedo: () => void
+    /** 复制当前槽那张图到编辑器内部剪贴板 */
+    onCopy: () => void
+    /** 把内部剪贴板贴进当前槽（可撤销） */
+    onPaste: () => void
     /** 身体帧：给贴背景的格子补描边 */
     onAutoOutline: () => void
     /** 身体帧：给剪影外侧加一层金边 */
@@ -53,6 +57,8 @@ export function EditorToolbar({
     onToggleMirror,
     onUndo,
     onRedo,
+    onCopy,
+    onPaste,
     onAutoOutline,
     onAddAuraRing,
     anchorEdit,
@@ -111,6 +117,20 @@ export function EditorToolbar({
                 </button>
                 <button className="pixel-editor-tool" title="重做（Ctrl+Shift+Z）" onClick={onRedo}>
                     重做
+                </button>
+                <button
+                    className="pixel-editor-tool"
+                    title="复制当前这张图到编辑器内部的剪贴板（Ctrl+C）——不是系统剪贴板，只在编辑器里粘贴"
+                    onClick={onCopy}
+                >
+                    复制
+                </button>
+                <button
+                    className="pixel-editor-tool"
+                    title="把内部剪贴板贴进当前槽，覆盖整张图，可撤销（Ctrl+V）。只支持同尺寸：身体帧贴身体帧、武器图贴武器图"
+                    onClick={onPaste}
+                >
+                    粘贴
                 </button>
                 {mode === 'frame' && (
                     <>

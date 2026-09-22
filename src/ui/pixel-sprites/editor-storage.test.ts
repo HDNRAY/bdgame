@@ -29,8 +29,8 @@ describe('编辑器存档', () => {
         s.fixedSlotOverrides = { 9: '#00ff00' }
         s.mountConfigs = {
             xiu_dong: {
-                main: { attack: { gripX: 21.5, gripY: 22.5, angle: -0.7854 } },
-                off: { idle: { gripX: 21.5, gripY: 22.5, handX: 41, handY: 32 } },
+                main: { attack: { gripX: 21.5, gripY: 22.5, angle: -0.7854, handCover: false } },
+                off: { idle: { gripX: 21.5, gripY: 22.5, handX: 41, handY: 32, handCover: true } },
             },
         }
         const back = parseEditorState(serializeEditorState(s))
@@ -42,6 +42,9 @@ describe('编辑器存档', () => {
         expect(back!.colorOverrides.yidao.hair).toBe('#123456')
         expect(back!.fixedSlotOverrides[9]).toBe('#00ff00')
         expect(back!.mountConfigs.xiu_dong.main.attack.angle).toBeCloseTo(-0.7854, 6)
+        // 手部覆盖是布尔字段，与 flip 同级：往返不能丢
+        expect(back!.mountConfigs.xiu_dong.main.attack.handCover).toBe(false)
+        expect(back!.mountConfigs.xiu_dong.off.idle.handCover).toBe(true)
         // 旧格式的绝对坐标会在载入时归一化成相对偏移（绝对坐标被丢弃）
         expect(back!.mountConfigs.xiu_dong.off.idle.handX).toBeUndefined()
         expect(back!.mountConfigs.xiu_dong.off.idle.handDX).toBeCloseTo(41 - OTHER_HAND_POINT.idle.x, 6)

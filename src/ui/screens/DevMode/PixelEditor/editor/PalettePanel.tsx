@@ -56,6 +56,12 @@ export function PalettePanel({
     previewWeaponId,
     setPreviewWeaponId,
 }: PalettePanelProps) {
+    /**
+     * 要显示的槽位：武器调色板里**过滤掉空位**（删色留下的下标、或文件里缺的键）。
+     * 空位本来就画不出东西，列出来只是噪音；加色时会自动优先填回最低的那个空位，
+     * 所以用户不需要看见它们。下标本身仍能在各色块的 title 里看出来（会出现跳号）。
+     */
+    const visibleSlots = slotList.filter((i) => mode === 'frame' || Boolean(weaponPalette[i]))
     return (
         <section className="pixel-editor-panel">
             <h3
@@ -68,7 +74,7 @@ export function PalettePanel({
                 调色板
             </h3>
             <div className="pixel-editor-palette">
-                {slotList.map((i) => (
+                {visibleSlots.map((i) => (
                     <span key={i} className="pixel-editor-swatch-wrap">
                         <button
                             className={`pixel-editor-swatch ${slot === i ? 'active' : ''}`}
@@ -126,7 +132,10 @@ export function PalettePanel({
                                     }
                                     onChange={(e) => setWeaponColorAt(i, e.target.value)}
                                 />
-                                <button title="删掉这个颜色（没在用才可以删）" onClick={() => removeWeaponColor(i)}>
+                                <button
+                                    title="删掉这个颜色（没在用才可以删）"
+                                    onClick={() => removeWeaponColor(i)}
+                                >
                                     ×
                                 </button>
                             </span>

@@ -130,19 +130,19 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 - 武器美术画在 32×32 网格（`constants.ts` 的 `WEAPON_WIDTH/HEIGHT`）；像素颜色索引必须写**数字**（字符串会被当成颜色字面量，渲染成黑色）。
 - 握点与姿势独立登记在 `WEAPON_POSES`：**一把武器只有一个握点**（写在 `...makePoses({ gripX, gripY })` 基底里），姿势要调就写 `gripDX/gripDY` 偏移；角度逐姿势显式写 `angle`（弧度或 `(N * Math.PI) / 180`）。**每把武器独立写配置，同族也不共享常量**，便于逐把微调。（历史包袱已删：第二握点 `grip2*` 与目标手 `target*` —— 它们原本只为"两手连线自动算角度"存在，现在角度自由编辑，模型简化为「一个握点 + 角度 + 手位偏移」；长柄武器的 `anchorHand: 'off'` 保留（锚副手）。）
 - **手位覆盖一律写「相对偏移」**：`handDX/handDY`（相对 `HAND_POINTS[pose]`；锚副手的武器相对 `OTHER_HAND_POINT[pose]`）。优先级：绝对 `handX/handY`（旧数据仍支持）> 相对偏移 > 基准。编辑器拖动/输入写的都是偏移，`编辑器导出`也把绝对值折算成偏移，所以导出贴回后武器仍然**跟随全局手位表**（`HAND_POINTS` 一改全体跟着动），不会把自己锁死在绝对坐标上。基准解析唯一入口 `baseAnchorHand(cfg, pose, slot)`。
-- **逐姿势美术**：武器可以有 6 个姿势各自的一张美术图（武器文件里的可选 `art` 字段，键为姿势名），缺的姿势按 `art[姿势] → art.idle → overlay` 坍缩；解析入口只有 `weapons/overlay.ts` 的 `getWeaponArt(weaponId, pose)`（空对象/空 pixels 视为没有）。编辑器「武器图」模式用画布上方的姿势条（通用 + 六姿势）逐个编辑，导出为 `art:` 块（空姿势不写，各块共用同一份 palette）。不写 `art` 的武器行为与从前完全一致。
+- **逐姿势美术**：武器可以有 6 个姿势各自的一张美术图（武器文件里的可选 `art` 字段，键为姿势名），缺的姿势按 `art[姿势] → art.idle → overlay` 坍缩；解析入口只有 `weapons/overlay.ts` 的 `getWeaponArt(weaponId, pose)`（空对象/空 pixels 视为没有）。编辑器「武器图」模式用画布上方的姿势条（通用 + 六姿势）逐个编辑，导出为只含 `pixels` 的 `art:` 块（空姿势不写）。**一把武器只有一份调色板 + 一套下标**：`palette` 声明在通用图的 `overlay` 上，六个姿势块不写、取图时由 `getWeaponArt` 继承（继承时返回的是带同一份 `palette` 的新对象，不是同一个引用；块自己写了 `palette` 就以它为准）；下标就是文件里 `palette` 的键，导出片段原样沿用、**不重新编号**。不写 `art` 的武器行为与从前完全一致。
 - **导出片段的压缩语义**：表里的姿势条目是**整体替换** `...makePoses(基底)` 的同名条目（不是合并），因此写出来的条目必须自包含；只有与基底完全相同的姿势才省略。偏移为 0 一律不写（省略即 0，不需要显式写 `handDX: 0`）。
 - **槽位（主手 / 副手）是一等维度**：`WEAPON_POSES[武器][姿势]` 是主手槽；副手槽写可选的 `off` 子表（`WEAPON_POSES[武器].off[姿势]`）。副手没登记时按「副手默认」：握柄与角度都沿用主手表（即这把武器自己的配置），只有手位取全局 `OTHER_HAND_POINT[pose]`（角度不再有全局默认表：`DUAL_MAIN_ANGLE` 与 `DUAL_OFFHAND_ANGLE` 都已删除）。面板只在武器带 `one_handed` 标签（引擎数据）时才显示副手槽。解析入口只有 `resolveWeaponMount(weaponId, pose, { slot, config?, facingRight? })`，战斗渲染器 / 像素预览 / 编辑器都走它，不要各算一套。
 - **双持会画两把**：`CharacterSnapshot.offhand`（来自 `build.offhand`，战斗中固定）→ 渲染器为每个角色多两组 Graphics（副手武器画在主手武器**下面**，副手手部遮罩用另一侧的手）。
 - 改手位或轴向后必须同步 `HAND_POINTS` / `OTHER_HAND_POINT` / `HAND_COVER` / `LEFT_HAND_COVER`。
-- **手部遮罩规则**（无独立开关）：只遮「锚定的那只手」；长柄（引擎 `polearm` 标签）两只手都在杆上 → 两只都遮。判定入口 `weapons/../weapon-tags.ts` 的 `isPolearm()`。
+- **手部遮罩规则**：遮不遮 = `handCover`（与 `flip` 同级的两层字段：写在 `poses` 基底里是整把武器的默认，单个姿势条目可覆盖；不填 = 遮），**且** `hit` 一律不遮（武器脱手）。遮哪只 = 只遮「锚定的那只手」；长柄（引擎 `polearm` 标签）两只手都在杆上 → 两只都遮（`weapon-tags.ts` 的 `isPolearm()`）。两条规则的唯一判定入口是 `weapons/dual.ts` 的 `shouldDrawHandCover(pose, cfg)`，调用方必须传**已经解析好的**该姿势配置（`resolveWeaponMount` 的 `config`），不要再各自复制判断。`handCover: false` 是给「甲片本身就是手」的武器（拳套/护手类）用的——那种武器的手由美术自己画。编辑器里在「武器挂点」页的「手部覆盖」下拉调（本槽位共用 / 本姿势两处）。
 
 **像素编辑器**：DevMode 的「像素编辑器」tab（`/dev?tab=editor`，源码 `src/ui/screens/DevMode/PixelEditor/`），两种模式：
 
 - **身体帧**（48×48，槽位 0~9）：槽位涂格、镜像、油漆桶、一键自动描边/加金边；**手部锚点可直接拖动**并导出
   `weapons/hands.ts` 的四张表片段（握点 + 2×2 遮罩格，还能自动吸附到最近的皮肤块）；导入导出都是「一张图」，
   导出片段与 `sprites/<姿势>.ts` 的字面量逐字符同构，可整段替换；手部锚点导出的是 `weapons/hands.ts` 的片段。老版本导出的渲染帧（60×48）载入时会自动裁掉左侧留白。
-- **武器**（32×32，颜色任选）：调色板可加/改/删颜色，导出该武器文件里的 `overlay:` 块（`palette` + 稀疏 `pixels`）；
+- **武器**（32×32，颜色任选）：调色板可加/改/删颜色 —— 一把武器只有一份调色板 + 一套下标，`palette` 声明在通用图的 `overlay` 上（姿势块不写、取图时继承），下标就是文件里 `palette` 的键，导出片段原样沿用、不重新编号；删色只把那一格留空、下标一律不重排（还有图在用就不许删），空位在调色板面板里不显示、加色会优先填回最低的空位；调色板单独用「复制调色板」按钮导出 `const PALETTE`（跳过空位），**片段里不夹带 palette**（隐式夹带会让「复制片段」的内容时有时无）。导出该武器文件里的 `overlay:` 块（只给稀疏 `pixels`；「复制当前条目」在通用图时会**带上 `palette: PALETTE,`** —— 共用调色板就挂在这一条上，整条替换时不带它就会把声明弄丢、七张图一起变洋红）；
   「武器挂点」模式导出 `poses:` 块。两者都粘进 `weapons/entries/<武器>.ts`（片段首行注释写了目标文件），
   也可以只粘其中一块（换美术不动挂点、换挂点不动美术）。
 

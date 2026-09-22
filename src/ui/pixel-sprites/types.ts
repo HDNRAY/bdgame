@@ -55,4 +55,11 @@ export interface WeaponPoseConfig {
     angle?: number
     /** 反向握持：该姿势最终角度再 +180°（长杆"掉头"拿、长端朝前时用） */
     flip?: boolean
+    /**
+     * 是否在武器上盖「握着」的手部皮肤遮罩；不填 = true（盖）。
+     * 与 flip 同级：写在 poses 基底里是整把武器的默认，单个姿势条目可覆盖。
+     * 给"甲片本身就是手"的武器（拳套/护手类）关掉用 —— 那种武器的手由美术自己负责画。
+     * hit 姿势无论这里写什么都 **不盖**（武器脱手，见 shouldDrawHandCover）。
+     */
+    handCover?: boolean
 }

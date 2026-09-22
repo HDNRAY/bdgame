@@ -63,6 +63,8 @@ export {
     blankPixelMap,
     formatAnchorSnippet,
     formatCharacterColorsSnippet,
+    formatSharedPaletteSnippet,
+    formatWeaponEntrySnippet,
     formatWeaponArtSnippet,
     formatWeaponOverlaySnippet,
     formatWeaponPoseSnippet,

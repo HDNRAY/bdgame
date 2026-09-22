@@ -10,22 +10,20 @@ export interface PoseArtBarProps {
     baseFilled: boolean
     /** 点姿势按钮：切到那个槽编辑（当前内容留在原槽，不串） */
     onSelect: (slot: string) => void
-    /** 复制当前→其它（当前 = 通用图时铺到六个姿势；当前 = 姿势时铺到其它五个） */
-    onCopyToOthers: () => void
     /** 清空本站势（姿势清空后渲染坍缩到 idle / 通用图） */
     onClearCurrent: () => void
 }
 
 /**
- * 武器图模式画布上方的「逐姿势美术」工具条：通用图 + 六个姿势 + 两个批量动作。
+ * 武器图模式画布上方的「逐姿势美术」工具条：通用图 + 六个姿势 + 清空。
  * 按钮沿用 `pixel-editor-tool` 外观；已画的姿势多一个 `filled` 样式与「已」标记。
+ * 槽之间复制走工具栏的「复制 / 粘贴」（Ctrl+C / Ctrl+V）——按槽选、按槽贴，比"一键铺满"灵活。
  */
 export function PoseArtBar({
     current,
     filled,
     baseFilled,
     onSelect,
-    onCopyToOthers,
     onClearCurrent,
 }: PoseArtBarProps) {
     return (
@@ -52,13 +50,6 @@ export function PoseArtBar({
                         <span className="pixel-editor-pose-mark">{filled[pose] ? '已' : '未'}</span>
                     </button>
                 ))}
-                <button
-                    className="pixel-editor-tool pixel-editor-art-action"
-                    title="把当前槽的图铺到其它姿势（会覆盖它们现有的图），省得重画"
-                    onClick={onCopyToOthers}
-                >
-                    复制当前→其它
-                </button>
                 <button
                     className="pixel-editor-tool pixel-editor-art-action"
                     title="清空当前槽的图：姿势清空后渲染会坍缩到 idle / 通用图，导出时也不写这一块"

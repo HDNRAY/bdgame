@@ -197,7 +197,7 @@ describe('手部锚点：拖动 / 吸附 / 导出', () => {
     })
 })
 
-describe('调色板删色：索引前移，画面颜色不变', () => {
+describe('调色板删色：只留空位，下标不重排', () => {
     const palette = ['', '#111111', '#222222', '#333333', '#444444']
     // 画布上同时用了索引 1/2/4（留 3 没用，用来测"删没用的颜色"）
     const grid = [
@@ -205,47 +205,76 @@ describe('调色板删色：索引前移，画面颜色不变', () => {
         [4, 1, 0],
     ]
 
-    it('删掉中间一个没用到的颜色：其余索引整体前移，颜色不变', () => {
-        const before = grid.map((row) => row.map((v) => palette[v]))
-        const res = removePaletteColor(grid, palette, 3)
+    it('删掉一个没用到的颜色：只把这一格留空，别的下标位置的颜色一个都没变', () => {
+        const res = removePaletteColor([grid], palette, 3)
         expect(res.blocked).toBe(false)
-        expect(res.palette).toEqual(['', '#111111', '#222222', '#444444'])
-        const after = res.grid.map((row) => row.map((v) => res.palette[v]))
-        expect(after).toEqual(before) // ← 关键：逐格颜色一致
-        expect(res.grid).toEqual([
-            [1, 2, 0],
-            [3, 1, 0],
-        ])
+        expect(res.palette).toHaveLength(palette.length)
+        // 逐下标比对：只有被删的那格变空，其它格（含后面的 4）原位不动
+        palette.forEach((color, i) => {
+            if (i === 3) expect(res.palette[i], `下标 ${i}`).toBe('')
+            else expect(res.palette[i], `下标 ${i}`).toBe(color)
+        })
+        // 不再返回 grids：下标不变 = 任何图都不需要重映射
+        expect(res).not.toHaveProperty('grids')
     })
 
-    it('删掉最前面一个颜色（索引 1）：后面全部前移', () => {
+    it('删掉最前面一个颜色（下标 1）：后面全部原位不动', () => {
         // 这组不用索引 1（否则会被"还在用"挡住）
         const g2 = [
             [2, 3, 0],
             [4, 2, 0],
         ]
-        const res = removePaletteColor(g2, palette, 1)
+        const res = removePaletteColor([g2], palette, 1)
         expect(res.blocked).toBe(false)
-        expect(res.palette).toEqual(['', '#222222', '#333333', '#444444'])
-        expect(res.grid).toEqual([
-            [1, 2, 0],
-            [3, 1, 0],
-        ])
-        // 逐格颜色与删之前一致
-        expect(res.grid.map((row) => row.map((v) => res.palette[v]))).toEqual(
-            g2.map((row) => row.map((v) => palette[v])),
-        )
+        expect(res.palette).toEqual(['', '', '#222222', '#333333', '#444444'])
+        // 2/3/4 没有被搬到 1/2/3
+        expect(res.palette[2]).toBe('#222222')
+        expect(res.palette[3]).toBe('#333333')
+        expect(res.palette[4]).toBe('#444444')
+        expect(res).not.toHaveProperty('grids')
     })
 
-    it('颜色还在用 → 不删', () => {
-        const res = removePaletteColor(grid, palette, 2)
+    it('颜色还在用 → 不删，原样返回同一份 palette', () => {
+        const res = removePaletteColor([grid], palette, 2)
         expect(res.blocked).toBe(true)
-        expect(res.grid).toBe(grid)
+        expect(res.palette).toBe(palette)
+        expect(res).not.toHaveProperty('grids')
+    })
+
+    it('别的图在用也算"还在用"：一份 palette 被多张图共用（武器：通用图 + 六个姿势图）', () => {
+        const other = [
+            [2, 0, 0],
+            [0, 0, 0],
+        ]
+        // 当前画布没用索引 2，但另一张图用了 → 不能删（删了那张图就错位）
+        const res = removePaletteColor([grid, other], palette, 2)
+        expect(res.blocked).toBe(true)
         expect(res.palette).toBe(palette)
     })
 
+    it('多张图共用时删色：下标一个不动（回归：重排会给别的图整片串色）', () => {
+        const g1 = [
+            [1, 2, 0],
+            [4, 1, 0],
+        ]
+        const g2 = [
+            [4, 4, 0],
+            [1, 0, 0],
+        ]
+        const res = removePaletteColor([g1, g2], palette, 3)
+        expect(res.blocked).toBe(false)
+        expect(res.palette[3]).toBe('')
+        // 还在用的下标 4 没有被搬到 3 → 两张图都不用改
+        expect(res.palette[4]).toBe('#444444')
+        expect(res).not.toHaveProperty('grids')
+    })
+
     it('索引 0（透明）与越界不处理', () => {
-        expect(removePaletteColor(grid, palette, 0).palette).toBe(palette)
-        expect(removePaletteColor(grid, palette, 99).palette).toBe(palette)
+        const zero = removePaletteColor([grid], palette, 0)
+        expect(zero.blocked).toBe(false)
+        expect(zero.palette).toBe(palette)
+        const beyond = removePaletteColor([grid], palette, 99)
+        expect(beyond.blocked).toBe(false)
+        expect(beyond.palette).toBe(palette)
     })
 })

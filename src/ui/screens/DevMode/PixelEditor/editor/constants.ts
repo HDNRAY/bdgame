@@ -30,12 +30,10 @@ export const ZOOM_MIN = 4
 export const ZOOM_MAX = 20
 export const HISTORY_LIMIT = 100
 
-/** 一步编辑的快照（画布 + 该步生效的调色板；武器模式还会带上整张逐姿势表） */
+/** 一步编辑的快照（画布 + 该步生效的调色板）。只改当前一个槽，所以不需要整张逐姿势表 */
 export interface EditSnapshot {
     map: PixelMap
     palette: string[]
-    /** 武器模式：六个姿势的整体快照（批量操作要能整体撤销；身体帧不写） */
-    poses?: Record<string, PixelMap>
 }
 
 export const TOOLS: { id: Tool; label: string; key: string }[] = [

@@ -6,7 +6,9 @@ import {
     formatPixelMapSource,
     parsePixelMap,
     formatCharacterColorsSnippet,
+    formatSharedPaletteSnippet,
     formatWeaponArtSnippet,
+    formatWeaponEntrySnippet,
     formatWeaponOverlaySnippet,
     formatWeaponPoseSnippet,
     parseWeaponArtSnippet,
@@ -133,19 +135,24 @@ describe('武器图导入导出', () => {
     }
     const palette = ['', '#aa0000', '#00bb00']
 
-    it('导出的片段能被解析回来（往返不掉像素）', () => {
-        const snippet = formatWeaponOverlaySnippet('test_blade', grid(), palette)
+    it('导出的片段能被解析回来（往返不掉像素，下标沿用文件里的号）', () => {
+        const snippet = formatWeaponOverlaySnippet('test_blade', grid())
         expect(snippet).toContain('// weapons/entries/test_blade.ts → overlay:')
         expect(snippet).toContain('overlay: {')
-        expect(snippet).toContain("'1': '#aa0000',")
+        // 只给 pixels：一把武器只有一份 palette（声明在通用图上、姿势块取图时继承），块里不再抄一份
+        expect(snippet).not.toContain('palette')
         expect(snippet).toContain('[4, 4, 1],')
-        const parsed = parseWeaponOverlay(snippet)
+        expect(snippet).toContain('[5, 4, 2],')
+        expect(snippet).toContain('[5, 5, 2],')
+        // 片段本身不带 palette → 解回来要给它这把武器共用的那份
+        const parsed = parseWeaponOverlay(snippet, 32, 32, palette)
         expect(parsed.ok).toBe(true)
         if (parsed.ok) {
             expect(parsed.id).toBe('test_blade')
-            expect(parsed.grid[4][4]).toBeGreaterThan(0)
-            expect(parsed.grid[5][5]).toBe(parsed.grid[4][5]) // 同色合并成同一下标
-            expect(parsed.palette.filter(Boolean)).toEqual(['#aa0000', '#00bb00'])
+            // 下标原样沿用、不重编号 → 往返后网格与导出前逐格一致
+            expect(parsed.grid).toEqual(grid())
+            expect(parsed.palette[1]).toBe('#aa0000')
+            expect(parsed.palette[2]).toBe('#00bb00')
         }
     })
 
@@ -166,6 +173,53 @@ describe('武器图导入导出', () => {
     })
 })
 
+describe('只复制当前这一条（formatWeaponEntrySnippet）', () => {
+    const grid = blankPixelMap(32, 32)
+
+    it('姿势 → 只给该姿势那一条，不是整块 art（不会连兄弟姿势一起换掉）', () => {
+        grid[3][4] = 2
+        const snippet = formatWeaponEntrySnippet('test_blade', 'idle', grid)
+        expect(snippet).toContain('idle: {')
+        expect(snippet).toContain('[4, 3, 2],')
+        expect(snippet).toContain('pixels: [')
+        // 不是整块：没有 art: 外壳（注释里的 `art: { … }` 不算），也不写 palette
+        expect(snippet).not.toContain('\nart: {')
+        expect(snippet).not.toContain('palette')
+        expect(snippet).toContain('art: { … }') // 注释里说明往哪儿贴
+    })
+
+    it('通用（pose = null）→ 给 overlay 那一条，且必须带上 palette: PALETTE（整条替换时不能把它弄丢）', () => {
+        grid[1][1] = 1
+        const snippet = formatWeaponEntrySnippet('test_blade', null, grid)
+        expect(snippet).toContain('overlay: {')
+        expect(snippet).toContain('    palette: PALETTE,')
+        expect(snippet).toContain('[1, 1, 1],')
+        // 姿势块才不写 palette：这里写了，而且是引用不是字面量
+        expect(snippet).not.toContain("'1':")
+    })
+
+    it('下标原样输出、不重新编号', () => {
+        grid[0][0] = 7
+        expect(formatWeaponEntrySnippet('test_blade', 'buff', grid)).toContain('[0, 0, 7],')
+    })
+})
+
+describe('武器共用调色板片段', () => {
+    it('跳过空位（删过的下标不写），键就是下标', () => {
+        const snippet = formatSharedPaletteSnippet('test_blade', ['', '#aa0000', '', '#cc0000'])
+        // 片段首行注释写了目标文件，粘进哪个武器文件不会迷路
+        expect(snippet).toContain('weapons/entries/test_blade.ts')
+        expect(snippet).toContain('const PALETTE: Record<string, string> = {')
+        // 键 = 下标，颜色原样
+        expect(snippet).toContain("    '1': '#aa0000',")
+        expect(snippet).toContain("    '3': '#cc0000',")
+        // 空位（下标 2）不写：缺哪个键就是哪个键为空
+        expect(snippet).not.toContain("'2'")
+        // 下标 0 是"空"占位，也不是颜色
+        expect(snippet).not.toContain("'0'")
+    })
+})
+
 describe('逐姿势美术片段', () => {
     const gridWith = (cells: [number, number, number][]) => {
         const g = blankPixelMap(32, 32)
@@ -174,74 +228,79 @@ describe('逐姿势美术片段', () => {
     }
     const palette = ['', '#aa0000', '#00bb00']
 
-    it('导出 art 块：每块与 overlay 块同构、共用同一份 palette、空的姿势不写', () => {
-        const snippet = formatWeaponArtSnippet(
-            'test_blade',
-            [
-                { pose: 'idle', grid: gridWith([[4, 4, 1]]) },
-                { pose: 'attack', grid: gridWith([[5, 5, 2]]) },
-                { pose: 'parry', grid: blankPixelMap(32, 32) },
-            ],
-            palette,
-        )
+    it('导出 art 块：每块与 overlay 块同构、只给 pixels、空的姿势不写', () => {
+        const snippet = formatWeaponArtSnippet('test_blade', [
+            { pose: 'idle', grid: gridWith([[4, 4, 1]]) },
+            { pose: 'attack', grid: gridWith([[5, 5, 2]]) },
+            { pose: 'parry', grid: blankPixelMap(32, 32) },
+        ])
         expect(snippet.startsWith('// weapons/entries/test_blade.ts → art:')).toBe(true)
         expect(snippet).toContain('    idle: {')
         expect(snippet).toContain('    attack: {')
         expect(snippet).not.toContain('    parry: {')
-        expect(snippet).toContain('[4, 4, 1],')
-        expect(snippet).toContain('[5, 5, 2],')
-        // 两块 palette 完全一致（同一份压缩映射，六张图共用一份 palette）
-        const blocks = snippet.split('    palette: {').slice(1)
-        expect(blocks).toHaveLength(2)
-        for (const block of blocks) {
-            const body = block.slice(0, block.indexOf('}'))
-            expect(body).toContain("'1': '#aa0000',")
-            expect(body).toContain("'2': '#00bb00',")
-        }
+        // 块体与 overlay 块同构：只有 sparse pixels，下标原样沿用
+        expect(snippet).toContain('        pixels: [')
+        expect(snippet).toContain('            [4, 4, 1],')
+        expect(snippet).toContain('            [5, 5, 2],')
+        expect(snippet).not.toContain('palette')
+        // 两块共用同一份 palette（就是这把武器 overlay 上那份）：按它解回来，两块的色都对
+        const parsed = parseWeaponArtSnippet(snippet, 32, 32, palette)
+        expect(parsed.ok).toBe(true)
+        if (!parsed.ok) return
+        expect(parsed.blocks.map((b) => b.pose)).toEqual(['idle', 'attack'])
+        expect(parsed.blocks[0].grid[4][4]).toBe(1)
+        expect(parsed.blocks[1].grid[5][5]).toBe(2)
+        expect(parsed.palette[1]).toBe('#aa0000')
+        expect(parsed.palette[2]).toBe('#00bb00')
     })
 
     it('art 片段能被解析回来（往返不掉像素）', () => {
-        const snippet = formatWeaponArtSnippet(
-            'test_blade',
-            [
-                { pose: 'idle', grid: gridWith([[4, 4, 1]]) },
-                {
-                    pose: 'attack',
-                    grid: gridWith([
-                        [5, 5, 2],
-                        [6, 6, 2],
-                    ]),
-                },
-            ],
-            palette,
-        )
-        const parsed = parseWeaponArtSnippet(snippet)
+        const snippet = formatWeaponArtSnippet('test_blade', [
+            { pose: 'idle', grid: gridWith([[4, 4, 1]]) },
+            {
+                pose: 'attack',
+                grid: gridWith([
+                    [5, 5, 2],
+                    [6, 6, 2],
+                ]),
+            },
+        ])
+        const parsed = parseWeaponArtSnippet(snippet, 32, 32, palette)
         expect(parsed.ok).toBe(true)
         if (!parsed.ok) return
         expect(parsed.id).toBe('test_blade')
         expect(parsed.blocks.map((b) => b.pose)).toEqual(['idle', 'attack'])
         const idle = parsed.blocks[0]
         const attack = parsed.blocks[1]
-        expect(idle.grid[4][4]).toBeGreaterThan(0)
-        expect(attack.grid[5][5]).toBe(attack.grid[6][6]) // 同色合并成同一下标
+        // 往返不掉像素：逐格下标与导出前一致（同色仍然是同一下标）
+        expect(idle.grid[4][4]).toBe(1)
+        expect(attack.grid[5][5]).toBe(2)
+        expect(attack.grid[6][6]).toBe(2)
         // 单块的 palette 会裁到该块用到的最大下标；解析结果额外给一份合并后的（六张图共用）
         expect(idle.palette[1]).toBe('#aa0000')
         expect(parsed.palette.filter(Boolean)).toEqual(['#aa0000', '#00bb00'])
     })
 
     it('可以只粘一块：单个姿势块 / 通用 overlay 块 / 裸像素对象', () => {
-        const onlyPose = parseWeaponArtSnippet(`attack: { pixels: [[2, 3, '#112233']], palette: {} }`)
+        const onlyPose = parseWeaponArtSnippet(`attack: { pixels: [[2, 3, '#112233']] }`)
         expect(onlyPose.ok).toBe(true)
         if (onlyPose.ok) {
             expect(onlyPose.blocks).toHaveLength(1)
             expect(onlyPose.blocks[0].pose).toBe('attack')
             expect(onlyPose.blocks[0].grid[3][2]).toBeGreaterThan(0)
         }
-        const generic = parseWeaponArtSnippet(formatWeaponOverlaySnippet('test_blade', gridWith([[4, 4, 1]]), palette))
+        // 导出的 overlay 块不带 palette → 用这把武器共用那份解回来
+        const generic = parseWeaponArtSnippet(
+            formatWeaponOverlaySnippet('test_blade', gridWith([[4, 4, 1]])),
+            32,
+            32,
+            palette,
+        )
         expect(generic.ok).toBe(true)
         if (generic.ok) {
             expect(generic.blocks).toHaveLength(1)
             expect(generic.blocks[0].pose).toBeNull()
+            expect(generic.blocks[0].grid[4][4]).toBe(1)
         }
         const bare = parseWeaponArtSnippet(`{ pixels: [[1, 1, 1]], palette: { '1': '#fff' } }`)
         expect(bare.ok).toBe(true)
@@ -287,6 +346,22 @@ describe('武器挂点片段', () => {
         expect(snippet).toContain("attack: { anchorHand: 'off', angle: (-45 * Math.PI) / 180 }")
         // 不能出现没引号的裸标识符
         expect(snippet).not.toMatch(/anchorHand: (main|off)\b(?!')/)
+    })
+
+    it('handCover 与 flip 同级：进得了基底，也能逐姿势覆盖', () => {
+        const snippet = formatWeaponPoseSnippet(
+            'test_blade',
+            {
+                idle: { gripX: 8, gripY: 7, handCover: false },
+                attack: { gripX: 8, gripY: 7, handCover: true },
+            },
+            ['idle', 'attack'],
+        )
+        // 基底带 handCover: false；attack 与基底不同 → 自包含地写出来
+        expect(snippet).toContain('...makePoses({ gripX: 8, gripY: 7, handCover: false })')
+        expect(snippet).toContain('attack: { handCover: true }')
+        // 没写 = 继承基底，所以与基底相同的姿势不重复写
+        expect(snippet).not.toContain('idle: {')
     })
 
     it('单引号包裹后是合法 TS（用 Function 解析一遍）', () => {

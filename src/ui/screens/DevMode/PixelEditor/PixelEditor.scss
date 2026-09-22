@@ -63,9 +63,9 @@
             color: var(--color-accent);
         }
 
-        /* 逐姿势美术：这个姿势已经画过（有 = 已填样式） */
+        /* 逐姿势美术：这个姿势已经画过。
+           只调底色与字重做区分 —— 高亮描边是「选中（.active）」的专属语义，已画不加框。 */
         &.filled {
-            border-color: var(--color-accent);
             background: var(--color-bg-hover);
             font-weight: 600;
         }
@@ -342,6 +342,8 @@
         background-size: 6px 6px;
         background-position: 0 0, 0 3px, 3px -3px, -3px 0;
     }
+
+    /* 空位（删色留下的下标，或文件里缺的键）：透明斜纹底，和填了颜色的格子区分开 */
 
     &-colorline {
         opacity: 0.75;

@@ -10,10 +10,11 @@ import {
     addAuraRing,
     autoOutline,
     blankPixelMap,
-    removePaletteColor,
     formatPixelMapJson,
     formatPixelMapLiteral,
     formatPixelMapSource,
+    formatSharedPaletteSnippet,
+    formatWeaponEntrySnippet,
     formatWeaponArtSnippet,
     formatWeaponOverlaySnippet,
     frameSize,
@@ -57,7 +58,17 @@ import {
     WEAPON_NAME,
 } from './editor/constants'
 import type { EditorMode, Tool } from './editor/constants'
-import { cloneMap, gridHasPixels, readSavedState, weaponArtToGrids, weaponGridToJson } from './editor/utils'
+import {
+    canPasteInto,
+    cloneMap,
+    firstFreeSlot,
+    gridHasPixels,
+    initialWeaponView,
+    readSavedState,
+    removeWeaponPaletteColor,
+    weaponArtToGrids,
+    weaponGridToJson,
+} from './editor/utils'
 
 import './PixelEditor.scss'
 
@@ -80,39 +91,20 @@ export function PixelEditor() {
 
     // ── 武器图（通用图 + 六个姿势，共用一份 palette）──
     const firstWeaponId = WEAPON_IDS_WITH_ART[0] ?? 'dark_iron_sword'
-    const [weaponId, setWeaponId] = useState(saved?.weapon.id ?? firstWeaponId)
+    // 只算一次：文件是底色，存档只盖它真记过的槽（老存档不再把六个姿势清空，见 initialWeaponView）
+    const initialWeapon = useMemo(() => initialWeaponView(saved, firstWeaponId), [saved, firstWeaponId])
+    const [weaponId, setWeaponId] = useState(initialWeapon.id)
     /** 通用图（武器文件里的 overlay:） */
-    const [weaponGrid, setWeaponGrid] = useState<PixelMap>(
-        () => saved?.weapon.grid ?? weaponArtToGrids(firstWeaponId).grid,
-    )
+    const [weaponGrid, setWeaponGrid] = useState<PixelMap>(() => initialWeapon.grid)
     /** 逐姿势美术：六个槽始终存在（全 0 = 那个姿势没画，渲染时坍缩） */
-    const [weaponPoses, setWeaponPoses] = useState<Record<string, PixelMap>>(() => {
-        const out: Record<string, PixelMap> = {}
-        const raw = saved?.weapon.poses
-        const hasSavedPoses = raw !== undefined && Object.keys(raw).length > 0
-        if (saved && !hasSavedPoses) {
-            // 老存档：只有一张通用图 —— 六个姿势都还没有图（这张图就是通用图）
-            for (const pose of POSE_NAMES) out[pose] = blankPixelMap(WEAPON_WIDTH, WEAPON_HEIGHT)
-            return out
-        }
-        const fromFile = weaponArtToGrids(saved?.weapon.id ?? firstWeaponId).poses
-        for (const pose of POSE_NAMES) out[pose] = cloneMap(raw?.[pose] ?? fromFile[pose])
-        return out
-    })
+    const [weaponPoses, setWeaponPoses] = useState<Record<string, PixelMap>>(() => initialWeapon.poses)
     /** 当前编辑的槽：'base' = 通用图（overlay），其余是姿势名 */
     const [weaponPose, setWeaponPose] = useState<string>(saved?.weapon.pose ?? WEAPON_BASE_SLOT)
-    const [weaponPalette, setWeaponPalette] = useState<string[]>(
-        () => saved?.weapon.palette ?? weaponArtToGrids(firstWeaponId).palette,
-    )
+    const [weaponPalette, setWeaponPalette] = useState<string[]>(() => initialWeapon.palette)
     const weaponPaletteRef = useRef(weaponPalette)
     useEffect(() => {
         weaponPaletteRef.current = weaponPalette
     }, [weaponPalette])
-    /** 逐姿势表快照用（批量操作「复制当前→其它」要能整体撤销） */
-    const weaponPosesRef = useRef(weaponPoses)
-    useEffect(() => {
-        weaponPosesRef.current = weaponPoses
-    }, [weaponPoses])
 
     // ── 工具/颜色 ──
     const [tool, setTool] = useState<Tool>(saved?.tool ?? 'pen')
@@ -217,8 +209,6 @@ export function PixelEditor() {
         weaponPaletteRef,
         setActive,
         setWeaponPalette,
-        weaponPosesRef,
-        setWeaponPoses,
     )
 
     // ── 绘制交互 ──
@@ -291,26 +281,34 @@ export function PixelEditor() {
         return out
     }, [weaponPoses])
 
-    /** 复制当前→其它：当前 = 通用图时铺到六个姿势；当前 = 姿势时铺到其它五个（覆盖它们现有的图） */
-    const copyPoseToOthers = () => {
-        pushHistory()
-        const src = cloneMap(weaponSlotGrid)
-        if (weaponPose === WEAPON_BASE_SLOT) {
-            setWeaponPoses((prev) => {
-                const out = { ...prev }
-                for (const pose of POSE_NAMES) out[pose] = cloneMap(src)
-                return out
-            })
-            setStatus('已把通用图铺到六个姿势')
+    // ── 复制 / 粘贴（编辑器内部剪贴板，不走系统剪贴板）──
+    /** 当前槽那张图的副本；跨槽、跨模式都留着（复制 idle → 切到 attack → 粘贴） */
+    const clipboardRef = useRef<PixelMap | null>(null)
+
+    const copyCurrent = useCallback(() => {
+        const src = activeRef.current
+        clipboardRef.current = cloneMap(src)
+        setStatus(`已复制当前图（${src[0]?.length ?? 0}×${src.length}）—— 切到别的槽按 Ctrl+V 粘贴`)
+    }, [])
+
+    const pasteClipboard = useCallback(() => {
+        const clip = clipboardRef.current
+        if (!clip) {
+            setStatus('剪贴板是空的 —— 先按 Ctrl+C（或点「复制」）复制一张图')
             return
         }
-        setWeaponPoses((prev) => {
-            const out = { ...prev }
-            for (const pose of POSE_NAMES) if (pose !== weaponPose) out[pose] = cloneMap(src)
-            return out
-        })
-        setStatus(`已把「${weaponPose}」铺到其它五个姿势`)
-    }
+        const target = activeRef.current
+        if (!canPasteInto(clip, target)) {
+            setStatus(
+                `粘贴的图是 ${clip[0]?.length ?? 0}×${clip.length}，当前槽是 ` +
+                    `${target[0]?.length ?? 0}×${target.length} —— 尺寸不同，只支持同尺寸粘贴`,
+            )
+            return
+        }
+        pushHistory()
+        setActive(cloneMap(clip))
+        setStatus(`已粘贴（${clip[0]?.length ?? 0}×${clip.length}）—— Ctrl+Z 可撤销`)
+    }, [pushHistory, setActive])
 
     /** 清空本站势：清空后该槽触发坍缩（渲染走 idle / 通用图，导出也不写这块） */
     const clearCurrentPose = () => {
@@ -379,31 +377,33 @@ export function PixelEditor() {
     useEditorAutosave(savePayload)
 
     // ── 快捷键 ──
-    useEditorHotkeys({ undo, redo, slot, selectSlot, setTool, setMirror })
+    useEditorHotkeys({ undo, redo, copy: copyCurrent, paste: pasteClipboard, slot, selectSlot, setTool, setMirror })
 
     // ── 武器调色板操作 ──
     const addWeaponColor = () => {
         pushHistory()
-        setSlot(weaponPalette.length)
-        setWeaponPalette((p) => [...p, '#ffffff'])
-        setStatus('已加一个颜色（用色块旁的取色器改成想要的颜色）')
+        // 填第一个空位（删色留下的），没有空位才往后加 —— 下标不重排，别的图不受影响
+        const slot = firstFreeSlot(weaponPalette)
+        const next = [...weaponPalette]
+        next[slot] = '#ffffff'
+        setSlot(slot)
+        setWeaponPalette(next)
+        setStatus(`已在颜色 ${slot} 加一个颜色（用色块旁的取色器改成想要的颜色）`)
     }
     const setWeaponColorAt = (idx: number, color: string) => {
         pushHistory()
         setWeaponPalette((p) => p.map((c, i) => (i === idx ? color : c)))
     }
     const removeWeaponColor = (idx: number) => {
-        const res = removePaletteColor(weaponGrid, weaponPalette, idx)
+        // 一把武器一套下标 → 删色只留空位、不重排，所以七张图一张都不用动
+        const res = removeWeaponPaletteColor(weaponGrid, weaponPoses, weaponPalette, idx)
         if (res.blocked) {
             setStatus('这个颜色还在画布上用着，先把用它的格子擦掉或换色')
             return
         }
         pushHistory()
-        // 索引前移后，画布上的颜色保持不变（不做这步就会整片错位）
-        setWeaponGrid(res.grid)
         setWeaponPalette(res.palette)
-        setSlot((s) => (s === idx ? 1 : s > idx ? s - 1 : s))
-        setStatus('已删掉这个颜色（其余颜色的索引已同步前移，画面不变）')
+        setStatus(`已把颜色 ${idx} 留空（下标不重排，所有图的颜色都不变）`)
     }
 
     // ── 导入 / 导出 ──
@@ -438,6 +438,8 @@ export function PixelEditor() {
             }
             // 每把武器只有一份 palette：用片段合并后的那一份（导出片段每块都写同一份）
             setWeaponPalette(parsed.palette)
+            // 调色板被整份替换了 → 剪贴板的索引不再对应同一批颜色，作废
+            clipboardRef.current = null
             setWeaponPose(landed)
             setManualZoom(null)
             setStatus(
@@ -456,23 +458,34 @@ export function PixelEditor() {
         }
     }
 
-    /** 已画的姿势：有任何一个就导出 `art:` 块，否则维持现状导出 `overlay:` 块 */
+    /** 已画的姿势（导出 art 块时用：`art:` 是整块替换，必须把画过的姿势都写上，否则贴回去等于删掉别的） */
     const drawnPoses = useMemo(
         () => POSE_NAMES.filter((pose) => gridHasPixels(weaponPoses[pose])),
         [weaponPoses],
     )
 
+    /**
+     * 导出哪一块**只看当前在编辑哪个槽**：
+     * - 在通用图 → `overlay:` 块（就是这张，跟姿势有没有画无关）；
+     * - 在某个姿势 → `art:` 块（含所有画过的姿势，整块替换语义）；
+     * - 在某个姿势但一个姿势都没画 → 这张图其实来自通用图（坍缩链），退回 `overlay:` 块。
+     *
+     * 片段里**不带 palette**：一把武器只有一份调色板 + 一套下标，那份 palette 声明在通用图上，
+     * 块里再抄一份只会把文件里的共享 const 顶掉。调色板要带走请用「复制调色板」按钮
+     * （这样「复制片段」的内容永远只是像素，不会时有时无）。
+     */
     const exported = useMemo(() => {
         if (mode === 'frame') return formatPixelMapSource(constName || 'DEFAULT_FRAME', map)
-        if (drawnPoses.length > 0) {
-            return formatWeaponArtSnippet(
-                weaponId,
-                drawnPoses.map((pose) => ({ pose, grid: weaponPoses[pose] })),
-                weaponPalette,
-            )
-        }
-        return formatWeaponOverlaySnippet(weaponId, weaponGrid, weaponPalette)
-    }, [mode, constName, map, weaponId, weaponGrid, weaponPoses, weaponPalette, drawnPoses])
+        const onBaseSlot = weaponPose === WEAPON_BASE_SLOT
+        const body =
+            onBaseSlot || drawnPoses.length === 0
+                ? formatWeaponOverlaySnippet(weaponId, weaponGrid)
+                : formatWeaponArtSnippet(
+                      weaponId,
+                      drawnPoses.map((pose) => ({ pose, grid: weaponPoses[pose] })),
+                  )
+        return body
+    }, [mode, constName, map, weaponId, weaponGrid, weaponPoses, drawnPoses, weaponPose])
 
     const copy = async (text: string, note: string) => {
         try {
@@ -518,6 +531,15 @@ export function PixelEditor() {
     }
 
     const copyExported = () => copy(exported, mode === 'frame' ? 'TS 片段已复制' : '武器片段已复制')
+    /** 只复制当前在编辑的那一条（通用图 / 某个姿势），用来替换文件里对应的那一条 */
+    const copyCurrentEntry = () =>
+        copy(
+            formatWeaponEntrySnippet(weaponId, weaponPose === WEAPON_BASE_SLOT ? null : weaponPose, weaponSlotGrid),
+            `已复制「${weaponPose === WEAPON_BASE_SLOT ? '通用图' : weaponPose}」这一条`,
+        )
+    /** 这把武器共用的那份调色板（文件顶部那份 `const PALETTE`，空位不写） */
+    const copyPalette = () =>
+        copy(formatSharedPaletteSnippet(weaponId, weaponPalette), '调色板片段已复制')
 
     const copyLiteral = () => copy(formatPixelMapLiteral(map), '数组已复制')
 
@@ -603,6 +625,8 @@ export function PixelEditor() {
         setWeaponPoses(poses)
         setWeaponPose(WEAPON_BASE_SLOT)
         setWeaponPalette(palette)
+        // 换了武器 = 换了一份调色板：剪贴板里那张图的索引不再对应同一批颜色，作废
+        clipboardRef.current = null
         setManualZoom(null)
         setStatus(`已载入武器「${WEAPON_NAME[id] ?? id}」`)
     }
@@ -672,6 +696,8 @@ export function PixelEditor() {
                     mirror={mirror}
                     onToggleMirror={toggleMirror}
                     onUndo={undo}
+                    onCopy={copyCurrent}
+                    onPaste={pasteClipboard}
                     onRedo={redo}
                     onAutoOutline={autoOutlineNow}
                     onAddAuraRing={addAuraRingNow}
@@ -708,7 +734,6 @@ export function PixelEditor() {
                         filled={filledPoses}
                         baseFilled={gridHasPixels(weaponGrid)}
                         onSelect={switchWeaponPose}
-                        onCopyToOthers={copyPoseToOthers}
                         onClearCurrent={clearCurrentPose}
                     />
                 )}
@@ -806,6 +831,8 @@ export function PixelEditor() {
                     onFileInputChange={handleFileInputChange}
                     onNewBlank={handleNewBlank}
                     onCopyExported={copyExported}
+                    onCopyCurrentEntry={copyCurrentEntry}
+                    onCopyPalette={copyPalette}
                     onCopyLiteral={copyLiteral}
                     onCopySingleLine={copySingleLine}
                     onDownload={download}

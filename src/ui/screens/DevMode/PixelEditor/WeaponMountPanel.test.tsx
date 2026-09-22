@@ -31,6 +31,9 @@ describe('WeaponMountPanel 渲染冒烟', () => {
         expect(html).toContain('握点偏移 Y')
         expect(html).toContain('挂点偏移 X')
         expect(html).toContain('复制挂点片段')
+        // 手部覆盖：本槽位共用 + 本姿势两处（与「翻转」同级）
+        expect(html.match(/<span>手部覆盖<\/span>/g)).toHaveLength(2)
+        expect(html).toContain('>不覆盖</option>')
         // 槽位切换
         // 默认选中玄铁重剑（非 one_handed）→ 没有副手槽，槽位切换整行不显示
         expect(html).not.toContain('>副手</button>')
@@ -136,5 +139,24 @@ describe('WeaponMountPanel 渲染冒烟', () => {
         expect(html).toContain(`handDX: ${30.5 - HAND_POINTS.attack.x}`)
         expect(html).toContain(`handDY: ${31 - HAND_POINTS.attack.y}`)
         expect(html).toContain('angle: -0.0762')
+    })
+
+    it('手部覆盖开关会导出：本槽位共用进基底，姿势覆盖单独写（与 flip 同一套压缩规则）', () => {
+        const html = renderToStaticMarkup(
+            <WeaponMountPanel
+                configs={{
+                    dark_iron_sword: {
+                        main: { idle: { gripX: 25, gripY: 25, handCover: false }, attack: { handCover: true } },
+                        off: {},
+                    },
+                }}
+                onChange={() => {}}
+                charId="yidao"
+                setStatus={() => {}}
+            />,
+        )
+        expect(html).toContain('handCover: false')
+        // attack 条目里带上它自己的覆盖值（同一条目还可能有登记值折算出的偏移，所以用正则）
+        expect(html).toMatch(/attack: \{[^}]*handCover: true/)
     })
 })
