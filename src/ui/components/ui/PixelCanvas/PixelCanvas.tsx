@@ -153,6 +153,7 @@ export function PixelCanvas({
             gripY: number,
             hand: { x: number; y: number },
             angleRad: number,
+            mirror: boolean,
         ) => {
             const xs = ov.pixels.map((p) => p[0])
             const ys = ov.pixels.map((p) => p[1])
@@ -174,7 +175,17 @@ export function PixelCanvas({
             const offRotY = (gripY - minY + rotPad) * os
             ctx.save()
             ctx.translate((hand.x + offX) * scale, (hand.y + offY) * scale)
-            if (angleRad) ctx.rotate(angleRad)
+            // 镜像（配置里的 flip）：把画出来的武器沿「过握点的竖轴」左右翻（M·R(angle)）。
+            // 与战斗渲染器同一套约定：渲染器是「本地坐标 x 取负」再把每格画在取负后的起点上，
+            // 等价于绕握点右侧半格（美术坐标 gripX+0.5）的竖轴反射 —— 这里也用同一根轴。
+            // 用 M·R(θ) = R(−θ)·M 落地：先按 −angle 旋转、再绕该轴 x 反射。
+            // 画布变换「后写的先作用于图像」，所以 scale 写在 rotate 之后 = 旋转后再镜像。
+            if (angleRad) ctx.rotate(mirror ? -angleRad : angleRad)
+            if (mirror) {
+                ctx.scale(-1, 1)
+                // 轴在握点右侧半格：偏移 -os = 绕本地 x = os/2 反射（1 美术像素 = os 本地单位）
+                ctx.translate(-os, 0)
+            }
             ctx.imageSmoothingEnabled = false
             ctx.drawImage(offscreen, -offRotX, -offRotY)
             ctx.restore()
@@ -191,7 +202,14 @@ export function PixelCanvas({
                 // 注意：之前只在配置写了显式 angle 时才调 getWeaponAngle，导致单手 attack 的 -45° 在预览里丢了。
                 // 双持时主手也用武器自己的角度（不再有全局覆盖）
                 const effAngle = mount ? mount.angle : (angle ?? 0)
-                paintRotatedWeapon(mainOverlay, mount?.gripX ?? 0, mount?.gripY ?? 0, hand, effAngle)
+                paintRotatedWeapon(
+                    mainOverlay,
+                    mount?.gripX ?? 0,
+                    mount?.gripY ?? 0,
+                    hand,
+                    effAngle,
+                    mount?.mirror ?? false,
+                )
             } else {
                 // 武器图标模式：按完整 32×32 网格 + 原始坐标绘制，保留武器设计时的空白
                 ctx.imageSmoothingEnabled = false
@@ -210,7 +228,14 @@ export function PixelCanvas({
                 ? resolveWeaponMount(secondWeaponId, pose, { slot: 'off' })
                 : undefined
         if (offMount && offhandOverlay) {
-            paintRotatedWeapon(offhandOverlay, offMount.gripX, offMount.gripY, offMount.hand, offMount.angle)
+            paintRotatedWeapon(
+                offhandOverlay,
+                offMount.gripX,
+                offMount.gripY,
+                offMount.hand,
+                offMount.angle,
+                offMount.mirror,
+            )
         }
 
         // 手部遮罩：只遮「锚定的那只手」；长柄（anchorHand: 'off'，两只手都在杆上）两只都遮。

@@ -201,7 +201,7 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     // ── 武器 ──
     {
         id: 'yanling_blade_attr',
-        name: '惊鸿',
+        name: '翩若惊鸿',
         description: '身法+1、灵巧+2、力道+1。急速+2。',
         tags: [],
         expiry: { type: 'permanent' },
@@ -210,18 +210,16 @@ export const ATTACHED_BUFFS: BuffDef[] = [
     },
     {
         id: 'bare_hands_attr',
-        name: '赤手空拳',
-        description: '身法+2。',
+        name: '拳即是武器',
+        description: '',
         tags: [],
-        expiry: { type: 'permanent' },
         attrMods: { agility: 2 },
     },
     {
         id: 'dagger_attr',
-        name: '匕首',
-        description: '身法+1。',
+        name: '轻便灵巧',
+        description: '',
         tags: [],
-        expiry: { type: 'permanent' },
         attrMods: { agility: 1 },
     },
     // ── 战斗期具名属性 buff ──

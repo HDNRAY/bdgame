@@ -2,7 +2,11 @@
  * 挂点解析：`resolveWeaponMount` 是渲染器 / 像素预览 / 编辑器共用的唯一入口。
  *
  * 优先级：手位 = 绝对 handX/handY → 相对 handDX/handDY → 基准（主手 HAND_POINTS / 副手 OTHER_HAND_POINT）；
- * 角度 = 显式 angle → 双手两手连线 → 单手规则（0°，attack ∓45°）→ 叠 flip。
+ * 角度 = 显式 angle → 双手两手连线 → 单手规则（0°，attack ∓45°）。
+ *
+ * `flip`（数据键名保留）的语义是**左右镜像**：把**画出来的**武器沿「过握点的竖轴」做 x 反射（手性颠倒），
+ * 姿势角度配置**不变**。画的一方按恒等式 `M·R(a) = R(−a)·M` 落地（旋转角取负 + 美术 x 取负），
+ * 也就是「先按 angle 旋转、再把画面左右翻」——见 `WeaponMount.mirror`。
  */
 import type { WeaponPoseConfig } from '../types'
 import { HAND_COVER, HAND_POINTS, LEFT_HAND_COVER, OTHER_HAND_POINT } from './hands'
@@ -26,7 +30,7 @@ export function poseConfigIn<T>(table: Partial<Record<PoseKey, T>> | undefined, 
 export function getWeaponPoseConfig(weaponId: string, pose: string, slot: WeaponSlot = 'main'): WeaponPoseConfig {
     const set = WEAPON_POSES[weaponId]
     if (!set) return DEFAULT_POSE
-    // 基底（结构性字段：握点/第二握点/翻转/锚定手/不遮手）与姿势条目**合并**；
+    // 基底（结构性字段：握点/镜像/锚定手/不遮手）与姿势条目**合并**；
     // 角度与挂点偏移不继承，因此「一把武器一个握点 + 个别姿势微调」是最自然的写法。
     const base = { ...sharedOf(set.base ?? set.idle) }
     if (slot === 'off') {
@@ -75,7 +79,7 @@ export function baseAnchorHand(
  * 解析「这把武器挂在某个槽位的某个姿势」的最终落点 —— 渲染层 / 预览 / 编辑器统一走这一处。
  *
  * 主手：手位 = handX/handY → anchorHand('main'/'off'，默认单手 main、双手 off) → 全局手位表；
- *       角度 = angle → 双手两手连线 → 单手规则(0°，attack ∓45°) → 叠 flip。
+ *       角度 = angle → 双手两手连线 → 单手规则(0°，attack ∓45°)。
  * 副手（未登记 off 子表时的默认）：
  *       单手武器 = 握柄与角度沿用主手表 + 手位取全局副手 OTHER_HAND_POINT；
  *       双手武器 = 直接沿用主手配置（双手武器本来就锚副手）。
@@ -88,9 +92,14 @@ export interface WeaponMount {
     gripY: number
     /** 锚定手（精灵坐标） */
     hand: { x: number; y: number }
-    /** 最终旋转角（已含 flip 的 180°） */
+    /** 最终旋转角（**不含镜像**：镜像与角度是两件事，角度只由 angle / 默认规则决定） */
     angle: number
-    flip: boolean
+    /**
+     * 是否左右镜像 —— 来自配置里的 `flip`（数据键名保留，历史原因：它以前是「角度 +180°」）。
+     * 语义：把**画出来的**武器沿「过握点的竖轴」左右翻（手性颠倒），姿势角度不变。
+     * 画的一方按 `M·R(angle) = R(−angle)·M` 落地：美术/位图 x 取负 + 实际旋转角取负。
+     */
+    mirror: boolean
 }
 
 export function resolveWeaponMount(
@@ -138,13 +147,12 @@ export function resolveWeaponMount(
     const effGripX = cfg.gripX + (cfg.gripDX ?? 0)
     const effGripY = cfg.gripY + (cfg.gripDY ?? 0)
 
-    // 角度
-    const flip = cfg.flip ? Math.PI : 0
+    // 角度：`flip` 不参与 —— 它是左右镜像（见 WeaponMount.mirror），不是"再转半圈"
     let angle: number
     if (cfg.angle !== undefined) {
-        angle = (facingRight ? cfg.angle : -cfg.angle) + flip
+        angle = facingRight ? cfg.angle : -cfg.angle
     } else {
-        angle = (pose === 'attack' ? (facingRight ? -Math.PI / 4 : Math.PI / 4) : 0) + flip
+        angle = pose === 'attack' ? (facingRight ? -Math.PI / 4 : Math.PI / 4) : 0
     }
 
     return {
@@ -154,6 +162,6 @@ export function resolveWeaponMount(
         gripY: effGripY,
         hand,
         angle,
-        flip: cfg.flip === true,
-}
+        mirror: cfg.flip === true,
+    }
 }

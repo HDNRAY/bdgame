@@ -12,10 +12,8 @@ import type { PixelSprite } from '../../src/ui/pixel-sprites/types'
 import {
     HAND_COVER,
     LEFT_HAND_COVER,
-    getWeaponAngle,
     getWeaponArt,
-    getWeaponHand,
-    getWeaponPoseConfig,
+    resolveWeaponMount,
     resolveWeaponPixels,
     shouldDrawHandCover,
 } from '../../src/ui/pixel-sprites'
@@ -154,25 +152,31 @@ export function artMap(weaponId: string, pose = 'idle'): Map<string, string> {
 /** 武器 + 双手遮罩（旋转整张位图，逐目标格反向采样）
  *  图层顺序与游戏一致：身体 → 武器 → 手部遮罩（手在最上层，制造"握着"效果） */
 export function drawWeapon(g: Grid, weaponId: string, pose: string, oy: number, palette: Palette): void {
-    const cfg = getWeaponPoseConfig(weaponId, pose)
-    const hand = getWeaponHand(weaponId, pose)
-    const angle = getWeaponAngle(weaponId, pose, true)
+    // 挂点唯一入口：手位/角度/镜像（flip）都从这里取，别各算一套
+    const mount = resolveWeaponMount(weaponId, pose)
+    // 镜像 = 把画出来的武器沿过握点的竖轴左右翻（M·R(angle)），用 M·R(θ) = R(−θ)·M 落地：
+    // 旋转角取负 + 采样到的武器图坐标再沿竖轴反射。反射轴与战斗渲染器一致：
+    // 渲染器是「本地坐标 x 取负」再把每格画在取负后的起点上 = 绕握点右侧半格（gripX + 0.5）反射。
+    const rot = mount.mirror ? -mount.angle : mount.angle
+    const cos = Math.cos(-rot)
+    const sin = Math.sin(-rot)
+    const mirrorAxis = mount.gripX + 0.5
     const art = artMap(weaponId, pose)
-    const cos = Math.cos(-angle)
-    const sin = Math.sin(-angle)
     const radius = Math.ceil(Math.hypot(ART, ART)) + 2
-    const hx = Math.round(hand.x + OFF_X)
-    const hy = Math.round(hand.y + OFF_Y)
+    const hx = Math.round(mount.hand.x + OFF_X)
+    const hy = Math.round(mount.hand.y + OFF_Y)
     for (let dy = -radius; dy <= radius; dy++) {
         for (let dx = -radius; dx <= radius; dx++) {
-            const ax = dx * cos - dy * sin + cfg.gripX
-            const ay = dx * sin + dy * cos + cfg.gripY
+            // 反向采样：目标格 → 武器图坐标（镜像时沿竖轴反射）
+            let ax = dx * cos - dy * sin + mount.gripX
+            if (mount.mirror) ax = 2 * mirrorAxis - ax
+            const ay = dx * sin + dy * cos + mount.gripY
             const color = art.get(`${Math.round(ax)},${Math.round(ay)}`)
             if (color) g.fill(hx + dx, hy + dy + oy, color)
         }
     }
     // 手部遮罩画在武器之上；盖不盖由 shouldDrawHandCover 统一判（hit 脱手 / handCover: false）
-    if (shouldDrawHandCover(pose, cfg)) {
+    if (shouldDrawHandCover(pose, mount.config)) {
         const skin = palette['3'] ?? '#f5d6c6'
         for (const [cx, cy] of HAND_COVER[pose] ?? []) g.fill(cx + OFF_X, cy + OFF_Y + oy, skin)
         // 长柄：两只手都在杆上，两只都盖（与渲染器一致；旧代码读已删除的 grip2X，导致预览永远不画第二只手）

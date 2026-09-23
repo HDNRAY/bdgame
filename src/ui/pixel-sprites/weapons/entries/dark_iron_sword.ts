@@ -23,11 +23,11 @@ export const dark_iron_sword: { overlay?: WeaponOverlay; art?: WeaponArtTable; p
     overlay: {
         palette: PALETTE,
         pixels: [
-            [4, 4, 4],
-            [5, 4, 4],
+            [4, 4, 2],
+            [5, 4, 2],
             [6, 4, 2],
             [7, 4, 2],
-            [4, 5, 4],
+            [4, 5, 1],
             [5, 5, 4],
             [6, 5, 4],
             [7, 5, 2],

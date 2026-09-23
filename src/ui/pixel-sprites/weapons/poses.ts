@@ -5,7 +5,7 @@
  *
  * ```ts
  * poses: {
- *     ...makePoses({ gripX: 24, gripY: 24 }),   // 基底：所有姿势共用（握点/翻转/锚定手…）
+ *     ...makePoses({ gripX: 24, gripY: 24 }),   // 基底：所有姿势共用（握点/镜像/锚定手…）
  *     parry: { angle: 2.6857 },                 // 姿势只写与基底不同的字段
  *     off: { ...makePoses({}), hit: { angle: (58 * Math.PI) / 180 } },
  * }
@@ -29,7 +29,11 @@ export type WeaponSlot = 'main' | 'off'
  */
 export type PoseKey = 'idle' | 'attack' | 'dodge' | 'parry' | 'hit' | 'buff' | 'move'
 
-/** 基底能提供的结构性字段：这些字段在姿势间共享，写一次即可 */
+/**
+ * 基底能提供的结构性字段：这些字段在姿势间共享，写一次即可。
+ * 其中 `flip` 的语义是**左右镜像**（沿过握点的竖轴 x 反射），数据键名保留不改（历史原因：
+ * 它以前是「角度 +180°」的转半圈开关，改名会打坏所有武器文件与存档）；解析结果里叫 `mirror`。
+ */
 export const SHARED_KEYS: (keyof WeaponPoseConfig)[] = ['gripX', 'gripY', 'flip', 'anchorHand', 'handCover']
 
 /** 每姿势的配置：只需写与基底不同的字段（握点类字段可省，会从基底继承） */

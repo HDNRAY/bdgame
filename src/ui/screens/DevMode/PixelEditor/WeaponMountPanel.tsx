@@ -148,7 +148,7 @@ export function WeaponMountPanel({
     const resolved = useMemo(() => resolveWeaponMount(weaponId, pose, { slot }), [weaponId, pose, slot])
     const rawRegistered = WEAPON_POSES[weaponId] ?? {}
     /**
-     * 武器级覆盖：编辑器里改的「武器握点 / 翻转 / 锚定手」（写在主手 idle 上）只取**结构性字段**，
+     * 武器级覆盖：编辑器里改的「武器握点 / 镜像 / 锚定手」（写在主手 idle 上）只取**结构性字段**，
      * 叠到当前槽位/姿势的登记值上 —— 这样在任何姿势、任何槽位改这些，预览与导出都生效。
      */
     const baseOverlay = useMemo(
@@ -242,10 +242,10 @@ export function WeaponMountPanel({
         () => resolveWeaponMount(weaponId, pose, { slot, config: effective }).hand,
         [weaponId, pose, slot, effective],
     )
-    /** 配置角度（不含 flip）——只显示本姿势覆盖里写的值；生效角度见右栏读数 */
+    /** 配置角度 —— 只显示本姿势覆盖里写的值；生效角度见右栏读数 */
     const cfgAngleDeg = useMemo(() => {
-        // 显示的是**配置角度**（不含 flip 那 180°）：覆盖 > 登记值 > 引擎默认规则（0° / 攻击 -45°）。
-        // 不含 flip 很关键 —— 否则把最终角度写回配置会再加一次 180°。
+        // 显示的是**配置角度**：覆盖 > 登记值 > 引擎默认规则（0° / 攻击 -45°）。
+        // 镜像（flip）与角度无关，不会改变这个值，所以它可以直接写回配置。
         const a = overrideValue('angle') ?? effective.angle
         const deg = a !== undefined ? (a * 180) / Math.PI : pose === 'attack' ? -45 : 0
         return Math.round(deg * 10) / 10
@@ -291,16 +291,14 @@ export function WeaponMountPanel({
         const anchor = resolveWeaponMount(weaponId, pose, { slot, config: drag.startCfg }).hand
         const a0 = Math.atan2(drag.startPointer.y - anchor.y, drag.startPointer.x - anchor.x)
         const a1 = Math.atan2(p.y - anchor.y, p.x - anchor.x)
-        // startAngle 是「最终角度」（含 flip）；配置里的 angle 不含 flip，写回前要减掉，否则翻转类武器会差 180°
-        let next = drag.startAngle + (a1 - a0)
+        // 镜像的武器是「按 −angle 旋转再左右翻」画出来的（M·R(a) = R(−a)·M），
+        // 所以屏幕上鼠标转多少，配置角度要反着写 —— 否则开着镜像拖动会反着转。
+        const dir = drag.startCfg.flip ? -1 : 1
+        let next = drag.startAngle + dir * (a1 - a0)
         // 收进 -180..180
         while (next > Math.PI) next -= Math.PI * 2
         while (next < -Math.PI) next += Math.PI * 2
-        const flip = drag.startCfg.flip ? Math.PI : 0
-        let cfgAngle = next - flip
-        while (cfgAngle > Math.PI) cfgAngle -= Math.PI * 2
-        while (cfgAngle < -Math.PI) cfgAngle += Math.PI * 2
-        patch({ angle: Math.round(cfgAngle * 10000) / 10000 })
+        patch({ angle: Math.round(next * 10000) / 10000 })
     }
 
     const endDrag = () => {
@@ -546,8 +544,8 @@ export function WeaponMountPanel({
                             className="pixel-editor-mount-group-title"
                             title={
                                 slot === 'off'
-                                    ? '副手槽自己的一套握点/翻转（写进武器文件的 off 子表基底）；没填的字段自动继承主手'
-                                    : '主手槽自己的一套握点/翻转（写进武器文件的 poses 基底）；副手没填时会继承这里'
+                                    ? '副手槽自己的一套握点/镜像（写进武器文件的 off 子表基底）；没填的字段自动继承主手'
+                                    : '主手槽自己的一套握点/镜像（写进武器文件的 poses 基底）；副手没填时会继承这里'
                             }
                         >
                             {slot === 'off' ? '副手共用' : '主手共用'}
@@ -556,14 +554,14 @@ export function WeaponMountPanel({
                                 {weaponGripField('握点 X', 'gripX', 0.5, '武器图内的握柄坐标（美术坐标 32×32）；本槽位共用（跨姿势）')}
                                 {weaponGripField('握点 Y', 'gripY')}
                                 {boolSelect(
-                                    '翻转',
+                                    '镜像',
                                     slotIdleOverride('flip') as boolean | undefined,
                                     (v) => writeSlotIdle('flip', v),
                                     slot === 'off'
-                                        ? '副手槽的翻转；「自动」= 继承主手。某个姿势要单独调，就在下面「本姿势」里改'
-                                        : '主手槽的翻转（整体镜像 180°）。某个姿势要单独调，就在下面「本姿势」里改',
-                                    '翻转',
-                                    '不翻转',
+                                        ? '副手槽的镜像（沿过握点的竖轴左右翻转武器美术）；「自动」= 继承主手。某个姿势要单独调，就在下面「本姿势」里改'
+                                        : '主手槽的镜像（沿过握点的竖轴左右翻转武器美术，手性颠倒，不改角度）。某个姿势要单独调，就在下面「本姿势」里改',
+                                    '镜像',
+                                    '不镜像',
                                 )}
                                 {anchorSelect(
                                     '锚定手',
@@ -596,7 +594,7 @@ export function WeaponMountPanel({
                             <div className="pixel-editor-mount-grid">
                                                 <label
                             className="pixel-editor-num-field"
-                            title="配置倾角（度，不含「翻转」那 180°）。留空 = 自动（默认 0°、攻击 -45°）；最终角度看右栏读数"
+                            title="配置倾角（度）。留空 = 自动（默认 0°、攻击 -45°）；镜像不改角度，最终角度看右栏读数"
                         >
                             <span>角度(度)</span>
                             <input
@@ -614,12 +612,12 @@ export function WeaponMountPanel({
                             />
                         </label>
                         {boolSelect(
-                            '翻转',
+                            '镜像',
                             poseEntry?.flip,
                             (v) => patch({ flip: v }),
-                            '本姿势是否整体镜像 180°；「自动」= 跟随「武器共用」里的设定',
-                            '翻转',
-                            '不翻转',
+                            '本姿势是否把武器左右镜像（沿过握点的竖轴翻转美术，手性颠倒，不改角度）；「自动」= 跟随「武器共用」里的设定',
+                            '镜像',
+                            '不镜像',
                         )}
                         {anchorSelect('锚定手', poseEntry?.anchorHand, (v) => patch({ anchorHand: v }), anchorHandTip)}
                         {boolSelect(
@@ -640,7 +638,7 @@ export function WeaponMountPanel({
 
                 {/* 第三栏：开关 + 读数 + 操作 */}
                 <section className="pixel-editor-mount-col">
-                    <h4 title="整把武器共用（握点/翻转/锚定手）、当前落点读数、导出与重置">读数 · 导出</h4>
+                    <h4 title="整把武器共用（握点/镜像/锚定手）、当前落点读数、导出与重置">读数 · 导出</h4>
                     <div className="pixel-editor-row">
                         <button
                             className="pixel-editor-btn"

@@ -82,6 +82,7 @@ const weaponIds = [
     'po_lang_zhu_zhi',
     'dinghai_shen_tie',
     'long_spear',
+    'overlord_blade',
     'yanling_blade',
     'ganjiang_sword',
     'moxie_sword',

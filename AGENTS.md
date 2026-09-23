@@ -126,7 +126,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 **画法约定**（`src/ui/pixel-sprites/weapons/entries/`）：
 
 - 一律按轴向几何生成：`u = (A - x - y)·√½`（沿轴，越大越靠尖端/左上）、`v = (y - x)·√½`（横向，符号决定受光/背光侧），`A` 取该武器轴起点的 `x + y`。禁止「按行阶梯」画斜线（会斜掉）。
-- 刃/尖端一律画在美术网格的**左上端**（沿轴坐标 `k = x+y-6` 的小端）。要让长端朝角色正面，用握点/`flip` 去解决，不要反过来画刃（所有兵器点阵同源才好复用）。
+- 刃/尖端一律画在美术网格的**左上端**（沿轴坐标 `k = x+y-6` 的小端）。要让长端朝角色正面，用握点/`flip`（`flip` 现在是左右镜像，见下条）去解决，不要反过来画刃（所有兵器点阵同源才好复用）。
 - 武器美术画在 32×32 网格（`constants.ts` 的 `WEAPON_WIDTH/HEIGHT`）；像素颜色索引必须写**数字**（字符串会被当成颜色字面量，渲染成黑色）。**下标 0 是「空」的保留号**：编辑器网格里 0 = 没画（`blankPixelMap` 填 0、`gridHasPixels` 判 `v > 0`）、帧格式槽位 0 = 透明、片段导出只写 `v > 0` —— 所以颜色一律从 1 起。写在 0 上的颜色编辑器显示不出来、导出还会被当成空格子丢掉（早期六把武器这么写过，已迁到最小空号；`weapons/overlay.test.ts` 有守卫测试盯着）。
 - 握点与姿势独立登记在 `WEAPON_POSES`：**一把武器只有一个握点**（写在 `...makePoses({ gripX, gripY })` 基底里），姿势要调就写 `gripDX/gripDY` 偏移；角度逐姿势显式写 `angle`（弧度或 `(N * Math.PI) / 180`）。**每把武器独立写配置，同族也不共享常量**，便于逐把微调。（历史包袱已删：第二握点 `grip2*` 与目标手 `target*` —— 它们原本只为"两手连线自动算角度"存在，现在角度自由编辑，模型简化为「一个握点 + 角度 + 手位偏移」；长柄武器的 `anchorHand: 'off'` 保留（锚副手）。）
 - **手位覆盖一律写「相对偏移」**：`handDX/handDY`（相对 `HAND_POINTS[pose]`；锚副手的武器相对 `OTHER_HAND_POINT[pose]`）。优先级：绝对 `handX/handY`（旧数据仍支持）> 相对偏移 > 基准。编辑器拖动/输入写的都是偏移，`编辑器导出`也把绝对值折算成偏移，所以导出贴回后武器仍然**跟随全局手位表**（`HAND_POINTS` 一改全体跟着动），不会把自己锁死在绝对坐标上。基准解析唯一入口 `baseAnchorHand(cfg, pose, slot)`。
@@ -135,6 +135,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 - **槽位（主手 / 副手）是一等维度**：`WEAPON_POSES[武器][姿势]` 是主手槽；副手槽写可选的 `off` 子表（`WEAPON_POSES[武器].off[姿势]`）。副手没登记时按「副手默认」：握柄与角度都沿用主手表（即这把武器自己的配置），只有手位取全局 `OTHER_HAND_POINT[pose]`（角度不再有全局默认表：`DUAL_MAIN_ANGLE` 与 `DUAL_OFFHAND_ANGLE` 都已删除）。面板只在武器带 `one_handed` 标签（引擎数据）时才显示副手槽。解析入口只有 `resolveWeaponMount(weaponId, pose, { slot, config?, facingRight? })`，战斗渲染器 / 像素预览 / 编辑器都走它，不要各算一套。
 - **双持会画两把**：`CharacterSnapshot.offhand`（来自 `build.offhand`，战斗中固定）→ 渲染器为每个角色多两组 Graphics（副手武器画在主手武器**下面**，副手手部遮罩用另一侧的手）。
 - 改手位或轴向后必须同步 `HAND_POINTS` / `OTHER_HAND_POINT` / `HAND_COVER` / `LEFT_HAND_COVER`。
+- **`flip` = 左右镜像（不是「角度 +180°」）**：它把**画出来的**武器沿**过握点的竖轴**左右翻（手性颠倒），姿势角度配置不变 —— 顺序是「先按该姿势角度旋转、再把画面左右翻」（不要反过来先镜像美术再旋转：那等于把姿势也镜像了，得到的是 `M·R(-a)`，一把横着的棍会被转成竖的）。解析结果里的字段叫 `mirror`（`resolveWeaponMount(...).mirror`），画的一律读它；**数据键名仍叫 `flip`**（历史原因：它以前是「最终角度 +180°」的转半圈开关，改名会打坏所有武器文件与用户存档）。落地统一用恒等式 `M·R(a) = R(−a)·M`：美术/位图 x 取负 + 实际旋转角取负。反射轴统一取**握点右侧半格**（美术坐标 `gripX + 0.5`）—— 这是战斗渲染器「本地坐标 x 取负、每格画在取负后的起点上」的等价写法，四处必须对齐同一根轴，否则镜像后预览与战斗会差 1 个美术像素。四处绘制都要镜像，否则战斗与预览不一致：`src/ui/canvas/renderer.ts`（`mirrorSign` + `rotation = mirror ? -angle : angle`）、`PixelCanvas.tsx`（`rotate(mirror ? -angle : angle)` 之后 `scale(-1,1)` + `translate(-os, 0)`）、`scripts/lib/pixel-canvas.ts`（反向采样：旋转角取负，采样到的武器图 x 再按 `2*(gripX + 0.5) - x` 反射）。编辑器 Shift 拖动在镜像时要把角度增量取反，否则武器会反着转。
 - **手部遮罩规则**：遮不遮 = `handCover`（与 `flip` 同级的两层字段：写在 `poses` 基底里是整把武器的默认，单个姿势条目可覆盖；不填 = 遮），**且** `hit` 一律不遮（武器脱手）。遮哪只 = 只遮「锚定的那只手」；长柄（引擎 `polearm` 标签）两只手都在杆上 → 两只都遮（`weapon-tags.ts` 的 `isPolearm()`）。两条规则的唯一判定入口是 `weapons/dual.ts` 的 `shouldDrawHandCover(pose, cfg)`，调用方必须传**已经解析好的**该姿势配置（`resolveWeaponMount` 的 `config`），不要再各自复制判断。`handCover: false` 是给「甲片本身就是手」的武器（拳套/护手类）用的——那种武器的手由美术自己画。编辑器里在「武器挂点」页的「手部覆盖」下拉调（本槽位共用 / 本姿势两处）。
 
 **像素编辑器**：DevMode 的「像素编辑器」tab（`/dev?tab=editor`，源码 `src/ui/screens/DevMode/PixelEditor/`），两种模式：

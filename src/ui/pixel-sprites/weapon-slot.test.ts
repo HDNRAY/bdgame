@@ -18,6 +18,9 @@ import { makePoses } from './weapons/poses'
 /** 测试用的临时武器 id（只在 WEAPON_POSES 里挂一下，不进武器库） */
 const COVER_TEST = '__test_hand_cover'
 
+/** 镜像（flip）用的临时武器 id */
+const MIRROR_TEST = '__test_mirror'
+
 /** 临时摘掉某武器的 off 子表，测完还原（避免测试依赖"库里有没有人登记副手"） */
 function withoutOffTable<T>(weaponId: string, fn: () => T): T {
     const table = WEAPON_POSES[weaponId]
@@ -234,6 +237,50 @@ describe('手部覆盖开关（handCover，与 flip 同级）', () => {
             expect(getWeaponPoseConfig(COVER_TEST, 'idle').gripX).toBe(1)
         } finally {
             delete WEAPON_POSES[COVER_TEST]
+        }
+    })
+})
+
+describe('flip = 左右镜像（数据键名保留，语义是镜像）', () => {
+    it('同一姿势 flip 关 / 开：角度完全相同，只有镜像标记不同（不是「转半圈」）', () => {
+        for (const pose of POSE_NAMES) {
+            const cfg = getWeaponPoseConfig('qimei_staff', pose)
+            const off = resolveWeaponMount('qimei_staff', pose, { config: { ...cfg, flip: false } })
+            const on = resolveWeaponMount('qimei_staff', pose, { config: { ...cfg, flip: true } })
+            // 这条是防回归的核心：谁再把 flip 写回「角度 +180°」就会红
+            expect(on.angle, pose).toBeCloseTo(off.angle, 10)
+            expect(on.angle, pose).not.toBeCloseTo(off.angle + Math.PI, 6)
+            expect(on.mirror, pose).toBe(true)
+            expect(off.mirror, pose).toBe(false)
+            // 镜像只管左右手性：落点 / 握点一点不动
+            expect(on.hand, pose).toEqual(off.hand)
+            expect(on.gripX, pose).toBe(off.gripX)
+            expect(on.gripY, pose).toBe(off.gripY)
+        }
+    })
+
+    it('数据键仍叫 flip：武器文件里登记的 flip 被解析成 mirror 标记（基底 / 姿势覆盖照旧）', () => {
+        // 齐眉棍基底 flip: true，hit 姿势条目单独覆盖成 false
+        expect(getWeaponPoseConfig('qimei_staff', 'idle').flip).toBe(true)
+        expect(resolveWeaponMount('qimei_staff', 'idle').mirror).toBe(true)
+        expect(resolveWeaponMount('qimei_staff', 'hit').mirror).toBe(false)
+    })
+
+    it('默认角度规则（0° / attack ∓45°）下镜像也不改角度；朝左角度取负、镜像照旧', () => {
+        WEAPON_POSES[MIRROR_TEST] = { ...makePoses({ gripX: 3, gripY: 4, flip: true }) }
+        try {
+            const on = resolveWeaponMount(MIRROR_TEST, 'attack')
+            const off = resolveWeaponMount(MIRROR_TEST, 'attack', {
+                config: { gripX: 3, gripY: 4, flip: false },
+            })
+            expect(on.angle).toBeCloseTo(-Math.PI / 4, 10)
+            expect(on.angle).toBeCloseTo(off.angle, 10)
+            expect(on.mirror).toBe(true)
+            expect(off.mirror).toBe(false)
+            expect(resolveWeaponMount(MIRROR_TEST, 'attack', { facingRight: false }).angle).toBeCloseTo(Math.PI / 4, 10)
+            expect(resolveWeaponMount(MIRROR_TEST, 'idle').angle).toBeCloseTo(0, 10)
+        } finally {
+            delete WEAPON_POSES[MIRROR_TEST]
         }
     })
 })

@@ -388,10 +388,15 @@ export class CanvasRenderer {
         const handX = facingRight ? mount.hand.x : SPRITE_WIDTH - 1 - mount.hand.x
         wg.position.set(ox + handX * PIXEL, oy + mount.hand.y * PIXEL)
         wg.pivot.set(0, 0)
-        wg.rotation = mount.angle
-
+        // 镜像（配置里的 flip）：把**画出来的**武器沿「过握点的竖轴」左右翻 —— 先按该姿势角度旋转、
+        // 再把画面 x 取负。用恒等式 M·R(θ) = R(−θ)·M 落地：旋转角取负 + 本地坐标 x 取负；
+        // 取负相对握点（本地原点），所以武器仍握在手上。顺序不能反：先镜像美术再旋转会把姿势也镜像掉。
+        // 注意「每格画在取负后的起点上」这一点 —— 等价于绕握点右侧半格（gripX + 0.5）的竖轴反射，
+        // 另外三处绘制（PixelCanvas / CLI 预览）必须用同一根轴，否则预览与战斗会差 1 个美术像素。
+        const mirrorSign = (facingRight ? 1 : -1) * (mount.mirror ? -1 : 1)
+        wg.rotation = mount.mirror ? -mount.angle : mount.angle
         for (const [px, py, color] of resolveWeaponPixels(overlay)) {
-            const fx = facingRight ? px - mount.gripX : -(px - mount.gripX)
+            const fx = mirrorSign * (px - mount.gripX)
             wg.rect(fx * PIXEL, (py - mount.gripY) * PIXEL, PIXEL, PIXEL).fill(color)
         }
     }
