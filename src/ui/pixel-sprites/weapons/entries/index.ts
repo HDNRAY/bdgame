@@ -24,6 +24,7 @@ import { dinghai_shen_tie } from './dinghai_shen_tie'
 import { long_spear } from './long_spear'
 import { ninja_sword } from './ninja_sword'
 import { iron_back_hand } from './iron_back_hand'
+import { yanling_blade } from './yanling_blade'
 
 /** 武器 id → 条目 */
 export const WEAPON_ENTRIES: Record<
@@ -50,6 +51,7 @@ export const WEAPON_ENTRIES: Record<
     zantetsu,
     ciyuan_blade,
     overlord_blade,
+    yanling_blade,
 }
 
 const weaponIds = [
@@ -70,6 +72,7 @@ const weaponIds = [
     'po_lang_zhu_zhi',
     'dinghai_shen_tie',
     'long_spear',
+    'yanling_blade',
 ]
 
 /** 武器叠加层（纯美术） */

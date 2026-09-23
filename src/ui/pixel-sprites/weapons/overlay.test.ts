@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import type { WeaponArtTable, WeaponOverlay } from '../types'
+import { WEAPON_WIDTH, WEAPON_HEIGHT } from '../constants'
 import { WEAPON_ARTS, WEAPON_OVERLAYS } from './entries/index'
 import { POSE_NAMES } from './poses'
 import { getWeaponArt, getWeaponOverlay, resolveWeaponPixels, weaponHasArt } from './overlay'
@@ -151,5 +152,26 @@ describe('武器美术的下标约定', () => {
                 expect(block.pixels.some(([, , color]) => color === 0), `${id}.${pose}`).toBe(false)
             }
         }
+    })
+})
+
+describe('武器美术的坐标约定', () => {
+    it('每个像素坐标都是 0..31 的整数（半格坐标会把像素编辑器打崩）', () => {
+        // 轴向几何里 x = (s + d) / 2、y = (s - d) / 2 —— s 与 d 奇偶不一致就会得到 .5 的坐标。
+        // 这种数据渲染时看着还行（被取整），但编辑器是 grid[y][x] 直接落座：x 是小数 → 抛
+        // "Cannot set properties of undefined (setting '23.5')" → 整页白屏。
+        const bad: string[] = []
+        const check = (id: string, where: string, pixels: readonly (readonly [number, number, unknown])[]) => {
+            for (const [x, y] of pixels) {
+                if (!Number.isInteger(x) || !Number.isInteger(y) || x < 0 || x >= WEAPON_WIDTH || y < 0 || y >= WEAPON_HEIGHT) {
+                    bad.push(`${id}.${where} [${x}, ${y}]`)
+                }
+            }
+        }
+        for (const [id, overlay] of Object.entries(WEAPON_OVERLAYS)) check(id, 'overlay', overlay.pixels)
+        for (const [id, table] of Object.entries(WEAPON_ARTS)) {
+            for (const [pose, block] of Object.entries(table)) if (block) check(id, pose, block.pixels)
+        }
+        expect(bad).toEqual([])
     })
 })
