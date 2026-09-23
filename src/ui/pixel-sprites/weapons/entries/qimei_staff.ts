@@ -7,22 +7,20 @@
 import type { WeaponArtTable, WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
+// weapons/entries/qimei_staff.ts 顶部：这把武器**所有图共用**的调色板（下标 = 这里的键）
+const PALETTE: Record<string, string> = {
+    '1': '#6e441a',
+    '2': '#9a6d33',
+}
+
 // 齐眉棍（双手长杆）：握点取「杆中点落在主手（画面左侧那只手）」的位置
 // 两手间距 idle/dodge 9.5 格、attack 12.5 格、parry 12.2 格 → attack/parry 握点相应前移
 // flip 为反向握持（整根杆掉头，长端朝角色正面）
 export const qimei_staff: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
+    // weapons/entries/qimei_staff.ts → 替换 overlay 那一条（共用调色板挂在这一条上，别丢）
     overlay: {
-        palette: {
-            '2': '#9a6d33', // 棍身 亮
-            '1': '#6e441a', // 棍身 暗
-        },
+        palette: PALETTE,
         pixels: [
-            // 齐眉棍：2 格宽 45° 斜棍，25 格长，在 32×32 网格内居中（3,3 → 27,27）。
-            // 每行固定 2 像素（亮/暗两色做圆柱立体感）。
-            // 主握点 7,7 锚定副手（左手/图中右侧），第二握点 24,24 定义棍身轴线（45°）。
-            // 渲染时用图的旋转（graphics/canvas transform）绕副手旋转整根棍子，使棍身穿过两只手。
-            [3, 3, 2],
-            [4, 3, 1],
             [4, 4, 2],
             [5, 4, 1],
             [5, 5, 2],
@@ -69,8 +67,6 @@ export const qimei_staff: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses
             [26, 25, 1],
             [26, 26, 2],
             [27, 26, 1],
-            [27, 27, 2],
-            [28, 27, 1],
         ],
     },
     poses: {

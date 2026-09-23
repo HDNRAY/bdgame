@@ -7,18 +7,21 @@
 import type { WeaponArtTable, WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
+// weapons/entries/chun_lei.ts 顶部：这把武器**所有图共用**的调色板（下标 = 这里的键）
+const PALETTE: Record<string, string> = {
+    '1': '#ffffff',
+    '2': '#eef0f1',
+    '3': '#dfe3e7',
+    '4': '#003308',
+    '5': '#102223',
+    '6': '#00a6ff',
+}
+
 // 春雷（二尺四寸 / 一斤三两 / 吹毛断发）：轻短弧刃，握点取柄的质心
 export const chun_lei: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
     // weapons/entries/chun_lei.ts → overlay:
     overlay: {
-        palette: {
-            '1': '#ffffff',
-            '2': '#eef0f1',
-            '3': '#dfe3e7',
-            '4': '#2f3a4a',
-            '5': '#1d2430',
-            '6': '#bfe9ff',
-        },
+        palette: PALETTE,
         pixels: [
             [11, 9, 1],
             [11, 10, 2],
