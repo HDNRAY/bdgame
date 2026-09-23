@@ -4,8 +4,10 @@ import { PASSIVES } from '../../../data/passives'
 import { ARTIFACTS } from '../../../data/artifacts'
 import { WEAPON_DB, type WeaponDef } from '../../../data/weapons/weapons'
 import { TAG_CN } from '../../../bridge/tagDisplay'
+import { getWeaponOverlay } from '../../pixel-sprites'
 import type { Reward } from '../../../game/entities/reward'
 import { EntityItem } from '../ui/EntityItem/EntityItem'
+import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import './RewardPicker.scss'
 
 export type PickKind = Reward['type'] // 'weapon' | 'action' | 'passive' | 'artifact'
@@ -152,6 +154,8 @@ export function RewardPicker({ exclude, onToggle, onClose, weaponFilter, used, c
                     )}
                     {filtered.map((it) => {
                         const selected = excluded.has(it.id)
+                        // 武器选项画武器本体那张（通用图 overlay），与图鉴/肉鸽选项卡同一口径
+                        const weaponOverlay = it.type === 'weapon' ? getWeaponOverlay(it.id) : null
                         return (
                             <button
                                 key={it.id}
@@ -159,6 +163,9 @@ export function RewardPicker({ exclude, onToggle, onClose, weaponFilter, used, c
                                 aria-pressed={selected}
                                 onClick={() => handleClick(it.type, it.id, selected)}
                             >
+                                {weaponOverlay && weaponOverlay.pixels.length > 0 && (
+                                    <PixelCanvas overlay={weaponOverlay} className="rp-weapon-art" />
+                                )}
                                 <EntityItem entity={it.entity as never} type={it.type} />
                                 <span className="rp-item-mark">{selected ? '已选' : ''}</span>
                             </button>

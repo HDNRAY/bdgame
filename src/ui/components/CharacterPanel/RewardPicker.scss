@@ -156,6 +156,17 @@
     box-shadow: inset 2px 0 0 var(--color-accent);
 }
 
+/* 列表里的武器本体图（通用图 overlay，不是战斗里按姿势取的那张）——排在行右侧
+   （行内已有 margin-left: auto 的「已选」标记，武器图再接在它后面，整组靠右） */
+.rp-weapon-art {
+    order: 2;
+    width: 1.75rem;
+    height: 1.75rem;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
 .rp-item-mark {
     margin-left: auto;
     flex-shrink: 0;

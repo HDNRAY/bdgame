@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { Round } from '../../../game/entities/round'
 import { getEntity, isEntityType, type EntityDef, type EntityType } from '../../../bridge/entity-tooltip'
+import { getWeaponOverlay } from '../../pixel-sprites'
+import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { useTypewriter } from '../../hooks/useTypewriter'
 import { useAppStore } from '../../stores/app-store'
 import { WeaponTooltip } from '../tooltip-contents/WeaponTooltip'
@@ -40,6 +42,8 @@ function ChoiceButton({
 }) {
     const entity = isEntityType(choice.type) ? (getEntity(choice.id, choice.type) ?? null) : null
     const eType = isEntityType(choice.type) ? choice.type : null
+    // 武器选项画武器本体那张（通用图 overlay）——逐姿势图是握在手上的形态，单看会很怪
+    const weaponOverlay = eType === 'weapon' ? getWeaponOverlay(choice.id) : null
     // 实体选项：内联详情已含实体描述，外部 choice.description 若与之相同则去重（保留叙事类附加描述）
     const descDup = !!entity && !!choice.description && choice.description === entity.description
 
@@ -47,7 +51,12 @@ function ChoiceButton({
         <div className={`rc-choice${selected ? ' rc-choice-selected' : ''}`} onClick={() => onSelect(index)}>
             {entity && eType ? (
                 <div className="rc-entity">
-                    <span className="rc-label">{entity.name}</span>
+                    <div className="rc-entity-head">
+                        {weaponOverlay && weaponOverlay.pixels.length > 0 && (
+                            <PixelCanvas overlay={weaponOverlay} className="rc-weapon-art" />
+                        )}
+                        <span className="rc-label">{entity.name}</span>
+                    </div>
                     <div className="rc-entity-details">
                         <EntityDetails entity={entity} type={eType} />
                     </div>

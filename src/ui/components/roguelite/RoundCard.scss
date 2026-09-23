@@ -119,6 +119,12 @@
 
     /* 实体选项内联详情（复用 tooltip 内容样式，无气泡外观） */
     &-entity {
+        &-head {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-xs);
+        }
+
         &-details {
             margin-top: var(--sp-xxs);
             padding-top: var(--sp-xxs);
@@ -240,6 +246,17 @@
     &-label {
         font-weight: 600;
         display: block;
+    }
+
+    /* 选项卡里的武器本体图（通用图 overlay，不是按姿势取的那张）——排在武器名这一行右侧。
+       只挪武器这一处：其它实体类型（招式/功法/奇物）没有这个节点，行内只有名字，不受影响 */
+    &-weapon-art {
+        order: 2;
+        margin-left: auto;
+        width: 2.5rem;
+        height: 2.5rem;
+        image-rendering: pixelated;
+        flex-shrink: 0;
     }
 
     &-desc-text {

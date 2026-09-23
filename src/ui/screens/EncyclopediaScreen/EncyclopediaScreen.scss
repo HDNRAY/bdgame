@@ -127,6 +127,9 @@
     }
 
     &-card {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--sp-xs);
         background: var(--color-tooltip-bg);
         border: var(--border-width) solid var(--color-tooltip-border);
         border-radius: var(--radius-sm);
@@ -135,6 +138,22 @@
         font-size: var(--font-sm);
         line-height: 1.5;
         min-width: 0;
+
+        /* tooltip 正文占满左侧，武器图靠 order 排到这一行右侧 */
+        .tt-content {
+            flex: 1;
+            min-width: 0;
+        }
+    }
+
+    /* 武器本体图（通用图 overlay，不是战斗里按姿势取的那张）——排在卡片这一行右侧 */
+    &-weapon-art {
+        order: 2;
+        display: block;
+        width: 3rem;
+        height: 3rem;
+        image-rendering: pixelated;
+        flex-shrink: 0;
     }
 
     &-empty {

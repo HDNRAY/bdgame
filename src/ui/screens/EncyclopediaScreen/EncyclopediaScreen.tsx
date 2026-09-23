@@ -7,7 +7,9 @@ import { TALENTS } from '../../../data/passives/talents'
 import { ARTIFACTS } from '../../../data/artifacts'
 import { SUPPORT_ACTIONS, allMainActions } from '../../../data/actions'
 import { TAG_CN } from '../../../bridge/tagDisplay'
+import { getWeaponOverlay } from '../../pixel-sprites'
 import { entityTooltipContent } from '../../components/tooltip-contents/entityTooltipContent'
+import { PixelCanvas } from '../../components/ui/PixelCanvas/PixelCanvas'
 import type { EntityDef } from '../../../bridge/entity-tooltip'
 import type { EntityType } from '../../../bridge/entity-tooltip'
 import './EncyclopediaScreen.scss'
@@ -140,11 +142,18 @@ export function EncyclopediaScreen() {
                 ) : (
                     /* 直接铺开完整内容（名字/标签/属性/效果/触发…），不再需要悬浮才看详情 */
                     <div className="encyclopedia-grid">
-                        {filtered.map((item, i) => (
-                            <article key={`${item.type}-${i}`} className="encyclopedia-card">
-                                <div className="tt-content">{entityTooltipContent(item.entity, item.type)}</div>
-                            </article>
-                        ))}
+                        {filtered.map((item, i) => {
+                            // 武器本体那张（通用图 overlay）——逐姿势图是握在手上的形态，单看会很怪
+                            const weaponOverlay = item.type === 'weapon' ? getWeaponOverlay(item.entity.id) : null
+                            return (
+                                <article key={`${item.type}-${i}`} className="encyclopedia-card">
+                                    {weaponOverlay && weaponOverlay.pixels.length > 0 && (
+                                        <PixelCanvas overlay={weaponOverlay} className="encyclopedia-weapon-art" />
+                                    )}
+                                    <div className="tt-content">{entityTooltipContent(item.entity, item.type)}</div>
+                                </article>
+                            )
+                        })}
                     </div>
                 )}
             </div>
