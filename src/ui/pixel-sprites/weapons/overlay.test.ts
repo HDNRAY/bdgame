@@ -175,3 +175,16 @@ describe('武器美术的坐标约定', () => {
         expect(bad).toEqual([])
     })
 })
+
+describe('干将 / 莫邪 是一对', () => {
+    it('剑身逐格一致（原型是君子剑/淑女剑「大小长短，全无二致」）', () => {
+        // 差异只允许在护手/柄/柄首记号上：剑身的像素（乌黑那两级）必须完全相同。
+        const blade = (id: string) =>
+            resolveWeaponPixels(WEAPON_OVERLAYS[id])
+                .filter(([, , color]) => color === '#232328' || color === '#141418')
+                .map(([x, y, color]) => `${x},${y},${color}`)
+        const gan = blade('ganjiang_sword')
+        expect(gan.length).toBeGreaterThan(20) // 别拿两个空集互比
+        expect(gan).toEqual(blade('moxie_sword'))
+    })
+})

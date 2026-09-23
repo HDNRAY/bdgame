@@ -60,7 +60,7 @@ export function EditorPreview({
             ) : (
                 <PixelCanvas
                     pixels={weaponGrid}
-                    palette={Object.fromEntries(weaponPalette.map((c, i) => [String(i), c || 'transparent']))}
+                    palette={Object.fromEntries(Array.from(weaponPalette, (c, i) => [String(i), c || 'transparent']))}
                     scale={5}
                     canvasCols={WEAPON_WIDTH}
                     canvasRows={WEAPON_HEIGHT}

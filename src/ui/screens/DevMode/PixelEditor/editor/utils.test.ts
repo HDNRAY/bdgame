@@ -89,6 +89,15 @@ describe('武器美术 → 编辑器网格（weaponArtToGrids）', () => {
         // 姿势块里的 3 指向同一套下标（通用图那份 palette）
         expect(poses.idle[1][1]).toBe(3)
     })
+    it('文件里缺某个调色板键时，返回的调色板必须是稠密的（空洞填空字符串）', () => {
+        // 稀疏数组的 map 会跳过空洞、并把空洞留在结果里；Object.fromEntries 迭代到空洞
+        // 拿到 undefined 就抛 "Iterator value undefined is not an entry object"（编辑器预览崩过）。
+        WEAPON_OVERLAYS[SHARED] = { palette: { '1': '#111111', '3': '#333333' }, pixels: [[0, 0, 3]] }
+        const { palette } = weaponArtToGrids(SHARED)
+        expect(palette[2]).toBe('')
+        expect(Object.keys(palette).length).toBe(palette.length) // 没有空洞
+        expect(() => Object.fromEntries(palette.map((c, i2) => [String(i2), c || 'transparent']))).not.toThrow()
+    })
 })
 
 describe('编辑器武器图初值（initialWeaponView）', () => {

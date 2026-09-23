@@ -134,6 +134,11 @@ export function weaponArtToGrids(weaponId: string): {
             palette[i] = color
         }
     }
+    // 文件里缺哪个键，那个下标就是「空位」。务必**填成空字符串把数组做稠密**：
+    // 稀疏数组的 map/forEach 会跳过空洞并把空洞留在结果里，而 Object.fromEntries 迭代到
+    // 空洞会拿到 undefined 直接抛 "Iterator value undefined is not an entry object"。
+    for (let i = 1; i < palette.length; i++) if (palette[i] === undefined) palette[i] = ''
+
     const indexOfColor = (color: string): number => {
         const wanted = color.toLowerCase()
         for (let i = 1; i < palette.length; i++) if (palette[i]?.toLowerCase() === wanted) return i
