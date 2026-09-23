@@ -30,6 +30,7 @@ import { moxie_sword } from './moxie_sword'
 import { fei_jian } from './fei_jian'
 import { fusi_sword } from './fusi_sword'
 import { buer_sword } from './buer_sword'
+import { broken_blade } from './broken_blade'
 
 /** 武器 id → 条目 */
 export const WEAPON_ENTRIES: Record<
@@ -62,6 +63,7 @@ export const WEAPON_ENTRIES: Record<
     fei_jian,
     fusi_sword,
     buer_sword,
+    broken_blade,
 }
 
 const weaponIds = [
@@ -89,6 +91,7 @@ const weaponIds = [
     'fei_jian',
     'fusi_sword',
     'buer_sword',
+    'broken_blade',
 ]
 
 /** 武器叠加层（纯美术） */
