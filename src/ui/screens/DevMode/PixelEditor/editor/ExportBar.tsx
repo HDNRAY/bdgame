@@ -94,13 +94,13 @@ export function ExportBar({
             </div>
 
             <div className="pixel-editor-row">
-                <button
-                    className="pixel-editor-btn"
-                    title="复制当前槽要粘回武器文件的那一块：在通用图导出 overlay 块，在某个姿势导出 art 块"
-                    onClick={onCopyExported}
-                >
-                    复制片段
-                </button>
+                {/* 身体帧才用整段复制；武器模式下整块替换会连兄弟姿势一起顶掉，
+                    所以只留「复制当前条目」与「复制调色板」两个更精确的入口 */}
+                {mode === 'frame' && (
+                    <button className="pixel-editor-btn" onClick={onCopyExported}>
+                        复制片段
+                    </button>
+                )}
                 {mode === 'weapon' && (
                     <>
                         <button

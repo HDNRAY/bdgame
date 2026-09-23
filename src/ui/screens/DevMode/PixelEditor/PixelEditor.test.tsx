@@ -174,13 +174,13 @@ describe('PixelEditor 武器图模式 · 逐姿势美术', () => {
         expect(text).toContain('[0, 0, 8],')
     })
 
-    it('导出面板三个复制按钮：片段（整块）/ 当前条目（只这一条）/ 调色板', () => {
+    it('武器模式的复制按钮只有两个：当前条目 / 调色板（整块的「复制片段」只在身体帧模式）', () => {
         stored = JSON.stringify(weaponState())
         const html = renderToStaticMarkup(<PixelEditor />)
-        expect(html).toContain('>复制片段</button>')
+        expect(html).not.toContain('>复制片段</button>')
         expect(html).toContain('>复制当前条目</button>')
         expect(html).toContain('>复制调色板</button>')
-        // 「复制片段」给的是像素，调色板不在里面（要调色板请点「复制调色板」）
+        // 代码框里给的是像素，调色板不在里面（要调色板请点「复制调色板」）
         expect(exportText(html)).not.toContain('const PALETTE')
     })
 

@@ -7,20 +7,22 @@
 import type { WeaponArtTable, WeaponOverlay } from '../../types'
 import { makePoses, type WeaponPoseTable } from '../poses'
 
+// weapons/entries/dark_iron_sword.ts 顶部：这把武器**所有图共用**的调色板（下标 = 这里的键）
+const PALETTE: Record<string, string> = {
+    '1': '#26262e',
+    '2': '#28282a',
+    '3': '#202027',
+    '4': '#1f1f1f',
+    '5': '#4a2f1c',
+    '7': '#202022',
+}
+
 // 玄铁重剑：虽为重型（heavy），但按**主手单持**处理 —— 只锚主手、无第二握点
 export const dark_iron_sword: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
+    // weapons/entries/dark_iron_sword.ts → 替换 overlay 那一条（共用调色板挂在这一条上，别丢）
     overlay: {
-        palette: {
-            '4': '#3c3c46', // 剑身（中）
-            '1': '#26262e', // 剑身暗侧
-            '2': '#5a5a68', // 剑身亮侧
-            '3': '#1f1f27', // 护手（最深，略提亮）
-            '5': '#4a2f1c', // 剑柄缠绳
-            '7': '#2f2f38', // 柄端配重
-        },
+        palette: PALETTE,
         pixels: [
-            // 玄铁重剑：通体玄铁；护手最深色；柄在右下、剑身朝左上
-            // 主握点 21,21（柄）、第二握点 18,18（护手端）
             [4, 4, 4],
             [5, 4, 4],
             [6, 4, 2],
@@ -120,7 +122,7 @@ export const dark_iron_sword: { overlay?: WeaponOverlay; art?: WeaponArtTable; p
             [19, 18, 4],
             [20, 18, 2],
             [21, 18, 2],
-            [24, 18, 3],
+            [24, 18, 8],
             [16, 19, 1],
             [17, 19, 1],
             [18, 19, 4],
@@ -144,35 +146,32 @@ export const dark_iron_sword: { overlay?: WeaponOverlay; art?: WeaponArtTable; p
             [21, 21, 3],
             [22, 21, 3],
             [23, 21, 3],
-            [24, 21, 3],
+            [24, 21, 8],
             [19, 22, 1],
             [20, 22, 3],
             [21, 22, 3],
             [22, 22, 3],
-            [23, 22, 3],
+            [23, 22, 5],
             [19, 23, 3],
             [20, 23, 3],
             [21, 23, 3],
-            [22, 23, 3],
+            [22, 23, 5],
             [23, 23, 5],
             [24, 23, 5],
-            [18, 24, 3],
+            [18, 24, 8],
             [19, 24, 3],
             [20, 24, 3],
-            [21, 24, 3],
+            [21, 24, 8],
             [23, 24, 5],
             [24, 24, 5],
             [25, 24, 5],
             [24, 25, 5],
             [25, 25, 5],
-            [26, 25, 5],
-            [25, 26, 5],
-            [26, 26, 5],
-            [27, 26, 7],
-            [28, 26, 7],
-            [26, 27, 7],
-            [27, 27, 7],
-            [26, 28, 7],
+            [26, 25, 7],
+            [25, 26, 7],
+            [26, 26, 7],
+            [28, 26, 8],
+            [26, 28, 8],
         ],
     },
     // weapons/entries/dark_iron_sword.ts → poses:

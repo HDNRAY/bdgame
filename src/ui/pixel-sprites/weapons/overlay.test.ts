@@ -206,3 +206,14 @@ describe('武器美术的调色板覆盖', () => {
         expect(bad).toEqual([])
     })
 })
+
+describe('弗思剑 / 不二剑', () => {
+    it('三把剑的颜色必须互不相同（否则"复制一份忘了改色"会悄悄混过去）', () => {
+        // 注：这两把最初是照抄桃木剑的点位、只换颜色；后来弗思剑的点位被手工重画过，
+        // 所以"点位逐格一致"不再是约束。这里只守颜色这一条 —— 顺手删掉那句形状断言。
+        const colors = (id: string) => [...new Set(resolveWeaponPixels(WEAPON_OVERLAYS[id]).map((p) => p[2]))]
+        expect(colors('fusi_sword')).not.toEqual(colors('peach_sword'))
+        expect(colors('buer_sword')).not.toEqual(colors('peach_sword'))
+        expect(colors('fusi_sword')).not.toEqual(colors('buer_sword'))
+    })
+})

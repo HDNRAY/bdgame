@@ -28,6 +28,8 @@ import { yanling_blade } from './yanling_blade'
 import { ganjiang_sword } from './ganjiang_sword'
 import { moxie_sword } from './moxie_sword'
 import { fei_jian } from './fei_jian'
+import { fusi_sword } from './fusi_sword'
+import { buer_sword } from './buer_sword'
 
 /** 武器 id → 条目 */
 export const WEAPON_ENTRIES: Record<
@@ -58,6 +60,8 @@ export const WEAPON_ENTRIES: Record<
     ganjiang_sword,
     moxie_sword,
     fei_jian,
+    fusi_sword,
+    buer_sword,
 }
 
 const weaponIds = [
@@ -82,6 +86,8 @@ const weaponIds = [
     'ganjiang_sword',
     'moxie_sword',
     'fei_jian',
+    'fusi_sword',
+    'buer_sword',
 ]
 
 /** 武器叠加层（纯美术） */
