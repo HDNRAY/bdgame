@@ -188,3 +188,21 @@ describe('干将 / 莫邪 是一对', () => {
         expect(gan).toEqual(blade('moxie_sword'))
     })
 })
+
+describe('武器美术的调色板覆盖', () => {
+    it('像素用到的每个下标都在调色板里有颜色（否则渲染成洋红）', () => {
+        // 姿势块不写 palette（继承通用图那份），所以按武器的有效调色板检查。
+        const bad: string[] = []
+        const check = (id: string, where: string, pixels: readonly (readonly [number, number, unknown])[]) => {
+            const palette = WEAPON_OVERLAYS[id]?.palette ?? {}
+            for (const [, , color] of pixels) {
+                if (typeof color === 'number' && palette[color] === undefined) bad.push(`${id}.${where} 下标 ${color}`)
+            }
+        }
+        for (const [id, overlay] of Object.entries(WEAPON_OVERLAYS)) check(id, 'overlay', overlay.pixels)
+        for (const [id, table] of Object.entries(WEAPON_ARTS)) {
+            for (const [pose, block] of Object.entries(table)) if (block) check(id, pose, block.pixels)
+        }
+        expect(bad).toEqual([])
+    })
+})
