@@ -12,8 +12,8 @@
  * 刀尖在美术网格左上端（k = x+y 最小处），柄往右下收；沿轴跨度 max(x+y) − min(x+y) = 46 格。
  * 与枪 / 戟的区别不在「柄短」，而在**刀身宽大厚重**（枪戟是细杆 + 左上一个小头）。
  */
-import type { WeaponArtTable, WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry } from '../../types'
+import { makePoses } from '../poses'
 
 // weapons/entries/overlord_blade.ts 顶部：这把武器**所有图共用**的调色板（下标 = 这里的键）
 const PALETTE: Record<string, string> = {
@@ -24,7 +24,7 @@ const PALETTE: Record<string, string> = {
 }
 
 // 素铁霸刀（双手陌刀）：握点取柄（后半段）的中点，锚副手（anchorHand: 'off'），两手都在柄上。
-export const overlord_blade: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
+export const overlord_blade: WeaponEntry = {
     // weapons/entries/overlord_blade.ts → 替换 overlay 那一条（共用调色板挂在这一条上，别丢）
     overlay: {
         palette: PALETTE,

@@ -4,8 +4,8 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry } from '../../types'
+import { makePoses } from '../poses'
 
 /**
  * 惊鸿（雁翎刀形制）：**以绣冬为底，刀身收窄一格**。
@@ -25,7 +25,7 @@ const PALETTE: Record<string, string> = {
     '7': '#9f3304',
 }
 
-export const yanling_blade: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const yanling_blade: WeaponEntry = {
     // weapons/entries/yanling_blade.ts → overlay:
     overlay: {
         palette: PALETTE,

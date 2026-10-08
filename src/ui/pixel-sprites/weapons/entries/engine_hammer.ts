@@ -15,8 +15,8 @@
  *     不与亮面交替，避免 45° 网格上一亮一暗的花斑。整体紧凑（range 0~2 是全仓最短档）：
  *     沿轴跨度 max(x + y) − min(x + y) = 38 格。
  */
-import type { WeaponArtTable, WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry } from '../../types'
+import { makePoses } from '../poses'
 
 // weapons/entries/engine_hammer.ts 顶部：这把武器**所有图共用**的调色板（下标 = 这里的键）
 const PALETTE: Record<string, string> = {
@@ -27,7 +27,7 @@ const PALETTE: Record<string, string> = {
     '5': '#0084ff',
 }
 
-export const engine_hammer: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
+export const engine_hammer: WeaponEntry = {
     // weapons/entries/engine_hammer.ts → 替换 overlay 那一条（共用调色板挂在这一条上，别丢）
     overlay: {
         palette: PALETTE,

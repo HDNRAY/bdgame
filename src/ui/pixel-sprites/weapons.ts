@@ -14,6 +14,7 @@
 export { HAND_POINTS, OTHER_HAND_POINT, HAND_COVER, LEFT_HAND_COVER } from './weapons/hands'
 export { POSE_NAMES, makePoses, mergePoseConfig, sharedOf, SHARED_KEYS } from './weapons/poses'
 export type { PoseKey, WeaponPoseTable, WeaponSlot } from './weapons/poses'
+export type { WeaponEntry } from './types'
 export { WEAPON_ENTRIES, WEAPON_OVERLAYS, WEAPON_ARTS, WEAPON_POSES } from './weapons/entries/index'
 export {
     poseConfigIn,

@@ -12,6 +12,7 @@ export type {
     AvatarData,
     WeaponOverlay,
     WeaponArtTable,
+    WeaponEntry,
     WeaponPixelColor,
     WeaponPoseConfig,
 } from './types'

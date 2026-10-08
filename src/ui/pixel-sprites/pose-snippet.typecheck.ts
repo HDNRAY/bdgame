@@ -9,20 +9,16 @@
  * 交叉类型自相矛盾 —— 只要片段里带 `off` 块，粘贴就报类型错（而库里当时没有一把武器
  * 带 off，所以 tsc 一直是绿的）。现在类型改成显式姿势键，并由本文件钉死。
  */
-import { WEAPON_POSES, type WeaponPoseTable } from './weapons'
-import type { WeaponArtTable, WeaponPoseConfig, WeaponOverlay } from './types'
+import { WEAPON_POSES, type WeaponEntry } from './weapons'
+import type { WeaponPoseConfig } from './types'
 
 // 与 weapons/poses.ts 里的 makePoses 同签名
 function makePoses(base: Partial<WeaponPoseConfig>): Record<string, Partial<WeaponPoseConfig>> {
     return { idle: { ...base }, attack: { ...base } }
 }
 
-/** 武器文件的形状：overlay（通用美术）+ art（逐姿势美术）+ poses（挂点） */
-export interface WeaponFileShape {
-    overlay?: WeaponOverlay
-    art?: WeaponArtTable
-    poses: WeaponPoseTable
-}
+/** 武器文件的形状：overlay（通用美术）+ art（逐姿势美术）+ poses（挂点）—— 与武器条目共用同一个具名类型 */
+export type WeaponFileShape = WeaponEntry
 
 /** 形如编辑器导出的完整武器文件：overlay 块 + poses 块（含逐姿势覆盖与副手槽 off 块） */
 export const weaponFileShape: Record<string, WeaponFileShape> = {

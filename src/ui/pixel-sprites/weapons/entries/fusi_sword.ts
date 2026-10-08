@@ -4,8 +4,8 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry } from '../../types'
+import { makePoses } from '../poses'
 
 /**
  * 弗思剑（原型：景阳真人佩剑，「剑光如炽」「道心纯粹」——打磨极亮、线条极干净，没有多余装饰。）
@@ -26,7 +26,7 @@ const PALETTE: Record<string, string> = {
     '7': '#8f2020',
 }
 
-export const fusi_sword: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const fusi_sword: WeaponEntry = {
     // weapons/entries/fusi_sword.ts → 替换 overlay 那一条（共用调色板挂在这一条上，别丢）
     overlay: {
         palette: PALETTE,

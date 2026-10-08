@@ -4,8 +4,8 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry } from '../../types'
+import { makePoses } from '../poses'
 
 /**
  * 莫邪（雌剑回息，内息自生）：干将莫邪是一对同源剑，所以**剑身逐格一致**（原型是君子剑/淑女剑
@@ -26,7 +26,7 @@ const PALETTE: Record<string, string> = {
     '8': '#fff6e0', // 柄首记号：回（回息）
 }
 
-export const moxie_sword: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const moxie_sword: WeaponEntry = {
     // weapons/entries/moxie_sword.ts → overlay:
     overlay: {
         palette: PALETTE,

@@ -2,7 +2,7 @@
  * 武器登记表：把「一个武器一个文件」的条目汇总成 WEAPON_OVERLAYS（美术）与 WEAPON_POSES（挂点）。
  * 两个表的键顺序沿用拆分前（渲染顺序 / 面板顺序依赖它）。
  */
-import type { WeaponArtTable, WeaponOverlay } from '../../types'
+import type { WeaponArtTable, WeaponEntry, WeaponOverlay } from '../../types'
 import type { WeaponPoseTable } from '../poses'
 import { bare_hands } from './bare_hands'
 import { zantetsu } from './zantetsu'
@@ -35,10 +35,7 @@ import { engine_hammer } from './engine_hammer'
 import { qianji } from './qianji'
 
 /** 武器 id → 条目 */
-export const WEAPON_ENTRIES: Record<
-    string,
-    { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable }
-> = {
+export const WEAPON_ENTRIES: Record<string, WeaponEntry> = {
     bare_hands,
     dark_iron_sword,
     tri_orb,

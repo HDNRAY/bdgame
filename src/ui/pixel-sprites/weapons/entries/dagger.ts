@@ -4,10 +4,10 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponArtTable, WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry } from '../../types'
+import { makePoses } from '../poses'
 
-export const dagger: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
+export const dagger: WeaponEntry = {
     // weapons/entries/dagger.ts → overlay:
     overlay: {
         palette: {

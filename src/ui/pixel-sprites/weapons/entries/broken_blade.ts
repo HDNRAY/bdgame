@@ -12,8 +12,8 @@
  * 3. 锁链从柄尾甩出去，五节，逐节往右下掉，颜色按「两格暗（6/5）+ 一节亮（7）」读链节。
  * 4. 不用锃亮的新铁色：整体是发暗的旧铁，链用暗棕/锈色。
  */
-import type { WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry, WeaponPixelColor } from '../../types'
+import { makePoses } from '../poses'
 
 // weapons/entries/broken_blade.ts 顶部：这把武器**所有图共用**的调色板（下标 = 这里的键）
 const PALETTE: Record<string, string> = {
@@ -23,8 +23,56 @@ const PALETTE: Record<string, string> = {
     '4': '#191614',
 }
 
+const poseWeaponPixels: [number, number, WeaponPixelColor][] = [
+    [11, 9, 1],
+    [11, 10, 1],
+    [12, 10, 1],
+    [11, 11, 2],
+    [12, 11, 1],
+    [13, 11, 1],
+    [11, 12, 2],
+    [12, 12, 2],
+    [13, 12, 1],
+    [14, 12, 1],
+    [11, 13, 1],
+    [12, 13, 2],
+    [13, 13, 2],
+    [14, 13, 1],
+    [15, 13, 1],
+    [11, 14, 1],
+    [12, 14, 1],
+    [13, 14, 2],
+    [14, 14, 2],
+    [15, 14, 1],
+    [16, 14, 1],
+    [12, 15, 1],
+    [13, 15, 1],
+    [14, 15, 2],
+    [15, 15, 2],
+    [16, 15, 1],
+    [17, 15, 1],
+    [13, 16, 1],
+    [14, 16, 1],
+    [15, 16, 1],
+    [16, 16, 1],
+    [17, 16, 1],
+    [14, 17, 1],
+    [15, 17, 1],
+    [16, 17, 1],
+    [17, 17, 1],
+    [18, 17, 3],
+    [18, 18, 1],
+    [19, 18, 3],
+    [19, 19, 1],
+    [20, 19, 1],
+    [20, 20, 1],
+    [21, 20, 1],
+    [20, 21, 1],
+    [21, 21, 1],
+]
+
 // 锁链断刀：单手（one_handed），主手握柄。不写 handCover —— 手遮在柄上即是默认行为
-export const broken_blade: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const broken_blade: WeaponEntry = {
     // weapons/entries/broken_blade.ts → 替换 overlay 那一条（共用调色板挂在这一条上，别丢）
     overlay: {
         palette: PALETTE,
@@ -128,6 +176,26 @@ export const broken_blade: { overlay?: WeaponOverlay; poses: WeaponPoseTable } =
             [14, 26, 4],
             [15, 26, 4],
         ],
+    },
+    art: {
+        idle: {
+            pixels: poseWeaponPixels,
+        },
+        attack: {
+            pixels: poseWeaponPixels,
+        },
+        parry: {
+            pixels: poseWeaponPixels,
+        },
+        hit: {
+            pixels: poseWeaponPixels,
+        },
+        dodge: {
+            pixels: poseWeaponPixels,
+        },
+        buff: {
+            pixels: poseWeaponPixels,
+        },
     },
     // weapons/entries/broken_blade.ts → poses:
     poses: {

@@ -4,8 +4,8 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponArtTable, WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry } from '../../types'
+import { makePoses } from '../poses'
 
 // weapons/entries/chun_lei.ts 顶部：这把武器**所有图共用**的调色板（下标 = 这里的键）
 const PALETTE: Record<string, string> = {
@@ -18,7 +18,7 @@ const PALETTE: Record<string, string> = {
 }
 
 // 春雷（二尺四寸 / 一斤三两 / 吹毛断发）：轻短弧刃，握点取柄的质心
-export const chun_lei: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
+export const chun_lei: WeaponEntry = {
     // weapons/entries/chun_lei.ts → overlay:
     overlay: {
         palette: PALETTE,

@@ -1,4 +1,5 @@
 /** 像素精灵 — 类型定义 */
+import type { WeaponPoseTable } from './weapons/poses'
 
 export type Palette = Record<string, string>
 export type PixelMap = number[][]
@@ -30,6 +31,18 @@ export interface WeaponOverlay {
  * 调色盘约定：每把武器仍只有一份 palette，六张图共用。
  */
 export type WeaponArtTable = Partial<Record<string, WeaponOverlay>>
+
+/**
+ * 一个武器条目的形状（`weapons/entries/<武器>.ts` 的导出值 + WEAPON_ENTRIES 的值类型）：
+ * `overlay`（通用美术）/ `art`（逐姿势美术）可选，`poses`（挂点表）必需。
+ * `WeaponPoseTable` 由 `weapons/poses.ts` 定义；这里是纯类型引用（`import type` 编译后擦除，
+ * 不产生运行时循环依赖）。
+ */
+export interface WeaponEntry {
+    overlay?: WeaponOverlay
+    art?: WeaponArtTable
+    poses: WeaponPoseTable
+}
 
 /** 每武器·每姿势的握持配置（独立于武器美术，见 weapons.ts WEAPON_POSES） */
 export interface WeaponPoseConfig {

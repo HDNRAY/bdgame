@@ -4,8 +4,8 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），甲片外缘/指节朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponArtTable, WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry } from '../../types'
+import { makePoses } from '../poses'
 
 /**
  * 素手无相：一枚古朴的白玉环，以炁驱动时延展覆盖手与小臂，化作银白护甲。
@@ -26,7 +26,7 @@ const PALETTE: Record<string, string> = {
     '4': '#b3c9c6', // 暗面（银玉灰 —— 整体提亮，不再是深绿）
 }
 
-export const iron_back_hand: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
+export const iron_back_hand: WeaponEntry = {
     // weapons/entries/iron_back_hand.ts → overlay:
     // 白玉环：两枚小环。共用调色板挂在下面这一条上（整条替换时别把 palette 弄丢）。
     overlay: {

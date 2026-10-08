@@ -14,8 +14,8 @@
  * 4. 握点在握持段中部（美术坐标 16,16 = 轴向 k 32），也就是整张图的中心：无论如何旋转，整根棍都落在
  *    32×32 美术网格内（最远端离握点 15.6 格），预览与战斗都不会被裁掉。
  */
-import type { WeaponArtTable, WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry } from '../../types'
+import { makePoses } from '../poses'
 
 // weapons/entries/qianji.ts 顶部：这把武器**所有图共用**的调色板（下标 = 这里的键）
 // 四个层次全是黑：4 握把最暗、1 棍身背光侧、2 棍身中间调（兼缠绳环）、3 弱高光
@@ -32,7 +32,7 @@ const PALETTE: Record<string, string> = {
 // 渲染器的 `renderHandCover` 对 polearm 一律补画另一只手的遮罩；而 anchorHand: 'off' 会让那个「补画」
 // 与主遮罩指向同一只手（副手被盖两次、主手反而没有），所以这里必须锚主手。
 // 多出来的那只手遮罩本身无害：两张遮罩表落在身体帧上的像素本来就是皮肤色（见 hands.ts）。
-export const qianji: { overlay?: WeaponOverlay; art?: WeaponArtTable; poses: WeaponPoseTable } = {
+export const qianji: WeaponEntry = {
     // weapons/entries/qianji.ts → 替换 overlay 那一条（共用调色板挂在这一条上，别丢）
     overlay: {
         palette: PALETTE,

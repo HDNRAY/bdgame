@@ -4,8 +4,8 @@
  * 画法约定：轴向几何（u = (A-x-y)·√½ / v = (y-x)·√½），刃朝美术网格左上端，颜色索引必须写数字。
  * 挂点口径见 `../hands.ts`（锚点=遮罩正中）与 `../poses.ts`（makePoses 基底 + 逐姿势微调）。
  */
-import type { WeaponOverlay } from '../../types'
-import { makePoses, type WeaponPoseTable } from '../poses'
+import type { WeaponEntry } from '../../types'
+import { makePoses } from '../poses'
 
 /**
  * 干将（雄剑追星，迅捷无匹）：干将莫邪是一对同源剑，所以**剑身逐格一致**（原型是君子剑/淑女剑
@@ -26,7 +26,7 @@ const PALETTE: Record<string, string> = {
     '8': '#eaf4ff', // 柄首记号：星（追星）
 }
 
-export const ganjiang_sword: { overlay?: WeaponOverlay; poses: WeaponPoseTable } = {
+export const ganjiang_sword: WeaponEntry = {
     // weapons/entries/ganjiang_sword.ts → overlay:
     overlay: {
         palette: PALETTE,
