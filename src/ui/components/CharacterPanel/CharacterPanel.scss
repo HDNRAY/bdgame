@@ -31,28 +31,28 @@
     gap: var(--sp-xxs);
 }
 
+/* 基础七件套已迁到共用 Button 组件（variant=default size=md）。本页头部这排是
+   无边框「平底」按钮，只留残差：压掉 .btn 的描边、保住更小的纵向内边距。 */
 .cp-btn {
-    padding: var(--sp-xxs) var(--sp-lg);
     border: none;
-    border-radius: var(--radius-md);
-    background: var(--color-bg-panel);
-    color: var(--color-text);
-    cursor: pointer;
-    font-size: var(--font-md);
-    font-family: var(--font-mono);
-    transition: all 0.15s;
-    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    padding: var(--sp-xxs) var(--sp-lg);
+
+    /* 无描边按钮：把 hover/active 的描边色钉回 currentColor（border: none 下
+       computed border-color 就是 currentColor），避免 .btn-default 的 border-hover 串进来 */
     @media (hover: hover) {
         &:hover {
-            background: var(--color-bg-hover);
+            border-color: currentColor;
         }
     }
 
     &:active {
-        background: var(--color-bg-hover);
+        border-color: currentColor;
     }
 }
 
+/* 实心主按钮（填充色板）：不用 Button 的配色变体，只借它的七件套。
+   hover/active 仍是「整体提亮」（filter）——底色沿用原口径（由 .cp-btn:hover / .btn-default 给），
+   本页不额外换色。 */
 .cp-btn-save {
     background: var(--color-accent);
     color: #fff;
@@ -241,31 +241,37 @@
     min-width: 0;
 }
 
+/* 写死尺寸的图标按钮（− + ×）。七件套来自 Button（variant=default size=sm），
+   这里只留固定尺寸、flex 居中，以及三处「压回迁移前口径」的钉住：
+   padding=0（全局 reset 的值，Button 的 sm 档自带内边距）、--font-sm 字号、
+   以及 <button> 的 UA 默认字体 Arial（原来没继承页面像素字体）。 */
 .cp-btn-sm {
     width: 1.375rem;
     height: 1.125rem;
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--radius-sm);
-    background: var(--color-bg-panel);
-    color: var(--color-text);
-    cursor: pointer;
-    font-size: var(--font-sm);
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
+    font-size: var(--font-sm);
+    font-family: Arial;
+
     &:disabled {
         opacity: 0.25;
         cursor: default;
     }
-    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮。
+       描边色钉回 --color-border：本页按钮原来 hover 只换底色（不点亮描边） */
     @media (hover: hover) {
         &:hover:not(:disabled) {
             background: var(--color-bg-hover);
+            border-color: var(--color-border);
         }
     }
 
     &:active:not(:disabled) {
         background: var(--color-bg-hover);
+        border-color: var(--color-border);
     }
 }
 

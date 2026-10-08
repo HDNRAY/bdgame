@@ -24,6 +24,7 @@ import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
 import { BattleStyleSelector } from './BattleStyleSelector'
 import { EntityItem } from '../ui/EntityItem/EntityItem'
 import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
+import { Button } from '../ui/Button/Button'
 import { DUEL_TAB_PATH } from '../../routes'
 import './CharacterPanel.scss'
 
@@ -182,16 +183,21 @@ export function CharacterPanel({
             {/* Header */}
             {isBuild && (
                 <div className="cp-header">
-                    <button className="cp-btn" onClick={onBack ?? (() => navigate(DUEL_TAB_PATH))}>
+                    <Button
+                        variant="default"
+                        size="md"
+                        className="cp-btn"
+                        onClick={onBack ?? (() => navigate(DUEL_TAB_PATH))}
+                    >
                         返回
-                    </button>
+                    </Button>
                     <div className="cp-actions">
-                        <button className="cp-btn cp-btn-reset" onClick={handleReset}>
+                        <Button variant="default" size="md" className="cp-btn cp-btn-reset" onClick={handleReset}>
                             复位
-                        </button>
-                        <button className="cp-btn cp-btn-save" onClick={handleSave}>
+                        </Button>
+                        <Button variant="default" size="md" className="cp-btn cp-btn-save" onClick={handleSave}>
                             保存
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}
@@ -334,20 +340,24 @@ export function CharacterPanel({
                                     <AttributeLabel attr={attr} value={finalVal} baseValue={brk.base} breakdown={brk} />
                                     {isBuild && (
                                         <>
-                                            <button
+                                            <Button
+                                                variant="default"
+                                                size="sm"
                                                 className="cp-btn-sm"
                                                 disabled={brk.base <= (build.baseAttrs?.[attr] ?? 3)}
                                                 onClick={() => handleAttrAdjust(attr, -1)}
                                             >
                                                 −
-                                            </button>
-                                            <button
+                                            </Button>
+                                            <Button
+                                                variant="default"
+                                                size="sm"
                                                 className="cp-btn-sm"
                                                 disabled={brk.base >= 30 || remaining < cultCost(brk.base)}
                                                 onClick={() => handleAttrAdjust(attr, 1)}
                                             >
                                                 +
-                                            </button>
+                                            </Button>
                                             {brk.base < 30 && <span className="cp-cost">{cultCost(brk.base)}pt</span>}
                                         </>
                                     )}
@@ -361,22 +371,29 @@ export function CharacterPanel({
                         <div className="cp-section">
                             <div className="cp-section-label">
                                 奖励 ({poolUsed}/{poolCap})
-                                <button className="cp-btn-sm cp-add-btn" onClick={() => setPickerOpen(true)}>
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    className="cp-btn-sm cp-add-btn"
+                                    onClick={() => setPickerOpen(true)}
+                                >
                                     + 添加
-                                </button>
+                                </Button>
                             </div>
                             <div className="cp-pool-list">
                                 {poolWeaponSlots.map((s) => (
                                     <div key={s.slot} className="cp-pool-row">
                                         <span className="cp-pool-slot">{s.slot === 'main' ? '主手' : '副手'}</span>
                                         <EntityItem entity={rewardDef('weapon', s.id) as never} type="weapon" />
-                                        <button
+                                        <Button
+                                            variant="default"
+                                            size="sm"
                                             className="cp-btn-sm"
                                             title={s.slot === 'main' ? '移除该武器，恢复初始武器' : '移除副手武器'}
                                             onClick={() => onRemoveWeaponSlot?.(s.slot)}
                                         >
                                             ×
-                                        </button>
+                                        </Button>
                                     </div>
                                 ))}
                                 {build.rewards.map((r) => {
@@ -389,14 +406,16 @@ export function CharacterPanel({
                                                 entity={def as never}
                                                 type={r.type as 'action' | 'passive' | 'artifact'}
                                             />
-                                            <button
+                                            <Button
+                                                variant="default"
+                                                size="sm"
                                                 className="cp-btn-sm"
                                                 onClick={() =>
                                                     onRemoveReward?.(r.type as Exclude<Reward['type'], 'weapon'>, r.id)
                                                 }
                                             >
                                                 ×
-                                            </button>
+                                            </Button>
                                         </div>
                                     )
                                 })}

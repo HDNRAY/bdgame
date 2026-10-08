@@ -70,6 +70,7 @@ import {
     weaponGridToJson,
 } from './editor/utils'
 
+import { Button } from '../../../components/ui/Button/Button'
 import './PixelEditor.scss'
 
 export function PixelEditor() {
@@ -646,27 +647,27 @@ export function PixelEditor() {
                 {/* 模式切换：三种模式都常驻（挂点模式下也要能切回去） */}
                 <div className="pixel-editor-row">
                         <div className="pixel-editor-seg">
-                            <button
+                            <Button variant="default" size="sm"
                                 className={`pixel-editor-tool ${mode === 'frame' ? 'active' : ''}`}
                                 title="编辑身体姿势帧（48×48，槽位色随角色配色）"
                                 onClick={() => switchMode('frame')}
                             >
                                 身体帧
-                            </button>
-                            <button
+                            </Button>
+                            <Button variant="default" size="sm"
                                 className={`pixel-editor-tool ${mode === 'weapon' ? 'active' : ''}`}
                                 title="编辑武器图（32×32，颜色任选）"
                                 onClick={() => switchMode('weapon')}
                             >
                                 武器图
-                            </button>
-                            <button
+                            </Button>
+                            <Button variant="default" size="sm"
                                 className={`pixel-editor-tool ${mode === 'mount' ? 'active' : ''}`}
                                 title="实验武器挂在身上哪里、倾角多少（不同动作不同），导出武器文件里的 poses 块"
                                 onClick={() => switchMode('mount')}
                             >
                                 武器挂点
-                            </button>
+                            </Button>
                         </div>
                 </div>
                 {mode === 'mount' ? (

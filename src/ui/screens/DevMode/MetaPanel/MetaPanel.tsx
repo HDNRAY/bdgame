@@ -10,6 +10,7 @@ import { ATTR_CN, type AttrName } from '../../../../engine/entities/attributes'
 import { CHAMPION_BOSS_NAME, championImplantIds } from '../../../../game/champion-boss'
 import { META_SAVE_KEY, loadMeta, resetMeta, type MetaSave } from '../../../../game/meta-save'
 import { ENDING_NAMES } from '../../../../data/story-intros'
+import { Button } from '../../../components/ui/Button/Button'
 import './MetaPanel.scss'
 
 const ATTRS: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 'insight', 'wisdom']
@@ -51,11 +52,15 @@ export function MetaPanel() {
             <div className="meta-panel-head">
                 <h2>元进度</h2>
                 <div className="meta-panel-actions">
-                    <button onClick={refresh}>刷新</button>
-                    <button onClick={onCopy}>{copied ? '已复制' : '复制 JSON'}</button>
-                    <button className="danger" onClick={onClear}>
+                    <Button variant="default" size="md" onClick={refresh}>
+                        刷新
+                    </Button>
+                    <Button variant="default" size="md" onClick={onCopy}>
+                        {copied ? '已复制' : '复制 JSON'}
+                    </Button>
+                    <Button variant="default" size="md" className="danger" onClick={onClear}>
                         清档
-                    </button>
+                    </Button>
                 </div>
             </div>
             <p className="meta-panel-key">

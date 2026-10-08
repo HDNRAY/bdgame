@@ -1,3 +1,4 @@
+import { Button } from '../../../../components/ui/Button/Button'
 export interface AnchorPanelProps {
     /** 是否处于「拖动锚点」模式 */
     anchorEdit: boolean
@@ -28,22 +29,22 @@ export function AnchorPanel({
                 手部锚点{anchorDirty ? '（已改动）' : ''}
             </summary>
             <div className="pixel-editor-row">
-                <button
+                <Button variant="plain" size="sm"
                     className={`pixel-editor-btn ${anchorEdit ? 'active' : ''}`}
                     onClick={onToggleAnchorEdit}
                 >
                     {anchorEdit ? '正在拖动' : '拖动锚点'}
-                </button>
-                <button className="pixel-editor-btn" title="把两边锚点吸到最近的 2×2 皮肤块" onClick={onSnapToSkin}>
+                </Button>
+                <Button variant="plain" size="sm" className="pixel-editor-btn" title="把两边锚点吸到最近的 2×2 皮肤块" onClick={onSnapToSkin}>
                     吸附到皮肤
-                </button>
-                <button className="pixel-editor-btn" disabled={!anchorDirty} onClick={onResetAnchor}>
+                </Button>
+                <Button variant="plain" size="sm" className="pixel-editor-btn" disabled={!anchorDirty} onClick={onResetAnchor}>
                     重置
-                </button>
+                </Button>
             </div>
-            <button className="pixel-editor-btn" onClick={onCopyAnchor}>
+            <Button variant="plain" size="sm" className="pixel-editor-btn" onClick={onCopyAnchor}>
                 复制锚点片段
-            </button>
+            </Button>
             <details className="pixel-editor-code">
                 <summary title="展开看 weapons/hands.ts 的四张表片段（剪贴板不可用时手动复制）">查看锚点代码</summary>
                 <textarea

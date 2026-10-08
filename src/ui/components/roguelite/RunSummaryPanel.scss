@@ -174,6 +174,9 @@
         background: var(--color-bg);
     }
 
+    /* 基础七件套 + 静止/hover 配色都来自 Button（variant=default size=lg）：
+       .rsm-btn:hover 的「底色 + 描边」与 .btn-default:hover 完全同款，不再重复。
+       这里只留触摸尺寸 / 内边距 / 字距等布局残差。 */
     .rsm-btn {
         display: inline-flex;
         align-items: center;
@@ -182,31 +185,23 @@
         min-height: max(44px, 2.75rem);
         min-width: max(44px, 2.75rem);
         padding: var(--sp-xs) var(--sp-xl);
-        border: var(--border-width) solid var(--color-border);
-        border-radius: var(--radius-md);
-        background: var(--color-bg-panel);
-        color: var(--color-text);
-        cursor: pointer;
-        font-family: var(--font-mono);
-        font-size: var(--font-lg);
         letter-spacing: 0.3em;
 
-        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
-        @media (hover: hover) {
-            &:hover {
-                background: var(--color-bg-hover);
-                border-color: var(--color-border-hover);
-            }
-        }
-
+        /* 按下时描边转 accent（本页口径，Button 的 default 变体是 border-hover） */
         &:active {
-            background: var(--color-bg-hover);
             border-color: var(--color-accent);
         }
     }
 
     .rsm-btn-primary {
         border-color: var(--color-accent);
+        /* hover 时描边按通用口径回落到 border-hover（迁移前 .rsm-btn:hover 的特异性压过
+           .rsm-btn-primary，这里用祖先类补回同一位次） */
+        @media (hover: hover) {
+            &:hover {
+                border-color: var(--color-border-hover);
+            }
+        }
     }
 
     /* 触屏（无 hover）上，共用面板里未包 @media 的 :hover 会在点过之后「粘住」。

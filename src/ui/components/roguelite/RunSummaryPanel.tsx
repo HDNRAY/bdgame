@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { BattleStatsPanel } from '../BattleStatsPanel/BattleStatsPanel'
 import { CharacterPanel } from '../CharacterPanel/CharacterPanel'
+import { Button } from '../ui/Button/Button'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import type { RunBattleRecord } from '../../../game/entities/state'
 import type { BattleStatsSnapshot } from '../../../engine/combat/battle-stats'
@@ -106,12 +107,12 @@ export function RunSummaryPanel({
                 )}
 
                 <div className="rsm-foot">
-                    <button className="rsm-btn rsm-btn-primary" onClick={onRestart}>
+                    <Button variant="default" size="lg" className="rsm-btn rsm-btn-primary" onClick={onRestart}>
                         再来一局
-                    </button>
-                    <button className="rsm-btn" onClick={onExit}>
+                    </Button>
+                    <Button variant="default" size="lg" className="rsm-btn" onClick={onExit}>
                         返回主菜单
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

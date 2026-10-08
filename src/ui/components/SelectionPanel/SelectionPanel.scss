@@ -222,18 +222,13 @@
         }
     }
 
+    /* 基础七件套 + hover/active 高亮都来自 Button（variant=ghost size=sm）：
+       透明底、描边、hover/active 的「文字转亮 + 描边变 border-hover」与 ghost 变体一致。
+       这里只留暗一档的文字色与内边距残差；hover/active 仍需本文件补一遍，
+       因为上面那条静止文字色（(0,2,0)）会压过 .btn-ghost:hover（同为 (0,2,0)）。 */
     .back-btn {
         padding: var(--sp-xxs) var(--sp-md);
-        font-size: var(--font-sm);
-        font-family: var(--font-mono);
-        background: transparent;
         color: var(--color-text-dim);
-        border: var(--border-width) solid var(--color-border);
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        transition:
-            color 0.15s,
-            border-color 0.15s;
 
         /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
         @media (hover: hover) {

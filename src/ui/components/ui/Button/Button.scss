@@ -7,7 +7,20 @@
     border: var(--border-width) solid var(--color-border);
     transition: all 0.15s;
 
+    /* 禁用态：压暗 + 不用手型。各变体在文件里都补了 `&:disabled` 覆盖，
+       保证禁用时不吃 hover / active 高亮（同特异性、靠块内顺序压住）。 */
+    &:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
     /* ── 尺寸 ── */
+    &-xs {
+        padding: var(--sp-xxs) var(--sp-xs);
+        border-radius: var(--radius-sm);
+        font-size: var(--font-xs);
+    }
+
     &-sm {
         padding: var(--sp-xxs) var(--sp-xs);
         border-radius: var(--radius-sm);
@@ -43,6 +56,12 @@
             background: var(--color-bg-hover);
             border-color: var(--color-border-hover);
         }
+
+        /* 禁用时回落到静止配色（.btn:disabled 只压暗，不该亮起来） */
+        &:disabled {
+            background: var(--color-bg-panel);
+            border-color: var(--color-border);
+        }
     }
 
     /* 强调：主行动按钮（尚未有调用点，迁移 .gameplay-btn / .rsm-btn-primary 时接上） */
@@ -59,6 +78,10 @@
 
         &:active {
             background: var(--color-bg-hover);
+        }
+
+        &:disabled {
+            background: var(--color-accent-bg);
         }
     }
 
@@ -78,6 +101,11 @@
             color: var(--color-text-h);
             border-color: var(--color-border-hover);
         }
+
+        &:disabled {
+            color: var(--color-text);
+            border-color: var(--color-border);
+        }
     }
 
     /* 页面底色：比面板更"平"，用在面板内部的按钮上（如确认弹窗） */
@@ -95,6 +123,11 @@
         &:active {
             background: var(--color-bg-hover);
             border-color: var(--color-border-hover);
+        }
+
+        &:disabled {
+            background: var(--color-bg);
+            border-color: var(--color-border);
         }
     }
 }

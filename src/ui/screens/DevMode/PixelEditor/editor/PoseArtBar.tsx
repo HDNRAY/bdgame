@@ -1,5 +1,6 @@
 import { POSE_NAMES } from '../../../../pixel-sprites'
 import { WEAPON_BASE_SLOT } from './constants'
+import { Button } from '../../../../components/ui/Button/Button'
 
 export interface PoseArtBarProps {
     /** 当前编辑的槽：'base' = 通用图（overlay），其余是姿势名 */
@@ -29,16 +30,16 @@ export function PoseArtBar({
     return (
         <div className="pixel-editor-art-bar">
             <div className="pixel-editor-art-pose-grid">
-                <button
+                <Button variant="default" size="sm"
                     className={`pixel-editor-tool ${current === WEAPON_BASE_SLOT ? 'active' : ''} ${baseFilled ? 'filled' : ''}`}
                     title="通用图（overlay）：没有逐姿势美术时，所有姿势都用它；有姿势图时它是坍缩的最后一层"
                     onClick={() => onSelect(WEAPON_BASE_SLOT)}
                 >
                     通用
                     <span className="pixel-editor-pose-mark">{baseFilled ? '已' : '未'}</span>
-                </button>
+                </Button>
                 {POSE_NAMES.map((pose) => (
-                    <button
+                    <Button variant="default" size="sm"
                         key={pose}
                         className={`pixel-editor-tool ${current === pose ? 'active' : ''} ${filled[pose] ? 'filled' : ''}`}
                         title={`编辑「${pose}」姿势的那张图${
@@ -48,15 +49,15 @@ export function PoseArtBar({
                     >
                         {pose}
                         <span className="pixel-editor-pose-mark">{filled[pose] ? '已' : '未'}</span>
-                    </button>
+                    </Button>
                 ))}
-                <button
+                <Button variant="default" size="sm"
                     className="pixel-editor-tool pixel-editor-art-action"
                     title="清空当前槽的图：姿势清空后渲染会坍缩到 idle / 通用图，导出时也不写这一块"
                     onClick={onClearCurrent}
                 >
                     清空本站势
-                </button>
+                </Button>
             </div>
         </div>
     )

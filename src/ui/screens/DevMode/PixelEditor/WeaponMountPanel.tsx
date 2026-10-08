@@ -21,6 +21,7 @@ import { WEAPON_DB, getWeapon } from '../../../../data/weapons/weapons'
 import { STARTING_WEAPONS } from '../../../../data/weapons/starting-weapons'
 import { SearchSelect } from '../../../components/ui/SearchSelect/SearchSelect'
 import { useAppStore, getEffectiveTheme } from '../../../stores/app-store'
+import { Button } from '../../../components/ui/Button/Button'
 
 /** 画布缩放的上下限（按可用区域自动取整数倍） */
 const SCALE_MIN = 3
@@ -510,7 +511,7 @@ export function WeaponMountPanel({
                             槽位
                         </span>
                         {(['main', 'off'] as const).map((s2) => (
-                            <button
+                            <Button variant="default" size="sm"
                                 key={s2}
                                 className={`pixel-editor-tool ${slot === s2 ? 'active' : ''}`}
                                 title={
@@ -521,20 +522,20 @@ export function WeaponMountPanel({
                                 onClick={() => setSlot(s2)}
                             >
                                 {s2 === 'main' ? '主手' : '副手'}
-                            </button>
+                            </Button>
                         ))}
                     </div>
                     )}
                     <div className="pixel-editor-pose-grid">
                         {POSES.map((p) => (
-                            <button
+                            <Button variant="default" size="sm"
                                 key={p}
                                 className={`pixel-editor-tool ${pose === p ? 'active' : ''}`}
                                 title={`编辑 ${p} 姿势的${slot === 'off' ? '副手' : '主手'}挂点${configs[weaponId]?.[slot]?.[p] ? '（已改动）' : ''}`}
                                 onClick={() => setPose(p)}
                             >
                                 {p}
-                            </button>
+                            </Button>
                         ))}
 
                     </div>
@@ -640,7 +641,7 @@ export function WeaponMountPanel({
                 <section className="pixel-editor-mount-col">
                     <h4 title="整把武器共用（握点/镜像/锚定手）、当前落点读数、导出与重置">读数 · 导出</h4>
                     <div className="pixel-editor-row">
-                        <button
+                        <Button variant="plain" size="sm"
                             className="pixel-editor-btn"
                             title="复制 poses 块（粘进 weapons/entries/<武器>.ts 里，与 overlay: 并列；整块替换）"
                             onClick={async () => {
@@ -653,8 +654,8 @@ export function WeaponMountPanel({
                             }}
                         >
                             复制挂点片段
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="plain" size="sm"
                             className="pixel-editor-btn"
                             title="只把当前这个姿势的改动清掉，回到武器文件里的登记值"
                             disabled={!dirty}
@@ -664,8 +665,8 @@ export function WeaponMountPanel({
                             }}
                         >
                             恢复本姿势
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="plain" size="sm"
                             className="pixel-editor-btn"
                             title="本武器两个槽位、所有姿势的改动都清掉，回到武器文件里的登记值"
                             disabled={
@@ -681,7 +682,7 @@ export function WeaponMountPanel({
                             }}
                         >
                             重置本武器
-                        </button>
+                        </Button>
                     </div>
                     <details className="pixel-editor-code">
                         <summary title="展开看 WEAPON_POSES 的条目文本（剪贴板不可用时手动复制）">查看挂点代码</summary>

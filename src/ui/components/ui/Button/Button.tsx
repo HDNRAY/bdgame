@@ -9,14 +9,17 @@ import './Button.scss'
  * 这里按 variant（配色）× size（内边距/圆角/字号）收敛，语义类只保留布局残差
  * （margin / 个别 padding 差异 / 状态高亮色），不再重复基础七件套。
  *
- * 迁移进度：第一批只迁「返回 / 确认」一族（about-back-btn / settings-back /
- * encyclopedia-back / confirm-dialog-btn）。其余语义类见各自的残差样式，尚未迁移。
+ * 已迁：about/settings/encyclopedia 的返回键、confirm-dialog、mode-select、character-panel、
+ * run-summary、selection-panel 的返回键、battle-screen 顶栏、meta-panel 动作、pixel-editor 一族。
+ * 未迁（差异太大，见各自的 scss 注释）：log-panel / controls-bar 的 `.ctrl-btn`
+ * （--color-entity-bg + 无描边 + 无圆角，没有匹配变体）、pixel-editor 的 `-swatch-tools button`
+ * （字体是 UA 默认）、`<summary>` 折叠标题（不是 button）。
  */
 
 /** 配色：default=面板底，primary=强调，ghost=透明底描边，plain=页面底色 */
 export type ButtonVariant = 'default' | 'primary' | 'ghost' | 'plain'
-/** 尺寸：sm=紧凑，md=常规，lg=大号 */
-export type ButtonSize = 'sm' | 'md' | 'lg'
+/** 尺寸：xs=最小（10px 小字族），sm=紧凑，md=常规，lg=大号 */
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant

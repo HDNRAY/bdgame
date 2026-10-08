@@ -9,6 +9,7 @@ import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
 import { runBattle } from '../../../engine/battle-runner'
 import { CharacterPanel } from '../CharacterPanel/CharacterPanel'
+import { Button } from '../ui/Button/Button'
 import './SelectionPanel.scss'
 
 interface SelectionPanelProps {
@@ -109,9 +110,9 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
                     <button className="start-btn" disabled={!selectedA || !selectedB} onClick={handleStart}>
                         开始战斗
                     </button>
-                    <button className="back-btn" onClick={() => navigate('/')}>
+                    <Button variant="ghost" size="sm" className="back-btn" onClick={() => navigate('/')}>
                         返回
-                    </button>
+                    </Button>
                 </div>
 
                 <div className="grid">

@@ -29,27 +29,12 @@
         display: flex;
         gap: var(--sp-sm);
 
+        /* 基础七件套 + 静止 / hover / active 配色都来自 Button（variant=default size=md）：
+           这里只留比 md 档更窄的横向内边距、原字号（原来是 <button> 的 UA 默认 13.33px，
+           没继承 .meta-panel 的字号），以及 `.danger` 的危险配色。 */
         button {
             padding: var(--sp-xs) var(--sp-md);
-            border: var(--border-width) solid var(--color-border);
-            border-radius: var(--radius-md);
-            background: var(--color-bg-panel);
-            color: var(--color-text);
-            font-family: var(--font-mono);
-            cursor: pointer;
-
-            /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
-            @media (hover: hover) {
-                &:hover {
-                    border-color: var(--color-border-hover);
-                    background: var(--color-bg-hover);
-                }
-            }
-
-            &:active {
-                border-color: var(--color-border-hover);
-                background: var(--color-bg-hover);
-            }
+            font-size: 13.3333px;
 
             &.danger {
                 border-color: var(--color-danger);

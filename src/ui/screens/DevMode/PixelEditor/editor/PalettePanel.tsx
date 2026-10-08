@@ -4,6 +4,7 @@ import type { CharacterColors } from '../../../../pixel-sprites/palette'
 import { SearchSelect } from '../../../../components/ui/SearchSelect/SearchSelect'
 import { CHARACTER_IDS, NAME_BY_ID, SLOT_LABELS, SLOT_TIPS, SLOT_TO_COLOR_KEY, WEAPON_NAME } from './constants'
 import type { EditorMode } from './constants'
+import { Button } from '../../../../components/ui/Button/Button'
 
 export interface PalettePanelProps {
     mode: EditorMode
@@ -76,7 +77,7 @@ export function PalettePanel({
             <div className="pixel-editor-palette">
                 {visibleSlots.map((i) => (
                     <span key={i} className="pixel-editor-swatch-wrap">
-                        <button
+                        <Button variant="plain" size="xs"
                             className={`pixel-editor-swatch ${slot === i ? 'active' : ''}`}
                             title={
                                 mode === 'frame'
@@ -92,7 +93,7 @@ export function PalettePanel({
                             {mode === 'frame' && (
                                 <span className="pixel-editor-swatch-label">{SLOT_LABELS[i] ?? i}</span>
                             )}
-                        </button>
+                        </Button>
                         {mode === 'frame' && !SLOT_TO_COLOR_KEY[i] && i !== 0 && (
                             <span className="pixel-editor-swatch-tools">
                                 <input
@@ -143,9 +144,9 @@ export function PalettePanel({
                     </span>
                 ))}
                 {mode === 'weapon' && (
-                    <button className="pixel-editor-tool" title="加一个颜色" onClick={addWeaponColor}>
+                    <Button variant="default" size="sm" className="pixel-editor-tool" title="加一个颜色" onClick={addWeaponColor}>
                         + 加色
-                    </button>
+                    </Button>
                 )}
             </div>
             {mode === 'frame' && missingSlots.length > 0 && (
@@ -172,14 +173,14 @@ export function PalettePanel({
                     >
                         {colorOverridden ? '配色已改动' : '配色＝palette.ts 登记值'}
                     </span>
-                    <button
+                    <Button variant="plain" size="sm"
                         className="pixel-editor-btn"
                         title="复制这段粘进 palette.ts 的 CHARACTER_COLORS，改色就落到代码里"
                         onClick={() => copy(formatCharacterColorsSnippet(charId, effectiveColors), '配色片段已复制')}
                     >
                         复制配色片段
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="plain" size="sm"
                         className="pixel-editor-btn"
                         disabled={!colorOverridden}
                         title="丢弃本角色的改色，回到 palette.ts 的登记值"
@@ -194,7 +195,7 @@ export function PalettePanel({
                         }}
                     >
                         重置配色
-                    </button>
+                    </Button>
                 </div>
             )}
             {mode === 'frame' && (

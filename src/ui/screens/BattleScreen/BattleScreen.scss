@@ -22,26 +22,28 @@
     background: var(--color-bg-panel);
     border-bottom: var(--border-width) solid var(--color-border);
 
+    /* 基础七件套 + hover 底色来自 Button（variant=plain size=sm）：
+       页面底色、描边、hover/active 的底色高亮都与 plain 变体一致。
+       这里只留方角 / 内边距 / 字体继承，以及本页自己的「文字转金色、描边不变」口径。 */
     .bs-header-btn {
-        background: var(--color-bg);
-        color: var(--color-text);
-        border: var(--border-width) solid var(--color-border);
         padding: var(--sp-xxs) var(--sp-sm);
-        cursor: pointer;
-        font-size: var(--font-sm);
+        /* 顶栏按钮是方角（Button 各尺寸档都带圆角，这里压回 0） */
+        border-radius: 0;
+        /* 顶栏按钮沿用外部字体（原口径就是 inherit，不吃 .btn 的 mono 族） */
         font-family: inherit;
 
-        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮。
+           描边钉回 --color-border：本页 hover 只换底色与文字色，不改描边 */
         @media (hover: hover) {
             &:hover {
-                background: var(--color-bg-hover);
                 color: var(--color-gold);
+                border-color: var(--color-border);
             }
         }
 
         &:active {
-            background: var(--color-bg-hover);
             color: var(--color-gold);
+            border-color: var(--color-border);
         }
     }
 

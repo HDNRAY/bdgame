@@ -37,19 +37,26 @@ function domText(html: string): string {
         .trim()
 }
 
-/** 主入口按钮的按钮内文字（按钮里若嵌套了标签，一并取出来） */
-function mainButtonText(html: string): string {
-    const matched = html.match(/<button class="mode-select-btn mode-select-btn-main">([\s\S]*?)<\/button>/)
-    if (!matched) throw new Error('渲染结果里没有「进入故事」主按钮')
-    return domText(matched[1])
+/** 渲染结果里所有 <button>（开标签属性 + 按钮内文字） */
+function buttons(html: string): { attrs: string; text: string }[] {
+    return [...html.matchAll(/<button([^>]*)>([\s\S]*?)<\/button>/g)].map((m) => ({
+        attrs: m[1],
+        text: domText(m[2]),
+    }))
+}
+
+/** 主入口按钮：按**按钮文案**定位，不绑定 class 串（换 Button 组件 / 改类名都不该让它红） */
+function mainButton(html: string): { attrs: string; text: string } {
+    const found = buttons(html).filter((b) => b.text === '进入故事')
+    if (found.length !== 1) throw new Error(`渲染结果里「进入故事」按钮应有且仅有一个，实际 ${found.length} 个`)
+    return found[0]
 }
 
 describe('首页模式选择', () => {
     it('主按钮文字恰好是「进入故事」，按钮内没有副标题 / 说明', () => {
         const html = renderHome()
-        expect(mainButtonText(html)).toBe('进入故事')
         // 主入口只有一个（旧的「单挑模式」主按钮没有回来）
-        expect(html.match(/mode-select-btn-main/g) ?? []).toHaveLength(1)
+        expect(mainButton(html).text).toBe('进入故事')
     })
 
     it('底部那排入口（图鉴 / 玩法 / 设置 / 关于）都还在', () => {

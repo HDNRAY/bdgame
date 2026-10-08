@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getOpponentDef, gen } from '../../../data/opponents/index'
 import { BattlePanel, type BattlePanelHandle } from '../../components/BattlePanel/BattlePanel'
 import { CharacterPanel } from '../../components/CharacterPanel/CharacterPanel'
+import { Button } from '../../components/ui/Button/Button'
 import { DUEL_TAB_PATH } from '../../routes'
 import './BattleScreen.scss'
 
@@ -68,9 +69,14 @@ export function BattleScreen() {
     return (
         <div className="battle-screen-root">
             <div className="battle-screen-header">
-                <button className="bs-header-btn" onClick={() => navigate(DUEL_TAB_PATH)}>
+                <Button
+                    variant="plain"
+                    size="sm"
+                    className="bs-header-btn"
+                    onClick={() => navigate(DUEL_TAB_PATH)}
+                >
                     返回选人
-                </button>
+                </Button>
                 <span className="bs-header-title">
                     {buildA.name} vs {buildB.name}
                 </span>

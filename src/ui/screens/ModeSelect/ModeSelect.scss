@@ -64,31 +64,26 @@
         max-width: 16.25rem;
     }
 
+    /* 基础七件套（描边 / 圆角 / 面板底 / 字体 / 过渡）已迁到共用 Button 组件
+       （variant=default；主入口 size=lg、底部入口 size=md）。这里只留布局残差，
+       以及本页的描边高亮口径：悬停 / 按下用 accent，而不是 Button 的 border-hover。 */
     &-btn {
-        cursor: pointer;
-        font-family: var(--font-mono);
-        border: var(--border-width) solid var(--color-border);
-        border-radius: var(--radius-md);
-        background: var(--color-bg-panel);
-        color: var(--color-text);
-        transition: all 0.15s;
         text-align: center;
 
         /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
         @media (hover: hover) {
             &:hover {
                 border-color: var(--color-accent);
-                background: var(--color-bg-hover);
             }
         }
 
         &:active {
             border-color: var(--color-accent);
-            background: var(--color-bg-hover);
         }
 
         &-main {
-            /* 竖屏第一屏的主角：内边距随视口高度收缩，高度不写死 px */
+            /* 竖屏第一屏的主角：内边距随视口高度收缩，高度不写死 px
+               （字号 --font-lg 由 Button 的 lg 档给，24px = 2×12，落在像素字体网格上） */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -96,19 +91,18 @@
             align-items: center;
             min-height: max(44px, 3.5rem);
             padding: clamp(var(--sp-md), 3.5dvh, var(--sp-lg)) var(--sp-md);
-            font-size: var(--font-lg); /* 24px = 2×12，落在像素字体网格上 */
         }
 
         &-sm {
             /* 触摸目标不小于 44×44（--ui-scale 调小时由 44px 兜底）；
-               横向内边距随视口宽度收缩，320px 宽四连排也不溢出 */
+               横向内边距随视口宽度收缩，320px 宽四连排也不溢出
+               （字号 --font-md 由 Button 的 md 档给） */
             display: inline-flex;
             align-items: center;
             justify-content: center;
             min-height: max(44px, 2.75rem);
             min-width: max(44px, 2.75rem);
             padding: 0 clamp(var(--sp-sm), 3vw, var(--sp-xl));
-            font-size: var(--font-md);
         }
     }
 

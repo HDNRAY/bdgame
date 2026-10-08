@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Button } from '../../components/ui/Button/Button'
 import { GameplayModal } from './GameplayModal'
 import './ModeSelect.scss'
 
@@ -24,24 +25,49 @@ export function ModeSelect() {
 
             <div className="mode-select-buttons">
                 {/* 主入口只有「进入故事」四个字，按钮内不带副标题 / 说明 */}
-                <button className="mode-select-btn mode-select-btn-main" onClick={() => navigate('/roguelite')}>
+                <Button
+                    variant="default"
+                    size="lg"
+                    className="mode-select-btn mode-select-btn-main"
+                    onClick={() => navigate('/roguelite')}
+                >
                     进入故事
-                </button>
+                </Button>
             </div>
 
             <div className="mode-select-footer">
-                <button className="mode-select-btn mode-select-btn-sm" onClick={() => navigate('/encyclopedia')}>
+                <Button
+                    variant="default"
+                    size="md"
+                    className="mode-select-btn mode-select-btn-sm"
+                    onClick={() => navigate('/encyclopedia')}
+                >
                     图鉴
-                </button>
-                <button className="mode-select-btn mode-select-btn-sm" onClick={() => setShowGameplay(true)}>
+                </Button>
+                <Button
+                    variant="default"
+                    size="md"
+                    className="mode-select-btn mode-select-btn-sm"
+                    onClick={() => setShowGameplay(true)}
+                >
                     玩法
-                </button>
-                <button className="mode-select-btn mode-select-btn-sm" onClick={() => navigate('/settings')}>
+                </Button>
+                <Button
+                    variant="default"
+                    size="md"
+                    className="mode-select-btn mode-select-btn-sm"
+                    onClick={() => navigate('/settings')}
+                >
                     设置
-                </button>
-                <button className="mode-select-btn mode-select-btn-sm" onClick={() => navigate('/about')}>
+                </Button>
+                <Button
+                    variant="default"
+                    size="md"
+                    className="mode-select-btn mode-select-btn-sm"
+                    onClick={() => navigate('/about')}
+                >
                     关于
-                </button>
+                </Button>
             </div>
 
             {showGameplay && <GameplayModal onClose={() => setShowGameplay(false)} />}

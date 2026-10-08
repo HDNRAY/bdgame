@@ -3,6 +3,7 @@ import type { HandAnchorData } from '../../../../pixel-sprites'
 import { BackdropPicker } from './BackdropPicker'
 import { SLOT_LABELS, TOOLS, ZOOM_MAX, ZOOM_MIN } from './constants'
 import type { EditorMode, Tool } from './constants'
+import { Button } from '../../../../components/ui/Button/Button'
 
 export interface EditorToolbarProps {
     mode: EditorMode
@@ -90,7 +91,7 @@ export function EditorToolbar({
         <div className="pixel-editor-toolbar">
             <div className="pixel-editor-row">
                 {TOOLS.map((t) => (
-                    <button
+                    <Button variant="default" size="sm"
                         key={t.id}
                         className={`pixel-editor-tool ${tool === t.id ? 'active' : ''}`}
                         title={
@@ -103,63 +104,63 @@ export function EditorToolbar({
                         onClick={() => onToolChange(t.id)}
                     >
                         {t.label}
-                    </button>
+                    </Button>
                 ))}
-                <button
+                <Button variant="default" size="sm"
                     className={`pixel-editor-tool ${mirror ? 'active' : ''}`}
                     title="左右镜像同时落笔（X）"
                     onClick={onToggleMirror}
                 >
                     镜像
-                </button>
-                <button className="pixel-editor-tool" title="撤销（Ctrl+Z）" onClick={onUndo}>
+                </Button>
+                <Button variant="default" size="sm" className="pixel-editor-tool" title="撤销（Ctrl+Z）" onClick={onUndo}>
                     撤销
-                </button>
-                <button className="pixel-editor-tool" title="重做（Ctrl+Shift+Z）" onClick={onRedo}>
+                </Button>
+                <Button variant="default" size="sm" className="pixel-editor-tool" title="重做（Ctrl+Shift+Z）" onClick={onRedo}>
                     重做
-                </button>
-                <button
+                </Button>
+                <Button variant="default" size="sm"
                     className="pixel-editor-tool"
                     title="复制当前这张图到编辑器内部的剪贴板（Ctrl+C）——不是系统剪贴板，只在编辑器里粘贴"
                     onClick={onCopy}
                 >
                     复制
-                </button>
-                <button
+                </Button>
+                <Button variant="default" size="sm"
                     className="pixel-editor-tool"
                     title="把内部剪贴板贴进当前槽，覆盖整张图，可撤销（Ctrl+V）。只支持同尺寸：身体帧贴身体帧、武器图贴武器图"
                     onClick={onPaste}
                 >
                     粘贴
-                </button>
+                </Button>
                 {mode === 'frame' && (
                     <>
-                        <button
+                        <Button variant="default" size="sm"
                             className="pixel-editor-tool"
                             title="给所有「身体像素贴着背景」的格子补描边（斜边、拐角不容易漏）"
                             onClick={onAutoOutline}
                         >
                             自动描边
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="default" size="sm"
                             className="pixel-editor-tool"
                             title={`给整个剪影外侧加一层金边（槽位 ${SPRITE_AURA_SLOT}）`}
                             onClick={onAddAuraRing}
                         >
                             加金边
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="default" size="sm"
                             className={`pixel-editor-tool ${anchorEdit ? 'active' : ''}`}
                             title="开启后画布上拖动的是手部锚点（青=主手、黄=副手），不涂像素"
                             onClick={onToggleAnchorEdit}
                         >
                             拖锚点
-                        </button>
+                        </Button>
                     </>
                 )}
-                <button className="pixel-editor-tool" title="清空成透明" onClick={onClear}>
+                <Button variant="default" size="sm" className="pixel-editor-tool" title="清空成透明" onClick={onClear}>
                     清空
-                </button>
+                </Button>
             </div>
 
             <div className="pixel-editor-row">
@@ -193,13 +194,13 @@ export function EditorToolbar({
                     />
                     <span>{zoom}x</span>
                 </label>
-                <button
+                <Button variant="default" size="sm"
                     className={`pixel-editor-tool ${autoFit ? 'active' : ''}`}
                     title="按可用区域取最大整数倍（画布铺满可视区）"
                     onClick={onFit}
                 >
                     适应
-                </button>
+                </Button>
                 <BackdropPicker
                     backdropId={backdropId}
                     customBackdrop={customBackdrop}
@@ -232,18 +233,18 @@ export function EditorToolbar({
                         <span className="pixel-editor-col-label" title="把这张武器图里所有已画的像素一起平移（挪出画布的点会丢）">
                             整图平移
                         </span>
-                        <button className="pixel-editor-tool" title="整体上移 1 格" onClick={() => onNudge(0, -1)}>
+                        <Button variant="default" size="sm" className="pixel-editor-tool" title="整体上移 1 格" onClick={() => onNudge(0, -1)}>
                             ↑
-                        </button>
-                        <button className="pixel-editor-tool" title="整体下移 1 格" onClick={() => onNudge(0, 1)}>
+                        </Button>
+                        <Button variant="default" size="sm" className="pixel-editor-tool" title="整体下移 1 格" onClick={() => onNudge(0, 1)}>
                             ↓
-                        </button>
-                        <button className="pixel-editor-tool" title="整体左移 1 格" onClick={() => onNudge(-1, 0)}>
+                        </Button>
+                        <Button variant="default" size="sm" className="pixel-editor-tool" title="整体左移 1 格" onClick={() => onNudge(-1, 0)}>
                             ←
-                        </button>
-                        <button className="pixel-editor-tool" title="整体右移 1 格" onClick={() => onNudge(1, 0)}>
+                        </Button>
+                        <Button variant="default" size="sm" className="pixel-editor-tool" title="整体右移 1 格" onClick={() => onNudge(1, 0)}>
                             →
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>
