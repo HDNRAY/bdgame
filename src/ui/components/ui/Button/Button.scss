@@ -1,0 +1,100 @@
+/* 通用按钮：base（描边/字体/手型/过渡）+ size（内边距/圆角/字号）+ variant（配色与状态）。
+   口径与 ModeSelect.scss / RunSummaryPanel.scss 一致：hover 只包在 @media (hover: hover)
+   里，触屏用同一套 :active 高亮兜底，避免"点完还粘着高亮"。 */
+.btn {
+    cursor: pointer;
+    font-family: var(--font-mono);
+    border: var(--border-width) solid var(--color-border);
+    transition: all 0.15s;
+
+    /* ── 尺寸 ── */
+    &-sm {
+        padding: var(--sp-xxs) var(--sp-xs);
+        border-radius: var(--radius-sm);
+        font-size: var(--font-md);
+    }
+
+    &-md {
+        padding: var(--sp-xs) var(--sp-lg);
+        border-radius: var(--radius-md);
+        font-size: var(--font-md);
+    }
+
+    &-lg {
+        padding: var(--sp-sm) var(--sp-lg);
+        border-radius: var(--radius-md);
+        font-size: var(--font-lg);
+    }
+
+    /* ── 变体 ── */
+    /* 面板底：最常用（返回按钮一类） */
+    &-default {
+        background: var(--color-bg-panel);
+        color: var(--color-text);
+
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+                border-color: var(--color-border-hover);
+            }
+        }
+
+        &:active {
+            background: var(--color-bg-hover);
+            border-color: var(--color-border-hover);
+        }
+    }
+
+    /* 强调：主行动按钮（尚未有调用点，迁移 .gameplay-btn / .rsm-btn-primary 时接上） */
+    &-primary {
+        border-color: var(--color-accent);
+        background: var(--color-accent-bg);
+        color: var(--color-accent);
+
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+            }
+        }
+
+        &:active {
+            background: var(--color-bg-hover);
+        }
+    }
+
+    /* 透明底描边：次级动作（返回 / 取消一类） */
+    &-ghost {
+        background: none;
+        color: var(--color-text);
+
+        @media (hover: hover) {
+            &:hover {
+                color: var(--color-text-h);
+                border-color: var(--color-border-hover);
+            }
+        }
+
+        &:active {
+            color: var(--color-text-h);
+            border-color: var(--color-border-hover);
+        }
+    }
+
+    /* 页面底色：比面板更"平"，用在面板内部的按钮上（如确认弹窗） */
+    &-plain {
+        background: var(--color-bg);
+        color: var(--color-text);
+
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+                border-color: var(--color-border-hover);
+            }
+        }
+
+        &:active {
+            background: var(--color-bg-hover);
+            border-color: var(--color-border-hover);
+        }
+    }
+}

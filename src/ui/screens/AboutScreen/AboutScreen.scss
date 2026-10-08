@@ -23,19 +23,6 @@
     max-width: 22.5rem;
 }
 
-.about-back-btn {
-    padding: var(--sp-xs) var(--sp-lg);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-panel);
-    color: var(--color-text);
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: var(--font-md);
-    transition: all 0.15s;
-
-    &:hover {
-        background: var(--color-bg-hover);
-        border-color: var(--color-border-hover);
-    }
-}
+/* 返回按钮已迁到共用 Button 组件（variant=default size=md）：
+   描边 / 圆角 / 面板底 / 字号 / 过渡与 hover 高亮都由
+   `src/ui/components/ui/Button/Button.scss` 提供，本页不再重复基础七件套。 */

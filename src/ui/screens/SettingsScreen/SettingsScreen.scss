@@ -76,7 +76,14 @@
     text-align: center;
     transition: all 0.15s;
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            border-color: var(--color-border-hover);
+        }
+    }
+
+    &:active {
         border-color: var(--color-border-hover);
     }
 
@@ -145,7 +152,15 @@
     text-align: center;
     transition: all 0.15s;
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+    }
+
+    &:active {
         border-color: var(--color-accent);
         color: var(--color-accent);
     }
@@ -159,22 +174,11 @@
 
 /* ── Back button ── */
 
+/* 基础七件套（描边 / 圆角 / 面板底 / 字号 / 过渡 / hover 高亮）已迁到共用 Button 组件
+   （variant=default size=md）。这里只留本页残差：与主菜单的间距，以及比 md 更宽的横向内边距。 */
 .settings-back {
     margin-top: var(--sp-lg);
     padding: var(--sp-xs) var(--sp-xl);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-panel);
-    color: var(--color-text);
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: var(--font-md);
-    transition: all 0.15s;
-
-    &:hover {
-        border-color: var(--color-border-hover);
-        background: var(--color-bg-hover);
-    }
 }
 
 /* ── Toggle Switch ── */

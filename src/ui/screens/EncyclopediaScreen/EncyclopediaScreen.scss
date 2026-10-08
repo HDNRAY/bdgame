@@ -16,21 +16,8 @@
         margin-bottom: var(--sp-sm);
     }
 
-    &-back {
-        background: none;
-        border: var(--border-width) solid var(--color-border);
-        color: var(--color-text);
-        padding: var(--sp-xxs) var(--sp-xs);
-        cursor: pointer;
-        font-family: var(--font-mono);
-        font-size: var(--font-md);
-        border-radius: var(--radius-sm);
-
-        &:hover {
-            color: var(--color-text-h);
-            border-color: var(--color-border-hover);
-        }
-    }
+    /* &-back 已迁到共用 Button 组件（variant=ghost size=sm）：
+       描边 / 透明底 / 字号 / 圆角 / hover 高亮都在 Button.scss，本页不再重复。 */
 
     &-title {
         font-size: var(--font-xl);
@@ -84,7 +71,15 @@
         justify-content: center;
         gap: var(--sp-xxs);
 
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                color: var(--color-text);
+                border-color: var(--color-border-hover);
+            }
+        }
+
+        &:active {
             color: var(--color-text);
             border-color: var(--color-border-hover);
         }

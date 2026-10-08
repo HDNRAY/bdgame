@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore, type ThemeMode } from '../../stores/app-store'
+import { Button } from '../../components/ui/Button/Button'
 import './SettingsScreen.scss'
 
 const SCALE_PRESETS = [
@@ -100,9 +101,9 @@ export function SettingsScreen() {
             </div>
 
             {/* ── 返回 ── */}
-            <button className="settings-back" onClick={() => navigate('/')}>
+            <Button variant="default" size="md" className="settings-back" onClick={() => navigate('/')}>
                 返回主菜单
-            </button>
+            </Button>
         </div>
     )
 }

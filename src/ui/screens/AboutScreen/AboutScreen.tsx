@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { Button } from '../../components/ui/Button/Button'
 import './AboutScreen.scss'
 
 export function AboutScreen() {
@@ -14,9 +15,9 @@ export function AboutScreen() {
                 <br />
                 TypeScript + Vite + React 构建
             </div>
-            <button className="about-back-btn" onClick={() => navigate('/')}>
+            <Button variant="default" size="md" onClick={() => navigate('/')}>
                 返回
-            </button>
+            </Button>
         </div>
     )
 }

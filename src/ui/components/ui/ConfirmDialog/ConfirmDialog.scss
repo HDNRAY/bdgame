@@ -38,21 +38,11 @@
     justify-content: flex-end;
 }
 
+/* 基础七件套已迁到共用 Button 组件（variant=plain size=md）。这里只留弹窗残差：
+   比 md 更窄的横向内边距、更慢的 0.2s 过渡、按下缩小的手感，以及强调/危险配色。 */
 .confirm-dialog-btn {
     padding: var(--sp-xs) var(--sp-md);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg);
-    color: var(--color-text);
-    cursor: pointer;
-    font-size: var(--font-md);
-    font-family: var(--font-mono);
     transition: all 0.2s;
-
-    &:hover {
-        background: var(--color-bg-hover);
-        border-color: var(--color-border-hover);
-    }
 
     &:active {
         transform: scale(0.98);
@@ -60,7 +50,14 @@
 }
 
 .confirm-dialog-cancel {
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            color: var(--color-text);
+        }
+    }
+
+    &:active {
         color: var(--color-text);
     }
 }
@@ -69,7 +66,14 @@
     border-color: var(--color-accent);
     color: var(--color-accent);
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            background: var(--color-accent-bg);
+        }
+    }
+
+    &:active {
         background: var(--color-accent-bg);
     }
 }
@@ -78,7 +82,14 @@
     border-color: var(--color-danger);
     color: var(--color-danger);
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            background: var(--color-danger-bg);
+        }
+    }
+
+    &:active {
         background: var(--color-danger-bg);
     }
 }

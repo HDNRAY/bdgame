@@ -10,6 +10,7 @@ import { TAG_CN } from '../../../bridge/tagDisplay'
 import { getWeaponOverlay } from '../../pixel-sprites'
 import { entityTooltipContent } from '../../components/tooltip-contents/entityTooltipContent'
 import { PixelCanvas } from '../../components/ui/PixelCanvas/PixelCanvas'
+import { Button } from '../../components/ui/Button/Button'
 import type { EntityDef } from '../../../bridge/entity-tooltip'
 import type { EntityType } from '../../../bridge/entity-tooltip'
 import './EncyclopediaScreen.scss'
@@ -101,9 +102,9 @@ export function EncyclopediaScreen() {
     return (
         <div className="encyclopedia">
             <div className="encyclopedia-header">
-                <button className="encyclopedia-back" onClick={() => navigate('/')}>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
                     返回
-                </button>
+                </Button>
                 <span className="encyclopedia-title">图鉴</span>
             </div>
 

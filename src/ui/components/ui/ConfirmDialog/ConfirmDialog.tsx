@@ -1,3 +1,4 @@
+import { Button } from '../Button/Button'
 import './ConfirmDialog.scss'
 
 interface ConfirmDialogProps {
@@ -25,15 +26,17 @@ export function ConfirmDialog({
                 <div className="confirm-dialog-title">{title}</div>
                 <div className="confirm-dialog-message">{message}</div>
                 <div className="confirm-dialog-buttons">
-                    <button className="confirm-dialog-btn confirm-dialog-cancel" onClick={onCancel}>
+                    <Button variant="plain" size="md" className="confirm-dialog-btn confirm-dialog-cancel" onClick={onCancel}>
                         {cancelText}
-                    </button>
-                    <button
-                        className={`confirm-dialog-btn confirm-dialog-confirm ${isDanger ? 'confirm-dialog-danger' : ''}`}
+                    </Button>
+                    <Button
+                        variant="plain"
+                        size="md"
+                        className={`confirm-dialog-btn confirm-dialog-confirm${isDanger ? ' confirm-dialog-danger' : ''}`}
                         onClick={onConfirm}
                     >
                         {confirmText}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>
