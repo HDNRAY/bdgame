@@ -26,6 +26,19 @@
         font-family: var(--font-mono);
         font-size: var(--font-sm);
 
+        /* 描边式：桌面走 hover、触屏走按下反馈，两者同款高亮（底色 + 描边） */
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+                border-color: var(--color-border-hover);
+            }
+        }
+
+        &:active {
+            background: var(--color-bg-hover);
+            border-color: var(--color-border-hover);
+        }
+
         &.active {
             border-color: var(--color-accent);
             background: var(--color-bg-hover);

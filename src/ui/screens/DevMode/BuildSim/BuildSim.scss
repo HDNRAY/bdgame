@@ -170,6 +170,20 @@
     }
 }
 
+/* 记录对照（ghost 口径）：桌面走 hover、触屏走按下反馈，两者同款高亮（文字 + 描边转 accent）；
+   与下方 .bsim-baseline-clear 的写法一致。 */
+@media (hover: hover) {
+    .bsim-baseline-btn:hover:not(:disabled) {
+        color: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+}
+
+.bsim-baseline-btn:active:not(:disabled) {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
 /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
 @media (hover: hover) {
     .bsim-baseline-clear:hover:not(:disabled) {

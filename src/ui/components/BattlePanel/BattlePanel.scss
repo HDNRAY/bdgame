@@ -36,6 +36,19 @@
         font-size: var(--font-sm);
         cursor: pointer;
 
+        /* 无描边标签：桌面走 hover、触屏走按下反馈，两者同款高亮（底色 + 文字转亮） */
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+                color: var(--color-text);
+            }
+        }
+
+        &:active {
+            background: var(--color-bg-hover);
+            color: var(--color-text);
+        }
+
         &.is-active {
             background: var(--color-bg-alt);
             color: var(--color-text);
