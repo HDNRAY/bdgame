@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getOpponentDef, gen } from '../../../data/opponents/index'
 import { BattlePanel, type BattlePanelHandle } from '../../components/BattlePanel/BattlePanel'
 import { CharacterPanel } from '../../components/CharacterPanel/CharacterPanel'
+import { DUEL_TAB_PATH } from '../../routes'
 import './BattleScreen.scss'
 
 /** 窄屏断点（px）— 小于该宽度时隐藏常驻侧栏，改用浮动按钮 + 覆盖层 */
@@ -18,9 +19,9 @@ export function BattleScreen() {
     const defA = idA ? getOpponentDef(idA) : undefined
     const defB = idB ? getOpponentDef(idB) : undefined
 
-    // 缺少/无效参数时回到选人页
+    // 缺少/无效参数时回到选人页（DevMode 的「单挑模式」tab）
     useEffect(() => {
-        if (!defA || !defB) navigate('/select', { replace: true })
+        if (!defA || !defB) navigate(DUEL_TAB_PATH, { replace: true })
     }, [defA, defB, navigate])
 
     // 与选人页一致的 seed 重建 build（保持引用稳定，避免 BattlePanel 重打）
@@ -67,7 +68,7 @@ export function BattleScreen() {
     return (
         <div className="battle-screen-root">
             <div className="battle-screen-header">
-                <button className="bs-header-btn" onClick={() => navigate('/select')}>
+                <button className="bs-header-btn" onClick={() => navigate(DUEL_TAB_PATH)}>
                     返回选人
                 </button>
                 <span className="bs-header-title">

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { CharacterPanel } from '../../components/CharacterPanel/CharacterPanel'
 import { getOpponentDef, gen } from '../../../data/opponents/index'
 import type { CharacterBuild } from '../../../game/entities/character-build'
+import { DUEL_TAB_PATH } from '../../routes'
 import './BuildScreen.scss'
 
 export function BuildScreen() {
@@ -15,14 +16,14 @@ export function BuildScreen() {
         return (
             <div className="build-screen-not-found">
                 <p>角色未找到</p>
-                <button onClick={() => navigate('/select')}>返回</button>
+                <button onClick={() => navigate(DUEL_TAB_PATH)}>返回</button>
             </div>
         )
     }
 
     return (
         <div className="build-screen-wrap">
-            <CharacterPanel mode="build" build={initialBuild} onBack={() => navigate('/select')} />
+            <CharacterPanel mode="build" build={initialBuild} onBack={() => navigate(DUEL_TAB_PATH)} />
         </div>
     )
 }

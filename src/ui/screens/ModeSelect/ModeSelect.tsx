@@ -23,13 +23,9 @@ export function ModeSelect() {
             <div className="mode-select-title">{import.meta.env.VITE_APP_TITLE}</div>
 
             <div className="mode-select-buttons">
+                {/* 主入口只有「进入故事」四个字，按钮内不带副标题 / 说明 */}
                 <button className="mode-select-btn mode-select-btn-main" onClick={() => navigate('/roguelite')}>
-                    肉鸽模式
-                    <span className="mode-select-btn-hint">游戏本体 · 开发中</span>
-                </button>
-                <button className="mode-select-btn mode-select-btn-main" onClick={() => navigate('/select')}>
-                    单挑模式
-                    <span className="mode-select-btn-hint">1v1 快速对决</span>
+                    进入故事
                 </button>
             </div>
 

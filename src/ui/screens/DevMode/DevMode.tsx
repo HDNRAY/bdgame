@@ -1,4 +1,6 @@
 import { useSearchParams } from 'react-router-dom'
+import { SelectionPanel } from '../../components/SelectionPanel/SelectionPanel'
+import { DUEL_TAB_ID } from '../../routes'
 import { PixelInspector } from './PixelInspector/PixelInspector'
 import { PixelEditor } from './PixelEditor/PixelEditor'
 import { TournamentSim } from './TournamentSim/TournamentSim'
@@ -6,16 +8,19 @@ import { ActionCompare } from './ActionCompare/ActionCompare'
 import { WeaponCompare } from './WeaponCompare/WeaponCompare'
 import { BuildSim } from './BuildSim/BuildSim'
 import { MetaPanel } from './MetaPanel/MetaPanel'
+import { RunSummaryTab } from './RunSummary/RunSummaryTab'
 import './DevMode.scss'
 
 const NAV_ITEMS = [
     { id: 'pixel', label: '像素图测试' },
     { id: 'editor', label: '像素编辑器' },
     { id: 'buildsim', label: '构筑试炼' },
+    { id: DUEL_TAB_ID, label: '单挑模式' },
     { id: 'tournament', label: '大会模拟' },
     { id: 'meta', label: '元进度' },
     { id: 'ap', label: '招式对比' },
     { id: 'weapon', label: '武器对比' },
+    { id: 'summary', label: '结算页' },
 ] as const
 
 type NavId = (typeof NAV_ITEMS)[number]['id']
@@ -63,14 +68,18 @@ export function DevMode() {
                     </>
                 ) : activeId === 'buildsim' ? (
                     <BuildSim />
+                ) : activeId === 'duel' ? (
+                    <SelectionPanel />
                 ) : activeId === 'tournament' ? (
                     <TournamentSim />
                 ) : activeId === 'meta' ? (
                     <MetaPanel />
                 ) : activeId === 'ap' ? (
                     <ActionCompare />
-                ) : (
+                ) : activeId === 'weapon' ? (
                     <WeaponCompare />
+                ) : (
+                    <RunSummaryTab />
                 )}
             </main>
         </div>

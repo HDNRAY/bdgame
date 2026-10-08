@@ -10,6 +10,7 @@ import { getAction } from '../../data/actions'
 import { getWeapon } from '../../data/weapons/weapons'
 import { classifyAttackStyle } from '../../engine/ai/planner'
 import { checkTalents } from '../../game/talent-check'
+import { DUEL_TAB_PATH } from '../routes'
 /** 摘掉不合法的触发绑定（位移 / 内息消耗 > 2 的招式不能当触发招式），返回同一条配置 */
 function stripIllegalTrigger(ac: ActionConfig): ActionConfig {
     if (!ac.triggerId) return ac
@@ -175,7 +176,7 @@ export function useBuildCharacter(
         if (onSave) {
             onSave(newBuild, remaining)
         } else {
-            navigate('/select')
+            navigate(DUEL_TAB_PATH)
         }
     }
 

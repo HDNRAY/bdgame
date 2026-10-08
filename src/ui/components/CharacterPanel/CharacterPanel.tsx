@@ -24,6 +24,7 @@ import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
 import { BattleStyleSelector } from './BattleStyleSelector'
 import { EntityItem } from '../ui/EntityItem/EntityItem'
 import { AttributeLabel } from '../ui/AttributeLabel/AttributeLabel'
+import { DUEL_TAB_PATH } from '../../routes'
 import './CharacterPanel.scss'
 
 /** 计算某属性的来源分解（读来源层账的实际生效量，与战斗面板同源） */
@@ -181,7 +182,7 @@ export function CharacterPanel({
             {/* Header */}
             {isBuild && (
                 <div className="cp-header">
-                    <button className="cp-btn" onClick={onBack ?? (() => navigate('/select'))}>
+                    <button className="cp-btn" onClick={onBack ?? (() => navigate(DUEL_TAB_PATH))}>
                         返回
                     </button>
                     <div className="cp-actions">

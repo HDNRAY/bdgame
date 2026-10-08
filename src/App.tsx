@@ -7,9 +7,6 @@ import { NotFound } from './ui/screens/NotFound/NotFound'
 
 // 按路由懒加载：避免首屏一次性下载全部 screen / 游戏数据 / DevMode
 const ModeSelect = lazy(() => import('./ui/screens/ModeSelect/ModeSelect').then((m) => ({ default: m.ModeSelect })))
-const SelectionPanel = lazy(() =>
-    import('./ui/components/SelectionPanel/SelectionPanel').then((m) => ({ default: m.SelectionPanel })),
-)
 const BuildScreen = lazy(() => import('./ui/screens/BuildScreen/BuildScreen').then((m) => ({ default: m.BuildScreen })))
 const SettingsScreen = lazy(() =>
     import('./ui/screens/SettingsScreen/SettingsScreen').then((m) => ({ default: m.SettingsScreen })),
@@ -87,7 +84,6 @@ function App() {
                 <Suspense fallback={<RouteFallback />}>
                     <Routes>
                         <Route path="/" element={<ModeSelect />} />
-                        <Route path="/select" element={<SelectionPanel />} />
                         <Route path="/build/:charId" element={<BuildScreen />} />
                         <Route path="/settings" element={<SettingsScreen />} />
                         <Route path="/about" element={<AboutScreen />} />

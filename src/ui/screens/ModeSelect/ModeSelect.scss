@@ -1,20 +1,29 @@
+/* 首页（模式选择）
+   H5 优先：游戏以网页形式发到手机上玩，首页就是竖屏第一屏。
+   —— 高度用 dvh：移动端地址栏收放时不会裁掉底部；
+   —— 四周留出 env(safe-area-inset-*)：刘海 / 状态栏 / iPhone home indicator；
+   —— 主按钮与底部入口的可点区域不小于 44×44，320px 窄屏不横向溢出。 */
 .mode-select {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100dvh;
-    gap: var(--sp-md);
+    /* min-height 而非 height：矮屏 / 手机横屏内容放不下时可以滚动，不被裁掉 */
+    min-height: 100dvh;
+    gap: clamp(var(--sp-sm), 2.5dvh, var(--sp-lg));
     background: var(--color-bg);
     font-family: var(--font-mono);
+    /* 安全区：上（刘海 / 状态栏）下（home indicator）左右（横屏遮挡） */
+    padding: calc(var(--sp-md) + env(safe-area-inset-top)) calc(var(--sp-md) + env(safe-area-inset-right))
+        calc(var(--sp-md) + env(safe-area-inset-bottom)) calc(var(--sp-md) + env(safe-area-inset-left));
 
     // 隐藏 dev 入口：右上角透明热区（看不见，点击进 /dev）
     &-dev {
         position: fixed;
-        top: 0;
-        right: 0;
-        width: 3rem;
-        height: 3rem;
+        top: env(safe-area-inset-top);
+        right: env(safe-area-inset-right);
+        width: max(2.75rem, 44px);
+        height: max(2.75rem, 44px);
         background: transparent;
         border: none;
         cursor: pointer;
@@ -22,7 +31,8 @@
     }
 
     &-title {
-        /* 像素字体（12px 版）：36px = 3×12，正落在原生网格上 */
+        /* 像素字体（12px 版）：36px = 3×12，正落在原生网格上。
+           像素字体不做无级缩放（会发糊），只在断点上整档换字号。 */
         font-family: var(--font-family-base);
         font-size: var(--font-title);
         font-weight: 700;
@@ -36,16 +46,14 @@
             -1px 1px 0 rgba(0, 0, 0, 0.7),
             1px 1px 0 rgba(0, 0, 0, 0.7),
             3px 3px 0 #1f6361; /* 深青（accent #4ecdc4 压暗） */
-        margin-bottom: var(--sp-lg);
+        margin-bottom: clamp(var(--sp-md), 3dvh, var(--sp-lg));
         text-align: center;
         padding: 0 var(--sp-sm);
         max-width: 100%;
-
-        @media (max-height: 500px) {
-            font-size: var(--font-xxl);
-            letter-spacing: 4px;
-            margin-bottom: var(--sp-md);
-        }
+        /* 只在空格处换行：「斗炁大会」在 320px 窄屏不会被拆成「斗 / 炁大会」；
+           万一某个词长到一行放不下，再由 overflow-wrap 兜底断行 */
+        word-break: keep-all;
+        overflow-wrap: anywhere;
     }
 
     &-buttons {
@@ -66,42 +74,58 @@
         transition: all 0.15s;
         text-align: center;
 
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                border-color: var(--color-accent);
+                background: var(--color-bg-hover);
+            }
+        }
+
+        &:active {
             border-color: var(--color-accent);
             background: var(--color-bg-hover);
         }
 
         &-main {
-            padding: var(--sp-lg) var(--sp-lg);
-            font-size: var(--font-lg);
+            /* 竖屏第一屏的主角：内边距随视口高度收缩，高度不写死 px */
             display: flex;
             flex-direction: column;
+            justify-content: center;
             gap: var(--sp-xxs);
             align-items: center;
-        }
-
-        &-hint {
-            font-size: var(--font-xs);
-            font-family: var(--font-family-small);
-            color: var(--color-text-dim);
+            min-height: max(44px, 3.5rem);
+            padding: clamp(var(--sp-md), 3.5dvh, var(--sp-lg)) var(--sp-md);
+            font-size: var(--font-lg); /* 24px = 2×12，落在像素字体网格上 */
         }
 
         &-sm {
-            padding: var(--sp-xs) var(--sp-xl);
+            /* 触摸目标不小于 44×44（--ui-scale 调小时由 44px 兜底）；
+               横向内边距随视口宽度收缩，320px 宽四连排也不溢出 */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: max(44px, 2.75rem);
+            min-width: max(44px, 2.75rem);
+            padding: 0 clamp(var(--sp-sm), 3vw, var(--sp-xl));
             font-size: var(--font-md);
         }
     }
 
     &-footer {
         display: flex;
+        flex-wrap: wrap; /* 窄屏放不下就折行，不横向溢出 */
+        justify-content: center;
+        width: 100%;
         gap: var(--sp-sm);
-        margin-top: 2rem;
+        margin-top: clamp(var(--sp-md), 3.5dvh, 2rem);
     }
 
+    /* 矮屏 / 手机横屏（高度 ≤ 500px）：整体收紧，保证第一屏放得下 */
     @media (max-height: 500px) {
         gap: var(--sp-xs);
         &-title {
-            font-size: var(--font-xxl);
+            font-size: var(--font-xxl); /* 24px，仍是 12 的整数倍 */
             letter-spacing: 4px;
             margin-bottom: var(--sp-md);
         }
@@ -111,10 +135,17 @@
         }
         &-btn-main {
             padding: var(--sp-xs) var(--sp-md);
-            font-size: var(--font-lg);
         }
         &-footer {
             margin-top: 1.25rem;
+        }
+    }
+
+    /* 窄屏（≤ 360px）：标题降到 24px（12 网格），避免标题换行挤掉主入口 */
+    @media (max-width: 360px) {
+        &-title {
+            font-size: var(--font-xl);
+            letter-spacing: 4px;
         }
     }
 }
