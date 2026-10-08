@@ -295,25 +295,13 @@
         display: flex;
         gap: var(--sp-sm);
 
-        // 基础七件套来自 Button（variant=ghost size=md）：透明底、描边、radius-md、字号都由
-        // Button.scss 给。这里只留比 md 档更窄的内边距，以及「原本没有 hover 反馈」的钉回残差
-        // （给 ghost 补 hover 属设计改动，本轮迁移不夹带）。
+        // 基础七件套 + hover/active 来自 Button（variant=ghost size=md）：透明底、描边、radius-md、
+        // 字号、hover/active 的「文字转亮 + 描边变 border-hover」都由 Button.scss 给。
+        // 这里只留比 md 档更窄的内边距与选中态。
         button {
             /* 纵向 4px 是原稿的字面值：html 的 font-size 带 0.15vw，换成 --sp-xxs 会跟着视口变
-               （1280 宽时 4.48px），几何就不一致了。要保持零视觉就先留着。 */
+               （1280 宽时 4.48px），几何就不一致了。 */
             padding: 4px var(--sp-sm);
-
-            @media (hover: hover) {
-                &:hover {
-                    color: var(--color-text);
-                    border-color: var(--color-border);
-                }
-            }
-
-            &:active {
-                color: var(--color-text);
-                border-color: var(--color-border);
-            }
 
             &.active {
                 border-color: var(--color-accent);

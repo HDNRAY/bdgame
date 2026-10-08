@@ -71,25 +71,23 @@
     }
 }
 
-/* 基础七件套来自 Button（variant=default size=sm）：面板底、描边、radius-sm、字号都由
-   Button.scss 给。这里只留比 sm 档更宽的内边距、沿用外部字体（不吃 mono 族）、投影，
-   以及「悬停底色不动、只把文字转金」的钉回残差。 */
+/* 基础七件套 + hover/active 来自 Button（variant=default size=sm）：面板底、描边、radius-sm、
+   字号、hover/active 的「底色 + 描边」高亮都由 Button.scss 给。
+   这里只留比 sm 档更宽的内边距、沿用外部字体（不吃 mono 族）、投影，
+   以及本页「文字转金」的口径。 */
 .bs-side-fab-btn {
     padding: var(--sp-xs) var(--sp-md);
     font-family: inherit;
     box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
 
-    /* 本页口径：悬停 / 按下只把文字转金，底色保持静止的面板底（default 变体会换 bg-hover 底色）；
-       描边沿用变体的 border-hover。要回到统一口径，删掉 background 那两行即可。 */
+    /* 本页口径：悬停 / 按下额外把文字转金（default 变体只换底色与描边） */
     @media (hover: hover) {
         &:hover {
-            background: var(--color-bg-panel);
             color: var(--color-gold);
         }
     }
 
     &:active {
-        background: var(--color-bg-panel);
         color: var(--color-gold);
     }
 }
