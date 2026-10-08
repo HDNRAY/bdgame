@@ -31,7 +31,15 @@
         font-size: var(--font-sm);
         font-family: inherit;
 
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+                color: var(--color-gold);
+            }
+        }
+
+        &:active {
             background: var(--color-bg-hover);
             color: var(--color-gold);
         }
@@ -75,7 +83,15 @@
     font-family: inherit;
     box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            color: var(--color-gold);
+            border-color: var(--color-border-hover);
+        }
+    }
+
+    &:active {
         color: var(--color-gold);
         border-color: var(--color-border-hover);
     }
@@ -147,7 +163,14 @@
     line-height: 1;
     padding: var(--sp-xxs);
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            color: var(--color-text-h);
+        }
+    }
+
+    &:active {
         color: var(--color-text-h);
     }
 }

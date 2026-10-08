@@ -12,7 +12,15 @@
 
     &[role='button'] {
         cursor: pointer;
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                border-color: var(--color-gold);
+                background: var(--color-bg-hover);
+            }
+        }
+
+        &:active {
             border-color: var(--color-gold);
             background: var(--color-bg-hover);
         }

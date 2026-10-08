@@ -22,7 +22,14 @@
             font-size: var(--font-xxs);
             font-family: var(--font-family-small);
 
-            &:hover {
+            /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+            @media (hover: hover) {
+                &:hover {
+                    filter: brightness(0.92);
+                }
+            }
+
+            &:active {
                 filter: brightness(0.92);
             }
         }
@@ -56,7 +63,15 @@
         padding: 0 var(--sp-xxs);
         cursor: default;
 
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+                color: var(--color-text-h);
+            }
+        }
+
+        &:active {
             background: var(--color-bg-hover);
             color: var(--color-text-h);
         }
@@ -66,7 +81,14 @@
         color: var(--color-text-h);
         background: var(--color-bg-panel);
 
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+            }
+        }
+
+        &:active {
             background: var(--color-bg-hover);
         }
     }

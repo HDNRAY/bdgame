@@ -28,7 +28,15 @@
         font-size: var(--font-sm);
         border-radius: var(--radius-sm);
 
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                color: var(--color-danger);
+                border-color: var(--color-danger);
+            }
+        }
+
+        &:active {
             color: var(--color-danger);
             border-color: var(--color-danger);
         }
@@ -108,7 +116,14 @@
         font-size: var(--font-sm);
         transition: all 0.15s;
 
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+            }
+        }
+
+        &:active {
             background: var(--color-bg-hover);
         }
     }
@@ -283,7 +298,14 @@
     font-size: var(--font-sm);
     cursor: pointer;
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            background: var(--color-bg-hover);
+        }
+    }
+
+    &:active {
         background: var(--color-bg-hover);
     }
 }
@@ -300,7 +322,15 @@
     cursor: pointer;
     letter-spacing: 0.3em;
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            color: var(--color-bg);
+            background: var(--color-text);
+        }
+    }
+
+    &:active {
         color: var(--color-bg);
         background: var(--color-text);
     }

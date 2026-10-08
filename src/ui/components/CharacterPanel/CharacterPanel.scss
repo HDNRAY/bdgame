@@ -41,7 +41,14 @@
     font-size: var(--font-md);
     font-family: var(--font-mono);
     transition: all 0.15s;
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            background: var(--color-bg-hover);
+        }
+    }
+
+    &:active {
         background: var(--color-bg-hover);
     }
 }
@@ -50,7 +57,14 @@
     background: var(--color-accent);
     color: #fff;
     font-weight: 700;
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            filter: brightness(1.1);
+        }
+    }
+
+    &:active {
         filter: brightness(1.1);
     }
 }
@@ -58,7 +72,14 @@
 .cp-btn-reset {
     background: var(--color-warning);
     color: #fff;
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            filter: brightness(1.1);
+        }
+    }
+
+    &:active {
         filter: brightness(1.1);
     }
 }
@@ -236,7 +257,14 @@
         opacity: 0.25;
         cursor: default;
     }
-    &:hover:not(:disabled) {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover:not(:disabled) {
+            background: var(--color-bg-hover);
+        }
+    }
+
+    &:active:not(:disabled) {
         background: var(--color-bg-hover);
     }
 }

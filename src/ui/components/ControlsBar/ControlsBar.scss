@@ -17,7 +17,14 @@
         font-size: var(--font-sm);
         line-height: 1.25rem;
 
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                filter: brightness(0.92);
+            }
+        }
+
+        &:active {
             filter: brightness(0.92);
         }
 

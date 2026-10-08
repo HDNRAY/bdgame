@@ -85,7 +85,15 @@
         border-radius: var(--radius-sm);
         letter-spacing: 0.3em;
 
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                color: var(--color-bg);
+                background: var(--color-text);
+            }
+        }
+
+        &:active {
             color: var(--color-bg);
             background: var(--color-text);
         }

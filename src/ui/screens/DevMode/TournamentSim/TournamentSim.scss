@@ -28,7 +28,15 @@
         font-size: var(--font-sm);
         cursor: pointer;
 
-        &:hover:not(:disabled) {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover:not(:disabled) {
+                background: var(--color-accent);
+                color: #000;
+            }
+        }
+
+        &:active:not(:disabled) {
             background: var(--color-accent);
             color: #000;
         }
@@ -160,7 +168,15 @@
         &.tsim-finished {
             cursor: pointer;
 
-            &:hover {
+            /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+            @media (hover: hover) {
+                &:hover {
+                    border-color: var(--color-accent);
+                    background: var(--color-bg-hover);
+                }
+            }
+
+            &:active {
                 border-color: var(--color-accent);
                 background: var(--color-bg-hover);
             }
@@ -230,7 +246,15 @@
         &.tsim-finished {
             cursor: pointer;
 
-            &:hover {
+            /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+            @media (hover: hover) {
+                &:hover {
+                    border-color: var(--color-accent);
+                    background: var(--color-bg-hover);
+                }
+            }
+
+            &:active {
                 border-color: var(--color-accent);
                 background: var(--color-bg-hover);
             }
@@ -298,7 +322,14 @@
         font-size: var(--font-sm);
         cursor: pointer;
 
-        &:hover {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                border-color: var(--color-accent);
+            }
+        }
+
+        &:active {
             border-color: var(--color-accent);
         }
     }

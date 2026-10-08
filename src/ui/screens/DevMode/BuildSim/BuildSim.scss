@@ -62,7 +62,15 @@
     font-family: var(--font-mono);
     cursor: pointer;
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            border-color: var(--color-danger);
+            color: var(--color-danger);
+        }
+    }
+
+    &:active {
         border-color: var(--color-danger);
         color: var(--color-danger);
     }
@@ -111,7 +119,14 @@
     color: var(--color-bg);
     background: var(--color-text);
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            opacity: 0.85;
+        }
+    }
+
+    &:active {
         opacity: 0.85;
     }
 
@@ -155,7 +170,15 @@
     }
 }
 
-.bsim-baseline-clear:hover:not(:disabled) {
+/* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+@media (hover: hover) {
+    .bsim-baseline-clear:hover:not(:disabled) {
+        color: var(--color-danger);
+        border-color: var(--color-danger);
+    }
+}
+
+.bsim-baseline-clear:active:not(:disabled) {
     color: var(--color-danger);
     border-color: var(--color-danger);
 }
@@ -244,7 +267,15 @@
     font-size: var(--font-xs);
     font-family: var(--font-family-small);
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            color: var(--color-accent);
+            border-color: var(--color-accent);
+        }
+    }
+
+    &:active {
         color: var(--color-accent);
         border-color: var(--color-accent);
     }

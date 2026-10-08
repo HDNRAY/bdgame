@@ -46,7 +46,14 @@
         background: var(--color-accent-bg);
     }
 
-    &:hover:not(.on) {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover:not(.on) {
+            color: var(--color-text);
+        }
+    }
+
+    &:active:not(.on) {
         color: var(--color-text);
     }
 }
@@ -201,7 +208,15 @@
     font-size: var(--font-xs);
     cursor: pointer;
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            color: var(--color-text);
+            border-color: var(--color-border-hover);
+        }
+    }
+
+    &:active {
         color: var(--color-text);
         border-color: var(--color-border-hover);
     }

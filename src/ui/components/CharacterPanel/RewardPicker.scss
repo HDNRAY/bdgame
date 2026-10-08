@@ -72,7 +72,14 @@
     font-size: var(--font-sm);
     border-radius: var(--radius-sm);
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            color: var(--color-text);
+        }
+    }
+
+    &:active {
         color: var(--color-text);
     }
 
@@ -146,7 +153,14 @@
     cursor: pointer;
     font-family: var(--font-mono);
 
-    &:hover {
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            background: var(--color-bg-hover);
+        }
+    }
+
+    &:active {
         background: var(--color-bg-hover);
     }
 }
