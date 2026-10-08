@@ -28,7 +28,7 @@ import { Character } from '../../engine/entities/character'
 import { classifyAttackStyle } from '../../engine/ai/planner'
 import { gen, getOpponentDef, pickRandomOpponentId } from '../../data/opponents/index'
 import { runBattle } from '../../engine/battle-runner'
-import type { BattleStatsSnapshot } from '../../engine/combat/battle-stats'
+import { BattleStats, type BattleStatsSnapshot } from '../../engine/combat/battle-stats'
 
 export class RogueliteRun implements RogueliteEngine {
     private _listeners = new Set<(state: GameState) => void>()
@@ -45,6 +45,12 @@ export class RogueliteRun implements RogueliteEngine {
         undefined
     /** 大会对手（processTournament 产出）：注入到 id 为 match/group_r0 的战斗轮 */
     private _pendingTournamentEnemy: string | undefined = undefined
+    /**
+     * 本局累计战斗统计的逐场快照（正式战斗；教学观战不计）。
+     * 口径不另起一套：与单场统计同源（`engine/combat/battle-stats.ts`，见 `docs/battle-stats-design.md`），
+     * 合并走 `BattleStats.mergeSnapshots()`，只在每场战斗后把结果放进 `state.runStats`，结算页直接读。
+     */
+    private _runStats: BattleStatsSnapshot[] = []
 
     constructor() {
         this._state = {
@@ -516,10 +522,16 @@ export class RogueliteRun implements RogueliteEngine {
 
         const { winner, engine } = runBattle(player, enemy, undefined, 4, false, { statsLevel: 2 })
         // 保留本场回放日志 + 本场统计（UI 用 initialData 播 log；不进 state，避免每次克隆大数组）
+        const battleStats = engine.stats?.snapshot()
         this._battleReplay = {
             roundId: round.id,
             entries: engine.state.log.getAll(),
-            stats: engine.stats?.snapshot(),
+            stats: battleStats,
+        }
+        // 本局累计统计（结算页用；这里是唯一累加点，单场回放不受影响）
+        if (battleStats) {
+            this._runStats.push(battleStats)
+            this._state.runStats = BattleStats.mergeSnapshots(this._runStats).snapshot()
         }
         const lost = winner === enemy.id
         const injuryGained = lost ? injuryForNode(this._state.nodeIndex) : 0
@@ -528,6 +540,15 @@ export class RogueliteRun implements RogueliteEngine {
             won: !lost,
             injuryGained,
             log: [],
+        }
+
+        // 本局战绩：在结算处累加，不去数回合列表 —— 终局那一步会清空当前节点的 rounds（不再归档），
+        // 数列表会把最后几场（n33 决赛、隐藏boss）漏掉。教学观战不走这里，自然不计。
+        const prevBattles = this._state.runBattles ?? { total: 0, wins: 0, losses: 0 }
+        this._state.runBattles = {
+            total: prevBattles.total + 1,
+            wins: prevBattles.wins + (lost ? 0 : 1),
+            losses: prevBattles.losses + (lost ? 1 : 0),
         }
 
         this._state.injury += injuryGained

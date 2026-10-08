@@ -169,6 +169,9 @@ interface MetaSave {
 
 - 「首次得魁没有第三条路」的落地：开局时把 `clears > 0` 写进本局 flags（`flags.cleared_before`），「转身，离开。」那条选项带 `when`。
 - **终章页**（真结局专属）：run 结束后先盖一页章页样式的正文（`IntroOverlay` + `TRUE_ENDING_EPILOGUE`，正文在 `src/data/story-intros.ts`，讲主角接任会长后从炁印里知道的来龙去脉），点「结束」才进结算页；是否已读记在 store 的 `endingSeen`（`reset()` 清掉，本局只盖一次）。
+- **结算页**（胜、负、各条结局线都有，**一页到底**，`src/ui/components/roguelite/RunSummaryPanel.tsx`）：终章读完（非真结局则直接）就是这一页——结局名 + 本局战绩（场次/胜负/伤势/奖励）+ 最终构筑（复用 `CharacterPanel` 的 view 模式）+ 本局战斗统计（复用 `BattleStatsPanel`），「再来一局 / 返回主菜单」常驻页脚不会滚丢。顺序固定为**终章 → 结算页**，别把终章挤掉。（原来「对局统计 → 结算」是两步、靠 store 的 `statsSeen` 记进度；已合并成一页，`statsSeen` / `confirmStats` 一并删除。）
+  - 战绩与统计的来源：`GameState.runBattles`（`{total,wins,losses}`，在 `_executeCombat` 的战斗结算处累加）与 `GameState.runStats`（逐场 `BattleStats` 快照用 `mergeSnapshots()` 合并）。**不要在结算时去数回合列表**：`_advanceToNextNode` 判定结束时会把当前节点的 `rounds` 清掉且不归档，最后几场（n33 决赛、隐藏boss）会漏。
+  - DevMode 的「结算页」tab（`src/ui/screens/DevMode/RunSummary/`，`/dev?tab=summary`）渲染的是**同一个组件**：store 里有真局就用真数据，没有则用确定性样例并在页面上标「样例数据」。
 - 结算页标题按结局分：
   **得魁**（循环结局）/ **带着遗憾向前**（真结局）/ **陨落于山腹**（`flags.ending_fallen`，仅供 UI 分辨）/ **胜败乃兵家常事**（淘汰、伤势满 100）。显示名统一放在 `src/data/story-intros.ts`（`ENDING_NAMES` / `ENDING_NAME_FALLEN` / `ENDING_NAME_DEFAULT`；旧文里的「通关」就是现在的「得魁」、「本局结束」就是现在的「胜败乃兵家常事」）。
 
@@ -213,8 +216,11 @@ interface MetaSave {
 | `src/game/entities/round.ts` | `enemyFromSave` / `enemyBuild` / `bossOnly` |
 | `src/game/champion-boss.ts` | 隐藏boss build 构造（`CHAMPION_BOSS_ID` / `championImplantIds` / `championBossBuild`） |
 | `src/game/meta-save.ts` | `MetaSave` 读写（`localStorage` key `dantiao:meta:v1`） |
+| `src/ui/components/roguelite/RunSummaryPanel.tsx` | 结算页（结局名 + 战绩 + 最终构筑 + 本局战斗统计，一页到底），在终章之后 |
+| `src/ui/components/roguelite/ending-title.ts` | 结局旗标 → 显示名（真局与 DevMode 预览共用） |
 | `src/data/story-intros.ts` | 结局显示名 `ENDING_NAMES`、真结局终章页文案 `TRUE_ENDING_EPILOGUE`（章页样式，`IntroOverlay` 渲染） |
 | `src/ui/stores/roguelite-store.ts` | `endingSeen` / `confirmEnding`（本局终章页只盖一次） |
+| `src/ui/screens/DevMode/RunSummary/` | DevMode「结算页」tab（`?tab=summary`）：真数据或确定性样例，复用同一个 `RunSummaryPanel` |
 | `src/data/artifacts.ts` | 专属义体 `titanium_spine`「钛合金脊椎」 |
 | `src/ui/screens/DevMode/MetaPanel/` | 元进度查看 / 清档 / 导出 |
 | `scripts/tournament.ts` | `--champion[=文件]`：把隐藏boss 作为第 33 名参赛者测胜率 |

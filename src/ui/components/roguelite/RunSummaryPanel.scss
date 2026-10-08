@@ -1,0 +1,224 @@
+/* 一局结束的结算页：整页铺开，内容自己滚（最终构筑面板本身很高），主按钮常驻底部。
+   H5 优先（与首页同一口径）：高度用 dvh、四周留 env(safe-area-inset-*)、
+   可点区域不小于 44×44、:hover 只包在 @media (hover: hover) 里、320px 窄屏不横向溢出。 */
+.run-summary {
+    position: fixed;
+    inset: 0;
+    /* 高度用 dvh：移动端地址栏收放时不会裁掉底部 */
+    height: 100dvh;
+    z-index: 900;
+    overflow-y: auto;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+
+    .rsm-inner {
+        max-width: 60rem;
+        margin: 0 auto;
+        /* 安全区：上（刘海 / 状态栏）下（home indicator）左右（横屏遮挡） */
+        padding: calc(var(--sp-lg) + env(safe-area-inset-top)) calc(var(--sp-md) + env(safe-area-inset-right))
+            calc(var(--sp-lg) + env(safe-area-inset-bottom)) calc(var(--sp-md) + env(safe-area-inset-left));
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-lg);
+        box-sizing: border-box;
+        /* flex 子项默认 min-width:auto，窄屏里长内容会把这一行撑宽 */
+        min-width: 0;
+    }
+
+    .rsm-head {
+        text-align: center;
+    }
+
+    .rsm-kicker {
+        font-size: var(--font-sm);
+        color: var(--color-text-dim);
+        letter-spacing: 0.4em;
+    }
+
+    .rsm-title {
+        margin: var(--sp-sm) 0 var(--sp-md);
+        font-size: var(--font-title);
+        font-weight: normal;
+        letter-spacing: 0.2em;
+        /* 长结局名在 320px 下断行，不横向溢出 */
+        overflow-wrap: anywhere;
+    }
+
+    .rsm-figures {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: var(--sp-xs) var(--sp-md);
+        color: var(--color-text-dim);
+        font-size: var(--font-sm);
+    }
+
+    .rsm-figure b {
+        color: var(--color-text-h, var(--color-text));
+        font-weight: normal;
+    }
+
+    /* 来源标记：DevMode 预览时标「样例数据」，最小号，别喧宾夺主 */
+    .rsm-notice {
+        margin-top: var(--sp-xs);
+        font-size: var(--font-xs);
+        color: var(--color-text-dim);
+        letter-spacing: 0.2em;
+    }
+
+    .rsm-section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-xs);
+        min-width: 0;
+    }
+
+    .rsm-section-label {
+        margin: 0;
+        font-size: var(--font-md);
+        font-weight: normal;
+        color: var(--color-text-dim);
+        letter-spacing: 0.2em;
+        border-bottom: var(--border-width) solid var(--color-border);
+        padding-bottom: var(--sp-xxs);
+    }
+
+    /* 复用的人物面板自带背景与滚动，这里只加个边框把它和页面标题分开 */
+    .rsm-build {
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg-panel);
+        min-width: 0;
+    }
+
+    /* 战斗统计：宽表在这层内部横滚，页面与 .run-summary 都不会被撑开。
+       这里只包一层滚动容器（不改共用组件的样式），战斗页照旧。 */
+    .rsm-stats {
+        min-width: 0;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* 窄屏（手机）：总览表改键值竖排 —— 不横滚也能把每个指标读完；
+       其余宽表（输出 11 列）仍交给 .rsm-stats 横滚，不藏数据。 */
+    @media (max-width: 30rem) {
+        .bsp-tabs {
+            flex-wrap: wrap;
+        }
+
+        /* 触屏可点区域不小于 44×44 */
+        .bsp-tab,
+        .bsp-toggle {
+            min-height: max(44px, 2.75rem);
+        }
+
+        .bsp-tab {
+            min-width: max(44px, 2.75rem);
+        }
+
+        .bsp-overview {
+            width: 100%;
+            min-width: 0;
+        }
+
+        /* 放开 nowrap + 允许任意断行：表格不会再被一行长提示撑到 470px */
+        .bsp-overview th,
+        .bsp-overview td {
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        /* 指标列吃满剩余宽度；数据列按内容最小宽（数字不换行）。
+           基类里 `td:last-child { width: 100% }` 会把宽度全给数据列，窄屏下必须让回来。 */
+        .bsp-overview td:first-child,
+        .bsp-overview th:first-child {
+            width: 100%;
+            padding-right: var(--sp-sm);
+        }
+
+        .bsp-overview td:not(:first-child),
+        .bsp-overview th:not(:first-child) {
+            width: auto;
+            min-width: 6rem;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        /* 指标 + 说明竖排：窄屏一列就看得完，不挤成两行横排 */
+        .bsp-metric {
+            display: block;
+        }
+
+        .bsp-metric em {
+            display: block;
+        }
+
+        .bsp-res-row {
+            flex-wrap: wrap;
+        }
+    }
+
+    /* 主按钮常驻底部：最终构筑很高，不必一路滚到底才能结束这一页 / 重开。
+       底部内边距带上安全区，按钮不会被 home indicator 压住。 */
+    .rsm-foot {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: var(--sp-sm);
+        padding: var(--sp-xs) 0 calc(var(--sp-md) + env(safe-area-inset-bottom));
+        background: var(--color-bg);
+    }
+
+    .rsm-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        /* 触摸目标不小于 44×44 */
+        min-height: max(44px, 2.75rem);
+        min-width: max(44px, 2.75rem);
+        padding: var(--sp-xs) var(--sp-xl);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg-panel);
+        color: var(--color-text);
+        cursor: pointer;
+        font-family: var(--font-mono);
+        font-size: var(--font-lg);
+        letter-spacing: 0.3em;
+
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+                border-color: var(--color-border-hover);
+            }
+        }
+
+        &:active {
+            background: var(--color-bg-hover);
+            border-color: var(--color-accent);
+        }
+    }
+
+    .rsm-btn-primary {
+        border-color: var(--color-accent);
+    }
+
+    /* 触屏（无 hover）上，共用面板里未包 @media 的 :hover 会在点过之后「粘住」。
+       不改共用组件（战斗页也在用），只在本页内把它压回去：触屏只留 :active 反馈。 */
+    @media (hover: none) {
+        .bsp-tab:hover:not(.on) {
+            color: var(--color-text-dim);
+        }
+
+        .bsp-toggle:hover {
+            color: var(--color-text-dim);
+            border-color: var(--color-border);
+        }
+    }
+}

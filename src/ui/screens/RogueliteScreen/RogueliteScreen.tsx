@@ -8,6 +8,8 @@ import { NodeMap } from '../../components/roguelite/NodeMap'
 import { InjuryBar } from '../../components/roguelite/InjuryBar'
 import { RoundCard } from '../../components/roguelite/RoundCard'
 import { IntroOverlay } from '../../components/roguelite/IntroOverlay'
+import { RunSummaryPanel } from '../../components/roguelite/RunSummaryPanel'
+import { endingTitle } from '../../components/roguelite/ending-title'
 import { BattlePanel } from '../../components/BattlePanel/BattlePanel'
 import { buildBattleDataFromEntries } from '../../components/roguelite/battle-replay'
 import { gen, getOpponentDef } from '../../../data/opponents'
@@ -17,9 +19,6 @@ import {
     WORLD_INTRO,
     CHAPTER1_INTRO,
     CHAPTERS,
-    ENDING_NAMES,
-    ENDING_NAME_DEFAULT,
-    ENDING_NAME_FALLEN,
     STORY_INTRO_TEXT,
     TRUE_ENDING_EPILOGUE,
 } from '../../../data/story-intros'
@@ -87,26 +86,19 @@ export function RogueliteScreen() {
         )
     }
 
+    // 结算页：结局名 + 本局战绩 + 最终构筑 + 本局战斗统计，全在同一页（胜、负、各条结局线都一样）。
+    // 位置在真结局终章之后 —— 终章是最先读的一页，不会被结算内容挤掉。
     if (gameState.finished) {
-        const finishTitle = gameState.flags['ending_true']
-            ? ENDING_NAMES.true
-            : gameState.flags['ending_fallen']
-              ? ENDING_NAME_FALLEN
-              : gameState.flags['ending_loop']
-                ? ENDING_NAMES.loop
-                : ENDING_NAME_DEFAULT
         return (
-            <div className="rs rs-finish">
-                <h1>{finishTitle}</h1>
-                <p>伤势: {gameState.injury}</p>
-                <p>获得: {gameState.build.rewards.length} 个奖励</p>
-                <button className="rs-btn" onClick={reset}>
-                    再来一局
-                </button>
-                <button className="rs-btn" onClick={() => navigate('/')}>
-                    返回主菜单
-                </button>
-            </div>
+            <RunSummaryPanel
+                title={endingTitle(gameState.flags)}
+                build={gameState.build}
+                injury={gameState.injury}
+                battles={gameState.runBattles}
+                stats={gameState.runStats}
+                onRestart={reset}
+                onExit={() => navigate('/')}
+            />
         )
     }
 

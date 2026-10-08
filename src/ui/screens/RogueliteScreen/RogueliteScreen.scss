@@ -49,15 +49,6 @@
         gap: var(--sp-xs);
     }
 
-    &-finish {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        gap: 16px;
-    }
-
     &-points {
         color: var(--color-ap);
         font-size: var(--font-sm);
@@ -74,23 +65,6 @@
         margin-left: auto;
         color: var(--color-text-dim);
         font-size: var(--font-sm);
-    }
-
-    &-btn {
-        padding: var(--sp-xs) var(--sp-xl);
-        border: var(--border-width) solid var(--color-border);
-        border-radius: var(--radius-md);
-        background: var(--color-bg-panel);
-        color: var(--color-text);
-        cursor: pointer;
-        font-family: var(--font-mono);
-        font-size: var(--font-md);
-        transition: all 0.15s;
-
-        &:hover {
-            border-color: var(--color-accent);
-            background: var(--color-bg-hover);
-        }
     }
 
     // ── 备战遮罩 ──
@@ -233,39 +207,6 @@
     // 竖屏 build 模式：整块滚动，消除双重滚动
     &.rs-portrait .rs-build .character-panel {
         overflow: visible;
-    }
-
-    &.rs-finish {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        gap: 16px;
-    }
-
-    &-finish {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        gap: var(--sp-md);
-    }
-
-    &-btn {
-        padding: var(--sp-xs) var(--sp-xl);
-        border: var(--border-width) solid var(--color-border);
-        border-radius: var(--radius-md);
-        background: var(--color-bg-panel);
-        color: var(--color-text);
-        cursor: pointer;
-        font-size: var(--font-lg);
-
-        &:hover {
-            background: var(--color-bg-hover);
-            border-color: var(--color-border-hover);
-        }
     }
 
     &.rs-landscape .rs-body {
