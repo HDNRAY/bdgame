@@ -1,3 +1,4 @@
+import { Button } from '../ui/Button/Button'
 import './ControlsBar.scss'
 
 interface ControlsBarProps {
@@ -25,13 +26,19 @@ export function ControlsBar({
 }: ControlsBarProps) {
     return (
         <div className="controls-bar">
-            <button className="ctrl-btn" onClick={onTogglePlay}>
+            <Button variant="bare" size="sm" className="ctrl-btn" onClick={onTogglePlay}>
                 {playing ? '⏸' : '▶'}
-            </button>
+            </Button>
             {[0.5, 1, 2, 4].map((s) => (
-                <button key={s} className={`ctrl-btn ${speed === s ? 'active' : ''}`} onClick={() => onChangeSpeed(s)}>
+                <Button
+                    key={s}
+                    variant="bare"
+                    size="sm"
+                    className={`ctrl-btn ${speed === s ? 'active' : ''}`}
+                    onClick={() => onChangeSpeed(s)}
+                >
                     {s}×
-                </button>
+                </Button>
             ))}
             <div className="progress" onClick={onSeek}>
                 <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
@@ -40,9 +47,9 @@ export function ControlsBar({
             <span className="timestamp">{(currentTime / 1000).toFixed(1)}s</span>
 
             {onReplay && (
-                <button className="ctrl-btn replay-btn" onClick={onReplay} title="重播">
+                <Button variant="bare" size="sm" className="ctrl-btn replay-btn" onClick={onReplay} title="重播">
                     ↺
-                </button>
+                </Button>
             )}
         </div>
     )

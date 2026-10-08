@@ -122,29 +122,11 @@
     padding: var(--sp-sm) var(--sp-lg) var(--sp-lg);
 }
 
+/* 基础七件套 + hover/active 高亮来自 Button（variant=primary size=md）：
+   accent 描边 + accent-bg 填充 + accent 文字，hover/active 换 bg-hover。
+   这里只留比 md 档更宽的横向内边距。 */
 .gameplay-btn {
     padding: var(--sp-xs) var(--sp-xl);
-    border: var(--border-width) solid var(--color-accent);
-    border-radius: var(--radius-md);
-    background: var(--color-accent-bg);
-    color: var(--color-accent);
-    cursor: pointer;
-    font-size: var(--font-md);
-    font-family: var(--font-mono);
-    transition: all 0.15s;
-
-    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
-    @media (hover: hover) {
-        &:hover {
-            background: var(--color-bg-hover);
-            border-color: var(--color-accent);
-        }
-    }
-
-    &:active {
-        background: var(--color-bg-hover);
-        border-color: var(--color-accent);
-    }
 }
 
 /* 窄屏回到单列，弹窗仍可用 */

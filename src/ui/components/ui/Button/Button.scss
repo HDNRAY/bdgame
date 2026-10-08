@@ -1,6 +1,39 @@
-/* 通用按钮：base（描边/字体/手型/过渡）+ size（内边距/圆角/字号）+ variant（配色与状态）。
-   口径与 ModeSelect.scss / RunSummaryPanel.scss 一致：hover 只包在 @media (hover: hover)
-   里，触屏用同一套 :active 高亮兜底，避免"点完还粘着高亮"。 */
+/* ============================================================================
+   Button —— 通用按钮的完整契约（改这个文件前先读完；改完同步 Button.tsx 顶部注释）
+
+   结构：base（描边 / 字体 / 手型 / 过渡 / 禁用）+ size（内边距 / 圆角 / 字号）
+         + variant（配色与状态）。
+
+   变体（用途 → 静止 → hover/active → 禁用回落）
+     default  面板内的常规动作        面板底 bg-panel + text + 描边    bg-hover + border-hover   回落到 bg-panel
+     plain    页面底上的常规动作      bg + text + 描边                 bg-hover + border-hover   回落到 bg
+     primary  实心强调主行动          accent 描边 + accent-bg + accent bg-hover（自身填充提亮）  回落到 accent-bg
+     ghost    次级 / 取消（透明底）    透明底 + text + 描边             text-h + border-hover     回落到 text + 描边
+     bare     无描边实体小块（工具条） entity-bg 底 + text，无描边方角  filter brightness(0.92)   回落到 entity-bg
+   default 与 plain 只差底色（面板 / 页面），两边都有调用点，不合并。
+
+   尺寸（用途 → 字号 / 内边距 / 圆角）
+     xs  面板内紧凑图标、色块    10px / --sp-xxs --sp-xs / radius-sm
+     sm  面板内动作（返回、图标） 12px / --sp-xxs --sp-xs / radius-sm
+     md  常规动作、表单           12px / --sp-xs --sp-lg / radius-md
+     lg  竖屏第一屏的主入口       24px / --sp-sm --sp-lg / radius-md
+   触摸目标：H5 硬口径是 ≥44×44，由调用页在主要动作上补 `min-height: max(44px, …)`
+   （范例 ModeSelect.scss 的 -btn-main / -btn-sm）。xs/sm 是桌面与面板内的紧凑档，不承载
+   H5 主要动作 —— 用不可见伪元素扩命中区会在密集工具条里抢邻近按钮的点击，所以不写进
+   Button，交给页面按自己的布局保证。
+
+   状态契约（口径来自 45678bc）
+     - hover 一律包在 @media (hover: hover) 里，触屏用同一套 :active 兜底，
+       避免"点完还粘着高亮"。
+     - 禁用 = `.btn:disabled`（只压暗 + 收手型）+ 每个变体一条 `&:disabled` 静止色回落。
+       **不要**给变体 hover 加 :not(:disabled)：那会把特异性抬到 (0,3,0)，反压页面里
+       等特异性的残差。同一变体内 `&:disabled` 写在 hover 之后，同特异性下靠源序压住 hover。
+     - 变体 hover 与页面残差同为 (0,2,0) 时也靠源序：Button.scss 先于页面 scss 载入，
+       页面残差赢 —— 页面要"只点亮自己的口径"就这么写，并在注释里写明理由。
+
+   页面只允许两类残差：(1) 布局（margin / flex / width / height）；(2) 本页刻意不同的口径
+   （例如只换 accent 描边、不换底色）。两件套以外的一律回到这里加变体 / 尺寸。
+   ============================================================================ */
 .btn {
     cursor: pointer;
     font-family: var(--font-mono);
@@ -40,7 +73,7 @@
     }
 
     /* ── 变体 ── */
-    /* 面板底：最常用（返回按钮一类） */
+    /* 面板底：面板内的常规动作（返回按钮一类） */
     &-default {
         background: var(--color-bg-panel);
         color: var(--color-text);
@@ -64,7 +97,31 @@
         }
     }
 
-    /* 强调：主行动按钮（尚未有调用点，迁移 .gameplay-btn / .rsm-btn-primary 时接上） */
+    /* 页面底：比面板更"平"，用在直接铺在页面底上的按钮 */
+    &-plain {
+        background: var(--color-bg);
+        color: var(--color-text);
+
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-bg-hover);
+                border-color: var(--color-border-hover);
+            }
+        }
+
+        &:active {
+            background: var(--color-bg-hover);
+            border-color: var(--color-border-hover);
+        }
+
+        &:disabled {
+            background: var(--color-bg);
+            border-color: var(--color-border);
+        }
+    }
+
+    /* 实心强调：主行动按钮。底色是 accent-bg，hover/active 靠底色提亮；
+       描边本来就是 accent，不用再点亮。 */
     &-primary {
         border-color: var(--color-accent);
         background: var(--color-accent-bg);
@@ -85,7 +142,7 @@
         }
     }
 
-    /* 透明底描边：次级动作（返回 / 取消一类） */
+    /* 透明底描边：次级动作（返回 / 取消一类）。信号在文字与描边，不在底色。 */
     &-ghost {
         background: none;
         color: var(--color-text);
@@ -108,26 +165,28 @@
         }
     }
 
-    /* 页面底色：比面板更"平"，用在面板内部的按钮上（如确认弹窗） */
-    &-plain {
-        background: var(--color-bg);
+    // 无描边实体小块：日志 / 回放工具条上的图标按钮
+    // （--color-entity-bg + 无描边 + 方角，没有边框可点亮，反馈只能整体压暗）。
+    // 这是本变体的固定口径；页面要别的反馈（例如选中态）就在本页 scss 里覆盖。
+    &-bare {
+        border: none;
+        border-radius: 0;
+        background: var(--color-entity-bg);
         color: var(--color-text);
 
         @media (hover: hover) {
             &:hover {
-                background: var(--color-bg-hover);
-                border-color: var(--color-border-hover);
+                filter: brightness(0.92);
             }
         }
 
         &:active {
-            background: var(--color-bg-hover);
-            border-color: var(--color-border-hover);
+            filter: brightness(0.92);
         }
 
         &:disabled {
-            background: var(--color-bg);
-            border-color: var(--color-border);
+            background: var(--color-entity-bg);
+            filter: none;
         }
     }
 }

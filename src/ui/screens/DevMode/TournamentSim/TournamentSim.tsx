@@ -24,6 +24,7 @@ import { BattleLog } from '../../../../engine/combat/battle-log'
 import type { LogEntry } from '../../../../bridge/replay-engine'
 import type { CharacterBuild } from '../../../../game/entities/character-build'
 import { BattlePanel, type BattleData } from '../../../components/BattlePanel/BattlePanel'
+import { Button } from '../../../components/ui/Button/Button'
 import './TournamentSim.scss'
 
 type SimStatus = 'idle' | 'running' | 'done'
@@ -339,19 +340,21 @@ export function TournamentSim() {
                         {replayMatch.games && replayMatch.games.length > 1 && (
                             <div className="tsim-game-tabs">
                                 {replayMatch.games.map((_, i) => (
-                                    <button
+                                    <Button
                                         key={i}
+                                        variant="ghost"
+                                        size="md"
                                         className={selected.gameIndex === i ? 'active' : ''}
                                         onClick={() => setSelected({ matchKey: selected.matchKey, gameIndex: i })}
                                     >
                                         第{i + 1}局
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
                         )}
-                        <button className="tsim-close" onClick={() => setSelected(null)}>
+                        <Button variant="ghost" size="md" className="tsim-close" onClick={() => setSelected(null)}>
                             关闭
-                        </button>
+                        </Button>
                     </div>
                     {replayData && replayBuilds ? (
                         <BattlePanel

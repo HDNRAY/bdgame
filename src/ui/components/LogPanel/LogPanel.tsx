@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
+import { Button } from '../ui/Button/Button'
 import './LogPanel.scss'
 
 interface LogPanelProps {
@@ -94,16 +95,24 @@ export function LogPanel({ logLines, currentLine, compact, lineTimelineMs, speed
     return (
         <div className="log-panel">
             <div className="log-font-ctrl">
-                <button className="ctrl-btn" onClick={() => setLogFontSize((s) => Math.max(9, s - 1))} title="缩小日志">
+                <Button
+                    variant="bare"
+                    size="xs"
+                    className="ctrl-btn"
+                    onClick={() => setLogFontSize((s) => Math.max(9, s - 1))}
+                    title="缩小日志"
+                >
                     A−
-                </button>
-                <button
+                </Button>
+                <Button
+                    variant="bare"
+                    size="xs"
                     className="ctrl-btn"
                     onClick={() => setLogFontSize((s) => Math.min(24, s + 1))}
                     title="放大日志"
                 >
                     A+
-                </button>
+                </Button>
             </div>
             <div ref={logRef} className="log" style={{ fontSize: logFontSize }} onScroll={handleScroll}>
                 {logLines.slice(0, Math.max(displayCount, currentLine) + 1).map((line, i) => (

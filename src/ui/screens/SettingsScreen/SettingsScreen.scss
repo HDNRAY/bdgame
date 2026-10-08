@@ -63,30 +63,27 @@
     gap: var(--sp-xs);
 }
 
+/* 基础七件套来自 Button（variant=plain size=md）：页面底色、描边、radius-md、字号都由
+   Button.scss 给。这里只留 flex 布局、比 md 档更窄的横向内边距、居中，
+   以及一条「悬停只点亮描边、不换底色」的钉回残差。 */
 .theme-btn {
     flex: 1;
     padding: var(--sp-xs) var(--sp-sm);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg);
-    color: var(--color-text);
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: var(--font-sm);
     text-align: center;
-    transition: all 0.15s;
 
-    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    // 本页口径：悬停 / 按下只点亮描边（plain 变体会同时换底色）。
+    // 要回到统一口径，删掉这两块即可。
     @media (hover: hover) {
         &:hover {
-            border-color: var(--color-border-hover);
+            background: var(--color-bg);
         }
     }
 
     &:active {
-        border-color: var(--color-border-hover);
+        background: var(--color-bg);
     }
 
+    // 选中态：比统一口径更强的 accent 描边 + accent-bg 底，写在 hover 之后压住悬停底色
     &.active {
         border-color: var(--color-accent);
         color: var(--color-accent);
@@ -138,33 +135,33 @@
     margin-top: var(--sp-xs);
 }
 
+/* 基础七件套来自 Button（variant=plain size=xs）：页面底色、描边、radius-sm、
+   10px 小字族都由 Button.scss 给。这里只留 flex 布局、更紧凑的四周内边距、
+   暗一档的静止文字色、小字族（ui-monospace 回退要去掉），以及本页「accent 描边 + accent 文字」
+   的悬停口径（比统一口径的 border-hover 更强，所以钉在这里）。 */
 .scale-preset {
     flex: 1;
     padding: var(--sp-xxs);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--radius-sm);
-    background: var(--color-bg);
     color: var(--color-text-dim);
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: var(--font-xxs);
     font-family: var(--font-family-small);
     text-align: center;
-    transition: all 0.15s;
 
-    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    // 本页口径：悬停 / 按下只点亮 accent 描边与文字、不换底色（强于 plain 的 bg-hover + border-hover）
     @media (hover: hover) {
         &:hover {
+            background: var(--color-bg);
             border-color: var(--color-accent);
             color: var(--color-accent);
         }
     }
 
     &:active {
+        background: var(--color-bg);
         border-color: var(--color-accent);
         color: var(--color-accent);
     }
 
+    // 选中态：比悬停更强（补 accent-bg 底），写在最后压住悬停口径
     &.active {
         border-color: var(--color-accent);
         background: var(--color-accent-bg);

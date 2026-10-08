@@ -87,12 +87,12 @@ export function BattleScreen() {
 
             {isNarrow && (
                 <div className="bs-side-fab">
-                    <button className="bs-side-fab-btn" onClick={() => openSide('a')}>
+                    <Button variant="default" size="sm" className="bs-side-fab-btn" onClick={() => openSide('a')}>
                         {buildA.name}
-                    </button>
-                    <button className="bs-side-fab-btn" onClick={() => openSide('b')}>
+                    </Button>
+                    <Button variant="default" size="sm" className="bs-side-fab-btn" onClick={() => openSide('b')}>
                         {buildB.name}
-                    </button>
+                    </Button>
                 </div>
             )}
 

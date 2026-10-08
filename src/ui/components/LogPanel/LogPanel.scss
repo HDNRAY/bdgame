@@ -12,26 +12,12 @@
         padding: 2px var(--sp-xs);
         border-bottom: var(--border-width) solid var(--color-border);
 
+        /* 七件套 + hover/active 压暗都来自 Button（variant=bare）：--color-entity-bg 底、
+           无描边、方角，hover/active 走 filter brightness(0.92)。
+           这里只留紧凑内边距与 10px 小字族（ui-monospace 回退要去掉）。 */
         .ctrl-btn {
-            background: var(--color-entity-bg);
-            color: var(--color-text);
-            border: none;
             padding: 0 var(--sp-xxs);
-            cursor: pointer;
-            font-family: var(--font-mono);
-            font-size: var(--font-xxs);
             font-family: var(--font-family-small);
-
-            /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
-            @media (hover: hover) {
-                &:hover {
-                    filter: brightness(0.92);
-                }
-            }
-
-            &:active {
-                filter: brightness(0.92);
-            }
         }
     }
 

@@ -107,9 +107,15 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
                 </div>
 
                 <div className="selection-actions">
-                    <button className="start-btn" disabled={!selectedA || !selectedB} onClick={handleStart}>
+                    <Button
+                        variant="default"
+                        size="sm"
+                        className="start-btn"
+                        disabled={!selectedA || !selectedB}
+                        onClick={handleStart}
+                    >
                         开始战斗
-                    </button>
+                    </Button>
                     <Button variant="ghost" size="sm" className="back-btn" onClick={() => navigate('/')}>
                         返回
                     </Button>

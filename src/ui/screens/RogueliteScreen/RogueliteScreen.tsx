@@ -11,6 +11,7 @@ import { IntroOverlay } from '../../components/roguelite/IntroOverlay'
 import { RunSummaryPanel } from '../../components/roguelite/RunSummaryPanel'
 import { endingTitle } from '../../components/roguelite/ending-title'
 import { BattlePanel } from '../../components/BattlePanel/BattlePanel'
+import { Button } from '../../components/ui/Button/Button'
 import { buildBattleDataFromEntries } from '../../components/roguelite/battle-replay'
 import { gen, getOpponentDef } from '../../../data/opponents'
 import type { CharacterBuild } from '../../../game/entities/character-build'
@@ -209,9 +210,9 @@ export function RogueliteScreen() {
                     修炼点 {gameState.unspentPoints}
                 </span>
                 <span className="rs-title">斗炁大会</span>
-                <button className="rs-exit-btn" onClick={handleExit}>
+                <Button variant="ghost" size="sm" className="rs-exit-btn" onClick={handleExit}>
                     退出
-                </button>
+                </Button>
             </header>
             <div className="rs-body">
                 <div className="rs-rounds" ref={roundsRef} onScroll={handleRoundsScroll}>

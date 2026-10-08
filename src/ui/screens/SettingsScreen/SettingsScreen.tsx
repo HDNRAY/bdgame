@@ -42,13 +42,15 @@ export function SettingsScreen() {
                 <div className="settings-section-title">主题</div>
                 <div className="theme-options">
                     {THEME_OPTIONS.map((opt) => (
-                        <button
+                        <Button
                             key={opt.value}
+                            variant="plain"
+                            size="md"
                             className={`theme-btn${theme === opt.value ? ' active' : ''}`}
                             onClick={() => setTheme(opt.value)}
                         >
                             {opt.label}
-                        </button>
+                        </Button>
                     ))}
                 </div>
             </div>
@@ -75,13 +77,15 @@ export function SettingsScreen() {
                 </div>
                 <div className="scale-presets">
                     {SCALE_PRESETS.map((preset) => (
-                        <button
+                        <Button
                             key={preset.value}
+                            variant="plain"
+                            size="xs"
                             className={`scale-preset${uiScale === preset.value ? ' active' : ''}`}
                             onClick={() => commitScale(preset.value)}
                         >
                             {preset.label}
-                        </button>
+                        </Button>
                     ))}
                 </div>
                 <div className="settings-hint">拖动滑块或点击预设调整界面大小（0.5× ~ 2.0×）</div>

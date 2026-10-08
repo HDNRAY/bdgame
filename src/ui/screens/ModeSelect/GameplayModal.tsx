@@ -1,4 +1,5 @@
 import { Children, type ReactNode } from 'react'
+import { Button } from '../../components/ui/Button/Button'
 import './GameplayModal.scss'
 
 interface GameplayModalProps {
@@ -139,9 +140,9 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
                     </Section>
                 </div>
                 <div className="gameplay-footer">
-                    <button className="gameplay-btn" onClick={onClose}>
+                    <Button variant="primary" size="md" className="gameplay-btn" onClick={onClose}>
                         知道了
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

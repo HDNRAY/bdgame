@@ -295,15 +295,25 @@
         display: flex;
         gap: var(--sp-sm);
 
+        // 基础七件套来自 Button（variant=ghost size=md）：透明底、描边、radius-md、字号都由
+        // Button.scss 给。这里只留比 md 档更窄的内边距，以及「原本没有 hover 反馈」的钉回残差
+        // （给 ghost 补 hover 属设计改动，本轮迁移不夹带）。
         button {
+            /* 纵向 4px 是原稿的字面值：html 的 font-size 带 0.15vw，换成 --sp-xxs 会跟着视口变
+               （1280 宽时 4.48px），几何就不一致了。要保持零视觉就先留着。 */
             padding: 4px var(--sp-sm);
-            border: var(--border-width) solid var(--color-border);
-            border-radius: var(--radius-md);
-            background: transparent;
-            color: var(--color-text);
-            font-family: var(--font-mono);
-            font-size: var(--font-sm);
-            cursor: pointer;
+
+            @media (hover: hover) {
+                &:hover {
+                    color: var(--color-text);
+                    border-color: var(--color-border);
+                }
+            }
+
+            &:active {
+                color: var(--color-text);
+                border-color: var(--color-border);
+            }
 
             &.active {
                 border-color: var(--color-accent);
@@ -312,24 +322,22 @@
         }
     }
 
+    // 基础七件套来自 Button（variant=ghost size=md）。这里只留比 md 档更窄的内边距，
+    // 以及本页「悬停只点亮 accent 描边、文字不动」的口径。
     &-close {
+        /* 同上：纵向 4px 保留原稿字面值 */
         padding: 4px var(--sp-md);
-        border: var(--border-width) solid var(--color-border);
-        border-radius: var(--radius-md);
-        background: transparent;
-        color: var(--color-text);
-        font-family: var(--font-mono);
-        font-size: var(--font-sm);
-        cursor: pointer;
 
-        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        /* 本页口径：悬停 / 按下只把描边转 accent（ghost 变体会同时把文字转 text-h） */
         @media (hover: hover) {
             &:hover {
+                color: var(--color-text);
                 border-color: var(--color-accent);
             }
         }
 
         &:active {
+            color: var(--color-text);
             border-color: var(--color-accent);
         }
     }

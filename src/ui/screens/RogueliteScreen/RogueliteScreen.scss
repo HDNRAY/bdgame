@@ -17,18 +17,12 @@
         flex-shrink: 0;
     }
 
+    // 基础七件套 + 透明底描边来自 Button（variant=ghost size=sm）：透明底、描边、radius-sm、
+    // 字号都与 ghost/sm 档一致。这里只留靠右布局，以及本页「描边与文字转危险色」的口径。
     &-exit-btn {
         margin-left: auto;
-        background: none;
-        border: var(--border-width) solid var(--color-border);
-        color: var(--color-text);
-        padding: var(--sp-xxs) var(--sp-xs);
-        cursor: pointer;
-        font-family: var(--font-mono);
-        font-size: var(--font-sm);
-        border-radius: var(--radius-sm);
 
-        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        /* 本页口径：悬停 / 按下转 --color-danger（ghost 变体是 text-h + border-hover） */
         @media (hover: hover) {
             &:hover {
                 color: var(--color-danger);

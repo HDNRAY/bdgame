@@ -246,7 +246,8 @@
 }
 
 /* 写死尺寸的图标按钮（− + ×）。七件套来自 Button（variant=default size=sm），
-   这里只留固定尺寸、flex 居中，以及把内边距压回 0（全局 reset 的值）。
+   字号已经由 sm 档给（--font-md = --font-sm = 12px），这里只留固定尺寸、flex 居中，
+   把内边距压回 0（全局 reset 的值），以及比 .btn:disabled 更淡的禁用口径。
    描边式按钮：hover / 按下吃 Button 的「底色 + 描边」高亮（同首页那一族口径）。 */
 .cp-btn-sm {
     width: 1.375rem;
@@ -255,7 +256,6 @@
     align-items: center;
     justify-content: center;
     padding: 0;
-    font-size: var(--font-sm);
 
     &:disabled {
         opacity: 0.25;
