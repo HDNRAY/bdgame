@@ -1,7 +1,7 @@
 # Project Memory
 
-This is a roguelite auto-battle game (代号《单挑》).
-Tech stack: TypeScript + Vite 6 + React 19 + Zustand + CSS Modules + Canvas API.
+This is a roguelite auto-battle game 《单挑》.
+Tech stack: TypeScript + Vite 8 + React 19 + Zustand 5 + Sass + PixiJS + Canvas API.
 
 ## 写作规范
 
@@ -76,8 +76,8 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
     - 调用方只需 `<Tooltip content={<WeaponTooltip weapon={w} />}>hover me</Tooltip>`
 
 3. **数据展示在 engine 层**：
-    - Tag 中文名/颜色映射 → `src/engine/data/tagDisplay.ts`
-    - EffectDef → 中文描述逻辑 → `src/engine/data/effectDisplay.ts`
+    - Tag 中文名/颜色映射 → `src/bridge/tagDisplay.ts`
+    - EffectDef → 中文描述逻辑 → `src/data/effectDisplay.ts`
     - 纯函数，不依赖 React，可被任意层调用
 
 4. **Tooltip 渲染**：
@@ -94,7 +94,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 
 | 类型             | 定义位置                          | 关键字段                                                          |
 | ---------------- | --------------------------------- | ----------------------------------------------------------------- |
-| WeaponDef        | src/engine/data/weapons.ts        | name, description, tags, range, effects, triggers                 |
+| WeaponDef        | src/data/weapons/weapons.ts        | name, description, tags, range, effects, triggers                 |
 | ActionDefinition | src/engine/entities/action.ts     | name, description, tags, apCost, effects, target, chance, maxUses |
 | Passive          | src/engine/entities/passive.ts    | name, description, tags, effects, triggers                        |
 | Artifact         | src/engine/entities/artifact.ts   | name, description, tags, effects, triggers                        |
@@ -109,7 +109,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 | `internal` 标签 | 是       | 是（`src/engine/ai/index.ts` 的主招循环直接跳过该标签）        |
 | `_` id 前缀     | 是       | 否（全库只有 `_getActionPool()` 读这个前缀）                    |
 
-「AI/对手要用、但不该被玩家当「学招式」奖励抽到」的招式只加 `_` 前缀，**不要加 `internal`** —— `internal` 会让 AI 出不了这张牌（曾因此把一刀/德克的胜率砍半）。两个手段不等价的完整说明见 `docs/tag-audit.md` §十二。
+「AI/对手要用、但不该被玩家当「学招式」奖励抽到」的招式只加 `_` 前缀，**不要加 `internal`** —— `internal` 会让 AI 出不了这张牌（曾因此把一刀/德克的胜率砍半）。
 
 **出招条件 vs 触发器**：出招条件是**自己的套路**（自身状态门槛，唯一表达 `ActionConfig.condition`，解析入口 `resolveCondition()`）；触发器是**见招拆招**（交手事件，表在 `src/data/triggers.ts`）。自身状态阈值（如血量）**不做成触发槽**。细节见这两个文件的文件头注释。
 
