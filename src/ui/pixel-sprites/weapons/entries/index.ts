@@ -31,6 +31,8 @@ import { fei_jian } from './fei_jian'
 import { fusi_sword } from './fusi_sword'
 import { buer_sword } from './buer_sword'
 import { broken_blade } from './broken_blade'
+import { engine_hammer } from './engine_hammer'
+import { qianji } from './qianji'
 
 /** 武器 id → 条目 */
 export const WEAPON_ENTRIES: Record<
@@ -64,6 +66,8 @@ export const WEAPON_ENTRIES: Record<
     fusi_sword,
     buer_sword,
     broken_blade,
+    engine_hammer,
+    qianji,
 }
 
 const weaponIds = [
@@ -92,6 +96,8 @@ const weaponIds = [
     'fusi_sword',
     'buer_sword',
     'broken_blade',
+    'engine_hammer',
+    'qianji',
 ]
 
 /** 武器叠加层（纯美术） */
