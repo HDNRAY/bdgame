@@ -74,15 +74,11 @@
             font-weight: bold;
         }
 
-        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        /* 只读表格：行上没有点击行为，不做按下反馈；悬停高亮只是为了横向读表 */
         @media (hover: hover) {
             tbody tr:hover {
                 background: var(--color-bg-raised);
             }
-        }
-
-        tbody tr:active {
-            background: var(--color-bg-raised);
         }
     }
 }
