@@ -18,17 +18,6 @@
     gap: var(--sp-sm);
 }
 
-.battle-panel-loading {
-    background: var(--color-bg);
-    color: var(--color-text-dim);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: var(--font-lg);
-}
-
 .bp-bottom-tabs {
     display: flex;
     gap: 2px;

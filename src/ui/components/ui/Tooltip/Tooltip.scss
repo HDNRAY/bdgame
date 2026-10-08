@@ -25,24 +25,10 @@
     }
 }
 
-/* tooltip 内容排版：弹层与图鉴内联卡片共用 */
+/* tooltip 内容排版：弹层 / 图鉴内联卡片 / RoundCard 选项内联详情三处共用同一份内容组件 */
 .tooltip-popup,
-.tt-content {
-    .tt-name {
-        /* md（12px）：与 tooltip 正文同号，靠加粗与标题色拉开层级 */
-        font-size: var(--font-md);
-        font-weight: bold;
-        color: var(--color-text-h);
-        margin-bottom: var(--sp-xxs);
-    }
-
-    .tt-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 3px;
-        margin-bottom: var(--sp-xxs);
-    }
-
+.tt-content,
+.rc-entity-details {
     .tag-list {
         margin-bottom: var(--sp-xxs);
     }
@@ -52,25 +38,6 @@
         font-size: var(--font-xs);
         font-family: var(--font-family-small);
         margin-bottom: var(--sp-xxs);
-    }
-
-    .tt-effects {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-
-        li {
-            font-size: var(--font-xs);
-            font-family: var(--font-family-small);
-            color: var(--color-text);
-            padding: 1px 0;
-        }
-
-        li::before {
-            content: '•';
-            margin-right: var(--sp-xxs);
-            color: var(--color-text-dim);
-        }
     }
 
     .tt-separator {
@@ -95,22 +62,6 @@
         }
     }
 
-    .tt-ap-cost {
-        position: absolute;
-        top: 0;
-        right: 0;
-        color: var(--color-ap);
-        font-size: var(--font-md);
-        font-weight: bold;
-        white-space: nowrap;
-
-        .tt-chan-cost {
-            color: var(--color-text-dim);
-            font-size: var(--font-md);
-            font-weight: bold;
-        }
-    }
-
     .tt-label {
         font-size: var(--font-xxs);
         font-family: var(--font-family-small);
@@ -126,6 +77,34 @@
 
     .tt-relative {
         position: relative;
+    }
+}
+
+/* 仅弹层与图鉴内联卡片：内联详情里没有这几类结构或本就另有规则，不进上面的共用列表以免误伤 */
+.tooltip-popup,
+.tt-content {
+    .tt-name {
+        /* md（12px）：与 tooltip 正文同号，靠加粗与标题色拉开层级 */
+        font-size: var(--font-md);
+        font-weight: bold;
+        color: var(--color-text-h);
+        margin-bottom: var(--sp-xxs);
+    }
+
+    .tt-ap-cost {
+        position: absolute;
+        top: 0;
+        right: 0;
+        color: var(--color-ap);
+        font-size: var(--font-md);
+        font-weight: bold;
+        white-space: nowrap;
+
+        .tt-chan-cost {
+            color: var(--color-text-dim);
+            font-size: var(--font-md);
+            font-weight: bold;
+        }
     }
 
     /* tooltip 内的 entity-item 缩小 */

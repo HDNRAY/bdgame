@@ -19,23 +19,11 @@
     gap: var(--sp-xs);
 }
 
-.cp-header-left {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-xs);
-}
-
 .cp-avatar {
     width: 2.5rem;
     height: 2.5rem;
     image-rendering: pixelated;
     flex-shrink: 0;
-}
-
-.cp-name {
-    font-size: var(--font-lg);
-    font-weight: 600;
-    color: var(--color-text-h);
 }
 
 .cp-actions {
@@ -169,12 +157,6 @@
     flex-shrink: 0;
 }
 
-.cp-weapon-name {
-    font-size: var(--font-xs);
-    font-family: var(--font-family-small);
-    color: var(--color-text);
-}
-
 /* 战斗风格选择器 */
 .cp-style-select {
     width: 100%;
@@ -271,26 +253,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--sp-xxs);
-}
-
-.cp-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--sp-xxs);
-    padding: 2px var(--sp-xs);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-sm);
-    background: var(--color-entity-bg);
-    border: var(--border-width) solid var(--color-entity-border);
-    color: var(--color-text);
-    cursor: default;
-}
-
-.cp-tag-meta {
-    display: inline-flex;
-    gap: var(--sp-xxs);
-    font-size: var(--font-xxs);
-    font-family: var(--font-family-small);
 }
 
 .cp-tag-cond {

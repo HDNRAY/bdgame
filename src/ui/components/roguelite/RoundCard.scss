@@ -125,6 +125,8 @@
             gap: var(--sp-xs);
         }
 
+        /* 内容排版（.tt-name / .tt-desc / .tt-label / .tt-flex-wrap 等）见 Tooltip.scss：
+           那里的共用选择器列表已含 .rc-entity-details，此处只留本处的两处差异 */
         &-details {
             margin-top: var(--sp-xxs);
             padding-top: var(--sp-xxs);
@@ -135,83 +137,7 @@
                 display: none;
             }
 
-            .tt-tags {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 3px;
-                margin-bottom: var(--sp-xxs);
-            }
-
-            .tag-list {
-                margin-bottom: var(--sp-xxs);
-            }
-
-            .tt-desc {
-                color: var(--color-text-dim);
-                font-size: var(--font-xs);
-                font-family: var(--font-family-small);
-                margin-bottom: var(--sp-xxs);
-            }
-
-            .tt-effects {
-                list-style: none;
-                margin: 0;
-                padding: 0;
-
-                li {
-                    font-size: var(--font-xs);
-                    font-family: var(--font-family-small);
-                    color: var(--color-text);
-                    padding: 1px 0;
-                }
-
-                li::before {
-                    content: '•';
-                    margin-right: var(--sp-xxs);
-                    color: var(--color-text-dim);
-                }
-            }
-
-            .tt-separator {
-                border: none;
-                border-top: var(--border-width) solid var(--color-border);
-                margin: var(--sp-xxs) 0;
-            }
-
-            .tt-extra {
-                font-size: var(--font-xs);
-                font-family: var(--font-family-small);
-                color: var(--color-text);
-
-                &-dim {
-                    color: var(--color-text-dim);
-                    line-height: 1.6;
-                }
-
-                &-danger {
-                    color: var(--color-danger);
-                    line-height: 1.6;
-                }
-            }
-
-            .tt-label {
-                font-size: var(--font-xxs);
-                font-family: var(--font-family-small);
-                color: var(--color-text-dim);
-                margin-bottom: var(--sp-xxs);
-            }
-
-            .tt-flex-wrap {
-                display: flex;
-                flex-wrap: wrap;
-                gap: var(--sp-xxs);
-            }
-
-            .tt-relative {
-                position: relative;
-            }
-
-            /* 内联详情里的嵌套实体标签同样禁选 */
+            /* 内联详情里的嵌套实体标签同样禁选（尺寸不缩小，与弹层里的 .entity-item 不同） */
             .entity-item {
                 user-select: none;
                 -webkit-user-select: none;
@@ -236,11 +162,6 @@
         &:hover {
             filter: brightness(1.15);
         }
-    }
-
-    &-confirm-selected {
-        border-color: var(--color-accent);
-        background: var(--color-accent-bg);
     }
 
     &-label {

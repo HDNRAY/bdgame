@@ -21,16 +21,14 @@
     letter-spacing: 0.2em;
 }
 
-.bsim-initweapon {
+/* 初始主手 / 基准选择两处的「行内标签 + SearchSelect」：同一套排版与输入框外观 */
+.bsim-initweapon,
+.bsim-bench-head label {
     display: flex;
     align-items: center;
     gap: var(--sp-xxs);
     font-size: var(--font-sm);
     color: var(--color-text-dim);
-
-    .ss {
-        width: 12rem;
-    }
 
     .ss-input {
         padding-right: var(--ss-caret-space);
@@ -40,6 +38,12 @@
         padding: var(--sp-xxs) var(--sp-xs);
         border-radius: var(--radius-sm);
         font-family: var(--font-mono);
+    }
+}
+
+.bsim-initweapon {
+    .ss {
+        width: 12rem;
     }
 }
 
@@ -85,25 +89,10 @@
         font-weight: normal;
     }
 
+    /* 排版与 .ss-input 外观见文件上方 .bsim-initweapon 的共用规则 */
     label {
-        display: flex;
-        align-items: center;
-        gap: var(--sp-xxs);
-        font-size: var(--font-sm);
-        color: var(--color-text-dim);
-
         .ss {
             width: 7rem;
-        }
-
-        .ss-input {
-            padding-right: var(--ss-caret-space);
-            background: var(--color-bg-input);
-            color: var(--color-text);
-            border: var(--border-width) solid var(--color-border);
-            padding: var(--sp-xxs) var(--sp-xs);
-            border-radius: var(--radius-sm);
-            font-family: var(--font-mono);
         }
     }
 }
