@@ -246,9 +246,7 @@
 
 ### 终章 · 会长
 
-（真结局之后单独一页，章页样式，逐字打出；代码里的正文见 `src/data/story-intros.ts` 的 `TRUE_ENDING_EPILOGUE`）
-
-终章文案以 `src/data/story-intros.ts` 的 `TRUE_ENDING_EPILOGUE` 为准；此处不再保存副本（旧副本已于本次清理移除）。
+（真结局之后单独一页，章页样式，逐字打出；正文见 `src/data/story-intros.ts` 的 `TRUE_ENDING_EPILOGUE`，此处不再保存副本）
 
 ---
 
