@@ -10,6 +10,9 @@
     color: var(--color-text);
     font-family: var(--font-mono);
     cursor: pointer;
+    /* 整块遮罩是「背景」，不是按下反馈的对象：浏览器默认的触屏高亮会按 cursor:pointer
+       把整屏刷一层色再淡出（就是「点背景闪一下」）。反馈只留给真正的按钮 .io-enter。 */
+    -webkit-tap-highlight-color: transparent;
     padding: var(--sp-lg);
     box-sizing: border-box;
     text-align: center;

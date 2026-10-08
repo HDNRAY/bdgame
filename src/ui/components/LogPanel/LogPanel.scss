@@ -63,17 +63,12 @@
         padding: 0 var(--sp-xxs);
         cursor: default;
 
-        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        /* 日志行是只读文本、不可点：不是按下反馈的对象（桌面 hover 只作定位高亮） */
         @media (hover: hover) {
             &:hover {
                 background: var(--color-bg-hover);
                 color: var(--color-text-h);
             }
-        }
-
-        &:active {
-            background: var(--color-bg-hover);
-            color: var(--color-text-h);
         }
     }
 
@@ -81,15 +76,11 @@
         color: var(--color-text-h);
         background: var(--color-bg-panel);
 
-        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        /* 同上：只读行不给按下反馈 */
         @media (hover: hover) {
             &:hover {
                 background: var(--color-bg-hover);
             }
-        }
-
-        &:active {
-            background: var(--color-bg-hover);
         }
     }
 
