@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Round } from '../../../game/entities/round'
 import { getEntity, isEntityType, type EntityDef, type EntityType } from '../../../bridge/entity-tooltip'
 import { getWeaponOverlay } from '../../pixel-sprites'
@@ -69,6 +69,54 @@ function ChoiceButton({
     )
 }
 
+/**
+ * 需要时把元素送进可见区域，返回是否真的滚了。
+ *
+ * 抽成纯函数是为了可测：本项目没有 jsdom，`useEffect` 在测试里跑不起来，
+ * 只有把「要不要滚、怎么滚」的判定独立出来才测得到（见 `ui/__tests__/round-card-reveal.test.ts`）。
+ * 参数按结构取最小形状（不是整个 HTMLElement），测试里用假元素就能调。
+ *
+ * 已经完整落在可见区域（含 1px 容差）就什么都不做 —— 既保证不会每次渲染都滚，
+ * 也保证玩家自己滚动看历史时不会被拉回来。
+ */
+// 这是本文件唯一的非组件导出（只为回归测试存在），故关掉 fast-refresh 的这条告警
+// eslint-disable-next-line react-refresh/only-export-components
+export function revealIfNeeded(
+    el: {
+        getBoundingClientRect: () => { top: number; bottom: number }
+        scrollIntoView: (arg: ScrollIntoViewOptions) => void
+    },
+    view: { top: number; bottom: number },
+    reduceMotion: boolean,
+): boolean {
+    const rect = el.getBoundingClientRect()
+    if (rect.top >= view.top - 1 && rect.bottom <= view.bottom + 1) return false
+    el.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' })
+    return true
+}
+
+/**
+ * 新出现的交互内容自动进入视野。
+ *
+ * 竖屏 H5 上 `.rs-rounds` 是固定高度的滚动容器（下方还要给角色面板让出 35vh），
+ * 打字结束后出现的选项、选中选项后出现的「确认」，都可能落在折线以下，玩家看不到。
+ *
+ * 只在该内容「从无到有」的那一次触发（effect 依赖 appeared 这个布尔量，不是每次渲染）。
+ */
+function useRevealOnAppear<T extends HTMLElement>(appeared: boolean) {
+    const ref = useRef<T>(null)
+    useEffect(() => {
+        const el = ref.current
+        if (!appeared || !el) return
+        // 最近的滚动容器（本页是 .rs-rounds）；没有滚动容器时退回视口
+        const scroller = el.closest('.rs-rounds')
+        const view = scroller ? scroller.getBoundingClientRect() : { top: 0, bottom: window.innerHeight }
+        // 尊重 prefers-reduced-motion：该偏好下即时跳转，不做平滑动画
+        revealIfNeeded(el, view, window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    }, [appeared])
+    return ref
+}
+
 interface RoundCardProps {
     round: Round
     past?: boolean
@@ -81,6 +129,10 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
     const desc = useTypewriter(round.description ?? '', {
         enabled: !past && typewriterEnabled,
     })
+    // 两处新内容：打字结束（或被点掉）后出现的选项、选中某个选项后出现的「确认」
+    const showChoices = !past && desc.done && round.choices.length > 0
+    const choicesRef = useRevealOnAppear<HTMLDivElement>(showChoices)
+    const confirmRef = useRevealOnAppear<HTMLButtonElement>(!past && selectedIndex !== null)
 
     // 单选项：无需确认按钮，选择即执行
     if (round.choices.length === 1 && !past && onChoice) {
@@ -100,7 +152,7 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
                     </div>
                 )}
                 {desc.done && (
-                    <div className="rc-choices">
+                    <div className="rc-choices" ref={choicesRef}>
                         <ChoiceButton choice={round.choices[0]} index={0} selected={false} onSelect={onChoice} />
                     </div>
                 )}
@@ -142,8 +194,8 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
                     </div>
                 </div>
             )}
-            {desc.done && !past && round.choices.length > 0 && (
-                <div className="rc-choices">
+            {showChoices && (
+                <div className="rc-choices" ref={choicesRef}>
                     {round.choices.map((c, i) => (
                         <ChoiceButton
                             key={c.id}
@@ -154,7 +206,7 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
                         />
                     ))}
                     {selectedIndex !== null && (
-                        <button className="rc-confirm" onClick={handleConfirm}>
+                        <button className="rc-confirm" ref={confirmRef} onClick={handleConfirm}>
                             确认
                         </button>
                     )}
