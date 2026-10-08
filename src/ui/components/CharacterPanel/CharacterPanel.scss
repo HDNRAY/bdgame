@@ -51,8 +51,8 @@
 }
 
 /* 实心主按钮（填充色板）：不用 Button 的配色变体，只借它的七件套。
-   hover/active 仍是「整体提亮」（filter）——底色沿用原口径（由 .cp-btn:hover / .btn-default 给），
-   本页不额外换色。 */
+   hover/active = 「保持自己的填充色 + 整体提亮」——实心按钮的描边不可见，
+   换描边等于没换，所以这一族按「实心主按钮」口径走提亮。 */
 .cp-btn-save {
     background: var(--color-accent);
     color: #fff;
@@ -60,11 +60,13 @@
     /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
     @media (hover: hover) {
         &:hover {
+            background: var(--color-accent);
             filter: brightness(1.1);
         }
     }
 
     &:active {
+        background: var(--color-accent);
         filter: brightness(1.1);
     }
 }
@@ -75,11 +77,13 @@
     /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
     @media (hover: hover) {
         &:hover {
+            background: var(--color-warning);
             filter: brightness(1.1);
         }
     }
 
     &:active {
+        background: var(--color-warning);
         filter: brightness(1.1);
     }
 }
@@ -242,9 +246,8 @@
 }
 
 /* 写死尺寸的图标按钮（− + ×）。七件套来自 Button（variant=default size=sm），
-   这里只留固定尺寸、flex 居中，以及三处「压回迁移前口径」的钉住：
-   padding=0（全局 reset 的值，Button 的 sm 档自带内边距）、--font-sm 字号、
-   以及 <button> 的 UA 默认字体 Arial（原来没继承页面像素字体）。 */
+   这里只留固定尺寸、flex 居中，以及把内边距压回 0（全局 reset 的值）。
+   描边式按钮：hover / 按下吃 Button 的「底色 + 描边」高亮（同首页那一族口径）。 */
 .cp-btn-sm {
     width: 1.375rem;
     height: 1.125rem;
@@ -253,25 +256,10 @@
     justify-content: center;
     padding: 0;
     font-size: var(--font-sm);
-    font-family: Arial;
 
     &:disabled {
         opacity: 0.25;
         cursor: default;
-    }
-
-    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮。
-       描边色钉回 --color-border：本页按钮原来 hover 只换底色（不点亮描边） */
-    @media (hover: hover) {
-        &:hover:not(:disabled) {
-            background: var(--color-bg-hover);
-            border-color: var(--color-border);
-        }
-    }
-
-    &:active:not(:disabled) {
-        background: var(--color-bg-hover);
-        border-color: var(--color-border);
     }
 }
 

@@ -58,21 +58,10 @@
     }
 
     /* 基础七件套已迁到共用 Button（variant=default size=sm）：
-       面板底、描边、字号、hover/active 的底色高亮都由 Button.scss 给。
+       面板底、描边、字号、hover/active 的「底色 + 描边」高亮都由 Button.scss 给。
        这里只留内边距残差与本页的选中 / 已画口径。 */
     &-tool {
         padding: var(--sp-xxs) var(--sp-sm);
-
-        /* 描边钉回 --color-border：原来 hover/active 只换底色，不动描边 */
-        @media (hover: hover) {
-            &:hover {
-                border-color: var(--color-border);
-            }
-        }
-
-        &:active {
-            border-color: var(--color-border);
-        }
 
         &.active {
             border-color: var(--color-accent);
@@ -320,24 +309,13 @@
         gap: 2px;
     }
 
-    /* 调色板色块：七件套来自 Button（variant=plain size=xs：页面底色 + radius-sm + 10px 小字族）。
-       这里只留紧凑布局、内边距，以及选中态的描边 + 外发光。 */
+    /* 调色板色块：七件套 + hover/active 高亮来自 Button（variant=plain size=xs：
+       页面底色 + radius-sm + 10px 小字族）。这里只留紧凑布局、内边距与选中态。 */
     &-swatch {
         display: flex;
         align-items: center;
         gap: var(--sp-xxs);
         padding: 2px var(--sp-xxs);
-
-        /* 描边钉回 --color-border：原来 hover/active 只换底色，不动描边 */
-        @media (hover: hover) {
-            &:hover {
-                border-color: var(--color-border);
-            }
-        }
-
-        &:active {
-            border-color: var(--color-border);
-        }
 
         &.active {
             border-color: var(--color-accent);
@@ -392,23 +370,11 @@
         }
     }
 
-    /* 基础七件套已迁到共用 Button（variant=plain size=sm）：页面底色、描边、
-       hover/active 的底色高亮都由 Button.scss 给。这里只留内边距残差、
-       禁用态口径（比 .btn:disabled 更淡、光标 not-allowed），以及本页的选中/描边口径。 */
+    /* 基础七件套 + hover/active 高亮来自 Button（variant=plain size=sm）：
+       页面底色、描边、hover/active 的「底色 + 描边」都有。
+       这里只留内边距残差、禁用态口径，以及本页的选中口径。 */
     &-btn {
         padding: var(--sp-xxs) var(--sp-sm);
-
-        /* 描边钉回 --color-border：原来 hover/active 只换底色，不动描边。
-           禁用时也不吃 hover 底色（.btn-plain:disabled 已经压住背景色）。 */
-        @media (hover: hover) {
-            &:hover {
-                border-color: var(--color-border);
-            }
-        }
-
-        &:active {
-            border-color: var(--color-border);
-        }
 
         &:disabled {
             opacity: 0.5;
