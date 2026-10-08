@@ -19,6 +19,14 @@ import type { Tag } from '../../../../engine/entities/tag'
 import { calcChanCostInAp } from '../../../../engine/calc/chan-value'
 import type { ActionDefinition } from '../../../../engine/entities/action'
 import { EntityItem } from '../../../components/ui/EntityItem/EntityItem'
+import {
+    CompareControls,
+    CompareLabel,
+    CompareNote,
+    CompareScreen,
+    CompareSearchInput,
+    CompareTable,
+} from '../../../components/layouts/CompareScreen/CompareScreen'
 import { TAG_CN } from '../../../../bridge/tagDisplay'
 import './ActionCompare.scss'
 import { allMainActions } from '../../../../engine'
@@ -315,17 +323,16 @@ export function ActionCompare() {
     }, [selected, selectedTags, chanNow, search])
 
     return (
-        <div className="ac">
-            <h2>招式 AP 档对比</h2>
-            <div className="ac-controls">
-                <span className="ac-label">AP 档（多选）：</span>
+        <CompareScreen title="招式 AP 档对比">
+            <CompareControls>
+                <CompareLabel>AP 档（多选）：</CompareLabel>
                 {ALL_AP.map((ap) => (
                     <label key={ap} className={`ac-chip${selected.includes(ap) ? ' ac-chip-on' : ''}`}>
                         <input type="checkbox" checked={selected.includes(ap)} onChange={() => toggleAp(ap)} />
                         {ap}AP
                     </label>
                 ))}
-                <span className="ac-label ac-label-chan">基准缠劲：</span>
+                <CompareLabel gap>基准缠劲：</CompareLabel>
                 <input
                     className="ac-chan-input"
                     type="range"
@@ -336,22 +343,20 @@ export function ActionCompare() {
                     onChange={(e) => patchParams({ chan: e.target.value })}
                 />
                 <span className="ac-chan-value">{chanNow}</span>
-                <label className="ac-label ac-search-label" htmlFor="action-compare-search">
+                <CompareLabel gap htmlFor="action-compare-search">
                     搜索：
-                </label>
-                <input
+                </CompareLabel>
+                <CompareSearchInput
                     id="action-compare-search"
-                    className="ac-search-input"
-                    type="search"
                     value={search}
                     placeholder="名称 / ID / 标签"
                     onChange={(e) => setSearchInput(e.target.value)}
                     onBlur={(e) => commitSearch(e.target.value)}
                 />
-            </div>
+            </CompareControls>
             {/* 标签多选：选项只列候选池里实际存在的 tag，纯中文名文字（不用 Tag 徽章，避免一屏几十个彩色块） */}
-            <div className="ac-controls ac-controls-tags">
-                <span className="ac-label">标签（多选）：</span>
+            <CompareControls className="ac-controls-tags">
+                <CompareLabel>标签（多选）：</CompareLabel>
                 {TAG_OPTIONS.map((tag) => (
                     <label key={tag} className={`ac-chip${selectedTags.includes(tag) ? ' ac-chip-on' : ''}`}>
                         <input type="checkbox" checked={selectedTags.includes(tag)} onChange={() => toggleTag(tag)} />
@@ -361,9 +366,9 @@ export function ActionCompare() {
                 <button type="button" className="ac-clear" onClick={clearTags} disabled={selectedTags.length === 0}>
                     清空
                 </button>
-                <span className="ac-label">（命中任一即保留）</span>
-            </div>
-            <p className="ac-note">
+                <CompareLabel>（命中任一即保留）</CompareLabel>
+            </CompareControls>
+            <CompareNote>
                 双方全属性 15 · 满 AP · 49% 血（斩杀档 25%）· 距离 4 · 基准武器 po_lang_zhu_zhi（按重型）。{' '}
                 {COMPARE_DEFENSE_NOTE}，期望伤已按防御方减伤折算。 效率 = 期望伤 /（折前AP +
                 缠成本）；缠成本按阈值感知模型折算（基准缠劲可调，默认 35：缠越满越便宜， 跌破 30/50 丢「周」buff
@@ -371,13 +376,13 @@ export function ActionCompare() {
                 {REACH_ZERO_BONUS}）+ 位移（每米+{DIST_BONUS_PER_M}，与射程同价） +{BUFF_SCORE_NOTE} +
                 debuff（层×几率×权重）+ 缴械（×0.4）+ 击退 （距离×0.2） + 汲取（stat_transfer 每点×1.5）+ 斩杀（25%
                 斩杀档提升）+ 多段（每段+0.25 封顶+2）− 自缴械（−1）− 自耗血（比例×10）。
-            </p>
+            </CompareNote>
             {rows.length === 0 ? (
-                <p className="ac-note">无匹配招式（当前 AP 档 / 标签 / 搜索条件无结果）。</p>
+                <CompareNote>无匹配招式（当前 AP 档 / 标签 / 搜索条件无结果）。</CompareNote>
             ) : (
-                <table className="ac-table">
-                    <thead>
-                        <tr>
+                <CompareTable
+                    head={
+                        <>
                             <th>招式</th>
                             <th>AP</th>
                             <th>缠</th>
@@ -395,35 +400,34 @@ export function ActionCompare() {
                             <th>自缴械</th>
                             <th>自耗血</th>
                             <th>得分</th>
+                        </>
+                    }
+                >
+                    {rows.map((r) => (
+                        <tr key={r.label}>
+                            <td className="cmp-name">
+                                <EntityItem entity={r.action} type="action" />
+                            </td>
+                            <td>{r.ap}</td>
+                            <td>{r.chan}</td>
+                            <td>{r.damage}</td>
+                            <td>{r.efficiency}</td>
+                            <td>{fmt(r.distance, true)}</td>
+                            <td>{fmt(r.dash, true)}</td>
+                            <td>{fmt(r.buff, true)}</td>
+                            <td>{fmt(r.debuff, true)}</td>
+                            <td>{fmt(r.disarm, true)}</td>
+                            <td>{fmt(r.knockback, true)}</td>
+                            <td>{fmt(r.transfer, true)}</td>
+                            <td>{fmt(r.exec, true)}</td>
+                            <td>{fmt(r.multihit, true)}</td>
+                            <td>{fmt(r.selfDisarm)}</td>
+                            <td>{fmt(r.selfHpCost)}</td>
+                            <td className="cmp-score">{r.score}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {rows.map((r) => (
-                            <tr key={r.label}>
-                                <td className="ac-name">
-                                    <EntityItem entity={r.action} type="action" />
-                                </td>
-                                <td>{r.ap}</td>
-                                <td>{r.chan}</td>
-                                <td>{r.damage}</td>
-                                <td>{r.efficiency}</td>
-                                <td>{fmt(r.distance, true)}</td>
-                                <td>{fmt(r.dash, true)}</td>
-                                <td>{fmt(r.buff, true)}</td>
-                                <td>{fmt(r.debuff, true)}</td>
-                                <td>{fmt(r.disarm, true)}</td>
-                                <td>{fmt(r.knockback, true)}</td>
-                                <td>{fmt(r.transfer, true)}</td>
-                                <td>{fmt(r.exec, true)}</td>
-                                <td>{fmt(r.multihit, true)}</td>
-                                <td>{fmt(r.selfDisarm)}</td>
-                                <td>{fmt(r.selfHpCost)}</td>
-                                <td className="ac-score">{r.score}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                    ))}
+                </CompareTable>
             )}
-        </div>
+        </CompareScreen>
     )
 }

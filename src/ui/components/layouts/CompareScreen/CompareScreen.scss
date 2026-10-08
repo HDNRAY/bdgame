@@ -1,0 +1,88 @@
+/* DevMode 对比页共用脚手架（AttackCompare / WeaponCompare）
+   口径：`.cmp` 容器 + 控件行 + 搜索框 + 说明段 + 评分表的排版与两页逐条相同，
+   抽到组件这一份里由两页共用；两页各自的专属控件（多选 chip / 清空按钮 /
+   缠劲滑杆 / 差值配色）留在各自的屏幕 scss。 */
+.cmp {
+    padding: var(--sp-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+    max-width: none;
+
+    &-controls {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--sp-sm);
+    }
+
+    &-label {
+        font-size: var(--font-sm);
+        color: var(--color-text-dim);
+
+        /* 与左邻控件拉开一段距离（原 .ac-label-chan / .ac-search-label / .wc-search-label） */
+        &-gap {
+            margin-left: var(--sp-lg);
+        }
+    }
+
+    &-search-input {
+        width: 180px;
+        padding: 4px 8px;
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-mono);
+    }
+
+    &-note {
+        font-size: var(--font-xs);
+        font-family: var(--font-family-small);
+        color: var(--color-text-dim);
+        line-height: 1.6;
+    }
+
+    &-table {
+        border-collapse: collapse;
+        font-size: var(--font-xs);
+        font-family: var(--font-family-small);
+
+        th,
+        td {
+            padding: 6px 10px;
+            border: var(--border-width) solid var(--color-border);
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        th {
+            background: var(--color-bg-raised);
+            color: var(--color-text-dim);
+            font-weight: normal;
+        }
+
+        .cmp-name {
+            text-align: left;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cmp-score {
+            color: var(--color-accent);
+            font-weight: bold;
+        }
+
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            tbody tr:hover {
+                background: var(--color-bg-raised);
+            }
+        }
+
+        tbody tr:active {
+            background: var(--color-bg-raised);
+        }
+    }
+}

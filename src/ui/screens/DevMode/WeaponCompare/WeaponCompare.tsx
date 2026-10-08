@@ -24,6 +24,14 @@ import { getBuff } from '../../../../data/buffs'
 import { allMainActions, getAction } from '../../../../data/actions'
 import { calcApRegenPerSec } from '../../../../engine/calc/damage'
 import { EntityItem } from '../../../components/ui/EntityItem/EntityItem'
+import {
+    CompareControls,
+    CompareLabel,
+    CompareNote,
+    CompareScreen,
+    CompareSearchInput,
+    CompareTable,
+} from '../../../components/layouts/CompareScreen/CompareScreen'
 import './WeaponCompare.scss'
 
 // ── 评分常量 ──
@@ -346,29 +354,26 @@ export function WeaponCompare() {
     }, [search])
 
     return (
-        <div className="wc">
-            <h2>武器评分对比</h2>
-            <div className="wc-controls">
-                <label className="wc-label wc-search-label" htmlFor="weapon-compare-search">
+        <CompareScreen title="武器评分对比">
+            <CompareControls>
+                <CompareLabel gap htmlFor="weapon-compare-search">
                     搜索：
-                </label>
-                <input
+                </CompareLabel>
+                <CompareSearchInput
                     id="weapon-compare-search"
-                    className="wc-search-input"
-                    type="search"
                     value={search}
                     placeholder="名称 / ID / 标签"
                     onChange={(e) => setSearch(e.target.value)}
                 />
-            </div>
-            <p className="wc-note">
+            </CompareControls>
+            <CompareNote>
                 双方全属性 15 · 同一招式基准挥击（伤害吃全部属性、系数一致）。属性分 = Σ 属性增减 × 1（1 点 = 1
                 分，可为负）；伤害分 = 真实属性下基准招式可及档平均期望伤（绝对量）；距离分 = 可及档数 × 固定值；召唤分
                 = 御物召唤物输出（0AP 免费）；触发分 = 触发概率 × 效果价值；授招/标签分 = 配招面加分。
-            </p>
-            <table className="wc-table">
-                <thead>
-                    <tr>
+            </CompareNote>
+            <CompareTable
+                head={
+                    <>
                         <th>武器</th>
                         <th>属性</th>
                         <th>伤害Δ</th>
@@ -379,58 +384,57 @@ export function WeaponCompare() {
                         <th>标签</th>
                         <th>触发</th>
                         <th>总分</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.map(({ weapon, score }) => (
-                        <tr key={weapon.id}>
-                            <td className="wc-name">
-                                <EntityItem entity={weapon} type="weapon" />
-                            </td>
-                            <td
-                                className={
-                                    score.attr.score < 0
-                                        ? 'wc-delta-neg'
-                                        : score.attr.score > 0
-                                          ? 'wc-delta'
-                                          : undefined
-                                }
-                            >
-                                {score.attr.score === 0
-                                    ? '—'
+                    </>
+                }
+            >
+                {rows.map(({ weapon, score }) => (
+                    <tr key={weapon.id}>
+                        <td className="cmp-name">
+                            <EntityItem entity={weapon} type="weapon" />
+                        </td>
+                        <td
+                            className={
+                                score.attr.score < 0
+                                    ? 'wc-delta-neg'
                                     : score.attr.score > 0
-                                      ? `+${score.attr.score}`
-                                      : score.attr.score}
-                            </td>
-                            <td
-                                className={
-                                    score.damage.delta !== 0
-                                        ? score.damage.delta > 0
-                                            ? 'wc-delta'
-                                            : 'wc-delta-neg'
-                                        : undefined
-                                }
-                            >
-                                {score.damage.delta === 0
-                                    ? '—'
-                                    : score.damage.delta > 0
-                                      ? `+${score.damage.delta}`
-                                      : score.damage.delta}
-                            </td>
-                            <td>{score.summon.total > 0 ? score.summon.total : '—'}</td>
-                            <td className="wc-delta-neg">{score.yuwu.apPerSec > 0 ? score.yuwu.score : '—'}</td>
-                            <td>
-                                {score.distance.score}
-                                <span className="wc-dim">（跨{score.distance.span}）</span>
-                            </td>
-                            <td>{score.grant > 0 ? score.grant : '—'}</td>
-                            <td>{score.tag.count > 0 ? `${score.tag.score}(${score.tag.count})` : '—'}</td>
-                            <td>{score.trigger !== 0 ? score.trigger : '—'}</td>
-                            <td className="wc-score">{score.total}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+                                      ? 'wc-delta'
+                                      : undefined
+                            }
+                        >
+                            {score.attr.score === 0
+                                ? '—'
+                                : score.attr.score > 0
+                                  ? `+${score.attr.score}`
+                                  : score.attr.score}
+                        </td>
+                        <td
+                            className={
+                                score.damage.delta !== 0
+                                    ? score.damage.delta > 0
+                                        ? 'wc-delta'
+                                        : 'wc-delta-neg'
+                                    : undefined
+                            }
+                        >
+                            {score.damage.delta === 0
+                                ? '—'
+                                : score.damage.delta > 0
+                                  ? `+${score.damage.delta}`
+                                  : score.damage.delta}
+                        </td>
+                        <td>{score.summon.total > 0 ? score.summon.total : '—'}</td>
+                        <td className="wc-delta-neg">{score.yuwu.apPerSec > 0 ? score.yuwu.score : '—'}</td>
+                        <td>
+                            {score.distance.score}
+                            <span className="wc-dim">（跨{score.distance.span}）</span>
+                        </td>
+                        <td>{score.grant > 0 ? score.grant : '—'}</td>
+                        <td>{score.tag.count > 0 ? `${score.tag.score}(${score.tag.count})` : '—'}</td>
+                        <td>{score.trigger !== 0 ? score.trigger : '—'}</td>
+                        <td className="cmp-score">{score.total}</td>
+                    </tr>
+                ))}
+            </CompareTable>
+        </CompareScreen>
     )
 }

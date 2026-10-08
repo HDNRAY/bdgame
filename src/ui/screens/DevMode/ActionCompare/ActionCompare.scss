@@ -1,26 +1,7 @@
+/* ActionCompare 专属控件：容器 / 控件行 / 搜索框 / 说明段 / 评分表的共用部分见
+   `src/ui/components/layouts/CompareScreen/CompareScreen.scss`（由组件自带，避免只抽一个
+   共用 scss 文件时另一页拿不到样式）。这里只留招式页特有的多选 chip、清空按钮、缠劲滑杆。 */
 .ac {
-    padding: var(--sp-md);
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-sm);
-    max-width: none;
-
-    &-controls {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: var(--sp-sm);
-    }
-
-    &-label {
-        font-size: var(--font-sm);
-        color: var(--color-text-dim);
-    }
-
-    &-label-chan {
-        margin-left: var(--sp-lg);
-    }
-
     // 标签多选单独一行：条目多，避免与 AP/搜索挤在同一行
     &-controls-tags {
         align-items: flex-start;
@@ -38,7 +19,15 @@
         font-size: var(--font-sm);
         cursor: pointer;
 
-        &:hover:not(:disabled) {
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        @media (hover: hover) {
+            &:hover:not(:disabled) {
+                border-color: var(--color-accent);
+                color: var(--color-accent);
+            }
+        }
+
+        &:active:not(:disabled) {
             border-color: var(--color-accent);
             color: var(--color-accent);
         }
@@ -77,62 +66,5 @@
         background: var(--color-bg);
         color: var(--color-text);
         font-family: var(--font-mono);
-    }
-
-    &-search-label {
-        margin-left: var(--sp-lg);
-    }
-
-    &-search-input {
-        width: 180px;
-        padding: 4px 8px;
-        border: var(--border-width) solid var(--color-border);
-        border-radius: var(--radius-md);
-        background: var(--color-bg);
-        color: var(--color-text);
-        font-family: var(--font-mono);
-    }
-
-    &-note {
-        font-size: var(--font-xs);
-        font-family: var(--font-family-small);
-        color: var(--color-text-dim);
-        line-height: 1.6;
-    }
-
-    &-table {
-        border-collapse: collapse;
-        font-size: var(--font-xs);
-        font-family: var(--font-family-small);
-
-        th,
-        td {
-            padding: 6px 10px;
-            border: var(--border-width) solid var(--color-border);
-            text-align: right;
-            white-space: nowrap;
-        }
-
-        th {
-            background: var(--color-bg-raised);
-            color: var(--color-text-dim);
-            font-weight: normal;
-        }
-
-        .ac-name {
-            text-align: left;
-            max-width: 220px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .ac-score {
-            color: var(--color-accent);
-            font-weight: bold;
-        }
-
-        tbody tr:hover {
-            background: var(--color-bg-raised);
-        }
     }
 }
