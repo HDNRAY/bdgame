@@ -14,6 +14,7 @@ import { endingTitle } from '../../components/roguelite/ending-title'
 import { BattlePanel } from '../../components/BattlePanel/BattlePanel'
 import { Button } from '../../components/ui/Button/Button'
 import { buildBattleDataFromEntries } from '../../components/roguelite/battle-replay'
+import { track } from '../../../bridge/analytics'
 import { gen, getOpponentDef } from '../../../data/opponents'
 import type { CharacterBuild } from '../../../game/entities/character-build'
 import type { Round } from '../../../game/entities/round'
@@ -66,6 +67,11 @@ export function RogueliteScreen() {
     }
 
     function handleExit() {
+        // 主动弃局埋点：结算页的「返回主菜单」走 RunSummaryPanel 的 onExit，不属于弃局，不记
+        const st = useRogueliteStore.getState().gameState
+        if (st && !st.finished) {
+            track('run_abandon', { node: st.nodeIndex, battles: st.runBattles?.total ?? 0 })
+        }
         reset()
         navigate('/')
     }
