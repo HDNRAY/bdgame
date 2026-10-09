@@ -1,157 +1,170 @@
 /* ========================================
    Theme System — Light / Dark
    Applied via [data-theme] on <html>
+
+   token 角色表（改这个文件前先读；设计依据 docs/ui-color-system.md）
+   A. 中性阶梯（11）
+      面 0 --color-bg / 面 1 --color-bg-alt / 面 2 --color-bg-panel / 面 3 --color-bg-hover
+      描边弱 --color-border（装饰性分隔线，豁免 3:1）/ 描边强 --color-border-hover（≥3:1）
+      按下 --color-pressed / 文字弱 --color-text-dim / 文字 --color-text / 文字强 --color-text-h
+      反色 --color-on-accent（压在任何实心强调底上的文字）
+   B. 语义强调色（8，两套主题各自定值、色相共用）
+      accent 青 H188（交互主色）/ success 绿 / danger 红 / warning 橙 /
+      gold 琥珀金（奖励）/ ap 黄（内息）/ qi 紫（炁）/ p2 玫红（对手）
+      八色相环最小间隔 25.8°（gold ↔ ap）；p1 并入 accent。
+   C. 浅底由 B 派生（color-mix in oklab，亮 12% / 暗 16%），
+      保证浅底永远跟着强调色走，且文字压在其上必然过线。
+   D. 其余 token 是历史别名的收敛（canvas-bg / bg-input / entity-* / tooltip-* / p1 …），
+      调用点零改动；新增语义色时必须同时给出两套主题的值。
+
+   两条主题路线：暗色＝霓虹（黑底 + 高彩度亮色），亮色＝纸墨（白纸 + 深墨彩）。
+   亮色 accent 的 C=0.083 是 sRGB 硬上限（青绿 L≈0.48 时最大彩度 0.087），不是可调参数。
    ======================================== */
 
 /* ── Light theme (default) ── */
 :root,
 [data-theme='light'] {
-    /* Backgrounds */
+    /* Backgrounds（面 0~3：OKLCH L 1.000 / 0.962 / 0.923 / 0.886） */
     --color-bg: #ffffff;
-    --color-bg-alt: #f5f5f7;
-    --color-bg-panel: #ececf2;
-    --color-bg-hover: #e0e0e8;
-    --color-bg-input: #ffffff;
-    --color-canvas-bg: #ffffff;
+    --color-bg-alt: #f2f2f5;
+    --color-bg-panel: #e5e5e9;
+    --color-bg-hover: #d9d9dd;
+    --color-bg-input: var(--color-bg-panel);
+    --color-canvas-bg: var(--color-bg);
+    /* 抬升块底色：只读表格表头、行悬停（CompareScreen）。曾被引用却从未定义。 */
+    --color-bg-raised: var(--color-bg-alt);
 
-    /* Text */
-    --color-text: #3a3a4a;
-    --color-text-h: #1a1a2e;
-    --color-text-dim: #8888a0;
-    --color-text-inverse: #e8e8f0;
-
+    /* Text（弱 / 正文 / 强 相邻 ΔL 均 ≥ 0.10） */
+    --color-text: #393947;
+    --color-text-h: #1b1b2b;
+    --color-text-dim: #595966;
     /* Borders */
-    --color-border: #d0d0d8;
-    --color-border-hover: #a0a0b0;
+    --color-border: #bdbdc4;
+    --color-border-hover: #7a7a84;
+    /* 按下：与悬停描边**不同色**是刻意的（见 docs/ui-color-system.md 第 6 节第 4 问）。
+       精神不变：按下是整块实心填充，文字改 --color-on-accent。 */
+    --color-pressed: #4c4c55;
 
-    /* Accent (general) */
-    --color-accent: #4ecdc4;
-    --color-accent-hover: #3dbdb5;
-    --color-accent-bg: rgba(78, 205, 196, 0.1);
-    --color-accent-border: rgba(78, 205, 196, 0.5);
-    /* 强调色实心底（accent / danger / warning / gold）上的文字色。
-       亮色主题这里用近黑而不是 --color-bg（白）：白字压在 #4ecdc4 上只有 1.93:1，
-       近黑在三种实心底上分别是 9.78 / 4.96 / 8.56:1，都过 AA。 */
-    --color-on-accent: #101018;
+    /* Accent (general)：纸墨青 */
+    --color-accent: #006b65;
+    --color-accent-bg: color-mix(in oklab, var(--color-accent) 12%, var(--color-bg));
+    --color-accent-border: color-mix(in oklab, var(--color-accent) 50%, transparent);
+    /* 强调色实心底（accent / danger / warning / gold / pressed）上的文字色。
+       亮色主题用**浅字**：深墨底 + 近白字，五档实心底都过 4.5:1。 */
+    --color-on-accent: #f4f5f9;
 
-    /* Player colors (always high contrast, theme-agnostic) */
-    --color-p1: #4ecdc4;
-    --color-p2: #ff6b6b;
-    --color-gold: #d4a848;
-    --color-ap: #e0c040;
-    --color-qi: #9b59b6;
+    /* Player colors：p1 并入 accent；p2 玫红与 danger（红）拉开到 ΔH 32° */
+    --color-p1: var(--color-accent);
+    --color-p2: #a72e73;
+    --color-gold: #7c5902;
+    --color-ap: #656204;
+    --color-qi: #7c43b1;
 
     /* Semantic */
-    --color-danger: #e74c3c;
-    --color-success: #27ae60;
-    --color-warning: #e67e22;
-    --color-danger-bg: rgba(231, 76, 60, 0.1);
-    --color-success-bg: rgba(39, 174, 96, 0.1);
-    --color-warning-bg: rgba(230, 126, 34, 0.1);
+    --color-danger: #b22c36;
+    --color-success: #006e35;
+    --color-warning: #9a4800;
+    --color-danger-bg: color-mix(in oklab, var(--color-danger) 12%, var(--color-bg));
+    --color-success-bg: color-mix(in oklab, var(--color-success) 12%, var(--color-bg));
 
     /* Buff / Debuff tags */
-    --color-buff-bg: #e6f7e6;
-    --color-buff-text: #2d7a2d;
-    --color-buff-border: #b8e6b8;
-    --color-debuff-bg: #fde8e8;
-    --color-debuff-text: #c0392b;
-    --color-debuff-border: #f5baba;
+    --color-buff-bg: var(--color-success-bg);
+    --color-buff-text: var(--color-success);
+    --color-buff-border: color-mix(in oklab, var(--color-success) 35%, var(--color-bg));
+    --color-debuff-bg: var(--color-danger-bg);
+    --color-debuff-text: var(--color-danger);
+    --color-debuff-border: color-mix(in oklab, var(--color-danger) 35%, var(--color-bg));
 
     /* Overlay */
-    --color-overlay: rgba(0, 0, 0, 0.3);
+    --color-overlay: rgba(0, 0, 0, 0.35);
 
     /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
 
     /* Tooltip */
-    --color-tooltip-bg: rgba(240, 240, 245, 0.97);
-    --color-tooltip-border: #c0c0d0;
-    --color-tooltip-text: #3a3a4a;
-    --color-tooltip-text-h: #1a1a2e;
-    --color-entity-bg: #e8e8f0;
-    --color-entity-border: #c8c8d8;
+    --color-tooltip-bg: color-mix(in oklab, var(--color-bg-panel) 97%, transparent);
+    --color-tooltip-border: var(--color-border-hover);
+    --color-tooltip-text: var(--color-text);
+    --color-entity-bg: var(--color-bg-alt);
+    --color-entity-border: var(--color-border);
 
     /* Code */
-    --color-code-bg: #f4f3ec;
+    --color-code-bg: var(--color-bg-alt);
 
-    /* Scrollbar (Webkit) */
-    --scrollbar-thumb: #c0c0d0;
+    /* Scrollbar (Webkit)：可操作滑块，跟交互描边同一档 */
+    --scrollbar-thumb: var(--color-border-hover);
     --scrollbar-track: transparent;
 }
 
-/* ── Dark theme ── */
+/* ── Dark theme（霓虹）── */
 [data-theme='dark'] {
-    /* Backgrounds */
+    /* Backgrounds（面 0~3：OKLCH L 0.000 / 0.069 / 0.141 / 0.210） */
     --color-bg: #000000;
-    --color-bg-alt: #0a0a0f;
-    --color-bg-panel: #111115;
-    --color-bg-hover: #1a1a22;
-    --color-bg-input: #16161e;
-    --color-canvas-bg: #000000;
+    --color-bg-alt: #010102;
+    --color-bg-panel: #09090b;
+    --color-bg-hover: #18181b;
+    --color-bg-input: var(--color-bg-panel);
+    --color-canvas-bg: var(--color-bg);
+    /* 抬升块底色：只读表格表头、行悬停（CompareScreen）。曾被引用却从未定义。 */
+    --color-bg-raised: var(--color-bg-alt);
 
     /* Text */
-    --color-text: #9ca3af;
-    --color-text-h: #e8e8f0;
-    --color-text-dim: #6b7280;
-    --color-text-inverse: #1a1a2e;
-
+    --color-text: #afafc1;
+    --color-text-h: #e8e9ff;
+    --color-text-dim: #898997;
     /* Borders */
-    --color-border: #2a2a3a;
-    --color-border-hover: #3a3a4a;
+    --color-border: #2d2d33;
+    --color-border-hover: #626375;
+    --color-pressed: #78787f;
 
-    /* Accent */
-    --color-accent: #4ecdc4;
-    --color-accent-hover: #5dddd4;
-    --color-accent-bg: rgba(78, 205, 196, 0.12);
-    --color-accent-border: rgba(78, 205, 196, 0.5);
-    /* 强调色实心底上的文字色：黑。三种实心底上的对比度 10.85 / 5.50 / 12.34:1。 */
+    /* Accent：霓虹青 */
+    --color-accent: #18d2c7;
+    --color-accent-bg: color-mix(in oklab, var(--color-accent) 16%, var(--color-bg));
+    --color-accent-border: color-mix(in oklab, var(--color-accent) 50%, transparent);
+    /* 强调色实心底上的文字色：黑（霓虹底 + 黑字，五档都过 4.5:1）。 */
     --color-on-accent: #000000;
 
-    /* Player colors (keep consistency) */
-    --color-p1: #4ecdc4;
-    --color-p2: #ff6b6b;
-    --color-gold: #e8c34a;
-    --color-ap: #ffe66d;
-    --color-qi: #9b59b6;
+    /* Player colors */
+    --color-p1: var(--color-accent);
+    --color-p2: #f072b3;
+    --color-gold: #f1b218;
+    --color-ap: #f3f056;
+    --color-qi: #b179eb;
 
     /* Semantic */
-    --color-danger: #e74c3c;
-    --color-success: #27ae60;
-    --color-warning: #e67e22;
-    --color-danger-bg: rgba(231, 76, 60, 0.15);
-    --color-success-bg: rgba(39, 174, 96, 0.15);
-    --color-warning-bg: rgba(230, 126, 34, 0.15);
+    --color-danger: #ef6667;
+    --color-success: #3ec873;
+    --color-warning: #ff8f42;
+    --color-danger-bg: color-mix(in oklab, var(--color-danger) 16%, var(--color-bg));
+    --color-success-bg: color-mix(in oklab, var(--color-success) 16%, var(--color-bg));
 
     /* Buff / Debuff tags */
-    --color-buff-bg: #1a2e1a;
-    --color-buff-text: #8f8;
-    --color-buff-border: #2a4a2a;
-    --color-debuff-bg: #2e1a1a;
-    --color-debuff-text: #f88;
-    --color-debuff-border: #4a2a2a;
+    --color-buff-bg: var(--color-success-bg);
+    --color-buff-text: var(--color-success);
+    --color-buff-border: color-mix(in oklab, var(--color-success) 40%, var(--color-bg));
+    --color-debuff-bg: var(--color-danger-bg);
+    --color-debuff-text: var(--color-danger);
+    --color-debuff-border: color-mix(in oklab, var(--color-danger) 40%, var(--color-bg));
 
     /* Overlay */
-    --color-overlay: rgba(0, 0, 0, 0.5);
+    --color-overlay: rgba(0, 0, 0, 0.6);
 
     /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
 
     /* Tooltip / Entity */
-    --color-tooltip-bg: rgba(26, 26, 35, 0.97);
-    --color-tooltip-border: #3a3a4a;
-    --color-tooltip-text: #9ca3af;
-    --color-tooltip-text-h: #e8e8f0;
-    --color-entity-bg: #181828;
-    --color-entity-border: #2a2a3e;
+    --color-tooltip-bg: color-mix(in oklab, var(--color-bg-panel) 97%, transparent);
+    --color-tooltip-border: var(--color-border-hover);
+    --color-tooltip-text: var(--color-text);
+    --color-entity-bg: var(--color-bg-alt);
+    --color-entity-border: var(--color-border);
 
     /* Code */
-    --color-code-bg: #1f2028;
+    --color-code-bg: var(--color-bg-alt);
 
     /* Scrollbar */
-    --scrollbar-thumb: #3a3a4a;
+    --scrollbar-thumb: var(--color-border-hover);
     --scrollbar-track: transparent;
 }
