@@ -51,7 +51,7 @@
         margin-left: auto;
         flex-shrink: 0;
 
-        /* 本页口径：悬停 / 按下转 --color-danger（ghost 变体是 text-h + border-hover） */
+        /* 本页口径：悬停 / 按下描边与文字转 --color-danger（ghost 变体是 text-h + border-hover） */
         @media (hover: hover) {
             &:hover {
                 color: var(--color-danger);
@@ -59,8 +59,11 @@
             }
         }
 
+        /* 按下时背景 = 描边色（Button 变体的通行口径）：这里的描边是 danger，所以底色也铺 danger；
+           文字转页底色才看得见（与 .rs-battle-continue / .tsim-run 的实心按下同一套写法）。 */
         &:active {
-            color: var(--color-danger);
+            color: var(--color-bg);
+            background: var(--color-danger);
             border-color: var(--color-danger);
         }
     }
