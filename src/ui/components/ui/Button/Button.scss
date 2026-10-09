@@ -4,13 +4,18 @@
    结构：base（描边 / 字体 / 手型 / 过渡 / 禁用）+ size（内边距 / 圆角 / 字号）
          + variant（配色与状态）。
 
-   变体（用途 → 静止 → hover/active → 禁用回落）
-     default  面板内的常规动作        面板底 bg-panel + text + 描边    bg-hover + border-hover   回落到 bg-panel
-     plain    页面底上的常规动作      bg + text + 描边                 bg-hover + border-hover   回落到 bg
-     primary  实心强调主行动          accent 描边 + accent-bg + accent bg-hover（自身填充提亮）  回落到 accent-bg
-     ghost    次级 / 取消（透明底）    透明底 + text + 描边             text-h + border-hover     回落到 text + 描边
-     bare     无描边实体小块（工具条） entity-bg 底 + text，无描边方角  filter brightness(0.92)   回落到 entity-bg
+   变体（用途 → 静止 → hover → active → 禁用回落）
+     default  面板内的常规动作        面板底 bg-panel + text + 描边    bg-hover + border-hover   **bg = border-hover**   回落到 bg-panel
+     plain    页面底上的常规动作      bg + text + 描边                 bg-hover + border-hover   **bg = border-hover**   回落到 bg
+     primary  实心强调主行动          accent 描边 + accent-bg + accent bg-hover（自身填充提亮） bg-hover            回落到 accent-bg
+     ghost    次级 / 取消（透明底）    透明底 + text + 描边             text-h + border-hover     **bg = border-hover**   回落到透明底
+     bare     无描边实体小块（工具条） entity-bg 底 + text，无描边方角  filter brightness(0.92)   filter brightness(.92)  回落到 entity-bg
    default 与 plain 只差底色（面板 / 页面），两边都有调用点，不合并。
+
+   **按下口径（灰 / 描边式）**：default / plain / ghost 三个变体按下的 `background` 一律取
+   自己的描边色 `--color-border-hover` —— 深色底上「整块填成描边色」是最容易被看见的一步，
+   也比 hover 的 bg-hover 更亮，保证「按下至少和 hover 一样明显」。实心强调的 primary 不套
+   这条（它本来就是 accent 底，按下只提亮填充）。
 
    尺寸（用途 → 字号 / 内边距 / 圆角）
      xs  面板内紧凑图标、色块    10px / --sp-xxs --sp-xs / radius-sm
@@ -85,8 +90,10 @@
             }
         }
 
+        /* 按下时背景 = 描边色：深色底上「整块填成描边色」是最容易被看见的一步，
+           也比 hover 的 bg-hover 更亮（按下至少和 hover 一样明显）。 */
         &:active {
-            background: var(--color-bg-hover);
+            background: var(--color-border-hover);
             border-color: var(--color-border-hover);
         }
 
@@ -109,8 +116,9 @@
             }
         }
 
+        /* 同 default：按下时背景 = 描边色 */
         &:active {
-            background: var(--color-bg-hover);
+            background: var(--color-border-hover);
             border-color: var(--color-border-hover);
         }
 
@@ -142,7 +150,7 @@
         }
     }
 
-    /* 透明底描边：次级动作（返回 / 取消一类）。信号在文字与描边，不在底色。 */
+    /* 透明底描边：次级动作（返回 / 取消一类）。静止无底色，按下才填出可见的底。 */
     &-ghost {
         background: none;
         color: var(--color-text);
@@ -154,12 +162,15 @@
             }
         }
 
+        /* 按下时背景 = 描边色：透明底的按钮更需要这一笔，否则按住时只有描边与文字变色 */
         &:active {
+            background: var(--color-border-hover);
             color: var(--color-text-h);
             border-color: var(--color-border-hover);
         }
 
         &:disabled {
+            background: none;
             color: var(--color-text);
             border-color: var(--color-border);
         }

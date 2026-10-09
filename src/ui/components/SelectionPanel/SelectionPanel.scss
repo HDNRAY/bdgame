@@ -123,9 +123,10 @@
             }
         }
 
+        /* 按下时背景 = 描边色（比 hover 的底色更亮，保证按下看得见） */
         &:active {
             border-color: var(--color-border-hover);
-            background: var(--color-bg-hover);
+            background: var(--color-border-hover);
         }
 
         &.selected-a {

@@ -53,8 +53,10 @@
         }
     }
 
+    /* 按下时背景 = 描边色（描边不变，所以填的就是 --color-border） */
     &:active:not(.on) {
         color: var(--color-text);
+        background: var(--color-border);
     }
 }
 
@@ -216,8 +218,10 @@
         }
     }
 
+    /* 按下时背景 = 描边色 */
     &:active {
         color: var(--color-text);
+        background: var(--color-border-hover);
         border-color: var(--color-border-hover);
     }
 }

@@ -7,6 +7,8 @@ import './Button.scss'
  * 变体（用途）：default=面板底上的常规动作；plain=页面底上的常规动作；
  * primary=实心强调主行动；ghost=透明底描边的次级动作；bare=无描边实体小块（工具条图标）。
  * 尺寸（用途）：xs=面板内紧凑图标 / 色块；sm=面板内动作；md=常规动作；lg=竖屏第一屏主入口。
+ * 按下口径：default / plain / ghost 三个灰（描边）变体的 `:active` 背景一律填成自己的描边色
+ * （--color-border-hover），比 hover 更亮；实心的 primary 不套这条。
  * 触摸目标 ≥44×44 是 H5 硬口径，由调用页在主要动作上补 `min-height: max(44px, …)` 保证
  * （范例 ModeSelect.scss 的 -btn-main / -btn-sm），Button 的尺寸档只管排版尺寸。
  *
