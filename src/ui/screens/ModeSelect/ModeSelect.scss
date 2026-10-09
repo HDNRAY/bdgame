@@ -96,28 +96,10 @@
             min-height: max(44px, 3.5rem);
             padding: clamp(var(--sp-md), 3.5dvh, var(--sp-lg)) var(--sp-md);
         }
-
-        &-sm {
-            /* 触摸目标不小于 44×44（--ui-scale 调小时由 44px 兜底）；
-               横向内边距随视口宽度收缩，320px 宽四连排也不溢出
-               （字号 --font-md 由 Button 的 md 档给） */
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: max(44px, 2.75rem);
-            min-width: max(44px, 2.75rem);
-            padding: 0 clamp(var(--sp-sm), 3vw, var(--sp-xl));
-        }
     }
 
-    &-footer {
-        display: flex;
-        flex-wrap: wrap; /* 窄屏放不下就折行，不横向溢出 */
-        justify-content: center;
-        width: 100%;
-        gap: var(--sp-sm);
-        margin-top: clamp(var(--sp-md), 3.5dvh, 2rem);
-    }
+    /* &-footer 与 &-btn-sm 已删：首页底部那排入口（图鉴 / 玩法 / 设置 / 关于）
+       搬到了常驻底栏（src/ui/components/layouts/BottomBar/），触摸目标也随它走。 */
 
     /* 矮屏 / 手机横屏（高度 ≤ 500px）：整体收紧，保证第一屏放得下 */
     @media (max-height: 500px) {
@@ -133,9 +115,6 @@
         }
         &-btn-main {
             padding: var(--sp-xs) var(--sp-md);
-        }
-        &-footer {
-            margin-top: 1.25rem;
         }
     }
 

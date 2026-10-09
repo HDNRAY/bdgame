@@ -7,9 +7,9 @@
 // 截图只**留存**到 tmp/preview/（已 gitignore）供人工目视，不参与判定。
 //
 // 用法（在仓库根）：
-//   node scripts/ui-geometry.mjs                     # 亮 + 暗，三页（home/settings/encyclopedia）× 三档
+//   node scripts/ui-geometry.mjs                     # 亮 + 暗，全部玩家可见页 × 三档
 //   node scripts/ui-geometry.mjs --theme light       # 只跑一套主题
-//   node scripts/ui-geometry.mjs --pages home        # 只跑首页（可选 home / settings / encyclopedia / tag-preview）
+//   node scripts/ui-geometry.mjs --pages home        # 只跑首页（名字见下面的 PAGES）
 //   node scripts/ui-geometry.mjs --port 5199         # 换端口（默认 5199，strictPort）
 //   node scripts/ui-geometry.mjs --keep              # 结束后不停 dev server
 //
@@ -33,7 +33,13 @@ const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Conte
 // ---------------------------------------------------------------------------
 
 function parseArgs(argv) {
-    const out = { theme: 'both', pages: 'home,settings,encyclopedia', port: 5199, keep: false };
+    const out = {
+        theme: 'both',
+        pages:
+            'home,build-ajiu,battle,roguelite-intro,roguelite-battle,settings,about,encyclopedia,tag-preview',
+        port: 5199,
+        keep: false,
+    };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         if (a === '--theme') out.theme = argv[++i];
@@ -121,6 +127,9 @@ const chrome = spawn(
         '--disable-dev-shm-usage',
         '--no-sandbox',
         '--hide-crash-restore-bubble',
+        // 经典滚动条会占宽（桌面 1280 的布局视口变 1265），让「scrollWidth == innerWidth」这条断言
+        // 在有纵向滚动的页面上失真；无头环境用叠加滚动条，量到的是内容宽度本身。
+        '--hide-scrollbars',
         '--window-size=1280,800',
         `http://127.0.0.1:${opts.port}/`,
     ],
@@ -204,6 +213,11 @@ async function waitLoad() {
 }
 
 // 量测口径：documentElement.scrollWidth === innerWidth，且无元素矩形越出视口。
+// 自常驻底栏（docs/superpowers/specs/2026-10-09-bottom-footer-design.md）起，另加三条：
+//   ③ 底栏完整落在视口内（bottom 贴住视口底、高 == --bottom-bar-h）；
+//   ④ 四个入口的命中区都不小于 44×44（H5 硬口径）；
+//   ⑤ 走到当前战斗轮的页面把 `.rs-battle` / `.rc-current` 的 clientHeight 一起写进 geometry.json
+//      （与改动前基线对拍，只增不减 —— 见底栏 spec §6 的风险表）。
 const MEASURE = `(() => {
   const vw = window.innerWidth;
   const de = document.documentElement;
@@ -214,11 +228,26 @@ const MEASURE = `(() => {
     innerHeight: window.innerHeight,
     overflow: [],
     themeAttr: de.dataset.theme || null,
+    bottomBar: null,
+    barItems: [],
+    occluded: [],
+    rsBattle: null,
+    rcCurrent: null,
+  };
+  // 元素越出视口才算问题；但**被祖先水平裁切**的越界元素是局部横向滚动（如窄屏的战斗演示面板
+  // .bp-center，手机横屏时的 battle 页），不是页面级横向溢出 —— 那类只看祖先链上的 overflow-x。
+  const clippedByAncestor = (el) => {
+    for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      const ox = getComputedStyle(p).overflowX;
+      if (ox === 'hidden' || ox === 'clip' || ox === 'auto' || ox === 'scroll') return true;
+    }
+    return false;
   };
   for (const el of document.querySelectorAll('body *')) {
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) continue;
     if (r.right > vw + 0.5 || r.left < -0.5) {
+      if (clippedByAncestor(el)) continue;
       const cls = el.className && typeof el.className === 'string' ? el.className : el.tagName;
       out.overflow.push({
         tag: el.tagName,
@@ -230,7 +259,82 @@ const MEASURE = `(() => {
       if (out.overflow.length > 12) break;
     }
   }
+  const bar = document.querySelector('.bottom-bar');
+  if (bar) {
+    const r = bar.getBoundingClientRect();
+    out.bottomBar = {
+      left: +r.left.toFixed(1),
+      right: +r.right.toFixed(1),
+      top: +r.top.toFixed(1),
+      bottom: +r.bottom.toFixed(1),
+      height: +r.height.toFixed(1),
+      cssHeight: getComputedStyle(de).getPropertyValue('--bottom-bar-h').trim(),
+      items: [...bar.querySelectorAll('.bottom-bar-item')].map((el) => {
+        const ir = el.getBoundingClientRect();
+        return {
+          label: (el.textContent || '').trim(),
+          w: +ir.width.toFixed(1),
+          h: +ir.height.toFixed(1),
+          pressed: el.getAttribute('aria-pressed'),
+        };
+      }),
+    };
+  }
+  const arena = document.querySelector('.rs-battle');
+  if (arena) {
+    const r = arena.getBoundingClientRect();
+    out.rsBattle = { clientHeight: arena.clientHeight, rectHeight: +r.height.toFixed(1), top: +r.top.toFixed(1), bottom: +r.bottom.toFixed(1) };
+  }
+  const cur = document.querySelector('.rc-current');
+  if (cur) out.rcCurrent = { clientHeight: cur.clientHeight, rectHeight: +cur.getBoundingClientRect().height.toFixed(1) };
+  // 内容给底栏让位：可见文本被压到底栏下沿之下 = 留底机制没生效（或固定浮层没让位）。
+  // 只算「自己不在滚动容器里」的文本元素 —— 滚动容器里的内容被裁切是正常的（还能滚出来）。
+  const scrollableAncestor = (el) => {
+    for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      const cs = getComputedStyle(p);
+      if (/(auto|scroll)/.test(cs.overflowY + ' ' + cs.overflowX)) return true;
+    }
+    return false;
+  };
+  out.occluded = [];
+  if (bar) {
+    const barTop = bar.getBoundingClientRect().top;
+    for (const el of document.querySelectorAll('body *')) {
+      if (el === bar || bar.contains(el)) continue;
+      // 只看「自己直接有文字」的元素，避免把一大堆祖先块也算进来
+      const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim() !== '');
+      if (!own) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) continue;
+      if (r.bottom <= barTop + 0.5) continue;
+      if (scrollableAncestor(el)) continue;
+      const cls = el.className && typeof el.className === 'string' ? el.className : el.tagName;
+      out.occluded.push({ tag: el.tagName, cls: String(cls).slice(0, 50), bottom: +r.bottom.toFixed(1), text: (el.textContent || '').trim().slice(0, 24) });
+      if (out.occluded.length > 10) break;
+    }
+  }
   return out;
+})()`;
+
+// 点击式准备动作：roguelite 一族的页面要先点掉开场页 / 章页 / 逐轮点选（'roguelite-intro'
+// 本身停在开场页，不做准备）。
+// 与「点按钮进战斗轮」的目视路径一致，不注入任何游戏状态。
+const ADVANCE_ONE = `(() => {
+  const q = (s) => document.querySelector(s);
+  const en = q('.io-enter');
+  if (en && getComputedStyle(en).visibility !== 'hidden') { en.click(); return 'enter'; }
+  const intro = q('.intro-overlay');
+  if (intro) { intro.click(); return 'intro'; }
+  const cur = q('.rc-current');
+  if (cur) {
+    // 多选轮：选中后要先点「确认」才推进（单选轮点选项即执行）
+    const ok = q('.rc-confirm');
+    if (ok) { ok.click(); return 'confirm'; }
+    const btn = cur.querySelector('.rc-choice:not(.rc-choice-selected)');
+    if (btn) { btn.click(); return 'choice'; }
+    cur.click(); return 'skip';
+  }
+  return 'idle';
 })()`;
 
 // 断言用页：必须有稳定的数据依赖（首页与设置页不依赖随机 seed）。
@@ -238,12 +342,24 @@ const MEASURE = `(() => {
 // 用 minmax(min(20rem, 100%), 1fr)，320×568 下回落成单列、不再越出视口。
 // 另有 'tag-preview'（/dev?tab=tags）可用 --pages 单独跑，只作参考、不作通过条件
 // （DevMode 页面豁免 H5，见 AGENTS.md）。
-const PAGES = [
+// 「全部玩家可见页」= home / build / battle / roguelite（开场页 · 局内战斗轮）/ settings / about / encyclopedia。
+const ALL_PAGES = [
     { name: 'home', url: '/' },
+    { name: 'build-ajiu', url: '/build/ajiu' },
+    { name: 'battle', url: '/battle?a=ajiu&b=baihu' },
+    { name: 'roguelite-intro', url: '/roguelite' },
+    {
+        name: 'roguelite-battle',
+        url: '/roguelite',
+        // 逐轮点选直到出现 .rs-battle（当前战斗轮）
+        prepareTo: '.rs-battle',
+    },
     { name: 'settings', url: '/settings' },
+    { name: 'about', url: '/about' },
     { name: 'encyclopedia', url: '/encyclopedia' },
     { name: 'tag-preview', url: '/dev?tab=tags' },
-].filter((p) => opts.pages.split(',').map((s) => s.trim()).includes(p.name));
+];
+const PAGES = ALL_PAGES.filter((p) => opts.pages.split(',').map((s) => s.trim()).includes(p.name));
 
 const VIEWPORTS = [
     { name: '390x844', width: 390, height: 844, mobile: true },
@@ -277,6 +393,24 @@ for (const theme of THEMES) {
             await send('Page.navigate', { url: `http://127.0.0.1:${opts.port}${page.url}` });
             await waitLoad();
             await sleep(1200);
+            // 点击式准备：需要走到局内 / 战斗轮的页面自己点进去（与目视路径一致）
+            if (page.prepareTo) {
+                let hit = false;
+                for (let i = 0; i < 120 && !hit; i++) {
+                    const r = await send('Runtime.evaluate', {
+                        expression: `!!document.querySelector(${JSON.stringify(page.prepareTo)})`,
+                        returnByValue: true,
+                    });
+                    if (r.result.value) {
+                        hit = true;
+                        break;
+                    }
+                    const a = await send('Runtime.evaluate', { expression: ADVANCE_ONE, returnByValue: true });
+                    await sleep(a.result.value === 'choice' ? 900 : 400);
+                }
+                if (!hit) failures.push(`${theme} ${page.name} ${vp.name}: 准备步骤没走到 ${page.prepareTo}`);
+                await sleep(400);
+            }
             const res = await send('Runtime.evaluate', { expression: MEASURE, returnByValue: true });
             const m = res.result.value;
             const row = { theme, page: page.name, vp: vp.name, ...m };
@@ -284,14 +418,41 @@ for (const theme of THEMES) {
 
             const widthOk = m.docScrollWidth === m.innerWidth;
             const overflowOk = m.overflow.length === 0;
+            // 底栏：完整在视口内、贴住布局视口的左右与下沿、四个入口 ≥44×44。
+            // 宽度基准用 documentElement.clientWidth 而非 innerWidth：桌面有纵向滚动条时
+            // 两者差一条滚动条宽（battle 页 1280 → 1265），fixed 元素贴的是布局视口。
+            const bar = m.bottomBar;
+            const layoutW = m.docClientWidth;
+            const barOk =
+                !!bar &&
+                Math.abs(bar.left) <= 0.5 &&
+                bar.right >= layoutW - 0.5 &&
+                Math.abs(bar.bottom - m.innerHeight) <= 0.5 &&
+                bar.items.length === 4 &&
+                bar.items.every((it) => it.w >= 44 - 0.5 && it.h >= 44 - 0.5);
             if (!widthOk) failures.push(`${theme} ${page.name} ${vp.name}: scrollWidth=${m.docScrollWidth} != innerWidth=${m.innerWidth}`);
             if (!overflowOk) {
                 failures.push(`${theme} ${page.name} ${vp.name}: ${m.overflow.length} 个元素越出视口 ${JSON.stringify(m.overflow.slice(0, 3))}`);
             }
+            const occludedOk = (m.occluded ?? []).length === 0;
+            if (!occludedOk) {
+                failures.push(`${theme} ${page.name} ${vp.name}: ${m.occluded.length} 处内容被底栏压住 ${JSON.stringify(m.occluded.slice(0, 3))}`);
+            }
+            if (!barOk) {
+                failures.push(
+                    `${theme} ${page.name} ${vp.name}: 底栏不达标 ${JSON.stringify({
+                        bar: bar && { left: bar.left, right: bar.right, bottom: bar.bottom, h: bar.height, cssH: bar.cssHeight },
+                        items: bar && bar.items,
+                        layoutW,
+                        innerH: m.innerHeight,
+                    })}`,
+                );
+            }
             log(
-                `${theme.padEnd(5)} ${page.name.padEnd(11)} ${vp.name.padEnd(9)} ` +
+                `${theme.padEnd(5)} ${page.name.padEnd(17)} ${vp.name.padEnd(9)} ` +
                     `scrollWidth=${m.docScrollWidth} innerWidth=${m.innerWidth} ${widthOk ? 'OK' : '横向溢出'} ` +
-                    `超视口元素=${m.overflow.length}`,
+                    `超视口元素=${m.overflow.length} 被底栏压住=${(m.occluded ?? []).length} 底栏=${bar ? `${bar.height}px/${bar.items.map((i) => `${i.label}:${i.w}x${i.h}`).join(',')}` : '缺失'} ` +
+                    `rs-battle=${m.rsBattle ? m.rsBattle.clientHeight : '-'} rc-current=${m.rcCurrent ? m.rcCurrent.clientHeight : '-'}`,
             );
 
             const shot = await send('Page.captureScreenshot', { format: 'png' });
@@ -304,10 +465,12 @@ for (const theme of THEMES) {
 console.log('\n== 几何断言 ==');
 console.log(`视口档数：${VIEWPORTS.length}（${VIEWPORTS.map((v) => v.name).join(' / ')}）  主题：${THEMES.join(' + ')}`);
 for (const r of rows) {
-    const ok = r.docScrollWidth === r.innerWidth && r.overflow.length === 0;
+    const ok = r.docScrollWidth === r.innerWidth && r.overflow.length === 0 && !!r.bottomBar;
     console.log(
-        `${ok ? '通过' : '失败'}  ${r.theme.padEnd(5)} ${r.page.padEnd(11)} ${r.vp.padEnd(9)} ` +
-            `scrollWidth=${r.docScrollWidth} innerWidth=${r.innerWidth} 超视口=${r.overflow.length} theme=${r.themeAttr}`,
+        `${ok ? '通过' : '失败'}  ${r.theme.padEnd(5)} ${r.page.padEnd(17)} ${r.vp.padEnd(9)} ` +
+            `scrollWidth=${r.docScrollWidth} innerWidth=${r.innerWidth} 超视口=${r.overflow.length} ` +
+            `底栏=${r.bottomBar ? r.bottomBar.height : '缺失'} rs-battle=${r.rsBattle ? r.rsBattle.clientHeight : '-'} ` +
+            `rc-current=${r.rcCurrent ? r.rcCurrent.clientHeight : '-'} theme=${r.themeAttr}`,
     );
 }
 console.log(`\n截图：${rows.length} 张，在 ${path.relative(ROOT, SHOT_DIR)}/ （只留存，不参与判定）`);

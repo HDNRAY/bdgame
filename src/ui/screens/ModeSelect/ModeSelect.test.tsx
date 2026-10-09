@@ -1,20 +1,25 @@
 /**
  * 首页（模式选择）回归：
  *  1. 主按钮就是「进入故事」四个字 —— 按钮内不再有副标题 / 说明；
- *  2. 页首标题与底部那排入口（图鉴 / 玩法 / 设置 / 关于）都还在；
+ *  2. 页首标题还在，而底部那排入口（图鉴 / 玩法 / 设置 / 关于）**已搬走** ——
+ *     它们现在是常驻底栏（`src/ui/components/layouts/BottomBar/`），断言移入 `BottomBar.test.tsx`；
  *  3. 「肉鸽模式」「开发中」「单挑模式」等旧字样不再出现。
  *
  * 断言只看**渲染出来的 DOM 文本**（不看源码）：把副标题加回按钮里、
- * 删掉底部任意一个入口、或退回旧按钮文案，这里立刻红。
+ * 把四个入口再塞回首页、或退回旧按钮文案，这里立刻红。
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { ModeSelect } from './ModeSelect'
+import { useAppStore } from '../../stores/app-store'
 
 beforeAll(() => {
     // node 环境没有 window；主题为 'system' 时会读 window.matchMedia（与其它 SSR 测试同一处理）
     vi.stubGlobal('window', { matchMedia: () => ({ matches: false }) })
+    // node 环境没有 localStorage：主题与 uiScale 的持久化会读它
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => undefined, removeItem: () => undefined })
+    useAppStore.getState().setTheme('light')
 })
 afterAll(() => {
     vi.unstubAllGlobals()
@@ -59,9 +64,17 @@ describe('首页模式选择', () => {
         expect(mainButton(html).text).toBe('进入故事')
     })
 
-    it('底部那排入口（图鉴 / 玩法 / 设置 / 关于）都还在', () => {
-        const text = domText(renderHome())
-        for (const label of ['图鉴', '玩法', '设置', '关于']) expect(text).toContain(label)
+    it('底部那排入口已搬去常驻底栏：首页不再自带「图鉴 / 玩法 / 设置 / 关于」', () => {
+        const html = renderHome()
+        const all = buttons(html)
+        // 有文字的按钮只剩一个：主入口「进入故事」（四条入口按钮整体搬走了）。
+        // 无文字的还有 /dev 那块透明热区（构建时开启 dev 才渲染），不参与这条断言。
+        const withText = all.filter((b) => b.text !== '')
+        expect(withText).toHaveLength(1)
+        expect(withText[0].text).toBe('进入故事')
+        for (const label of ['图鉴', '玩法', '设置', '关于']) {
+            expect(all.some((b) => b.text === label)).toBe(false)
+        }
     })
 
     it('页首标题还在（结构）', () => {

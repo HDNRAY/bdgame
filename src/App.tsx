@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { RotateDevice } from './ui/components/RotateDevice/RotateDevice'
+import { BottomBar } from './ui/components/layouts/BottomBar/BottomBar'
 import { useAppStore } from './ui/stores/app-store'
 import { useSystemTheme } from './ui/hooks/useSystemTheme'
 import { NotFound } from './ui/screens/NotFound/NotFound'
@@ -81,19 +82,25 @@ function App() {
         <BrowserRouter basename={basename}>
             <AppShell>
                 <RotateDevice />
-                <Suspense fallback={<RouteFallback />}>
-                    <Routes>
-                        <Route path="/" element={<ModeSelect />} />
-                        <Route path="/build/:charId" element={<BuildScreen />} />
-                        <Route path="/settings" element={<SettingsScreen />} />
-                        <Route path="/about" element={<AboutScreen />} />
-                        <Route path="/encyclopedia" element={<EncyclopediaScreen />} />
-                        <Route path="/battle" element={<BattleScreen />} />
-                        <Route path="/roguelite" element={<RogueliteScreen />} />
-                        {devModeEnabled && <Route path="/dev" element={<DevMode />} />}
-                        <Route path="*" element={<NotFound />} />
-                    </Routes>
-                </Suspense>
+                {/* 唯一一处给内容让位的容器：路由页根元素都是它的直接子级，
+                    由 src/index.css 的一条 `#root .app-content > *` 统一补 --bottom-bar-h */}
+                <div className="app-content">
+                    <Suspense fallback={<RouteFallback />}>
+                        <Routes>
+                            <Route path="/" element={<ModeSelect />} />
+                            <Route path="/build/:charId" element={<BuildScreen />} />
+                            <Route path="/settings" element={<SettingsScreen />} />
+                            <Route path="/about" element={<AboutScreen />} />
+                            <Route path="/encyclopedia" element={<EncyclopediaScreen />} />
+                            <Route path="/battle" element={<BattleScreen />} />
+                            <Route path="/roguelite" element={<RogueliteScreen />} />
+                            {devModeEnabled && <Route path="/dev" element={<DevMode />} />}
+                            <Route path="*" element={<NotFound />} />
+                        </Routes>
+                    </Suspense>
+                </div>
+                {/* 常驻底栏：刻意在 <Routes> 之外，所以覆盖全部路由（含 /dev） */}
+                <BottomBar />
             </AppShell>
         </BrowserRouter>
     )

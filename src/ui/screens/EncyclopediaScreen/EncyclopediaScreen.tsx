@@ -79,7 +79,7 @@ function buildAllItems(): ItemEntry[] {
 
 const ALL_ITEMS = buildAllItems()
 
-export function EncyclopediaScreen() {
+export function EncyclopediaScreen({ embedded = false }: { embedded?: boolean } = {}) {
     const navigate = useNavigate()
     const [activeCategory, setActiveCategory] = useState<Category>('weapon')
     const [search, setSearch] = useState('')
@@ -115,7 +115,9 @@ export function EncyclopediaScreen() {
                     placeholder="搜索名字、描述、标签…"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    autoFocus
+                    /* 嵌进底栏弹层时关掉自动聚焦：移动端一打开就弹软键盘很碍事；
+                       独立路由页 /encyclopedia 仍保留聚焦（embedded 默认 false） */
+                    autoFocus={!embedded}
                 />
             </div>
 

@@ -1,0 +1,98 @@
+/* ════════════════════════════════════════
+   BottomBar — 常驻底栏 + 三个屏幕嵌进弹层时的适配
+
+   底栏是 fixed、不在 `.app-content` 里，所以：
+     - 自己再留一次安全区（`--bottom-bar-h` 已含 env(safe-area-inset-bottom)）；
+     - 内容容器用 `#root .app-content > *` 一条规则统一让位（src/index.css）。
+   层高 `--z-bottom-bar`（1500）高于所有弹层遮罩与页面内容，低于 Tooltip / RotateDevice。
+   ════════════════════════════════════════ */
+
+.bottom-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--bottom-bar-h);
+    /* 不透明：否则下层弹窗内容会从底栏底下透出来 */
+    background: var(--color-bg-panel);
+    border-top: var(--border-width) solid var(--color-border);
+    z-index: var(--z-bottom-bar);
+    display: flex;
+    align-items: stretch;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+}
+
+/* 四项：纯文字、无边框、无图标（D4）；原生 button，不套 Button 组件 */
+.bottom-bar-item {
+    flex: 1 1 0;
+    /* 触摸目标下限：高度吃 --bottom-bar-content-h（≥44px），宽度 min-width 兜底 */
+    min-width: max(44px, 2.75rem);
+    height: var(--bottom-bar-content-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--color-text-dim);
+    font-family: var(--font-mono);
+    font-size: var(--font-md);
+    cursor: pointer;
+    /* 触屏默认高亮与下面的 :active 反馈重复，关掉（同 .encyclopedia-tab 的写法） */
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease;
+
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            background: var(--color-bg-hover);
+            color: var(--color-text);
+        }
+    }
+
+    /* 按下：整块填 --color-pressed，文字改 --color-on-accent（口径见 Button.scss 文件头） */
+    &:active {
+        background: var(--color-pressed);
+        color: var(--color-on-accent);
+    }
+
+    /* 激活态：图鉴层开着 / 当前打开的那一项（D2 + spec §9-3） */
+    &.active {
+        color: var(--color-accent);
+        box-shadow: inset 0 2px 0 var(--color-accent);
+    }
+}
+
+/* ── 三个屏幕嵌进弹层时的适配（只写 scss，零 TSX 改动）──
+   目的：
+     1. 隐藏它们自带的页首 / 返回按钮（弹层头部已有标题与关闭钮，否则重复）；
+     2. 把 `height: 100vh` 改成由弹层决定，滚动交给 `.modal-body`（否则弹层里出现双层滚动、
+        且 100vh 会连同底栏一起算进去）。
+   DOM 形状是 `.modal-overlay > .modal-panel.modal-embed > .modal-body.modal-body-embed`，
+   所以前缀写 `.modal-embed .modal-body-embed`（两个类分别在面板与内容区上）；
+   两层类名同时提到优先级，压过各屏幕自己的 scss。 */
+.modal-embed .modal-body-embed {
+    .settings-screen,
+    .about-screen,
+    .encyclopedia {
+        height: auto;
+        overflow: visible;
+        padding: 0;
+    }
+
+    .settings-title,
+    .about-title,
+    .encyclopedia-header,
+    .settings-back {
+        display: none;
+    }
+
+    .about-screen > .btn {
+        display: none;
+    }
+
+    /* 图鉴本来就是「页首 + 搜索 + 页签 + 列表」，去掉页首后只剩内容，纵向间距收一点 */
+    .encyclopedia-search {
+        margin-top: var(--sp-xs);
+    }
+}

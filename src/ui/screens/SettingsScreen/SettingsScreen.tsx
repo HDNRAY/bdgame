@@ -12,9 +12,9 @@ const SCALE_PRESETS = [
 ] as const
 
 const THEME_OPTIONS: { label: string; value: ThemeMode }[] = [
-    { label: '☀️ 浅色', value: 'light' },
-    { label: '🌙 深色', value: 'dark' },
-    { label: '💻 系统', value: 'system' },
+    { label: '浅色', value: 'light' },
+    { label: '深色', value: 'dark' },
+    { label: '系统', value: 'system' },
 ]
 
 export function SettingsScreen() {
