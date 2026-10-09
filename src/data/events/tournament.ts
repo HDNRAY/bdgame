@@ -33,6 +33,11 @@ interface TournamentEventMeta {
     nodes: number[]
     /** 淘汰赛/决赛：无奖励（生死局没有战利品） */
     noReward: boolean
+    /** 非战斗节点的行动选项文案（默认「踏入擂台」——只用于真的开打的轮次） */
+    actionLabel?: string
+    /** 奖励轮文案覆盖（默认「战利品」/「大战之后，你有所收获。」） */
+    rewardTitle?: string
+    rewardDescription?: string
 }
 
 const EVENT_META: Record<TournamentEventId, TournamentEventMeta> = {
@@ -43,22 +48,26 @@ const EVENT_META: Record<TournamentEventId, TournamentEventMeta> = {
         noReward: false,
     },
     tournament_group_r1: {
-        title: '小组赛·第一轮',
-        description: '小组赛第一场。你的对手已经站在擂台上了。',
+        title: '小组赛·第二轮',
+        description: '小组赛第二场。你的对手已经站在擂台上了。',
         nodes: [26],
         noReward: false,
     },
     tournament_group_r2: {
-        title: '小组赛·第二轮',
-        description: '小组赛第二场。连胜还是背水一战，全看这一局。',
+        title: '小组赛·第三轮',
+        description: '小组赛第三场，也是最后一场。出线与否，打完才知道。',
         nodes: [27],
         noReward: false,
     },
     tournament_group_r3: {
-        title: '小组赛收官',
-        description: '小组赛最后一场。出线与否，打完才知道。',
+        // 三场小组赛在 n23 / n26 / n27 已经打完，这里是出线结算：没有战斗，只等十六强名单
+        title: '小组赛出线',
+        description: '三场打完，记分牌不再变动。榜前挤满了人，有人念着各组的名字，一个一个往下数。你听见了自己的。',
         nodes: [28],
         noReward: false,
+        actionLabel: '去看对阵',
+        rewardTitle: '赛间休整',
+        rewardDescription: '离十六强赛还有一夜。你把小组赛这几场又过了一遍。',
     },
     tournament_knockout_16: {
         title: '十六强赛',
@@ -99,11 +108,16 @@ function makeTournamentEvent(id: TournamentEventId): EventDef {
                   id === 'tournament_final'
                     ? [{ id: 'ending_cavern', type: 'event' as const, label: '推开最后一扇门' }]
                     : [{ id: END_EVENT, type: 'continue' as const, label: '踏入擂台' }]
-                : [{ id: 'reward_round', type: 'continue' as const, label: '踏入擂台' }],
+                : [{ id: 'reward_round', type: 'continue' as const, label: meta.actionLabel ?? '踏入擂台' }],
         },
     ]
     if (!meta.noReward) {
-        rounds.push({ id: 'reward_round', title: '战利品', description: '大战之后，你有所收获。', choices: [] })
+        rounds.push({
+            id: 'reward_round',
+            title: meta.rewardTitle ?? '战利品',
+            description: meta.rewardDescription ?? '大战之后，你有所收获。',
+            choices: [],
+        })
     }
     return {
         id,

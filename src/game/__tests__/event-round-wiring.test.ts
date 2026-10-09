@@ -41,3 +41,25 @@ describe('事件轮次接线', () => {
         expect(combat.choices.map((c) => c.id)).toEqual(['reward_round'])
     })
 })
+
+describe('斗炁大会小组赛编号与 n28 出线结算', () => {
+    // 三场真实小组赛在 n23（r0）/ n26（r1）/ n27（r2）；n28（r3）只出线结算、没有战斗。
+    // 旧数据把 n26/n27 的序号写成「第一场/第二场」，n28 还挂着「踏入擂台」的开打口吻。
+    it('n26/n27 的序号与实际场次对齐（n23 的小组赛 r0 才是第一场）', () => {
+        const r1 = getEvent('tournament_group_r1')!
+        const r2 = getEvent('tournament_group_r2')!
+        expect(r1.name).toBe('小组赛·第二轮')
+        expect(r1.description).toContain('第二场')
+        expect(r2.name).toBe('小组赛·第三轮')
+        expect(r2.description).toContain('第三场')
+    })
+
+    it('n28 是出线结算：选项不是开打口吻，奖励轮也不叫「战利品」', () => {
+        const ev = getEvent('tournament_group_r3')!
+        const first = ev.rounds[0]
+        expect(first.choices.map((c) => c.label)).toEqual(['去看对阵'])
+        // 「最后一场/打完才知道」属于 n27 那场真实战斗，不该挂在结算节点上
+        expect(ev.description).not.toContain('最后一场')
+        expect(ev.rounds.some((r) => r.title === '战利品')).toBe(false)
+    })
+})

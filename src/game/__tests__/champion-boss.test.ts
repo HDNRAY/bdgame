@@ -65,7 +65,7 @@ function talentApplied(char: Character, talent: Passive): boolean {
 }
 
 describe('champion-boss（隐藏boss 构造）', () => {
-    it('换入的义体：14 件 implant 里排除悬浮座椅与战斗芯片·改，并排除专属义体', () => {
+    it('换入的义体：非专属 implant 里排除悬浮风火轮与战斗芯片·改（13 件）', () => {
         const ids = championImplantIds()
         expect(ids).not.toContain('wheelchair_lightness')
         expect(ids).not.toContain('doctor_chip')

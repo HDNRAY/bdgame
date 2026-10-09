@@ -16,7 +16,7 @@ import type { Reward } from './entities/reward'
  *  - 义体自带的代价（失重/失能/永久失心/失感/过热）照常在战斗里结算。
  */
 
-/** 不换上的义体：悬浮座椅（轮椅，不是战斗件）、战斗芯片·改（博士专属） */
+/** 不换上的义体：悬浮风火轮（轮椅，不是战斗件）、战斗芯片·改（博士专属） */
 export const CHAMPION_EXCLUDED_IMPLANTS = ['wheelchair_lightness', 'doctor_chip']
 
 /** 隐藏boss 专属义体 */

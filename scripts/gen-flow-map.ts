@@ -41,9 +41,9 @@ const BRANCH_IDS = new Set(['branch_passive', 'branch_action', 'branch_artifact'
 /** 大会节点（非故事线，单独成行） */
 const TOURNAMENT_NODES: Record<number, string> = {
     23: '斗炁大会开幕（含各线热身赛：赢→前辈授艺，输→无奖励）',
-    26: '小组赛·第一轮',
-    27: '小组赛·第二轮',
-    28: '小组赛收官',
+    26: '小组赛·第二轮',
+    27: '小组赛·第三轮',
+    28: '小组赛出线',
     29: '十六强赛',
     30: '八强赛',
     31: '半决赛',

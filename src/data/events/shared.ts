@@ -80,29 +80,3 @@ export const BOSS_PHASE2: EventDef = {
         },
     ],
 }
-
-export const BOSS_PHASE3: EventDef = {
-    id: 'boss_phase3',
-    name: '最终首领',
-    description: '最终决战。',
-    reward: { kind: 'points' },
-    rounds: [
-        {
-            id: 'intro',
-            title: '最终战',
-            description: '一切恩怨在此了结。你面对最终的对手。',
-            choices: [{ id: 'combat_round', type: 'continue', label: '迎战' }],
-        },
-        {
-            id: 'combat_round',
-            title: '决战',
-            enemyPool: ALL_OPPONENT_IDS,
-            choices: [{ id: 'reward_round', type: 'continue', label: '继续' }],
-        },
-        {
-            id: 'reward_round',
-            title: '战利品',
-            choices: [],
-        },
-    ],
-}
