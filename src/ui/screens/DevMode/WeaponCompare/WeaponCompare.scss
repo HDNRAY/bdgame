@@ -3,7 +3,7 @@
    特有的差值配色与括号注——差值配色挂在共用表的 .cmp-table 上，跟原来的 .wc-table 同特异性。 */
 .cmp-table {
     .wc-delta {
-        color: var(--color-success, #2ecc71);
+        color: var(--color-success);
     }
 
     .wc-delta-neg {

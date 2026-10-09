@@ -183,12 +183,12 @@
     }
 
     // 无描边实体小块：日志 / 回放工具条上的图标按钮
-    // （--color-entity-bg + 无描边 + 方角，没有边框可点亮，反馈只能整体压暗）。
+    // （--color-bg-alt + 无描边 + 方角，没有边框可点亮，反馈只能整体压暗）。
     // 这是本变体的固定口径；页面要别的反馈（例如选中态）就在本页 scss 里覆盖。
     &-bare {
         border: none;
         border-radius: 0;
-        background: var(--color-entity-bg);
+        background: var(--color-bg-alt);
         color: var(--color-text);
 
         @media (hover: hover) {
@@ -202,7 +202,7 @@
         }
 
         &:disabled {
-            background: var(--color-entity-bg);
+            background: var(--color-bg-alt);
             filter: none;
         }
     }

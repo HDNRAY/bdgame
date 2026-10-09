@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { ReplayEngine, type LogEntry, type FrameChar } from '../../../bridge/replay-engine'
 import { CanvasRenderer } from '../../canvas/renderer'
+import { resolveUiColor } from '../../canvas/battle-colors'
 import { useAppStore, getEffectiveTheme } from '../../stores/app-store'
 import './AnimationPanel.scss'
 
@@ -57,8 +58,9 @@ export const AnimationPanel = forwardRef<AnimationPanelHandle, AnimationPanelPro
         rendererRef.current = renderer
         renderer.setTheme(effectiveTheme)
         renderer.init(el).then(() => {
-            renderer.registerChar(charA.id, charA.name, charA.color)
-            renderer.registerChar(charB.id, charB.name, charB.color)
+            // canvas 读不到 CSS 变量：在这里把 var(--color-*) 解析成当前主题的真实色值
+            renderer.registerChar(charA.id, charA.name, resolveUiColor(charA.color, effectiveTheme))
+            renderer.registerChar(charB.id, charB.name, resolveUiColor(charB.color, effectiveTheme))
 
             const f = replay.getFrameAt(0)
             renderer.render(f)

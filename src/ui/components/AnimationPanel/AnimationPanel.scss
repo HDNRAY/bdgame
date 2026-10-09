@@ -1,7 +1,7 @@
 .animation-canvas {
     width: 100%;
     height: var(--animation-canvas-height);
-    background: var(--color-canvas-bg);
+    background: var(--color-bg);
     border-bottom: var(--border-width) solid var(--color-border);
 
     &.compact {

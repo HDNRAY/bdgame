@@ -7,13 +7,13 @@
     position: fixed;
     z-index: 9999;
     background: var(--color-tooltip-bg);
-    border: var(--border-width) solid var(--color-tooltip-border);
+    border: var(--border-width) solid var(--color-border-hover);
     padding: var(--sp-xs) var(--sp-sm);
     min-width: 12.5rem;
     max-width: 20rem;
     font-family: var(--font-mono);
     font-size: var(--font-sm);
-    color: var(--color-tooltip-text);
+    color: var(--color-text);
     line-height: 1.5;
     pointer-events: auto;
     box-shadow: var(--shadow-md);

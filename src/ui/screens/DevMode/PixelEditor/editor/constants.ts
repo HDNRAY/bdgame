@@ -93,7 +93,7 @@ export const SLOT_FALLBACK_COLORS: Record<number, string> = {
 
 /**
  * 画布底板（透明区的棋盘）：换色系方便看对比度。
- * 前两个是编辑器自己的深浅棋盘；「游戏浅色底 / 深色底」对应对战画布（themes.css 的 --color-canvas-bg）。
+ * 前两个是编辑器自己的深浅棋盘；「游戏浅色底 / 深色底」对应对战画布（themes.css 的 --color-bg）。
  */
 export const BACKDROP_PRESETS: { id: string; label: string; a: string; b: string }[] = [
     { id: 'dark', label: '深色棋盘', a: '#20242c', b: '#262b34' },

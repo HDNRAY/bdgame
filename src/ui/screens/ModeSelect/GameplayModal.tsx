@@ -151,19 +151,21 @@ export function GameplayModal({ onClose }: GameplayModalProps) {
 
 /**
  * 颜色分两层（见 CSS）：
- * - 一级知识点（节标题：「基础」「六大属性」…）各用一个颜色，见 SECTION_COLORS
+ * - 一级知识点（节标题：「基础」「六大属性」…）各用一个颜色，见 SECTION_COLORS ——
+ *   **收敛到 UI 语义 token**（迁移第 5 步）：从写死的 9 个字面色改成 `var(--color-*)`，
+ *   随主题自动切换，也不再各写一套。9 节 / 8 个语义色，所以「基础」与「触发槽」同色。
  * - 二级知识点（子条目：力道、暴击、内息、中毒…）统一用主题的「属性黄」--color-gold
  */
 const SECTION_COLORS: Record<string, string> = {
-    基础: '#6fb3d9',
-    六大属性: '#7fc98a',
-    内息与缠劲: '#d9a441',
-    数值公式: '#e0736c',
-    '值得知道的机制': '#c2a25a',
-    三种持续伤害: '#a98bd6',
-    站位风格与打法: '#4fb3a5',
-    出招条件: '#d68fb0',
-    触发槽: '#7fa8d9',
+    基础: 'var(--color-accent)',
+    六大属性: 'var(--color-success)',
+    内息与缠劲: 'var(--color-ap)',
+    数值公式: 'var(--color-warning)',
+    '值得知道的机制': 'var(--color-gold)',
+    三种持续伤害: 'var(--color-qi)',
+    站位风格与打法: 'var(--color-p2)',
+    出招条件: 'var(--color-danger)',
+    触发槽: 'var(--color-accent)',
 }
 const SECTION_FALLBACK = Object.values(SECTION_COLORS)
 

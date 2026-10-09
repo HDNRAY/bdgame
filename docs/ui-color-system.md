@@ -683,7 +683,7 @@ CI 接法：
 
 > 方案 3.4 表里写的是「暗 4.87」，实测 **4.79**：方案给的暗色 `--color-pressed` 是 `#73737d`，按内联 OKLab 复算 `on-accent on pressed` 只有 4.48（不达标）。第 1 步已把它调到 `#78787f`（L 0.575），实测 4.79。
 
-### 第 3 步：清 scss 硬编码（38 处 / 14 文件）
+### 第 3 步：清 scss 硬编码（38 处 / 14 文件）—— 计划原文
 
 按 1.3 的表逐条替换：
 
@@ -703,6 +703,44 @@ CI 接法：
 
 **验证**：`grep -rn '#[0-9a-fA-F]\{3,8\}' src/ui --include=*.scss` 的命中数降到编辑器白名单以内；摊平对拍三元组不变；三档截图几何不变。
 
+> 落地记录与逐处清单见下面的「第 3 步：清 scss 硬编码（已完成）」。
+
+### 第 3 步：清 scss 硬编码（已完成）
+
+**判据**：每一处替换后，浏览器里的**计算值**必须逐处相同（重构，不是改设计）。
+证据用 `scripts/ui-computed-style.mjs` 抓（12 个页面 × 两主题 × 两视口，31584 个元素快照对拍）。
+
+| 处置 | 处数 | 说明 |
+| --- | --- | --- |
+| **换成 token（计算值随之改变 → 有意改动，逐条列出）** | 13 | 见下表 |
+| **换成 token（计算值完全相同）** | 3 | `BuildSim.scss:212,228`、`WeaponCompare.scss:6` 的 `var(--color-success, #2e8b57/#2ecc71)` —— `--color-success` 两套主题都有定义，**回退值从未生效**，删掉回退值等于没改 |
+| **保留字面值** | 22 | 见下 |
+
+**有意改动（13 处）**：它们的字面色原本就是第 1 步被重定值的 token 的旧值，改成 token 后必然跟着变：
+
+| 位置 | 原值 | 新值（亮 / 暗） | 为什么该变 |
+| --- | --- | --- | --- |
+| `BattleStatusPanel.scss:115/119/123/127` | `#4ecdc4` / `#ff6b6b` / `#ffe66d` / `#9b59b6` | `p1` / `p2` / `ap` / `qi` 的 token 值 | 身份色本来就是这几个 token 的副本，第 1 步改了 token，副本必须跟 |
+| `CharacterPanel.scss:484,485` | `#c0392b` | `--color-debuff-text`（亮 `#b22c36` / 暗 `#ef6667`） | 就是 `--color-debuff-text` 的旧值 |
+| `CharacterPanel.scss:569`、`LogPanel.scss:74` | `#999` | `--color-text-dim`（亮 `#595966` / 暗 `#898997`） | 弱文字：旧值在亮色主题下偏浅（对比不足），改用主题化 token |
+| `RoundCard.scss:203` | `#666` | `--color-text-dim` | 同上 |
+| `RewardPicker.scss:46,214` | `var(--color-warn, #e0a34a)` | `--color-warning` | **拼写错**（`--color-warn` 不存在），一直在吃回退值 `#e0a34a`；改用真 token |
+| `TournamentSim.scss:38,44` | `#000` | `--color-on-accent`（亮 `#f4f5f9` / 暗 `#000000`） | 实心 accent 底上的文字：亮色主题下黑字压深青只有 2.4:1，换 `on-accent` 后 5.86:1（**修了一个对比度缺陷**） |
+
+**保留字面值（22 处）及原因**（都在 `AGENTS.md` 的白名单里）：
+
+| 位置 | 值 | 为什么不换 token |
+| --- | --- | --- |
+| `PixelEditor.scss:335-337` | `#444` ×4 | 透明棋盘格：编辑器内部纹理，与主题无关，也没有 UI 角色 |
+| `PixelEditor.scss:166,167,617` | `#ffb86b` ×3 | 编辑器「已改」高亮：**只有编辑器用**，不是通用角色 → 不为它新增 token（用户口径：只有确实是通用角色才新增） |
+| `AttributeLabel.scss:49,52,55,58,61` | `#666` + 4 个来源色 | 属性来源堆叠条（base / passive / artifact / weapon / negative）：组件私有、主题无关、只此一处；提 token 只会让两张主题表变长 |
+| `ModeSelect.scss:44-47` | `rgba(0,0,0,0.7)` ×4 | 主按钮文字的**黑色描边**（text-shadow）：为了在任何底色上可读，必须纯黑且不随主题 |
+| `ModeSelect.scss:48` | `#1f6361` | 主按钮文字阴影（由旧 accent 压暗而来）：换 `color-mix` 会**改变外观**，属于设计决定，留待拍板 |
+| `RogueliteScreen.scss:94` | `#ffe66d` | 文件里有明确注释：按用户「以历史值为准」的口径保留历史值 |
+| `BattleScreen.scss:84` | `rgb(0 0 0 / 0.35)` | 页面专用投影，与 `--shadow-md` 数值不同 |
+| `BattleScreen.scss:105`、`RewardPicker.scss:5` | `rgb(0 0 0 / 0.5)`、`rgba(0,0,0,0.6)` | 遮罩：与 `--color-overlay`（亮 0.35 / 暗 0.6）不等价，换掉会改变亮色主题观感 |
+| `SearchSelect.scss:73` | `rgb(0 0 0 / 28%)` | 下拉投影，同上 |
+
 ### 第 4 步：标签徽章收编（已完成）
 
 采用**方案 A 的变体**：保留色相身份，但**不保留 53 个色相**——按语义归成 **11 族 / 17 个色位**（同族同色位同色），两套主题各自定值。完整表格、逐条归类依据、存疑项、实测对比度与风险见 **第 7 节**。
@@ -714,21 +752,60 @@ CI 接法：
 - [Tag.tsx](src/ui/components/ui/Tag/Tag.tsx) 不再内联颜色，改成 `var(--tag-color-<tag>, var(--color-text-dim))`。
 - 不变量测试 [tag-colors.test.ts](src/bridge/__tests__/tag-colors.test.ts)（13 条断言，含用户 8 条口径）+ 变异验证 + DevMode「标签配色」目视页（`/dev?tab=tags`）见 7.9。
 
-### 第 5 步：TS 里的界面色（22 处）
+### 第 5 步：TS 里的界面色（已完成）
 
-- [GameplayModal.tsx:158-166](src/ui/screens/ModeSelect/GameplayModal.tsx#L158)：9 个逐节色 → 收敛到语义 token（accent / success / gold / danger / qi / p2 等），`--section-accent` 继续由内联变量传递，但值改为 `var(--color-*)`。
-- p1 / p2 身份色 8 处（BattleScreen、SelectionPanel、BattlePanel、battle-replay）：抽成一处常量并从 CSS 变量读取，避免第 1 步改了 `--color-p2` 而 TS 里仍是 `#ff6b6b`。
-- [Tag.tsx:14](src/ui/components/ui/Tag/Tag.tsx#L14) 的 `?? '#888'` 回退 → `var(--color-text-dim)`。
-- [CharacterPanel.tsx:78](src/ui/components/CharacterPanel/CharacterPanel.tsx#L78) 默认 `accentColor = '#888'` 同理。
-- canvas 层（float-text 14 处、renderer 11 处）**独立决策**：它是战斗画布，不是 CSS 层，但里面的 `#4ecdc4` / `#ffe66d` 同样与 token 重复。建议至少把常量集中到一个模块并加注释指向 token。
+**技术问题与选择**：JS 读不到 CSS 变量，所以分两条路：
 
-**验证**：`grep` 命中数下降；TS 侧新增「常量与 token 值一致」的单测。
+| 场景 | 做法 | 理由 |
+| --- | --- | --- |
+| **DOM 内联样式**（能写 `var()` 的地方） | 直接写 `'var(--color-x)'` | 零运行时开销、跟主题自动切换、**JS 从不读值**，也就不存在"读早了 / 缓存过期" |
+| **canvas / PixiJS**（只能吃真实色值） | `src/ui/canvas/battle-colors.ts` 的 `UI_COLOR_MIRROR`（TS 镜像）+ `resolveUiColor(value, theme)` | 镜像有**漂移测试** `battle-colors.test.ts` 断言它 == themes.css 的 token 值（照标签色的做法）；`resolveUiColor` 在绘制前把 `var(--color-p1)` 解析成当前主题的色值 |
 
-### 第 6 步：收尾
+改动：
 
-- 删除已无引用的别名 token（`--color-canvas-bg` / `--color-bg-input` / `--color-entity-bg` / `--color-entity-border` / `--color-code-bg` / `--color-tooltip-*` / `--color-p1` / `--color-buff-text` / `--color-debuff-text`）。
-- 在 [themes.css](src/ui/styles/themes.css) 顶部写「token 角色表」，与 `docs/ui-color-system.md` 互链。
-- 更新 [AGENTS.md](AGENTS.md) 的 UI 小节：新增「颜色只能来自 token」与「新增语义色必须同时给出两套主题的值并过 I1 / I6」。
+| 位置 | 处理 |
+| --- | --- |
+| `GameplayModal.tsx:158-166` 9 个逐节色 | 收敛到语义 token（`accent` / `success` / `ap` / `warning` / `gold` / `qi` / `p2` / `danger`；9 节 8 色，「基础」与「触发槽」同色）→ **有意改动**，9 条已列出 |
+| p1 / p2 身份色 10 处（`BattleScreen` 2、`SelectionPanel` 2、`BattlePanel` 2、`battle-replay` 2、`TournamentSim` 2） | 改成 `'var(--color-p1)'` / `'var(--color-p2)'`；canvas 路径由 `AnimationPanel` 调 `resolveUiColor(..., effectiveTheme)` 解析（该 effect 依赖 `effectiveTheme`，切主题会重新注册）→ **有意改动**（旧字面值是旧 accent/p2） |
+| `CharacterPanel.tsx:78` 默认 `accentColor` | `'#888'` → `'var(--color-text-dim)'` → **有意改动** |
+| `Tag.tsx` 的 `?? '#888'` 回退 | 第 4 步已改成 `var(--color-tag-color-<tag>, var(--color-text-dim))` |
+| canvas（`renderer.ts` 的 `AP_LIGHT/AP_DARK`、`float-text.ts` 的 ~10 处飘字色） | 收进 `battle-colors.ts`：`--color-ap` 走镜像（值随 token，**有意改动**）；飘字语义色（暴击金 / 受伤红 / 持续伤害橙 / 回复青 / 中性白）作为**画布专用常量**登记，**值不变** |
+| `PixelInspector` / `PixelCanvas` 的 `#4ecdc4` / `#ff6b6b` / 皮肤兜底 `#f5d6c6` | 保留：DevMode 像素工具的调色板与**像素美术**兜底色，不是 UI 配色（`PIXEL_SKIN_FALLBACK` 已登记在 `battle-colors.ts`） |
+
+**计算值对拍**（`ui-computed-style.mjs`，12 页 × 两主题 × 两视口）：
+
+- 第 3 步：**31584 个元素快照，24 处差异，全部是 `cp-trigger-count` 一个元素的弱文字色**（预期内的有意改动；该元素是唯一样本页里能命中的改动点）。
+- 第 5 步：对已覆盖页面 **0 处差异**；为覆盖弹窗里的 9 个节色，另开 `home-gameplay` 页（采样前点「玩法」）做前后对拍，**472 处差异 = 9 个节色 × 两主题 × 两视口 × 6 个颜色属性**，全部是那 9 条有意改动。
+- p1 / p2 身份色的页面（`/battle`、roguelite 结算）需要存档 / 战斗状态，**无头采样到不了** —— 这部分只做了 1:1 记录（旧字面值 → token 值），没有计算值对拍。
+
+### 第 6 步：收尾（已完成）
+
+1. **别名收敛**：全仓扫描 44 个非标签 token，**0 个零引用**。但其中 9 个是**纯值别名**
+   （指向另一个 token，值完全相同），可以做"值不变"的内联并删除定义：
+
+   | 删除的别名 | 内联成 | 调用点 |
+   | --- | --- | --- |
+   | `--color-entity-bg` | `--color-bg-alt` | 9 处（Tag / EntityItem / Button 等） |
+   | `--color-entity-border` | `--color-border` | 1 处 |
+   | `--color-canvas-bg` | `--color-bg` | 2 处 |
+   | `--color-bg-input` | `--color-bg-panel` | 4 处 |
+   | `--color-code-bg` | `--color-bg-alt` | 1 处 |
+   | `--color-tooltip-border` | `--color-border-hover` | 2 处 |
+   | `--color-tooltip-text` | `--color-text` | 2 处 |
+   | `--color-buff-text` | `--color-success` | 1 处 |
+   | `--color-debuff-text` | `--color-danger` | 3 处 |
+
+   **非标签 token：44 → 35**。内联是纯重构 —— `ui-computed-style.mjs` 对拍 **0 处差异**。
+
+   **保留下来的别名**（不是死重，是角色）：`--color-p1`（玩家一身份，11 个引用；删了会让 p1/p2 失去对称）、
+   `--scrollbar-thumb`（滚动条角色）、`--color-bg-raised`（抬升块角色）、`--color-tooltip-bg`
+   （**不是纯别名**：`color-mix(bg-panel 97%, transparent)`，有自己的透明度）、`--color-accent-border`（派生色）。
+
+2. **token 角色表**：见 **附录 C**（名字 | 角色 | 亮 / 暗值 | 引用文件数 | 代表调用点 + 分层说明）。
+
+3. **`AGENTS.md`** 新增 **「UI 配色（改颜色前必读）」** 一节：三条硬规矩（只用 token 不许硬编码 /
+   改颜色必须跑 `scss-triples.mjs` + `ui-computed-style.mjs` / **断言跟着用户定义走**）、
+   按下态口径、canvas 的镜像 + `resolveUiColor` 做法、标签徽章的两处同步。
 
 ### 验证口径汇总
 
@@ -1079,3 +1156,57 @@ CI 接法：
 - **不变量测试** [tag-colors.test.ts](src/bridge/__tests__/tag-colors.test.ts)（**22 条断言**，内联约 30 行 OKLab/WCAG）：4 条通用（对比度 / 两主题不同 / 同族可分 / CSS-TS 一致）+ 18 条用户口径（含第十六条修正后的带子：火红 45~66、霜冻 225~258、雷 250~272）（雷=蓝、流血=红、控制=灰、酒=棕、劈砍等=流派、前置∈机制+远程∈流派、控制≠红绿、heal 浅/poison 深、灰 vs 流派可分、**霜冻=低彩度冰感**、**麻痹=偏黄**、**流血/灼烧/中毒同族且血红≠火红**）。
 - **变异验证**（13 组，全部红灯）：`stun`→紫、`bleed`→绿、`electric`→红、`jiu`→绿、`frost`→高彩度蓝、`paralyze`→灰、`burn`→血红同色；第十五条又跑 6 组：**`bleed`→偏冷绯红**（`H 应 20~40`）、**`burn`→大红同色**（`火红必须比大红更偏黄`）、**`frost`→高彩度蓝**（`C 应 ≤ 0.06` 且低于 electric 一半）、**`electric`→偏紫蓝**（`H 应 240~280`）、**`paralyze`→土黄**（`H 应 75~100`）、**`low_hp`→黄**（`H 应 30~55`）。**第十六条修正后又跑 3 组**：**`burn`→黄（麻痹的色）**（`火红必须留在红区、与金黄 ΔH ≥20`）、**`frost`→蓝紫 `#655e7d`**（`H 应 225~258`）、**`electric`→蓝紫 `#4d57b7`**（`H 应 250~272`）。
 - **目视页**：DevMode「标签配色」tab（`/dev?tab=tags`），按 13 族分组，截图 `tmp/preview/tag-preview-{light,dark}-*.png`。
+
+---
+
+## 附录 C：token 角色表（加新 token 前先读这里）
+
+**用途**：新加语义色 / 底 / 描边时，先在这张表里找角色；找不到角色再新增，新增后回填本表。
+两套主题必须同时给值，并过 I1 / I6（对比度 / 可分性）。
+
+35 个 token（另有 53 条 `--tag-color-*`，见第 7 节）：
+
+| token | 角色 | 亮 | 暗 | 引用文件数 | 代表调用点 |
+| --- | --- | --- | --- | --- | --- |
+| `--color-bg` | 面 0：页面底 / 画布底 | `#ffffff` | `#000000` | 30 | App.tsx, index.css, ui/components/AnimationPanel/AnimationPanel.scss, ui/components/BattlePanel/BattlePanel.scss |
+| `--color-bg-alt` | 面 1：次级页底 / 抬升块 | `#f2f2f5` | `#010102` | 15 | bridge/__tests__/tag-colors.test.ts, index.css, ui/components/BattlePanel/BattlePanel.scss, ui/components/CharacterPanel/CharacterPanel.scss |
+| `--color-bg-panel` | 面 2：面板 / 输入 / tooltip 底 | `#e5e5e9` | `#09090b` | 21 | ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss, ui/components/CharacterPanel/RewardPicker.scss, ui/components/ControlsBar/ControlsBar.scss |
+| `--color-bg-hover` | 面 3：悬停底 | `#d9d9dd` | `#18181b` | 14 | ui/components/BattlePanel/BattlePanel.scss, ui/components/CharacterPanel/CharacterPanel.scss, ui/components/CharacterPanel/RewardPicker.scss, ui/components/LogPanel/LogPanel.scss |
+| `--color-bg-raised` | 抬升块（只读表格表头、行悬停） | `#f2f2f5` | `#010102` | 1 | ui/components/layouts/CompareScreen/CompareScreen.scss |
+| `--color-text` | 正文 | `#393947` | `#afafc1` | 32 | App.tsx, index.css, ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss |
+| `--color-text-h` | 标题 | `#1b1b2b` | `#e8e9ff` | 18 | index.css, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss |
+| `--color-text-dim` | 弱文字 | `#595966` | `#898997` | 31 | ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss |
+| `--color-border` | 弱描边：分隔线（豁免 3:1） | `#bdbdc4` | `#2d2d33` | 31 | ui/components/AnimationPanel/AnimationPanel.scss, ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss |
+| `--color-border-hover` | 强描边：悬停 / 聚焦（≥3:1） | `#7a7a84` | `#626375` | 8 | ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/SelectionPanel/SelectionPanel.scss, ui/components/roguelite/RunSummaryPanel.scss, ui/components/ui/Button/Button.scss |
+| `--color-pressed` | 按下：填充 + 描边（配 on-accent） | `#4c4c55` | `#78787f` | 5 | ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/SelectionPanel/SelectionPanel.scss, ui/components/ui/Button/Button.scss, ui/screens/DevMode/DevMode.scss |
+| `--color-accent` | 交互主色（青） | `#006b65` | `#18d2c7` | 25 | ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss, ui/components/CharacterPanel/RewardPicker.scss, ui/components/ControlsBar/ControlsBar.scss |
+| `--color-accent-bg` | 浅底（accent 12%/16% 混 bg） | `#e3eceb` | `#000908` | 5 | ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/SelectionPanel/SelectionPanel.scss, ui/components/roguelite/RoundCard.scss, ui/components/ui/Button/Button.scss |
+| `--color-accent-border` | 强调描边（accent 50% 透明） | ``color-mix(accent 50%, transparent)`` | `undefined` | 1 | ui/screens/SettingsScreen/SettingsScreen.scss |
+| `--color-on-accent` | 实心强调底上的文字 | `#f4f5f9` | `#000000` | 14 | ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss, ui/components/SelectionPanel/SelectionPanel.scss, ui/components/roguelite/RoundCard.scss |
+| `--color-p1` | 玩家一身份色（= accent 的别名） | `#006b65` | `#18d2c7` | 11 | ui/canvas/__tests__/battle-colors.test.ts, ui/canvas/battle-colors.ts, ui/components/BattlePanel/BattlePanel.tsx, ui/components/BattleStatusPanel/BattleStatusPanel.scss |
+| `--color-p2` | 对手身份色（玫红） | `#a72e73` | `#f072b3` | 10 | ui/canvas/__tests__/battle-colors.test.ts, ui/canvas/battle-colors.ts, ui/components/BattlePanel/BattlePanel.tsx, ui/components/BattleStatusPanel/BattleStatusPanel.scss |
+| `--color-gold` | 奖励 / 货币（琥珀金） | `#7c5902` | `#f1b218` | 7 | ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/ControlsBar/ControlsBar.scss, ui/components/SelectionPanel/SelectionPanel.scss, ui/components/ui/EntityItem/EntityItem.scss |
+| `--color-ap` | 内息（黄） | `#656204` | `#f3f056` | 8 | ui/canvas/battle-colors.ts, ui/canvas/float-text.ts, ui/canvas/renderer.ts, ui/components/BattleStatusPanel/BattleStatusPanel.scss |
+| `--color-qi` | 炁（紫） | `#7c43b1` | `#b179eb` | 2 | ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/screens/ModeSelect/GameplayModal.tsx |
+| `--color-danger` | 危险 / 失败 | `#b22c36` | `#ef6667` | 10 | ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss, ui/components/roguelite/InjuryBar.scss, ui/components/roguelite/RoundCard.scss |
+| `--color-success` | 成功 / 增益 | `#006e35` | `#3ec873` | 7 | ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss, ui/components/roguelite/NodeMap.scss, ui/screens/DevMode/BuildSim/BuildSim.scss |
+| `--color-warning` | 警示 | `#9a4800` | `#ff8f42` | 4 | ui/components/CharacterPanel/CharacterPanel.scss, ui/components/CharacterPanel/RewardPicker.scss, ui/components/roguelite/NodeMap.scss, ui/screens/ModeSelect/GameplayModal.tsx |
+| `--color-danger-bg` | 浅底（danger 12%/16%） | `#f9e6e5` | `#0c0202` | 3 | ui/components/CharacterPanel/CharacterPanel.scss, ui/components/SelectionPanel/SelectionPanel.scss, ui/components/roguelite/RoundCard.scss |
+| `--color-success-bg` | 浅底（success 12%/16%） | `#e3ede5` | `#010802` | 2 | ui/components/CharacterPanel/CharacterPanel.scss, ui/components/roguelite/RoundCard.scss |
+| `--color-buff-bg` | 增益徽章底（= success-bg） | `#e3ede5` | `#010802` | 1 | ui/components/BattleStatusPanel/BattleStatusPanel.scss |
+| `--color-buff-border` | 增益徽章描边（success 35%/40%） | `#afcbb5` | `#0a361b` | 1 | ui/components/BattleStatusPanel/BattleStatusPanel.scss |
+| `--color-debuff-bg` | 减益徽章底（= danger-bg） | `#f9e6e5` | `#0c0202` | 1 | ui/components/BattleStatusPanel/BattleStatusPanel.scss |
+| `--color-debuff-border` | 减益徽章描边（danger 35%/40%） | `#ebb8b5` | `#421717` | 1 | ui/components/BattleStatusPanel/BattleStatusPanel.scss |
+| `--color-overlay` | 遮罩 | `rgba(0, 0, 0, 0.35)` | `rgba(0, 0, 0, 0.6)` | 3 | ui/components/tournament/tournament.scss, ui/screens/ModeSelect/GameplayModal.scss, ui/screens/RogueliteScreen/RogueliteScreen.scss |
+| `--shadow-md` | 中阴影 | `0 4px 12px rgba(0, 0, 0, 0.1)` | `0 4px 12px rgba(0, 0, 0, 0.5)` | 2 | ui/components/CharacterPanel/CharacterPanel.scss, ui/components/ui/Tooltip/Tooltip.scss |
+| `--shadow-lg` | 大阴影 | `0 8px 32px rgba(0, 0, 0, 0.15)` | `0 8px 32px rgba(0, 0, 0, 0.7)` | 2 | ui/components/tournament/tournament.scss, ui/screens/ModeSelect/GameplayModal.scss |
+| `--color-tooltip-bg` | tooltip 底（panel 97% 透明） | ``color-mix(accent 50%, transparent)`` | `undefined` | 2 | ui/components/ui/Tooltip/Tooltip.scss, ui/screens/EncyclopediaScreen/EncyclopediaScreen.scss |
+| `--scrollbar-thumb` | 滚动条滑块（= border-hover） | `#7a7a84` | `#626375` | 2 | ui/components/LogPanel/LogPanel.scss, ui/screens/EncyclopediaScreen/EncyclopediaScreen.scss |
+| `--scrollbar-track` | 滚动条槽（透明） | `transparent` | `transparent` | 1 | ui/components/LogPanel/LogPanel.scss |
+
+**分层**（对应 3.1）：
+
+- **中性阶梯**：`bg → bg-alt → bg-panel → bg-hover`（面 0~3，严格单调、相邻 ΔL ∈ [0.035, 0.075]）；描边 `border`（弱，豁免 3:1）/ `border-hover`（强，≥3:1）/ `pressed`（按下填充）；文字 `text-dim → text → text-h`；反色 `on-accent`。
+- **语义强调色（8）**：`accent` / `success` / `danger` / `warning` / `gold` / `ap` / `qi` / `p2`，色相共用、两套主题各自定值；其余 token 都是它们的别名或 `color-mix` 派生。
+- **别名与派生**：`p1 = accent`、`scrollbar-thumb = border-hover`、`tooltip-bg = color-mix(bg-panel 97%, transparent)`、`*-bg` / `*-border` 由语义色 `color-mix` 派生。**别名不算新角色**，别在调用点重复造。
+- **画布层**：canvas / PixiJS 读不到 CSS 变量，那边用 `src/ui/canvas/battle-colors.ts` 的 `UI_COLOR_MIRROR`（有漂移测试盯着），需要真实色值时调 `resolveUiColor()`。

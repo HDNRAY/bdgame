@@ -87,13 +87,13 @@
 
     .buff-tag {
         background: var(--color-buff-bg);
-        color: var(--color-buff-text);
+        color: var(--color-success);
         border-color: var(--color-buff-border);
     }
 
     .debuff-tag {
         background: var(--color-debuff-bg);
-        color: var(--color-debuff-text);
+        color: var(--color-danger);
         border-color: var(--color-debuff-border);
     }
 
@@ -112,18 +112,18 @@
     }
 
     .bar-hp {
-        background: #4ecdc4;
+        background: var(--color-p1);
     }
 
     .bar-hp-low {
-        background: #ff6b6b;
+        background: var(--color-p2);
     }
 
     .bar-ap {
-        background: #ffe66d;
+        background: var(--color-ap);
     }
 
     .bar-chan {
-        background: #9b59b6;
+        background: var(--color-qi);
     }
 }

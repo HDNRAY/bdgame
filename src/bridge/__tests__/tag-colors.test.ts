@@ -1,7 +1,7 @@
 /**
  * 标签徽章配色不变量（对应 docs/ui-color-system.md 第 7 节）。
  *
- * 徽章结构（Tag.scss）：文字与 1px 描边同色，底是 `--color-entity-bg`
+ * 徽章结构（Tag.scss）：文字与 1px 描边同色，底是 `--color-bg-alt`
  * （= 亮 #f2f2f5 / 暗 #010102，见 themes.css）。所以唯一要守的是
  * 「标签色 × 两套主题的徽章底 ≥ 4.5:1」。
  *

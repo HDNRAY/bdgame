@@ -81,7 +81,7 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
         <div className="selection-root">
             <div className="selection-side">
                 {buildA ? (
-                    <CharacterPanel mode="view" build={buildA} accentColor="#4ecdc4" />
+                    <CharacterPanel mode="view" build={buildA} accentColor="var(--color-p1)" />
                 ) : (
                     <div className="side-placeholder">请选择 A</div>
                 )}
@@ -180,7 +180,7 @@ export function SelectionPanel({ onStart, onBuild }: SelectionPanelProps) {
 
             <div className="selection-side">
                 {buildB ? (
-                    <CharacterPanel mode="view" build={buildB} accentColor="#ff6b6b" />
+                    <CharacterPanel mode="view" build={buildB} accentColor="var(--color-p2)" />
                 ) : (
                     <div className="side-placeholder">请选择 B</div>
                 )}

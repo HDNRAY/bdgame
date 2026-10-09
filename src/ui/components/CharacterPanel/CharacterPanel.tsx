@@ -75,7 +75,7 @@ const ATTR_ORDER: AttrName[] = ['strength', 'vitality', 'agility', 'dexterity', 
 export function CharacterPanel({
     mode,
     build,
-    accentColor = '#888',
+    accentColor = 'var(--color-text-dim)',
     onSave,
     onBack,
     unspentCultPoints,

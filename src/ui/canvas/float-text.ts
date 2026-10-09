@@ -3,6 +3,7 @@ import type { FrameChar } from '../../bridge/replay-engine'
 import type { BattleEvent } from '../../engine/combat/types'
 import { SPRITE_WIDTH, SPRITE_HEIGHT, SPRITE_PAD_BOTTOM } from '../pixel-sprites'
 import { GROUND_MARGIN } from './constants'
+import { CANVAS_COLORS, UI_COLOR_MIRROR } from './battle-colors'
 import {
     FLOAT_LIFE,
     FLOAT_DT,
@@ -166,28 +167,28 @@ export class FloatTextSystem {
     private getFloatData(event: BattleEvent, actionName: string | undefined): FloatData | null {
         switch (event.type) {
             case 'attack_start':
-                return { text: actionName ?? '攻击', color: '#ffffff', charId: event.actor, kind: 'action' }
+                return { text: actionName ?? '攻击', color: CANVAS_COLORS.action, charId: event.actor, kind: 'action' }
             case 'damage':
                 return {
                     text: event.isCrit ? `暴击 ${event.final}` : `${event.final}`,
-                    color: event.isCrit ? '#ffd700' : '#ff4444',
+                    color: event.isCrit ? CANVAS_COLORS.crit : CANVAS_COLORS.damage,
                     charId: event.target,
                     kind: 'effect',
                 }
             case 'dodge':
-                return { text: '闪避', color: '#ffffff', charId: event.evader, kind: 'effect' }
+                return { text: '闪避', color: CANVAS_COLORS.evade, charId: event.evader, kind: 'effect' }
             case 'parry':
-                return { text: '招架', color: '#ffffff', charId: event.parrier, kind: 'effect' }
+                return { text: '招架', color: CANVAS_COLORS.parry, charId: event.parrier, kind: 'effect' }
             case 'check_hit':
                 return event.result ? null : { text: '未命中', color: '#888', charId: event.target, kind: 'effect' }
             case 'defeat':
-                return { text: '败北', color: '#ff4444', charId: event.loser, kind: 'effect' }
+                return { text: '败北', color: CANVAS_COLORS.defeat, charId: event.loser, kind: 'effect' }
             case 'damage_over_time':
-                return { text: `-${event.amount.toFixed(1)}`, color: '#ff8844', charId: event.target, kind: 'effect' }
+                return { text: `-${event.amount.toFixed(1)}`, color: CANVAS_COLORS.dot, charId: event.target, kind: 'effect' }
             case 'heal_over_time':
-                return { text: `+${event.amount.toFixed(1)}`, color: '#4ecdc4', charId: event.target, kind: 'effect' }
+                return { text: `+${event.amount.toFixed(1)}`, color: CANVAS_COLORS.heal, charId: event.target, kind: 'effect' }
             case 'heal':
-                return { text: `+${event.amount.toFixed(1)}`, color: '#4ecdc4', charId: event.target, kind: 'effect' }
+                return { text: `+${event.amount.toFixed(1)}`, color: CANVAS_COLORS.heal, charId: event.target, kind: 'effect' }
             case 'buff_end':
                 return event.label
                     ? {
@@ -201,7 +202,7 @@ export class FloatTextSystem {
                 return event.message
                     ? {
                           text: this.parseBuffName(event.message),
-                          color: '#4ecdc4',
+                          color: CANVAS_COLORS.heal,
                           charId: event.actor ?? '',
                           kind: 'effect',
                       }
@@ -209,12 +210,12 @@ export class FloatTextSystem {
             case 'support':
                 return {
                     text: event.actionName,
-                    color: '#e0c040',
+                    color: UI_COLOR_MIRROR['--color-ap'].light,
                     charId: event.actor,
                     kind: 'action',
                 }
             case 'battle_start':
-                return { text: '战斗开始', color: '#4ecdc4', charId: event.actor, kind: 'action' }
+                return { text: '战斗开始', color: CANVAS_COLORS.heal, charId: event.actor, kind: 'action' }
             default:
                 return null
         }

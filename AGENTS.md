@@ -59,6 +59,44 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
     `scripts/` 目前**不在任何 tsconfig 的 include 里**（app 只含 `src`，node 只含 `vite.config.ts`），
     且 `eslint src/` 不覆盖它 —— 改脚本时顺手跑 `npx eslint scripts/<file>`。
 
+## UI 配色（改颜色前必读）
+
+**设计依据与全部数字：[`docs/ui-color-system.md`](docs/ui-color-system.md)。** 这里只写硬规矩。
+
+### 三条硬规矩
+
+1. **只用 token，不许硬编码颜色。** 颜色一律走 `src/ui/styles/themes.css` 的 `--color-*`；
+   新增颜色要**两套主题各给一个值**，并登记进 `docs/ui-color-system.md` 附录 C 的 token 角色表。
+   scss 里出现 `#rrggbb` / `rgba(...)` 就说明有东西漏在 token 外面（当前白名单只有：像素编辑器的
+   棋盘格与「已改」高亮、`AttributeLabel` 的 5 个属性来源色、几处纯黑描边/阴影/遮罩 —— 见
+   迁移第 3 步的记录）。
+
+2. **改颜色必须跑这两个脚本**（都在 `scripts/`，零额外依赖）：
+   - `node scripts/scss-triples.mjs` —— 编译后摊平 `(选择器, 媒体, 声明体)` 三元组对拍：
+     **除颜色声明外必须逐字一致**；既有文件多出/少掉三元组即回归（新文件会单独列出，需人工确认）。
+   - `node scripts/ui-computed-style.mjs` —— 浏览器**计算值**快照 / 对拍：
+     `--out` 存快照、`--diff` 比两份。**重构**（换 token、换 CSS 变量、抽常量）的正确判据是
+     "**逐处计算值相同**"，不是"看起来一样"。
+   - 几何与截图：`node scripts/ui-geometry.mjs --theme both --pages home,settings,tag-preview`。
+     **配色改动必然改变像素，所以截图 md5 不能当通过条件** —— 改看几何断言 + 截图留存目视。
+
+3. **断言跟着"用户/设计定义"走，不跟着实现走。** 每一条配色断言都要能指出它守的是哪条设计口径
+   （例：`--color-pressed` 的暗色值要满足"on-accent 压在上面 ≥ 4.5"；标签色守用户逐条校准的
+   "雷=蓝 / 流血=红 / 控制=灰 / 酒=棕…"）。实现变了先改实现，**不要为了让测试变绿去改断言的语义**；
+   确实要改口径，就在 `docs/ui-color-system.md` 里写清"谁定的、为什么"，再改断言。
+
+### 几个具体约定
+
+- **按下态**：灰式按下（Button 的 `-default` / `-plain` / `-ghost` 等）统一
+  `background/border-color: var(--color-pressed)` + `color: var(--color-on-accent)`；
+  **不要**再拿 `--color-border-hover` 当按下背景（它同时是悬停描边，两个角色的明度要求相反）。
+- **canvas / PixiJS 读不到 CSS 变量**：DOM 内联样式直接写 `var(--color-x)`；需要真实色值时用
+  `src/ui/canvas/battle-colors.ts` 的 `UI_COLOR_MIRROR` + `resolveUiColor(value, theme)`。
+  镜像值有漂移测试（`battle-colors.test.ts`）断言它 == themes.css。
+- **标签徽章**：颜色定义在 themes.css 的 `--tag-color-<tag>`（53 条 × 两套主题），
+  `Tag.tsx` 只读变量；`src/bridge/tagDisplay.ts` 的 `TAG_COLOR` 是同值的 TS 镜像。
+  改标签色 = 改 themes.css + 同步镜像 + 跑 `tag-colors.test.ts`（它会拦漂移）。
+
 ## UI 组件架构
 
 ### 架构原则（非固定目录，随需调整）

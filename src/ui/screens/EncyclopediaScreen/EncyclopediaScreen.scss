@@ -32,7 +32,7 @@
     &-search-input {
         width: 100%;
         padding: var(--sp-xxs) var(--sp-xs);
-        background: var(--color-bg-input);
+        background: var(--color-bg-panel);
         border: var(--border-width) solid var(--color-border);
         color: var(--color-text);
         font-family: var(--font-mono);
@@ -128,10 +128,10 @@
         align-items: flex-start;
         gap: var(--sp-xs);
         background: var(--color-tooltip-bg);
-        border: var(--border-width) solid var(--color-tooltip-border);
+        border: var(--border-width) solid var(--color-border-hover);
         border-radius: var(--radius-sm);
         padding: var(--sp-xs) var(--sp-sm);
-        color: var(--color-tooltip-text);
+        color: var(--color-text);
         font-size: var(--font-sm);
         line-height: 1.5;
         min-width: 0;

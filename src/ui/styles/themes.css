@@ -29,8 +29,6 @@
     --color-bg-alt: #f2f2f5;
     --color-bg-panel: #e5e5e9;
     --color-bg-hover: #d9d9dd;
-    --color-bg-input: var(--color-bg-panel);
-    --color-canvas-bg: var(--color-bg);
     /* 抬升块底色：只读表格表头、行悬停（CompareScreen）。曾被引用却从未定义。 */
     --color-bg-raised: var(--color-bg-alt);
 
@@ -69,10 +67,8 @@
 
     /* Buff / Debuff tags */
     --color-buff-bg: var(--color-success-bg);
-    --color-buff-text: var(--color-success);
     --color-buff-border: color-mix(in oklab, var(--color-success) 35%, var(--color-bg));
     --color-debuff-bg: var(--color-danger-bg);
-    --color-debuff-text: var(--color-danger);
     --color-debuff-border: color-mix(in oklab, var(--color-danger) 35%, var(--color-bg));
 
     /* Overlay */
@@ -84,13 +80,8 @@
 
     /* Tooltip */
     --color-tooltip-bg: color-mix(in oklab, var(--color-bg-panel) 97%, transparent);
-    --color-tooltip-border: var(--color-border-hover);
-    --color-tooltip-text: var(--color-text);
-    --color-entity-bg: var(--color-bg-alt);
-    --color-entity-border: var(--color-border);
 
     /* Code */
-    --color-code-bg: var(--color-bg-alt);
 
     /* Scrollbar (Webkit)：可操作滑块，跟交互描边同一档 */
     --scrollbar-thumb: var(--color-border-hover);
@@ -174,8 +165,6 @@
     --color-bg-alt: #010102;
     --color-bg-panel: #09090b;
     --color-bg-hover: #18181b;
-    --color-bg-input: var(--color-bg-panel);
-    --color-canvas-bg: var(--color-bg);
     /* 抬升块底色：只读表格表头、行悬停（CompareScreen）。曾被引用却从未定义。 */
     --color-bg-raised: var(--color-bg-alt);
 
@@ -211,10 +200,8 @@
 
     /* Buff / Debuff tags */
     --color-buff-bg: var(--color-success-bg);
-    --color-buff-text: var(--color-success);
     --color-buff-border: color-mix(in oklab, var(--color-success) 40%, var(--color-bg));
     --color-debuff-bg: var(--color-danger-bg);
-    --color-debuff-text: var(--color-danger);
     --color-debuff-border: color-mix(in oklab, var(--color-danger) 40%, var(--color-bg));
 
     /* Overlay */
@@ -226,13 +213,8 @@
 
     /* Tooltip / Entity */
     --color-tooltip-bg: color-mix(in oklab, var(--color-bg-panel) 97%, transparent);
-    --color-tooltip-border: var(--color-border-hover);
-    --color-tooltip-text: var(--color-text);
-    --color-entity-bg: var(--color-bg-alt);
-    --color-entity-border: var(--color-border);
 
     /* Code */
-    --color-code-bg: var(--color-bg-alt);
 
     /* Scrollbar */
     --scrollbar-thumb: var(--color-border-hover);

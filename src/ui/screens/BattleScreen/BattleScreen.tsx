@@ -61,9 +61,9 @@ export function BattleScreen() {
 
     const sidePanel = (side: 'a' | 'b') =>
         side === 'a' ? (
-            <CharacterPanel mode="view" build={buildA} accentColor="#4ecdc4" />
+            <CharacterPanel mode="view" build={buildA} accentColor="var(--color-p1)" />
         ) : (
-            <CharacterPanel mode="view" build={buildB} accentColor="#ff6b6b" />
+            <CharacterPanel mode="view" build={buildB} accentColor="var(--color-p2)" />
         )
 
     return (

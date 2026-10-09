@@ -31,7 +31,7 @@
     padding-right: var(--ss-caret-space);
     font-size: var(--font-xs);
     font-family: var(--font-mono);
-    background: var(--color-bg-input, var(--color-bg-panel));
+    background: var(--color-bg-panel, var(--color-bg-panel));
     color: var(--color-text);
     border: var(--border-width) solid var(--color-border);
     border-radius: var(--radius-sm);

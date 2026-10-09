@@ -6,7 +6,7 @@
     background: var(--color-bg);
     border: var(--border-width) solid var(--color-border);
 
-    /* 七件套 + hover/active 压暗都来自 Button（variant=bare size=sm）：--color-entity-bg 底、
+    /* 七件套 + hover/active 压暗都来自 Button（variant=bare size=sm）：--color-bg-alt 底、
        无描边、方角，hover/active 走 filter brightness(0.92)。
        这里只留固定高度 / 行高、更宽的横向内边距，以及播放速度的选中态。 */
     .ctrl-btn {

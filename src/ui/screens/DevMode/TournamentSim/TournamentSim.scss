@@ -35,13 +35,13 @@
         @media (hover: hover) {
             &:hover:not(:disabled) {
                 background: var(--color-accent);
-                color: #000;
+                color: var(--color-on-accent);
             }
         }
 
         &:active:not(:disabled) {
             background: var(--color-accent);
-            color: #000;
+            color: var(--color-on-accent);
         }
 
         &:disabled {

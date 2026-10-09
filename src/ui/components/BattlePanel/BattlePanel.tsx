@@ -69,12 +69,12 @@ export const BattlePanel = forwardRef<BattlePanelHandle, BattlePanelProps>(funct
             charAInfo: {
                 id: engine.state.characters[0].id,
                 name: engine.state.characters[0].name,
-                color: '#4ecdc4' as const,
+                color: 'var(--color-p1)',
             },
             charBInfo: {
                 id: engine.state.characters[1].id,
                 name: engine.state.characters[1].name,
-                color: '#ff6b6b' as const,
+                color: 'var(--color-p2)',
             },
         }
     }, [buildA, buildB, initialData])

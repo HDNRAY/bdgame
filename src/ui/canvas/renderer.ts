@@ -20,6 +20,7 @@ import {
     type PixelSprite,
 } from '../pixel-sprites'
 import { FloatTextSystem } from './float-text'
+import { UI_COLOR_MIRROR } from './battle-colors'
 import {
     PIXEL,
     GROUND_Y,
@@ -39,9 +40,8 @@ export interface RendererOptions {
     height?: number
 }
 
-/** 内息（AP）黄：与 --color-ap 同款 */
-const AP_LIGHT = '#e0c040'
-const AP_DARK = '#ffe66d'
+/** 内息（AP）黄：镜像 --color-ap（值在 battle-colors.ts，有漂移测试） */
+const AP = UI_COLOR_MIRROR['--color-ap']
 
 export class CanvasRenderer {
     readonly app: PIXI.Application
@@ -96,7 +96,7 @@ export class CanvasRenderer {
     }
 
     private get apColor(): string {
-        return this.theme === 'dark' ? AP_DARK : AP_LIGHT
+        return AP[this.theme]
     }
 
     constructor(opts: RendererOptions = {}) {

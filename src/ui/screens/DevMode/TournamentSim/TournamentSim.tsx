@@ -83,8 +83,8 @@ function buildBattleData(
         logLines: lines,
         eventToLine,
         snapshots,
-        charAInfo: { id: aId, name: nameOf(aId), color: '#4ecdc4' },
-        charBInfo: { id: bId, name: nameOf(bId), color: '#ff6b6b' },
+        charAInfo: { id: aId, name: nameOf(aId), color: 'var(--color-p1)' },
+        charBInfo: { id: bId, name: nameOf(bId), color: 'var(--color-p2)' },
     }
 }
 

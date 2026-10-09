@@ -27,8 +27,8 @@ export function buildBattleDataFromEntries(
         eventToLine,
         snapshots,
         // id 必须传引擎里的角色 id（渲染器按 id 取精灵与武器图层），name 只用于显示
-        charAInfo: { id: a.id, name: a.name, color: '#4ecdc4' },
-        charBInfo: { id: b.id, name: b.name, color: '#ff6b6b' },
+        charAInfo: { id: a.id, name: a.name, color: 'var(--color-p1)' },
+        charBInfo: { id: b.id, name: b.name, color: 'var(--color-p2)' },
         stats: replay.stats,
     }
 }
