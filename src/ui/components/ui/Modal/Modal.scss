@@ -1,0 +1,111 @@
+/* ════════════════════════════════════════
+   Modal — 通用弹层外壳（结构说明见 Modal.tsx 文件头）
+
+   面板值照抄原首页「玩法」弹窗（.gameplay-modal）：max-width: min(56rem, 92vw)、
+   --color-bg-panel + --color-border + --radius-lg + --shadow-lg。
+   两处**有意**与它不同：
+     1. max-height 82dvh → 视口 − 底栏 − 上下留白（弹层内容不许被常驻底栏盖住）；
+     2. overlay 的底边留白加 `--bottom-bar-h`，面板因此居中在「底栏以上」那块里。
+   `--bottom-bar-h` 由 tokens.css 提供（= 内容高 + 安全区）。
+   ════════════════════════════════════════ */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--color-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    user-select: none;
+    padding: var(--sp-md);
+    /* 底栏也在 z-index 之上、且是 fixed 不参与内容留白：弹层自己让出这条高度 */
+    padding-bottom: calc(var(--sp-md) + var(--bottom-bar-h));
+    /* 原 .gameplay-overlay 的字体口径：弹层整体吃 mono 族（内容区自己不带 font-family） */
+    font-family: var(--font-mono);
+
+    /* 触屏默认高亮会按 cursor:pointer 把整屏刷一层色（同 IntroOverlay / .tnp-backdrop） */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.modal-panel {
+    background: var(--color-bg-panel);
+    border: var(--border-width-lg) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: min(56rem, 92vw);
+    /* 视口 − 底栏 − 上下留白（overlay 的 padding），内容再高也自己滚 */
+    max-height: calc(100dvh - var(--bottom-bar-h) - var(--sp-xl));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* 面板是交互主体，背景层才是「点一下关闭」 */
+    cursor: auto;
+    outline: none;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    padding: var(--sp-md) var(--sp-lg);
+    border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.modal-title {
+    font-size: var(--font-xl);
+    font-weight: 600;
+    color: var(--color-gold);
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: var(--color-text-dim);
+    font-size: var(--font-xl);
+    line-height: 1;
+    cursor: pointer;
+    padding: var(--sp-xxs);
+
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    @media (hover: hover) {
+        &:hover {
+            color: var(--color-text);
+        }
+    }
+
+    &:active {
+        color: var(--color-text);
+    }
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: var(--sp-sm) var(--sp-lg) var(--sp-lg);
+}
+
+/* ── fullscreen 变体：铺满「视口 − 底栏」、圆角 0 ── */
+.modal-overlay-fullscreen {
+    padding: 0;
+    padding-bottom: var(--bottom-bar-h);
+}
+
+.modal-panel-fullscreen {
+    max-width: none;
+    max-height: none;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}

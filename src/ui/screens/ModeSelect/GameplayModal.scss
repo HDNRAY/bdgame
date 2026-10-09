@@ -1,66 +1,13 @@
-.gameplay-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--color-overlay);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    user-select: none;
-    padding: var(--sp-md);
-}
-
-.gameplay-modal {
-    background: var(--color-bg-panel);
-    border: var(--border-width-lg) solid var(--color-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    width: 100%;
-    max-width: min(56rem, 92vw);
-    max-height: 82dvh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.gameplay-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--sp-md) var(--sp-lg);
-    border-bottom: var(--border-width) solid var(--color-border);
-}
-
-.gameplay-title {
-    font-size: var(--font-xl);
-    font-weight: 600;
-    color: var(--color-gold);
-}
-
-.gameplay-close {
-    background: transparent;
-    border: none;
-    color: var(--color-text-dim);
-    font-size: var(--font-xl);
-    line-height: 1;
-    cursor: pointer;
-    padding: var(--sp-xxs);
-
-    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
-    @media (hover: hover) {
-        &:hover {
-            color: var(--color-text);
-        }
-    }
-
-    &:active {
-        color: var(--color-text);
-    }
-}
-
+/* 「对战玩法」弹窗的**内容**规则。
+   外壳（遮罩 / 面板 / 页首 / 标题 / 关闭钮 / 底部动作区）已迁到共用 `Modal`
+   （`src/ui/components/ui/Modal/Modal.scss`，面板值与原 .gameplay-* 逐条一致）——
+   `.gameplay-overlay` / `.gameplay-modal` / `.gameplay-header` / `.gameplay-title` /
+   `.gameplay-close` / `.gameplay-footer` 六条规则随之删除。
+   这里只剩正文排版与那枚「知道了」按钮的横向内边距。
+   注意：`.gameplay-body` 仍在本文件里，但它是作为 `<Modal bodyClassName="gameplay-body">`
+   传给弹层**内容区**的类；Modal 自带 `flex: 1; overflow-y: auto; min-height: 0`，
+   所以下面只补内边距、字号与断行，不重复 flex / 滚动。 */
 .gameplay-body {
-    flex: 1;
-    overflow-y: auto;
     padding: var(--sp-md) var(--sp-lg);
     /* 从上到下单一栏（知识点顺序读） */
     overflow-wrap: break-word;
@@ -101,7 +48,6 @@
     }
 }
 
-
 .gameplay-section-body {
     font-size: var(--font-md);
     color: var(--color-text);
@@ -116,22 +62,9 @@
     }
 }
 
-.gameplay-footer {
-    display: flex;
-    justify-content: center;
-    padding: var(--sp-sm) var(--sp-lg) var(--sp-lg);
-}
-
 /* 基础七件套 + hover/active 高亮来自 Button（variant=primary size=md）：
    accent 描边 + accent-bg 填充 + accent 文字，hover/active 换 bg-hover。
-   这里只留比 md 档更宽的横向内边距。 */
+   这里只留比 md 档更宽的横向内边距（与改前 .gameplay-btn 一致）。 */
 .gameplay-btn {
     padding: var(--sp-xs) var(--sp-xl);
-}
-
-/* 窄屏回到单列，弹窗仍可用 */
-@media (max-width: 760px) {
-    /* 单栏本来就窄屏友好，这里只调左右留白 */
-    .gameplay-body {
-        }
 }
