@@ -215,9 +215,6 @@ export function RogueliteScreen() {
             <header className="rs-header">
                 <NodeMap nodeIndex={gameState.nodeIndex} />
                 <InjuryBar injury={gameState.injury} />
-                <span className={`rs-points${gameState.unspentPoints > 0 ? '' : ' rs-points-zero'}`}>
-                    修炼点 {gameState.unspentPoints}
-                </span>
                 <span className="rs-title">斗炁大会</span>
                 {canViewTournament && (
                     <Button variant="ghost" size="sm" className="rs-schedule-btn" onClick={() => setTournamentOpen(true)}>
@@ -245,9 +242,18 @@ export function RogueliteScreen() {
                 {hasStory && (
                     <div className={`rs-sidebar rs-${mode}`}>
                         {mode === 'view' && (
-                            <button className="rs-prep-btn" onClick={() => setMode('build')}>
-                                备 战
-                            </button>
+                            /* 修炼点跟着「备战」走：它是备战模式要花掉的额度，放在入口旁边；
+                               0 点时依旧走 rs-points-zero 的灰（历史口径不变） */
+                            <div className="rs-prep-row">
+                                <button className="rs-prep-btn" onClick={() => setMode('build')}>
+                                    备 战
+                                </button>
+                                <span
+                                    className={`rs-points${gameState.unspentPoints > 0 ? '' : ' rs-points-zero'}`}
+                                >
+                                    修炼点 {gameState.unspentPoints}
+                                </span>
+                            </div>
                         )}
                         <div className="rs-panel-wrapper">
                             <CharacterPanel

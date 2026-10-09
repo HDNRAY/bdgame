@@ -31,7 +31,7 @@
     &-schedule-btn {
         flex-shrink: 0;
 
-        /* 本页口径：悬停 / 按下转 --color-accent（ghost 变体是 text-h + border-hover） */
+        /* 本页口径：悬停 / 按下描边与文字转 --color-accent（ghost 变体是 text-h + border-hover） */
         @media (hover: hover) {
             &:hover {
                 color: var(--color-accent);
@@ -39,8 +39,11 @@
             }
         }
 
+        /* 按下时背景 = 描边色（Button 变体的通行口径）：这里的描边是 accent，所以底色也铺 accent；
+           文字转页底色才看得见（与 .rs-exit-btn / .rs-battle-continue / .tsim-run 的实心按下同一套写法）。 */
         &:active {
-            color: var(--color-accent);
+            color: var(--color-bg);
+            background: var(--color-accent);
             border-color: var(--color-accent);
         }
     }
@@ -84,7 +87,11 @@
     }
 
     &-points {
-        color: var(--color-ap);
+        /* 修炼点：历史值 #ffe66d（5fb5094 引入时的原始色，当时还没有主题系统）。
+           fea0bd0「opt style」把它换成 var(--color-ap)：该 token 只在**暗色**主题等于 #ffe66d，
+           亮色主题是 #e0c040（在浅底上调暗过），与历史值不等价 → 按用户「以历史值为准」的口径
+           用回字面值。暗色主题下与现状完全一致；亮色主题下才是这次真正的变化。 */
+        color: #ffe66d;
         font-size: var(--font-sm);
         font-weight: 600;
         white-space: nowrap;
@@ -136,12 +143,30 @@
         }
     }
 
+    /* 「备战」那一行：按钮 + 修炼点。底色/分隔线从按钮移到这一行，
+       按钮旁边才放得下修炼点，且分隔线仍然横贯侧栏。 */
+    &-prep-row {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-sm);
+        flex-shrink: 0;
+        padding-right: var(--sp-sm);
+        background: var(--color-bg-alt);
+        border-bottom: var(--border-width) solid var(--color-border);
+
+        /* H5：触屏上「备战」这个主入口也要够 44 高 */
+        @media (pointer: coarse) {
+            .rs-prep-btn {
+                min-height: 44px;
+            }
+        }
+    }
+
     &-prep-btn {
         flex-shrink: 0;
         padding: var(--sp-xxs) var(--sp-lg);
         border: none;
-        border-bottom: var(--border-width) solid var(--color-border);
-        background: var(--color-bg-alt);
+        background: none;
         color: var(--color-accent);
         cursor: pointer;
         font-family: var(--font-mono);
@@ -273,13 +298,18 @@
 }
 
 /* ── 战斗轮：嵌入 BattlePanel 回放 ── */
-.rs-battle {    display: flex;
+.rs-battle {
+    display: flex;
     flex-direction: column;
     gap: var(--sp-xs);
     border: var(--border-width) solid var(--color-border);
     border-radius: var(--radius-md);
     overflow: hidden;
     margin-bottom: var(--sp-xs);
+    /* 自己带 overflow:hidden 的 flex item 自动最小高度是 0：不加 flex-shrink: 0，
+       .rs-rounds（flex column + overflow-y:auto）会把它压成 0-19px，
+       整块战斗面板连同「继续/确认」按钮一起被裁掉（选完花大师后卡死就是这个）。 */
+    flex-shrink: 0;
 }
 
 .rs-battle-title {
