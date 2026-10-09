@@ -1,4 +1,5 @@
 import type { CharacterBuild } from './entities/character-build'
+import type { Reward } from './entities/reward'
 
 /**
  * 元进度存档（跨局的「游戏结果」）。
@@ -83,6 +84,47 @@ function num(v: unknown): number {
     return typeof v === 'number' && Number.isFinite(v) ? v : 0
 }
 
+const REWARD_TYPES: ReadonlySet<string> = new Set(['weapon', 'action', 'passive', 'artifact', 'points'])
+
+/** 奖励条目：隐藏boss 构造读它的 type/id，Character 按 id 查定义，缺一不可 */
+function isReward(v: unknown): v is Reward {
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return false
+    const r = v as Record<string, unknown>
+    return typeof r.id === 'string' && typeof r.type === 'string' && REWARD_TYPES.has(r.type)
+}
+
+/** 可选字段：可以没有，写了就必须是字符串 */
+function optionalString(v: unknown): boolean {
+    return v === undefined || typeof v === 'string'
+}
+
+/**
+ * 校验「最近一次通关的 build」。
+ *
+ * 只做结构校验，不做数值校验。畸形 build 若漏过这一层，`championBuildFromSave()` 会把它交给
+ * `championBossBuild()`（`saved.rewards.filter` / `new Character(...)`），在 n33.5 抛异常，
+ * 整局崩在决赛之后 —— 既没有结局，也不落档。校验不通过返回 null，`normalize` **只丢这份 build**，
+ * 不动 `clears`/`runs` 等其余字段：存档仍然算「有档」，只是没有可打的隐藏boss（n33.5 整轮跳过）。
+ */
+function normalizeBuild(raw: unknown): CharacterBuild | null {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+    const b = raw as Record<string, unknown>
+    if (typeof b.id !== 'string' || typeof b.name !== 'string' || typeof b.weapon !== 'string') return null
+    if (typeof b.battleStyle !== 'string') return null
+    if (!b.baseAttrs || typeof b.baseAttrs !== 'object' || Array.isArray(b.baseAttrs)) return null
+    if (!Array.isArray(b.rewards) || !b.rewards.every(isReward)) return null
+    if (
+        !optionalString(b.offhand) ||
+        !optionalString(b.story) ||
+        !optionalString(b.spriteId) ||
+        !optionalString(b.taunt)
+    ) {
+        return null
+    }
+    if (b.actionConfigs !== undefined && !Array.isArray(b.actionConfigs)) return null
+    return b as unknown as CharacterBuild
+}
+
 /** 把任意来源的对象收敛成合法存档（缺字段补默认，脏数据丢弃） */
 function normalize(raw: unknown): MetaSave | null {
     if (!raw || typeof raw !== 'object') return null
@@ -101,7 +143,10 @@ function normalize(raw: unknown): MetaSave | null {
     }
     if (typeof o.lastWinAt === 'number') meta.lastWinAt = o.lastWinAt
     if (o.lastWinEnding === 'loop' || o.lastWinEnding === 'true') meta.lastWinEnding = o.lastWinEnding
-    if (o.lastWinBuild && typeof o.lastWinBuild === 'object') meta.lastWinBuild = o.lastWinBuild as CharacterBuild
+    // 坏 build 只丢它自己，不动 clears/runs 等其余字段：这份存档仍是「有档」，
+    // 只是没有可打的隐藏boss（n33.5 整轮跳过，第三条路另由 flags.champion_boss_seen 把关）。
+    const build = normalizeBuild(o.lastWinBuild)
+    if (build) meta.lastWinBuild = build
     return meta
 }
 
@@ -149,7 +194,9 @@ export function resetMeta(): void {
     }
 }
 
-/** 是否已有通关记录（决定 n33.5 是否出现、是否给「转身离开」） */
+/** 是否已有通关记录（= 本局开局时的 `flags.cleared_before`）。
+ *  畸形 `lastWinBuild` 在读档层就被丢弃（`normalizeBuild`），不影响 `clears` ——
+ *  不打隐藏boss 时是否给真结局由 `flags.champion_boss_seen` 单独把关。 */
 export function hasCleared(): boolean {
     return loadMeta().clears > 0
 }

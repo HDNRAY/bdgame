@@ -119,6 +119,47 @@ describe('meta-save', () => {
         expect(m.trueEndingDone).toBe(false)
     })
 
+    // 畸形 lastWinBuild 曾经漏过校验：n33.5 构造隐藏boss 时 `saved.rewards.filter` 抛 TypeError，
+    // 整局崩在决赛之后（无结局、无落档）。这里逐条钉死"读存档层就把脏 build 丢掉"。
+    it('lastWinBuild 结构畸形 → 只丢 build，其余字段照常读回（不抛错）', () => {
+        const malformed: unknown[] = [
+            {}, // 空对象
+            [], // 数组
+            'build', // 非对象
+            { ...build('甲'), rewards: 'nope' }, // rewards 非数组
+            { ...build('甲'), rewards: [{}] }, // 奖励缺 id/type
+            { ...build('甲'), rewards: [{ id: 'x', type: 'bogus' }] }, // 奖励类型非法
+            { ...build('甲'), rewards: [{ id: 1, type: 'artifact' }] }, // 奖励 id 非字符串
+            { ...build('甲'), baseAttrs: undefined }, // attributes 缺字段
+            { ...build('甲'), baseAttrs: 'x' }, // attributes 非对象
+            { ...build('甲'), weapon: 42 }, // weapon 非字符串
+            { ...build('甲'), battleStyle: undefined }, // battleStyle 缺
+            { ...build('甲'), actionConfigs: {} }, // actionConfigs 非数组
+        ]
+        for (const bad of malformed) {
+            store.raw.set(META_SAVE_KEY, JSON.stringify({ schemaVersion: 1, clears: 1, lastWinBuild: bad }))
+            const m = loadMeta()
+            const label = JSON.stringify(bad)
+            expect(m.lastWinBuild, label).toBeUndefined()
+            expect(m.clears, label).toBe(1) // 存档本身仍是"有档"
+            expect(hasCleared(), label).toBe(true)
+        }
+    })
+
+    it('lastWinBuild 结构完整 → 原样保留（不误伤正常存档）', () => {
+        store.raw.set(META_SAVE_KEY, JSON.stringify({ schemaVersion: 1, clears: 1, lastWinBuild: build('甲') }))
+        expect(loadMeta().lastWinBuild?.name).toBe('甲')
+        expect(hasCleared()).toBe(true)
+    })
+
+    it('没有 lastWinBuild 字段的旧档仍是合法存档（只跳过隐藏boss，不牵连 clears）', () => {
+        store.raw.set(META_SAVE_KEY, JSON.stringify({ schemaVersion: 1, clears: 1, loopClears: 1 }))
+        const m = loadMeta()
+        expect(m.clears).toBe(1)
+        expect(m.lastWinBuild).toBeUndefined()
+        expect(hasCleared()).toBe(true)
+    })
+
     it('清档后回到空档', () => {
         recordRunStart()
         resetMeta()
