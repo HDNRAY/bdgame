@@ -179,7 +179,7 @@ export function drawWeapon(g: Grid, weaponId: string, pose: string, oy: number, 
     if (shouldDrawHandCover(pose, mount.config)) {
         const skin = palette['3'] ?? '#f5d6c6'
         for (const [cx, cy] of HAND_COVER[pose] ?? []) g.fill(cx + OFF_X, cy + OFF_Y + oy, skin)
-        // 长柄：两只手都在杆上，两只都盖（与渲染器一致；旧代码读已删除的 grip2X，导致预览永远不画第二只手）
+        // 长柄：两只手都在杆上，两只都盖（与渲染器一致；历史上因读已删的第二握点而漏画第二只手）
         if (isPolearm(weaponId)) {
             for (const [cx, cy] of LEFT_HAND_COVER[pose] ?? []) g.fill(cx + OFF_X, cy + OFF_Y + oy, skin)
         }

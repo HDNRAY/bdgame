@@ -221,7 +221,7 @@ export function PixelCanvas({
         }
 
         // 副手武器（双持）：统一走 resolveWeaponMount 的副手规则 ——
-        // 武器登记了 off 配置就用它，否则用「副手默认」（全局副手手位 OTHER_HAND_POINT + DUAL_OFFHAND_ANGLE）
+        // 武器登记了 off 配置就用它，否则用「副手默认」（手位取全局 OTHER_HAND_POINT，握柄与角度沿用主手表）
         const offhandOverlay = secondWeaponId ? getWeaponArt(secondWeaponId, pose) : undefined
         const offMount =
             hasPixels && offhandOverlay && offhandOverlay.pixels.length > 0 && secondWeaponId

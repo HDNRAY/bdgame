@@ -9,7 +9,7 @@ import { TAG_CN } from '../../../../bridge/tagDisplay'
 import type { Tag } from '../../../../engine/entities/tag'
 import './TagPreview.scss'
 
-/** 按语义族分组（与 docs 第 7 节的 8 族一致），顺序固定便于两套主题对比 */
+/** 按语义族分组（与 docs 第 7 节的 13 族一致），顺序固定便于两套主题对比 */
 const GROUPS: { name: string; tags: Tag[] }[] = [
     { name: '持续伤害（大红 / 火红 / 深绿）', tags: ['bleed', 'burn', 'poison'] },
     { name: '伤害进攻（红 → 橙；残血已往红校准）', tags: ['bonus_damage', 'self_damage', 'low_hp'] },

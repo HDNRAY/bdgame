@@ -517,7 +517,7 @@ export function WeaponMountPanel({
                                 title={
                                     s2 === 'main'
                                         ? '主手槽：配置写在 WEAPON_POSES[武器][姿势]'
-                                        : '副手槽：配置写在 WEAPON_POSES[武器].off[姿势]；没登记时按「副手默认」画（全局副手手位 OTHER_HAND_POINT + 副手角度 DUAL_OFFHAND_ANGLE），改任一字段即写入 off 表'
+                                        : '副手槽：配置写在 WEAPON_POSES[武器].off[姿势]；没登记时按「副手默认」画（手位取全局 OTHER_HAND_POINT，握柄与角度沿用主手表），改任一字段即写入 off 表'
                                 }
                                 onClick={() => setSlot(s2)}
                             >
