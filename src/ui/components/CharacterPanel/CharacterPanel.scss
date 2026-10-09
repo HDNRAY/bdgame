@@ -55,7 +55,7 @@
    换描边等于没换，所以这一族按「实心主按钮」口径走提亮。 */
 .cp-btn-save {
     background: var(--color-accent);
-    color: #fff;
+    color: var(--color-on-accent);
     font-weight: 700;
     /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
     @media (hover: hover) {
@@ -73,7 +73,7 @@
 
 .cp-btn-reset {
     background: var(--color-warning);
-    color: #fff;
+    color: var(--color-on-accent);
     /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
     @media (hover: hover) {
         &:hover {

@@ -29,6 +29,10 @@
     --color-accent-hover: #3dbdb5;
     --color-accent-bg: rgba(78, 205, 196, 0.1);
     --color-accent-border: rgba(78, 205, 196, 0.5);
+    /* 强调色实心底（accent / danger / warning / gold）上的文字色。
+       亮色主题这里用近黑而不是 --color-bg（白）：白字压在 #4ecdc4 上只有 1.93:1，
+       近黑在三种实心底上分别是 9.78 / 4.96 / 8.56:1，都过 AA。 */
+    --color-on-accent: #101018;
 
     /* Player colors (always high contrast, theme-agnostic) */
     --color-p1: #4ecdc4;
@@ -102,6 +106,8 @@
     --color-accent-hover: #5dddd4;
     --color-accent-bg: rgba(78, 205, 196, 0.12);
     --color-accent-border: rgba(78, 205, 196, 0.5);
+    /* 强调色实心底上的文字色：黑。三种实心底上的对比度 10.85 / 5.50 / 12.34:1。 */
+    --color-on-accent: #000000;
 
     /* Player colors (keep consistency) */
     --color-p1: #4ecdc4;

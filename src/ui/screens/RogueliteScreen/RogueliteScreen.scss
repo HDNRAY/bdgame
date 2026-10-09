@@ -42,7 +42,7 @@
         /* 按下时背景 = 描边色（Button 变体的通行口径）：这里的描边是 accent，所以底色也铺 accent；
            文字转页底色才看得见（与 .rs-exit-btn / .rs-battle-continue / .tsim-run 的实心按下同一套写法）。 */
         &:active {
-            color: var(--color-bg);
+            color: var(--color-on-accent);
             background: var(--color-accent);
             border-color: var(--color-accent);
         }
@@ -65,7 +65,7 @@
         /* 按下时背景 = 描边色（Button 变体的通行口径）：这里的描边是 danger，所以底色也铺 danger；
            文字转页底色才看得见（与 .rs-battle-continue / .tsim-run 的实心按下同一套写法）。 */
         &:active {
-            color: var(--color-bg);
+            color: var(--color-on-accent);
             background: var(--color-danger);
             border-color: var(--color-danger);
         }
@@ -186,7 +186,7 @@
 
         /* 按下背景 = 描边色，文字转页底色（与 .rs-schedule-btn / .rs-exit-btn 同一套实心按下写法） */
         &:active {
-            color: var(--color-bg);
+            color: var(--color-on-accent);
             background: var(--color-accent);
         }
     }

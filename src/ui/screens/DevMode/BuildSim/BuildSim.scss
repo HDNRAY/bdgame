@@ -74,7 +74,7 @@
     &:active {
         background: var(--color-danger);
         border-color: var(--color-danger);
-        color: var(--color-bg);
+        color: var(--color-on-accent);
     }
 }
 
@@ -183,7 +183,7 @@
 
 .bsim-baseline-btn:active:not(:disabled) {
     background: var(--color-accent);
-    color: var(--color-bg);
+    color: var(--color-on-accent);
     border-color: var(--color-accent);
 }
 
@@ -197,7 +197,7 @@
 
 .bsim-baseline-clear:active:not(:disabled) {
     background: var(--color-danger);
-    color: var(--color-bg);
+    color: var(--color-on-accent);
     border-color: var(--color-danger);
 }
 
@@ -295,7 +295,7 @@
 
     &:active {
         background: var(--color-accent);
-        color: var(--color-bg);
+        color: var(--color-on-accent);
         border-color: var(--color-accent);
     }
 }

@@ -43,7 +43,7 @@
         &:active {
             background: var(--color-gold);
             border-color: var(--color-gold);
-            color: var(--color-bg);
+            color: var(--color-on-accent);
         }
     }
 
@@ -93,7 +93,7 @@
     &:active {
         background: var(--color-gold);
         border-color: var(--color-gold);
-        color: var(--color-bg);
+        color: var(--color-on-accent);
     }
 }
 
