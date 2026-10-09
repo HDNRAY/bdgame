@@ -42,7 +42,7 @@ function tutorialRound(t: Round['tutorial']): Round {
 export const ORIGIN_XUANMEN: EventDef = {
     id: 'origin_xuanmen',
     name: '你出自玄门',
-    description: '玄门，青山镇最古老的宗门之一，血脉中拥有以炁御物的能力。',
+    description: '玄门在青山镇立得最久。御物只走血脉，你生下来就有。',
     rounds: [
         tutorialStory('交手的是别人，你在旁边看。炁先起，物后走，招落得干净——招式和胜负都看清楚了，才回祖祠练功。'),
         tutorialRound({ aId: 'xuanji', bId: 'wukong', aName: '玄机', bName: '孙悟' }),
@@ -60,7 +60,7 @@ export const ORIGIN_XUANMEN: EventDef = {
 export const ORIGIN_SECT: EventDef = {
     id: 'origin_sect',
     name: '你是玄青宗的道种',
-    description: '百年一遇的根骨，自幼与师兄一同入玄青宗山门修行。',
+    description: '玄青宗百年一遇的道种，一次出了两个：你和师兄。',
     rounds: [
         tutorialStory('山门外的钟响了三下。交手的是别人，起手、拆招、收势，一招没乱——你站在师兄旁边，从头看到尾。'),
         tutorialRound({ aId: 'layue', bId: 'fengshui', aName: '赵越', bName: '风似水' }),
@@ -78,7 +78,7 @@ export const ORIGIN_SECT: EventDef = {
 export const ORIGIN_VETERAN: EventDef = {
     id: 'origin_veteran',
     name: '你生在军营边',
-    description: '父亲是军人，战死了。',
+    description: '你在军队孤儿院长大。父亲没能从战场上回来，这件事你很早就知道。',
     rounds: [
         tutorialStory('训练场边，你扒着栅栏看两个老兵对练。谁先动，谁先露破绽，胜负只在一两下——你看到最后，把这两下记住了。'),
         tutorialRound({ aId: 'hongti', bId: 'otsu', aName: '白山月', bName: '橘子真' }),
@@ -86,7 +86,7 @@ export const ORIGIN_VETERAN: EventDef = {
             id: 'scene',
             title: '营房',
             description:
-                '你在军队孤儿院长大，从记事起，听到的就是号角和操练。父亲是军人，没能从战场上回来。没有家族，没有牵挂——军营的边，就是你的家。',
+                '从记事起，你听到的就是号角和操练。号声一响，操场上的沙土就扬起来。\n\n没有家族，没有牵挂——军营的边，就是你的家。',
             choices: [{ id: END_EVENT, type: 'continue', label: '继续' }],
         },
     ],
@@ -96,7 +96,7 @@ export const ORIGIN_VETERAN: EventDef = {
 export const ORIGIN_WANDERER: EventDef = {
     id: 'origin_wanderer',
     name: '你是巷子里长大的孤儿',
-    description: '你和陶朵、奇岚都是孤儿，一起在镇子的巷子里长大。',
+    description: '你和陶朵、奇岚在巷子里一起长大。后来一个不见了，一个走了。',
     rounds: [
         tutorialStory(
             '陶朵带着你和奇岚去看热闹。人堆最前面，两个人交手，招式快，收得也快——谁赢，你看得清楚。散了场，三个人溜回巷子。',
@@ -106,7 +106,7 @@ export const ORIGIN_WANDERER: EventDef = {
             id: 'scene',
             title: '巷子',
             description:
-                '陶朵、奇岚和你，都是孤儿，一块儿在巷子里长大。陶朵失踪那天，没有人告诉你她去了哪里；奇岚后来进了协会。你一个人在山野间行走修炼。',
+                '陶朵失踪那天，没有人告诉你她去了哪里；奇岚进了协会。\n\n你一个人在山野间行走修炼。',
             choices: [{ id: END_EVENT, type: 'continue', label: '继续' }],
         },
     ],
@@ -116,7 +116,7 @@ export const ORIGIN_WANDERER: EventDef = {
 export const ORIGIN_FEUD: EventDef = {
     id: 'origin_feud',
     name: '你是林家最后的血脉',
-    description: '林家世代反对义体研究。',
+    description: '林家世代反对义体研究。六岁那年，你从火里被人抱出来。',
     rounds: [
         tutorialStory(
             '那场火之前，你站在人群外看过一场交手。谁先出手，谁留了后手，一招一式你都记着——那时候你还小，只记住了招式。',
@@ -126,7 +126,7 @@ export const ORIGIN_FEUD: EventDef = {
             id: 'scene',
             title: '火',
             description:
-                '那年你六岁。大火烧起来的时候，你什么都不知道，只知道有人把你从火里抱了出来——会长姬仲，你父亲挚友。你从此在青山镇长大，只知道那场火是义体研究部的手笔。',
+                '火烧起来的时候，你什么都不知道。把你抱出来的人是会长姬仲——你父亲的挚友。\n\n你从此在青山镇长大。那场火是义体研究部的手笔。',
             choices: [{ id: END_EVENT, type: 'continue', label: '继续' }],
         },
     ],
