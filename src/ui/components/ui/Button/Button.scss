@@ -12,10 +12,14 @@
      bare     无描边实体小块（工具条） entity-bg 底 + text，无描边方角  filter brightness(0.92)   filter brightness(.92)  回落到 entity-bg
    default 与 plain 只差底色（面板 / 页面），两边都有调用点，不合并。
 
-   **按下口径（灰 / 描边式）**：default / plain / ghost 三个变体按下的 `background` 一律取
-   自己的描边色 `--color-border-hover` —— 深色底上「整块填成描边色」是最容易被看见的一步，
-   也比 hover 的 bg-hover 更亮，保证「按下至少和 hover 一样明显」。实心强调的 primary 不套
-   这条（它本来就是 accent 底，按下只提亮填充）。
+   **按下口径（灰 / 描边式）**：default / plain / ghost 三个变体按下时一律
+   `background: var(--color-pressed); border-color: var(--color-pressed); color: var(--color-on-accent)`。
+   `--color-pressed` 比 hover 的 `--color-bg-hover` 明显更深/更亮（两套主题 |ΔL| ≥ 0.15），
+   文字改用 `--color-on-accent` 保证 ≥ 4.5:1（实测亮 7.80 / 暗 4.79）。
+   它**不再等于** `--color-border-hover`：那个 token 同时要当悬停描边（需与底 3:1）与按下填充
+   （需与文字 4.5:1），两个角色的明度要求相反，绑在一起两边都过不了
+   （见 docs/ui-color-system.md 第 6 节第 4 问）。
+   实心强调的 primary 不套这条（它本来就是 accent 底，按下只提亮填充）。
 
    尺寸（用途 → 字号 / 内边距 / 圆角）
      xs  面板内紧凑图标、色块    10px / --sp-xxs --sp-xs / radius-sm
@@ -90,11 +94,12 @@
             }
         }
 
-        /* 按下时背景 = 描边色：深色底上「整块填成描边色」是最容易被看见的一步，
-           也比 hover 的 bg-hover 更亮（按下至少和 hover 一样明显）。 */
+        /* 按下：整块填 --color-pressed（> hover 的 bg-hover），文字改 --color-on-accent。
+           口径见文件头「按下口径」与 docs/ui-color-system.md 第 6 节第 4 问。 */
         &:active {
-            background: var(--color-border-hover);
-            border-color: var(--color-border-hover);
+            background: var(--color-pressed);
+            border-color: var(--color-pressed);
+            color: var(--color-on-accent);
         }
 
         /* 禁用时回落到静止配色（.btn:disabled 只压暗，不该亮起来） */
@@ -116,10 +121,11 @@
             }
         }
 
-        /* 同 default：按下时背景 = 描边色 */
+        /* 同 default：整块填 --color-pressed + --color-on-accent 文字 */
         &:active {
-            background: var(--color-border-hover);
-            border-color: var(--color-border-hover);
+            background: var(--color-pressed);
+            border-color: var(--color-pressed);
+            color: var(--color-on-accent);
         }
 
         &:disabled {
@@ -162,11 +168,11 @@
             }
         }
 
-        /* 按下时背景 = 描边色：透明底的按钮更需要这一笔，否则按住时只有描边与文字变色 */
+        /* 透明底的按钮更需要这一笔，否则按住时只有描边与文字变色 */
         &:active {
-            background: var(--color-border-hover);
-            color: var(--color-text-h);
-            border-color: var(--color-border-hover);
+            background: var(--color-pressed);
+            color: var(--color-on-accent);
+            border-color: var(--color-pressed);
         }
 
         &:disabled {

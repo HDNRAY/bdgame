@@ -79,11 +79,11 @@
             }
         }
 
-        /* 按下时背景 = 描边色 */
+        /* 按下：整块填 --color-pressed，文字改 --color-on-accent（口径见 Button.scss 文件头） */
         &:active {
-            color: var(--color-text);
-            background: var(--color-border-hover);
-            border-color: var(--color-border-hover);
+            color: var(--color-on-accent);
+            background: var(--color-pressed);
+            border-color: var(--color-pressed);
         }
 
         &.active {
