@@ -1,8 +1,8 @@
 # 隐藏Boss时间线
 
-> 关联文档：`docs/story.md` — 终局篇、副会长篇
-> `docs/the-thing.md` — "东西"设定
-> `docs/character-relations.md` — 角色关联
+> 关联文档：`docs/stories/main-story.md` — 终局篇、副会长篇
+> `docs/background/the-thing.md` — "东西"设定
+> `docs/background/character-relations.md` — 角色关联
 
 ---
 
@@ -151,7 +151,7 @@
 
 ## 关联文件
 
-- `docs/story.md` — 终局篇完整文案
-- `docs/the-thing.md` — "东西"设定
-- `docs/character-relations.md` — 组织关系图
-- `docs/town-settings.md` — 青山第二寄宿学校
+- `docs/stories/main-story.md` — 终局篇完整文案
+- `docs/background/the-thing.md` — "东西"设定
+- `docs/background/character-relations.md` — 组织关系图
+- `docs/background/town-settings.md` — 青山第二寄宿学校

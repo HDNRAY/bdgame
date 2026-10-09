@@ -1,7 +1,7 @@
 # 朝花夕拾（奇遇流）
 
 > 故事 ID: `wanderer` | 角色名: 叶寻
-> 关联文档: `docs/character-relations.md`, `docs/story.md`, `docs/the-thing.md`
+> 关联文档: `docs/background/character-relations.md`, `docs/stories/main-story.md`, `docs/background/the-thing.md`
 
 ---
 

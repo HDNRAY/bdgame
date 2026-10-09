@@ -1,7 +1,7 @@
 # 断刀（血海深仇）
 
 > 故事 ID: `feud` | 角色名: 林晚风
-> 关联文档: `docs/character-relations.md`, `docs/story.md`, `docs/hidden-boss-timeline.md`
+> 关联文档: `docs/background/character-relations.md`, `docs/stories/main-story.md`, `docs/background/hidden-boss-timeline.md`
 
 ---
 
@@ -131,7 +131,7 @@
 
 ### 副会长（隐藏Boss）
 
-120岁，体穿者。义体研究部创始人，记忆几乎清零。**灭门时他已意识模糊，不知此事。** 详见 `docs/hidden-boss-timeline.md`。
+120岁，体穿者。义体研究部创始人，记忆几乎清零。**灭门时他已意识模糊，不知此事。** 详见 `docs/background/hidden-boss-timeline.md`。
 
 ### 过渡者（义体研究部副部长，第一代军师，已故）
 

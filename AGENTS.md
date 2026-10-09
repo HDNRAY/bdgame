@@ -187,7 +187,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 
 改任何 `DEFAULT_<POSE>` 都走它，不要手工逐格描边；规则不用背，右侧面板只显示尺寸/统计。
 
-**预览工具**：`npm run pixel -- <武器ID[,ID...]> [姿势|all] [缩放]` 输出 `scripts/preview/*.png`（旋转方式与游戏一致：旋转整张位图 + 反向最近邻采样；不要用逐像素取整，会把 2 格宽的杆挤成 1 格）。新增武器后在 DevMode 的像素查看器确认五个姿势的包围盒都落在 120×54 画布内。
+**预览工具**：`npm run pixel -- <武器ID[,ID...]> [姿势|all] [缩放]` 输出 `scripts/preview/*.png`（旋转方式与游戏一致：旋转整张位图 + 反向最近邻采样；不要用逐像素取整，会把 2 格宽的杆挤成 1 格）。新增武器后在 DevMode 的像素查看器确认六个姿势的包围盒都落在 120×54 画布内。
 
 ## 开发模式（DevMode）与 H5
 
@@ -201,5 +201,5 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
   默认断言集只放**玩家可见**的页面（`home`、`settings`、结算页等）。
 - 玩家可见页面仍然要求 H5：`scrollWidth == innerWidth`、无超视口元素、触摸目标 ≥44×44、
   `:hover` 只在 `@media (hover:hover)` 里、触屏高亮按仓库既有写法处理。
-- 已知的**玩家可见页面**窄屏问题按缺陷处理（当前记录在案：`/encyclopedia` 在 320×568 下
-  卡片固定宽度导致 13 个卡片越出视口）。
+- 已知的**玩家可见页面**窄屏问题按缺陷处理（此前记录在案的 `/encyclopedia` 320×568 卡片越界已修：
+  卡片网格改为 `minmax(min(20rem, 100%), 1fr)`，并已进入 `scripts/ui-geometry.mjs` 的默认断言集）。

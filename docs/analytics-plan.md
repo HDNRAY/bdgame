@@ -97,7 +97,7 @@ click tracking, path change detection, and optional features like performance tr
 - `src/main.tsx` 是入口，只做 render + SW 刷新（17 行），**不适合**在这里写玩法埋点（这里拿不到
   游戏状态），但适合放"初始化/降级"这类全局动作。
 - 状态变化只有一个收口：`src/ui/stores/roguelite-store.ts:38-51` 的 `watch(engine)`，
-  它订阅 `RogueliteRun` 的每一次 `_emit()`（引擎在 `src/game/roguelite/engine.ts:687-690` 深拷贝后推送）。
+  它订阅 `RogueliteRun` 的每一次 `_emit()`（引擎在 `src/game/roguelite/engine.ts:694-695` 深拷贝后推送）。
   玩法事件应当围绕这个订阅点做，**不要动 `src/engine/`**（AGENTS.md 的硬规矩：
   不要把业务逻辑硬编码进 engine）。
 - 注意：`useRogueliteStore` 是模块级单例，**DevMode 也 import 它**
@@ -295,8 +295,8 @@ window.__umamiBeforeSend = function (type, payload) {
 - `node_enter`（每节点一条）：33 条/局，噪音远大于信息量；章节事件 + `run_end.node` +
   `run_abandon.node` 已经能画流失曲线。
 - `choice_pick`（每次选项）：内容层面的选择，量极大；想研究剧情分支应该离线跑数据，不是打点。
-- `reward_pick`（每次奖励，一局约 29 次）：奖励经济已经有确定性脚本（`npm run reward-impact`、
-  `npm run reward-types`）在算，埋点版本口径更差、量还更大；真要，也只发 `run_end.rewards` 的数量。
+- `reward_pick`（每次奖励，一局约 29 次）：奖励经济已经有确定性脚本（`npm run reward`、
+  `npm run rt`）在算，埋点版本口径更差、量还更大；真要，也只发 `run_end.rewards` 的数量。
 - `battle_replay` / 伤害数值 / 战斗日志：体积大、含完整 build 信息，属于第 5 节的禁发项。
 - `settings_change` / `modal_open` / `encyclopedia_open`：与玩法漏斗无关，YAGNI。
 - 心跳 / 周期性 `run_progress`：`run_abandon` + `run_end` 已经覆盖了进度分布。
@@ -392,8 +392,8 @@ export function track<K extends keyof AnalyticsEventMap>(event: K, data: Analyti
 
 ### 5.3 绝不发送的数据
 
-- `MetaSave`（`localStorage` 键 `dantiao:meta:v1`，`src/game/meta-save.ts:10`）的任何内容 ——
-  尤其 `lastWinBuild`（下一局隐藏 boss 来源，`meta-save.ts:40-41`）是一份完整 build。
+- `MetaSave`（`localStorage` 键 `dantiao:meta:v1`，`src/game/meta-save.ts:11`）的任何内容 ——
+  尤其 `lastWinBuild`（下一局隐藏 boss 来源，`meta-save.ts:41-42`）是一份完整 build。
 - 完整 `CharacterBuild` / `build.rewards` / `actionConfigs` / `triggers` / 武器与义体清单。
 - 战斗日志、回放（`engine._battleReplay`、`round.result.log`）、`BattleStats` 明细。
 - 角色名（`build.name`，虽然多为游戏内固定名）、地点、任何自由文本。

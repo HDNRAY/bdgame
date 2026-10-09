@@ -1,6 +1,6 @@
 # UI 配色系统：量化审计与设计方案
 
-范围：**仅 UI 层配色** —— [themes.css](src/ui/styles/themes.css) 里的颜色 token，以及 `src/ui/**/*.scss` 里面板 / 按钮 / 文字 / 边框 / 背景 / 状态色。像素美术调色板（武器与身体帧）不作为本方案的设计输入。
+范围：**仅 UI 层配色** —— [themes.css](../src/ui/styles/themes.css) 里的颜色 token，以及 `src/ui/**/*.scss` 里面板 / 按钮 / 文字 / 边框 / 背景 / 状态色。像素美术调色板（武器与身体帧）不作为本方案的设计输入。
 
 审计轮只出数字与设计，**不改任何样式与 token 值**。分析脚本全部在 `/tmp/color-audit/`（chroma-js 通过临时目录安装），仓库内不留脚本、未改 `package.json`。
 
@@ -15,7 +15,7 @@
 | 3 | ap 与 gold 拉开成两个明显不同的颜色；**p1 并入 accent** |
 | 4 | **接受**拆出 `--color-pressed`（按下背景不再字面等于描边色；精神不变：整块实心填充 + 文字用 `--color-on-accent`） |
 | 5 | 亮色 accent 的 **C=0.083 保留**（sRGB 上限），不换色相 |
-| 6 | 标签徽章走**方案 A**（保留色相身份 + 主题化 L/C），不收敛成 8 族。后续经用户逐条校准到 **11 族 / 17 个色位**：雷=蓝、流血=红、控制=灰、酒=棕、劈砍/戳刺/远程=流派、前置=机制、heal 浅绿 / poison 深绿 —— 见第 7 节 |
+| 6 | 标签徽章走**方案 A**（保留色相身份 + 主题化 L/C），不收敛成 8 族。后续经用户逐条校准到 **13 族 / 20 个色位**：雷=蓝、流血=红、控制=灰、酒=棕、劈砍/戳刺/远程=流派、前置=机制、heal 浅绿 / poison 深绿 —— 见第 7 节 |
 | 7 | 浅底可用 **`color-mix`** |
 | 8 | 不变量测试**内联约 40 行 OKLab 数学**，不加 `chroma-js` 依赖 |
 
@@ -31,9 +31,9 @@
 | 第 3 / 5 / 6 步 | 未开始 | — |
 
 数据来源：
-- [themes.css](src/ui/styles/themes.css)（暗/亮两套主题，47 个 token）
+- [themes.css](../src/ui/styles/themes.css)（暗/亮两套主题，47 个 token）
 - 42 个 `src/ui/**/*.scss` 文件
-- [tagDisplay.ts](src/bridge/tagDisplay.ts)（标签徽章颜色，53 条字面量）
+- [tagDisplay.ts](../src/bridge/tagDisplay.ts)（标签徽章颜色，53 条字面量）
 - `src/ui/**/*.ts(x)` 内联颜色（作为迁移量级输入，单独统计）
 
 ---
@@ -42,7 +42,7 @@
 
 ### 1.1 token 全表
 
-[themes.css](src/ui/styles/themes.css) 共 **47 个 token**，两套主题 **1:1 结构对应**（无单边 token）。完整现状值与建议值对照见 [3.3](#33-具体值)。
+[themes.css](../src/ui/styles/themes.css) 共 **47 个 token**，两套主题 **1:1 结构对应**（无单边 token）。完整现状值与建议值对照见 [3.3](#33-具体值)。
 
 ### 1.2 使用与死 token
 
@@ -63,10 +63,10 @@
 
 | token | 引用处 | 后果 |
 | --- | --- | --- |
-| `--color-bg-raised` | [CompareScreen.scss:60](src/ui/components/layouts/CompareScreen/CompareScreen.scss#L60)、[:80](src/ui/components/layouts/CompareScreen/CompareScreen.scss#L80) | 无回退值，声明在计算值阶段失效，表头与行悬停底色**根本不生效** |
-| `--color-warn` | [RewardPicker.scss:46](src/ui/components/CharacterPanel/RewardPicker.scss#L46)、[:214](src/ui/components/CharacterPanel/RewardPicker.scss#L214) | 拼写错误（应为 `--color-warning`），实际吃回退值 `#e0a34a`，与 `--color-warning` 的 #e67e22 不是同一个颜色 |
+| `--color-bg-raised` | [CompareScreen.scss:60](../src/ui/components/layouts/CompareScreen/CompareScreen.scss#L60)、[:80](../src/ui/components/layouts/CompareScreen/CompareScreen.scss#L80) | 无回退值，声明在计算值阶段失效，表头与行悬停底色**根本不生效** |
+| `--color-warn` | [RewardPicker.scss:46](../src/ui/components/CharacterPanel/RewardPicker.scss#L46)、[:214](../src/ui/components/CharacterPanel/RewardPicker.scss#L214) | 拼写错误（应为 `--color-warning`），实际吃回退值 `#e0a34a`，与 `--color-warning` 的 #e67e22 不是同一个颜色 |
 
-`--section-accent` 由 [GameplayModal.tsx:180](src/ui/screens/ModeSelect/GameplayModal.tsx#L180) 内联写入，属正常用法。
+`--section-accent` 由 [GameplayModal.tsx:180](../src/ui/screens/ModeSelect/GameplayModal.tsx#L180) 内联写入，属正常用法。
 
 ### 1.3 硬编码颜色清单（scss）
 
@@ -119,11 +119,11 @@ scss 里的 38 处只是冰山一角。同一套 UI 颜色还有两张更大的�
 
 | 来源 | 字面量数 | 说明 |
 | --- | --- | --- |
-| [tagDisplay.ts](src/bridge/tagDisplay.ts) `TAG_COLOR` | **53** 条（30 个不同色值） | 标签徽章，作为**文字色**画在 `--color-entity-bg` 上；两套主题共用同一份值 |
+| [tagDisplay.ts](../src/bridge/tagDisplay.ts) `TAG_COLOR` | **53** 条（30 个不同色值） | 标签徽章，作为**文字色**画在 `--color-entity-bg` 上；两套主题共用同一份值 |
 | `src/ui/**/*.ts(x)` | **84** 处 | 其中 canvas 层 25 处（战斗飘字 / 地面）、DevMode 像素编辑器 37 处（编辑器默认调色板与画布钩子）、**真正的界面色 22 处** |
-| 其中 [GameplayModal.tsx:158-166](src/ui/screens/ModeSelect/GameplayModal.tsx#L158) | 9 条 | 「玩法」弹窗逐节色，直接写死在 TS 里 |
+| 其中 [GameplayModal.tsx:158-166](../src/ui/screens/ModeSelect/GameplayModal.tsx#L158) | 9 条 | 「玩法」弹窗逐节色，直接写死在 TS 里 |
 | 其中 p1 / p2 身份色 | 8 处 | `#4ecdc4` / `#ff6b6b` 在 TSX 里重复写死（BattleScreen、SelectionPanel、BattlePanel、battle-replay） |
-| 其中 [Tag.tsx:14](src/ui/components/ui/Tag/Tag.tsx#L14) | 1 处 | `?? '#888'` 回退 |
+| 其中 [Tag.tsx:14](../src/ui/components/ui/Tag/Tag.tsx#L14) | 1 处 | `?? '#888'` 回退 |
 
 **UI 层字面色值总量：38（scss）+ 53（标签）+ 22（TS 界面色）= 113 处**（若把 canvas 与像素编辑器也算进来是 175 处）。
 
@@ -186,7 +186,7 @@ scss 里的 38 处只是冰山一角。同一套 UI 颜色还有两张更大的�
 | 亮 (`--color-on-accent` #101018) | 9.78 | 4.96 | 6.65 | 8.56 |
 | 暗 (`--color-on-accent` #000000) | 10.85 | 5.50 | 7.37 | 12.34 |
 
-这一组是现状里唯一经过刻意校准的部分（[themes.css:32-35](src/ui/styles/themes.css#L32-L35) 有注释），两套主题都过线。
+这一组是现状里唯一经过刻意校准的部分（[themes.css:32-35](../src/ui/styles/themes.css#L32-L35) 有注释），两套主题都过线。
 
 **语义色 × 匹配浅底（9 对）——亮色 7 对不达标，暗色 0 对：**
 
@@ -245,7 +245,7 @@ scss 里的 38 处只是冰山一角。同一套 UI 颜色还有两张更大的�
 | 暗 | **4.34** | #6b7280 | #000000 bg | **14 处** |
 | 暗 | **4.50** | #9b59b6 qi | #000000 | BattleStatusPanel |
 
-「1.81」这一条是 [Button.scss:133-136](src/ui/components/ui/Button/Button.scss#L133-L136) 的 primary 变体静止态：`color: var(--color-accent)` 压在 `background: var(--color-accent-bg)` 上（浅底 #edfaf9）。亮色主题下 accent 文字无论压在哪个面上都不可读。
+「1.81」这一条是 [Button.scss:133-136](../src/ui/components/ui/Button/Button.scss#L133-L136) 的 primary 变体静止态：`color: var(--color-accent)` 压在 `background: var(--color-accent-bg)` 上（浅底 #edfaf9）。亮色主题下 accent 文字无论压在哪个面上都不可读。
 
 ### 2.3 交互态
 
@@ -603,7 +603,7 @@ hover 态（`@media (hover: hover)` 内）本身无对比度问题：正文 on b
 
 CI 接法：
 
-1. 测试文件自己解析 [themes.css](src/ui/styles/themes.css)（`fs.readFileSync` + 正则），断言上表；这样 token 就是唯一事实来源，不需要再维护一份 TS 镜像。
+1. 测试文件自己解析 [themes.css](../src/ui/styles/themes.css)（`fs.readFileSync` + 正则），断言上表；这样 token 就是唯一事实来源，不需要再维护一份 TS 镜像。
 2. 需要 OKLCH / WCAG 计算。二选一：`npm i -D chroma-js`（仅 devDependency，测试用），或把约 40 行的 sRGB↔OKLab 转换内联进 `src/ui/styles/oklch.ts`。**倾向后者**：项目对依赖很克制，且这段数学是冻结标准，不引入版本漂移。
 3. 标签徽章单独一条测试：`TAG_COLOR` 的每个值（或派生后的最终色）对 `--color-entity-bg` 在**两套主题**下都 ≥ 4.5（现状 46/53 与 17/53 条不达标，这条测试会把问题钉死）。
 4. 每条断言失败时打印「token 名 + 实际 L/C/H + 实测对比度 + 门槛」，而不是只报 `expected true to be false`。
@@ -630,7 +630,7 @@ CI 接法：
 
 **验证**：`node scripts/scss-triples.mjs` 通过（基线 `HEAD` → 工作区）；不动任何样式。
 
-### 第 1 步：只改 [themes.css](src/ui/styles/themes.css)
+### 第 1 步：只改 [themes.css](../src/ui/styles/themes.css)
 
 - 按 3.3 重定 18 个颜色值；
 - 12 个 token 改成 `var()` 别名（含**修复 `--color-bg-raised` 的未定义**）；
@@ -647,7 +647,7 @@ CI 接法：
 
 ### 第 2 步：引入 `--color-pressed`，统一按下口径（已完成）
 
-口径（已同步进 [Button.scss](src/ui/components/ui/Button/Button.scss) 文件头注释）：
+口径（已同步进 [Button.scss](../src/ui/components/ui/Button/Button.scss) 文件头注释）：
 
 ```scss
 &:active {
@@ -661,11 +661,11 @@ CI 接法：
 
 | 文件 | 处数 | 位置 |
 | --- | --- | --- |
-| [Button.scss](src/ui/components/ui/Button/Button.scss) | 3 | `-default` / `-plain` / `-ghost` 的 `:active` |
-| [BattleStatsPanel.scss](src/ui/components/BattleStatsPanel/BattleStatsPanel.scss) | 1 | 状态徽章按钮 |
-| [EncyclopediaScreen.scss](src/ui/screens/EncyclopediaScreen/EncyclopediaScreen.scss) | 1 | 筛选块 |
-| [DevMode.scss](src/ui/screens/DevMode/DevMode.scss) | 1 | 侧栏 nav item |
-| [SelectionPanel.scss](src/ui/components/SelectionPanel/SelectionPanel.scss) | 1 | 选择卡片 |
+| [Button.scss](../src/ui/components/ui/Button/Button.scss) | 3 | `-default` / `-plain` / `-ghost` 的 `:active` |
+| [BattleStatsPanel.scss](../src/ui/components/BattleStatsPanel/BattleStatsPanel.scss) | 1 | 状态徽章按钮 |
+| [EncyclopediaScreen.scss](../src/ui/screens/EncyclopediaScreen/EncyclopediaScreen.scss) | 1 | 筛选块 |
+| [DevMode.scss](../src/ui/screens/DevMode/DevMode.scss) | 1 | 侧栏 nav item |
+| [SelectionPanel.scss](../src/ui/components/SelectionPanel/SelectionPanel.scss) | 1 | 选择卡片 |
 
 实心强调那一族（`background: var(--color-accent)` / `danger` / `gold` 等 19 处）不动，`-bare` 变体的 `filter: brightness()` 也不动。
 
@@ -743,14 +743,14 @@ CI 接法：
 
 ### 第 4 步：标签徽章收编（已完成）
 
-采用**方案 A 的变体**：保留色相身份，但**不保留 53 个色相**——按语义归成 **11 族 / 17 个色位**（同族同色位同色），两套主题各自定值。完整表格、逐条归类依据、存疑项、实测对比度与风险见 **第 7 节**。
+采用**方案 A 的变体**：保留色相身份，但**不保留 53 个色相**——按语义归成 **13 族 / 20 个色位**（同族同色位同色），两套主题各自定值。完整表格、逐条归类依据、存疑项、实测对比度与风险见 **第 7 节**。
 
 落地点：
 
-- 颜色的**唯一事实来源**是 [themes.css](src/ui/styles/themes.css)：两套主题各 53 条 `--tag-color-<tag>`，随 `[data-theme]` 自动切换。
-- [tagDisplay.ts](src/bridge/tagDisplay.ts) 的 `TAG_COLOR` 从 `Record<Tag, string>` 改成 `Record<Tag, { light: string; dark: string }>`（色板的 TS 镜像，供测试与工具读取）。
-- [Tag.tsx](src/ui/components/ui/Tag/Tag.tsx) 不再内联颜色，改成 `var(--tag-color-<tag>, var(--color-text-dim))`。
-- 不变量测试 [tag-colors.test.ts](src/bridge/__tests__/tag-colors.test.ts)（13 条断言，含用户 8 条口径）+ 变异验证 + DevMode「标签配色」目视页（`/dev?tab=tags`）见 7.9。
+- 颜色的**唯一事实来源**是 [themes.css](../src/ui/styles/themes.css)：两套主题各 53 条 `--tag-color-<tag>`，随 `[data-theme]` 自动切换。
+- [tagDisplay.ts](../src/bridge/tagDisplay.ts) 的 `TAG_COLOR` 从 `Record<Tag, string>` 改成 `Record<Tag, { light: string; dark: string }>`（色板的 TS 镜像，供测试与工具读取）。
+- [Tag.tsx](../src/ui/components/ui/Tag/Tag.tsx) 不再内联颜色，改成 `var(--tag-color-<tag>, var(--color-text-dim))`。
+- 不变量测试 [tag-colors.test.ts](../src/bridge/__tests__/tag-colors.test.ts)（22 条断言，含用户 18 条口径）+ 变异验证 + DevMode「标签配色」目视页（`/dev?tab=tags`）见 7.9。
 
 ### 第 5 步：TS 里的界面色（已完成）
 
@@ -907,7 +907,7 @@ CI 接法：
 
 | 脚本 | 作用 |
 | --- | --- |
-| `parse-themes.js` | 解析 [themes.css](src/ui/styles/themes.css) 成两张 token 表 |
+| `parse-themes.js` | 解析 [themes.css](../src/ui/styles/themes.css) 成两张 token 表 |
 | `scss-pairs.js` | 极简 scss 块解析；抽「实际前景 × 背景」配对、硬编码清单、token 引用计数 |
 | `token-roles.js` | 逐 token 统计「作文字 / 作填充 / 作描边」的次数 |
 | `audit-contrast.js` | 对比度矩阵 + 实际配对 + 交互态 |
@@ -922,11 +922,11 @@ CI 接法：
 
 ## 7. 标签徽章配色（已定稿并落地）
 
-**状态：已实现**（[tagDisplay.ts](src/bridge/tagDisplay.ts) 的 `TAG_COLOR` + [themes.css](src/ui/styles/themes.css) 的 `--tag-color-*`；不变量测试 [tag-colors.test.ts](src/bridge/__tests__/tag-colors.test.ts)）。
+**状态：已实现**（[tagDisplay.ts](../src/bridge/tagDisplay.ts) 的 `TAG_COLOR` + [themes.css](../src/ui/styles/themes.css) 的 `--tag-color-*`；不变量测试 [tag-colors.test.ts](../src/bridge/__tests__/tag-colors.test.ts)）。
 
 ### 7.1 归类判据（新增标签按此归属）
 
-用户已逐条校准过四轮（雷 / 流血 / 劈砍·戳刺 / 酒 / 控制类 debuff / 前置 / 远程 / 霜冻 / 麻痹 / 持续伤害归属 / 第十五条的六条色相方向）。**先有判据，再挑颜色** —— 判据取自 [tag.ts](src/engine/entities/tag.ts) 的定义与它**实际被挂在哪里**（武器？招式？还是引擎判定？）：
+用户已逐条校准过四轮（雷 / 流血 / 劈砍·戳刺 / 酒 / 控制类 debuff / 前置 / 远程 / 霜冻 / 麻痹 / 持续伤害归属 / 第十五条的六条色相方向）。**先有判据，再挑颜色** —— 判据取自 [tag.ts](../src/engine/entities/tag.ts) 的定义与它**实际被挂在哪里**（武器？招式？还是引擎判定？）：
 
 | # | 如果这个标签在说… | 归到 | 色相带 / 彩度 |
 | --- | --- | --- | --- |
@@ -1151,9 +1151,9 @@ CI 接法：
 
 ### 7.11 落地方式（已完成）
 
-- **颜色的唯一事实来源是 [themes.css](src/ui/styles/themes.css)**：两套主题各 53 条 `--tag-color-<tag>`（共 106），随 `[data-theme]` 自动切换，零运行时开销。
-- **`TAG_COLOR` 是 `Record<Tag, { light: string; dark: string }>`**（TS 镜像）；[Tag.tsx](src/ui/components/ui/Tag/Tag.tsx) 改成 `var(--tag-color-<tag>, var(--color-text-dim))`。
-- **不变量测试** [tag-colors.test.ts](src/bridge/__tests__/tag-colors.test.ts)（**22 条断言**，内联约 30 行 OKLab/WCAG）：4 条通用（对比度 / 两主题不同 / 同族可分 / CSS-TS 一致）+ 18 条用户口径（含第十六条修正后的带子：火红 45~66、霜冻 225~258、雷 250~272）（雷=蓝、流血=红、控制=灰、酒=棕、劈砍等=流派、前置∈机制+远程∈流派、控制≠红绿、heal 浅/poison 深、灰 vs 流派可分、**霜冻=低彩度冰感**、**麻痹=偏黄**、**流血/灼烧/中毒同族且血红≠火红**）。
+- **颜色的唯一事实来源是 [themes.css](../src/ui/styles/themes.css)**：两套主题各 53 条 `--tag-color-<tag>`（共 106），随 `[data-theme]` 自动切换，零运行时开销。
+- **`TAG_COLOR` 是 `Record<Tag, { light: string; dark: string }>`**（TS 镜像）；[Tag.tsx](../src/ui/components/ui/Tag/Tag.tsx) 改成 `var(--tag-color-<tag>, var(--color-text-dim))`。
+- **不变量测试** [tag-colors.test.ts](../src/bridge/__tests__/tag-colors.test.ts)（**22 条断言**，内联约 30 行 OKLab/WCAG）：4 条通用（对比度 / 两主题不同 / 同族可分 / CSS-TS 一致）+ 18 条用户口径（含第十六条修正后的带子：火红 45~66、霜冻 225~258、雷 250~272）（雷=蓝、流血=红、控制=灰、酒=棕、劈砍等=流派、前置∈机制+远程∈流派、控制≠红绿、heal 浅/poison 深、灰 vs 流派可分、**霜冻=低彩度冰感**、**麻痹=偏黄**、**流血/灼烧/中毒同族且血红≠火红**）。
 - **变异验证**（13 组，全部红灯）：`stun`→紫、`bleed`→绿、`electric`→红、`jiu`→绿、`frost`→高彩度蓝、`paralyze`→灰、`burn`→血红同色；第十五条又跑 6 组：**`bleed`→偏冷绯红**（`H 应 20~40`）、**`burn`→大红同色**（`火红必须比大红更偏黄`）、**`frost`→高彩度蓝**（`C 应 ≤ 0.06` 且低于 electric 一半）、**`electric`→偏紫蓝**（`H 应 240~280`）、**`paralyze`→土黄**（`H 应 75~100`）、**`low_hp`→黄**（`H 应 30~55`）。**第十六条修正后又跑 3 组**：**`burn`→黄（麻痹的色）**（`火红必须留在红区、与金黄 ΔH ≥20`）、**`frost`→蓝紫 `#655e7d`**（`H 应 225~258`）、**`electric`→蓝紫 `#4d57b7`**（`H 应 250~272`）。
 - **目视页**：DevMode「标签配色」tab（`/dev?tab=tags`），按 13 族分组，截图 `tmp/preview/tag-preview-{light,dark}-*.png`。
 

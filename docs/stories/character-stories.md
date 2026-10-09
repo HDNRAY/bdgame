@@ -1,6 +1,6 @@
 # 角色背景小故事
 
-> 关联文档：`docs/character-relations.md` — 角色关联与故事线节点
+> 关联文档：`docs/background/character-relations.md` — 角色关联与故事线节点
 
 ---
 

@@ -4,7 +4,7 @@
 
 ---
 
-> 完整角色关系图详见 `docs/character-graph.md`。
+> 完整角色关系图详见 `docs/background/character-graph.md`。
 
 ---
 
@@ -56,9 +56,9 @@
 
 ## 关联文档
 
-- `docs/character-graph.md` — 完整角色关系图（组织、师徒、家族、六绝、九朵桃花）
-- `docs/character-stories.md` — 角色背景小故事（林晚风、军师、阿九、方烈、陶朵等）
-- `docs/side-quests.md` — 支线事件（归海楼、青山之巅、九朵桃花、结拜、天工坊、图书馆）
-- `docs/story.md` — 编年史事件与世界观要素
-- `docs/town-settings.md` — 青山镇设定（家族、门派、场所）
+- `docs/background/character-graph.md` — 完整角色关系图（组织、师徒、家族、六绝、九朵桃花）
+- `docs/stories/character-stories.md` — 角色背景小故事（林晚风、军师、阿九、方烈、陶朵等）
+- `docs/stories/branch-stories.md` — 支线事件（归海楼、青山之巅、九朵桃花、结拜、天工坊、图书馆）
+- `docs/stories/main-story.md` — 编年史事件与世界观要素
+- `docs/background/town-settings.md` — 青山镇设定（家族、门派、场所）
 - `docs/stories/` — 各故事线完整节点与叙事文本

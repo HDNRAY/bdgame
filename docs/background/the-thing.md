@@ -1,7 +1,7 @@
 # "东西"设定
 
-> 关联文档：`docs/story.md` — 世界观要素、终局篇
-> `docs/town-settings.md` — 青山镇地理环境
+> 关联文档：`docs/stories/main-story.md` — 世界观要素、终局篇
+> `docs/background/town-settings.md` — 青山镇地理环境
 
 ---
 
@@ -66,7 +66,7 @@
 
 ## 玄门关联
 
-玄门先祖曾向"东西"献祭孪生至亲，获得了御物之力。后立下"双胞胎只能留一个"的规矩试图复现，但从未成功。这一真相只有历代门主知晓。详见 `docs/stories/xuanmen.md`。
+玄门先祖曾向"东西"献祭孪生至亲，获得了御物之力。后立下"双胞胎只能留一个"的规矩试图复现，但从未成功。这一真相只有历代门主知晓。详见 `docs/stories/view-stories/xuanmen.md`。
 
 ## 历史记录
 
@@ -81,7 +81,7 @@
 
 ## 关联文件
 
-- `docs/story.md` — 故事文案、终局篇详细描写
-- `docs/town-settings.md` — 青山镇地理与禁地区域
-- `docs/character-relations.md` — 角色关联与组织关系
+- `docs/stories/main-story.md` — 故事文案、终局篇详细描写
+- `docs/background/town-settings.md` — 青山镇地理与禁地区域
+- `docs/background/character-relations.md` — 角色关联与组织关系
 - `docs/ending-design.md` — 终局（n33.5 隐藏boss / n34 许愿）的游戏接入方案与存档系统

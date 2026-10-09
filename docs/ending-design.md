@@ -1,7 +1,7 @@
 # 终局设计（隐藏boss · 「东西」· 元进度存档）
 
 > 状态：**已实现**（2026-09）。叙事文案见 `docs/stories/main-story.md`（「山腹」「隐藏boss」「击败」「"东西"面前」「陨落于山腹」+ 结局表），本文件写**游戏侧怎么接**。
-> 关联：`docs/stories/main-story.md`（终局文案）、`docs/background/the-thing.md`（「东西」设定）、`docs/plot-todo.md`（待办）、`docs/gameplay-guide.md`（战斗规则）。
+> 关联：`docs/stories/main-story.md`（终局文案）、`docs/background/the-thing.md`（「东西」设定）、`docs/gameplay-guide.md`（战斗规则）。
 
 ---
 

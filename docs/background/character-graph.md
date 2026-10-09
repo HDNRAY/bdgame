@@ -1,7 +1,7 @@
 # 角色关系图
 
 > 更新日期: 2026-07-21
-> 关联文档：`docs/character-relations.md` — 角色关联矩阵 | `docs/character-stories.md` — 角色背景小故事
+> 关联文档：`docs/background/character-relations.md` — 角色关联矩阵 | `docs/stories/character-stories.md` — 角色背景小故事
 
 ```mermaid
 graph TB

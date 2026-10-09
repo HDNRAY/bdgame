@@ -1,6 +1,6 @@
 # 青山镇设定
 
-> 关联文档：`docs/story.md` — 故事文案与编年史事件 | `docs/the-thing.md` — "东西"设定
+> 关联文档：`docs/stories/main-story.md` — 故事文案与编年史事件 | `docs/background/the-thing.md` — "东西"设定
 
 ---
 
@@ -60,7 +60,7 @@
 
 斗炁协会下属部门。公开目的是研究义体技术与炼炁的兼容性，提升炼炁士的战斗寿命，治疗修炼损伤。
 
-暗面称"**组织**"，实为隐藏boss培养的夺宝势力。详见 `docs/character-relations.md`。
+暗面称"**组织**"，实为隐藏boss培养的夺宝势力。详见 `docs/background/character-relations.md`。
 
 ## 军方驻扎
 
@@ -130,7 +130,7 @@
 
 ## 关联文件
 
-- `docs/the-thing.md` — "东西"设定详档
-- `docs/story.md` — 故事文案与编年史事件
-- `docs/character-relations.md` — 角色关联与组织关系（含组织关系图）
-- `docs/character-stories.md` — 角色背景小故事
+- `docs/background/the-thing.md` — "东西"设定详档
+- `docs/stories/main-story.md` — 故事文案与编年史事件
+- `docs/background/character-relations.md` — 角色关联与组织关系（含组织关系图）
+- `docs/stories/character-stories.md` — 角色背景小故事

@@ -1,6 +1,6 @@
 # 支线事件（编年史事件）
 
-> 关联文档：`docs/character-relations.md` — 角色关联与支线角色表 | `docs/story.md` — 主线故事与流程 | `docs/town-settings.md` — 青山镇设定
+> 关联文档：`docs/background/character-relations.md` — 角色关联与支线角色表 | `docs/stories/main-story.md` — 主线故事与流程 | `docs/background/town-settings.md` — 青山镇设定
 
 ---
 
@@ -289,7 +289,7 @@ n1 是出身选择：从随机 3 个故事线里挑一个。**每条故事线在
 
 #### 关联
 
-- **地点**：漱玉峰（`docs/town-settings.md`）
+- **地点**：漱玉峰（`docs/background/town-settings.md`）
 - **奖励池**：4AP/5AP 招式（含 `unarmed`/`slash`/`pierce`/`polearm`/`blunt` 等系，随玩家武器 tags 过滤）
 
 ---

@@ -9,7 +9,7 @@
 - TypeScript（strict）+ Vite 8 + React 19 + Zustand 5
 - react-router-dom 7，按路由懒加载
 - PixiJS 8 画布战斗渲染（`src/ui/canvas/`），像素精灵叠加武器图
-- Sass 样式（`src/index.css` / `src/App.scss` / `src/ui/styles/`）
+- Sass 样式（token 与主题在 `src/ui/styles/`，各组件样式就近放同目录 `.scss`；全局基础在 `src/index.css`）
 - Vitest 4 单元测试，tsx 跑 CLI 脚本，vite-plugin-pwa 打包 PWA
 
 ## 目录结构
