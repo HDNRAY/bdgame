@@ -187,9 +187,11 @@
         padding: var(--sp-xs) var(--sp-xl);
         letter-spacing: 0.3em;
 
-        /* 按下时描边转 accent（本页口径，Button 的 default 变体是 border-hover） */
+        /* 按下铺满 accent 并把文字翻成页面底色（背景与描边同色，不翻文字就看不见了） */
         &:active {
+            background: var(--color-accent);
             border-color: var(--color-accent);
+            color: var(--color-bg);
         }
     }
 

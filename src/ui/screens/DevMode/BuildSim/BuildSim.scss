@@ -62,7 +62,8 @@
     font-family: var(--font-mono);
     cursor: pointer;
 
-    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈。按下铺满危险色并把文字翻成页面底色
+       （背景与描边同色，不翻文字就看不见了）。 */
     @media (hover: hover) {
         &:hover {
             border-color: var(--color-danger);
@@ -71,8 +72,9 @@
     }
 
     &:active {
+        background: var(--color-danger);
         border-color: var(--color-danger);
-        color: var(--color-danger);
+        color: var(--color-bg);
     }
 }
 
@@ -180,11 +182,12 @@
 }
 
 .bsim-baseline-btn:active:not(:disabled) {
-    color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-bg);
     border-color: var(--color-accent);
 }
 
-/* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+/* 触屏没有 hover：桌面走 hover、触屏走按下反馈 */
 @media (hover: hover) {
     .bsim-baseline-clear:hover:not(:disabled) {
         color: var(--color-danger);
@@ -193,7 +196,8 @@
 }
 
 .bsim-baseline-clear:active:not(:disabled) {
-    color: var(--color-danger);
+    background: var(--color-danger);
+    color: var(--color-bg);
     border-color: var(--color-danger);
 }
 
@@ -281,7 +285,7 @@
     font-size: var(--font-xs);
     font-family: var(--font-family-small);
 
-    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈。按下铺满 accent 并把文字翻成页面底色 */
     @media (hover: hover) {
         &:hover {
             color: var(--color-accent);
@@ -290,7 +294,8 @@
     }
 
     &:active {
-        color: var(--color-accent);
+        background: var(--color-accent);
+        color: var(--color-bg);
         border-color: var(--color-accent);
     }
 }

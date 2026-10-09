@@ -138,7 +138,8 @@
         /* 同上：纵向 4px 保留原稿字面值 */
         padding: 4px var(--sp-md);
 
-        /* 本页口径：悬停 / 按下只把描边转 accent（ghost 变体会同时把文字转 text-h） */
+        /* 本页口径：悬停只把描边转 accent；按下铺满 accent 并把文字翻成页面底色
+           （背景与描边同色，不翻文字就看不见了） */
         @media (hover: hover) {
             &:hover {
                 color: var(--color-text);
@@ -147,7 +148,8 @@
         }
 
         &:active {
-            color: var(--color-text);
+            background: var(--color-accent);
+            color: var(--color-bg);
             border-color: var(--color-accent);
         }
     }

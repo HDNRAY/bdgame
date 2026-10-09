@@ -71,6 +71,8 @@
         text-align: center;
 
         /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
+        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈。按下铺满 accent 并把文字翻成页面底色
+           （背景与描边同色，不翻文字就看不见了）。 */
         @media (hover: hover) {
             &:hover {
                 border-color: var(--color-accent);
@@ -78,7 +80,9 @@
         }
 
         &:active {
+            background: var(--color-accent);
             border-color: var(--color-accent);
+            color: var(--color-bg);
         }
 
         &-main {

@@ -181,8 +181,10 @@
             }
         }
 
+        /* 按下铺满 accent 并把文字翻成页面底色（背景与描边同色，不翻文字就看不见了） */
         &:active {
-            color: var(--color-accent);
+            background: var(--color-accent);
+            color: var(--color-bg);
             border-color: var(--color-accent);
         }
     }
