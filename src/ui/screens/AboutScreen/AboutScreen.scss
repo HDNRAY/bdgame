@@ -23,6 +23,33 @@
     max-width: 22.5rem;
 }
 
+/* 反馈入口（GitHub issues）：与 .about-desc 同一档字号 / 行高，只有链接用 accent 点亮 */
+.about-feedback {
+    font-size: var(--font-sm);
+    color: var(--color-text-dim);
+    text-align: center;
+    line-height: 1.8;
+    max-width: 22.5rem;
+}
+
+.about-link {
+    color: var(--color-accent);
+    /* 链接是文字流里的可点项：命中区靠 padding 补到 ≥44px 不好看，就按文字行高给足行距 */
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+
+    /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮（同仓库其它可点文字） */
+    @media (hover: hover) {
+        &:hover {
+            color: var(--color-text-h);
+        }
+    }
+
+    &:active {
+        color: var(--color-text-h);
+    }
+}
+
 /* 返回按钮已迁到共用 Button 组件（variant=default size=md）：
    描边 / 圆角 / 面板底 / 字号 / 过渡与 hover 高亮都由
    `src/ui/components/ui/Button/Button.scss` 提供，本页不再重复基础七件套。 */
