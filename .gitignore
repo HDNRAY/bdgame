@@ -22,5 +22,6 @@ scripts/preview/
 .hr*/
 .hs*/
 .headless/
-# 临时产物（验证截图等）：src/tmp/ 下只放图片，脚本一律留在系统 /tmp
-src/tmp/
+# 临时产物（验证截图等）：仓库根的 tmp/ 下只放图片，脚本一律留在系统 /tmp。
+# 前导斜杠 = 只锚定仓库根的 tmp/，不会误伤嵌套的同名目录（如 src/**/tmp/）。
+/tmp/
