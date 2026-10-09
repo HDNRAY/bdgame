@@ -348,35 +348,11 @@
     background: var(--color-bg-panel);
 }
 
-/* 观战文案 + 机制提示：文案是主体，机制提示退为次要小字（两者并存，不是替换） */
-.rs-tutorial-text {
+.rs-tutorial-note {
     flex: 1;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-xxs);
-}
-
-/* 故事文案：观战区的主体内容（左侧一道 accent 细线，读起来是「故事」而非「提示」）；
-   事件文案自带换行（\n\n 分段），保留换行；长串在 320 宽下折行而不是撑宽。 */
-.rs-tutorial-desc {
-    margin: 0;
-    padding-left: var(--sp-sm);
-    border-left: 2px solid var(--color-accent);
-    color: var(--color-text);
-    font-size: var(--font-sm);
-    line-height: 1.6;
-    white-space: pre-line;
-    overflow-wrap: anywhere;
-}
-
-/* 机制提示：「教学观战……不计胜负」这条不能丢，压成次要小字 */
-.rs-tutorial-note {
-    flex: none;
-    min-width: 0;
     color: var(--color-text-dim);
-    font-size: var(--font-xs);
-    overflow-wrap: anywhere;
+    font-size: var(--font-sm);
 }
 
 .rs-tutorial-toggle {

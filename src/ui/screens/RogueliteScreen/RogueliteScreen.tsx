@@ -162,15 +162,9 @@ export function RogueliteScreen() {
                         {r.title && <div className="rs-battle-title">{r.title}</div>}
                         {isTutorial && (
                             <div className="rs-tutorial-bar">
-                                <div className="rs-tutorial-text">
-                                    {/* 观战文案：本轮的 description 在「观战当下」就要能读到
-                                        （以前只有该轮进了 history、由 RoundCard 渲染时才看得到）。
-                                        它和下面那句机制提示并存，不是替换。 */}
-                                    {r.description && <p className="rs-tutorial-desc">{r.description}</p>}
-                                    <span className="rs-tutorial-note">
-                                        教学观战：{aName} 对 {bName}（AI 对局演示，不计胜负）
-                                    </span>
-                                </div>
+                                <span className="rs-tutorial-note">
+                                    教学观战：{aName} 对 {bName}（AI 对局演示，不计胜负）
+                                </span>
                                 <button
                                     className="rs-tutorial-toggle"
                                     onClick={() => setOpenTutorials((prev) => ({ ...prev, [r.id]: !prev[r.id] }))}
