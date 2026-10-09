@@ -188,3 +188,18 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 改任何 `DEFAULT_<POSE>` 都走它，不要手工逐格描边；规则不用背，右侧面板只显示尺寸/统计。
 
 **预览工具**：`npm run pixel -- <武器ID[,ID...]> [姿势|all] [缩放]` 输出 `scripts/preview/*.png`（旋转方式与游戏一致：旋转整张位图 + 反向最近邻采样；不要用逐像素取整，会把 2 格宽的杆挤成 1 格）。新增武器后在 DevMode 的像素查看器确认五个姿势的包围盒都落在 120×54 画布内。
+
+## 开发模式（DevMode）与 H5
+
+**DevMode 的页面（`/dev?tab=*`）只保证桌面可用，不做 H5 适配。** 它们是开发工具，不是玩家界面 ——
+因此这些页面在窄视口（≤390px）下的横向溢出、元素越界、触摸目标偏小，**都不算缺陷**，不要去"修"，
+也不要为了它们牺牲桌面布局或增加响应式分支。
+
+推论与边界：
+
+- 几何/截图脚本（`scripts/ui-geometry.mjs`）跑 DevMode 页时，**只作参考、不作通过条件**；
+  默认断言集只放**玩家可见**的页面（`home`、`settings`、结算页等）。
+- 玩家可见页面仍然要求 H5：`scrollWidth == innerWidth`、无超视口元素、触摸目标 ≥44×44、
+  `:hover` 只在 `@media (hover:hover)` 里、触屏高亮按仓库既有写法处理。
+- 已知的**玩家可见页面**窄屏问题按缺陷处理（当前记录在案：`/encyclopedia` 在 320×568 下
+  卡片固定宽度导致 13 个卡片越出视口）。
