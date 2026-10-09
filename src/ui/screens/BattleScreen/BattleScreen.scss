@@ -62,7 +62,9 @@
     position: fixed;
     left: var(--sp-md);
     right: var(--sp-md);
-    bottom: var(--sp-md);
+    /* 常驻底栏例外（底栏 spec §5）：本层 fixed、脱离 .app-content；抬高一个底栏高，
+       否则两枚按钮正落在底栏底下（底栏 z-index 更高、直接盖住它们）。 */
+    bottom: calc(var(--sp-md) + var(--bottom-bar-h));
     z-index: 50;
     display: flex;
     justify-content: space-between;
@@ -104,6 +106,9 @@
     z-index: 100;
     background: rgb(0 0 0 / 0.5);
     display: flex;
+    /* 常驻底栏例外（底栏 spec §5）：fixed、脱离 .app-content；底栏更高，不让位就压住抽屉底部。
+       （`.bs-side-sheet` 高度 100%，让位由本层的下内边距完成。） */
+    padding-bottom: var(--bottom-bar-h);
 
     &.from-left {
         justify-content: flex-start;

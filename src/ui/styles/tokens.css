@@ -51,6 +51,16 @@
     --text-title: var(--font-title) var(--font-family-base);
     --text-hero: var(--font-hero) var(--font-family-base);
 
+    /* ========== 常驻底栏 / 层高 ==========
+       底栏是 fixed、不在 `.app-content` 里，所以它是「全局空间分配」的单一来源：
+       - `--bottom-bar-content-h`：四项的可点高度下限（≥44px 触摸目标口径）；
+       - `--bottom-bar-h`：内容高 + 安全区（底栏自己留一次，内容容器再按它让位）；
+       - `--z-bottom-bar`：高于所有弹层遮罩（弹层 1000 / RewardPicker 1200），
+         低于 Tooltip 9999 与 RotateDevice 9999（后者是唯一例外，见底栏 spec §6）。 */
+    --bottom-bar-content-h: max(44px, 2.75rem);
+    --bottom-bar-h: calc(var(--bottom-bar-content-h) + env(safe-area-inset-bottom, 0px));
+    --z-bottom-bar: 1500;
+
     /* ========== Border / Radius ========== */
     --radius-sm: 2px;
     --radius-md: 4px;

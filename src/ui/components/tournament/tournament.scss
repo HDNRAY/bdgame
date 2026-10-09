@@ -335,6 +335,10 @@
     /* 安全区：上（刘海 / 状态栏）下（home indicator）左右（横屏遮挡） */
     padding: calc(var(--sp-md) + env(safe-area-inset-top)) calc(var(--sp-md) + env(safe-area-inset-right))
         calc(var(--sp-md) + env(safe-area-inset-bottom)) calc(var(--sp-md) + env(safe-area-inset-left));
+    /* 常驻底栏例外（底栏 spec §5）：本层是 position: fixed、脱离 .app-content，
+       拿不到 `#root .app-content > *` 那条统一留白；底栏 z-index 更高，不让位就会被盖住。
+       写在安全区 padding 简写**之后**才不会被它覆盖。--bottom-bar-h 已含 env(safe-area-inset-bottom)。 */
+    padding-bottom: var(--bottom-bar-h);
 
     /* 整块背景可点关闭：浏览器默认的触屏高亮会按 cursor:pointer 把整屏刷一层色
        （同 IntroOverlay 的处理），所以这里显式关掉。 */

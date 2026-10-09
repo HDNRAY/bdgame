@@ -79,6 +79,15 @@ body {
     margin: 0;
 }
 
+/* 常驻底栏的**唯一一处**内容留白（底栏 spec §5）：
+   路由页根元素（含 height: 100vh / min-height: 100vh 的那几个）都是 `.app-content` 的直接子级，
+   全局 `* { box-sizing: border-box }` 下 padding-bottom 只压缩内容盒、不撑高页面；
+   页内原有的 env(safe-area-inset-bottom) 底边项被这条统一覆盖（--bottom-bar-h 已含安全区），
+   所以不逐屏改。脱离 `.app-content` 的 fixed 浮层各自例外处理（见 .tnp / .rp-overlay / .bs-*）。 */
+#root .app-content > * {
+    padding-bottom: var(--bottom-bar-h);
+}
+
 h1,
 h2 {
     font-family: var(--font-heading);

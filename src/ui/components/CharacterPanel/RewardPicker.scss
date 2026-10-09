@@ -7,6 +7,11 @@
     align-items: center;
     justify-content: center;
     padding: var(--sp-md);
+    /* 常驻底栏例外（底栏 spec §5）：本层是 position: fixed、脱离 .app-content，
+       拿不到 `#root .app-content > *` 那条统一留白；底栏 z-index 更高，不让位就压住抽屉底部。
+       （`.rp-panel` 是 flex 子项、不是 fixed，让位由本层的下内边距完成。）
+       --bottom-bar-h 已含 env(safe-area-inset-bottom)。 */
+    padding-bottom: calc(var(--sp-md) + var(--bottom-bar-h));
 }
 
 .rp-panel {
@@ -230,6 +235,8 @@
 @media (max-width: 640px) {
     .rp-overlay {
         padding: 0;
+        /* 窄屏这条覆盖了上面基线的下内边距，这里补回来（抽屉从底部滑出，必须让开底栏） */
+        padding-bottom: var(--bottom-bar-h);
         align-items: flex-end;
     }
 

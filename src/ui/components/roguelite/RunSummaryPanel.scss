@@ -8,6 +8,10 @@
     height: 100dvh;
     z-index: 900;
     overflow-y: auto;
+    /* 常驻底栏例外（底栏 spec §5）：本层是 position: fixed、脱离 .app-content，
+       所以拿不到 `#root .app-content > *` 那条统一留白；底栏 z-index 更高，
+       不让位就会被盖住。--bottom-bar-h 已含 env(safe-area-inset-bottom)。 */
+    padding-bottom: var(--bottom-bar-h);
     background: var(--color-bg);
     color: var(--color-text);
     font-family: var(--font-mono);
