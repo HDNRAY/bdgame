@@ -53,12 +53,18 @@
 
     /* ========== 常驻底栏 / 层高 ==========
        底栏是 fixed、不在 `.app-content` 里，所以它是「全局空间分配」的单一来源：
-       - `--bottom-bar-content-h`：四项的可点高度下限（≥44px 触摸目标口径）；
+       - `--bottom-bar-content-h`：按钮高度，也是「内容给底栏让位」的量（H5 触摸目标硬口径 44px）；
        - `--bottom-bar-h`：内容高 + 安全区（底栏自己留一次，内容容器再按它让位）；
+       - `--bottom-bar-pad-x`：按钮组与视口左右边缘的距离（无边框纯文字按钮的呼吸位）；
        - `--z-bottom-bar`：高于所有弹层遮罩（弹层 1000 / RewardPicker 1200），
-         低于 Tooltip 9999 与 RotateDevice 9999（后者是唯一例外，见底栏 spec §6）。 */
-    --bottom-bar-content-h: max(44px, 2.75rem);
-    --bottom-bar-h: calc(var(--bottom-bar-content-h) + env(safe-area-inset-bottom, 0px));
+         低于 Tooltip 9999 与 RotateDevice 9999（后者是唯一例外，见底栏 spec §6）。
+       **只用 px、不再跟 rem 走**：`2.75rem` 会随 --ui-scale 放大（桌面档量到 49.3px），
+       反而比 H5 口径的 44px 更高，还会把按钮顶出底栏内框（上下各溢 1px）。
+       底栏总高 = 按钮高 + 上下边框（各 1px）+ 安全区：内框因此比按钮高 2px，
+       四周再各留 `--sp-xxs`（底栏的 padding），按钮不会贴边也不会溢出。 */
+    --bottom-bar-content-h: 44px;
+    --bottom-bar-pad-x: var(--sp-sm);
+    --bottom-bar-h: calc(var(--bottom-bar-content-h) + 2 * var(--border-width) + env(safe-area-inset-bottom, 0px));
     --z-bottom-bar: 1500;
 
     /* ========== Border / Radius ========== */

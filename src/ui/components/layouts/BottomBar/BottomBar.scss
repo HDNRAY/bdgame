@@ -5,6 +5,11 @@
      - 自己再留一次安全区（`--bottom-bar-h` 已含 env(safe-area-inset-bottom)）；
      - 内容容器用 `#root .app-content > *` 一条规则统一让位（src/index.css）。
    层高 `--z-bottom-bar`（1500）高于所有弹层遮罩与页面内容，低于 Tooltip / RotateDevice。
+
+   垂直：`align-items: center` + `padding-top/bottom: var(--sp-xxs)`，
+   按钮（`--bottom-bar-content-h`）在**内容盒里上下都有留白**，不再靠 stretch 撑满。
+   水平：按钮**靠右**（`justify-content: flex-end` + 右侧 `--bottom-bar-pad-x`），
+   每个按钮 `min-width` 兜住 44px 命中区。
    ════════════════════════════════════════ */
 
 .bottom-bar {
@@ -18,17 +23,22 @@
     border-top: var(--border-width) solid var(--color-border);
     z-index: var(--z-bottom-bar);
     display: flex;
-    align-items: stretch;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* 四项整体靠右（用户口径）：不居中、不铺满 */
+    justify-content: flex-end;
+    align-items: center;
+    /* 竖向呼吸位（按钮上下各一份）；横向只留右边，别贴着视口边缘 */
+    padding: var(--sp-xxs) var(--bottom-bar-pad-x);
+    padding-bottom: calc(var(--sp-xxs) + env(safe-area-inset-bottom, 0px));
     box-sizing: border-box;
 }
 
 /* 四项：纯文字、无边框、无图标（D4）；原生 button，不套 Button 组件 */
 .bottom-bar-item {
-    flex: 1 1 0;
-    /* 触摸目标下限：高度吃 --bottom-bar-content-h（≥44px），宽度 min-width 兜底 */
-    min-width: max(44px, 2.75rem);
+    flex: 0 0 auto;
+    /* 触摸目标 ≥44×44：高度吃 --bottom-bar-content-h，宽度由内容 + min-width 兜底 */
+    min-width: max(44px, 3.5rem);
     height: var(--bottom-bar-content-h);
+    padding: 0 var(--sp-sm);
     display: flex;
     align-items: center;
     justify-content: center;
