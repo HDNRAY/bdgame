@@ -2,8 +2,12 @@
 //  TournamentPanel — 玩家侧「赛程」弹窗
 //
 //  在 RogueliteScreen 的 rs-header 点「赛程」打开，随时可看：
-//  小组赛页签 = 8 组积分榜 + 每场比分；淘汰赛页签 = 16 强出线名单 + 十六强→决赛对阵。
+//  小组赛页签 = 8 组积分榜 + 每场比分；淘汰赛页签 = 十六强→决赛的实时对阵图。
 //  默认页签跟着赛程阶段走（小组赛进行中 → 小组赛；出线结算后 → 淘汰赛），也可以手动切换。
+//
+//  淘汰赛页只放对阵图：谁出线、谁晋级、谁夺冠都由对阵图本身表达（胜者高亮 + 比分），
+//  不再单列出线名单 / 冠军横幅。它每次渲染都直接读 gameState.tournamentData，
+//  所以每轮 processTournament 更新数据后，打开（或开着）的面板就跟着变 —— 没有自己的副本。
 //
 //  纯展示：只读 gameState.tournamentData，不写任何状态、不影响赛程推进。
 //
@@ -38,12 +42,6 @@ export function TournamentPanel({ tournament, onClose }: TournamentPanelProps) {
         return () => window.removeEventListener('keydown', onKey)
     }, [onClose])
 
-    const nameOf = (id: string | null | undefined): string => {
-        if (!id) return '未知'
-        return tournament.participants.find((p) => p.id === id)?.name ?? id
-    }
-    const championId = tournament.knockoutStage.championId
-
     return (
         <div className="tnp" role="dialog" aria-modal="true" aria-label="斗炁大会赛程">
             {/* 整块背景：点一下关闭 */}
@@ -75,32 +73,8 @@ export function TournamentPanel({ tournament, onClose }: TournamentPanelProps) {
                     {view === 'group' ? (
                         <TournamentStandings tournament={tournament} />
                     ) : (
-                        <>
-                            {championId && (
-                                <div className="tnp-champion">
-                                    冠军：<b>{nameOf(championId)}</b>
-                                </div>
-                            )}
-                            {tournament.groupStage.qualifiers.length > 0 && (
-                                <section>
-                                    <h3 className="tnp-section-title">出线名单</h3>
-                                    <ul className="tnp-qualifiers">
-                                        {tournament.groupStage.qualifiers.map((id) => (
-                                            <li
-                                                key={id}
-                                                className={`tnp-qualifier${id === tournament.playerId ? ' is-player' : ''}`}
-                                            >
-                                                {nameOf(id)}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </section>
-                            )}
-                            <section>
-                                <h3 className="tnp-section-title">对阵表</h3>
-                                <TournamentBracket tournament={tournament} />
-                            </section>
-                        </>
+                        /* 淘汰赛页只留这一张实时对阵图（见文件头注释） */
+                        <TournamentBracket tournament={tournament} />
                     )}
                 </div>
             </div>

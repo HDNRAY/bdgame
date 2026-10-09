@@ -9,8 +9,9 @@
  * 覆盖点：
  *   1. 入口可见性 —— nodeIndex >= 23 且 gameState.tournamentData 存在时 rs-header 里才有「赛程」；
  *   2. 小组赛面板渲染出各小组积分榜与比赛比分；
- *   3. 出线结算后（phase='knockout'）默认看到出线名单 + 十六强→决赛的对阵内容。
- * 变异验证：把 TournamentBracket 的渲染整块掐掉（return null），第 3 条必须变红。
+ *   3. 出线结算后（phase='knockout'）淘汰赛页只留十六强→决赛的实时对阵图；
+ *   4. 对阵图跟着数据走 —— 再推一轮淘汰赛，八强由「待定」变成具体对局。
+ * 变异验证：把 TournamentBracket 的渲染整块掐掉（return null），第 3、4 条必须变红。
  */
 import type { ReactNode } from 'react'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -112,26 +113,37 @@ describe('赛程面板内容', () => {
         expect(html).toMatch(/\d+ : \d+/)
         // 参赛者名字来自真数据
         expect(html).toContain(group.participants[0].name)
-        // 还没出线，默认页签是小组赛，不摆对阵表
-        expect(html).not.toContain('对阵表')
+        // 还没出线，默认页签是小组赛，不摆对阵图
+        expect(html).not.toContain('class="tn-bracket"')
     })
 
-    it('出线结算后：默认看到出线名单 + 十六强到决赛的对阵内容', () => {
+    it('出线结算后：淘汰赛页只留十六强到决赛的实时对阵图', () => {
         const html = renderPanel(knockout)
-        expect(html).toContain('出线名单')
-        expect(html).toContain('对阵表')
-        // 16 人出线名单
-        expect(knockout.groupStage.qualifiers).toHaveLength(16)
-        const firstName = knockout.participants.find((p) => p.id === knockout.groupStage.qualifiers[0])!.name
-        expect(html).toContain(`>${firstName}</li>`)
+        // 淘汰赛页不再有出线名单 / 冠军横幅（对阵图本身显示谁在里面、谁晋级）
+        expect(html).not.toContain('出线名单')
+        expect(html).not.toContain('冠军')
         // 四列对阵：十六强 / 八强 / 四强 / 决赛 的标题都在
         expect(html).toContain('class="tn-bracket"')
         for (const label of ['十六强', '八强', '四强', '决赛']) {
             expect(html).toContain(label)
         }
+        // 出线的人也只在图里出现（名字在 .tn-bracket 之后）
+        expect(knockout.groupStage.qualifiers).toHaveLength(16)
+        const firstName = knockout.participants.find((p) => p.id === knockout.groupStage.qualifiers[0])!.name
+        expect(html.indexOf(firstName)).toBeGreaterThan(html.indexOf('class="tn-bracket"'))
         // 对阵行渲染的是「左名 / 比分 / 右名」，十六强已打完 → 有比分，八强起是「待定」
         expect(html).toContain('class="tn-ko-match')
         expect(html).toMatch(/\d+ : \d+/)
         expect(html).toContain('待定')
+    })
+
+    it('对阵图是实时的：赛程再推一轮，八强从「待定」变成具体对局', () => {
+        const before = renderPanel(knockout)
+        const after = renderPanel(simulateKnockoutRound(knockout))
+        const countTbd = (html: string) => (html.match(/class="tn-tbd"/g) ?? []).length
+        // 打完八强后待定位置变少，且多了新的比分
+        expect(countTbd(before)).toBeGreaterThan(countTbd(after))
+        expect(after).toContain('class="tn-bracket"')
+        expect(after).toMatch(/\d+ : \d+/)
     })
 })
