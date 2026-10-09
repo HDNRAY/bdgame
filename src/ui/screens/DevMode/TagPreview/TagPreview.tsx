@@ -11,16 +11,19 @@ import './TagPreview.scss'
 
 /** 按语义族分组（与 docs 第 7 节的 8 族一致），顺序固定便于两套主题对比 */
 const GROUPS: { name: string; tags: Tag[] }[] = [
-    { name: '伤害进攻', tags: ['slash', 'bleed', 'burn', 'low_hp', 'knockdown', 'knockback', 'bonus_damage', 'self_damage', 'electric'] },
+    { name: '伤害进攻（红 → 橙）', tags: ['bleed', 'burn', 'bonus_damage', 'self_damage', 'low_hp'] },
+    { name: '持续伤害（深绿）', tags: ['poison'] },
+    { name: '酒（棕）', tags: ['jiu'] },
+    { name: '武器流派（低彩度冷色）', tags: ['slash', 'pierce', 'blunt', 'unarmed', 'melee', 'polearm', 'heavy', 'thrown', 'range', 'imperial', 'one_handed', 'two_handed', 'weapon'] },
+    { name: '增益恢复（绿）', tags: ['heal', 'buff', 'cleanse'] },
+    { name: '控制 / 感官（灰）', tags: ['stun', 'paralyze', 'debuff', 'sand_blind', 'frost', 'knockdown', 'knockback'] },
+    { name: '内息资源（青）', tags: ['qi', 'qi_action', 'chan'] },
+    { name: '雷（蓝）', tags: ['electric'] },
+    { name: '身法闪避（紫）', tags: ['move'] },
     { name: '防御格挡', tags: ['parry', 'heavy_reduce', 'ignore_parry', 'defense', 'super_armor', 'counter'] },
-    { name: '身法闪避', tags: ['move', 'sand_blind', 'frost'] },
-    { name: '内息资源', tags: ['qi', 'qi_action', 'chan'] },
-    { name: '增益恢复', tags: ['heal', 'buff', 'cleanse', 'pre_action'] },
-    { name: '负面状态', tags: ['poison', 'paralyze', 'stun', 'debuff'] },
-    { name: '武器流派', tags: ['unarmed', 'one_handed', 'weapon', 'thrown', 'blunt', 'melee', 'two_handed', 'pierce', 'polearm', 'heavy'] },
     {
-        name: '机制规则',
-        tags: ['inherent', 'internal', 'implant', 'jiu', 'talent', 'trigger', 'summon', 'stance', 'craft', 'imperial', 'retrieve_weapon', 'post_action', 'range', 'range_up'],
+        name: '机制规则（青灰）',
+        tags: ['inherent', 'internal', 'implant', 'talent', 'trigger', 'summon', 'stance', 'craft', 'retrieve_weapon', 'post_action', 'range_up', 'pre_action'],
     },
 ]
 
@@ -29,7 +32,7 @@ export function TagPreviewScreen() {
         <div className="tag-preview">
             <div className="tag-preview-title">标签徽章配色（亮 / 暗各截一张）</div>
             <div className="tag-preview-note">
-                重点看：heal 浅绿 / poison 深绿；electric（伤害族）；伤害族与武器族同带、靠彩度分开。
+                重点看：流血红 / 雷蓝 / 控制灰 / 酒棕 / 劈砍等流派低彩度；heal 浅绿与 poison 深绿同绿带（一深一浅）。
             </div>
             {GROUPS.map((g) => (
                 <div className="tag-preview-group" key={g.name}>

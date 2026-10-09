@@ -282,7 +282,7 @@ async function compileTree(root) {
             all.set(scoped, t);
         }
     }
-    return { all, failures, fileCount: files.length };
+    return { all, failures, fileCount: files.length, files: new Set(files.map((f) => path.relative(root, f).split(path.sep).join('/'))) };
 }
 
 function fmtTriple(t) {
@@ -298,6 +298,7 @@ function main() {
 
     return Promise.all([compileTree(baselineRoot), compileTree(currentRoot)]).then(
         ([base, curr]) => {
+            const baseFiles = base.files;
             const report = {
                 baseline: `${args.baseline} (${base.fileCount} 文件)`,
                 current: `${args.current ?? 'workspace'} (${curr.fileCount} 文件)`,
@@ -308,6 +309,7 @@ function main() {
                 },
                 removed: [],
                 added: [],
+                addedInNewFile: [],
                 changed: [],
                 valueOnlyColor: 0,
                 violations: [],
@@ -341,8 +343,14 @@ function main() {
                     report.valueOnlyColor++;
                 }
             }
+            // 新增三元组区分两种来源：
+            //   addedInNewFile —— 基线里不存在的 .scss（新文件是**有意的改动**，不算回归）
+            //   addedInExistingFile —— 基线已有该文件却多出三元组（真回归）
             for (const [key, c] of curr.all) {
-                if (!base.all.has(key)) report.added.push(fmtTriple(c));
+                if (base.all.has(key)) continue;
+                const line = fmtTriple(c);
+                if (baseFiles.has(c.file)) report.added.push(line);
+                else report.addedInNewFile.push(line);
             }
 
             const pass =
@@ -356,13 +364,16 @@ function main() {
             console.log(`当前：${report.current}`);
             console.log(`三元组数：(选择器, 媒体) 对 —— 基线 ${report.counts.base} / 当前 ${report.counts.current}`);
             console.log(`消失的三元组：${report.removed.length}`);
-            console.log(`新增的三元组：${report.added.length}`);
+            console.log(`新增的三元组：${report.added.length}（既有文件里多出来的，算回归）`);
+            console.log(`新文件带来的三元组：${report.addedInNewFile.length}（基线里没有的 .scss，不算回归，但需人工确认是有意新增）`);
             console.log(
                 `声明体有变化的三元组：${report.changed.length}` +
                     `（其中仅颜色声明变化 ${report.valueOnlyColor}，含非颜色声明变化 ${report.violations.length}）`,
             );
             for (const v of report.removed.slice(0, 40)) console.log(`  [消失] ${v}`);
-            for (const v of report.added.slice(0, 40)) console.log(`  [新增] ${v}`);
+            for (const v of report.added.slice(0, 40)) console.log(`  [新增·既有文件] ${v}`);
+            const newFiles = [...new Set(report.addedInNewFile.map((l) => l.split(' | ')[0]))];
+            for (const f of newFiles) console.log(`  [新文件] ${f}（${report.addedInNewFile.filter((l) => l.startsWith(f + ' |')).length} 条三元组）`);
             for (const v of report.violations.slice(0, 40)) {
                 const d = v.diffs.map((x) => `${x.prop}: ${x.from} → ${x.to}`).join('; ');
                 console.log(`  [非颜色变化] ${v.file} | ${v.media ? `@media ${v.media}` : '(root)'} | ${v.selector} | ${d}`);

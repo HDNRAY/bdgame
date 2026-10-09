@@ -9,7 +9,7 @@
 // 用法（在仓库根）：
 //   node scripts/ui-geometry.mjs                     # 亮 + 暗，两页 × 三档
 //   node scripts/ui-geometry.mjs --theme light       # 只跑一套主题
-//   node scripts/ui-geometry.mjs --pages home        # 只跑首页（可选 home / settings / encyclopedia）
+//   node scripts/ui-geometry.mjs --pages home        # 只跑首页（可选 home / settings / encyclopedia / tag-preview）
 //   node scripts/ui-geometry.mjs --port 5199         # 换端口（默认 5199，strictPort）
 //   node scripts/ui-geometry.mjs --keep              # 结束后不停 dev server
 //
@@ -241,6 +241,7 @@ const PAGES = [
     { name: 'home', url: '/' },
     { name: 'settings', url: '/settings' },
     { name: 'encyclopedia', url: '/encyclopedia' },
+    { name: 'tag-preview', url: '/dev?tab=tags' },
 ].filter((p) => opts.pages.split(',').map((s) => s.trim()).includes(p.name));
 
 const VIEWPORTS = [
