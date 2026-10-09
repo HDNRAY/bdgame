@@ -25,12 +25,14 @@ function tutorialStory(description: string): Round {
     }
 }
 
-/** 教学观战轮（该线指定的 AI vs AI n33 演示；不计玩家胜负/伤势/奖励） */
+/**
+ * 教学观战轮（该线指定的 AI vs AI n33 演示；不计玩家胜负/伤势/奖励）
+ * 不挂 description：剧情由前一格的教程故事轮承担，这一格只有「观战」标题 + 面板 + UI 的教学提示条。
+ */
 function tutorialRound(t: Round['tutorial']): Round {
     return {
         id: 'tutorial',
         title: '观战',
-        description: '在开始之前，先看看一场巅峰对决。',
         tutorial: t,
         choices: [{ id: 'scene', type: 'continue', label: '继续' }],
     }
