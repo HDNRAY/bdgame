@@ -117,17 +117,23 @@ describe('赛程面板内容', () => {
         expect(html).not.toContain('class="tn-bracket"')
     })
 
-    it('出线结算后：淘汰赛页只留十六强到决赛的实时对阵图', () => {
+    it('出线结算后：淘汰赛页只留十六强到决赛的实时对阵树', () => {
         const html = renderPanel(knockout)
         // 淘汰赛页不再有出线名单 / 冠军横幅（对阵图本身显示谁在里面、谁晋级）
         expect(html).not.toContain('出线名单')
         expect(html).not.toContain('冠军')
-        // 四列对阵：十六强 / 八强 / 四强 / 决赛 的标题都在
+        // 轮次图例：十六强 / 八强 / 四强 / 决赛
         expect(html).toContain('class="tn-bracket"')
         for (const label of ['十六强', '八强', '四强', '决赛']) {
             expect(html).toContain(label)
         }
-        // 出线的人也只在图里出现（名字在 .tn-bracket 之后）
+        // 是一棵对阵树（不是四列卡片）：7 个内部节点各一条连接线、各两个孩子
+        //（1 决赛 ← 2 四强 ← 4 八强 ← 8 十六强），格子总数 8+4+2+1
+        expect(html).toContain('class="tn-tree"')
+        expect(html.match(/class="tn-link"/g)).toHaveLength(7)
+        expect(html.match(/class="tn-kid"/g)).toHaveLength(14)
+        expect(html.match(/tn-ko-match/g)).toHaveLength(15)
+        // 出线的人也只在树里出现（名字在 .tn-bracket 之后）
         expect(knockout.groupStage.qualifiers).toHaveLength(16)
         const firstName = knockout.participants.find((p) => p.id === knockout.groupStage.qualifiers[0])!.name
         expect(html.indexOf(firstName)).toBeGreaterThan(html.indexOf('class="tn-bracket"'))
@@ -137,7 +143,7 @@ describe('赛程面板内容', () => {
         expect(html).toContain('待定')
     })
 
-    it('对阵图是实时的：赛程再推一轮，八强从「待定」变成具体对局', () => {
+    it('对阵树是实时的：赛程再推一轮，八强从「待定」变成具体对局', () => {
         const before = renderPanel(knockout)
         const after = renderPanel(simulateKnockoutRound(knockout))
         const countTbd = (html: string) => (html.match(/class="tn-tbd"/g) ?? []).length

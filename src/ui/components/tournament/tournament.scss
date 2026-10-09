@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════
    斗炁大会赛程（对阵表）显示用的共享样式：
      - .tn-groups / .tn-*     小组赛积分榜与比分（TournamentStandings）
-     - .tn-bracket / .tn-*    淘汰赛四列对阵（TournamentBracket）
+     - .tn-bracket / .tn-tree 淘汰赛对阵树（TournamentBracket，连接线 + 纵向居中对齐）
      - .tnp-*                 玩家侧「赛程」弹窗（TournamentPanel）
    两个只读组件与弹窗都 import 这个文件（同一模块，打包只出一份）。
 
@@ -9,8 +9,8 @@
      - 高度用 dvh，四周留 env(safe-area-inset-*)；
      - 可点控件不小于 44×44；
      - :hover 只写在 @media (hover: hover) 里，并配 :active；
-     - 窄屏绝不撑开整页：网格用 minmax(min(240px, 100%), 1fr)、
-       对阵表 <=720px 直接竖排，队名一律 ellipsis。
+     - 窄屏绝不撑开整页：组卡片网格用 minmax(min(240px, 100%), 1fr)、
+       对阵树 <=720px 换紧凑竖排格子（外层横滚容器只是兜底），队名一律 ellipsis。
    ════════════════════════════════════════ */
 
 /* ── 比赛行（小组赛 / 淘汰赛共用同一套行样式） ── */
@@ -168,46 +168,153 @@
     @extend %tn-row;
 }
 
-/* ── 淘汰赛 ── */
+/* ════════════════════════════════════════
+   淘汰赛对阵树（NBA 转播图那种）
+   结构（递归）：.tn-node = [.tn-kids 两个孩子][.tn-link 连接线][.tn-ko-match 本轮格子]
+   尺寸契约：格子等高 --tn-box-h、固定宽 --tn-box-w；间隙 --tn-gap-x / --tn-gap-y；
+             孩子子树高 --tn-kid-h 按层由 [data-kid-round] 推出（连接线的半截竖线要用）。
+   ════════════════════════════════════════ */
 .tn-bracket {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--sp-md);
     min-width: 0;
 }
 
-.tn-round {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-sm);
-    min-width: 0;
+.tn-legend {
+    margin-bottom: var(--sp-sm);
+    font-size: var(--font-xs);
+    color: var(--color-text-dim);
+}
 
-    h4 {
-        margin: 0;
-        font-size: var(--font-sm);
-        color: var(--color-accent);
+.tn-tree-scroll {
+    /* 兜底：万一容器比树还窄（721-860px 之间的窄面板），只在组件内部横滚，绝不影响整页 */
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tn-tree {
+    --tn-box-w: 13rem;
+    --tn-box-h: 44px;
+    --tn-gap-x: 2rem;
+    --tn-gap-y: 0.5rem;
+    --tn-half-gap: calc(var(--tn-gap-x) / 2);
+    --tn-kid-h: 0px;
+    display: flex;
+    align-items: center;
+    width: max-content;
+    /* 树的四周留出线宽，免得最外圈的连接线被裁掉 */
+    padding: 2px;
+
+    /* 孩子子树高（连接线半截竖线 = (kid-h + gap-y) / 2）：
+       叶子 = 一个格子；每上一层 = 2 × 下层 + 一个行间隙 */
+    .tn-node[data-kid-round='0'] {
+        --tn-kid-h: var(--tn-box-h);
+    }
+    .tn-node[data-kid-round='1'] {
+        --tn-kid-h: calc(2 * var(--tn-box-h) + var(--tn-gap-y));
+    }
+    .tn-node[data-kid-round='2'] {
+        --tn-kid-h: calc(4 * var(--tn-box-h) + 3 * var(--tn-gap-y));
     }
 }
 
-.tn-ko-matches {
+.tn-node {
+    display: flex;
+    align-items: center;
+}
+
+.tn-kids {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    flex: 1;
-    min-width: 0;
+    justify-content: center;
+    gap: var(--tn-gap-y);
+}
+
+.tn-kid {
+    position: relative;
+}
+
+/* 每个来源：向右半格的横线（走到两条竖线的汇合处） */
+.tn-kid::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    width: var(--tn-half-gap);
+    border-top: var(--border-width) solid var(--color-border);
+}
+
+/* 每个来源：从自己中线朝父节点中线走的半截竖线（两半正好在父节点中线上接上） */
+.tn-kid::before {
+    content: '';
+    position: absolute;
+    left: calc(100% + var(--tn-half-gap));
+    height: calc((var(--tn-kid-h) + var(--tn-gap-y)) / 2);
+    border-left: var(--border-width) solid var(--color-border);
+}
+
+.tn-kid:first-child::before {
+    top: 50%;
+}
+
+.tn-kid:last-child::before {
+    bottom: 50%;
+}
+
+/* 连接线：从汇合处横着进本轮格子（自己在父节点的中线上） */
+.tn-link {
+    position: relative;
+    width: var(--tn-gap-x);
+    align-self: center;
+    height: 0;
+}
+
+.tn-link::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    right: 0;
+    top: 0;
+    border-top: var(--border-width) solid var(--color-border);
 }
 
 .tn-ko-match {
     @extend %tn-row;
     justify-content: center;
+    width: var(--tn-box-w);
+    height: var(--tn-box-h);
+    flex-shrink: 0;
 }
 
-/* 窄屏（手机竖屏）：四列改竖排 —— 每轮一整段，谁对谁、谁赢都看得清，
-   而不是让对阵表横向撑开页面。 */
+/* 窄屏（手机竖屏）：格子改成「名字 / 比分 / 名字」三行竖排的紧凑格子，
+   四个轮次的树仍然完整横向可读（不撑开整页、也不需要横滚）。 */
 @media (max-width: 720px) {
-    .tn-bracket {
-        grid-template-columns: minmax(0, 1fr);
-        gap: var(--sp-lg);
+    .tn-tree {
+        --tn-box-w: 4.5rem;
+        --tn-box-h: 3.5rem;
+        --tn-gap-x: 0.5rem;
+        --tn-gap-y: 0.375rem;
+        font-size: var(--font-xs);
+    }
+
+    .tn-ko-match {
+        flex-direction: column;
+        justify-content: center;
+        gap: 0;
+        padding: 2px;
+        text-align: center;
+    }
+
+    .tn-side,
+    .tn-side-b {
+        flex: none;
+        max-width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 400px) {
+    .tn-tree {
+        --tn-box-w: 3.5rem;
     }
 }
 
