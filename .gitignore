@@ -22,3 +22,5 @@ scripts/preview/
 .hr*/
 .hs*/
 .headless/
+# 临时产物（验证截图等）：src/tmp/ 下只放图片，脚本一律留在系统 /tmp
+src/tmp/
