@@ -14,6 +14,15 @@
         align-items: center;
         gap: var(--sp-sm);
         margin-bottom: var(--sp-sm);
+
+        /* H5 触摸目标 ≥44×44：返回是 Button 的 sm 紧凑档（契约里说页面自行补足），
+           这里在触屏上给命中区兜底；桌面（fine pointer）尺寸不变。 */
+        @media (pointer: coarse) {
+            .btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+        }
     }
 
     /* &-back 已迁到共用 Button 组件（variant=ghost size=sm）：
@@ -71,6 +80,14 @@
         justify-content: center;
         gap: var(--sp-xxs);
 
+        /* 触屏默认高亮与下面的 :active 反馈重复，关掉（同 RoundCard 的写法） */
+        -webkit-tap-highlight-color: transparent;
+
+        /* H5 触摸目标 ≥44×44：触屏上补足高度（宽度由 flex:1 撑开，四档均 >44） */
+        @media (pointer: coarse) {
+            min-height: 44px;
+        }
+
         /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
         @media (hover: hover) {
             &:hover {
@@ -115,10 +132,12 @@
         }
     }
 
-    /* 卡片网格：每张卡直接铺开完整内容（名字/标签/属性/效果/触发…） */
+    /* 卡片网格：每张卡直接铺开完整内容（名字/标签/属性/效果/触发…）。
+       min() 兜底：容器比 20rem 还窄时（320×568 的单列），列宽跟着容器收缩、不再撑出视口
+       （同 tournament.scss 的组卡片网格）；容器 ≥20rem 时 min() 取 20rem，列数与改前一致。 */
     &-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
         gap: var(--sp-sm);
         align-content: start;
     }

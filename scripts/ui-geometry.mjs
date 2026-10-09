@@ -7,7 +7,7 @@
 // 截图只**留存**到 tmp/preview/（已 gitignore）供人工目视，不参与判定。
 //
 // 用法（在仓库根）：
-//   node scripts/ui-geometry.mjs                     # 亮 + 暗，两页 × 三档
+//   node scripts/ui-geometry.mjs                     # 亮 + 暗，三页（home/settings/encyclopedia）× 三档
 //   node scripts/ui-geometry.mjs --theme light       # 只跑一套主题
 //   node scripts/ui-geometry.mjs --pages home        # 只跑首页（可选 home / settings / encyclopedia / tag-preview）
 //   node scripts/ui-geometry.mjs --port 5199         # 换端口（默认 5199，strictPort）
@@ -33,7 +33,7 @@ const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Conte
 // ---------------------------------------------------------------------------
 
 function parseArgs(argv) {
-    const out = { theme: 'both', pages: 'home,settings', port: 5199, keep: false };
+    const out = { theme: 'both', pages: 'home,settings,encyclopedia', port: 5199, keep: false };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         if (a === '--theme') out.theme = argv[++i];
@@ -234,9 +234,10 @@ const MEASURE = `(() => {
 })()`;
 
 // 断言用页：必须有稳定的数据依赖（首页与设置页不依赖随机 seed）。
-// 另有 'encyclopedia'（/encyclopedia）可用 --pages 单独跑：它在 320×568 下本来就有
-// 13 个 .encyclopedia-card 越出视口（卡片固定宽度，文档无横向滚动），是既有布局问题、
-// 与配色无关，所以不放进默认断言集。
+// 'encyclopedia'（/encyclopedia）已是玩家可见页面的默认断言集成员：它的卡片网格
+// 用 minmax(min(20rem, 100%), 1fr)，320×568 下回落成单列、不再越出视口。
+// 另有 'tag-preview'（/dev?tab=tags）可用 --pages 单独跑，只作参考、不作通过条件
+// （DevMode 页面豁免 H5，见 AGENTS.md）。
 const PAGES = [
     { name: 'home', url: '/' },
     { name: 'settings', url: '/settings' },
