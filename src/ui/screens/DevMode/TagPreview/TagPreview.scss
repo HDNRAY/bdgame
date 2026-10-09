@@ -1,0 +1,36 @@
+/* 标签徽章配色目视页（DevMode 用）。徽章样式复用 Tag.scss 的 .tag-badge */
+.tag-preview {
+    padding: var(--sp-lg);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-family-base);
+    min-height: 100dvh;
+
+    &-title {
+        font: var(--text-lg);
+        color: var(--color-text-h);
+        margin-bottom: var(--sp-xs);
+    }
+
+    &-note {
+        color: var(--color-text-dim);
+        font-family: var(--font-family-small);
+        margin-bottom: var(--sp-md);
+    }
+
+    &-group {
+        margin-bottom: var(--sp-md);
+    }
+
+    &-group-name {
+        font-family: var(--font-family-small);
+        color: var(--color-text-dim);
+        margin-bottom: var(--sp-xxs);
+    }
+
+    &-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+}

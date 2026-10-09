@@ -9,6 +9,7 @@ import { WeaponCompare } from './WeaponCompare/WeaponCompare'
 import { BuildSim } from './BuildSim/BuildSim'
 import { MetaPanel } from './MetaPanel/MetaPanel'
 import { RunSummaryTab } from './RunSummary/RunSummaryTab'
+import { TagPreviewScreen } from './TagPreview/TagPreview'
 import './DevMode.scss'
 
 const NAV_ITEMS = [
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
     { id: 'ap', label: '招式对比' },
     { id: 'weapon', label: '武器对比' },
     { id: 'summary', label: '结算页' },
+    { id: 'tags', label: '标签配色' },
 ] as const
 
 type NavId = (typeof NAV_ITEMS)[number]['id']
@@ -78,6 +80,8 @@ export function DevMode() {
                     <ActionCompare />
                 ) : activeId === 'weapon' ? (
                     <WeaponCompare />
+                ) : activeId === 'tags' ? (
+                    <TagPreviewScreen />
                 ) : (
                     <RunSummaryTab />
                 )}
