@@ -13,7 +13,7 @@ vi.mock('../../engine/battle-runner', () => ({
 import { RogueliteRun } from '../roguelite/engine'
 import { STORIES } from '../../data/stories'
 import { getEvent } from '../../data/events'
-import { loadMeta, setMetaStorage } from '../meta-save'
+import { loadMeta, setMetaStorage, META_SAVE_KEY } from '../meta-save'
 
 function fakeStorage() {
     const map = new Map<string, string>()
@@ -21,6 +21,7 @@ function fakeStorage() {
         getItem: (k: string) => map.get(k) ?? null,
         setItem: (k: string, v: string) => void map.set(k, v),
         removeItem: (k: string) => void map.delete(k),
+        raw: map,
     }
 }
 
@@ -91,8 +92,11 @@ function driveToEnd(opts: DriveOpts = {}): { run: RogueliteRun; seen: SeenRound[
 const find = (seen: SeenRound[], title: string) => seen.find((s) => s.title === title)
 
 describe('终局流程（n33 → 山腹）', () => {
+    let store: ReturnType<typeof fakeStorage>
+
     beforeEach(() => {
-        setMetaStorage(fakeStorage())
+        store = fakeStorage()
+        setMetaStorage(store)
     })
 
     it('首次通关：跳过隐藏boss，只给「回到过去」，并落档', () => {
@@ -122,6 +126,39 @@ describe('终局流程（n33 → 山腹）', () => {
         expect(meta.trueEndingDone).toBe(false)
         expect(meta.lastWinEnding).toBe('loop')
         expect(meta.lastWinBuild?.rewards.length).toBeGreaterThan(0)
+    })
+
+    it('有没有可用 build 都不影响真结局门控：没打 boss 就只有两条路（只得魁）', () => {
+        // 两种"没有可用的隐藏boss build"的存档：坏的（校验丢弃）与压根没这个字段的旧档。
+        // 旧实现的门控是 cleared_before（clears>0），这两种存档会白拿第三条路。
+        const saves: { label: string; payload: Record<string, unknown> }[] = [
+            { label: '坏 build', payload: { schemaVersion: 1, clears: 1, lastWinEnding: 'loop', lastWinBuild: {} } },
+            { label: '缺 build', payload: { schemaVersion: 1, clears: 1, lastWinEnding: 'loop' } },
+        ]
+        for (const { label, payload } of saves) {
+            store.raw.set(META_SAVE_KEY, JSON.stringify(payload)) // 覆盖上一轮写回的有效存档
+            let result: ReturnType<typeof driveToEnd> | undefined
+            expect(() => {
+                result = driveToEnd()
+            }, label).not.toThrow()
+            const { run, seen } = result!
+
+            // 那具躯体不存在 → 隐藏boss 轮（连同 bossOnly 轮次）整轮跳过
+            expect(seen.some((s) => s.hasBoss), label).toBe(false)
+            expect(find(seen, '「东西」前面站着一个人'), label).toBeUndefined()
+            expect(find(seen, '击败'), label).toBeUndefined()
+            expect(find(seen, '收招'), label).toBeUndefined()
+            // 没打 boss → 不给第三条路，本局只能「回到过去」（得魁）
+            expect(run.getState().flags['champion_boss_seen'], label).toBeFalsy()
+            expect(find(seen, '「东西」面前')?.labels, label).toEqual(['回到过去', '我要变强'])
+
+            // 正常收尾并落档（坏 build 只丢自己，clears 照常累加：1 → 2）
+            expect(run.getState().finished, label).toBe(true)
+            const meta = loadMeta()
+            expect(meta.clears, label).toBe(2)
+            expect(meta.lastWinEnding, label).toBe('loop')
+            expect(meta.lastWinBuild?.rewards.length, label).toBeGreaterThan(0)
+        }
     })
 
     it('二次通关：出现隐藏boss（上一轮 build），给出「击败」与两条结局选项', () => {

@@ -9,12 +9,13 @@ import { END_EVENT } from '../../game/entities/round'
  * （「山腹」「隐藏boss · 斗炁协会副会长」「击败」「"东西"面前」「陨落于山腹」）。
  *
  * - `guardian` 是隐藏boss 战：敌人来自元进度存档里「最近一次通关的玩家 build」
- *   （`enemyFromSave`）；**首次通关没有存档时，引擎会整轮跳过**，于是那具躯体不出现。
+ *   （`enemyFromSave`）；**没有可用 build 时引擎会整轮跳过** —— 那具躯体不出现，
+ *   这一局也就没有真结局（只能「得魁」）。
  * - 胜负分支写在战斗轮**之后**的一轮（`guardian_result`）：引擎在推轮时按
  *   `result.won` 过滤选项，而战斗轮自己的选项是在结算**之前**过滤的 —— 与 n23
  *   热身赛（`warmup_result`）同构。
- * - 「转身，离开」（真结局）只在有过通关记录（`flags.cleared_before`）时给；
- *   首次通关只有「回到过去」。
+ * - 「转身，离开」（真结局）只在**本局真的出现了隐藏boss 轮**（`flags.champion_boss_seen`，
+ *   引擎推该轮时写入）时给；没打 boss 就只有「回到过去」（得魁）。
  * - 结局轮写 `ending_loop` / `ending_true` flag，引擎在收尾时落元进度存档。
  */
 const ROUNDS: Round[] = [
@@ -77,14 +78,15 @@ const ROUNDS: Round[] = [
             },
             // 迷惑选项：它不给变强，只把遗憾还给你 —— 转一圈又回到这一轮
             { id: 'taunt_power', type: 'continue', label: '我要变强' },
-            // 真结局：要有通关记录，而且要连选三次 —— 每次转身它都蛊惑一句（leave_step 记次数）
+            // 真结局：必须**本局打过隐藏boss**（flag 由引擎推 boss 轮时写入），
+            // 而且要连选三次 —— 每次转身它都蛊惑一句（leave_step 记次数）
             {
                 id: 'taunt_leave_1',
                 type: 'continue',
                 label: '转身，离开。',
                 when: {
                     and: [
-                        { '==': [{ var: 'flags.cleared_before' }, true] },
+                        { '==': [{ var: 'flags.champion_boss_seen' }, true] },
                         { '!': { var: 'flags.leave_step' } },
                     ],
                 },

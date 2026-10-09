@@ -11,8 +11,8 @@
 
 | 称呼 | 内容 | 出现条件 |
 | --- | --- | --- |
-| **n33.5** | 山腹 → 与**隐藏boss**（上一轮得魁的玩家 build）一战 | 有过得魁记录（`MetaSave.clears >= 1`） |
-| **n34** | 走到「东西」面前 → 许愿 / 转身离开 → 结局 | 同上 |
+| **n33.5** | 山腹 → 与**隐藏boss**（上一轮得魁的玩家 build）一战 | 存档里有**可用的 `lastWinBuild`**（缺失或结构损坏 → 整轮跳过，那具躯体不出现） |
+| **n34** | 走到「东西」面前 → 许愿 / 转身离开 → 结局 | 同上；「转身，离开」另需**本局真的打过隐藏boss**（`flags.champion_boss_seen`） |
 
 - 首次得魁之前：n33 打完直接按现在的「得魁」结算（老流程不变）。
 - n33.5 与 n34 **每条故事线完全一样**，不做分线差异。
@@ -48,9 +48,9 @@ ending_cavern（新事件，插入，无奖励；见 src/data/events/ending.ts�
  │                        · 「回到过去」＝历代会长都许过的那个愿（副文案写「我想再见见那些
  │                          已经不在的人。」）→ r7a
  │                        · 「我要变强」＝迷惑选项：它不给你变强，只把遗憾念给你听 → r6b
- │                        · 「转身，离开。」＝真结局路线：只在有过得魁记录时给，而且要**连选三次**
+ │                        · 「转身，离开。」＝真结局路线：只在本局真的出现过隐藏boss 轮时给，而且要**连选三次**
  │                          （每选一次都被蛊惑一句：r6c → r6；r6d → r6；第三次才进 r7b）
- │                          （所以首次得魁只有前两条：「没有第三个选项」）
+ │                          （所以没打 boss 只有前两条：「没有第三个选项」）
  ├ r6b 'taunt_power'    蛊惑轮：选「我要变强」后（唯一出口是回 r6 重选：「沉默」→ r6）
  ├ r6c 'taunt_leave_1'  蛊惑（一）：第一次转身时它再说一句 → 回 r6
  ├ r6d 'taunt_leave_2'  蛊惑（二）：第二次转身时它替你算账 → 回 r6
@@ -61,9 +61,9 @@ ending_cavern（新事件，插入，无奖励；见 src/data/events/ending.ts�
 ```
 
 - **胜负分支为什么写在战斗轮的下一轮**：引擎在**推轮时**就按 `result.won` 过滤选项，而战斗轮的选项过滤发生在该场战斗结算**之前**。这与 n23 热身赛（`warmup_result`）同构，沿用同一套机制，不必给引擎加「战斗后重新过滤」的补丁。
-- **首次得魁没有那具躯体**：`guardian` 带 `enemyFromSave`，存档里没有 `lastWinBuild` 时引擎整轮跳过；跳过的同时会把紧跟其后的 `bossOnly` 轮次（`guardian_result` / `beaten`）一起跳过，直接落到 `thing`，避免撞上「无人可打却只剩败北选项」的死路。
+- **没有可用的那具躯体时整轮跳过**：`guardian` 带 `enemyFromSave`，存档里没有 `lastWinBuild`（或它结构损坏、已被读档层丢弃）时引擎整轮跳过；跳过的同时会把紧跟其后的 `bossOnly` 轮次（`guardian_result` / `beaten`）一起跳过，直接落到 `thing`，避免撞上「无人可打却只剩败北选项」的死路。跳过也就没有真结局资格。
 - `thing` 上的三条路都会回到 `thing`（`taunt_*` 轮的唯一出口），只有 `loop` / `true` 会 `__end__`。蛊惑轮可以转任意次，也可以一次都不转。
-- **「转身，离开」要连选三次**：次数记在 `flags.leave_step`（选项自带 `setMany` 效果，0 → 1 → 2），三个同名选项用 `when` 互斥（第一次还要求 `flags.cleared_before`），第三个才指向 `true` 轮。所以「首次得魁没有第三条路」= 第一次的那条选项被 `cleared_before` 挡住。
+- **「转身，离开」要连选三次**：次数记在 `flags.leave_step`（选项自带 `setMany` 效果，0 → 1 → 2），三个同名选项用 `when` 互斥（第一次还要求 `flags.champion_boss_seen`，引擎在**推上隐藏boss 轮时**写入），第三个才指向 `true` 轮。所以「没打 boss 就没有第三条路」= 第一次的那条选项被 `champion_boss_seen` 挡住。
 - 「回到过去」与「我想再见见那些已经不在的人。」是**同一个选项**（label 是动作，description 是那个愿），不拆成两条。
 
 ---
@@ -89,7 +89,7 @@ enemySource?: 'champion'         // 或只给标记，引擎自己去存档取
 | 项 | 口径 |
 | --- | --- |
 | 奖励 | **玩家 13 个奖励完全保留**，武器/副手照旧 |
-| 义体 | 换入 **13 件**：15 件义体里排除 **悬浮座椅、战斗芯片·改** |
+| 义体 | 换入 **13 件**：15 件义体里排除 **悬浮风火轮、战斗芯片·改**。排除只约束「换入」这一步，**不删玩家存档里已有的奖励** —— 他若恰好带过这两件，boss 身上仍有它 |
 | 属性 | **六项一律 7 点起**（`CHAMPION_BASE_ATTR`），奖励与义体的加成**全部叠上去**，不做任何抵扣（玩家存档里的 `baseAttrs` 不再参与） |
 | 专属义体 | 新增 1 件**只给隐藏boss 的义体：根骨 +5** —— **「钛合金脊椎」**（`titanium_spine`，`implant` + `inherent`）；与其余义体一样叠加 |
 | 代价 | **照常生效**：`overload`（失重）/ `ap_drain`（失能）/ `fumble_chance`（永久失心）/ `muscle_degradation`（失感）/ `permanent_burn`（过热）在战斗里正常结算，**设计换算里不再另行折算** |
@@ -111,7 +111,7 @@ enemySource?: 'champion'         // 或只给标记，引擎自己去存档取
 | 髓泵 | — | 是（最大气血+60） |
 | 人造耳蜗 | 洞察+4 推演+1 | 是 |
 | 人造发声器 | — | 是（音波：无视招架 + 失心） |
-| 悬浮座椅 | — | **否** |
+| 悬浮风火轮 | — | **否** |
 | 战斗芯片·改 | 推演+4 | **否** |
 
 - 义体加成合计（13 件换入 + 专属）：**力道+10 根骨+7 身法+9 灵巧+7 洞察+9 推演+6 = 48 点**（平均每项 8 点）
@@ -164,10 +164,10 @@ interface MetaSave {
 | 结局 | 触发 | 写档 | 后续 |
 | --- | --- | --- | --- |
 | 循环结局「**得魁**」 | r6 `thing` 选「回到过去」（首次得魁时它也在这两条里） | `clears+1`、`loopClears+1`、`lastWinEnding='loop'`、`lastWinBuild=本局 build` | 该 build 成为下一局 n33.5 的隐藏boss |
-| 真结局「**带着遗憾向前**」 | r6 `thing` **连选三次**「转身，离开」（仅有得魁记录后出现） | `clears+1`、`trueEndingDone=true`、`lastWinEnding='true'`、`lastWinBuild=本局 build` | 同样更新最近得魁的 build（口径：**用最新一次得魁**）；随后单独放一页**终章**（见下） |
+| 真结局「**带着遗憾向前**」 | r6 `thing` **连选三次**「转身，离开」（本局打过隐藏boss 后才出现） | `clears+1`、`trueEndingDone=true`、`lastWinEnding='true'`、`lastWinBuild=本局 build` | 同样更新最近得魁的 build（口径：**用最新一次得魁**）；随后单独放一页**终章**（见下） |
 | 陨落于山腹 | r4 `guardian_result` 败给隐藏boss | 只记 `bossLosses+1`（`runs` 已在开局记过）；**不记得魁** | 本局结束，没有许愿的机会——文案见 `main-story.md`「### 陨落于山腹」 |
 
-- 「首次得魁没有第三条路」的落地：开局时把 `clears > 0` 写进本局 flags（`flags.cleared_before`），「转身，离开。」那条选项带 `when`。
+- 「没打隐藏boss 就没有第三条路」的落地：引擎真的推上隐藏boss 轮时写 `flags.champion_boss_seen`，「转身，离开。」那条选项带 `when`。（`flags.cleared_before` = `clears > 0` 仍在开局写入，但只供埋点/展示用，不再是真结局的门。）
 - **终章页**（真结局专属）：run 结束后先盖一页章页样式的正文（`IntroOverlay` + `TRUE_ENDING_EPILOGUE`，正文在 `src/data/story-intros.ts`，讲主角接任会长后从炁印里知道的来龙去脉），点「结束」才进结算页；是否已读记在 store 的 `endingSeen`（`reset()` 清掉，本局只盖一次）。
 - **结算页**（胜、负、各条结局线都有，**一页到底**，`src/ui/components/roguelite/RunSummaryPanel.tsx`）：终章读完（非真结局则直接）就是这一页——结局名 + 本局战绩（场次/胜负/伤势/奖励）+ 最终构筑（复用 `CharacterPanel` 的 view 模式）+ 本局战斗统计（复用 `BattleStatsPanel`），「再来一局 / 返回主菜单」常驻页脚不会滚丢。顺序固定为**终章 → 结算页**，别把终章挤掉。（原来「对局统计 → 结算」是两步、靠 store 的 `statsSeen` 记进度；已合并成一页，`statsSeen` / `confirmStats` 一并删除。）
   - 战绩与统计的来源：`GameState.runBattles`（`{total,wins,losses}`，在 `_executeCombat` 的战斗结算处累加）与 `GameState.runStats`（逐场 `BattleStats` 快照用 `mergeSnapshots()` 合并）。**不要在结算时去数回合列表**：`_advanceToNextNode` 判定结束时会把当前节点的 `rounds` 清掉且不归档，最后几场（n33 决赛、隐藏boss）会漏。
@@ -188,7 +188,7 @@ interface MetaSave {
 2. 义体代价：**照常结算**（失重/失能/永久失心/失感/过热都生效），设计换算里不另行折算。
 3. 专属义体：**「钛合金脊椎」**（`titanium_spine`，`implant`+`inherent`，根骨+5），只给隐藏boss。
 4. 隐藏boss 取**最近一次得魁**的 build（与最近一次是哪种结局无关）。
-5. 首次得魁时不给「转身离开」（只有「回到过去」与迷惑选项「我要变强」两条）；文案后续打磨。
+5. 没打隐藏boss 时不给「转身离开」（只有「回到过去」与迷惑选项「我要变强」两条）——首次得魁必然属于这一类；文案后续打磨。
 6. 元进度只记录、不封锁内容：真结局达成后仍可继续开局，n33.5 照常出现。
 7. **难度目标**：隐藏boss 打全部 32 位选手，tour 胜率 **55% – 60%**（需要把 boss 作为第 33 个角色接进 `scripts/tournament.ts` 才能测）。
 8. 隐藏boss 的义体按常规装上即可（代价照常触发），**不需要任何「忽略代价」的引擎改动**。
@@ -210,7 +210,7 @@ interface MetaSave {
 
 | 文件 | 内容 |
 | --- | --- |
-| `src/data/events/ending.ts` | `ending_cavern` 事件（9 轮：场景 / 战斗 / 分歧 / 击败 / 许愿 / 两个结局 / 陨落） |
+| `src/data/events/ending.ts` | `ending_cavern` 事件（12 轮：场景 ×2 / 战斗 / 分歧 / 击败 / 许愿 / 蛊惑 ×3 / 两个结局 / 陨落） |
 | `src/data/events/tournament.ts` | n33 决赛胜后选项 `type: 'event'` → `ending_cavern` |
 | `src/game/roguelite/engine.ts` | `enemyFromSave` 注入 / 缺席跳过、`bossOnly` 连带跳过、boss 战绩与得魁落档 |
 | `src/game/entities/round.ts` | `enemyFromSave` / `enemyBuild` / `bossOnly` |

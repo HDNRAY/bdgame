@@ -318,6 +318,9 @@ export class RogueliteRun implements RogueliteEngine {
                 return
             }
             copy.enemyBuild = boss
+            // 本局真的推上了隐藏boss 轮 → 真结局的第三条路（「转身，离开」）只认这个 flag：
+            // 没打 boss（无档 / lastWinBuild 损坏而整轮跳过）就没有资格走真结局，本局只能是「得魁」。
+            this._state.flags['champion_boss_seen'] = true
         }
         const enemyId = copy.enemyId ?? (copy.enemyPool ? pickRandomOpponentId(copy.enemyPool) : undefined)
         if (copy.tutorial) {
@@ -346,6 +349,10 @@ export class RogueliteRun implements RogueliteEngine {
             copy.enemyId = enemyId
             this._executeCombat(copy)
             this._lastCombatResult = { won: copy.result?.won ?? false }
+            // 决赛落败已在 `_executeCombat` 里判淘汰并收束整局（finished=true、rounds=[]）。
+            // 这一轮不能再 push 回去：否则 finished 与 rounds 同时成立，其上的 event 选项还是活的，
+            // 任何直接调 select 的入口都会白送一个结局。正常战斗轮（未 finished）照常推进。
+            if (this._state.finished) return
         } else {
             this._lastCombatResult = undefined
         }

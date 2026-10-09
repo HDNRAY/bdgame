@@ -155,4 +155,49 @@ describe('斗炁大会淘汰判定（纯函数，按真实节点顺序）', () =
         expect(td.knockoutStage.championId).not.toBe('player')
         expect(isTournamentEliminated(td)).toBe(true)
     })
+
+    it('n28 出线结算：引擎不返回对手，该节点没有战斗', () => {
+        let td = makeTournament()
+        // n23 小组赛 r0（含热身赛）→ 记录第一场
+        td = recordPlayerMatchResult(processTournament(td, 'tournament_open').tournamentData, true)
+        // n26 第二场 → 记录
+        td = recordPlayerMatchResult(processTournament(td, 'tournament_group_r1').tournamentData, true)
+        // n27 第三场 → 记录
+        td = recordPlayerMatchResult(processTournament(td, 'tournament_group_r2').tournamentData, true)
+        // n28：只推进到出线结算，不再给对手
+        const settle = processTournament(td, 'tournament_group_r3')
+        expect(settle.opponentId).toBeUndefined()
+        expect(settle.tournamentData.phase).toBe('knockout')
+        expect(settle.tournamentData.groupStage.qualifiers).toContain('player')
+    })
+})
+
+describe('淘汰收束：结束时 rounds 必须为空', () => {
+    beforeEach(() => {
+        vi.spyOn(Math, 'random').mockReturnValue(0.5)
+    })
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    it('决赛落败：finished 之后不再把决赛轮 push 回 rounds', () => {
+        battle.playerWins = true
+        const run = new RogueliteRun()
+        let state = run.getState()
+        let guard = 0
+        while (!state.finished && guard++ < 900) {
+            // 进 n32 时它自己的战斗已结算完；此刻改判只影响随后进入的 n33 决赛
+            if (state.nodeIndex >= 32) battle.playerWins = false
+            const round = state.rounds[state.rounds.length - 1]
+            if (!round || round.choices.length === 0) break
+            run.selectChoice(0)
+            state = run.getState()
+        }
+
+        expect(state.finished).toBe(true)
+        expect(state.tournamentData?.phase).toBe('finished')
+        expect(state.tournamentData?.knockoutStage.championId).not.toBe('player')
+        // 旧实现：判淘汰时清了 rounds，`_pushRound` 又把决赛轮 push 回去 → finished 且 rounds=[决赛轮]
+        expect(state.rounds).toEqual([])
+    })
 })

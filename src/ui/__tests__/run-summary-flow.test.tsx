@@ -38,7 +38,7 @@ afterAll(() => {
     vi.unstubAllGlobals()
 })
 
-/** 已通关一次的存档（有它才有「转身，离开」；没给 lastWinBuild → 隐藏boss 那轮跳过） */
+/** 已通关一次的存档 + 一份可用的 lastWinBuild：有它引擎才会推隐藏boss 轮，才会给「转身，离开」 */
 function seededStorage() {
     const map = new Map<string, string>()
     map.set(
@@ -52,6 +52,14 @@ function seededStorage() {
             bossWins: 0,
             bossLosses: 0,
             lastWinEnding: 'loop',
+            lastWinBuild: {
+                id: 'player',
+                name: '上一轮的人',
+                battleStyle: 'melee',
+                baseAttrs: { strength: 7, vitality: 7, agility: 7, dexterity: 7, insight: 7, wisdom: 7 },
+                weapon: 'peach_sword',
+                rewards: [],
+            },
         }),
     )
     return {
