@@ -143,14 +143,14 @@
         }
     }
 
-    /* 「备战」那一行：按钮 + 修炼点。底色/分隔线从按钮移到这一行，
-       按钮旁边才放得下修炼点，且分隔线仍然横贯侧栏。 */
+    /* 「备战」那一行：按钮 + 修炼点。底色与横贯侧栏的分隔线归这一行（分隔线要跨整条侧栏），
+       但按钮自己**保留一圈描边**，别让人看不出它是按钮。 */
     &-prep-row {
         display: flex;
         align-items: center;
         gap: var(--sp-sm);
         flex-shrink: 0;
-        padding-right: var(--sp-sm);
+        padding: 0 var(--sp-sm);
         background: var(--color-bg-alt);
         border-bottom: var(--border-width) solid var(--color-border);
 
@@ -162,10 +162,14 @@
         }
     }
 
+    // 基础七件套（描边 / 圆角 / 字体 / 字号）本页自己给（与 .rs-schedule-btn 同档口径）：
+    // 透明底 + 一圈 accent 描边 + accent 文字，一眼是按钮；行的底色/分隔线仍在 .rs-prep-row 上。
     &-prep-btn {
         flex-shrink: 0;
-        padding: var(--sp-xxs) var(--sp-lg);
-        border: none;
+        margin: var(--sp-xxs) 0;
+        padding: var(--sp-xxs) var(--sp-md);
+        border: var(--border-width) solid var(--color-accent);
+        border-radius: var(--radius-sm);
         background: none;
         color: var(--color-accent);
         cursor: pointer;
@@ -180,8 +184,10 @@
             }
         }
 
+        /* 按下背景 = 描边色，文字转页底色（与 .rs-schedule-btn / .rs-exit-btn 同一套实心按下写法） */
         &:active {
-            background: var(--color-bg-hover);
+            color: var(--color-bg);
+            background: var(--color-accent);
         }
     }
 
