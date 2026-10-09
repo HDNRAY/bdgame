@@ -270,11 +270,11 @@ export const XUANMEN_N16_CONFRONT: EventDef = {
 }
 
 // ════════════════════════════════════════
-//  归海楼研讨会（xuanmen 主线）：n14 代表家族赴归海楼切磋交流
+//  归海楼研讨会（xuanmen 主线）：n14 代表家族赴归海楼，与归海楼弟子桑原切磋
 //  （n15 小树重逢即在归海楼比武大会上）；共享池版已为玄门让位。
 // ════════════════════════════════════════
 
-/** node 14: 主线·归海楼·参会——玄门弟子代表家族赴归海楼切磋交流 */
+/** node 14: 主线·归海楼·参会——玄门弟子代表家族赴归海楼，下场与桑原切磋（固定战斗） */
 export const XUANMEN_GUIHAILOU: EventDef = {
     id: 'xuanmen_guihailou',
     name: '归海楼·参会',
@@ -287,7 +287,15 @@ export const XUANMEN_GUIHAILOU: EventDef = {
             id: 'arrive',
             title: '归海楼',
             description:
-                '父亲让你代表玄门赴归海楼之约。山门前人声鼎沸，各派弟子都在。你依礼入场，与几派弟子切磋了几场，不落下风。',
+                '父亲让你代表玄门赴归海楼之约。山门前人声鼎沸，各派弟子都在。你依礼入场，报上姓名。台上有人收了招，朝这边看过来。',
+            choices: [{ id: 'combat_round', type: 'continue', label: '下场' }],
+        },
+        {
+            id: 'combat_round',
+            title: '切磋桑原',
+            enemyId: 'sangyuan',
+            description:
+                '那人跳下擂台，朝你抱拳：「玄门的御物？归海楼，桑原。讨教几招。」他出手大开大合，没有虚招。',
             choices: [{ id: 'reward_round', type: 'continue', label: '收手' }],
         },
         {
