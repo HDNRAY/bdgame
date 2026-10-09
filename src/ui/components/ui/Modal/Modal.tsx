@@ -29,13 +29,27 @@ interface ModalProps {
     footer?: ReactNode
     /** modal = 居中卡片；fullscreen = 铺满「视口 − 底栏」、圆角 0 */
     variant?: 'modal' | 'fullscreen'
+    /**
+     * 卡片宽度：`wide`（默认，`min(56rem, 92vw)`，给内容成栏的弹层如「玩法」）/
+     * `narrow`（`min(30rem, 92vw)`，给设置 / 关于这类一列表单）。宽度只在 Modal.scss 里定义一处。
+     */
+    width?: 'wide' | 'narrow'
     /** 追加在 .modal-panel 之后的类名（调用方做局部排版） */
     className?: string
     /** 追加在 .modal-body 之后的类名（调用方做局部排版） */
     bodyClassName?: string
 }
 
-export function Modal({ title, onClose, children, footer, variant = 'modal', className, bodyClassName }: ModalProps) {
+export function Modal({
+    title,
+    onClose,
+    children,
+    footer,
+    variant = 'modal',
+    width = 'wide',
+    className,
+    bodyClassName,
+}: ModalProps) {
     const titleId = useId()
     const panelRef = useRef<HTMLDivElement>(null)
     /** 打开前的焦点归属（关闭时还回去） */
@@ -62,7 +76,7 @@ export function Modal({ title, onClose, children, footer, variant = 'modal', cla
         return () => window.removeEventListener('keydown', onKey, true)
     }, [onClose])
 
-    const panelClass = `modal-panel modal-panel-${variant}${className ? ` ${className}` : ''}`
+    const panelClass = `modal-panel modal-panel-${variant} modal-panel-w-${width}${className ? ` ${className}` : ''}`
     const bodyClass = `modal-body${bodyClassName ? ` ${bodyClassName}` : ''}`
 
     return (

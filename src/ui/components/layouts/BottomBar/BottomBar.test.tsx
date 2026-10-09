@@ -18,6 +18,7 @@
  * 第 3 条必须变红；把 `autoFocus={!embedded}` 改成 `autoFocus`，第 5 条必须变红。
  */
 import type { ReactNode } from 'react'
+import { readFileSync } from 'node:fs'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
@@ -137,22 +138,31 @@ describe('底栏四个弹层', () => {
         expect(renderPopups(null)).toBe('')
     })
 
-    it('打开设置 → 设置弹窗 + 设置屏内容', () => {
+    it('打开设置 → 设置弹窗（narrow 宽度档）+ 设置屏内容', () => {
         const html = renderPopups('settings')
         expect(html).toContain('role="dialog"')
+        // 设置 / 关于走窄档；宽度只由 Modal 的宽度档决定（两处都不写死 px）
+        expect(html).toContain('modal-panel-w-narrow')
         expect(domText(html)).toContain('UI 缩放')
         expect(domText(html)).toContain('逐字显示')
     })
 
-    it('打开关于 → 关于弹窗 + 关于屏内容', () => {
+    it('打开关于 → 关于弹窗（narrow 宽度档）+ 关于屏内容与 GitHub issues 反馈入口', () => {
         const html = renderPopups('about')
         expect(html).toContain('role="dialog"')
+        expect(html).toContain('modal-panel-w-narrow')
         expect(domText(html)).toContain('赛博朋克 + 炼炁士 主题 1v1 肉鸽')
+        // 反馈入口：可点链接指向核实过的仓库 issues 页，新窗口打开且不带上游 referrer
+        expect(html).toContain('href="https://github.com/HDNRAY/bdgame/issues"')
+        expect(html).toContain('target="_blank"')
+        expect(html).toContain('rel="noreferrer"')
+        expect(domText(html)).toContain('欢迎到 GitHub 的 issues 里提')
     })
 
-    it('打开玩法 → 玩法弹窗（共用的 Modal 外壳）+ 玩法正文与「知道了」', () => {
+    it('打开玩法 → 玩法弹窗（共用的 Modal 外壳、wide 宽度档）+ 玩法正文与「知道了」', () => {
         const html = renderPopups('gameplay')
         expect(html).toContain('role="dialog"')
+        expect(html).toContain('modal-panel-w-wide')
         expect(domText(html)).toContain('对战玩法')
         expect(domText(html)).toContain('数值公式')
         expect(buttons(html).some((b) => b.text === '知道了')).toBe(true)
@@ -169,6 +179,25 @@ describe('底栏四个弹层', () => {
         const html = renderPopups('settings')
         expect(html).not.toMatch(/[\u{1F300}-\u{1FAFF}]/u)
         for (const label of ['浅色', '深色', '系统']) expect(domText(html)).toContain(label)
+    })
+})
+
+describe('弹层内容盒的上下留白', () => {
+    it('三个弹窗的内容盒都挂上 modal-body 类（上下留白由 .modal-body 一处给，不在各屏幕里写）', () => {
+        for (const key of ['settings', 'about', 'gameplay'] as const) {
+            expect(renderPopups(key)).toContain('class="modal-body')
+        }
+    })
+
+    it('Modal.scss 的 .modal-body 上下内边距同值、且不为 0（内容不贴页首 / 页脚）', () => {
+        const scss = readFileSync(new URL('../../ui/Modal/Modal.scss', import.meta.url), 'utf8')
+        const body = scss.slice(scss.indexOf('.modal-body {'), scss.indexOf('.modal-footer {'))
+        expect(body).toMatch(/padding:\s*var\(--sp-md\)\s+var\(--sp-lg\)/)
+    })
+
+    it('fullscreen 变体把内容盒留白归零（图鉴内容自己管排版）', () => {
+        const scss = readFileSync(new URL('../../ui/Modal/Modal.scss', import.meta.url), 'utf8')
+        expect(scss).toMatch(/\.modal-panel-fullscreen \{[\s\S]*?\.modal-body \{\s*padding: 0;/)
     })
 })
 

@@ -36,13 +36,13 @@ export function BottomPopups({ active, onClose }: BottomPopupsProps) {
             return <GameplayModal onClose={onClose} />
         case 'settings':
             return (
-                <Modal title="设置" onClose={onClose} className="modal-embed" bodyClassName="modal-body-embed">
+                <Modal title="设置" width="narrow" onClose={onClose} className="modal-embed" bodyClassName="modal-body-embed">
                     <SettingsScreen />
                 </Modal>
             )
         case 'about':
             return (
-                <Modal title="关于" onClose={onClose} className="modal-embed" bodyClassName="modal-body-embed">
+                <Modal title="关于" width="narrow" onClose={onClose} className="modal-embed" bodyClassName="modal-body-embed">
                     <AboutScreen />
                 </Modal>
             )

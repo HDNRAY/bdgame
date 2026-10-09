@@ -5,10 +5,9 @@
    `.gameplay-close` / `.gameplay-footer` 六条规则随之删除。
    这里只剩正文排版与那枚「知道了」按钮的横向内边距。
    注意：`.gameplay-body` 仍在本文件里，但它是作为 `<Modal bodyClassName="gameplay-body">`
-   传给弹层**内容区**的类；Modal 自带 `flex: 1; overflow-y: auto; min-height: 0`，
-   所以下面只补内边距、字号与断行，不重复 flex / 滚动。 */
+   传给弹层**内容区**的类；Modal 自带 `flex: 1; overflow-y: auto; min-height: 0`
+   与上下左右内边距（`.modal-body`），所以这里只补断行，不重复内边距 / flex / 滚动。 */
 .gameplay-body {
-    padding: var(--sp-md) var(--sp-lg);
     /* 从上到下单一栏（知识点顺序读） */
     overflow-wrap: break-word;
 }

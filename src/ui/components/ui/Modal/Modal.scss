@@ -35,7 +35,6 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     width: 100%;
-    max-width: min(56rem, 92vw);
     /* 视口 − 底栏 − 上下留白（overlay 的 padding），内容再高也自己滚 */
     max-height: calc(100dvh - var(--bottom-bar-h) - var(--sp-xl));
     display: flex;
@@ -44,6 +43,17 @@
     /* 面板是交互主体，背景层才是「点一下关闭」 */
     cursor: auto;
     outline: none;
+}
+
+/* 卡片宽度只有两档，都定义在这里（调用方只写 width="wide|narrow"，不在各自文件里写死宽度）：
+   - wide（默认）：内容成栏的弹层（玩法：正文两栏也装得下）；
+   - narrow：一列表单 / 短文案（设置、关于），别撑成一整屏。 */
+.modal-panel-w-wide {
+    max-width: min(56rem, 92vw);
+}
+
+.modal-panel-w-narrow {
+    max-width: min(30rem, 92vw);
 }
 
 .modal-header {
@@ -86,6 +96,8 @@
     flex: 1;
     overflow-y: auto;
     min-height: 0;
+    /* 内容不许贴着页首 / 页脚：上下留白统一给在内容盒上（调用方不必各自补） */
+    padding: var(--sp-md) var(--sp-lg);
 }
 
 .modal-footer {
@@ -108,4 +120,10 @@
     border: none;
     border-radius: 0;
     box-shadow: none;
+
+    /* 全屏内容自己管排版（图鉴的页首/搜索/页签/列表自带间距），不要内容盒的上下留白；
+       宽度也不吃 wide/narrow 档（写在这里是为了跟上面的 max-width 同源、不被覆盖顺序坑到）。 */
+    .modal-body {
+        padding: 0;
+    }
 }
