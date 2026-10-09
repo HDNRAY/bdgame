@@ -36,7 +36,7 @@ function parseArgs(argv) {
     const out = {
         theme: 'both',
         pages:
-            'home,build-ajiu,battle,roguelite-intro,roguelite-battle,settings,about,encyclopedia,tag-preview',
+            'home,build-ajiu,battle,roguelite-intro,roguelite-battle,settings,about,encyclopedia',
         port: 5199,
         keep: false,
     };
@@ -340,8 +340,8 @@ const ADVANCE_ONE = `(() => {
 // 断言用页：必须有稳定的数据依赖（首页与设置页不依赖随机 seed）。
 // 'encyclopedia'（/encyclopedia）已是玩家可见页面的默认断言集成员：它的卡片网格
 // 用 minmax(min(20rem, 100%), 1fr)，320×568 下回落成单列、不再越出视口。
-// 另有 'tag-preview'（/dev?tab=tags）可用 --pages 单独跑，只作参考、不作通过条件
-// （DevMode 页面豁免 H5，见 AGENTS.md）。
+// 另有 'tag-preview'（/dev?tab=tags）**不在默认断言集内**，需要时用 --pages 显式跑，只作参考、
+// 不作通过条件（DevMode 页面豁免 H5，见 AGENTS.md）。
 // 「全部玩家可见页」= home / build / battle / roguelite（开场页 · 局内战斗轮）/ settings / about / encyclopedia。
 const ALL_PAGES = [
     { name: 'home', url: '/' },
