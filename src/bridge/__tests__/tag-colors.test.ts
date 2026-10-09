@@ -82,25 +82,25 @@ interface Slot {
 }
 const SLOTS: Record<string, Slot> = {
     bleed: { id: 'bleed', fam: 'sustain', H: 25 },
-    burn: { id: 'burn', fam: 'sustain', H: 85 },
+    burn: { id: 'burn', fam: 'sustain', H: 65 },
     poison: { id: 'poison', fam: 'sustain', H: 135 },
-    dmgBonus: { id: 'dmgBonus', fam: 'dmg', H: 15 },
-    dmgLow: { id: 'dmgLow', fam: 'dmg', H: 45 },
-    paralyze: { id: 'paralyze', fam: 'paralyze', H: 85 },
-    ctrlMid: { id: 'ctrlMid', fam: 'control', H: 135 },
-    ctrlDeep: { id: 'ctrlDeep', fam: 'control', H: 135 },
+    dmgBonus: { id: 'dmgBonus', fam: 'dmg', H: 12 },
+    dmgLow: { id: 'dmgLow', fam: 'dmg', H: 48 },
+    paralyze: { id: 'paralyze', fam: 'paralyze', H: 88 },
+    ctrlMid: { id: 'ctrlMid', fam: 'control', H: 155 },
+    ctrlDeep: { id: 'ctrlDeep', fam: 'control', H: 155 },
     mech: { id: 'mech', fam: 'mech', H: 110 },
-    jiu: { id: 'jiu', fam: 'jiu', H: 60 },
-    recover: { id: 'recover', fam: 'recover', H: 160 },
-    weapA: { id: 'weapA', fam: 'weapon', H: 185 },
-    weapB: { id: 'weapB', fam: 'weapon', H: 210 },
-    qiDeep: { id: 'qiDeep', fam: 'qi', H: 225 },
-    qiMid: { id: 'qiMid', fam: 'qi', H: 250 },
-    electric: { id: 'electric', fam: 'electric', H: 275 },
-    frost: { id: 'frost', fam: 'frost', H: 295 },
-    eva: { id: 'eva', fam: 'eva', H: 320 },
-    defA: { id: 'defA', fam: 'def', H: 345 },
-    defB: { id: 'defB', fam: 'def', H: 10 },
+    jiu: { id: 'jiu', fam: 'jiu', H: 75 },
+    recover: { id: 'recover', fam: 'recover', H: 180 },
+    weapA: { id: 'weapA', fam: 'weapon', H: 205 },
+    weapB: { id: 'weapB', fam: 'weapon', H: 230 },
+    frost: { id: 'frost', fam: 'frost', H: 245 },
+    electric: { id: 'electric', fam: 'electric', H: 260 },
+    qiDeep: { id: 'qiDeep', fam: 'qi', H: 285 },
+    qiMid: { id: 'qiMid', fam: 'qi', H: 285 },
+    eva: { id: 'eva', fam: 'eva', H: 310 },
+    defA: { id: 'defA', fam: 'def', H: 335 },
+    defB: { id: 'defB', fam: 'def', H: 0 },
 }
 
 const SLOT_OF: Record<Tag, string> = {
@@ -252,8 +252,8 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
     it('用户口径①：雷（electric）是蓝色', () => {
         for (const theme of ['light', 'dark'] as const) {
             const { H, C } = oklch(TAG_COLOR.electric[theme])
-            expect(H, `${theme} electric H=${H.toFixed(0)} 应在蓝带 240~290`).toBeGreaterThanOrEqual(240)
-            expect(H, `${theme} electric H=${H.toFixed(0)} 应在蓝带 240~290`).toBeLessThanOrEqual(290)
+            expect(H, `${theme} electric H=${H.toFixed(0)} 应在蓝带 245~285`).toBeGreaterThanOrEqual(245)
+            expect(H, `${theme} electric H=${H.toFixed(0)} 应在蓝带 245~285`).toBeLessThanOrEqual(285)
             expect(C, `${theme} electric C=${C.toFixed(3)} 应是有彩度的蓝`).toBeGreaterThan(0.05)
         }
     })
@@ -337,8 +337,8 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
             expect(C, `${theme} frost C=${C.toFixed(3)} 应是低彩度蓝白（≤ 0.06）`).toBeLessThanOrEqual(0.06)
             // 仍须显著低于强调色与流派族同带的彩度（强调色 accent C≈0.083、流派 C=0.055）
             expect(C, `${theme} frost C=${C.toFixed(3)} 应低于 accent 的 0.083`).toBeLessThan(0.083)
-            expect(H, `${theme} frost H=${H.toFixed(0)} 应在冷蓝带 265~320`).toBeGreaterThanOrEqual(265)
-            expect(H, `${theme} frost H=${H.toFixed(0)} 应在冷蓝带 265~320`).toBeLessThanOrEqual(320)
+            expect(H, `${theme} frost H=${H.toFixed(0)} 应在冷蓝带 225~258`).toBeGreaterThanOrEqual(225)
+            expect(H, `${theme} frost H=${H.toFixed(0)} 应在冷蓝带 225~258`).toBeLessThanOrEqual(258)
             void L
         }
         // 「偏白」在暗色主题成立（高明度）；亮色主题受对比度硬约束，只能是中等明度的灰蓝
@@ -397,10 +397,13 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
         for (const theme of ['light', 'dark'] as const) {
             const hb = oklch(TAG_COLOR.bleed[theme]).H
             const { H, C } = oklch(TAG_COLOR.burn[theme])
-            expect(H, `${theme} burn H=${H.toFixed(0)} 应是火红（红偏黄，55~95）`).toBeGreaterThanOrEqual(55)
-            expect(H, `${theme} burn H=${H.toFixed(0)} 应是火红（红偏黄，55~95）`).toBeLessThanOrEqual(95)
+            expect(H, `${theme} burn H=${H.toFixed(0)} 应是火红（红偏黄，45~62）`).toBeGreaterThanOrEqual(45)
+            expect(H, `${theme} burn H=${H.toFixed(0)} 应是火红（红偏黄，45~66）`).toBeLessThanOrEqual(66)
             expect(hueGap(hb, H), `${theme} 火红必须比大红更偏黄（ΔH=${hueGap(hb, H).toFixed(0)}）`).toBeGreaterThanOrEqual(20)
             expect(C, `${theme} burn C=${C.toFixed(3)} 应是高彩度`).toBeGreaterThan(0.08)
+            // 火红必须留在"红偏黄"，不能滑进黄区（黄区是麻痹金黄 H88）
+            const hp = oklch(TAG_COLOR.paralyze[theme]).H
+            expect(hueGap(H, hp), `${theme} 火红与金黄麻痹必须分开（ΔH=${hueGap(H, hp).toFixed(0)}）`).toBeGreaterThanOrEqual(20)
         }
     })
 
@@ -416,8 +419,8 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
     it('用户口径⑮：霜冻是蓝白（C 放宽到 ≤0.06，但色相明确偏蓝）', () => {
         for (const theme of ['light', 'dark'] as const) {
             const { H, C, L } = oklch(TAG_COLOR.frost[theme])
-            expect(H, `${theme} frost H=${H.toFixed(0)} 应明确偏蓝（265~320）`).toBeGreaterThanOrEqual(265)
-            expect(H, `${theme} frost H=${H.toFixed(0)} 应明确偏蓝（265~320）`).toBeLessThanOrEqual(320)
+            expect(H, `${theme} frost H=${H.toFixed(0)} 应明确偏蓝（225~258）`).toBeGreaterThanOrEqual(225)
+            expect(H, `${theme} frost H=${H.toFixed(0)} 应明确偏蓝（225~258）`).toBeLessThanOrEqual(258)
             expect(C, `${theme} frost C=${C.toFixed(3)} 应是低彩度蓝白（0.03~0.06）`).toBeGreaterThanOrEqual(0.03)
             expect(C, `${theme} frost C=${C.toFixed(3)} 应低于 accent 的 0.083`).toBeLessThan(0.083)
             // 与雷电亮蓝的区分：霜冻彩度明显更低
@@ -429,8 +432,8 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
     it('用户口径⑯：雷电是亮蓝（正蓝 H≈240~280，暗色主题高明度）', () => {
         for (const theme of ['light', 'dark'] as const) {
             const { H, C } = oklch(TAG_COLOR.electric[theme])
-            expect(H, `${theme} electric H=${H.toFixed(0)} 应是正蓝（240~280）`).toBeGreaterThanOrEqual(240)
-            expect(H, `${theme} electric H=${H.toFixed(0)} 应是正蓝（240~280）`).toBeLessThanOrEqual(280)
+            expect(H, `${theme} electric H=${H.toFixed(0)} 应是正蓝（250~272）`).toBeGreaterThanOrEqual(250)
+            expect(H, `${theme} electric H=${H.toFixed(0)} 应是正蓝（250~272）`).toBeLessThanOrEqual(272)
             expect(C, `${theme} electric C=${C.toFixed(3)} 应是高彩度亮蓝`).toBeGreaterThan(0.1)
         }
         expect(oklch(TAG_COLOR.electric.dark).L, '暗色主题的雷应是高明度（≥0.75）').toBeGreaterThanOrEqual(0.75)
