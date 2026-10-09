@@ -8,16 +8,29 @@ import type { Round } from '../../game/entities/round'
 //  选项文案 = 事件 name（场景化短句），展开叙事 = description + rounds。
 //  需要扩展 n1 时，直接给对应出身事件加轮次/选项即可。
 //
-//  观战文案各线各写：教程在前、出身场景在后（rounds[0] → rounds[1]），
-//  所以每段都要当作紧随其后那个场景的引子来写，并保留「看的是别人的交手」这层信息。
+//  每线三段：教程故事 → 观战 → 出身场景。教程故事是它自己的一个轮次（单独显示），
+//  文案各线各写，要当作紧随其后的出身场景的引子来写，并保留「看的是别人的交手」这层信息。
 // ════════════════════════════════════════
 
+/**
+ * 教程故事轮（观战之前单独一轮，纯剧情推进）
+ * 文案由各线自己给：接着下面的观战与出身场景写，别写成说明文。
+ */
+function tutorialStory(description: string): Round {
+    return {
+        id: 'intro',
+        title: '开场',
+        description,
+        choices: [{ id: 'tutorial', type: 'continue', label: '继续' }],
+    }
+}
+
 /** 教学观战轮（该线指定的 AI vs AI n33 演示；不计玩家胜负/伤势/奖励） */
-function tutorialRound(t: Round['tutorial'], description: string): Round {
+function tutorialRound(t: Round['tutorial']): Round {
     return {
         id: 'tutorial',
         title: '观战',
-        description,
+        description: '在开始之前，先看看一场巅峰对决。',
         tutorial: t,
         choices: [{ id: 'scene', type: 'continue', label: '继续' }],
     }
@@ -29,10 +42,8 @@ export const ORIGIN_XUANMEN: EventDef = {
     name: '你出自玄门',
     description: '玄门，青山镇最古老的宗门之一，血脉中拥有以炁御物的能力。',
     rounds: [
-        tutorialRound(
-            { aId: 'xuanji', bId: 'wukong', aName: '玄机', bName: '孙悟' },
-            '交手的是别人，你在旁边看。炁先起，物后走，招落得干净——招式和胜负都看清楚了，才回祖祠练功。',
-        ),
+        tutorialStory('交手的是别人，你在旁边看。炁先起，物后走，招落得干净——招式和胜负都看清楚了，才回祖祠练功。'),
+        tutorialRound({ aId: 'xuanji', bId: 'wukong', aName: '玄机', bName: '孙悟' }),
         {
             id: 'scene',
             title: '祖祠',
@@ -49,10 +60,8 @@ export const ORIGIN_SECT: EventDef = {
     name: '你是玄青宗的道种',
     description: '百年一遇的根骨，自幼与师兄一同入玄青宗山门修行。',
     rounds: [
-        tutorialRound(
-            { aId: 'layue', bId: 'fengshui', aName: '赵越', bName: '风似水' },
-            '山门外的钟响了三下。交手的是别人，起手、拆招、收势，一招没乱——你站在师兄旁边，从头看到尾。',
-        ),
+        tutorialStory('山门外的钟响了三下。交手的是别人，起手、拆招、收势，一招没乱——你站在师兄旁边，从头看到尾。'),
+        tutorialRound({ aId: 'layue', bId: 'fengshui', aName: '赵越', bName: '风似水' }),
         {
             id: 'scene',
             title: '山门',
@@ -69,10 +78,8 @@ export const ORIGIN_VETERAN: EventDef = {
     name: '你生在军营边',
     description: '父亲是军人，战死了。',
     rounds: [
-        tutorialRound(
-            { aId: 'hongti', bId: 'otsu', aName: '白山月', bName: '橘子真' },
-            '训练场边，你扒着栅栏看两个老兵对练。谁先动，谁先露破绽，胜负只在一两下——你看到最后，把这两下记住了。',
-        ),
+        tutorialStory('训练场边，你扒着栅栏看两个老兵对练。谁先动，谁先露破绽，胜负只在一两下——你看到最后，把这两下记住了。'),
+        tutorialRound({ aId: 'hongti', bId: 'otsu', aName: '白山月', bName: '橘子真' }),
         {
             id: 'scene',
             title: '营房',
@@ -89,10 +96,10 @@ export const ORIGIN_WANDERER: EventDef = {
     name: '你是巷子里长大的孤儿',
     description: '你和陶朵、奇岚都是孤儿，一起在镇子的巷子里长大。',
     rounds: [
-        tutorialRound(
-            { aId: 'yangguo', bId: 'longnv', aName: '杨之改', bName: '龙语仙' },
+        tutorialStory(
             '陶朵带着你和奇岚去看热闹。人堆最前面，两个人交手，招式快，收得也快——谁赢，你看得清楚。散了场，三个人溜回巷子。',
         ),
+        tutorialRound({ aId: 'yangguo', bId: 'longnv', aName: '杨之改', bName: '龙语仙' }),
         {
             id: 'scene',
             title: '巷子',
@@ -109,10 +116,10 @@ export const ORIGIN_FEUD: EventDef = {
     name: '你是林家最后的血脉',
     description: '林家世代反对义体研究。',
     rounds: [
-        tutorialRound(
-            { aId: 'jiran', bId: 'heiyun', aName: '姬然', bName: '玄木' },
+        tutorialStory(
             '那场火之前，你站在人群外看过一场交手。谁先出手，谁留了后手，一招一式你都记着——那时候你还小，只记住了招式。',
         ),
+        tutorialRound({ aId: 'jiran', bId: 'heiyun', aName: '姬然', bName: '玄木' }),
         {
             id: 'scene',
             title: '火',
