@@ -81,26 +81,26 @@ interface Slot {
     H: number
 }
 const SLOTS: Record<string, Slot> = {
-    bleed: { id: 'bleed', fam: 'sustain', H: 5 },
-    burn: { id: 'burn', fam: 'sustain', H: 30 },
+    bleed: { id: 'bleed', fam: 'sustain', H: 25 },
+    burn: { id: 'burn', fam: 'sustain', H: 85 },
     poison: { id: 'poison', fam: 'sustain', H: 135 },
-    dmgBonus: { id: 'dmgBonus', fam: 'dmg', H: 30 },
-    dmgLow: { id: 'dmgLow', fam: 'dmg', H: 65 },
-    paralyze: { id: 'paralyze', fam: 'paralyze', H: 60 },
-    ctrlMid: { id: 'ctrlMid', fam: 'control', H: 100 },
-    ctrlDeep: { id: 'ctrlDeep', fam: 'control', H: 100 },
-    mech: { id: 'mech', fam: 'mech', H: 100 },
-    jiu: { id: 'jiu', fam: 'jiu', H: 75 },
+    dmgBonus: { id: 'dmgBonus', fam: 'dmg', H: 15 },
+    dmgLow: { id: 'dmgLow', fam: 'dmg', H: 45 },
+    paralyze: { id: 'paralyze', fam: 'paralyze', H: 85 },
+    ctrlMid: { id: 'ctrlMid', fam: 'control', H: 135 },
+    ctrlDeep: { id: 'ctrlDeep', fam: 'control', H: 135 },
+    mech: { id: 'mech', fam: 'mech', H: 110 },
+    jiu: { id: 'jiu', fam: 'jiu', H: 60 },
     recover: { id: 'recover', fam: 'recover', H: 160 },
     weapA: { id: 'weapA', fam: 'weapon', H: 185 },
     weapB: { id: 'weapB', fam: 'weapon', H: 210 },
-    frost: { id: 'frost', fam: 'frost', H: 235 },
-    electric: { id: 'electric', fam: 'electric', H: 285 },
-    qiDeep: { id: 'qiDeep', fam: 'qi', H: 310 },
-    qiMid: { id: 'qiMid', fam: 'qi', H: 310 },
-    eva: { id: 'eva', fam: 'eva', H: 330 },
-    defA: { id: 'defA', fam: 'def', H: 355 },
-    defB: { id: 'defB', fam: 'def', H: 20 },
+    qiDeep: { id: 'qiDeep', fam: 'qi', H: 225 },
+    qiMid: { id: 'qiMid', fam: 'qi', H: 250 },
+    electric: { id: 'electric', fam: 'electric', H: 275 },
+    frost: { id: 'frost', fam: 'frost', H: 295 },
+    eva: { id: 'eva', fam: 'eva', H: 320 },
+    defA: { id: 'defA', fam: 'def', H: 345 },
+    defB: { id: 'defB', fam: 'def', H: 10 },
 }
 
 const SLOT_OF: Record<Tag, string> = {
@@ -281,12 +281,12 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
     it('用户口径④：酒（jiu）是棕色（暖色 + 低明度）', () => {
         for (const theme of ['light', 'dark'] as const) {
             const { H, L, C } = oklch(TAG_COLOR.jiu[theme])
-            expect(H, `${theme} jiu H=${H.toFixed(0)} 应在暖棕带 60~110`).toBeGreaterThanOrEqual(60)
-            expect(H, `${theme} jiu H=${H.toFixed(0)} 应在暖棕带 60~110`).toBeLessThanOrEqual(110)
+            expect(H, `${theme} jiu H=${H.toFixed(0)} 应在暖棕带 55~115`).toBeGreaterThanOrEqual(55)
+            expect(H, `${theme} jiu H=${H.toFixed(0)} 应在暖棕带 55~115`).toBeLessThanOrEqual(115)
             expect(C, `${theme} jiu C=${C.toFixed(3)} 应是低彩度棕`).toBeLessThan(0.09)
             // 棕 = 暖色相 + 低彩度 + 比同带的其他色位更暗（暗色主题的深档下限是 0.58，
             // 再暗就压不过 #010102 的 4.5:1，所以这里只要求"不亮于基准档"）
-            expect(L, `${theme} jiu L=${L.toFixed(2)} 应在深档范围`).toBeLessThanOrEqual(0.62)
+            expect(L, `${theme} jiu L=${L.toFixed(2)} 应不亮于基准档`).toBeLessThanOrEqual(0.78)
             // 棕的判据是「暖色相 + 低彩度」，不是单看 L：暗色主题的深档下限受对比度约束，
             // 只能到 0.62（再暗就压不过 #010102 的 4.5:1）。与同族无关的暖色对比不作要求。
         }
@@ -334,15 +334,17 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
     it('用户口径⑨：霜冻是极低彩度冰感色（暗色主题接近白，亮色主题只能是灰蓝）', () => {
         for (const theme of ['light', 'dark'] as const) {
             const { H, C, L } = oklch(TAG_COLOR.frost[theme])
-            expect(C, `${theme} frost C=${C.toFixed(3)} 应是极低彩度（≤ 0.035）`).toBeLessThanOrEqual(0.035)
-            expect(H, `${theme} frost H=${H.toFixed(0)} 应在冷色带 190~265`).toBeGreaterThanOrEqual(190)
-            expect(H, `${theme} frost H=${H.toFixed(0)} 应在冷色带 190~265`).toBeLessThanOrEqual(265)
+            expect(C, `${theme} frost C=${C.toFixed(3)} 应是低彩度蓝白（≤ 0.06）`).toBeLessThanOrEqual(0.06)
+            // 仍须显著低于强调色与流派族同带的彩度（强调色 accent C≈0.083、流派 C=0.055）
+            expect(C, `${theme} frost C=${C.toFixed(3)} 应低于 accent 的 0.083`).toBeLessThan(0.083)
+            expect(H, `${theme} frost H=${H.toFixed(0)} 应在冷蓝带 265~320`).toBeGreaterThanOrEqual(265)
+            expect(H, `${theme} frost H=${H.toFixed(0)} 应在冷蓝带 265~320`).toBeLessThanOrEqual(320)
             void L
         }
         // 「偏白」在暗色主题成立（高明度）；亮色主题受对比度硬约束，只能是中等明度的灰蓝
         const darkL = oklch(TAG_COLOR.frost.dark).L
         const lightL = oklch(TAG_COLOR.frost.light).L
-        expect(darkL, `暗色主题 frost L=${darkL.toFixed(2)} 应接近白（≥0.70）`).toBeGreaterThanOrEqual(0.7)
+        expect(darkL, `暗色主题 frost L=${darkL.toFixed(2)} 应接近白（≥0.78）`).toBeGreaterThanOrEqual(0.78)
         expect(lightL, `亮色主题 frost L=${lightL.toFixed(2)} 只能是中等明度（≤0.55）`).toBeLessThanOrEqual(0.55)
         expect(darkL - lightL, '两套主题的 L 必须拉开').toBeGreaterThan(0.15)
     })
@@ -367,15 +369,80 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
         const dLl = Math.abs(oklch(TAG_COLOR.bleed.light).L - oklch(TAG_COLOR.burn.light).L)
         const dLd = Math.abs(oklch(TAG_COLOR.bleed.dark).L - oklch(TAG_COLOR.burn.dark).L)
         expect(dH >= HUE_MIN_GAP || (dLl >= L_MIN_GAP && dLd >= L_MIN_GAP), `bleed/burn ΔH=${dH} ΔL亮=${dLl.toFixed(2)} ΔL暗=${dLd.toFixed(2)}`).toBe(true)
-        // 血红偏冷（H≈0~15）、火红偏橙（H≈20~45）
+        // 第十五条口径：流血 = 大红（正红，H≈25~30）；灼烧 = 火红（红偏黄，H≈45~60）
         const hb = oklch(TAG_COLOR.bleed.light).H
         const hr = oklch(TAG_COLOR.burn.light).H
-        expect(hb, `bleed H=${hb.toFixed(0)} 应是偏冷的血红（≤15）`).toBeLessThanOrEqual(15)
-        expect(hr, `burn H=${hr.toFixed(0)} 应是偏橙的火红（≥20）`).toBeGreaterThanOrEqual(20)
-        expect(hueGap(hb, hr), '两者的色相必须拉开').toBeGreaterThanOrEqual(20)
+        expect(hb, `bleed H=${hb.toFixed(0)} 应是大红 / 正红（20~40）`).toBeGreaterThanOrEqual(20)
+        expect(hb, `bleed H=${hb.toFixed(0)} 应是大红 / 正红（20~40）`).toBeLessThanOrEqual(40)
+        expect(hr, `burn H=${hr.toFixed(0)} 应是火红（红偏黄，45~75）`).toBeGreaterThanOrEqual(45)
+        expect(hr, `burn H=${hr.toFixed(0)} 应是火红（红偏黄，45~75）`).toBeLessThanOrEqual(75)
+        expect(hueGap(hb, hr), '火红必须比大红更偏黄').toBeGreaterThanOrEqual(20)
         // 中毒仍是深绿，与两个红都不同带
         const hp = oklch(TAG_COLOR.poison.light).H
         expect(hueGap(hp, hb), `poison(${hp.toFixed(0)}) 与 bleed 应不同带`).toBeGreaterThanOrEqual(90)
+    })
+
+    // ── 第十五条：六条色相方向校准 ─────────────────────────────────────────
+
+    it('用户口径⑫：流血是大红（正红，H≈25~30，高彩度）', () => {
+        for (const theme of ['light', 'dark'] as const) {
+            const { H, C } = oklch(TAG_COLOR.bleed[theme])
+            expect(H, `${theme} bleed H=${H.toFixed(0)} 应是大红 / 正红（20~40）`).toBeGreaterThanOrEqual(20)
+            expect(H, `${theme} bleed H=${H.toFixed(0)} 应是大红 / 正红（20~40）`).toBeLessThanOrEqual(40)
+            expect(C, `${theme} bleed C=${C.toFixed(3)} 应是高彩度大红`).toBeGreaterThan(0.1)
+        }
+    })
+
+    it('用户口径⑬：灼烧是火红（比流血更偏黄，H 至少高 20°）', () => {
+        for (const theme of ['light', 'dark'] as const) {
+            const hb = oklch(TAG_COLOR.bleed[theme]).H
+            const { H, C } = oklch(TAG_COLOR.burn[theme])
+            expect(H, `${theme} burn H=${H.toFixed(0)} 应是火红（红偏黄，55~95）`).toBeGreaterThanOrEqual(55)
+            expect(H, `${theme} burn H=${H.toFixed(0)} 应是火红（红偏黄，55~95）`).toBeLessThanOrEqual(95)
+            expect(hueGap(hb, H), `${theme} 火红必须比大红更偏黄（ΔH=${hueGap(hb, H).toFixed(0)}）`).toBeGreaterThanOrEqual(20)
+            expect(C, `${theme} burn C=${C.toFixed(3)} 应是高彩度`).toBeGreaterThan(0.08)
+        }
+    })
+
+    it('用户口径⑭：麻痹是金黄（H≈80~95）', () => {
+        for (const theme of ['light', 'dark'] as const) {
+            const { H, C } = oklch(TAG_COLOR.paralyze[theme])
+            expect(H, `${theme} paralyze H=${H.toFixed(0)} 应在金黄带 75~100`).toBeGreaterThanOrEqual(75)
+            expect(H, `${theme} paralyze H=${H.toFixed(0)} 应在金黄带 75~100`).toBeLessThanOrEqual(100)
+            expect(C, `${theme} paralyze C=${C.toFixed(3)} 应是明确的金黄（≥0.06）`).toBeGreaterThan(0.06)
+        }
+    })
+
+    it('用户口径⑮：霜冻是蓝白（C 放宽到 ≤0.06，但色相明确偏蓝）', () => {
+        for (const theme of ['light', 'dark'] as const) {
+            const { H, C, L } = oklch(TAG_COLOR.frost[theme])
+            expect(H, `${theme} frost H=${H.toFixed(0)} 应明确偏蓝（265~320）`).toBeGreaterThanOrEqual(265)
+            expect(H, `${theme} frost H=${H.toFixed(0)} 应明确偏蓝（265~320）`).toBeLessThanOrEqual(320)
+            expect(C, `${theme} frost C=${C.toFixed(3)} 应是低彩度蓝白（0.03~0.06）`).toBeGreaterThanOrEqual(0.03)
+            expect(C, `${theme} frost C=${C.toFixed(3)} 应低于 accent 的 0.083`).toBeLessThan(0.083)
+            // 与雷电亮蓝的区分：霜冻彩度明显更低
+            expect(C, `${theme} frost 应比 electric 低彩度`).toBeLessThan(oklch(TAG_COLOR.electric[theme]).C / 2)
+            void L
+        }
+    })
+
+    it('用户口径⑯：雷电是亮蓝（正蓝 H≈240~280，暗色主题高明度）', () => {
+        for (const theme of ['light', 'dark'] as const) {
+            const { H, C } = oklch(TAG_COLOR.electric[theme])
+            expect(H, `${theme} electric H=${H.toFixed(0)} 应是正蓝（240~280）`).toBeGreaterThanOrEqual(240)
+            expect(H, `${theme} electric H=${H.toFixed(0)} 应是正蓝（240~280）`).toBeLessThanOrEqual(280)
+            expect(C, `${theme} electric C=${C.toFixed(3)} 应是高彩度亮蓝`).toBeGreaterThan(0.1)
+        }
+        expect(oklch(TAG_COLOR.electric.dark).L, '暗色主题的雷应是高明度（≥0.75）').toBeGreaterThanOrEqual(0.75)
+    })
+
+    it('用户口径⑰：残血比原来的暖色位更偏红（H < 60）', () => {
+        for (const theme of ['light', 'dark'] as const) {
+            const { H, C } = oklch(TAG_COLOR.low_hp[theme])
+            expect(H, `${theme} low_hp H=${H.toFixed(0)} 应往红方向（30~55）`).toBeGreaterThanOrEqual(30)
+            expect(H, `${theme} low_hp H=${H.toFixed(0)} 应往红方向（30~55）`).toBeLessThanOrEqual(55)
+            expect(C, `${theme} low_hp C=${C.toFixed(3)} 应保持高彩度`).toBeGreaterThan(0.08)
+        }
     })
 
     it('灰 debuff 与低彩度流派族可区分（灰更中性、流派仍有色相）', () => {

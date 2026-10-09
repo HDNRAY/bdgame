@@ -11,15 +11,15 @@ import './TagPreview.scss'
 
 /** 按语义族分组（与 docs 第 7 节的 8 族一致），顺序固定便于两套主题对比 */
 const GROUPS: { name: string; tags: Tag[] }[] = [
-    { name: '持续伤害（血红 / 火红 / 深绿）', tags: ['bleed', 'burn', 'poison'] },
-    { name: '伤害进攻（红 → 橙）', tags: ['bonus_damage', 'self_damage', 'low_hp'] },
+    { name: '持续伤害（大红 / 火红 / 深绿）', tags: ['bleed', 'burn', 'poison'] },
+    { name: '伤害进攻（红 → 橙；残血已往红校准）', tags: ['bonus_damage', 'self_damage', 'low_hp'] },
     { name: '武器流派（低彩度冷色）', tags: ['slash', 'pierce', 'blunt', 'unarmed', 'melee', 'polearm', 'heavy', 'thrown', 'range', 'imperial', 'one_handed', 'two_handed', 'weapon'] },
     { name: '增益恢复（绿）', tags: ['heal', 'buff', 'cleanse'] },
     { name: '控制 / 感官（灰）', tags: ['stun', 'debuff', 'sand_blind', 'knockback', 'knockdown'] },
-    { name: '麻痹（黄 / 土黄）', tags: ['paralyze'] },
-    { name: '霜冻（极低彩度冰蓝）', tags: ['frost'] },
+    { name: '麻痹（金黄）', tags: ['paralyze'] },
+    { name: '霜冻（蓝白）', tags: ['frost'] },
     { name: '内息资源（青 → 蓝）', tags: ['qi', 'qi_action', 'chan'] },
-    { name: '雷（蓝）', tags: ['electric'] },
+    { name: '雷（亮蓝）', tags: ['electric'] },
     { name: '身法闪避（紫）', tags: ['move'] },
     { name: '防御格挡', tags: ['parry', 'heavy_reduce', 'ignore_parry', 'defense', 'super_armor', 'counter'] },
     { name: '酒（棕）', tags: ['jiu'] },
@@ -34,7 +34,7 @@ export function TagPreviewScreen() {
         <div className="tag-preview">
             <div className="tag-preview-title">标签徽章配色（亮 / 暗各截一张）</div>
             <div className="tag-preview-note">
-                重点看：持续伤害族里血红 / 火红 / 深绿三者能分开；霜冻冷白、麻痹偏黄、雷蓝、控制灰、酒棕；流派族低彩度。
+                重点看：持续伤害族里大红 / 火红 / 深绿三者能分开；霜冻蓝白、麻痹金黄、雷亮蓝、控制灰、酒棕；流派族低彩度。
             </div>
             {GROUPS.map((g) => (
                 <div className="tag-preview-group" key={g.name}>
