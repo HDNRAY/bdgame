@@ -99,70 +99,72 @@
 
 
     /* 标签徽章颜色（Tag.tsx 通过 --tag-color-<tag> 读取）。色位见 docs/ui-color-system.md 第 7 节 */
-    /* 伤害进攻 */
-    --tag-color-bleed: #a03d4a;
-    --tag-color-burn: #9f4320;
-    --tag-color-bonus_damage: #9f4320;
-    --tag-color-self_damage: #9f4320;
-    --tag-color-low_hp: #5e2b00;
     /* 持续伤害 */
-    --tag-color-poison: #003c21;
-    /* 武器流派 */
-    --tag-color-slash: #626742;
-    --tag-color-unarmed: #626742;
-    --tag-color-one_handed: #626742;
-    --tag-color-weapon: #626742;
-    --tag-color-thrown: #626742;
-    --tag-color-blunt: #536b4d;
-    --tag-color-melee: #536b4d;
-    --tag-color-two_handed: #536b4d;
-    --tag-color-pierce: #536b4d;
-    --tag-color-polearm: #536b4d;
-    --tag-color-heavy: #536b4d;
-    --tag-color-range: #536b4d;
-    --tag-color-imperial: #536b4d;
+    --tag-color-bleed: #9e3c59;
+    --tag-color-burn: #700e06;
+    --tag-color-poison: #214502;
+    /* 伤害进攻 */
+    --tag-color-bonus_damage: #9c4438;
+    --tag-color-self_damage: #9c4438;
+    --tag-color-low_hp: #5e2b00;
     /* 增益恢复 */
-    --tag-color-heal: #347b5f;
-    --tag-color-buff: #347b5f;
-    --tag-color-cleanse: #347b5f;
+    --tag-color-heal: #3a7b5b;
+    --tag-color-buff: #3a7b5b;
+    --tag-color-cleanse: #3a7b5b;
+    /* 武器流派 */
+    --tag-color-slash: #3c6e67;
+    --tag-color-unarmed: #3c6e67;
+    --tag-color-one_handed: #3c6e67;
+    --tag-color-weapon: #3c6e67;
+    --tag-color-thrown: #3c6e67;
+    --tag-color-blunt: #3b6c75;
+    --tag-color-melee: #3b6c75;
+    --tag-color-two_handed: #3b6c75;
+    --tag-color-pierce: #3b6c75;
+    --tag-color-polearm: #3b6c75;
+    --tag-color-heavy: #3b6c75;
+    --tag-color-range: #3b6c75;
+    --tag-color-imperial: #3b6c75;
     /* 内息资源 */
-    --tag-color-qi: #00465b;
-    --tag-color-qi_action: #1f6a96;
-    --tag-color-chan: #1f6a96;
-    /* 身法闪避 */
-    --tag-color-move: #7c4c91;
-    /* 雷（单标签） */
+    --tag-color-qi: #4a2961;
+    --tag-color-qi_action: #75528e;
+    --tag-color-chan: #75528e;
+    /* 雷 */
     --tag-color-electric: #5d57a4;
+    /* 霜冻 */
+    --tag-color-frost: #536672;
+    /* 麻痹 */
+    --tag-color-paralyze: #582f02;
     /* 控制 / 感官 */
-    --tag-color-stun: #5d6564;
-    --tag-color-debuff: #5d6564;
-    --tag-color-sand_blind: #5d6564;
-    --tag-color-knockback: #5d6564;
-    --tag-color-paralyze: #353c3c;
-    --tag-color-frost: #353c3c;
-    --tag-color-knockdown: #353c3c;
+    --tag-color-stun: #64635d;
+    --tag-color-debuff: #64635d;
+    --tag-color-sand_blind: #64635d;
+    --tag-color-knockback: #3c3b35;
+    --tag-color-knockdown: #3c3b35;
+    /* 身法闪避 */
+    --tag-color-move: #874883;
     /* 防御格挡 */
-    --tag-color-parry: #8a4976;
-    --tag-color-heavy_reduce: #8a4976;
-    --tag-color-ignore_parry: #8a4976;
-    --tag-color-defense: #94475b;
-    --tag-color-super_armor: #94475b;
-    --tag-color-counter: #94475b;
-    /* 酒（单标签） */
-    --tag-color-jiu: #463915;
+    --tag-color-parry: #914766;
+    --tag-color-heavy_reduce: #914766;
+    --tag-color-ignore_parry: #914766;
+    --tag-color-defense: #661d23;
+    --tag-color-super_armor: #661d23;
+    --tag-color-counter: #661d23;
+    /* 酒 */
+    --tag-color-jiu: #4b3617;
     /* 机制规则 */
-    --tag-color-inherent: #273962;
-    --tag-color-internal: #273962;
-    --tag-color-implant: #273962;
-    --tag-color-talent: #273962;
-    --tag-color-trigger: #273962;
-    --tag-color-summon: #273962;
-    --tag-color-stance: #273962;
-    --tag-color-craft: #273962;
-    --tag-color-retrieve_weapon: #273962;
-    --tag-color-post_action: #273962;
-    --tag-color-range_up: #273962;
-    --tag-color-pre_action: #273962;
+    --tag-color-inherent: #443b00;
+    --tag-color-internal: #443b00;
+    --tag-color-implant: #443b00;
+    --tag-color-talent: #443b00;
+    --tag-color-trigger: #443b00;
+    --tag-color-summon: #443b00;
+    --tag-color-stance: #443b00;
+    --tag-color-craft: #443b00;
+    --tag-color-retrieve_weapon: #443b00;
+    --tag-color-post_action: #443b00;
+    --tag-color-range_up: #443b00;
+    --tag-color-pre_action: #443b00;
 }
 
 /* ── Dark theme（霓虹）── */
@@ -237,68 +239,70 @@
     --scrollbar-track: transparent;
 
     /* 标签徽章颜色（Tag.tsx 通过 --tag-color-<tag> 读取）。色位见 docs/ui-color-system.md 第 7 节 */
-    /* 伤害进攻 */
-    --tag-color-bleed: #e9979d;
-    --tag-color-burn: #e89b80;
-    --tag-color-bonus_damage: #e89b80;
-    --tag-color-self_damage: #e89b80;
-    --tag-color-low_hp: #a36d34;
     /* 持续伤害 */
-    --tag-color-poison: #3f8b6d;
-    /* 武器流派 */
-    --tag-color-slash: #afb68e;
-    --tag-color-unarmed: #afb68e;
-    --tag-color-one_handed: #afb68e;
-    --tag-color-weapon: #afb68e;
-    --tag-color-thrown: #afb68e;
-    --tag-color-blunt: #9fba99;
-    --tag-color-melee: #9fba99;
-    --tag-color-two_handed: #9fba99;
-    --tag-color-pierce: #9fba99;
-    --tag-color-polearm: #9fba99;
-    --tag-color-heavy: #9fba99;
-    --tag-color-range: #9fba99;
-    --tag-color-imperial: #9fba99;
+    --tag-color-bleed: #e796a8;
+    --tag-color-burn: #bb6e62;
+    --tag-color-poison: #63864f;
+    /* 伤害进攻 */
+    --tag-color-bonus_damage: #ea998b;
+    --tag-color-self_damage: #ea998b;
+    --tag-color-low_hp: #a36d34;
     /* 增益恢复 */
-    --tag-color-heal: #7fc2a4;
-    --tag-color-buff: #7fc2a4;
-    --tag-color-cleanse: #7fc2a4;
+    --tag-color-heal: #83c1a0;
+    --tag-color-buff: #83c1a0;
+    --tag-color-cleanse: #83c1a0;
+    /* 武器流派 */
+    --tag-color-slash: #8abdb6;
+    --tag-color-unarmed: #8abdb6;
+    --tag-color-one_handed: #8abdb6;
+    --tag-color-weapon: #8abdb6;
+    --tag-color-thrown: #8abdb6;
+    --tag-color-blunt: #88bbc4;
+    --tag-color-melee: #88bbc4;
+    --tag-color-two_handed: #88bbc4;
+    --tag-color-pierce: #88bbc4;
+    --tag-color-polearm: #88bbc4;
+    --tag-color-heavy: #88bbc4;
+    --tag-color-range: #88bbc4;
+    --tag-color-imperial: #88bbc4;
     /* 内息资源 */
-    --tag-color-qi: #29889c;
-    --tag-color-qi_action: #7bb9e5;
-    --tag-color-chan: #7bb9e5;
-    /* 身法闪避 */
-    --tag-color-move: #c99edd;
-    /* 雷（单标签） */
+    --tag-color-qi: #8b6ba2;
+    --tag-color-qi_action: #c3a1dc;
+    --tag-color-chan: #c3a1dc;
+    /* 雷 */
     --tag-color-electric: #aaa8ee;
+    /* 霜冻 */
+    --tag-color-frost: #a4b4bd;
+    /* 麻痹 */
+    --tag-color-paralyze: #a67c5b;
     /* 控制 / 感官 */
-    --tag-color-stun: #aab3b2;
-    --tag-color-debuff: #aab3b2;
-    --tag-color-sand_blind: #aab3b2;
-    --tag-color-knockback: #aab3b2;
-    --tag-color-paralyze: #747c7b;
-    --tag-color-frost: #747c7b;
-    --tag-color-knockdown: #747c7b;
+    --tag-color-stun: #b2b1aa;
+    --tag-color-debuff: #b2b1aa;
+    --tag-color-sand_blind: #b2b1aa;
+    --tag-color-knockback: #7b7a74;
+    --tag-color-knockdown: #7b7a74;
+    /* 身法闪避 */
+    --tag-color-move: #d59acf;
     /* 防御格挡 */
-    --tag-color-parry: #d49dc1;
-    --tag-color-heavy_reduce: #d49dc1;
-    --tag-color-ignore_parry: #d49dc1;
-    --tag-color-defense: #de9caa;
-    --tag-color-super_armor: #de9caa;
-    --tag-color-counter: #de9caa;
-    /* 酒（单标签） */
-    --tag-color-jiu: #867958;
+    --tag-color-parry: #db9cb4;
+    --tag-color-heavy_reduce: #db9cb4;
+    --tag-color-ignore_parry: #db9cb4;
+    --tag-color-defense: #a56767;
+    --tag-color-super_armor: #a56767;
+    --tag-color-counter: #a56767;
+    /* 酒 */
+    --tag-color-jiu: #988265;
     /* 机制规则 */
-    --tag-color-inherent: #697a9f;
-    --tag-color-internal: #697a9f;
-    --tag-color-implant: #697a9f;
-    --tag-color-talent: #697a9f;
-    --tag-color-trigger: #697a9f;
-    --tag-color-summon: #697a9f;
-    --tag-color-stance: #697a9f;
-    --tag-color-craft: #697a9f;
-    --tag-color-retrieve_weapon: #697a9f;
-    --tag-color-post_action: #697a9f;
-    --tag-color-range_up: #697a9f;
-    --tag-color-pre_action: #697a9f;
+    --tag-color-inherent: #827b51;
+    --tag-color-internal: #827b51;
+    --tag-color-implant: #827b51;
+    --tag-color-talent: #827b51;
+    --tag-color-trigger: #827b51;
+    --tag-color-summon: #827b51;
+    --tag-color-stance: #827b51;
+    --tag-color-craft: #827b51;
+    --tag-color-retrieve_weapon: #827b51;
+    --tag-color-post_action: #827b51;
+    --tag-color-range_up: #827b51;
+    --tag-color-pre_action: #827b51;
 }

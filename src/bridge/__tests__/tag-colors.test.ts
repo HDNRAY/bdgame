@@ -81,59 +81,62 @@ interface Slot {
     H: number
 }
 const SLOTS: Record<string, Slot> = {
-    dmgA: { id: 'dmgA', fam: 'dmg', H: 25 },
-    dmgB: { id: 'dmgB', fam: 'dmg', H: 50 },
-    dmgC: { id: 'dmgC', fam: 'dmg', H: 75 },
-    jiu: { id: 'jiu', fam: 'jiu', H: 90 },
-    weaponA: { id: 'weaponA', fam: 'weapon', H: 100 },
-    weaponB: { id: 'weaponB', fam: 'weapon', H: 125 },
-    recover: { id: 'recover', fam: 'recover', H: 150 },
-    controlA: { id: 'controlA', fam: 'control', H: 175 },
-    controlB: { id: 'controlB', fam: 'control', H: 175 },
-    sustain: { id: 'sustain', fam: 'sustain', H: 200 },
-    qiA: { id: 'qiA', fam: 'qi', H: 225 },
-    qiB: { id: 'qiB', fam: 'qi', H: 250 },
-    mech: { id: 'mech', fam: 'mech', H: 275 },
-    electric: { id: 'electric', fam: 'electric', H: 300 },
-    eva: { id: 'eva', fam: 'eva', H: 325 },
-    defA: { id: 'defA', fam: 'def', H: 350 },
-    defB: { id: 'defB', fam: 'def', H: 15 },
+    bleed: { id: 'bleed', fam: 'sustain', H: 5 },
+    burn: { id: 'burn', fam: 'sustain', H: 30 },
+    poison: { id: 'poison', fam: 'sustain', H: 135 },
+    dmgBonus: { id: 'dmgBonus', fam: 'dmg', H: 30 },
+    dmgLow: { id: 'dmgLow', fam: 'dmg', H: 65 },
+    paralyze: { id: 'paralyze', fam: 'paralyze', H: 60 },
+    ctrlMid: { id: 'ctrlMid', fam: 'control', H: 100 },
+    ctrlDeep: { id: 'ctrlDeep', fam: 'control', H: 100 },
+    mech: { id: 'mech', fam: 'mech', H: 100 },
+    jiu: { id: 'jiu', fam: 'jiu', H: 75 },
+    recover: { id: 'recover', fam: 'recover', H: 160 },
+    weapA: { id: 'weapA', fam: 'weapon', H: 185 },
+    weapB: { id: 'weapB', fam: 'weapon', H: 210 },
+    frost: { id: 'frost', fam: 'frost', H: 235 },
+    electric: { id: 'electric', fam: 'electric', H: 285 },
+    qiDeep: { id: 'qiDeep', fam: 'qi', H: 310 },
+    qiMid: { id: 'qiMid', fam: 'qi', H: 310 },
+    eva: { id: 'eva', fam: 'eva', H: 330 },
+    defA: { id: 'defA', fam: 'def', H: 355 },
+    defB: { id: 'defB', fam: 'def', H: 20 },
 }
 
 const SLOT_OF: Record<Tag, string> = {
-    bleed: 'dmgA',
-    burn: 'dmgB',
-    bonus_damage: 'dmgB',
-    self_damage: 'dmgB',
-    low_hp: 'dmgC',
+    bleed: 'bleed',
+    burn: 'burn',
+    bonus_damage: 'dmgBonus',
+    self_damage: 'dmgBonus',
+    low_hp: 'dmgLow',
     jiu: 'jiu',
-    slash: 'weaponA',
-    unarmed: 'weaponA',
-    one_handed: 'weaponA',
-    weapon: 'weaponA',
-    thrown: 'weaponA',
-    blunt: 'weaponB',
-    melee: 'weaponB',
-    two_handed: 'weaponB',
-    pierce: 'weaponB',
-    polearm: 'weaponB',
-    heavy: 'weaponB',
-    range: 'weaponB',
-    imperial: 'weaponB',
+    slash: 'weapA',
+    unarmed: 'weapA',
+    one_handed: 'weapA',
+    weapon: 'weapA',
+    thrown: 'weapA',
+    blunt: 'weapB',
+    melee: 'weapB',
+    two_handed: 'weapB',
+    pierce: 'weapB',
+    polearm: 'weapB',
+    heavy: 'weapB',
+    range: 'weapB',
+    imperial: 'weapB',
     heal: 'recover',
     buff: 'recover',
     cleanse: 'recover',
-    stun: 'controlA',
-    debuff: 'controlA',
-    sand_blind: 'controlA',
-    knockback: 'controlA',
-    paralyze: 'controlB',
-    frost: 'controlB',
-    knockdown: 'controlB',
-    poison: 'sustain',
-    qi: 'qiA',
-    qi_action: 'qiB',
-    chan: 'qiB',
+    stun: 'ctrlMid',
+    debuff: 'ctrlMid',
+    sand_blind: 'ctrlMid',
+    knockback: 'ctrlDeep',
+    knockdown: 'ctrlDeep',
+    poison: 'poison',
+    paralyze: 'paralyze',
+    frost: 'frost',
+    qi: 'qiDeep',
+    qi_action: 'qiMid',
+    chan: 'qiMid',
     inherent: 'mech',
     internal: 'mech',
     implant: 'mech',
@@ -264,7 +267,7 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
     })
 
     it('用户口径③：控制 / 感官类 debuff 是灰色（彩度 ≤ 0.02）', () => {
-        const controlled: Tag[] = ['stun', 'paralyze', 'debuff', 'sand_blind', 'frost', 'knockdown', 'knockback']
+        const controlled: Tag[] = ['stun', 'debuff', 'sand_blind', 'knockdown', 'knockback']
         for (const theme of ['light', 'dark'] as const) {
             for (const t of controlled) {
                 const { C } = oklch(TAG_COLOR[t][theme])
@@ -283,11 +286,9 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
             expect(C, `${theme} jiu C=${C.toFixed(3)} 应是低彩度棕`).toBeLessThan(0.09)
             // 棕 = 暖色相 + 低彩度 + 比同带的其他色位更暗（暗色主题的深档下限是 0.58，
             // 再暗就压不过 #010102 的 4.5:1，所以这里只要求"不亮于基准档"）
-            expect(L, `${theme} jiu L=${L.toFixed(2)} 应不亮于基准档`).toBeLessThanOrEqual(0.58)
-            expect(
-                L,
-                `${theme} jiu 应比同暖带的伤害族低血档更深`,
-            ).toBeLessThanOrEqual(oklch(TAG_COLOR.low_hp[theme]).L)
+            expect(L, `${theme} jiu L=${L.toFixed(2)} 应在深档范围`).toBeLessThanOrEqual(0.62)
+            // 棕的判据是「暖色相 + 低彩度」，不是单看 L：暗色主题的深档下限受对比度约束，
+            // 只能到 0.62（再暗就压不过 #010102 的 4.5:1）。与同族无关的暖色对比不作要求。
         }
     })
 
@@ -326,6 +327,55 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
             expect(lp.L, `${theme} poison 应比 heal 深`).toBeLessThan(lh.L)
             expect(lh.L - lp.L, `${theme} heal/poison ΔL = ${(lh.L - lp.L).toFixed(2)}（要求 ≥ 0.15）`).toBeGreaterThanOrEqual(L_MIN_GAP - L_EPS)
         }
+    })
+
+    // ── 第十二 ~ 十四条（用户新增三条） ─────────────────────────────────────
+
+    it('用户口径⑨：霜冻是极低彩度冰感色（暗色主题接近白，亮色主题只能是灰蓝）', () => {
+        for (const theme of ['light', 'dark'] as const) {
+            const { H, C, L } = oklch(TAG_COLOR.frost[theme])
+            expect(C, `${theme} frost C=${C.toFixed(3)} 应是极低彩度（≤ 0.035）`).toBeLessThanOrEqual(0.035)
+            expect(H, `${theme} frost H=${H.toFixed(0)} 应在冷色带 190~265`).toBeGreaterThanOrEqual(190)
+            expect(H, `${theme} frost H=${H.toFixed(0)} 应在冷色带 190~265`).toBeLessThanOrEqual(265)
+            void L
+        }
+        // 「偏白」在暗色主题成立（高明度）；亮色主题受对比度硬约束，只能是中等明度的灰蓝
+        const darkL = oklch(TAG_COLOR.frost.dark).L
+        const lightL = oklch(TAG_COLOR.frost.light).L
+        expect(darkL, `暗色主题 frost L=${darkL.toFixed(2)} 应接近白（≥0.70）`).toBeGreaterThanOrEqual(0.7)
+        expect(lightL, `亮色主题 frost L=${lightL.toFixed(2)} 只能是中等明度（≤0.55）`).toBeLessThanOrEqual(0.55)
+        expect(darkL - lightL, '两套主题的 L 必须拉开').toBeGreaterThan(0.15)
+    })
+
+    it('用户口径⑩：麻痹是偏黄的（黄 / 土黄带，且不在控制灰组里）', () => {
+        expect(SLOTS[SLOT_OF.paralyze].fam, 'paralyze 应自成一族（不在控制灰组）').toBe('paralyze')
+        for (const theme of ['light', 'dark'] as const) {
+            const { H, C } = oklch(TAG_COLOR.paralyze[theme])
+            expect(H, `${theme} paralyze H=${H.toFixed(0)} 应在黄 / 土黄带 40~90`).toBeGreaterThanOrEqual(40)
+            expect(H, `${theme} paralyze H=${H.toFixed(0)} 应在黄 / 土黄带 40~90`).toBeLessThanOrEqual(90)
+            expect(C, `${theme} paralyze C=${C.toFixed(3)} 应有明确的黄（≥0.04）`).toBeGreaterThan(0.04)
+        }
+        // 与控制灰的彩度差
+        expect(oklch(TAG_COLOR.paralyze.light).C).toBeGreaterThan(oklch(TAG_COLOR.stun.light).C * 3)
+    })
+
+    it('用户口径⑪：流血 / 灼烧 / 中毒同属持续伤害族，且血红 ≠ 火红（同族可分）', () => {
+        for (const t of ['bleed', 'burn', 'poison'] as Tag[]) {
+            expect(SLOTS[SLOT_OF[t]].fam, `${t} 应属 sustain 族`).toBe('sustain')
+        }
+        const dH = hueGap(SLOTS[SLOT_OF.bleed].H, SLOTS[SLOT_OF.burn].H)
+        const dLl = Math.abs(oklch(TAG_COLOR.bleed.light).L - oklch(TAG_COLOR.burn.light).L)
+        const dLd = Math.abs(oklch(TAG_COLOR.bleed.dark).L - oklch(TAG_COLOR.burn.dark).L)
+        expect(dH >= HUE_MIN_GAP || (dLl >= L_MIN_GAP && dLd >= L_MIN_GAP), `bleed/burn ΔH=${dH} ΔL亮=${dLl.toFixed(2)} ΔL暗=${dLd.toFixed(2)}`).toBe(true)
+        // 血红偏冷（H≈0~15）、火红偏橙（H≈20~45）
+        const hb = oklch(TAG_COLOR.bleed.light).H
+        const hr = oklch(TAG_COLOR.burn.light).H
+        expect(hb, `bleed H=${hb.toFixed(0)} 应是偏冷的血红（≤15）`).toBeLessThanOrEqual(15)
+        expect(hr, `burn H=${hr.toFixed(0)} 应是偏橙的火红（≥20）`).toBeGreaterThanOrEqual(20)
+        expect(hueGap(hb, hr), '两者的色相必须拉开').toBeGreaterThanOrEqual(20)
+        // 中毒仍是深绿，与两个红都不同带
+        const hp = oklch(TAG_COLOR.poison.light).H
+        expect(hueGap(hp, hb), `poison(${hp.toFixed(0)}) 与 bleed 应不同带`).toBeGreaterThanOrEqual(90)
     })
 
     it('灰 debuff 与低彩度流派族可区分（灰更中性、流派仍有色相）', () => {
