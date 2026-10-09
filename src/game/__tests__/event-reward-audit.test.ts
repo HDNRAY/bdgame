@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // ════════════════════════════════════════
 //  事件奖励数据审计
@@ -22,7 +22,6 @@ vi.mock('../../engine/battle-runner', () => ({
 import { ALL_EVENTS } from '../../data/events'
 import { RogueliteRun } from '../roguelite/engine'
 import { STORIES } from '../../data/stories'
-import { getEvent } from '../../data/events'
 
 interface RoundLike {
     id?: string
@@ -88,10 +87,7 @@ describe('事件奖励数据审计（静态）', () => {
 })
 
 describe('事件奖励数据审计（动态：3 种子 × 5 线）', () => {
-    afterEach(() => {
-        vi.restoreAllMocks()
-    })
-
+    /** 线性同余伪随机（自建，不用 Math.random 的原值）：一个种子定一整局的随机序列 */
     function makeRandom(seed: number): () => number {
         let s = seed >>> 0
         return () => {
@@ -100,24 +96,57 @@ describe('事件奖励数据审计（动态：3 种子 × 5 线）', () => {
         }
     }
 
+    /** 当前局的随机源；装到 Math.random 上，openOnStory 换种子重抽时改它 */
+    let randomImpl: () => number = makeRandom(1)
+
+    beforeEach(() => {
+        vi.spyOn(Math, 'random').mockImplementation(() => randomImpl())
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    /**
+     * 开一局，**重抽到目标故事线的出身轮**（还没选），返回 run。
+     *
+     * n1 出身是随机 3 选 1：抽不到目标线时不能退化成第一项（`selectChoice(-1)` 是空操作，
+     * 旧写法就这样悄悄跑去了别的线 —— 3 种子 × 5 线里只有 8 次真的跑到目标线）。
+     * 这里参考 `story-rewards` 的 `pickStory`：换种子重开，到上限就明确报错。
+     */
+    function openOnStory(story: (typeof STORIES)[number], baseSeed: number): RogueliteRun {
+        for (let k = 0; k < 40; k++) {
+            randomImpl = makeRandom(baseSeed + k * 104729)
+            battle.playerWins = true
+            const run = new RogueliteRun()
+            const first = run.getState().rounds[0]
+            if (first.choices.some((c) => c.id === story.originEventId)) return run
+        }
+        throw new Error(`40 次重抽均未出现故事线 ${story.id}`)
+    }
+
     // 3 种子 × 5 条线的全图审计，默认 5s 在并行满载时会超时
     it('合计 ≤ 29、每个节点至多发一次奖励、每个非淘汰赛节点都发得出奖励', { timeout: 30000 }, () => {
         const problems: string[] = []
         // 淘汰赛阶段（n29/30/31/33）结构上不发奖励；其余节点都必须发一次
         const NO_REWARD_NODES = new Set([29, 30, 31, 33])
         const EXPECT_NODES = Array.from({ length: 32 }, (_, i) => i + 1).filter((n) => !NO_REWARD_NODES.has(n))
-        for (const story of STORIES) {
+        for (const [storyIdx, story] of STORIES.entries()) {
             for (let seed = 1; seed <= 3; seed++) {
-                vi.spyOn(Math, 'random').mockImplementation(makeRandom(seed * 7919 + story.id.length * 104729))
-                battle.playerWins = true
-                const run = new RogueliteRun()
+                // 种子按线区分（旧写法用 story.id.length，sect/feud、veteran/xuanmen 撞种子 → 两条线跑同一局）
+                const run = openOnStory(story, seed * 7919 + (storyIdx + 1) * 104729)
                 const perNode = new Map<number, number>()
                 const titles = new Map<number, string[]>()
                 // 选出身这一步就会发开局奖励（n1），同样计入节点统计
                 const first = run.getState().rounds[0]
+                const originIdx = first.choices.findIndex((c) => c.id === story.originEventId)
                 const before0 = run.getState().build.rewards.length + Number(run.getState().flags['points_granted'] ?? 0)
-                run.selectChoice(first.choices.findIndex((c) => c.label === getEvent(story.originEventId)?.name))
+                run.selectChoice(originIdx)
                 const after0 = run.getState()
+                // 出身确实落在目标线上（否则后面的审计只是重复跑别的线）
+                if (after0.build.story !== story.id) {
+                    problems.push(`${story.id}#${seed}: 出身没有激活该线（build.story=${after0.build.story}）`)
+                }
                 if (after0.build.rewards.length + Number(after0.flags['points_granted'] ?? 0) > before0) perNode.set(1, 1)
                 let guard = 0
                 while (!run.getState().finished && guard++ < 900) {
