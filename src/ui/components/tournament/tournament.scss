@@ -1,0 +1,366 @@
+/* ════════════════════════════════════════
+   斗炁大会赛程（对阵表）显示用的共享样式：
+     - .tn-groups / .tn-*     小组赛积分榜与比分（TournamentStandings）
+     - .tn-bracket / .tn-*    淘汰赛四列对阵（TournamentBracket）
+     - .tnp-*                 玩家侧「赛程」弹窗（TournamentPanel）
+   两个只读组件与弹窗都 import 这个文件（同一模块，打包只出一份）。
+
+   H5 口径（与首页 / 结算页一致）：
+     - 高度用 dvh，四周留 env(safe-area-inset-*)；
+     - 可点控件不小于 44×44；
+     - :hover 只写在 @media (hover: hover) 里，并配 :active；
+     - 窄屏绝不撑开整页：网格用 minmax(min(240px, 100%), 1fr)、
+       对阵表 <=720px 直接竖排，队名一律 ellipsis。
+   ════════════════════════════════════════ */
+
+/* ── 比赛行（小组赛 / 淘汰赛共用同一套行样式） ── */
+%tn-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    width: 100%;
+    box-sizing: border-box;
+    padding: 4px var(--sp-sm);
+    border: var(--border-width) solid transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    text-align: left;
+
+    /* 正在打的那一轮：只加一圈描边，不带任何 loading 文案 */
+    &.tn-current {
+        border-color: var(--color-accent);
+    }
+
+    /* 只有传了 onMatchClick 的行才是按钮（DevMode 回放）：触屏目标 >= 44 高 */
+    &.tn-match-btn {
+        cursor: pointer;
+        min-height: 44px;
+        appearance: none;
+        -webkit-appearance: none;
+
+        @media (hover: hover) {
+            &:hover:not(:disabled) {
+                border-color: var(--color-accent);
+                background: var(--color-bg-hover);
+            }
+        }
+
+        &:active:not(:disabled) {
+            border-color: var(--color-accent);
+            background: var(--color-bg-hover);
+        }
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.55;
+        }
+    }
+}
+
+.tn-side {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: normal;
+}
+
+.tn-side-b {
+    text-align: right;
+}
+
+.tn-score {
+    flex-shrink: 0;
+    opacity: 0.8;
+    font-variant-numeric: tabular-nums;
+}
+
+.tn-win {
+    color: var(--color-accent);
+}
+
+/* 玩家本人：加一条下划线，一眼找到自己 */
+.tn-is-player {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.tn-tbd {
+    opacity: 0.4;
+}
+
+/* ── 小组赛 ── */
+.tn-groups {
+    display: grid;
+    /* min() 兜底：容器比 240px 还窄时也不会溢出 */
+    grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+    gap: var(--sp-md);
+}
+
+.tn-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+    min-width: 0;
+    padding: var(--sp-md);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+
+    h4 {
+        margin: 0;
+        font-size: var(--font-sm);
+        color: var(--color-accent);
+    }
+}
+
+.tn-standings {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-sm);
+        font-size: var(--font-sm);
+        min-width: 0;
+
+        /* 前两名 = 出线区 */
+        &.tn-qualify .tn-name {
+            color: var(--color-accent);
+        }
+    }
+}
+
+.tn-rank {
+    width: 1.4em;
+    opacity: 0.6;
+}
+
+.tn-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tn-rec {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.tn-matches {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.tn-match {
+    @extend %tn-row;
+}
+
+/* ── 淘汰赛 ── */
+.tn-bracket {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--sp-md);
+    min-width: 0;
+}
+
+.tn-round {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+    min-width: 0;
+
+    h4 {
+        margin: 0;
+        font-size: var(--font-sm);
+        color: var(--color-accent);
+    }
+}
+
+.tn-ko-matches {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.tn-ko-match {
+    @extend %tn-row;
+    justify-content: center;
+}
+
+/* 窄屏（手机竖屏）：四列改竖排 —— 每轮一整段，谁对谁、谁赢都看得清，
+   而不是让对阵表横向撑开页面。 */
+@media (max-width: 720px) {
+    .tn-bracket {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--sp-lg);
+    }
+}
+
+/* ════════════════════════════════════════
+   玩家侧「赛程」弹窗
+   ════════════════════════════════════════ */
+.tnp {
+    position: fixed;
+    inset: 0;
+    /* 高度用 dvh：移动端地址栏收放时不会裁掉底部（与首页 / 结算页同一口径）；
+       不支持 dvh 的浏览器忽略这行，退回 inset: 0 的满屏 */
+    height: 100dvh;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    /* 安全区：上（刘海 / 状态栏）下（home indicator）左右（横屏遮挡） */
+    padding: calc(var(--sp-md) + env(safe-area-inset-top)) calc(var(--sp-md) + env(safe-area-inset-right))
+        calc(var(--sp-md) + env(safe-area-inset-bottom)) calc(var(--sp-md) + env(safe-area-inset-left));
+
+    /* 整块背景可点关闭：浏览器默认的触屏高亮会按 cursor:pointer 把整屏刷一层色
+       （同 IntroOverlay 的处理），所以这里显式关掉。 */
+    &-backdrop {
+        position: fixed;
+        inset: 0;
+        background: var(--color-overlay);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    &-shell {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: min(64rem, 100%);
+        min-width: 0;
+        /* 高度用 dvh：移动端地址栏收放时不会裁掉底部；上限跟着 .tnp 的安全区收缩 */
+        max-height: 100%;
+        background: var(--color-bg-panel);
+        border: var(--border-width-lg) solid var(--color-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+
+    &-head {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--sp-sm);
+        flex-shrink: 0;
+        padding: var(--sp-sm) var(--sp-md);
+        border-bottom: var(--border-width) solid var(--color-border);
+    }
+
+    &-title {
+        margin: 0 auto 0 0;
+        font-size: var(--font-lg);
+        font-weight: normal;
+    }
+
+    &-tabs {
+        display: flex;
+        gap: var(--sp-xs);
+    }
+
+    /* 基础形状：44 高触屏目标、描边、透明底 */
+    &-tab,
+    &-close {
+        min-height: 44px;
+        min-width: 44px;
+        padding: var(--sp-xs) var(--sp-md);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: var(--color-text-dim);
+        font-family: var(--font-mono);
+        font-size: var(--font-sm);
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+
+        @media (hover: hover) {
+            &:hover {
+                color: var(--color-text);
+            }
+        }
+
+        &:active {
+            color: var(--color-text);
+        }
+    }
+
+    &-tab.active {
+        color: var(--color-text);
+        border-color: var(--color-accent);
+        background: var(--color-bg-hover);
+    }
+
+    &-body {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-md);
+        padding: var(--sp-md);
+        box-sizing: border-box;
+        overflow-y: auto;
+        /* 内部再怎么宽也不许把页面撑开：超出的内容由组件自己排布（对阵表窄屏竖排） */
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    &-champion {
+        font-size: var(--font-md);
+
+        b {
+            color: var(--color-accent);
+        }
+    }
+
+    &-section-title {
+        margin: 0;
+        font-size: var(--font-md);
+        color: var(--color-text);
+        border-bottom: var(--border-width) solid var(--color-border);
+        padding-bottom: var(--sp-xs);
+    }
+
+    &-qualifiers {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-xs);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &-qualifier {
+        padding: 2px var(--sp-sm);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--radius-md);
+        font-size: var(--font-sm);
+
+        &.is-player {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+    }
+
+    &-meta {
+        font-size: var(--font-sm);
+        color: var(--color-text-dim);
+    }
+}

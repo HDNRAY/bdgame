@@ -9,6 +9,7 @@ import { InjuryBar } from '../../components/roguelite/InjuryBar'
 import { RoundCard } from '../../components/roguelite/RoundCard'
 import { IntroOverlay } from '../../components/roguelite/IntroOverlay'
 import { RunSummaryPanel } from '../../components/roguelite/RunSummaryPanel'
+import { TournamentPanel } from '../../components/panels/TournamentPanel'
 import { endingTitle } from '../../components/roguelite/ending-title'
 import { BattlePanel } from '../../components/BattlePanel/BattlePanel'
 import { Button } from '../../components/ui/Button/Button'
@@ -30,6 +31,8 @@ const CHAPTER_CN = ['', '一', '二', '三']
 export function RogueliteScreen() {
     /** 展开观看的教学轮（默认折叠，不展开就不播回放） */
     const [openTutorials, setOpenTutorials] = useState<Record<string, boolean>>({})
+    /** 「赛程」弹窗是否打开（斗炁大会阶段才可见，见下方 canViewTournament） */
+    const [tournamentOpen, setTournamentOpen] = useState(false)
     const {
         engine,
         gameState,
@@ -200,9 +203,15 @@ export function RogueliteScreen() {
     /** 是否已选定故事线（未选线时右侧不显示人物面板） */
     const hasStory = !!gameState.build.story
 
+    // 「赛程」按钮：斗炁大会从 n23 开幕，之前的节点没有 tournamentData，不显示入口
+    const canViewTournament = gameState.nodeIndex >= 23 && !!gameState.tournamentData
+
     return (
         <div className={`rs ${isLandscape ? 'rs-landscape' : 'rs-portrait'}`}>
             {chapterOverlay}
+            {tournamentOpen && gameState.tournamentData && (
+                <TournamentPanel tournament={gameState.tournamentData} onClose={() => setTournamentOpen(false)} />
+            )}
             <header className="rs-header">
                 <NodeMap nodeIndex={gameState.nodeIndex} />
                 <InjuryBar injury={gameState.injury} />
@@ -210,6 +219,11 @@ export function RogueliteScreen() {
                     修炼点 {gameState.unspentPoints}
                 </span>
                 <span className="rs-title">斗炁大会</span>
+                {canViewTournament && (
+                    <Button variant="ghost" size="sm" className="rs-schedule-btn" onClick={() => setTournamentOpen(true)}>
+                        赛程
+                    </Button>
+                )}
                 <Button variant="ghost" size="sm" className="rs-exit-btn" onClick={handleExit}>
                     退出
                 </Button>

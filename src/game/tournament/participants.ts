@@ -71,6 +71,12 @@ export function selectParticipants(options: SelectParticipantsOptions = {}): Tou
     })
 
     // 按 seed 排序，取前 targetCount 个
+    //
+    // 注：includePlayer=true 时 targetCount=31，而 OPPONENTS 有 32 人，所以恒定有一人被挤出。
+    // 被挤出的是「博士·德克」（doctor）：他的 targetAttrs 总和（72）与 OTSU 并列最低，
+    // 稳定排序下 doctor 在 OPPONENTS 里排最后 → 永远落在第 32 位被切掉。
+    // 即「博士不参赛」是**现行且刻意保留的设定**，而不是一条显式排除规则：
+    // 这里不要顺手改排序口径（改属性、改排序稳定性、加人都会换掉出局者），要动先确认设定。
     participants.sort((a, b) => (b.seed ?? 0) - (a.seed ?? 0))
     const selected = participants.slice(0, targetCount)
 

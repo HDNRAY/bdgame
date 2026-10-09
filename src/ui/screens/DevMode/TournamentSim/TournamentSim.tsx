@@ -13,7 +13,6 @@ import type { TournamentData, MatchResult, TournamentParticipant } from '../../.
 import { GROUP_MAX_ROUNDS, KNOCKOUT_ROUNDS, ROUND_LABELS } from '../../../../game/entities/tournament'
 import {
     buildEmptyTournament,
-    getGroupRoundMatches,
     selectParticipants,
     simulateGroupRound,
     simulateKnockoutRound,
@@ -25,6 +24,8 @@ import type { LogEntry } from '../../../../bridge/replay-engine'
 import type { CharacterBuild } from '../../../../game/entities/character-build'
 import { BattlePanel, type BattleData } from '../../../components/BattlePanel/BattlePanel'
 import { Button } from '../../../components/ui/Button/Button'
+import { TournamentStandings } from '../../../components/tournament/TournamentStandings'
+import { TournamentBracket } from '../../../components/tournament/TournamentBracket'
 import './TournamentSim.scss'
 
 type SimStatus = 'idle' | 'running' | 'done'
@@ -183,150 +184,30 @@ export function TournamentSim() {
                 <>
                     {status === 'done' && championId && (
                         <div className="tsim-champion">
-                            🏆 冠军：<b>{nameOf(championId)}</b>
+                            冠军：<b>{nameOf(championId)}</b>
                         </div>
                     )}
 
                     <section className="tsim-section">
                         <h3>小组赛</h3>
-                        <div className="tsim-groups">
-                            {tournament.groupStage.groups.map((group, gi) => {
-                                const standings = tournament.groupStage.standings[gi] ?? []
-                                return (
-                                    <div key={group.name} className="tsim-group">
-                                        <h4>{group.name} 组</h4>
-                                        <ol className="tsim-standings">
-                                            {standings.map((entry, rank) => (
-                                                <li
-                                                    key={entry.participantId}
-                                                    className={rank < 2 ? 'tsim-qualify' : ''}
-                                                >
-                                                    <span className="tsim-rank">{rank + 1}</span>
-                                                    <span className="tsim-name">{nameOf(entry.participantId)}</span>
-                                                    <span className="tsim-rec">
-                                                        {entry.wins}胜{entry.losses}负
-                                                    </span>
-                                                </li>
-                                            ))}
-                                        </ol>
-                                        <div className="tsim-matches">
-                                            {group.matches.map((m, i) => {
-                                                const finished = m.winnerId !== null && m.winnerId !== undefined
-                                                const isCurrent =
-                                                    status === 'running' &&
-                                                    cursor !== null &&
-                                                    cursor.kind === 'group' &&
-                                                    getGroupRoundMatches(group, cursor.round).includes(i)
-                                                const cls = [
-                                                    'tsim-match',
-                                                    finished ? 'tsim-finished' : '',
-                                                    isCurrent ? 'tsim-current' : '',
-                                                ].join(' ')
-                                                return (
-                                                    <button
-                                                        key={i}
-                                                        className={cls}
-                                                        disabled={!finished}
-                                                        onClick={() => openReplay(`group-${group.name}-${i}`)}
-                                                    >
-                                                        {isCurrent ? (
-                                                            <span className="tsim-inline-loading">
-                                                                <span className="tsim-spinner" aria-hidden />
-                                                                进行中…
-                                                            </span>
-                                                        ) : (
-                                                            <span>
-                                                                <b
-                                                                    className={
-                                                                        m.winnerId === m.participantIds[0]
-                                                                            ? 'tsim-win'
-                                                                            : ''
-                                                                    }
-                                                                >
-                                                                    {nameOf(m.participantIds[0])}
-                                                                </b>
-                                                                <span className="tsim-vs">
-                                                                    {finished
-                                                                        ? `${m.scores[0]} : ${m.scores[1]}`
-                                                                        : 'vs'}
-                                                                </span>
-                                                                <b
-                                                                    className={
-                                                                        m.winnerId === m.participantIds[1]
-                                                                            ? 'tsim-win'
-                                                                            : ''
-                                                                    }
-                                                                >
-                                                                    {nameOf(m.participantIds[1])}
-                                                                </b>
-                                                            </span>
-                                                        )}
-                                                    </button>
-                                                )
-                                            })}
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
+                        <TournamentStandings
+                            tournament={tournament}
+                            activeRound={
+                                status === 'running' && cursor?.kind === 'group' ? cursor.round : null
+                            }
+                            onMatchClick={openReplay}
+                        />
                     </section>
 
                     <section className="tsim-section">
                         <h3>淘汰赛</h3>
-                        <div className="tsim-bracket">
-                            {tournament.knockoutStage.rounds.map((round) => (
-                                <div key={round.round} className="tsim-round">
-                                    <h4>{round.label}</h4>
-                                    <div className="tsim-ko-matches">
-                                        {round.matches.map((km) => {
-                                            const m = km.match
-                                            const finished =
-                                                m !== null && m.winnerId !== null && m.winnerId !== undefined
-                                            const isCurrent =
-                                                status === 'running' &&
-                                                cursor !== null &&
-                                                cursor.kind === 'knockout' &&
-                                                cursor.round === km.round
-                                            const [aId, bId] = km.participantIds
-                                            const cls = [
-                                                'tsim-ko-match',
-                                                finished ? 'tsim-finished' : '',
-                                                isCurrent ? 'tsim-current' : '',
-                                            ].join(' ')
-                                            return (
-                                                <button
-                                                    key={km.slotIndex}
-                                                    className={cls}
-                                                    disabled={!finished}
-                                                    onClick={() => openReplay(`ko-${km.round}-${km.slotIndex}`)}
-                                                >
-                                                    {isCurrent ? (
-                                                        <span className="tsim-inline-loading">
-                                                            <span className="tsim-spinner" aria-hidden />
-                                                            进行中…
-                                                        </span>
-                                                    ) : aId && bId ? (
-                                                        <span>
-                                                            <b className={m?.winnerId === aId ? 'tsim-win' : ''}>
-                                                                {nameOf(aId)}
-                                                            </b>
-                                                            <span className="tsim-vs">
-                                                                {m ? `${m.scores[0]} : ${m.scores[1]}` : 'vs'}
-                                                            </span>
-                                                            <b className={m?.winnerId === bId ? 'tsim-win' : ''}>
-                                                                {nameOf(bId)}
-                                                            </b>
-                                                        </span>
-                                                    ) : (
-                                                        <span className="tsim-tbd">待定</span>
-                                                    )}
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <TournamentBracket
+                            tournament={tournament}
+                            activeRound={
+                                status === 'running' && cursor?.kind === 'knockout' ? cursor.round : null
+                            }
+                            onMatchClick={openReplay}
+                        />
                     </section>
                 </>
             )}
