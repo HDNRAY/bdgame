@@ -84,6 +84,17 @@
         display: flex;
         flex-direction: column;
         gap: var(--sp-xs);
+
+        /* 非移动端：滚到底时最后一项与常驻底栏之间留一段空白（用户口径「屏高约 30% 都行」）。
+           加在**滚动容器自身**的 padding-bottom 上 —— padding 属于它的内容盒、计入滚动范围，
+           所以只让 scrollHeight 变大（多出一段空白），外层可视高度与触屏档行为不变。
+           用 dvh 与仓库既有口径一致（首页 / 结算页 / 弹层都按 dvh 算高度）。
+           触屏档在下面的媒体查询里显式还原：这条只作用于非移动端（无触摸指针的设备）。 */
+        padding-bottom: 30dvh;
+
+        @media (pointer: coarse) {
+            padding-bottom: var(--sp-sm);
+        }
     }
 
     &-points {
