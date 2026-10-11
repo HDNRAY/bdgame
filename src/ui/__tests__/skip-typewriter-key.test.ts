@@ -4,11 +4,16 @@
  * 为什么只测这个纯函数：本项目没有 jsdom（`vitest.config.ts` 没有 environment 配置），
  * `renderToStaticMarkup` 不跑 `useEffect` —— 键盘监听的安装与真实按键只能靠浏览器（同批改动的
  * CDP 无头实测：点击 / Enter / Space + scrollTop / 打完后再按 / 触屏拖拽四组）。
+ * 同文件里的 `useSkipHolder` / `useSkipOnClickCapture`（点击接线）同理，只能在浏览器里量。
  * 这里把「这个按键该不该由我们处理」独立出来，覆盖三件事：
  *   1. Enter 与 Space 都跳过，其余按键不碰；
  *   2. Space 的默认行为要吃掉（调用方据此 preventDefault），所以判定必须为真 —— 见下；
  *   3. 事件目标在 button / input 等交互控件上时放行（Enter/Space 归那个控件），带修饰键的组合也不拦。
- * 变异验证：把 `shouldSkipOnKey` 改成 `return false`（或去掉交互目标的放行），下面即红。
+ * 变异验证（已做并还原）：
+ *   - 把 `shouldSkipOnKey` 的末行改成 `return false`（键全不拦）→ 本文件 8 例里 2 例红；
+ *   - 把 `useSkipOnClickCapture` 的 `holderRef.current` 改成 `null`（点击全不拦）→
+ *     无头实测 ①「点滚动区空白处立刻全出」红；
+ *   - 把 Enter/Space 判定改成恒 false → 无头实测 ②「按 Enter」③「按 Space」两例红。
  */
 import { describe, expect, it } from 'vitest'
 import { isInteractiveTarget, shouldSkipOnKey } from '../hooks/useSkipTypewriterOnKey'

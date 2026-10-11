@@ -1,10 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Round } from '../../../game/entities/round'
 import { getEntity, isEntityType, type EntityDef, type EntityType } from '../../../bridge/entity-tooltip'
 import { getWeaponOverlay } from '../../pixel-sprites'
 import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { useTypewriter } from '../../hooks/useTypewriter'
-import { useSkipTypewriterOnKey } from '../../hooks/useSkipTypewriterOnKey'
+import {
+    useSkipTypewriterOnKey,
+    useSkipHolder,
+    createSkipHolder,
+    type SkipHolderRef,
+} from '../../hooks/useSkipTypewriterOnKey'
 import { useAppStore } from '../../stores/app-store'
 import { WeaponTooltip } from '../tooltip-contents/WeaponTooltip'
 import { ActionTooltip } from '../tooltip-contents/ActionTooltip'
@@ -122,9 +127,11 @@ interface RoundCardProps {
     round: Round
     past?: boolean
     onChoice?: (index: number) => void
+    /** 「点滚动区任意处跳过」的登记格：由 `.rs-rounds` 的所有者传入并消费（见 useSkipTypewriterOnKey） */
+    skipHolderRef?: SkipHolderRef
 }
 
-export function RoundCard({ round, past, onChoice }: RoundCardProps) {
+export function RoundCard({ round, past, onChoice, skipHolderRef }: RoundCardProps) {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
     const typewriterEnabled = useAppStore((s) => s.uiConfig.typewriter)
     /** 描述所在的那段滚动区域（`.rs-rounds`），跳过时把它复位 */
@@ -145,6 +152,13 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
     /** 本当在逐字打出（历史轮、关掉逐字、无描述都算不在打字） */
     const typing = !past && typewriterEnabled && !!round.description && !desc.done
     useSkipTypewriterOnKey(typing, desc.skip)
+    // 打字中把 skip 交给 `.rs-rounds` 的所有者：点滚动区任意位置（含卡片之外的留白）都能跳过。
+    // 有外部格子（RogueliteScreen 的 `.rs-rounds`）就登记进去、点击由容器统一接；
+    // 没有（本组件被单用）就自己建一个，配合下面的卡片根元素 onClick，行为不变。
+    const ownHolder = useMemo(() => createSkipHolder(), [])
+    useSkipHolder(skipHolderRef ?? ownHolder, typing, desc.skip)
+    /** 容器会接点击时卡片自己不接（否则同一次点击会跳过两次）；单独用时退回卡片根元素 */
+    const clickSkip = skipHolderRef ? undefined : typing ? () => ownHolder.current?.skip() : undefined
     // 两处新内容：打字结束（或被点掉）后出现的选项、选中某个选项后出现的「确认」
     const showChoices = !past && desc.done && round.choices.length > 0
     const choicesRef = useRevealOnAppear<HTMLDivElement>(showChoices)
@@ -156,7 +170,7 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
             <div
                 ref={rootRef}
                 className={`rc ${past ? 'rc-past' : 'rc-current'}`}
-                onClick={!desc.done ? desc.skip : undefined}
+                onClick={clickSkip}
             >
                 <div className="rc-title">{round.title}</div>
                 {round.description && (
@@ -195,7 +209,7 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
         <div
             ref={rootRef}
             className={`rc ${past ? 'rc-past' : 'rc-current'}`}
-            onClick={!desc.done ? desc.skip : undefined}
+            onClick={clickSkip}
         >
             <div className="rc-title">{round.title}</div>
             {round.description && (

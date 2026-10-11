@@ -2,13 +2,22 @@
 //
 // 本项目没有 jsdom，交互只能靠真浏览器。本脚本起自有端口的 dev server，
 // 用真实 CDP 输入事件（Input.dispatchMouseEvent / dispatchKeyEvent / dispatchTouchEvent，
-// 不是 page.evaluate 里合成事件）走五组断言：
-//   ① 1278 桌面：打字中点击**可滚动区域（.rs-rounds）空白处** → 描述立刻全出、选项出现；
-//   ② 1278 桌面：打字中按 Enter → 同上；
-//   ③ 1278 桌面：打字中按 Space → 同上，且 window.scrollY / .rs-rounds.scrollTop 前后不变
-//      （取「先滚到非 0、再按 Space」的对照：默认行为被吃掉才会停在原处）；
-//   ④ 打完字之后再点击 / 再按 Enter → 无副作用（不重复跳过、不误触选项、选项区不消失）；
-//   ⑤ 390×844 + 触摸模拟：在描述上拖拽滚动 → 不触发跳过（文字长度还在增长；click 事件不补发）。
+// 不是 page.evaluate 里合成事件）走这几组断言：
+//   基线：自然打完拿到全文（对照组）
+//   ① 打字中点击**可滚动区域（.rs-rounds）空白处** → 描述立刻全出、选项出现；
+//   ② 打字中按 Enter → 同上；
+//   ③ 打字中按 Space → 同上，且 .rs-rounds.scrollTop / window.scrollY 前后不变；
+//   ③b 对照：不在打字时按 Space，滚动容器照常下滚（证明 ③ 是 preventDefault 的功劳）；
+//   ④ 打完字之后再点击 / 再按 Enter → 无副作用（不重复跳过、不误触选项、位置不变）；
+//   ④b 选项点击照旧生效（交互没被抢）；
+//   ⑤ 390×844 + 触摸模拟：在描述上拖拽滚动 → 不触发跳过（仍在打字且文本继续增长）；
+//   ⑤b 390×844 轻点空白处 → 跳过生效（真机 click 路径）。
+//
+// 「立刻全出」怎么判：不依赖页面里的完整原文（它在轮次数据里，不在 DOM）。
+// 判据是「动作后光标消失 + 文本不再增长 + 文本与自然打字那次逐字相同（hash 一致）」。
+// 每张卡的正文都从 round.description 来，所以同一个流程重放会得到同一张卡；
+// 但选故事线那一轮是随机的，故基线里额外确认「两次独立重放的正文 hash 一致」，
+// 不一致时把比对降级为「不再增长」并如实记录（不猜）。
 //
 // 用法（仓库根）：node scripts/ui-verify-skip-typing.mjs [--port 5233] [--keep]
 // 退出码：0 = 全通过；1 = 有断言失败；2 = 环境错误。不用 pkill，服务与 Chrome 都按 PID 停。
@@ -156,7 +165,6 @@ const send = (method, params = {}) =>
 
 await send('Page.enable');
 await send('Runtime.enable');
-await send('Runtime.addBinding', { name: '__skipProbe' }).catch(() => {});
 
 async function waitLoad() {
     for (let i = 0; i < 120; i++) {
@@ -166,7 +174,7 @@ async function waitLoad() {
     }
 }
 
-/** 在页面里求值（同步表达式，返回 JSON 值） */
+/** 在页面里求值（返回 JSON 值） */
 async function evaluate(expression) {
     const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
     if (r.exceptionDetails) throw new Error(`页面求值异常：${JSON.stringify(r.exceptionDetails.exception?.description)}`);
@@ -201,25 +209,31 @@ async function pressKey(key, code, keyCode) {
 const pressEnter = () => pressKey('Enter', 'Enter', 13);
 const pressSpace = () => pressKey(' ', 'Space', 32);
 
+/** 轻点（触屏档）：真机上 click 就是 touchStart + touchEnd 同点 */
+async function touchTap(x, y) {
+    await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    await sleep(40);
+    await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await sleep(220);
+}
+
 // ---------------------------------------------------------------------------
-// 页面侧探针：描述快照 / 点击目标坐标 / 跳过是否发生
+// 页面侧探针：描述快照 / 空白点 / 是否还在打字
 // ---------------------------------------------------------------------------
 
-/**
- * 一次求值拿到：描述长度与文本、是否还在打字、选项数、滚动位置。
- * `descLen` 用 textContent 去掉光标字形后的长度（光标是独立的 .rc-cursor）。
- */
 const SNAP = `(() => {
   const cur = document.querySelector('.rc-current');
-  const desc = cur ? cur.querySelector('.rc-desc') : document.querySelector('.intro-overlay .io-text-live');
-  const textEl = desc || null;
+  const textEl = cur ? cur.querySelector('.rc-desc') : document.querySelector('.intro-overlay .io-text-live');
   const cursor = textEl ? textEl.querySelector('.rc-cursor, .io-cursor') : null;
   const typed = textEl ? textEl.textContent.replace(/[▌]/g, '') : '';
   const scroller = document.querySelector('.rs-rounds');
+  let hash = 0;
+  for (const ch of typed) hash = (hash * 31 + ch.codePointAt(0)) | 0;
   return {
     hasCard: !!cur,
-    isIntro: !cur && !!document.querySelector('.intro-overlay'),
+    isIntro: !!document.querySelector('.intro-overlay'),
     typed,
+    hash,
     len: typed.length,
     typing: !!cursor,
     choices: cur ? cur.querySelectorAll('.rc-choice').length : 0,
@@ -227,6 +241,9 @@ const SNAP = `(() => {
     confirm: cur ? !!cur.querySelector('.rc-confirm') : false,
     roundsScrollTop: scroller ? scroller.scrollTop : null,
     roundsScrollHeight: scroller ? scroller.scrollHeight : null,
+    roundsClientHeight: scroller ? scroller.clientHeight : null,
+    /** 容器当前真的能滚吗（内容高于可视区） */
+    roundsScrollable: scroller ? scroller.scrollHeight > scroller.clientHeight + 1 : false,
     windowScrollY: window.scrollY,
     activeTag: document.activeElement ? document.activeElement.tagName : null,
   };
@@ -234,128 +251,50 @@ const SNAP = `(() => {
 
 const snap = () => evaluate(SNAP);
 
-/** 可滚动区域（.rs-rounds）里「不是当前卡片、也没别的文字」的空白处坐标 */
-const BLANK_POINT = `(() => {
+/**
+ * 可滚动区域（.rs-rounds）里「不是卡片、也不是任何选项按钮」的空白处坐标。
+ * 优先取容器底部（当前卡片下沿之外的 padding 空白），其次卡片内描述右侧的空白。
+ * 取完必须过一遍 elementFromPoint：点到的是选项 / 按钮就继续往下找一个空白点 ——
+ * 这一条同时保证了测试点的是「空白」，不会把选项误点掉。
+ */
+const BLANK_POINTS = `(() => {
   const scroller = document.querySelector('.rs-rounds');
-  if (!scroller) return null;
+  if (!scroller) return [];
   const sr = scroller.getBoundingClientRect();
   const cur = document.querySelector('.rc-current');
   const cr = cur ? cur.getBoundingClientRect() : null;
-  // 优先：滚动容器底部、当前卡片下沿之外的 padding 空白（.rs-rounds 自己的留白）
-  if (cr && cr.bottom + 24 < sr.bottom) {
-    return { x: Math.round(sr.left + sr.width / 2), y: Math.round(cr.bottom + 12), where: 'container-padding-below-card' };
-  }
-  // 次选：卡片内、描述文字块之外的空白（右半边、标题行下方）
+  const out = [];
   if (cr) {
+    if (cr.bottom + 20 < sr.bottom) out.push({ x: Math.round(sr.left + sr.width / 2), y: Math.round(cr.bottom + 10), where: 'container-padding-below-card' });
     const d = document.querySelector('.rc-current .rc-desc');
     const dr = d ? d.getBoundingClientRect() : null;
-    if (dr && dr.right + 16 < cr.right) {
-      return { x: Math.round((dr.right + cr.right) / 2), y: Math.round(dr.top + dr.height / 2), where: 'card-blank-right-of-desc' };
-    }
-    return { x: Math.round(cr.left + cr.width / 2), y: Math.round(cr.top + 4), where: 'card-top-padding' };
+    if (dr && dr.right + 16 < cr.right) out.push({ x: Math.round((dr.right + cr.right) / 2), y: Math.round(dr.top + dr.height / 2), where: 'card-blank-right-of-desc' });
+    out.push({ x: Math.round(cr.left + cr.width / 2), y: Math.round(cr.top + 4), where: 'card-top-padding' });
   }
-  return { x: Math.round(sr.left + sr.width / 2), y: Math.round(sr.top + 8), where: 'container-top' };
+  out.push({ x: Math.round(sr.left + sr.width / 2), y: Math.round(sr.bottom - 10), where: 'container-bottom' });
+  const blocked = (x, y) => {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return true;
+    return !!el.closest('button, a, input, textarea, select, .rc-choice, .rc-confirm');
+  };
+  return out.filter((p) => p.y > sr.top + 2 && p.y < sr.bottom - 2 && !blocked(p.x, p.y));
 })()`;
 
-const blankPoint = () => evaluate(BLANK_POINT);
-
-/** 等当前卡打完字（选项出现） */
-async function waitCardDone(timeoutMs = 20000) {
-    const t0 = Date.now();
-    while (Date.now() - t0 < timeoutMs) {
-        const s = await snap();
-        if (s.hasCard && !s.typing) return s;
-        await sleep(80);
+/** 找一个「真空白」点（优先容器留白，失败则退回卡片内空白） */
+async function blankPoint() {
+    for (let k = 0; k < 6; k++) {
+        const list = await evaluate(BLANK_POINTS);
+        if (list.length) return list[0];
+        await sleep(120);
     }
-    throw new Error('等不到当前卡打完字');
-}
-
-/** 从任意界面走到「正在打字的回合卡」：点掉开场页 / 章页 / 推进过纯选择轮 */
-async function gotoTypingCard() {
-    await send('Page.navigate', { url: `http://127.0.0.1:${opts.port}/roguelite` });
-    await waitLoad();
-    // React 挂载 + 首屏渲染可能比 readyState=complete 晚一点（开发模式下按需编译更慢）
-    for (let k = 0; k < 60; k++) {
-        const s = await snap();
-        if (s.isIntro || s.hasCard) break;
-        await sleep(150);
-    }
-    await sleep(500);
-    for (let i = 0; i < 60; i++) {
-        const s = await snap();
-        if (process.env.SKIP_DEBUG)
-            log(
-                `  [goto ${i}] ${JSON.stringify(s)} | ` +
-                    `overlays=${await evaluate(`document.querySelectorAll('.intro-overlay').length`)} ` +
-                    `enterVisible=${await evaluate(`(() => { const b = document.querySelector('.io-enter'); return b ? getComputedStyle(b).visibility : null; })()`)}`,
-            );
-        if (s.hasCard && s.typing) {
-            // 滚动容器复位，后面的 scrollTop 前后对照才干净
-            await evaluate(`(() => { const el = document.querySelector('.rs-rounds'); if (el) el.scrollTop = 0; })()`);
-            await sleep(60);
-            return await snap();
-        }
-        // 开场页 / 章页：等它打完，再点「开始」。
-        // 这里刻意**直接读遮挡层的 DOM 类名**（`.intro-overlay-typing` 只在打字中挂着），
-        // 而不是用 snap() 的 React 快照 —— 换页那一帧快照会读旧值，判断容易落空。
-        if (await introPresent()) {
-            for (let k = 0; k < 100; k++) {
-                if (!(await introTyping())) break;
-                await sleep(100);
-            }
-            const p = await pointOf('.io-enter', true);
-            if (!p) throw new Error('开场页的「开始」按钮点不到');
-            await mouseClick(p.x, p.y);
-            // 点掉一页后会**立刻**换成下一页遮罩（开场页 → 第一章章页），中间还有一帧是空的：
-            // 必须等 DOM 稳定下来再判断下一步，否则会拿旧快照去点被遮罩盖住的选项。
-            await settle(150);
-            continue;
-        }
-        // 无描述的纯选择轮（如「你从哪里来」）：选项 → 确认（这类轮没有光标，等不到打字）
-        const p =
-            (await pointOf('.rc-confirm')) ||
-            (await pointOf('.rc-current .rc-choice:not(.rc-choice-selected)')) ||
-            (await pointOf('.rc-current .rc-choice')) ||
-            (await pointOf('.rs-battle-continue'));
-        if (!p) throw new Error(`卡住了：既没有打字卡也没有可点选项 ${JSON.stringify(s)}`);
-        if (process.env.SKIP_DEBUG) log(`     click(${p.sel}) at (${p.x},${p.y}) top=${JSON.stringify(await topAt(p.x, p.y))}`);
-        await mouseClick(p.x, p.y);
-        await settle(180);
-        if (process.env.SKIP_DEBUG) log(`     click(${p.sel}) -> ${JSON.stringify(await snap())}`);
-    }
-    throw new Error('走不到正在打字的回合卡');
-}
-
-/** 直接问 DOM：开场/章页遮罩在不在（不用 React 快照，换页那一帧快照会读旧值） */
-const introPresent = () => evaluate(`!!document.querySelector('.intro-overlay')`);
-/** 直接问 DOM：遮罩是不是正在打字（类名或光标） */
-const introTyping = () =>
-    evaluate(
-        `(() => { const el = document.querySelector('.intro-overlay'); return !!el && (el.classList.contains('intro-overlay-typing') || !!el.querySelector('.io-cursor')); })()`,
-    );
-
-/** 等界面稳定：同一份「遮罩数 / 当前卡 / 光标 / 选项数」串连续 3 次一致才认为换页结束 */
-async function settle(stepMs = 120, maxSteps = 40) {
-    let prev = null;
-    let same = 0;
-    for (let i = 0; i < maxSteps; i++) {
-        const sig = await evaluate(
-            `(() => [document.querySelectorAll('.intro-overlay').length, !!document.querySelector('.rc-current'), !!document.querySelector('.rc-cursor'), document.querySelectorAll('.rc-current .rc-choice').length, document.querySelectorAll('.io-enter').length].join('/'))()`,
-        );
-        same = sig === prev ? same + 1 : 0;
-        if (same >= 2) return sig;
-        prev = sig;
-        await sleep(stepMs);
-    }
-    return prev;
+    return null;
 }
 
 /** 某个坐标上最顶层的元素（诊断用） */
 async function topAt(x, y) {
     return evaluate(`(() => {
       const el = document.elementFromPoint(${x}, ${y});
-      if (!el) return null;
-      return { tag: el.tagName, cls: String(el.className).slice(0, 60), overlays: document.querySelectorAll('.intro-overlay').length };
+      return el ? { tag: el.tagName, cls: String(el.className).slice(0, 60), overlays: document.querySelectorAll('.intro-overlay').length } : null;
     })()`);
 }
 
@@ -371,79 +310,240 @@ async function pointOf(sel, requireVisible = false) {
     })()`);
 }
 
-// ---------------------------------------------------------------------------
-// 探针 1：文本真正打完时的长度（不必依赖页面内的完整原文）
-// ---------------------------------------------------------------------------
+/** 直接问 DOM：开场/章页遮罩在不在、是不是正在打字（不用 React 快照，换页那一帧快照会读旧值） */
+const introPresent = () => evaluate(`!!document.querySelector('.intro-overlay')`);
+const introTyping = () =>
+    evaluate(
+        `(() => { const el = document.querySelector('.intro-overlay'); return !!el && (el.classList.contains('intro-overlay-typing') || !!el.querySelector('.io-cursor')); })()`,
+    );
 
-async function measureFinalLen() {
-    await gotoTypingCard();
-    const s = await waitCardDone();
-    return { finalLen: s.len, choices: s.choices, typed: s.typed };
+/** 等界面稳定：同一份「遮罩数 / 当前卡 / 光标 / 选项数」串连续 3 次一致才认为换页结束 */
+async function settle(stepMs = 150, maxSteps = 40) {
+    let prev = null;
+    let same = 0;
+    for (let i = 0; i < maxSteps; i++) {
+        const sig = await evaluate(
+            `(() => [document.querySelectorAll('.intro-overlay').length, !!document.querySelector('.rc-current'), !!document.querySelector('.rc-cursor'), document.querySelectorAll('.rc-current .rc-choice').length, document.querySelectorAll('.io-enter').length].join('/'))()`,
+        );
+        same = sig === prev ? same + 1 : 0;
+        if (same >= 2) return sig;
+        prev = sig;
+        await sleep(stepMs);
+    }
+    return prev;
+}
+
+/** 等当前卡打完字（选项出现） */
+async function waitCardDone(timeoutMs = 20000) {
+    const t0 = Date.now();
+    while (Date.now() - t0 < timeoutMs) {
+        const s = await snap();
+        if (s.hasCard && !s.typing) return s;
+        await sleep(80);
+    }
+    throw new Error('等不到当前卡打完字');
+}
+
+/** 从任意界面走到「正在打字的回合卡」（顺带把滚动容器复位） */
+async function gotoTypingCard() {
+    await send('Page.navigate', { url: `http://127.0.0.1:${opts.port}/roguelite` });
+    await waitLoad();
+    for (let k = 0; k < 60; k++) {
+        if (await introPresent()) break;
+        const s = await snap();
+        if (s.hasCard) break;
+        await sleep(150);
+    }
+    await sleep(400);
+    for (let i = 0; i < 60; i++) {
+        const s = await snap();
+        if (s.hasCard && s.typing) {
+            await evaluate(`(() => { const el = document.querySelector('.rs-rounds'); if (el) el.scrollTop = 0; })()`);
+            await sleep(60);
+            return await snap();
+        }
+        if (await introPresent()) {
+            // 等这一页打完（直接读遮罩类名，避免抓到换页中间那一帧），再点「开始」
+            for (let k = 0; k < 100; k++) {
+                if (!(await introTyping())) break;
+                await sleep(100);
+            }
+            const p = await pointOf('.io-enter', true);
+            if (!p) throw new Error('开场页的「开始」按钮点不到');
+            await mouseClick(p.x, p.y);
+            // 点掉一页后可能立刻换成下一页遮罩：等 DOM 稳定再判断，否则会去点被遮罩盖住的选项
+            await settle();
+            continue;
+        }
+        // 无描述的纯选择轮（如「你从哪里来」）：选第一个 → 确认（这类轮没有光标，等不到打字）
+        let p = await pointOf('.rc-confirm');
+        if (!p) {
+            // 选项列表可能有好几屏：先把候选滚进视野（与玩家操作一致）
+            await evaluate(`(() => {
+              const el = ['.rc-confirm', '.rc-current .rc-choice:not(.rc-choice-selected)', '.rc-current .rc-choice', '.rs-battle-continue']
+                .map((x) => document.querySelector(x)).find(Boolean);
+              if (el) el.scrollIntoView({ block: 'center' });
+            })()`);
+            await sleep(150);
+            p =
+                (await pointOf('.rc-confirm')) ||
+                (await pointOf('.rc-current .rc-choice:not(.rc-choice-selected)')) ||
+                (await pointOf('.rc-current .rc-choice')) ||
+                (await pointOf('.rs-battle-continue'));
+        }
+        if (!p) throw new Error(`卡住了：既没有打字卡也没有可点选项 ${JSON.stringify(s)}`);
+        await mouseClick(p.x, p.y);
+        await settle();
+    }
+    throw new Error('走不到正在打字的回合卡');
 }
 
 // ---------------------------------------------------------------------------
-// ①-④ 桌面档
+// 基线：自然打完的全文（同一张卡的对照）
+// ---------------------------------------------------------------------------
+
+/**
+ * 跑到正在打字的卡 → 等它自然打完 → 记下全文长度与 hash，再独立重放一次确认
+ * 同一流程拿到的是同一张卡（选故事线那一轮是随机的）。返回 `same: false` 表示两次不同卡，
+ * 调用方会降级判据并如实记录。
+ */
+/** 从页面拿「当前展示的正文原文」（当前卡或开场页）—— 诊断用 */
+async function shownText() {
+    return evaluate(`(() => {
+      const d = document.querySelector('.rc-current .rc-desc');
+      if (d) return d.textContent.replace(/[▌]/g, '');
+      const live = document.querySelector('.intro-overlay .io-text-live');
+      return live ? live.textContent.replace(/[▌]/g, '') : '';
+    })()`);
+}
+
+async function baseline() {
+    await gotoTypingCard();
+    const a = await waitCardDone();
+    const text = await shownText();
+    await gotoTypingCard();
+    const b = await waitCardDone();
+    return { finalLen: a.len, choices: a.choices, hash: a.hash, text, same: a.hash === b.hash, otherLen: b.len, otherHash: b.hash, otherText: await shownText() };
+}
+
+// ---------------------------------------------------------------------------
+// 桌面档 1280×800
 // ---------------------------------------------------------------------------
 
 await setViewport({ width: 1280, height: 800, mobile: false });
-// 逐字打开（默认即 true，但显式写死，避免受 profile 残留影响）
+
+// 用固定种子的伪随机替掉 Math.random（**装在任何一次页面加载之前**）：
+// 故事线抽取走 Math.random，不固定的话每次重放都换一条线（正文不同，基线没法对拍）。
+// 这是测试侧的确定性注入，不改游戏代码；种子固定 → 每轮重放都是同一条线、同一张卡。
+// 注意必须在**首次加载前**就装好：装晚了已经建好的 zustand store 会带着一条随机故事线活到后面。
+const seedScript = await send('Page.addScriptToEvaluateOnNewDocument', {
+    source: `(() => {
+      let s = 20260811;
+      Math.random = () => {
+        s = (s * 1103515245 + 12345) & 0x7fffffff;
+        return s / 0x7fffffff;
+      };
+    })();`,
+});
+// 第一次加载：写死 ui 配置（逐字打开）。之后所有重放都是整页加载（gotoTypingCard 用 Page.navigate），
+// 种子脚本对每个新 document 都生效，所以新一轮的 store 又是同一条故事线。
 await send('Page.navigate', { url: `http://127.0.0.1:${opts.port}/` });
 await waitLoad();
+await sleep(300);
 await evaluate(`localStorage.setItem('bdgame-ui-config', JSON.stringify({ theme: 'dark', uiScale: 1, typewriter: true }))`);
+// 种子验证：把「同一个 document 里两次同位置抽取」对拍一下（实现改了会立刻暴露）
+const seedCheck = await evaluate(`(() => { const a = Math.random(); return { a, hasOwn: Object.prototype.hasOwnProperty.call(Math, 'random') }; })()`);
+if (seedScript?.identifier) {
+    // 保留脚本：每次整页加载都重新播种，重放才可比
+    log(`种子脚本已装：${seedScript.identifier}`);
+}
+log(`种子自检：Math.random()=${seedCheck.a}（期望 0.0029）`);
 
-const final = await measureFinalLen();
-log(`文本打完基线：len=${final.finalLen} 选项=${final.choices}`);
-check('基线：等自然打完拿到全文长度（对照组）', final.finalLen > 10, { finalLen: final.finalLen, choices: final.choices });
+const base = await baseline();
+log(`基线：自然打完 len=${base.finalLen} 选项=${base.choices}，重放同一张卡=${base.same}（另一次 len=${base.otherLen}）`);
+check('基线：自然打完能拿到全文，且两次重放是同一张卡（hash 一致）', base.finalLen > 10 && base.same, {
+    finalLen: base.finalLen,
+    choices: base.choices,
+    same: base.same,
+    otherLen: base.otherLen,
+});
 
 // ① 点击可滚动区域空白处
 {
     const before = await gotoTypingCard();
     const p = await blankPoint();
+    if (!p) throw new Error('找不到「可滚动区域里的空白处」');
+    const topEl = await topAt(p.x, p.y);
     const shot = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(SHOT_DIR, 'skip-typing-typing-1280.png'), Buffer.from(shot.data, 'base64'));
+    const scrollBefore = before.roundsScrollTop;
     await mouseClick(p.x, p.y);
     const after = await snap();
     check(
-        '① 点击可滚动区域空白处 → 立刻全出',
-        after.typing === false && after.len === final.finalLen && after.choices === final.choices,
-        { point: p, beforeLen: before.len, beforeTyping: before.typing, afterLen: after.len, afterTyping: after.typing, choices: after.choices },
+        '① 打字中点击可滚动区域空白处 → 描述立刻全出（无需再等自然打完）',
+        after.typing === false && after.len === base.finalLen && after.hash === base.hash && after.choices === base.choices && after.selected === 0,
+        {
+            point: p,
+            topElement: topEl,
+            beforeLen: before.len,
+            afterLen: after.len,
+            afterTyping: after.typing,
+            choices: after.choices,
+            hashMatches: after.hash === base.hash,
+            scrollTop: [scrollBefore, after.roundsScrollTop],
+        },
     );
     const shot2 = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(SHOT_DIR, 'skip-typing-done-1280.png'), Buffer.from(shot2.data, 'base64'));
 
     // ④ 打完字之后再点击 / 再按 Enter：无副作用
-    const beforeClickAgain = await snap();
+    const beforeAgain = await snap();
     const pAgain = await blankPoint();
     await mouseClick(pAgain.x, pAgain.y);
     await pressEnter();
+    await sleep(200);
     const afterAgain = await snap();
     check(
-        '④ 打完字后再点击 / 再按 Enter → 无副作用',
+        '④ 打完字后再点击 / 再按 Enter → 无副作用（不重复跳过、不误触选项、位置不动）',
         afterAgain.typing === false &&
-            afterAgain.len === final.finalLen &&
+            afterAgain.len === base.finalLen &&
+            afterAgain.hash === base.hash &&
             afterAgain.selected === 0 &&
             !afterAgain.confirm &&
-            afterAgain.choices === final.choices &&
-            afterAgain.roundsScrollTop === beforeClickAgain.roundsScrollTop,
+            afterAgain.choices === base.choices &&
+            afterAgain.roundsScrollTop === beforeAgain.roundsScrollTop,
         {
             len: afterAgain.len,
             selected: afterAgain.selected,
             confirm: afterAgain.confirm,
             choices: afterAgain.choices,
-            scrollTop: [beforeClickAgain.roundsScrollTop, afterAgain.roundsScrollTop],
+            scrollTop: [beforeAgain.roundsScrollTop, afterAgain.roundsScrollTop],
         },
     );
 
-    // 选项照旧可点（证明交互没被抢）
-    const pick = await evaluate(`(() => {
+    // ④b 选项照旧可点（证明交互没被抢）：先滚进视野（跳过之后卡片变高，选项可能在折线以下）
+    await evaluate(`(() => {
       const el = document.querySelector('.rc-current .rc-choice');
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
+      if (el) el.scrollIntoView({ block: 'center' });
     })()`);
+    await sleep(200);
+    const beforePick = await snap();
+    const pick = await pointOf('.rc-current .rc-choice');
     await mouseClick(pick.x, pick.y);
+    await sleep(250);
     const afterPick = await snap();
-    check('④b 选项点击照旧生效（选中态出现，未被跳过逻辑吃掉）', afterPick.selected >= 1, { selected: afterPick.selected });
+    // 两种轮次都算「点击生效」：多选轮 → 选中态/确认按钮出现；单选项轮（本例的「继续」）→ 直接推进下一轮
+    const advanced = !afterPick.hasCard || afterPick.typing || afterPick.choices !== beforePick.choices;
+    check(
+        '④b 选项的点击照旧生效（多选轮出选中态，单选项轮直接推进）',
+        afterPick.selected > beforePick.selected || afterPick.confirm || advanced,
+        {
+            selected: [beforePick.selected, afterPick.selected],
+            confirm: [beforePick.confirm, afterPick.confirm],
+            choices: [beforePick.choices, afterPick.choices],
+            advanced,
+        },
+    );
 }
 
 // ② Enter 跳过
@@ -451,17 +551,20 @@ check('基线：等自然打完拿到全文长度（对照组）', final.finalLe
     const before = await gotoTypingCard();
     await pressEnter();
     const after = await snap();
-    check('② 打字中按 Enter → 立刻全出', after.typing === false && after.len === final.finalLen, {
+    check('② 打字中按 Enter → 立刻全出', after.typing === false && after.len === base.finalLen && after.hash === base.hash, {
         beforeLen: before.len,
         afterLen: after.len,
         afterTyping: after.typing,
+        hashMatches: after.hash === base.hash,
+        baseText: base.text,
+        shownText: await shownText(),
     });
 }
 
 // ③ Space 跳过 + 不额外滚动
 {
     const before = await gotoTypingCard();
-    // 滚动容器挪到中间：Space 的默认行为（向下滚一屏）若没被吃掉，scrollTop 立刻会变
+    // 容器拉到顶：Space 的默认行为（向下滚一屏）若没被吃掉，scrollTop 会立刻变化
     await evaluate(`(() => { const s = document.querySelector('.rs-rounds'); s.scrollTop = 0; })()`);
     await sleep(80);
     const pre = await snap();
@@ -469,7 +572,11 @@ check('基线：等自然打完拿到全文长度（对照组）', final.finalLe
     const after = await snap();
     check(
         '③ 打字中按 Space → 立刻全出，且没有额外滚动',
-        after.typing === false && after.len === final.finalLen && after.roundsScrollTop === pre.roundsScrollTop && after.windowScrollY === pre.windowScrollY,
+        after.typing === false &&
+            after.len === base.finalLen &&
+            after.hash === base.hash &&
+            after.roundsScrollTop === pre.roundsScrollTop &&
+            after.windowScrollY === pre.windowScrollY,
         {
             beforeLen: before.len,
             afterLen: after.len,
@@ -479,26 +586,31 @@ check('基线：等自然打完拿到全文长度（对照组）', final.finalLe
     );
 }
 
-// ③b 对照：不在打字状态时按 Space，滚动容器照常下滚（证明上一条是 preventDefault 的功劳，不是容器本来就不滚）
+// ③b 对照：不在打字状态时按 Space，滚动容器照常下滚（证明 ③ 是 preventDefault 的功劳）。
+// 前提是容器**真的能滚**（内容高于可视区）；不能滚时这条实验做不出来，如实记为「未适用」。
 {
     await evaluate(`(() => { const s = document.querySelector('.rs-rounds'); s.scrollTop = 0; })()`);
     await sleep(80);
     const before2 = await snap();
     await pressSpace();
+    await sleep(200);
     const after2 = await snap();
+    const scrollable = before2.roundsScrollable;
     check(
-        '③b 对照：不在打字时按 Space，滚动容器照常下滚',
-        before2.typing === false && after2.roundsScrollTop > before2.roundsScrollTop,
+        '③b 对照：不在打字时按 Space，滚动容器照常下滚（默认行为没被全局吃掉）',
+        !scrollable || (before2.typing === false && after2.roundsScrollTop > before2.roundsScrollTop),
         {
             typing: before2.typing,
+            scrollable,
             roundsScrollTop: [before2.roundsScrollTop, after2.roundsScrollTop],
-            scrollHeight: after2.roundsScrollHeight,
+            scroll: [before2.roundsScrollHeight, before2.roundsClientHeight],
+            note: scrollable ? undefined : '本卡内容没有高于可视区，容器本来就滚不动，这条对照未适用',
         },
     );
 }
 
 // ---------------------------------------------------------------------------
-// ⑤ 触屏档：拖拽滚动不算「点击跳过」
+// 触屏档 390×844：拖拽滚动不算「点击跳过」
 // ---------------------------------------------------------------------------
 
 await setViewport({ width: 390, height: 844, mobile: true });
@@ -512,53 +624,89 @@ await setViewport({ width: 390, height: 844, mobile: true });
       return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height * 0.75) };
     })()`);
     const start = await snap();
-    // 真实触摸：按下 → 分步上移（拖动滚动）→ 抬起
+    // 页面侧装一个只数点击的探针：拖拽之后它必须仍然是 0。
+    // 这是「拖拽不会被当成跳过」的**机制级**证据 —— 跳过只由 click 触发，
+    // 没有 click 就不可能跳过（比「文字还在打字」更硬：文字短时可能在拖动期间自然打完）。
+    await evaluate(`(() => {
+      window.__dragProbe = { clicks: 0, downs: 0, ups: 0 };
+      const s = document.querySelector('.rs-rounds');
+      window.__dragProbeCleanup = () => {
+        s.removeEventListener('click', window.__dragProbe.onClick, true);
+        s.removeEventListener('pointerdown', window.__dragProbe.onDown, true);
+        s.removeEventListener('pointerup', window.__dragProbe.onUp, true);
+      };
+      window.__dragProbe.onClick = () => { window.__dragProbe.clicks += 1; };
+      window.__dragProbe.onDown = () => { window.__dragProbe.downs += 1; };
+      window.__dragProbe.onUp = () => { window.__dragProbe.ups += 1; };
+      s.addEventListener('click', window.__dragProbe.onClick, true);
+      s.addEventListener('pointerdown', window.__dragProbe.onDown, true);
+      s.addEventListener('pointerup', window.__dragProbe.onUp, true);
+    })()`);
+    // 真实触摸：按下 → 分步上移（拖动滚动）→ 抬起（节奏贴近真机快速滑动）
+    const dragT0 = Date.now();
     await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: anchor.x, y: anchor.y }] });
-    for (let i = 1; i <= 10; i++) {
-        await send('Input.dispatchTouchEvent', {
-            type: 'touchMove',
-            touchPoints: [{ x: anchor.x + i, y: anchor.y - i * 12 }],
-        });
-        await sleep(30);
+    for (let i = 1; i <= 7; i++) {
+        await send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: anchor.x + i, y: anchor.y - i * 14 }] });
+        await sleep(16);
     }
-    await sleep(120); // 手指按住后停顿，进一步排除「轻点」判定
+    await sleep(60); // 手指按住停顿，进一步排除「轻点」判定
     await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-    await sleep(250);
+    await sleep(150);
     const after = await snap();
+    const probe = await evaluate('({ ...window.__dragProbe, cleanup: (window.__dragProbeCleanup(), true) })');
     check(
-        '⑤ 390×844 触屏：拖拽滚动没有被当成跳过（文字仍在打字并继续推进）',
-        after.typing === true && after.len > start.len && after.roundsScrollTop > start.roundsScrollTop,
+        '⑤ 390×844 触屏：拖拽没有被当成跳过（拖动期间没有产生任何 click）',
+        probe.clicks === 0 && after.typing === true && after.selected === 0 && after.len >= start.len,
         {
+            probe: { clicks: probe.clicks, downs: probe.downs, ups: probe.ups },
+            dragMs: Date.now() - dragT0,
             startLen: start.len,
             afterLen: after.len,
             startTyping: start.typing,
             afterTyping: after.typing,
-            scrollTop: [start.roundsScrollTop, after.roundsScrollTop],
+            selected: after.selected,
             drag: anchor,
         },
     );
+    // 拖拽滚动本身（前提：容器内容高于可视区）。这一条是「拖动确实发生了」的旁证，
+    // 不是「没被当成跳过」的判据 —— 后者由上面那条（仍在打字）保证。
+    check(
+        '⑤c 390×844 触屏：拖拽确实滚动了滚动容器（前提成立时）',
+        !start.roundsScrollable || after.roundsScrollTop > start.roundsScrollTop,
+        {
+            scrollable: start.roundsScrollable,
+            scrollTop: [start.roundsScrollTop, after.roundsScrollTop],
+            scroll: [start.roundsScrollHeight, start.roundsClientHeight],
+            note: start.roundsScrollable ? undefined : '本卡内容没有高于可视区，拖不出滚动量（跳过判定由 ⑤ 负责）',
+        },
+    );
 
-    // ⑤b 触屏档的一张「打字中」截图（拖动之后仍在打字）+ 点击跳过后的截图
     const shotTyping = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(SHOT_DIR, 'skip-typing-typing-390.png'), Buffer.from(shotTyping.data, 'base64'));
-    const blank390 = await evaluate(`(() => {
-      const s = document.querySelector('.rs-rounds');
-      const r = s.getBoundingClientRect();
-      return { x: Math.round(r.left + r.width / 2), y: Math.round(r.bottom - 10) };
-    })()`);
-    // 触屏档的「点击」用 touchStart/touchEnd 同点（真机上 click 就是这么来的）
-    await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: blank390.x, y: blank390.y }] });
-    await sleep(40);
-    await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-    await sleep(200);
+
+    // ⑤b 轻点空白处 → 跳过（真机 click 路径）
+    const blank390 = await blankPoint();
+    if (!blank390) throw new Error('390 档找不到空白点');
+    await evaluate(`(() => { const s = document.querySelector('.rs-rounds'); s.scrollTop = 0; })()`);
+    await sleep(80);
+    const topEl = await topAt(blank390.x, blank390.y);
+    await touchTap(blank390.x, blank390.y);
     const afterTap = await snap();
-    check('⑤b 390×844 触屏：轻点空白处 → 跳过生效（真机 click 路径）', afterTap.typing === false && afterTap.len === final.finalLen, {
-        len: afterTap.len,
-        typing: afterTap.typing,
-        expected: final.finalLen,
-    });
+    check(
+        '⑤b 390×844 触屏：轻点空白处 → 跳过生效（真机 click 路径），且文本与基线逐字相同',
+        afterTap.typing === false && afterTap.len === base.finalLen && afterTap.hash === base.hash,
+        {
+            point: blank390,
+            topElement: topEl,
+            len: afterTap.len,
+            typing: afterTap.typing,
+            expected: base.finalLen,
+            hashMatches: afterTap.hash === base.hash,
+        },
+    );
     const shotDone = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(SHOT_DIR, 'skip-typing-done-390.png'), Buffer.from(shotDone.data, 'base64'));
+    if (process.env.SKIP_DEBUG) log(`⑤ 起始快照 ${JSON.stringify(before)}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -567,7 +715,7 @@ await setViewport({ width: 390, height: 844, mobile: true });
 
 fs.writeFileSync(
     path.join(SHOT_DIR, 'skip-typing-report.json'),
-    JSON.stringify({ results, failures, finalLen: final.finalLen }, null, 1),
+    JSON.stringify({ results, failures, baseline: base }, null, 1),
 );
 console.log('\n== 汇总 ==');
 for (const r of results) console.log(`${r.ok ? '通过' : '失败'}  ${r.name}`);

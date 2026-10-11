@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRogueliteStore } from '../../stores/roguelite-store'
 import { useOrientation } from '../../hooks/useOrientation'
 import { useNavigate } from 'react-router-dom'
@@ -25,6 +25,7 @@ import {
     STORY_INTRO_TEXT,
     TRUE_ENDING_EPILOGUE,
 } from '../../../data/story-intros'
+import { useSkipOnClickCapture, createSkipHolder, type SkipHolderRef } from '../../hooks/useSkipTypewriterOnKey'
 import './RogueliteScreen.scss'
 
 const CHAPTER_CN = ['', '一', '二', '三']
@@ -54,6 +55,23 @@ export function RogueliteScreen() {
 
     /** 回合列表容器：只有玩家本来就贴在底部时，新内容才自动滚到底（翻看历史时不动） */
     const roundsRef = useRef<HTMLDivElement>(null)
+    /**
+     * 「点可滚动区域任意处跳过打字」的登记格：正在打字的 RoundCard 把 `skip` 放进来，
+     * 下面 `useSkipOnClickCapture` 在 `.rs-rounds` 上消费。
+     * 挂在容器这一层而不是卡片上：容器的 padding 留白（卡片之外那片）也是可滚动内容的一部分，
+     * 用户「点哪儿都能跳过」的口径要连那片留白一起算。
+     * 格子在这里建一次、当 prop 传给当轮的 RoundCard 去登记（不是读 ref，见 react-hooks/refs）。
+     */
+    const skipHolderRef = useMemo<SkipHolderRef>(() => createSkipHolder(), [])
+    /** 跳过点击的接线（callback ref）：容器要同时喂给 roundsRef（滚动到底用）和这里 */
+    const skipClickRef = useSkipOnClickCapture(skipHolderRef)
+    const attachRounds = useCallback(
+        (el: HTMLDivElement | null) => {
+            roundsRef.current = el
+            skipClickRef(el)
+        },
+        [skipClickRef],
+    )
     const atBottomRef = useRef(true)
     const roundsCount = `${gameState?.history.length ?? 0}:${gameState?.rounds.length ?? 0}`
     useEffect(() => {
@@ -203,7 +221,7 @@ export function RogueliteScreen() {
                 )
             }
         }
-        return <RoundCard key={i} round={r} past={i < gameState.rounds.length - 1} onChoice={select} />
+        return <RoundCard key={i} round={r} past={i < gameState.rounds.length - 1} onChoice={select} skipHolderRef={skipHolderRef} />
     }
 
     /** 是否已选定故事线（未选线时右侧不显示人物面板） */
@@ -232,7 +250,7 @@ export function RogueliteScreen() {
                 </Button>
             </header>
             <div className="rs-body">
-                <div className="rs-rounds" ref={roundsRef} onScroll={handleRoundsScroll}>
+                <div className="rs-rounds" ref={attachRounds} onScroll={handleRoundsScroll}>
                     {/* 过去节点的回合：只看得见结果（回放仅当场可放） */}
                     {gameState.history.length > 0 && (
                         <div className="rs-rounds-history">
