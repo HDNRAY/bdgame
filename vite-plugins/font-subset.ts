@@ -1,4 +1,4 @@
-import type { Plugin } from 'vite'
+import type { Plugin, Rollup } from 'vite'
 import subsetFont from 'subset-font'
 import * as fontverter from 'fontverter'
 import { Blob as HbBlob, Face } from 'harfbuzzjs'
@@ -45,6 +45,20 @@ function isControl(ch: string): boolean {
     return c < 0x20 || c === 0x7f
 }
 
+/**
+ * 类型守卫：bundle 的条目是 `OutputAsset | OutputChunk` 的判别联合，只有资源（asset）
+ * 有 `source`，代码块（chunk）没有。读 `source` 之前必须先窄化 —— 直接读会 TS2339，
+ * 而 `as` 断言会把这类错误藏起来（构建期靠 `tsc -b` 才查得到这个文件，见 AGENTS.md）。
+ */
+function isOutputAsset(entry: Rollup.OutputAsset | Rollup.OutputChunk): entry is Rollup.OutputAsset {
+    return entry.type === 'asset'
+}
+
+/** 资源字节数：`source` 的类型是 `string | Uint8Array`（字体产物一定是后者，字符串按 utf8 计） */
+function assetBytes(asset: Rollup.OutputAsset): number {
+    return typeof asset.source === 'string' ? Buffer.byteLength(asset.source) : asset.source.byteLength
+}
+
 /** 收集产物里出现的全部字符 */
 export function collectBundleCharset(sources: Buffer[]): string {
     const set = new Set<string>()
@@ -73,14 +87,16 @@ export function fontSubsetPlugin(options: FontSubsetPluginOptions = {}): Plugin 
         async generateBundle(_outputOptions, bundle) {
             const startedAt = Date.now()
             const textAssets = Object.entries(bundle).filter(
-                ([fileName, asset]) => asset.type === 'asset' && TEXT_ASSET.test(fileName),
+                (entry): entry is [string, Rollup.OutputAsset] =>
+                    isOutputAsset(entry[1]) && TEXT_ASSET.test(entry[0]),
             )
-            const sources = textAssets.map(([, asset]) => Buffer.from(asset.source as string | Uint8Array))
+            const sources = textAssets.map(([, asset]) => Buffer.from(asset.source))
             const charset = collectBundleCharset(sources)
             const chars = [...charset]
 
             const fontAssets = Object.entries(bundle).filter(
-                ([fileName, asset]) => asset.type === 'asset' && fileName.endsWith('.woff2'),
+                (entry): entry is [string, Rollup.OutputAsset] =>
+                    isOutputAsset(entry[1]) && entry[0].endsWith('.woff2'),
             )
             if (!fontAssets.length) {
                 this.warn(`产物里没有 .woff2（检查 ${fontDir} 是否还被 CSS 引用）`)
@@ -91,7 +107,7 @@ export function fontSubsetPlugin(options: FontSubsetPluginOptions = {}): Plugin 
             const missingInSource = new Set<string>()
 
             for (const [fileName, asset] of fontAssets) {
-                const original = Buffer.from(asset.source as string | Uint8Array)
+                const original = Buffer.from(asset.source)
                 const subset = await subsetFont(original, charset, { targetFormat: 'woff2' })
                 asset.source = subset
 
@@ -124,7 +140,7 @@ export function fontSubsetPlugin(options: FontSubsetPluginOptions = {}): Plugin 
                 )
             }
 
-            const emitted = fontAssets.reduce((s, [, a]) => s + (a.source as Buffer).length, 0)
+            const emitted = fontAssets.reduce((s, [, a]) => s + assetBytes(a), 0)
             this.warn(
                 `[font-subset] 字符 ${chars.length} 个（来自 ${textAssets.length} 份产物文本）→ 字体 ${emitted} B\n` +
                     lines.join('\n') +

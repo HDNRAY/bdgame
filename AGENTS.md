@@ -58,6 +58,13 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
     （历史上漏过：`engine.execute` 是私有方法、钩子 ctx 形状不匹配）。
     `scripts/` 目前**不在任何 tsconfig 的 include 里**（app 只含 `src`，node 只含 `vite.config.ts`），
     且 `eslint src/` 不覆盖它 —— 改脚本时顺手跑 `npx eslint scripts/<file>`。
+    **`vite-plugins/` 同样不在 app 的 include 里**（它由 `tsconfig.node.json` 覆盖，和 `vite.config.ts`
+    同一份配置），所以上面那条 `tsc -p tsconfig.app.json` **查不到它** —— 改了 `vite-plugins/`（或
+    `vite.config.ts`、`tsconfig.node.json`、`scripts/`）之后**必须另跑 `npx tsc -b`**（solution 构建，
+    一轮覆盖 app + node 两份配置）。原因：**CI 跑的就是 `npm run build` = `tsc -b && vite build`**，
+    本地只跑 `tsc -p tsconfig.app.json` 会**漏掉这些文件**，得到「本地全绿、CI 报错」的假绿
+    （历史漏过：`vite-plugins/font-subset.ts` 在 `generateBundle` 里对 `OutputAsset | OutputChunk`
+    直接读 `.source`，CI 报四个 TS2339）。
 
 ## UI 配色（改颜色前必读）
 
