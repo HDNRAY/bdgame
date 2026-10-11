@@ -809,6 +809,29 @@ CI 接法：
    改颜色必须跑 `scss-triples.mjs` + `ui-computed-style.mjs` / **断言跟着用户定义走**）、
    按下态口径、canvas 的镜像 + `resolveUiColor` 做法、标签徽章的两处同步。
 
+### 追加改动：剧情描述文字（`--color-desc`）
+
+**来源**：用户「暗色主题下，剧情描述 / 卡片的文字再亮一点」，后精确到 **`RoundCard` 的 `.rc-desc`**（对局页的剧情描述正文）。
+
+**先量后改**（`/tmp/rcprobe.mjs`，无头 Chrome 实测 `/roguelite`，两主题 × 1280×800）：
+
+| 项 | 亮色 | 暗色 |
+| --- | --- | --- |
+| `.rc-desc` 计算 `color` | `rgb(89, 89, 102)` = `#595966` | `rgb(137, 137, 151)` = `#898997` |
+| 原 token | `--color-text-dim`（themes.css） | 同左 |
+| 有效背景（沿祖先链取最后一个非透明 `background-color`） | `#ffffff`（`--color-bg`） | `#000000`（`--color-bg`） |
+| WCAG 对比度 | **6.90** | **6.09** |
+
+`--color-text-dim` 是**全仓共享** token（32 个文件、106 条 scss 声明引用），调它等于连带改掉全站弱文字 → 违反「最小影响面」。因此**新增角色 token**：
+
+| token | 亮 | 暗 | 依据 |
+| --- | --- | --- | --- |
+| `--color-desc` | `#595966`（= `--color-text-dim` 亮色值，**亮色逐处不变**） | `#afafc1`（= `--color-text` 暗色值） | 沿既有中性文字阶梯**上移一档**（弱文字 → 正文），暗色 **6.09 → 9.72**，满足 ≥7:1 的目标 |
+
+- `--color-desc` 是**角色 token，不是新的明度档**：每个主题取该主题下已有一档的值（亮 = `text-dim`、暗 = `text`），所以中性阶梯（I2/I3/I5）不受影响。
+- 只有一个调用点：`RoundCard.scss` 的 `.rc-desc`。其余用 `--color-text-dim` 的元素计算值不变。
+- 用户的原始意图只针对暗色，因此**亮色值刻意等于原值**（`ui-computed-style.mjs` 对拍亮色 0 处差异）。
+
 ### 验证口径汇总
 
 | 手段 | 配色改动怎么用 |
@@ -1174,7 +1197,7 @@ CI 接法：
 **用途**：新加语义色 / 底 / 描边时，先在这张表里找角色；找不到角色再新增，新增后回填本表。
 两套主题必须同时给值，并过 I1 / I6（对比度 / 可分性）。
 
-35 个 token（另有 54 条 `--tag-color-*`，见第 7 节）：
+36 个 token（另有 54 条 `--tag-color-*`，见第 7 节）：
 
 | token | 角色 | 亮 | 暗 | 引用文件数 | 代表调用点 |
 | --- | --- | --- | --- | --- | --- |
@@ -1186,6 +1209,7 @@ CI 接法：
 | `--color-text` | 正文 | `#393947` | `#afafc1` | 32 | App.tsx, index.css, ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss |
 | `--color-text-h` | 标题 | `#1b1b2b` | `#e8e9ff` | 18 | index.css, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss |
 | `--color-text-dim` | 弱文字 | `#595966` | `#898997` | 31 | ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss |
+| `--color-desc` | 剧情描述正文（RoundCard 的 `.rc-desc`） | `#595966` | `#afafc1` | 1 | ui/components/roguelite/RoundCard.scss |
 | `--color-border` | 弱描边：分隔线（豁免 3:1） | `#bdbdc4` | `#2d2d33` | 31 | ui/components/AnimationPanel/AnimationPanel.scss, ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss |
 | `--color-border-hover` | 强描边：悬停 / 聚焦（≥3:1） | `#7a7a84` | `#626375` | 8 | ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/SelectionPanel/SelectionPanel.scss, ui/components/roguelite/RunSummaryPanel.scss, ui/components/ui/Button/Button.scss |
 | `--color-pressed` | 按下：填充 + 描边（配 on-accent） | `#4c4c55` | `#78787f` | 5 | ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/SelectionPanel/SelectionPanel.scss, ui/components/ui/Button/Button.scss, ui/screens/DevMode/DevMode.scss |
@@ -1216,7 +1240,7 @@ CI 接法：
 
 **分层**（对应 3.1）：
 
-- **中性阶梯**：`bg → bg-alt → bg-panel → bg-hover`（面 0~3，严格单调、相邻 ΔL ∈ [0.035, 0.075]）；描边 `border`（弱，豁免 3:1）/ `border-hover`（强，≥3:1）/ `pressed`（按下填充）；文字 `text-dim → text → text-h`；反色 `on-accent`。
+- **中性阶梯**：`bg → bg-alt → bg-panel → bg-hover`（面 0~3，严格单调、相邻 ΔL ∈ [0.035, 0.075]）；描边 `border`（弱，豁免 3:1）/ `border-hover`（强，≥3:1）/ `pressed`（按下填充）；文字 `text-dim → text → text-h`（另有角色 token `desc` = 亮 `text-dim` / 暗 `text`，不占新档位）；反色 `on-accent`。
 - **语义强调色（8）**：`accent` / `success` / `danger` / `warning` / `gold` / `ap` / `qi` / `p2`，色相共用、两套主题各自定值；其余 token 都是它们的别名或 `color-mix` 派生。
 - **别名与派生**：`p1 = accent`、`scrollbar-thumb = border-hover`、`tooltip-bg = color-mix(bg-panel 97%, transparent)`、`*-bg` / `*-border` 由语义色 `color-mix` 派生。**别名不算新角色**，别在调用点重复造。
 - **画布层**：canvas / PixiJS 读不到 CSS 变量，那边用 `src/ui/canvas/battle-colors.ts` 的 `UI_COLOR_MIRROR`（有漂移测试盯着），需要真实色值时调 `resolveUiColor()`。

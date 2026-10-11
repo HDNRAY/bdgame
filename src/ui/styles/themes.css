@@ -36,6 +36,9 @@
     --color-text: #393947;
     --color-text-h: #1b1b2b;
     --color-text-dim: #595966;
+    /* 剧情描述（RoundCard 的 .rc-desc）：**亮色主题与 --color-text-dim 同值**，
+       本轮只调暗色（用户口径：只改暗色的剧情描述）。 */
+    --color-desc: #595966;
     /* Borders */
     --color-border: #bdbdc4;
     --color-border-hover: #7a7a84;
@@ -173,6 +176,9 @@
     --color-text: #afafc1;
     --color-text-h: #e8e9ff;
     --color-text-dim: #898997;
+    /* 剧情描述（RoundCard 的 .rc-desc）：沿中性文字阶梯上移一档（弱文字 → 正文），
+       取 --color-text 的暗色值；对页面底 6.09 → 9.72（≥7:1），亮色主题不动。 */
+    --color-desc: #afafc1;
     /* Borders */
     --color-border: #2d2d33;
     --color-border-hover: #626375;

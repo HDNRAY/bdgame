@@ -31,7 +31,8 @@
         line-height: 1.5;
         margin-bottom: var(--sp-xxs);
         white-space: pre-wrap;
-        color: var(--color-text-dim);
+        /* 剧情描述专用 token（不是共享的弱文字）：暗色比 --color-text-dim 亮一档，见 themes.css */
+        color: var(--color-desc);
         font-size: var(--font-sm);
         text-align: left;
     }
