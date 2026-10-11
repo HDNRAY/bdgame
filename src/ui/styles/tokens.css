@@ -26,9 +26,11 @@
     /* ========== Typography ==========
        像素字体有两份：小字用 10px 版（原生网格 10 的倍数），正文/标题用 12px 版（12 的倍数）。
        **改字号时只改下面这组，字号必须落在所属字族的原生网格上**，否则会被平滑缩放、笔画不整。
-       成套令牌（--text-*）把"字号 + 字族"打包在一起，新样式优先用它：font: var(--text-md); */
-    --font-family-small: 'Fusion Pixel 10px', system-ui, 'Segoe UI', Roboto, sans-serif;
-    --font-family-base: 'Fusion Pixel 12px', system-ui, 'Segoe UI', Roboto, sans-serif;
+       成套令牌（--text-*）把"字号 + 字族"打包在一起，新样式优先用它：font: var(--text-md);
+       字族链里紧跟像素字体的 `Fusion Fallback *` 是「度量对齐的回退字体」（见 src/index.css 的
+       度量覆盖声明）：像素字体没到位时先用它，行高与像素字体一致，切换不位移。 */
+    --font-family-small: 'Fusion Pixel 10px', 'Fusion Fallback 10', system-ui, 'Segoe UI', Roboto, sans-serif;
+    --font-family-base: 'Fusion Pixel 12px', 'Fusion Fallback 12', system-ui, 'Segoe UI', Roboto, sans-serif;
 
     --font-xxs: 0.625rem; /* 10px（小字族）← 原 8px */
     --font-xs: 0.625rem; /* 10px（小字族） */

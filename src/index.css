@@ -2,13 +2,22 @@
 @import './ui/styles/themes.css';
 
 /* 全游戏像素字体：缝合像素字体（Fusion Pixel Font）简体中文版（含拉丁）
-   400 = 常规版；700 = 官方组织的算法粗体版（否则浏览器合成粗体会发糊） */
+   400 = 常规版；700 = 官方组织的算法粗体版（否则浏览器合成粗体会发糊）。
+
+   这里引用的是**源字体（完整版，四个字面合计 2.03 MB）**；`vite build` 时由
+   `vite-plugins/font-subset.ts` 在 generateBundle 阶段按「产物里出现的字符」把它们裁成子集
+   （约 250 kB）并替换进产物 —— 零手动步骤：新文案进了产物就自动进子集。
+   所以看真实体积要跑 `npm run build` / `npm run preview`（`vite dev` 不做子集化）。
+
+   font-display 用 fallback 而不是 swap：`swap` 的换字期是无限的，慢网下字体一到就整屏换字形；
+   `fallback` 只给约 3 秒换字窗口，超时这轮就用回退字体不再换（回退字体已做度量对齐，见下）。
+   不用 `optional`：像素字体只差几百 kB，永久退回系统字体等于丢掉全游戏的像素美术一致性。 */
 @font-face {
     font-family: 'Fusion Pixel 10px';
     src: url('./assets/fonts/fusion-pixel-10px-proportional-zh_hans.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
-    font-display: swap;
+    font-display: fallback;
 }
 
 @font-face {
@@ -16,7 +25,7 @@
     src: url('./assets/fonts/fusion-bold-pixel-10px-proportional-zh_hans.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
-    font-display: swap;
+    font-display: fallback;
 }
 
 @font-face {
@@ -24,7 +33,7 @@
     src: url('./assets/fonts/fusion-pixel-12px-proportional-zh_hans.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
-    font-display: swap;
+    font-display: fallback;
 }
 
 @font-face {
@@ -32,7 +41,124 @@
     src: url('./assets/fonts/fusion-bold-pixel-12px-proportional-zh_hans.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
-    font-display: swap;
+    font-display: fallback;
+}
+
+/* ── 度量对齐的回退字体 ──────────────────────────────────────────────
+   像素字体没到位时，字族链会落到系统字体。系统字体的行高与像素字体不同（像素字体 hhea 是
+   固定的 ascent/descent），换字那一刻整段文字的行盒高度会变 —— 这才是实测到的那次 60px 位移。
+   把本地字体的 ascent/descent/line-gap 强制成像素字体的数值，两个字体就落在同一个行盒里，
+   换字只剩"字形变了"，不再有位移。
+
+   取值依据（`head.unitsPerEm` 与 `hhea`，两份字体实测）：
+     12px 版：upem 1200，ascent 1300 = 108.33%，descent -300 = 25.00%，lineGap 0 → 行盒 1.3333em
+     10px 版：upem 1000，ascent 1100 = 110.00%，descent -300 = 30.00%，lineGap 0 → 行盒 1.4000em
+
+   size-adjust 的取值是**实测**出来的，不是算出来的，规则有两条：
+   1. 汉字不需要调：系统中文字体与像素字体的汉字都是整 1em 宽（实测 12px 版 24px 字号下单字
+      24.00px 对 24.00px）。而且 **size-adjust 只缩放这条 @font-face 自己的字形**，汉字其实来自
+      系统的中文兜底字体，缩放它根本不影响汉字 —— 所以别指望用 size-adjust 去对汉字。
+   2. 拉丁/数字需要调：回退字体的拉丁比像素字体宽（12px 版 24px 字号下 'A'×16 = 250.25px，
+      像素字体 220.00px，宽 13.7%），于是 size-adjust: 87.91% 把它压回来（实测 219.91px）。
+      700 那档同理：260.91px → 96.60% → 252.00px，正好等于像素粗体的 252.00px。
+
+   注意 **size-adjust 会连度量覆盖一起缩放**（实测：S=108.33% 时行盒 32px → 34px），
+   所以 ascent/descent 的百分比要预先除以 size-adjust，保证最终行盒仍是 1.3333em / 1.4em：
+     (123.23 + 28.44) × 87.91% = 133.33%    (112.15 + 25.88) × 96.60% = 133.33%
+     (125.13 + 34.13) × 87.91% = 140.00%    (113.87 + 31.06) × 96.60% = 140.00%
+
+   已知残差（无法修，如实记下）：像素**粗体**的汉字比常规版宽 8.33%（12px 版 26.00px 对
+   24.00px），而系统中文字体恒为 1em、又不受 size-adjust 影响 —— 所以粗体汉字在回退窗口里会窄
+   8.3%，长粗体标题的换行点可能与换字后不同。行盒高度与常规字重已经完全对齐。
+
+   400 与 700 各声明一份：@font-face 不写 font-weight 就等于只覆盖 400，700 的文本会跳过这一条、
+   落回没有度量覆盖的系统字体（标题正好全是 700，那样等于白改）。 */
+@font-face {
+    font-family: 'Fusion Fallback 12';
+    src: local('Helvetica Neue'), local('Helvetica'), local('Arial'), local('Roboto'), local('Segoe UI');
+    font-weight: 400;
+    font-style: normal;
+    size-adjust: 87.91%;
+    ascent-override: 123.23%;
+    descent-override: 28.44%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Fusion Fallback 12';
+    src: local('Helvetica Neue Bold'), local('HelveticaNeue-Bold'), local('Arial Bold'), local('Arial-BoldMT'),
+        local('Roboto Bold'), local('Segoe UI Bold');
+    font-weight: 700;
+    font-style: normal;
+    size-adjust: 96.6%;
+    ascent-override: 112.15%;
+    descent-override: 25.88%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Fusion Fallback 10';
+    src: local('Helvetica Neue'), local('Helvetica'), local('Arial'), local('Roboto'), local('Segoe UI');
+    font-weight: 400;
+    font-style: normal;
+    size-adjust: 87.91%;
+    ascent-override: 125.13%;
+    descent-override: 34.13%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Fusion Fallback 10';
+    src: local('Helvetica Neue Bold'), local('HelveticaNeue-Bold'), local('Arial Bold'), local('Arial-BoldMT'),
+        local('Roboto Bold'), local('Segoe UI Bold');
+    font-weight: 700;
+    font-style: normal;
+    size-adjust: 96.6%;
+    ascent-override: 113.87%;
+    descent-override: 31.06%;
+    line-gap-override: 0%;
+}
+
+/* ── 首屏字体门遮罩 ──────────────────────────────────────────────────
+   像素字体就绪前压在最上层（逻辑见 src/ui/boot/font-gate.ts）。两条硬要求：
+   - **不含任何文字**，也不引用 --font-family-*：遮罩自己不能用还没加载好的字体，否则它自己也闪。
+     进度的意思是靠一根 CSS 画的滑动条表达的；无障碍名字走 aria-label，屏幕阅读器念得到。
+   - 底色走 --color-bg（暗色/浅色两套主题都对），z-index 高于底栏(1500)与 tooltip(9999)。 */
+#font-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    font-family: system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.font-gate-bar {
+    width: min(12rem, 45vw);
+    height: 6px;
+    background: var(--color-bg-panel);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.font-gate-bar > div {
+    width: 40%;
+    height: 100%;
+    background: var(--color-accent);
+    animation: font-gate-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes font-gate-slide {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(250%);
+    }
 }
 
 * {

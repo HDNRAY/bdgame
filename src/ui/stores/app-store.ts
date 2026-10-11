@@ -15,7 +15,8 @@ export interface UiConfig {
 
 const UI_CONFIG_KEY = 'bdgame-ui-config'
 
-function loadUiConfig(): UiConfig {
+/** 读本地 UI 配置（入口 `src/main.tsx` 也要用：首屏遮罩的底色必须先落到 <html> 上，见那里的注释） */
+export function loadUiConfig(): UiConfig {
     try {
         const raw = localStorage.getItem(UI_CONFIG_KEY)
         if (raw) return JSON.parse(raw)

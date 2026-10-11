@@ -1,9 +1,10 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import { cpSync } from 'node:fs'
+import { cpSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { UMAMI_BEFORE_SEND_HOOK } from './src/bridge/analytics-before-send'
+import { fontSubsetPlugin } from './vite-plugins/font-subset'
 import type { Plugin } from 'vite'
 
 /**
@@ -80,7 +81,10 @@ export default defineConfig(({ command, mode }) => {
             VitePWA({
                 registerType: 'autoUpdate',
                 workbox: {
-                    globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+                    // woff2 必须进 precache：字体是首屏启动门（src/ui/boot/font-gate.ts）的等待对象，
+                    // 只靠浏览器 HTTP 缓存的话，离线冷启动 / 缓存被挤掉时会退化成系统字体。
+                    // 子集化之后四个字面合计 250 kB（全集 2.03 MB），代价可以接受。
+                    globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
                     navigateFallback: '/index.html',
                 },
                 manifest: {
@@ -103,10 +107,16 @@ export default defineConfig(({ command, mode }) => {
                 apply: 'build',
                 closeBundle() {
                     const outDir = path.join(process.cwd(), 'bdgame')
-                    cpSync(path.join(outDir, 'index.html'), path.join(outDir, '404.html'))
+                    const index = path.join(outDir, 'index.html')
+                    // 构建中途失败时产物目录是空的：这里必须让真正的报错浮上来，
+                    // 不然 cpSync 的 ENOENT 会把上游插件（例如字体子集校验）的失败原因盖掉
+                    if (!existsSync(index)) return
+                    cpSync(index, path.join(outDir, '404.html'))
                 },
             },
             umamiPlugin(env),
+            // 构建期字体子集化：字符集取自**产物文本**，零手动步骤（见该插件头部注释）
+            fontSubsetPlugin(),
         ],
     }
 })
