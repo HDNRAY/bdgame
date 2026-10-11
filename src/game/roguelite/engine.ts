@@ -9,6 +9,7 @@ import {
 } from '../tournament/integration'
 import { CULT_REWARD, MAX_POINTS_REWARDS } from '../entities/reward'
 import { rewardPool } from './reward-pool'
+import { drawRelevant, playerApCap } from './action-draw'
 import { pickRandom, resolveQuotaRewardType, countRewardOpportunities, injuryForNode } from './util'
 import { championBuildFromSave } from '../champion-boss'
 import { hasCleared, recordBossResult, recordClear } from '../meta-save'
@@ -409,17 +410,20 @@ export class RogueliteRun implements RogueliteEngine {
 
         // ── 实体奖励：所有节点同一条流程 ──
         // 规格只决定"候选从哪来"：fixed = 显式清单；item = 类型池 + 过滤；points 类事件转实体时默认给功法。
-        // 取到候选之后每个节点完全一样：滤掉已拥有 → 随机抽 3 条 → 不足 3 条用同类型普池补足。
+        // 取到候选之后每个节点完全一样：滤掉已拥有 → 按「AP 上限 + tag 关联性」抽 3 条 → 不足用同类型普池补足。
         const exclude = this._state.build.rewards.map((r) => (typeof r === 'string' ? r : r.id))
+        const playerTags = this._derivePlayerTags()
         const poolType: RewardType =
             spec.kind === 'fixed'
                 ? ((spec.choices[0]?.type ?? 'weapon') as RewardType)
                 : spec.kind === 'points'
                   ? 'passive'
                   : spec.pool
-        const candidates =
+        const slot = spec.kind === 'item' ? spec.slot : undefined
+        // fixed：显式清单（故事线给什么就是什么，不做 AP 过滤/tag 加权，只从清单里随机抽 3 条）
+        const choices =
             spec.kind === 'fixed'
-                ? spec.choices.map(
+                ? pickRandom(spec.choices, 3).map(
                       (c): Choice => ({
                           id: c.id,
                           type: c.type ?? 'weapon',
@@ -428,27 +432,28 @@ export class RogueliteRun implements RogueliteEngine {
                           slot: c.slot,
                       }),
                   )
-                : this._itemCandidates(spec, poolType, exclude, this._derivePlayerTags(), round)
-        const choices = this._padToThree(
-            pickRandom(
-                candidates.filter((c) => !exclude.includes(c.id)),
-                3,
-            ),
-            poolType,
-            exclude,
-            spec.kind === 'item' ? spec.slot : undefined,
-        )
+                : this._drawRewardChoices(spec, poolType, exclude, playerTags, round, slot)
         round.choices = choices.length > 0 ? choices : [{ id: END_EVENT, type: 'continue', label: '继续' }]
     }
 
-    /** item 规格的候选清单：类型池 + 规格过滤（ids/includeTags/ap 范围/武器关联/自定义 filter），已拥有的排除。
-     *  抽 3 条与不足补足由调用方统一做（见 _padToThree），这里只负责"候选从哪来"。 */
-    private _itemCandidates(
+    /** 角色当前 AP 上限（身法减免前）= 开局可支配点数 = round(4 + 当前根骨×0.25)。
+     *  取 `build.baseAttrs`（随局内修炼点成长），不取开局值；不含战斗内 maxApMod（奖励在战斗外发）。 */
+    private _playerApCap(): number {
+        return playerApCap(this._state.build.baseAttrs?.vitality)
+    }
+
+    /**
+     * item 规格实体奖励的随机抽取：AP 上限硬过滤 + tag 关联性随节点加权（见 `action-draw.ts`）。
+     * includeTags 事件（酒功/洞察等）：主池只在该 tag 内抽（`requireRelevance`），
+     * 不足 3 条再回落到同类型普通池。
+     */
+    private _drawRewardChoices(
         spec: Extract<RewardSpec, { kind: 'item' }> | { kind: 'points' },
         poolType: RewardType,
         exclude: string[],
         playerTags: Tag[],
         round: Round,
+        slot?: 'main' | 'offhand',
     ): Choice[] {
         const source = rewardPool.getPool(poolType)
         // 通用过滤（始终生效）：排除已有/ids/ap范围/招式武器关联/自定义 filter
@@ -469,36 +474,53 @@ export class RogueliteRun implements RogueliteEngine {
             if (round.rewardFilter && !round.rewardFilter(r)) return false
             return true
         }
-        // 标签过滤：includeTags 优先筛出标签候选；不足 3 个时用普通池补足（学特定类型功法事件如酒功/洞察共用）
-        const passTags = (r: RewardEntity): boolean => {
-            if (spec.kind !== 'item' || !spec.includeTags) return true
-            return spec.includeTags.some((t) => r.tags.includes(t as Tag))
-        }
-
         const general = source.filter(passGeneral)
-        const tagged = general.filter(passTags)
-        const items = spec.kind === 'item' && spec.includeTags
-            ? [...tagged, ...general.filter((r) => !tagged.includes(r))]
-            : general.filter(passTags)
-        return items.map(
+        // 标签过滤：includeTags 优先筛出标签候选；不足 3 个时用普通池补足（学特定类型功法事件如酒功/洞察共用）
+        const tagged =
+            spec.kind === 'item' && spec.includeTags
+                ? general.filter((r) => spec.includeTags!.some((t) => r.tags.includes(t as Tag)))
+                : general
+        const primary = tagged.length > 0 ? tagged : general
+        const apCap = poolType === 'action' ? this._playerApCap() : undefined
+        const picked = drawRelevant({
+            items: primary,
+            playerTags,
+            nodeIndex: this._state.nodeIndex,
+            count: 3,
+            apCap,
+            requireRelevance: spec.kind === 'item' && !!spec.includeTags && tagged.length > 0,
+        })
+        const choices = picked.map(
             (i: RewardEntity): Choice => ({
                 id: i.id,
                 type: poolType,
                 label: i.name,
                 description: i.description,
-                slot: spec.kind === 'item' ? spec.slot : undefined,
+                slot,
             }),
         )
+        return this._padToThree(choices, poolType, exclude, playerTags, apCap, slot)
     }
 
-    /** 实体奖励候选收口：不足 3 条时用**同类型普池**补足（已拥有的一律排除）。各节点共用这一处。 */
-    private _padToThree(choices: Choice[], type: RewardType, exclude: string[], slot?: 'main' | 'offhand'): Choice[] {
+    /** 实体奖励候选收口：不足 3 条时用**同类型普池**补足（已拥有的一律排除）。
+     *  补足同样走 AP 上限过滤 + tag 关联加权，规则与主抽取一致。 */
+    private _padToThree(
+        choices: Choice[],
+        type: RewardType,
+        exclude: string[],
+        playerTags: Tag[],
+        apCap: number | undefined,
+        slot?: 'main' | 'offhand',
+    ): Choice[] {
         if (choices.length >= 3) return choices
         const taken = new Set([...exclude, ...choices.map((c) => c.id)])
-        const extra = pickRandom(
-            rewardPool.getPool(type).filter((r) => !taken.has(r.id)),
-            3 - choices.length,
-        )
+        const extra = drawRelevant({
+            items: rewardPool.getPool(type).filter((r) => !taken.has(r.id)),
+            playerTags,
+            nodeIndex: this._state.nodeIndex,
+            count: 3 - choices.length,
+            apCap,
+        })
         return [
             ...choices,
             ...extra.map(
