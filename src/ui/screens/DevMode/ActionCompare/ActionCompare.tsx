@@ -45,7 +45,7 @@ const ALL_AP = [0, 1, 2, 3, 4, 5]
 
 /** 候选池 = 对比表展示的招式全集（全部主招，去掉前置/后置辅助招） */
 const CANDIDATE_ACTIONS = getCandidateActions(allMainActions)
-/** 标签选项：只列候选池里实际出现过的 tag（不铺满 53 种），按 tagDisplay 中文名排序 */
+/** 标签选项：只列候选池里实际出现过的 tag（不铺满 54 种），按 tagDisplay 中文名排序 */
 const TAG_OPTIONS: Tag[] = collectTagOptions(CANDIDATE_ACTIONS)
 const TAG_OPTION_SET = new Set<Tag>(TAG_OPTIONS)
 

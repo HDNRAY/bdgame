@@ -1,5 +1,6 @@
 import { useAppStore } from '../../stores/app-store'
 import { useTypewriter } from '../../hooks/useTypewriter'
+import { useSkipTypewriterOnKey } from '../../hooks/useSkipTypewriterOnKey'
 import './IntroOverlay.scss'
 
 interface IntroOverlayProps {
@@ -18,6 +19,9 @@ interface IntroOverlayProps {
  * 开场/章节全屏页：小字 + 大标题先出，正文逐字打出（复用 useTypewriter），
  * 点击任意处一次性显示完，读完出现「开始」。
  *
+ * 跳过有两个入口（同一个心智模型）：点整页任意处、按 Enter / Space（`useSkipTypewriterOnKey`，
+ * 与局内的回合描述共用一份判定 —— 焦点在「开始」按钮上时那两个键归按钮，不抢）。
+ *
  * 布局稳定：正文按空行/换行切段（段间距交给 CSS margin），并且**先按全文撑出高度**
  * （.io-text-ghost 占位层），打字的文字画在绝对定位的覆盖层上；「开始」按钮也一直在位
  * （未读完时 visibility: hidden）。所以打字过程中标题、正文、按钮都不会移动。
@@ -25,6 +29,7 @@ interface IntroOverlayProps {
 export function IntroOverlay({ kicker, title, text, enterLabel = '开始', onEnter }: IntroOverlayProps) {
     const typewriterEnabled = useAppStore((s) => s.uiConfig.typewriter)
     const tw = useTypewriter(text, { enabled: typewriterEnabled })
+    useSkipTypewriterOnKey(typewriterEnabled && text.length > 0 && !tw.done, tw.skip)
     /** 全文分段：占位层用它把正文高度先撑出来 */
     const allParagraphs = text.split('\n').filter((line) => line.trim() !== '')
     /** 已打出的分段 */

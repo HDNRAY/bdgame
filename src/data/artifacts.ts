@@ -267,7 +267,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'blood_thorn_ring',
         name: '血棘戒',
         description: '暴击时向创口渡入棘炁，引发持续流血。暴击的额外伤害转为流血层数。',
-        tags: ['bleed'],
+        tags: ['bleed', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -279,7 +279,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'blood_thorn_earring',
         name: '血棘耳环',
         description: '血棘耳环见血封喉。持枪（刺）攻击暴击率+7%，对流血中目标再+8%。',
-        tags: ['bleed', 'pierce'],
+        tags: ['bleed', 'pierce', 'crit'],
         requiredTags: ['pierce'],
         effects: [
             {
@@ -667,7 +667,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'shao_dao_zi',
         name: '烧刀子',
         description: '烈酒烧心，饮后暴击率大增。花1AP饮用，每层暴击率+9%，持续9秒，最多3层。',
-        tags: ['jiu'],
+        tags: ['jiu', 'crit'],
         grantsActions: ['_shao_dao_zi'],
     },
     {
@@ -705,7 +705,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'bai_na_zhu',
         name: '百纳珠',
         description: '百家愿力凝成的念珠，心定则刀兵不伤。被暴击伤害降低30%。',
-        tags: ['defense'],
+        tags: ['defense', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -947,7 +947,7 @@ export const ARTIFACTS: Artifact[] = [
         id: 'wuxue_baodian_zonggang',
         name: '武学宝典总纲',
         description: '通晓天下武学，以推演预判对手。闪/招→叠暴击；暴击→叠闪/招。',
-        tags: ['buff', 'defense'],
+        tags: ['buff', 'defense', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },

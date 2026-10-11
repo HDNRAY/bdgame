@@ -38,7 +38,7 @@ export const PASSIVES: Passive[] = [
         id: 'ji_lie_zhi_lie',
         name: '极烈之烈',
         description: '死战不退，受击愈烈。每次受到伤害叠1层「烈」，每层提升暴击率与暴击伤害。',
-        tags: ['buff'],
+        tags: ['buff', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -74,7 +74,7 @@ export const PASSIVES: Passive[] = [
         id: 'last_sword',
         name: '绝剑诀',
         description: '绝境之剑，伤势越重，剑意越强。',
-        tags: ['qi', 'low_hp'],
+        tags: ['qi', 'low_hp', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -112,7 +112,7 @@ export const PASSIVES: Passive[] = [
         id: 'dragon_palace_style',
         name: '龙宫院流',
         description: '龙宫院秘传身法，招架或闪避后蓄势，叠加势。',
-        tags: ['buff'],
+        tags: ['buff', 'crit'],
         effects: [
             {
                 condition: { type: 'on_parry' },
@@ -128,7 +128,7 @@ export const PASSIVES: Passive[] = [
         id: 'extreme',
         name: '极',
         description: '蓄势至极，一击必杀。缠劲满时获得极状态，下次≥5AP招式消耗所有缠劲，每层提升暴击率与暴击伤害。',
-        tags: ['buff', 'chan'],
+        tags: ['buff', 'chan', 'crit'],
         effects: [
             {
                 condition: {
@@ -179,7 +179,7 @@ export const PASSIVES: Passive[] = [
         id: 'frost_mastery',
         name: '冰霜诀',
         description: '春雷疾掠，寒气侵骨。命中时概率叠加寒霜，暴击时剑意凝寒。',
-        tags: ['debuff', 'frost'],
+        tags: ['debuff', 'frost', 'crit'],
         effects: [
             {
                 condition: { type: 'on_hit' },
@@ -195,7 +195,7 @@ export const PASSIVES: Passive[] = [
         id: 'nineteen_stops',
         name: '十九停',
         description: '每次出手叠一层「十九停」，层数越高越易失手。每层提升命中、暴击与暴伤，最多19层。',
-        tags: ['buff', 'chan'],
+        tags: ['buff', 'chan', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -257,7 +257,7 @@ export const PASSIVES: Passive[] = [
         id: 'overlord_art',
         name: '轮舞月斩',
         description: '长兵轮转，如月之轮舞。每一刀都顺势回旋突进。',
-        tags: ['buff', 'polearm', 'heavy'],
+        tags: ['buff', 'polearm', 'heavy', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -428,7 +428,7 @@ export const PASSIVES: Passive[] = [
         id: 'yin_shi_li_dao',
         name: '因势利导',
         description: '进架势时因势利导，下一次出招暴击率增加，暴击后消散。',
-        tags: ['buff', 'stance'],
+        tags: ['buff', 'stance', 'crit'],
         requiredTags: ['stance'],
         effects: [
             {
@@ -628,7 +628,7 @@ export const PASSIVES: Passive[] = [
         id: 'zhu_huo_jue',
         name: '铸火诀',
         description: '聚炁化火，火中淬炼不伤。',
-        tags: ['buff', 'qi', 'burn', 'defense'],
+        tags: ['buff', 'qi', 'burn', 'defense', 'crit'],
         requiredTags: ['burn'],
         effects: [
             {
@@ -641,7 +641,7 @@ export const PASSIVES: Passive[] = [
         id: 'wan_xiang_jian_yi',
         name: '万象剑意',
         description: '以剑意模拟天地万象。自身每有1层增益buff（不含debuff与永久buff），暴击伤害+5%。',
-        tags: ['buff'],
+        tags: ['buff', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -848,7 +848,7 @@ export const PASSIVES: Passive[] = [
         id: 'dan_dao_fa_xuan',
         name: '单刀法选',
         description: '单刀法选，诱而击之，惊而取之。闪避后下一击暴击率增加，不可叠加。',
-        tags: ['buff'],
+        tags: ['buff', 'crit'],
         effects: [{ condition: { type: 'on_dodge' }, apply: [{ type: 'add_buff', buffId: 'jing_ji' }] }],
     },
     {
@@ -865,7 +865,7 @@ export const PASSIVES: Passive[] = [
         id: 'bai_ju_guo_xi',
         name: '白驹过隙',
         description: '白驹过隙，匆匆一瞥，距对手3米内，每点身法提升暴击伤害。',
-        tags: ['buff'],
+        tags: ['buff', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -878,7 +878,7 @@ export const PASSIVES: Passive[] = [
         id: 'chou_dao_duan_shui',
         name: '抽刀断水',
         description: '抽刀断水。刀落，水断。暴击时对方气息一滞。',
-        tags: ['debuff'],
+        tags: ['debuff', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -890,7 +890,7 @@ export const PASSIVES: Passive[] = [
         id: 'jing_luo_chu_jian',
         name: '经络初鉴',
         description: '熟稔经络，洞察弱点。每点洞察增加1%暴击率。',
-        tags: ['buff'],
+        tags: ['buff', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -980,7 +980,7 @@ export const PASSIVES: Passive[] = [
         id: 'sword_focus',
         name: '怒炁充盈',
         description: '攻击落空时积攒怒气，暴击时倾泻而出：每层爆伤+30%，暴击后怒气清空。',
-        tags: ['buff'],
+        tags: ['buff', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -1048,7 +1048,7 @@ export const PASSIVES: Passive[] = [
         id: 'ru_yi_jin',
         name: '如意劲',
         description: '暴击时消耗3层缠劲，按灵巧增加暴击伤害。',
-        tags: ['buff', 'chan'],
+        tags: ['buff', 'chan', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -1203,7 +1203,7 @@ export const PASSIVES: Passive[] = [
         id: 'ling_long_xin_qiao',
         name: '玲珑心窍',
         description: '心窍玲珑，算尽对手每寸动作。每点推演增加1%暴击率。',
-        tags: ['buff'],
+        tags: ['buff', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -1239,7 +1239,7 @@ export const PASSIVES: Passive[] = [
         id: 'ni_zhuan_jing_mai',
         name: '移经易脉',
         description: '逆转经脉运行，概率抵抗麻痹，降低被暴击伤害，被暴击时反击。',
-        tags: ['defense', 'counter'],
+        tags: ['defense', 'counter', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -1259,7 +1259,7 @@ export const PASSIVES: Passive[] = [
         id: 'luo_ying_shen_jian',
         name: '落英神剑',
         description: '部分伤害寄存于神剑印内，暴击时引爆造成双倍伤害。',
-        tags: ['buff', 'qi'],
+        tags: ['buff', 'qi', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -1315,7 +1315,7 @@ export const PASSIVES: Passive[] = [
         id: 'no_light_wisdom',
         name: '无明之明',
         description: '完全失去视觉，重新构建感知体系。推演也影响命中、闪避、招架与暴击。',
-        tags: ['buff', 'defense'],
+        tags: ['buff', 'defense', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -1384,7 +1384,7 @@ export const PASSIVES: Passive[] = [
         id: 'ba_gua_gun_fa',
         name: '奇门八卦',
         description: '奇门八卦步法。每次移动叠一层八卦步，增加闪避和暴击率。',
-        tags: ['buff'],
+        tags: ['buff', 'crit'],
         effects: [
             { condition: { type: 'on_move_away' }, apply: [{ type: 'add_buff', buffId: 'ba_gua_bu', stacks: 1 }] },
             { condition: { type: 'on_move_closer' }, apply: [{ type: 'add_buff', buffId: 'ba_gua_bu', stacks: 1 }] },
@@ -1444,7 +1444,7 @@ export const PASSIVES: Passive[] = [
         id: 'qing_long_ding',
         name: '青龙定',
         description: '青龙定息，龙吟贯耳。暴击时回复缠劲。',
-        tags: ['buff', 'chan'],
+        tags: ['buff', 'chan', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },
@@ -1457,7 +1457,7 @@ export const PASSIVES: Passive[] = [
         id: 'chan_xin_hui_yan',
         name: '禅心慧眼',
         description: '禅心通明，慧眼洞悉破绽。以推演窥破对手招式轨迹，推演化为命中与暴击。',
-        tags: ['buff'],
+        tags: ['buff', 'crit'],
         effects: [
             {
                 condition: { type: 'on_construct' },

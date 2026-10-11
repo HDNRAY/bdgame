@@ -86,6 +86,7 @@ const SLOTS: Record<string, Slot> = {
     poison: { id: 'poison', fam: 'sustain', H: 135 },
     dmgBonus: { id: 'dmgBonus', fam: 'dmg', H: 12 },
     dmgLow: { id: 'dmgLow', fam: 'dmg', H: 48 },
+    dmgCrit: { id: 'dmgCrit', fam: 'dmg', H: 12 },
     paralyze: { id: 'paralyze', fam: 'paralyze', H: 88 },
     ctrlMid: { id: 'ctrlMid', fam: 'control', H: 155 },
     ctrlDeep: { id: 'ctrlDeep', fam: 'control', H: 155 },
@@ -109,6 +110,7 @@ const SLOT_OF: Record<Tag, string> = {
     bonus_damage: 'dmgBonus',
     self_damage: 'dmgBonus',
     low_hp: 'dmgLow',
+    crit: 'dmgCrit',
     jiu: 'jiu',
     slash: 'weapA',
     unarmed: 'weapA',
@@ -445,6 +447,19 @@ describe('标签徽章配色（docs/ui-color-system.md 第 7 节）', () => {
             expect(H, `${theme} low_hp H=${H.toFixed(0)} 应往红方向（30~55）`).toBeGreaterThanOrEqual(30)
             expect(H, `${theme} low_hp H=${H.toFixed(0)} 应往红方向（30~55）`).toBeLessThanOrEqual(55)
             expect(C, `${theme} low_hp C=${C.toFixed(3)} 应保持高彩度`).toBeGreaterThan(0.08)
+        }
+    })
+
+    it('用户口径⑱：暴击（crit）属伤害进攻族（深红），靠明度与附伤 / 自伤同族可分', () => {
+        expect(SLOTS[SLOT_OF.crit].fam, 'crit 应属 dmg 族').toBe('dmg')
+        for (const theme of ['light', 'dark'] as const) {
+            const { H, C } = oklch(TAG_COLOR.crit[theme])
+            expect(H, `${theme} crit H=${H.toFixed(0)} 应在红带（0~40）`).toBeGreaterThanOrEqual(0)
+            expect(H, `${theme} crit H=${H.toFixed(0)} 应在红带（0~40）`).toBeLessThanOrEqual(40)
+            expect(C, `${theme} crit C=${C.toFixed(3)} 应是高彩度红`).toBeGreaterThan(0.08)
+            // 与同族同色相的附伤 / 自伤（H12）靠 ΔL 分开（规则：ΔH ≥25 或 ΔL ≥0.15）
+            const dL = Math.abs(oklch(TAG_COLOR.crit[theme]).L - oklch(TAG_COLOR.bonus_damage[theme]).L)
+            expect(dL, `${theme} crit 与 bonus_damage 的 ΔL=${dL.toFixed(2)}（要求 ≥ 0.15）`).toBeGreaterThanOrEqual(L_MIN_GAP - L_EPS)
         }
     })
 

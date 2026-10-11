@@ -11,7 +11,7 @@ interface TagProps {
 /**
  * 标签徽章。
  *
- * 颜色不内联：两套主题各有一套标签色（53 条），定义在 themes.css 的
+ * 颜色不内联：两套主题各有一套标签色（54 条），定义在 themes.css 的
  * `--tag-color-<tag>`，随 [data-theme] 自动切换（色位见 docs/ui-color-system.md 第 7 节）。
  * 这里只把变量名接上去；未登记的 tag 回落到 --color-text-dim。
  */

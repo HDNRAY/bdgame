@@ -3,6 +3,12 @@ import { useEffect, useCallback, useRef, useReducer } from 'react'
 interface UseTypewriterOptions {
     enabled?: boolean
     speed?: number
+    /**
+     * 跳过（`skip()` 或 `onSkipKey` 的 hook）时的附带动作 —— 目前只有「把滚动容器复位」这一处用途。
+     * 放在 tick 之前做，且 `skip` 的引用保持稳定（回调存在 ref 里），
+     * 这样调用方不必为它包 useCallback，也不会把下面的打字动画 effect 重跑一遍。
+     */
+    onSkip?: () => void
 }
 
 interface UseTypewriterReturn {
@@ -17,7 +23,7 @@ interface UseTypewriterReturn {
  */
 export function useTypewriter(
     text: string,
-    { enabled = true, speed = 30 }: UseTypewriterOptions = {},
+    { enabled = true, speed = 30, onSkip }: UseTypewriterOptions = {},
 ): UseTypewriterReturn {
     const [pos, tick] = useReducer(
         (s: number, a: 'tick' | 'skip' | 'reset') => {
@@ -50,9 +56,16 @@ export function useTypewriter(
         }
     }, [])
 
+    /** onSkip 每次渲染都可能是新函数：存进 ref，让 skip 的身份保持不变 */
+    const onSkipRef = useRef(onSkip)
+    useEffect(() => {
+        onSkipRef.current = onSkip
+    }, [onSkip])
+
     const skip = useCallback(() => {
         clearTimer()
         doneRef.current = true
+        onSkipRef.current?.()
         tick('skip')
     }, [clearTimer])
 

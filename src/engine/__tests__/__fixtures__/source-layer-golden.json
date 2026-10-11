@@ -834,6 +834,7 @@
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
+   "crit",
    "melee",
    "one_handed",
    "parry",
@@ -861,6 +862,7 @@
   "maxAp": 7,
   "maxTriggerSlots": 1,
   "weaponTags": [
+   "crit",
    "melee",
    "one_handed",
    "parry",
@@ -915,6 +917,7 @@
   "maxTriggerSlots": 1,
   "weaponTags": [
    "buff",
+   "crit",
    "melee",
    "one_handed",
    "parry",
@@ -942,6 +945,7 @@
   "maxTriggerSlots": 2,
   "weaponTags": [
    "buff",
+   "crit",
    "melee",
    "one_handed",
    "parry",
@@ -1273,6 +1277,7 @@
   "maxTriggerSlots": 1,
   "weaponTags": [
    "blunt",
+   "crit",
    "melee",
    "one_handed",
    "parry",
@@ -1302,6 +1307,7 @@
   "maxTriggerSlots": 2,
   "weaponTags": [
    "blunt",
+   "crit",
    "melee",
    "one_handed",
    "parry",
@@ -1331,6 +1337,7 @@
   "maxTriggerSlots": 2,
   "weaponTags": [
    "blunt",
+   "crit",
    "melee",
    "one_handed",
    "parry",
@@ -1408,6 +1415,7 @@
   "maxTriggerSlots": 1,
   "weaponTags": [
    "buff",
+   "crit",
    "heavy",
    "parry",
    "pierce",
@@ -1532,6 +1540,7 @@
   "maxAp": 6,
   "maxTriggerSlots": 2,
   "weaponTags": [
+   "crit",
    "electric",
    "frost",
    "heavy",
@@ -1560,6 +1569,7 @@
   "maxAp": 7,
   "maxTriggerSlots": 4,
   "weaponTags": [
+   "crit",
    "electric",
    "frost",
    "heavy",

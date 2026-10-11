@@ -55,6 +55,7 @@ export const TAG_CN: Record<Tag, string> = {
     qi_action: '炁招',
     chan: '缠劲',
     low_hp: '残血',
+    crit: '暴击',
 }
 
 /** Tag → 两套主题的徽章颜色（文字 + 描边）。色位见 docs/ui-color-system.md 第 7 节 */
@@ -112,4 +113,5 @@ export const TAG_COLOR: Record<Tag, { light: string; dark: string }> = {
     qi_action: { light: '#5e5a9a', dark: '#aba9e8' },
     chan: { light: '#5e5a9a', dark: '#aba9e8' },
     low_hp: { light: '#672000', dark: '#aa6743' },
+    crit: { light: '#6a0826', dark: '#b2646f' },
 };

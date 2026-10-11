@@ -93,7 +93,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 - **canvas / PixiJS 读不到 CSS 变量**：DOM 内联样式直接写 `var(--color-x)`；需要真实色值时用
   `src/ui/canvas/battle-colors.ts` 的 `UI_COLOR_MIRROR` + `resolveUiColor(value, theme)`。
   镜像值有漂移测试（`battle-colors.test.ts`）断言它 == themes.css。
-- **标签徽章**：颜色定义在 themes.css 的 `--tag-color-<tag>`（53 条 × 两套主题），
+- **标签徽章**：颜色定义在 themes.css 的 `--tag-color-<tag>`（54 条 × 两套主题），
   `Tag.tsx` 只读变量；`src/bridge/tagDisplay.ts` 的 `TAG_COLOR` 是同值的 TS 镜像。
   改标签色 = 改 themes.css + 同步镜像 + 跑 `tag-colors.test.ts`（它会拦漂移）。
 
@@ -137,7 +137,7 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
 | Passive          | src/engine/entities/passive.ts    | name, description, tags, effects, triggers                        |
 | Artifact         | src/engine/entities/artifact.ts   | name, description, tags, effects, triggers                        |
 | AttrName         | src/engine/entities/attributes.ts | ATTR_CN[attr], ATTR_DESC[attr] (注释)                             |
-| Tag              | src/engine/entities/tag.ts        | 53 种标签类型，对应中文名见 tagDisplay.ts（功法不带同名 tag：类型即身份） |
+| Tag              | src/engine/entities/tag.ts        | 54 种标签类型，对应中文名见 tagDisplay.ts（功法不带同名 tag：类型即身份） |
 | EffectDef        | src/engine/entities/action.ts     | 效果变体全表看类型定义（damage/heal/stat_buff/stat_restriction 等，别写死个数） |
 
 **招式挡奖励池的两道闸**（`src/game/roguelite/reward-pool.ts` 的 `_getActionPool()`）：

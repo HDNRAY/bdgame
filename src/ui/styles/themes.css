@@ -98,6 +98,7 @@
     --tag-color-low_hp: #672000;
     --tag-color-bonus_damage: #9b4251;
     --tag-color-self_damage: #9b4251;
+    --tag-color-crit: #6a0826;
     /* 增益恢复 */
     --tag-color-heal: #1e796b;
     --tag-color-buff: #1e796b;
@@ -229,6 +230,7 @@
     --tag-color-low_hp: #aa6743;
     --tag-color-bonus_damage: #e996a0;
     --tag-color-self_damage: #e996a0;
+    --tag-color-crit: #b2646f;
     /* 增益恢复 */
     --tag-color-heal: #75c2b3;
     --tag-color-buff: #75c2b3;

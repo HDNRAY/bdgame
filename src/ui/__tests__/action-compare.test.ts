@@ -73,7 +73,7 @@ describe('ActionCompare 标签筛选（选项来源）', () => {
         expect(POOL.length).toBeGreaterThan(0)
     })
 
-    it('选项只列候选池里实际出现过的 tag（不铺满 53 种）', () => {
+    it('选项只列候选池里实际出现过的 tag（不铺满 54 种）', () => {
         const inPool = new Set<Tag>(POOL.flatMap((a) => a.tags))
         expect(OPTIONS.length).toBeGreaterThan(0)
         expect(OPTIONS.length).toBeLessThan(53)

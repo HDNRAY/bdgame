@@ -55,7 +55,7 @@ export const SUPPORT_ACTIONS: ActionDefinition[] = [
         requiredTags: [],
         apCost: 1,
         chanCost: 3,
-        tags: ['pre_action', 'buff', 'chan'],
+        tags: ['pre_action', 'buff', 'chan', 'crit'],
         target: 'self',
         hookNotes: { canUse: '已有无想状态时不可重复' },
         effects: [{ type: 'add_buff', buffId: 'wu_xiang' }],

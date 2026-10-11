@@ -90,7 +90,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'iron_spear',
         name: '铁枪·破军',
         description: '丈二铁枪，势大力沉。出枪迅猛，暴击更盛。',
-        tags: ['pierce', 'parry', 'polearm', 'heavy', 'buff'],
+        tags: ['pierce', 'parry', 'polearm', 'heavy', 'buff', 'crit'],
         range: [1, 4],
         effects: [
             {
@@ -114,7 +114,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'zantetsu',
         name: '藏锋',
         description: '锋藏于鞘，出鞘一瞬，无物不斩。',
-        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed', 'stance'],
+        tags: ['slash', 'pierce', 'parry', 'melee', 'one_handed', 'stance', 'crit'],
         range: [1, 3],
         effects: [
             {
@@ -233,7 +233,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'qianji',
         name: '千机',
         description: '漆黑纳米长棍，可在相似尺寸的固态构造间快速切换——箫、笛、细剑、长短棍、手杖乃至遮阳伞。',
-        tags: ['melee', 'pierce', 'parry', 'slash', 'blunt', 'unarmed', 'polearm', 'one_handed'],
+        tags: ['melee', 'pierce', 'parry', 'slash', 'blunt', 'unarmed', 'polearm', 'one_handed', 'crit'],
         range: [0, 3],
         effects: [
             {
@@ -305,7 +305,7 @@ export const WEAPON_DB: WeaponDef[] = [
         name: '镇北戟',
         description:
             '姬家世代相传的战戟，曾为守关领袖所用。经千星重铸为赛博战戟，可将使用者的炁转化为冰电之力。暴击时冰封对手。',
-        tags: ['polearm', 'parry', 'pierce', 'electric', 'heavy', 'frost', 'paralyze'],
+        tags: ['polearm', 'parry', 'pierce', 'electric', 'heavy', 'frost', 'paralyze', 'crit'],
         range: [1, 4],
         effects: [
             {
@@ -332,7 +332,7 @@ export const WEAPON_DB: WeaponDef[] = [
         id: 'buer_sword',
         name: '不二剑',
         description: '最快的剑之二。',
-        tags: ['pierce', 'slash', 'parry', 'melee', 'one_handed', 'buff'],
+        tags: ['pierce', 'slash', 'parry', 'melee', 'one_handed', 'buff', 'crit'],
         range: [1, 3],
         effects: [
             {

@@ -2,7 +2,7 @@
  * TagPreview —— 标签徽章配色的目视检查页（仅 DevMode 用，不进主流程）。
  *
  * 用途：`scripts/ui-geometry.mjs --pages tag-preview` 在亮/暗两套主题下各截一张图，
- * 人工确认 53 条标签徽章的分族、同族可分（heal 浅绿 / poison 深绿）与可读性。
+ * 人工确认 54 条标签徽章的分族、同族可分（heal 浅绿 / poison 深绿）与可读性。
  * 配色定义在 themes.css 的 `--tag-color-<tag>`，见 docs/ui-color-system.md 第 7 节。
  */
 import { TAG_CN } from '../../../../bridge/tagDisplay'
@@ -12,7 +12,7 @@ import './TagPreview.scss'
 /** 按语义族分组（与 docs 第 7 节的 13 族一致），顺序固定便于两套主题对比 */
 const GROUPS: { name: string; tags: Tag[] }[] = [
     { name: '持续伤害（大红 / 火红 / 深绿）', tags: ['bleed', 'burn', 'poison'] },
-    { name: '伤害进攻（红 → 橙；残血已往红校准）', tags: ['bonus_damage', 'self_damage', 'low_hp'] },
+    { name: '伤害进攻（红 → 橙；残血已往红校准）', tags: ['bonus_damage', 'self_damage', 'low_hp', 'crit'] },
     { name: '武器流派（低彩度冷色）', tags: ['slash', 'pierce', 'blunt', 'unarmed', 'melee', 'polearm', 'heavy', 'thrown', 'range', 'imperial', 'one_handed', 'two_handed', 'weapon'] },
     { name: '增益恢复（绿）', tags: ['heal', 'buff', 'cleanse'] },
     { name: '控制 / 感官（灰）', tags: ['stun', 'debuff', 'sand_blind', 'knockback', 'knockdown'] },

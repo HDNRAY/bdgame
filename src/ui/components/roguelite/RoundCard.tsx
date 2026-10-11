@@ -4,6 +4,7 @@ import { getEntity, isEntityType, type EntityDef, type EntityType } from '../../
 import { getWeaponOverlay } from '../../pixel-sprites'
 import { PixelCanvas } from '../ui/PixelCanvas/PixelCanvas'
 import { useTypewriter } from '../../hooks/useTypewriter'
+import { useSkipTypewriterOnKey } from '../../hooks/useSkipTypewriterOnKey'
 import { useAppStore } from '../../stores/app-store'
 import { WeaponTooltip } from '../tooltip-contents/WeaponTooltip'
 import { ActionTooltip } from '../tooltip-contents/ActionTooltip'
@@ -126,9 +127,24 @@ interface RoundCardProps {
 export function RoundCard({ round, past, onChoice }: RoundCardProps) {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
     const typewriterEnabled = useAppStore((s) => s.uiConfig.typewriter)
+    /** 描述所在的那段滚动区域（`.rs-rounds`），跳过时把它复位 */
+    const rootRef = useRef<HTMLDivElement>(null)
+
+    function resetScrollOnSkip() {
+        // 描述在滚动区最上方：文本从「半截」变「全出」时高度会跳一截，若不复位，
+        // 原来看见的半句话会被顶到折线以上，玩家反而要自己往回滚。
+        // 只动 scrollTop，不动 RogueliteScreen 那份「是否贴底」的状态 —— 下一次滚动事件会自己重算。
+        const scroller = rootRef.current?.closest('.rs-rounds')
+        if (scroller) scroller.scrollTop = 0
+    }
+
     const desc = useTypewriter(round.description ?? '', {
         enabled: !past && typewriterEnabled,
+        onSkip: resetScrollOnSkip,
     })
+    /** 本当在逐字打出（历史轮、关掉逐字、无描述都算不在打字） */
+    const typing = !past && typewriterEnabled && !!round.description && !desc.done
+    useSkipTypewriterOnKey(typing, desc.skip)
     // 两处新内容：打字结束（或被点掉）后出现的选项、选中某个选项后出现的「确认」
     const showChoices = !past && desc.done && round.choices.length > 0
     const choicesRef = useRevealOnAppear<HTMLDivElement>(showChoices)
@@ -137,7 +153,11 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
     // 单选项：无需确认按钮，选择即执行
     if (round.choices.length === 1 && !past && onChoice) {
         return (
-            <div className={`rc ${past ? 'rc-past' : 'rc-current'}`} onClick={!desc.done ? desc.skip : undefined}>
+            <div
+                ref={rootRef}
+                className={`rc ${past ? 'rc-past' : 'rc-current'}`}
+                onClick={!desc.done ? desc.skip : undefined}
+            >
                 <div className="rc-title">{round.title}</div>
                 {round.description && (
                     <div className={`rc-desc${!desc.done ? ' rc-desc-typing' : ''}`}>
@@ -172,7 +192,11 @@ export function RoundCard({ round, past, onChoice }: RoundCardProps) {
     }
 
     return (
-        <div className={`rc ${past ? 'rc-past' : 'rc-current'}`} onClick={!desc.done ? desc.skip : undefined}>
+        <div
+            ref={rootRef}
+            className={`rc ${past ? 'rc-past' : 'rc-current'}`}
+            onClick={!desc.done ? desc.skip : undefined}
+        >
             <div className="rc-title">{round.title}</div>
             {round.description && (
                 <div className={`rc-desc${!desc.done ? ' rc-desc-typing' : ''}`}>
