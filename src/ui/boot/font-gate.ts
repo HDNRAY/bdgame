@@ -15,7 +15,8 @@
  *    也不会产生额外的布局位移（回退字体的行盒已被度量覆盖对齐，见 src/index.css）。
  *
  * 只等首屏真正用到的两份字体（12px 常规 + 粗体）：10px 那份留给后面用到它的页面，
- * 这里只「顺手预热」不阻塞 —— 否则慢网下白等一倍时间。
+ * 这里只「顺手预热」不阻塞 —— 否则慢网下白等一倍时间。10px 族只有 400 一档（全站没有
+ * 「10 族 + 粗体」的文本，见 src/index.css 的说明），所以预热清单里也只有 400。
  */
 
 /** 门的上限（毫秒）。依据见下方注释。 */
@@ -28,7 +29,7 @@ export const FONT_GATE_TIMEOUT_MS = 2500
 export const FIRST_PAINT_FONTS = ['400 12px "Fusion Pixel 12px"', '700 12px "Fusion Pixel 12px"'] as const
 
 /** 其余字面：不阻塞首屏，只在门开着的时候顺手预热，后面页面用到时已经在了 */
-export const DEFERRED_FONTS = ['400 10px "Fusion Pixel 10px"', '700 10px "Fusion Pixel 10px"'] as const
+export const DEFERRED_FONTS = ['400 10px "Fusion Pixel 10px"'] as const
 
 /** 取样文字：只为触发字体加载，用像素字体一定有的字 */
 export const FONT_GATE_SAMPLE = '单挑'

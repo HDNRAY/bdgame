@@ -3,10 +3,15 @@
 
 /* 全游戏像素字体：缝合像素字体（Fusion Pixel Font）简体中文版（含拉丁）
    400 = 常规版；700 = 官方组织的算法粗体版（否则浏览器合成粗体会发糊）。
+   **10px 族只有 400 这一档**：全站没有任何元素以「10px 族 + 粗体」渲染（10 族只出现在
+   `--font-family-10` 的移动端小字与开场剧情正文上，两者实测计算字重恒为 400），
+   所以 `10px/700` 那份 @font-face 与其源文件一起移除 —— 它在产物里白占 39,764 B（子集总量约 24%）。
+   将来若真要 10 族粗体，可从字体上游（GitHub `TakWolf/fusion-pixel-font` 的
+   `fusion-bold-pixel-font` 构建）重新取回，族名与权重写法照下面 12px 那对抄。
 
-   这里引用的是**源字体（完整版，四个字面合计 2.03 MB）**；`vite build` 时由
+   这里引用的是**源字体（完整版，三个字面合计 1.63 MB）**；`vite build` 时由
    `vite-plugins/font-subset.ts` 在 generateBundle 阶段按「产物里出现的字符」把它们裁成子集
-   （约 250 kB）并替换进产物 —— 零手动步骤：新文案进了产物就自动进子集。
+   （约 165 kB）并替换进产物 —— 零手动步骤：新文案进了产物就自动进子集。
    所以看真实体积要跑 `npm run build` / `npm run preview`（`vite dev` 不做子集化）。
 
    font-display 用 fallback 而不是 swap：`swap` 的换字期是无限的，慢网下字体一到就整屏换字形；
@@ -16,14 +21,6 @@
     font-family: 'Fusion Pixel 10px';
     src: url('./assets/fonts/fusion-pixel-10px-proportional-zh_hans.woff2') format('woff2');
     font-weight: 400;
-    font-style: normal;
-    font-display: fallback;
-}
-
-@font-face {
-    font-family: 'Fusion Pixel 10px';
-    src: url('./assets/fonts/fusion-bold-pixel-10px-proportional-zh_hans.woff2') format('woff2');
-    font-weight: 700;
     font-style: normal;
     font-display: fallback;
 }
