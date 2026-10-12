@@ -36,9 +36,6 @@
     --color-text: #393947;
     --color-text-h: #1b1b2b;
     --color-text-dim: #595966;
-    /* 剧情描述（RoundCard 的 .rc-desc）：**亮色主题与 --color-text-dim 同值**，
-       本轮只调暗色（用户口径：只改暗色的剧情描述）。 */
-    --color-desc: #595966;
     /* Borders */
     --color-border: #bdbdc4;
     --color-border-hover: #7a7a84;
@@ -172,13 +169,15 @@
     /* 抬升块底色：只读表格表头、行悬停（CompareScreen）。曾被引用却从未定义。 */
     --color-bg-raised: var(--color-bg-alt);
 
-    /* Text */
+    /* Text
+       暗色 --color-text-dim 与 --color-text 同值：用户口径「--color-text-dim 整体变亮」，
+       目标是全站弱文字在所有真实暗色底上 ≥7:1（最亮的真实底 --color-bg-hover
+       5.14 → 8.20、页面底 6.09 → 9.72），并沿用上一轮已验收的 .rc-desc 亮度。
+       代价：暗色的弱文字并入正文档（文字阶梯实际只剩 两档），见 docs/ui-color-system.md
+       「追加改动：弱文字 token 整体调亮」。 */
     --color-text: #afafc1;
     --color-text-h: #e8e9ff;
-    --color-text-dim: #898997;
-    /* 剧情描述（RoundCard 的 .rc-desc）：沿中性文字阶梯上移一档（弱文字 → 正文），
-       取 --color-text 的暗色值；对页面底 6.09 → 9.72（≥7:1），亮色主题不动。 */
-    --color-desc: #afafc1;
+    --color-text-dim: #afafc1;
     /* Borders */
     --color-border: #2d2d33;
     --color-border-hover: #626375;
