@@ -2,16 +2,21 @@
 //
 // 为什么不是截图 md5：配色改动**必然**改变像素，md5 永远会变，不能作为通过条件
 // （口径见 docs/ui-color-system.md「验证口径汇总」）。本脚本把「能当通过条件的部分」做成断言：
-//   ① 三档视口下 documentElement.scrollWidth === window.innerWidth（无横向溢出）
+//   ① 每档视口下 documentElement.scrollWidth === window.innerWidth（无横向溢出）
 //   ② 没有任何元素的 getBoundingClientRect 越出视口（左 < -0.5 或 右 > innerWidth + 0.5）
+//   ③ 字号网格：玩家可见页里每个"自己直接有文字"的元素，计算 font-size ∈ { n×10 } ∪ { n×12 }；
+//      桌面口径（宽屏 或 精细指针）另加「≥12px」与「族与字号匹配」（10 族只认 10n、12 族只认 12n）。
+//      口径见 src/ui/boot/font-grid.ts：像素字体只有整数倍渲染才锐利。DevMode 页不在默认断言集内。
 // 截图只**留存**到 tmp/preview/（已 gitignore）供人工目视，不参与判定。
 //
 // 用法（在仓库根）：
-//   node scripts/ui-geometry.mjs                     # 亮 + 暗，全部玩家可见页 × 三档
-//   node scripts/ui-geometry.mjs --theme light       # 只跑一套主题
-//   node scripts/ui-geometry.mjs --pages home        # 只跑首页（名字见下面的 PAGES）
-//   node scripts/ui-geometry.mjs --port 5199         # 换端口（默认 5199，strictPort）
-//   node scripts/ui-geometry.mjs --keep              # 结束后不停 dev server
+//   node scripts/ui-geometry.mjs                        # 亮 + 暗，全部玩家可见页 × 8 档视口 × --ui-scale 1
+//   node scripts/ui-geometry.mjs --theme light          # 只跑一套主题
+//   node scripts/ui-geometry.mjs --pages home           # 只跑首页（名字见下面的 PAGES）
+//   node scripts/ui-geometry.mjs --port 5199            # 换端口（默认 5199，strictPort）
+//   node scripts/ui-geometry.mjs --ui-scale 1.5         # 单个缩放档；all = 0.75 / 1 / 1.5 / 2 四档都跑
+//   node scripts/ui-geometry.mjs --viewports 1024x768   # 覆盖视口档（默认见 DEFAULT_VIEWPORTS）
+//   node scripts/ui-geometry.mjs --keep                 # 结束后不停 dev server
 //
 // 环境变量：CHROME_PATH 覆盖 Chrome 可执行文件路径。
 // 退出码：0 = 全部断言通过；1 = 有溢出；2 = 环境错误。
@@ -38,6 +43,8 @@ function parseArgs(argv) {
         pages:
             'home,build-ajiu,battle,roguelite-intro,roguelite-battle,settings,about,encyclopedia',
         port: 5199,
+        uiScale: '1',
+        viewports: null,
         keep: false,
     };
     for (let i = 0; i < argv.length; i++) {
@@ -45,17 +52,29 @@ function parseArgs(argv) {
         if (a === '--theme') out.theme = argv[++i];
         else if (a === '--pages') out.pages = argv[++i];
         else if (a === '--port') out.port = Number(argv[++i]);
+        else if (a === '--ui-scale') out.uiScale = argv[++i]; // 单档或 all
+        else if (a === '--viewports') out.viewports = argv[++i];
         else if (a === '--keep') out.keep = true;
         else if (a === '--help' || a === '-h') out.help = true;
         else throw new Error(`未知参数：${a}`);
     }
     if (!['light', 'dark', 'both'].includes(out.theme)) throw new Error(`--theme 只能是 light/dark/both`);
+    // --ui-scale 收「单档」或 all（0.75 / 1 / 1.5 / 2.0 四个档都要能吸附）
+    out.uiScales =
+        out.uiScale === 'all'
+            ? [0.75, 1, 1.5, 2]
+            : String(out.uiScale)
+                  .split(',')
+                  .map((s) => Number(s.trim()));
+    for (const s of out.uiScales) {
+        if (!(s >= 0.5 && s <= 2)) throw new Error(`--ui-scale 只能是 0.5 ~ 2.0 或 all`);
+    }
     return out;
 }
 
 const opts = parseArgs(process.argv.slice(2));
 if (opts.help) {
-    console.log(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(0, 22).join('\n'));
+    console.log(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(0, 24).join('\n'));
     process.exit(0);
 }
 
@@ -204,6 +223,21 @@ const send = (method, params = {}) =>
 await send('Page.enable');
 await send('Runtime.enable');
 
+// 把设置页的 --ui-scale 种进 localStorage：必须在**每个新文档的脚本跑起来之前**写，
+// 否则 App 会先按上一份配置渲染（loadUiConfig 在 main.tsx 里同步读）。用 addScriptToEvaluateOnNewDocument
+// 而不是导航后 evaluate —— 后者已经错过了首帧。切档时把上一条 remove 掉，避免多条同时生效。
+let uiScaleScriptId = null;
+async function seedUiScale(scale) {
+    if (uiScaleScriptId) {
+        await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: uiScaleScriptId });
+        uiScaleScriptId = null;
+    }
+    const r = await send('Page.addScriptToEvaluateOnNewDocument', {
+        source: `try { localStorage.setItem('bdgame-ui-config', JSON.stringify({ theme: 'system', uiScale: ${scale}, typewriter: true })); } catch (e) {}`,
+    });
+    uiScaleScriptId = r.identifier;
+}
+
 async function waitLoad() {
     for (let i = 0; i < 100; i++) {
         const r = await send('Runtime.evaluate', { expression: 'document.readyState', returnByValue: true });
@@ -313,6 +347,47 @@ const MEASURE = `(() => {
       if (out.occluded.length > 10) break;
     }
   }
+  // 字号网格（断言口径见文件头 ③ 与 src/ui/boot/font-grid.ts）：
+  //   移动口径：计算字号 ∈ { n×10 } ∪ { n×12 }
+  //   桌面口径：再加「最小 12px」（10px 不允许）与「族与字号匹配」（10 族只认 10n、12 族只认 12n）
+  // 只看「自己直接有文字」且可见的元素。与"被底栏压住"不同，这里**不过滤**滚动容器里的元素：
+  // 字号是元素自身的计算值，滚不滚动都一样。
+  const DESKTOP_MQ = '(min-width: 769px), (hover: hover) and (pointer: fine)';
+  out.desktop = window.matchMedia(DESKTOP_MQ).matches;
+  const onGrid = (px, u) => Number.isFinite(px) && px > 0 && Math.abs(px / u - Math.round(px / u)) < 1e-6;
+  out.fontSizes = [];
+  out.fontGridViolations = [];
+  for (const el of document.querySelectorAll('body *')) {
+    const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim() !== '');
+    if (!own) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) continue;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden') continue;
+    const fs = Number.parseFloat(cs.fontSize);
+    out.fontSizes.push(fs);
+    const first = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim();
+    let reason = null;
+    if (!onGrid(fs, 10) && !onGrid(fs, 12)) reason = '不在允许集';
+    else if (out.desktop && fs < 12) reason = '桌面小于 12';
+    else if (first.includes('Fusion Pixel 10px') && !onGrid(fs, 10)) reason = '10 族字号不在 10n';
+    else if (first.includes('Fusion Pixel 12px') && !onGrid(fs, 12)) reason = '12 族字号不在 12n';
+    if (reason) {
+      const cls = el.className && typeof el.className === 'string' ? el.className : el.tagName;
+      out.fontGridViolations.push({
+        tag: el.tagName,
+        cls: String(cls).slice(0, 50),
+        fontSize: fs,
+        family: first,
+        reason,
+        text: (el.textContent || '').trim().slice(0, 24),
+      });
+      if (out.fontGridViolations.length > 12) break;
+    }
+  }
+  out.fontSizeSet = [...new Set(out.fontSizes)].sort((a, b) => a - b);
+  out.fontUnit10 = getComputedStyle(de).getPropertyValue('--font-unit-10').trim();
+  out.fontUnit12 = getComputedStyle(de).getPropertyValue('--font-unit-12').trim();
   return out;
 })()`;
 
@@ -361,18 +436,30 @@ const ALL_PAGES = [
 ];
 const PAGES = ALL_PAGES.filter((p) => opts.pages.split(',').map((s) => s.trim()).includes(p.name));
 
-const VIEWPORTS = [
-    { name: '390x844', width: 390, height: 844, mobile: true },
-    { name: '320x568', width: 320, height: 568, mobile: true },
-    { name: '1280x800', width: 1280, height: 800, mobile: false },
-];
+// 视口档：宽度 × 高度都要变（只有宽度会漏掉"矮屏 / 高屏"下的字号档）。
+// ≤768 按触屏移动口径仿真（与仓库既有的 max-width: 768px 分界一致），更宽按桌面。
+// `--viewports 1024x768,375x667` 可覆盖。
+const DEFAULT_VIEWPORTS = ['320x568', '390x844', '768x1024', '1280x720', '1280x800', '1440x900', '1920x1080', '2560x1440'];
+const VIEWPORTS = (opts.viewports ? opts.viewports.split(',') : DEFAULT_VIEWPORTS).map((spec) => {
+    const m = /^(\d+)x(\d+)$/.exec(spec.trim());
+    if (!m) throw new Error(`--viewports 里不是 WxH：${spec}`);
+    const width = Number(m[1]);
+    const height = Number(m[2]);
+    return { name: `${width}x${height}`, width, height, mobile: width <= 768 };
+});
 
 const THEMES = opts.theme === 'both' ? ['light', 'dark'] : [opts.theme];
 
 const rows = [];
 const failures = [];
+/** 每个 --ui-scale 档下，全页 × 全视口 × 全主题去重后的计算字号清单 */
+const fontSizesByScale = new Map();
 
-for (const theme of THEMES) {
+for (const uiScale of opts.uiScales) {
+    await seedUiScale(uiScale);
+    if (!fontSizesByScale.has(uiScale)) fontSizesByScale.set(uiScale, new Set());
+    const scaleFontSizes = fontSizesByScale.get(uiScale);
+    for (const theme of THEMES) {
     await send('Emulation.setEmulatedMedia', {
         features: [{ name: 'prefers-color-scheme', value: theme }],
     });
@@ -438,6 +525,16 @@ for (const theme of THEMES) {
             if (!occludedOk) {
                 failures.push(`${theme} ${page.name} ${vp.name}: ${m.occluded.length} 处内容被底栏压住 ${JSON.stringify(m.occluded.slice(0, 3))}`);
             }
+            // 字号网格：计算 font-size 必须落在 { n×10 } ∪ { n×12 }（详见文件头 ③）
+            const fontViolations = m.fontGridViolations ?? [];
+            const fontsOk = fontViolations.length === 0;
+            if (!fontsOk) {
+                failures.push(
+                    `${theme} ${page.name} ${vp.name}（--ui-scale=${uiScale}）: ${fontViolations.length} 处字号不合规 ` +
+                        `${JSON.stringify(fontViolations.slice(0, 3))}`,
+                );
+            }
+            for (const fs of m.fontSizeSet ?? []) scaleFontSizes.add(`${fs}`);
             if (!barOk) {
                 failures.push(
                     `${theme} ${page.name} ${vp.name}: 底栏不达标 ${JSON.stringify({
@@ -451,28 +548,48 @@ for (const theme of THEMES) {
             log(
                 `${theme.padEnd(5)} ${page.name.padEnd(17)} ${vp.name.padEnd(9)} ` +
                     `scrollWidth=${m.docScrollWidth} innerWidth=${m.innerWidth} ${widthOk ? 'OK' : '横向溢出'} ` +
-                    `超视口元素=${m.overflow.length} 被底栏压住=${(m.occluded ?? []).length} 底栏=${bar ? `${bar.height}px/${bar.items.map((i) => `${i.label}:${i.w}x${i.h}`).join(',')}` : '缺失'} ` +
+                    `超视口元素=${m.overflow.length} 被底栏压住=${(m.occluded ?? []).length} 字号=${fontsOk ? '在网格' : `越界${fontViolations.length}处`} ` +
+                    `底栏=${bar ? `${bar.height}px/${bar.items.map((i) => `${i.label}:${i.w}x${i.h}`).join(',')}` : '缺失'} ` +
                     `rs-battle=${m.rsBattle ? m.rsBattle.clientHeight : '-'} rc-current=${m.rcCurrent ? m.rcCurrent.clientHeight : '-'}`,
             );
 
             const shot = await send('Page.captureScreenshot', { format: 'png' });
-            const file = `${page.name}-${theme}-${vp.name}.png`;
+            // 默认档不加后缀，保住既有文件名（与配色脚本/基线对拍的口径一致）
+            const file = `${page.name}-${theme}-${vp.name}${uiScale === 1 ? '' : `-scale${uiScale}`}.png`;
             fs.writeFileSync(path.join(SHOT_DIR, file), Buffer.from(shot.data, 'base64'));
         }
     }
 }
+}
 
 console.log('\n== 几何断言 ==');
-console.log(`视口档数：${VIEWPORTS.length}（${VIEWPORTS.map((v) => v.name).join(' / ')}）  主题：${THEMES.join(' + ')}`);
+console.log(
+    `视口档数：${VIEWPORTS.length}（${VIEWPORTS.map((v) => v.name).join(' / ')}）  ` +
+        `主题：${THEMES.join(' + ')}  --ui-scale：${opts.uiScales.join(' / ')}`,
+);
 for (const r of rows) {
     const ok = r.docScrollWidth === r.innerWidth && r.overflow.length === 0 && !!r.bottomBar;
     console.log(
-        `${ok ? '通过' : '失败'}  ${r.theme.padEnd(5)} ${r.page.padEnd(17)} ${r.vp.padEnd(9)} ` +
+        `${ok ? '通过' : '失败'}  ${r.theme.padEnd(5)} ${r.page.padEnd(17)} ${r.vp.padEnd(10)} ` +
             `scrollWidth=${r.docScrollWidth} innerWidth=${r.innerWidth} 超视口=${r.overflow.length} ` +
             `底栏=${r.bottomBar ? r.bottomBar.height : '缺失'} rs-battle=${r.rsBattle ? r.rsBattle.clientHeight : '-'} ` +
             `rc-current=${r.rcCurrent ? r.rcCurrent.clientHeight : '-'} theme=${r.themeAttr}`,
     );
 }
+// 字号网格清单：每档 --ui-scale 下，全页 × 全视口 × 全主题去重后的计算值，逐个验它在允许集里
+const isOn = (px, u) => Number.isFinite(px) && px > 0 && Math.abs(px / u - Math.round(px / u)) < 1e-6;
+const fontReport = [];
+console.log(`\n== 字号网格 ==`);
+for (const [scale, set] of fontSizesByScale) {
+    const list = [...set].map(Number).filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
+    fontReport.push({ uiScale: scale, fontSizes: list });
+    const bad = list.filter((px) => !isOn(px, 10) && !isOn(px, 12));
+    console.log(
+        `--ui-scale=${scale}：去重后 ${list.length} 个 —— ${list.map((v) => `${v}px`).join(' ')}  ` +
+            (bad.length ? `不在允许集：${bad.map((v) => `${v}px`).join(' ')}` : '全部在允许集'),
+    );
+}
+console.log('允许集 { n×10 } ∪ { n×12 }；桌面口径（宽屏或精细指针）另加「≥12px」与「族与字号匹配」');
 console.log(`\n截图：${rows.length} 张，在 ${path.relative(ROOT, SHOT_DIR)}/ （只留存，不参与判定）`);
 if (failures.length) {
     console.log('\n失败明细：');
@@ -481,12 +598,16 @@ if (failures.length) {
 console.log(
     failures.length
         ? `\n结果：失败（${failures.length} 项）`
-        : '\n结果：通过（三档 scrollWidth == innerWidth，超视口元素 0）',
+        : '\n结果：通过（无横向溢出 / 无越界 / 无被底栏遮挡 / 字号全在网格且族匹配）',
 );
 
 fs.writeFileSync(
     path.join(SHOT_DIR, 'geometry.json'),
-    JSON.stringify({ theme: opts.theme, viewports: VIEWPORTS.map((v) => v.name), rows, failures }, null, 1),
+    JSON.stringify(
+        { theme: opts.theme, uiScales: opts.uiScales, viewports: VIEWPORTS.map((v) => v.name), fontSizesByScale: fontReport, rows, failures },
+        null,
+        1,
+    ),
 );
 
 ws.close();
