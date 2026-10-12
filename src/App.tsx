@@ -79,8 +79,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-    // dev 无前缀；线上 build（GitHub Pages 子路径）带 /bdgame
-    const basename = import.meta.env.PROD ? '/bdgame' : '/'
+    // 路由前缀从 Vite 的 base 推导（`import.meta.env.BASE_URL`，构建期被替换成字面量）：
+    //   dev（base='/'）      → ''       —— react-router 的 basename='' 就是「没有 basename」
+    //   线上（base='/bdgame/'）→ '/bdgame' —— 与旧的写死值逐字相同，行为不变
+    // 末尾那个斜杠必须去掉：react-router 会把 basename 当路径前缀拼接，带尾斜杠会拼出
+    // '//roguelite' 这类地址。不要再写死 '/bdgame'：换托管到根路径时它会和 vite.config.ts 的
+    // base 脱节，<Router> 直接匹配不上、整站白屏（实测 console：
+    // `<Router basename="/bdgame"> is not able to match the URL "/roguelite"`）。
+    const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
     // /dev（DevMode）是否开放：由 .env 的 VITE_ENABLE_DEV_MODE 控制（true=开放，含线上部署）
     const devModeEnabled = import.meta.env.VITE_ENABLE_DEV_MODE === 'true'
     return (
