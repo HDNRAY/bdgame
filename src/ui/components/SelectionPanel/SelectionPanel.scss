@@ -151,7 +151,9 @@
     }
 
     .card-name {
-        font-size: 10px;
+        /* 走小字族令牌，不写死 10px：桌面口径下该族整体换成 12px 字族 + 12px 字号
+           （写死 10px 会变成"12px 字族渲染 0.833×"，既发虚又低于桌面 12px 下限）。 */
+        font-size: var(--font-xs);
         font-family: var(--font-family-small);
         line-height: 1.2;
         color: var(--color-text);

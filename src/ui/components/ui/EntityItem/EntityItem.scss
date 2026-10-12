@@ -5,6 +5,9 @@
     padding: 2px var(--sp-xs);
     border-radius: var(--radius-sm);
     font-size: var(--font-sm);
+    /* 自带字族：本组件的字号是 12 族尺寸（--font-sm），若只继承外层字族，
+       落到"小字族容器"里就变成 10px 族渲染 12px（非整数倍、发虚）。 */
+    font-family: var(--font-family-base);
     background: var(--color-bg-alt);
     border: var(--border-width) solid var(--color-border);
     color: var(--color-text);

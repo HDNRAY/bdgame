@@ -170,7 +170,10 @@
 }
 
 .cp-info-name {
+    /* 字号是 12 族尺寸（--font-lg），字族也必须显式取 12 族：窄屏的 .cp-info-row 会把字族
+       压成小字族（10px 族），只覆盖字号不覆盖字族就成了"10px 族渲染 2.4×"，发虚。 */
     font-size: var(--font-lg);
+    font-family: var(--font-family-base);
     font-weight: 600;
     color: var(--color-text-h);
 }
@@ -210,7 +213,9 @@
 }
 
 .cp-hp-ap {
+    /* 同上：12 族尺寸 + 显式 12 族字族（子元素 cp-hp / cp-sep / cp-ap 继承） */
     font-size: var(--font-md);
+    font-family: var(--font-family-base);
     color: var(--color-text);
     white-space: nowrap;
 }
@@ -404,7 +409,9 @@
 
 .cp-table-note {
     margin-top: var(--sp-xxs);
+    /* 10px 档必须配小字族：只继承外层字族（这里是 12 族）就成了"12 族渲染 0.833×" */
     font-size: var(--font-xs);
+    font-family: var(--font-family-small);
     line-height: 1.5;
     color: var(--color-text-dim);
 }
@@ -464,7 +471,8 @@
 .cp-cond-btn {
     width: 100%;
     padding: 2px var(--sp-xxs);
-    font-size: var(--font-xs);
+    /* --font-mono 是 12 族，字号就得取 12 族的档（原 --font-xs = 10，0.833× 渲染） */
+    font-size: var(--font-sm);
     font-family: var(--font-mono);
     text-align: left;
     white-space: nowrap;
@@ -565,7 +573,9 @@
 }
 
 .cp-trigger-count {
-    font-size: 12px;
+    /* 走令牌 + 显式 12 族：原写死 12px 只继承外层小字族 = 10 族渲染 1.2×（发虚） */
+    font-size: var(--font-sm);
+    font-family: var(--font-family-base);
     color: var(--color-text-dim);
     margin-left: 8px;
     font-weight: normal;

@@ -25,8 +25,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: var(--font-xs);
-        font-family: var(--font-family-small);
+        /* 字族与字号必须同族：这里用的是 --font-mono（= 12px 字族），字号就得取 12 族的档。
+           原来写 --font-xs（10 族档）配 12px 字族 = 0.833× 渲染，笔画发虚。 */
+        font-size: var(--font-sm);
         font-family: var(--font-mono);
         color: var(--color-text-h);
         text-shadow:
