@@ -5,7 +5,27 @@ import { cpSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { UMAMI_BEFORE_SEND_HOOK } from './src/bridge/analytics-before-send'
 import { fontSubsetPlugin } from './vite-plugins/font-subset'
-import type { Plugin } from 'vite'
+import type { Plugin, ResolvedConfig } from 'vite'
+
+/**
+ * 取 HTML 入口在产物里的相对路径（Vite 会保留入口相对 root 的位置）。
+ * 没配 `build.rollupOptions.input` 时走 Vite 默认入口 `index.html`；
+ * HTML 入口不是唯一一个时也退回默认名 —— 宁可不推导，也不猜错源文件名。
+ */
+function resolveHtmlEntry(root: string, input: unknown): string {
+    const entries: string[] = []
+    if (typeof input === 'string') entries.push(input)
+    else if (Array.isArray(input)) {
+        for (const entry of input) if (typeof entry === 'string') entries.push(entry)
+    } else if (input !== null && typeof input === 'object') {
+        for (const entry of Object.values(input as Record<string, unknown>)) {
+            if (typeof entry === 'string') entries.push(entry)
+        }
+    }
+    const html = entries.filter((entry) => entry.endsWith('.html'))
+    if (html.length !== 1) return 'index.html'
+    return path.relative(root, path.resolve(root, html[0]))
+}
 
 /**
  * Umami 埋点注入（计划 `docs/analytics-plan.md` 第 1 节）。
@@ -59,6 +79,8 @@ export default defineConfig(({ command, mode }) => {
     // 前缀只在这里定义一次：SW 的导航回退与 manifest 图标都必须**跟着它走**
     // （见下面 workbox / manifest 两处注释），换托管路径时才不会留下半截写死的路径。
     const base = command === 'serve' ? '/' : '/bdgame/'
+    // gh-pages-404-fallback 插件要用的解析后配置（configResolved 一定先于 closeBundle 跑）
+    let resolved: ResolvedConfig | undefined
     return {
         base,
         build: {
@@ -118,12 +140,26 @@ export default defineConfig(({ command, mode }) => {
                 },
             }),
             {
-                // GitHub Pages 对未知路径回退到 404.html：把 index.html 复制一份，让 React Router 接管深链路由
+                // GitHub Pages 对未知路径回退到 404.html：把 index.html 复制一份，让 React Router 接管深链路由。
+                //
+                // 产物目录从**解析后的配置**推导，不写死 'bdgame'：
+                // - `config.root` 是解析后的项目根。它不一定是 `process.cwd()`：用 `--config` 从别的
+                //   cwd 跑、或以后改 root 时，按 cwd 拼路径会把 404.html 复制到错地方。
+                // - `config.build.outDir` 默认相对 root，也可能被配置或 `--outDir /tmp/x` 给成绝对路径；
+                //   `path.resolve(root, outDir)` 两种都对（绝对路径时 resolve 原样返回它）。
+                // 另外两处写死是**故意保留**的：`404.html` 这个文件名是 GitHub Pages 的约定（必须逐字，
+                // 推导不出来）；插件也完全不碰 `base`（它只在 outDir 内部复制，与 URL 前缀无关）。
+                // 源文件名则按配置里的 HTML 入口推导（见 resolveHtmlEntry），默认仍是 index.html。
                 name: 'gh-pages-404-fallback',
                 apply: 'build',
+                configResolved(config) {
+                    resolved = config
+                },
                 closeBundle() {
-                    const outDir = path.join(process.cwd(), 'bdgame')
-                    const index = path.join(outDir, 'index.html')
+                    if (!resolved) return
+                    const outDir = path.resolve(resolved.root, resolved.build.outDir)
+                    const htmlEntry = resolveHtmlEntry(resolved.root, resolved.build.rollupOptions.input)
+                    const index = path.join(outDir, htmlEntry)
                     // 构建中途失败时产物目录是空的：这里必须让真正的报错浮上来，
                     // 不然 cpSync 的 ENOENT 会把上游插件（例如字体子集校验）的失败原因盖掉
                     if (!existsSync(index)) return
