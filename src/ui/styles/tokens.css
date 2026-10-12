@@ -25,22 +25,34 @@
 
     /* ========== Typography ==========
        像素字体有两份：小字用 10px 版（原生网格 10 的倍数），正文/标题用 12px 版（12 的倍数）。
-       **改字号时只改下面这组，字号必须落在所属字族的原生网格上**，否则会被平滑缩放、笔画不整。
+       **字号一律写成「字族基准 × 正整数」**，这样无论基准被吸附到哪一档都在原生网格上，
+       不会被平滑缩放、笔画不整。
+
+       两族基准 `--font-unit-10` / `--font-unit-12` 由 JS 按视口与 --ui-scale **先算再吸附**
+       （src/ui/boot/font-grid.ts），写进 <html> 的内联样式；这里的 10px / 12px 是缺省值
+       （= 1rem 16px 的设计基准，也是 JS 没跑时的降级值，同样在网格上）。
+       为什么不写成 rem：rem 随根字号连续变化（`0.625rem` 在根字号 20px 时 = 12.5px，不是任何一族
+       的整数倍），而根字号同时是**布局**缩放载体，不能为了字号把它锁死。详见 font-grid.ts。
+
        成套令牌（--text-*）把"字号 + 字族"打包在一起，新样式优先用它：font: var(--text-md);
        字族链里紧跟像素字体的 `Fusion Fallback *` 是「度量对齐的回退字体」（见 src/index.css 的
        度量覆盖声明）：像素字体没到位时先用它，行高与像素字体一致，切换不位移。 */
     --font-family-small: 'Fusion Pixel 10px', 'Fusion Fallback 10', system-ui, 'Segoe UI', Roboto, sans-serif;
     --font-family-base: 'Fusion Pixel 12px', 'Fusion Fallback 12', system-ui, 'Segoe UI', Roboto, sans-serif;
 
-    --font-xxs: 0.625rem; /* 10px（小字族）← 原 8px */
-    --font-xs: 0.625rem; /* 10px（小字族） */
-    --font-sm: 0.75rem; /* 12px ← 原 11px */
-    --font-md: 0.75rem; /* 12px ← 原 13px */
-    --font-lg: 1.5rem; /* 24px ← 原 16px */
-    --font-xl: 1.5rem; /* 24px ← 原 20px */
-    --font-xxl: 1.5rem; /* 24px */
-    --font-title: 2.25rem; /* 36px = 3×12 */
-    --font-hero: 3.75rem; /* 60px ← 原 56px = 5×12 */
+    --font-unit-10: 10px; /* 10 族的当前档，由 JS 覆盖；∈ 10n */
+    --font-unit-12: 12px; /* 12 族的当前档，由 JS 覆盖；∈ 12n */
+
+    --font-xxs: var(--font-unit-10); /* 10px（小字族）← 原 8px */
+    --font-xs: var(--font-unit-10); /* 10px（小字族） */
+    --font-sm: var(--font-unit-12); /* 12px ← 原 11px */
+    --font-md: var(--font-unit-12); /* 12px ← 原 13px */
+    --font-lg: calc(2 * var(--font-unit-12)); /* 24px ← 原 16px */
+    --font-xl: calc(2 * var(--font-unit-12)); /* 24px ← 原 20px */
+    --font-xxl: calc(2 * var(--font-unit-12)); /* 24px */
+    --font-display: calc(4 * var(--font-unit-12)); /* 48px = 4×12（NotFound 原 3rem 迁到这里） */
+    --font-title: calc(3 * var(--font-unit-12)); /* 36px = 3×12 */
+    --font-hero: calc(5 * var(--font-unit-12)); /* 60px ← 原 56px = 5×12 */
 
     /* 成套文字令牌：字号 + 字族 */
     --text-xxs: var(--font-xxs) var(--font-family-small);
@@ -81,4 +93,22 @@
     --font-sans: var(--font-family-base);
     --font-heading: var(--font-family-base);
     --font-mono: var(--font-family-base), ui-monospace, Consolas, monospace;
+}
+
+/* ========== 桌面口径：字号下限 12px，小字族整体换族 ==========
+   规则（用户定稿）：移动端允许 {10n} ∪ {12n}；**桌面端最小 12px**，即 {10n, n≥2} ∪ {12n}
+   = {12, 20, 24, 30, 36, 40, 48, …} —— 10px 在桌面端不允许。
+
+   关键：桌面端不能只把**字号**抬到 12 —— 那是拿 10px 字族渲染 1.2×，照样发虚（像素字体只有
+   整数倍渲染才锐利）。正确做法是**族与字号同时换档**：桌面端小字族改用 12px 字族、字号取 12n。
+   所以这里同时覆盖 `--font-family-small` 与 `--font-xxs` / `--font-xs`（都指向 12 族基准）。
+
+   判定"桌面"用「宽屏 或 精细指针」：窄屏（≤768）与触屏走移动口径，桌面窗口再窄也保 12px 下限。
+   这条口径与 scripts/ui-geometry.mjs 的字号断言用**同一个媒体查询**（改一处要改两处）。 */
+@media (min-width: 769px), (hover: hover) and (pointer: fine) {
+    :root {
+        --font-family-small: var(--font-family-base);
+        --font-xxs: var(--font-unit-12);
+        --font-xs: var(--font-unit-12);
+    }
 }

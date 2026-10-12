@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { Button } from '../ui/Button/Button'
+import { BASE_FAMILY_UNIT, gridSteps } from '../../boot/font-grid'
 import './LogPanel.scss'
 
 interface LogPanelProps {
@@ -16,10 +17,16 @@ const MIN_DELAY = 20
 const MAX_DELAY = 2000
 const FALLBACK_DELAY = 150
 
+// 日志文本走 --font-mono（12px 字体族），所以缩放档只能落在 12 的整数倍上，
+// 否则像素字体会被非整数倍缩放、笔画发虚（口径见 src/ui/boot/font-grid.ts）。
+// 档位从网格直接枚举，不手写常量表 —— 网格改了这里跟着改。
+const LOG_FONT_STEPS = gridSteps(BASE_FAMILY_UNIT, 12, 36)
+const LOG_FONT_DEFAULT = LOG_FONT_STEPS[0]
+
 export function LogPanel({ logLines, currentLine, compact, lineTimelineMs, speed = 1 }: LogPanelProps) {
     const logRef = useRef<HTMLDivElement>(null)
     const [autoScroll, setAutoScroll] = useState(true)
-    const [logFontSize, setLogFontSize] = useState(13)
+    const [logFontSize, setLogFontSize] = useState(LOG_FONT_DEFAULT)
     const [displayCount, setDisplayCount] = useState(0)
     const displayRef = useRef(displayCount)
     const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -99,7 +106,12 @@ export function LogPanel({ logLines, currentLine, compact, lineTimelineMs, speed
                     variant="bare"
                     size="xs"
                     className="ctrl-btn"
-                    onClick={() => setLogFontSize((s) => Math.max(9, s - 1))}
+                    onClick={() =>
+                        setLogFontSize((s) => {
+                            const i = LOG_FONT_STEPS.indexOf(s)
+                            return LOG_FONT_STEPS[Math.max(0, (i < 0 ? 0 : i) - 1)]
+                        })
+                    }
                     title="缩小日志"
                 >
                     A−
@@ -108,7 +120,12 @@ export function LogPanel({ logLines, currentLine, compact, lineTimelineMs, speed
                     variant="bare"
                     size="xs"
                     className="ctrl-btn"
-                    onClick={() => setLogFontSize((s) => Math.min(24, s + 1))}
+                    onClick={() =>
+                        setLogFontSize((s) => {
+                            const i = LOG_FONT_STEPS.indexOf(s)
+                            return LOG_FONT_STEPS[Math.min(LOG_FONT_STEPS.length - 1, (i < 0 ? 0 : i) + 1)]
+                        })
+                    }
                     title="放大日志"
                 >
                     A+

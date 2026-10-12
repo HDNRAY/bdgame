@@ -4,6 +4,7 @@ import { RotateDevice } from './ui/components/RotateDevice/RotateDevice'
 import { BottomBar } from './ui/components/layouts/BottomBar/BottomBar'
 import { useAppStore } from './ui/stores/app-store'
 import { useSystemTheme } from './ui/hooks/useSystemTheme'
+import { applyFontUnits, watchFontUnits } from './ui/boot/font-grid'
 import { NotFound } from './ui/screens/NotFound/NotFound'
 
 // 按路由懒加载：避免首屏一次性下载全部 screen / 游戏数据 / DevMode
@@ -59,6 +60,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         document.documentElement.style.setProperty('--ui-scale', String(uiScale))
+        // 字号档跟着 --ui-scale 一起重算，并在 resize 时跟着视口重算（返回解绑函数）。
+        // 不吞掉 --ui-scale 的写入：字号档是从它推出来的，所以放在同一个 effect 里，顺序有意义。
+        return watchFontUnits(document, uiScale)
     }, [uiScale])
 
     // 初始加载时确保一致性
@@ -67,6 +71,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             initRef.current = true
             document.documentElement.dataset.theme = effectiveTheme
             document.documentElement.style.setProperty('--ui-scale', String(uiScale))
+            applyFontUnits(document, uiScale)
         }
     }, [effectiveTheme, uiScale])
 

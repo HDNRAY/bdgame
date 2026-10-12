@@ -176,6 +176,10 @@ body,
 }
 
 :root {
+    /* 根字号 = **布局**缩放载体：rem 的间距/宽度/高度全跟着它走，保持随视口与 --ui-scale 连续变化。
+       **它不再承担字号**：字号走 tokens.css 的 --font-unit-10 / --font-unit-12（JS 先算再吸附，
+       保证计算值落在 {10n}∪{12n} 上）。根字号若为了字号去吸附，会让所有 rem 布局尺寸跟着跳档
+       （320 档 16.5px → 20px 就是 +21%，直接撑破 H5），详见 src/ui/boot/font-grid.ts。 */
     font-size: clamp(12px, calc(16px * var(--ui-scale) + 0.15vw), 48px);
     font-family: var(--font-sans);
     /* 像素字体：不要合成粗体/斜体（会发糊），粗体走 700 那份算法粗体 */
@@ -203,6 +207,9 @@ body,
 
 body {
     margin: 0;
+    /* 兜住"没写 font-size 就继承"的文字：继承链的终点是 12px 族基准，而不是根字号（17.92 一类
+       的连续值，不在允许集上）。写了 font-size 的元素不受影响。 */
+    font-size: var(--font-md);
 }
 
 /* 常驻底栏的**唯一一处**内容留白（底栏 spec §5）：

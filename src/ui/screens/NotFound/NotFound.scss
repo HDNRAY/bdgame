@@ -10,7 +10,7 @@
     font-family: var(--font-mono);
 
     &-title {
-        font-size: 3rem; /* 48px = 4×12 */
+        font-size: var(--font-display); /* 48px = 4×12（原 3rem：根字号带 0.15vw，实际会漂到 53.76px） */
         font-weight: bold;
         line-height: 1;
     }
