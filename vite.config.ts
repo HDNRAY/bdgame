@@ -55,9 +55,12 @@ function umamiPlugin(env: Record<string, string>): Plugin {
 export default defineConfig(({ command, mode }) => {
     // .env.production 是已跟踪文件；website-id 是公开值，不是密钥
     const env = loadEnv(mode, process.cwd(), 'VITE_')
+    // dev（serve）无前缀；线上 build 带 /bdgame/ 前缀（GitHub Pages 子路径）。
+    // 前缀只在这里定义一次：SW 的导航回退与 manifest 图标都必须**跟着它走**
+    // （见下面 workbox / manifest 两处注释），换托管路径时才不会留下半截写死的路径。
+    const base = command === 'serve' ? '/' : '/bdgame/'
     return {
-        // dev（serve）无前缀；线上 build 带 /bdgame/ 前缀（GitHub Pages 子路径）
-        base: command === 'serve' ? '/' : '/bdgame/',
+        base,
         build: {
             outDir: 'bdgame',
             chunkSizeWarningLimit: 600, // 拆分后按需放宽警告线
@@ -85,7 +88,16 @@ export default defineConfig(({ command, mode }) => {
                     // 只靠浏览器 HTTP 缓存的话，离线冷启动 / 缓存被挤掉时会退化成系统字体。
                     // 子集化之后四个字面合计 250 kB（全集 2.03 MB），代价可以接受。
                     globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-                    navigateFallback: '/index.html',
+                    // 导航回退必须从 base 推导，不能写死 "/index.html"：
+                    // workbox 的 createHandlerBoundToURL(url) 是拿这个字符串去和 **precache 清单的
+                    // cache key**（相对条目按 sw.js 的位置归一化，即 /bdgame/index.html）对表，
+                    // 对不上就抛 non-precached-url。清单里的条目全是相对的（glob 出来的
+                    // "index.html"），所以 "/index.html" 指向的是域名根的那个 key —— 不在清单里。
+                    // 后果不是"装不上"，而是这一行抛异常后 **registerRoute 根本没执行**：
+                    // SW 照样 active、precache 里也有 index.html，但没有任何导航回退，
+                    // 离线深链（/bdgame/roguelite）直接 ERR_INTERNET_DISCONNECTED。
+                    // `base` 为完整 URL 或 './' 时也成立：两边都以 sw.js 的位置为解析基准。
+                    navigateFallback: `${base}index.html`,
                 },
                 manifest: {
                     name: '青山镇二零八八斗炁大会',
@@ -96,8 +108,12 @@ export default defineConfig(({ command, mode }) => {
                     display: 'standalone',
                     orientation: 'portrait',
                     icons: [
-                        { src: '/icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
-                        { src: '/icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' },
+                        // src 也要带 base：写成 "/icon.svg" 是绝对路径，manifest 解析后指向
+                        // 域名根（HDNRAY.github.io/icon.svg，404），Chrome 会报
+                        // "Error while trying to use the following icon from the Manifest"。
+                        // 图标文件确实在 public/icon.svg，构建后落在 <base>/icon.svg。
+                        { src: `${base}icon.svg`, sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
+                        { src: `${base}icon.svg`, sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' },
                     ],
                 },
             }),
