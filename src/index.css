@@ -16,7 +16,18 @@
 
    font-display 用 fallback 而不是 swap：`swap` 的换字期是无限的，慢网下字体一到就整屏换字形；
    `fallback` 只给约 3 秒换字窗口，超时这轮就用回退字体不再换（回退字体已做度量对齐，见下）。
-   不用 `optional`：像素字体只差几百 kB，永久退回系统字体等于丢掉全游戏的像素美术一致性。 */
+   不用 `optional`：像素字体只差几百 kB，永久退回系统字体等于丢掉全游戏的像素美术一致性。
+
+   上游与缺字（背景资料，2026-10-12 从 AGENTS.md 移到这里；选字族的规矩在 AGENTS.md）：
+   字体是 [缝合像素字体 Fusion Pixel Font](https://github.com/TakWolf/fusion-pixel-font)（OFL-1.1，允许修改与再发布），
+   当前用它的 `proportional-zh_hans` 构建（name 表版本 2026.09.01）；粗体来自姊妹项目
+   [pixel-font-studio/fusion-bold-pixel-font](https://github.com/pixel-font-studio/fusion-bold-pixel-font)。
+   真要去上游补字或换构建，从这两个仓库取。
+
+   **这 8 个字上游没有字形：`‹ › ≥ 炁 缥 谲 飖 鳌`。** 已核实 Fusion Pixel 家族**所有构建**都缺
+   （8/10/12px × 等宽/比例 × 7 个语言版本 × 4 种格式 × release 与 master），基底字体
+   [`TakWolf/ark-pixel-font`](https://github.com/TakWolf/ark-pixel-font) 也缺 —— 所以它们**一直由系统字体渲染**
+   （招牌字「**炁**」（斗炁大会）就是其中之一）。**构建期子集化插件每次构建都会警告这些缺字，这是已知且预期的，不是回归。** */
 @font-face {
     font-family: 'Fusion Pixel 10px';
     src: url('./assets/fonts/fusion-pixel-10px-proportional-zh_hans.woff2') format('woff2');

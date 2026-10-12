@@ -104,18 +104,12 @@ When modifying engine source code (`src/engine/`), the following must hold **bef
   `Tag.tsx` 只读变量；`src/bridge/tagDisplay.ts` 的 `TAG_COLOR` 是同值的 TS 镜像。
   改标签色 = 改 themes.css + 同步镜像 + 跑 `tag-colors.test.ts`（它会拦漂移）。
 
-## 像素字体（选字族/补字前必读）
+## 像素字体（选字族前必读）
 
-字体是 [缝合像素字体 Fusion Pixel Font](https://github.com/TakWolf/fusion-pixel-font)（OFL-1.1，允许修改与再发布），
-当前用它的 `proportional-zh_hans` 构建（name 表版本 2026.09.01）；粗体来自姊妹项目
-[pixel-font-studio/fusion-bold-pixel-font](https://github.com/pixel-font-studio/fusion-bold-pixel-font)。
-真要去上游补字或换构建，从这两个仓库取。10px 族只有 400 一档（`10px/700` 全站从未渲染过，已连源文件一起删掉；
-需要时按上面的上游取回），见 `src/index.css` 文件头注释。
-
-**这 8 个字上游没有字形：`‹ › ≥ 炁 缥 谲 飖 鳌`。** 已核实 Fusion Pixel 家族**所有构建**都缺
-（8/10/12px × 等宽/比例 × 7 个语言版本 × 4 种格式 × release 与 master），基底字体
-[`TakWolf/ark-pixel-font`](https://github.com/TakWolf/ark-pixel-font) 也缺 —— 所以它们**一直由系统字体渲染**
-（招牌字「**炁**」（斗炁大会）就是其中之一）。**构建期子集化插件每次构建都会警告这些缺字，这是已知且预期的，不是回归。**
+字体是缝合像素字体 Fusion Pixel Font（当前用它的 `proportional-zh_hans` 构建）。**缺字的 8 个字、上游仓库与
+许可证、以及「构建期子集化插件警告缺字是已知预期、不是回归」都在 `src/index.css` 文件头注释里** —— 每次
+构建看到缺字警告时先翻那里。10px 族只有 400 一档：`10px/700` 全站从未渲染过，已连源文件一起删掉，
+需要时按 `index.css` 注释里的上游取回。
 
 **10px 与 12px 两族的覆盖不一样**：`缥 谲 飖` 在 **12px 是像素体**，在 **10px 落到系统字体**
 （10px 子集 25,107 字形 < 12px 的 36,558）。所以同一个字可能"移动端小字是系统体、正文是像素体" ——
