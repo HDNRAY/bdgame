@@ -188,6 +188,13 @@
 2. **子路径**:支持 `/bdgame/` 子路径的候选**零改动**;**只支持根路径的候选必须把 `base` 改成 `/`**(代价见下条),或者用平台的 rewrite 把 `/bdgame/*` 映射过去。
 3. **PWA**:改 `base` 不只是改一个字符串 —— `registerSW.js`、`manifest.webmanifest` 的 `start_url`/`scope`、以及 `sw.js` 里 `/index.html` 的导航回退**都是绝对路径**;而 `/icon.svg` 又漏了前缀(在子路径下是靠「`/icon.svg` 恰好被根路径服务到」才没坏,根路径部署反而要顺便统一)。另有一条**不可逆**代价:**换 origin(域名)后,已安装的 PWA 是另一份安装,`localStorage` 里的元进度存档(`dantiao:meta:v1`,见 `src/game/meta-save.ts`)不会跟着走** —— 对**已经装过旧地址**的玩家,存档等于清零;要迁移得先做导出/导入。
 
+**补充(2026-10-12 实测与修复):上面第 3 条里「`sw.js` 的导航回退写死 `/index.html`」当时是读产物得出的结论,现已实测复现并修掉。**
+
+- **实测**:线上 DevTools 与无头 CDP 两边抓到逐字相同的异常 `non-precached-url :: [{"url":"/index.html"}]`(`at O.createHandlerBoundToURL` … `at sw.js`)。当时 SW 状态是 **active + controller**(所以**不是装不上**),但 `registerRoute(new NavigationRoute(...))` 那一行抛在 `Promise.then` 微任务里、变成 unhandled rejection → **导航回退根本没注册**;离线导航得到 `net::ERR_INTERNET_DISCONNECTED` / `chrome-error://chromewebdata/`(浏览器错误页)。
+- **正确规则(写给以后换托管时看)**:`navigateFallback` **必须与 precache 的 cache key 一致**(workbox 把清单里的相对条目按 `sw.js` 的位置归一化成 `/bdgame/index.html`)**且从 `base` 推导** —— 写死 `/index.html` 就对不上。
+- **已修复**:`navigateFallback` 现为 `` `${base}index.html` ``、manifest 图标现为 `` `${base}icon.svg` ``(图标原本被解析成 `https://hdnray.github.io/icon.svg` → 404);另外 `src/App.tsx` 的 router basename 也从 `BASE_URL` 推导 → **整站搬到根路径现在只需改一个常量**(离线三连在 `base=/` 下也验过)。
+- **对托管选择的含义**:第 12 节按「支持子路径 / 只支持根路径」筛选时隐含假设「换根路径只要改 `base`」,实际还差路由那一处;现在补齐 → **换托管成本 = 改一个常量**。
+
 ## 12. 候选逐条:能查到的事实
 
 **证据强度口径:** 「强」= 服务商官方文档原文或官方后台行为可直接核对;「中」= 官方站点可读但未覆盖该问题;「弱」= 只有二手来源(博客/社区/媒体),仅作线索。
