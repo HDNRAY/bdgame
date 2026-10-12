@@ -49,6 +49,18 @@
         line-height: 1.7;
         color: var(--color-text);
         text-align: left;
+
+        /* 桌面口径：正文 20px = 2×10 族（与 tokens.css 的桌面规则、font-grid.ts 用同一条媒体查询）。
+           20 不是 12 的整数倍，所以**族与字号必须一起换**：字号走 10 族的 2× 档（--font-lg-10），
+           字族换成恒为 10 族的 --font-family-10（桌面上 --font-family-small 已经改指 12 族了）。
+           只换字号不换族 = 拿 12 族渲染 1.67×，会发虚，ui-geometry 的字号断言也会红。
+           移动端不动：这里整条规则只包在桌面媒体查询里。
+           写在 .io-text 上而不是 .io-p 上：占位层（.io-text-ghost）与打字层（.io-text-live）
+           都从它继承，两层同字号同字族，打字过程中高度不变、标题不跳。 */
+        @media (min-width: 769px), (hover: hover) and (pointer: fine) {
+            font-size: var(--font-lg-10);
+            font-family: var(--font-family-10);
+        }
     }
 
     /* 占位层：完整正文，只用来撑住高度（打字过程中高度不变，标题不会上下跳） */

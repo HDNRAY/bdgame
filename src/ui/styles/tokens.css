@@ -39,6 +39,10 @@
        度量覆盖声明）：像素字体没到位时先用它，行高与像素字体一致，切换不位移。 */
     --font-family-small: 'Fusion Pixel 10px', 'Fusion Fallback 10', system-ui, 'Segoe UI', Roboto, sans-serif;
     --font-family-base: 'Fusion Pixel 12px', 'Fusion Fallback 12', system-ui, 'Segoe UI', Roboto, sans-serif;
+    /* 10px 字族的「恒为 10 族」别名：本文件末尾的**桌面规则**会把 --font-family-small 整体换成
+       12 族（桌面不要 10px 小字），但 10 族的**大**字号（如 20px = 2×10）在桌面上仍然合法且必须
+       留在 10 族上 —— 那些场景要引用这一份，不要引用 --font-family-small。 */
+    --font-family-10: 'Fusion Pixel 10px', 'Fusion Fallback 10', system-ui, 'Segoe UI', Roboto, sans-serif;
 
     --font-unit-10: 10px; /* 10 族的当前档，由 JS 覆盖；∈ 10n */
     --font-unit-12: 12px; /* 12 族的当前档，由 JS 覆盖；∈ 12n */
@@ -53,6 +57,12 @@
     --font-display: calc(4 * var(--font-unit-12)); /* 48px = 4×12（NotFound 原 3rem 迁到这里） */
     --font-title: calc(3 * var(--font-unit-12)); /* 36px = 3×12 */
     --font-hero: calc(5 * var(--font-unit-12)); /* 60px ← 原 56px = 5×12 */
+
+    /* 10 族的 2× 档：20 = 2×10（1× 时 20px，∈ 10n）。桌面端开场 / 剧情正文 `.io-p` 用。
+       为什么单独开一档：原有阶梯全是 12 族的整数倍（12 / 24 / 36 / 60…），而 20 不是 12 的倍数 ——
+       想要 20px 就只能走 10 族的 2 倍，否则就是拿 12 族渲染 1.67×、笔画发虚。
+       配套的字族是 --font-family-10（不能用桌面上已改族的 --font-family-small）。 */
+    --font-lg-10: calc(2 * var(--font-unit-10));
 
     /* 成套文字令牌：字号 + 字族 */
     --text-xxs: var(--font-xxs) var(--font-family-small);
