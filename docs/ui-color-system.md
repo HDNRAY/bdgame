@@ -826,7 +826,7 @@ CI 接法：
 
 **代价与后果（必须知道）**：
 
-- 暗色的 `--color-text-dim` 现在**与 `--color-text` 同值** → 暗色的文字阶梯实际只剩**两档**（`text` / `text-h`），弱文字与正文不再有明度差。这是「整体变亮」的直接结果，由用户口径决定，不是实现偏差。
+- 暗色的 `--color-text-dim` 当时**与 `--color-text` 同值** → 暗色的文字阶梯实际只剩**两档**（`text` / `text-h`），弱文字与正文不再有明度差。这是「整体变亮」的直接结果，由用户口径决定，不是实现偏差。**本轮已由下一节「追加改动：正文 token 再亮一档」修正**：正文抬到 `#cecfe3`，层级恢复。
 - `--color-text-dim` 也是 `Tag.tsx` 未登记标签的回退色与 `CharacterPanel` 的默认 `accentColor`；两处都跟着变亮（前者在本轮实测中未真正生效：54 条标签全部已登记）。
 - **亮色值本轮不动**：亮色的 `--color-text-dim` 是深灰 `#595966` 压白底（页面底 6.90、底栏 `--color-bg-panel` 5.49）。亮色下「变亮」= **对比度下降**（`#595966` 已是最深一档之外最弱的一档，再亮就逼近 4.5 门槛），所以是否也要动亮色留给用户定。
 
@@ -844,6 +844,34 @@ CI 接法：
 **本轮实测**（`ui-computed-style.mjs --diff`）：差异**只落在使用 `--color-text-dim` 的元素上**，亮色 0 处差异；既没有出现与 text-dim 无关的元素，也没有元素新增 / 消失。
 
 **历史记录**：`--color-desc` 只在本文件与 `themes.css` / `RoundCard.scss` 出现过，本轮已全部删除（commit `756f179` 引入，本轮回退）。
+
+### 追加改动：正文 token 再亮一档（`--color-text`，暗色）
+
+**谁定的、为什么**：用户看到上一轮的结果后说 **「那你把 `--color-text` 也调亮点」**。上一轮按「`--color-text-dim` 整体变亮」把暗色弱文字上移到了正文档 `#afafc1`，于是**正文与弱文字同值、层级消失**（见上一节「代价与后果」）。本轮诉求就是把正文抬起来，让「弱文字 < 正文」重新可分。
+
+**取值依据（没有现成档位，新定一档）**：暗色的文字阶梯是 OKLCH 明度三档 `text-dim 0.635 → text 0.760 → text-h 0.940`（见 3.2 的暗色表）。弱文字占了 0.760 之后，`themes.css` 里 **0.760 ~ 0.940 之间没有任何既有文字档**（同区间既有值只有亮色主题的面色 `#d9d9dd` 0.886 / `#e5e5e9` 0.923 与强调色，色相与彩度都不属于暗色文字族），所以**新定一档**：沿同一文字族（H≈284、C 随明度单调递增 0.026 → 0.030）取 **L 0.860 / C 0.028 / H 283.5 → `#cecfe3`**，即「从新弱文字起，按原 dim→text 的 **0.100 ΔL** 档差上移」（亮色主题注释里写的口径：弱 / 正文 / 强 相邻 ΔL 均 ≥ 0.10）。
+
+| token | 亮（不动） | 暗 改前 → 改后 | 暗 OKLCH（改后） | 依据 |
+| --- | --- | --- | --- | --- |
+| `--color-text` | `#393947` | `#afafc1` → `#cecfe3` | L 0.860 / C 0.028 / H 283.5 | 沿文字族上移一档，与弱文字拉开 0.100 ΔL |
+
+**层级恢复的量化**（页面底 `--color-bg` `#000000`；亮度 = OKLCH L，对比度 = WCAG）：
+
+| 配对 | 改前 | 改后 |
+| --- | --- | --- |
+| `--color-text` on `--color-bg` | 9.72 | **13.66** |
+| `--color-text` vs `--color-text-dim` | **1.00**（同值，无层级） | **1.40**（ΔL 0.100：0.860 vs 0.760） |
+| `--color-text` on 最亮的真实暗底 `--color-bg-hover` `#18181b` | 8.20 | 11.52 |
+| `--color-text-dim` on `--color-bg` | 9.72（不动） | 9.72（不动，仍 ≥7:1；`--color-bg-hover` 8.20） |
+
+**后果**：
+
+- 暗色文字阶梯恢复**三档**：`text-dim` 0.760 → `text` 0.860 → `text-h` 0.940。
+- 剩下的 `text → text-h` 档差只有 **0.080**（对比 **1.28**）。这是必然取舍：0.760 ~ 0.940 只有 0.180 的空档，两段都要 ≥0.10 不可能，本轮优先保证用户诉求的「弱文字 ↔ 正文」满足 0.10；标题另有字号与字重区分。
+- 正文变亮只会**提高**它在暗色各底上的对比度（暗色主题没有浅色填充底：实心强调底上的文字走 `--color-on-accent`）。
+- **亮色 `--color-text` 不动**（仍是 `#393947`）；**`--color-text-dim` 不动**（上一轮刚定）。
+
+**验证（本轮只做便宜的两项）**：`node scripts/scss-triples.mjs` 无结构变化；五项闸门 `tsc -p tsconfig.app.json` / `eslint src/ --quiet` / `vitest run` / `grep ' as any' src/engine/` / `vite build` 全绿 —— 均在**临时 git worktree**（`HEAD` 干净检出 + 只贴本次 `themes.css` 改动）里跑，避免把并发 agent 的字号改动混进来；截图（暗色图鉴页 / 设置页，改前 / 改后）留存 `tmp/preview/`。
 
 ### 验证口径汇总
 
@@ -1219,9 +1247,9 @@ CI 接法：
 | `--color-bg-panel` | 面 2：面板 / 输入 / tooltip 底 | `#e5e5e9` | `#09090b` | 21 | ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss, ui/components/CharacterPanel/RewardPicker.scss, ui/components/ControlsBar/ControlsBar.scss |
 | `--color-bg-hover` | 面 3：悬停底 | `#d9d9dd` | `#18181b` | 14 | ui/components/BattlePanel/BattlePanel.scss, ui/components/CharacterPanel/CharacterPanel.scss, ui/components/CharacterPanel/RewardPicker.scss, ui/components/LogPanel/LogPanel.scss |
 | `--color-bg-raised` | 抬升块（只读表格表头、行悬停） | `#f2f2f5` | `#010102` | 1 | ui/components/layouts/CompareScreen/CompareScreen.scss |
-| `--color-text` | 正文 | `#393947` | `#afafc1` | 32 | App.tsx, index.css, ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss |
+| `--color-text` | 正文 | `#393947` | `#cecfe3`（暗色本轮由 `#afafc1` 上移一档，见「追加改动：正文 token 再亮一档」） | 32 | App.tsx, index.css, ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss |
 | `--color-text-h` | 标题 | `#1b1b2b` | `#e8e9ff` | 18 | index.css, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss |
-| `--color-text-dim` | 弱文字 | `#595966` | `#afafc1`（暗色与 `--color-text` 同值：用户口径「整体变亮」，见「追加改动：弱文字 token 整体调亮」） | 32 | ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss |
+| `--color-text-dim` | 弱文字 | `#595966` | `#afafc1`（用户口径「整体变亮」，见「追加改动：弱文字 token 整体调亮」；上一轮曾与 `--color-text` 同值，本轮正文上移后层级恢复） | 32 | ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss |
 | `--color-border` | 弱描边：分隔线（豁免 3:1） | `#bdbdc4` | `#2d2d33` | 31 | ui/components/AnimationPanel/AnimationPanel.scss, ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss |
 | `--color-border-hover` | 强描边：悬停 / 聚焦（≥3:1） | `#7a7a84` | `#626375` | 8 | ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/SelectionPanel/SelectionPanel.scss, ui/components/roguelite/RunSummaryPanel.scss, ui/components/ui/Button/Button.scss |
 | `--color-pressed` | 按下：填充 + 描边（配 on-accent） | `#4c4c55` | `#78787f` | 5 | ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/SelectionPanel/SelectionPanel.scss, ui/components/ui/Button/Button.scss, ui/screens/DevMode/DevMode.scss |
@@ -1252,7 +1280,7 @@ CI 接法：
 
 **分层**（对应 3.1）：
 
-- **中性阶梯**：`bg → bg-alt → bg-panel → bg-hover`（面 0~3，严格单调、相邻 ΔL ∈ [0.035, 0.075]）；描边 `border`（弱，豁免 3:1）/ `border-hover`（强，≥3:1）/ `pressed`（按下填充）；文字 `text-dim → text → text-h`（**暗色下 `text-dim` = `text`**：用户口径「`--color-text-dim` 整体变亮」，暗色文字阶梯实际两档，见「追加改动：弱文字 token 整体调亮」）；反色 `on-accent`。
+- **中性阶梯**：`bg → bg-alt → bg-panel → bg-hover`（面 0~3，严格单调、相邻 ΔL ∈ [0.035, 0.075]）；描边 `border`（弱，豁免 3:1）/ `border-hover`（强，≥3:1）/ `pressed`（按下填充）；文字 `text-dim → text → text-h`（暗色三档 0.760 / **0.860** / 0.940 —— 用户先后两轮「`--color-text-dim` 整体变亮」+「`--color-text` 也调亮点」，见两节「追加改动」；亮色仍是 0.469 / 0.350 / 0.230）；反色 `on-accent`。
 - **语义强调色（8）**：`accent` / `success` / `danger` / `warning` / `gold` / `ap` / `qi` / `p2`，色相共用、两套主题各自定值；其余 token 都是它们的别名或 `color-mix` 派生。
 - **别名与派生**：`p1 = accent`、`scrollbar-thumb = border-hover`、`tooltip-bg = color-mix(bg-panel 97%, transparent)`、`*-bg` / `*-border` 由语义色 `color-mix` 派生。**别名不算新角色**，别在调用点重复造。
 - **画布层**：canvas / PixiJS 读不到 CSS 变量，那边用 `src/ui/canvas/battle-colors.ts` 的 `UI_COLOR_MIRROR`（有漂移测试盯着），需要真实色值时调 `resolveUiColor()`。

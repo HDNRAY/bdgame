@@ -169,13 +169,15 @@
     /* 抬升块底色：只读表格表头、行悬停（CompareScreen）。曾被引用却从未定义。 */
     --color-bg-raised: var(--color-bg-alt);
 
-    /* Text
-       暗色 --color-text-dim 与 --color-text 同值：用户口径「--color-text-dim 整体变亮」，
-       目标是全站弱文字在所有真实暗色底上 ≥7:1（最亮的真实底 --color-bg-hover
-       5.14 → 8.20、页面底 6.09 → 9.72），并沿用上一轮已验收的 .rc-desc 亮度。
-       代价：暗色的弱文字并入正文档（文字阶梯实际只剩 两档），见 docs/ui-color-system.md
-       「追加改动：弱文字 token 整体调亮」。 */
-    --color-text: #afafc1;
+    /* Text（暗色三档：弱 0.760 → 正文 0.860 → 强 0.940，相邻 ΔL 0.100 / 0.080）
+       上一轮按用户口径「--color-text-dim 整体变亮」把弱文字上移一档
+       （#898997 → #afafc1，全站弱文字在所有真实暗色底上 ≥7:1：最亮的真实底
+       --color-bg-hover 5.14 → 8.20、页面底 6.09 → 9.72），代价是弱文字与正文同值。
+       本轮用户再提「--color-text 也调亮点」：正文沿同一文字族（H≈284、C 递增）
+       上移一档 #afafc1 → #cecfe3（OKLCH L 0.860，即原 dim→text 的 0.100 档差），
+       弱 < 正文 < 强 的层级恢复。见 docs/ui-color-system.md
+       「追加改动：正文 token 再亮一档」。 */
+    --color-text: #cecfe3;
     --color-text-h: #e8e9ff;
     --color-text-dim: #afafc1;
     /* Borders */
