@@ -21,6 +21,7 @@ import {
 } from '../pixel-sprites'
 import { FloatTextSystem } from './float-text'
 import { UI_COLOR_MIRROR } from './battle-colors'
+import { enforceMinGap, facesRight, leftSideId } from './layout'
 import {
     PIXEL,
     GROUND_Y,
@@ -207,19 +208,34 @@ export class CanvasRenderer {
             viewOffset = midP
         }
 
+        // ── 画面上两人的位置：先按逻辑位置映射，再给贴身档套最小间距 ──
+        // 只改这一处的映射（引擎的 pos 一个字节都没动）；位置差 ≥ 最小间距的档位逐档与改前一致。
+        const leftId = leftSideId(chars)
+        const displayPos = new Map<string, number>()
+        if (chars.length >= 2) {
+            const [a, b] = enforceMinGap(chars[0].pos, chars[1].pos)
+            displayPos.set(chars[0].id, a)
+            displayPos.set(chars[1].id, b)
+        } else if (chars.length === 1) {
+            displayPos.set(chars[0].id, chars[0].pos)
+        }
+        // 浮动文字（伤害数字等）跟着角色实际画在哪，贴身时不会堆在同一个点上
+        const floatAnchors = new Map<string, number>()
+
         this.renderGround(chars, pxPerUnit, viewOffset, groundY)
         this.updateGhosts()
 
         for (const c of chars) {
-            const otherPos = chars.find((o) => o.id !== c.id)?.pos ?? 0
-            // 新精灵默认朝左，与旧精灵（默认朝右）相反 → facing 判断取反
-            const facingRight = c.pos > otherPos
+            // 朝向按左右侧定：左者朝右、右者朝左（不再按 x 大小比较 —— 位置相等时那样会两人同朝向）
+            const facingRight = facesRight(c.id, leftId)
             const dim = charDims.get(c.id)!
-            const target = this.canvasWidth / 2 + (c.pos - viewOffset) * pxPerUnit - dim.w / 2
+            const shownPos = displayPos.get(c.id) ?? c.pos
+            const target = this.canvasWidth / 2 + (shownPos - viewOffset) * pxPerUnit - dim.w / 2
             const cur = this.displayPos.get(c.id) ?? target
             const diff = target - cur
             const newPos = cur + Math.sign(diff) * Math.min(Math.abs(diff), MAX_MOVE_SPEED)
             this.displayPos.set(c.id, newPos)
+            floatAnchors.set(c.id, newPos + dim.w / 2)
 
             if (Math.abs(diff) >= MAX_MOVE_SPEED * GHOST_SPAWN_RATIO) {
                 this.spawnGhost(newPos, groundY - dim.h + SPRITE_PAD_BOTTOM * PIXEL - GROUND_MARGIN, facingRight, c)
@@ -238,7 +254,7 @@ export class CanvasRenderer {
                 evt.type === 'check_hit' && !evt.result && nextEvt?.type === 'dodge' && evt.target === nextEvt.evader
             if (willDodge) continue
             const actionName = entry.event.type === 'attack_start' ? entry.event.actionName : undefined
-            this.floatTexts.spawn(entry.event, actionName, chars, pxPerUnit, viewOffset, groundY, charDims)
+            this.floatTexts.spawn(entry.event, actionName, chars, pxPerUnit, viewOffset, groundY, charDims, floatAnchors)
         }
         this.floatTexts.update()
 

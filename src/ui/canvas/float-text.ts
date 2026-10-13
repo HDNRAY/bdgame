@@ -50,6 +50,8 @@ export class FloatTextSystem {
         viewOffset: number,
         groundY: number,
         charDims: Map<string, { w: number; h: number }>,
+        /** 角色画面上实际锚点（精灵中心 x）—— 贴身套了最小间距后，伤害数字跟着人走，不堆在同一个点 */
+        floatAnchors?: Map<string, number>,
     ): void {
         if (!this.hasPlayed) return
 
@@ -66,7 +68,8 @@ export class FloatTextSystem {
             ox = this.container.width / 2
             oy = 40
         } else {
-            const charCenterX = this.container.width / 2 + (char.pos - viewOffset) * pxPerUnit
+            const charCenterX =
+                floatAnchors?.get(char.id) ?? this.container.width / 2 + (char.pos - viewOffset) * pxPerUnit
             const mid = this.container.width / 2
             ox = charCenterX + (charCenterX < mid ? TEXT_EFFECT_OFFSET : -TEXT_EFFECT_OFFSET)
             // 从角色中上部起飘（画布底部留白 SPRITE_PAD_BOTTOM，角色脚底贴地，文字起点随之调整）
