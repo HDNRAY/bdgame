@@ -21,7 +21,7 @@ import {
 } from '../pixel-sprites'
 import { FloatTextSystem } from './float-text'
 import { UI_COLOR_MIRROR } from './battle-colors'
-import { enforceMinGap, facesRight, leftSideId } from './layout'
+import { contentCenterShiftX, enforceMinGap, facesRight, leftSideId } from './layout'
 import {
     PIXEL,
     GROUND_Y,
@@ -230,15 +230,25 @@ export class CanvasRenderer {
             const facingRight = facesRight(c.id, leftId)
             const dim = charDims.get(c.id)!
             const shownPos = displayPos.get(c.id) ?? c.pos
+            // 精灵按内容居中：美术在画布内偏右 13.5 列（朝左镜像后偏左），不补偿的话两人的
+            // 身体间距是 |centerGap − 81px|（centerGap = 81px 时精确重合，距离 4 也会叠上）。
+            // 这里算的是平滑动画用的画布锚点，偏心补偿在 renderChar 里随朝向加。
+            const shiftX = contentCenterShiftX(facingRight, PIXEL)
             const target = this.canvasWidth / 2 + (shownPos - viewOffset) * pxPerUnit - dim.w / 2
             const cur = this.displayPos.get(c.id) ?? target
             const diff = target - cur
             const newPos = cur + Math.sign(diff) * Math.min(Math.abs(diff), MAX_MOVE_SPEED)
             this.displayPos.set(c.id, newPos)
-            floatAnchors.set(c.id, newPos + dim.w / 2)
+            // 浮动文字跟着**身体**（不是画布）中心走
+            floatAnchors.set(c.id, newPos + dim.w / 2 + shiftX)
 
             if (Math.abs(diff) >= MAX_MOVE_SPEED * GHOST_SPAWN_RATIO) {
-                this.spawnGhost(newPos, groundY - dim.h + SPRITE_PAD_BOTTOM * PIXEL - GROUND_MARGIN, facingRight, c)
+                this.spawnGhost(
+                    newPos + shiftX,
+                    groundY - dim.h + SPRITE_PAD_BOTTOM * PIXEL - GROUND_MARGIN,
+                    facingRight,
+                    c,
+                )
             }
             this.renderChar(c, pxPerUnit, viewOffset, facingRight, groundY, newPos)
         }
@@ -337,7 +347,11 @@ export class CanvasRenderer {
 
         const spriteW = frameData[0].length * PIXEL
         const spriteH = frameData.length * PIXEL
-        const ox = displayOx ?? this.canvasWidth / 2 + (c.pos - viewOffset) * pxPerUnit - spriteW / 2
+        // 精灵按内容居中：美术偏右 13.5 列（朝左镜像后偏左），补偿后身体中心 == 画布中心。
+        // 补偿写在 ox 上，于是身体/武器/手部遮罩/蜡烛（都用 ox）整体一致地跟着挪。
+        const ox =
+            (displayOx ?? this.canvasWidth / 2 + (c.pos - viewOffset) * pxPerUnit - spriteW / 2) +
+            contentCenterShiftX(facingRight, PIXEL)
         // 画布底含 SPRITE_PAD_BOTTOM 行空白 → 内容脚底对齐地面（而非画布底），再留 GROUND_MARGIN 间距
         const oy = groundY - spriteH + SPRITE_PAD_BOTTOM * PIXEL - GROUND_MARGIN
 
