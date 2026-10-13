@@ -186,6 +186,8 @@ export type BattleEvent =
           actor: string
           target: string
           weapon: string
+          /** 招式 id（回放层据此选演出姿势：攻击招 attack / 非攻击招 buff；老日志可能没有） */
+          actionId?: string
           actionName?: string
           apCost: number
           apRemaining: number

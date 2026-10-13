@@ -17,38 +17,46 @@ import type { BattleEvent, CharacterSnapshot, BattleSnapshot } from '../engine/c
 import { getAction } from '../data/actions'
 
 /**
- * 是否为「加状态」招式（回放用 buff 姿势播放）。
+ * 招式的「演出姿势分类」—— 只服务于回放/渲染选姿势，不参与任何战斗逻辑、AI 决策或数值。
  *
- * 判定规则（只靠招式定义，不新增标签）：
- * 1. 是辅助招（pre_action / post_action）—— 会被引擎记成 support 事件；
- * 2. 效果里有 add_buff —— 确实在给自己挂状态；
- * 3. 没有位移标签（move）—— 纯位移招（魅影步/云步）按移动演出；
- * 4. 没有任何伤害效果 —— 带伤害的吸血/叠劲攻击（如流萤剑法）仍是攻击动作。
+ * 口径：攻击类 → attack；移动类 → move（由 move 事件演出，保持现状）；
+ * 其余全部（用奇物 / 喝酒 / 上 buff / 进架势 / 回血 / 补给 / 换武 …）→ buff。
  *
- * 反例校验：yunv_sword（有 add_buff 但有 damage）→ false；yun_bu（add_buff + move）→ false。
+ * 「攻击」的判据按引擎真实字段（EffectDef 类型），不按事件管道：
+ * 1. 带 `add_debuff` / `damage` / `functional_damage` / `missing_hp_damage` 的招式会在命中判定后
+ *    对敌方结算进攻效果 —— 归 attack。带 debuff 的攻击（如迅雷剑法）只要有伤害也归 attack。
+ * 2. 辅助指令（`pre_action` / `post_action` 标签）走 `#executeSupport`，永远不发 attack_start；
+ *    即使带 functional_damage（如血炁护体，fn 只做自伤）也一律 buff。
+ * 3. 纯自身/后勤类效果（add_buff、heal、cleanse、restore_ap、stat_transfer、steal_artifact、
+ *    switch_weapon / retrieve_weapon、ciyuan_init、stat_multiply）即便因触发招式走攻击管道
+ *    （`_sangui_heal` 回血、`_qiti_awaken` 醒炁、`summon_haste` 御物），也判为 buff。
+ * 4. 位移：带 `move` 标签的招式（冲刺/瞬步/虎跃/凤迴…）由引擎发 move 事件，姿势交给 move 分支。
+ *
+ * 纯函数（只读 ActionDefinition），可以被数据驱动测试逐条遍历全表断言。
  */
-const buffMoveCache = new Map<string, boolean>()
+export type ActionPoseKind = 'attack' | 'buff' | 'move'
 
-export function isBuffMove(actionId: string): boolean {
-    const cached = buffMoveCache.get(actionId)
-    if (cached !== undefined) return cached
-    let result = false
+/** 命中判定后对敌方结算的进攻性效果（有其一即视为攻击），见上方注释 */
+const ATTACK_EFFECTS: ReadonlySet<string> = new Set([
+    'damage',
+    'functional_damage',
+    'missing_hp_damage',
+    'add_debuff',
+])
+
+export function actionPoseKind(actionId: string): ActionPoseKind {
     const def = getAction(actionId)
-    if (def) {
-        const tags = def.tags ?? []
-        const effects = def.effects ?? []
-        const isSupportMove = tags.includes('pre_action') || tags.includes('post_action')
-        const hasDamage = effects.some(
-            (e) => e.type === 'damage' || e.type === 'functional_damage' || e.type === 'missing_hp_damage',
-        )
-        result =
-            isSupportMove &&
-            !tags.includes('move') &&
-            !hasDamage &&
-            effects.some((e) => e.type === 'add_buff')
-    }
-    buffMoveCache.set(actionId, result)
-    return result
+    // 未知招式（运行时生成的 bonus 伤害招 / 老日志）：保守按攻击演出
+    if (!def) return 'attack'
+    const tags = def.tags ?? []
+    if (tags.includes('move')) return 'move'
+    if (tags.includes('pre_action') || tags.includes('post_action')) return 'buff'
+    return (def.effects ?? []).some((e) => ATTACK_EFFECTS.has(e.type)) ? 'attack' : 'buff'
+}
+
+/** 攻击管道（attack_start）里，该招式该演 attack 还是 buff */
+function actionStartPose(actionId: string | undefined): CharPose {
+    return actionId && actionPoseKind(actionId) === 'buff' ? 'buff' : 'attack'
 }
 
 // ── 帧状态 ──
@@ -66,6 +74,15 @@ export interface Frame {
     freezeProgress?: number
 }
 
+/**
+ * 角色演出姿势 —— 六姿势（idle/attack/hit/dodge/parry/buff）+ 移动专用的 move。
+ *
+ * 反应姿势优先级（被打的一方每次结算只演一个）：`dodge` > `parry` > `hit` > `idle`。
+ * 被招架的一击（damage 事件 isParried）仍演 parry，不切 hit。
+ * 出手方在攻击被闪/被招架时**不换姿势**（仍是 attack）——“这一下打空了”用出手方姿势表达不出来。
+ */
+export type CharPose = 'idle' | 'attack' | 'hit' | 'dodge' | 'parry' | 'move' | 'buff'
+
 export interface FrameChar {
     id: string
     name: string
@@ -78,7 +95,7 @@ export interface FrameChar {
     /** 副手武器（双持时才有；来自 build.offhand，战斗中固定） */
     offhand?: string
     spriteId: string
-    pose: 'idle' | 'attack' | 'hit' | 'move' | 'buff'
+    pose: CharPose
     waitProgress: number // 0~1，等待下次行动进度
     isActing: boolean // 当前正在主动行动
 }
@@ -507,10 +524,12 @@ export class ReplayEngine {
             const evt = cur?.event
             if (evt?.type === 'attack_start') {
                 const actorId = evt.actor
-                fc.pose = actorId === c.id ? 'attack' : 'idle'
+                // 出手方：攻击招演 attack，非攻击招（触发回血/上 buff/御物等）演 buff
+                fc.pose = actorId === c.id ? actionStartPose(evt.actionId) : 'idle'
                 fc.isActing = actorId === c.id
             } else if (evt?.type === 'damage' && 'target' in evt && evt.target === c.id && local < 0.3) {
-                fc.pose = 'hit'
+                // 被招架的一击仍有残余伤害事件，但被打方此刻仍是招架姿势（parry > hit）
+                fc.pose = evt.isParried ? 'parry' : 'hit'
             } else if (evt?.type === 'move' && evt.actor === c.id) {
                 fc.pose = 'move'
             }
@@ -642,7 +661,7 @@ export class ReplayEngine {
         const isActing = !!(nearEvent && !isTriggered && !!actorId && actorId === c.id)
 
         // 姿势：移动窗口内为 move，其余用事件姿势
-        let pose: FrameChar['pose']
+        let pose: CharPose
         if (cur?.event.type === 'move' && cur.event.actor === c.id && !cur.event.blink) {
             const mv = cur.event
             const dur = mv.durationMs ?? Math.max(1, (next?.timelineMs ?? cur.timelineMs + 1000) - cur.timelineMs)
@@ -699,13 +718,15 @@ export class ReplayEngine {
         return this.lerp(c.pos, nextPos, eased)
     }
 
-    /** 判断角色的姿势 —— 命中/闪避/招架瞬间闪现，前后摇保持 idle（攻击姿势由冻结演出播放） */
-    private resolvePose(
-        charId: string,
-        cur?: BattleEvent,
-        _next?: BattleEvent,
-        ratio: number = 1,
-    ): 'idle' | 'attack' | 'hit' | 'move' | 'buff' {
+    /**
+     * 判断角色的姿势 —— 命中/闪避/招架瞬间闪现，前后摇保持 idle（攻击/加状态姿势由冻结演出播放）。
+     *
+     * 被打方的反应优先级：`dodge`（未命中=闪避）> `parry`（招架）> `hit`（吃伤害）> `idle`。
+     * 每次结算只有一个反应姿势：被招架的一击虽仍会发一条 `damage`（isParried），但被打方保持
+     * `parry` 不切 `hit`（否则同一挥会先 parry 再 hit 闪两下）。
+     * 出手方在自己的攻击被闪/被招架时**不换姿势**（仍演 attack），见 CharPose 注释。
+     */
+    private resolvePose(charId: string, cur?: BattleEvent, _next?: BattleEvent, ratio: number = 1): CharPose {
         if (!cur) return 'idle'
 
         const isActor = 'actor' in cur && cur.actor === charId
@@ -713,25 +734,27 @@ export class ReplayEngine {
 
         switch (cur.type) {
             case 'attack_start':
-                // 前摇窗口：蓄力/待机，攻击姿势由命中冻结演出播放
+                // 前摇窗口：蓄力/待机，攻击/加状态姿势由冻结演出播放
                 return 'idle'
 
             case 'damage':
-                if (isTarget && ratio < 0.25) return 'hit'
+                // 被招架的伤害事件仍演 parry（招架 > 吃伤害，见 resolvePose 注释）
+                if (isTarget && ratio < 0.25) return cur.isParried ? 'parry' : 'hit'
                 return 'idle'
 
             case 'support':
-                // 辅助招：加状态类用 buff 姿势（双手运气），其余辅助招保持待机
-                if (isActor && isBuffMove(cur.actionId)) return 'buff'
-                return 'idle'
+                // 辅助指令（喝酒/用奇物/上 buff/进架势/回血/减益…）：一律 buff 姿势
+                return isActor ? 'buff' : 'idle'
 
             case 'dodge':
-                if ('evader' in cur && cur.evader === charId && ratio < 0.25) return 'hit'
+                // 闪避成功：被打方演 dodge（优先级最高）
+                if ('evader' in cur && cur.evader === charId) return ratio < 0.25 ? 'dodge' : 'idle'
                 if (isActor && ratio < 0.15) return 'attack'
                 return 'idle'
 
             case 'parry':
-                if ('parrier' in cur && cur.parrier === charId && ratio < 0.25) return 'hit'
+                // 招架成功：被打方演 parry（次优先；dodge 事件不会与 parry 同时出现）
+                if ('parrier' in cur && cur.parrier === charId) return ratio < 0.25 ? 'parry' : 'idle'
                 if (isActor && ratio < 0.15) return 'attack'
                 return 'idle'
 
