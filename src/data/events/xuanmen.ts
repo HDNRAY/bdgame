@@ -171,7 +171,7 @@ export const XUANMEN_N21_ENTER: EventDef = {
 export const XUANMEN_N09_SECRET: EventDef = {
     id: 'xuanmen_n09_secret',
     name: '家传密辛',
-    description: '那晚，父亲把你叫到书房，说出了埋藏多年的家族密辛。',
+    description: '那晚，父亲把你叫进书房。',
     placement: [{ nodes: [9], when: storyWhen('xuanmen') }],
     reward: { kind: 'points' },
     rounds: [

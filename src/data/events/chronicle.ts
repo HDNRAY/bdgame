@@ -15,7 +15,7 @@ const STAGE2_PLACEMENT = [{ nodes: STAGE2_POOL, fallback: true, weight: 1 }]
 export const CHRONICLE_TAVERN_ENCOUNTER: EventDef = {
     id: 'chronicle_tavern_encounter',
     name: '路见不平',
-    description: '你在九朵桃花酒吧独酌，抬眼看见门口走进来一个人。',
+    description: '九朵桃花，来风招呼你同坐。',
     placement: [
         {
             ...STAGE2_PLACEMENT[0],
@@ -102,7 +102,7 @@ export const CHRONICLE_GUIHAILOU: EventDef = {
 export const CHRONICLE_SIX_DUEL: EventDef = {
     id: 'chronicle_six_duel',
     name: '青山之巅论剑',
-    description: '青山绝顶，六位绝世高手约定比武。你有幸旁观了这一盛事。',
+    description: '青山绝顶，六位高手要比武。',
     placement: [
         {
             ...STAGE2_PLACEMENT[0],
@@ -178,7 +178,7 @@ export const CHRONICLE_BAR_KILLING: EventDef = {
 export const CHRONICLE_SWORD_BROTHERS: EventDef = {
     id: 'chronicle_sworn_brothers',
     name: '九朵桃花结义',
-    description: '你在九朵桃花酒吧遇到一群豪爽之人，喝到兴起，结为兄弟。',
+    description: '九朵桃花，一群江湖人拉你入席。',
     placement: [
         {
             ...STAGE2_PLACEMENT[0],

@@ -67,7 +67,7 @@ export const WANDERER_N03_INTRO: EventDef = {
 export const WANDERER_SWORD: EventDef = {
     id: 'wanderer_sworn',
     name: '九朵桃花结义',
-    description: '九朵桃花酒吧。你独酌，酒过三巡，门帘一掀，进来一个人。',
+    description: '九朵桃花，来风拉你入席。',
     placement: [
         {
             nodes: [12],
@@ -290,7 +290,7 @@ export const WANDERER_LAIFENG: EventDef = {
 export const WANDERER_RENDER_LANE: EventDef = {
     id: 'wanderer_render_lane',
     name: '巷子',
-    description: '你路过镇口那台自动售货机，脚步慢了下来。',
+    description: '镇口的自动售货机，玻璃上有裂纹。',
     placement: [
         { nodes: [4], when: storyRenderWhen('wanderer', 'wanderer_render_lane_done') },
     ],
