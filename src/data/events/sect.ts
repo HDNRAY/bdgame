@@ -170,7 +170,7 @@ export const SECT_N07_QI_DEVIATION: EventDef = {
 export const SECT_N09_PROMISE: EventDef = {
     id: 'sect_n09_promise',
     name: '约定',
-    description: '他看着星空说：「等修炼有成，我们一起下山闯荡。」',
+    description: '夜里，师兄说起下山闯荡。',
     placement: [{ nodes: [9], when: storyWhen('sect') }],
     reward: { kind: 'points' },
     rounds: [

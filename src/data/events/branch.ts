@@ -181,7 +181,7 @@ export const TIANGONG_WEAPON: EventDef = {
 export const TIANGONG_OFFHAND: EventDef = {
     id: 'tiangong_offhand',
     name: '天工坊·副手',
-    description: '千星看见你腰间的兵器，扬了扬下巴：「单手的？正好，给你打件副手家伙。」',
+    description: '千星要给你打一件副手兵器。',
     placement: [
         {
             nodes: STAGE3_PRE,
@@ -321,7 +321,7 @@ export const XIAOHUA_INSIGHT: EventDef = {
 export const WATERFALL_EPIPHANY: EventDef = {
     id: 'waterfall_epiphany',
     name: '漱玉峰瀑布',
-    description: '青山偏南有一座小峰，峰腰悬着一道瀑布。传说曾有人在瀑布下悟出绝技。',
+    description: '去漱玉峰，在瀑布下静坐。',
     placement: POOL_PLACEMENT,
     reward: { kind: 'item', pool: 'action', apMin: 4, noPrePost: true },
     rounds: [

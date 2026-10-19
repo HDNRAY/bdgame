@@ -398,7 +398,7 @@ export const XUANMEN_RENDER_ZUXUN: EventDef = {
 export const XUANMEN_SPAR_XUANQI: EventDef = {
     id: 'xuanmen_spar_xuanqi',
     name: '切磋·玄七',
-    description: '堂兄玄七拦下你：「族里都在传你的事。让我看看，是不是真的。」',
+    description: '玄七拦路，要试你的身手。',
     placement: [
         {
             range: SPAR_RANGE,
