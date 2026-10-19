@@ -82,7 +82,7 @@ export const VETERAN_START_TRAINING: EventDef = {
 export const VETERAN_N05_FORMAL: EventDef = {
     id: 'veteran_n05_formal',
     name: '正规训练',
-    description: '年月如梭。十四岁，去军营做勤杂。',
+    description: '年月如梭。十四岁，去军营当勤杂。',
     placement: [{ nodes: [5], when: storyWhen('veteran') }],
     reward: { kind: 'points' },
     rounds: [

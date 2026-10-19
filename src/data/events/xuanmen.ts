@@ -76,7 +76,7 @@ export const XUANMEN_N03_START: EventDef = {
 export const XUANMEN_N06_SHUSHU: EventDef = {
     id: 'xuanmen_n06_shushu',
     name: '结识小树',
-    description: '去祖宅角落，找小树说话。',
+    description: '去祖宅，找小树说话。',
     placement: [{ nodes: [6], when: storyWhen('xuanmen') }],
     reward: { kind: 'points' },
     rounds: [
@@ -114,7 +114,7 @@ export const XUANMEN_N12_NAMING: EventDef = {
 export const XUANMEN_N13_CLAN: EventDef = {
     id: 'xuanmen_n13_clan',
     name: '家族内斗',
-    description: '去族里，看各房争那把椅子。',
+    description: '去祖宅，看各房争那把椅子。',
     placement: [{ nodes: [13], when: storyWhen('xuanmen') }],
     reward: { kind: 'points' },
     rounds: [
@@ -368,7 +368,7 @@ export const XUANMEN_RENDER_YUWU: EventDef = {
 export const XUANMEN_RENDER_ZUXUN: EventDef = {
     id: 'xuanmen_render_zuxun',
     name: '祖训',
-    description: '去祠堂，看那条被磨掉的祖训。',
+    description: '去祠堂，看那条磨得看不清的祖训。',
     placement: [
         { nodes: [7], when: storyRenderWhen('xuanmen', 'xuanmen_render_zuxun_done') },
     ],

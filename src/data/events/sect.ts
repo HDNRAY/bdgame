@@ -275,7 +275,7 @@ export const SECT_RENDER_SHIXIONG: EventDef = {
 export const SECT_RENDER_LAYUE: EventDef = {
     id: 'sect_render_layue',
     name: '腊月师姐',
-    description: '去山门，腊月师姐凶得很。',
+    description: '去殿外，腊月师姐凶得很。',
     placement: [
         { nodes: [5], when: storyRenderWhen('sect', 'sect_render_layue_done') },
     ],
