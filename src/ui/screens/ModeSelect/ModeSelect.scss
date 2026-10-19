@@ -30,6 +30,16 @@
         z-index: 10;
     }
 
+    /* 标题 + 题记：题记贴在标题下面（8px），整个头部到主按钮的距离
+       沿用改动前「标题下边距 + 页面 gap」的和，题记插进来后按钮位置不动。 */
+    &-head {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--sp-xs);
+        margin-bottom: clamp(var(--sp-md), 3dvh, var(--sp-lg));
+    }
+
     &-title {
         /* 像素字体（12px 版）：36px = 3×12，正落在原生网格上。
            像素字体不做无级缩放（会发糊），只在断点上整档换字号。 */
@@ -46,7 +56,7 @@
             -1px 1px 0 rgba(0, 0, 0, 0.7),
             1px 1px 0 rgba(0, 0, 0, 0.7),
             3px 3px 0 #1f6361; /* 深青（accent #4ecdc4 压暗） */
-        margin-bottom: clamp(var(--sp-md), 3dvh, var(--sp-lg));
+        /* 下边距归零：位置让给 &-head（题记要贴在标题下面） */
         text-align: center;
         padding: 0 var(--sp-sm);
         max-width: 100%;
@@ -54,6 +64,25 @@
            万一某个词长到一行放不下，再由 overflow-wrap 兜底断行 */
         word-break: keep-all;
         overflow-wrap: anywhere;
+    }
+
+    /* 首页题记：一句话交代「获得要付代价」。
+       12px 走像素字体网格；--color-text-dim 亮 6.90 / 暗 ≥9.7，过正文 4.5 门槛。 */
+    &-epigraph {
+        font-family: var(--font-family-base);
+        font-size: var(--font-md);
+        line-height: 1.9;
+        color: var(--color-text-dim);
+        text-align: center;
+        margin: 0;
+        padding: 0 var(--sp-sm);
+        max-width: 100%;
+
+        /* 两段各自不换行：宽屏并成一行，窄屏只在破折号处断成两行，
+           不会把「赌博」「其代价」拆开。 */
+        span {
+            white-space: nowrap;
+        }
     }
 
     &-buttons {
@@ -104,10 +133,12 @@
     /* 矮屏 / 手机横屏（高度 ≤ 500px）：整体收紧，保证第一屏放得下 */
     @media (max-height: 500px) {
         gap: var(--sp-xs);
+        &-head {
+            margin-bottom: var(--sp-md);
+        }
         &-title {
             font-size: var(--font-xxl); /* 24px，仍是 12 的整数倍 */
             letter-spacing: 4px;
-            margin-bottom: var(--sp-md);
         }
         &-buttons {
             max-width: 13.75rem;

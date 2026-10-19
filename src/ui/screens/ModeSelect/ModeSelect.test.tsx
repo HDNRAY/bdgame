@@ -81,6 +81,22 @@ describe('首页模式选择', () => {
         expect(renderHome()).toContain('mode-select-title')
     })
 
+    it('标题下是题记，题记下才是主按钮；题记不加句号', () => {
+        const html = renderHome()
+        // span 之间可能有空白，掐掉空白再比对整句（中文本身没有空格）
+        const flat = domText(html).replace(/\s+/g, '')
+        expect(flat).toContain('每一次获得都是一场赌博——你无从知晓，自己能否承受其代价')
+        // 题记不是正文句子：句末停在「代价」上（见 spec 的定稿说明）
+        expect(flat).not.toContain('其代价。')
+        // DOM 顺序：标题 → 题记 → 按钮
+        const titleAt = html.indexOf('mode-select-title')
+        const epigraphAt = html.indexOf('mode-select-epigraph')
+        const buttonsAt = html.indexOf('mode-select-buttons')
+        expect(titleAt).toBeGreaterThanOrEqual(0)
+        expect(epigraphAt).toBeGreaterThan(titleAt)
+        expect(buttonsAt).toBeGreaterThan(epigraphAt)
+    })
+
     it('不再出现「肉鸽 / 开发中 / 单挑模式」等旧字样', () => {
         const text = domText(renderHome())
         for (const word of ['肉鸽', '开发中', '敬请期待', '单挑模式', '1v1 快速对决', '故事线 · 逐节点推进']) {

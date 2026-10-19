@@ -18,7 +18,14 @@ export function ModeSelect() {
                 />
             )}
 
-            <div className="mode-select-title">{import.meta.env.VITE_APP_TITLE}</div>
+            {/* 标题 + 题记是一个整体：题记贴着标题，到主按钮的呼吸位由 head 的下边距给 */}
+            <div className="mode-select-head">
+                <div className="mode-select-title">{import.meta.env.VITE_APP_TITLE}</div>
+                {/* 两段分开包 span：窄屏只在破折号处换行，不把「赌博」「其代价」拆开（见 scss） */}
+                <p className="mode-select-epigraph">
+                    <span>每一次获得都是一场赌博——</span><span>你无从知晓，自己能否承受其代价</span>
+                </p>
+            </div>
 
             <div className="mode-select-buttons">
                 {/* 主入口只有「进入故事」四个字，按钮内不带副标题 / 说明 */}
