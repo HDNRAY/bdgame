@@ -290,7 +290,7 @@ export const WANDERER_LAIFENG: EventDef = {
 export const WANDERER_RENDER_LANE: EventDef = {
     id: 'wanderer_render_lane',
     name: '巷子',
-    description: '镇口的自动售货机，玻璃上有裂纹。',
+    description: '去镇口，看看那台裂了玻璃的售货机。',
     placement: [
         { nodes: [4], when: storyRenderWhen('wanderer', 'wanderer_render_lane_done') },
     ],
@@ -342,7 +342,7 @@ export const WANDERER_RENDER_GONE: EventDef = {
 export const WANDERER_RENDER_QILAN: EventDef = {
     id: 'wanderer_render_qilan',
     name: '奇岚',
-    description: '奇岚的雷法，你从小就没赢过。',
+    description: '去巷后空地，再跟奇岚比一场。',
     placement: [
         { nodes: [6], when: storyRenderWhen('wanderer', 'wanderer_render_qilan_done') },
     ],

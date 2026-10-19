@@ -249,7 +249,7 @@ export const SECT_GUIHAILOU_SHOW: EventDef = {
 export const SECT_RENDER_SHIXIONG: EventDef = {
     id: 'sect_render_shixiong',
     name: '师兄照顾',
-    description: '师兄总是先你一步，把路走一遍。',
+    description: '去演武场，师兄陪你喂招。',
     placement: [
         { nodes: [4], when: storyRenderWhen('sect', 'sect_render_shixiong_done') },
     ],
@@ -275,7 +275,7 @@ export const SECT_RENDER_SHIXIONG: EventDef = {
 export const SECT_RENDER_LAYUE: EventDef = {
     id: 'sect_render_layue',
     name: '腊月师姐',
-    description: '腊月师姐凶得很，山门上下都怕她。',
+    description: '去山门，腊月师姐凶得很。',
     placement: [
         { nodes: [5], when: storyRenderWhen('sect', 'sect_render_layue_done') },
     ],
@@ -301,7 +301,7 @@ export const SECT_RENDER_LAYUE: EventDef = {
 export const SECT_RENDER_MEN: EventDef = {
     id: 'sect_render_men',
     name: '山门早课',
-    description: '山门的早课，从寅时的钟声开始。',
+    description: '寅时钟声一响，去演武场。',
     placement: [
         { nodes: [6], when: storyRenderWhen('sect', 'sect_render_men_done') },
     ],

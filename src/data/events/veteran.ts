@@ -82,7 +82,7 @@ export const VETERAN_START_TRAINING: EventDef = {
 export const VETERAN_N05_FORMAL: EventDef = {
     id: 'veteran_n05_formal',
     name: '正规训练',
-    description: '年月如梭。十四岁那年，你正式成为军营的勤杂。',
+    description: '年月如梭。十四岁，去军营做勤杂。',
     placement: [{ nodes: [5], when: storyWhen('veteran') }],
     reward: { kind: 'points' },
     rounds: [
@@ -128,7 +128,7 @@ export const VETERAN_N06_ENLIST: EventDef = {
 export const VETERAN_N08_PATH_CHOICE: EventDef = {
     id: 'veteran_n08_path_choice',
     name: '军旅分岔路',
-    description: '部队生涯也走到了岔路口。',
+    description: '部队生涯到了岔路口，该选一条。',
     placement: [{ nodes: [8], when: storyWhen('veteran') }],
     reward: { kind: 'points' },
     rounds: [
@@ -171,7 +171,7 @@ export const VETERAN_N08_PATH_CHOICE: EventDef = {
 export const VETERAN_RENDER_LAOCHAI: EventDef = {
     id: 'veteran_render_laochai',
     name: '同袍',
-    description: '老柴是伙房的老兵，什么都知道一点。',
+    description: '去伙房找老柴，他教你认兵器。',
     placement: [
         { nodes: [7], when: storyRenderWhen('veteran', 'veteran_render_laochai_done') },
     ],

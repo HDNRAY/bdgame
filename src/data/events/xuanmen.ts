@@ -76,7 +76,7 @@ export const XUANMEN_N03_START: EventDef = {
 export const XUANMEN_N06_SHUSHU: EventDef = {
     id: 'xuanmen_n06_shushu',
     name: '结识小树',
-    description: '族里有个旁系叔叔，大家叫他小树。',
+    description: '去祖宅角落，找小树说话。',
     placement: [{ nodes: [6], when: storyWhen('xuanmen') }],
     reward: { kind: 'points' },
     rounds: [
@@ -95,7 +95,7 @@ export const XUANMEN_N06_SHUSHU: EventDef = {
 export const XUANMEN_N12_NAMING: EventDef = {
     id: 'xuanmen_n12_naming',
     name: '取名',
-    description: '你用了一年时间接受现实。',
+    description: '站在祖祠前，给自己取个名字。',
     placement: [{ nodes: [12], when: storyWhen('xuanmen') }],
     reward: { kind: 'points' },
     rounds: [
@@ -114,7 +114,7 @@ export const XUANMEN_N12_NAMING: EventDef = {
 export const XUANMEN_N13_CLAN: EventDef = {
     id: 'xuanmen_n13_clan',
     name: '家族内斗',
-    description: '门主那把椅子，从来不是一条命就能坐稳的。',
+    description: '去族里，看各房争那把椅子。',
     placement: [{ nodes: [13], when: storyWhen('xuanmen') }],
     reward: { kind: 'points' },
     rounds: [
@@ -152,7 +152,7 @@ export const XUANMEN_N17_RIVER: EventDef = {
 export const XUANMEN_N21_ENTER: EventDef = {
     id: 'xuanmen_n21_enter',
     name: '决定参赛',
-    description: '斗炁大会开幕的消息传遍了青山镇。',
+    description: '消息传遍全镇，你去报名。',
     placement: [{ nodes: [21], when: storyWhen('xuanmen') }],
     reward: { kind: 'points' },
     rounds: [
@@ -316,7 +316,7 @@ export const XUANMEN_GUIHAILOU: EventDef = {
 export const XUANMEN_RENDER_TWINS: EventDef = {
     id: 'xuanmen_render_twins',
     name: '一起长大',
-    description: '你和玄九，生来就是两个人。',
+    description: '和玄九一起练功，一起挨罚。',
     placement: [
         { nodes: [4], when: storyRenderWhen('xuanmen', 'xuanmen_render_twins_done') },
     ],
@@ -342,7 +342,7 @@ export const XUANMEN_RENDER_TWINS: EventDef = {
 export const XUANMEN_RENDER_YUWU: EventDef = {
     id: 'xuanmen_render_yuwu',
     name: '御物初习',
-    description: '御物认主，父亲说，靠的是心。',
+    description: '夜里去祖祠，偷偷练御物。',
     placement: [
         { nodes: [5], when: storyRenderWhen('xuanmen', 'xuanmen_render_yuwu_done') },
     ],
@@ -368,7 +368,7 @@ export const XUANMEN_RENDER_YUWU: EventDef = {
 export const XUANMEN_RENDER_ZUXUN: EventDef = {
     id: 'xuanmen_render_zuxun',
     name: '祖训',
-    description: '那条祖训，你小时候只当它是句怪话。',
+    description: '去祠堂，看那条被磨掉的祖训。',
     placement: [
         { nodes: [7], when: storyRenderWhen('xuanmen', 'xuanmen_render_zuxun_done') },
     ],

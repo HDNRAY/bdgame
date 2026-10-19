@@ -140,7 +140,7 @@ export const BOSS_AJIU: EventDef = {
 export const FEUD_N13_AJIU_ARRIVE: EventDef = {
     id: 'feud_n13_ajiu_arrive',
     name: '阿九到来',
-    description: '会长身边多了个新来的姑娘，叫阿九。',
+    description: '去会长府，见见新来的阿九。',
     placement: [{ nodes: [13], when: storyWhen('feud') }],
     reward: { kind: 'points' },
     rounds: [
@@ -291,7 +291,7 @@ export const FEUD_N32_BAISHAN: EventDef = {
 export const FEUD_RENDER_MANOR: EventDef = {
     id: 'feud_render_manor',
     name: '会长府',
-    description: '会长府的灯，总是留到很晚。',
+    description: '会长府的灯亮到很晚，等你回家。',
     placement: [
         { nodes: [4], when: storyRenderWhen('feud', 'feud_render_manor_done') },
     ],
@@ -317,7 +317,7 @@ export const FEUD_RENDER_MANOR: EventDef = {
 export const FEUD_RENDER_QINGGONG: EventDef = {
     id: 'feud_render_qinggong',
     name: '学轻功',
-    description: '姬仲说，轻功是保命的本事。',
+    description: '姬仲站在房梁上，等你上去。',
     placement: [
         { nodes: [5], when: storyRenderWhen('feud', 'feud_render_qinggong_done') },
     ],

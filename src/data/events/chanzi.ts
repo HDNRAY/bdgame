@@ -13,7 +13,7 @@ import { STAGE3_POOL } from './layout'
 export const CHANZI_MEDITATION: EventDef = {
     id: 'chanzi_meditation',
     name: '多林寺问禅',
-    description: '青山脚下的多林寺，檐角挂着铜铃。',
+    description: '去多林寺，檐角铜铃在响。',
     placement: [
         {
             nodes: STAGE3_POOL,

@@ -394,7 +394,7 @@ export const MEMORY_REWARDS: {
 export const MEMORY_WITHIN_MEMORY: EventDef = {
     id: 'memory_within_memory',
     name: '回忆中的回忆',
-    description: '你忽然想起一段被遗忘的身世。',
+    description: '树下歇脚，忽然想起一段旧事。',
     placement: [
         {
             nodes: [4, 5, 6, 7],
