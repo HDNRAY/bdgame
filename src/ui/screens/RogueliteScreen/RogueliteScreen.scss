@@ -325,7 +325,26 @@
 
     // 竖屏 build 模式：整块滚动，消除双重滚动
     &.rs-portrait .rs-build .character-panel {
+        /* 面板高度必须跟着内容走：height:100% 会让内容溢出到面板外，侧栏滚不到 */
+        height: auto;
+        min-height: 100%;
         overflow: visible;
+        /* 操作条在侧栏里改成页首静态工具条，不再固定在底部盖住最后一行 */
+        padding-bottom: 0;
+
+        .cp-header {
+            position: static;
+            left: auto;
+            right: auto;
+            bottom: auto;
+            z-index: auto;
+            margin: 0 0 var(--sp-md);
+            padding: 0 0 var(--sp-sm);
+            background: transparent;
+            border-top: none;
+            border-bottom: var(--border-width) solid var(--color-border-subtle);
+            transform: none;
+        }
     }
 
     &.rs-landscape .rs-body {
