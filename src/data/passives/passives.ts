@@ -387,7 +387,7 @@ export const PASSIVES: Passive[] = [
     {
         id: 'hui_lei_qian',
         name: '虺雷牵',
-        description: '虺雷如活物，牵丝追踪，不死不休。所有雷系招式命中+8%。',
+        description: '虺雷如活物，牵丝追踪，不死不休。',
         tags: ['buff', 'electric'],
         effects: [
             {

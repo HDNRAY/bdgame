@@ -203,7 +203,7 @@ export const BUFF_DB: BuffDef[] = [
     {
         id: 'hui_lei_qian',
         name: '虺雷牵',
-        description: '虺雷如活物，牵丝追踪，不死不休。雷系招式命中+8%。',
+        description: '雷系招式命中+8%。',
         tags: ['electric'],
         expiry: { type: 'permanent' },
         onHitChance: ({ source }) => (source?.tags?.includes('electric') ? 0.08 : 0),
