@@ -179,7 +179,7 @@ export function CharacterPanel({
     const shownPassives = isBuild ? character.passiveDefs.filter((p) => !p.tags.includes('talent')) : character.passiveDefs
 
     return (
-        <div className="character-panel">
+        <div className={`character-panel${isBuild ? ' cp-build' : ''}`}>
             {/* Header */}
             {isBuild && (
                 <div className="cp-header">
@@ -217,11 +217,8 @@ export function CharacterPanel({
                 )}
 
             <div className="cp-body">
-                {/* 左栏：区块1+4 */}
-                <div
-                    className="cp-col-left"
-                    style={{ position: isBuild ? 'sticky' : 'static', top: isBuild ? 0 : undefined }}
-                >
+                {/* 左栏：区块1+4（构筑模式桌面端吸顶，移动端交给 CSS 关掉） */}
+                <div className={`cp-col-left${isBuild ? ' cp-col-left-build' : ''}`}>
                     {/* 区块1: 角色信息 */}
                     <div className="cp-section cp-info-section">
                         <div className="cp-info-left">

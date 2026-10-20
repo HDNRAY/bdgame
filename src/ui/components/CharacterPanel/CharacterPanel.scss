@@ -618,3 +618,292 @@
     font-family: var(--font-family-small);
     min-width: 2.2em;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   UI 改版：双端布局与表面（只动样式，不改文案 / 数据）
+   桌面：1200 宽，左 1.12fr / 右 0.88fr；移动：单列 + 底部操作条。
+   ═══════════════════════════════════════════════════════════════ */
+
+.character-panel {
+    max-width: 75rem;
+    padding: var(--sp-md);
+}
+
+/* 桌面：页首工具条 */
+.cp-header {
+    padding-bottom: var(--sp-sm);
+    margin-bottom: var(--sp-md);
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.cp-header .cp-btn {
+    min-height: 36px;
+}
+
+/* 双栏；两侧都改成纵向堆叠的 section */
+.cp-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    align-items: start;
+    flex-wrap: nowrap;
+    column-gap: var(--sp-xl);
+    row-gap: 0;
+}
+
+.cp-col-left,
+.cp-col-right {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+}
+
+.cp-col-left-build {
+    position: sticky;
+    top: 0;
+    align-self: start;
+}
+
+/* 区块：surface 分层，不再用边框分隔 */
+.cp-section {
+    margin-bottom: 0;
+    padding: var(--sp-md);
+    background: var(--color-surface-panel);
+    border: none;
+    border-radius: var(--radius-md);
+}
+
+.cp-section-label {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    margin-bottom: var(--sp-xs);
+    font-family: var(--font-family-base);
+    font-size: var(--font-md);
+    letter-spacing: 0.05em;
+    text-transform: none;
+    color: var(--color-text-dim);
+}
+
+.cp-section-label::before {
+    content: '';
+    width: 2px;
+    height: 12px;
+    flex: 0 0 auto;
+    background: var(--color-accent);
+}
+
+.cp-info-name {
+    font-weight: 700;
+}
+
+/* 属性行：值放大，行间用细分隔线 */
+.cp-attr-row {
+    gap: var(--sp-xs);
+    padding: var(--sp-xs) 0;
+}
+
+.cp-attr-row + .cp-attr-row {
+    border-top: 1px solid var(--color-border-subtle);
+}
+
+.cp-attr-row .attr-label-full-name {
+    width: 2.5rem;
+}
+
+.cp-attr-row .attr-label-full-val {
+    width: auto;
+    min-width: 1.75rem;
+    font-size: var(--font-lg);
+    font-weight: 700;
+    color: var(--color-text-h);
+}
+
+.cp-attr-row .attr-label-full-bar {
+    height: 8px;
+}
+
+.cp-points {
+    margin-bottom: var(--sp-xs);
+}
+
+/* 图标按钮：桌面仍紧凑，移动端放大到 44（见下方 media） */
+.cp-btn-sm {
+    width: 1.75rem;
+    height: 1.5rem;
+}
+
+.cp-add-btn {
+    width: auto;
+    padding: 0 var(--sp-md);
+}
+
+/* 表头与说明文字用正文档 */
+.cp-table-header > span {
+    font-family: var(--font-family-base);
+    font-size: var(--font-sm);
+}
+
+.cp-table-note {
+    font-family: var(--font-family-base);
+    font-size: var(--font-sm);
+    line-height: 1.7;
+}
+
+.cp-tag-list {
+    gap: var(--sp-xs);
+}
+
+/* ── 移动：单列 + 底部固定操作条 ── */
+@media (max-width: 767px) {
+    .character-panel {
+        padding: var(--sp-sm);
+    }
+
+    .cp-build {
+        padding-bottom: calc(var(--bottom-bar-h) + 76px);
+    }
+
+    .cp-header {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: var(--bottom-bar-h);
+        z-index: 1400;
+        /* 独立合成层：避免移动端滚动/换主题时 fixed 条被内容盖住或被截图漏掉 */
+        transform: translateZ(0);
+        margin: 0;
+        padding: var(--sp-xs) var(--sp-md);
+        background: var(--color-surface-panel);
+        border-top: 1px solid var(--color-border-subtle);
+        border-bottom: none;
+    }
+
+    .cp-header .cp-btn {
+        min-height: 44px;
+        flex: 1;
+        padding: 0 var(--sp-sm);
+    }
+
+    .cp-actions {
+        flex: 1;
+        gap: var(--sp-xs);
+    }
+
+    .cp-actions .cp-btn {
+        flex: 1;
+    }
+
+    .cp-body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-md);
+    }
+
+    .cp-col-left-build {
+        position: static;
+    }
+
+    .cp-section {
+        padding: var(--sp-sm);
+    }
+
+    .cp-info-section {
+        flex-direction: column;
+        gap: var(--sp-sm);
+    }
+
+    .cp-info-right {
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .cp-style-select {
+        max-width: 100%;
+    }
+
+    .cp-btn-sm {
+        width: 44px;
+        height: 44px;
+    }
+
+    .cp-add-btn {
+        width: auto;
+        padding: 0 var(--sp-md);
+    }
+
+    /* 招式表：隐藏表头，每行两层（名称 / 条件 + 触发） */
+    .cp-table {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .cp-table-header {
+        display: none;
+    }
+
+    .cp-row {
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            'handle name name'
+            'handle cond trig';
+        column-gap: var(--sp-xs);
+        row-gap: var(--sp-xxs);
+        padding: var(--sp-xs) 0;
+        border-bottom: 1px solid var(--color-border-subtle);
+    }
+
+    .cp-row > span {
+        padding: 0;
+        border-bottom: none;
+    }
+
+    .cp-col-handle {
+        grid-area: handle;
+        align-items: flex-start;
+    }
+
+    .cp-col-name {
+        grid-area: name;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .cp-col-cond {
+        grid-area: cond;
+    }
+
+    .cp-col-trig {
+        grid-area: trig;
+        padding-right: 0;
+    }
+
+    .cp-drag {
+        width: 24px;
+        height: 44px;
+    }
+
+    .cp-col-cond .ss-input,
+    .cp-col-trig .ss-input {
+        min-height: 36px;
+        font-family: var(--font-family-base);
+        font-size: var(--font-sm);
+    }
+
+    .cp-cond-btn {
+        min-height: 36px;
+        font-size: var(--font-sm);
+    }
+
+    .cp-cond-editor {
+        padding: var(--sp-xs);
+    }
+
+    .cp-table-note {
+        font-family: var(--font-family-small);
+        font-size: var(--font-xs);
+    }
+}
+
