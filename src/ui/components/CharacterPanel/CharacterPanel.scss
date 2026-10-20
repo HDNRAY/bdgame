@@ -640,14 +640,21 @@
     min-height: 36px;
 }
 
-/* 双栏；两侧都改成纵向堆叠的 section */
+/* 双栏只在真正宽的桌面出现；窄桌面/平板先单列，避免两栏被挤得奇怪 */
 .cp-body {
-    display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
-    align-items: start;
-    flex-wrap: nowrap;
-    column-gap: var(--sp-xl);
-    row-gap: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+}
+
+@media (min-width: 768px) {
+    .cp-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+        align-items: start;
+        column-gap: var(--sp-xl);
+        row-gap: 0;
+    }
 }
 
 .cp-col-left,
@@ -658,10 +665,9 @@
     gap: var(--sp-md);
 }
 
+/* 不再吸顶：页面本身不长，吸顶反而在滚动时留下空洞 */
 .cp-col-left-build {
-    position: sticky;
-    top: 0;
-    align-self: start;
+    position: static;
 }
 
 /* 区块：surface 分层，不再用边框分隔 */
@@ -761,7 +767,8 @@
     }
 
     .cp-build {
-        padding-bottom: calc(var(--bottom-bar-h) + 76px);
+        /* 底部操作条高 61（44 按钮 + 上下 8 + 1 描边）；再留 27，最后一行不会被盖 */
+        padding-bottom: calc(var(--bottom-bar-h) + 88px);
     }
 
     .cp-header {
@@ -781,55 +788,71 @@
 
     .cp-header .cp-btn {
         min-height: 44px;
-        flex: 1;
+        flex: 0 0 auto;
         padding: 0 var(--sp-sm);
+        /* 44 高的按钮配 24 字；不拉伸、不换行，避免「复位 / 保存」竖排把操作条撑高 */
+        font-size: var(--font-lg);
+        white-space: nowrap;
     }
 
     .cp-actions {
-        flex: 1;
+        flex: 0 0 auto;
         gap: var(--sp-xs);
     }
 
     .cp-actions .cp-btn {
-        flex: 1;
+        flex: 0 0 auto;
     }
 
     .cp-body {
-        display: flex;
-        flex-direction: column;
         gap: var(--sp-md);
-    }
-
-    .cp-col-left-build {
-        position: static;
     }
 
     .cp-section {
         padding: var(--sp-sm);
     }
 
+    /* 信息区两列：右上角放战斗风格，别再让它独占一整行 */
     .cp-info-section {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 7.5rem;
+        align-items: start;
         gap: var(--sp-sm);
     }
 
     .cp-info-right {
         align-items: flex-start;
-        width: 100%;
+        width: auto;
+    }
+
+    .cp-style-label {
+        font-family: var(--font-family-base);
+        font-size: var(--font-md);
+        color: var(--color-text-dim);
     }
 
     .cp-style-select {
         max-width: 100%;
     }
 
+    .cp-style-select .ss-input {
+        min-height: 32px;
+        font-family: var(--font-family-base);
+        font-size: var(--font-sm);
+    }
+
+    /* 44 的图标按钮配 24 的字；「+ 添加」是长文案，单独回到 12 / 36 */
     .cp-btn-sm {
         width: 44px;
         height: 44px;
+        font-size: var(--font-lg);
     }
 
     .cp-add-btn {
         width: auto;
+        height: 36px;
         padding: 0 var(--sp-md);
+        font-size: var(--font-md);
     }
 
     /* 招式表：隐藏表头，每行两层（名称 / 条件 + 触发） */
