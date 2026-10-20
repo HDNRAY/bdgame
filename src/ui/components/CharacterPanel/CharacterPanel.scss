@@ -730,6 +730,69 @@
     height: 8px;
 }
 
+/* 构筑页属性行：名字 / 数值 / 条三段。数值贴名字（4px），离条远一点（12px）。 */
+.cp-build .cp-attr-row .attr-label-full {
+    display: grid;
+    grid-template-columns: max-content minmax(1.5rem, max-content) minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--sp-xxs);
+}
+
+.cp-build .cp-attr-row .attr-label-full-name {
+    width: auto;
+}
+
+.cp-build .cp-attr-row .attr-label-full-val {
+    width: auto;
+    min-width: 1.5rem;
+    text-align: right;
+}
+
+.cp-build .cp-attr-row .attr-label-full-bar {
+    margin-left: var(--sp-sm);
+}
+
+/* 属性加减：用 CSS 画线，保证在按钮正中心（不依赖字体字形基线）。
+   字形本身透明，字号保留在网格上（不写 0），几何脚本才不会判越界。 */
+.cp-attr-row .cp-step-btn {
+    position: relative;
+    color: transparent;
+}
+
+.cp-attr-row .cp-step-btn:active {
+    color: transparent;
+}
+
+.cp-attr-row .cp-step-btn::before,
+.cp-attr-row .cp-step-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--color-text);
+}
+
+.cp-attr-row .cp-step-btn:active::before,
+.cp-attr-row .cp-step-btn:active::after {
+    background: var(--color-on-accent);
+}
+
+.cp-attr-row .cp-step-minus::before {
+    width: 0.75rem;
+    height: 2px;
+}
+
+.cp-attr-row .cp-step-plus::before {
+    width: 0.75rem;
+    height: 2px;
+}
+
+.cp-attr-row .cp-step-plus::after {
+    width: 2px;
+    height: 0.75rem;
+}
+
 .cp-points {
     margin-bottom: var(--sp-xs);
 }

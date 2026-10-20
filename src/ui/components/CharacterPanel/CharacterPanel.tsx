@@ -340,7 +340,7 @@ export function CharacterPanel({
                                             <Button
                                                 variant="default"
                                                 size="sm"
-                                                className="cp-btn-sm"
+                                                className="cp-btn-sm cp-step-btn cp-step-minus"
                                                 disabled={brk.base <= (build.baseAttrs?.[attr] ?? 3)}
                                                 onClick={() => handleAttrAdjust(attr, -1)}
                                             >
@@ -349,7 +349,7 @@ export function CharacterPanel({
                                             <Button
                                                 variant="default"
                                                 size="sm"
-                                                className="cp-btn-sm"
+                                                className="cp-btn-sm cp-step-btn cp-step-plus"
                                                 disabled={brk.base >= 30 || remaining < cultCost(brk.base)}
                                                 onClick={() => handleAttrAdjust(attr, 1)}
                                             >
