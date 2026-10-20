@@ -25,7 +25,7 @@ export function BattleStatusPanel({ snapshot, charAName, charBName, ap }: Battle
         <div className="battle-status-panel">
             <div className="title">
                 <span className="char-a">{charAName}</span>
-                <span className="vs"> {dist.toFixed(1)}m </span>
+                <span className="vs">{dist.toFixed(1)}m</span>
                 <span className="char-b">{charBName}</span>
             </div>
 
