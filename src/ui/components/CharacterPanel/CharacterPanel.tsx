@@ -179,7 +179,7 @@ export function CharacterPanel({
     const shownPassives = isBuild ? character.passiveDefs.filter((p) => !p.tags.includes('talent')) : character.passiveDefs
 
     return (
-        <div className={`character-panel${isBuild ? ' cp-build' : ''}`}>
+        <div className={`character-panel${isBuild ? ' cp-build' : ' cp-view'}`}>
             {/* Header */}
             {isBuild && (
                 <div className="cp-header">

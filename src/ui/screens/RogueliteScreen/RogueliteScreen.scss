@@ -165,10 +165,12 @@
         background: var(--color-bg-alt);
         border-bottom: var(--border-width) solid var(--color-border);
 
-        /* H5：触屏上「备战」这个主入口也要够 44 高 */
+        /* H5：触屏上「备战」这个主入口也要够 44 高；44 的按钮配 20 字（10 族 2×） */
         @media (pointer: coarse) {
             .rs-prep-btn {
                 min-height: 44px;
+                font-family: var(--font-family-10);
+                font-size: var(--font-lg-10);
             }
         }
     }

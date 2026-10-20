@@ -644,10 +644,11 @@
 .cp-body {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: var(--sp-md);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
     .cp-body {
         display: grid;
         grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
@@ -790,8 +791,9 @@
         min-height: 44px;
         flex: 0 0 auto;
         padding: 0 var(--sp-sm);
-        /* 44 高的按钮配 24 字；不拉伸、不换行，避免「复位 / 保存」竖排把操作条撑高 */
-        font-size: var(--font-lg);
+        /* 44 高的按钮配 20 字（10 族的 2 倍档，仍在像素网格上）；不拉伸、不换行 */
+        font-family: var(--font-family-10);
+        font-size: var(--font-lg-10);
         white-space: nowrap;
     }
 
@@ -841,11 +843,12 @@
         font-size: var(--font-sm);
     }
 
-    /* 44 的图标按钮配 24 的字；「+ 添加」是长文案，单独回到 12 / 36 */
+    /* 44 的图标按钮配 20 的字；「+ 添加」是长文案，单独回到 12 / 36 */
     .cp-btn-sm {
         width: 44px;
         height: 44px;
-        font-size: var(--font-lg);
+        font-family: var(--font-family-10);
+        font-size: var(--font-lg-10);
     }
 
     .cp-add-btn {
@@ -927,6 +930,132 @@
     .cp-table-note {
         font-family: var(--font-family-small);
         font-size: var(--font-xs);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   局内右侧栏（view）保持改版前的紧凑布局：
+   上面的双栏 / 大字号 / 固定操作条只服务构筑页（.cp-build）。
+   ═══════════════════════════════════════════════════════════════ */
+
+.character-panel.cp-view {
+    max-width: 56.25rem;
+    padding: var(--sp-xs);
+}
+
+.cp-view .cp-body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: var(--sp-md);
+    row-gap: 0;
+}
+
+.cp-view .cp-col-left {
+    flex: 2 1 15rem;
+}
+
+.cp-view .cp-col-right {
+    flex: 3 1 11.25rem;
+}
+
+.cp-view .cp-col-left,
+.cp-view .cp-col-right {
+    display: block;
+    min-width: 0;
+}
+
+.cp-view .cp-section {
+    margin-bottom: var(--sp-xs);
+    padding: var(--sp-xs);
+    background: var(--color-bg-alt);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+.cp-view .cp-section-label {
+    display: block;
+    margin-bottom: var(--sp-xxs);
+    font-family: var(--font-family-small);
+    font-size: var(--font-xs);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.cp-view .cp-section-label::before {
+    display: none;
+}
+
+.cp-view .cp-info-name {
+    font-weight: 600;
+}
+
+.cp-view .cp-attr-row {
+    gap: var(--sp-xxs);
+    padding: 2px 0;
+}
+
+.cp-view .cp-attr-row + .cp-attr-row {
+    border-top: none;
+}
+
+.cp-view .cp-attr-row .attr-label-full-name {
+    width: 2rem;
+}
+
+.cp-view .cp-attr-row .attr-label-full-val {
+    width: 1.25rem;
+    min-width: 0;
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.cp-view .cp-attr-row .attr-label-full-bar {
+    height: 6px;
+}
+
+.cp-view .cp-points {
+    margin-bottom: var(--sp-xxs);
+}
+
+.cp-view .cp-tag-list {
+    gap: var(--sp-xxs);
+}
+
+.cp-view .cp-btn-sm {
+    width: 1.375rem;
+    height: 1.125rem;
+    font-family: var(--font-family-base);
+    font-size: var(--font-md);
+}
+
+@media (max-width: 767px) {
+    .cp-view .cp-info-section {
+        display: flex;
+        flex-direction: row;
+        gap: var(--sp-sm);
+    }
+
+    .cp-view .cp-info-right {
+        align-items: flex-end;
+        width: auto;
+    }
+
+    .cp-view .cp-style-label {
+        font-family: var(--font-family-small);
+        font-size: var(--font-xs);
+        color: var(--color-text);
+    }
+
+    .cp-view .cp-style-select .ss-input {
+        min-height: 0;
+        font-family: var(--font-family-small);
+        font-size: var(--font-xs);
+    }
+
+    .cp-view .cp-section {
+        padding: var(--sp-xs);
     }
 }
 
