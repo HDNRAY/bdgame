@@ -1,7 +1,7 @@
 /* 首页（模式选择）—— 双布局：
-   移动：单列框（眉标 / 标题 / 题记 / 主按钮）。
-   桌面（≥768）：同一块框内两栏，左标题 + 按钮，右题记 + 节点数。
-   框 = surface + 硬阴影 + 对角刻线；页面底加点阵。 */
+   移动：单列框（标题 / 题记 / 主按钮）。
+   桌面（≥768）：同一块框内两栏，左标题 + 按钮，右题记。
+   框 = surface + 硬阴影 + 对角刻线；页面底加点阵。只动视觉，不改文案。 */
 .mode-select {
     --mode-select-gap: clamp(var(--sp-md), 2.5dvh, var(--sp-lg));
 
@@ -46,7 +46,6 @@
         display: grid;
         grid-template-columns: minmax(0, 1fr);
         grid-template-areas:
-            'kicker'
             'title'
             'aside'
             'buttons';
@@ -80,15 +79,6 @@
         }
     }
 
-    /* 眉标：章序 + 章名（数据来自 story-intros，避免手写漂移） */
-    &-kicker {
-        grid-area: kicker;
-        margin: 0;
-        font-size: var(--font-md);
-        color: var(--color-text-dim);
-        letter-spacing: 3px;
-    }
-
     &-title {
         grid-area: title;
         /* 像素字体（12px 版）：36px = 3×12，正落在原生网格上。
@@ -117,11 +107,6 @@
         grid-area: aside;
         margin: 0;
         text-align: center;
-    }
-
-    &-aside-label,
-    &-aside-foot {
-        display: none;
     }
 
     &-epigraph {
@@ -165,16 +150,11 @@
             max-width: 46rem;
             grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
             grid-template-areas:
-                'kicker aside'
                 'title aside'
                 'buttons aside';
             gap: var(--sp-md) var(--sp-xl);
             padding: var(--sp-2xl) var(--sp-xl);
             text-align: left;
-        }
-
-        &-kicker {
-            align-self: end;
         }
 
         &-title {
@@ -185,27 +165,9 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: var(--sp-sm);
             padding-left: var(--sp-xl);
             border-left: 1px solid var(--color-border-subtle);
             text-align: left;
-        }
-
-        &-aside-label {
-            display: block;
-            margin: 0;
-            font-size: var(--font-md);
-            color: var(--color-text-dim);
-            letter-spacing: 3px;
-        }
-
-        &-aside-foot {
-            display: flex;
-            flex-direction: column;
-            gap: var(--sp-xxs);
-            margin-top: var(--sp-md);
-            font-size: var(--font-md);
-            color: var(--color-text-dim);
         }
 
         &-epigraph {
@@ -223,6 +185,18 @@
             max-width: 65rem;
             padding: var(--sp-2xl) var(--sp-xl);
         }
+
+        /* 右栏只剩题记：放大成引文，用 accent 竖线做锚点（只改排版，不加字） */
+        &-aside {
+            padding-left: var(--sp-xl);
+            border-left: 2px solid var(--color-accent);
+        }
+
+        &-epigraph {
+            font-size: var(--font-lg); /* 24px = 2×12 */
+            line-height: 1.6;
+            color: var(--color-text);
+        }
     }
 
     /* 矮屏 / 手机横屏（高度 ≤ 500px）：整体收紧，保证第一屏放得下 */
@@ -237,10 +211,6 @@
         &-title {
             font-size: var(--font-xxl); /* 24px，仍是 12 的整数倍 */
             letter-spacing: 4px;
-        }
-
-        &-kicker {
-            display: none;
         }
 
         &-buttons {
