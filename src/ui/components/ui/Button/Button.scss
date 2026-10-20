@@ -7,7 +7,8 @@
    变体（用途 → 静止 → hover → active → 禁用回落）
      default  面板内的常规动作        面板底 bg-panel + text + 描边    bg-hover + border-hover   **bg = border-hover**   回落到 bg-panel
      plain    页面底上的常规动作      bg + text + 描边                 bg-hover + border-hover   **bg = border-hover**   回落到 bg
-     primary  实心强调主行动          accent 描边 + accent-bg + accent bg-hover（自身填充提亮） bg-hover            回落到 accent-bg
+     primary  强调描边主行动          accent 描边 + accent-bg + accent bg-hover（自身填充提亮） bg-hover            回落到 accent-bg
+     solid    实心主行动（首页 CTA）  accent 填充 + on-accent 文字      filter brightness(1.08)   filter brightness(.92) 回落到 accent 填充
      ghost    次级 / 取消（透明底）    透明底 + text + 描边             text-h + border-hover     **bg = border-hover**   回落到透明底
      bare     无描边实体小块（工具条） entity-bg 底 + text，无描边方角  filter brightness(0.92)   filter brightness(.92)  回落到 entity-bg
    default 与 plain 只差底色（面板 / 页面），两边都有调用点，不合并。
@@ -27,7 +28,7 @@
      md  常规动作、表单           12px / --sp-xs --sp-lg / radius-md
      lg  竖屏第一屏的主入口       24px / --sp-sm --sp-lg / radius-md
    触摸目标：H5 硬口径是 ≥44×44，由调用页在主要动作上补 `min-height: max(44px, …)`
-   （范例 ModeSelect.scss 的 -btn-main / -btn-sm）。xs/sm 是桌面与面板内的紧凑档，不承载
+   （范例 ModeSelect.scss 的 -cta）。xs/sm 是桌面与面板内的紧凑档，不承载
    H5 主要动作 —— 用不可见伪元素扩命中区会在密集工具条里抢邻近按钮的点击，所以不写进
    Button，交给页面按自己的布局保证。
 
@@ -134,7 +135,7 @@
         }
     }
 
-    /* 实心强调：主行动按钮。底色是 accent-bg，hover/active 靠底色提亮；
+    /* 强调描边：主行动按钮。底色是 accent-bg，hover/active 靠底色提亮；
        描边本来就是 accent，不用再点亮。 */
     &-primary {
         border-color: var(--color-accent);
@@ -153,6 +154,28 @@
 
         &:disabled {
             background: var(--color-accent-bg);
+        }
+    }
+
+    /* 实心主行动：accent 填充 + on-accent 文字。用于首页 CTA —— 每屏最多一个。
+       按下不换底色，只整体压暗（与 primary 的「提亮填充」相反）。 */
+    &-solid {
+        border-color: var(--color-accent);
+        background: var(--color-accent);
+        color: var(--color-on-accent);
+
+        @media (hover: hover) {
+            &:hover {
+                filter: brightness(1.08);
+            }
+        }
+
+        &:active {
+            filter: brightness(0.92);
+        }
+
+        &:disabled {
+            background: var(--color-accent);
         }
     }
 

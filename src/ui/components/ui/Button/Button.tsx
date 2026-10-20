@@ -25,8 +25,8 @@ import './Button.scss'
  * fullWidth：需要撑满就由页面 scss 给 width / flex。
  */
 
-/** 配色：default=面板底，plain=页面底，primary=实心强调，ghost=透明底描边，bare=无描边实体小块 */
-export type ButtonVariant = 'default' | 'plain' | 'primary' | 'ghost' | 'bare'
+/** 配色：default=面板底，plain=页面底，primary=强调描边，solid=实心主行动，ghost=透明底描边，bare=无描边实体小块 */
+export type ButtonVariant = 'default' | 'plain' | 'primary' | 'solid' | 'ghost' | 'bare'
 /** 尺寸：xs=面板内紧凑（10px 小字族），sm=面板内动作，md=常规，lg=大号 */
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg'
 

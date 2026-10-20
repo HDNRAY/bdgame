@@ -31,6 +31,11 @@
     --color-bg-hover: #d9d9dd;
     /* 抬升块底色：只读表格表头、行悬停（CompareScreen）。曾被引用却从未定义。 */
     --color-bg-raised: var(--color-bg-alt);
+    /* UI 改版：面板 / 浮起两档表面（面板比页面低一档；浮起回到页面白，靠硬阴影分离） */
+    --color-surface-panel: #f2f2f5;
+    --color-surface-raised: #ffffff;
+    /* 面板内分隔线（非控件，豁免 3:1） */
+    --color-border-subtle: color-mix(in oklab, var(--color-border) 45%, var(--color-bg));
 
     /* Text（弱 / 正文 / 强 相邻 ΔL 均 ≥ 0.10） */
     --color-text: #393947;
@@ -77,6 +82,10 @@
     /* Shadows */
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
+    /* UI 改版：零模糊硬阴影（像素风的高度，不给 blur） */
+    --shadow-raised: 2px 2px 0 rgba(0, 0, 0, 0.14);
+    --shadow-pressed: inset 1px 1px 0 rgba(0, 0, 0, 0.18);
+    --shadow-overlay: 4px 4px 0 rgba(0, 0, 0, 0.18);
 
     /* Tooltip */
     --color-tooltip-bg: color-mix(in oklab, var(--color-bg-panel) 97%, transparent);
@@ -168,6 +177,11 @@
     --color-bg-hover: #18181b;
     /* 抬升块底色：只读表格表头、行悬停（CompareScreen）。曾被引用却从未定义。 */
     --color-bg-raised: var(--color-bg-alt);
+    /* UI 改版：暗色下页面是纯黑，面板必须比页面亮一档才看得出 */
+    --color-surface-panel: #18181b;
+    --color-surface-raised: #242428;
+    /* 面板内分隔线（非控件，豁免 3:1） */
+    --color-border-subtle: color-mix(in oklab, var(--color-border) 55%, var(--color-bg));
 
     /* Text（暗色三档：弱 0.760 → 正文 0.860 → 强 0.940，相邻 ΔL 0.100 / 0.080）
        上一轮按用户口径「--color-text-dim 整体变亮」把弱文字上移一档
@@ -218,6 +232,10 @@
     /* Shadows */
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+    /* UI 改版：零模糊硬阴影（像素风的高度，不给 blur） */
+    --shadow-raised: 2px 2px 0 rgba(0, 0, 0, 0.6);
+    --shadow-pressed: inset 1px 1px 0 rgba(0, 0, 0, 0.5);
+    --shadow-overlay: 4px 4px 0 rgba(0, 0, 0, 0.65);
 
     /* Tooltip / Entity */
     --color-tooltip-bg: color-mix(in oklab, var(--color-bg-panel) 97%, transparent);

@@ -1,17 +1,25 @@
-/* 首页（模式选择）
-   H5 优先：游戏以网页形式发到手机上玩，首页就是竖屏第一屏。
-   —— 高度用 dvh：移动端地址栏收放时不会裁掉底部；
-   —— 四周留出 env(safe-area-inset-*)：刘海 / 状态栏 / iPhone home indicator；
-   —— 主按钮与底部入口的可点区域不小于 44×44，320px 窄屏不横向溢出。 */
+/* 首页（模式选择）—— 双布局：
+   移动：单列框（眉标 / 标题 / 题记 / 主按钮）。
+   桌面（≥768）：同一块框内两栏，左标题 + 按钮，右题记 + 节点数。
+   框 = surface + 硬阴影 + 对角刻线；页面底加点阵。 */
 .mode-select {
+    --mode-select-gap: clamp(var(--sp-md), 2.5dvh, var(--sp-lg));
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     /* min-height 而非 height：矮屏 / 手机横屏内容放不下时可以滚动，不被裁掉 */
     min-height: 100dvh;
-    gap: clamp(var(--sp-sm), 2.5dvh, var(--sp-lg));
-    background: var(--color-bg);
+    gap: var(--mode-select-gap);
+    background-color: var(--color-bg);
+    /* 点阵底：token 混色，不写死颜色；只做背景，不盖内容 */
+    background-image: radial-gradient(
+        color-mix(in oklab, var(--color-text) 7%, transparent) 1px,
+        transparent 1px
+    );
+    background-size: 16px 16px;
+    background-position: 8px 8px;
     font-family: var(--font-mono);
     /* 安全区：上（刘海 / 状态栏）下（home indicator）左右（横屏遮挡） */
     padding: calc(var(--sp-md) + env(safe-area-inset-top)) calc(var(--sp-md) + env(safe-area-inset-right))
@@ -30,17 +38,59 @@
         z-index: 10;
     }
 
-    /* 标题 + 题记：题记贴在标题下面（8px），整个头部到主按钮的距离
-       沿用改动前「标题下边距 + 页面 gap」的和，题记插进来后按钮位置不动。 */
-    &-head {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--sp-xs);
-        margin-bottom: clamp(var(--sp-md), 3dvh, var(--sp-lg));
+    /* 框：移动单列，桌面两栏 */
+    &-stage {
+        position: relative;
+        width: 100%;
+        max-width: 26rem;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            'kicker'
+            'title'
+            'aside'
+            'buttons';
+        gap: var(--sp-md);
+        padding: var(--sp-xl) var(--sp-lg);
+        box-shadow: var(--shadow-raised);
+        text-align: center;
+
+        /* 对角刻线：像素框的签名，不参与布局 */
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            pointer-events: none;
+        }
+
+        &::before {
+            top: 8px;
+            left: 8px;
+            border-top: 2px solid var(--color-accent);
+            border-left: 2px solid var(--color-accent);
+        }
+
+        &::after {
+            right: 8px;
+            bottom: 8px;
+            border-right: 2px solid var(--color-accent);
+            border-bottom: 2px solid var(--color-accent);
+        }
+    }
+
+    /* 眉标：章序 + 章名（数据来自 story-intros，避免手写漂移） */
+    &-kicker {
+        grid-area: kicker;
+        margin: 0;
+        font-size: var(--font-md);
+        color: var(--color-text-dim);
+        letter-spacing: 3px;
     }
 
     &-title {
+        grid-area: title;
         /* 像素字体（12px 版）：36px = 3×12，正落在原生网格上。
            像素字体不做无级缩放（会发糊），只在断点上整档换字号。 */
         font-family: var(--font-family-base);
@@ -56,27 +106,31 @@
             -1px 1px 0 rgba(0, 0, 0, 0.7),
             1px 1px 0 rgba(0, 0, 0, 0.7),
             3px 3px 0 #1f6361; /* 深青（accent #4ecdc4 压暗） */
-        /* 下边距归零：位置让给 &-head（题记要贴在标题下面） */
-        text-align: center;
-        padding: 0 var(--sp-sm);
-        max-width: 100%;
-        /* 只在空格处换行：「斗炁大会」在 320px 窄屏不会被拆成「斗 / 炁大会」；
-           万一某个词长到一行放不下，再由 overflow-wrap 兜底断行 */
+        margin: 0;
+        line-height: 1.15;
         word-break: keep-all;
         overflow-wrap: anywhere;
     }
 
-    /* 首页题记：一句话交代「获得要付代价」。
-       12px 走像素字体网格；--color-text-dim 亮 6.90 / 暗 ≥9.7，过正文 4.5 门槛。 */
+    /* 题记：移动端在标题下；桌面端整块移到右栏 */
+    &-aside {
+        grid-area: aside;
+        margin: 0;
+        text-align: center;
+    }
+
+    &-aside-label,
+    &-aside-foot {
+        display: none;
+    }
+
     &-epigraph {
+        margin: 0;
         font-family: var(--font-family-base);
         font-size: var(--font-md);
         line-height: 1.9;
         color: var(--color-text-dim);
-        text-align: center;
-        margin: 0;
         padding: 0 var(--sp-sm);
-        max-width: 100%;
 
         /* 两段各自不换行：宽屏并成一行，窄屏只在破折号处断成两行，
            不会把「赌博」「其代价」拆开。 */
@@ -86,66 +140,111 @@
     }
 
     &-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: var(--sp-sm);
+        grid-area: buttons;
         width: 100%;
         max-width: 16.25rem;
+        margin: 0 auto;
     }
 
-    /* 基础七件套（描边 / 圆角 / 面板底 / 字体 / 过渡）已迁到共用 Button 组件
-       （variant=default；主入口 size=lg、底部入口 size=md）。这里只留布局残差，
-       以及本页的描边高亮口径：悬停 / 按下用 accent，而不是 Button 的 border-hover。 */
-    &-btn {
-        text-align: center;
-
-        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈，两者同款高亮 */
-        /* 触屏没有 hover：桌面走 hover、触屏走按下反馈。按下铺满 accent 并把文字翻成页面底色
-           （背景与描边同色，不翻文字就看不见了）。 */
-        @media (hover: hover) {
-            &:hover {
-                border-color: var(--color-accent);
-            }
-        }
+    /* 主按钮：实心 accent + 硬阴影，按下 1px 下沉 */
+    &-cta {
+        width: 100%;
+        min-height: max(44px, 3.5rem);
+        box-shadow: var(--shadow-raised);
 
         &:active {
-            background: var(--color-accent);
-            border-color: var(--color-accent);
-            color: var(--color-on-accent);
+            transform: translate(1px, 1px);
+            box-shadow: var(--shadow-pressed);
+        }
+    }
+
+    /* ── 桌面：两栏 ──
+       768 起进入两栏（平板收窄），1024 起放宽框宽。 */
+    @media (min-width: 768px) {
+        &-stage {
+            max-width: 46rem;
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+            grid-template-areas:
+                'kicker aside'
+                'title aside'
+                'buttons aside';
+            gap: var(--sp-md) var(--sp-xl);
+            padding: var(--sp-2xl) var(--sp-xl);
+            text-align: left;
         }
 
-        &-main {
-            /* 竖屏第一屏的主角：内边距随视口高度收缩，高度不写死 px
-               （字号 --font-lg 由 Button 的 lg 档给，24px = 2×12，落在像素字体网格上） */
+        &-kicker {
+            align-self: end;
+        }
+
+        &-title {
+            letter-spacing: 4px;
+        }
+
+        &-aside {
             display: flex;
             flex-direction: column;
             justify-content: center;
+            gap: var(--sp-sm);
+            padding-left: var(--sp-xl);
+            border-left: 1px solid var(--color-border-subtle);
+            text-align: left;
+        }
+
+        &-aside-label {
+            display: block;
+            margin: 0;
+            font-size: var(--font-md);
+            color: var(--color-text-dim);
+            letter-spacing: 3px;
+        }
+
+        &-aside-foot {
+            display: flex;
+            flex-direction: column;
             gap: var(--sp-xxs);
-            align-items: center;
-            min-height: max(44px, 3.5rem);
-            padding: clamp(var(--sp-md), 3.5dvh, var(--sp-lg)) var(--sp-md);
+            margin-top: var(--sp-md);
+            font-size: var(--font-md);
+            color: var(--color-text-dim);
+        }
+
+        &-epigraph {
+            padding: 0;
+            text-align: left;
+        }
+
+        &-buttons {
+            margin: 0;
         }
     }
 
-    /* &-footer 与 &-btn-sm 已删：首页底部那排入口（图鉴 / 玩法 / 设置 / 关于）
-       搬到了常驻底栏（src/ui/components/layouts/BottomBar/），触摸目标也随它走。 */
+    @media (min-width: 1024px) {
+        &-stage {
+            max-width: 65rem;
+            padding: var(--sp-2xl) var(--sp-xl);
+        }
+    }
 
     /* 矮屏 / 手机横屏（高度 ≤ 500px）：整体收紧，保证第一屏放得下 */
     @media (max-height: 500px) {
         gap: var(--sp-xs);
-        &-head {
-            margin-bottom: var(--sp-md);
+
+        &-stage {
+            gap: var(--sp-xs);
+            padding: var(--sp-lg) var(--sp-md);
         }
+
         &-title {
             font-size: var(--font-xxl); /* 24px，仍是 12 的整数倍 */
             letter-spacing: 4px;
         }
+
+        &-kicker {
+            display: none;
+        }
+
         &-buttons {
             max-width: 13.75rem;
-            gap: var(--sp-xs);
-        }
-        &-btn-main {
-            padding: var(--sp-xs) var(--sp-md);
         }
     }
 
@@ -154,6 +253,10 @@
         &-title {
             font-size: var(--font-xl);
             letter-spacing: 4px;
+        }
+
+        &-stage {
+            padding: var(--sp-lg) var(--sp-md);
         }
     }
 }

@@ -1238,7 +1238,7 @@ CI 接法：
 **用途**：新加语义色 / 底 / 描边时，先在这张表里找角色；找不到角色再新增，新增后回填本表。
 两套主题必须同时给值，并过 I1 / I6（对比度 / 可分性）。
 
-35 个 token（另有 54 条 `--tag-color-*`，见第 7 节）。`--color-desc` 已在「弱文字 token 整体调亮」一轮里删除（弱文字本来就共享一个 token，不需要角色 token）：
+41 个 token（另有 54 条 `--tag-color-*`，见第 7 节）。`--color-desc` 已在「弱文字 token 整体调亮」一轮里删除（弱文字本来就共享一个 token，不需要角色 token）：
 
 | token | 角色 | 亮 | 暗 | 引用文件数 | 代表调用点 |
 | --- | --- | --- | --- | --- | --- |
@@ -1247,6 +1247,9 @@ CI 接法：
 | `--color-bg-panel` | 面 2：面板 / 输入 / tooltip 底 | `#e5e5e9` | `#09090b` | 21 | ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss, ui/components/CharacterPanel/RewardPicker.scss, ui/components/ControlsBar/ControlsBar.scss |
 | `--color-bg-hover` | 面 3：悬停底 | `#d9d9dd` | `#18181b` | 14 | ui/components/BattlePanel/BattlePanel.scss, ui/components/CharacterPanel/CharacterPanel.scss, ui/components/CharacterPanel/RewardPicker.scss, ui/components/LogPanel/LogPanel.scss |
 | `--color-bg-raised` | 抬升块（只读表格表头、行悬停） | `#f2f2f5` | `#010102` | 1 | ui/components/layouts/CompareScreen/CompareScreen.scss |
+| `--color-surface-panel` | UI 改版：面板 / 侧栏 / 首页框（比页面低一档） | `#f2f2f5` | `#18181b` | 2 | ui/components/ui/Panel/Panel.scss, ui/screens/ModeSelect/ModeSelect.scss |
+| `--color-surface-raised` | UI 改版：浮起卡片 / 弹层 | `#ffffff` | `#242428` | 1 | ui/components/ui/Panel/Panel.scss |
+| `--color-border-subtle` | UI 改版：面板内分隔线（非控件，豁免 3:1） | `color-mix(border 45%, bg)` | `color-mix(border 55%, bg)` | 1 | ui/screens/ModeSelect/ModeSelect.scss |
 | `--color-text` | 正文 | `#393947` | `#cecfe3`（暗色本轮由 `#afafc1` 上移一档，见「追加改动：正文 token 再亮一档」） | 32 | App.tsx, index.css, ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss |
 | `--color-text-h` | 标题 | `#1b1b2b` | `#e8e9ff` | 18 | index.css, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss |
 | `--color-text-dim` | 弱文字 | `#595966` | `#afafc1`（用户口径「整体变亮」，见「追加改动：弱文字 token 整体调亮」；上一轮曾与 `--color-text` 同值，本轮正文上移后层级恢复） | 32 | ui/components/BattlePanel/BattlePanel.scss, ui/components/BattleStatsPanel/BattleStatsPanel.scss, ui/components/BattleStatusPanel/BattleStatusPanel.scss, ui/components/CharacterPanel/CharacterPanel.scss |
@@ -1274,6 +1277,9 @@ CI 接法：
 | `--color-overlay` | 遮罩 | `rgba(0, 0, 0, 0.35)` | `rgba(0, 0, 0, 0.6)` | 3 | ui/components/tournament/tournament.scss, ui/screens/ModeSelect/GameplayModal.scss, ui/screens/RogueliteScreen/RogueliteScreen.scss |
 | `--shadow-md` | 中阴影 | `0 4px 12px rgba(0, 0, 0, 0.1)` | `0 4px 12px rgba(0, 0, 0, 0.5)` | 2 | ui/components/CharacterPanel/CharacterPanel.scss, ui/components/ui/Tooltip/Tooltip.scss |
 | `--shadow-lg` | 大阴影 | `0 8px 32px rgba(0, 0, 0, 0.15)` | `0 8px 32px rgba(0, 0, 0, 0.7)` | 2 | ui/components/tournament/tournament.scss, ui/screens/ModeSelect/GameplayModal.scss |
+| `--shadow-raised` | UI 改版：浮起硬阴影（0 模糊） | `2px 2px 0 rgba(0, 0, 0, 0.14)` | `2px 2px 0 rgba(0, 0, 0, 0.6)` | 2 | ui/components/ui/Panel/Panel.scss, ui/screens/ModeSelect/ModeSelect.scss |
+| `--shadow-pressed` | UI 改版：按下内阴影（0 模糊） | `inset 1px 1px 0 rgba(0, 0, 0, 0.18)` | `inset 1px 1px 0 rgba(0, 0, 0, 0.5)` | 1 | ui/screens/ModeSelect/ModeSelect.scss |
+| `--shadow-overlay` | UI 改版：弹层硬阴影（0 模糊） | `4px 4px 0 rgba(0, 0, 0, 0.18)` | `4px 4px 0 rgba(0, 0, 0, 0.65)` | 0 | 预留 |
 | `--color-tooltip-bg` | tooltip 底（panel 97% 透明） | ``color-mix(accent 50%, transparent)`` | `undefined` | 2 | ui/components/ui/Tooltip/Tooltip.scss, ui/screens/EncyclopediaScreen/EncyclopediaScreen.scss |
 | `--scrollbar-thumb` | 滚动条滑块（= border-hover） | `#7a7a84` | `#626375` | 2 | ui/components/LogPanel/LogPanel.scss, ui/screens/EncyclopediaScreen/EncyclopediaScreen.scss |
 | `--scrollbar-track` | 滚动条槽（透明） | `transparent` | `transparent` | 1 | ui/components/LogPanel/LogPanel.scss |
@@ -1281,6 +1287,7 @@ CI 接法：
 **分层**（对应 3.1）：
 
 - **中性阶梯**：`bg → bg-alt → bg-panel → bg-hover`（面 0~3，严格单调、相邻 ΔL ∈ [0.035, 0.075]）；描边 `border`（弱，豁免 3:1）/ `border-hover`（强，≥3:1）/ `pressed`（按下填充）；文字 `text-dim → text → text-h`（暗色三档 0.760 / **0.860** / 0.940 —— 用户先后两轮「`--color-text-dim` 整体变亮」+「`--color-text` 也调亮点」，见两节「追加改动」；亮色仍是 0.469 / 0.350 / 0.230）；反色 `on-accent`。
+- **UI 改版新增的表面角色**：`surface-panel`（面板/侧栏/首页框，亮 `#f2f2f5` / 暗 `#18181b`）与 `surface-raised`（浮起卡片/弹层，亮 `#ffffff` / 暗 `#242428`）。它们与 `bg-alt` / `bg-panel` 的旧“面”角色并存：**新组件优先用 surface-*，旧代码不强制迁移**。`border-subtle` 只做面板内分隔，不承载控件边界；硬阴影 `shadow-raised / pressed / overlay` 全部 0 模糊，亮暗各一套。
 - **语义强调色（8）**：`accent` / `success` / `danger` / `warning` / `gold` / `ap` / `qi` / `p2`，色相共用、两套主题各自定值；其余 token 都是它们的别名或 `color-mix` 派生。
 - **别名与派生**：`p1 = accent`、`scrollbar-thumb = border-hover`、`tooltip-bg = color-mix(bg-panel 97%, transparent)`、`*-bg` / `*-border` 由语义色 `color-mix` 派生。**别名不算新角色**，别在调用点重复造。
 - **画布层**：canvas / PixiJS 读不到 CSS 变量，那边用 `src/ui/canvas/battle-colors.ts` 的 `UI_COLOR_MIRROR`（有漂移测试盯着），需要真实色值时调 `resolveUiColor()`。

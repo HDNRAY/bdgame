@@ -27,13 +27,13 @@
 
 ## 设计系统
 
-### Surface 阶梯（新增三个角色 token）
+### Surface 阶梯（两个表面角色 + 一条细分隔线）
 
 | 角色 | 亮 | 暗 | 用途 |
 | --- | --- | --- | --- |
-| `--surface-0` | `#ffffff` | `#000000` | 页面底 |
-| `--surface-1` | `#f2f2f5` | `#0b0b0e` | 面板 / 侧栏 |
-| `--surface-2` | `#ffffff` | `#18181b` | 浮起：卡片、弹层、焦点区 |
+| `--color-surface-panel` | `#f2f2f5` | `#18181b` | 面板 / 侧栏 / 首页框 |
+| `--color-surface-raised` | `#ffffff` | `#242428` | 浮起：卡片、弹层、焦点区 |
+| `--color-border-subtle` | `color-mix(border 45%, bg)` | `color-mix(border 55%, bg)` | 面板内分隔线（非控件） |
 
 - 面板默认**不描边**：用 surface + 硬阴影 + 间距分隔。
 - 边框只保留给可交互控件（按钮、输入、标签页）；分隔线用 `--border-subtle`（低对比）。
