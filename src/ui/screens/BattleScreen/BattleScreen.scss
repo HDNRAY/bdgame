@@ -14,6 +14,35 @@
     }
 }
 
+/* 窄屏：两侧栏由 FAB 覆盖层承担；中心列能缩 */
+@media (max-width: 900px) {
+    .battle-screen-root .battle-screen-header {
+        gap: var(--sp-xs);
+        padding: var(--sp-xs) var(--sp-sm);
+    }
+
+    .battle-screen-root .bs-body.narrow {
+        padding: var(--sp-xs);
+    }
+}
+
+/* 小屏顶栏：标题降到正文，按钮不换行；名字再长就省略，不撑破头栏 */
+@media (max-width: 600px) {
+    .battle-screen-root .battle-screen-header .bs-header-btn {
+        font-size: var(--font-md);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .battle-screen-root .battle-screen-header .bs-header-title {
+        font-size: var(--font-md);
+        line-height: 1.5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
 .battle-screen-header {
     display: flex;
     align-items: center;

@@ -18,6 +18,17 @@
     gap: var(--sp-sm);
 }
 
+/* 窄屏（BattleScreen 在 ≤900 收起两侧栏）：中心列必须能缩，否则 320 下整块被裁 */
+@media (max-width: 900px) {
+    .battle-panel-root {
+        gap: var(--sp-sm);
+    }
+
+    .bp-center {
+        min-width: 0;
+    }
+}
+
 .bp-bottom-tabs {
     display: flex;
     gap: 2px;
