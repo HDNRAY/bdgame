@@ -72,6 +72,7 @@
     }
 
     &-body {
+        position: relative;
         flex: 1;
         display: flex;
         overflow: hidden;
@@ -151,6 +152,36 @@
         &.rs-build {
             flex: 0 0 50%;
             z-index: 2;
+        }
+    }
+
+    /* 桌面端「备战」是抽屉：展开时盖住左侧，不参与 flex 挤压。
+       侧栏原位留一列同宽占位（和 view 模式一致），左侧回合宽度完全不变；
+       抽屉本身绝对定位在右侧 50%，盖在遮罩之上。 */
+    @media (min-width: 769px) {
+        .rs-sidebar.rs-build {
+            flex: 0 0 var(--sidebar-width);
+            min-width: var(--sidebar-width);
+            border-left: none;
+            overflow: visible;
+        }
+
+        .rs-sidebar.rs-build .rs-panel-wrapper {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 50%;
+            z-index: 2;
+            overflow-y: auto;
+            background: var(--color-bg);
+            border-left: var(--border-width) solid var(--color-border);
+        }
+
+        .rs-sidebar.rs-build .character-panel {
+            height: auto;
+            min-height: 100%;
+            overflow: visible;
         }
     }
 
