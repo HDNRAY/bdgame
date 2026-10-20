@@ -946,17 +946,19 @@
 .cp-view .cp-body {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: stretch;
     column-gap: var(--sp-md);
     row-gap: 0;
 }
 
 .cp-view .cp-col-left {
     flex: 2 1 15rem;
+    min-width: 15rem;
 }
 
 .cp-view .cp-col-right {
     flex: 3 1 11.25rem;
+    min-width: 11.25rem;
 }
 
 .cp-view .cp-col-left,
