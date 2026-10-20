@@ -363,15 +363,14 @@
         /* 操作条在侧栏里改成页首静态工具条，不再固定在底部盖住最后一行 */
         padding-bottom: 0;
 
+        /* 操作条在侧栏里吸顶：内容滚动时按钮不跟着走 */
         .cp-header {
-            position: static;
-            left: auto;
-            right: auto;
-            bottom: auto;
-            z-index: auto;
+            position: sticky;
+            top: 0;
+            z-index: 5;
             margin: 0 0 var(--sp-md);
-            padding: 0 0 var(--sp-sm);
-            background: transparent;
+            padding: var(--sp-sm) 0;
+            background: var(--color-bg);
             border-top: none;
             border-bottom: var(--border-width) solid var(--color-border-subtle);
             transform: none;
