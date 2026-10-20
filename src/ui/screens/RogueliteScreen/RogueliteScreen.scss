@@ -259,7 +259,23 @@
                 .cp-info-row {
                     font-size: var(--font-xs);
                     font-family: var(--font-family-small);
+                    white-space: nowrap;
                 }
+            }
+            /* 紧凑摘要里名字回到正文档，别让 24px 的名字在窄栏里一个字一行 */
+            .cp-info-name {
+                font-size: var(--font-md);
+                font-family: var(--font-family-base);
+                white-space: nowrap;
+            }
+            .cp-info-left {
+                min-width: 0;
+            }
+            .cp-info-right {
+                flex: 0 0 4.5rem;
+            }
+            .entity-item {
+                white-space: nowrap;
             }
         }
         .cp-col-right {
@@ -284,6 +300,10 @@
                     font-size: var(--font-xxs);
                     font-family: var(--font-family-small);
                 }
+
+                .cp-section-label::before {
+                    display: none;
+                }
             }
             // 隐藏属性进度条
             .attr-label-full-bar {
@@ -291,6 +311,14 @@
             }
             .attr-label-full-name {
                 width: auto;
+            }
+            /* 紧凑摘要里的数值回到正文档（12），不是构筑页的 24 */
+            .attr-label-full-val {
+                width: auto;
+                min-width: 1.25rem;
+                font-size: var(--font-md);
+                font-weight: 600;
+                color: var(--color-text);
             }
         }
     }
