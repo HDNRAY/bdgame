@@ -127,3 +127,15 @@
         background: var(--color-qi);
     }
 }
+
+/* 小屏：名字 + 距离回落一档（10 族 2× = 20px，仍在像素网格上），长名字也摆得下 */
+@media (max-width: 600px) {
+    .battle-status-panel .title {
+        font-family: var(--font-family-10);
+        font-size: var(--font-lg-10);
+        line-height: 1.5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
